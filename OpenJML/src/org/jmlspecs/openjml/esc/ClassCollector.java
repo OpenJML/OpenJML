@@ -10,6 +10,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTreeScanner;
+import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
@@ -33,6 +34,7 @@ class ClassCollector extends JmlTreeScanner {
     /** Static method that is the entry point to the functionality the collector */
     public static /*@ non_null pure */ ClassCollector collect(/*@ non_null */JmlClassDecl cd, /*@ nullable */JmlMethodDecl md) {
         ClassCollector collector = new ClassCollector();
+        if (md.toString().contains("validateNotSet")) Utils.stop();
         collector.useBV = false;
         collector.doMethods = false;
         collector.scan(cd);
@@ -115,6 +117,14 @@ class ClassCollector extends JmlTreeScanner {
         if (op == JCTree.Tag.BITAND || op == JCTree.Tag.BITAND_ASG || op == JCTree.Tag.BITOR || op == JCTree.Tag.BITOR_ASG || op == JCTree.Tag.BITXOR || op == JCTree.Tag.BITXOR_ASG  
             || op == JCTree.Tag.SL || op == JCTree.Tag.SL_ASG || op == JCTree.Tag.SR || op == JCTree.Tag.SR_ASG || op == JCTree.Tag.USR || op == JCTree.Tag.USR_ASG    ) useBV = true;  // FIXME - shaft operators also?
         super.visitBinary(tree);
+    }
+    
+    @Override
+    public void visitAssignop(JCTree.JCAssignOp tree) {
+        JCTree.Tag op = tree.getTag();
+        if (op == JCTree.Tag.BITAND_ASG ||  op == JCTree.Tag.BITOR_ASG  || op == JCTree.Tag.BITXOR_ASG  
+            || op == JCTree.Tag.SL_ASG || op == JCTree.Tag.SR_ASG || op == JCTree.Tag.USR_ASG    ) useBV = true;
+        super.visitAssignop(tree);
     }
     
     @Override
