@@ -5004,7 +5004,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!pureCopy) {
             int p = that.pos;
             if (retValue != null) { // Checks for empty returns
-                retValue = addImplicitConversion(that,resultExpr.type,retValue);
+                retValue = addImplicitConversion(that,resultSym.type,retValue);
                 JCIdent resultid = treeutils.makeIdent(p,resultSym);
                 JCStatement stat = treeutils.makeAssignStat(p,resultid,retValue);
                 addStat(stat);
@@ -6187,7 +6187,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else if (meth instanceof JCFieldAccess) {
                 JCFieldAccess fa = (JCFieldAccess)meth;
                 receiverType = fa.selected.type;
-                newTypeVarMapping = typevarMapping = typemapping(receiverType, fa.sym, null);
+                newTypeVarMapping = typevarMapping = typemapping(receiverType, fa.sym, null, (Type.MethodType)meth.type);
                 JCExpression convertedReceiver = convertExpr(fa.selected);
                 //if (isFunctional(convertedReceiver.type)) 
                 xx: {
@@ -9794,7 +9794,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = eresult = (translatingJML || !var || convertingAssignable) ? fa : newTemp(fa);
             if (oldenv != null) {
                 result = eresult = treeutils.makeOld(that.pos,eresult,oldenv); // FIXME - will make overly nested \old expressions
-                if (oldenv == preLabel && inOldEnv) { // FIXME - should do this for all labels; also don't want to repeat if already present
+                if (oldenv.name == names.empty && inOldEnv) { // FIXME - should do this for all labels; also don't want to repeat if already present
                     JCExpression savedThisExpression = currentThisExpr;
                     try {
                         currentThisExpr = selected;
@@ -13781,6 +13781,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
         }
+        if (sym != null && methodType != null && sym.type instanceof Type.MethodType) {
+            // Match arguments of sym.type to methodType
+            List<Type> params = sym.type.allparams();
+            List<Type> args = ((Type.MethodType)sym.type).argtypes;
+            List<Type> tt = methodType.getParameterTypes();
+            List<Type> ttt = methodType.argtypes;
+            for (Type t: args) {
+                Type value = tt.head;
+                if (t instanceof Type.TypeVar) vars.put(t.tsym, value); // FIXME: Need to iterate into nested type parameters
+                tt = tt.tail;
+            }
+        }
         return vars;
     }
 
@@ -13922,7 +13934,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         Name newMethodName = names.fromString(utils.qualifiedName(msym).replace('.', '_') + "_" + pos);
         addStat(comment(callLocation,"Axioms for method " + utils.qualifiedMethodSig(msym),null));
-        
+        if (msym.toString().contains("canonical")) Utils.stop();
         JCExpression combinedPre = null;
         JCExpression falses = null;
 
@@ -14003,7 +14015,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 JavaFileObject clauseSource = log.currentSourceFile();
                 DiagnosticPosition dpos = callLocation;
-                JCExpression e = M.at(dpos).TypeTest(call,M.Type(msym.getReturnType()));
+                //JCExpression e = M.at(dpos).TypeTest(call,M.Type(msym.getReturnType())).setType(syms.booleanType);
+                JCExpression e = treeutils.makeInstanceOf(dpos.getPreferredPosition(), call, M.Type(msym.getReturnType()));
                 e = treeutils.makeOr(dpos.getPreferredPosition(),treeutils.makeEqNull(dpos.getPreferredPosition(), call), e);
                 if (newDeclsList.isEmpty()) {
                     // e is just e;

@@ -299,6 +299,7 @@ public class esc extends EscBase {
 	public void testForEach2a() {
 		Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
 		main.addOptions("-method=m4","-checkFeasibility=all","escMaxWarnings=1");
+		main.addOptions("-show");
 		helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
 				+ "public class TestJava { \n"
 				+ "  //@ public normal_behavior  ensures true;\n" 
@@ -3260,9 +3261,12 @@ public class esc extends EscBase {
 	@Test
 	public void testTypes3() {
 		helpTCX("tt.TestJava",
-				"package tt; import org.jmlspecs.lang.JML; \n" + "public class TestJava { \n"
+				"package tt; import org.jmlspecs.lang.JML; \n" 
+				        + "public class TestJava { \n"
 						+ "  public void m1(/*@non_null*/Object o) {\n"
-						+ "    //@ assert JML.erasure(\\typeof(o)) == o.getClass();\n" + "  }\n" + "}");
+						+ "    //@ assert JML.erasure(\\typeof(o)) == o.getClass();\n" 
+						+ "  }\n" 
+						+ "}");
 	}
 
 	@Test
