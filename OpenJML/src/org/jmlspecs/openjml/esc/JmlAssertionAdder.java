@@ -7951,9 +7951,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ListBuffer<JCExpression> dims = new ListBuffer<JCExpression>();
         for (JCExpression dim: that.dims) {
             JCExpression ex = convertExpr(dim);
+            // FIXME - is there a range check on BigInteger converting down to int
+            ex = addImplicitConversion(ex.pos(), syms.intType, ex);
             dims.add(ex);
             if (!pureCopy && ex != null) {
-                JCBinary comp = treeutils.makeBinary(that.pos, JCTree.Tag.LE, treeutils.intleSymbol, treeutils.zero, ex);
+                JCExpression comp = treeutils.makeBinary(that.pos, JCTree.Tag.LE, treeutils.intleSymbol, treeutils.zero, ex);
                 addAssert(that,
                         translatingJML ? Label.UNDEFINED_NEGATIVESIZE : Label.POSSIBLY_NEGATIVESIZE, 
                         comp);

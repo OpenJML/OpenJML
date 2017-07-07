@@ -996,7 +996,6 @@ public class SMTTranslator extends JmlTreeScanner {
     // FIXME - the treatment of wildcards is a hack - need to understand the variety of wildcard types better
     /** Returns an SMT IExpr representing the given JML type */
     public IExpr jmlTypeSymbol(Type t) {
-        if (t.toString().contains("captur")) Utils.stop();
         t = t.unannotatedType();
         if (t.getTag() == TypeTag.BOT) t = syms.objectType;
         if (t.getTag() == TypeTag.ARRAY) {
