@@ -8834,7 +8834,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean shift = optag == JCTree.Tag.SL || optag == JCTree.Tag.SR || optag == JCTree.Tag.USR;
         boolean arith = optag == JCTree.Tag.PLUS || optag == JCTree.Tag.MINUS || optag == JCTree.Tag.MUL || optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD;
         boolean bit = optag == JCTree.Tag.BITAND || optag == JCTree.Tag.BITOR || optag == JCTree.Tag.BITXOR;
-        if (optag == JCTree.Tag.NE && that.toString().contains("bxx")) Utils.stop();
+        if (that.toString().contains("b + bb == zero")) Utils.stop();
 
         if (pureCopy) {
             JCExpression lhs = convertExpr(that.getLeftOperand());
@@ -8971,7 +8971,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 eresult.pos = that.getStartPosition();
                 treeutils.copyEndPosition(eresult, that);
                 return;
-            } else if (equality && (maxJmlType == jmltypes.BIGINT || maxJmlType.tsym == jmltypes.repSym(jmltypes.BIGINT))) {
+            } else if (equality && jmltypes.isJmlTypeOrRep(maxJmlType, jmltypes.BIGINT)) {
                 lhs = addImplicitConversion(lhs,maxJmlType,lhs);
                 rhs = addImplicitConversion(rhs,maxJmlType,rhs);
                 if (rac ) { // FIXME && !that.lhs.type.isPrimitive() && !that.rhs.type.isPrimitive()) {
@@ -8979,6 +8979,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else {
                     lhs = treeutils.makeBinary(that.pos, optag, lhs, rhs);
                 }
+                result = eresult = lhs;
+                eresult.pos = that.getStartPosition();
+                treeutils.copyEndPosition(eresult, that);
+                return;
+            } else if (equality && jmltypes.isJmlTypeOrRep(maxJmlType, jmltypes.REAL)) {
+                lhs = addImplicitConversion(lhs,maxJmlType,lhs);
+                rhs = addImplicitConversion(rhs,maxJmlType,rhs);
+                if (rac) lhs = treeutils.makeUtilsMethodCall(that.pos,"real_eq",lhs,rhs);
+                else lhs = treeutils.makeBinary(that.pos, JCTree.Tag.EQ, lhs, rhs);
+                if (optag == JCTree.Tag.NE) lhs = treeutils.makeNot(that.pos, lhs);
                 result = eresult = lhs;
                 eresult.pos = that.getStartPosition();
                 treeutils.copyEndPosition(eresult, that);
@@ -8996,18 +9006,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 eresult.pos = that.getStartPosition();
                 treeutils.copyEndPosition(eresult, that);
                 return;
-            } else if (equality && maxJmlType == jmltypes.REAL) {
-                lhs = addImplicitConversion(lhs,maxJmlType,lhs);
-                rhs = addImplicitConversion(rhs,maxJmlType,rhs);
-                if (rac) lhs = treeutils.makeUtilsMethodCall(that.pos,"real_eq",lhs,rhs);
-                else lhs = treeutils.makeBinary(that.pos, JCTree.Tag.EQ, lhs, rhs);
-                if (optag == JCTree.Tag.NE) lhs = treeutils.makeNot(that.pos, lhs);
-                result = eresult = lhs;
-                eresult.pos = that.getStartPosition();
-                treeutils.copyEndPosition(eresult, that);
-                return;
-//            } else if (equality && !lhsIsPrim && !rhsIsPrim) {
-//             
             } else if (equality && (lhs instanceof JCLambda || rhs instanceof JCLambda)) {
                 if (lhs instanceof JCLambda && treeutils.isNullLit(rhs)) {
                         result = eresult = treeutils.makeBooleanLiteral(that.pos, optag == JCTree.Tag.NE);
@@ -9154,6 +9152,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     case LE: fcn = "le"; break;
                     case GT: fcn = "gt"; break;
                     case GE: fcn = "ge"; break;
+                    case EQ: fcn = "eq"; break;
+                    case NE: fcn = "ne"; break;
                     // FIXME - need shift types
                     default: {
                         String msg = "Unexpected operation tag in JmlAssertionAdder.makeBin: " + tag + " " + JmlPretty.write(that);
