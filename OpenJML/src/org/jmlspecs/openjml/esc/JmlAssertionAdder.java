@@ -8834,6 +8834,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean shift = optag == JCTree.Tag.SL || optag == JCTree.Tag.SR || optag == JCTree.Tag.USR;
         boolean arith = optag == JCTree.Tag.PLUS || optag == JCTree.Tag.MINUS || optag == JCTree.Tag.MUL || optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD;
         boolean bit = optag == JCTree.Tag.BITAND || optag == JCTree.Tag.BITOR || optag == JCTree.Tag.BITXOR;
+        if (optag == JCTree.Tag.NE && that.toString().contains("bxx")) Utils.stop();
 
         if (pureCopy) {
             JCExpression lhs = convertExpr(that.getLeftOperand());
@@ -8943,6 +8944,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else if (translatingJML) {
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
+            if (equality && !that.lhs.type.isPrimitive() && !that.rhs.type.isPrimitive()) {
+                // This is a pure object comparison - no unboxing
+                if (optag == JCTree.Tag.EQ) result = eresult = treeutils.makeEqObject(that.pos, lhs, rhs);
+                else                        result = eresult = treeutils.makeNeqObject(that.pos, lhs, rhs);
+                if (splitExpressions) result = eresult = newTemp(eresult);
+                return;
+            }
             
             Type maxJmlType = lhs.type;
             boolean lhsIsPrim = lhs.type.isPrimitive() && lhs.type.getTag() != TypeTag.BOT;
@@ -9788,19 +9796,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = eresult = (translatingJML || !var || convertingAssignable) ? fa : newTemp(fa);
             if (oldenv != null) {
                 result = eresult = treeutils.makeOld(that.pos,eresult,oldenv); // FIXME - will make overly nested \old expressions
-                if (oldenv.name == names.empty && inOldEnv) { // FIXME - should do this for all labels; also don't want to repeat if already present
-                    JCExpression savedThisExpression = currentThisExpr;
-                    try {
-                        currentThisExpr = selected;
-                        pushBlock();
-                        addNullnessAllocationTypeCondition(that, that.sym, false);
-                        JCBlock bl = popBlock(0L,that);
-                        // append to oldblock list
-                        oldBlock.stats = oldBlock.stats.appendList(bl.stats);
-                    } finally {
-                        currentThisExpr = savedThisExpression;
-                    }
-                }
+//                if (oldenv.name == names.empty && inOldEnv) { // FIXME - should do this for all labels; also don't want to repeat if already present
+//                    JCExpression savedThisExpression = currentThisExpr;
+//                    try {
+//                        currentThisExpr = selected;
+//                        pushBlock();
+//                        addNullnessAllocationTypeCondition(that, that.sym, false);
+//                        JCBlock bl = popBlock(0L,that);
+//                        // append to oldblock list
+//                        oldBlock.stats = oldBlock.stats.appendList(bl.stats);
+//                    } finally {
+//                        currentThisExpr = savedThisExpression;
+//                    }
+//                }
             }
         }
         treeutils.copyEndPosition(result, that);

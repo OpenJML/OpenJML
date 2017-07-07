@@ -17,6 +17,7 @@ java.lang.ArithmeticException: BigInteger divide by zero
 	at org.jmlspecs.utils.Utils.bigint_div(Utils.java:633)
 	at bigint.main(bigint.java:40)
 LABEL BBB = -417
+true
 LABEL TRUE = true
 LABEL TRUE = true
 LABEL TRUE = true
