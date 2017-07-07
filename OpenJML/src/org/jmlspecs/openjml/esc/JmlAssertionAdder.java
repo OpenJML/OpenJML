@@ -8944,13 +8944,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else if (translatingJML) {
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
-            if (equality && !that.lhs.type.isPrimitive() && !that.rhs.type.isPrimitive()) {
-                // This is a pure object comparison - no unboxing
-                if (optag == JCTree.Tag.EQ) result = eresult = treeutils.makeEqObject(that.pos, lhs, rhs);
-                else                        result = eresult = treeutils.makeNeqObject(that.pos, lhs, rhs);
-                if (splitExpressions) result = eresult = newTemp(eresult);
-                return;
-            }
             
             Type maxJmlType = lhs.type;
             boolean lhsIsPrim = lhs.type.isPrimitive() && lhs.type.getTag() != TypeTag.BOT;
@@ -8959,9 +8952,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // The following is only valid for numeric types
             if (lhsIsPrim && rhsIsPrim) maxJmlType = treeutils.maxType(lhs.type, rhs.type);
 
-            // FIXME - check that all the checks in makeBinaryCHecks are here - or somehow reuse that method here
-            // same for unary checks
-            if (equality && maxJmlType == jmltypes.TYPE) {
+            if (equality && jmltypes.isJmlTypeOrRep(maxJmlType,jmltypes.TYPE)) {
                 if (rac) lhs = treeutils.makeUtilsMethodCall(that.pos,"isEqualTo",lhs,rhs);
                 else lhs = treeutils.makeBinary(that.pos, JCTree.Tag.EQ, lhs, rhs);
                 if (optag == JCTree.Tag.NE) lhs = treeutils.makeNot(that.pos, lhs);
@@ -8971,6 +8962,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 eresult.pos = that.getStartPosition();
                 treeutils.copyEndPosition(eresult, that);
                 return;
+            } else if (equality && !that.lhs.type.isPrimitive() && !that.rhs.type.isPrimitive()) {
+                // This is a pure object comparison - no unboxing
+                if (optag == JCTree.Tag.EQ) result = eresult = treeutils.makeEqObject(that.pos, lhs, rhs);
+                else                        result = eresult = treeutils.makeNeqObject(that.pos, lhs, rhs);
+                if (splitExpressions) result = eresult = newTemp(eresult);
+                return;
+
+            // FIXME - check that all the checks in makeBinaryCHecks are here - or somehow reuse that method here
+            // same for unary checks
             } else if (equality && jmltypes.isJmlTypeOrRep(maxJmlType, jmltypes.BIGINT)) {
                 lhs = addImplicitConversion(lhs,maxJmlType,lhs);
                 rhs = addImplicitConversion(rhs,maxJmlType,rhs);
