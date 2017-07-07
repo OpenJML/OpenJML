@@ -4830,38 +4830,44 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         } else {
             cond = addImplicitConversion(cond,syms.booleanType,cond);
+            if (that.type.getTag() == TypeTag.BOT) {
+                // For the rare case in which the conditional is condition ? null : null
+                // so that that.type is <nulltype> and we cannot declare a temporary of that type.
+                result = eresult = convertExpr(that.truepart);
+            } else {
 
-            Name resultname = names.fromString(Strings.conditionalResult + (++count));
-            JCVariableDecl vdecl = treeutils.makeVarDef(that.type, resultname, esc? null : methodDecl.sym, that.pos);
-            addStat(vdecl);
+                Name resultname = names.fromString(Strings.conditionalResult + (++count));
+                JCVariableDecl vdecl = treeutils.makeVarDef(that.type, resultname, esc? null : methodDecl.sym, that.pos);
+                addStat(vdecl);
 
-            ListBuffer<JCStatement> checkA = pushBlock();
-            if (that.truepart.toString().startsWith("(string.indexOf(',') >= 0 ||")) Utils.stop();
-            JCBlock trueblock = null;
-            try {
-                JCExpression tres = convertExpr(that.truepart);
-                tres = addImplicitConversion(that.truepart,that.type,tres);
-                JCIdent id = treeutils.makeIdent(that.truepart.pos, vdecl.sym);
-                addStat( treeutils.makeAssignStat(that.truepart.pos, id, tres));
-            } finally {
-                trueblock = popBlock(0,that.truepart,checkA);
+                ListBuffer<JCStatement> checkA = pushBlock();
+                if (that.truepart.toString().startsWith("(string.indexOf(',') >= 0 ||")) Utils.stop();
+                JCBlock trueblock = null;
+                try {
+                    JCExpression tres = convertExpr(that.truepart);
+                    tres = addImplicitConversion(that.truepart,that.type,tres);
+                    JCIdent id = treeutils.makeIdent(that.truepart.pos, vdecl.sym);
+                    addStat( treeutils.makeAssignStat(that.truepart.pos, id, tres));
+                } finally {
+                    trueblock = popBlock(0,that.truepart,checkA);
+                }
+
+                checkA = pushBlock();
+                JCBlock falseblock = null;
+                try {
+                    JCExpression fres = convertExpr(that.falsepart);
+                    fres = addImplicitConversion(that.falsepart,that.type,fres);
+                    JCIdent id = treeutils.makeIdent(that.falsepart.pos, vdecl.sym);
+                    addStat( treeutils.makeAssignStat(that.falsepart.pos, id, fres));
+                } finally {
+                    falseblock = popBlock(0,that.falsepart,checkA);
+                }
+
+                JCStatement stat = M.at(that).If(cond, trueblock, falseblock);
+
+                addStat(stat);
+                result = eresult = treeutils.makeIdent(that.pos, vdecl.sym);
             }
-
-            checkA = pushBlock();
-            JCBlock falseblock = null;
-            try {
-                JCExpression fres = convertExpr(that.falsepart);
-                fres = addImplicitConversion(that.falsepart,that.type,fres);
-                JCIdent id = treeutils.makeIdent(that.falsepart.pos, vdecl.sym);
-                addStat( treeutils.makeAssignStat(that.falsepart.pos, id, fres));
-            } finally {
-                falseblock = popBlock(0,that.falsepart,checkA);
-            }
-
-            JCStatement stat = M.at(that).If(cond, trueblock, falseblock);
-
-            addStat(stat);
-            result = eresult = treeutils.makeIdent(that.pos, vdecl.sym);
         }
     }
 
@@ -6747,7 +6753,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // method itself last
             { // FIXME - what do we do with calls in quantifications
                 boolean combinedNoModel = false;
-                if (calleeMethodSym.toString().equals("ToString()")) Utils.stop();
+                //if (calleeMethodSym.toString().equals("ToString()")) Utils.stop();
                 addStat(comment(that, "Checking preconditions of callee " + calleeMethodSym + " by the caller",null));
                 for (Pair<MethodSymbol,Type> pair: overridden) {
                     MethodSymbol mpsym = pair.first;

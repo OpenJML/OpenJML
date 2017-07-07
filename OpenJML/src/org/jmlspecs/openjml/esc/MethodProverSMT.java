@@ -742,8 +742,8 @@ public class MethodProverSMT {
                         ((JmlStatementExpr)bbstat).expression instanceof JCLiteral ?
                                 ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString()
                                 : null;
-                ifstat: if (origStat != null) {
-                    String loc = utils.locationString(origStat.getStartPosition());
+                ifstat: if (origStat != null || stat instanceof JmlStatementExpr){
+                    String loc = origStat == null ? "" :utils.locationString(origStat.getStartPosition());
                     //String comment = ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString();
                     int sp=-2,ep=-2; // The -2 is different from NOPOS and (presumably) any other value that might be generated below
                     int spanType = Span.NORMAL;
@@ -803,7 +803,7 @@ public class MethodProverSMT {
                     } else {
                         toTrace = origStat;
                     }
-                    if (sp == -2) {
+                    if (toTrace != null && sp == -2) {
                         sp = toTrace.getStartPosition();
                         ep = toTrace.getEndPosition(log.currentSource().getEndPosTable());
                         val = cemap.get(toTrace);
@@ -816,8 +816,10 @@ public class MethodProverSMT {
                     } else {
 //                        log.warning(Position.NOPOS,"jml.internal.notsobad","Incomplete position information (" + sp + " " + ep + ") for " + origStat);
                     }
-                    if (comment.startsWith("AssumeCheck assertion")) break ifstat;
-                    tracer.appendln(loc + " \t" + comment);
+                    if (comment != null) {
+                        if (comment.startsWith("AssumeCheck assertion")) break ifstat;
+                        tracer.appendln(loc + " \t" + comment);
+                    }
                     if (toTrace != null && showSubexpressions) tracer.trace(toTrace);
                     String s = ((JmlStatementExpr)bbstat).id;
                     if (toTrace != null && s != null) {

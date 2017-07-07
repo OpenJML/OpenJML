@@ -393,8 +393,20 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	selectedList.clear();
     }
     
+    static Map<String,String> userText = new HashMap<>();
+    {
+    	userText.put("UNSAT", "VALID [UNSAT]");
+    	userText.put("POSSIBLY_SAT", "INVALID [POSSIBLY_SAT]");
+    }
+    
+    static String userText(String n) {
+    	String r = userText.get(n);
+    	return r == null ? n : r;
+    }
+    
     static public void exportProofResults(FileWriter output) {
     	try {
+    		StringBuilder summary = new StringBuilder();
     		String spaces = "                                        "; //$NON-NLS-1$
     		final OpenJMLView view = Utils.findView();
     		Map<String,Integer> counts = new HashMap<String,Integer>();
@@ -403,24 +415,28 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     		TreeSet<String> t = new TreeSet<String>(proofResults.keySet());
     		for (String s: t) {
     			String result = proofResults.get(s).result().toString();
-    			output.append(result + spaces.substring(0,16-result.length()) + s + Strings.eol);
+    			String user = userText(result);
+    			output.append(user + spaces.substring(0,25-user.length()) + s + Strings.eol);
     			Integer i = counts.get(result);
     			if (i == null) i = 1; else i = i + 1;
     			counts.put(result, i);
     		}
     		output.append(Strings.eol);
     		int total = 0;
+    		
     		for (String result: new TreeSet<>(counts.keySet())) {
     			Integer k = counts.get(result);
     			total += k;
     			String number = k.toString();
-    			output.append(number + spaces.substring(0,5-number.length()) + Strings.space + result + Strings.eol);
+    			summary.append(number + spaces.substring(0,5-number.length()) + Strings.space + userText(result) + Strings.eol);
     		}
     		if (t.size() != total) {
     			int diff = t.size()-total;
-    			output.append(diff + "    ?????" + Strings.eol);
+    			summary.append(diff + "    ?????" + Strings.eol);
     		}
-    		output.append(t.size() + spaces.substring(0,5-Integer.toString(counts.size()).length()) + "  TOTAL" + Strings.eol); //$NON-NLS-1$
+    		summary.append(t.size() + spaces.substring(0,5-Integer.toString(counts.size()).length()) + "  TOTAL" + Strings.eol); //$NON-NLS-1$
+    		output.append(summary);
+    	 	Activator.utils().showMessageInUI(null,"Proof results summary",summary.toString());
     	} catch (IOException e) {
     		
     	}
