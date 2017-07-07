@@ -458,6 +458,21 @@ public class escfiles extends EscBase {
     public void testEscShortCircuit() {
         helpTF("escShortCircuit");
     }
+    
+    @Test
+    public void testEscMultipleModel() {
+        helpTF("escMultipleModel");
+    }
+
+    @Test
+    public void testEscMultipleModel2() {
+        helpTF("escMultipleModel2");
+    }
+
+    @Test
+    public void testEscMultipleModel3() {
+        helpTF("escMultipleModel3");
+    }
 
     @Test // FIXME - still has problems with imports in JML files and with checks on field initializers
     public void testEscJml() {

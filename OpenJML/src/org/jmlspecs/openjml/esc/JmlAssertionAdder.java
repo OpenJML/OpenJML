@@ -2743,19 +2743,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     public void addRepresentsAxioms(TypeSymbol clsym, Symbol varsym, JCTree that, JCExpression translatedSelector) {
-        reps.add(0,varsym);
+        reps.add(0,varsym);  // FIXME - as varsym can have different representations in different derived classes
         boolean pv = checkAccessEnabled;
         checkAccessEnabled = false; // Do not check access in JML clauses
-        Type basetype = clsym.type;
+        
+        // The basetype from translatedSelector may be more precise than the static type clsym.type
+        Type basetype = translatedSelector.type;
+        
         // We use classDecl.type here in case we are in a derived class with a represents clause;
         // clsym is the static class of the receiver, which may not have derived represents clauses
+        Type staticBasetype = clsym.type;
         if (classDecl != null) {
-            if (classDecl.type.tsym.isSubClass(clsym,types)) basetype = classDecl.type;
+            if (classDecl.type.tsym.isSubClass(clsym,types)) staticBasetype = classDecl.type;
         }
         try {
             if (rac) {
                 Name mmName = names.fromString(Strings.modelFieldMethodPrefix + varsym.toString());
-                java.util.List<Type> p = parents(basetype, true);
+                java.util.List<Type> p = parents(staticBasetype, true);
                 ListIterator<Type> iter = p.listIterator(p.size());
                 while (iter.hasPrevious()) {
                     JmlSpecs.TypeSpecs tyspecs = specs.getSpecs((ClassSymbol)iter.previous().tsym);
@@ -2773,12 +2777,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         }
                     }
                 }
-//                String optvalue = JmlOption.value(context, JmlOption.MODEL_FIELD_NO_REP);
-//                if ("zero".equals(optvalue)) {
                     result = eresult = treeutils.makeZeroEquivalentLit(that.pos, varsym.type);
-//                } else if ("ignore".equals(optvalue)) {
-//                    throw new NoModelMethod("No represents clause for model field " + varsym);
-//                } else {
                     Env<AttrContext> env = JmlEnter.instance(context).getEnv(clsym);
                     // We don't warn if the problem is that we just have a binary class and consequently no implementations of model fields
                     // FIXME - need some tests for these options - not sure the binary ones have any effect here???
@@ -2834,6 +2833,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                                        addAssume(that,Label.IMPLICIT_ASSUME,e);
                                         //result = eresult = id;
                                         result = eresult = convertExpr(rep.expression);
+                                        JCExpression e = treeutils.makeSelect(that.pos, translatedSelector, varsym);
+                                        e = treeutils.makeBinary(that.pos, JCTree.Tag.EQ, e, eresult);
+                                        // FIXME - should not issue this when in a qiuantified expression
+                                        // FIXME - whjy is splitEAxpressions false?
+                                        addAssume(that, Label.IMPLICIT_ASSUME, e); // FIXME - use a label aboiut REPRESENTS?
                                       
                                     } finally {
                                         currentThisExpr = prev;
@@ -9613,7 +9617,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitSelect(JCFieldAccess that) {
-        if (that.toString().equals("m.j") && oldenv != null) Utils.stop();
         JCExpression selected;
         Symbol s = convertSymbol(that.sym);
         JCExpression trexpr = that.getExpression();
@@ -9641,7 +9644,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             fa.sym = null;
             result = eresult = fa;
         } else if (translatingJML && s instanceof VarSymbol && attr.isModel(s) && !convertingAssignable && !reps.contains(s)) {
-
             selected = trexpr;
             boolean var = false;
             // FIXME - why must selected be a JCIdent here and below
@@ -9660,6 +9662,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 var = true;
             }
+            //if (methodDecl.name.toString().equals("Child2") && classDecl.name.toString().equals("Child2")) Utils.stop();
+            if (classDecl.name.toString().equals("Child2")) Utils.stop();
             
             JCExpression sel = trexpr; // FIXME - what if static; what if not a variable
             addRepresentsAxioms((ClassSymbol)that.selected.type.tsym, s, that, trexpr);
