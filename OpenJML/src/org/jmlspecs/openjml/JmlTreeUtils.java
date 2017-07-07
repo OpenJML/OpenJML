@@ -333,8 +333,24 @@ public class JmlTreeUtils {
     public JCExpression makeType(int pos, Type type) {
         // factory.Type does produce an attributed tree - after all we start knowing the type
         JCExpression tree = factory.at(pos).Type(type);
+//        // Need to replace any <?> with a new type variable
+//        replaceQuestionMarks(tree);
         return tree;
     }
+    
+//    public void replaceQuestionMarks(JCExpression tree) {
+//        if (!(tree instanceof JCTypeApply)) return;
+//        List<JCExpression> args = ((JCTypeApply)tree).arguments;
+//        while (args != null) {
+//            if (args.head instanceof JCTypeApply) replaceQuestionMarks(args.head);
+//            if (args.head instanceof JCWildcard) {
+//                if (args.head.toString().equals("?")) {
+//                    args.head = factory.TypeVar
+//                }
+//            }
+//            args = args.tail;
+//        }
+//    }
     
     /** Make an attributed tree representing a literal - NOT FOR BOOLEAN or NULL or CHARACTER values.
      *  @param pos        The node position

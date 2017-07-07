@@ -334,7 +334,7 @@ public class escfiles extends EscBase {
     @Test
     public void testBadCast() {
         expectedExit = 0;
-        helpTF("escBadCast","-show","-method=BadCast.equals");
+        helpTF("escBadCast");
     }
 
     @Test

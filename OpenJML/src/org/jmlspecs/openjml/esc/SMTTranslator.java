@@ -992,8 +992,12 @@ public class SMTTranslator extends JmlTreeScanner {
     
     private int wildcardCount = 0;
     
+    // FIXME - should really use a TYpe visitor here
+    // FIXME - the treatment of wildcards is a hack - need to understand the variety of wildcard types better
     /** Returns an SMT IExpr representing the given JML type */
     public IExpr jmlTypeSymbol(Type t) {
+        if (t.toString().contains("captur")) Utils.stop();
+        t = t.unannotatedType();
         if (t.getTag() == TypeTag.BOT) t = syms.objectType;
         if (t.getTag() == TypeTag.ARRAY) {
             Type comptype = ((Type.ArrayType)t).getComponentType();
@@ -1001,8 +1005,25 @@ public class SMTTranslator extends JmlTreeScanner {
             return F.fcn(F.symbol("_makeJMLArrayType"),e);
         }
         if (t.getTag() == TypeTag.TYPEVAR) {
-            String s = "JMLTV_" + typeString(t);
+            String s = typeString(t);
+            if (t instanceof Type.CapturedType) {
+                if (s.startsWith("<")) {
+                    s = "WILD" + (++wildcardCount);
+                } else if (s.contains("#")) {
+                    int k = s.indexOf(" ");
+                    s = s.substring(0, k).replace("#","");
+                } else {
+                    log.error("jml.internal", "Unknown kind of type symbol: " + t.getClass() + " " + t.toString());
+                }
+            }
+            s = "JMLTV_" + s;
             return F.symbol(s);
+        } else if (t instanceof Type.WildcardType) {
+            String s = t.toString();
+            if (s.equals("?")) s = "WILD" + (++wildcardCount);
+            s = "JMLTV_" + s;
+            return F.symbol(s);
+
         } else if (!t.tsym.type.isParameterized() || t.getTypeArguments().isEmpty()) {
             if (t instanceof Type.WildcardType || t instanceof Type.CapturedType) {
                 String s = "JMLTV_" + "WILD" + (++wildcardCount);
