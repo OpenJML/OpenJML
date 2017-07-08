@@ -702,13 +702,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         } else if (!t.isPrimitive()) {
             return "REF";
         } else if (tag == TypeTag.INT || tag == TypeTag.SHORT || tag == TypeTag.LONG || tag == TypeTag.BYTE) {
-            return "int";
+            return tag.toString();
         } else if (tag == TypeTag.BOOLEAN) {
             return "bool";
         } else if (tag == TypeTag.FLOAT || tag == TypeTag.DOUBLE) {
             return "real";
         } else if (tag == TypeTag.CHAR) {
-            return "int";
+            return "char";
         } else {
             return "unknown";
         }

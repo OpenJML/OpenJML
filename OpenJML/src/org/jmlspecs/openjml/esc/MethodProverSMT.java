@@ -610,6 +610,14 @@ public class MethodProverSMT {
     
     public void addToConstantMap(String id, SMT smt, ISolver solver, Map<JCTree,String> cemap) {
         String result = getValue(id,smt,solver);
+        if (result != null && result.startsWith("#x")) {
+            try {
+                Long v = Long.valueOf(result.substring(2),16);
+                result = result + " (" + v + ")";
+            } catch (NumberFormatException e) {
+                // Just skip - don't try to add additional information
+            }
+        }
         if (result != null) constantTraceMap.put(result,id);
         if (utils.jmlverbose  >= Utils.JMLVERBOSE) {
             tracer.appendln("\t\t\tVALUE: " + id + "\t === " + 
@@ -1079,6 +1087,15 @@ public class MethodProverSMT {
                             userString = userString.replaceAll("\\( not true \\)", "false");
                             userString = userString.replaceAll("\\( not false \\)", "true");
                         }
+                        if (userString.startsWith("#x")) {
+                            try {
+                                Long v = Long.valueOf(userString.substring(2),16);
+                                userString = userString + " (" + v + ")";
+                            } catch (NumberFormatException e) {
+                                // Just skip - don't try to add additional information
+                            }
+                        }
+
                         if (that.type.getTag() == TypeTag.CHAR) userString = showChar(userString);
                         traceText.append("\t\t\tVALUE: " + expr + "\t === " + userString);
                         traceText.append(Strings.eol);

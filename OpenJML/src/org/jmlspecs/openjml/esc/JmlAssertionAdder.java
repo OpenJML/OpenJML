@@ -2741,8 +2741,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean pv = checkAccessEnabled;
         checkAccessEnabled = false; // Do not check access in JML clauses
         
-        // The basetype from translatedSelector may be more precise than the static type clsym.type
-        Type basetype = translatedSelector.type;
+        // The basetype is the type of the class in whcih represents clauses occur.
+        // For a static field (selector is null) we just use the owner, since there is no inheritance.
+        // For instance fields, we want the dynamic type of the selector, not the static type
+        // the selector is declared to be (clsym.type)
+        Type basetype = translatedSelector == null ? varsym.owner.type : translatedSelector.type;
         
         // We use classDecl.type here in case we are in a derived class with a represents clause;
         // clsym is the static class of the receiver, which may not have derived represents clauses
