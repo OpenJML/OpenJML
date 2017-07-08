@@ -3327,7 +3327,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             checkAccessEnabled = false;
             try {
                 JCExpression fa = convertJML(treeutils.makeIdent(d.pos, d.sym));
-                addStat(comment(dd,"Adding invariants for " + d.sym,null));
+                addStat(comment(dd,"Adding invariants for field " + d.sym.flatName(),null));
                 addRecInvariants(true,d,fa);
             } finally {
                 checkAccessEnabled = pv;
@@ -3342,7 +3342,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym)) continue;
             
             JCExpression fa = convertJML(treeutils.makeIdent(d.pos, d.sym));
-            addStat(comment(dd,"Adding invariants for " + d.sym,null));
+            addStat(comment(dd,"Adding invariants for ghost field " + d.sym.flatName(),null));
             addRecInvariants(true,d,fa);
         }
         currentThisExpr = savedThis;
@@ -3382,7 +3382,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         treeutils.makeNeqObject(v.pos, id, currentThisExpr));
             }
             JCIdent id = treeutils.makeIdent(v.pos,d.sym);
-            addStat(comment(v,"Adding invariants for " + v.sym,null));
+            addStat(comment(v,"Adding invariants for method parameter " + v.sym,null));
             addInvariants(v,v.type,id,currentStatements,true,false,false,false,false,true,Label.INVARIANT_ENTRANCE,
                     utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
         }
@@ -13698,7 +13698,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public java.util.List<Type> parents(Type ct, boolean includeEnclosing) { // FIXME - not implemented for includeEnclosing = true // FIXME - unify this with the methods in Utils.
 
     	java.util.List<Type> classes = new LinkedList<Type>();
-        Type cc = ct;
+        Type cc = ct.unannotatedType();
         while (cc != null && cc.getTag() != TypeTag.NONE) {
             classes.add(0,cc);
             if (cc instanceof Type.ClassType) {
