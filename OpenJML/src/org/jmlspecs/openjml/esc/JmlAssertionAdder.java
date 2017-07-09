@@ -8856,7 +8856,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean shift = optag == JCTree.Tag.SL || optag == JCTree.Tag.SR || optag == JCTree.Tag.USR;
         boolean arith = optag == JCTree.Tag.PLUS || optag == JCTree.Tag.MINUS || optag == JCTree.Tag.MUL || optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD;
         boolean bit = optag == JCTree.Tag.BITAND || optag == JCTree.Tag.BITOR || optag == JCTree.Tag.BITXOR;
-        if (that.toString().contains("b + bb == zero")) Utils.stop();
+        if (that.lhs instanceof JCLambda) Utils.stop();
 
         if (pureCopy) {
             JCExpression lhs = convertExpr(that.getLeftOperand());
@@ -8984,7 +8984,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 eresult.pos = that.getStartPosition();
                 treeutils.copyEndPosition(eresult, that);
                 return;
-            } else if (equality && !that.lhs.type.isPrimitive() && !that.rhs.type.isPrimitive()) {
+            } else if (equality && (lhs instanceof JCLambda || rhs instanceof JCLambda  || lhs instanceof JCTree.JCMemberReference || rhs instanceof JCTree.JCMemberReference)) {
+                boolean b = false;
+                if ((lhs instanceof JCLambda || lhs instanceof JCTree.JCMemberReference) && treeutils.isNullLit(rhs)) {
+                    b = optag == JCTree.Tag.NE;
+                } else if ((rhs instanceof JCLambda || rhs instanceof JCTree.JCMemberReference) && treeutils.isNullLit(lhs)) {
+                    b = optag == JCTree.Tag.NE;
+                } else {
+                    log.error(that,"jml.unimplemented.lambda");
+                }
+                result = eresult = treeutils.makeBooleanLiteral(that.pos,b);
+                return;
+            } else if (equality && that.lhs.type.isNullOrReference() && that.rhs.type.isNullOrReference() ) {
                 // This is a pure object comparison - no unboxing
                 if (optag == JCTree.Tag.EQ) result = eresult = treeutils.makeEqObject(that.pos, lhs, rhs);
                 else                        result = eresult = treeutils.makeNeqObject(that.pos, lhs, rhs);
@@ -9028,16 +9039,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 eresult.pos = that.getStartPosition();
                 treeutils.copyEndPosition(eresult, that);
                 return;
-            } else if (equality && (lhs instanceof JCLambda || rhs instanceof JCLambda)) {
-                if (lhs instanceof JCLambda && treeutils.isNullLit(rhs)) {
-                        result = eresult = treeutils.makeBooleanLiteral(that.pos, optag == JCTree.Tag.NE);
-                        return;
-                }
-                if (rhs instanceof JCLambda && treeutils.isNullLit(lhs)) {
-                    result = eresult = treeutils.makeBooleanLiteral(that.pos, optag == JCTree.Tag.NE);
-                    return;
-                }
-                log.error(that,"jml.unimplemented.lambda");
             } else {
                 Type t = that.type;
                 if (t.getTag() == TypeTag.BOOLEAN) {

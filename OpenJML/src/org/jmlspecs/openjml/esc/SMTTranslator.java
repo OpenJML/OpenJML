@@ -897,6 +897,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         new LinkedList<IDeclaration>(),
                         convertSort(e.id.type),
                         result);
+                if (((C_define_fun)c).resultSort().toString().equals("T_sassy_util")) Utils.stop();
                 commands.add(c);
                 bimap.put(e.id,sym);
             } catch (RuntimeException ee) {
@@ -987,6 +988,7 @@ public class SMTTranslator extends JmlTreeScanner {
         else if (!t.isPrimitive()) t = t.tsym.erasure(jmltypes);
         
         String s = "T_" + typeString(t);
+        if (s.equals("T_sassy_util")) Utils.stop();
         return F.symbol(s);
     }
     
@@ -1151,6 +1153,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         new LinkedList<IDeclaration>(),
                         convertSort(decl.type),
                         init);
+                                if (c instanceof C_declare_fun && ((C_declare_fun)c).resultSort().toString().contains("T_sassy_util")) Utils.stop();
                  commands.add(c);
                  // An identifier may be appended to a JmlVariableDecl simply
                  // to have an expression with which to associated an SMT value
