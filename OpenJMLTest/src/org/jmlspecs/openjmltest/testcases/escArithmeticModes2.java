@@ -70,6 +70,37 @@ public class escArithmeticModes2 extends EscBase {
     }
 
     @Test
+    public void testModJavaZ() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeJavaMath @SpecSafeMath public class TestJava { \n"
+                +"  public long m() {\n"
+                +"    int k = 15 ;\n" 
+                +"    int j = 5;\n" 
+                +"    int m = 0;\n" 
+                +"    int qq = 3;\n" 
+                +"    int i = k % j;\n" 
+                +"    int q = k / j;\n" 
+                +"    //@ assert i == m && q == qq ;\n" 
+                +"    //@ assert (k%j) == m && (k/j) == qq;\n" 
+                +"    i = (-k) % j;\n" 
+                +"    q = (-k) / j;\n" 
+                +"    //@ assert i == -m && q == -qq;\n" 
+                +"    //@ assert ((-k)%j) == -m && ((-k)/j) == -qq;\n"   // Line 15
+                +"    i = k % -j;\n" 
+                +"    q = k / -j;\n" 
+                +"    //@ assert i == m && q == -qq;\n" 
+                +"    //@ assert (k%-j) == m && (k/-j) == -qq;\n" 
+                +"    i = -k % -j;\n"                                   // Line 20
+                +"    q = -k / -j;\n" 
+                +"    //@ assert i == -m && q == qq;\n" 
+                +"    //@ assert (-k%-j) == -m && ((-k)/-j) == qq;\n" 
+                +"    return k; \n"
+                +"  }\n"
+                +"}\n"
+              );
+    }
+
+    @Test
     public void testModJavaB() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Very long - skip for now
         //main.addOptions("-show","-method=ma","-subexpressions");
@@ -95,6 +126,36 @@ public class escArithmeticModes2 extends EscBase {
                 +"    int j = 3;\n" 
                 +"    int m = 1;\n" 
                 +"    int qq = 2;\n" 
+                +"    int i = k % j;\n" 
+                +"    int q = k / j;\n" 
+                +"    //@ assert i == m && q == qq ;\n" 
+                +"    //@ assert (k%j) == m && (k/j) == qq;\n" 
+                +"    i = (-k) % j;\n" 
+                +"    q = (-k) / j;\n" 
+                +"    //@ assert i == -m && q == -qq;\n" 
+                +"    //@ assert ((-k)%j) == -m && ((-k)/j) == -qq;\n"   // Line 15
+                +"    i = k % -j;\n" 
+                +"    q = k / -j;\n" 
+                +"    //@ assert i == m && q == -qq;\n" 
+                +"    //@ assert (k%-j) == m && (k/-j) == -qq;\n" 
+                +"    i = -k % -j;\n"                                   // Line 20
+                +"    q = -k / -j;\n" 
+                +"    //@ assert i == -m && q == qq;\n" 
+                +"    //@ assert (-k%-j) == -m && ((-k)/-j) == qq;\n" 
+                +"  }\n"
+                +"}\n"
+              );
+    }
+
+    @Test
+    public void testModSafeZ() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeSafeMath @SpecSafeMath public class TestJava { \n"
+                +"  public void m() {\n"
+                +"    int k = 15 ;\n" 
+                +"    int j = 5;\n" 
+                +"    int m = 0;\n" 
+                +"    int qq = 3;\n" 
                 +"    int i = k % j;\n" 
                 +"    int q = k / j;\n" 
                 +"    //@ assert i == m && q == qq ;\n" 
@@ -182,6 +243,38 @@ public class escArithmeticModes2 extends EscBase {
                 +"}\n"
               );
     }
+    
+    @Test
+    public void testModMathZ() {
+        Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeBigintMath @SpecBigintMath public class TestJava { \n"
+                +"  public void m() {\n"
+                +"    int k = 15 ;\n" 
+                +"    int j = 5;\n" 
+                +"    int m = 0;\n" 
+                +"    int qq = 3;\n" 
+                +"    int i = k % j;\n" 
+                +"    int q = k / j;\n" 
+                +"    //@ assert i == m && q == qq ;\n" 
+                +"    //@ assert (k%j) == m && (k/j) == qq;\n" 
+                +"    i = (-k) % j;\n" 
+                +"    q = (-k) / j;\n" 
+                +"    //@ assert i == -m && q == -qq;\n" 
+                +"    //@ assert ((-k)%j) == -m && ((-k)/j) == -qq;\n"   // Line 15
+                +"    i = k % -j;\n" 
+                +"    q = k / -j;\n" 
+                +"    //@ assert i == m && q == -qq;\n" 
+                +"    //@ assert (k%-j) == m && (k/-j) == -qq;\n" 
+                +"    i = -k % -j;\n"                                   // Line 20
+                +"    q = -k / -j;\n" 
+                +"    //@ assert i == -m && q == qq;\n" 
+                +"    //@ assert (-k%-j) == -m && ((-k)/-j) == qq;\n" 
+                +"  }\n"
+                +"}\n"
+              );
+    }
+
     @Test
     public void testModMathB() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode

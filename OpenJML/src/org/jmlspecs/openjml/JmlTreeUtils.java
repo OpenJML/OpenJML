@@ -1479,4 +1479,73 @@ public class JmlTreeUtils {
         return e;
     }
     
+    public Map<Symbol.TypeSymbol,Type> accumulateTypeInstantiations(List<Type> formals, List<JCExpression> exprs) {
+        Map<Symbol.TypeSymbol,Type> map = new java.util.HashMap<>();
+        while (formals.head != null && exprs.head != null) {
+            accumulateTypeInstantiations(formals.head, exprs.head.type, map);
+            formals = formals.tail;
+            exprs = exprs.tail;
+        }
+        if (formals.head != null || exprs.head != null) {
+            log.error("jml.internal","Mismatch in number of arguments in accumulateTypeInstantiations");
+        }
+        return map;
+    }
+    
+    public void accumulateTypeInstantiations(Type formal, Type targetType, Map<Symbol.TypeSymbol,Type> map) {
+        if (formal instanceof TypeVar) {
+            map.put(((TypeVar)formal).tsym, targetType);
+            return;
+        }
+        if (formal instanceof Type.WildcardType) {
+            map.put(((Type.WildcardType)formal).tsym, targetType);
+            return;
+        }
+        if (targetType.tsym.isSubClass(formal.tsym, types)) {
+            accumulateTypeInstantiations(formal.allparams(), targetType.allparams(), map);
+        }
+        // FIXME - iterate to deepser levels as well.
+    }
+
+    public void accumulateTypeInstantiations(List<Type> formals, List<Type> targetTypes, Map<Symbol.TypeSymbol,Type> map) {
+        while (formals.head != null && targetTypes.head != null) {
+            accumulateTypeInstantiations(formals.head, targetTypes.head, map);
+            formals = formals.tail;
+            targetTypes = targetTypes.tail;
+        }
+        if (formals.head != null || targetTypes.head != null) {
+            log.error("jml.internal","Mismatch in number of arguments in accumulateTypeInstantiations");
+        }
+    }
+    
+    // FIXME _ use a type visitor
+    
+    public Type mapTypeVars(Type t, Map<Symbol.TypeSymbol,Type> map) {
+        if (t instanceof TypeVar) {
+            Type r = map.get(t.tsym);
+            if (r == null) r = t;
+            return r;
+        } else {
+            List<Type> args = t.allparams();
+            List<Type> newargs = mapTypeVars(args, map);
+            if (newargs == args) return t;
+            return new Type.ClassType(Type.noType, newargs, t.tsym);
+        }
+    }
+    
+    public List<Type> mapTypeVars(List<Type> tlist, Map<Symbol.TypeSymbol,Type> map) {
+        ListBuffer<Type> buf = new ListBuffer<>();
+        boolean changed = false;
+        for (Type t: tlist) {
+            Type tt = mapTypeVars(t,map);
+            buf.add(tt);
+            changed = changed || t != tt;
+        }
+        if (changed) return buf.toList();
+        buf.clear();
+        return tlist;
+    }
+
+
+    
 }

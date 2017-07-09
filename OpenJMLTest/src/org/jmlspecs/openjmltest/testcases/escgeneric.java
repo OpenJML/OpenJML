@@ -313,6 +313,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testForEach3() {
+        main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava"," class A { void m(/*@non_null*/ java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
@@ -336,6 +337,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testForEach3bad() {
+        //main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava"," class A { void m(/*@non_null*/ java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"

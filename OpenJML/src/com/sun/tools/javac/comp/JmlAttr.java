@@ -5170,7 +5170,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (mods == null) return null;
         return utils.findMod(mods,tokenToAnnotationSymbol.get(ta));
     }
+
+    /** Returns true if the given symbol is specified as Helper or Function annotation */
+    public boolean isNonNull(/*@ nullable */ JCModifiers mods) {
+        if (mods != null) {
+            List<JCAnnotation> list = mods.getAnnotations();
+            if (list != null) for (JCAnnotation a: list) {
+                if (a.annotationType.type.tsym == nonnullAnnotationSymbol) return true;
+                if (a.annotationType.type.tsym == nullableAnnotationSymbol) return false;
+            }
+        }
+        return false;  // FIXME - use default?
+    }
     
+
     /** Returns true if the given modifiers includes model
      * @param mods the modifiers to check
      * @return true if the model modifier is present, false if not

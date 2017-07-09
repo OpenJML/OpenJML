@@ -367,7 +367,7 @@ public abstract class EscBase extends JmlTestCase {
     protected Seq seq(Object ... list) { return new Seq(list); }
     
 
-    protected boolean comparePair(Object[] list, int i, int j) {
+    protected boolean comparePair(Object[] list, int i, int j, boolean issueErrors) {
         int col = ((Integer)list[i+1]).intValue();
         if (collector.getDiagnostics().size() <= j) {
             failureLocation = j;
@@ -376,15 +376,18 @@ public abstract class EscBase extends JmlTestCase {
         }
         String act = noSource(collector.getDiagnostics().get(j));
         String exp = list[i].toString().replace("$SPECS", specsdir);
+        long actualColumn = -1;
         if (!exp.equals(act) 
                 && !exp.replace('\\','/').equals(act.replace('\\','/'))) {
             failureLocation = j;
             failureString = list[i].toString();
+            if (issueErrors) assertEquals("Error " + j, list[i], noSource(collector.getDiagnostics().get(j)));
             return false;
-        } else if (col != Math.abs(collector.getDiagnostics().get(j).getColumnNumber())) {
+        } else if (col != (actualColumn = Math.abs(collector.getDiagnostics().get(j).getColumnNumber()))) {
             failureLocation = j;
             failureString = null;
             failureCol = col;
+            if (issueErrors) assertEquals("Error " + j, col, actualColumn);
             return false;
         } else {
             return true;
@@ -425,10 +428,10 @@ public abstract class EscBase extends JmlTestCase {
                         // OK - skip
                     } else {
                         if (j < collector.getDiagnostics().size()) {
-                        	if (!comparePair(list,i,j)) {
+                        	if (!comparePair(list,i,j, !optional)) {
                                 if (!optional) {
-                                	assertEquals("Error " + j, list[i], noSource(collector.getDiagnostics().get(j)));
                                     assertEquals("Error " + j, col, collector.getDiagnostics().get(j).getColumnNumber());
+                                	assertEquals("Error " + j, list[i], noSource(collector.getDiagnostics().get(j)));
                                 }
                             }
                         }
@@ -461,7 +464,7 @@ public abstract class EscBase extends JmlTestCase {
         int i = 0;
         int jj = j;
         while (i < list.length) {
-            if (!comparePair(list,i,j)) {
+            if (!comparePair(list,i,j, false)) {
                 // Comparison failed - failureLocation set
                 return jj;
             }

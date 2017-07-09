@@ -1735,7 +1735,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
-        
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
         JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? (classDecl == null ? null : classDecl.sym) : methodDecl.sym,translatedExpr);
@@ -2009,11 +2008,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCFieldAccess m = findUtilsMethod(pos,methodName);
         List<JCExpression> args = new ListBuffer<JCExpression>().appendArray(translatedArgs).toList();
         JCMethodInvocation c = M.at(pos).Apply(null,m,args);
+        Map<Symbol.TypeSymbol,Type> typemap = treeutils.accumulateTypeInstantiations(m.type.asMethodType().argtypes, args );
         if (m.type instanceof Type.MethodType){ 
-            c.setType(((Type.MethodType)m.type).restype);
+            Type t = ((Type.MethodType)m.type).restype;
+            t = treeutils.mapTypeVars(t, typemap);
+            c.setType(t);
         } else if (m.type instanceof Type.ForAll) {
             Type.ForAll tfa = (Type.ForAll)m.type;
-            c.setType(((Type.MethodType)tfa.qtype).restype);
+            Type t = ((Type.MethodType)tfa.qtype).restype;
+            t = treeutils.mapTypeVars(t, typemap);
+            c.setType(t);
         } else {
             error(pos,"Unknown method type in methodCallUtilsExpression: " + methodName + " " + m.type.getClass());
         }
@@ -6187,7 +6191,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else if (meth instanceof JCFieldAccess) {
                 JCFieldAccess fa = (JCFieldAccess)meth;
                 receiverType = fa.selected.type;
-                newTypeVarMapping = typevarMapping = typemapping(receiverType, fa.sym, null, (Type.MethodType)meth.type);
+                newTypeVarMapping = typevarMapping = typemapping(receiverType, fa.sym, null, meth.type.asMethodType());
                 JCExpression convertedReceiver = convertExpr(fa.selected);
                 //if (isFunctional(convertedReceiver.type)) 
                 xx: {
@@ -6224,7 +6228,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         // FIXME - here we are not changing currentYThisExpr, but there may well be sicrcumstances where we should somehosw.
                         // body can be an expression, possibly with void result, or a block containing a sequence of statements, followed by an expression
                         if (body instanceof JCExpression) {
-                            result = eresult = convertExpr((JCExpression)body);
+                            JavaFileObject pfo = log.useSource(methodDecl.sourcefile); // FIXME - really need to know the parse location of the lambda
+                            try {
+                                result = eresult = convertExpr((JCExpression)body);
+                            } finally {
+                                log.useSource(pfo);
+                            }
                         } else {
                             notImplemented(that,"Lambda with body type " + body.getClass());
                             result = eresult = null;
@@ -6237,14 +6246,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             receiver = trArgs.head;
                             trArgs = trArgs.tail;
                         }
+                        
+                        // The receiver may not be null./ But that condition is checked when we convert the Exec statement
+                        // created below.
+                        
+                        // FIXME - the receiver, the method name, and the arguments may all be from different files.
+                        
                         JCExpression e = treeutils.makeMethodInvocation(that, receiver, (MethodSymbol)mref.sym, trArgs);
                         if (((MethodSymbol)mref.sym).getReturnType().hasTag(TypeTag.VOID)) {
                             // Statement - no return values
-                            JCStatement stat = M.at(that.pos).Exec(e);  // FIXME - positionh location is lijkely in the wrong file
+                            JCStatement stat = M.at(that.pos).Exec(e);  // FIXME - position location is likely in the wrong file
                             convert(stat);  // Since we are converting the entire inlined expression, we don't convert the arguments before this point
+                            result = eresult = null;
                         } else {
                             // return value 
-                            result = eresult = e;
+                            result = eresult = convertExpr(e);
                         }
                     } else {
                         break xx;
@@ -7012,6 +7028,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             inlinedReturn = resultId;
                             ListBuffer<JCStatement> checkInline = pushBlock();
                             addStat(comment(cs.block, "Inlining model program ",log.currentSourceFile()));  // FIXME - source file for inlining?
+                            JavaFileObject prevv = log.useSource(cs.source());
+                            
                             try {
 
     // Don't need these assignments because the values of actuals are stored in actualParams
@@ -7027,6 +7045,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 error(that, "Unexpected exception while inlining model program: " + e.toString());
                             } finally {
                                 inlinedReturn = null;
+                                log.useSource(prevv);
                             }
                             JCBlock b = popBlock(0L,that,checkInline);
                             addStat(b);
@@ -7414,7 +7433,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             currentStatements,
                             true,savedEnclosingMethod != null && savedEnclosingMethod.isConstructor(),isSuperCall,isHelper(methodDecl.sym),false,true,Label.INVARIANT_REENTER_CALLER, "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
 
-                    // Note that methodDecl.params will be null for initalizer blocks
+                    // Note that methodDecl.params will be null for initializer blocks
                     if (methodDecl.params != null) for (JCVariableDecl v: methodDecl.params) {
                         if (v.type.isPrimitive()) continue;
                         // FIXME - it is an open question which invariants to check here - in principle all invariants must hold - but which might not? - need the pack/unpack capability
@@ -8252,7 +8271,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        JCIdent id = M.Ident(names.fromString(methodName));
         if (newIsPrim && !isPrim) {
             JCExpression mth = createUnboxingExpr(expr);
-            if (translatingJML) {
+            if (translatingJML || mth instanceof JCIdent) {
                 eresult = mth;
             } else {
                 eresult = newTemp(mth);
@@ -10378,7 +10397,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 scan(t);
             }
  
-            // FIXME - need to fixup RAC and ESC check o fstatic initialization
+            // FIXME - need to fixup RAC and ESC check of static initialization
             if (!pureCopy) {
                 JCBlock bl = checkStaticInitialization();
                 if (bl != null) this.classDefs.add(bl);
@@ -10819,7 +10838,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             Name iteratorName = names.fromString("_JML_iterator_" + (++count));
             JCExpression iter = methodCallUtilsExpression(array,"iterator",array);
             Type restype;
-            restype = new Type.ClassType.ClassType(Type.noType,List.<Type>of(array.type.getTypeArguments().head),iter.type.tsym);
+            restype = iter.type; 
             JCVariableDecl decl = treeutils.makeVarDef(
                     restype,
                     iteratorName,
@@ -10863,20 +10882,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // T v = ITERATOR.next()
             JCExpression value = methodCallUtilsExpression(iter,"next",
                     treeutils.makeIdent(array.pos, decl.sym));
-            value.type = that.iterDecl.type.getTypeArguments().get(0);
-            JCIdent id = newTemp(value);
-            // FIXME - fix the nullness determination in the following line
-            if (!rac) addNullnessTypeConditionId(id, that.var, id.sym, false, false);
-            value = addImplicitConversion(array, that.var.type, id);
-
-            JCVariableDecl vd = ( treeutils.makeVarDef(
-                    that.var.type,
+            JCIdent iterId = newTemp(value);  // We only want next called once, so we cache its value
+            if (!rac) addNullnessTypeConditionId(iterId, that.var, iterId.sym, attr.isNonNull(that.var.mods), false);
+            JCExpression iterEx = addImplicitConversion(value, that.var.type, iterId);
+            // This is the case in which the loop variable is typed with a generic type
+            JCVariableDecl vd = treeutils.makeVarDef(
+                    iterEx.type,
                     that.var.name,
                     methodDecl.sym,
-                    value) );
-            vd.sym = that.var.sym; // We share syms; if we don't we have to add
-                            // a mapping to paramActuals
+                    iterEx);
             addStat(vd);
+            if (!jmltypes.isSameType(that.var.type, iterEx.type)) {
+               JCIdent id = treeutils.makeIdent(that.var.pos, vd.sym);
+                if (paramActuals != null) paramActuals.put(that.var.sym, id);
+                that.var = vd;
+            } else {
+                vd.sym = that.var.sym; // We share syms; if we don't we have to add
+                // a mapping to paramActuals
+            }
 
         }
         
