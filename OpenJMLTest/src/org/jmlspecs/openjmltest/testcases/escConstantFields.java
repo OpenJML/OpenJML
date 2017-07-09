@@ -129,19 +129,15 @@ public class escConstantFields extends EscBase {
     public void testFieldsNotConstantNoInvariant() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  public final static int I = z();\n"  // FIXME - static initialization check should fail
+                +"  public final static int I = z();\n"  
                 +"  //@ ghost public final static int J = 1 + z();\n"
 
                 +"  public TestJava() { \n"
-                +"     //@ assert I == 10 && J == 11;\n"
-                +"     n();\n" // final variables not subject to \everything
-                +"     //@ assert I == 10 && J == 11;\n"
+                +"     //@ assert I == 10 && J == 11;\n" // Fails since we don't have a static invariant
                 +"  }\n"
 
                 +"  public void m() {\n"
-                +"     //@ assert I == 10 && J == 11;\n"
-                +"     n();\n" // final variables not subject to \everything
-                +"     //@ assert I == 10 && J == 11;\n"
+                +"     //@ assert I == 10 && J == 11;\n" // Fails since we don't have a static invariant
                 +"  }\n"
                 
                 +"  //@ assignable \\everything;\n"
@@ -149,6 +145,8 @@ public class escConstantFields extends EscBase {
                 +"  //@ ensures \\result == 10;\n"
                 +"  static public int z() { return 10; }\n"
                 +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method TestJava",10
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 

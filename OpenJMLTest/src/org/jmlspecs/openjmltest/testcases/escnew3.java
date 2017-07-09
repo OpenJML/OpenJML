@@ -825,7 +825,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testLabels2() {
-        main.addOptions("-show","-method=m");
+        //main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { \n"

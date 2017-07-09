@@ -10392,9 +10392,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
             
-            
+            // THis will recursively check nested classes and for each class, checks the constructors, methods, and static initialization.
+            // Field initialization and instance initialization is part of constructors, so we skip that here
             for (JCTree t: that.defs) {
-                scan(t);
+                if (t instanceof JCClassDecl || t instanceof JCMethodDecl) scan(t);
             }
  
             // FIXME - need to fixup RAC and ESC check of static initialization
