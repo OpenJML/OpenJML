@@ -1494,6 +1494,61 @@ public class escnew extends EscBase {
                 );
     }
 
+    // This tests a bug in which static invariants were not part of the VC. 
+    // The problem is that helper methods do not inherit invariants, even ones that are fixed, such as those that define the values of fields
+    @Test
+    public void testInvariantInheritance2() {
+    	//main.addOptions("-show","-method=m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava  { \n"
+                
+                +"  public static int CHILD = 3;\n"
+                +"  //@ static public invariant CHILD == 3;\n"
+
+                
+                +"  //@ helper pure \n"
+                +"  public static void m1() {\n"
+                +"    //@ assert CHILD == 3 ;\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m1",9
+                );
+    }
+
+    @Test @Ignore // Allow final on invariant to mean assume regardless of helper status
+    public void testInvariantInheritance() {
+    	main.addOptions("-show","-method=m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava  { \n"
+                
+                +"  public final static int CHILD; static { CHILD = 3; }\n"
+                +"  //@ static final public invariant CHILD == 3;\n"
+
+                
+                +"  //@ helper pure \n"
+                +"  public static void m1() {\n"
+                +"    //@ assert CHILD == 3 ;\n"
+                +"  }\n"
+                +"}\n"
+                );
+        }
+    @Test
+    public void testInvariantInheritance3() {
+    	//main.addOptions("-show","-method=m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava  { \n"
+                
+                +"  public /*@ final */ static int CHILD = 3;\n"
+
+                
+                +"  //@ helper pure \n"
+                +"  public static void m1() {\n"
+                +"    //@ assert CHILD == 3 ;\n"
+                +"  }\n"
+                +"}\n"
+                );
+        }
+
     @Test
     public void testExplicitAssert() {
         main.addOptions("-escMaxWarnings=1");
