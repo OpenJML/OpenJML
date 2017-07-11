@@ -1649,7 +1649,6 @@ public class SMTTranslator extends JmlTreeScanner {
         IExpr lhs = convertExpr(tree.lhs);
         IExpr rhs = convertExpr(tree.rhs);
         if (useBV) {
-            if (op == JCTree.Tag.GT) Utils.stop();
             if (tree.type.getTag() == TypeTag.BOOLEAN) {
                 TypeTag tlhs = tree.lhs.type.getTag();
                 TypeTag trhs = tree.rhs.type.getTag();
@@ -2041,6 +2040,7 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitSelect(JCFieldAccess tree) {
         // o.f becomes f[o] where f has sort (Array REF type)
+        if (tree.toString().contains("ZEROS")) Utils.stop();
         if (tree.selected != null) {
             JCExpression object = tree.selected;
             Symbol field = tree.sym;

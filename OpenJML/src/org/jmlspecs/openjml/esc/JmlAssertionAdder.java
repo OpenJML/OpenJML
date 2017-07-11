@@ -2881,6 +2881,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym, boolean instanceBeingConstructed) {
+if (sym.toString().contains("ZEROS")) Utils.stop();
         boolean isNonNull = true;
         Symbol owner = sym.owner;
         if (owner instanceof MethodSymbol) owner = owner.owner;
@@ -2898,8 +2899,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (sym.owner instanceof MethodSymbol) {
             // Local variable
             id = treeutils.makeIdent(p, sym);
+        } else if (utils.isJMLStatic(sym)) {
+            // static field
+            JCExpression etype = treeutils.makeType(pos.getPreferredPosition(), sym.type);
+            id = treeutils.makeSelect(p, etype, sym);
         } else {
-            // Field
+            // instance field
             id = treeutils.makeSelect(p, currentThisExpr, sym);
         }
         return addNullnessAllocationTypeConditionId(id, pos, sym, isNonNull, instanceBeingConstructed);
