@@ -203,9 +203,9 @@ public class JmlTreeUtils {
         objecteqSymbol = findOpSymbol(JCTree.Tag.EQ,syms.objectType);
         objectneSymbol = findOpSymbol(JCTree.Tag.NE,syms.objectType);
         booleqSymbol = findOpSymbol(JCTree.Tag.EQ,syms.booleanType);
-        boolneSymbol = findOpSymbol(JCTree.Tag.NE,syms.booleanType);
-        intminusSymbol = findOpSymbol(JCTree.Tag.MINUS,syms.intType);
-        intplusSymbol = findOpSymbol(JCTree.Tag.PLUS,syms.intType);
+        boolneSymbol = findOpSymbol(JCTree.Tag.NE,syms.booleanType); 
+        intminusSymbol = findOpSymbol(JCTree.Tag.MINUS,syms.intType); // subtract
+        intplusSymbol = findOpSymbol(JCTree.Tag.PLUS,syms.intType); // binary add
         intdivideSymbol = findOpSymbol(JCTree.Tag.DIV,syms.intType);
         inteqSymbol = findOpSymbol(JCTree.Tag.EQ,syms.intType);
         intneqSymbol = findOpSymbol(JCTree.Tag.NE,syms.intType);

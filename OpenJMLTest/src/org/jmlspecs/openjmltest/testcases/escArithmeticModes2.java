@@ -187,9 +187,12 @@ public class escArithmeticModes2 extends EscBase {
                 +"  //@ requires j != 0;\n"
                 +"  //@ requires j != -1 || i != 0x80000000;\n"
                 +"  public void ma(int i, int j) {\n"
-                +"    int k = (i/j) * j + (i%j);\n"
+                +"    //@ assert (\\lbl I i) + 0*(\\lbl J j) == i; \n" // Just to print i and j
+                +"    int q = (i/j) ;\n"
+                +"    //@ assert (\\lbl Q q) * 0 == 0; \n" // Just to print q
+                +"    int k = q * j + (i%j);\n"
                 +"    //@ assert (\\lbl K k) == (\\lbl I i); \n"
-                +"    //@ assert (i/j) * j + (i%j) == i; \n"
+                +"    //@ assert (\\lbl D ((\\lbl I i)/(\\lbl J j)))*j + (\\lbl M (i%j)) == i; \n"  // not OK for i = MIN && j = -1
                 +"  }\n"
                 +"}\n"
               );
@@ -301,11 +304,14 @@ public class escArithmeticModes2 extends EscBase {
                 +"    int k = (i%j);\n"
                 +"    int m = (i/j);\n"
                 +"    //@ assert (i%j) == (\\lbl K k); \n"  // OK
-                +"    //@ assert (i/j) == (\\lbl M m); \n"  // mnot OK for i = MIN && j = -1
+                +"    //@ assert (\\lbl D ((\\lbl I i)/(\\lbl J j))) == (\\lbl M m); \n"  // mnot OK for i = MIN && j = -1
                 +"  }\n"
                 +"}\n"
                 ,"/tt/TestJava.java:7: warning: Label K has value 0",31
-                ,"/tt/TestJava.java:8: warning: Label M has value ( - 2147483648 )",31
+                ,"/tt/TestJava.java:8: warning: Label I has value ( - 2147483648 )",31
+                ,"/tt/TestJava.java:8: warning: Label J has value ( - 1 )",42
+                ,"/tt/TestJava.java:8: warning: Label D has value 2147483648",22
+                ,"/tt/TestJava.java:8: warning: Label M has value ( - 2147483648 )",58
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method ma",9
                 
               );
@@ -322,7 +328,47 @@ public class escArithmeticModes2 extends EscBase {
                 +"    int k = (i%j);\n"
                 +"    int m = (i/j);\n"
                 +"    //@ assert (i%j) == (\\lbl K k); \n"  // OK
-                +"    //@ assert (i/j) == (\\lbl M m); \n"  // mnot OK for i = MIN && j = -1
+                +"    //@ assert (i/j) == (\\lbl M m); \n"  // OK for i = MIN && j = -1
+                +"  }\n"
+                +"}\n"
+              );
+    }
+
+    @Test
+    public void testModEqualLong() {
+        Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeJavaMath @SpecBigintMath public class TestJava { \n"
+                +"  //@ requires j != 0;\n"
+                +"  public void ma(long i, long j) {\n"
+                +"    long k = (i%j);\n"
+                +"    long m = (i/j);\n"
+                +"    //@ assert (i%j) == (\\lbl K k); \n"  // OK
+                +"    //@ assert (\\lbl D ((\\lbl I i)/(\\lbl J j))) == (\\lbl M m); \n"  // mnot OK for i = MIN && j = -1
+                +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:7: warning: Label K has value 0",31
+                ,"/tt/TestJava.java:8: warning: Label I has value ( - 9223372036854775808 )",31
+                ,"/tt/TestJava.java:8: warning: Label J has value ( - 1 )",42
+                ,"/tt/TestJava.java:8: warning: Label D has value 9223372036854775808",22
+                ,"/tt/TestJava.java:8: warning: Label M has value ( - 9223372036854775808 )",58
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method ma",9
+                
+              );
+    }
+
+    @Test
+    public void testModEqualLongB() {
+        Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeJavaMath @SpecBigintMath public class TestJava { \n"
+                +"  //@ requires j != 0;\n"
+                +"  //@ requires i != 0x8000000000000000L || j != -1;\n"
+                +"  public void ma(long i, long j) {\n"
+                +"    long k = (i%j);\n"
+                +"    long m = (i/j);\n"
+                +"    //@ assert (i%j) == (\\lbl K k); \n"  // OK
+                +"    //@ assert (i/j) == (\\lbl M m); \n"  // OK for i = MIN && j = -1
                 +"  }\n"
                 +"}\n"
               );

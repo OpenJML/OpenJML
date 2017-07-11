@@ -235,6 +235,7 @@ abstract public class Arithmetic extends ExpressionExtension {
     }
     
     public JCExpression makeBinaryOp(JmlAssertionAdder rewriter, JCBinary that, Type newtype, boolean implementOverflow, boolean checkOverflow) {
+        int p = that.pos;
         this.javaChecks = (rewriter.esc || (rewriter.rac && JmlOption.isOption(context,JmlOption.RAC_JAVA_CHECKS)));
 
         JCTree.Tag optag = that.getTag();
@@ -276,99 +277,99 @@ abstract public class Arithmetic extends ExpressionExtension {
                 String str = optag == JCTree.Tag.PLUS ? "sum" : "difference";
                 if (newtype.getTag() == TypeTag.INT) {
                     Symbol sym = optag == JCTree.Tag.PLUS ? rewriter.treeutils.intminusSymbol : rewriter.treeutils.intplusSymbol;
-                    JCExpression maxlit = rewriter.treeutils.makeIntLiteral(that.pos, Integer.MAX_VALUE);
-                    JCExpression minlit = rewriter.treeutils.makeIntLiteral(that.pos, Integer.MIN_VALUE);
-                    JCExpression zerolit = rewriter.treeutils.makeIntLiteral(that.pos, 0);
+                    JCExpression maxlit = rewriter.treeutils.makeIntLiteral(p, Integer.MAX_VALUE);
+                    JCExpression minlit = rewriter.treeutils.makeIntLiteral(p, Integer.MIN_VALUE);
+                    JCExpression zerolit = rewriter.treeutils.makeIntLiteral(p, 0);
                     JCExpression a = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, zerolit, lhs, newtype);
                     JCExpression b1 = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, zerolit, rhs, newtype);
                     JCExpression b2 = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, rhs, zerolit, newtype);
                     JCExpression b = optag == JCTree.Tag.PLUS ? b1 : b2;
                     JCExpression c = rewriter.makeBin(that,  optagn,  sym, maxlit, rhs, newtype);
                     JCExpression d = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.intleSymbol, lhs, c, newtype);
-                    JCExpression x = rewriter.treeutils.makeImplies(that.pos, rewriter.treeutils.makeAnd(that.pos,a,b), d);
+                    JCExpression x = rewriter.treeutils.makeImplies(p, rewriter.treeutils.makeAnd(p,a,b), d);
                     x = condition(rewriter, x);
                     rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, x, "overflow in int " + str);
                     a = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, lhs, zerolit, newtype);
                     b = optag == JCTree.Tag.PLUS ? b2 : b1;
                     c = rewriter.makeBin(that,  optagn,  sym, minlit, rhs, newtype);
                     d = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.intleSymbol, c, lhs, newtype);
-                    x = rewriter.treeutils.makeImplies(that.pos, rewriter.treeutils.makeAnd(that.pos,a,b), d);
+                    x = rewriter.treeutils.makeImplies(p, rewriter.treeutils.makeAnd(p,a,b), d);
                     x = condition(rewriter, x);
                     rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, x, "underflow in int " + str);
                 } else if (newtype.getTag() == TypeTag.LONG) {
                     Symbol sym = optag == JCTree.Tag.PLUS ? rewriter.treeutils.longminusSymbol : rewriter.treeutils.longplusSymbol;
-                    JCExpression maxlit = rewriter.treeutils.makeLongLiteral(that.pos, Long.MAX_VALUE);
-                    JCExpression minlit = rewriter.treeutils.makeLongLiteral(that.pos, Long.MIN_VALUE);
-                    JCExpression zerolit = rewriter.treeutils.makeLongLiteral(that.pos, 0L);
+                    JCExpression maxlit = rewriter.treeutils.makeLongLiteral(p, Long.MAX_VALUE);
+                    JCExpression minlit = rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE);
+                    JCExpression zerolit = rewriter.treeutils.makeLongLiteral(p, 0L);
                     JCExpression a = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.longltSymbol, zerolit, lhs, newtype);
                     JCExpression b1 = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.longltSymbol, zerolit, rhs, newtype);
                     JCExpression b2 = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.longltSymbol, rhs, zerolit, newtype);
                     JCExpression b = optag == JCTree.Tag.PLUS ? b1 : b2;
                     JCExpression c = rewriter.makeBin(that,  optagn,  sym, maxlit, rhs, newtype);
                     JCExpression d = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.longleSymbol, lhs, c, newtype);
-                    JCExpression x = rewriter.treeutils.makeImplies(that.pos, rewriter.treeutils.makeAnd(that.pos,a,b), d);
+                    JCExpression x = rewriter.treeutils.makeImplies(p, rewriter.treeutils.makeAnd(p,a,b), d);
                     x = condition(rewriter, x);
                     rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, x, "overflow in long " + str);
                     a = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.longltSymbol, lhs, zerolit, newtype);
                     b = optag == JCTree.Tag.PLUS ? b2 : b1;
                     c = rewriter.makeBin(that,  optagn,  sym, minlit, rhs, newtype);
                     d = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.longleSymbol, c, lhs, newtype);
-                    x = rewriter.treeutils.makeImplies(that.pos, rewriter.treeutils.makeAnd(that.pos,a,b), d);
+                    x = rewriter.treeutils.makeImplies(p, rewriter.treeutils.makeAnd(p,a,b), d);
                     x = condition(rewriter, x);
                     rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, x, "underflow in long " + str);
                 }
             } else if (optag == JCTree.Tag.MUL) {
                 if (rewriter.useBV || rewriter.rac) {
                     if (newtype.getTag() == TypeTag.INT) {
-                        JCExpression a = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.MUL, that.getOperator(), lhs, rhs);
-                        JCExpression b = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.DIV, rewriter.treeutils.intdivideSymbol, a, lhs);
-                        JCExpression c = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, lhs, rewriter.treeutils.makeIntLiteral(that.pos, 0));
-                        JCExpression d = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, b, rhs);
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), lhs, rhs);
+                        JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.DIV, rewriter.treeutils.intdivideSymbol, a, lhs);
+                        JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, lhs, rewriter.treeutils.makeIntLiteral(p, 0));
+                        JCExpression d = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, b, rhs);
                         rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, 
-                                condition(rewriter, rewriter.treeutils.makeOr(that.pos, c, d)), "int multiply overflow");
+                                condition(rewriter, rewriter.treeutils.makeOr(p, c, d)), "int multiply overflow");
                     } else if (newtype.getTag() == TypeTag.LONG) {
-                        JCExpression a = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.MUL, that.getOperator(), lhs, rhs);
-                        JCExpression b = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.DIV, rewriter.treeutils.longdivideSymbol, a, lhs);
-                        JCExpression c = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, lhs, rewriter.treeutils.makeLongLiteral(that.pos, 0L));
-                        JCExpression d = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, b, rhs);
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), lhs, rhs);
+                        JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.DIV, rewriter.treeutils.longdivideSymbol, a, lhs);
+                        JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, lhs, rewriter.treeutils.makeLongLiteral(p, 0L));
+                        JCExpression d = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, b, rhs);
                         rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, 
-                                condition(rewriter, rewriter.treeutils.makeOr(that.pos, c, d)), "long multiply overflow");
+                                condition(rewriter, rewriter.treeutils.makeOr(p, c, d)), "long multiply overflow");
                     }
                 } else {
                     if (newtype.getTag() == TypeTag.INT) {
-                        JCExpression minlit = rewriter.treeutils.makeIntLiteral(that.pos, Integer.MIN_VALUE);
-                        JCExpression maxlit = rewriter.treeutils.makeIntLiteral(that.pos, Integer.MAX_VALUE);
-                        JCExpression a = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.MUL, that.getOperator(), lhs, rhs);
-                        JCExpression b = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.LE,  minlit, a);
-                        JCExpression c = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.LE,  a, maxlit);
+                        JCExpression minlit = rewriter.treeutils.makeIntLiteral(p, Integer.MIN_VALUE);
+                        JCExpression maxlit = rewriter.treeutils.makeIntLiteral(p, Integer.MAX_VALUE);
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), lhs, rhs);
+                        JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE,  minlit, a);
+                        JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE,  a, maxlit);
                         rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, 
-                                condition(rewriter, rewriter.treeutils.makeAnd(that.pos, b, c)), "int multiply overflow");
+                                condition(rewriter, rewriter.treeutils.makeAnd(p, b, c)), "int multiply overflow");
                     } else if (newtype.getTag() == TypeTag.LONG) {
-                        JCExpression minlit = rewriter.treeutils.makeLongLiteral(that.pos, Long.MIN_VALUE);
-                        JCExpression maxlit = rewriter.treeutils.makeLongLiteral(that.pos, Long.MAX_VALUE);
-                        JCExpression a = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.MUL, that.getOperator(), lhs, rhs);
-                        JCExpression b = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.LE,  minlit, a);
-                        JCExpression c = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.LE,  a, maxlit);
+                        JCExpression minlit = rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE);
+                        JCExpression maxlit = rewriter.treeutils.makeLongLiteral(p, Long.MAX_VALUE);
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), lhs, rhs);
+                        JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE,  minlit, a);
+                        JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE,  a, maxlit);
                         rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, 
-                                condition(rewriter, rewriter.treeutils.makeAnd(that.pos, b, c)), "long multiply overflow");
+                                condition(rewriter, rewriter.treeutils.makeAnd(p, b, c)), "long multiply overflow");
                     }
                 }
             } else if (optag == JCTree.Tag.DIV) {
                 // a/b overflows only if  a == min && b == -1
                 {
                     if (newtype.getTag() == TypeTag.INT) {
-                        JCExpression minlit = rewriter.treeutils.makeIntLiteral(that.pos, Integer.MIN_VALUE);
-                        JCExpression minusonelit = rewriter.treeutils.makeIntLiteral(that.pos, -1);
-                        JCExpression a = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, lhs, minlit);
-                        JCExpression b = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, rhs, minusonelit);
-                        JCExpression x = rewriter.treeutils.makeNot(that.pos, rewriter.treeutils.makeAnd(that.pos, a, b));
+                        JCExpression minlit = rewriter.treeutils.makeIntLiteral(p, Integer.MIN_VALUE);
+                        JCExpression minusonelit = rewriter.treeutils.makeIntLiteral(p, -1);
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, lhs, minlit);
+                        JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, rhs, minusonelit);
+                        JCExpression x = rewriter.treeutils.makeNot(p, rewriter.treeutils.makeAnd(p, a, b));
                         rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, condition(rewriter,x), "overflow in int divide");
                     } else if (newtype.getTag() == TypeTag.LONG) {
-                        JCExpression minlit = rewriter.treeutils.makeLongLiteral(that.pos, Long.MIN_VALUE);
-                        JCExpression minusonelit = rewriter.treeutils.makeLongLiteral(that.pos, -1L);
-                        JCExpression a = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, lhs, minlit);
-                        JCExpression b = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, rhs, minusonelit);
-                        JCExpression x = rewriter.treeutils.makeNot(that.pos, rewriter.treeutils.makeAnd(that.pos, a, b));
+                        JCExpression minlit = rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE);
+                        JCExpression minusonelit = rewriter.treeutils.makeLongLiteral(p, -1L);
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, lhs, minlit);
+                        JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, rhs, minusonelit);
+                        JCExpression x = rewriter.treeutils.makeNot(p, rewriter.treeutils.makeAnd(p, a, b));
                         rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, condition(rewriter,x), "overflow in long divide");
                     }
                 }
@@ -388,83 +389,108 @@ abstract public class Arithmetic extends ExpressionExtension {
         if (rewriter.rac && rewriter.jmltypes.isJmlType(newtype)) {
             bin = rewriter.makeBin(that,optag,that.getOperator(),lhs,rhs,newtype);
         } else {
-            bin = rewriter.treeutils.makeBinary(that.pos,optag,that.getOperator(),lhs,rhs);
+            bin = rewriter.treeutils.makeBinary(p,optag,that.getOperator(),lhs,rhs);
             if (isBigint) bin.type = newtype;
             // Now we always will have mathematical values
             if (rewriter.esc && !rewriter.useBV && implementOverflow && !isBigint) {
                 if (optag == JCTree.Tag.PLUS || optag == JCTree.Tag.MINUS) {
                     // ( result > MAX ? result + MIN + MIN : result < MIN ? result - MIN - MIN : result
                     if (typetag == TypeTag.INT) {
-                        JCExpression minlit = rewriter.treeutils.makeIntLiteral(that.pos, Integer.MIN_VALUE);
-                        JCExpression maxlit = rewriter.treeutils.makeIntLiteral(that.pos, Integer.MAX_VALUE);
-                        JCExpression a = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.GT, rewriter.treeutils.intgtSymbol, bin, maxlit);
-                        JCExpression b = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, bin, minlit);
-                        JCExpression c = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.MINUS, rewriter.treeutils.intplusSymbol, bin, minlit);
-                        JCExpression d = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.MINUS, rewriter.treeutils.intplusSymbol, c, minlit);
-                        JCExpression e = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.PLUS, rewriter.treeutils.intplusSymbol, bin, minlit);
-                        JCExpression f = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.PLUS, rewriter.treeutils.intplusSymbol, e, minlit);
-                        JCExpression g = rewriter.treeutils.makeConditional(that.pos, a, f, 
-                                rewriter.treeutils.makeConditional(that.pos, b, d, bin));
+                        JCExpression minlit = rewriter.treeutils.makeIntLiteral(p, Integer.MIN_VALUE);
+                        JCExpression maxlit = rewriter.treeutils.makeIntLiteral(p, Integer.MAX_VALUE);
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.GT, rewriter.treeutils.intgtSymbol, bin, maxlit);
+                        JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, bin, minlit);
+                        JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.intminusSymbol, bin, minlit);
+                        JCExpression d = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.intminusSymbol, c, minlit);
+                        JCExpression e = rewriter.treeutils.makeBinary(p, JCTree.Tag.PLUS, rewriter.treeutils.intplusSymbol, bin, minlit);
+                        JCExpression f = rewriter.treeutils.makeBinary(p, JCTree.Tag.PLUS, rewriter.treeutils.intplusSymbol, e, minlit);
+                        JCExpression g = rewriter.treeutils.makeConditional(p, a, f, 
+                                rewriter.treeutils.makeConditional(p, b, d, bin));
                         bin = g;
                     } else if (typetag == TypeTag.LONG) {
-                        JCExpression minlit = rewriter.treeutils.makeLongLiteral(that.pos, Long.MIN_VALUE);
-                        JCExpression maxlit = rewriter.treeutils.makeLongLiteral(that.pos, Long.MAX_VALUE);
-                        JCExpression a = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.GT, rewriter.treeutils.intgtSymbol, bin, maxlit);
-                        JCExpression b = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, bin, minlit);
-                        JCExpression c = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.MINUS, rewriter.treeutils.intplusSymbol, bin, minlit);
-                        JCExpression d = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.MINUS, rewriter.treeutils.intplusSymbol, c, minlit);
-                        JCExpression e = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.PLUS, rewriter.treeutils.intplusSymbol, bin, minlit);
-                        JCExpression f = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.PLUS, rewriter.treeutils.intplusSymbol, e, minlit);
-                        JCExpression g = rewriter.treeutils.makeConditional(that.pos, a, f, 
-                                rewriter.treeutils.makeConditional(that.pos, b, d, bin));
+                        JCExpression minlit = rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE);
+                        JCExpression maxlit = rewriter.treeutils.makeLongLiteral(p, Long.MAX_VALUE);
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.GT, rewriter.treeutils.intgtSymbol, bin, maxlit);
+                        JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, bin, minlit);
+                        JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.intminusSymbol, bin, minlit);
+                        JCExpression d = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.intminusSymbol, c, minlit);
+                        JCExpression e = rewriter.treeutils.makeBinary(p, JCTree.Tag.PLUS, rewriter.treeutils.intplusSymbol, bin, minlit);
+                        JCExpression f = rewriter.treeutils.makeBinary(p, JCTree.Tag.PLUS, rewriter.treeutils.intplusSymbol, e, minlit);
+                        JCExpression g = rewriter.treeutils.makeConditional(p, a, f, 
+                                rewriter.treeutils.makeConditional(p, b, d, bin));
                         bin = g;
                     }
                 } else if (optag == JCTree.Tag.MUL) {
+                    // Note all of this arithmetic will be done in unbounded integers in SMT
                     if (typetag == TypeTag.INT) {
-                        // TODO: This would be simpler if there were a REM operation for Ints in SMTLIB
+                        // The MOD here is Java %, which is negative if the dividend is negative
                         // DIV is OK here because it is exact
-                        JCExpression minlit = rewriter.treeutils.makeIntLiteral(that.pos, Integer.MIN_VALUE);
-                        JCExpression maxlit = rewriter.treeutils.makeIntLiteral(that.pos, Integer.MAX_VALUE);
-                        JCExpression a = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.MUL, that.getOperator(), lhs, rhs);
-                        JCExpression b = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.LE, rewriter.treeutils.intleSymbol,  minlit, a);
-                        JCExpression c = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.LE, rewriter.treeutils.intleSymbol,  a, maxlit);
-                        JCExpression e = rewriter.treeutils.makeAnd(that.pos, b, c);
-
-                        JCExpression f = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.MOD, 
-                                rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.intType), bin, 
-                                        rewriter.treeutils.makeLongLiteral(that.pos, (-2L)*Integer.MIN_VALUE));
-                        JCExpression g = rewriter.treeutils.makeConditional(that.pos, e, bin, f); 
+                        JCExpression zero = rewriter.treeutils.makeIntLiteral(p, 0);
+                        JCExpression minlit = rewriter.treeutils.makeIntLiteral(p, Integer.MIN_VALUE);
+                        JCExpression maxlit = rewriter.treeutils.makeIntLiteral(p, Integer.MAX_VALUE);
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), lhs, rhs);
+                        JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE, rewriter.treeutils.intleSymbol,  minlit, a);
+                        JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE, rewriter.treeutils.intleSymbol,  a, maxlit);
+                        JCExpression e = rewriter.treeutils.makeAnd(p, b, c);
+                        JCExpression longbin = rewriter.addImplicitConversion(that, syms.longType, bin);
+                        JCExpression pos = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE, rewriter.treeutils.intleSymbol,  zero, a);
+                        JCExpression biglit = rewriter.treeutils.makeLongLiteral(p, (-2L)*Integer.MIN_VALUE);
+                        JCExpression f = rewriter.treeutils.makeBinary(p, JCTree.Tag.MOD, 
+                                rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.longType), longbin, biglit);
+                        JCExpression fneg = rewriter.treeutils.makeBinary(p, JCTree.Tag.MOD, 
+                                        rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.longType), 
+                                        f, 
+                                        biglit);
+                        JCExpression big = rewriter.treeutils.makeBinary(p, JCTree.Tag.GT, rewriter.treeutils.intgtSymbol,  f, maxlit);
+                        JCExpression small = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.intltSymbol,  fneg, minlit);
+                        JCExpression sub = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.intminusSymbol,  f, biglit);
+                        JCExpression posvalue = rewriter.treeutils.makeConditional(p, big, sub, f);
+                        JCExpression negvalue = rewriter.treeutils.makeConditional(p, small, 
+                                    rewriter.treeutils.makeBinary(p, JCTree.Tag.PLUS, fneg, biglit), fneg);
+                        JCExpression g = rewriter.treeutils.makeConditional(p, e, bin, rewriter.treeutils.makeConditional(p, pos, posvalue, negvalue)); 
                         bin = g;
                     } else if (typetag == TypeTag.LONG) {
-                        JCExpression minlit = rewriter.treeutils.makeLongLiteral(that.pos, Long.MIN_VALUE);
-                        JCExpression maxlit = rewriter.treeutils.makeLongLiteral(that.pos, Long.MAX_VALUE);
-                        JCExpression a = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.MUL, that.getOperator(), lhs, rhs);
-                        JCExpression b = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.LE, rewriter.treeutils.longleSymbol,  minlit, a);
-                        JCExpression c = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.LE, rewriter.treeutils.longleSymbol,  a, maxlit);
-                        JCExpression e = rewriter.treeutils.makeAnd(that.pos, b, c);
-
-                        // FIXME - the multiplication by -2L below is bigger than a long
-                        JCExpression f = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.MOD, 
-                                rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.intType), bin, 
-                                        rewriter.treeutils.makeLongLiteral(that.pos, (-2L)*Long.MIN_VALUE));
-                        JCExpression g = rewriter.treeutils.makeConditional(that.pos, e, bin, f); 
-                        bin = g;
+                        JCExpression zero = rewriter.treeutils.makeLongLiteral(p, 0L);
+                        JCExpression minlit = rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE);
+                        JCExpression maxlit = rewriter.treeutils.makeLongLiteral(p, Long.MAX_VALUE);
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), lhs, rhs);
+                        JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE, rewriter.treeutils.longleSymbol,  minlit, a);
+                        JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE, rewriter.treeutils.longleSymbol,  a, maxlit);
+                        JCExpression e = rewriter.treeutils.makeAnd(p, b, c);
+                        JCExpression longbin = bin;
+                        JCExpression pos = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE, rewriter.treeutils.longleSymbol,  zero, a);
+                        JCExpression biglit = rewriter.treeutils.makeBinary(p,  JCTree.Tag.MUL,  
+                                rewriter.treeutils.makeLongLiteral(p, -2L),
+                                rewriter.treeutils.makeLongLiteral(p, Integer.MIN_VALUE));
+                        JCExpression f = rewriter.treeutils.makeBinary(p, JCTree.Tag.MOD, 
+                                rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.longType), longbin, biglit);
+                        JCExpression fneg = rewriter.treeutils.makeBinary(p, JCTree.Tag.MOD, 
+                                        rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.longType), 
+                                        f, 
+                                        biglit);
+                        JCExpression big = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.longltSymbol,  maxlit, f);
+                        JCExpression small = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.longltSymbol,  fneg, minlit);
+                        JCExpression sub = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.longminusSymbol,  f, biglit);
+                        JCExpression add = rewriter.treeutils.makeBinary(p, JCTree.Tag.PLUS, rewriter.treeutils.longplusSymbol, biglit, fneg);
+                        JCExpression posvalue = rewriter.treeutils.makeConditional(p, big, sub, f);
+                        JCExpression negvalue = rewriter.treeutils.makeConditional(p, small, add, fneg);
+                        JCExpression g = rewriter.treeutils.makeConditional(p, e, bin, rewriter.treeutils.makeConditional(p, pos, posvalue, negvalue)); 
                     }
                 } else if (optag == JCTree.Tag.DIV) {
                     if (typetag == TypeTag.INT) {
-                        JCExpression minlit = rewriter.treeutils.makeIntLiteral(that.pos, Integer.MIN_VALUE);
-                        JCExpression minusonelit = rewriter.treeutils.makeIntLiteral(that.pos, -1);
-                        JCExpression a = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, lhs, minlit);
-                        JCExpression b = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, rhs, minusonelit);
-                        JCExpression x = rewriter.treeutils.makeNot(that.pos, rewriter.treeutils.makeAnd(that.pos, a, b));
-                        bin = rewriter.treeutils.makeConditional(that.pos, x, bin, minlit);
+                        JCExpression minlit = rewriter.treeutils.makeIntLiteral(p, Integer.MIN_VALUE);
+                        JCExpression minusonelit = rewriter.treeutils.makeIntLiteral(p, -1);
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, lhs, minlit);
+                        JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, rhs, minusonelit);
+                        JCExpression x = rewriter.treeutils.makeNot(p, rewriter.treeutils.makeAnd(p, a, b));
+                        bin = rewriter.treeutils.makeConditional(p, x, bin, minlit);
                     } else if (typetag == TypeTag.LONG) {
-                        JCExpression minlit = rewriter.treeutils.makeLongLiteral(that.pos, Long.MIN_VALUE);
-                        JCExpression minusonelit = rewriter.treeutils.makeLongLiteral(that.pos, -1L);
-                        JCExpression a = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, lhs, minlit);
-                        JCExpression b = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, rhs, minusonelit);
-                        JCExpression x = rewriter.treeutils.makeNot(that.pos, rewriter.treeutils.makeAnd(that.pos, a, b));
-                        bin = rewriter.treeutils.makeConditional(that.pos, x, bin, minlit);
+                        JCExpression minlit = rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE);
+                        JCExpression minusonelit = rewriter.treeutils.makeLongLiteral(p, -1L);
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, lhs, minlit);
+                        JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, rhs, minusonelit);
+                        JCExpression x = rewriter.treeutils.makeNot(p, rewriter.treeutils.makeAnd(p, a, b));
+                        bin = rewriter.treeutils.makeConditional(p, x, bin, minlit);
                     }
                 }
             }
@@ -531,32 +557,6 @@ abstract public class Arithmetic extends ExpressionExtension {
         
         @Override
         public JCExpression rewriteBinary(JmlAssertionAdder rewriter, JCBinary that) {
-//            this.javaChecks = rewriter.esc || (rewriter.rac && JmlOption.isOption(context,JmlOption.RAC_JAVA_CHECKS));
-//
-//            JCTree.Tag op = that.getTag();
-//            Type newtype = that.type;
-//            if (newtype.getTag() == TypeTag.BOOLEAN) {
-//                newtype = maxtype(rewriter.jmltypes,that.getLeftOperand().type,that.getRightOperand().type);
-//            } else {
-//                newtype = rewriter.jmltypes.BIGINT;
-//            }
-//            
-//            JCExpression lhs = rewriter.convertExpr(that.getLeftOperand());
-//            lhs = rewriter.addImplicitConversion(lhs,newtype,lhs);
-//            JCExpression rhs = rewriter.convertExpr(that.getRightOperand());
-//            rhs = rewriter.addImplicitConversion(rhs,newtype,rhs);
-//
-//            if (javaChecks) {
-//                if (op == JCTree.Tag.DIV || op == JCTree.Tag.MOD) {
-//                    @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs);
-//                    if (nonzero != null) rewriter.addAssert(that,
-//                            rewriter.translatingJML ? Label.UNDEFINED_DIV0 : Label.POSSIBLY_DIV0,
-//                            rewriter.treeutils.makeImplies(that.pos, rewriter.condition, nonzero));
-//                }
-//            }
-//
-//            JCExpression bin = rewriter.makeBin(that,op,that.getOperator(),lhs,rhs,newtype);
-//            return bin;
             
             // Don't actually need to promote mod operations, but doing it for consistency
             Type newtype = that.type;
