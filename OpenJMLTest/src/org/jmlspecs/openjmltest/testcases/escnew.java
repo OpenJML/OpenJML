@@ -501,7 +501,6 @@ public class escnew extends EscBase {
     
     @Test
     public void testTry() {
-    	//main.addOptions("-show","-method=m2good","-checkFeasibility=debug","-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1498,7 +1497,6 @@ public class escnew extends EscBase {
     // The problem is that helper methods do not inherit invariants, even ones that are fixed, such as those that define the values of fields
     @Test
     public void testInvariantInheritance2() {
-    	//main.addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava  { \n"
                 
@@ -1517,7 +1515,6 @@ public class escnew extends EscBase {
 
     @Test @Ignore // Allow final on invariant to mean assume regardless of helper status
     public void testInvariantInheritance() {
-    	main.addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava  { \n"
                 
@@ -1534,7 +1531,6 @@ public class escnew extends EscBase {
         }
     @Test
     public void testInvariantInheritance3() {
-    	//main.addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava  { \n"
                 

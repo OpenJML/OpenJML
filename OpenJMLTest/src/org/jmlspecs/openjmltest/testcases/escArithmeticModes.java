@@ -219,7 +219,6 @@ public class escArithmeticModes extends EscBase {
     @Test @Ignore // FIXME - still have to sort out how assignments are handled in Math mode
     public void testSumMathArg() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
-        //main.addOptions("-show","-method=mq");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeBigintMath public class TestJava { \n"
                 +"  @SkipEsc public long mb(int i) {\n"

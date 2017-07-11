@@ -1425,7 +1425,6 @@ public class escall3 extends EscBase {
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2b() {
-    //	main.addOptions("-show","-progress","-method=mmm","-checkFeasibility=debug");
     	main.addOptions("-checkFeasibility=all");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1474,7 +1473,6 @@ public class escall3 extends EscBase {
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2c() {
-    	//main.addOptions("-show","-progress","-method=mmm","-checkFeasibility=debug");
     	main.addOptions("-checkFeasibility=all");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

@@ -825,7 +825,6 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testLabels2() {
-        //main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { \n"
@@ -977,6 +976,20 @@ public class escnew3 extends EscBase {
                 + "     int[] result1 = new int[]{1};\n"
                 + "     int[] result2 = result1.clone();\n"
                 + "     return result2;\n"
+                + "  }\n"
+                + "}"
+                 );
+        
+    }
+    
+    @Test
+    public void testInvariants() {
+        helpTCX("tt.TestJava",
+                  "package tt; \n"
+                + "public class TestJava {\n"
+                + "  //@ ensures \\result == (\\lbl BYTES Integer.BYTES);\n"
+                + "  public int foo() {\n"
+                + "     return 4;\n"
                 + "  }\n"
                 + "}"
                  );

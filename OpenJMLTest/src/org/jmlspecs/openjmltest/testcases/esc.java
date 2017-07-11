@@ -299,7 +299,6 @@ public class esc extends EscBase {
 	public void testForEach2a() {
 		Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
 		main.addOptions("-method=m4","-checkFeasibility=all","escMaxWarnings=1");
-		//main.addOptions("-show");
 		helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
 				+ "public class TestJava { \n"
 				+ "  //@ public normal_behavior  ensures true;\n" 
@@ -482,7 +481,6 @@ public class esc extends EscBase {
     @Test
     public void testNonNullElements2b() {
 //      Assume.assumeTrue(runLongTests);
-//        main.addOptions("-show","-method=m2");
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { \n"
 
@@ -667,7 +665,6 @@ public class esc extends EscBase {
 	@Test
 	public void testFresh() {
 		Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-		//main.addOptions("-method=m7c","-show", "-subexpressions");
 		helpTCX("tt.TestJava", "package tt; \n" + "abstract public class TestJava { \n"
 
 				+ "  //@ requires p != null && p != this;\n" 
@@ -1387,8 +1384,6 @@ public class esc extends EscBase {
 
 	@Test
 	public void testMethodCallsWithExceptions() {
-		// main.addOptions("-show","-method=m3");
-		// main.addOptions("-progress");
 		helpTCX("tt.TestJava",
 				"package tt; \n" + "/*@ code_bigint_math*/  public class TestJava { \n" + "  public static int k;\n"
 						+ "  //@ requires i >= 0;\n" + "  //@ modifies k;\n" + "  //@ ensures k == 10;\n"
@@ -2028,7 +2023,6 @@ public class esc extends EscBase {
 
 	@Test // FIXME - problem with maintaining result of j
 	public void testMethodCallThis() {
-		// main.addOptions("-method=instok","-show","-subexpressions");
 		helpTCX("tt.TestJava",
 				"package tt; import org.jmlspecs.annotation.*; \n" + "/*@ code_java_math*/ public class TestJava { \n"
 						+ "  public static TestJava o;\n" + "  public static TestJava p;\n"
@@ -2047,8 +2041,7 @@ public class esc extends EscBase {
 
 						+ "  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3;\n"
 						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" + "  //@ ensures \\result == 6;\n"
-						+ "  public int inst() { return o.m() + p.m() + j; }\n" // Line
-																				// 20
+						+ "  public int inst() { return o.m() + p.m() + j; }\n" // Line 20
 
 						+ "  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3 && o!=this && p!= this;\n"
 						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" + "  //@ ensures \\result == 6;\n"
@@ -2149,7 +2142,6 @@ public class esc extends EscBase {
 
     @Test
     public void testDoWhileSpecsJava() {
-        //main.addOptions("-show","-method=inst","-subexpressions");
         helpTCX("tt.TestJava",
                 "package tt; import org.jmlspecs.annotation.*; \n" + "/*@ code_java_math */ public class TestJava { \n"
                         + "  public void inst() { int i = 5; /*@ loop_invariant  i>0; decreases i; */ do { i = i-1; } while (i>0); /*@ assert i == 0; */ }\n"
@@ -2683,7 +2675,6 @@ public class esc extends EscBase {
 
 	@Test
 	public void testPureNoArguments() {
-	    //main.addOptions("-show","-method=m1");
 		helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
 				+ "/*@ code_bigint_math*/ public class TestJava { \n" 
 		        + "  public static int z;\n"
@@ -3282,7 +3273,6 @@ public class esc extends EscBase {
 
 	@Test
 	public void testSignals2() {
-		// main.addOptions("-show","-method=m2a","-subexpressions");
 		helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  static public int i;\n"
 				+ "  //@ requires i >= 0;\n" + "  //@ ensures i>0;\n" + "  //@ signals (Exception e) i == 0;\n" // OK
 				+ "  public void m2() throws Exception {\n" + "    if (i==0) throw new Exception();\n" + "  }\n"

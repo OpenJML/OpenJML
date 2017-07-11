@@ -103,7 +103,7 @@ public class escArithmeticModes2 extends EscBase {
     @Test
     public void testModJavaB() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Very long - skip for now
-        main.addOptions("-show","-method=ma","-subexpressions");
+        //main.addOptions("-show","-method=ma","-subexpressions");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeJavaMath @SpecJavaMath public class TestJava { \n"
                 +"  //@ requires j != 0;\n"

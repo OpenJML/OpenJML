@@ -69,7 +69,6 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testIterable2() {
-        //main.addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -90,7 +89,6 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testIterable2b() {
- //       main.addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -228,7 +226,6 @@ public class esclambdas extends EscBase {
 
     @Test
     public void testIterable4() {
-        //main.addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

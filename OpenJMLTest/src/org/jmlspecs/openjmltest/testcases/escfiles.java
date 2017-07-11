@@ -118,7 +118,7 @@ public class escfiles extends EscBase {
     @Test
     public void testDemoB() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB.java","test/escDemoB");//,"-method=tick","-show","-escMaxWarnings=1","-checkFeasibility=debug");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB.java","test/escDemoB");
     }
 
     @Test
@@ -364,7 +364,7 @@ public class escfiles extends EscBase {
     @Test
     public void testEscSimpleString() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver)); // FIXME - CVC4 crashes or is long
-        helpTF("escSimpleString","-nonnullByDefault","-timeout=240");//,"-method=esc.SimpleString.SimpleString(int[])","-show","-subexpressions");
+        helpTF("escSimpleString","-nonnullByDefault","-timeout=240");
     }
 
     @Test
@@ -411,7 +411,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testJmlSpecPublic() {
-        helpTCF("test/escSeparateJml/BankingExample.java","test/escSeparateJml","-classpath","test/escSeparateJml");//,"-show","-method=credit","-subexpressions","-checkFeasibility=all");
+        helpTCF("test/escSeparateJml/BankingExample.java","test/escSeparateJml","-classpath","test/escSeparateJml");
     }
 
     @Test
@@ -481,7 +481,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testEscJml1() {
-        helpTCF("test/escJml1/StorageParameters.java","test/escJml1","-specspath=test/escJml1/specs");//,"-show","-method=main");
+        helpTCF("test/escJml1/StorageParameters.java","test/escJml1","-specspath=test/escJml1/specs");
     }
 
     @Test

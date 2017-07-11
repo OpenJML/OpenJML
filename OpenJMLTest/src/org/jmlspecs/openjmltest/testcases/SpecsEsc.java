@@ -86,7 +86,7 @@ public class SpecsEsc extends EscBase {
         		break;
         	}
         }
-    	escOnFiles(subdir,subdir,"-minQuant","-method=esc","-checkFeasibility=exit");//,"-show","-subexpressions");
+    	escOnFiles(subdir,subdir,"-minQuant","-method=esc","-checkFeasibility=exit");
     }
     
     static public java.util.List<File> findAllFiles() {

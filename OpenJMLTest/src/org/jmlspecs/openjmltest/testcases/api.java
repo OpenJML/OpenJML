@@ -1467,7 +1467,6 @@ public class api extends JmlTestCase {
             assertEquals(2,dlist.size());
             assertTrue(res.result() == IProverResult.POSSIBLY_SAT || res.result() == IProverResult.SAT);
             
-            //m.addOptions("-show");
             m.doESC(csym);
             check("","");
             assertEquals(4,dlist.size());

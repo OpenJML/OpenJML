@@ -64,7 +64,6 @@ public class escinline extends EscBase {
     
     @Test // basic test of inlining, checking assignable and ensures, with no return
     public void testInline1a() {
-    	//main.addOptions("-show","-method=m3");
         helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
                 +"public class TestJava { \n"
                 
@@ -94,7 +93,6 @@ public class escinline extends EscBase {
     // This test is OK with bigint math (cf. testInline2a), but not with java math.  FIXME - problem is that m.j does not have a range restriction assumption
     @Test  // inlining from a different class (with a different 'this')
     public void testInline2() {
-        //main.addOptions("-show","-method=m1","-subexpressions");
         helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
                 +" class M { \n"
                 +"  public int j;\n"

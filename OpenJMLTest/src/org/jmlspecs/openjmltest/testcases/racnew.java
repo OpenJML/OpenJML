@@ -2619,7 +2619,6 @@ public class racnew extends RacBase {
     }
 
     @Test public void testStaticInhInvariant() {
-        //main.addOptions("-show");
         addMockFile("$A/tt/B.java","package tt; public class B extends tt.C { \n"
                 +"//@ static public invariant i == 2; \n"
                 +"}\n"

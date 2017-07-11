@@ -188,7 +188,6 @@ public class racnew3 extends RacBase {
 
     @Test
     public void testCast1() {
-    	//main.addOptions("-show","-method=m0");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
