@@ -1548,6 +1548,34 @@ public class escnew extends EscBase {
                 +"}\n"
                 );
         }
+    
+    @Test
+    public void testInvariantInheritanceArray() {
+        main.addOptions("-show","-method=m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava  { \n"
+                
+                +"  public /*@ final */ static int[] FIELD = new int[]{1,2,3,4,5};\n"
+                +"  public /*@ final */ static int[] FIELD2 = {1,2,3,4,5,6};\n"
+
+                
+                +"  //@  pure \n"
+                +"  public static void m1() {\n"
+                +"    //@ assert H.ZZZZ == 79 ;\n"
+                +"    //@ assert FIELD.length == 5 ;\n"
+                +"    //@ assert FIELD2.length == 6 ;\n"
+                +"    //@ assert H.CHILD.length == 5 ;\n"
+                +"    //@ assert H.CHILD2.length == 6 ;\n"
+                +"  }\n"
+                +"}\n"
+                +" class H  { \n"
+                +"  public /*@ final */ static int ZZZZ = 79;\n"
+                +"  public /*@ final */ static int[] CHILD = new int[]{1,2,3,4,5};\n"
+                +"  public /*@ final */ static int[] CHILD2 = {1,2,3,4,5,6};\n"
+                +"}\n"
+                );
+        
+        }
 
     @Test
     public void testExplicitAssert() {
