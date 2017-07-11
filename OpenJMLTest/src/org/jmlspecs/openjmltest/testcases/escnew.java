@@ -1594,7 +1594,6 @@ public class escnew extends EscBase {
                 +"}\n"
                 );
         
-         char[] Child = {1,2,3,4,5};
         }
 
     @Test
