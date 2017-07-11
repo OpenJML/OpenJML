@@ -2040,7 +2040,6 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitSelect(JCFieldAccess tree) {
         // o.f becomes f[o] where f has sort (Array REF type)
-        if (tree.toString().contains("ZEROS")) Utils.stop();
         if (tree.selected != null) {
             JCExpression object = tree.selected;
             Symbol field = tree.sym;
