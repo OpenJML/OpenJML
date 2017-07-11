@@ -785,6 +785,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected boolean assumingPostConditions;
     
+    protected JCBlock discoveredFields;
+    protected Set<Symbol> alreadyDiscoveredFields = new HashSet<>();
+    
     /** Internal method to do the method body conversion */
     protected JCBlock convertMethodBodyNoInit(JmlMethodDecl pmethodDecl, JmlClassDecl pclassDecl) {
         Main.instance(context).pushOptions(pmethodDecl.mods);
@@ -2203,9 +2206,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        
 //    }
     
-//    protected boolean isFinal(Symbol sym) {
-//        return (sym.flags() & Flags.FINAL) != 0;
-//    }
+    protected boolean isFinal(Symbol sym) {
+        return (sym.flags() & Flags.FINAL) != 0;
+    }
     
     /** Adds in assumptions or assertions for the non_nullity of visible fields 
      * of the current and parent classes.
@@ -3153,6 +3156,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addingAxioms = prevAddingAxioms;
         }
     }
+    
+    protected JCStatement addFinalStaticField(JCFieldAccess convertedfa) {
+        // FIXME - check visibility?
+        DiagnosticPosition pos = convertedfa;
+        int p = pos.getPreferredPosition();
+        VarSymbol vsym = ((VarSymbol)convertedfa.sym);
+        Object value = vsym.getConstantValue();
+        if (value == null) return null;
+        JCExpression lit = treeutils.makeLit(p, convertedfa.type, value);
+        JCExpression eq = treeutils.makeEquality(p, convertedfa, lit);
+        JmlStatementExpr st = treeutils.makeAssume(pos,Label.IMPLICIT_ASSUME,eq);
+        st.source = log.currentSourceFile(); // FIXME - or the source file where it is declared?
+        st.associatedPos = p;
+        st.associatedSource = null;
+        st.optionalExpression = null;
+        return st;
+    }
 
     /** Add all constant final static fields from this specific class */
     protected void addFinalStaticFields(ClassSymbol csym) {
@@ -3166,6 +3186,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (!utils.jmlvisible(vd.sym, methodDecl.sym.owner, csym, vd.mods.flags, methodDecl.mods.flags)) continue;
 
                 if ((vd.sym.flags() & (Flags.FINAL|Flags.STATIC)) == (Flags.FINAL|Flags.STATIC)) {
+                    alreadyDiscoveredFields.add(vd.sym);
                     JCExpression e = vd.init;
                     if (e != null) {
                         Object constValue = e.type.constValue();
@@ -3393,9 +3414,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addInvariants(v,v.type,id,currentStatements,true,false,false,false,false,true,Label.INVARIANT_ENTRANCE,
                     utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
         }
-
-
-        // Invariants for fields
+        
+        {
+            pushBlock();
+            addStat( comment(methodDecl,"Invariants for discovered fields",null));
+            discoveredFields = popBlock(0L,null);
+            addStat(discoveredFields);
+        }
+        
+        // Collect and check precondition
+        
         savedThis = currentThisExpr;
         currentThisExpr = savedThis;
         JCExpression combinedPrecondition = null;
@@ -9647,10 +9675,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             treeutils.copyEndPosition(result, that);
             return;
         }
+        JCFieldAccess newfa = null;
+        if (s != null) newfa = treeutils.makeSelect(that.pos, trexpr, s);
+        if (!rac && s != null && alreadyDiscoveredFields.add(s)) { // true if s was NOT in the set already
+            if (utils.isJMLStatic(s) && (s.flags_field & Flags.FINAL) != 0) {
+                JCStatement st = addFinalStaticField(newfa);
+                if (st != null) {
+                    // FIXME - this repeatedly copies the list
+                    discoveredFields.stats = discoveredFields.stats.append(st);
+                    if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note(that, "jml.message", "Added an initalized static final field: " + st.toString());
+                }
+            } else {
+                if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note("jml.message", "No invariants created for " + that);
+            }
+        }
         checkRW(JmlTokenKind.READABLE,that.sym,trexpr,that);
         if (!convertingAssignable) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, that, currentThisExpr, currentThisExpr);
         if (localVariables.containsKey(s)) {
-            result = eresult = treeutils.makeSelect(that.pos, trexpr, s);
+            result = eresult = newfa;
         } else if (esc && s != null && "class".equals(s.toString())) {
             result = eresult = treeutils.makeJavaTypelc(that.selected);
         } else if (translatingJML && s == null) {
@@ -9683,80 +9725,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression sel = trexpr; // FIXME - what if static; what if not a variable
             addRepresentsAxioms((ClassSymbol)that.selected.type.tsym, s, that, trexpr);
 
-            //            if (rac) {
-//                Name mmName = names.fromString(Strings.modelFieldMethodPrefix + that.name.toString());
-//                JmlSpecs.TypeSpecs tyspecs = specs.getSpecs((ClassSymbol)that.sym.owner);
-//                for (JmlTypeClauseDecl x: tyspecs.modelFieldMethods) {
-//                    if (x.decl instanceof JmlMethodDecl && ((JmlMethodDecl)x.decl).name.equals(mmName)) {
-//                        JmlMethodDecl md = (JmlMethodDecl)x.decl;
-//                        JCMethodInvocation app = treeutils.makeMethodInvocation(that,sel,md.sym);
-//                        result = eresult = app;
-//                        treeutils.copyEndPosition(result, that);
-//                        return;
-//                    }
-//                }
-//                if (s.name.toString().equals("erasure") && s instanceof MethodSymbol && utils.qualifiedName((MethodSymbol)s).equals(Strings.jmlSpecsPackage + ".JML.erasure")) {
-//                    
-//                    JCMethodInvocation m = treeutils.makeUtilsMethodCall(that.pos,"erasure");
-//                    result = eresult = m.meth;
-//                    return;
-//                }
-//                // This is an internal error - the wrapper for the model field method
-//                // should have been created during the MemberEnter phase.
-//                throw new NoModelMethod();
-//            }
-//            if (esc) {
-//                JCFieldAccess fa = M.Select(sel, that.name);
-//                fa.pos = that.pos;
-//                fa.sym = s;
-//                fa.type = that.type;
-//                result = eresult = fa;
-//                if (fa.sym instanceof VarSymbol && specs.isNonNull(fa.sym)) {
-//                    JCExpression nonnull = treeutils.makeNeqObject(that.pos,fa,treeutils.nullLit);
-//                    condition = treeutils.makeAnd(fa.pos, condition, nonnull);
-//                }
-//                // Use the specs of the (static) type of the object being selected
-//                TypeSpecs tspecs = specs.getSpecs((ClassSymbol)fa.selected.type.tsym);
-//                for (JmlTypeClause tc : tspecs.clauses) {
-//                    if (tc.token == JmlToken.REPRESENTS) {
-//                        JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents)tc;
-//
-//                        if (((JCIdent)rep.ident).sym.equals(s)) {
-//                            // FIXME - why this?
-////                            if (oldenv == null) {
-////                                JmlStatementHavoc st = M.at(that.pos).JmlHavocStatement(List.<JCExpression>of(rep.ident));
-////                                addStat(st);
-////                            }
-//                            if (rep.suchThat){
-//                                addAssume(that,Label.IMPLICIT_ASSUME,
-//                                        convertExpr(rep.expression));
-//
-//                            } else {
-//                                // FIXME - This does not work if the model variable is used within a pure method spec, because it ends up in the body of a constructed quantifier, but localVariables is not used
-////                                if (localVariables.isEmpty()) {
-////                                    addAssumeEqual(that,Label.IMPLICIT_ASSUME,
-////                                            convertExpr(rep.ident),
-////                                            convertExpr(rep.expression));
-////                                } else {
-//                                JCIdent thisId = currentThisId;
-//                                JCExpression thisExpr = currentThisExpr;
-//                                try {
-//                                    currentThisExpr = sel;
-//                                    currentThisId = sel instanceof JCIdent ? (JCIdent)sel : null;
-//                                    result = eresult = convertExpr(rep.expression);
-//                                } finally {
-//                                    currentThisId = thisId;
-//                                    currentThisExpr = thisExpr;
-//                                }
-//                                    // FIXME - we could get recursion here
-//                                return;
-////                                }
-//                            }
-//                        }
-//                    }
-//                }
-                return;
-//            }
+            return;
         } else if (s instanceof Symbol.TypeSymbol) {
             // This is a type name, so the tree should be copied, but without inserting temporary assignments
             // makeType creates a fully-qualified name

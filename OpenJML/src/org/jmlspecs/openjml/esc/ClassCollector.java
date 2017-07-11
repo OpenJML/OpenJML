@@ -34,7 +34,6 @@ class ClassCollector extends JmlTreeScanner {
     /** Static method that is the entry point to the functionality the collector */
     public static /*@ non_null pure */ ClassCollector collect(/*@ non_null */JmlClassDecl cd, /*@ nullable */JmlMethodDecl md) {
         ClassCollector collector = new ClassCollector();
-        if (md.toString().contains("validateNotSet")) Utils.stop();
         collector.useBV = false;
         collector.doMethods = false;
         collector.scan(cd);
@@ -96,6 +95,7 @@ class ClassCollector extends JmlTreeScanner {
     	JmlSpecs.MethodSpecs ms = that.methodSpecsCombined;
     	scan(ms.mods);
         visitMethodDef(that);
+        scan(ms.cases);
     }
 
     
