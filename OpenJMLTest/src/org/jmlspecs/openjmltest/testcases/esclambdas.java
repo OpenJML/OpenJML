@@ -245,5 +245,36 @@ public class esclambdas extends EscBase {
                 );
     }
     
+    @Test
+    public void testMethodReference() {
+        main.addOptions("-show","-method=m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"@org.jmlspecs.annotation.CodeBigintMath public class TestJava { \n"
+                
+                +"  public int field;\n"
+                +"  \n"
+                
+                +"    //@ public normal_behavior assignable field; ensures \\result == i + 1 && field == i ;\n"
+                +"    public Integer bump(Integer i) { field = i; return i+1; }\n"
+                +"    //@ public normal_behavior assignable field; ensures \\result == i + 1 ;\n"
+                +"    public Integer bump2(Integer i) {  return i+1; }\n"
+                
+                +"  //@ requires j < 1000 && j > -1000;\n"
+                +"  //@ assignable field;\n"
+                +"  public void m1(java.util.function.BiFunction<TestJava,Integer,Integer> a, int j) {\n"
+                +"   java.util.function.BiFunction<TestJava,Integer,Integer>  b = a;\n"
+                +"    int k = (int)b.apply(this,(Integer)(j+100));\n"
+                +"    assert k == j + 101 && field == j + 100;\n"
+                +"  }\n"
+                                
+                +"  //@ assignable field;\n"
+                +"  public void m2() {\n"
+                +"    m1(TestJava::bump, 200);\n"
+                +"    //@ assert field == 300;\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
 
 }
