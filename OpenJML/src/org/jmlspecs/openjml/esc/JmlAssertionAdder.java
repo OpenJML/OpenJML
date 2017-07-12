@@ -2900,7 +2900,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             id = treeutils.makeIdent(p, sym);
         } else if (utils.isJMLStatic(sym)) {
             // static field
-            JCExpression etype = treeutils.makeType(pos.getPreferredPosition(), sym.type);
+            JCExpression etype = treeutils.makeType(pos.getPreferredPosition(), sym.owner.type);
             id = treeutils.makeSelect(p, etype, sym);
         } else {
             // instance field
@@ -3161,23 +3161,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
-    protected JCStatement addFinalStaticField(JCFieldAccess convertedfa) {
+    protected void addFinalStaticField(JCFieldAccess convertedfa) {
         // FIXME - check visibility?
-        if (convertedfa.toString().contains("hex")) Utils.stop();
+        JmlStatementExpr st = null;
         DiagnosticPosition pos = convertedfa;
         int p = pos.getPreferredPosition();
+        if (!(convertedfa.sym instanceof VarSymbol)) return;
         VarSymbol vsym = ((VarSymbol)convertedfa.sym);
         Object value = vsym.getConstantValue();
         if (value != null) {
             JCExpression lit = treeutils.makeLit(p, convertedfa.type, value);
             JCExpression eq = treeutils.makeEquality(p, convertedfa, lit);
-            JmlStatementExpr st = treeutils.makeAssume(pos,Label.IMPLICIT_ASSUME,eq);
+            st = treeutils.makeAssume(pos,Label.IMPLICIT_ASSUME,eq);
             st.source = log.currentSourceFile(); // FIXME - or the source file where it is declared?
             st.associatedPos = p;
             st.associatedSource = null;
             st.optionalExpression = null;
-            return st;
         }
+        if (st == null) {
         xx: {
             Symbol owner = convertedfa.sym.owner;
             if (!(owner instanceof ClassSymbol)) break xx;
@@ -3192,16 +3193,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCExpression len = treeutils.makeIntLiteral(init, arr.elems.length());
                     JCExpression eq = treeutils.makeEquality(init.getPreferredPosition(), lenexpr, len);
                     // FIXME - could add information about nexted dimensions and about elements
-                    JmlStatementExpr st = treeutils.makeAssume(init,Label.IMPLICIT_ASSUME,eq);
+                    st = treeutils.makeAssume(init,Label.IMPLICIT_ASSUME,eq);
                     st.source = log.currentSourceFile(); // FIXME - or the source file where it is declared?
                     st.associatedPos = p;
                     st.associatedSource = null;
                     st.optionalExpression = null;
-                    return st;
                 }
             }
-        }      
-        return null;
+        }
+        }
+        if (st != null) {
+            // FIXME - this repeatedly copies the list
+            discoveredFields.stats = discoveredFields.stats.append(st);
+            if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note(convertedfa, "jml.message", "Added an initalized static final field: " + st.toString());
+        }
+
+        return ;
     }
 
     /** Add all constant final static fields from this specific class */
@@ -3215,22 +3222,30 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JmlVariableDecl vd = (JmlVariableDecl)def;
                 if (!utils.jmlvisible(vd.sym, methodDecl.sym.owner, csym, vd.mods.flags, methodDecl.mods.flags)) continue;
 
-                if ((vd.sym.flags() & (Flags.FINAL|Flags.STATIC)) == (Flags.FINAL|Flags.STATIC)) {
+                if (utils.isJMLStatic(vd.sym) && isFinal(vd.sym)) {
+                    if (vd.sym.toString().contains("CHILD") || vd.sym.toString().contains("FIELD")) Utils.stop();
                     alreadyDiscoveredFields.add(vd.sym);
-                    JCExpression e = vd.init;
-                    if (e != null) {
-                        Object constValue = e.type.constValue();
-                        if (constValue == null) continue;
-                        JCExpression lit = treeutils.makeLit(e.pos, e.type, constValue);
-                        lit = addImplicitConversion(e,vd.type,lit);
-                        addStat(treeutils.makeVariableDecl(vd.sym, lit));
-                        // Note - with the above declaration and initialization, BasicBlocker2 adds an assumption
-//                        JCExpression expr = treeutils.makeEquality(vd.pos, treeutils.makeIdent(vd.pos,vd.sym), lit);
-//                        addAssume(vd,Label.IMPLICIT_ASSUME,convertExpr(expr));
-//                        vd.init = lit;
-//                        vd.sym.owner = null; // This null makes the identifier not subject to havoc
-//                        addStat(vd);
+                    Symbol sym = vd.sym;
+                    if (sym != null && sym.owner instanceof ClassSymbol) {
+                        JCFieldAccess newfa;
+                        if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(def.pos, treeutils.makeType(def.pos, sym.owner.type), sym);
+                        else newfa = treeutils.makeSelect(def.pos, currentThisExpr, sym);
+                        addFinalStaticField(newfa);
                     }
+//                    JCExpression e = vd.init;
+//                    if (e != null) {
+//                        Object constValue = e.type.constValue();
+//                        if (constValue == null) continue;
+//                        JCExpression lit = treeutils.makeLit(e.pos, e.type, constValue);
+//                        lit = addImplicitConversion(e,vd.type,lit);
+//                        addStat(treeutils.makeVariableDecl(vd.sym, lit));
+//                        // Note - with the above declaration and initialization, BasicBlocker2 adds an assumption
+////                        JCExpression expr = treeutils.makeEquality(vd.pos, treeutils.makeIdent(vd.pos,vd.sym), lit);
+////                        addAssume(vd,Label.IMPLICIT_ASSUME,convertExpr(expr));
+////                        vd.init = lit;
+////                        vd.sym.owner = null; // This null makes the identifier not subject to havoc
+////                        addStat(vd);
+//                    }
                 }
             }
         }
@@ -3295,6 +3310,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         int savedheapcount = heapCount;
 
         heapCount = preheapcount;
+        
+        {
+            pushBlock();
+            addStat( comment(methodDecl,"Invariants for discovered fields",null));
+            discoveredFields = popBlock(0L,null);
+            addStat(discoveredFields);
+        }
+
         
         /* Declare new variables, initialized to the values of the formal 
          * parameters, so that they can be referred to in postconditions and other invariant checks. 
@@ -3445,12 +3468,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
         }
         
-        {
-            pushBlock();
-            addStat( comment(methodDecl,"Invariants for discovered fields",null));
-            discoveredFields = popBlock(0L,null);
-            addStat(discoveredFields);
-        }
         
         // Collect and check precondition
         
@@ -9692,6 +9709,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitSelect(JCFieldAccess that) {
+        if (that.toString().contains("CHILD")) Utils.stop();
         JCExpression selected;
         Symbol s = convertSymbol(that.sym);
         JCExpression trexpr = that.getExpression();
@@ -9706,15 +9724,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return;
         }
         JCFieldAccess newfa = null;
-        if (s != null) newfa = treeutils.makeSelect(that.pos, trexpr, s);
+        Symbol sym = s;
+        if (sym != null && sym.owner instanceof ClassSymbol) {
+            if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
+            else newfa = treeutils.makeSelect(that.pos, currentThisExpr, sym);
+        }
+        if (s.toString().contains("CHILD") || s.toString().contains("FIELD")) Utils.stop();
         if (!rac && s != null && alreadyDiscoveredFields.add(s)) { // true if s was NOT in the set already
             if (utils.isJMLStatic(s) && (s.flags_field & Flags.FINAL) != 0) {
-                JCStatement st = addFinalStaticField(newfa);
-                if (st != null) {
-                    // FIXME - this repeatedly copies the list
-                    discoveredFields.stats = discoveredFields.stats.append(st);
-                    if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note(that, "jml.message", "Added an initalized static final field: " + st.toString());
-                }
+                addFinalStaticField(newfa);
             } else {
                 if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note("jml.message", "No invariants created for " + that);
             }
@@ -9879,15 +9897,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
             else newfa = treeutils.makeSelect(that.pos, currentThisExpr, sym);
         }
+        if (sym.toString().contains("CHILD") || sym.toString().contains("FIELD")) Utils.stop();
         if (!rac && sym != null && alreadyDiscoveredFields.add(sym)) { // true if s was NOT in the set already
-            if (sym.toString().contains("hex")) Utils.stop();
             if (utils.isJMLStatic(sym) && isFinal(sym)) {
-                JCStatement st = addFinalStaticField(newfa);
-                if (st != null) {
-                    // FIXME - this repeatedly copies the list
-                    discoveredFields.stats = discoveredFields.stats.append(st);
-                    if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note(that, "jml.message", "Added an initalized static final field: " + st.toString());
-                }
+                addFinalStaticField(newfa);
             } else {
                 if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note("jml.message", "No invariants created for " + that);
             }
