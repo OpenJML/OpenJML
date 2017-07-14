@@ -180,69 +180,72 @@ public class esc extends EscBase {
 	public void testForEach() {
 		helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
 
-				+ "  public void m7y() {\n" + "    long[] a = { 1,2,3,4};\n"
-				+ "    //@ decreases a.length - \\index -2;\n" // BAD - last
-																// time through
-				+ "    for (long k: a) {\n" + "    }\n" + "  }\n"
+				+ "  public void m7y() {\n" 
+				+ "    long[] a = { 1,2,3,4};\n"
+				+ "    //@ decreases a.length - \\index -2;\n" // BAD - last time through
+				+ "    for (long k: a) {\n" 
+				+ "    }\n" + "  }\n"
 
-				+ "  public void m7a() {\n" + "    long[] a = { 1,2,3,4};\n" + "    //@ decreases \\index+10;\n" // BAD
-																													// -
-																													// loop
-																													// does
-																													// not
-																													// decrease
-																													// variant
-				+ "    for (long k: a) {\n" + "    }\n" + "  }\n"
+				+ "  public void m7a() {\n" 
+				+ "    long[] a = { 1,2,3,4};\n" 
+				+ "    //@ decreases \\index+10;\n" // BAD - loop does not decrease variant
+				+ "    for (long k: a) {\n" 
+				+ "    }\n" 
+				+ "  }\n"
 
-				+ "  public void m8() {\n" + "    long[] a = { 1,2,3,4};\n"
-				+ "    //@ loop_invariant \\index > 0 && \\index <= a.length;\n" // BAD
-																					// -
-																					// first
-																					// time
-																					// through
-																					// loop
-				+ "    for (long k: a) {\n" + "    }\n" + "  }\n"
+				+ "  public void m8() {\n" 
+				+ "    long[] a = { 1,2,3,4};\n"
+				+ "    //@ loop_invariant \\index > 0 && \\index <= a.length;\n" // BAD - first time through loop
+				+ "    for (long k: a) {\n" 
+				+ "    }\n" 
+				+ "  }\n"
 
-				+ "  public void m9() {\n" + "    long[] a = { 1,2,3,4};\n"
-				+ "    //@ loop_invariant \\index >= 0 && \\index < a.length;\n" // BAD
-																					// -
-																					// last
-																					// time
-																					// through
-																					// loop
-				+ "    for (long k: a) {\n" + "    }\n" + "  }\n"
+				+ "  public void m9() {\n" 
+				+ "    long[] a = { 1,2,3,4};\n"
+				+ "    //@ loop_invariant \\index >= 0 && \\index < a.length;\n" // BAD - laswt time through loop
+				+ "    for (long k: a) {\n" 
+				+ "    }\n" 
+				+ "  }\n"
 
-				+ "  public void m2() {\n" + "    long[] a = { 1L,2L,3L };\n" + "    for (Long k: a) {\n"
+				+ "  public void m2() {\n" 
+				+ "    long[] a = { 1L,2L,3L };\n" 
+				+ "    for (Long k: a) {\n"
 				+ "      //@ assert \\index >= 0;\n" // OK
 				+ "      //@ assert \\index < a.length;\n" // OK
-				+ "    }\n" + "  }\n"
+				+ "    }\n" 
+				+ "  }\n"
 
-				+ "  public void m10() {\n" + "    long[] a = { 1,2 };\n" + "    long[] b = { 1,2};\n"
-				+ "    for (long k: a) {\n" + "      //@ ghost int i = \\index;\n" // OK
+				+ "  public void m10() {\n" 
+				+ "    long[] a = { 1,2 };\n" 
+				+ "    long[] b = { 1,2};\n"
+				+ "    for (long k: a) {\n" 
+				+ "      //@ ghost int i = \\index;\n" // OK
 				+ "      //@ assert \\index >= 0;\n" // OK
-				+ "      for (long kk: b) {\n" + "         //@ assert \\index < 2;\n" // OK
-				+ "      }\n" + "      //@ assert \\index == i;\n" // OK
-				+ "    }\n" + "  }\n"
+				+ "      for (long kk: b) {\n" 
+				+ "         //@ assert \\index < 2;\n" // OK
+				+ "      }\n" 
+				+ "      //@ assert \\index == i;\n" // OK
+				+ "    }\n" 
+				+ "  }\n"
 
-				+ "  public void m2a() {\n" + "    long[] a = {  };\n" + "    for (Long k: a) {\n"
-				+ "      //@ assert false;\n" // knows that the loop is not
+				+ "  public void m2a() {\n" 
+				+ "    long[] a = {  };\n" 
+				+ "    for (Long k: a) {\n"
+				+ "      //@ reachable;\n" // knows that the loop is not
 												// executed, so this assert is
 												// infeasible
-				+ "    }\n" + "  }\n"
+				+ "    }\n" 
+				+ "  }\n"
 
-				+ "  public TestJava() {}\n" + "}"
+				+ "  public TestJava() {}\n" 
+				+ "}"
 
-				,
-				"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method m7y",
-				9,
-				"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (LoopDecreases) in method m7a",
-				9,
-				"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method m8",
-				9,
-				"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (LoopInvariant) in method m9",
-				9,
-				"/tt/TestJava.java:49: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.m2a()",
-				11);
+				,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method m7y",9
+				,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (LoopDecreases) in method m7a",9
+				,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method m8",9
+				,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (LoopInvariant) in method m9",9
+				,"/tt/TestJava.java:49: warning: There is no feasible path to program point at reachable statement in method tt.TestJava.m2a()",11
+				);
 	}
 
 	@Test
@@ -1576,25 +1579,16 @@ public class esc extends EscBase {
 
 	@Test
 	public void testAssume() {
+		main.addOptions("-checkFeasibility=all");
 		helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  //@ requires bb;\n"
 				+ "  //@ ensures true;\n"
-				+ "  public static void bassumeBADASSUMP(boolean bb) { /*@assume false;*/  /*@ assert false; */ }\n" // Should
-																														// succeed
-																														// despite
-																														// the
-																														// false
-																														// assert
+				+ "  public static void bassumeBADASSUMP(boolean bb) { /*@assume false;*/  /*@ assert false; */ }\n" // Should succeed despite the false assert
 				+ "  //@ requires bbb;\n"
 				+ "  public static void bifOK(boolean bb,boolean b, boolean bbb) { /*@assume true;*/ if (bb) { /*@assume !b;*/ /*@ assert !bb; */ }  }\n"
 				+ "  //@ requires b;\n"
 				+ "  public static void bifBAD(boolean bb,boolean b) { /*@assume true;*/ if (bb) { /*@assume !b;*/ /*@ assert !bb; */ }  }\n"
 				+ "  //@ requires bb;\n" + "  //@ ensures true;\n"
-				+ "  public static void bassumeBADASSUMP2(boolean bb) { /*@assume false;*/  /*@ assert true; */ }\n" // Should
-																														// succeed
-																														// despite
-																														// the
-																														// false
-																														// assert
+				+ "  public static void bassumeBADASSUMP2(boolean bb) { /*@assume false;*/  /*@ assert true; */ }\n" // Should succeed despite the false assert
 				+ "  public static void bassumeCHAIN1(boolean bb, boolean b) { if (bb) { /*@ assume !bb; assume bb;*/ b = true;  /* @ assert false; */ } }\n"
 				+ "  public static void bassumeCHAIN2(boolean bb, boolean b) { if (bb) { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */ } }\n"
 				+ "  public static void bassumeMULT(boolean bb, boolean b) { if (bb) { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */ } else { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */} }\n"
@@ -2691,18 +2685,33 @@ public class esc extends EscBase {
 
 	@Test
 	public void testInheritedPost() {
-		helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "abstract class TestJavaA { \n"
-				+ "  \n" + "  //@ ensures \\result > 0;\n" + "  abstract public int m(int iii);\n" + "}\n"
-				+ "abstract class TestJavaB extends TestJavaA { \n" + "  //@ also\n" + "  //@ ensures \\result > ii;\n"
-				+ "  abstract public int m(int ii);\n" + "}\n"
-				+ "/*@ code_bigint_math*/ public class TestJava extends TestJavaB { \n" + "  //@ also\n"
-				+ "  //@ ensures \\result == i+1;\n" + "  //@ pure\n" + "  public int m(int i) { return i+1; }\n"
-				+ "  //@ ensures \\result == a+1;\n" + "  public int n1(int a) { return m(a); }\n"
-				+ "  public int n1a(int a) { return m(-1); }\n" + "}",
-				"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m",
-				25, "/tt/TestJava.java:4: warning: Associated declaration", 7,
-				"/tt/TestJava.java:19: warning: There is no feasible path to program point at program exit in method tt.TestJava.n1a(int)",
-				14);
+		main.addOptions("-code-math=bigint");
+		//main.addOptions("-show","-method=n1","-checkFeasibility=debug","-progress");
+		helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" 
+				+ "abstract class TestJavaA { \n"
+				+ "  \n" 
+				+ "  //@ ensures \\result > 0;\n" 
+				+ "  abstract public int m(int iii);\n" 
+				+ "}\n"
+				+ "abstract class TestJavaB extends TestJavaA { \n" 
+				+ "  //@ also\n" 
+				+ "  //@ ensures \\result > ii;\n"
+				+ "  abstract public int m(int ii);\n" 
+				+ "}\n"
+				+ "/*@ code_bigint_math*/ public class TestJava extends TestJavaB { \n" 
+				+ "  //@ also\n"
+				+ "  //@ ensures \\result == i+1;\n" 
+				+ "  //@ pure\n" 
+				+ "  public int m(int i) { return i+1; }\n"
+				+ "  //@ requires a >= 0;\n" 
+				+ "  //@ ensures \\result == a+1;\n" 
+				+ "  public int n1(int a) { return m(a); }\n"
+				+ "  public int n1a(int a) { return m(-1); }\n" 
+				+ "}"
+				,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m",25
+				,"/tt/TestJava.java:4: warning: Associated declaration", 7
+				,"/tt/TestJava.java:20: warning: There is no feasible path to program point at program exit in method tt.TestJava.n1a(int)",14
+				);
 	}
 
 	@Test
@@ -2730,21 +2739,33 @@ public class esc extends EscBase {
 
 	@Test
 	public void testInheritedPre() {
-		helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "abstract class TestJavaA { \n"
-				+ "  //@ requires iii == 1;\n" + "  //@ ensures \\result == iii;\n"
-				+ "  abstract public int m(int iii);\n" + "}\n" + "abstract class TestJavaB extends TestJavaA { \n"
-				+ "  //@ also\n" + "  //@ requires ii == 2;\n" + "  //@ ensures \\result == ii;\n"
-				+ "  abstract public int m(int ii);\n" + "}\n"
-				+ "/*@ code_bigint_math*/ public class TestJava extends TestJavaB { \n" + "  //@ also\n"
-				+ "  //@ requires i == 3;\n" + "  //@ ensures \\result == i;\n" + "  //@ pure\n"
+		helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" 
+				+ "abstract class TestJavaA { \n"
+				+ "  //@ requires iii == 1;\n" 
+				+ "  //@ ensures \\result == iii;\n"
+				+ "  abstract public int m(int iii);\n" 
+				+ "}\n" 
+				+ "abstract class TestJavaB extends TestJavaA { \n"
+				+ "  //@ also\n" 
+				+ "  //@ requires ii == 2;\n" 
+				+ "  //@ ensures \\result == ii;\n"
+				+ "  abstract public int m(int ii);\n" 
+				+ "}\n"
+				+ "/*@ code_bigint_math*/ public class TestJava extends TestJavaB { \n" 
+				+ "  //@ also\n"
+				+ "  //@ requires i == 3;\n" 
+				+ "  //@ ensures \\result == i;\n" 
+				+ "  //@ pure\n"
 				+ "  public int m(int i) { return i; }\n" // OK
-				+ "  //@ requires a >= 1 && a <= 3;\n" + "  //@ ensures \\result == a;\n"
+				+ "  //@ requires a >= 1 && a <= 3;\n" 
+				+ "  //@ ensures \\result == a;\n"
 				+ "  public int m1(int a) { return m(a); }\n" // OK
-				+ "  //@ ensures \\result == a;\n" + "  public int m1a(int a) { return m(-1); }\n" // Precondition
+				+ "  //@ ensures \\result == a;\n" 
+				+ "  public int m1a(int a) { return m(-1); }\n" // Precondition
 																									// ERROR
-				+ "}",
-				"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Precondition) in method m1a",
-				35, "/tt/TestJava.java:15: warning: Associated declaration", 7);
+				+ "}"
+				,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Precondition) in method m1a",35
+				,"/tt/TestJava.java:15: warning: Associated declaration", 7);
 	}
 
 	@Test

@@ -363,6 +363,12 @@ public class SMTTranslator extends JmlTreeScanner {
         commands.add(c);
         c = new C_declare_fun(F.symbol("typearg2_2"), Arrays.asList(new ISort[]{jmlTypeSort}), jmlTypeSort);
         commands.add(c);
+        c = new C_declare_fun(F.symbol("typearg3_1"), Arrays.asList(new ISort[]{jmlTypeSort}), jmlTypeSort);
+        commands.add(c);
+        c = new C_declare_fun(F.symbol("typearg3_2"), Arrays.asList(new ISort[]{jmlTypeSort}), jmlTypeSort);
+        commands.add(c);
+        c = new C_declare_fun(F.symbol("typearg3_3"), Arrays.asList(new ISort[]{jmlTypeSort}), jmlTypeSort);
+        commands.add(c);
         // (declare-fun JAVASUBTYPE (JAVATYPESORT JAVATYPESORT) Bool)
         c = new C_declare_fun(F.symbol(JAVASUBTYPE),
                 Arrays.asList(new ISort[]{javaTypeSort,javaTypeSort}), 
@@ -509,7 +515,7 @@ public class SMTTranslator extends JmlTreeScanner {
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")) (= (typearg2_1 (_JMLT_2 JVT JMLT1 JMLT2)) JMLT1)))");
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")) (= (typearg2_2 (_JMLT_2 JVT JMLT1 JMLT2)) JMLT2)))");
             
-            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (= (erasure (_JMLT_3 JVT JMLT1 JMLT2)) JVT)))");
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (= (erasure (_JMLT_3 JVT JMLT1 JMLT2 JMLT3)) JVT)))");
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (= (typearg3_1 (_JMLT_3 JVT JMLT1 JMLT2 JMLT3)) JMLT1)))");
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (= (typearg3_2 (_JMLT_3 JVT JMLT1 JMLT2 JMLT3)) JMLT2)))");
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (= (typearg3_3 (_JMLT_3 JVT JMLT1 JMLT2 JMLT3)) JMLT3)))");

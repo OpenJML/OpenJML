@@ -883,9 +883,13 @@ public class Main extends com.sun.tools.javac.main.Main {
         String check = JmlOption.value(context,JmlOption.FEASIBILITY);
         if (check == null || check.equals(Strings.feas_default)) {
             options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_defaults);
-        } else if (check.equals(Strings.feas_all)) {
+        } 
+        if (check.equals(Strings.feas_all)) {
             options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls);
-        }
+        } else if (check.equals(Strings.feas_debug)) {
+            options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls+",debug");
+            if (utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
+        } 
         String badString = Strings.isOK(check);
         if (badString != null) {
             Log.instance(context).getWriter(WriterKind.NOTICE).println("Unexpected value as argument for -checkFeasibility: " + badString);

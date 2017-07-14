@@ -291,7 +291,7 @@ public class SpecsBase extends TCBase {
         return list;
     }
     
-    String[] typeargs = { "", "<?>", "<?,?>" };
+    String[] typeargs = { "", "<?>", "<?,?>" , "<?,?,?>" };
 
     /** Does a test on the given fully qualified,
      * dot-separated class name with n generic type arguments

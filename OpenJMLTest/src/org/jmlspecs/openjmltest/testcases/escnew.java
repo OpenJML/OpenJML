@@ -1575,6 +1575,55 @@ public class escnew extends EscBase {
                 );
         
         }
+    
+    @Test // FIXME - determinism is currently turned off when there are type arguments.
+    public void testDeterminism() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> { \n"
+                
+                +"  //@ ensures true;\n"
+                +"  //@ model public <TT> int mm(int i);\n"
+                
+                +"  //@ ensures true;\n"
+                +"  public <TT> int mmr(int i) { return 0; };\n"
+                
+                +"  //@ ensures true;\n"
+                +"  //@ model public <TT> TT mt(int i);\n"
+                
+                +"  //@ ensures true;\n"
+                +"  //@ model function public static int mf(int i);\n"
+                
+                +"  //@ ensures true;\n"
+                +"  //@ function \n public static int mfr(int i) { return 0; }\n"
+                
+                +"  //@ ensures mm(i) == mm(i);\n"
+                +"  public void m1(int i) {\n"
+                +"  }\n"
+                
+                +"  //@ ensures mmr(i) == \\result;\n"
+                +"  public int m1x(int i) {\n"
+                +"      return mmr(i);\n"
+                +"  }\n"
+                
+                +"  //@ ensures mt(i) == mt(i);\n"
+                +"  public void m3(int i) {\n"
+                +"  }\n"
+                
+                +"  //@ ensures mf(i) == mf(i);\n"
+                +"  public void m2(int i) {\n"
+                +"  }\n"
+                
+                +"  //@ ensures mfr(i) == \\result;\n"
+                +"  public int m2x(int i) {\n"
+                +"      return mfr(i);\n"
+                +"  }\n"
+                
+               
+                +"}"
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method m3",15
+                ,"/tt/TestJava.java:12: warning: Associated declaration",7
+                );
+    }
 
     @Test
     public void testExplicitAssert() {

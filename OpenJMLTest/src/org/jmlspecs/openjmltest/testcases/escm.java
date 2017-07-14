@@ -99,7 +99,7 @@ public class escm extends EscBase {
     /** This test checks that the specs of nested, local and anonymous classes are used */
     @Test
     public void testNestedClassSpecs() {
-        main.addOptions("-checkFeasibility=precondition");
+        main.addOptions("-checkFeasibility=precondition,exit");
         //main.addOptions("-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"

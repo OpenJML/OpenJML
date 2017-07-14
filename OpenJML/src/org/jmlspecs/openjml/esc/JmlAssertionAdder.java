@@ -6430,8 +6430,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
              * them out into statements with temporary variables. Java code is
              * broken into statements so that side-effects can be handled straightforwardly.
              * Quantified expressions have to be kept as sub-expressions.
-             * Other JML expressions can be handled either way - the 'doTranslations'
-             * variable indicates what mode we are in: true means expand subexpresions
+             * Other JML expressions can be handled either way - the 'nodoTranslations'
+             * variable indicates what mode we are in: false means expand subexpresions, true means try to represent functions swith axioms
              * We currently expand non-quantified JML statements because
              * method calls in JML expressions are easier to handle.
              */
@@ -6443,16 +6443,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    && !calleeMethodSym.owner.getQualifiedName().toString().equals("java.lang.String")
 //                    && !calleeMethodSym.owner.getQualifiedName().toString().equals("java.lang.CharSequence")
                     ;
-            boolean doTranslations = rac || !translatingJML || (!uma &&  localVariables.isEmpty());
-            if (!doTranslations && that instanceof JCNewClass) doTranslations = true; // FIXME - work this out in more detail. At least there should not be anonymous classes in JML expressions
+                    //boolean doTranslations = rac || !translatingJML || (!uma &&  localVariables.isEmpty());
+                    boolean nodoTranslations = !rac && translatingJML && (uma ||  !localVariables.isEmpty()) && isPure(calleeMethodSym);
+            if (nodoTranslations && that instanceof JCNewClass) nodoTranslations = false; // FIXME - work this out in more detail. At least there should not be anonymous classes in JML expressions
             boolean calleeIsFunction = attr.isFunction(calleeMethodSym);
-            if (calleeIsFunction && translatingJML) doTranslations = false;
+            if (calleeIsFunction && translatingJML) nodoTranslations = true;
             boolean hasTypeArgs = calleeMethodSym.getReturnType() instanceof Type.TypeVar;  // FIXME - should iterate through the whole type, I think
 
-            if (!doTranslations && !hasTypeArgs) {
+            if (nodoTranslations && !hasTypeArgs && !isSuperCall && !isThisCall) {
                 List<JCExpression> ntrArgs = trArgs;
                 if ((useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
 
+                    if (condition == null) condition = treeutils.trueLit;
                     boolean details = true
                             && !calleeMethodSym.owner.getQualifiedName().toString().equals(Strings.JMLClass)
 //                            && !calleeMethodSym.owner.getQualifiedName().toString().equals("java.lang.String")
@@ -6464,7 +6466,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 
                     // First check all invariants // FIXME - use addInvariants?
-                    if (details && !isHelper(calleeMethodSym) &&
+                    if (details && !isHelper(calleeMethodSym) && !isSuperCall && !isThisCall &&
                             !startInvariants(calleeMethodSym.owner,that)) {
 
                         for (Type t: parents(calleeMethodSym.owner.type, false)) {
@@ -6476,10 +6478,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 JCExpression e = convertJML(((JmlTypeClauseExpr)clause).expression);
                                 e = treeutils.makeImplies(condition.pos, condition, e);
                                 if (assumingPureMethod) {
-                                    addAssume(that,Label.UNDEFINED_PRECONDITION,e,
+                                    addAssume(that,translatingJML ? Label.UNDEFINED_PRECONDITION : Label.PRECONDITION,e,
                                             clause,clause.source());
                                 } else if (!addingAxioms) {  // FIXME - these asserts end up in the wrong spot for axioms, but what guards do we need?
-                                    addAssert(that,Label.UNDEFINED_PRECONDITION,e,
+                                    addAssert(that,translatingJML ? Label.UNDEFINED_PRECONDITION : Label.PRECONDITION,e,
                                         clause,clause.source());
                                 }
 
@@ -6516,10 +6518,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 JCExpression e = treeutils.makeMethodInvocation(that,null,s,convertCopy(ntrArgs));
                                 e = treeutils.makeImplies(condition.pos, condition, e);
                                 if (assumingPureMethod) {
-                                    addAssume(that,Label.UNDEFINED_PRECONDITION,e,
+                                    addAssume(that,translatingJML ? Label.UNDEFINED_PRECONDITION : Label.PRECONDITION,e,
                                             info.pos,info.source);
                                 } else {
-                                    addAssert(that,Label.UNDEFINED_PRECONDITION,e,
+                                    addAssert(that,translatingJML ? Label.UNDEFINED_PRECONDITION : Label.PRECONDITION,e,
                                             info.pos,info.source);
                                 }
 
@@ -7217,7 +7219,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             ensuresStatsOuter.add(comment(that,"Assuming callee normal postconditions for " + calleeMethodSym,null));
             exsuresStatsOuter.add(comment(that,"Assuming callee exceptional postconditions for " + calleeMethodSym,null));
 
-            if (doTranslations) {
+            if (!nodoTranslations) {
 
                 if (exceptionSym != null && exceptionDeclCall != null) {
                     exsuresStatsOuter.add(
@@ -7434,7 +7436,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (inProcessInvariants.isEmpty() && !translatingJML) changeState();
             }
 
-            if (doTranslations) {
+            if (!nodoTranslations) {
 
                 ListBuffer<JCStatement> check5 = pushBlock();
 
