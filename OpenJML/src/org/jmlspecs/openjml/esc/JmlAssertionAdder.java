@@ -538,6 +538,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected JCBlock axiomBlock = null;
     
+    protected Map<String,VarSymbol> determinismSymbols = new HashMap<>();
+    
     /** Assertions that can be changed to be feasibility checks */
     public Map<Symbol,java.util.List<JCTree.JCParens>> assumptionChecks = new HashMap<Symbol,java.util.List<JCTree.JCParens>>();
     public Map<Symbol,java.util.List<JmlTree.JmlStatementExpr>> assumptionCheckStats = new HashMap<Symbol,java.util.List<JmlTree.JmlStatementExpr>>();
@@ -810,6 +812,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Set<Symbol> savedInProcessInvariants = this.inProcessInvariants;
         Name savedOldLabel = defaultOldLabel;
         boolean isModel = isModel(pmethodDecl.sym);
+        
+        if (pmethodDecl.name.toString().equals("bodySize")) {
+            Utils.stop();
+        }
         
         // Collect all classes that are mentioned in the method
         ClassCollector collector = ClassCollector.collect(pclassDecl,pmethodDecl);
@@ -3305,8 +3311,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ListBuffer<JCStatement> savedCurrentStatements = currentStatements;
         currentStatements = initialStats;
         
-        int preheapcount = heapCount++;
-        int postheapcount = heapCount++;
+        int preheapcount = ++heapCount;
         int savedheapcount = heapCount;
 
         heapCount = preheapcount;
@@ -3316,8 +3321,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat( comment(methodDecl,"Invariants for discovered fields",null));
             discoveredFields = popBlock(0L,null);
             addStat(discoveredFields);
+            alreadyDiscoveredFields.clear();  // FIXME - not going to work for nested method translations
         }
-
         
         /* Declare new variables, initialized to the values of the formal 
          * parameters, so that they can be referred to in postconditions and other invariant checks. 
@@ -6033,6 +6038,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected boolean isFunctional(Type t) {
+        if (t.tsym.getAnnotationMirrors() == null) Utils.stop();
+        if (t.tsym.getAnnotationMirrors() == null) return false;
         for (Attribute.Compound a : t.tsym.getAnnotationMirrors()) {
             if (a.getAnnotationType().toString().contains("FunctionalInterface")) return true;  // FIXME - need a better way to do this
         }
@@ -6052,7 +6059,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         for (JCExpression a: args) {
             if (iter.hasNext()) currentArgType = iter.next(); // handles varargs
             last = !iter.hasNext();
-            if (isFunctional(currentArgType)) {
+            if (currentArgType != null && isFunctional(currentArgType)) {  // FIXME - some bug causes the argtyep to be null for created functions, sometimes
                 out.add(a);
                 continue;
             }
@@ -6062,7 +6069,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 a = addImplicitConversion(a,currentArgType,a);
                 usedVarArgs = true;
             } else {
-                a = addImplicitConversion(a,currentArgType,a);
+                if (currentArgType != null) a = addImplicitConversion(a,currentArgType,a);  // FIXME - currentArgType should not be null
             }
             if (useMethodAxioms && translatingJML) {
             } else if ((a instanceof JCIdent) && ((JCIdent)a).name.toString().startsWith(Strings.tmpVarString)) {
@@ -6142,6 +6149,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    treeutils.makeBinary(p, JCTree.Tag.PLUS, treeutils.makeIdent(p,heapSym), treeutils.makeIntLiteral(p,1)));
             currentStatements.add(assign);
             wellDefinedCheck.clear();
+            determinismSymbols.clear(); // FIXME - might need them again in  \old expressions
         }
         clearInvariants(); // FIXME - is this needed for rac?
     }
@@ -6511,6 +6519,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             addStat(bl);
                         }
                     
+                        if (condition == null) condition = treeutils.trueLit;
                         WellDefined info = wellDefinedCheck.get(calleeMethodSym);
                         if (info != null && !info.alltrue) { // FIXME - should not ever be null? perhaps anon types?
                             MethodSymbol s = info.sym;
@@ -6594,6 +6603,51 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addStat(decl);
                     resultSym = decl.sym;
                     resultId = treeutils.makeIdent(that.pos, decl.sym);
+                }
+                
+                // Ensure determinism
+                if (esc && newclass == null && resultType != null) {
+                    // Make an encoded name
+                    // FIXME - we should include resolved type variables in the mangled name; also need to distinguish methods with the same name
+                    String nm = "__JMLSaved_" + calleeMethodSym.owner.getQualifiedName().toString().replace('.','_') + "_" + calleeMethodSym.name + "__H" + heapCount;
+                    VarSymbol vresult = determinismSymbols.get(nm);
+                    boolean first = false;
+                    if (vresult == null) {
+                        Name name = names.fromString(nm);
+                        vresult = treeutils.makeVarSymbol(0L, name, resultType, that.pos);
+                        determinismSymbols.put(nm, vresult);
+                        first = true;
+                    }
+                    JCExpression e = treeutils.trueLit;
+                    if (!calleeMethodSym.isStatic()) {
+                        {
+                            String nm0 = nm + "__RECV";
+                            VarSymbol v = determinismSymbols.get(nm0);
+                            if (v == null) {
+                                Name name = names.fromString(nm0);
+                                v = treeutils.makeVarSymbol(0L, name, newThisExpr.type, that.pos);
+                                determinismSymbols.put(nm0, v);
+                            }
+                            JCIdent id = treeutils.makeIdent(that.pos, v);
+                            e = treeutils.makeEquality(that.pos, newThisExpr, id);
+                        }
+                    }
+                    int argNumber = 1;
+                    for (JCExpression arg: trArgs) {
+                    	String nm0 = nm + "__ARG" + (argNumber++);
+                    	VarSymbol v = determinismSymbols.get(nm0);
+                    	if (v == null) {
+                    		Name name = names.fromString(nm0);
+                    		v = treeutils.makeVarSymbol(0L, name, arg.type, that.pos);
+                    		determinismSymbols.put(nm0, v);
+                    	}
+                    	JCIdent id = treeutils.makeIdent(that.pos, v);
+
+                    	e = treeutils.makeAnd(that.pos, e, treeutils.makeEquality(that.pos, arg, id));
+                    }
+                    JCExpression ee = treeutils.makeEquality(that.pos, resultId, treeutils.makeIdent(that.pos, vresult));
+                    e = first ? treeutils.makeAnd(that.pos, e, ee) : treeutils.makeImplies(that.pos, e, ee);
+                    addAssume(that.pos(), Label.IMPLICIT_ASSUME, e);
                 }
             }
             
@@ -9773,8 +9827,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             
             JCExpression sel = trexpr; // FIXME - what if static; what if not a variable
-            addRepresentsAxioms((ClassSymbol)that.selected.type.tsym, s, that, trexpr);
-
+            Type type = that.selected.type;
+            if (type instanceof Type.TypeVar) type = ((Type.TypeVar)type).bound;
+            addRepresentsAxioms((ClassSymbol)type.tsym, s, that, trexpr);
+            // The tsym can be a TypeVar
             return;
         } else if (s instanceof Symbol.TypeSymbol) {
             // This is a type name, so the tree should be copied, but without inserting temporary assignments
