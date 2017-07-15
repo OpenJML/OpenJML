@@ -1585,16 +1585,20 @@ public class escnew extends EscBase {
                 +"  //@ model public <TT> int mm(int i);\n"
                 
                 +"  //@ ensures true;\n"
-                +"  public <TT> int mmr(int i) { return 0; };\n"
+                +"  public int mmr(int i) { return 0; };\n"
                 
                 +"  //@ ensures true;\n"
                 +"  //@ model public <TT> TT mt(int i);\n"
                 
                 +"  //@ ensures true;\n"
+                +"  public /*@ nullable */ <TT> TT mtr(int i) { return null; };\n"
+                
+                +"  //@ ensures true;\n"
                 +"  //@ model function public static int mf(int i);\n"
                 
                 +"  //@ ensures true;\n"
-                +"  //@ function \n public static int mfr(int i) { return 0; }\n"
+                +"  //@ function \n"
+                +"  public static int mfr(int i) { return 0; }\n"
                 
                 +"  //@ ensures mm(i) == mm(i);\n"
                 +"  public void m1(int i) {\n"
@@ -1608,6 +1612,10 @@ public class escnew extends EscBase {
                 +"  //@ ensures mt(i) == mt(i);\n"
                 +"  public void m3(int i) {\n"
                 +"  }\n"
+                
+                +"  //@ ensures mtr(i) == \\result;\n"
+                +"  public <T> T m3x(int i) {\n"
+                +"    return mtr(i); }\n"
                 
                 +"  //@ ensures mf(i) == mf(i);\n"
                 +"  public void m2(int i) {\n"

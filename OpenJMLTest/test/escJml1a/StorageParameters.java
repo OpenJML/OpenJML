@@ -9,7 +9,7 @@ public final class StorageParameters
 	}
 	
 
-	//@ ensures !\fresh(\result);
+	//@ ensures \fresh(\result);
 	long[] getConfigurationSizes() {
 		return configurationSizes;
 	}

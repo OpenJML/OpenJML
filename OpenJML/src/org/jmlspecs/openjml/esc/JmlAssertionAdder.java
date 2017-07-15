@@ -538,8 +538,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected JCBlock axiomBlock = null;
     
-    protected Map<String,VarSymbol> determinismSymbols = new HashMap<>();
-    
+    protected Map<Symbol,Map<String,VarSymbol>> determinismSymbols;
+    protected void saveDeterminismSymbol(Symbol methodSym, String name, VarSymbol varSym) {
+        Map<String,VarSymbol> submap = determinismSymbols.get(methodSym);
+        if (submap == null) determinismSymbols.put(methodSym,submap = new HashMap<>());
+        submap.put(name,varSym);
+    }
+    protected /*@ nullable */ VarSymbol getDeterminismSymbol(Symbol methodSym, String name) {
+        Map<String,VarSymbol> submap = determinismSymbols.get(methodSym);
+        if (submap == null) return null;
+        return submap.get(name);
+    }
     /** Assertions that can be changed to be feasibility checks */
     public Map<Symbol,java.util.List<JCTree.JCParens>> assumptionChecks = new HashMap<Symbol,java.util.List<JCTree.JCParens>>();
     public Map<Symbol,java.util.List<JmlTree.JmlStatementExpr>> assumptionCheckStats = new HashMap<Symbol,java.util.List<JmlTree.JmlStatementExpr>>();
@@ -812,6 +821,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Set<Symbol> savedInProcessInvariants = this.inProcessInvariants;
         Name savedOldLabel = defaultOldLabel;
         boolean isModel = isModel(pmethodDecl.sym);
+        Map<Symbol,Map<String,VarSymbol>> savedDeterminismSymbols = determinismSymbols;
+        JCBlock savedDiscoveredFields = discoveredFields;
+        Set<Symbol> savedAlreadyDiscoveredFields = alreadyDiscoveredFields;
+        
+        determinismSymbols = new HashMap<>();
         
         if (pmethodDecl.name.toString().equals("bodySize")) {
             Utils.stop();
@@ -1140,6 +1154,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             this.enclosingClass = savedEnclosingClass;
             this.defaultOldLabel = savedOldLabel;
             this.currentArithmeticMode = savedArithmeticMode;
+            this.determinismSymbols = savedDeterminismSymbols;
+            this.alreadyDiscoveredFields = savedAlreadyDiscoveredFields;
+            this.discoveredFields = savedDiscoveredFields;
             Main.instance(context).popOptions();
         }
     }
@@ -6606,27 +6623,28 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 
                 // Ensure determinism
-                if (esc && newclass == null && resultType != null) {
+                if (esc && newclass == null && resultType != null && oldenv == null) {
                     // Make an encoded name
                     // FIXME - we should include resolved type variables in the mangled name; also need to distinguish methods with the same name
-                    String nm = "__JMLSaved_" + calleeMethodSym.owner.getQualifiedName().toString().replace('.','_') + "_" + calleeMethodSym.name + "__H" + heapCount;
-                    VarSymbol vresult = determinismSymbols.get(nm);
+                    String loc = mspecs != null && mspecs.decl != null ? Integer.toString(mspecs.decl.pos) : "00" ; // FIXME -if no position we run the risk of name conflict; should also qualify by the file 
+                    String nm = "__JMLSaved_" + calleeMethodSym.owner.getQualifiedName().toString().replace('.','_') + "_" + calleeMethodSym.name + "_"  + loc + "__H" + heapCount;
+                    VarSymbol vresult = getDeterminismSymbol(calleeMethodSym,nm);
                     boolean first = false;
                     if (vresult == null) {
                         Name name = names.fromString(nm);
                         vresult = treeutils.makeVarSymbol(0L, name, resultType, that.pos);
-                        determinismSymbols.put(nm, vresult);
+                        saveDeterminismSymbol(calleeMethodSym, nm, vresult);
                         first = true;
                     }
                     JCExpression e = treeutils.trueLit;
                     if (!calleeMethodSym.isStatic()) {
                         {
                             String nm0 = nm + "__RECV";
-                            VarSymbol v = determinismSymbols.get(nm0);
+                            VarSymbol v = getDeterminismSymbol(calleeMethodSym,nm0);
                             if (v == null) {
                                 Name name = names.fromString(nm0);
                                 v = treeutils.makeVarSymbol(0L, name, newThisExpr.type, that.pos);
-                                determinismSymbols.put(nm0, v);
+                                saveDeterminismSymbol(calleeMethodSym, nm0, v);
                             }
                             JCIdent id = treeutils.makeIdent(that.pos, v);
                             e = treeutils.makeEquality(that.pos, newThisExpr, id);
@@ -6635,11 +6653,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     int argNumber = 1;
                     for (JCExpression arg: trArgs) {
                     	String nm0 = nm + "__ARG" + (argNumber++);
-                    	VarSymbol v = determinismSymbols.get(nm0);
+                    	if (nm0.startsWith("__JMLSaved_java_lang_CharSequence_equal__H3__ARG2")) Utils.stop();
+                    	VarSymbol v = getDeterminismSymbol(calleeMethodSym,nm0);
                     	if (v == null) {
                     		Name name = names.fromString(nm0);
                     		v = treeutils.makeVarSymbol(0L, name, arg.type, that.pos);
-                    		determinismSymbols.put(nm0, v);
+                            saveDeterminismSymbol(calleeMethodSym, nm0, v);
                     	}
                     	JCIdent id = treeutils.makeIdent(that.pos, v);
 
@@ -6647,6 +6666,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                     JCExpression ee = treeutils.makeEquality(that.pos, resultId, treeutils.makeIdent(that.pos, vresult));
                     e = first ? treeutils.makeAnd(that.pos, e, ee) : treeutils.makeImplies(that.pos, e, ee);
+                    if (!calleeMethodSym.getReturnType().isPrimitive()) {
+                        JCExpression c = treeutils.makeNot(that.pos, makeFreshExpression(that,resultId));
+                        e = treeutils.makeImplies(that.pos, c, e);
+                    }
                     addAssume(that.pos(), Label.IMPLICIT_ASSUME, e);
                 }
             }
@@ -12168,27 +12191,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             {
                 if (rac) throw new JmlNotImplementedException(that,that.token.internedName());// FIXME
                 else {
-                    int p = that.pos;
-                    JCExpression arg = convertJML(that.args.get(0));
-                    if (localVariables.isEmpty()) arg = newTemp(arg); // We make a temp variable so that the (converted) argument is not captured by the \old, except in a quantified expression
-                    // FIXME _ I don't think this works properly if no temp is allocated
-                    JCFieldAccess fa = isAllocated(that,arg);
-                    JCExpression n = treeutils.makeOld(that.pos,fa,preLabel);
-                    JCExpression prev = treeutils.makeNot(that.pos, n);
-                    fa = isAllocated(that,convertCopy(arg));
-                    JCExpression ee = treeutils.makeAnd(that.pos, prev, fa);
-                    JCExpression e = treeutils.makeNeqObject(that.pos, arg, treeutils.nullLit);
-                    ee = e; //treeutils.makeAnd(that.pos, e, ee);
-                    
-                    JCExpression exprCopy = convertCopy(arg);
-                    if (assumingPostConditions) {
-                        // allocCounter is already bumped up earlier when it was declared that the result was allocated
-                        e = allocCounterEQ(that, exprCopy, allocCounter);
-                    } else {
-                        // FIXME - explain why this is different than the above - this would be the postcondition for the method
-                        e = allocCounterGT(that, exprCopy, 0);
-                    }
-                    result = eresult = treeutils.makeAnd(that.pos, e, ee);
+                    result = eresult = makeFreshExpression(that,that.args.get(0));
                 }
                 break;
             }
@@ -12278,6 +12281,30 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 throw new JmlNotImplementedException(that,that.token.internedName());
         }
         result = eresult;
+    }
+    
+    JCExpression makeFreshExpression(DiagnosticPosition pos, JCExpression origarg) {
+        int p = pos.getPreferredPosition();
+        JCExpression arg = convertJML(origarg);
+        if (localVariables.isEmpty()) arg = newTemp(arg); // We make a temp variable so that the (converted) argument is not captured by the \old, except in a quantified expression
+        // FIXME _ I don't think this works properly if no temp is allocated
+        JCFieldAccess fa = isAllocated(pos,arg);
+        JCExpression n = treeutils.makeOld(p,fa,preLabel);
+        JCExpression prev = treeutils.makeNot(p, n);
+        fa = isAllocated(pos,convertCopy(arg));
+        JCExpression ee = treeutils.makeAnd(p, prev, fa);
+        JCExpression e = treeutils.makeNeqObject(p, arg, treeutils.nullLit);
+        ee = e; //treeutils.makeAnd(that.pos, e, ee);
+        
+        JCExpression exprCopy = convertCopy(arg);
+        if (assumingPostConditions) {
+            // allocCounter is already bumped up earlier when it was declared that the result was allocated
+            e = allocCounterEQ(pos, exprCopy, allocCounter);
+        } else {
+            // FIXME - explain why this is different than the above - this would be the postcondition for the method
+            e = allocCounterGT(pos, exprCopy, 0);
+        }
+        return treeutils.makeAnd(p, e, ee);
     }
     
     @Nullable JCExpression getInvariantAll(DiagnosticPosition pos, Type baseType, JCExpression obj) {
