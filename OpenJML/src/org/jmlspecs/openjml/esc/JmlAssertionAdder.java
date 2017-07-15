@@ -6623,7 +6623,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 
                 // Ensure determinism
-                if (esc && newclass == null && resultType != null && oldenv == null) xx:{
+                if (esc && newclass == null && resultType != null && oldenv == null) xx: {
                     // Make an encoded name
                     // FIXME - we should include resolved type variables in the mangled name; also need to distinguish methods with the same name
                     String loc = mspecs != null && mspecs.decl != null ? Integer.toString(mspecs.decl.pos) : "00" ; // FIXME -if no position we run the risk of name conflict; should also qualify by the file 
