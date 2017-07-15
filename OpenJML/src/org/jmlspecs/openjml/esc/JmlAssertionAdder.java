@@ -3246,7 +3246,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (!utils.jmlvisible(vd.sym, methodDecl.sym.owner, csym, vd.mods.flags, methodDecl.mods.flags)) continue;
 
                 if (utils.isJMLStatic(vd.sym) && isFinal(vd.sym)) {
-                    if (vd.sym.toString().contains("CHILD") || vd.sym.toString().contains("FIELD")) Utils.stop();
                     alreadyDiscoveredFields.add(vd.sym);
                     Symbol sym = vd.sym;
                     if (sym != null && sym.owner instanceof ClassSymbol) {
@@ -9978,7 +9977,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
             else newfa = treeutils.makeSelect(that.pos, currentThisExpr, sym);
         }
-        if (sym.toString().contains("CHILD") || sym.toString().contains("FIELD")) Utils.stop();
         if (!rac && sym != null && alreadyDiscoveredFields.add(sym)) { // true if s was NOT in the set already
             if (utils.isJMLStatic(sym) && isFinal(sym)) {
                 addFinalStaticField(newfa);
