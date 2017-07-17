@@ -1576,27 +1576,27 @@ public class escnew extends EscBase {
         
         }
     
-    @Test // FIXME - determinism is currently turned off when there are type arguments.
+    @Test 
     public void testDeterminism() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
                 
                 +"  //@ ensures true;\n"
-                +"  //@ model public <TT> int mm(int i);\n"
+                +"  //@ model pure public int mm(int i);\n"
                 
-                +"  //@ ensures true;\n"
+                +"  //@ ensures true; pure\n"
                 +"  public int mmr(int i) { return 0; };\n"
                 
-                +"  //@ ensures true;\n"
+                +"  //@ ensures true; pure\n"
                 +"  //@ model public <TT> TT mt(int i);\n"
                 
-                +"  //@ ensures true;\n"
+                +"  //@ ensures true; pure\n"
                 +"  public /*@ nullable */ <TT> TT mtr(int i) { return null; };\n"
                 
-                +"  //@ ensures true;\n"
+                +"  //@ ensures true; pure\n"
                 +"  //@ model function public static int mf(int i);\n"
                 
-                +"  //@ ensures true;\n"
+                +"  //@ ensures true; pure\n"
                 +"  //@ function \n"
                 +"  public static int mfr(int i) { return 0; }\n"
                 
@@ -1605,7 +1605,7 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 +"  //@ ensures mmr(i) == \\result;\n"
-                +"  public int m1x(int i) {\n"
+                +"  public int m1x(int i) {\n"   // Line 20
                 +"      return mmr(i);\n"
                 +"  }\n"
                 
@@ -1614,8 +1614,8 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 +"  //@ ensures mtr(i) == \\result;\n"
-                +"  public <T> T m3x(int i) {\n"
-                +"    return mtr(i); }\n"
+                +"  public /*@ nullable */ <T> T m3x(int i) {\n"
+                +"    return mtr(i); }\n"   // Line 28
                 
                 +"  //@ ensures mf(i) == mf(i);\n"
                 +"  public void m2(int i) {\n"
@@ -1628,8 +1628,10 @@ public class escnew extends EscBase {
                 
                
                 +"}"
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method m3",15
-                ,"/tt/TestJava.java:12: warning: Associated declaration",7
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Postcondition) in method m3",15
+                ,"/tt/TestJava.java:23: warning: Associated declaration",7
+                ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Postcondition) in method <T>m3x",5
+                ,"/tt/TestJava.java:26: warning: Associated declaration",7
                 );
     }
 
