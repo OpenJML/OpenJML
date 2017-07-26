@@ -190,11 +190,11 @@ export SWITCHSLASH=YES
 ${RTH} testCheck1 "java -jar openjml.jar -jmltesting -noPurityCheck -specspath . A.java" || RES=$(($RES+1))
 export SWITCHSLASH=
 
-if [[ "${COMSPEC}" == "" ]]; then
-    if [[ ${RES} -eq 0 ]]; then echo "All tests performed succeeded"; else echo ${RES} tests failed  ; fi
-    echo Exiting tests early because the OS is not Windows
-    exit ${RES}
-fi
+##if [[ "${COMSPEC}" == "" ]]; then
+##    if [[ ${RES} -eq 0 ]]; then echo "All tests performed succeeded"; else echo ${RES} tests failed  ; fi
+##    echo Exiting tests early because the OS is not Windows
+##    exit ${RES}
+##fi
 
 ## FIXME
 if [[ "SKIP" == "" ]]; then
