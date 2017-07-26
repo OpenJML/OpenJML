@@ -1637,7 +1637,6 @@ public class escnew extends EscBase {
 
     @Test 
     public void testDeterminismFresh() {
-    	main.addOptions("-show","-method=m2","-subexpressions");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
         		+"  public /*@ nullable */ Object o;\n"
