@@ -1,3 +1,4 @@
+//@ code_bigint_math spec_bigint_math
 public class BoxingTests {
 	//@ ensures \result == 1;
     public static Integer incr_test() {

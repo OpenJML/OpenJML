@@ -1635,6 +1635,50 @@ public class escnew extends EscBase {
                 );
     }
 
+    @Test 
+    public void testDeterminismFresh() {
+    	main.addOptions("-show","-method=m2","-subexpressions");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> { \n"
+        		+"  public /*@ nullable */ Object o;\n"
+                
+                +"  //@ ensures \\fresh(\\result); pure\n"
+                +"  public Object mm(int i) { return new Object(); }\n"
+                
+   //             +"  //@ ensures \\result == null || !\\fresh(\\result); pure\n" // FIXME - should this work -= does not prevent the result from being fresh for m2 while not for mm2 
+                +"  //@ ensures \\result == o; pure\n" 
+                +"  public /*@ nullable */ Object mm2(int i) { return o; }\n" // Line 7
+                
+                +"  //@ ensures true; pure\n"
+                +"  public Object mm3(int i) { return new Object(); }\n"
+                
+                 
+                +"  //@ ensures \\fresh(\\result);\n"  // Line 10 
+                +"  //@ ensures mm(i) == \\result;\n" // ERROR - not necessarily the case
+                +"  public Object m1(int i) {\n" 
+                +"      return mm(i);\n"   // Line 13
+                +"  }\n"
+                
+                +"  //@ ensures \\result == null || !\\fresh(\\result);\n"
+                +"  //@ ensures mm2(i) == \\result;\n" 
+                +"  public /*@ nullable */ Object m2(int i) {\n" 
+                +"      return mm2(i);\n"
+                +"  }\n"
+                
+                +"  //@ ensures mm3(i) == \\result;\n" // Line 20 // ERROR - not necessarily the case
+                +"  public Object m3(int i) {\n" 
+                +"      return mm3(i);\n"
+                +"  }\n"
+                
+               
+                +"}"
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method m1",7
+                ,"/tt/TestJava.java:11: warning: Associated declaration",7
+                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Postcondition) in method m3",7
+                ,"/tt/TestJava.java:20: warning: Associated declaration",7
+                );
+    }
+
     @Test
     public void testExplicitAssert() {
         main.addOptions("-escMaxWarnings=1");

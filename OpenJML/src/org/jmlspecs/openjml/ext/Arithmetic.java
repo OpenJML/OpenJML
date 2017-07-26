@@ -230,8 +230,7 @@ abstract public class Arithmetic extends ExpressionExtension {
     }
     
     public JCExpression condition(JmlAssertionAdder rewriter, JCExpression e) {
-        if (rewriter.condition != null) return rewriter.treeutils.makeImplies(e.pos, rewriter.condition, e);
-        return e;
+        return rewriter.conditionedAssertion(e, e);
     }
     
     public JCExpression makeBinaryOp(JmlAssertionAdder rewriter, JCBinary that, Type newtype, boolean implementOverflow, boolean checkOverflow) {

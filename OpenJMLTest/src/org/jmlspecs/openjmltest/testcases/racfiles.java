@@ -261,6 +261,7 @@ public class racfiles extends RacBase {
     			"-rac",
     			"-specspath","test/hans/OpenJMLTest/specs",
     			"-racCheckAssumptions","-racJavaChecks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
+    			,"-show"
     			);
     }
 
