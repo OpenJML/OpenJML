@@ -62,6 +62,7 @@ import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Flags.Flag;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.parser.JavacParser.ParensResult;
 import com.sun.tools.javac.parser.Tokens.Comment;
@@ -342,7 +343,7 @@ public class JmlParser extends JavacParser {
                 JCVariableDecl decl = jmlF.at(cd.pos).VarDef(jmlF.Modifiers(0),n,jmlF.Ident(jmlF.Name("Object")),null);
                 ex = jmlF.JmlQuantifiedExpr(JmlTokenKind.BSFORALL,List.<JCVariableDecl>of(decl), null,
                         jmlF.JmlBinary(JmlTokenKind.EQUIVALENCE, jmlF.TypeTest(jmlF.Ident(n), jmlF.Ident(cd.getSimpleName())),disj));
-                axiom = jmlF.at(s.pos).JmlTypeClauseExpr(jmlF.Modifiers(0),JmlTokenKind.AXIOM,ex);
+                axiom = jmlF.at(s.pos).JmlTypeClauseExpr(jmlF.Modifiers(Flags.ENUM),JmlTokenKind.AXIOM,ex);
                 cd.defs = cd.defs.append(axiom);
             }
             // Can also be a JCErroneous

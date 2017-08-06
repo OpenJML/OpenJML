@@ -529,9 +529,9 @@ public class JmlTreeUtils {
      * @param sym the symbol for which to make an identifier
      * @return the AST
      */ 
-    public JCIdent makeIdent(DiagnosticPosition pos, Symbol sym) {
+    public JCIdent makeIdent(/*@ nullable */ DiagnosticPosition pos, Symbol sym) {
         JCIdent id = factory.Ident(sym);
-        id.pos = pos.getPreferredPosition();
+        id.pos = pos == null ? Position.NOPOS: pos.getPreferredPosition();
         // id.type is set in Ident
         return id;
     }
@@ -1256,7 +1256,7 @@ public class JmlTreeUtils {
     // requires id to have a reference type
     /** Returns the AST for id == null || ( \typeof(id) <: \type(type) && id instanceof 'erasure of type') */
     public JCExpression makeDynamicTypeInEquality(DiagnosticPosition pos, JCExpression id, Type type) {
-        int p = pos.getPreferredPosition();
+        int p = pos == null ? Position.NOPOS: pos.getPreferredPosition();
         JCExpression nn = makeEqObject(p,id,nullLit);
         
         return makeOr(p,nn,makeNonNullDynamicTypeInEquality(pos, id, type));

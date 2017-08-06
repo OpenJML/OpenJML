@@ -374,8 +374,9 @@ public class escnew2 extends EscBase {
 
     @Test public void testNullField() { 
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+        main.addOptions("-show","-method=A");
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
-                +"@NonNull static Integer i; \n"
+                +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a) { \n"
                 +"@Nullable Integer k = a.i; \n"
                 +"//@ assert k != null; \n"
@@ -387,7 +388,7 @@ public class escnew2 extends EscBase {
     @Test public void testNullField2() { 
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
-                +"@NonNull static Integer i; \n"
+                +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a) { \n"
                 +"mm(); \n"
                 +"@Nullable Integer k = a.i; \n"
@@ -423,7 +424,7 @@ public class escnew2 extends EscBase {
 
     @Test public void testNullFieldAssign() { 
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
-                +"@NonNull static Integer i; \n"
+                +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a) { \n"
                 +"@NonNull Integer k = 1; \n"
                 +"a.i = k; \n"
@@ -434,7 +435,7 @@ public class escnew2 extends EscBase {
 
     @Test public void testNullFieldAssignBad2() { 
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
-                +"@NonNull static Integer i; \n"
+                +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a) { \n"
                 +"@NonNull Integer k = 1; \n"
                 +"a.i = k; \n"
@@ -447,7 +448,7 @@ public class escnew2 extends EscBase {
 
     @Test public void testNullFieldAssignBad() { 
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
-                +"@NonNull static Integer i; \n"
+                +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a, @Nullable Integer k) { \n"
                 +"a.i = k; \n"
                 +"}\n"

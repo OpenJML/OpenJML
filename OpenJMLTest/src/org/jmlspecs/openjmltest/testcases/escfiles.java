@@ -66,7 +66,7 @@ public class escfiles extends EscBase {
         // Fill in exactly 'extraOpts' initial elements
         newopts[0] = "-classpath";
         newopts[1] = d;
-        newopts[2] = "-checkFeasibility=precondition,assert,reachable,exit";
+        newopts[2] = "-checkFeasibility=precondition,reachable,exit";
         newopts[3] = "-code-math=bigint"; // Just to avoid overflow errors in these tests
         newopts[4] = "-spec-math=bigint"; // Just to avoid overflow errors in these tests
         System.arraycopy(opts,0,newopts,extraOpts,opts.length);
@@ -83,10 +83,6 @@ public class escfiles extends EscBase {
     }
 
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
-    	List<String> list = Arrays.asList(opts);
-    	list = new ArrayList<String>(list);
-    	list.add("-checkFeasibility=precondition,exit,reachable");
-    	opts = list.toArray(opts);
     	escOnFiles(sourceDirname,outDir,opts);
     }
 
@@ -156,21 +152,21 @@ public class escfiles extends EscBase {
     public void testDemoTypes() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=true","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=true","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "","-checkFeasibility=precondition,exit");
     }
 
     @Test // Problem with reasoning about generic types
     public void testDemoTypesAuto() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=auto","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=auto","-checkFeasibility=precondition,exit","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
     }
 
     @Test
     public void testDemoTypesDef() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=false","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=false","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "","-checkFeasibility=precondition,exit");
     }
 
     @Test // FIXME - Problem with int / short conversions
@@ -217,14 +213,14 @@ public class escfiles extends EscBase {
     public void testTaxpayer() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Taxpayer.java","test/demoTaxpayer","-classpath",OpenJMLDemoPath + "/src/openjml/demo");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Taxpayer.java","test/demoTaxpayer","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-checkFeasibility=precondition,exit");//,"-show","-method=Taxpayer","-escMaxWarnings=1");
     }
 
     @Test
     public void testBeanCan() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/BeanCan.java","test/demoBeancan","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-code-math=bigint","-spec-math=bigint");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/BeanCan.java","test/demoBeancan","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-code-math=bigint","-spec-math=bigint","-checkFeasibility=precondition,exit");
     }
 
     @Test @Ignore // FIXME - stuck or just long?

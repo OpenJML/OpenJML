@@ -2502,7 +2502,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     public void checkTypeClauseMods(JCTree tree, JCModifiers mods,String where, JmlTokenKind token) {
         long f = 0;
-        if (token != JmlTokenKind.AXIOM) f = Flags.AccessFlags | Flags.STATIC;
+        if (token != JmlTokenKind.AXIOM) f = Flags.AccessFlags | Flags.STATIC | Flags.FINAL;
         long diff = utils.hasOnly(mods,f);
         if (diff != 0) log.error(tree.pos,"jml.bad.mods",Flags.toString(diff));
         JCAnnotation a = utils.findMod(mods,tokenToAnnotationSymbol.get(INSTANCE));

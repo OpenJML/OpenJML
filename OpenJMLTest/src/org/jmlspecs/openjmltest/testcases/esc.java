@@ -59,21 +59,18 @@ public class esc extends EscBase {
 				"/tt/TestJava.java:3: warning: Associated declaration", 17);
 	}
 
-	@Test
+	@Test  // version of testCollectB without the calls of getClass and v.add
 	public void testCollectA() {
-		main.addOptions("-nonnullByDefault", "-method=m");
+		main.addOptions("-nonnullByDefault", "-method=m"); // Keep these options
 		helpTCX("tt.TestJava", "package tt; \n"
 				+ "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
 				+ "  /*@ pure */ public String m(java.lang.Integer i, Number b) {\n"
-				+ "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n" + "    /*v.add(0,i);*/\n" // version
-																													// of
-																													// testCollectB
-																													// without
-																													// this
-																													// method
-																													// call
-				+ "    boolean bb = v.elements().hasMoreElements();\n" + "    return null; \n" // FAILS
-				+ "  }\n" + "}\n",
+				+ "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n" 
+				+ "\n"
+				+ "    boolean bb = v.elements().hasMoreElements();\n" 
+				+ "    return null; \n" // FAILS
+				+ "  }\n" 
+				+ "}\n",
 				"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m", 5,
 				"/tt/TestJava.java:3: warning: Associated declaration", 29);
 	}
@@ -301,7 +298,7 @@ public class esc extends EscBase {
 	@Test
 	public void testForEach2a() {
 		Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-		main.addOptions("-method=m4","-checkFeasibility=all","escMaxWarnings=1");
+		//main.addOptions("-method=m4","-checkFeasibility=all","escMaxWarnings=1");
 		helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
 				+ "public class TestJava { \n"
 				+ "  //@ public normal_behavior  ensures true;\n" 
@@ -725,11 +722,15 @@ public class esc extends EscBase {
 				+ "  static Object so;\n"
 				+ "  //@ static ghost Object soo;\n"
 
-				+ "  //@ modifies \\nothing;\n" + "  public void m7(Object p) {\n" + "    Object pp = c1(p);\n"
+				+ "  //@ modifies \\nothing;\n" 
+				+ "  public void m7(Object p) {\n" 
+				+ "    Object pp = c1(p);\n"
 				+ "    //@ assert pp != o && pp != oo;\n" // OK
 				+ "  }\n"
 
-				+ "  //@ modifies \\nothing;\n" + "  public void m7a(Object p) {\n" + "    Object pp = c2(p);\n"
+				+ "  //@ modifies \\nothing;\n" 
+				+ "  public void m7a(Object p) {\n" 
+				+ "    Object pp = c2(p);\n"
 				+ "    //@ assert pp != o;\n" // BAD
 				+ "  }\n"
 

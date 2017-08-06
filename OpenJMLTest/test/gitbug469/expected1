@@ -19,7 +19,7 @@ test\gitbug469\Repro.java:36: warning: The prover cannot establish an assertion 
 test\gitbug469\Repro.java:38: warning: The prover cannot establish an assertion (Precondition) in method getSeed2
     URANDOM.read(result, read, length-read);
                 ^
-$SPECS\java5\java\io\InputStream.jml:174: warning: Associated declaration
+$SPECS\java5\java\io\InputStream.jml:173: warning: Associated declaration
     public int read(byte[] b, int off, int len) throws IOException;
                            ^
 Completed proof of Repro.Bar.getSeed2(int) with prover !!!! - with warnings
