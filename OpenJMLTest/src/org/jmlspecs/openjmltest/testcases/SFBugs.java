@@ -329,6 +329,10 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
+    @Test public void gitbug529() {
+        helpTCG("-rac");  // Just RAC compilation  // FIXME - try running also
+    }
+
     // Check everything in apache commons library!
     @Test @Ignore public void gitbug481() {
     	expectedExit = 0;

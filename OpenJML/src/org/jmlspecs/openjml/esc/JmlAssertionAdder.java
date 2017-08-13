@@ -8598,7 +8598,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         if (rac && origtype.tsym == jmltypes.repSym(jmltypes.BIGINT) && newIsPrim) {
             // For checking reductions of \bigint to regular int in MATH mode
-            if (newtype != jmltypes.BIGINT) {
+            if (newtype == jmltypes.BIGINT){
+                // continue
+            } else if (jmltypes.isIntegral(newtype)) {
                 int p = pos.getPreferredPosition();
                 JCExpression emax = treeutils.makeUtilsMethodCall(expr.pos,"bigint_le",expr,
                         treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOf", 
@@ -8644,6 +8646,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // In BIGINT mode, we can be required to cast a bigint value back to a primitive for an assignment
                 if (jmltypes.isSameTypeOrRep(jmltypes.BIGINT,expr.type)) {
                     if (newtype.getTag() == TypeTag.LONG) expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"bigint_tolong",expr).setType(syms.longType);
+                    else if (newtype.getTag() == TypeTag.FLOAT) expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"bigint_tofloat",expr).setType(syms.floatType);
+                    else if (newtype.getTag() == TypeTag.DOUBLE) expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"bigint_todouble",expr).setType(syms.doubleType);
+                    else if (newtype == jmltypes.REAL) expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"bigint_toreal",expr).setType(jmltypes.REAL);
                     else expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"bigint_toint",expr).setType(syms.intType);
                 } else if (!rac) {
                     expr = M.at(expr).TypeCast(newtype,expr);
