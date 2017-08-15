@@ -246,11 +246,12 @@ public class escfiles extends EscBase {
         helpTF("escAdd2");
     }
 
+    // FIXME - there is a problem with instantiating the model field or the getter functions, such that my_dollars differs from dollars()
     @Test 
     public void testCashAmount() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmount.java","test/escCashAmount","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmount.java","test/escCashAmount","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1","-show","-method=negate","-subexpressions");
     }
 
     @Test

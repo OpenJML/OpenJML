@@ -197,6 +197,7 @@ public class esclambdas extends EscBase {
 
     @Test
     public void testIdentity4() {
+    	main.addOptions("-show","-method=m1","-subexpressions");
         helpTCX("tt.TestJava","package tt;  import java.util.function.Function;\n"
                                 +"public class TestJava { \n"
                                 
@@ -212,7 +213,7 @@ public class esclambdas extends EscBase {
                                 +"     static <T> Identity<T> identity() { return null; }\n"
                                 +"  }\n"
                                 
-                                +"  //@ public normal_behavior\n"  // Line 14
+                                +"  //@ public normal_behavior\n"  // Line 13
                                 +"  //@   ensures \\result == i;\n"
                                 +"  //@ pure\n"
                                 +"  public static Integer m1(Integer i) {\n"

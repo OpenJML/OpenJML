@@ -463,6 +463,7 @@ public class escnew2 extends EscBase {
     
     @Test
     public void testBreak() {
+//    	main.addOptions("-show","-method=m1bad","-subexpressions");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -483,12 +484,12 @@ public class escnew2 extends EscBase {
                 +"  //@ ensures i == 0 ==> \\result == 7; \n"
                 +"  //@ ensures i == 1 ==> \\result == 1; \n"
                 +"  //@ ensures i == 2 ==> \\result == 0; \n"
-                +"  public int m1bad(int i) throws Exception {\n" // Line 19
+                +"  public int m1bad(int i) throws Exception { \n" // Line 19
                 +"      int k = 0;\n"
                 +"       out: {\n"
                 +"        in: { if (i ==1) break in;\n"
                 +"              if (i ==2) break out;\n"
-                +"              k=5;\n"
+                +"              k=5; \n" 
                 +"        } k++; \n"
                 +"       } \n"
                 +"      return k;\n"
