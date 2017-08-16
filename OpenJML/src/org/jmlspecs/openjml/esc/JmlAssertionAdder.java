@@ -5958,10 +5958,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected /*@ nullable */JCExpression checkAgainstAllCalleeSpecs(MethodSymbol callee, JmlTokenKind token, DiagnosticPosition callPosition, JCExpression scannedItem, JCExpression precondition,
             JCIdent baseThisId, /*@nullable*/ JCIdent targetThisId, JavaFileObject itemSource) {
-        if (rac) return null; // FIXME - turn off checking assignable until we figure out how to handle fresh allocations
+        if (rac) return precondition; // FIXME - turn off checking assignable until we figure out how to handle fresh allocations
         if (token == JmlTokenKind.ACCESSIBLE && !checkAccessEnabled) return null;
         JmlMethodSpecs mspecs = specs.getDenestedSpecs(callee); // FIXME - does this contain all inherited specs? it should
-        if (mspecs == null) return null; // FIXME - why would this happen?
+        if (mspecs == null) {
+            // No specs for callee (e.g., a library method) -- FIXME - but why not default specs
+            return precondition;
+        }
         JCExpression sc;
         {
             sc = convertAssignable(scannedItem,targetThisId,true);
@@ -5976,7 +5979,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else if (!treeutils.isTrueLit(fresh)) {
                     precondition = treeutils.makeAnd(scannedItem, precondition, notfresh);
                 } else {
-                    return null; // Definitely fresh - so no checks to be done
+                    return precondition; // Definitely fresh - so no checks to be done
                 }
            
             }
@@ -7355,6 +7358,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym);
                                         for (JCExpression item: storerefs) {
                                             addStat(comment(item,"Is " + item + " assignable? " + utils.locationString(item.pos,clause.source()),clause.source()));
+                                            if (item.toString().equals("value")) Utils.stop();
                                             JCExpression allowed = checkAgainstAllCalleeSpecs(calleeMethodSym,clause.token, that, item ,pre, newThisId, newThisId, clause.source());
                                             checkAgainstCallerSpecs(clause.token, that, item ,allowed, savedThisId, newThisId, clause.source());
                                         }
