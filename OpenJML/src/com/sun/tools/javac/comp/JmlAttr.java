@@ -904,6 +904,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // FIXME - this should be done in MemberEnter, not here -- needed for JmlVariableDecl, checking class mods
     protected boolean checkSameAnnotations(JCModifiers javaMods, JCModifiers specMods, String kind, String name) {
         //if (javaMods == specMods) return true;
+        boolean saved1 = JmlPretty.useFullAnnotationTypeName, saved2 = JmlPretty.useJmlModifier;
+        JmlPretty.useFullAnnotationTypeName = JmlPretty.useJmlModifier = false;
         PackageSymbol p = annotationPackageSymbol;
         boolean r = false;
         for (JCAnnotation a: javaMods.getAnnotations()) {
@@ -916,6 +918,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 r = true;
             }
         }
+        JmlPretty.useFullAnnotationTypeName = saved1; JmlPretty.useJmlModifier = saved2;
         return r;
     }
 
@@ -5859,6 +5862,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlVariableDecl(JmlVariableDecl that) {
 
         JavaFileObject prevSource = null;
+        JmlTokenKind saved = currentClauseType;
         try {
             if (that.source() != null) prevSource = log.useSource(that.source());
 
@@ -5877,6 +5881,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (utils.isJML(that.mods) || isReplacementType) {
                 prev = ((JmlResolve)rs).setAllowJML(true);
             }
+            if (utils.isJML(that.mods)) currentClauseType = JmlTokenKind.GHOST; // FIXME - could be model, if it matters
             if (that.vartype.type == null) attribType(that.vartype,env);
             if (that.originalVartype != null && that.originalVartype.type == null) attribType(that.originalVartype,env);
 //            if (that.name.toString().equals("objectState")) Utils.stop();
@@ -5930,6 +5935,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             //        }
         } finally {
             if (prevSource != null) log.useSource(prevSource);
+            currentClauseType = saved;
         }
     }
     

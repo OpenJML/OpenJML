@@ -153,7 +153,7 @@ public class api extends JmlTestCase {
     String prettyprint =
             eol + 
             "public class A {" + eol +
-            "  @Ghost " + eol +
+            "  /*@ ghost */ " + eol +
             "  int i = 0;" + eol +
             "}"
 //            + eol 
@@ -170,7 +170,7 @@ public class api extends JmlTestCase {
     String prettyprint2a =
             eol + 
             "public class A {" + eol +
-            "  @Ghost " + eol +
+            "  /*@ ghost */ " + eol +
             "  int i = 0;" + eol +
             "}"
 //            + eol 
@@ -187,7 +187,7 @@ public class api extends JmlTestCase {
     String prettyprint2 =
             eol + 
             "public class A {" + eol +
-            "  @Ghost " + eol +
+            "  /*@ ghost */ " + eol +
             "  int i = 0;" + eol +
             "}";
 
@@ -196,7 +196,7 @@ public class api extends JmlTestCase {
             "package a.b;" + eol +
             eol +
             "public class A {" + eol +
-            "  @Ghost " + eol +
+            "  /*@ ghost */ " + eol +
             "  int i = 0;" + eol +
             "}"
 //            + eol
