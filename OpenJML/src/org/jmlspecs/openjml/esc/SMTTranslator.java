@@ -877,28 +877,29 @@ public class SMTTranslator extends JmlTreeScanner {
         
         // Add the rest that are recorded in the basic block program
         for (JCIdent id: program.declarations) {
-            if (defined.add(id.name)) {
-                try {
-                    ISort sort = convertSort(id.type);
-                    String nm = id.name.toString();
-                    // FIXME - I don't think 'this' should ever get this far
-                    if (id.sym.owner instanceof Symbol.ClassSymbol && !Utils.instance(context).isJMLStatic(id.sym) && !id.sym.name.toString().equals("this")) {
-                        // The name is a non-static field of a class, so the sort is an SMT Array
-                        sort = F.createSortExpression(arraySym,refSort,sort);
-                    } else if (nm.startsWith(arrays_)) {
-                        // FIXME - review modeling of arrays
-                        sort = convertSort(((Type.ArrayType)id.type).getComponentType());
-                        sort = F.createSortExpression(arraySym,useBV ? bv32Sort : intSort,sort); // The type of the index is Int
-                        sort = F.createSortExpression(arraySym,refSort,sort);
-                    }
-                    ISymbol sym = F.symbol(nm);
-                    c = new C_declare_fun(sym,emptyList,sort);
-                    commands.add(c);
-                    bimap.put(id,sym);
-                } catch (RuntimeException ee) {
-                    // skip - error already issued// FIXME - better error recovery?
-                }
-            }
+            addConstant(id);
+//            if (defined.add(id.name)) {
+//                try {
+//                    ISort sort = convertSort(id.type);
+//                    String nm = id.name.toString();
+//                    // FIXME - I don't think 'this' should ever get this far
+//                    if (id.sym.owner instanceof Symbol.ClassSymbol && !Utils.instance(context).isJMLStatic(id.sym) && !id.sym.name.toString().equals("this")) {
+//                        // The name is a non-static field of a class, so the sort is an SMT Array
+//                        sort = F.createSortExpression(arraySym,refSort,sort);
+//                    } else if (nm.startsWith(arrays_)) {
+//                        // FIXME - review modeling of arrays
+//                        sort = convertSort(((Type.ArrayType)id.type).getComponentType());
+//                        sort = F.createSortExpression(arraySym,useBV ? bv32Sort : intSort,sort); // The type of the index is Int
+//                        sort = F.createSortExpression(arraySym,refSort,sort);
+//                    }
+//                    ISymbol sym = F.symbol(nm);
+//                    c = new C_declare_fun(sym,emptyList,sort);
+//                    commands.add(c);
+//                    bimap.put(id,sym);
+//                } catch (RuntimeException ee) {
+//                    // skip - error already issued// FIXME - better error recovery?
+//                }
+//            }
         }
         
         // add definitions
@@ -957,6 +958,42 @@ public class SMTTranslator extends JmlTreeScanner {
         addTypeRelationships(loc,smt);
         
         return script;
+    }
+    
+    protected void addConstant(JCIdent id) {
+        if (defined.add(id.name)) {
+            try {
+                ISort sort = convertSort(id.type);
+                String nm = id.name.toString();
+                // FIXME - I don't think 'this' should ever get this far
+                if (id.sym.owner instanceof Symbol.ClassSymbol && !Utils.instance(context).isJMLStatic(id.sym) && !id.sym.name.toString().equals("this")) {
+                    // The name is a non-static field of a class, so the sort is an SMT Array
+                    sort = F.createSortExpression(arraySym,refSort,sort);
+                } else if (nm.startsWith(arrays_)) {
+                    // FIXME - review modeling of arrays
+                    sort = convertSort(((Type.ArrayType)id.type).getComponentType());
+                    sort = F.createSortExpression(arraySym,useBV ? bv32Sort : intSort,sort); // The type of the index is Int
+                    sort = F.createSortExpression(arraySym,refSort,sort);
+                }
+                ISymbol sym = F.symbol(nm);
+                ICommand c = new C_declare_fun(sym,emptyList,sort);
+                commands.add(c);
+                bimap.put(id,sym);
+            } catch (RuntimeException ee) {
+                // skip - error already issued// FIXME - better error recovery?
+            }
+        }
+    }
+    
+    protected boolean addConstant(ISymbol sym, ISort sort, JCExpression expr) {
+        Name nm = names.fromString(sym.toString());
+        boolean isnew = defined.add(nm);
+        if (isnew) {
+            ICommand c = new C_declare_fun(sym,emptyList,sort);
+            commands.add(c);
+            bimap.put(expr,sym);
+        }
+        return isnew;
     }
     
     /** Adds a command expressed as a string */
@@ -2163,6 +2200,20 @@ public class SMTTranslator extends JmlTreeScanner {
             return sym;
         }
     }
+    
+    @Override
+    public void visitReference(JCTree.JCMemberReference that) {
+        String s = "|" + that.toString() + "|";
+        ISymbol sym = F.symbol(s);
+        if (addConstant(sym, refSort, that)) {
+            IExpr e = F.fcn(distinctSym, sym, nullSym);
+            ICommand c = new C_assert(e);
+            commands.add(c);
+        }
+        result = sym;
+    }
+
+
 
     @Override public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) { notImpl(that); } // FIXME - maybe
     @Override public void visitJmlSetComprehension(JmlSetComprehension that) { notImpl(that); }

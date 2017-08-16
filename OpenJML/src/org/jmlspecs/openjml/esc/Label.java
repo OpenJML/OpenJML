@@ -281,6 +281,9 @@ public class Label {
     /** Used to designate a possible ArrayStoreException because of an array assignment */
     /*@ non_null*/ public final static Label POSSIBLY_BAD_ARRAY_ASSIGNMENT = new Label("PossiblyBadArrayAssignment");
 
+    /** Used flor checks of compatible specifications for functional interfaces */
+    /*@ non_null*/ public final static Label POSSIBLY_INCOMPATIBLE_FUNCTIONAL_SPECS = new Label("PossiblyIncompatibleFunctionalSpecs");
+
 
 
 }

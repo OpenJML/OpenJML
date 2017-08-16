@@ -18,6 +18,7 @@ import static com.sun.tools.javac.code.Kinds.VAL;
 import static com.sun.tools.javac.code.Kinds.VAR;
 import static com.sun.tools.javac.code.TypeTag.FORALL;
 import static com.sun.tools.javac.code.TypeTag.METHOD;
+import static com.sun.tools.javac.code.TypeTag.NONE;
 import static com.sun.tools.javac.tree.JCTree.Tag.ASSIGN;
 import static org.jmlspecs.openjml.JmlTokenKind.*;
 
@@ -116,6 +117,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
+
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Pair;
@@ -958,6 +960,26 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             isInJmlDeclaration = prevJml;
         }
     }
+    
+    @Override 
+    public void visitReference(JCMemberReference that) {
+        super.visitReference(that);
+        if (that.sym == null) {
+            for (Symbol s: that.expr.type.tsym.getEnclosedElements()) {
+                if (s.name == that.name) {
+                    that.sym = s;
+                    that.type = s.type;
+                    break;
+                }
+            }
+        }
+    }
+    
+    @Override
+    protected boolean visitReferenceInJML() { 
+        return currentClauseType != null;  // Returns true if in JML clause 
+    }
+
     
     /** This is overridden in order to do correct checking of whether a method body is
      * present or not.
@@ -5103,7 +5125,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             for (JmlTokenKind c: allowed) {
                 if (a.annotationType.type.tsym.flatName().equals(tokenToAnnotationName.get(c))) continue outer; // Found it
             }
-            // a is not is the list, but before we complain, check that it is
+            // a is not in the list, but before we complain, check that it is
             // one of our annotations
             if (a.annotationType.type.tsym.packge().flatName().equals(annotationPackageName)) { // FIXME - change to comparing symbols instead of strings?
                 JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
@@ -5851,10 +5873,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             for (JCAnnotation a: that.mods.annotations) a.type = a.annotationType.type;
 
             boolean prev = false;
-            if (utils.isJML(that.mods)) {
+            boolean isReplacementType = that.jmltype;
+            if (utils.isJML(that.mods) || isReplacementType) {
                 prev = ((JmlResolve)rs).setAllowJML(true);
             }
             if (that.vartype.type == null) attribType(that.vartype,env);
+            if (that.originalVartype != null && that.originalVartype.type == null) attribType(that.originalVartype,env);
 //            if (that.name.toString().equals("objectState")) Utils.stop();
             ((JmlMemberEnter)memberEnter).dojml = true;
             visitVarDef(that);

@@ -1877,7 +1877,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             if (isInstance && !wasStatic) tree.mods.flags &= ~Flags.STATIC;
         }
         boolean prev = resolve.allowJML();
-        if (utils.isJML(tree.mods)) resolve.setAllowJML(true);
+        boolean isReplacementType = ((JmlVariableDecl)tree).jmltype;
+        
+        if (utils.isJML(tree.mods) || isReplacementType) resolve.setAllowJML(true);
         
 //        boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
 //        ((JmlCheck)chk).noDuplicateWarn = false;

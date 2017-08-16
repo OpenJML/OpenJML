@@ -253,6 +253,31 @@ public class JmlParser extends JavacParser {
         ((JmlTree.JmlAnnotation)a).sourcefile = log.currentSourceFile();
         return a;
     }
+    @Override
+    protected JCVariableDecl formalParameter(boolean lambdaParameter) {
+        Token token = S.token();
+        JCExpression replacementType = null;
+        if (token.kind == TokenKind.LBRACE) {
+            boolean b = S.jml();
+            try {
+                S.setJml(false);
+                nextToken();
+                replacementType = unannotatedType();
+            } finally {
+                S.setJml(b);
+                accept(TokenKind.RBRACE);
+                if (token.ikind == JmlTokenKind.ENDJMLCOMMENT) S.nextToken();
+            }
+        }
+        JmlVariableDecl param = (JmlVariableDecl)super.formalParameter(lambdaParameter);
+        if (replacementType != null) {
+            param.originalVartype = param.vartype;
+            param.vartype = replacementType;
+            param.jmltype = true;
+        }
+        return param;
+    }
+
 
     /**
      * This parses a class, interface or enum declaration after the parser has
@@ -1632,6 +1657,24 @@ public class JmlParser extends JavacParser {
         }
         return toP(jmlF.at(p).JmlStoreRefListExpression(jt, list.toList()));
     }
+    
+    @Override
+    public JCExpression parseType(List<JCAnnotation> annotations) {
+        JCExpression result = unannotatedType();
+        for (JCAnnotation a: annotations) {
+            String n = a.annotationType.toString();
+            if (n.equals("JMLType") || n.equals("org.jmlspecs.annotation.JMLTypoe")) {
+                Utils.stop();
+            }
+        }
+
+        if (annotations.nonEmpty()) {
+            result = insertAnnotationsToMostInner(result, annotations, false);
+        }
+
+        return result;
+    }
+
 
     public JmlMethodSpecs parseMethodSpecs(JCModifiers mods) {
         // Method specifications are a sequence of specification cases
