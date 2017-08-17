@@ -278,19 +278,23 @@ public class esclambdas extends EscBase {
     
     @Test  // FIXME - using references or lambdas in these contexts is not Java
     public void testEquality() {
+    	main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                                 
-                +"  //@ public exceptional_behavior requires true;\n"
+                +"  //@ public normal_behavior requires true;\n"
                 +"  public static void m() {\n"
-                +"    //@ ghost boolean b = RuntimeException::new == RuntimeException::new;\n"
-                +"    //@ assert b;\n"
-                +"    //@ set b = RuntimeException::new != null;\n"
-                +"    //@ assert b;\n"
-                +"    //@ set b = null != RuntimeException::new;\n"
-                +"    //@ assert b;\n"
-                +"    //@ set b = null != (x -> x);\n"
+                +"    //@ ghost boolean b;"
+//                +"    //@ set b = RuntimeException::new == RuntimeException::new;\n"
+//                +"    //@ assert b;\n"
+//                +"    //@ set b = RuntimeException::new != null;\n"
+//                +"    //@ assert b;\n"
+//                +"    //@ set b = null != RuntimeException::new;\n"
+//                +"    //@ assert b;\n"
+//                +"    //@ set b = null != (java.util.function.Function)(x -> x);\n"
+//                +"    //@ assert b;\n"
+                +"    //@ set b = java.util.function.Function::identity != (java.util.function.Function)(x -> x);\n"
                 +"    //@ assert b;\n"
                 +"  }\n"
                 +"}"
