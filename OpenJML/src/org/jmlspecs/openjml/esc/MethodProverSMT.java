@@ -340,7 +340,19 @@ public class MethodProverSMT {
             if (solverResponse.isError()) {
                 solver.exit();
                 //log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
-                JCDiagnostic d = log.factory().error(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse));
+                String msg = smt.smtConfig.defaultPrinter.toString(solverResponse);
+                String key = "line ";
+                int k = msg.indexOf(key);
+                if (k >= 0) {
+                    k += key.length();
+                    int kk = msg.indexOf(" ",k);
+                    try {
+                        k = Integer.parseInt(msg.substring(k,kk));
+                        String s = script.commands().get(k).toString();
+                        msg += "\n>>>" + s;
+                    } catch (Exception e) {}  // skip
+                }
+                JCDiagnostic d = log.factory().error(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), msg);
                 log.report(d);
                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
             }

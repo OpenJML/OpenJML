@@ -128,6 +128,7 @@ import com.sun.tools.javac.tree.JCTree.JCInstanceOf;
 import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
 import com.sun.tools.javac.tree.JCTree.JCLambda;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
+import com.sun.tools.javac.tree.JCTree.JCMemberReference;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
@@ -6310,7 +6311,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         for (JCExpression a: args) {
             if (iter.hasNext()) currentArgType = iter.next(); // handles varargs
             last = !iter.hasNext();
-            if (currentArgType != null && isFunctional(currentArgType)) {  // FIXME - some bug causes the argtyep to be null for created functions, sometimes
+            if (currentArgType != null && isFunctional(currentArgType) && (a instanceof JCLambda || a instanceof JCMemberReference)) {  // FIXME - some bug causes the argtyep to be null for created functions, sometimes
                 out.add(a);
                 continue;
             }
