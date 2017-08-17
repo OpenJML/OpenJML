@@ -9524,7 +9524,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else if ((rhs instanceof JCLambda || rhs instanceof JCTree.JCMemberReference) && treeutils.isNullLit(lhs)) {
                     b = optag == JCTree.Tag.NE;
                 } else if (lhs instanceof JCTree.JCMemberReference && rhs instanceof JCTree.JCMemberReference) {
-                    b = (optag == JCTree.Tag.EQ) != (((JCTree.JCMemberReference)lhs).sym == ((JCTree.JCMemberReference)rhs).sym);
+                    b = (optag == JCTree.Tag.EQ) == (((JCTree.JCMemberReference)lhs).sym == ((JCTree.JCMemberReference)rhs).sym);
 //                } else {
 //                    log.error(that,"jml.unimplemented.lambda");
                 }
