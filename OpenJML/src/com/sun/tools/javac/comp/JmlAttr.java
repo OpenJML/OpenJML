@@ -3142,7 +3142,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     private EnumSet<JmlTokenKind> oldNoLabelTokens = JmlTokenKind.methodStatementTokens;
     {
         oldNoLabelTokens = oldNoLabelTokens.clone();
-        oldNoLabelTokens.addAll(EnumSet.of(ENSURES,SIGNALS,CONSTRAINT,DURATION,WORKING_SPACE));
+        oldNoLabelTokens.addAll(EnumSet.of(ENSURES,SIGNALS,CONSTRAINT,DURATION,WORKING_SPACE,JMLDECL)); // FIXME - double check JMLDECL
     }
     
     // FIXME - limit these to a method body
@@ -5881,7 +5881,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (utils.isJML(that.mods) || isReplacementType) {
                 prev = ((JmlResolve)rs).setAllowJML(true);
             }
-            if (utils.isJML(that.mods)) currentClauseType = JmlTokenKind.GHOST; // FIXME - could be model, if it matters
+            if (utils.isJML(that.mods)) currentClauseType = JmlTokenKind.JMLDECL; // FIXME - could be model, if it matters
             if (that.vartype.type == null) attribType(that.vartype,env);
             if (that.originalVartype != null && that.originalVartype.type == null) attribType(that.originalVartype,env);
 //            if (that.name.toString().equals("objectState")) Utils.stop();
