@@ -276,7 +276,7 @@ public class esclambdas extends EscBase {
                 );
     }
     
-    @Test @Ignore // FIXME - using references or lambdas in these contexts is not Java
+    @Test  // FIXME - using references or lambdas in these contexts is not Java
     public void testEquality() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -427,6 +427,17 @@ public class esclambdas extends EscBase {
                 ,"/tt/TestJava.java:10: warning: Associated declaration",14
                 ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method mmm",7
                 
+                );
+    }
+    
+    @Test
+    public void testLambda() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ public model_program { return x -> x; }\n"
+                +"  public static java.util.function.Function<Integer,Integer> m() { return x -> x; }\n"
+                +"  }\n"
                 );
     }
     

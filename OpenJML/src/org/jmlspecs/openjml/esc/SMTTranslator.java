@@ -2212,6 +2212,18 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         result = sym;
     }
+    
+    @Override 
+    public void visitLambda(JCTree.JCLambda that) {
+        String s = "|" + that.toString() + "|";
+        ISymbol sym = F.symbol(s);
+        if (addConstant(sym, refSort, that)) {
+            IExpr e = F.fcn(distinctSym, sym, nullSym);
+            ICommand c = new C_assert(e);
+            commands.add(c);
+        }
+        result = sym;
+   }
 
 
 

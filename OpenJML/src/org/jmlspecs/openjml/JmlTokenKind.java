@@ -217,7 +217,7 @@ public enum JmlTokenKind implements ITokenKind {
     // Other special character combinations
     DOT_DOT(".."),
     LEFT_ARROW("<-"),
-    RIGHT_ARROW("->"),
+//    RIGHT_ARROW("->"),
     INFORMAL_COMMENT("(*...*)"),
     SPEC_GROUP_START("{|"),
     SPEC_GROUP_END("|}"),

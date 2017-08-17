@@ -727,10 +727,10 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 }
                 endPos = reader.bp;
             }
-        } else if (tk == TokenKind.ARROW) {
-            // Java 8 has a token called ARROW - which was not present in Java 7
-            // FIXME - we will need to combine the two uses
-            jmlTokenKind = JmlTokenKind.RIGHT_ARROW;
+//        } else if (tk == TokenKind.ARROW) {
+//            // Java 8 has a token called ARROW - which was not present in Java 7
+//            // FIXME - we will need to combine the two uses
+//            jmlTokenKind = JmlTokenKind.RIGHT_ARROW;
 //        } else if (tk == TokenKind.SUB) {
 //            if (reader.ch == '>') {
 //                tk = TokenKind.CUSTOM;

@@ -2707,7 +2707,7 @@ public class JmlParser extends JavacParser {
         JmlTokenKind jtk = ((JmlToken)t).jmlkind;
         switch (jtk) {
             case IMPLIES: case REVERSE_IMPLIES: case EQUIVALENCE: case INEQUIVALENCE: case SUBTYPE_OF:
-            case JSUBTYPE_OF: case DOT_DOT: case LEFT_ARROW: case LOCK_LE: case LOCK_LT: case RIGHT_ARROW:
+            case JSUBTYPE_OF: case DOT_DOT: case LEFT_ARROW: case LOCK_LE: case LOCK_LT: //case RIGHT_ARROW:
                 return ParensResult.PARENS;
             default:
                 return ParensResult.CAST;

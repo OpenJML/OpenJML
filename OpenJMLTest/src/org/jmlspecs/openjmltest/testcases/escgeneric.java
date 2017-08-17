@@ -364,6 +364,18 @@ public class escgeneric extends EscBase {
                 );
     }
 
+    @Test
+    public void testGenericThrow() {
+        helpTCX("tt.TestJava",
+        		 "public class TestJava { \n"
+        	    +" //@ public exceptional_behavior \n"
+        	    +" //@   requires true; \n"  // FIXME - should be t instanceof T
+        	    // Can't say signals_only T; because JML only deals with Exception, not Throwable
+        	    +" public static <T extends Throwable> RuntimeException rt(/*@ non_null*/ Throwable t) throws T { throw (T)t; } \n"
+                +"}"
+                );
+    }
+
     
 }
     
