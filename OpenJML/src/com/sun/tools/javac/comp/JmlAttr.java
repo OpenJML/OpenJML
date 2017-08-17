@@ -5901,7 +5901,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JmlTokenKind nullness = specs.defaultNullity(enclosingClassEnv.enclClass.sym);
                 if ((snullness=utils.findMod(that.mods,nonnullAnnotationSymbol)) != null) { 
                     nullness = JmlTokenKind.NONNULL;
-                } else if ((snullness=utils.findMod(that.mods,nullableAnnotationSymbol)) != null) {
+                } else if ((snullness=utils.findMod(that.mods,nullableAnnotationSymbol)) != null || skipDefaultNullity) {
                     nullness = JmlTokenKind.NULLABLE;
                 } else {
                     Symbol s = (nullness == JmlTokenKind.NONNULL) ? nonnullAnnotationSymbol : nullableAnnotationSymbol;
@@ -5938,6 +5938,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             currentClauseType = saved;
         }
     }
+    
+    boolean skipDefaultNullity = false;
+    
+    @Override
+    public void visitLambda(final JCLambda that) {
+        boolean saved = skipDefaultNullity;
+        try {
+            skipDefaultNullity = true;
+            super.visitLambda(that);
+        } finally {
+            skipDefaultNullity = saved;
+        }
+    }
+
     
     // These are here mostly to make them visible to extensions
 
