@@ -9845,8 +9845,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             return;
         }
-        if (rac && that.type.isPrimitive() && jmltypes.isJmlType(that.type) && origType.tsym == jmltypes.repSym((JmlType)that.type)) {
-            result = eresult = arg; // No-op since the representation type is the same as the argument type
+        if (rac && that.type.isPrimitive() && jmltypes.isJmlType(that.type)) {
+            if (origType.tsym == jmltypes.repSym((JmlType)that.type)) {
+                result = eresult = arg; // No-op since the representation type is the same as the argument type
+            } else if (that.type == jmltypes.BIGINT) {
+                result = eresult = treeutils.makeUtilsMethodCall(that.pos,"bigint_valueOf",arg);
+            } else if (that.type == jmltypes.REAL) {
+                result = eresult = treeutils.makeUtilsMethodCall(that.pos,"real_valueOf",arg);
+            }
             return;
         }
         JCTypeCast castexpr = M.at(that).TypeCast(clazz,arg);

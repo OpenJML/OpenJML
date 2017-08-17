@@ -295,6 +295,27 @@ public class racfiles extends RacBase {
     }
 
     @Test
+    public void gitbug532() {
+    	//runrac = false;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug532","test/gitbug532","Big");
+    }
+
+    @Test
+    public void gitbug532a() {
+    	//runrac = false;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug532a","test/gitbug532a","Big");
+    }
+
+//    @Test
+//    public void gitbug533() {
+//    	//runrac = false;
+//        expectedRACExit = 0;
+//        helpTCF("test/gitbug533a","test/gitbug533a","TestSum");
+//    }
+
+    @Test
     public void sfbug413() {
         expectedRACExit = 0;
         helpTCF("test/sfbug413","test/sfbug413","Main");
