@@ -1071,11 +1071,12 @@ public class SMTTranslator extends JmlTreeScanner {
             return F.symbol(s);
         } else if (t instanceof Type.WildcardType) {
             String s = t.toString();
-            if (s.equals("?")) s = "WILD" + (++wildcardCount);
+            // Note - t might have a bound - FIXME - what do we do with it?
+            if (s.startsWith("?")) s = "WILD" + (++wildcardCount);
             s = "JMLTV_" + s;
             return F.symbol(s);
 
-        } else if (!t.tsym.type.isParameterized() || t.getTypeArguments().isEmpty()) {
+        } else if (!t.tsym.type.isParameterized()) {
             if (t instanceof Type.WildcardType || t instanceof Type.CapturedType) {
                 String s = "JMLTV_" + "WILD" + (++wildcardCount);
                 ISymbol sym = F.symbol(s);
@@ -1084,6 +1085,16 @@ public class SMTTranslator extends JmlTreeScanner {
                 String s = "JMLT_" + typeString(t);
                 return F.symbol(s);
             }
+        } else if (t.getTypeArguments().isEmpty()) {
+            // A generic type is being used without any type arguments. We insert new wild card variables.
+            List<Type> params = t.getTypeArguments();
+            List<IExpr> args = new LinkedList<IExpr>();
+            args.add(javaTypeSymbol(t));
+            for (Type tt: params) {
+                String s = "JMLTV_" + "WILD" + (++wildcardCount);
+                args.add(F.symbol(s));
+            }
+            return F.fcn(F.symbol("_JMLT_"+params.size()), args);
         } else {
             List<Type> params = t.getTypeArguments();
             List<IExpr> args = new LinkedList<IExpr>();
