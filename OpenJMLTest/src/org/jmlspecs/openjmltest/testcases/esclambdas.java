@@ -278,7 +278,6 @@ public class esclambdas extends EscBase {
     
     @Test  // FIXME - using references or lambdas in these contexts is not Java
     public void testEquality() {
-    	main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -286,16 +285,58 @@ public class esclambdas extends EscBase {
                 +"  //@ public normal_behavior requires true;\n"
                 +"  public static void m() {\n"
                 +"    //@ ghost boolean b;"
-//                +"    //@ set b = RuntimeException::new == RuntimeException::new;\n"
-//                +"    //@ assert b;\n"
-//                +"    //@ set b = RuntimeException::new != null;\n"
-//                +"    //@ assert b;\n"
-//                +"    //@ set b = null != RuntimeException::new;\n"
-//                +"    //@ assert b;\n"
-//                +"    //@ set b = null != (java.util.function.Function)(x -> x);\n"
-//                +"    //@ assert b;\n"
+                +"    //@ set b = RuntimeException::new == RuntimeException::new;\n"
+                +"    //@ assert b;\n"
+                +"    //@ set b = RuntimeException::new != null;\n"
+                +"    //@ assert b;\n"
+                +"    //@ set b = null != RuntimeException::new;\n"
+                +"    //@ assert b;\n"
+                +"    //@ set b = null != (java.util.function.Function)(x -> x);\n"
+                +"    //@ assert b;\n"
                 +"    //@ set b = java.util.function.Function::identity != (java.util.function.Function)(x -> x);\n"
                 +"    //@ assert b;\n"
+                +"  }\n"
+                +"}"
+                );
+    	
+    }
+    
+    @Test 
+    public void testReplacementType() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public static class C {};\n"
+                +"  //@ public model static class R extends C {};\n"
+                
+                +"  public /*@ nullable {R}*/C field;\n"
+
+                +"  public void set( /*@{R}*/C f) { field = f; }\n"
+                                
+                +"  //@ public normal_behavior requires true;\n"
+                +"  public void m() {\n"
+                +"    //@ assert field == null || field instanceof R;"
+                +"  }\n"
+                +"}"
+                );
+    	
+    }
+    
+    @Test 
+    public void testReplacementType2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public static class C {};\n"
+                +"  public static class R extends C {};\n"
+                
+                +"  public /*@ nullable {R}*/C field;\n"
+
+                +"  public void set( /*@{R}*/C f) { field = f; }\n"
+                                
+                +"  //@ public normal_behavior requires true;\n"
+                +"  public void m() {\n"
+                +"    //@ assert field == null || field instanceof R;"
                 +"  }\n"
                 +"}"
                 );
@@ -422,6 +463,7 @@ public class esclambdas extends EscBase {
                 +"  public static boolean  mmm(/*@ {java.util.function.Supplier.Pure<Boolean>}*/ java.util.function.Supplier<Boolean> s) {\n"
                 +"      return s.get();\n"   // Line 20
                 +"  }\n"
+                
                 +"  //@ public normal_behavior requires true; pure\n"
                 +"  public static boolean  mmmm(/*@ {java.util.function.Supplier.PureNonNull<Boolean>}*/ java.util.function.Supplier<Boolean> s) {\n"
                 +"      return s.get();\n"
