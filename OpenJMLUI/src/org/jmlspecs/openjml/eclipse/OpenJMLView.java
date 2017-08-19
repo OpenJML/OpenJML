@@ -404,11 +404,13 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	return r == null ? n : r;
     }
     
-    static public void exportProofResults(FileWriter output) {
+    static public String exportProofResults(/*@ nullable */FileWriter output) {
     	try {
     		StringBuilder summary = new StringBuilder();
     		String spaces = "                                        "; //$NON-NLS-1$
     		final OpenJMLView view = Utils.findView();
+    		if (view == null) return null;
+    		if (output == null && view.currentProject == null) return null;
     		Map<String,Integer> counts = new HashMap<String,Integer>();
     		OpenJMLInterface iface = Activator.utils().getInterface(view.currentProject);
     		Map<String,IProverResult> proofResults = iface.getProofResults();
@@ -416,12 +418,12 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     		for (String s: t) {
     			String result = proofResults.get(s).result().toString();
     			String user = userText(result);
-    			output.append(user + spaces.substring(0,25-user.length()) + s + Strings.eol);
+    			if (output != null) output.append(user + spaces.substring(0,25-user.length()) + s + Strings.eol);
     			Integer i = counts.get(result);
     			if (i == null) i = 1; else i = i + 1;
     			counts.put(result, i);
     		}
-    		output.append(Strings.eol);
+    		if (output != null) output.append(Strings.eol);
     		int total = 0;
     		
     		for (String result: new TreeSet<>(counts.keySet())) {
@@ -434,12 +436,28 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     			int diff = t.size()-total;
     			summary.append(diff + "    ?????" + Strings.eol);
     		}
-    		summary.append(t.size() + spaces.substring(0,5-Integer.toString(counts.size()).length()) + "  TOTAL" + Strings.eol); //$NON-NLS-1$
-    		output.append(summary);
-    	 	Activator.utils().showMessageInUI(null,"Proof results summary",summary.toString());
-    	} catch (IOException e) {
     		
+    		summary.append(t.size() + spaces.substring(0,5-Integer.toString(counts.size()).length()) + "  TOTAL" + Strings.eol); //$NON-NLS-1$
+    		if (output != null) output.append(summary);
+    		if (output != null) Activator.utils().showMessageInUI(null,"Proof results summary",summary.toString());
+
+    		StringBuilder brief = new StringBuilder();
+    		brief.append(t.size() - zeroifnull(counts.get("RUNNING")) - zeroifnull(counts.get("CANCELLED")));
+    		brief.append(" [").append("VAL=").append(zeroifnull(counts.get("UNSAT")));
+    		brief.append(" ").append("ERR=").append(zeroifnull(counts.get("ERROR")));
+    		brief.append(" ").append("INV=").append(zeroifnull(counts.get("POSSIBLY_SAT")));
+    		brief.append(" ").append("TIM=").append(zeroifnull(counts.get("TIMEOUT")));
+    		brief.append(" ").append("INF=").append(zeroifnull(counts.get("INFEASIBLE")));
+    		brief.append(" ").append("SKI=").append(zeroifnull(counts.get("SKIPPED")));
+    		brief.append("]");
+    		return brief.toString();
+    	} catch (IOException e) {
+    		return null;
     	}
+    }
+    
+    static public Integer zeroifnull(Integer n) {
+    	return n == null ? 0 : n;
     }
     
     public void clearSelectedProofResults() {
