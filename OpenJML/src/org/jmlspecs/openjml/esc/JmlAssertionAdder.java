@@ -4123,7 +4123,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 JCExpression ex = ((JmlMethodClauseSignals)clause).expression;
                                 addTraceableComment(ex,clause.toString());
 
-                                JCExpression test = vd == null ? null :
+                                JCExpression test = vd == null ? 
+                                        treeutils.makeInstanceOf(clause.pos,exceptionId,syms.exceptionType)
+                                        :
                                         treeutils.makeInstanceOf(clause.pos,exceptionId,vd.type);
                                 pushBlock();
                                 try {
@@ -4159,6 +4161,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             condd = treeutils.makeOr(clause.pos, condd, tc);
                                         }
                                         condd = treeutils.makeImplies(clause.pos, preident, condd);
+                                        JCExpression extype = treeutils.makeType(clause.pos,syms.exceptionType);
+                                        JCExpression isExcType = M.at(clause.pos).TypeTest(exceptionId, extype).setType(syms.booleanType);
+                                        condd = treeutils.makeOr(clause.pos, treeutils.makeNot(clause.pos, isExcType), condd);
                                         if (rac) {
                                             addAssert(methodDecl,Label.SIGNALS_ONLY,condd,clause,clause.sourcefile,
                                                     treeutils.makeUtilsMethodCall(clause.pos,"getClassName",exceptionId));
