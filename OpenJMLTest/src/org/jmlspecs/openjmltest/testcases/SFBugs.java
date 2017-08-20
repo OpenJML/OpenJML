@@ -22,16 +22,16 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(ParameterizedWithNames.class)
 public class SFBugs extends EscBase {
 
-//    @Override
-//    public void setUp() throws Exception {
-////        noCollectDiagnostics = true;
-////        jmldebug = true;
-//        super.setUp();
-//    }
+    @Override
+    public void setUp() throws Exception {
+//        noCollectDiagnostics = true;
+//        jmldebug = true;
+        super.setUp();
+		ignoreNotes = true;
+    }
 
 	public SFBugs(String options, String solver) {
 		super(options, solver);
-		ignoreNotes = true;
 	}
 	
     @Parameters

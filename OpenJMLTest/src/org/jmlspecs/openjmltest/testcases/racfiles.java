@@ -38,6 +38,7 @@ public class racfiles extends RacBase {
     public void setUp() throws Exception {
         setUpForFiles();
         super.setUp();
+        ignoreNotes = true;
     }
 
 
