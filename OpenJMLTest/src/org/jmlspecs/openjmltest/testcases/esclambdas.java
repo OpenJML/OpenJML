@@ -248,7 +248,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testMethodReference() {
-        main.addOptions("-show","-method=m1");
+//        main.addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"@org.jmlspecs.annotation.CodeBigintMath public class TestJava { \n"
                 
@@ -274,6 +274,217 @@ public class esclambdas extends EscBase {
                 +"    //@ assert field == 300;\n"
                 +"  }\n"
                 +"}"
+                );
+    }
+    
+    @Test  // FIXME - using references or lambdas in these contexts is not Java
+    public void testEquality() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                                
+                +"  //@ public normal_behavior requires true;\n"
+                +"  public static void m() {\n"
+                +"    //@ ghost boolean b;"
+                +"    //@ set b = RuntimeException::new == RuntimeException::new;\n"
+                +"    //@ assert b;\n"
+                +"    //@ set b = RuntimeException::new != null;\n"
+                +"    //@ assert b;\n"
+                +"    //@ set b = null != RuntimeException::new;\n"
+                +"    //@ assert b;\n"
+                +"    //@ set b = null != (java.util.function.Function)(x -> x);\n"
+                +"    //@ assert b;\n"
+                +"    //@ set b = java.util.function.Function::identity != (java.util.function.Function)(x -> x);\n"
+                +"    //@ assert b;\n"
+                +"  }\n"
+                +"}"
+                );
+    	
+    }
+    
+    @Test 
+    public void testReplacementType() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public static class C {};\n"
+                +"  //@ public model static class R extends C {};\n"
+                
+                +"  public /*@ nullable {R}*/C field;\n"
+
+                +"  public void set( /*@{R}*/C f) { field = f; }\n"
+                                
+                +"  //@ public normal_behavior requires true;\n"
+                +"  public void m() {\n"
+                +"    //@ assert field == null || field instanceof R;"
+                +"  }\n"
+                +"}"
+                );
+    	
+    }
+    
+    @Test 
+    public void testReplacementType2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public static class C {};\n"
+                +"  public static class R extends C {};\n"
+                
+                +"  public /*@ nullable {R}*/C field;\n"
+
+                +"  public void set( /*@{R}*/C f) { field = f; }\n"
+                                
+                +"  //@ public normal_behavior requires true;\n"
+                +"  public void m() {\n"
+                +"    //@ assert field == null || field instanceof R;"
+                +"  }\n"
+                +"}"
+                );
+    	
+    }
+    
+    @Test
+    public void testConstructor() {
+//    	main.addOptions("-show","-method=m");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  @FunctionalInterface\n"
+                +"  public static interface ExFactory {\n"
+                +"    //@ public normal_behavior\n"
+                +"    //@   ensures \\result instanceof NullPointerException;\n"
+                +"    public RuntimeException create();\n"
+                +"  }\n"
+
+                +"  public ExFactory exx;\n"
+                +"  \n"
+                
+                +"  //@ public normal_behavior\n"
+                +"  //@ ensures exx == ex;\n"
+                +"  public TestJava(ExFactory ex) {\n"
+                +"     exx = ex;\n"
+                +"  }\n"
+                                
+                +"  //@ public normal_behavior\n"
+                +"  //@ ensures exx == RuntimeException::new;\n"
+                +"  public TestJava() {\n"
+                +"     exx = RuntimeException::new ;\n"
+                +"  }\n"
+                                
+                +"  //@ public normal_behavior\n"
+                +"  //@ assignable exx;\n"
+                +"  //@ ensures exx == ex;\n"
+                +"  public void set(ExFactory ex) {\n"
+                +"     exx = ex;\n"
+                +"  }\n"
+                                
+                +"  //@ public normal_behavior\n"
+                +"  //@ assignable exx;\n"
+                +"  //@ ensures exx == NullPointerException::new;\n"
+                +"  public void set() {\n"
+                +"     exx = NullPointerException::new ;\n"
+                +"  }\n"
+                
+				+"  //@ public exceptional_behavior requires true; signals_only NullPointerException;\n"
+				+"  public static void m() {\n"
+				+"    TestJava t = new TestJava(NullPointerException::new);\n"
+				+"    t.set(NullPointerException::new);\n"
+				+"    throw t.exx.create();\n"
+				+"  }\n"
+
+				+"  //@ public exceptional_behavior requires true; signals_only NullPointerException;\n"
+				+"  public static void mm() {\n"
+				+"    TestJava t = new TestJava(NullPointerException::new);\n"
+				+"    t.set();\n"
+				+"    throw t.exx.create();\n"
+				+"  }\n"
+                
+                +"}"
+                );
+    }
+    
+    
+    @Test
+    public void testConstructor2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  @FunctionalInterface\n"
+                +"  public static interface ExFactory {\n"
+                +"    //@ public normal_behavior\n"
+                +"    //@   ensures \\result instanceof NullPointerException;\n"
+                +"    public RuntimeException create();\n"
+                +"  }\n"
+
+                +"  public ExFactory exx;\n"
+                +"  \n"
+                
+                +"  //@ public normal_behavior\n"
+                +"  //@ ensures exx == NullPointerException::new;\n"
+                +"  public TestJava() {\n"
+                +"     exx = NullPointerException::new ;\n"
+                +"  }\n"
+                                
+                +"  //@ public exceptional_behavior requires true; signals_only ArithmeticException;\n"
+                +"  public static void m() {\n"
+                +"    TestJava t = new TestJava();\n"
+                +"    throw t.exx.create();\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (ExceptionList) in method m",5
+                ,"/tt/TestJava.java:16: warning: Associated declaration",50
+                );
+    }
+    
+    @Test
+    public void testCast() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  @FunctionalInterface\n"
+                +"  public static interface PureSupplier<T> extends java.util.function.Supplier<T> {\n"
+                +"    //@ also public normal_behavior\n"
+                +"    //@   requires true;\n"
+                +"    //@ pure\n"
+                +"    @Override public T get();\n"
+                +"  }\n"
+
+                +"  //@ public behavior requires true; pure\n"   // Line 10
+                +"  public static /*@ nullable */ Boolean m(java.util.function.Supplier<Boolean> s) {\n"
+                +"      return s.get();\n"
+                +"  }\n"
+                
+                +"  //@ public normal_behavior requires true; pure\n"
+                +"  public static boolean mm(PureSupplier<Boolean> s) {\n"
+                +"      return s.get();\n"
+                +"  }\n"
+
+                +"  //@ public normal_behavior requires true; pure\n"
+                +"  public static boolean  mmm(/*@ {java.util.function.Supplier.Pure<Boolean>}*/ java.util.function.Supplier<Boolean> s) {\n"
+                +"      return s.get();\n"   // Line 20
+                +"  }\n"
+                
+                +"  //@ public normal_behavior requires true; pure\n"
+                +"  public static boolean  mmmm(/*@ {java.util.function.Supplier.PureNonNull<Boolean>}*/ java.util.function.Supplier<Boolean> s) {\n"
+                +"      return s.get();\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assignable) in method m:  \\everything",19
+                ,"/tt/TestJava.java:10: warning: Associated declaration",14
+                ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method mmm",7
+                
+                );
+    }
+    
+    @Test
+    public void testLambda() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ public model_program { return x -> x; }\n"
+                +"  public static java.util.function.Function<Integer,Integer> m() { return x -> x; }\n"
+                +"  }\n"
                 );
     }
     

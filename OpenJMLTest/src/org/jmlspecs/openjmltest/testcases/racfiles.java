@@ -38,6 +38,7 @@ public class racfiles extends RacBase {
     public void setUp() throws Exception {
         setUpForFiles();
         super.setUp();
+        ignoreNotes = true;
     }
 
 
@@ -293,6 +294,27 @@ public class racfiles extends RacBase {
         expectedRACExit = 0;
         helpTCF("test/gitbug524","test/gitbug524","Test");
     }
+
+    @Test
+    public void gitbug532() {
+    	//runrac = false;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug532","test/gitbug532","Big");
+    }
+
+    @Test
+    public void gitbug532a() {
+    	//runrac = false;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug532a","test/gitbug532a","Big");
+    }
+
+//    @Test
+//    public void gitbug533() {
+//    	//runrac = false;
+//        expectedRACExit = 0;
+//        helpTCF("test/gitbug533a","test/gitbug533a","TestSum");
+//    }
 
     @Test
     public void sfbug413() {

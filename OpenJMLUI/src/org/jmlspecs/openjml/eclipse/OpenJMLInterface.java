@@ -1055,11 +1055,13 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         @Override
         public boolean report(final int ticks, final int level, final String message) {
             Display d = shell == null ? Display.getDefault() : shell.getDisplay();
+            String summary = OpenJMLView.exportProofResults(null);
+            final String message2 = summary == null ? message : (summary + Strings.eol + message);
             // Singleton reported that with asynExec, this would hang
             d.syncExec(new Runnable() {
                 public void run() {
                     if (monitor != null) {
-                    	if (level <= 1) monitor.subTask(message);
+                    	if (level <= 1) monitor.subTask(message2);
                     	monitor.worked(ticks);
                     }
                     Log.log(message);

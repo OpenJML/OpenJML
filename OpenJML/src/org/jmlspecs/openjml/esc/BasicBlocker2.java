@@ -1390,6 +1390,16 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         result = that;
     }
 
+    @Override
+    public void visitReference(JCTree.JCMemberReference that) {
+        result = that;
+    }
+
+    @Override
+    public void visitLambda(JCTree.JCLambda that) {
+        result = that;
+    }
+
 
     @Override
     public void visitSelect(JCFieldAccess that) {

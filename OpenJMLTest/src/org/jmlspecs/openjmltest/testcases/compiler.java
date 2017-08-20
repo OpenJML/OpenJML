@@ -96,6 +96,7 @@ public class compiler {
         actualOutput = actualOutput.replace("\r", "");
         errOutput = errOutput.replace("\r", "");
         expected = expected.replace("\r", "");
+        actualOutput = removeNotes(actualOutput);
         
         if (print) System.out.println("EXPECTING: " + output[0]);
         print = true;

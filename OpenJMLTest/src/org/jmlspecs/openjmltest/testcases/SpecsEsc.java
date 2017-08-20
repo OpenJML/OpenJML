@@ -59,6 +59,7 @@ public class SpecsEsc extends EscBase {
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
         print = false; // true = various debugging output
+        ignoreNotes = true;
     }
     
     /** Set to true if errors are found in any test in checkFiles */

@@ -1,4 +1,5 @@
 package org.jmlspecs.openjmltest.testcases;
+import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.*;
 
@@ -1158,6 +1159,8 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testAnnotations1() {
+    	JmlPretty.useJmlModifier = false;
+    	JmlPretty.useFullAnnotationTypeName = false;
         addMockFile("$A/A.jml","  public class A {}");
         expectedExit = 0;
         helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +

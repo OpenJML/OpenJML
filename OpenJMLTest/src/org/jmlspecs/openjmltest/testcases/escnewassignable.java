@@ -642,7 +642,7 @@ public class escnewassignable extends EscBase {
                 +"    b.m();\n"
                 +"  }\n"
 
-                +"  //@ requires b != null; assignable x; \n"
+                +"  //@ requires b != null; assignable x; \n" // b.x is assigned but only this.x is allowed
                 +"  public void m1z1bad(TestJava b) {\n"
                 +"    b.m();\n"
                 +"  }\n"
@@ -712,7 +712,7 @@ public class escnewassignable extends EscBase {
                 +"    a.m();\n"
                 +"  }\n"
 
-                +"  //@ requires a != null; assignable x; \n"
+                +"  //@ requires a != null; assignable x; \n"  // ERROR - a.m() assigns a.x, but only this.x is allowed
                 +"  public void m1z1bad(TestJava a) {\n"
                 +"    a.m();\n"
                 +"  }\n"
@@ -732,7 +732,7 @@ public class escnewassignable extends EscBase {
                 +"    this.m();\n"
                 +"  }\n"
 
-                +"  //@ requires a != null; assignable a.x; \n"
+                +"  //@ requires a != null; assignable a.x; \n"  // this.x is assigned but only a.x is allowed
                 +"  public void m1z4bad(TestJava a) {\n"
                 +"    this.m();\n"  // Line 27
                 +"  }\n"

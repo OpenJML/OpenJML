@@ -777,6 +777,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
      * in order to conserve space. [FIXME - this will actually create illegal
      * source if there is no import statement for the annotations. ]
      */
+    static public boolean useFullAnnotationTypeName = true;
+    static public boolean useJmlModifier = true;
+    
     @Override
     public void visitAnnotation(JCAnnotation tree) {
         try {
@@ -787,10 +790,19 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             // tree.type is null.
             String s = (tree.type != null) ? tree.type.toString() :
                 tree.annotationType.toString();
-            if (s.startsWith(Strings.jmlAnnotationPackage)) {
-                s = s.substring(Strings.jmlAnnotationPackage.length()+1); // +1 for the extra period
-                print("@");
-                print(s);
+            boolean isJml = s.startsWith(Strings.jmlAnnotationPackage);
+            if (useJmlModifier && isJml) {
+                for (JmlTokenKind t: JmlTokenKind.values()) {
+                    if (t.annotationType != null && t.annotationType.toString().substring("interface ".length()).equals(s)) {
+                        print("/*@ " + t.internedName() + " */");
+                        return;
+                    }
+                }
+                super.visitAnnotation(tree);
+            } else if (!useFullAnnotationTypeName && isJml) {
+                    s = s.substring(Strings.jmlAnnotationPackage.length()+1); // +1 for the extra period
+                    print("@");
+                    print(s);
             } else {
                 super.visitAnnotation(tree);
             }

@@ -403,42 +403,35 @@ public abstract class JmlTestCase {
                 line++;
                 String sexp = exp.readLine();
                 if (sexp != null) sexp = sexp.replace("\r\n", "\n");
-                String sact = act.readLine();
-                if (sact != null) sact = sact.replace("\r\n", "\n");
-                while (ignoreNotes && sact != null && sact.startsWith("Note: ")) {
-                	sact = act.readLine();
-                }
-                if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
-            	while (ignoreNotes && sexp != null && sexp.startsWith("Note: ")) {
-            		sexp = exp.readLine();
-                    if (sexp != null) sexp = sexp.replace("\r\n", "\n");
-            	}
-                if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
-                if (sexp != null && sact == null) {
-                	if (sexp == null) {
-                		return diff.isEmpty() ? null : diff;
-                	} else {
+                while (true) {
+                	String sact = act.readLine();
+                	if (sact != null) sact = sact.replace("\r\n", "\n");
+                	if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
+                	if (sexp != null && sact == null) {
                 		diff += ("Less actual input than expected" + eol);
                 		return diff;
                 	}
-                }
-                if (sexp == null && sact != null) {
-                    diff += ("More actual input than expected" + eol);
-                    return diff;
-                }
-                sexp = sexp.replace("$ROOT",root);
-                String env = System.getenv("SPECSDIR");
-                if (env == null) System.out.println("The SPECSDIR environment variable is required to be set for testing");
-                else sexp = sexp.replace("$SPECS", env);
-                if (!sexp.equals(sact) && !sexp.replace('\\','/').equals(sact.replace('\\','/'))) {
-                	int k = sexp.indexOf('(');
-                	if (k != -1 && sexp.contains("at java.") && sexp.substring(0,k).equals(sact.substring(0,k))) {
-                		// OK
-                	} else {         
-                        diff += ("Lines differ at " + line + eol)
-                            + ("EXP: " + sexp + eol)
-                            + ("ACT: " + sact + eol);
+                	if (sexp == null && sact != null) {
+                		if (sact.startsWith("Note: ") && ignoreNotes) continue;
+                		diff += ("More actual input than expected" + eol);
+                		return diff;
                 	}
+                	sexp = sexp.replace("$ROOT",root);
+                	String env = System.getenv("SPECSDIR");
+                	if (env == null) System.out.println("The SPECSDIR environment variable is required to be set for testing");
+                	else sexp = sexp.replace("$SPECS", env);
+                	if (!sexp.equals(sact) && !sexp.replace('\\','/').equals(sact.replace('\\','/'))) {
+                		int k = sexp.indexOf('(');
+                		if (k != -1 && sexp.contains("at java.") && sexp.substring(0,k).equals(sact.substring(0,k))) {
+                			// OK
+                		} else {         
+                			if (sact.startsWith("Note: ") && ignoreNotes) continue;
+                			diff += ("Lines differ at " + line + eol)
+                					+ ("EXP: " + sexp + eol)
+                					+ ("ACT: " + sact + eol);
+                		}
+                	}
+                	break;
                 }
             }
         } catch (FileNotFoundException e) {

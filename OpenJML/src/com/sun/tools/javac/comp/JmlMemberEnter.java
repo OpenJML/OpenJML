@@ -22,6 +22,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.JavaFileObject.Kind;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -900,6 +901,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     protected void checkSameAnnotations(Symbol sym, JCModifiers specsmods, JavaFileObject javaSource) {
         // FIXME - check for null in annotations?
         if (sym.isAnonymous()) return;
+        boolean saved1 = JmlPretty.useFullAnnotationTypeName, saved2 = JmlPretty.useJmlModifier;
+        JmlPretty.useFullAnnotationTypeName = JmlPretty.useJmlModifier = false;
         PackageSymbol p = ((JmlAttr)attr).annotationPackageSymbol;
         for (Compound a  : sym.getAnnotationMirrors()) {
             if (a.type.tsym.owner.equals(p)) {
@@ -914,12 +917,15 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 }
             }
         }
+        JmlPretty.useFullAnnotationTypeName = saved1; JmlPretty.useJmlModifier = saved2;
     }
 
     /** Checks that the jml annotations are a superset of the Java annotations (for annotations in org.jmlspecs.annotation) */
     // MUST HAVE log.useSource set to specs file!
     protected void checkSameAnnotations(JCModifiers javaMods, JCModifiers specsmods, JavaFileObject javaSource) { // FIXME - don't need last argument
         PackageSymbol p = ((JmlAttr)attr).annotationPackageSymbol;
+        boolean saved1 = JmlPretty.useFullAnnotationTypeName, saved2 = JmlPretty.useJmlModifier;
+        JmlPretty.useFullAnnotationTypeName = JmlPretty.useJmlModifier = false;
         for (JCAnnotation a: javaMods.getAnnotations()) {
             if (a.type.tsym.owner.equals(p)) {
                 if (utils.findMod(specsmods,a.type.tsym) == null) {
@@ -933,6 +939,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 }
             }
         }
+        JmlPretty.useFullAnnotationTypeName = saved1; JmlPretty.useJmlModifier = saved2;
     }
 
     public void checkFieldMatch(JmlVariableDecl javaField, VarSymbol javaSym, JmlVariableDecl specField) {
@@ -1877,7 +1884,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             if (isInstance && !wasStatic) tree.mods.flags &= ~Flags.STATIC;
         }
         boolean prev = resolve.allowJML();
-        if (utils.isJML(tree.mods)) resolve.setAllowJML(true);
+        boolean isReplacementType = ((JmlVariableDecl)tree).jmltype;
+        
+        if (utils.isJML(tree.mods) || isReplacementType) resolve.setAllowJML(true);
         
 //        boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
 //        ((JmlCheck)chk).noDuplicateWarn = false;

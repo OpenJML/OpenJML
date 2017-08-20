@@ -1,5 +1,8 @@
 #! /bin/bash
 
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+( ( ls openjml.properties > /dev/null ) || ( echo "Not in correct directory"; pwd; exit 1 ) )
+
 REFBRANCH=`git rev-parse --abbrev-ref HEAD`
 echo REFBRANCH is $REFBRANCH
 if [ $# -gt 1 ]; then
@@ -17,9 +20,6 @@ if [ -z "$REL" ]; then
     echo "Please give the desired release number as the one argument"
     exit 1
 fi
-
-cd "$( dirname "${BASH_SOURCE[0]}" )"
-( ( ls openjml.properties > /dev/null ) || ( echo "Not in correct directory"; pwd; exit 1 ) )
 
 git checkout -B "$REL"
 cd ../../JMLAnnotations

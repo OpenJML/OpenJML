@@ -1257,6 +1257,9 @@ public class JmlTree implements IJmlTree {
         public JmlSpecs.FieldSpecs fieldSpecsCombined;
         public JavaFileObject sourcefile;
         public String docComment = null; // FIXME - why?
+        public boolean jmltype = false; // if true, type is replaced and may be a model type
+        public JCExpression originalVartype;
+        public Type originalType;
         
         /** A fixed ident used in ESC */
         public JCIdent ident = null;

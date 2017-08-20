@@ -253,6 +253,34 @@ public class JmlParser extends JavacParser {
         ((JmlTree.JmlAnnotation)a).sourcefile = log.currentSourceFile();
         return a;
     }
+    @Override
+    protected JCVariableDecl formalParameter(boolean lambdaParameter) {
+//        Token token = S.token();
+        replacementType = null;
+//        if (token.kind == TokenKind.LBRACE) {
+//            boolean b = S.jml();
+//            try {
+//                S.setJml(false);
+//                nextToken();
+//                replacementType = unannotatedType();
+//            } finally {
+//                S.setJml(b);
+//                accept(TokenKind.RBRACE);
+//                if (token.ikind == JmlTokenKind.ENDJMLCOMMENT) {
+//                    S.setJml(false);
+//                    nextToken();
+//                }
+//            }
+//        }
+        JmlVariableDecl param = (JmlVariableDecl)super.formalParameter(lambdaParameter);
+        if (replacementType != null) {
+            param.originalVartype = param.vartype;
+            param.vartype = replacementType;
+            param.jmltype = true;
+        }
+        return param;
+    }
+
 
     /**
      * This parses a class, interface or enum declaration after the parser has
@@ -972,7 +1000,13 @@ public class JmlParser extends JavacParser {
 
                         } else if (tr instanceof JmlVariableDecl) {
                             JmlVariableDecl d = (JmlVariableDecl) tr;
-                            if (startsInJml) utils.setJML(d.mods);
+                            if (replacementType != null) {
+                                d.originalVartype = d.vartype;
+                                d.vartype = replacementType;
+                                d.jmltype = true;
+                            } else {
+                                if (startsInJml) utils.setJML(d.mods);
+                            }
                             d.sourcefile = log.currentSourceFile();
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                             attach(d, dc);
@@ -1631,6 +1665,34 @@ public class JmlParser extends JavacParser {
             nextToken();
         }
         return toP(jmlF.at(p).JmlStoreRefListExpression(jt, list.toList()));
+    }
+    
+    public JCExpression replacementType;
+    
+    @Override
+    public JCExpression unannotatedType() {
+        JCExpression replacementType = null;
+        {
+            if (token.kind == TokenKind.LBRACE) {
+                boolean b = S.jml();
+                try {
+                    S.setJml(false);
+                    nextToken();
+                    replacementType = super.unannotatedType();
+                } finally {
+                    S.setJml(b);
+                    accept(TokenKind.RBRACE);
+                    if (token.ikind == JmlTokenKind.ENDJMLCOMMENT) {
+                        S.setJml(false);
+                        inJmlDeclaration = false;
+                        nextToken();
+                    }
+                }
+            }
+        }
+        JCExpression type = super.unannotatedType();
+        this.replacementType = replacementType;
+        return type;
     }
 
     public JmlMethodSpecs parseMethodSpecs(JCModifiers mods) {
@@ -2664,7 +2726,7 @@ public class JmlParser extends JavacParser {
         JmlTokenKind jtk = ((JmlToken)t).jmlkind;
         switch (jtk) {
             case IMPLIES: case REVERSE_IMPLIES: case EQUIVALENCE: case INEQUIVALENCE: case SUBTYPE_OF:
-            case JSUBTYPE_OF: case DOT_DOT: case LEFT_ARROW: case LOCK_LE: case LOCK_LT: case RIGHT_ARROW:
+            case JSUBTYPE_OF: case DOT_DOT: case LEFT_ARROW: case LOCK_LE: case LOCK_LT: //case RIGHT_ARROW:
                 return ParensResult.PARENS;
             default:
                 return ParensResult.CAST;

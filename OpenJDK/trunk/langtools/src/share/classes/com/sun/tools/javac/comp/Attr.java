@@ -2674,7 +2674,7 @@ public class Attr extends JCTree.Visitor {
 
     @Override
     public void visitReference(final JCMemberReference that) {
-        if (pt().isErroneous() || (pt().hasTag(NONE) && pt() != Type.recoveryType)) {
+        if (pt().isErroneous() || ((pt().hasTag(NONE) && pt() != Type.recoveryType) && !visitReferenceInJML())) {   // OPENJML - added OpenJML callback
             if (pt().hasTag(NONE)) {
                 //method reference only allowed in assignment or method invocation/cast context
                 log.error(that.pos(), "unexpected.mref");
@@ -2718,6 +2718,8 @@ public class Attr extends JCTree.Visitor {
             if (that.typeargs != null) {
                 typeargtypes = attribTypes(that.typeargs, localEnv);
             }
+            
+            if (pt().hasTag(NONE) && visitReferenceInJML()) return; // OPENJML - added to allow method references in JML expressions
 
             Type desc;
             Type currentTarget = pt();
@@ -2894,6 +2896,7 @@ public class Attr extends JCTree.Visitor {
             return new ResultInfo(tree.getMode() == ReferenceMode.INVOKE ? VAL | TYP : TYP, Type.noType);
         }
 
+    protected boolean visitReferenceInJML() { return false; }   // OPENJML - added OpenJML callback
 
     @SuppressWarnings("fallthrough")
     void checkReferenceCompatible(JCMemberReference tree, Type descriptor, Type refType, CheckContext checkContext, boolean speculativeAttr) {
