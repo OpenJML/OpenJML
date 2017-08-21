@@ -2978,7 +2978,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             isNonNull = specs.isNonNull(sym) ;
         }
         
-        return addNullnessAllocationTypeCondition(d, sym, isNonNull, instanceBeingConstructed);
+        return addNullnessAllocationTypeCondition(d, sym, isNonNull, instanceBeingConstructed, true);
     }
     
     protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym, boolean instanceBeingConstructed) {
@@ -2988,15 +2988,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!sym.type.isPrimitive() && !jmltypes.isJmlType(sym.type)) {
             isNonNull = specs.isNonNull(sym, (Symbol.ClassSymbol)owner) ;
         }
-        return addNullnessAllocationTypeCondition(pos,sym,isNonNull,instanceBeingConstructed);
+        return addNullnessAllocationTypeCondition(pos,sym,isNonNull,instanceBeingConstructed,true);
     }
 
 
     /** Returns true iff the declaration is explicitly or implicitly non_null */
-    protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed) {
+    protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed, boolean allocCheck) {
         int p = pos == null ? Position.NOPOS: pos.getPreferredPosition();
         JCExpression id;
-        if (sym.owner instanceof MethodSymbol) {
+        if (sym.owner instanceof MethodSymbol || sym.owner == null) {
             // Local variable
             id = treeutils.makeIdent(p, sym);
         } else if (utils.isJMLStatic(sym)) {
@@ -3007,11 +3007,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // instance field
             id = treeutils.makeSelect(p, currentThisExpr, sym);
         }
-        return addNullnessAllocationTypeConditionId(id, pos, sym, isNonNull, instanceBeingConstructed);
+        return addNullnessAllocationTypeConditionId(id, pos, sym, isNonNull, instanceBeingConstructed, allocCheck);
     }
 
     /** Returns true iff the declaration is explicitly or implicitly non_null */
-    protected boolean addNullnessAllocationTypeConditionId(JCExpression id, DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed) {
+    protected boolean addNullnessAllocationTypeConditionId(JCExpression id, DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed, boolean allocCheck) {
         if (pos == null) pos = id;
         int p = pos.getPreferredPosition();
         boolean nnull = true;
@@ -3030,8 +3030,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // assume id != null
                 addAssume(pos,Label.NULL_CHECK,treeutils.makeNotNull(p, convertCopy(id)));
                 // assume id.isAlloc
-                addAssume(pos,Label.IMPLICIT_ASSUME,e2);
-            } else {
+                if (allocCheck) addAssume(pos,Label.IMPLICIT_ASSUME,e2);
+            } else if (allocCheck) {
                 JCExpression e1 = treeutils.makeEqObject(p,id, treeutils.makeNullLiteral(p));
                 // assume id == null || id._alloc__ <= allocCounter
                 //addTraceableComment(e2);
@@ -3081,6 +3081,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     e3 = e3 == null ? ee3 : treeutils.makeAnd(ee3.pos, e3, ee3);
                 }
                 JCStatement s = addAssume(pos,Label.IMPLICIT_ASSUME,e3); 
+                addTraceableComment(s);
+            }
+            if (sym.type.getTag() == TypeTag.ARRAY ) {
+                JCExpression n = treeutils.makeNotNull(p, convertCopy(id));
+                JCExpression e = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol, treeutils.zero, treeutils.makeArrayLength(p, convertCopy(id)));
+                JCStatement s = addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeImplies(p, n, e)); 
+                addTraceableComment(s);
+                e = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol, treeutils.makeArrayLength(p, convertCopy(id)), treeutils.makeIntLiteral(pos, Integer.MAX_VALUE));
+                s = addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeImplies(p, n, e)); 
                 addTraceableComment(s);
             }
         } else {
@@ -6923,6 +6932,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     //resultSym = resultType.tsym;
                     resultId = newTemp(that,resultType);
                     resultSym = (VarSymbol) resultId.sym;
+                    addNullnessAllocationTypeCondition(that, resultSym, false, false, false);
                 } else {
                     Type t = that.type;
                     if (t instanceof Type.TypeVar) t = paramActuals.get(t.toString()).type; 
@@ -6930,6 +6940,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addStat(decl);
                     resultSym = decl.sym;
                     resultId = treeutils.makeIdent(that.pos, decl.sym);
+                    addNullnessAllocationTypeCondition(that, resultSym, false, false, false);
                 }
 
             }

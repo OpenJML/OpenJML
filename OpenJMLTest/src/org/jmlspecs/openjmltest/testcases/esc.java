@@ -3558,8 +3558,8 @@ public class esc extends EscBase {
 				);
 	}
 
-	   @Test 
-	    public void testNullityAndConstructors3() {
+	@Test 
+	public void testNullityAndConstructors3() {
 	        main.addOptions("-nonnullByDefault");
 	        helpTCX("tt.TestJava",
 	                "package tt; \n" 
@@ -3574,7 +3574,69 @@ public class esc extends EscBase {
 	                        + "}"
 	                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (NullField) in method TestJava", 36
 	                );
-	    }
+	}
+
+    @Test
+    public void testArrayLength() {
+        main.addOptions("-nonnullByDefault");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public void m(final byte[] array) {\n"
+                        + "      //@ assert array.length >= 0; \n" 
+                        + "      //@ assert array.length <= Integer.MAX_VALUE; \n" 
+                        + "  }\n" 
+                        + "}"
+                );
+    }
+
+    @Test
+    public void testArrayLength2() {
+        main.addOptions("-nonnullByDefault");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  //@ requires k >= 0;\n"
+                        + "  public void m(int k) {\n"
+                        + "      short[] array = new short[k]; \n" 
+                        + "      //@ assert array.length >= 0; \n" 
+                        + "      //@ assert array.length <= Integer.MAX_VALUE; \n" 
+                        + "      //@ assert array.length == k; \n" 
+                        + "  }\n" 
+                        + "}"
+                );
+    }
+
+    @Test
+    public void testArrayLength3() {
+        main.addOptions("-nonnullByDefault","-method=m");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  long[] array;\n"
+                        + "  public void m() {\n"
+                        + "      //@ assert array.length >= 0; \n" 
+                        + "      //@ assert array.length <= Integer.MAX_VALUE; \n" 
+                        + "  }\n" 
+                        + "}"
+                );
+    }
+
+    @Test
+    public void testArrayLength4() {
+        main.addOptions("-nonnullByDefault","-method=m");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public abstract class TestJava  { \n" 
+                        + "  public void m() {\n"
+                        + "      char[] array = mm(); \n" 
+                        + "      //@ assert array.length >= 0; \n" 
+                        + "      //@ assert array.length <= Integer.MAX_VALUE; \n" 
+                        + "  }\n" 
+                        + "  public abstract char[] mm();\n" 
+                        + "}"
+                );
+    }
 
 
 }
