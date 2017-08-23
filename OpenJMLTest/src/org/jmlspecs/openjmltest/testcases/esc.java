@@ -3638,5 +3638,162 @@ public class esc extends EscBase {
                 );
     }
 
+    @Test
+    public void testVarargs() {
+        main.addOptions("-nonnullByDefault");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public abstract class TestJava  { \n" 
+                        + "  //@ requires (\\forall int i; 0 <= i && i < args.length; args[i] >= 0);\n"
+                        + "  public void mm(int... args) {  }\n"
+                        + "  public void m0() {\n"
+                        + "      mm(); \n" 
+                        + "  }\n" 
+                        + "  public void m1() {\n"
+                        + "      mm(1); \n" 
+                        + "  }\n" 
+                        + "  public void m1b() {\n"
+                        + "      mm(-1); \n" 
+                        + "  }\n" 
+                        + "  public void m2() {\n"
+                        + "      mm(1,2); \n" 
+                        + "  }\n" 
+                        + "  public void m2b() {\n"
+                        + "      mm(-1,2); \n" 
+                        + "  }\n" 
+                        + "  public void m3() {\n"
+                        + "      mm(new int[]{1,2}); \n" 
+                        + "  }\n" 
+                        + "  public void m3b() {\n"
+                        + "      mm(new int[]{1,-2}); \n" 
+                        + "  }\n" 
+                        + "}"
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Precondition) in method m1b",9
+                ,"/tt/TestJava.java:4: warning: Associated declaration",25
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Precondition) in method m2b",9
+                ,"/tt/TestJava.java:4: warning: Associated declaration",25
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m3b",9
+                ,"/tt/TestJava.java:4: warning: Associated declaration",25
+                );
+    }
+
+    @Test
+    public void testVarargsX() {
+        main.addOptions("-nonnullByDefault");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public abstract class TestJava  { \n" 
+                        + "  //@ requires (\\forall int i; 0 <= i && i < args.length; args[i] >= 0); requires n == -2;\n"
+                        + "  public void mm(int n, int... args) {  }\n"
+                        + "  public void m0() {\n"
+                        + "      mm(-2); \n" 
+                        + "  }\n" 
+                        + "  public void m1() {\n"
+                        + "      mm(-2,1); \n" 
+                        + "  }\n" 
+                        + "  public void m1b() {\n"
+                        + "      mm(-2,-1); \n" 
+                        + "  }\n" 
+                        + "  public void m2() {\n"
+                        + "      mm(-2,1,2); \n" 
+                        + "  }\n" 
+                        + "  public void m2b() {\n"
+                        + "      mm(-2,-1,2); \n" 
+                        + "  }\n" 
+                        + "  public void m3() {\n"
+                        + "      mm(-2,new int[]{1,2}); \n" 
+                        + "  }\n" 
+                        + "  public void m3b() {\n"
+                        + "      mm(-2,new int[]{1,-2}); \n" 
+                        + "  }\n" 
+                        + "}"
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Precondition) in method m1b",9
+                ,"/tt/TestJava.java:4: warning: Associated declaration",32
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Precondition) in method m2b",9
+                ,"/tt/TestJava.java:4: warning: Associated declaration",32
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m3b",9
+                ,"/tt/TestJava.java:4: warning: Associated declaration",32
+                );
+    }
+
+    @Test
+    public void testVarargs2() {
+        main.addOptions("-nonnullByDefault");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public abstract class TestJava  { \n" 
+                        + "  //@ requires (\\forall int i; 0 <= i && i < args.length; args[i] >= 0);\n"
+                        + "  public void mm(Integer... args) {  }\n"
+                        + "  public void m0() {\n"
+                        + "      mm(); \n" 
+                        + "  }\n" 
+                        + "  public void m1() {\n"
+                        + "      mm(1); \n" 
+                        + "  }\n" 
+                        + "  public void m1b() {\n"
+                        + "      mm(-1); \n" 
+                        + "  }\n" 
+                        + "  public void m2() {\n"
+                        + "      mm(1,2); \n" 
+                        + "  }\n" 
+                        + "  public void m2b() {\n"
+                        + "      mm(-1,2); \n" 
+                        + "  }\n" 
+                        + "  public void m3() {\n"
+                        + "      mm(new Integer[]{1,2}); \n" 
+                        + "  }\n" 
+                        + "  public void m3b() {\n"
+                        + "      mm(new Integer[]{1,-2}); \n" 
+                        + "  }\n" 
+                        + "}"
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Precondition) in method m1b",9
+                ,"/tt/TestJava.java:4: warning: Associated declaration",29
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Precondition) in method m2b",9
+                ,"/tt/TestJava.java:4: warning: Associated declaration",29
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m3b",9
+                ,"/tt/TestJava.java:4: warning: Associated declaration",29
+                );
+    }
+
+    @Test
+    public void testVarargs2X() {
+        main.addOptions("-nonnullByDefault");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public abstract class TestJava  { \n" 
+                        + "  //@ requires (\\forall int i; 0 <= i && i < args.length; args[i] >= 0);"
+                        + "      requires n == -2;\n"
+                        + "  public void mm(int n, Integer... args) {  }\n"
+                        + "  public void m0() {\n"
+                        + "      mm(-2); \n" 
+                        + "  }\n" 
+                        + "  public void m1() {\n"
+                        + "      mm(-2,1); \n" 
+                        + "  }\n" 
+                        + "  public void m1b() {\n"
+                        + "      mm(-2,-1); \n" 
+                        + "  }\n" 
+                        + "  public void m2() {\n"
+                        + "      mm(-2,1,2); \n" 
+                        + "  }\n" 
+                        + "  public void m2b() {\n"
+                        + "      mm(-2,-1,2); \n" 
+                        + "  }\n" 
+                        + "  public void m3() {\n"
+                        + "      mm(-2,new Integer[]{1,2}); \n" 
+                        + "  }\n" 
+                        + "  public void m3b() {\n"
+                        + "      mm(-2,new Integer[]{1,-2}); \n" 
+                        + "  }\n" 
+                        + "}"
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Precondition) in method m1b",9
+                ,"/tt/TestJava.java:4: warning: Associated declaration",36
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Precondition) in method m2b",9
+                ,"/tt/TestJava.java:4: warning: Associated declaration",36
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m3b",9
+                ,"/tt/TestJava.java:4: warning: Associated declaration",36
+                );
+    }
+
 
 }

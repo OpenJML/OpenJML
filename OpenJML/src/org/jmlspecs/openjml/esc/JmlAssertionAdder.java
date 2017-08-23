@@ -6249,6 +6249,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = eresult = app;
             return;
         }
+        Symbol sym = treeutils.getSym(that.meth);
+        if (sym instanceof MethodSymbol && ((MethodSymbol)sym).isVarArgs()) {
+            MethodSymbol msym = (MethodSymbol)sym;
+            int actualLength = that.args.length();
+            int formalLength = msym.params.length() ;
+            Type varargType = msym.type.getParameterTypes().last();
+            if (actualLength != formalLength ||
+                    !types.isSameType(that.args.last().type, varargType)) {
+                int p = that.meth.pos;
+                JCExpression len = treeutils.makeIntLiteral(p,actualLength + 1 - formalLength);
+                Type compType = ((Type.ArrayType)varargType).getComponentType();
+                JCExpression ty = treeutils.makeType(p,compType);
+                ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+                ListBuffer<JCExpression> varargs = new ListBuffer<JCExpression>();
+                Iterator<JCExpression> iter = that.args.iterator();
+                int i = formalLength-1; while ((i--)>0) newargs.add(iter.next());
+                while (iter.hasNext()) varargs.add(iter.next());
+                JCExpression array = M.at(p).NewArray(ty,List.<JCExpression>nil(),varargs.toList());
+                array.type = varargType;
+                newargs.add(array);
+                that.args = newargs.toList();
+            }
+        }
         applyHelper(that);
     }
     
@@ -8155,7 +8178,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 addStat(vd);
                                                 paramActuals.put(vdo.sym, treeutils.makeIdent(vd.pos,vd.sym));
                                             }
-                                            // Should the condition be augmented with exception not null and of the right type?
+                                            // FIXME - we should have a condition that the exception is an Exception (not a Throwable)
                                             prevSource = log.useSource(clauseSource);
                                             JCExpression e = convertJML(ex, condition, false);
                                             log.useSource(prevSource);
@@ -8188,6 +8211,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 JCExpression tc = M.at(t).TypeTest(exceptionId, t).setType(syms.booleanType);
                                                 condd = treeutils.makeOr(clause.pos, condd, tc);
                                             }
+                                            JCExpression extype = treeutils.makeType(clause.pos,syms.exceptionType);
+                                            JCExpression isExcType = M.at(clause.pos).TypeTest(exceptionId, extype).setType(syms.booleanType);
+                                            condd = treeutils.makeOr(clause.pos, treeutils.makeNot(clause.pos, isExcType), condd);
                                             addAssume(that,Label.SIGNALS_ONLY,condd,clause,clause.source(),null,
                                                     treeutils.makeUtilsMethodCall(clause.pos,"getClassName",exceptionId));
                                         } else {
