@@ -31,6 +31,7 @@ import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignals;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
@@ -912,7 +913,6 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec) {
-        if (m.toString().equals("JMLValueSequence()")) Utils.stop();
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("            Saving method specs for " + m.enclClass() + " " + m);
         getSpecs(m.enclClass()).methods.put(m,spec);
     }
@@ -994,6 +994,15 @@ public class JmlSpecs {
         ms.pos = pos;
         ms.decl = null; // FIXME - this needs filling in?
         ms.deSugared = null; // FIXME- was ms?
+        
+        if ((sym.flags() & Flags.GENERATEDCONSTR) != 0) {
+            JmlMethodClauseSignals sig = new JmlMethodClauseSignals(pos, JmlTokenKind.SIGNALS, null, JmlTreeUtils.instance(context).falseLit);
+            JmlSpecificationCase cs = new JmlSpecificationCase(pos, M.Modifiers(0), false,null,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(sig));
+            mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
+            return mspecs;
+            // FIXME - this should also be pure
+            // FIXME - this case should happen only if parent constructors are pure and have no signals clause
+        }
 
         ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
         // sym can be null if the method call is in a field initializer (and not in the body of a method)
