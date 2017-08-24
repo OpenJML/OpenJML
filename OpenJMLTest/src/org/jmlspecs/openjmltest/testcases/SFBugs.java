@@ -333,6 +333,14 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
+    @Test public void gitbug538() {
+        helpTCG();
+    }
+
+    @Test public void gitbug539() {
+        helpTCG();
+    }
+
     @Test public void gitbug529() {
         helpTCG("-rac");  // Just RAC compilation  // FIXME - try running also
     }
