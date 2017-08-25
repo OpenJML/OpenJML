@@ -3795,24 +3795,5 @@ public class esc extends EscBase {
                 );
     }
 
-    @Test // Incorrect syntax for \lbl produced an exception, but I could not reproduce that behavior here
-    public void testLblError() {
-    	expectedExit = 1;
-        main.addOptions("-nonnullByDefault");
-        helpTCX("tt.TestJava",
-                "package tt; \n" 
-                        + "public abstract class TestJava  { \n" 
-                        + "  public void m0(int i, int j) {\n"
-                        + "      //@ assert (\\lbl I i) + \\lbl(J j) == 0; \n" 
-                        + "  }\n" 
-                        + "}"
-                        ,"/tt/TestJava.java:4: <identifier> expected",35
-                        ,"/tt/TestJava.java:4: -> expected",40
-                        ,"/tt/TestJava.java:4: illegal start of expression",41
-                        ,"/tt/TestJava.java:4: Incorrectly formed or terminated assert statement near here",44
-                        ,"/tt/TestJava.java:4: lambda expression not expected here",35
-                );
-    }
-
 
 }

@@ -1765,7 +1765,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
-//        if (assertCount >= 174 && assertCount <= 174) Utils.stop();
+        if (assertCount == 372) Utils.stop();
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
         JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? (classDecl == null ? null : classDecl.sym) : methodDecl.sym,translatedExpr);
