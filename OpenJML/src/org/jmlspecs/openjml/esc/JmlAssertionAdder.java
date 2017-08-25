@@ -1765,7 +1765,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
-//        if (assertCount >= 174 && assertCount <= 174) Utils.stop();
+        if (assertCount == 372) Utils.stop();
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
         JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? (classDecl == null ? null : classDecl.sym) : methodDecl.sym,translatedExpr);
@@ -3960,6 +3960,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ListBuffer<JCStatement> exsuresStats = new ListBuffer<JCStatement>();
         
 
+        boolean isPure = isPure(methodDecl.sym);
+        
         // Accumulate the invariants to be checked after the method returns
         clearInvariants();
         if (rac) {
@@ -3992,7 +3994,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addConstraintInitiallyChecks(methodDecl,owner,receiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,null,
                     utils.qualifiedMethodSig(methodDecl.sym));
         } else {
-            addInvariants(methodDecl,owner.type,receiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,Label.INVARIANT_EXCEPTION_EXIT);
+            if (!isPure) addInvariants(methodDecl,owner.type,receiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,Label.INVARIANT_EXCEPTION_EXIT);
             addConstraintInitiallyChecks(methodDecl,owner,receiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,null);
         }
         for (JCVariableDecl v: methodDecl.params) {

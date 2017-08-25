@@ -246,6 +246,12 @@ public class escfiles extends EscBase {
         helpTF("escAdd2");
     }
 
+    @Test
+    public void testArrayCopy() {
+        expectedExit = 0;
+        helpTF("escArrayCopy");
+    }
+
     @Test 
     public void testCashAmount() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
