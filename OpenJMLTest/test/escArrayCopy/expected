@@ -32,5 +32,5 @@ Feasibility check #1 - end of preconditions : OK
 Feasibility check #4 - at program exit : OK
 Completed proof of Test.copyObject(java.lang.Object[],java.lang.Object[]) with prover !!!! - no warnings
 Completed proving methods in Test
-Note: /Users/davidcok/projects/OpenJML/Specs/java8/java/util/Random.jml uses internal proprietary API that may be removed in a future release.
+Note: $SPECS/java8/java/util/Random.jml uses internal proprietary API that may be removed in a future release.
 Note: Recompile with -Xlint:sunapi for details.
