@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.*;
 import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.views.IViewDescriptor;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
@@ -2036,8 +2037,21 @@ public class Utils {
 	
 	/** Returns the ProofView, if it exists, null otherwise */
 	static public OpenJMLView findView() {
-		IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(OpenJMLView.ID);
-		return ((OpenJMLView)view);
+		IWorkbench wb = PlatformUI.getWorkbench();
+		IWorkbenchWindow w = wb.getActiveWorkbenchWindow();
+		if (w != null) {
+			IWorkbenchPage ap = w.getActivePage();
+			IViewPart view = ap.findView(OpenJMLView.ID);
+			return ((OpenJMLView)view);
+		}
+
+		for (IWorkbenchWindow ww: wb.getWorkbenchWindows()) {
+			for (IWorkbenchPage pg: ww.getPages()) {
+				IViewPart view = pg.findView(OpenJMLView.ID);
+				return ((OpenJMLView)view);
+			}
+		}
+		return null;
 	}
 	
 	/** Creates (if needed) and returns the Proof View */

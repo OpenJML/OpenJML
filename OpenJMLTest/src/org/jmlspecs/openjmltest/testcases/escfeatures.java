@@ -43,7 +43,6 @@ public class escfeatures extends EscBase {
     
     public escfeatures(String option, String solver) {
         super(option,solver);
-        ignoreNotes = true;
     }
     
     
@@ -56,6 +55,7 @@ public class escfeatures extends EscBase {
     public void setUp() throws Exception {
         rac = sysrac;
         super.setUp();
+        ignoreNotes = true;
     }
     
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {

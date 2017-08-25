@@ -2946,19 +2946,25 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals tree) {
-        
-        if (tree.vardef.name == null) {
-            tree.vardef.name = names.fromString(Strings.syntheticExceptionID);
-        }
-        
-        Env<AttrContext> localEnv = localEnv(env,tree);
-
-        // FIXME - is this assignment needed? Why not elsewhere?
-        tree.vardef.vartype.type = attribTree(tree.vardef.vartype, localEnv, new ResultInfo(TYP, syms.exceptionType));
-        attribTree(tree.vardef, localEnv, new ResultInfo(VAR, syms.exceptionType));
-
         Type prev = currentExceptionType;
-        currentExceptionType = tree.vardef.vartype.type;
+        Env<AttrContext> localEnv = localEnv(env,tree);
+        
+        if (tree.vardef == null) {
+            currentExceptionType = syms.exceptionType;
+            
+        } else {
+        
+            if (tree.vardef.name == null) {
+                tree.vardef.name = names.fromString(Strings.syntheticExceptionID);
+            }
+
+
+            // FIXME - is this assignment needed? Why not elsewhere?
+            tree.vardef.vartype.type = attribTree(tree.vardef.vartype, localEnv, new ResultInfo(TYP, syms.exceptionType));
+            attribTree(tree.vardef, localEnv, new ResultInfo(VAR, syms.exceptionType));
+
+            currentExceptionType = tree.vardef.vartype.type;
+        }
         try {
             attribExpr(tree.expression, localEnv, syms.booleanType);
         } finally {

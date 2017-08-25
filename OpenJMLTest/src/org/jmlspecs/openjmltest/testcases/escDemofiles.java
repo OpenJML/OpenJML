@@ -109,6 +109,7 @@ public class escDemofiles extends EscBase {
     @Test
     public void testMaxByElimination() {
         expectedExit = 0;
+        ignoreNotes = true;
         helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/MaxByElimination.java","test/demoMaxByElimination","-progress","-code-math=bigint");
     }
 

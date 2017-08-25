@@ -35,6 +35,7 @@ public class racfeatures extends RacBase {
     @Before
     public void setUp() throws Exception {
         super.setUp();
+        ignoreNotes = true;
     }
     
     public void helpFeature(String n, String ... options) {

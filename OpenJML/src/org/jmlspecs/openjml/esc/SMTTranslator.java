@@ -248,8 +248,11 @@ public class SMTTranslator extends JmlTreeScanner {
     /** Identification of the source material, such as the method being translated, for error messages */
     protected String source;
     
-    /** An alias to script.commands() */
+    /** The sequence of commands (after startCommands) */
     protected List<ICommand> commands;
+    
+    /** The list of initial commands */
+    protected List<ICommand> startCommands;
     
     /** A list that accumulates all the Java type constants used */
     final protected Set<Type> javaTypes = new HashSet<Type>();
@@ -778,37 +781,38 @@ public class SMTTranslator extends JmlTreeScanner {
         script = new Script();
         this.useBV = useBV;
         ICommand c;
-        commands = script.commands();
+        startCommands = new LinkedList<ICommand>();
+        commands = new LinkedList<ICommand>();
         
         // FIXME - use factory for the commands?
         // set any options
         c = new C_set_option(F.keyword(":produce-models"),F.symbol("true"));
-        commands.add(c);
+        startCommands.add(c);
         
         // set the logic
         String s = JmlOption.value(context, JmlOption.LOGIC);
         if (useBV && !s.equals("ALL")) s = "QF_AUFBV";
         c = new C_set_logic(F.symbol(s));
-        commands.add(c);
+        startCommands.add(c);
         
         // add background statements
         // declare the sorts we use to model Java+JML
         // (declare-sort REF 0)
         c = new C_declare_sort(F.symbol(REF),zero);
-        commands.add(c);
+        startCommands.add(c);
         // define NULL as a REF: (declare-fun NULL () REF)
         c = new C_declare_fun(nullSym,emptyList, refSort);
-        commands.add(c);
+        startCommands.add(c);
         // define THIS as a REF: (declare-fun THIS () REF)
         c = new C_declare_fun(thisSym,emptyList, refSort);
-        commands.add(c);
+        startCommands.add(c);
         // define stringConcat: (declare-fun stringConcat (REF,REF) REF)
         c = new C_declare_fun(F.symbol(concat),Arrays.asList(refSort,refSort), refSort);
-        commands.add(c);
+        startCommands.add(c);
         {
         	// define stringLength: (declare-fun stringLength (REF) Int)
         	c = new C_declare_fun(F.symbol("stringLength"),Arrays.asList(refSort), useBV ? bv32Sort : intSort); // FIXME - not sure this =is used
-        	commands.add(c);
+        	startCommands.add(c);
         }
         // THIS != NULL: (assert (distinct THIS NULL))
         c = new C_assert(F.fcn(distinctSym, thisSym, nullSym)); // SMT defined name
@@ -941,6 +945,19 @@ public class SMTTranslator extends JmlTreeScanner {
             commands.add(cc);
         }
         
+        {
+            List<IExpr> dargs = new LinkedList<IExpr>();
+            dargs.addAll(functionSymbols);
+            dargs.add(nullSym);
+            IExpr f = F.fcn(distinctSym, dargs);
+            startCommands.add(new C_assert(f));
+        }
+        addTypeRelationships(loc,smt);
+        
+        script.commands().addAll(startCommands);
+        script.commands().addAll(commands);
+        commands = script.commands();
+        
         // (push 1)
         ICommand cc = new C_push(F.numeral(1));
         commands.add(cc);
@@ -954,8 +971,6 @@ public class SMTTranslator extends JmlTreeScanner {
         // (check-sat)
         cc = new C_check_sat();
         commands.add(cc);
-        
-        addTypeRelationships(loc,smt);
         
         return script;
     }
@@ -990,7 +1005,7 @@ public class SMTTranslator extends JmlTreeScanner {
         boolean isnew = defined.add(nm);
         if (isnew) {
             ICommand c = new C_declare_fun(sym,emptyList,sort);
-            commands.add(c);
+            startCommands.add(c);
             bimap.put(expr,sym);
         }
         return isnew;
@@ -1071,11 +1086,12 @@ public class SMTTranslator extends JmlTreeScanner {
             return F.symbol(s);
         } else if (t instanceof Type.WildcardType) {
             String s = t.toString();
-            if (s.equals("?")) s = "WILD" + (++wildcardCount);
+            // Note - t might have a bound - FIXME - what do we do with it?
+            if (s.startsWith("?")) s = "WILD" + (++wildcardCount);
             s = "JMLTV_" + s;
             return F.symbol(s);
 
-        } else if (!t.tsym.type.isParameterized() || t.getTypeArguments().isEmpty()) {
+        } else if (!t.tsym.type.isParameterized()) {
             if (t instanceof Type.WildcardType || t instanceof Type.CapturedType) {
                 String s = "JMLTV_" + "WILD" + (++wildcardCount);
                 ISymbol sym = F.symbol(s);
@@ -1084,6 +1100,16 @@ public class SMTTranslator extends JmlTreeScanner {
                 String s = "JMLT_" + typeString(t);
                 return F.symbol(s);
             }
+        } else if (t.getTypeArguments().isEmpty()) {
+            // A generic type is being used without any type arguments. We insert new wild card variables.
+            List<Type> params = t.getTypeArguments();
+            List<IExpr> args = new LinkedList<IExpr>();
+            args.add(javaTypeSymbol(t));
+            for (Type tt: params) {
+                String s = "JMLTV_" + "WILD" + (++wildcardCount);
+                args.add(F.symbol(s));
+            }
+            return F.fcn(F.symbol("_JMLT_"+params.size()), args);
         } else {
             List<Type> params = t.getTypeArguments();
             List<IExpr> args = new LinkedList<IExpr>();
@@ -2205,23 +2231,24 @@ public class SMTTranslator extends JmlTreeScanner {
     public void visitReference(JCTree.JCMemberReference that) {
         String s = "|" + that.toString() + "|";
         ISymbol sym = F.symbol(s);
-        if (addConstant(sym, refSort, that)) {
-            IExpr e = F.fcn(distinctSym, sym, nullSym);
-            ICommand c = new C_assert(e);
-            commands.add(c);
-        }
+        functionSymbols.add(sym);
+        addConstant(sym, refSort, that);
         result = sym;
     }
+    
+    Set<ISymbol> functionSymbols = new HashSet<ISymbol>();
     
     @Override 
     public void visitLambda(JCTree.JCLambda that) {
         String s = "|" + that.toString() + "|";
         ISymbol sym = F.symbol(s);
-        if (addConstant(sym, refSort, that)) {
-            IExpr e = F.fcn(distinctSym, sym, nullSym);
-            ICommand c = new C_assert(e);
-            commands.add(c);
-        }
+        functionSymbols.add(sym);
+        addConstant(sym, refSort, that);
+//        if (addConstant(sym, refSort, that)) {
+//            IExpr e = F.fcn(distinctSym, sym, nullSym);
+//            ICommand c = new C_assert(e);
+//            commands.add(c);
+//        }
         result = sym;
    }
 

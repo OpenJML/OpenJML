@@ -183,6 +183,7 @@ public abstract class EscBase extends JmlTestCase {
         expectedExit = 0;
         expectedErrors = 0;
         noAssociatedDeclaration = false;
+        ignoreNotes = false;
         print = false;
         args = new String[]{};
         MethodProverSMT.benchmarkName = 

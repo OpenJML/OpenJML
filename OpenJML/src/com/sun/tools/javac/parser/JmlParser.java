@@ -255,20 +255,23 @@ public class JmlParser extends JavacParser {
     }
     @Override
     protected JCVariableDecl formalParameter(boolean lambdaParameter) {
-        Token token = S.token();
-        JCExpression replacementType = null;
-        if (token.kind == TokenKind.LBRACE) {
-            boolean b = S.jml();
-            try {
-                S.setJml(false);
-                nextToken();
-                replacementType = unannotatedType();
-            } finally {
-                S.setJml(b);
-                accept(TokenKind.RBRACE);
-                if (token.ikind == JmlTokenKind.ENDJMLCOMMENT) S.nextToken();
-            }
-        }
+//        Token token = S.token();
+        replacementType = null;
+//        if (token.kind == TokenKind.LBRACE) {
+//            boolean b = S.jml();
+//            try {
+//                S.setJml(false);
+//                nextToken();
+//                replacementType = unannotatedType();
+//            } finally {
+//                S.setJml(b);
+//                accept(TokenKind.RBRACE);
+//                if (token.ikind == JmlTokenKind.ENDJMLCOMMENT) {
+//                    S.setJml(false);
+//                    nextToken();
+//                }
+//            }
+//        }
         JmlVariableDecl param = (JmlVariableDecl)super.formalParameter(lambdaParameter);
         if (replacementType != null) {
             param.originalVartype = param.vartype;
@@ -997,7 +1000,13 @@ public class JmlParser extends JavacParser {
 
                         } else if (tr instanceof JmlVariableDecl) {
                             JmlVariableDecl d = (JmlVariableDecl) tr;
-                            if (startsInJml) utils.setJML(d.mods);
+                            if (replacementType != null) {
+                                d.originalVartype = d.vartype;
+                                d.vartype = replacementType;
+                                d.jmltype = true;
+                            } else {
+                                if (startsInJml) utils.setJML(d.mods);
+                            }
                             d.sourcefile = log.currentSourceFile();
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                             attach(d, dc);
@@ -1658,23 +1667,33 @@ public class JmlParser extends JavacParser {
         return toP(jmlF.at(p).JmlStoreRefListExpression(jt, list.toList()));
     }
     
+    public JCExpression replacementType;
+    
     @Override
-    public JCExpression parseType(List<JCAnnotation> annotations) {
-        JCExpression result = unannotatedType();
-        for (JCAnnotation a: annotations) {
-            String n = a.annotationType.toString();
-            if (n.equals("JMLType") || n.equals("org.jmlspecs.annotation.JMLTypoe")) {
-                Utils.stop();
+    public JCExpression unannotatedType() {
+        JCExpression replacementType = null;
+        {
+            if (token.kind == TokenKind.LBRACE) {
+                boolean b = S.jml();
+                try {
+                    S.setJml(false);
+                    nextToken();
+                    replacementType = super.unannotatedType();
+                } finally {
+                    S.setJml(b);
+                    accept(TokenKind.RBRACE);
+                    if (token.ikind == JmlTokenKind.ENDJMLCOMMENT) {
+                        S.setJml(false);
+                        inJmlDeclaration = false;
+                        nextToken();
+                    }
+                }
             }
         }
-
-        if (annotations.nonEmpty()) {
-            result = insertAnnotationsToMostInner(result, annotations, false);
-        }
-
-        return result;
+        JCExpression type = super.unannotatedType();
+        this.replacementType = replacementType;
+        return type;
     }
-
 
     public JmlMethodSpecs parseMethodSpecs(JCModifiers mods) {
         // Method specifications are a sequence of specification cases
