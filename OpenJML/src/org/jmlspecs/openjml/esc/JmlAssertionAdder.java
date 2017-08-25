@@ -1806,7 +1806,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
-//        if (assertCount >= 174 && assertCount <= 174) Utils.stop();
+        if (assertCount == 372) Utils.stop();
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
         JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? (classDecl == null ? null : classDecl.sym) : methodDecl.sym,translatedExpr);
@@ -3019,7 +3019,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             isNonNull = specs.isNonNull(sym) ;
         }
         
-        return addNullnessAllocationTypeCondition(d, sym, isNonNull, instanceBeingConstructed);
+        return addNullnessAllocationTypeCondition(d, sym, isNonNull, instanceBeingConstructed, true);
     }
     
     protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym, boolean instanceBeingConstructed) {
@@ -3029,15 +3029,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!sym.type.isPrimitive() && !jmltypes.isJmlType(sym.type)) {
             isNonNull = specs.isNonNull(sym, (Symbol.ClassSymbol)owner) ;
         }
-        return addNullnessAllocationTypeCondition(pos,sym,isNonNull,instanceBeingConstructed);
+        return addNullnessAllocationTypeCondition(pos,sym,isNonNull,instanceBeingConstructed,true);
     }
 
 
     /** Returns true iff the declaration is explicitly or implicitly non_null */
-    protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed) {
+    protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed, boolean allocCheck) {
         int p = pos == null ? Position.NOPOS: pos.getPreferredPosition();
         JCExpression id;
-        if (sym.owner instanceof MethodSymbol) {
+        if (sym.owner instanceof MethodSymbol || sym.owner == null) {
             // Local variable
             id = treeutils.makeIdent(p, sym);
         } else if (utils.isJMLStatic(sym)) {
@@ -3048,11 +3048,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // instance field
             id = treeutils.makeSelect(p, currentThisExpr, sym);
         }
-        return addNullnessAllocationTypeConditionId(id, pos, sym, isNonNull, instanceBeingConstructed);
+        return addNullnessAllocationTypeConditionId(id, pos, sym, isNonNull, instanceBeingConstructed, allocCheck);
     }
 
     /** Returns true iff the declaration is explicitly or implicitly non_null */
-    protected boolean addNullnessAllocationTypeConditionId(JCExpression id, DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed) {
+    protected boolean addNullnessAllocationTypeConditionId(JCExpression id, DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed, boolean allocCheck) {
         if (pos == null) pos = id;
         int p = pos.getPreferredPosition();
         boolean nnull = true;
@@ -3071,8 +3071,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // assume id != null
                 addAssume(pos,Label.NULL_CHECK,treeutils.makeNotNull(p, convertCopy(id)));
                 // assume id.isAlloc
-                addAssume(pos,Label.IMPLICIT_ASSUME,e2);
-            } else {
+                if (allocCheck) addAssume(pos,Label.IMPLICIT_ASSUME,e2);
+            } else if (allocCheck) {
                 JCExpression e1 = treeutils.makeEqObject(p,id, treeutils.makeNullLiteral(p));
                 // assume id == null || id._alloc__ <= allocCounter
                 //addTraceableComment(e2);
@@ -3122,6 +3122,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     e3 = e3 == null ? ee3 : treeutils.makeAnd(ee3.pos, e3, ee3);
                 }
                 JCStatement s = addAssume(pos,Label.IMPLICIT_ASSUME,e3); 
+                addTraceableComment(s);
+            }
+            if (sym.type.getTag() == TypeTag.ARRAY ) {
+                JCExpression n = treeutils.makeNotNull(p, convertCopy(id));
+                JCExpression e = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol, treeutils.zero, treeutils.makeArrayLength(p, convertCopy(id)));
+                JCStatement s = addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeImplies(p, n, e)); 
+                addTraceableComment(s);
+                e = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol, treeutils.makeArrayLength(p, convertCopy(id)), treeutils.makeIntLiteral(pos, Integer.MAX_VALUE));
+                s = addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeImplies(p, n, e)); 
                 addTraceableComment(s);
             }
         } else {
@@ -3992,6 +4001,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ListBuffer<JCStatement> exsuresStats = new ListBuffer<JCStatement>();
         
 
+        boolean isPure = isPure(methodDecl.sym);
+        
         // Accumulate the invariants to be checked after the method returns
         clearInvariants();
         if (rac) {
@@ -4024,7 +4035,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addConstraintInitiallyChecks(methodDecl,owner,receiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,null,
                     utils.qualifiedMethodSig(methodDecl.sym));
         } else {
-            addInvariants(methodDecl,owner.type,receiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,Label.INVARIANT_EXCEPTION_EXIT);
+            if (!isPure) addInvariants(methodDecl,owner.type,receiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,Label.INVARIANT_EXCEPTION_EXIT);
             addConstraintInitiallyChecks(methodDecl,owner,receiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,null);
         }
         for (JCVariableDecl v: methodDecl.params) {
@@ -6281,6 +6292,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = eresult = app;
             return;
         }
+        Symbol sym = treeutils.getSym(that.meth);
+        if (sym instanceof MethodSymbol && ((MethodSymbol)sym).isVarArgs()) {
+            MethodSymbol msym = (MethodSymbol)sym;
+            int actualLength = that.args.length();
+            int formalLength = msym.params.length() ;
+            Type varargType = msym.type.getParameterTypes().last();
+            if (actualLength != formalLength ||
+                    !types.isSameType(that.args.last().type, varargType)) {
+                int p = that.meth.pos;
+                JCExpression len = treeutils.makeIntLiteral(p,actualLength + 1 - formalLength);
+                Type compType = ((Type.ArrayType)varargType).getComponentType();
+                JCExpression ty = treeutils.makeType(p,compType);
+                ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+                ListBuffer<JCExpression> varargs = new ListBuffer<JCExpression>();
+                Iterator<JCExpression> iter = that.args.iterator();
+                int i = formalLength-1; while ((i--)>0) newargs.add(iter.next());
+                while (iter.hasNext()) varargs.add(iter.next());
+                JCExpression array = M.at(p).NewArray(ty,List.<JCExpression>nil(),varargs.toList());
+                array.type = varargType;
+                newargs.add(array);
+                that.args = newargs.toList();
+            }
+        }
         applyHelper(that);
     }
     
@@ -6657,7 +6691,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     return;
                 }  
                 if (!utils.isJMLStatic(fa.sym)) {
-                    if (splitExpressions) {
+                    if (!rac && splitExpressions) {
                         newThisExpr = newTemp(convertedReceiver);
                         newThisId = (JCIdent)newThisExpr;
                     } else {
@@ -6964,6 +6998,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     //resultSym = resultType.tsym;
                     resultId = newTemp(that,resultType);
                     resultSym = (VarSymbol) resultId.sym;
+                    addNullnessAllocationTypeCondition(that, resultSym, false, false, false);
                 } else {
                     Type t = that.type;
                     if (t instanceof Type.TypeVar) t = paramActuals.get(t.toString()).type; 
@@ -6971,6 +7006,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addStat(decl);
                     resultSym = decl.sym;
                     resultId = treeutils.makeIdent(that.pos, decl.sym);
+                    addNullnessAllocationTypeCondition(that, resultSym, false, false, false);
                 }
 
             }
@@ -8185,7 +8221,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 addStat(vd);
                                                 paramActuals.put(vdo.sym, treeutils.makeIdent(vd.pos,vd.sym));
                                             }
-                                            // Should the condition be augmented with exception not null and of the right type?
+                                            // FIXME - we should have a condition that the exception is an Exception (not a Throwable)
                                             prevSource = log.useSource(clauseSource);
                                             JCExpression e = convertJML(ex, condition, false);
                                             log.useSource(prevSource);
@@ -8218,6 +8254,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 JCExpression tc = M.at(t).TypeTest(exceptionId, t).setType(syms.booleanType);
                                                 condd = treeutils.makeOr(clause.pos, condd, tc);
                                             }
+                                            JCExpression extype = treeutils.makeType(clause.pos,syms.exceptionType);
+                                            JCExpression isExcType = M.at(clause.pos).TypeTest(exceptionId, extype).setType(syms.booleanType);
+                                            condd = treeutils.makeOr(clause.pos, treeutils.makeNot(clause.pos, isExcType), condd);
                                             addAssume(that,Label.SIGNALS_ONLY,condd,clause,clause.source(),null,
                                                     treeutils.makeUtilsMethodCall(clause.pos,"getClassName",exceptionId));
                                         } else {
@@ -10409,14 +10448,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             throw new JmlNotImplementedException(that,message);
         }
         
-//        if (utils.rac && that.sym.owner instanceof MethodSymbol) {
-//            if (that.sym.owner != methodDecl.sym) {
-//                that.sym.owner = methodDecl.sym;
-//            }
-//        }
-
         Symbol sym = convertSymbol(that.sym);
         
+        // FIXME - what about super when esc? or when we have a different currentThisExpr?
+        if (sym.name == names._super && rac && (currentThisExpr.toString().equals("this")||currentThisExpr.toString().equals("THIS"))) {
+            // super is special in that it precludes dynamic dispatch
+            // reaming super to a new ident would just end up calling the child method again
+            result = eresult = that;
+            return;
+        }
         JCFieldAccess newfa = null;
         if (sym != null && sym.owner instanceof ClassSymbol) {
             if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);

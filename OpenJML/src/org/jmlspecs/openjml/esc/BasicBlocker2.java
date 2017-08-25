@@ -1207,6 +1207,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 // FIXME - set line and source
                 addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
             } else {
+                // First havoc entire array
                 // Range of array
                 JCIdent arr = getArrayIdent(aa.type,aa.pos);
                 JCExpression ex = aa.expression;
@@ -1218,6 +1219,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 expr.pos = sp;
                 expr.type = aa.type;
                 treeutils.copyEndPosition(expr, aa);
+                // FIXME - set line and source
+                addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
                 
                 int p = aa.pos;
                 scan(aa.lo);
