@@ -137,8 +137,7 @@ public class JmlEsc extends JmlTreeScanner {
     @Override
     public void visitClassDef(JCClassDecl node) {
         Main.instance(context).pushOptions(node.mods);
-        if (node.sym.isInterface()) return;  // Nothing to verify in an interface
-            // TODO: not so - could check that specs are consistent
+
         // The super class takes care of visiting all the methods
         utils.progress(1,1,"Proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
         boolean doDefsInSortedOrder = true;

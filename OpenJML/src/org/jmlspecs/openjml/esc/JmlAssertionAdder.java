@@ -10886,12 +10886,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression savedThisExpr = this.currentThisExpr;
         IArithmeticMode savedMode = this.currentArithmeticMode;
         
-        if (that.sym.isInterface()) {
-            // FIXME - should actually do a pure copy.?
-            result = that;
-            classBiMap.put(that,that);
-            return;
-        }
+//        if (that.sym.isInterface()) {
+//            // FIXME - should actually do a pure copy.?
+//            result = that;
+//            classBiMap.put(that,that);
+//            return;
+//        }
         try {
             this.classDecl = that;
             this.methodDecl = null;
