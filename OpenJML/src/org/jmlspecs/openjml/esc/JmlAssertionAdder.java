@@ -6648,7 +6648,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     return;
                 }  
                 if (!utils.isJMLStatic(fa.sym)) {
-                    if (splitExpressions) {
+                    if (!rac && splitExpressions) {
                         newThisExpr = newTemp(convertedReceiver);
                         newThisId = (JCIdent)newThisExpr;
                     } else {
@@ -10405,14 +10405,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             throw new JmlNotImplementedException(that,message);
         }
         
-//        if (utils.rac && that.sym.owner instanceof MethodSymbol) {
-//            if (that.sym.owner != methodDecl.sym) {
-//                that.sym.owner = methodDecl.sym;
-//            }
-//        }
-
         Symbol sym = convertSymbol(that.sym);
         
+        // FIXME - what about super when esc? or when we have a different currentThisExpr?
+        if (sym.name == names._super && rac && (currentThisExpr.toString().equals("this")||currentThisExpr.toString().equals("THIS"))) {
+            // super is special in that it precludes dynamic dispatch
+            // reaming super to a new ident would just end up calling the child method again
+            result = eresult = that;
+            return;
+        }
         JCFieldAccess newfa = null;
         if (sym != null && sym.owner instanceof ClassSymbol) {
             if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
