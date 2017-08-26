@@ -1,5 +1,6 @@
 Proving methods in SB
-Completed proving methods in SBProving methods in SBB
+Completed proving methods in SB
+Proving methods in SBB
 Starting proof of SBB.SBB(java.nio.ByteBuffer,int) with prover !!!!
 test/gitbug478/SBB.java:13: warning: The prover cannot establish an assertion (Postcondition) in method SBB
     private SBB(ByteBuffer buf, int size) {
