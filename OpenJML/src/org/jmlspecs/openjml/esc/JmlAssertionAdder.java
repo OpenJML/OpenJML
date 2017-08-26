@@ -10094,10 +10094,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // redundant - remove the cast in both rac and esc
             newexpr = arg;
         } else if (argType.getTag() == TypeTag.NONE && that.type.getTag() != TypeTag.NONE) {
+            // cast of \bigint or \real to a primitive type
+            // FIXME - for now presume the bigint fits into a long
             emax = treeutils.makeBinary(that.pos, JCTree.Tag.LE, arg, 
-                    treeutils.makeLit(that.pos, arg.type, Long.valueOf(maxValue(that.pos,that.type.getTag()))));
+                    treeutils.makeLit(that.pos, syms.longType, Long.valueOf(maxValue(that.pos,that.type.getTag()))));
             emin = treeutils.makeBinary(that.pos, JCTree.Tag.LE,  
-                    treeutils.makeLit(that.pos, arg.type, Long.valueOf(minValue(that.pos,that.type.getTag()))),
+                    treeutils.makeLit(that.pos, syms.longType, Long.valueOf(minValue(that.pos,that.type.getTag()))),
                     arg);
             addAssert(that, Label.ARITHMETIC_CAST_RANGE, emax);
             addAssert(that, Label.ARITHMETIC_CAST_RANGE, emin);
