@@ -179,8 +179,8 @@ public class esclambdas extends EscBase {
                                 +"  }\n"
 
                                 +"  static /*@ immutable */ public interface Fun<T,R> {\n"
-                                +"     //@ public normal_behavior ensures true; pure function\n"
-                                +"     static <T> Identity<T> identity() { return null; }\n"
+                                +"     //@ public normal_behavior ensures true; pure function \n"
+                                +"     static <T> Identity<T> identity() { return (x -> x); }\n"
                                 +"  }\n"
                                 
                                 +"  //@ public normal_behavior\n"  // Line 14
@@ -209,7 +209,7 @@ public class esclambdas extends EscBase {
 
                                 +"  static /*@ immutable */ public interface Fun<T,R> {\n"
                                 +"     //@ public normal_behavior ensures true; pure function\n"
-                                +"     static <T> Identity<T> identity() { return null; }\n"
+                                +"     static <T> Identity<T> identity() { return (x->x); }\n"
                                 +"  }\n"
                                 
                                 +"  //@ public normal_behavior\n"  // Line 14
@@ -438,6 +438,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testCast() {
+//        main.addOptions("-show","-method=mm");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
