@@ -1,7 +1,7 @@
 // Fails with rac - gitbug536 - this fails to compile (AssertionError) when run outside of Eclipse
 public class Test536 {
 
-  //@requires \forall int i; (\bigint)0 <= i && i < array.length-1; array[i] <= array[i+1];
+  //@requires \forall int i; 0 <= i && i < array.length-1; array[i] <= array[i+1];
   public static void doesNothingButRequiresSorted(int[] array) {
   }
 

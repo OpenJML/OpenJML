@@ -9600,6 +9600,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitBinary(JCBinary that) {
+        if (that.toString().contains("i < _")) Utils.stop();
         // FIXME - check on numeric promotion, particularly shift operators
         JCTree.Tag optag = that.getTag();
         boolean equality = optag == JCTree.Tag.EQ || optag == JCTree.Tag.NE;
@@ -13243,10 +13244,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 indexdef.init = convertExpr(bound.lo);
                                 addStat(indexdef);
                                 JCExpression hi = convertExpr(bound.hi);
-                                JCExpression comp = treeutils.makeBinary(that.pos,
-                                        bound.hi_equal ? JCTree.Tag.LE : JCTree.Tag.LT,
-                                                bound.hi_equal ? treeutils.intleSymbol : treeutils.intltSymbol,
-                                                        treeutils.makeIdent(that.pos, indexdef.sym), hi);
+                                JCExpression comp;
+                                if (jmltypes.isJmlTypeOrRepType(hi.type) && rac) {
+                                    JCExpression lhs = addImplicitConversion(that.pos(),hi.type,treeutils.makeIdent(that.pos, indexdef.sym));
+                                    JCTree.Tag op = bound.hi_equal ? JCTree.Tag.LE : JCTree.Tag.LT;
+                                    String opname = treeutils.opname(lhs.type,op);
+                                    if (opname == null) {
+                                        log.error("jml.internal","No jmltype operator implemented for type " + hi.type + " and tag " + op);
+                                    }
+                                    comp = treeutils.makeUtilsMethodCall(that.pos, opname, lhs, hi);
+                                    
+                                } else {
+                                    Type maxtype = treeutils.maxType(indexdef.type, hi.type);
+                                    JCTree.Tag op = bound.hi_equal ? JCTree.Tag.LE : JCTree.Tag.LT;
+                                    comp = treeutils.makeBinary(that.pos, op,
+                                            addImplicitConversion(that.pos(),maxtype,treeutils.makeIdent(that.pos, indexdef.sym)),
+                                            addImplicitConversion(that.pos(),maxtype,hi));
+                                }
                                 st = M.at(that.pos).WhileLoop(comp,bl);
                                 if (brStat != null) brStat.target = st;
                                 st = M.at(that.pos).JmlLabeledStatement(label,null,st);
@@ -13329,15 +13343,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else if (hicomp.getTag() == JCTree.Tag.AND) {
                 hicomp = (JCBinary)hicomp.lhs;
             }
+            Type declType = decls.head.type;
             Bound b = new Bound();
             b.decl = decls.head;
             JCTree.Tag tag = locomp.getTag();
             if (tag == JCTree.Tag.GE || tag == JCTree.Tag.GT) b.lo = locomp.rhs;
             else b.lo = locomp.lhs;
+            if (rac && !jmltypes.isSameType(declType,b.lo.type)) {
+                b.lo = treeutils.makeTypeCast(b.lo, declType, b.lo);
+            }
             b.lo_equal = tag == JCTree.Tag.LE || tag == JCTree.Tag.GE;
             tag = hicomp.getTag();
             if (tag == JCTree.Tag.GE || tag == JCTree.Tag.GT) b.hi = hicomp.lhs;
             else b.hi = hicomp.rhs;
+            if (rac && !jmltypes.isSameType(declType,b.hi.type)) {
+                b.hi = treeutils.makeTypeCast(b.hi, declType, b.hi);
+            }
+
             b.hi_equal = tag == JCTree.Tag.LE || tag == JCTree.Tag.GE;
             bounds.add(0,b);
         } catch (Exception e) {

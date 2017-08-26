@@ -1,0 +1,9 @@
+OUT:
+test/gitbug536/Test536.java:15: JML precondition is false
+    doesNothingButRequiresSorted(array1);
+                                ^
+test/gitbug536/Test536.java:5: Associated declaration: test/gitbug536/Test536.java:15: 
+  public static void doesNothingButRequiresSorted(int[] array) {
+                                                        ^
+
+ERR:

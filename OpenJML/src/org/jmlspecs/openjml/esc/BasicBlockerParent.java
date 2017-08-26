@@ -807,7 +807,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
                 
                 // create the case test, or null if this is the default case
                 JCIdent vdd = treeutils.makeIdent(caseValue == null ? Position.NOPOS : caseValue.getStartPosition(),vd.sym);
-                /*@ nullable */ JCBinary eq = caseValue == null ? null : treeutils.makeBinary(caseValue.getStartPosition(),JCTree.Tag.EQ,vdd,(caseValue));
+                /*@ nullable */ JCExpression eq = caseValue == null ? null : treeutils.makeBinary(caseValue.getStartPosition(),JCTree.Tag.EQ,vdd,(caseValue));
                 JmlStatementExpr asm = addAssume(vdd.pos,
                 		Label.CASECONDITION,eq,blockForTest.statements);
                 
