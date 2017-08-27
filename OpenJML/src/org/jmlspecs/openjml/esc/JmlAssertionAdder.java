@@ -13038,7 +13038,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 try {
                     if (translatingJML) {
                         nonignoredStatements = currentStatements;
-                        pushBlock(); // FIXME - we have not implemented guarding conditions for expressions inside quantifiers
+                        pushBlock(); // A // FIXME - we have not implemented guarding conditions for expressions inside quantifiers
                     }
                     JmlQuantifiedExpr q = M.at(that).
                             JmlQuantifiedExpr(that.op,
@@ -13049,7 +13049,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     result = eresult = q;
                 } finally {
                     if (translatingJML) {
-                        popBlock();
+                        popBlock();  // A
                         nonignoredStatements = prev;
                     }
                 }
@@ -13070,7 +13070,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
                 // Label for the loop, so we can break out of it
                 Name label = names.fromString("__JMLwhile_" + (++count));
-                pushBlock(); // enclosing block, except for declaration of accumulator
+                ListBuffer<JCStatement> check = pushBlock(); // B // enclosing block, except for declaration of accumulator
                 try {
                     for (Bound bound: bounds) {
 
@@ -13081,10 +13081,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCStatement st;
                         JCBreak brStat = null;
                         JCBlock bl;
-                        pushBlock(); // Start of loop block
+                        pushBlock(); // C // Start of loop block
                         try {
                             JCExpression guard = convertExpr(innerexpr);
-                            pushBlock(); // Start of guarded block
+                            pushBlock(); // D // Start of guarded block
                             try {
                                 JCExpression val = convertExpr(that.value);
                                 switch (that.op) {
@@ -13092,10 +13092,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         // if (guard) { val = convert(value); if (!val) { accumulator = false; break <label>; }}
                                         decl.init = treeutils.trueLit;
 
-                                        pushBlock();
+                                        pushBlock();  // E
                                         addStat(treeutils.makeAssignStat(that.pos, id, treeutils.falseLit));
                                         addStat(brStat = M.Break(label));
-                                        bl = popBlock(0L,that);
+                                        bl = popBlock(0L,that);  // E
                                         st = M.If(treeutils.makeNot(that.pos,val), bl, null);
                                         break;
 
@@ -13190,15 +13190,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         break;
 
                                     default:
-                                        popBlock(0,that); // ignore
-                                        popBlock(0,that); // ignore
+                                        //popBlock(0,that); // ignore
+                                        //popBlock(0,that); // ignore
                                         String msg = "Unknown quantified expression operation: " + that.op.internedName();
                                         log.error(that,"jml.internal",msg);
                                         throw new JmlNotImplementedException(that,msg);
                                 }
                                 addStat(st);
                             } finally {
-                                bl = popBlock(0L,that); // end of guarded block
+                                bl = popBlock(0L,that); // D // end of guarded block
                             }
                             st = M.If(guard, bl, null);
                             addStat(st);
@@ -13211,7 +13211,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         treeutils.makeNot(that.pos, treeutils.makeIdent(that.pos, indexdef.sym)));
                                 addStat(st);
 
-                                bl = popBlock(0L,that); // loop block
+                                bl = popBlock(0L,that); // C // loop block
 
                                 indexdef.init = treeutils.falseLit;
                                 JCExpression comp = treeutils.makeIdent(that.pos, indexdef.sym);
@@ -13221,46 +13221,47 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 st = M.at(that.pos).JmlLabeledStatement(label,null,st);
                                 addStat(st);
 
-                            } else if (bound.decl.type.getTag() == TypeTag.CLASS) {
+                            } else if (bound.iterable != null) {
                                 // for (T o: container) { <innercomputation>;  } 
 
-                                bl = popBlock(0L,that); // loop block
+                                bl = popBlock(0L,that); // C // loop block
 
-                                st = M.at(that.pos).ForeachLoop(indexdef,convertExpr(bound.lo),bl);
+                                st = M.at(that.pos).ForeachLoop(indexdef,convertExpr(bound.iterable),bl);
                                 if (brStat != null) brStat.target = st;
                                 st = M.at(that.pos).JmlLabeledStatement(label,null,st);
                                 addStat(st);
 
                             } else {
                                 // T index = lo; while (index </<= hi) { <inner computation>; index = index + 1 }
+                                JCExpression init = convertExpr(treeutils.makeBinary(that.pos, JCTree.Tag.PLUS, treeutils.makeIdent(that.pos, indexdef.sym), treeutils.one));
                                 st = treeutils.makeAssignStat(that.pos,
-                                        treeutils.makeIdent(that.pos, indexdef.sym),
-                                        treeutils.makeBinary(that.pos, JCTree.Tag.PLUS, treeutils.makeIdent(that.pos, indexdef.sym), treeutils.one));
+                                        treeutils.makeIdent(that.pos, indexdef.sym), castType(indexdef.type, init));
+                                        
                                 // FIXME - one above might have to be long or bigint
                                 addStat(st);
 
-                                bl = popBlock(0L,that); // loop block
+                                bl = popBlock(0L,that); // C // loop block
 
-                                indexdef.init = convertExpr(bound.lo);
+                                indexdef.init = castType(indexdef.type,convertExpr(convertCopy(bound.lo)));
                                 addStat(indexdef);
-                                JCExpression hi = convertExpr(bound.hi);
+                                
+                                JCExpression hi = bound.hi;
                                 JCExpression comp;
-                                if (jmltypes.isJmlTypeOrRepType(hi.type) && rac) {
-                                    JCExpression lhs = addImplicitConversion(that.pos(),hi.type,treeutils.makeIdent(that.pos, indexdef.sym));
-                                    JCTree.Tag op = bound.hi_equal ? JCTree.Tag.LE : JCTree.Tag.LT;
-                                    String opname = treeutils.opname(lhs.type,op);
-                                    if (opname == null) {
-                                        log.error("jml.internal","No jmltype operator implemented for type " + hi.type + " and tag " + op);
-                                    }
-                                    comp = treeutils.makeUtilsMethodCall(that.pos, opname, lhs, hi);
-                                    
-                                } else {
+//                                if (jmltypes.isJmlTypeOrRepType(hi.type) && rac) {
+//                                    JCExpression lhs = addImplicitConversion(that.pos(),hi.type,treeutils.makeIdent(that.pos, indexdef.sym));
+//                                    JCTree.Tag op = bound.hi_equal ? JCTree.Tag.LE : JCTree.Tag.LT;
+//                                    String opname = treeutils.opname(lhs.type,op);
+//                                    if (opname == null) {
+//                                        log.error("jml.internal","No jmltype operator implemented for type " + hi.type + " and tag " + op);
+//                                    }
+//                                    comp = treeutils.makeUtilsMethodCall(that.pos, opname, lhs, hi);
+//                                    
+//                                } else {
                                     Type maxtype = treeutils.maxType(indexdef.type, hi.type);
                                     JCTree.Tag op = bound.hi_equal ? JCTree.Tag.LE : JCTree.Tag.LT;
-                                    comp = treeutils.makeBinary(that.pos, op,
-                                            addImplicitConversion(that.pos(),maxtype,treeutils.makeIdent(that.pos, indexdef.sym)),
-                                            addImplicitConversion(that.pos(),maxtype,hi));
-                                }
+                                    comp = treeutils.makeBinary(that.pos, op, treeutils.makeIdent(that.pos, indexdef.sym), hi);
+//                                }
+                                comp = convertExpr(comp);
                                 st = M.at(that.pos).WhileLoop(comp,bl);
                                 if (brStat != null) brStat.target = st;
                                 st = M.at(that.pos).JmlLabeledStatement(label,null,st);
@@ -13270,7 +13271,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                     }
                 } finally {
-                    addStat(popBlock(0L,that)); // pops enclosing block
+                    addStat(popBlock(0L,that,check)); // B // pops enclosing block
                 }
                 result = eresult = treeutils.makeIdent(that.pos, decl.sym);
             }
@@ -13285,6 +13286,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - duplicate with what is in JmlAttr?
     
     protected static class Bound {
+        public JCExpression iterable;
         public JCVariableDecl decl;
         public JCExpression lo;
         public JCExpression hi;
@@ -13302,6 +13304,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     public JCExpression determineRacBounds(List<JCVariableDecl> decls, JCExpression range, java.util.List<Bound> bounds) {
         // Some current assumptions
+        Type numberType = types.supertype(types.boxedTypeOrType(syms.intType));
         if (decls.length() != 1) return null; // FIXME - does only one declaration!!!!!!
         if (decls.head.type.getTag() == TypeTag.DOUBLE) return null;
         if (decls.head.type.getTag() == TypeTag.FLOAT) return null;
@@ -13313,7 +13316,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             b.hi = null;
             bounds.add(0,b);
             return range;
-        } else if (decls.head.type.getTag() == TypeTag.CLASS) {
+        } else if (decls.head.type.getTag() == TypeTag.CLASS && !types.isSuperType(numberType,decls.head.type)) {
             if (range instanceof JCBinary && ((JCBinary)range).getTag() != JCTree.Tag.AND) return null;
             JCExpression check = 
                 range instanceof JCBinary? ((JCBinary)range).lhs : range;
@@ -13322,7 +13325,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!(mi.meth instanceof JCFieldAccess)) return null;
             JCFieldAccess fa = (JCFieldAccess)mi.meth;
             if (!fa.name.toString().equals("contains") && !fa.name.toString().equals("has")) return null;
+            if (!types.isAssignable(types.erasure(fa.selected.type),syms.iterableType)) return null;
             Bound b = new Bound();
+            b.iterable = fa.selected;
             b.decl = decls.head;
             b.lo = fa.selected;
             // FIXME - should check whether fa.selected is Iterable
@@ -13334,7 +13339,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 
         try {
-            // presume int
+            // presume numeric - primitive or boxed
             JCBinary locomp = (JCBinary)((JCBinary)range).lhs;
             JCBinary hicomp = (JCBinary)((JCBinary)range).rhs;
             if (locomp.getTag() == JCTree.Tag.AND) {
@@ -13349,16 +13354,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCTree.Tag tag = locomp.getTag();
             if (tag == JCTree.Tag.GE || tag == JCTree.Tag.GT) b.lo = locomp.rhs;
             else b.lo = locomp.lhs;
-            if (rac && !jmltypes.isSameType(declType,b.lo.type)) {
-                b.lo = treeutils.makeTypeCast(b.lo, declType, b.lo);
-            }
+            //b.lo = castType(declType,b.lo);
             b.lo_equal = tag == JCTree.Tag.LE || tag == JCTree.Tag.GE;
+            
             tag = hicomp.getTag();
             if (tag == JCTree.Tag.GE || tag == JCTree.Tag.GT) b.hi = hicomp.lhs;
             else b.hi = hicomp.rhs;
-            if (rac && !jmltypes.isSameType(declType,b.hi.type)) {
-                b.hi = treeutils.makeTypeCast(b.hi, declType, b.hi);
-            }
+            //b.hi = castType(declType,b.hi);
 
             b.hi_equal = tag == JCTree.Tag.LE || tag == JCTree.Tag.GE;
             bounds.add(0,b);
@@ -13366,6 +13368,40 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return null;
         }
         return range;
+    }
+    
+    public JCExpression castType(Type target, JCExpression arg) {
+        if ((arg.type == jmltypes.BIGINT || arg.type.toString().contains("BigInteger")) && target.toString().equals("java.lang.Integer")) Utils.stop();
+        if (jmltypes.isSameType(arg.type,target)) return arg;
+        if (!rac) return treeutils.makeTypeCast(arg, target, arg);
+        boolean isPrim = arg.type.isPrimitive() && !(rac && jmltypes.isJmlType(arg.type));
+        boolean isNewPrim = target.isPrimitive() && !(rac && jmltypes.isJmlType(target));
+        if (isPrim && target.isPrimitive()) {
+            return treeutils.makeTypeCast(arg, target, arg);
+        } else if (jmltypes.isJmlTypeOrRep(arg.type,jmltypes.BIGINT)) {
+            if (target == jmltypes.BIGINT) return arg;
+            else if (isNewPrim) {
+                return treeutils.makeUtilsMethodCall(arg.pos, "bigint_to" + target.toString(), arg);
+            } else {
+                Type t = types.unboxedType(target);
+                JCExpression e = treeutils.makeUtilsMethodCall(arg.pos, "bigint_to" + t.toString(), arg);
+                return treeutils.makeTypeCast(arg, target, e);
+            }
+        } else if (jmltypes.isJmlTypeOrRep(target,jmltypes.BIGINT)) {
+            if (arg.type == jmltypes.BIGINT) return arg;
+            if (isPrim) {
+                return treeutils.makeUtilsMethodCall(arg.pos, "bigint_valueof", arg);
+            } else {
+                log.error(arg.pos, "jml.internal", "No implementation to convert " + arg.type.toString() + " to " + target.toString());
+                return null;
+                
+            }
+        } else if (isPrim || isNewPrim) {
+            return treeutils.makeTypeCast(arg, target, arg);
+        } else {
+            log.error(arg.pos, "jml.internal", "No implementation to convert " + arg.type.toString() + " to " + target.toString());
+            return null;
+        }
     }
 
 
