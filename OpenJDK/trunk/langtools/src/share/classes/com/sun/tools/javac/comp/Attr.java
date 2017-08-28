@@ -3060,6 +3060,9 @@ public class Attr extends JCTree.Visitor {
 
     public void visitBinary(JCBinary tree) {
         // Attribute arguments.
+        if (tree.toString().contains("sum")) {
+            Object t = tree;
+        }
         Type left = chk.checkNonVoid(tree.lhs.pos(), attribExpr(tree.lhs, env));
         Type right = chk.checkNonVoid(tree.lhs.pos(), attribExpr(tree.rhs, env));
 
@@ -3699,6 +3702,7 @@ public class Attr extends JCTree.Visitor {
          */
         Env<AttrContext> enclosingInitEnv(Env<AttrContext> env) {
             while (true) {
+                if (env.tree.getTag() == null) return null;  // OPENJML - for quantifiers in invariants
                 switch (env.tree.getTag()) {
                     case VARDEF:
                         JCVariableDecl vdecl = (JCVariableDecl)env.tree;

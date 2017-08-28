@@ -4058,52 +4058,63 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         try {
             
-        if (that.range != null) attribExpr(that.range, localEnv, syms.booleanType);
+            if (that.range != null) attribExpr(that.range, localEnv, syms.booleanType);
 
-        Type resultType = syms.errType;
-        switch (that.op) {
-            case BSEXISTS:
-            case BSFORALL:
-                attribExpr(that.value, localEnv, syms.booleanType);
-                resultType = syms.booleanType;
-                break;
-                
-            case BSNUMOF:
-                attribExpr(that.value, localEnv, syms.booleanType);
-                resultType = syms.intType; // FIXME - int? long? bigint?
-                break;
-                
-            case BSMAX:
-            case BSMIN:
-                attribExpr(that.value, localEnv, Type.noType); // FIXME - int? long? numeric? bigint? double?
-                resultType = that.value.type;
-                break;
+            Type resultType = syms.errType;
+            switch (that.op) {
+                case BSEXISTS:
+                case BSFORALL:
+                    attribExpr(that.value, localEnv, syms.booleanType);
+                    resultType = syms.booleanType;
+                    break;
 
-            case BSSUM:
-            case BSPRODUCT:
-                attribExpr(that.value, localEnv, syms.longType); // FIXME - int? long? numeric? bigint? double?
-                resultType = that.value.type;
-                break;
-                
-            default:
-                log.error(that.pos(),"jml.unknown.construct",that.op.internedName(),"JmlAttr.visitJmlQuantifiedExpr");
-                break;
-        }
-        result = check(that, resultType, VAL, resultInfo);
-        
-        if (utils.rac) {
-            if (that.racexpr == null) createRacExpr(that,localEnv,resultType);
-//            if (that.racexpr == null) {
-//                System.out.println("NO QUANT");
-//            }
-        }
+                case BSNUMOF:
+                    attribExpr(that.value, localEnv, syms.booleanType);
+                    resultType = syms.intType; // FIXME - int? long? bigint?
+                    break;
+
+                case BSMAX:
+                case BSMIN:
+                    attribExpr(that.value, localEnv, Type.noType);
+                    resultType = that.value.type;
+                    // FIXME - allow this for any Comparable type
+                    //                if (!types.unboxedTypeOrType(resultType).isNumeric()) {
+                    //                    log.error(that.value,"jml.internal", "The value expression of a sum or product expression must be a numeric type, not " + resultType.toString());
+                    //                    resultType = types.createErrorType(resultType);
+                    //                }
+                    break;
+
+                case BSSUM:
+                case BSPRODUCT:
+                    attribExpr(that.value, localEnv, Type.noType); // FIXME - int? long? numeric? bigint? double?
+                    resultType = that.value.type;
+                    if (!types.unboxedTypeOrType(resultType).isNumeric()) {
+                        log.error(that.value,"jml.bad.quantifer.expression", resultType.toString());
+                        resultType = types.createErrorType(resultType);
+                    }
+                    break;
+
+                default:
+                    log.error(that.pos(),"jml.unknown.construct",that.op.internedName(),"JmlAttr.visitJmlQuantifiedExpr");
+                    break;
+            }
+            result = check(that, resultType, VAL, resultInfo);
+
+            if (utils.rac) {
+                Type saved = result;
+                try {
+                    if (that.racexpr == null) createRacExpr(that,localEnv,resultType);
+                } finally {
+                    result = saved;
+                }
+            }
         } finally {
             quantifiedExprs.remove(quantifiedExprs.size()-1);
             localEnv.info.scope.leave();
         }
         return;
     }
-    
+
     public boolean implementationAllowed() {
         return implementationAllowed;
     }

@@ -310,6 +310,19 @@ public class racfiles extends RacBase {
     }
 
     @Test
+    public void gitbug533() {
+    	//runrac = false;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug533","test/gitbug533","TestSum","-racCheckAssumptions");
+    }
+
+    @Test
+    public void gitbug533a() {
+    	//runrac = false;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug533a","test/gitbug533a","TestSum");
+    }
+
     public void gitbug534() {
     	runrac = true;
         expectedRACExit = 0;
@@ -329,13 +342,6 @@ public class racfiles extends RacBase {
         expectedRACExit = 0;
         helpTCF("test/gitbug536","test/gitbug536","Test536","-code-math=safe","-spec-math=bigint");
     }
-
-//    @Test
-//    public void gitbug533() {
-//    	//runrac = false;
-//        expectedRACExit = 0;
-//        helpTCF("test/gitbug533a","test/gitbug533a","TestSum");
-//    }
 
     @Test
     public void sfbug413() {
