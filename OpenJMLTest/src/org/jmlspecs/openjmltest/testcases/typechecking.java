@@ -1066,6 +1066,12 @@ public class typechecking extends TCBase {
                 );
     }
 
+    @Test public void testQuantifiedExpression() {
+        helpTCF("A.java"," class A { /*@ public invariant (\\sum Integer i; 0<=i && i < 6; new Object()); */ }"
+        		,"/A.java:1: The value expression of a sum or product expression must be a numeric type, not java.lang.Object",65
+                );
+    }
+
     // FIXME - does not appear to be working yet
 //    @Test public void testDiamondGenerics() {
 //        helpTCF("A.java","public class A { java.util.List<Integer> list = new java.util.LinkedList<>(); } }"

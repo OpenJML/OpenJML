@@ -12890,8 +12890,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 Type t = that.type;
                 Name n = names.fromString("_JML$val$$" + (++count));
                 JCVariableDecl decl = treeutils.makeVarDef(t, n, methodDecl.sym, that.pos);
+                decl.init = treeutils.makeZeroEquivalentLit(that.pos, types.unboxedTypeOrType(t));
                 addStat(decl);
-                decl.init = treeutils.makeZeroEquivalentLit(that.pos, t);
                 
                 // Label for the loop, so we can break out of it
                 Name label = names.fromString("__JMLwhile_" + (++count));
@@ -13046,12 +13046,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 st = M.at(that.pos).JmlLabeledStatement(label,null,st);
                                 addStat(st);
 
-                            } else if (bound.decl.type.getTag() == TypeTag.CLASS) {
+                            } else if (bound.iterable != null) {
                                 // for (T o: container) { <innercomputation>;  } 
 
                                 bl = popBlock(0L,that); // loop block
 
-                                st = M.at(that.pos).ForeachLoop(indexdef,convertExpr(bound.lo),bl);
+                                st = M.at(that.pos).ForeachLoop(indexdef,convertExpr(bound.iterable),bl);
                                 if (brStat != null) brStat.target = st;
                                 st = M.at(that.pos).JmlLabeledStatement(label,null,st);
                                 addStat(st);
@@ -13097,6 +13097,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - duplicate with what is in JmlAttr?
     
     protected static class Bound {
+        public JCExpression iterable;
         public JCVariableDecl decl;
         public JCExpression lo;
         public JCExpression hi;
@@ -13125,28 +13126,32 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             b.hi = null;
             bounds.add(0,b);
             return range;
-        } else if (decls.head.type.getTag() == TypeTag.CLASS) {
-            if (range instanceof JCBinary && ((JCBinary)range).getTag() != JCTree.Tag.AND) return null;
+        }
+        
+        xx: {
             JCExpression check = 
-                range instanceof JCBinary? ((JCBinary)range).lhs : range;
-            if (!(check instanceof JCMethodInvocation)) return null;
-            JCMethodInvocation mi = (JCMethodInvocation)check;
-            if (!(mi.meth instanceof JCFieldAccess)) return null;
-            JCFieldAccess fa = (JCFieldAccess)mi.meth;
-            if (!fa.name.toString().equals("contains") && !fa.name.toString().equals("has")) return null;
-            Bound b = new Bound();
-            b.decl = decls.head;
-            b.lo = fa.selected;
-            // FIXME - should check whether fa.selected is Iterable
-            b.hi = null;
-            bounds.add(0,b);
-            return check == range ? check : // FIXME - could be set to true 
-                ((JCBinary)range).rhs;
+                    range instanceof JCBinary? ((JCBinary)range).lhs : range;
+                if (!(check instanceof JCMethodInvocation)) break xx;
+                JCMethodInvocation mi = (JCMethodInvocation)check;
+                if (!(mi.meth instanceof JCFieldAccess)) break xx;
+                JCFieldAccess fa = (JCFieldAccess)mi.meth;
+                if (!fa.name.toString().equals("contains") && !fa.name.toString().equals("has")) break xx;
+                if (!types.isAssignable(types.erasure(fa.selected.type),syms.iterableType)) break xx;
+                Bound b = new Bound();
+                b.decl = decls.head;
+                b.iterable = fa.selected;
+                b.lo = null;
+                b.hi = null;
+                bounds.add(0,b);
+                return check == range ? check : // FIXME - could be set to true 
+                    ((JCBinary)range).rhs;
         }
 
-
+        Type numberType = types.supertype(types.boxedTypeOrType(syms.intType));
+        if (decls.head.type.getTag() == TypeTag.CLASS && !types.isSuperType(numberType,decls.head.type)) return null;
+        
         try {
-            // presume int
+            // presume numeric declaration
             JCBinary locomp = (JCBinary)((JCBinary)range).lhs;
             JCBinary hicomp = (JCBinary)((JCBinary)range).rhs;
             if (locomp.getTag() == JCTree.Tag.AND) {

@@ -1,0 +1,9 @@
+OUT:
+test/gitbug533a/TestSum.java:10: JML invariant is false on leaving method TestSum.main(java.lang.String[])
+	public static void main(String[] args) {
+	                   ^
+test/gitbug533a/TestSum.java:6: Associated declaration: test/gitbug533a/TestSum.java:10: 
+	 private static invariant (\sum int i; list.contains(i); i) >= 0; 
+	                ^
+
+ERR:

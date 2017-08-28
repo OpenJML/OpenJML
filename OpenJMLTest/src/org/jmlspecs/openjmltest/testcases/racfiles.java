@@ -313,7 +313,7 @@ public class racfiles extends RacBase {
     public void gitbug533() {
     	//runrac = false;
         expectedRACExit = 0;
-        helpTCF("test/gitbug533","test/gitbug533","TestSum");
+        helpTCF("test/gitbug533","test/gitbug533","TestSum","-racCheckAssumptions");
     }
 
     @Test
