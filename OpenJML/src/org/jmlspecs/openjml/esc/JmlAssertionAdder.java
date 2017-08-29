@@ -13316,6 +13316,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             bounds.add(0,b);
             return range;
         }
+        Type declType = decls.head.type;
         
         xx: {
             JCExpression check = range instanceof JCBinary? ((JCBinary)range).lhs : range;
@@ -13325,6 +13326,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCFieldAccess fa = (JCFieldAccess)mi.meth;
             if (!fa.name.toString().equals("contains") && !fa.name.toString().equals("has")) break xx;
             if (!types.isAssignable(types.erasure(fa.selected.type),syms.iterableType)) break xx;
+            if (rac && declType == jmltypes.BIGINT) return null; // FIXME - IMPLEMENT THESE SOMEDAY
+            if (rac && declType == jmltypes.REAL) return null;
             Bound b = new Bound();
             b.decl = decls.head;
             b.iterable = fa.selected;
@@ -13347,7 +13350,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else if (hicomp.getTag() == JCTree.Tag.AND) {
                 hicomp = (JCBinary)hicomp.lhs;
             }
-            Type declType = decls.head.type;
             Bound b = new Bound();
             b.decl = decls.head;
             JCTree.Tag tag = locomp.getTag();

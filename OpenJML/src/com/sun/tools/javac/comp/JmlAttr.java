@@ -4088,7 +4088,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 case BSPRODUCT:
                     attribExpr(that.value, localEnv, Type.noType); // FIXME - int? long? numeric? bigint? double?
                     resultType = that.value.type;
-                    if (!types.unboxedTypeOrType(resultType).isNumeric()) {
+                    if (!jmltypes.isNumeric(jmltypes.unboxedTypeOrType(resultType))) {
                         log.error(that.value,"jml.bad.quantifer.expression", resultType.toString());
                         resultType = types.createErrorType(resultType);
                     }
