@@ -1260,38 +1260,9 @@ public class MethodProverSMT {
     
     static public String benchmarkName = null;
     static private int benchmarkCount = 0;
-//    public void saveBenchmark(String solverName, String methodname) {
-//        String benchmarkDir = JmlOption.value(context,JmlOption.BENCHMARKS);
-//        if (benchmarkDir == null) return;
-//        String n;
-//        if (benchmarkName != null) {
-//            if ("<init>".equals(methodname)) methodname = "INIT";
-//            int count = 0;
-//            String root = benchmarkDir + "/" + benchmarkName + "." + methodname;
-//            n = root + ".smt2";
-//            while (true) {
-//                Path p = FileSystems.getDefault().getPath(n);
-//                if (!java.nio.file.Files.exists(p)) break;
-//                count++;
-//                n = root + (-count) + ".smt2";
-//            }
-//        } else {
-//            benchmarkCount++;
-//            n = String.format("%s/bench-%05d.smt2",benchmarkDir,benchmarkCount);
-//        }
-//        try {
-//            Path p = FileSystems.getDefault().getPath(n);
-//            java.nio.file.Files.deleteIfExists(p);
-//            java.nio.file.Files.move(FileSystems.getDefault().getPath("solver.out.z3"),p);
-//        } catch (IOException e) {
-//            System.out.println(e);
-//        }
-//    }
     
     public void setBenchmark(String solverName, String methodname, SMT.Configuration config) {
         String benchmarkDir = JmlOption.value(context,JmlOption.BENCHMARKS);
-//        if (benchmarkDir == null) benchmarkDir = "benchmarks";
-//      config.logfile = "solver.out";
         if (benchmarkDir == null) return;
         new java.io.File(benchmarkDir).mkdirs();
         String n;

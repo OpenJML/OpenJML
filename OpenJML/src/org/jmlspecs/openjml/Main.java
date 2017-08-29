@@ -789,11 +789,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         
         String t = options.get(JmlOption.JMLTESTING.optionName());
         Utils.testingMode =  ( t != null && !t.equals("false"));
-        if (Utils.testingMode) {
-            if (options.get(JmlOption.BENCHMARKS.optionName()) == null) {
-                options.put(JmlOption.BENCHMARKS.optionName(),"benchmarks");
-            }
-        }
         String benchmarkDir = options.get(JmlOption.BENCHMARKS.optionName());
         if (benchmarkDir != null) {
             new File(benchmarkDir).mkdir();
