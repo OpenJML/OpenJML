@@ -828,12 +828,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         int savedAllocCounter = allocCounter;
         allocCounter = 0;
         
-        determinismSymbols = new HashMap<>();
-        
-        if (pmethodDecl.name.toString().equals("bodySize")) {
-            Utils.stop();
+        if (pmethodDecl.sym.isDefault()){
+            allocSym.flags_field |= Utils.JMLINSTANCE;
+            isAllocSym.flags_field |= Utils.JMLINSTANCE;
         }
         
+        determinismSymbols = new HashMap<>();
+                        
         // Collect all classes that are mentioned in the method
         ClassCollector collector = ClassCollector.collect(pclassDecl,pmethodDecl);
         
@@ -11061,12 +11062,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression savedThisExpr = this.currentThisExpr;
         IArithmeticMode savedMode = this.currentArithmeticMode;
         
-//        if (that.sym.isInterface()) {
-//            // FIXME - should actually do a pure copy.?
-//            result = that;
-//            classBiMap.put(that,that);
-//            return;
-//        }
         try {
             this.classDecl = that;
             this.methodDecl = null;
@@ -11164,24 +11159,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             log.error(t.pos,"jml.internal","Clause type not handled in visitJmlClassDecl: " + t.token.internedName());
                     }
                 }
-//                for (JmlTypeClause t: tyspecs.decls) {
-//                    switch (t.token){
-//                        case JMLDECL:
-//                            scan(t);
-//                            break;
-//                        default:
-//                            log.error(t.pos,"jml.internal","Clause type not handled in visitJmlClassDecl: " + t.token.internedName());
-//                    }
-//                }
-//                if (rac) for (JmlClassDecl t: tyspecs.modelTypes) {
-//                    scan(t);
-//                }
             }
             
-//            JmlSpecs.TypeSpecs typeSpecs = specs.getSpecs(classDecl.sym);
-////            for (JmlTypeClauseDecl m: typeSpecs.modelFieldMethods) {
-////                this.classDefs.add(m);
-////            }
             List<JCTree> defs = this.classDefs.toList();
             
             for (JCTree def: defs) {
@@ -12230,6 +12209,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // but if we call this visit method directly, e.g., from the api,
         // it will not be, and we need to find the class
         if (classDecl == null) classDecl = utils.getOwner(that);
+        
         log.useSource(that.source());
         boolean saved = translatingJML;
         try {
