@@ -13259,9 +13259,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                                } else {
                                     Type maxtype = treeutils.maxType(indexdef.type, hi.type);
                                     JCTree.Tag op = bound.hi_equal ? JCTree.Tag.LE : JCTree.Tag.LT;
+                                    
                                     comp = treeutils.makeBinary(that.pos, op, treeutils.makeIdent(that.pos, indexdef.sym), hi);
 //                                }
-                                comp = convertExpr(comp);
+                                boolean saved = splitExpressions;
+                                splitExpressions = false;
+                                try {
+                                    comp = convertJML(comp);
+                                } finally {
+                                    splitExpressions = saved;
+                                }
                                 st = M.at(that.pos).WhileLoop(comp,bl);
                                 if (brStat != null) brStat.target = st;
                                 st = M.at(that.pos).JmlLabeledStatement(label,null,st);
