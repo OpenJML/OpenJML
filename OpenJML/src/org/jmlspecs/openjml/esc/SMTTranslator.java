@@ -1053,7 +1053,6 @@ public class SMTTranslator extends JmlTreeScanner {
         else if (!t.isPrimitive()) t = t.tsym.erasure(jmltypes);
         
         String s = "T_" + typeString(t);
-        if (s.equals("T_sassy_util")) Utils.stop();
         return F.symbol(s);
     }
     
@@ -1127,6 +1126,10 @@ public class SMTTranslator extends JmlTreeScanner {
         if (t instanceof ArrayType) {
             t = ((ArrayType)t).getComponentType();
             addType(t);
+        } else if (t instanceof Type.IntersectionClassType) {
+            Type.IntersectionClassType it = (Type.IntersectionClassType)t;
+            addType(it.supertype_field);
+            for (Type itt: it.interfaces_field) addType(itt);
         } else {
             if (javaTypeSymbols.add(t.tsym.toString())) {
                 javaTypes.add(t);

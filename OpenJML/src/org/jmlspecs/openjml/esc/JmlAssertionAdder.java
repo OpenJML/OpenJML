@@ -6273,7 +6273,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (sym instanceof MethodSymbol && ((MethodSymbol)sym).isVarArgs()) {
             MethodSymbol msym = (MethodSymbol)sym;
             int actualLength = that.args.length();
-            int formalLength = ((Type.MethodType)msym.type).argtypes.length() ;  // msym.params can be null if there are varargs
+            int formalLength = msym.type.asMethodType().argtypes.length();  // msym.params can be null if there are varargs
             Type varargType = msym.type.getParameterTypes().last();
             if (actualLength != formalLength ||
                     !types.isSameType(that.args.last().type, varargType)) {
@@ -6975,12 +6975,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (resultType instanceof Type.CapturedType) {
                         resultType = ((Type.CapturedType)resultType).getUpperBound();
                     }
+                    if (resultType instanceof Type.TypeVar){
+                        resultType = syms.objectType;  // FIXME - use upperbound?
+                    }
                     //resultSym = resultType.tsym;
                     resultId = currentFresh = newTempNull(that,resultType); // initialized to null
                     resultSym = (VarSymbol) resultId.sym;
                 } else if (newclass == null) {
                     if (resultType instanceof Type.CapturedType) {
                         resultType = ((Type.CapturedType)resultType).getUpperBound();
+                    }
+                    if (resultType instanceof Type.TypeVar){
+                        resultType = syms.objectType;  // FIXME - use upperbound?  // use paramActuals?
                     }
                     //resultSym = resultType.tsym;
                     resultId = newTemp(that,resultType);
