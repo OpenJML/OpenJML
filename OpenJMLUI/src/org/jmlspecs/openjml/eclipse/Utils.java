@@ -2012,6 +2012,7 @@ public class Utils {
 				try {
 					IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(OpenJMLView.ID);
 					((OpenJMLView)view).refresh();
+					((OpenJMLView)view).start();
 				} catch (PartInitException e) {
 					// FIXME - report error?
 				}

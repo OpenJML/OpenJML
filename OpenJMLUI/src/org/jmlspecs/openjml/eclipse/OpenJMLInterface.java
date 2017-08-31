@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -372,6 +373,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     // TODO - Review this
     public void executeESCCommand(Main.Cmd command, List<?> things, IProgressMonitor monitor) {
         try {
+        	Date start = new Date();
             if (things.isEmpty()) {
                 Log.log("Nothing applicable to process");
                 Activator.utils().showMessageInUI(null,"JML","Nothing applicable to process");
@@ -549,6 +551,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                 monitor.subTask("Canceled ESC operation");
             }
             if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Canceled ESC operation");
+        } finally {
+        	OpenJMLView.stop();
         }
     }
     

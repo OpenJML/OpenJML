@@ -3,6 +3,7 @@ package org.jmlspecs.openjml.eclipse;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -220,6 +221,16 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	return parent.getItemCount();
     }
     
+    static Date start;
+    static Date end;
+    public static void start() {
+    	start = new Date();
+    	end = null;
+    }
+    public static void stop() {
+    	end = new Date();
+    }
+    
     public void refresh(IJavaProject jproject, String key) {
     	OpenJMLInterface iface = Activator.utils().getInterface(jproject);
     	if (currentProject != jproject) {
@@ -269,8 +280,8 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 
     	Kind k = result == null ? null : result.result();
     	String info = result == null ? "" : (" ["
-    			+ (org.jmlspecs.openjml.Utils.testingMode ? "TIME" : (result.duration() + "#" + result.episodes())) 
-    			+ " " + result.prover() + "]");
+    			+ (org.jmlspecs.openjml.Utils.testingMode ? "TIME" : result.duration()) 
+    			+ " " + result.prover() + "] ");
     	tiii.removeAll();
     	String name = k == null ? "" : k.toString();
     	String padding = "      ";
@@ -439,6 +450,11 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     		
     		summary.append(t.size() + spaces.substring(0,5-Integer.toString(counts.size()).length()) + "  TOTAL" + Strings.eol); //$NON-NLS-1$
     		if (output != null) output.append(summary);
+
+    		String timeSinceStartInSeconds = start == null ? null : String.format("%10.2f",((end != null ? end : new Date()).getTime() - start.getTime())/1000.0);
+    		if (output != null && timeSinceStartInSeconds != null) output.append("TOTAL WALL CLOCK TIME = " + timeSinceStartInSeconds + " seconds").append(Strings.eol);
+    		if (timeSinceStartInSeconds != null) summary.append("TOTAL TIME = " + timeSinceStartInSeconds + " seconds").append(Strings.eol);
+    		
     		if (output != null) Activator.utils().showMessageInUI(null,"Proof results summary",summary.toString());
 
     		StringBuilder brief = new StringBuilder();
@@ -449,7 +465,8 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     		brief.append(" ").append("TIM=").append(zeroifnull(counts.get("TIMEOUT")));
     		brief.append(" ").append("INF=").append(zeroifnull(counts.get("INFEASIBLE")));
     		brief.append(" ").append("SKI=").append(zeroifnull(counts.get("SKIPPED")));
-    		brief.append("]");
+    		brief.append("] ");
+    		if (timeSinceStartInSeconds != null) brief.append(timeSinceStartInSeconds + " sec");
     		return brief.toString();
     	} catch (IOException e) {
     		return null;
