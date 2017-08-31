@@ -29,6 +29,8 @@ public class ProverResult implements IProverResult {
     /** Time taken ( in secs) to compute this proof result */
     protected double duration;
     
+    protected int episodes; // Number of different solver attempts that contributed to the duration
+    
     /** Time at which the proof attempt started */
     @NonNull
     protected Date timestamp;
@@ -70,9 +72,11 @@ public class ProverResult implements IProverResult {
     
     /** The time to compute this result, in seconds */
     public double duration() { return duration; }
+    
+    public int episodes() { return episodes; }
 
     /** Sets the time to compute this result */
-    public void setDuration(double d) { duration = d; }
+    public void accumulateDuration(double d) { duration += d; episodes++; }
     
     /** The method that was the target of this proof attempt */
     @NonNull

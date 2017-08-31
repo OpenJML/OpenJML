@@ -168,7 +168,7 @@ public class MethodProverSMT {
                 ProverResult pr = new ProverResult(prover,kind,msym);
                 pr.methodSymbol = msym;
                 if (start != null) {
-                    pr.setDuration((pr.timestamp().getTime()-start.getTime())/1000.);
+                    pr.accumulateDuration((pr.timestamp().getTime()-start.getTime())/1000.);
                     pr.setTimestamp(start);
                 }
                 return pr;
@@ -265,7 +265,7 @@ public class MethodProverSMT {
         IResponse solverResponse = null;
         BasicBlocker2 basicBlocker;
         BasicProgram program;
-        Date start;
+        Date start = new Date();
         ICommand.IScript script;
         boolean usePushPop = true; // FIXME - false is not working yet
         {
@@ -303,7 +303,6 @@ public class MethodProverSMT {
                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,new Date()).setOtherInfo(d);
             }
             // Starts the solver (and it waits for input)
-            start = new Date();
             setBenchmark(proverToUse,methodDecl.name.toString(),smt.smtConfig);
             solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
             if (solver == null) { 
@@ -590,7 +589,7 @@ public class MethodProverSMT {
                     if (solverResponse.equals(unsatResponse)) break;
                     // TODO -  checking each assertion separately
                 }
-                pr.setDuration((new Date().getTime() - pr.timestamp().getTime())/1000.);
+                pr.accumulateDuration((new Date().getTime() - pr.timestamp().getTime())/1000.);
             }
         }
         if (usePushPop) solver.exit();

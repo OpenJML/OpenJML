@@ -238,7 +238,7 @@ public class JmlEsc extends JmlTreeScanner {
                 ProverResult pr = new ProverResult(prover,kind,msym);
                 pr.methodSymbol = msym;
                 if (start != null) {
-                    pr.setDuration((pr.timestamp().getTime()-start.getTime())/1000.);
+                    pr.accumulateDuration((pr.timestamp().getTime()-start.getTime())/1000.);
                     pr.setTimestamp(start);
                 }
                 return pr;
