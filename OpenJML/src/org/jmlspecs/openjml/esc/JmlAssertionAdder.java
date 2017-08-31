@@ -4969,16 +4969,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCCatch newCatch = M.at(pos).Catch(catchDecl, M.at(pos).Block(0L, List.<JCStatement>of(exStat,exThrow)));
 
         JCIdent id = treeutils.makeIdent(pos,decl.sym);
-        MethodSymbol msym = null;
-        for (Symbol sym: ((ClassSymbol)resource.type.tsym).members().getElementsByName(closeName)) {
-            if (sym instanceof MethodSymbol) {
-                MethodSymbol m = (MethodSymbol)sym;
-                if (m.getParameters().isEmpty()) {
-                    msym = m;
-                    break;
-                }
-            }
-        }
+        MethodSymbol msym = findCloseMethod((ClassSymbol)resource.type.tsym);
         M.at(pos);
         JCExpression fcn1 = M.Select(id, msym);
         fcn1.type = msym.type;
@@ -5017,6 +5008,31 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // FIXME - if the original try does not have catchers or finally, it can be converted to just a block
         // FIXME - what about finallyCanCompleteNormally in all of the above
         // FIXME - add position, types, symbols
+    }
+    
+    protected MethodSymbol findCloseMethod(ClassSymbol csym) {
+        MethodSymbol msym = null;
+        for (Symbol sym: csym.members().getElementsByName(closeName)) {
+            if (sym instanceof MethodSymbol) {
+                MethodSymbol m = (MethodSymbol)sym;
+                if (m.getParameters().isEmpty()) {
+                    return m;
+                }
+            }
+        }
+        Type sup = csym.getSuperclass();
+        if (sup != null && sup.tsym instanceof ClassSymbol) {
+            msym = findCloseMethod((ClassSymbol)sup.tsym);
+            if (msym != null) return msym;
+        }
+        for (Type t: csym.getInterfaces()) {
+            if (t.tsym instanceof ClassSymbol) {
+                msym = findCloseMethod((ClassSymbol)t.tsym);
+                if (msym != null) return msym;
+            }
+        }
+        log.error("jml.internal", "No close method found for  " + csym);
+        return msym;
     }
 
     // OK
@@ -6257,7 +6273,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (sym instanceof MethodSymbol && ((MethodSymbol)sym).isVarArgs()) {
             MethodSymbol msym = (MethodSymbol)sym;
             int actualLength = that.args.length();
-            int formalLength = msym.params.length() ;
+            int formalLength = ((Type.MethodType)msym.type).argtypes.length() ;  // msym.params can be null if there are varargs
             Type varargType = msym.type.getParameterTypes().last();
             if (actualLength != formalLength ||
                     !types.isSameType(that.args.last().type, varargType)) {
