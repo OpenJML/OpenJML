@@ -6997,9 +6997,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (resultType instanceof Type.CapturedType) {
                         resultType = ((Type.CapturedType)resultType).getUpperBound();
                     }
-                    if (resultType instanceof Type.TypeVar){
-                        resultType = syms.objectType;  // FIXME - use upperbound?
-                    }
+//                    if (resultType instanceof Type.TypeVar){
+//                        resultType = syms.objectType;  // FIXME - use upperbound?
+//                    }
                     //resultSym = resultType.tsym;
                     resultId = currentFresh = newTempNull(that,resultType); // initialized to null
                     resultSym = (VarSymbol) resultId.sym;
@@ -7007,9 +7007,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (resultType instanceof Type.CapturedType) {
                         resultType = ((Type.CapturedType)resultType).getUpperBound();
                     }
-                    if (resultType instanceof Type.TypeVar){
-                        resultType = syms.objectType;  // FIXME - use upperbound?  // use paramActuals?
-                    }
+//                    if (resultType instanceof Type.TypeVar){
+//                        resultType = syms.objectType;  // FIXME - use upperbound?  // use paramActuals?
+//                    }
                     //resultSym = resultType.tsym;
                     resultId = newTemp(that,resultType);
                     resultSym = (VarSymbol) resultId.sym;
