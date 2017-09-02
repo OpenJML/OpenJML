@@ -916,6 +916,13 @@ public class Utils {
             super(location);
             this.pos = pos;
         }
+        
+        public static class Quantifier extends JmlNotImplementedException {
+            private static final long serialVersionUID = 1L;
+            public Quantifier(DiagnosticPosition pos, String location) {
+                super(pos,location);
+            }
+        }
     }
 
     
