@@ -280,7 +280,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 
     	Kind k = result == null ? null : result.result();
     	String info = result == null ? "" : (" ["
-    			+ (org.jmlspecs.openjml.Utils.testingMode ? "TIME" : result.duration()) 
+    			+ (org.jmlspecs.openjml.Utils.testingMode ? "TIME" : String.format("%5.3f", result.duration())) 
     			+ " " + result.prover() + "] ");
     	tiii.removeAll();
     	String name = k == null ? "" : k.toString();
