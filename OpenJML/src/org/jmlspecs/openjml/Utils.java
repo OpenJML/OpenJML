@@ -607,7 +607,7 @@ public class Utils {
         while (!todo.isEmpty()) {
             cc = todo.remove(0);
             if (cc == null) continue;
-            if (cc.owner instanceof ClassSymbol) todo.add((ClassSymbol)cc.owner); // FIXME - can this be an interface?
+            if (includeEnclosingClasses && cc.owner instanceof ClassSymbol) todo.add((ClassSymbol)cc.owner); // FIXME - can this be an interface?
             todo.add((ClassSymbol)cc.getSuperclass().tsym);
             classes.add(0,cc);
         }
@@ -626,6 +626,7 @@ public class Utils {
             for (Type ifc : ifs) {
                 ClassSymbol sym = (ClassSymbol)ifc.tsym;
                 if (interfaceSet.add(sym)) interfaces.add(sym);
+                // FIXME - what about the owners of interfaces
             }
         }
         interfaces.addAll(classes);

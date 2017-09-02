@@ -4046,6 +4046,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 JCExpression fa = convertJML(treeutils.makeIdent(d.pos, d.sym));
                 addStat(comment(dd,"Adding exit invariants for " + d.sym,null));
+                if (d.sym.toString().equals("state")) Utils.stop();
                 addRecInvariants(false,d,fa);
             }
             currentThisExpr = savedThis;
@@ -5724,6 +5725,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected
     JCExpression accessAllowed(JCArrayAccess aa, JCExpression pstoreref, JCExpression baseThisExpr, JCExpression targetThisExpr) {
         DiagnosticPosition pos = aa;
+        JCIdent savedId = currentThisId;
+        JCExpression savedExpr = currentThisExpr;
         int posp = pos.getPreferredPosition();
         if (pstoreref instanceof JmlStoreRefKeyword) {
             JmlTokenKind ptoken = ((JmlStoreRefKeyword)pstoreref).token;
@@ -5745,9 +5748,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression result = treeutils.makeEqObject(posp, a1, e);
             if (paa.index == null ) return result;
             if (aa.index == null) return treeutils.falseLit;
+            currentThisExpr = targetThisExpr; currentThisId = (JCIdent)currentThisExpr;
             a1 = convertJML(aa.index);
+            currentThisExpr = baseThisExpr; currentThisId = (JCIdent)currentThisExpr;
             result = treeutils.makeAnd(posp,result,
                     treeutils.makeBinary(posp,JCTree.Tag.EQ,treeutils.inteqSymbol,a1,convertJML(paa.index)));
+            currentThisId = savedId;
+            currentThisExpr = savedExpr;
             return result;
             
         } else if (pstoreref instanceof JmlStoreRefArrayRange) {
@@ -5756,13 +5763,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             while (true) {
                 JCExpression addedcondition;
                 if (aa.index == null) {
+                    currentThisExpr = baseThisExpr; currentThisId = (JCIdent)currentThisExpr;
                     if (paa.lo == null && paa.hi == null) addedcondition = treeutils.trueLit;
                     else if (paa.hi == null) addedcondition = treeutils.makeBinary(pos.getPreferredPosition(), JCTree.Tag.EQ, treeutils.inteqSymbol, convertJML(paa.lo),treeutils.zero);
                     
                     // FIXME - compare paa.hi to array.length, paa.lo to zero if not null
                     else return treeutils.falseLit;
                 } else {
+                    currentThisExpr = targetThisExpr; currentThisId = (JCIdent)currentThisExpr;
                     JCExpression aat = convert(aa.index);
+                    currentThisExpr = baseThisExpr; currentThisId = (JCIdent)currentThisExpr;
                     JCExpression loCondition = treeutils.makeBinary(posp,JCTree.Tag.LE,treeutils.intleSymbol,
                             paa.lo == null ? treeutils.zero : convertJML(paa.lo),
                             aat);
@@ -5779,10 +5789,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 paa = (JmlStoreRefArrayRange)paa.expression;
                 aa = (JCArrayAccess)aa.indexed;
             }
+            currentThisExpr = targetThisExpr; currentThisId = (JCIdent)currentThisExpr;
             JCExpression a1 = convertJML(aa.indexed);
+            currentThisExpr = baseThisExpr; currentThisId = (JCIdent)currentThisExpr;
             JCExpression arrayConverted = treeutils.makeOld(pos,convertJML(paa.expression));
             if (rac) arrayConverted = convertJML(arrayConverted); // FIXME - why is this done twice?
             JCExpression result = treeutils.makeAnd(posp, treeutils.makeEqObject(posp, a1, arrayConverted), condition);
+            currentThisId = savedId;
+            currentThisExpr = savedExpr;
             return result;
         }
         log.error(pos,"esc.not.implemented", "Assignability comparison: " + aa + " vs. " + pstoreref);
@@ -5797,6 +5811,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     JCExpression accessAllowed(JmlStoreRefArrayRange aa, JCExpression pstoreref, JCExpression baseThisExpr, JCExpression targetThisExpr) {
         DiagnosticPosition pos = aa;
         int posp = pos.getPreferredPosition();
+        JCIdent savedId = currentThisId;
+        JCExpression savedExpr = currentThisExpr;
         if (pstoreref instanceof JmlStoreRefKeyword) {
             JmlTokenKind ptoken = ((JmlStoreRefKeyword)pstoreref).token;
             if (ptoken == JmlTokenKind.BSEVERYTHING) return treeutils.trueLit;
@@ -5815,24 +5831,30 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             e = convertAssignable(e,baseThisExpr,true);
             JCExpression result = treeutils.makeEqObject(posp, convertAssignable(aa.expression,targetThisExpr,true), e);
             if (paa.index == null) return result;
+            currentThisExpr = baseThisExpr; currentThisId = (JCIdent)currentThisExpr;
             JCExpression paat = convertJML(paa.index);
+            currentThisExpr = targetThisExpr; currentThisId = (JCIdent)currentThisExpr;
+            JCExpression a1 = aa.lo == null ? treeutils.zero : convertJML(aa.lo);
             result = treeutils.makeAnd(posp, result, treeutils.makeBinary(posp,JCTree.Tag.EQ,treeutils.inteqSymbol, 
-                    aa.lo == null ? treeutils.zero : convertJML(aa.lo), paat));
-//            result = treeutils.makeAnd(pos, result, treeutils.makeBinary(pos,JCTree.Tag.EQ,treeutils.inteqSymbol, 
-//                    aa.hi == null ? /* FIXME - array length -1 */ : jmlrewriter.translate(aa.hi), paat));
+                    a1, paat));
+            a1 = aa.hi != null ? convertJML(aa.hi) : treeutils.makeBinary(posp, JCTree.Tag.MINUS, treeutils.makeLength(pos, convertJML(aa.expression)), treeutils.one);
+            result = treeutils.makeAnd(pos, result, treeutils.makeBinary(pos,JCTree.Tag.EQ,treeutils.inteqSymbol, 
+                    a1, paat));
+            currentThisId = savedId;
+            currentThisExpr = savedExpr;
             return result;
         } else if (pstoreref instanceof JmlStoreRefArrayRange) {
             JmlStoreRefArrayRange paa = (JmlStoreRefArrayRange)pstoreref;
             JCExpression e = treeutils.makeOld(pos,(paa.expression));
             e = convertAssignable(e,baseThisExpr,true);
-            JCExpression result = treeutils.makeEqObject(posp, convertAssignable(aa.expression,targetThisExpr,true), e);
+            JCExpression result = treeutils.makeEqObject(posp, convertAssignable(aa.expression,baseThisExpr,true), e);
+            currentThisExpr = targetThisExpr; currentThisId = (JCIdent)currentThisExpr;
             JCExpression a1 = aa.lo == null ? treeutils.zero : convertJML(aa.lo);
+            currentThisExpr = baseThisExpr; currentThisId = (JCIdent)currentThisExpr;
             JCExpression a2 = paa.lo == null ? treeutils.zero : convertJML(paa.lo);
             result = treeutils.makeAnd(posp, result, treeutils.makeBinary(posp,JCTree.Tag.LE,treeutils.intleSymbol, 
                     a2, a1));
 
-            JCIdent savedId = currentThisId;
-            JCExpression savedExpr = currentThisExpr;
             try {
                 currentThisExpr = targetThisExpr; currentThisId = (JCIdent)currentThisExpr;
                 a1 = aa.hi != null ? convertJML(aa.hi) : treeutils.makeBinary(posp, JCTree.Tag.MINUS, treeutils.makeLength(pos, convertJML(aa.expression)), treeutils.one);
