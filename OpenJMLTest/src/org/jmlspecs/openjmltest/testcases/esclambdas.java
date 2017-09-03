@@ -247,24 +247,37 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testMethodReference() {
-//        main.addOptions("-show","-method=m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX("tt.TestJava","package tt; import java.util.function.*; \n"
                 +"@org.jmlspecs.annotation.CodeBigintMath public class TestJava { \n"
                 
                 +"  public int field;\n"
-                +"  \n"
+
+                +"  //@ requires j < 1000 && j > -1000;\n"
+                +"  //@ assignable field;\n"
+                +"  //@ ensures \\result == j+101;\n"
+                +"  //@ ensures field == j+100;\n"
+                +"  public int m1(/*@{FF}*/ BiFunction<TestJava,Integer,Integer> a, int j) {\n"
+                +"   final /*@{FF}*/ BiFunction<TestJava,Integer,Integer>  b = a;\n"
+                +"    return (int)b.apply(this,(Integer)(j+100));\n"
+                +"  }\n"
+
+                +"  /*@ @FunctionalInterface model public static interface FF extends BiFunction<TestJava,Integer,Integer> {  \n"
+                +"        assignable t.field; ensures t.field == n; ensures \\result == n+1;  \n"
+                +"        non_null  \n"
+                +"       Integer apply(TestJava t, Integer n);} */\n"
                 
                 +"    //@ public normal_behavior assignable field; ensures \\result == i + 1 && field == i ;\n"
                 +"    public Integer bump(Integer i) { field = i; return i+1; }\n"
                 +"    //@ public normal_behavior assignable field; ensures \\result == i + 1 ;\n"
                 +"    public Integer bump2(Integer i) {  return i+1; }\n"
                 
+                // A different implementation in JmlParser is needed when the cast is at the very beginning of
+                // the declaration (not signaled by modifiers). If we use a { then it looks like the start of a block.
                 +"  //@ requires j < 1000 && j > -1000;\n"
                 +"  //@ assignable field;\n"
-                +"  public void m1(java.util.function.BiFunction<TestJava,Integer,Integer> a, int j) {\n"
-                +"   java.util.function.BiFunction<TestJava,Integer,Integer>  b = a;\n"
-                +"    int k = (int)b.apply(this,(Integer)(j+100));\n"
-                +"    assert k == j + 101 && field == j + 100;\n"
+                +"  public int m3(/*@{FF}*/ BiFunction<TestJava,Integer,Integer> a, int j) {\n"
+                +"    /*@!FF*/ BiFunction<TestJava,Integer,Integer>  b = a;\n"
+                +"    return (int)b.apply(this,(Integer)(j+100));\n"
                 +"  }\n"
                                 
                 +"  //@ assignable field;\n"
@@ -272,6 +285,7 @@ public class esclambdas extends EscBase {
                 +"    m1(TestJava::bump, 200);\n"
                 +"    //@ assert field == 300;\n"
                 +"  }\n"
+                
                 +"}"
                 );
     }
