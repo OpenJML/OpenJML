@@ -18,12 +18,15 @@ public class TestArrayList {
 	//@ assert a.size() == 1;
 	//@ assert !a.isEmpty();
 	a.add(1,2);
+	//@ assert a.get(1) == 2;
 	//@ assert a.size() == 2;
 	b1 = a.contains(2);
 	//@ assert b1;
 	b1 = a.contains(3);
 	//@ assert !b1;
 	a.set(1,3);
+	//@ assert a.size() == 2;
+	//@ assert a.get(1) == 3;
 	b1 = a.contains(3);
 	//@ assert b1;
 	b1 = a.contains(2);

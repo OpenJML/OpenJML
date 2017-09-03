@@ -10624,11 +10624,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return;
         }
         
-//        if (utils.rac && inOldEnv && utils.isExprLocal(that.sym.flags())) {
-//            // FIXME - thiz should be allopwed if the whole qukantifier expression is in the same old context
-//            String message = "quantifier variable inside a \\old or \\pre expression: " + that.toString();
-//            throw new JmlNotImplementedException.Quantifier(that,message);
-//        }
+        if (utils.rac && inOldEnv && utils.isExprLocal(that.sym.flags())) {
+            // FIXME - thiz should be allopwed if the whole qukantifier expression is in the same old context
+            String message = "quantifier variable inside a \\old or \\pre expression: " + that.toString();
+            throw new JmlNotImplementedException.Quantifier(that,message);
+        }
         
         Symbol sym = convertSymbol(that.sym);
         
