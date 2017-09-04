@@ -954,6 +954,13 @@ public class JmlParser extends JavacParser {
                     inJmlDeclaration = true;
                     t = super.classOrInterfaceBodyDeclaration(
                             className, isInterface);
+                    if (isInterface && t.head instanceof JmlMethodDecl) {
+                        JmlMethodDecl md = (JmlMethodDecl)t.head;
+                        if (utils.findMod(md.mods,JmlTokenKind.MODEL)!= null
+                                && (md.mods.flags & Flags.STATIC) == 0) {
+                            md.mods.flags |= Flags.DEFAULT;
+                        }
+                    }
                     inJmlDeclaration = prevInJmlDeclaration;
                 } else {
 

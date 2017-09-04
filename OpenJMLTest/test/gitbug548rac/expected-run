@@ -1,0 +1,22 @@
+OUT:
+test/gitbug548rac/Test.java:6: JML assertion is false
+        //@ assert t.cget3(30) == 3;  // ERROR
+            ^
+test/gitbug548rac/Test.java:7: JML assertion is false
+        //@ assert t.get2(20) == 2;  // ERROR
+            ^
+test/gitbug548rac/Test.java:8: JML assertion is false
+        //@ assert t.get3(30) == 2;   // ERROR
+            ^
+java.lang.AbstractMethodError: Method Test.get(I)I is abstract
+java.lang.AbstractMethodError: Method Test.get(I)I is abstract
+	at Test.get(Test.java)
+	at Test.main(Test.java:12)
+org.jmlspecs.utils.Utils$NoModelMethodImplementationException: No model method implementation found for cget
+org.jmlspecs.utils.Utils$NoModelMethodImplementationException: No model method implementation found for cget
+	at org.jmlspecs.utils.Utils.noModelMethodImplementation(Utils.java:861)
+	at Base.cget(Test.java:32)
+	at Test.cget(Test.java:1)
+	at Test.main(Test.java:18)
+
+ERR:

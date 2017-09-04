@@ -607,7 +607,16 @@ public class Utils {
         while (!todo.isEmpty()) {
             cc = todo.remove(0);
             if (cc == null) continue;
-            if (includeEnclosingClasses && cc.owner instanceof ClassSymbol) todo.add((ClassSymbol)cc.owner); // FIXME - can this be an interface?
+            if (classes.contains(cc)) {
+                classes.remove(cc);
+                classes.add(0,cc);
+                continue;
+            }
+            if (includeEnclosingClasses) {
+                Symbol sym =  cc.getEnclosingElement();
+                while (sym instanceof MethodSymbol) sym = sym.owner;
+                if (sym instanceof ClassSymbol) todo.add((ClassSymbol)sym); // FIXME - can this be an interface?
+            }
             todo.add((ClassSymbol)cc.getSuperclass().tsym);
             classes.add(0,cc);
         }
@@ -629,7 +638,9 @@ public class Utils {
                 // FIXME - what about the owners of interfaces
             }
         }
+        ClassSymbol o = classes.remove(0);
         interfaces.addAll(classes);
+        interfaces.add(0,o);
         return interfaces;
     }
 

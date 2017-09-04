@@ -850,6 +850,17 @@ public class Utils {
         return Character.toString(b);
     }
     
+    static public class NoModelMethodImplementationException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+        public NoModelMethodImplementationException(String name) {
+            super("No model method implementation found for " + name);
+        }
+    }
+    
+    public static void noModelMethodImplementation(String name) {
+        throw new NoModelMethodImplementationException(name);
+    }
+    
     /** Used just for debugging - a breakpoint is kept set within the method */
     public boolean print(String msg) {
         System.out.println(msg);

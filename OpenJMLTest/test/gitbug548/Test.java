@@ -1,17 +1,24 @@
 //@ non_null_by_default
-public class Test {
+public class Test implements IFace {
     
-    Test field = new Test();
-    int ff;
-    
-    public Test m() {
+    public void m() {
         
-        return new Test() {
-            
-            public int fff() { return field.ff; }
-        };
+        //@ assert get() == 1;
+        //@ assert getd() == 2;
     }
     
-    public int fff() { return 1; }
-    
 }
+
+interface IFace {
+    
+    //@ ensures \result == 1;
+    //@ model public pure int get();
+    
+    //@ ensures \result == 2;
+    //@ model public pure int getd();
+}
+
+/* Oddities: TYhis example fails if only get is present. But it succeeds in finding get if getd (which is declqared as defaiult)
+if present. If getd is not default, neither is found.
+
+*/

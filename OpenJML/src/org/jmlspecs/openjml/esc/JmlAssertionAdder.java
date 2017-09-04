@@ -6778,6 +6778,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             boolean inliningCall = mspecs != null && mspecs.decl != null && mspecs.decl.mods != null && attr.findMod(mspecs.decl.mods,JmlTokenKind.INLINE) != null;
             
             // Collect all the methods overridden by the method being called
+            if (calleeMethodSym.toString().startsWith("repaint")) Utils.stop();
             java.util.List<Pair<MethodSymbol,Type>> overridden = parents(calleeMethodSym,receiverType);
             
             /** We can either try to keep subexpressions as subexpressions, or break
@@ -7235,7 +7236,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // each of which may be an AND of clauses - so if the precondition is
             // false, every specification case is false.
             JmlMethodClauseExpr clauseToReference = null;
-
+            if (calleeMethodSym.toString().startsWith("repaint")) Utils.stop();
             boolean anyFound = false;
             for (Pair<MethodSymbol,Type> pair: overridden) {
                 MethodSymbol mpsym = pair.first;
@@ -7258,7 +7259,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else {
                     JCMethodDecl decl = s.cases.decl;
                     JmlMethodSpecs defaults = JmlSpecs.defaultSpecs(context,
-                            decl == null ? null : decl.sym,   // FIXME - why is decl ever null?
+                            decl == null ? calleeMethodSym : decl.sym,   // FIXME - why is decl ever null?
                             decl == null ? methodDecl.pos : decl.pos).cases;
                     s.cases = defaults;
                     s.cases.deSugared = defaults;  
@@ -12245,6 +12246,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Checks whether there is a Skip annotation
         if (esc && JmlEsc.skip(that)) return;
         if (rac && (JmlEsc.skipRac(that) || that.body == null)) {
+            if (that.body == null && that.sym.owner.isInterface() && (that.mods.flags & Flags.DEFAULT) != 0) {
+                // A default was put on a method with no body, presumably because it was a model method in an interface
+                // SO remove the default and add Abstract
+                that.mods.flags &= ~Flags.DEFAULT;
+                that.mods.flags |= Flags.ABSTRACT;
+                that.sym.flags_field &= ~Flags.DEFAULT;
+                that.sym.flags_field |= Flags.ABSTRACT;
+            }
             if (classDefs != null) classDefs.add(that); // FIXME - should make a fresh copy of the declaration
             return;
         }
@@ -14561,9 +14570,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         while (cc != null && cc.getTag() != TypeTag.NONE) {
             classes.add(0,cc);
             if (cc instanceof Type.ClassType) {
+                if (includeEnclosing) {  // FIXME - only if static?
+                    Type t = cc.getEnclosingType();
+                    if (t != null && t.getTag() != TypeTag.NONE) {
+                        int n = 0;
+                        for (Type tt: parents(t,includeEnclosing)) {
+                            if (!tt.isInterface()) classes.add(n++,tt);
+                        }
+                    }
+                }
                 Type.ClassType cct = (Type.ClassType)cc;
                 cc = cct.supertype_field;
                 if (cc == null) cc = ((Type.ClassType)cct.tsym.type).supertype_field;
+
             } else if (cc instanceof Type.ArrayType) { 
                 cc = syms.objectType;
             } else if (cc instanceof Type.TypeVar) {
@@ -14593,7 +14612,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 interfacesToDo.add(fin);
             }
         }
-        Type obj = classes.remove(0);
+        Type obj = classes.remove(0);  // Makes sure that java.langObject is first
         interfaces.addAll(classes);
         interfaces.add(0,obj);
 
@@ -14660,13 +14679,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (utils.isJMLStatic(m)) {
             methods.add(pair(m,m.owner.type));
         } else {
-            for (Type c: parents(classType, false)) {
-                for (Symbol mem: c.tsym.getEnclosedElements()) {
+            for (ClassSymbol csym: utils.parents(classType.tsym, true)) {
+                for (Symbol mem: csym.getEnclosedElements()) {
                     if (mem instanceof MethodSymbol &&
                             mem.name.equals(m.name) &&
-                            (mem == m || m.overrides(mem, c.tsym, Types.instance(context), true) 
+                            (mem == m || m.overrides(mem, csym, Types.instance(context), true) 
                             || ((MethodSymbol)mem).overrides(m, (TypeSymbol)m.owner, Types.instance(context), true))) {
-                        methods.add(pair((MethodSymbol)mem,c));
+                        methods.add(pair((MethodSymbol)mem,csym.type));
                     }
                 }
             }
