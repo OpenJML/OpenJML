@@ -2,9 +2,9 @@ OUT:
 test\uniqueList\UniqueList.java:64: JML precondition is false
 		list.add(6);
 		        ^
-test\uniqueList\UniqueList.java:30: Associated declaration: test\uniqueList\UniqueList.java:64: 
-	/*@ requires length < 10;
-	    ^
+test\uniqueList\UniqueList.java:34: Associated declaration: test/uniqueList/UniqueList.java:64: 
+	public void add(int value){
+	            ^
 test\uniqueList\UniqueList.java:30: JML precondition is false
 	/*@ requires length < 10;
 	    ^

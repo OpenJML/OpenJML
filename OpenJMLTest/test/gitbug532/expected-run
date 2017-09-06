@@ -5,9 +5,9 @@ Hello, world
 test/gitbug532/Big.java:11: JML precondition is false
 	System.out.println(safe_mult(1000000, 1000, 1000));
 	                            ^
-test/gitbug532/Big.java:2: Associated declaration: test/gitbug532/Big.java:11: 
-    //@requires (\bigint) i * (\bigint) j * (\bigint) k < (\bigint) Integer.MAX_VALUE;
-       ^
+test/gitbug532/Big.java:3: Associated declaration: test/gitbug532/Big.java:11: 
+    static int safe_mult(int i, int j, int k) {
+               ^
 -727379968
 
 ERR:

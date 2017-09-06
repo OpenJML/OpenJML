@@ -265,7 +265,7 @@ public class MethodProverSMT {
         IResponse solverResponse = null;
         BasicBlocker2 basicBlocker;
         BasicProgram program;
-        Date start = new Date();
+        Date start;
         ICommand.IScript script;
         boolean usePushPop = true; // FIXME - false is not working yet
         {
@@ -303,6 +303,7 @@ public class MethodProverSMT {
                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,new Date()).setOtherInfo(d);
             }
             // Starts the solver (and it waits for input)
+            start = new Date();
             setBenchmark(proverToUse,methodDecl.name.toString(),smt.smtConfig);
             solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
             if (solver == null) { 
@@ -913,7 +914,7 @@ public class MethodProverSMT {
                     if (optional != null) {
                         if (optional instanceof JCTree.JCLiteral) extra = ": " + ((JCTree.JCLiteral)optional).getValue().toString(); //$NON-NLS-1$
                     }
-                    if (assertStat.description != null) {
+                    if (assertStat.description != null && label != Label.PRECONDITION) {
                         extra = ": " + assertStat.description;
                     }
                     
@@ -944,6 +945,47 @@ public class MethodProverSMT {
                         if (assertStat.associatedSource != null) log.useSource(prev);
                     }
 
+                    if (label == Label.PRECONDITION) {
+                        //BiMap<JCTree,JCTree> bimap = jmlesc.assertionAdder.exprBiMap;
+                        //for (int pdetail=1; pdetail <= jmlesc.assertionAdder.preconditionDetail; pdetail++) 
+                        {
+                           String nm = assertStat.description;
+                           //logPreValue(nm,cemap);
+                           Boolean v = findPreValue(nm,cemap);
+                            //log.note("jml.message",nm + " " + v);
+                           if (v != null && !v) {
+                                int pdetail2 = 0;
+                                while (true) {
+                                    pdetail2++;
+                                    String nmm = nm + "_" + pdetail2;
+                                    Boolean vv = findPreValue(nmm,cemap);
+                                    //log.note("jml.message",nmm + " " + vv);
+                                    if (vv == null && pdetail2 > 6) break;
+                                    if (true || !vv) {
+                                        int pdetail3 = 0;
+                                        while (true) {
+                                            pdetail3++;
+                                            String nmmm = nmm + "_" + pdetail3;
+                                            Boolean vvv = findPreValue(nmmm,cemap);
+                                            //log.note("jml.message",nmmm + " " + vvv);
+                                            if (vvv == null) break;
+                                            if (!vvv) {
+                                                JCTree s = findPreExpr(nmmm,cemap);
+                                                JavaFileObject prevv = log.useSource(jmlesc.assertionAdder.preconditionDetailClauses.get(nmmm));
+                                                log.warning(s.pos,"esc.false.precondition.conjunct", s.toString());
+                                                log.useSource(prevv);
+                                                break;
+                                            } else {
+                                                continue;
+                                            }
+                                        }
+                                    } else {
+                                        // FIXME - there cannot be a true value here
+                                    }
+                                }
+                            }
+                        }
+                    }
                     // Found an invalid assertion, so we can terminate
                     // Negate the path condition
                     return pathCondition; 
@@ -960,10 +1002,61 @@ public class MethodProverSMT {
         }
         return null; // Did not find anything in this block or its followers
     }
+    
+    protected void logPreValue(String preid, Map<JCTree,String> cemap) {
+        BiMap<JCTree,JCTree> bimap = jmlesc.assertionAdder.exprBiMap;
+        JCTree s = null;
+        for (JCTree t: bimap.forward.keySet()) {
+            JCTree n = bimap.getf(t);
+            if (n != null && n.toString().contains(preid)) log.note("jml.message",  t.toString() + " >>> " + n);
+        }
+            for (JCTree t: bimap.reverse.keySet()) { 
+//            if (t instanceof JCIdent && ((JCIdent)t).name.toString().contains(preid)) { 
+            if (t instanceof JCIdent && t.toString().contains(preid)) {
+                s = bimap.getr(t); 
+                String vs = s == null ? null : cemap.get(s);
+                Boolean v = vs == null ? null : "true".equals(vs);
+                log.note("jml.message", t + " <<< " +  s + " " + vs + " " + v );
+            }
+        }
+    }
+
+    protected Boolean findPreValue(String preid, Map<JCTree,String> cemap) {
+        BiMap<JCTree,JCTree> bimap = jmlesc.assertionAdder.exprBiMap;
+        JCTree s = null;
+        for (JCTree t: bimap.reverse.keySet()) { 
+            if (t instanceof JCIdent && ((JCIdent)t).name.toString().equals(preid)) { 
+                s = bimap.getr(t); 
+                break; 
+            }
+        }
+        String vs = s == null ? null : cemap.get(s);
+        Boolean v = vs == null ? null : "true".equals(vs);
+        return v;
+    }
+
+    protected JCTree findPreExpr(String preid, Map<JCTree,String> cemap) {
+        BiMap<JCTree,JCTree> bimap = jmlesc.assertionAdder.exprBiMap;
+        JCTree s = null;
+        for (JCTree t: bimap.reverse.keySet()) { 
+            if (t instanceof JCIdent && ((JCIdent)t).name.toString().equals(preid)) { 
+                s = bimap.getr(t); 
+                break; 
+            }
+        }
+        return s;
+    }
 
     /** Query the solver for the (boolean) value of an id in the current model */
     public Boolean getBoolValue(String id, SMT smt, ISolver solver) {
         String v = getValue(id,smt,solver);
+        if (v == null) return null;
+        return !v.contains("false");
+    }
+    
+    /** Query the solver for the (boolean) value of an id in the current model */
+    public Boolean getBoolValueOrNull(String id, SMT smt, ISolver solver) {
+        String v = getValue(id,smt,solver,false);
         if (v == null) return null;
         return !v.contains("false");
     }
@@ -1333,10 +1426,11 @@ public class MethodProverSMT {
             if (!(t instanceof JCExpression)) continue;
             // t is the original source expression
             JCTree t1 = assertionAdder.exprBiMap.getf(t);
-            // t1 is the result of JmlAssertionAdder, which should be a new AST
+  //          if (t1 != null && t1.toString().contains("CPRE__4_4")) Utils.stop();
+           // t1 is the result of JmlAssertionAdder, which should be a new AST
             JCExpression t2 = basicBlocker.bimap.getf(t1);
             // t2 is the result of BasicBlocker2, which may have changed AST nodes in place
-            if (t2 == null && t1 instanceof JCIdent) t2 = (JCIdent)t1; // this can happen if the Ident ends up being declared in a declaration (such as wtih field or array assignments)
+            if (t2 == null && t1 instanceof JCIdent) t2 = (JCIdent)t1; // this can happen if the Ident ends up being declared in a declaration (such as with field or array assignments)
 
             IExpr smtexpr = smttrans.bimap.getf(t2);
             if (smtexpr == null) continue;
@@ -1362,8 +1456,10 @@ public class MethodProverSMT {
 
 //            String t3 = t2 == null ? null : ce.get(t2.toString());
             values.put(t, t3);
-            if (verbose) log.getWriter(WriterKind.NOTICE).println(t + " >>>> " + t1 + " >>>> " + t2 + " >>>> " + 
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(t + " >>>> " + t1 + " >>>> " + t2 + " >>>> " + 
                     smt.smtConfig.defaultPrinter.toString(smtexpr) + " >>>> "+ t3);
+            }
         }
         return values;
     }
