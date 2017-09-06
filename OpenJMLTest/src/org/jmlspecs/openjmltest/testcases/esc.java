@@ -1266,7 +1266,10 @@ public class esc extends EscBase {
 				seq("/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method m5a", 9,
 						anyorder(
 								seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m6a:  a[i]",
-										7, "/tt/TestJava.java:20: warning: Associated declaration", 7),
+										7
+										, "/tt/TestJava.java:45: warning: Associated declaration", 15
+										,"/tt/TestJava.java:43: warning: Precondition conjunct is false: i < a.length",35
+										),
 								seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m6a",
 										7, "/tt/TestJava.java:43: warning: Associated declaration", 7))));
 	}
@@ -1947,11 +1950,14 @@ public class esc extends EscBase {
 				+ "  public int inst(boolean b, int i) { m(i); return j; }\n" + "  //@ modifies j;\n"
 				+ "  //@ ensures \\result == j;\n" + "  public int instbad(boolean b, int i) { m(i); return j; }\n"
 				+ "  //@ modifies j;\n" + "  //@ ensures \\result == i;\n"
-				+ "  public int instbad2(boolean b, int i) { m(1); return j; }\n" + "}",
-				"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Precondition) in method instbad",
-				43, "/tt/TestJava.java:4: warning: Associated declaration", 7,
-				"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",
-				49, "/tt/TestJava.java:16: warning: Associated declaration", 7);
+				+ "  public int instbad2(boolean b, int i) { m(1); return j; }\n" + "}"
+				,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Precondition) in method instbad",43
+				,"/tt/TestJava.java:7: warning: Associated declaration", 22
+				,"/tt/TestJava.java:4: warning: Precondition conjunct is false: i > 0",16
+				,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",
+				49
+				, "/tt/TestJava.java:16: warning: Associated declaration", 7
+				);
 	}
 
 	@Test
@@ -1979,11 +1985,12 @@ public class esc extends EscBase {
 				+ "  //@ modifies j;\n"
 				+ "  //@ ensures \\result == i;\n" 
 				+ "  public int instbad2(boolean b, int i) { m(1); return j; }\n"
-				+ "}",
-				"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Precondition) in method instbad",
-				43, "/tt/TestJava.java:4: warning: Associated declaration", 7,
-				"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",
-				49, "/tt/TestJava.java:16: warning: Associated declaration", 7);
+				+ "}"
+				,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Precondition) in method instbad",43
+				, "/tt/TestJava.java:7: warning: Associated declaration",15
+				,"/tt/TestJava.java:4: warning: Precondition conjunct is false: i > 0",16
+				,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",49
+				, "/tt/TestJava.java:16: warning: Associated declaration", 7);
 	}
 
 	@Test
@@ -2766,7 +2773,11 @@ public class esc extends EscBase {
 																									// ERROR
 				+ "}"
 				,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Precondition) in method m1a",35
-				,"/tt/TestJava.java:15: warning: Associated declaration", 7);
+				,"/tt/TestJava.java:18: warning: Associated declaration",14
+				,"/tt/TestJava.java:3: warning: Precondition conjunct is false: iii == 1",16
+				,"/tt/TestJava.java:9: warning: Precondition conjunct is false: ii == 2",16
+				,"/tt/TestJava.java:15: warning: Precondition conjunct is false: i == 3",16
+				);
 	}
 
 	@Test
@@ -3669,11 +3680,14 @@ public class esc extends EscBase {
                         + "  }\n" 
                         + "}"
                 ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Precondition) in method m1b",9
-                ,"/tt/TestJava.java:4: warning: Associated declaration",25
+                ,"/tt/TestJava.java:4: warning: Associated declaration",15
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)",16
                 ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Precondition) in method m2b",9
-                ,"/tt/TestJava.java:4: warning: Associated declaration",25
+                ,"/tt/TestJava.java:4: warning: Associated declaration",15
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)",16
                 ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m3b",9
-                ,"/tt/TestJava.java:4: warning: Associated declaration",25
+                ,"/tt/TestJava.java:4: warning: Associated declaration",15
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)",16
                 );
     }
 
@@ -3708,11 +3722,14 @@ public class esc extends EscBase {
                         + "  }\n" 
                         + "}"
                 ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Precondition) in method m1b",9
-                ,"/tt/TestJava.java:4: warning: Associated declaration",32
+                ,"/tt/TestJava.java:4: warning: Associated declaration",15
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)",16
                 ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Precondition) in method m2b",9
-                ,"/tt/TestJava.java:4: warning: Associated declaration",32
+                ,"/tt/TestJava.java:4: warning: Associated declaration",15
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)",16
                 ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m3b",9
-                ,"/tt/TestJava.java:4: warning: Associated declaration",32
+                ,"/tt/TestJava.java:4: warning: Associated declaration",15
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)",16
                 );
     }
 
@@ -3747,11 +3764,14 @@ public class esc extends EscBase {
                         + "  }\n" 
                         + "}"
                 ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Precondition) in method m1b",9
-                ,"/tt/TestJava.java:4: warning: Associated declaration",29
+                ,"/tt/TestJava.java:4: warning: Associated declaration",15
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)",16
                 ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Precondition) in method m2b",9
-                ,"/tt/TestJava.java:4: warning: Associated declaration",29
+                ,"/tt/TestJava.java:4: warning: Associated declaration",15
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)",16
                 ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m3b",9
-                ,"/tt/TestJava.java:4: warning: Associated declaration",29
+                ,"/tt/TestJava.java:4: warning: Associated declaration",15
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)",16
                 );
     }
 
@@ -3787,11 +3807,14 @@ public class esc extends EscBase {
                         + "  }\n" 
                         + "}"
                 ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Precondition) in method m1b",9
-                ,"/tt/TestJava.java:4: warning: Associated declaration",36
+                ,"/tt/TestJava.java:4: warning: Associated declaration",15
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)",16
                 ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Precondition) in method m2b",9
-                ,"/tt/TestJava.java:4: warning: Associated declaration",36
+                ,"/tt/TestJava.java:4: warning: Associated declaration",15
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)",16
                 ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m3b",9
-                ,"/tt/TestJava.java:4: warning: Associated declaration",36
+                ,"/tt/TestJava.java:4: warning: Associated declaration",15
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)",16
                 );
     }
 

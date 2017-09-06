@@ -46,7 +46,8 @@ public class esclocation extends EscBase {
                 +"  public void mm() {}\n"
                 +"}"  // FIXME - are the following the best error messages we can make?
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m",7
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",9
+                ,"/$A/tt/TestJava.jml:3: warning: Associated declaration",15
+                ,"/$A/tt/TestJava.jml:2: warning: Precondition conjunct is false: false",18
                 ,"/tt/TestJava.java:6: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.mm()",15
                 );
     }

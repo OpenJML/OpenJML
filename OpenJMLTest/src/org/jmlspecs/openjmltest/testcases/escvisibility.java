@@ -649,7 +649,8 @@ public class escvisibility extends EscBase {
                 
                         
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m1",13
-                ,"/tx/B.java:2: warning: Associated declaration",8
+                ,"/tx/B.java:3: warning: Associated declaration",22
+                ,"/tx/B.java:2: warning: Precondition conjunct is false: false",17
                 );
     }
     
@@ -697,7 +698,8 @@ public class escvisibility extends EscBase {
                 
                         
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m1",13
-                ,"/tx/B.java:3: warning: Associated declaration",8
+                ,"/tx/B.java:4: warning: Associated declaration",22
+                ,"/tx/B.java:3: warning: Precondition conjunct is false: false",17
                 );
     }
     
@@ -787,7 +789,8 @@ public class escvisibility extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Precondition) in method m1",11
-                ,"/tt/TestJava.java:4: warning: Associated declaration",8
+                ,"/tt/TestJava.java:5: warning: Associated declaration",22
+                ,"/tt/TestJava.java:4: warning: Precondition conjunct is false: false",17
                 );
     }
     
@@ -810,7 +813,8 @@ public class escvisibility extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Precondition) in method m1",11
-                ,"/tt/TestJava.java:4: warning: Associated declaration",8
+                ,"/tt/TestJava.java:5: warning: Associated declaration",22
+                ,"/tt/TestJava.java:4: warning: Precondition conjunct is false: false",17
                 );
     }
     
@@ -833,7 +837,8 @@ public class escvisibility extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Precondition) in method m1",11
-                ,"/tt/TestJava.java:4: warning: Associated declaration",8
+                ,"/tt/TestJava.java:5: warning: Associated declaration",22
+                ,"/tt/TestJava.java:4: warning: Precondition conjunct is false: false",17
                 );
     }
 

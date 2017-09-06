@@ -8,12 +8,15 @@ Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of CashAmountOnlyPrivate.negate() with prover !!!! - no warnings
 Starting proof of CashAmountOnlyPrivate.increase(CashAmountOnlyPrivate) with prover !!!!
-..\..\OpenJMLDemo\src\openjml\demo\CashAmountOnlyPrivate.java:92: warning: The prover cannot establish an assertion (Precondition) in method increase
+../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:92: warning: The prover cannot establish an assertion (Precondition) in method increase
     return new CashAmountOnlyPrivate(new_dollars, new_cents);
            ^
-..\..\OpenJMLDemo\src\openjml\demo\CashAmountOnlyPrivate.java:40: warning: Associated declaration
+../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:50: warning: Associated declaration
+  public CashAmountOnlyPrivate(final int the_dollars, final int the_cents) {
+         ^
+../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:40: warning: Precondition conjunct is false: the_cents < 100
   //@ requires -100 < the_cents && the_cents < 100;
-      ^
+                                   ^
 Completed proof of CashAmountOnlyPrivate.increase(CashAmountOnlyPrivate) with prover !!!! - with warnings
 Starting proof of CashAmountOnlyPrivate.decrease(CashAmountOnlyPrivate) with prover !!!!
 Feasibility check #1 - end of preconditions : OK
@@ -32,4 +35,4 @@ Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of CashAmountOnlyPrivate.equivalent(CashAmountOnlyPrivate) with prover !!!! - no warnings
 Completed proving methods in CashAmountOnlyPrivate
-2 warnings
+3 warnings

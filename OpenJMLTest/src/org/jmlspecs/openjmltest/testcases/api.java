@@ -1464,12 +1464,12 @@ public class api extends JmlTestCase {
             endCapture();
             //res = m.getProofResult(mmsym);
             assertTrue(res != null);
-            assertEquals(2,dlist.size());
+            assertEquals(3,dlist.size());
             assertTrue(res.result() == IProverResult.POSSIBLY_SAT || res.result() == IProverResult.SAT);
             
             m.doESC(csym);
             check("","");
-            assertEquals(4,dlist.size());
+            assertEquals(6,dlist.size());
         } catch(AssertionError e) {
             throw e;
         } catch (Exception e) {

@@ -2,9 +2,9 @@ OUT:
 test/gitbug536/Test536.java:29: JML precondition is false
       doesNothingButRequiresSorted(array1);
                                   ^
-test/gitbug536/Test536.java:5: Associated declaration: test/gitbug536/Test536.java:29: 
-    public static void doesNothingButRequiresSorted(int[] array) {
-                                                          ^
+test/gitbug536/Test536.java:5: Associated declaration: test/gitbug536a/Test536.java:15: 
+  public static void doesNothingButRequiresSorted(int[] array) {
+                                                        ^
 test/gitbug536/Test536.java:33: JML precondition is false
       doesNothingButRequiresSortedC(array1);
                                    ^

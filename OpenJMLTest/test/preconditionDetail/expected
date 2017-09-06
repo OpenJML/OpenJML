@@ -1,0 +1,75 @@
+Proving methods in TestAA
+Starting proof of TestAA.TestAA() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of TestAA.TestAA() with prover !!!! - no warnings
+Starting proof of TestAA.m(java.lang.Integer,int,java.lang.Integer) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of TestAA.m(java.lang.Integer,int,java.lang.Integer) with prover !!!! - no warnings
+Completed proving methods in TestAA
+Proving methods in TestB
+Starting proof of TestB.TestB() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of TestB.TestB() with prover !!!! - no warnings
+Starting proof of TestB.m(java.lang.Integer,int,java.lang.Integer) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of TestB.m(java.lang.Integer,int,java.lang.Integer) with prover !!!! - no warnings
+Completed proving methods in TestB
+Proving methods in TestC
+Completed proving methods in TestC
+Proving methods in TestA
+Starting proof of TestA.TestA() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of TestA.TestA() with prover !!!! - no warnings
+Starting proof of TestA.mm(TestAA,int,(@org.jmlspecs.annotation.Nullable :: java.lang.Integer)) with prover !!!!
+test/preconditionDetail/TestA.java:22: warning: The prover cannot establish an assertion (Precondition) in method mm
+        case 1: a.m(k,100,100); break;
+                   ^
+test/preconditionDetail/TestA.java:11: warning: Associated declaration
+    public void m(Integer p, int q, Integer r) {
+                ^
+test/preconditionDetail/TestC.java:11: warning: Precondition conjunct is false: p != null
+    public void m(Integer p, int q, Integer r);
+                          ^
+test/preconditionDetail/TestC.java:11: warning: Precondition conjunct is false: p != null
+    public void m(Integer p, int q, Integer r);
+                          ^
+test/preconditionDetail/TestB.java:5: warning: Precondition conjunct is false: p != null
+    public void m(Integer p, int q, Integer r) {
+                          ^
+test/preconditionDetail/TestA.java:11: warning: Precondition conjunct is false: p != null
+    public void m(Integer p, int q, Integer r) {
+                          ^
+test/preconditionDetail/TestA.java:11: warning: Precondition conjunct is false: p != null
+    public void m(Integer p, int q, Integer r) {
+                          ^
+test/preconditionDetail/TestA.java:23: warning: The prover cannot establish an assertion (Precondition) in method mm
+        case 2: a.m(100,100,kk); break;
+                   ^
+test/preconditionDetail/TestA.java:11: warning: Associated declaration
+    public void m(Integer p, int q, Integer r) {
+                ^
+test/preconditionDetail/TestC.java:11: warning: Precondition conjunct is false: r != null
+    public void m(Integer p, int q, Integer r);
+                                            ^
+test/preconditionDetail/TestC.java:11: warning: Precondition conjunct is false: r != null
+    public void m(Integer p, int q, Integer r);
+                                            ^
+test/preconditionDetail/TestB.java:5: warning: Precondition conjunct is false: r != null
+    public void m(Integer p, int q, Integer r) {
+                                            ^
+test/preconditionDetail/TestA.java:11: warning: Precondition conjunct is false: r != null
+    public void m(Integer p, int q, Integer r) {
+                                            ^
+test/preconditionDetail/TestA.java:11: warning: Precondition conjunct is false: r != null
+    public void m(Integer p, int q, Integer r) {
+                                            ^
+Completed proof of TestA.mm(TestAA,int,(@org.jmlspecs.annotation.Nullable :: java.lang.Integer)) with prover !!!! - with warnings
+Completed proving methods in TestA
+Note: /Users/davidcok/cok/projects/OpenJMLB/Specs/java8/java/util/Random.jml uses internal proprietary API that may be removed in a future release.
+Note: Recompile with -Xlint:sunapi for details.
+14 warnings
