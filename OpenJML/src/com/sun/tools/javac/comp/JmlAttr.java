@@ -3450,7 +3450,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         log.error(arg.pos(),"jml.ref.arg.required",token.internedName());
                     }
                 }
-                if (!postClauses.contains(currentClauseType)) {
+                if (!freshClauses.contains(currentClauseType)) {
                     // The +1 is to fool the error reporting mechanism into 
                     // allowing other error reports about the same token
                     log.error(tree.pos+1, "jml.misplaced.token", token.internedName(), currentClauseType == null ? "jml declaration" : currentClauseType.internedName());
@@ -3774,6 +3774,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** This set holds method clause types in which the these tokens may appear:
      *  \not_assigned \only_assigned \only_captured \only_accessible \not_modified */
     public EnumSet<JmlTokenKind> postClauses = EnumSet.of(ENSURES,SIGNALS,DURATION,WORKING_SPACE,ASSERT,ASSUME);
+    public EnumSet<JmlTokenKind> freshClauses = EnumSet.of(LOOP_INVARIANT,ASSERT,ASSUME); { freshClauses.addAll(postClauses); }
 
     /** This handles expression constructs with no argument list such as \\result */
     public void visitJmlSingleton(JmlSingleton that) {

@@ -597,6 +597,10 @@ public class Utils {
     // Includes self
     public java.util.List<ClassSymbol> parents(TypeSymbol ct, boolean includeEnclosingClasses) {
         ArrayList<ClassSymbol> interfaces = new ArrayList<ClassSymbol>(20);
+        if (ct instanceof Symbol.TypeVariableSymbol) {
+            ct = ct.type.getUpperBound().tsym;
+            // FIXME - what if bound is also a type variable?
+        }
         if (!(ct instanceof ClassSymbol)) return interfaces;
         ClassSymbol c = (ClassSymbol)ct; // FIXME - what if we want the parents of a type variable?
         List<ClassSymbol> classes = new LinkedList<ClassSymbol>();

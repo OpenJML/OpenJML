@@ -3006,6 +3006,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return addNullnessAllocationTypeCondition(pos,sym,isNonNull,instanceBeingConstructed,true);
     }
 
+    protected boolean addNullnessTypeCondition(DiagnosticPosition pos, Symbol sym, boolean instanceBeingConstructed) {
+        boolean isNonNull = true;
+        Symbol owner = sym.owner;
+        if (owner instanceof MethodSymbol) owner = owner.owner;
+        if (!sym.type.isPrimitive() && !jmltypes.isJmlType(sym.type)) {
+            isNonNull = specs.isNonNull(sym, (Symbol.ClassSymbol)owner) ;
+        }
+        return addNullnessAllocationTypeCondition(pos,sym,isNonNull,instanceBeingConstructed,false);
+    }
+
 
     /** Returns true iff the declaration is explicitly or implicitly non_null */
     protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed, boolean allocCheck) {
@@ -6818,6 +6828,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             boolean inliningCall = mspecs != null && mspecs.decl != null && mspecs.decl.mods != null && attr.findMod(mspecs.decl.mods,JmlTokenKind.INLINE) != null;
             
             // Collect all the methods overridden by the method being called, including the method itself
+            if (calleeMethodSym.toString().contains("getArray")) Utils.stop();
             java.util.List<Pair<MethodSymbol,Type>> overridden = parents(calleeMethodSym,receiverType);
             
             /** We can either try to keep subexpressions as subexpressions, or break
@@ -11797,6 +11808,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         int p = pos.getPreferredPosition();
         JmlStatementHavoc st = M.at(p).JmlHavocStatement(newlist.toList());
+        allocCounter++;
         // FIXME - this ought to work to preserve initialized values at the beginning of th e0th iteration, but makes loops infeasbile
 //        JCExpression id = treeutils.makeIdent(indexDecl.pos, indexDecl.sym);
 //        JCExpression e = treeutils.makeBinary(p, JCTree.Tag.GT, id, treeutils.zero);
@@ -11805,10 +11817,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         {
             for (JCExpression item: st.storerefs) {
                 if (item instanceof JCIdent) {
-                    addNullnessAllocationTypeCondition(item, ((JCIdent)item).sym, false );
+                    addNullnessTypeCondition(item, ((JCIdent)item).sym, false );
                 } else if (item instanceof JCFieldAccess) {
                     JCFieldAccess fa = (JCFieldAccess)item;
-                    if (fa.name != null) addNullnessAllocationTypeCondition(item, fa.sym, false );
+                    if (fa.name != null) addNullnessTypeCondition(item, fa.sym, false );
                 }
                 // FIXME - zadd more types? becareful not to include wildcards
             }
@@ -12995,7 +13007,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression exprCopy = convertCopy(arg);
         if (assumingPostConditions) {
             // allocCounter is already bumped up earlier when it was declared that the result was allocated
-            e = allocCounterEQ(pos, exprCopy, allocCounter);
+            e = allocCounterGT(pos, exprCopy, allocCounter-1);
         } else {
             // FIXME - explain why this is different than the above - this would be the postcondition for the method
             e = allocCounterGT(pos, exprCopy, 0);
@@ -13676,6 +13688,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean pv = checkAccessEnabled;  // Don't check access during JML statements
         checkAccessEnabled = false;
 
+        boolean saved = assumingPostConditions;
+        assumingPostConditions = false;
         try {
           switch (that.token) {
             case ASSERT:
@@ -13739,6 +13753,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             notImplemented(that.token.internedName() + " statement containing ",e);
         } finally {
             checkAccessEnabled = pv;
+            assumingPostConditions = saved;
         }
     }
 
@@ -13759,10 +13774,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlStatementLoop(JmlStatementLoop that) {
+        boolean saved = assumingPostConditions;
+        assumingPostConditions = false;
         JmlStatementLoop st = M.at(that).JmlStatementLoop(that.token, convertExpr(that.expression));
         st.setType(that.type);
         //st.sym = that.sym;
         result = st;
+        assumingPostConditions = saved;
     }
 
     // OK
@@ -14718,7 +14736,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public java.util.List<Pair<MethodSymbol,Type>> parents(MethodSymbol m, Type classType) {
         java.util.List<Pair<MethodSymbol,Type>> methods = new LinkedList<Pair<MethodSymbol,Type>>();
         if (utils.isJMLStatic(m)) {
-            methods.add(pair(m,m.owner.type));
+            methods.add(pair(m,m.owner.type)); 
         } else {
             for (ClassSymbol csym: utils.parents(classType.tsym, true)) {
                 for (Symbol mem: csym.getEnclosedElements()) {
