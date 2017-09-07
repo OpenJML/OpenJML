@@ -1645,17 +1645,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         exprBiMap.put(t, tt);
     }
     
-    protected void saveMapping(JCTree t, JCTree tt) {
-//        JCTree ttt = exprBiMap.getf(t);
-//        if (ttt != null && ttt.toString().endsWith("CPRE__3_2_2")) {
-//            Utils.stop();
-//        }
-//        if (tt != null && tt.toString().endsWith("CPRE__3_2_2")) {
-//            Utils.stop();
-//        }
-        exprBiMap.put(t, tt);
-    }
-    
     /** Add a statement at the end of the active currentStatements sequence,
      * returning the argument */ 
     protected <T extends JCStatement> T addStat(T stat) {
