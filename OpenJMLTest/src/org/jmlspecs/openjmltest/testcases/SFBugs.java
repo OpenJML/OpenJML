@@ -361,6 +361,10 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
+    @Test public void gitbug554() {
+        helpTCG();
+    }
+    
 
 
     @Test public void gitbug529() {
