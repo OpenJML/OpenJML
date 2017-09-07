@@ -76,6 +76,4 @@ test/preconditionDetail/TestA.java:10: warning: Precondition conjunct is false: 
                    ^
 Completed proof of TestA.mm(TestAA,int) with prover !!!! - with warnings
 Completed proving methods in TestA
-Note: /Users/davidcok/cok/projects/OpenJMLB/Specs/java8/java/util/Random.jml uses internal proprietary API that may be removed in a future release.
-Note: Recompile with -Xlint:sunapi for details.
 16 warnings
