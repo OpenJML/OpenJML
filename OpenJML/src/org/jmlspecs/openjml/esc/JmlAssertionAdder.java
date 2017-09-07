@@ -1780,7 +1780,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
-        if (assertCount == 540) Utils.stop();
+        if (assertCount == 703) Utils.stop();
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
         JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? (classDecl == null ? null : classDecl.sym) : methodDecl.sym,translatedExpr);
@@ -7501,7 +7501,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     MethodSymbol mpsym = pair.first;
                     Type classType = pair.second;
                     addStat(comment(that, "... Checking assignables of callee " + calleeMethodSym + " in " + classType.toString(),null));
-                    if (calleeMethodSym.toString().startsWith("ifPresent")) Utils.stop();
+                    
                     
                     // FIXME - from here down to loop is duplicated from above
                     
@@ -7704,7 +7704,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     notImplemented(clause.token.internedName() + " clause containing ",e); // FIXME - clause source
                                 }
                             }
-                            if (cs.block == null) { // no defaults if there is a model program block
+                            if (cs.block == null) { // no defaults if rthere is a model program,
                                 if (!anyAssignableClauses) {
                                     // If there are no assignable clauses in the spec case, use a default
                                     if (mpsym.isConstructor()) {
