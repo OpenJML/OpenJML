@@ -7704,42 +7704,44 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     notImplemented(clause.token.internedName() + " clause containing ",e); // FIXME - clause source
                                 }
                             }
-                            if (!anyAssignableClauses) {
-                                // If there are no assignable clauses in the spec case, use a default
-                                if (mpsym.isConstructor()) {
-                                    // But the default for a constructor call the fields of the constructor
-                                    // and the fields of the constructor are allowed to be assigned in any case
-                                    // So there is nothing to check
-                                    
-//                                    for (JCExpression item: defaultStoreRefs(cs,mpsym)) {
-//                                        checkAgainstCallerSpecs(that, convertJML(item),pre, savedThisId, newThisId);
-//                                    }
+                            if (cs.block == null) { // no defaults if rthere is a model program,
+                                if (!anyAssignableClauses) {
+                                    // If there are no assignable clauses in the spec case, use a default
+                                    if (mpsym.isConstructor()) {
+                                        // But the default for a constructor call the fields of the constructor
+                                        // and the fields of the constructor are allowed to be assigned in any case
+                                        // So there is nothing to check
 
-                                    // FIXME _ check callee
-                                    checkAgainstCallerSpecs(JmlTokenKind.ASSIGNABLE, that, M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSNOTHING),pre, savedThisId, newThisId, cs.source());
+                                        //                                    for (JCExpression item: defaultStoreRefs(cs,mpsym)) {
+                                        //                                        checkAgainstCallerSpecs(that, convertJML(item),pre, savedThisId, newThisId);
+                                        //                                    }
 
-                                } else {
-                                    if (isPure(mpsym)) {
                                         // FIXME _ check callee
                                         checkAgainstCallerSpecs(JmlTokenKind.ASSIGNABLE, that, M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSNOTHING),pre, savedThisId, newThisId, cs.source());
+
                                     } else {
-                                    // the default is \\everything
-                                        // FIXME _ check callee
-                                        JCExpression item = M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING);
-                                        JCExpression allowed = checkAgainstAllCalleeSpecs(calleeMethodSym,JmlTokenKind.ASSIGNABLE, that, item, pre, newThisId, newThisId, cs.source());
-                                        checkAgainstCallerSpecs(JmlTokenKind.ASSIGNABLE, that, item, allowed, savedThisId, newThisId, cs.source());
+                                        if (isPure(mpsym)) {
+                                            // FIXME _ check callee
+                                            checkAgainstCallerSpecs(JmlTokenKind.ASSIGNABLE, that, M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSNOTHING),pre, savedThisId, newThisId, cs.source());
+                                        } else {
+                                            // the default is \\everything
+                                            // FIXME _ check callee
+                                            JCExpression item = M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING);
+                                            JCExpression allowed = checkAgainstAllCalleeSpecs(calleeMethodSym,JmlTokenKind.ASSIGNABLE, that, item, pre, newThisId, newThisId, cs.source());
+                                            checkAgainstCallerSpecs(JmlTokenKind.ASSIGNABLE, that, item, allowed, savedThisId, newThisId, cs.source());
+                                        }
                                     }
                                 }
-                            }
-                            if (!anyAccessibleClauses && checkAccessEnabled) {
-                                // If there are no accessible clauses in the spec case, use a default
-                                // the default is \\everything
-                                checkAgainstCallerSpecs(JmlTokenKind.ACCESSIBLE, that, M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING),pre, savedThisId, newThisId, cs.source());
-                            }
-                            if (!anyCallableClauses) {
-                                // The callee is implicitly callable \everything,
-                                // so the caller must be also be implicitly callable \everything
-                                checkThatMethodIsCallable(cs, null);
+                                if (!anyAccessibleClauses && checkAccessEnabled) {
+                                    // If there are no accessible clauses in the spec case, use a default
+                                    // the default is \\everything
+                                    checkAgainstCallerSpecs(JmlTokenKind.ACCESSIBLE, that, M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING),pre, savedThisId, newThisId, cs.source());
+                                }
+                                if (!anyCallableClauses) {
+                                    // The callee is implicitly callable \everything,
+                                    // so the caller must be also be implicitly callable \everything
+                                    checkThatMethodIsCallable(cs, null);
+                                }
                             }
                             JCBlock bl = popBlock(0,cs,check2); // Ending the assignable tests block
                             if (!bl.stats.isEmpty()) addStat( M.at(cs).If(pre, bl, null) );

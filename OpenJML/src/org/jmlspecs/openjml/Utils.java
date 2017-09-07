@@ -286,7 +286,7 @@ public class Utils {
             if ((sym.flags() & STATIC) == 0) return false;
         } else {
             if (!sym.isStatic()) return false;
-            if ((sym.flags() & STATIC) == 0 && (sym.flags_field & Utils.JMLINSTANCE) != 0) return false;
+            if ((sym.flags() & STATIC) == 0 || (sym.flags_field & Utils.JMLINSTANCE) != 0) return false;
         }
         if (isJML(sym.flags())) {
             Symbol csym = sym.owner;
@@ -306,7 +306,7 @@ public class Utils {
         if ((csym.flags() & Flags.INTERFACE) != 0) {
             // TODO - should cleanup this reference to JmlAttr from Utils
             if (JmlAttr.instance(context).findMod(mods,JmlTokenKind.INSTANCE) != null) return false;
-            if ((mods.flags & STATIC) == 0 && (mods.flags & Utils.JMLINSTANCE) != 0) return false;
+            if ((mods.flags & STATIC) == 0 || (mods.flags & Utils.JMLINSTANCE) != 0) return false;
         } 
         return ((mods.flags & Flags.STATIC) != 0);
     }
