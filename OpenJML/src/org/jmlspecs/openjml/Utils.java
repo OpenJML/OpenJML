@@ -792,9 +792,10 @@ public class Utils {
 
     }
     
-    public List<Symbol.VarSymbol> listJmlVisibleFields(TypeSymbol base, long baseVisibility, boolean forStatic) {
+    // Lists all fields of 'owner' that are visible from 'base' in an environment with baseVisibility, according to JML visibility rules
+    public List<Symbol.VarSymbol> listJmlVisibleFields(TypeSymbol owner, TypeSymbol base, long baseVisibility, boolean forStatic) {
         List<Symbol.VarSymbol> list = new LinkedList<Symbol.VarSymbol>();
-        for (TypeSymbol csym: parents(base, true)) {
+        for (TypeSymbol csym: parents(owner, true)) {
             for (Symbol s: csym.members().getElements()) {
                 if (s.kind != Kinds.VAR) continue;
                 if (isJMLStatic(s) != forStatic) continue;

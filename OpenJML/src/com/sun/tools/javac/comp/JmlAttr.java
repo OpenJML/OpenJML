@@ -1856,6 +1856,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     // FIXME - document; remove parent
     protected void addDefaultSignalsOnly(ListBuffer<JmlMethodClause> prefix, JmlSpecificationCase parent, JmlMethodDecl decl) {
+        if (parent.block != null) return; // If there is a model_program block, we do not add any default
         boolean anySOClause = false;
         for (JmlMethodClause cl: prefix) {
             if (cl.token == JmlTokenKind.SIGNALS_ONLY) anySOClause = true;

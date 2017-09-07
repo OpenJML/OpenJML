@@ -1780,7 +1780,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
-//        if (assertCount == 372) Utils.stop();
+        if (assertCount == 703) Utils.stop();
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
         JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? (classDecl == null ? null : classDecl.sym) : methodDecl.sym,translatedExpr);
@@ -5651,7 +5651,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCFieldAccess pfa = (JCFieldAccess)pfac;
             if (pfa.name == null) {
                 JCExpression or = isLocal;
-                for (Symbol s: utils.listJmlVisibleFields(pfa.selected.type.tsym, methodDecl.mods.flags&Flags.AccessFlags, treeutils.isATypeTree(pfa.selected))) {
+                for (Symbol s: utils.listJmlVisibleFields(pfa.selected.type.tsym, pfa.selected.type.tsym, methodDecl.mods.flags&Flags.AccessFlags, treeutils.isATypeTree(pfa.selected))) {
                     JCExpression newpfa = M.at(pfa.pos).Select(pfa.selected, s);
                     or = treeutils.makeOr(pfa.pos, or, accessAllowed(fa,newpfa,baseThisExpr,targetThisExpr));
 //                    if (s != fa.sym) continue;
@@ -6229,12 +6229,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (item instanceof JCFieldAccess && ((JCFieldAccess)item).name == null) {
                 JCFieldAccess fa = (JCFieldAccess)item;
                 java.util.List<VarSymbol> exlist;
-//                if (fa.getExpression().toString().equals("this")) {
-//                    exlist = utils.listAllFields((TypeSymbol)base.owner, treeutils.isATypeTree(((JCFieldAccess)item).selected));
-//                } else {
-                    // FIXME - use jml visibility (spec_public and spec_protected?)
-                    exlist = utils.listJmlVisibleFields((TypeSymbol)base.owner, base.flags() & Flags.AccessFlags, treeutils.isATypeTree(((JCFieldAccess)item).selected));
-//                }
+                TypeSymbol csym = fa.selected.type.tsym;
+                exlist = utils.listJmlVisibleFields(csym, (TypeSymbol)base.owner,  base.flags() & Flags.AccessFlags, treeutils.isATypeTree(((JCFieldAccess)item).selected));
+//              exlist = utils.listJmlVisibleFields((TypeSymbol)base.owner, base.flags() & Flags.AccessFlags, treeutils.isATypeTree(((JCFieldAccess)item).selected));
                 for (VarSymbol vsym : exlist) {
                     newlist.add(M.at(item).Select(fa.selected, vsym));
                 }
@@ -6266,7 +6263,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - should we expand data groups?
     protected List<JCExpression> thisStarStoreRefs(DiagnosticPosition pos, MethodSymbol base) {
         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
-        for (VarSymbol vsym : utils.listJmlVisibleFields((TypeSymbol)base.owner, base.flags() & Flags.AccessFlags, utils.isJMLStatic(base))) {
+        for (VarSymbol vsym : utils.listJmlVisibleFields((TypeSymbol)base.owner, (TypeSymbol)base.owner, base.flags() & Flags.AccessFlags, utils.isJMLStatic(base))) {
             newlist.add(M.at(pos).Select(currentThisExpr, vsym));
         }
         return newlist.toList();
@@ -6678,30 +6675,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 xx: {
                     // We are presuming here that the receiver is being invoked for its abstract method
 //                    typeargs = convert(typeargs);
-//                    trArgs = convertArgs(that, trArgs,meth.type.asMethodType().argtypes,  (fa.sym.flags() & Flags.VARARGS) != 0);
                     if (convertedReceiver instanceof JCLambda) {
-                        // FIXME - when is this branch used? The args are not translated?
-                        Iterator<JCExpression> iter = untrArgs.iterator();
-                        //if (convertedReceiver.type.tsym.isStatic()) {
-                        //    Utils.stop();
-                        //}
+                        trArgs = convertArgs(that, untrArgs, meth.type.asMethodType().argtypes,  (fa.sym.flags() & Flags.VARARGS) != 0);
+
+                        Iterator<JCExpression> iter = trArgs.iterator();
                         List<JCVariableDecl> params = ((JCLambda)convertedReceiver).params;
-                        JCExpression receiver = null;
-//                        if (!mref.sym.isStatic()) {
-//                            receiver = trArgs.head;
-//                            trArgs = trArgs.tail;
-//                        }
                         for (JCVariableDecl param: params) {
                             if (!iter.hasNext()) {
-                                // FIXME - correct source file?
-                                log.error(param.pos, "jml.internal", "Unexpectedly too few arguments in inlining a lambda expression");
+                                log.error(that.pos, "jml.internal", "Unexpectedly too few arguments in inlining a lambda expression");
                                 break;
                             }
                             JCExpression arg = iter.next();
                             paramActuals.put(param.sym, arg);  // FIXME - what if a lambda expression is inlined recursively?
                         }
                         if (iter.hasNext()) {
-                            // FIXME - correct source file?
                             log.error(iter.next().pos, "jml.internal", "Unexpectedly too many arguments in inlining a lambda expression");
                         }
                         JCTree body = ((JCLambda)convertedReceiver).body;
@@ -7914,8 +7901,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // Be sure to do assignable (havoc) clauses before the invariant and postcondition clauses
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
                         if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
-                        if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
                         if (mpsym != calleeMethodSym && cs.code) continue;
+                        if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
                         JCExpression pre = convertCopy(preExpressions.get(cs));
                         if (pre == treeutils.falseLit) continue; // Don't bother with postconditions if corresponding precondition is explicitly false 
                         condition = pre; // FIXME - is this right? what about the havoc statement?
@@ -7949,7 +7936,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 if (fa.sym == null) {
                                                     JCExpression e = fa.selected;
                                                     boolean isStatic = treeutils.isATypeTree(e);
-                                                    for (VarSymbol v: utils.listJmlVisibleFields(e.type.tsym, calleeMethodSym.flags()&Flags.AccessFlags, isStatic)) {
+                                                    for (VarSymbol v: utils.listJmlVisibleFields(e.type.tsym, e.type.tsym, calleeMethodSym.flags()&Flags.AccessFlags, isStatic)) {
                                                         JCFieldAccess newfa = treeutils.makeSelect(location.pos, e, v);
                                                         JCExpression trfa= convertAssignable(newfa,newThisId,true);
                                                         newlist.add(trfa);
@@ -7957,7 +7944,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 } else if (isModel(fa.sym)){
                                                     JCExpression e = fa.selected;
                                                     boolean isStatic = treeutils.isATypeTree(e);
-                                                    for (VarSymbol v: utils.listJmlVisibleFields(e.type.tsym, Flags.PRIVATE, isStatic)) {
+                                                    for (VarSymbol v: utils.listJmlVisibleFields(e.type.tsym, e.type.tsym, Flags.PRIVATE, isStatic)) {
                                                         if (isContainedIn(v,fa.sym)) { 
                                                             JCFieldAccess newfa = treeutils.makeSelect(location.pos, e, v);
                                                             JCExpression trfa= convertAssignable(newfa,newThisId,true);
@@ -8006,7 +7993,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 notImplemented(clause.token.internedName() + " clause containing ",e, clause.source());
                             }
                         }
-                        if (useDefault && !translatingJML) {
+                        if (useDefault && !translatingJML && cs.token != JmlTokenKind.MODEL_PROGRAM) {
                             if (isThisCall) {
                                 // default for a 'this' call is all local fields
                                 ListBuffer<JCExpression> fields = new ListBuffer<>();
@@ -8256,7 +8243,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (rac) ensuresStatsOuter.add( wrapRuntimeException(that, invariantBlock, "JML undefined invariant while checking postconditions - exception thrown", null));
             }
 
-            
+            boolean hasModelProgramBlocks = false;
             {
                 if (esc && resultId != null && !resultId.type.isPrimitive()) {
                     JCExpression nn = treeutils.makeEqNull(resultId.pos, convertCopy(resultId));
@@ -8288,6 +8275,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // FIXME - we should set condition
                     // Be sure to do assignable (havoc) clauses, then invariants, and then postcondition clauses
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
+                        if (cs.block != null) hasModelProgramBlocks = true;
                         //if (!utils.jmlvisible(null,classDecl.sym, classDecl.sym,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
                         if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
                         if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
@@ -8553,6 +8541,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (exceptionDeclCall != null) { // FIXME - what is happening if exceptionDeclCall is null - is the method pure?
                     // declare the exception variable
                     addStat(exceptionDeclCall);
+                    if (hasModelProgramBlocks) { // Generalized model program
+                        JCIdent eid = treeutils.makeIdent(that.pos, exceptionSym);
+                        JCIdent ecid = treeutils.makeIdent(that.pos,  exceptionDeclCall.sym);
+                        JCExpression pre = treeutils.trueLit; // convertCopy(preExpressions.get(cs));
+                        JCStatement stat = treeutils.makeAssignStat(that.pos, ecid, eid);
+                        stat = M.at(that.pos).If(pre, stat, null);
+                        addStat(stat);
+                     }
+
                     JCIdent nexceptionId = treeutils.makeIdent(that.getStartPosition(),exceptionDeclCall.sym);
                     treeutils.copyEndPosition(nexceptionId, that);
                     {

@@ -356,6 +356,12 @@ public class SFBugs extends EscBase {
     @Test public void gitbug548() {
         helpTCG("-nullableByDefault");
     }
+    
+    @Test public void gitbug550() {
+        helpTCG();
+    }
+    
+
 
     @Test public void gitbug529() {
         helpTCG("-rac");  // Just RAC compilation  // FIXME - try running also
