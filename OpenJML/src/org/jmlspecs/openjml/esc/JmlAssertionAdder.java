@@ -3299,6 +3299,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
+    protected void addLocalVar(JCIdent id) {
+        pushBlock();
+        addNullnessTypeCondition(id,id.sym,false);
+        JCBlock bl = popBlock(0L,id);
+        discoveredFields.stats = discoveredFields.stats.append(bl);
+    }
+
     protected void addFinalStaticField(JCFieldAccess convertedfa) {
         // FIXME - check visibility?
         JmlStatementExpr st = null;
@@ -6226,7 +6233,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     protected JCFieldAccess isAllocated(DiagnosticPosition pos, JCExpression obj) {
         //if (rac) return treeutils.falseLit; // FIXME - how do we handle this aspect of assignment checking in RAC.
-        obj = convertJML(obj);
+        //obj = convertJML(obj);
         return (JCFieldAccess)M.at(pos).Select(obj, isAllocSym).setType(syms.booleanType);
     }
 
@@ -10505,6 +10512,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void visitSelect(JCFieldAccess that) {
         JCExpression selected;
         Symbol s = convertSymbol(that.sym);
+        if (s.toString().equals("f")) Utils.stop();
         JCExpression trexpr = that.getExpression();
         if (!(s instanceof Symbol.TypeSymbol)) trexpr = convertExpr(trexpr);
         if (pureCopy) {
@@ -10700,6 +10708,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!rac && sym != null && alreadyDiscoveredFields.add(sym)) { // true if s was NOT in the set already
             if (utils.isJMLStatic(sym) && isFinal(sym)) {
                 addFinalStaticField(newfa);
+            } else if (sym.kind == Kinds.VAR && sym.owner != null && sym.owner.kind == Kinds.MTH) {
+                addLocalVar(that);
             } else {
                 if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note("jml.message", "No invariants created for " + that);
             }

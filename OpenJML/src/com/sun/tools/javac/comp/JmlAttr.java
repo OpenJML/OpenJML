@@ -5215,7 +5215,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return utils.findMod(mods,tokenToAnnotationSymbol.get(ta));
     }
 
-    /** Returns true if the given symbol is specified as Helper or Function annotation */
+    /** Returns true if the given symbol has non_null or does not have nullable annotation */
     public boolean isNonNull(/*@ nullable */ JCModifiers mods) {
         if (mods != null) {
             List<JCAnnotation> list = mods.getAnnotations();
@@ -5917,6 +5917,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             if (!that.type.isPrimitive()) {
                 JCAnnotation snullness;
+                if (that.name.toString().equals("aa")) Utils.stop();
                 JmlTokenKind nullness = specs.defaultNullity(enclosingClassEnv.enclClass.sym);
                 if ((snullness=utils.findMod(that.mods,nonnullAnnotationSymbol)) != null) { 
                     nullness = JmlTokenKind.NONNULL;

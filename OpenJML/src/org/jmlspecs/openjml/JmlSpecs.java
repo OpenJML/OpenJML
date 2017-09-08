@@ -1349,6 +1349,7 @@ public class JmlSpecs {
             if (utils.findMod(decl.mods, nonnullbydefaultAnnotationSymbol) != null) return true;
         }
         Symbol parent = decl.sym.owner;
+        while (parent instanceof MethodSymbol) parent = parent.owner;
         if (!(parent instanceof Symbol.ClassSymbol)) return defaultNullity(null) == JmlTokenKind.NONNULL;  // FIXME - is this OK for interfaces
         if (Enter.instance(context).getEnv((Symbol.TypeSymbol)parent) == null) return defaultNullity(null) == JmlTokenKind.NONNULL;
         JmlClassDecl encl = (JmlClassDecl)Enter.instance(context).getEnv((Symbol.TypeSymbol)parent).tree;
