@@ -10541,7 +10541,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!convertingAssignable) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, that, currentThisExpr, currentThisExpr);
         if (localVariables.containsKey(s)) {
             result = eresult = newfa;
-        } else if (esc && s != null && "class".equals(s.toString())) {
+        } else if (esc && s != null && (s == classSuffix || "class".equals(s.toString()))) {
+            classSuffix = s;
             result = eresult = treeutils.makeJavaTypelc(that.selected);
         } else if (translatingJML && s == null) {
             // This can happen while scanning a store-ref x.* 
@@ -10661,8 +10662,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (translatingJML && !pureCopy && s instanceof VarSymbol && specs.isNonNull(s) ) {
             JCExpression nn = treeutils.makeNeqObject(that.pos,eresult,treeutils.nullLit);
             addToCondition(that.pos, nn);
+        } else if (esc && splitExpressions && s == classSuffix) {
+            JCExpression nn = treeutils.makeNeqObject(that.pos,eresult,treeutils.nullLit);
+            addAssume(that,Label.IMPLICIT_ASSUME, nn);
         }
     }
+    
+    protected Symbol classSuffix = null;
     
     public static class NoModelMethod extends RuntimeException {
         private static final long serialVersionUID = 1L;
