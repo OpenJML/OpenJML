@@ -651,12 +651,18 @@ public class Utils {
     // Includes self // FIXME - review for order
     public java.util.List<MethodSymbol> parents(MethodSymbol m) {
         List<MethodSymbol> methods = new LinkedList<MethodSymbol>();
-        for (ClassSymbol c: parents((ClassSymbol)m.owner, false)) {
-            for (Symbol mem: c.getEnclosedElements()) {
-                if (mem instanceof MethodSymbol &&
-                        mem.name.equals(m.name) &&
-                        (mem ==m || m.overrides(mem, c, Types.instance(context), true))) {
-                    methods.add((MethodSymbol)mem);
+        if (isJMLStatic(m)) {
+            methods.add(m); 
+        } else if (m.toString().contains("toString")) {  // FIXME - experimental not inherit
+            methods.add(m); 
+        } else {
+            for (ClassSymbol c: parents((ClassSymbol)m.owner, false)) {
+                for (Symbol mem: c.getEnclosedElements()) {
+                    if (mem instanceof MethodSymbol &&
+                            mem.name.equals(m.name) &&
+                            (mem ==m || m.overrides(mem, c, Types.instance(context), true))) {
+                        methods.add((MethodSymbol)mem);
+                    }
                 }
             }
         }

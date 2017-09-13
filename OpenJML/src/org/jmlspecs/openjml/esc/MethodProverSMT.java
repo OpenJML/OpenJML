@@ -590,7 +590,7 @@ public class MethodProverSMT {
                     if (solverResponse.equals(unsatResponse)) break;
                     // TODO -  checking each assertion separately
                 }
-                pr.accumulateDuration((new Date().getTime() - pr.timestamp().getTime())/1000.);
+                //pr.accumulateDuration((new Date().getTime() - pr.timestamp().getTime())/1000.);
             }
         }
         if (usePushPop) solver.exit();

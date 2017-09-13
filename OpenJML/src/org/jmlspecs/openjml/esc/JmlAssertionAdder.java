@@ -6835,7 +6835,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             boolean inliningCall = mspecs != null && mspecs.decl != null && mspecs.decl.mods != null && attr.findMod(mspecs.decl.mods,JmlTokenKind.INLINE) != null;
             
             // Collect all the methods overridden by the method being called, including the method itself
-            if (calleeMethodSym.toString().contains("getArray")) Utils.stop();
             java.util.List<Pair<MethodSymbol,Type>> overridden = parents(calleeMethodSym,receiverType);
             
             /** We can either try to keep subexpressions as subexpressions, or break
@@ -9705,7 +9704,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitBinary(JCBinary that) {
-        if (that.toString().contains("i < _")) Utils.stop();
         // FIXME - check on numeric promotion, particularly shift operators
         JCTree.Tag optag = that.getTag();
         boolean equality = optag == JCTree.Tag.EQ || optag == JCTree.Tag.NE;
@@ -10538,7 +10536,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         checkRW(JmlTokenKind.READABLE,that.sym,trexpr,that);
-        if (!convertingAssignable) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, that, currentThisExpr, currentThisExpr);
+        if (!convertingAssignable && checkAccessEnabled) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, that, currentThisExpr, currentThisExpr);
         if (localVariables.containsKey(s)) {
             result = eresult = newfa;
         } else if (esc && s != null && (s == classSuffix || "class".equals(s.toString()))) {
@@ -14210,7 +14208,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // so we make a block and later turn it into an initializer block
                 if (inClassDecl) { pushBlock();  }
                 JmlVariableDecl stat = null;
-                boolean pv = checkAccessEnabled = checkAccessEnabled;
+                boolean pv = checkAccessEnabled;
                 checkAccessEnabled = false;
                 try { 
                     init = convertJML(that.init);
@@ -14312,16 +14310,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     null, //body,
                                     null,
                                     msym);
-
                 }
 
-                boolean pv = checkAccessEnabled;
-                checkAccessEnabled = enclosingMethod != null; // FIXME - decide how to handle initialization of class fields
-                try {
+//                boolean pv = checkAccessEnabled;
+//                checkAccessEnabled = enclosingMethod != null; // FIXME - decide how to handle initialization of class fields
+//                try {
                     init = convertExpr(that.init);
-                } finally {
-                    checkAccessEnabled = pv;
-                }
+//                } finally {
+//                    checkAccessEnabled = pv;
+//                }
                 if (init != null) init = addImplicitConversion(init,that.type,init);
 
                 if (init != null && !init.type.isPrimitive() && specs.isNonNull(that)) { // isNonNull returns false if that.type is primitive
@@ -14753,10 +14750,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         java.util.List<Pair<MethodSymbol,Type>> methods = new LinkedList<Pair<MethodSymbol,Type>>();
         if (utils.isJMLStatic(m)) {
             methods.add(pair(m,m.owner.type)); 
+        } else if (m.toString().contains("toString")) {  // FIXME - experimental not inherit
+            methods.add(pair(m,m.owner.type)); 
         } else {
             for (ClassSymbol csym: utils.parents(classType.tsym, true)) {
                 for (Symbol mem: csym.getEnclosedElements()) {
-                    if (mem instanceof MethodSymbol &&
+                    if (mem instanceof MethodSymbol &&  // FIXME - not static, not private
                             mem.name.equals(m.name) &&
                             (mem == m || m.overrides(mem, csym, Types.instance(context), true) 
                             || ((MethodSymbol)mem).overrides(m, (TypeSymbol)m.owner, Types.instance(context), true))) {
