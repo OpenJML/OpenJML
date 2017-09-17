@@ -6626,6 +6626,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Map<JmlSpecificationCase,JCIdent> savedPreexpressions = this.preExpressions;
         this.preExpressions = preExpressions;
         
+        JCExpression convertedReceiver = null;
         try {
             // Translate the method name, and determine the receiver for the method call
             
@@ -6687,7 +6688,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCFieldAccess fa = (JCFieldAccess)meth;
                 receiverType = fa.selected.type;
                 newTypeVarMapping = typevarMapping = typemapping(receiverType, fa.sym, null, meth.type.asMethodType());
-                JCExpression convertedReceiver = alreadyConverted ? fa.selected : convertExpr(fa.selected);
+                convertedReceiver = alreadyConverted ? fa.selected : convertExpr(fa.selected);
                 //if (isFunctional(convertedReceiver.type)) 
                 xx: {
                     // We are presuming here that the receiver is being invoked for its abstract method
@@ -6799,7 +6800,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 enclosingMethod = calleeMethodSym;
                 enclosingClass = calleeMethodSym.owner;
                 
-                JCExpression convertedReceiver = convertExpr(newclass.encl);
+                convertedReceiver = convertExpr(newclass.encl);
                 receiverType = newclass.clazz.type;
                 newTypeVarMapping = typevarMapping = typemapping(newclass.clazz.type, null, null);
 
@@ -7076,6 +7077,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     resultSym = decl.sym;
                     resultId = treeutils.makeIdent(that.pos, decl.sym);
                     addNullnessAllocationTypeCondition(that, resultSym, false, false, false);
+                    {
+                        JCExpression cr = convertedReceiver;
+                        if (cr == null && !calleeMethodSym.owner.isStatic()) {
+                            cr = savedThisExpr;
+                        }
+                        VarSymbol vsym = makeEnclosingSymbol((ClassSymbol)calleeMethodSym.owner, cr);
+                        if (vsym != null) {
+                            JCExpression fa = treeutils.makeSelect(that.pos,resultId,vsym);
+                            JCExpression bin = treeutils.makeEqObject(that.pos, fa, cr);
+                            addAssume(that.pos(), Label.IMPLICIT_ASSUME, bin);
+                        }
+                    }
+
                 }
 
             }
@@ -10508,6 +10522,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitSelect(JCFieldAccess that) {
+        if (that.toString().equals("Test.this")) Utils.stop();
         JCExpression selected;
         Symbol s = convertSymbol(that.sym);
         if (s.toString().equals("f")) Utils.stop();
@@ -10600,7 +10615,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else {
             selected = convertCopy(trexpr);
             boolean var = false;
-            if (!utils.isJMLStatic(s) && that.selected instanceof JCIdent && !localVariables.containsKey(((JCIdent)that.selected).sym)) {
+            if (treeutils.isATypeTree(selected) && s.name == names._this) {
+                VarSymbol vsym = makeEnclosingSymbol(classDecl.sym,null);
+                selected = currentThisExpr;
+                s = vsym;
+                result = eresult = treeutils.makeSelect(that.pos, currentThisExpr, vsym);
+            } else if (!utils.isJMLStatic(s) && that.selected instanceof JCIdent && !localVariables.containsKey(((JCIdent)that.selected).sym)) {
                 if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
                     // continue
                 } else {
@@ -10706,12 +10726,36 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         JCFieldAccess newfa = null;
         if (sym != null && sym.owner instanceof ClassSymbol) {
-            if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
-            else newfa = treeutils.makeSelect(that.pos, currentThisExpr, sym);
+            if (that.toString().equals("ff") && currentThisExpr.toString().contains("NEWOBJECT")) Utils.stop();
+            if (currentThisExpr != null && sym instanceof VarSymbol && sym.owner != currentThisExpr.type.tsym && (currentThisExpr.type.tsym instanceof ClassSymbol)) {
+                ClassSymbol base = (ClassSymbol)currentThisExpr.type.tsym;
+                ClassSymbol fieldOwner = (ClassSymbol)sym.owner;
+                JCExpression baseExpr = currentThisExpr;
+                while (true) {
+                    if (base.isSubClass(fieldOwner, types)) { // true if the same class or directly or indirectly the subclass
+                        if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, fieldOwner.type), sym);
+                        else newfa = treeutils.makeSelect(that.pos, baseExpr, sym);
+                        break;
+                    }
+                    VarSymbol enclFieldSym = enclosingClassFieldSymbols.get(base);
+                    if (enclFieldSym == null) break;
+                    Symbol bsym = base.owner;
+                    if (!(bsym instanceof ClassSymbol)) break;
+                    base = (ClassSymbol)bsym;
+                    baseExpr = treeutils.makeSelect(that.pos, baseExpr, enclFieldSym);  // FIXME - does not work for more than one level
+                }
+                if (newfa == null) {
+                    if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
+                    else newfa = treeutils.makeSelect(that.pos, currentThisExpr, sym);
+                }
+            } else {
+                if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
+                else newfa = treeutils.makeSelect(that.pos, currentThisExpr, sym);
+            }
         }
         if (!rac && sym != null && alreadyDiscoveredFields.add(sym)) { // true if s was NOT in the set already
             if (utils.isJMLStatic(sym) && isFinal(sym)) {
-                addFinalStaticField(newfa);
+                if (newfa != null) addFinalStaticField(newfa);
             } else if (sym.kind == Kinds.VAR && sym.owner != null && sym.owner.kind == Kinds.MTH) {
                 addLocalVar(that);
             } else {
@@ -10819,7 +10863,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             } else if (!utils.isJMLStatic(sym)) {
                 // It is a non-static class field, so we prepend the receiver
-                JCExpression cp = convertCopy(currentThisExpr);
+
+                if (esc && sym.owner != currentThisExpr.type.tsym && currentThisExpr.type.tsym instanceof ClassSymbol) {
+                    ClassSymbol base = (ClassSymbol)currentThisExpr.type.tsym;
+                    ClassSymbol fieldOwner = (ClassSymbol)sym.owner;
+                    JCExpression baseExpr = currentThisExpr;
+                    while (true) {
+                        if (base.isSubClass(fieldOwner, types)) { // true if the same class or directly or indirectly the subclass
+                            if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, fieldOwner.type), sym);
+                            else newfa = treeutils.makeSelect(that.pos, baseExpr, sym);
+                            break;
+                        }
+                        VarSymbol enclFieldSym = enclosingClassFieldSymbols.get(base);
+                        base = (ClassSymbol)base.owner;
+                        baseExpr = treeutils.makeSelect(that.pos, baseExpr, enclFieldSym);  // FIXME - does not work for more than one level
+                        if (base == null) {
+                            // FIXME - ERROR
+                        }
+                    }
+                } else {
+                    if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
+                    else newfa = treeutils.makeSelect(that.pos, currentThisExpr, sym);
+                }
+                JCExpression cp = convertCopy(newfa.getExpression());
                 if (cp != null && cp.toString().equals("THIS")) ((JCIdent)cp).pos = that.pos;
                 JCExpression fa = treeutils.makeSelect(that.pos,cp,that.sym);
                 fa.type = convertType(fa.type);
@@ -11160,7 +11226,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         saveMapping(id,id);
         return id;
     }
+    
+    Map<ClassSymbol,VarSymbol> enclosingClassFieldSymbols = new HashMap<>();
+    JCExpression enclosingExpr = null;
 
+    public VarSymbol makeEnclosingSymbol(ClassSymbol sym, JCExpression enclosingThisExpr) {
+        VarSymbol result = enclosingClassFieldSymbols.get(sym);
+        if (result != null) return result;
+        if (esc && sym.owner instanceof ClassSymbol && !sym.isStatic()) {
+            String s = "this$encl";
+            Type enclType = sym.owner.type;
+            Name nm = names.fromString(s);
+            JCVariableDecl decl = treeutils.makeVarDef(enclType, nm, sym.owner, enclosingThisExpr);
+            if (currentStatements != null) addStat(decl);
+            else this.classDefs.add(decl);
+            enclosingClassFieldSymbols.put(sym, decl.sym);
+            result = decl.sym;
+        }
+        return result;
+    }
+    
     // OK
     @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
@@ -11177,6 +11262,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         IArithmeticMode savedMode = this.currentArithmeticMode;
         
         try {
+            //if (that.name.toString().contains("Inner")) Utils.stop();
+            enclosingExpr = savedThisExpr;
             this.classDecl = that;
             this.methodDecl = null;
             this.currentArithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(classDecl.sym,false);
@@ -11197,6 +11284,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 heapSym = d.sym;
                 //initialStatements.add(d);
                 this.classDefs.add(d);
+            }
+            if (esc && that.sym.owner instanceof ClassSymbol && !that.sym.isStatic()) {
+                makeEnclosingSymbol(that.sym, savedThisExpr);
             }
             {
                 JCVariableDecl d = treeutils.makeVarDef(syms.intType,names.fromString(Strings.allocName),classDecl.sym,
@@ -11322,6 +11412,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             this.allocSym = savedAllocSym;
             this.isAllocSym = savedIsAllocSym;
             this.currentArithmeticMode = savedMode;
+            this.enclosingExpr = null;
+ //           this.enclosingClassFieldSym = null;
             Main.instance(context).popOptions();
         }
     }
