@@ -2922,6 +2922,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 return;
             }
             if (esc) {
+                if (translatedSelector == null && varsym.owner instanceof ClassSymbol && utils.isJMLStatic(varsym)) {
+                    translatedSelector = treeutils.makeType(Position.NOPOS, varsym.owner.type);
+                }
                 java.util.List<Type> p = parents(basetype, true);
                 ListIterator<Type> iter = p.listIterator(p.size());
                 while (iter.hasPrevious()) {
@@ -6422,6 +6425,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (iter.hasNext()) currentArgType = iter.next(); // handles varargs
             last = !iter.hasNext();
             if (currentArgType != null && isFunctional(currentArgType) && (a instanceof JCLambda || a instanceof JCMemberReference)) {  // FIXME - some bug causes the argtyep to be null for created functions, sometimes
+                if (a instanceof JCMemberReference) {
+                    JCMemberReference mref = (JCMemberReference)a;
+                    JCExpression aa = convertExpr(mref.getQualifierExpression());
+                    JCMemberReference newa = M.at(a.pos).Reference(mref.mode, aa, mref.name, mref.typeargs);
+                    newa.sym = mref.sym;
+                    newa.setType(mref.type);
+                    a = newa;
+                }
                 out.add(a);
                 continue;
             }
@@ -6688,6 +6699,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCFieldAccess fa = (JCFieldAccess)meth;
                 receiverType = fa.selected.type;
                 newTypeVarMapping = typevarMapping = typemapping(receiverType, fa.sym, null, meth.type.asMethodType());
+                if (fa.toString().startsWith("condition")) Utils.stop();
                 convertedReceiver = alreadyConverted ? fa.selected : convertExpr(fa.selected);
                 //if (isFunctional(convertedReceiver.type)) 
                 xx: {
@@ -6728,10 +6740,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     } else if (convertedReceiver instanceof JCTree.JCMemberReference) {
                         // Make a method invocation in which the method reference has the argument list
                         JCTree.JCMemberReference mref = (JCTree.JCMemberReference)convertedReceiver;
+                        JCExpression mexpr = mref.expr;
                         JCExpression receiver = null;
-                        if (!mref.sym.isStatic()) {
-                            receiver = untrArgs.head;
-                            untrArgs = untrArgs.tail;
+                        if (treeutils.isATypeTree(mexpr)) {
+                            if (!mref.sym.isStatic()) {
+                                receiver = untrArgs.head;
+                                untrArgs = untrArgs.tail;
+                            }
+                        } else {
+                            receiver = mexpr;
                         }
                         
                         // The receiver may not be null./ But that condition is checked when we convert the Exec statement
@@ -10875,11 +10892,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             break;
                         }
                         VarSymbol enclFieldSym = enclosingClassFieldSymbols.get(base);
-                        base = (ClassSymbol)base.owner;
+                        if (enclFieldSym == null) break;
+                        Symbol bsym = base.owner;
+                        if (!(bsym instanceof ClassSymbol)) break;
+                        base = (ClassSymbol)bsym;
                         baseExpr = treeutils.makeSelect(that.pos, baseExpr, enclFieldSym);  // FIXME - does not work for more than one level
-                        if (base == null) {
-                            // FIXME - ERROR
-                        }
+                    }
+                    if (newfa == null) {
+                        if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
+                        else newfa = treeutils.makeSelect(that.pos, currentThisExpr, sym);
                     }
                 } else {
                     if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);

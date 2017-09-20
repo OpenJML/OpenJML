@@ -3092,10 +3092,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // model program
                 boolean oldPure = pureEnvironment;
                 pureEnvironment = false;
+                currentClauseType = JmlTokenKind.MODEL_PROGRAM;
                 try {
                     tree.block.accept(this);
                 } finally {
                     pureEnvironment = oldPure;
+                    currentClauseType = null;
                 }
                 
             } 
