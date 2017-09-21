@@ -967,6 +967,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override 
     public void visitReference(JCMemberReference that) {
         super.visitReference(that);
+        if (that.expr.type == null) return;  // This means that type attribution failed; presumably an error is already reported
         if (that.sym == null) {
             for (Symbol s: that.expr.type.tsym.getEnclosedElements()) {
                 if (s.name == that.name) {
