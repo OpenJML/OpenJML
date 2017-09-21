@@ -487,7 +487,17 @@ public class SFBugs extends EscBase {
     }
     
     @Test public void gitbug558b() {
-    	expectedExit = 0;
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test public void gitbug559() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test public void gitbug559a() {
+        expectedExit = 0;
         helpTCG();
     }
     

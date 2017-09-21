@@ -405,6 +405,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** The AST being processed when in a sub-tree of a method declaration */
     protected JmlMethodDecl methodDecl = null;
     
+    /** Location of calls within the method or itds specicfications */
+    protected /*@ nullable */ JCTree nestedCallLocation = null;
+    
     /** The parent class of the method being converted, for use while the
      * declarations of the class are being walked, and while a method is
      * being translated stand-alone (without having been reached by walking
@@ -829,6 +832,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCBlock savedDiscoveredFields = discoveredFields;
         Set<Symbol> savedAlreadyDiscoveredFields = alreadyDiscoveredFields;
         int savedAllocCounter = allocCounter;
+        JCTree savedNestedCallLocation = nestedCallLocation;
+        nestedCallLocation = null;
+        
         allocCounter = 0;
         
         if (pmethodDecl.sym.isDefault()){
@@ -1165,6 +1171,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             this.alreadyDiscoveredFields = savedAlreadyDiscoveredFields;
             this.discoveredFields = savedDiscoveredFields;
             this.allocCounter = savedAllocCounter;
+            this.nestedCallLocation = savedNestedCallLocation;
             Main.instance(context).popOptions();
         }
     }
@@ -1780,7 +1787,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
-        if (assertCount == 703) Utils.stop();
+        if (assertCount == 334) Utils.stop();
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
         JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? (classDecl == null ? null : classDecl.sym) : methodDecl.sym,translatedExpr);
@@ -1812,6 +1819,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             currentStatements.add(assertDecl);
             currentStatements.add(st);
             if (assertCount == 181) savedAssert = translatedExpr;
+            if (associatedPos == null && nestedCallLocation != null) {
+                st.associatedPos = nestedCallLocation.pos;
+                st.associatedSource = st.source;  // FIXME _ this is wrong - noty necessarily the same file
+            }
             return st;
         } 
         if (rac) {
@@ -6606,6 +6617,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         /*@ nullable */ Symbol savedExceptionSym = exceptionSym; // The symbol that holds the actifve exception (or null) // FIXME - doesnot get changed so why save it?
         /*@ nullable */ JCIdent savedThisId = currentThisId; // The JCIdent holding what 'this' means in the current context (already translated)
         /*@ nullable */ JCExpression savedThisExpr = currentThisExpr; // The JCIdent holding what 'this' means in the current context (already translated)
+        /*@ nullable */ JCTree savedNestedCallLocation = nestedCallLocation;
+        
         Map<Object,JCExpression> savedParamActuals = paramActuals; // Mapping from formal parameter symbols to the actual arguments
           // A map in which to save paramActuals for each overridden method
         Map<Symbol,JCVariableDecl> savedpreparams = preparams;
@@ -6638,6 +6651,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.preExpressions = preExpressions;
         
         JCExpression convertedReceiver = null;
+        MethodSymbol calleeMethodSym = null; // The method symbol of the callee method or constructor
         try {
             // Translate the method name, and determine the receiver for the method call
             
@@ -6650,7 +6664,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             /*@ nullable*/ JCMethodInvocation apply = null; // non-null if this is a method call
             /*@ nullable*/ JCNewClass newclass = null; // non-null if this a new object call
             
-            MethodSymbol calleeMethodSym = null; // The method symbol of the callee method or constructor
             
             if (that instanceof JCMethodInvocation) {
                 apply = (JCMethodInvocation)that;
@@ -6849,6 +6862,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 return;
             }
             
+            nestedCallLocation = that;
+
             JmlMethodSpecs mspecs = specs.getDenestedSpecs(calleeMethodSym);
             boolean inliningCall = mspecs != null && mspecs.decl != null && mspecs.decl.mods != null && attr.findMod(mspecs.decl.mods,JmlTokenKind.INLINE) != null;
             
@@ -6877,6 +6892,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (nodoTranslations && that instanceof JCNewClass) nodoTranslations = false; // FIXME - work this out in more detail. At least there should not be anonymous classes in JML expressions
             boolean calleeIsFunction = attr.isFunction(calleeMethodSym);
             if (calleeIsFunction && translatingJML) nodoTranslations = true;
+            if (methodsInlined.contains(calleeMethodSym)) {
+                // Recursive inlining
+                nodoTranslations = true;
+            }
             boolean hasTypeArgs = calleeMethodSym.getReturnType() instanceof Type.TypeVar;  // FIXME - should iterate through the whole type, I think
 
             if (nodoTranslations && !hasTypeArgs && !isSuperCall && !isThisCall) {
@@ -7042,6 +7061,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 result = eresult = convertedResult;
                 return;
             }
+            
+            // Implement by inlining specs, rather than creating metho axioms
+            methodsInlined.add(calleeMethodSym);
+            
             // Set up the result variable - for RAC we have to do this
             // outside the block that starts a few lines down, because the
             // result is a temporary ident that is used in subsequent 
@@ -8643,6 +8666,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             enclosingMethod = savedEnclosingMethod;
             enclosingClass = savedEnclosingClass;
             typevarMapping = savedTypeVarMapping;
+            nestedCallLocation = savedNestedCallLocation;
             applyNesting--;
             this.preExpressions = savedPreexpressions;
             if (rac) {
@@ -8651,6 +8675,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             JCBlock b = popBlock(0L,that,check0);
             currentStatements.addAll(b.stats);
+            methodsInlined.remove(calleeMethodSym);
         }
     }
 
@@ -8790,6 +8815,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //    Map<Symbol,MethodSymbol> pureMethod = new HashMap<Symbol,MethodSymbol>();
     
     Set<Symbol> axiomsAdded = new HashSet<Symbol>();
+    Set<Symbol> methodsInlined = new HashSet<Symbol>();
     
     int heapCountForAxioms = -2;
     
@@ -8797,11 +8823,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected boolean addAxioms(int hc, Symbol sym) {
         if (hc != heapCountForAxioms) {
             axiomsAdded.clear();
+            methodsInlined.clear();
             //pureMethod.clear();
             wellDefinedCheck.clear();
             heapCountForAxioms = hc;
         }
         return axiomsAdded.add(sym);
+    }
+    
+    protected boolean addInlinedMethod(int hc, Symbol sym) {
+        if (hc != heapCountForAxioms) {
+            axiomsAdded.clear();
+            wellDefinedCheck.clear();
+            methodsInlined.clear();
+            heapCountForAxioms = hc;
+        }
+        return methodsInlined.add(sym);
     }
     
 
