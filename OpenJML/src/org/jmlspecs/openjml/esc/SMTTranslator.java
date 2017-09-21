@@ -1506,10 +1506,10 @@ public class SMTTranslator extends JmlTreeScanner {
             ISymbol n = F.symbol(newname);
             ISort resultSort = convertSort(tree.type);
             List<ISort> argSorts = new LinkedList<ISort>();
-//            // Adds an argument for the receiver, if the function is not static - TODO: do we ever use this?
-//            if (tree.meth instanceof JCFieldAccess && ((JCFieldAccess)tree.meth).selected != null && !((JCFieldAccess)tree.meth).sym.isStatic()) {
-//                argSorts.add(refSort);
-//            }
+            // Adds an argument for the receiver, if the function is not static
+            if (tree.meth instanceof JCFieldAccess && ((JCFieldAccess)tree.meth).selected != null && !((JCFieldAccess)tree.meth).sym.isStatic()) {  // FIXME _ JML sstatic?
+                argSorts.add(refSort);
+            }
             for (JCExpression e: tree.args) {
                 argSorts.add(convertSort(e.type));
             }
