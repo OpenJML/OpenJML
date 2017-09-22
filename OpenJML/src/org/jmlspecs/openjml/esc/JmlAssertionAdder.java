@@ -10555,10 +10555,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitSelect(JCFieldAccess that) {
-        if (that.toString().equals("Test.this")) Utils.stop();
         JCExpression selected;
         Symbol s = convertSymbol(that.sym);
-        if (s.toString().equals("f")) Utils.stop();
         JCExpression trexpr = that.getExpression();
         if (!(s instanceof Symbol.TypeSymbol)) trexpr = convertExpr(trexpr);
         if (pureCopy) {
@@ -10582,6 +10580,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else {
                 if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note("jml.message", "No invariants created for " + that);
             }
+        }
+        if (esc && sym == syms.lengthVar) {
+            JCExpression ntrExpr = convertCopy(trexpr);
+            JCExpression newfaa = treeutils.makeSelect(that.pos,  ntrExpr, sym);
+            JCExpression bina = treeutils.makeBinary(that, JCTree.Tag.LE, treeutils.intleSymbol, treeutils.makeIntLiteral(that,0), newfaa);
+            JCExpression binb = treeutils.makeBinary(that, JCTree.Tag.LE, treeutils.intleSymbol, convertCopy(newfaa), treeutils.makeIntLiteral(that,Integer.MAX_VALUE));
+            addAssume(that,Label.IMPLICIT_ASSUME, treeutils.makeAnd(that,bina,binb));
         }
         checkRW(JmlTokenKind.READABLE,that.sym,trexpr,that);
         if (!convertingAssignable && checkAccessEnabled) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, that, currentThisExpr, currentThisExpr);
