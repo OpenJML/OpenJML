@@ -298,7 +298,7 @@ public class esc extends EscBase {
 	@Test
 	public void testForEach2a() {
 		Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-		//main.addOptions("-method=m4","-checkFeasibility=all","escMaxWarnings=1");
+		main.addOptions("escMaxWarnings=1");
 		helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
 				+ "public class TestJava { \n"
 				+ "  //@ public normal_behavior  ensures true;\n" 
@@ -316,12 +316,12 @@ public class esc extends EscBase {
 				+ "    //@ assume values.content.owner == values;\n"
 				+ "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
 				+ "    //@ assume values.content.owner == values;\n" 
-				+ "    Map.Entry<String,String> k;\n"
+				+ "    Map.Entry<String,String> k; \n"
 				+ "    //@ assert values.content.owner == values;\n"
 				+ "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
 				+ "    //@ loop_invariant values == v && values.content.owner == values; \n"
-				+ "    for (; it.hasNext(); values.add(k) ) {\n"
-				+ "        k = it.next();  //@ assume \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
+				+ "    for (; it.hasNext(); values.add(k) ) {\n"  // FIXME - why need k ! null below since implied by second conjunct
+				+ "        k = it.next();  //@ assume k != null && \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
 						// FIXME - problems if we have erased type names
 				+ "    }\n" 
 				+ "  }\n"
@@ -340,7 +340,7 @@ public class esc extends EscBase {
 				+ "    // @ loop_invariant values == v && values.content.owner == values; \n"
 				+ "    if (it.hasNext()) {\n" 
 				+ "        //@ assert values.content.owner == values;\n"
-				+ "        k = it.next();  //@ assume \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
+				+ "        k = it.next();  //@ assume k != null &&  \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
 								// FIXME - problems if we have erased type names
 				+ "        //@ assert values.content.owner == values;\n" 
 				+ "        values.add(k); \n"

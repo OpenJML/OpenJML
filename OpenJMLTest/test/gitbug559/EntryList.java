@@ -5,7 +5,7 @@ public class EntryList {
     /*@spec_public nullable @*/ Object first;
     /*@spec_public nullable @*/ EntryList rest;
 
-    EntryList( Object first, EntryList rest) {
+    EntryList( /*@ nullable */ Object first,  /*@ nullable */ EntryList rest) {
         this.first = first;
         this.rest = rest;
     }
