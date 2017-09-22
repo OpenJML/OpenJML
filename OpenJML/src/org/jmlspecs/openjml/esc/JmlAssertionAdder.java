@@ -1798,7 +1798,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
-        if (assertCount == 334) Utils.stop();
+        if (assertCount == 94) Utils.stop();
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
         JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? (classDecl == null ? null : classDecl.sym) : methodDecl.sym,translatedExpr);
@@ -6634,6 +6634,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         /*@ nullable */ JCIdent savedThisId = currentThisId; // The JCIdent holding what 'this' means in the current context (already translated)
         /*@ nullable */ JCExpression savedThisExpr = currentThisExpr; // The JCIdent holding what 'this' means in the current context (already translated)
         /*@ nullable */ JCTree savedNestedCallLocation = nestedCallLocation;
+        nestedCallLocation = null;
         
         Map<Object,JCExpression> savedParamActuals = paramActuals; // Mapping from formal parameter symbols to the actual arguments
           // A map in which to save paramActuals for each overridden method
@@ -6928,7 +6929,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     currentThisId = newThisId;
                     currentThisExpr = newThisExpr;
 
-
+                    if (calleeMethodSym.name.toString().equals("m")) Utils.stop();
                     // First check all invariants // FIXME - use addInvariants?
                     if (details && !isHelper(calleeMethodSym) && !isSuperCall && !isThisCall &&
                             !startInvariants(calleeMethodSym.owner,that)) {
@@ -7078,7 +7079,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 return;
             }
             
-            // Implement by inlining specs, rather than creating metho axioms
+            // Implement by inlining specs, rather than creating method axioms
             methodsInlined.add(calleeMethodSym);
             
             // Set up the result variable - for RAC we have to do this
