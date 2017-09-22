@@ -733,6 +733,7 @@ public class MethodProverSMT {
                 Name n = ((JCVariableDecl)stat).name;
                 String ns = n.toString();
                 if (ns.startsWith(Strings.labelVarString)) {
+                    JavaFileObject prev = log.useSource( ((JmlVariableDecl)stat).sourcefile );
                     int k = ns.lastIndexOf(Strings.underscore);
                     if (ns.startsWith(prefix_lblpos)) {
                         Boolean b = getBoolValue(ns,smt,solver);
@@ -752,6 +753,7 @@ public class MethodProverSMT {
                     } else {
                         log.warning(stat.pos,"jml.internal.notsobad","Unknown label: " + ns); //$NON-NLS-1$
                     }
+                    log.useSource(prev);
                 }
             }
             
