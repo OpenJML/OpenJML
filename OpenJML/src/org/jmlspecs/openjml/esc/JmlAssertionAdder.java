@@ -8044,7 +8044,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                     }
                                                 } else {
                                                     newlist.add(location); 
-                                                    continue;
+                                                    //continue;
                                                 }
                                             } else if (location instanceof JmlStoreRefArrayRange) {
                                                 JmlStoreRefArrayRange loc = (JmlStoreRefArrayRange)location;

@@ -151,10 +151,10 @@ public abstract class EscBase extends JmlTestCase {
         this.solver = solver;
     }
     
-    public void printDiagnostics() {
-        System.out.println("SOLVER: " + solver + " " + options);
-        super.printDiagnostics();
-    }
+//    public void printDiagnostics() {
+//        System.out.println("SOLVER: " + solver + " " + options);
+//        super.printDiagnostics();
+//    }
 
     protected static String z = java.io.File.pathSeparator;
     protected static String testspecpath1 = "$A"+z+"$B";
