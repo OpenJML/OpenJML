@@ -372,7 +372,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testGenericThrow() {
-        main.addOptions("-show","-method=rt");
+        main.addOptions("-method=rt");
         helpTCX("tt.TestJava",
         		 "public class TestJava { \n"
         	    +" //@ public exceptional_behavior \n"

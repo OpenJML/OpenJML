@@ -1016,31 +1016,34 @@ public class Utils {
 
     public void warning(JavaFileObject source, int pos, String key, Object ... args) {
         Log log = log();
-        JavaFileObject prev = log.useSource(source);
+        JavaFileObject prev = null;
+        if (source != null) prev = log.useSource(source);
         try {
             log.warning(pos, key, args);
         } finally {
-            log.useSource(prev);
+            if (prev != null) log.useSource(prev);
         }
     }
     
     public void error(JavaFileObject source, int pos, String key, Object ... args) {
         Log log = log();
-        JavaFileObject prev = log.useSource(source);
+        JavaFileObject prev = null;
+        if (source != null) prev = log.useSource(source);
         try {
             log.error(pos, key, args);
         } finally {
-            log.useSource(prev);
+            if (prev != null) log.useSource(prev);
         }
     }
     
     public void error(JavaFileObject source, DiagnosticPosition pos, String key, Object ... args) {
         Log log = log();
-        JavaFileObject prev = log.useSource(source);
+        JavaFileObject prev = null;
+        if (source != null) prev = log.useSource(source);
         try {
             log.error(pos, key, args);
         } finally {
-            log.useSource(prev);
+            if (prev != null) log.useSource(prev);
         }
     }
     
