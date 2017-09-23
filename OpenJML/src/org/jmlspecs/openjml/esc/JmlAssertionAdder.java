@@ -1798,7 +1798,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
-        if (assertCount == 94) Utils.stop();
+        //if (assertCount == 94) Utils.stop();
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
         JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? (classDecl == null ? null : classDecl.sym) : methodDecl.sym,translatedExpr);
@@ -7996,7 +7996,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCExpression pre = convertCopy(preExpressions.get(cs));
                         if (pre == treeutils.falseLit) continue; // Don't bother with postconditions if corresponding precondition is explicitly false 
                         condition = pre; // FIXME - is this right? what about the havoc statement?
-                        ListBuffer<JCStatement> check4 = pushBlock();
                         boolean useDefault = true;
                         for (JmlMethodClause clause : cs.clauses) {
                             try {
@@ -8017,10 +8016,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         useDefault = false;
                                         addStat(comment(clause));
                                         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
-                                        boolean containsEverything = false;
                                         List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym);
                                         for (JCExpression location: storerefs) {
                                             location = convertAssignable(location,newThisId,true,clause.source());
+                                            JCExpression prex = checkAgainstAllCalleeSpecs(calleeMethodSym,token,that,location,pre,newThisId,newThisId,clause.source());
+                                            boolean containsEverything = false;
+                                            ListBuffer<JCStatement> check4 = pushBlock();
                                             if (location instanceof JCFieldAccess) {
                                                 JCFieldAccess fa = (JCFieldAccess)location;
                                                 if (fa.sym == null) {
@@ -8067,11 +8068,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                     containsEverything = true;
                                                 }
                                             }
-                                        }
-                                        JCStatement havoc = M.at(clause.pos).JmlHavocStatement(newlist.toList());
-                                        addStat(havoc);
-                                        if (containsEverything) {
-                                            addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false, currentThisExpr == null);
+                                            JCStatement havoc = M.at(clause.pos).JmlHavocStatement(newlist.toList());
+                                            addStat(havoc);
+                                            if (containsEverything) {
+                                                addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false, currentThisExpr == null);
+                                            }
+                                            JCBlock bl = popBlock(0,cs,check4);
+                                            JCStatement st = M.at(cs.pos+1).If(prex,bl,null);
+                                            bl = M.at(cs.pos+1).Block(0,List.<JCStatement>of(st));
+                                            currentStatements.add( wrapRuntimeException(cs, bl, "JML undefined precondition while checking postconditions - exception thrown", null));
+
                                         }
                                         }
                                         break;
@@ -8084,6 +8090,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             }
                         }
                         if (useDefault && !translatingJML && cs.token != JmlTokenKind.MODEL_PROGRAM) {
+                            ListBuffer<JCStatement> check4 = pushBlock();
                             if (isThisCall) {
                                 // default for a 'this' call is all local fields
                                 ListBuffer<JCExpression> fields = new ListBuffer<>();
@@ -8116,12 +8123,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 JCStatement havoc = M.at(cs.pos).JmlHavocStatement(List.<JCExpression>of(M.at(cs.pos).JmlStoreRefKeyword(JmlTokenKind.BSNOTHING)));
                                 addStat(havoc);
                             }
+                            JCBlock bl = popBlock(0,cs,check4);
+                            JCStatement st = M.at(cs.pos+1).If(pre,bl,null);
+                            bl = M.at(cs.pos+1).Block(0,List.<JCStatement>of(st));
+                            currentStatements.add( wrapRuntimeException(cs, bl, "JML undefined precondition while checking postconditions - exception thrown", null));
                         }
 
-                        JCBlock bl = popBlock(0,cs,check4);
-                        JCStatement st = M.at(cs.pos+1).If(pre,bl,null);
-                        bl = M.at(cs.pos+1).Block(0,List.<JCStatement>of(st));
-                        currentStatements.add( wrapRuntimeException(cs, bl, "JML undefined precondition while checking postconditions - exception thrown", null));
 
 //                        if (esc && (!specs.isPure(calleeMethodSym) || newclass != null) && resultId != null && !resultType.isPrimitive()) {
 //                            JCFieldAccess x = (JCFieldAccess)M.at(cs.pos).Select(null,isAllocSym);
