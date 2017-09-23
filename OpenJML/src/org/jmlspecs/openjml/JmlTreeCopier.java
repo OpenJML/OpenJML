@@ -395,7 +395,8 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 that.code,
                 that.token,
                 that.also,
-                copy(that.clauses,p));
+                copy(that.clauses,p),
+                copy(that.block));
         copy.block = copy(that.block,p);
         copy.sourcefile = that.sourcefile;
         copy.type = that.type;
