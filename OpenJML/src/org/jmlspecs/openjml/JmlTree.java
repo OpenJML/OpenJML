@@ -118,9 +118,8 @@ public class JmlTree implements IJmlTree {
         JmlQuantifiedExpr JmlQuantifiedExpr(JmlTokenKind token, List<JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression predicate);
         JmlSetComprehension JmlSetComprehension(JCTree.JCExpression type, JCTree.JCVariableDecl v, JCTree.JCExpression predicate);
         JmlSingleton JmlSingleton(JmlTokenKind jt);
-        JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlTokenKind t, JmlTokenKind also, List<JmlMethodClause> clauses);
+        JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlTokenKind t, JmlTokenKind also, List<JmlMethodClause> clauses, JCBlock block);
         JmlSpecificationCase JmlSpecificationCase(JmlSpecificationCase sc, List<JmlMethodClause> clauses);
-        JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlTokenKind t, JmlTokenKind also, JCBlock block);
         JmlStatement JmlStatement(JmlTokenKind t, JCTree.JCExpressionStatement e);
         JmlStatementDecls JmlStatementDecls(List<JCTree.JCStatement> list);
         JmlStatementLoop JmlStatementLoop(JmlTokenKind t, JCTree.JCExpression e);
@@ -694,15 +693,8 @@ public class JmlTree implements IJmlTree {
         }
 
         @Override
-        public JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlTokenKind t, JmlTokenKind also, List<JmlMethodClause> clauses) {
-            JmlSpecificationCase jcase = new JmlSpecificationCase(pos,mods,code,t,also,clauses);
-            jcase.sourcefile = Log.instance(context).currentSourceFile();
-            return jcase;
-        }
-        
-        @Override
-        public JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlTokenKind t, JmlTokenKind also, JCBlock block) {
-            JmlSpecificationCase jcase = new JmlSpecificationCase(pos,mods,code,t,also,block);
+        public JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlTokenKind t, JmlTokenKind also, List<JmlMethodClause> clauses, JCBlock block) {
+            JmlSpecificationCase jcase = new JmlSpecificationCase(pos,mods,code,t,also,clauses,block);
             jcase.sourcefile = Log.instance(context).currentSourceFile();
             return jcase;
         }
@@ -2601,25 +2593,14 @@ public class JmlTree implements IJmlTree {
         public JCBlock block;  // A model program has a block (of statements) but no clauses
         public JavaFileObject sourcefile;
         
-        // FIXME - public constructors - use facctory?
-        
-        public JmlSpecificationCase(int pos, JCModifiers mods, boolean code, JmlTokenKind token, JmlTokenKind also, List<JmlMethodClause> clauses) {
+        public JmlSpecificationCase(int pos, JCModifiers mods, boolean code, JmlTokenKind token, JmlTokenKind also, List<JmlMethodClause> clauses, JCBlock block) {
             this.pos = pos;
+            this.sourcefile = null;
             this.modifiers = mods;
             this.code = code;
             this.token = token;
             this.also = also;
             this.clauses = clauses;
-            this.block = null;
-        }
-        
-        public JmlSpecificationCase(int pos, JCModifiers mods, boolean code, JmlTokenKind token, JmlTokenKind also, JCBlock block) {
-            this.pos = pos;
-            this.modifiers = mods;
-            this.code = code;
-            this.token = token;
-            this.also = also;
-            this.clauses = null;
             this.block = block;
         }
         

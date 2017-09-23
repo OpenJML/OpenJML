@@ -379,7 +379,8 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
                 that.code,
                 that.token,
                 that.also,
-                copy(that.clauses,p));
+                copy(that.clauses,p),
+                copy(that.block));
         copy.block = copy(that.block,p);
         copy.sourcefile = that.sourcefile;
         copy.type = that.type;

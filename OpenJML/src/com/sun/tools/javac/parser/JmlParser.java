@@ -1810,9 +1810,13 @@ public class JmlParser extends JavacParser {
             }
             nextToken();
         } else if (jt == MODEL_PROGRAM) {
-            JmlSpecificationCase j = parseModelProgram(mods, code, also);
-            j.sourcefile = log.currentSourceFile();
-            return j;
+            nextToken(); // skip over the model_program token
+
+//            JCBlock stat = parseModelProgramBlock();
+//            JmlSpecificationCase spc = toP(jmlF.at(pos).JmlSpecificationCase(mods, code,
+//                        MODEL_PROGRAM, also, List.<JmlMethodClause>nil(), stat));
+//            spc.sourcefile = log.currentSourceFile();
+//            return spc;
         } else if (jt == null && S.jml() && also != null) {
             jmlerror(pos(), endPos(), "jml.invalid.keyword.in.spec",
                     S.chars());
@@ -1826,11 +1830,21 @@ public class JmlParser extends JavacParser {
         
         ListBuffer<JmlMethodClause> clauses = new ListBuffer<JmlMethodClause>();
         JmlMethodClause e;
-        while (token.kind == CUSTOM && (e = getClause()) != null) {
-            clauses.append(e);
+        JCBlock stat = null;
+        while (true) {
+            if (token.kind == CUSTOM && (e = getClause()) != null) {
+                clauses.append(e);
+            } else if (token.kind == TokenKind.LBRACE) {
+                if (stat != null) {
+                    // FIXME - error
+                }
+                stat = parseModelProgramBlock();
+            } else {
+                break;
+            }
         }
 
-        if (clauses.size() == 0) {
+        if (clauses.size() == 0 && stat == null) {
             if (jt != null) {
                 jmlerror(pos, "jml.empty.specification.case");
             }
@@ -1838,7 +1852,7 @@ public class JmlParser extends JavacParser {
         }
         if (jt == null && code) code = false; // Already warned about this
         JmlSpecificationCase j = jmlF.at(pos).JmlSpecificationCase(mods, code,
-                jt, also, clauses.toList());
+                jt, also, clauses.toList(), stat);
         storeEnd(j, j.clauses.isEmpty() ? pos + 1 : getEndPos(j.clauses.last()));
         j.sourcefile = log.currentSourceFile();
         return j;
@@ -1850,27 +1864,31 @@ public class JmlParser extends JavacParser {
             log.warning(pos, "jml.unimplemented.construct", construct, location);
     }
 
-    /** Parses a model program; presumes the current token is model_program */
-    public JmlSpecificationCase parseModelProgram(JCModifiers mods,
-            boolean code, JmlTokenKind also) {
-        int pos = pos();
-        nextToken(); // skip over the model_program token
-
-        JCBlock stat;
-        JmlSpecificationCase spc;
+    public JCBlock parseModelProgramBlock() {
         try {
             inJmlDeclaration = true;
             inModelProgram = true;
-            stat = block();
-            spc = toP(jmlF.at(pos).JmlSpecificationCase(mods, code,
-                    MODEL_PROGRAM, also, stat));
-            spc.clauses = List.<JmlMethodClause>nil();
+            return block();
         } finally {
             inJmlDeclaration = false;
             inModelProgram = false;
         }
-        return spc;
     }
+    
+//    /** Parses a model program; presumes the current token is model_program */
+//    public JmlSpecificationCase parseModelProgram(JCModifiers mods,
+//            boolean code, JmlTokenKind also) {
+//        int pos = pos();
+//        nextToken(); // skip over the model_program token
+//
+//        JCBlock stat;
+//        JmlSpecificationCase spc;
+//            stat = parseModelProgramBlock();
+//            spc = toP(jmlF.at(pos).JmlSpecificationCase(mods, code,
+//                    MODEL_PROGRAM, also, stat));
+//            spc.clauses = List.<JmlMethodClause>nil();
+//        return spc;
+//    }
 
     /**
      * Parses an entire specification group; the current token must be the

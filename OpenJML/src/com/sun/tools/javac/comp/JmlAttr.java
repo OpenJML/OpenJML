@@ -1779,7 +1779,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (clp != null) clauses.append(clp);
                 if (!clauses.isEmpty()) {
                     JCModifiers mods = jmlMaker.at(decl.pos).Modifiers(decl.mods.flags & Flags.AccessFlags);
-                    JmlSpecificationCase c = jmlMaker.JmlSpecificationCase(mods,false,null,null,clauses.toList());
+                    JmlSpecificationCase c = jmlMaker.JmlSpecificationCase(mods,false,null,null,clauses.toList(),null);
                     newspecs = jmlMaker.JmlMethodSpecs(List.<JmlSpecificationCase>of(c));
                 } else {
                     newspecs = methodSpecs;
@@ -1835,7 +1835,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (cases.isEmpty()) {
             if (parent != null) {
                 addDefaultSignalsOnly(prefix,parent,decl);
-                newlist.append(((JmlTree.Maker)make).at(parent.pos).JmlSpecificationCase(mods,parent.code,parent.token,parent.also,prefix.toList()));
+                newlist.append(((JmlTree.Maker)make).at(parent.pos).JmlSpecificationCase(mods,parent.code,parent.token,parent.also,prefix.toList(),null));
             }
             else {
                 // ERROR - not allowed to have an empty collection of specification cases

@@ -6017,7 +6017,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         if (noSpecCases) {
-            JCExpression check = checkAccess(token,assignPosition, lhs,lhs,M.at(methodDecl.pos).JmlSpecificationCase(null, false, null, null, List.<JmlMethodClause>nil()),currentThisId,currentThisId,false);
+            JCExpression check = checkAccess(token,assignPosition, lhs,lhs,M.at(methodDecl.pos).JmlSpecificationCase(null, false, null, null, List.<JmlMethodClause>nil(), null),currentThisId,currentThisId,false);
             if (!treeutils.isTrueLit(check)) {
                 check = makeAssertionOptional(check);
                 addAssert(assignPosition,
@@ -6963,7 +6963,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         ntrArgs = ntrArgs.prepend(heap); // only if heap dependent
                     }
                     
-                    JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden);
+                    JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden,receiverType);
                     if (details) { // FIXME - document this details check - if it is false, the axioms are dropped
                         // FIXME - actually should add these into whatever environment is operative
                         if (inOldEnv) {
@@ -7162,7 +7162,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             if (!translatingJML && calleeIsFunction && !rac) {
                 // FIXME - replicated from above
-                JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden);
+                JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden,receiverType);
                 if (true) { // FIXME - document this details check - if it is false, the axioms are dropped
                     // FIXME - actually should add these into whatever environment is operative
                     if (inOldEnv) {
@@ -13811,9 +13811,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 that.code,
                 that.token,
                 that.also,
-                that.clauses);
+                that.clauses,
+                convertBlock(that.block));
         sc.sourcefile = that.sourcefile;
-        sc.block = that.block == null ? null : convertBlock(that.block); // model program
         sc.setType(that.type);
         result = sc;
     }
@@ -15042,7 +15042,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     int depth = 0;
     ListBuffer<JCStatement> savedForAxioms = null;
     protected JCBlock addMethodAxioms(DiagnosticPosition callLocation, MethodSymbol msym, 
-            java.util.List<Pair<MethodSymbol,Type>> overridden) {
+            java.util.List<Pair<MethodSymbol,Type>> overridden, Type receiverType) {
         boolean isFunction = attr.isFunction(msym);
         if (!inOldEnv && !addAxioms(heapCount,msym)) { return M.at(Position.NOPOS).Block(0L, List.<JCStatement>nil()); }
         boolean isStatic = utils.isJMLStatic(msym);
@@ -15083,7 +15083,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCIdent qthisid = null;
             JCExpression qthisnn = null;
             if (!isStatic) {
-                JCVariableDecl newDecl = treeutils.makeVarDef(currentThisExpr.type, names.fromString("QTHIS"), ownerSym, pos);
+                JCVariableDecl newDecl = treeutils.makeVarDef(receiverType, names.fromString("QTHIS"), ownerSym, pos);
                 newDecls.add(newDecl);
                 qthisid = treeutils.makeIdent(callLocation,newDecl.sym);
                 newparamsWithHeap.add(qthisid);
