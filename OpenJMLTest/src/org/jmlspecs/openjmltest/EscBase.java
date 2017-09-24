@@ -213,6 +213,7 @@ public abstract class EscBase extends JmlTestCase {
     			diffs = compareFiles(name, actCompile);
     		}
     		if (diffs != null) {
+    		    System.out.println("TEST DIFFERENCES: " + testname.getMethodName());
     			System.out.println(diffs);
     			fail("Files differ: " + diffs);
     		}  

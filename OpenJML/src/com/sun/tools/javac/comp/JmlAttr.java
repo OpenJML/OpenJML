@@ -208,6 +208,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** A JmlResolve instance */
     @NonNull final protected JmlResolve jmlresolve;
     
+    /** A node factory instance */
+    @NonNull final protected JmlTree.Maker jmlMaker;
+
     /** An instance of the tree utility class */
     @NonNull final protected JmlTreeUtils treeutils;
 
@@ -325,7 +328,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         this.jmltypes = JmlTypes.instance(context);
         this.classReader.init(syms);
         this.jmlcompiler = (JmlCompiler)JmlCompiler.instance(context);
-        this.jmlresolve = (JmlResolve)rs;
+        this.jmlresolve = (JmlResolve)super.rs;
+        this.jmlMaker = (JmlTree.Maker)super.make;
         this.treeutils = JmlTreeUtils.instance(context);
         
         // Caution, because of circular dependencies among constructors of the
@@ -1618,32 +1622,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             
             // Add an assignable clause if the method is pure and has no assignable clause
-            JmlMethodClause clp = null;
-            if (desugaringPure) {
-                if (decl.sym.isConstructor()) {
-//                    JCIdent t = jmlMaker.Ident(names._this);
-//                    t.type = decl.sym.owner.type;
-//                    t.sym = decl.sym.owner;
-//                    clp = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
-//                            List.<JCExpression>of(jmlMaker.Select(t,(Name)null)));
-                    clp = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
-                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSNOTHING)));
-                    
-                } else {
-                    clp = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
-                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSNOTHING)));
-                }
-                if (pure != null) {
-                    clp.pos = pure.pos;
-                    endPosTable.storeEnd(clp,pure.getEndPosition(endPosTable));
-                } else {
-                    // This branch is defensive - should never happen
-                    clp.pos = Position.NOPOS;
-                    endPosTable.storeEnd(clp,Position.NOPOS);
-                }
-//                clauses.append(clp);
-//                clp = null;
-            }
+//            JmlMethodClause clp = null;
+//            if (desugaringPure) {
+//                clp = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
+//                        List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSNOTHING)));
+//                if (pure != null) {
+//                    clp.pos = pure.pos;
+//                    endPosTable.storeEnd(clp,pure.getEndPosition(endPosTable));
+//                } else {
+//                    // This branch is defensive - should never happen
+//                    clp.pos = Position.NOPOS;
+//                    endPosTable.storeEnd(clp,Position.NOPOS);
+//                }
+//            }
             
             // We already have some implicit method spec clauses in 'clauses'
             // Desugar any specification cases
@@ -1654,40 +1645,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 ListBuffer<JmlSpecificationCase> allfecases = new ListBuffer<JmlSpecificationCase>();
                 for (JmlSpecificationCase c: methodSpecs.cases) {
                     ListBuffer<JmlMethodClause> cl = new ListBuffer<JmlMethodClause>();
-                    cl.appendList(clauses);
+                    cl.appendList(clauses);  // FIXME - appending the same ASTs to each spec case - is this sharing OK
                     JCModifiers mods = c.modifiers;
                     if (c.token == null) mods = decl.mods;
                     ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,mods);
                     for (JmlSpecificationCase cs: newcases) {
-                        // Note: a model program spec case has no clauses
+                        // Note: a model program spec case may have no clauses and has no implicit defaults
                         if (cs.clauses != null) {
-                            boolean hasAssignableClause = false;
-                            boolean hasAccessibleClause = false;
-                            for (JmlMethodClause clm: cs.clauses) {
-                                if (clm.token == JmlTokenKind.ASSIGNABLE) { 
-                                    hasAssignableClause = true; 
-                                }
-                                if (clm.token == JmlTokenKind.ACCESSIBLE) { 
-                                    hasAccessibleClause = true; 
-                                }
-                            }
-                            if (!hasAssignableClause && clp != null) {
-                                cs.clauses = cs.clauses.append(clp);
-                            }
-                            if (!hasAccessibleClause) {
-                                JmlMethodClause defaultClause;
-                                if (decl.sym.isConstructor()) {
-                                    JCIdent t = jmlMaker.Ident(names._this);
-                                    t.type = decl.sym.owner.type;
-                                    t.sym = decl.sym.owner;
-                                    defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
-                                            List.<JCExpression>of(t,jmlMaker.Select(t,(Name)null)));
-                                } else {
-                                    defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
-                                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
-                                }
-                                cs.clauses = cs.clauses.append(defaultClause);
-                            }
+                            addDefaultClauses(decl, pure, cs);
                         }
                     }
                     allcases.appendList(newcases);
@@ -1701,33 +1666,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     for (JmlSpecificationCase cs: newcases) {
                         // Note: a model program spec case has no clauses
                         if (cs.clauses != null) {
-                            boolean hasAssignableClause = false;
-                            boolean hasAccessibleClause = false;
-                            for (JmlMethodClause clm: cs.clauses) {
-                                if (clm.token == JmlTokenKind.ASSIGNABLE) { 
-                                    hasAssignableClause = true; 
-                                }
-                                if (clm.token == JmlTokenKind.ACCESSIBLE) { 
-                                    hasAccessibleClause = true; 
-                                }
-                            }
-                            if (!hasAssignableClause && clp != null) {
-                                cs.clauses = cs.clauses.append(clp);
-                            }
-                            if (!hasAccessibleClause) {
-                                JmlMethodClause defaultClause;
-                                if (decl.sym.isConstructor()) {
-                                    JCIdent t = jmlMaker.Ident(names._this);
-                                    t.type = decl.sym.owner.type;
-                                    t.sym = decl.sym.owner;
-                                    defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
-                                            List.<JCExpression>of(t,jmlMaker.Select(t,(Name)null)));
-                                } else {
-                                    defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
-                                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
-                                }
-                                cs.clauses = cs.clauses.append(defaultClause);
-                            }
+                            addDefaultClauses(decl, pure, cs);
                         }
                     }
                     allitcases.appendList(newcases);
@@ -1741,33 +1680,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     for (JmlSpecificationCase cs: newcases) {
                         // Note: a model program spec case has no clauses
                         if (cs.clauses != null) {
-                            boolean hasAssignableClause = false;
-                            boolean hasAccessibleClause = false;
-                            for (JmlMethodClause clm: cs.clauses) {
-                                if (clm.token == JmlTokenKind.ASSIGNABLE) { 
-                                    hasAssignableClause = true; 
-                                }
-                                if (clm.token == JmlTokenKind.ACCESSIBLE) { 
-                                    hasAccessibleClause = true; 
-                                }
-                            }
-                            if (!hasAssignableClause && clp != null) {
-                                cs.clauses = cs.clauses.append(clp);
-                            }
-                            if (!hasAccessibleClause) {
-                                JmlMethodClause defaultClause;
-                                if (decl.sym.isConstructor()) {
-                                    JCIdent t = jmlMaker.Ident(names._this);
-                                    t.type = decl.sym.owner.type;
-                                    t.sym = decl.sym.owner;
-                                    defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
-                                            List.<JCExpression>of(t,jmlMaker.Select(t,(Name)null)));
-                                } else {
-                                    defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
-                                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
-                                }
-                                cs.clauses = cs.clauses.append(defaultClause);
-                            }
+                            addDefaultClauses(decl, pure, cs);
                         }
                     }
                     allfecases.appendList(newcases);
@@ -1776,7 +1689,31 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 newspecs.impliesThatCases = allitcases.toList();
                 newspecs.forExampleCases = allfecases.toList();
             } else {
-                if (clp != null) clauses.append(clp);
+                JmlMethodClause clp = null;
+                if (desugaringPure) {
+                    if (decl.sym.isConstructor()) {
+//                        JCIdent t = jmlMaker.Ident(names._this);
+//                        t.type = decl.sym.owner.type;
+//                        t.sym = decl.sym.owner;
+//                        clp = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
+//                                List.<JCExpression>of(jmlMaker.Select(t,(Name)null)));
+                        clp = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
+                                List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSNOTHING)));
+                        
+                    } else {
+                        clp = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
+                                List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSNOTHING)));
+                    }
+                    if (pure != null) {
+                        clp.pos = pure.pos;
+                        endPosTable.storeEnd(clp,pure.getEndPosition(endPosTable));
+                    } else {
+                        // This branch is defensive - should never happen
+                        clp.pos = Position.NOPOS;
+                        endPosTable.storeEnd(clp,Position.NOPOS);
+                    }
+                    clauses.append(clp);
+                }
                 if (!clauses.isEmpty()) {
                     JCModifiers mods = jmlMaker.at(decl.pos).Modifiers(decl.mods.flags & Flags.AccessFlags);
                     JmlSpecificationCase c = jmlMaker.JmlSpecificationCase(mods,false,null,null,clauses.toList(),null);
@@ -1793,38 +1730,79 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             log.useSource(prevSource);
         }
     }
-    
-//    public void addDefaultClauses(List<JmlMethodClause> clauses) {
-//        ListBuffer<JmlMethodClause> cl = new ListBuffer<JmlMethodClause>();
-//        cl.appendList(clauses);
-//        JCModifiers mods = c.modifiers;
-//        if (c.token == null) mods = decl.mods;
-//        ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,mods);
-//        for (JmlSpecificationCase cs: newcases) {
-//            // Note: a model program spec case has no clauses
-//            if (cs.clauses != null) {
-//                boolean hasAssignableClause = false;
-//                boolean hasAccessibleClause = false;
-//                for (JmlMethodClause clm: cs.clauses) {
-//                    if (clm.token == JmlTokenKind.ASSIGNABLE) { 
-//                        hasAssignableClause = true; 
-//                    }
-//                    if (clm.token == JmlTokenKind.ACCESSIBLE) { 
-//                        hasAccessibleClause = true; 
-//                    }
-//                }
-//                if (!hasAssignableClause && clp != null) {
-//                    cs.clauses = cs.clauses.append(clp);
-//                }
-//                if (!hasAccessibleClause) {
-//                    JmlMethodClause defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
-//                             List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
-//                     cs.clauses = cs.clauses.append(defaultClause);
-//                }
-//            }
+
+    protected void addDefaultClauses(JmlMethodDecl decl, JCAnnotation pure, JmlSpecificationCase cs) {
+        boolean hasAssignableClause = false;
+        boolean hasAccessibleClause = false;
+        boolean hasCallableClause = false;
+        boolean hasSignalsOnlyClause = false;
+        for (JmlMethodClause clm: cs.clauses) {
+            if (clm.token == JmlTokenKind.ASSIGNABLE) { 
+                hasAssignableClause = true; 
+            } else if (clm.token == JmlTokenKind.SIGNALS_ONLY) { 
+                hasSignalsOnlyClause = true; 
+            } else if (clm.token == JmlTokenKind.ACCESSIBLE) { 
+                hasAccessibleClause = true; 
+            } else if (clm.token == JmlTokenKind.CALLABLE) { 
+                hasCallableClause = true; 
+            }
+        }
+        if (!hasAssignableClause && cs.block == null ) {
+            JmlMethodClause defaultClause;
+            if (pure != null || decl.sym.isConstructor()) {
+                int pos = pure != null ? pure.pos : cs.pos;
+                JmlStoreRefKeyword kw = jmlMaker.at(pos).JmlStoreRefKeyword(JmlTokenKind.BSNOTHING);
+                defaultClause = jmlMaker.at(pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
+                        List.<JCExpression>of(kw));
+            } else if (decl.sym.isConstructor()) {
+                // FIXME - or should this just be \nothing
+                JCIdent t = jmlMaker.Ident(names._this);
+                t.type = decl.sym.owner.type;
+                t.sym = decl.sym.owner;
+                defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
+                        List.<JCExpression>of(jmlMaker.at(cs.pos).Select(t,(Name)null)));
+            } else {
+                JmlStoreRefKeyword kw = jmlMaker.at(cs.pos).JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING);
+                defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
+                        List.<JCExpression>of(kw));
+            }
+            cs.clauses = cs.clauses.append(defaultClause);
+        }
+        if (!hasAccessibleClause) {
+            JmlMethodClause defaultClause;
+            jmlMaker.at(cs.pos);
+            if (decl.sym.isConstructor()) {
+                JCIdent t = jmlMaker.Ident(names._this);
+                t.type = decl.sym.owner.type;
+                t.sym = decl.sym.owner;
+                defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
+                        List.<JCExpression>of(t,jmlMaker.Select(t,(Name)null)));
+            } else {
+                defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
+                        List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
+            }
+            defaultClause.sourcefile = log.currentSourceFile();
+            cs.clauses = cs.clauses.append(defaultClause);
+        }
+        // FIXME - add this in later
+//        if (!hasSignalsOnlyClause) {
+//            DiagnosticPosition p = decl.pos();
+//            if (decl.thrown != null && !decl.thrown.isEmpty()) p = decl.thrown.get(0).pos();
+//            ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
+//            if (decl.thrown != null) list.addAll(decl.thrown);
+//            list.add(factory.at(p).Type(syms.runtimeExceptionType));
+//            JmlMethodClauseSignalsOnly defaultClause = (factory.at(p).JmlMethodClauseSignalsOnly(JmlTokenKind.SIGNALS_ONLY, list.toList()));
+//            defaultClause.sourcefile = log.currentSourceFile();
+//        cs.clauses = cs.clauses.append(defaultClause);
+
 //        }
-//
-//    }
+//        if (!hasCallableClause) {
+//            jmlMaker.at(cs.pos);
+//            JmlMethodClause defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.CALLABLE,
+//                    List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
+//            cs.clauses = cs.clauses.append(defaultClause);
+//        }
+    }
     
     
     boolean desugaringPure = false;
