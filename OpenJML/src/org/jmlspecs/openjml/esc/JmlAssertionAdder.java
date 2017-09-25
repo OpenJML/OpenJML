@@ -3701,6 +3701,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 precount++;
                 Name prename = names.fromString(Strings.prePrefix + precount);
                 JCVariableDecl dx = treeutils.makeVarDef(syms.booleanType, prename, methodDecl.sym, treeutils.falseLit);
+                if (scase.pos <= 0) {
+//                    log.warning("jml.internal","Bad Position");
+                    scase.pos = 1;
+                }
                 dx.pos = scase.pos;
                 preident = treeutils.makeIdent(scase.pos, dx.sym);
                 addStat(initialStats,dx);
@@ -6898,6 +6902,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             nestedCallLocation = that;
 
+            //specs.getSpecs(calleeMethodSym).cases.deSugared = null;// FIXME _ sometimes desugaring is wrongly computed ????
             JmlMethodSpecs mspecs = specs.getDenestedSpecs(calleeMethodSym);
             boolean inliningCall = mspecs != null && mspecs.decl != null && mspecs.decl.mods != null && attr.findMod(mspecs.decl.mods,JmlTokenKind.INLINE) != null;
             
@@ -7405,6 +7410,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     s.cases = defaults;
                     s.cases.deSugared = defaults;  
                 }
+                if (s.cases.pos <= 0) Utils.stop();
             }
             
             // Iterate over all specs to find preconditions

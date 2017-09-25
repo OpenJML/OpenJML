@@ -1704,14 +1704,21 @@ public class esc extends EscBase {
 
 	@Test
 	public void testOldJava() {
+	   // main.addOptions("-show","-method=TestJava","-checkFeasibility=debug","-progress");
 		helpTCX("tt.TestJava",
-				"package tt; \n" + "/*@ code_java_math*/ public class TestJava { \n" + "  static public  int i;\n"
-						+ "  //@ static public constraint i > \\old(i);\n" + "  //@ modifies i;\n"
-						+ "  //@ ensures true;\n" + "  public static void bok() { i = i - 1; }\n" + "}",
-				"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Constraint) in method TestJava",
-				29, "/tt/TestJava.java:4: warning: Associated declaration", 21,
-				"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Constraint) in method bok", 22,
-				"/tt/TestJava.java:4: warning: Associated declaration", 21);
+				"package tt; \n" 
+				 + "/*@ code_java_math*/ public class TestJava { \n" 
+				 + "  static public  int i;\n"
+				 + "  //@ static public constraint i > \\old(i);\n" 
+				 + "  //@ modifies i;\n"
+				 + "  //@ ensures true;\n" 
+				 + "  public static void bok() { i = i - 1; }\n" 
+				 + "}"
+				 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Constraint) in method TestJava",29
+				, "/tt/TestJava.java:4: warning: Associated declaration", 21
+				,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Constraint) in method bok", 22
+				,"/tt/TestJava.java:4: warning: Associated declaration", 21
+				);
 	}
 
     @Test
@@ -2169,12 +2176,14 @@ public class esc extends EscBase {
 						+ "  public void instc() { int i = 5; /*@ loop_invariant i<=5 && i>=0; decreases i; */ while (i>0) { i = i+1; } /*@ assert i == 0; */ }\n"
 						+ "  public void instd() { int i = 5; /*@ loop_invariant i<=5 && i>0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
 						+ "}"
-				,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",69// 91
+				,anyorder(
+				seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",69)
 				// ,"/tt/TestJava.java:4: warning: Associated declaration",69
-				,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",69// 100
+				,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",69)
 				// ,"/tt/TestJava.java:5: warning: Associated declaration",69
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopInvariant) in method instc",40
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (LoopInvariant) in method instd",40// 99
+                ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopInvariant) in method instc",40)
+                ,seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (LoopInvariant) in method instd",40)
+                )
 		// ,"/tt/TestJava.java:6: warning: Associated declaration",40
 		// FIXME - adjust to have the location + associated declaration
 		);

@@ -1834,7 +1834,7 @@ public class JmlParser extends JavacParser {
         while (true) {
             if (token.kind == CUSTOM && (e = getClause()) != null) {
                 clauses.append(e);
-            } else if (token.kind == TokenKind.LBRACE) {
+            } else if (S.jml() && token.kind == TokenKind.LBRACE) {
                 if (stat != null) {
                     // FIXME - error
                 }
