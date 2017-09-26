@@ -119,7 +119,7 @@ public class escgeneric extends EscBase {
                 +"    //@ assert \\type(T) <: \\type(B);\n" // true
                 +"    //@ assert \\type(T) <: \\type(C);\n" // false
                 +"  }\n"
-                +"  public TestJava() {}\n"
+                +"  /*@ pure */ public TestJava() {}\n"
                 +"}\n"
                 +"class B {}\n"
                 +"class C extends TestJava<B> {}\n"

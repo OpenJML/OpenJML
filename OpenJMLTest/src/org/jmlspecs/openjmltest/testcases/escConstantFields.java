@@ -289,7 +289,7 @@ public class escConstantFields extends EscBase {
                 +"  //@ ghost public final int J = 1 + I;\n"
                 +"  //@ public invariant I == 10 && J == 11;\n" // FIXME - check that this is required
 
-                +"  public TestJava() { \n"
+                +"  public TestJava() { \n"  // Default is assignable \everything, when not pure
                 +"     //@ assert I == 10 && J == 11;\n" // OK because of invariant
                 +"     n();\n"
                 +"     //@ assert I == 10 && J == 11;\n" // Should be OK because of invariant on n()
@@ -302,7 +302,7 @@ public class escConstantFields extends EscBase {
                 +"  }\n"
                 
                 +"  //@ assignable \\everything;\n"
-                +"  public void n() {}\n"   // FIXME - why does this prove?
+                +"  public void n() {}\n"   
                 
                 +"  //@ public normal_behavior ensures \\result == 10;\n"
                 +"  static public int z() { return 10; }\n"
@@ -347,7 +347,7 @@ public class escConstantFields extends EscBase {
                 +"  //@ ghost public final int J = 1 + I;\n"
                 +"  //@ public invariant I == 10 && J == 11;\n"
 
-                +"  public TestJava() { \n"
+                +"  public TestJava() { \n"   // Default is assignable everything, when not pure
                 +"     //@ assert I == 10 && J == 11;\n"
                 +"     n();\n"
                 +"     //@ assert I == 10 && J == 11;\n"

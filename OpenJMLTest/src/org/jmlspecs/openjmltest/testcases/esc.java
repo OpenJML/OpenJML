@@ -49,11 +49,13 @@ public class esc extends EscBase {
 	@Test
 	public void testCollect() {
 		main.addOptions("-nonnullByDefault", "-method=m");
+		main.addOptions("-show","-checkFeasibility=debug","-progress");
 		helpTCX("tt.TestJava",
 				"package tt; \n"
 						+ "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
 						+ "  public String m(java.lang.Integer i, Number b) {\n"
-						+ "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n" + "    return null; \n" // FAILS
+						+ "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n" 
+						+ "    return null; \n" // FAILS
 						+ "  }\n" + "}\n",
 				"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method m", 5,
 				"/tt/TestJava.java:3: warning: Associated declaration", 17);

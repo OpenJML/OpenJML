@@ -841,7 +841,7 @@ public class Utils {
         return classQualifiedName(sym.owner) + "." + sym;
     }
 
-    /** Returns a fully-qualified name for a method symbol, without the signature */ // FIXME - may include <init>
+    /** Returns a fully-qualified name for a symbol, without the signature */ // FIXME - may include <init>
     public String qualifiedName(Symbol sym) {
         return classQualifiedName(sym.owner) + "." + sym.name;
     }

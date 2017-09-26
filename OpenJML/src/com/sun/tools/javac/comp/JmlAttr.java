@@ -1735,18 +1735,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         ListBuffer<JmlMethodClause> newClauseList = new ListBuffer<>();
         if (!hasAssignableClause && cs.block == null ) {
             JmlMethodClause defaultClause;
-            if (pure != null || decl.sym.isConstructor()) {
+            if (pure != null) {
                 int pos = pure != null ? pure.pos : cs.pos;
                 JmlStoreRefKeyword kw = jmlMaker.at(pos).JmlStoreRefKeyword(JmlTokenKind.BSNOTHING);
                 defaultClause = jmlMaker.at(pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
                         List.<JCExpression>of(kw));
-            } else if (decl.sym.isConstructor()) {
-                // FIXME - or should this just be \nothing
-                JCIdent t = jmlMaker.Ident(names._this);
-                t.type = decl.sym.owner.type;
-                t.sym = decl.sym.owner;
-                defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
-                        List.<JCExpression>of(jmlMaker.at(cs.pos).Select(t,(Name)null)));
+//            } else if (decl.sym.isConstructor()) {
+//                // FIXME - or should this just be \nothing
+//                JCIdent t = jmlMaker.Ident(names._this);
+//                t.type = decl.sym.owner.type;
+//                t.sym = decl.sym.owner;
+//                defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
+//                        List.<JCExpression>of(jmlMaker.at(cs.pos).Select(t,(Name)null)));
             } else {
                 JmlStoreRefKeyword kw = jmlMaker.at(cs.pos).JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING);
                 defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,

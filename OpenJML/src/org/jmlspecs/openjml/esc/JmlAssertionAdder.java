@@ -7930,7 +7930,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
                                         List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym);
                                         for (JCExpression location: storerefs) {
-                                            location = convertAssignable(location,newThisId,true,clause.source());
+                                            //location = convertAssignable(location,newThisId,true,clause.source());
                                             JCExpression prex = checkAgainstAllCalleeSpecs(calleeMethodSym,token,that,location,pre,newThisId,newThisId,clause.source(),false);
                                             boolean containsEverything = false;
                                             ListBuffer<JCStatement> check4 = pushBlock();
