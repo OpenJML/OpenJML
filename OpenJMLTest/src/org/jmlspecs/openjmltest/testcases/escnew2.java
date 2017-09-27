@@ -211,7 +211,7 @@ public class escnew2 extends EscBase {
 
      @Test public void testReceiver5() { 
         helpTCX("tt.A","package tt; public class A { \n"
-                +"//@ ensures i == k; \n "
+                +"//@ ensures i == k; pure \n "
                 +"public A(int k) { i = k; } \n"
                 
                 +" public int i; \n"
@@ -228,7 +228,7 @@ public class escnew2 extends EscBase {
     @Test public void testReceiver6() { 
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.A","package tt; public class A { \n"
-                +"//@ ensures i == k; \n "
+                +"//@ ensures i == k; pure \n "
                 +"public A(int k) { i = k; } \n"
                 
                 +" public int i; \n"

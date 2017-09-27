@@ -49,7 +49,7 @@ public class esc extends EscBase {
 	@Test
 	public void testCollect() {
 		main.addOptions("-nonnullByDefault", "-method=m");
-		main.addOptions("-show","-checkFeasibility=debug","-progress");
+		//main.addOptions("-show","-checkFeasibility=debug","-progress");
 		helpTCX("tt.TestJava",
 				"package tt; \n"
 						+ "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
@@ -2034,63 +2034,60 @@ public class esc extends EscBase {
 
 	@Test // FIXME - problem with maintaining result of j
 	public void testMethodCallThis() {
+	    //main.addOptions("-show","-method=instok","-subexpressions");
 		helpTCX("tt.TestJava",
-				"package tt; import org.jmlspecs.annotation.*; \n" + "/*@ code_java_math*/ public class TestJava { \n"
-						+ "  public static TestJava o;\n" + "  public static TestJava p;\n"
+				"package tt; import org.jmlspecs.annotation.*; \n" 
+		                + "/*@ code_java_math*/ public class TestJava { \n"
+						+ "  public static TestJava o;\n" 
+				        + "  public static TestJava p;\n"
 						+ "  public int j; static public int sj; \n"
 
-						+ "  //@ assignable \\nothing; ensures \\result == j;\n" + "  public int m() { return j; }\n"
+						+ "  //@ assignable \\nothing; ensures \\result == j;\n" 
+						+ "  public int m() { return j; }\n"
 
-						+ "  //@ modifies j,sj;\n" + "  //@ ensures \\result == \\old(j);\n"
+						+ "  //@ modifies j,sj;\n" 
+						+ "  //@ ensures \\result == \\old(j);\n"
 						+ "  public int nold() { return j; }\n"
 
-						+ "  //@ modifies j,sj;\n" + "  //@ ensures \\result == j;\n"
+						+ "  //@ modifies j,sj;\n" 
+						+ "  //@ ensures \\result == j;\n"
 						+ "  public int n() { return j; }\n"
 
-						+ "  //@ modifies j,sj;\n" + "  //@ ensures \\result == sj;\n"
+						+ "  //@ modifies j,sj;\n" 
+						+ "  //@ ensures \\result == sj;\n"
 						+ "  public int sn() { return sj; }\n"
 
 						+ "  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3;\n"
-						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" + "  //@ ensures \\result == 6;\n"
+						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" 
+						+ "  //@ ensures \\result == 6;\n"
 						+ "  public int inst() { return o.m() + p.m() + j; }\n" // Line 20
 
 						+ "  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3 && o!=this && p!= this;\n"
-						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" + "  //@ ensures \\result == 6;\n"
-						+ "  public int instok() { return o.nold() + p.nold() + j; }\n" // o.n
-																						// and
-																						// p.n
-																						// modify
-																						// o.j
-																						// and
-																						// p.j,
-																						// returned
-																						// value
-																						// is
-																						// before
-																						// mod
+						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" 
+						+ "  //@ ensures \\result == 6;\n"
+						+ "  public int instok() { int jj = j; /*@ assert (\\lbl OJ o.j) + (\\lbl PJ p.j) + (\\lbl JJ j) == 6; */ return o.nold() + p.nold() + jj; }\n"   
+						// o.n and p.n modify o.j and p.j, returned value is before mod
 
 						+ "  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3;\n"
-						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" + "  //@ ensures \\result == 6;\n"
-						+ "  public int instbadx() { return o.n() + p.n() + j; }\n" // returned
-																					// value
-																					// is
-																					// after
-																					// modification
+						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" 
+						+ "  //@ ensures \\result == 6;\n"
+						+ "  public int instbadx() { return o.n() + p.n() + j; }\n" // returned value is after modification
 
 						+ "  //@ modifies j,sj;\n" + "  //@ ensures \\result == 6;\n"
-						+ "  public int instbad() { return n() + j; }\n" // n()
-																			// modifies
-																			// this.j
+						+ "  public int instbad() { return n() + j; }\n" // n() modifies this.j
 
 						+ "  //@ requires o!=null && p != null && sj == 3;\n"
-						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" + "  //@ ensures \\result == 9;\n"
-						+ "  public int instbad2() { return o.sn() + p.sn() + sj; }\n" + "}",
-				"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Postcondition) in method instbadx",
-				27, "/tt/TestJava.java:27: warning: Associated declaration", 7,
-				"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Postcondition) in method instbad",
-				26, "/tt/TestJava.java:30: warning: Associated declaration", 7,
-				"/tt/TestJava.java:35: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",
-				27, "/tt/TestJava.java:34: warning: Associated declaration", 7);
+						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" 
+						+ "  //@ ensures \\result == 9;\n"
+						+ "  public int instbad2() { return o.sn() + p.sn() + sj; }\n" 
+						+ "}"
+				,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Postcondition) in method instbadx",27
+				,"/tt/TestJava.java:27: warning: Associated declaration", 7
+				,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Postcondition) in method instbad",26
+				,"/tt/TestJava.java:30: warning: Associated declaration", 7
+				,"/tt/TestJava.java:35: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",27
+				,"/tt/TestJava.java:34: warning: Associated declaration", 7
+				);
 	}
 
 	// TODO need tests for for loops

@@ -1,5 +1,4 @@
 OUT:
-Skipping a specification clause because it contains an uncompiled model method: java.util.ArrayList.initialArrayList
 test/gitbug533/TestSum.java:11: JML caller invariant is false on reentering calling method (Caller: TestSum.add(int), Callee: java.util.List.add(E))
 		list.add(i);
 		        ^

@@ -1564,7 +1564,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     methodSpecs.deSugared = newspecs;
                     return;
                 }
-                methodSpecs = JmlSpecs.defaultSpecs(context, decl.sym, decl.pos).cases;
+                methodSpecs = JmlSpecs.defaultSpecs(context, decl, decl.sym, decl.pos).cases;
             }
 
             JCLiteral nulllit = make.Literal(TypeTag.BOT, null).setType(syms.objectType.constType(null));
@@ -1717,6 +1717,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     protected void addDefaultClauses(JmlMethodDecl decl, JCAnnotation pure, JmlSpecificationCase cs) {
+        String constructorDefault = JmlOption.defaultsValue(context,"constructor","everything");
         boolean hasAssignableClause = false;
         boolean hasAccessibleClause = false;
         boolean hasCallableClause = false;
@@ -1733,9 +1734,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
         }
         ListBuffer<JmlMethodClause> newClauseList = new ListBuffer<>();
-        if (!hasAssignableClause && cs.block == null ) {
+        if (!hasAssignableClause && cs.block == null) {
             JmlMethodClause defaultClause;
-            if (pure != null) {
+            if (findMod(decl.mods,JmlTokenKind.INLINE) != null) {
+                // If inlined, do not add any clauses
+                defaultClause = null;
+            } else if (pure != null || (constructorDefault.equals("pure") && decl.sym.isConstructor())) {
                 int pos = pure != null ? pure.pos : cs.pos;
                 JmlStoreRefKeyword kw = jmlMaker.at(pos).JmlStoreRefKeyword(JmlTokenKind.BSNOTHING);
                 defaultClause = jmlMaker.at(pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
@@ -1752,12 +1756,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
                         List.<JCExpression>of(kw));
             }
-            newClauseList.add(defaultClause);
+            if (defaultClause != null) {
+                defaultClause.sourcefile = log.currentSourceFile();
+                newClauseList.add(defaultClause);
+            }
         }
         if (!hasAccessibleClause) {
             JmlMethodClause defaultClause;
             jmlMaker.at(cs.pos);
-            if (decl.sym.isConstructor()) {
+            if (findMod(decl.mods,JmlTokenKind.INLINE) != null) {
+                // If inlined, do not add any clauses
+                defaultClause = null;
+            } else if (decl.sym.isConstructor()) {
                 JCIdent t = jmlMaker.Ident(names._this);
                 t.type = decl.sym.owner.type;
                 t.sym = decl.sym.owner;
@@ -1767,8 +1777,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
                         List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
             }
-            defaultClause.sourcefile = log.currentSourceFile();
-            newClauseList.add(defaultClause);
+            if (defaultClause != null) {
+                defaultClause.sourcefile = log.currentSourceFile();
+                newClauseList.add(defaultClause);
+            }
         }
         // FIXME - add this in later
 //        if (!hasSignalsOnlyClause) {
@@ -5885,7 +5897,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             if (!that.type.isPrimitive()) {
                 JCAnnotation snullness;
-                if (that.name.toString().equals("aa")) Utils.stop();
                 JmlTokenKind nullness = specs.defaultNullity(enclosingClassEnv.enclClass.sym);
                 if ((snullness=utils.findMod(that.mods,nonnullAnnotationSymbol)) != null) { 
                     nullness = JmlTokenKind.NONNULL;

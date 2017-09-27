@@ -103,6 +103,8 @@ public enum JmlOption implements IOption {
     PROPERTIES("-properties",true,null,"Specifies the path to the properties file",null),
     PROPERTIES_DEFAULT("-properties-default",true,null,"Specifies the path to the default properties file",null),
     
+    DEFAULTS("-defaults",true,"","Specifies various default behaviors: constructor:pure|everything",null),
+    
     // Obsolete
     NOCHECKSPECSPATHX("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false",true),
     NOPURITYCHECKX("-noPurityCheck",false,false,"When on, no warnings for use of impure methods are issued","-purityCheck=false",true),
@@ -343,5 +345,17 @@ public enum JmlOption implements IOption {
                 noticeWriter.println(key + " = " + JmlOption.value(context,key));
             }
         }
+    }
+    
+    /** A helper function to extract values from the 'defaults' option */
+    public static /*@ nullable */ String defaultsValue(Context context, String key, String def) {
+        String defaultsValue = value(context,JmlOption.DEFAULTS);
+        if (defaultsValue == null) return def;
+        for (String s: defaultsValue.split(",")) {
+            if (s.startsWith(key + ":")) {
+                return s.substring(key.length()+1);
+            }
+        } 
+        return def;
     }
 }

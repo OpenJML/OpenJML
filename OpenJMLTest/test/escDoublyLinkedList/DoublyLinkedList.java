@@ -165,6 +165,7 @@ public class DoublyLinkedList<T>
   //@ requires my_prev != null && my_next != null;
   //@ requires my_prev != my_next.my_next;
   //@ requires my_prev.my_prev != my_next;
+  //@ assignable my_prev.my_next, my_next.my_prev;
   public void remove()
   {
     if (my_prev != null)
