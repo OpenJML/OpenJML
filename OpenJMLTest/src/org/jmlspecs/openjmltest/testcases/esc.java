@@ -49,7 +49,6 @@ public class esc extends EscBase {
 	@Test
 	public void testCollect() {
 		main.addOptions("-nonnullByDefault", "-method=m");
-		//main.addOptions("-show","-checkFeasibility=debug","-progress");
 		helpTCX("tt.TestJava",
 				"package tt; \n"
 						+ "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
@@ -80,6 +79,7 @@ public class esc extends EscBase {
 	@Test
 	public void testCollectB() {
 		main.addOptions("-nonnullByDefault", "-timeout=300"); //, "-show","-method=m","-checkFeasibility=debug");
+        //main.addOptions("-show","-method=m","-checkFeasibility=debug:250","-progress");
 		helpTCX("tt.TestJava",
 				"package tt; \n"
 						+ "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"

@@ -1010,7 +1010,7 @@ public class JmlSpecs {
         // FIXME - should use a factory
         JmlTree.Maker M = JmlTree.Maker.instance(context);
         JmlMethodSpecs ms = M.at(pos).JmlMethodSpecs(com.sun.tools.javac.util.List.<JmlSpecificationCase>nil());
-        JCModifiers mods = M.at(pos).Modifiers(sym.flags());
+        JCModifiers mods = M.at(pos).Modifiers(sym.flags() & Flags.AccessFlags);
         MethodSpecs mspecs = new MethodSpecs(mods,ms); // FIXME - empty instead of null modifiers?
         ms.pos = pos;
         ms.decl = decl;
@@ -1570,7 +1570,6 @@ public class JmlSpecs {
                 cases = m.cases;
             }
             cases.decl = m;
-            if (cases.pos <= 0) Utils.stop();
         }
         
         public MethodSpecs(JCTree.JCModifiers mods, JmlMethodSpecs m) { 

@@ -6823,7 +6823,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     return;
                 }  
                 if (!utils.isJMLStatic(fa.sym)) {
-                    if (splitExpressions) {
+                    if (rac && convertedReceiver.toString().equals("super")) { // FIXME - need a better way to check this
+                        newThisExpr = convertedReceiver;
+                        newThisId = (JCIdent)convertedReceiver;
+                    } else if (splitExpressions) {
                         newThisExpr = newTemp(convertedReceiver);
                         newThisId = (JCIdent)newThisExpr;
                     } else {
@@ -8158,11 +8161,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (methodDecl.name.toString().contains("init")) Utils.stop();
                     JCExpression saved2 = currentThisExpr;
                     currentThisExpr = newThisExpr;
+                    int savedCount = freshnessReferenceCount;
                     try {
                         currentStatements.add(comment(classDecl, "Assuming invariants for caller fields after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
+                        freshnessReferenceCount = allocCounter;
                         assumeFieldInvariants((ClassSymbol)calleeMethodSym.owner, utils.isJMLStatic(calleeMethodSym)); // FIXME - do parent classes also?
                     } finally {
                         currentThisExpr = saved2;
+                        freshnessReferenceCount = savedCount;
                     }
                 }
                 
@@ -10616,10 +10622,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             selected = convertCopy(trexpr);
             boolean var = false;
             if (treeutils.isATypeTree(selected) && s.name == names._this) {
-                VarSymbol vsym = makeEnclosingSymbol(classDecl.sym,null);
-                selected = currentThisExpr;
-                s = vsym;
-                result = eresult = treeutils.makeSelect(that.pos, currentThisExpr, vsym);
+                if (rac) {
+                    result = eresult = that;
+                    return;
+                } else {
+                    VarSymbol vsym = makeEnclosingSymbol(classDecl.sym,null);
+                    selected = currentThisExpr;
+                    s = vsym;
+                    result = eresult = treeutils.makeSelect(that.pos, currentThisExpr, vsym);
+                }
             } else if (!utils.isJMLStatic(s) && that.selected instanceof JCIdent && !localVariables.containsKey(((JCIdent)that.selected).sym)) {
                 if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
                     // continue

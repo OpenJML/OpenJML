@@ -114,6 +114,9 @@ public class MethodProverSMT {
      */
     public IProverResult.IFactory factory;
     
+    /** Starting feasibility check -- purely for debugging */
+    static public int startFeasibilityCheck = 0;
+    
     /** The interface for new ITracer factories */
     public interface ITracerFactory {
         public ITracer makeTracer(Context context, SMT smt, ISolver solver, Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap);
@@ -369,11 +372,10 @@ public class MethodProverSMT {
                     }
 
                     java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.assumeChecks.get(methodDecl);
-                    int k = 0;
+                    int feasibilityCheckNumber = 0;
                     if (checks != null) for (JmlStatementExpr stat: checks) {
-                        ++k;
-//                        if (k < 290) continue;
-//                        if (k > 100) break;
+                        ++feasibilityCheckNumber;
+                        if (feasibilityCheckNumber < startFeasibilityCheck) continue;
                         if (prevErrors != log.nerrors) break;
                         
                         // Only do the feasibility check if called for by the feasibility option
@@ -389,7 +391,7 @@ public class MethodProverSMT {
                                     commands.remove(commands.size()-1);
                                     commands.remove(commands.size()-1);
                                 }
-                                JCExpression lit = treeutils.makeIntLiteral(Position.NOPOS, k);
+                                JCExpression lit = treeutils.makeIntLiteral(Position.NOPOS, feasibilityCheckNumber);
                                 JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.Tag.EQ,treeutils.inteqSymbol,
                                         treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.assumeCheckSym),
                                         lit);
@@ -429,7 +431,7 @@ public class MethodProverSMT {
                             solver.push(1); // Mark the top
                             JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.Tag.EQ,treeutils.inteqSymbol,
                                     treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.assumeCheckSym),
-                                    treeutils.makeIntLiteral(Position.NOPOS, k));
+                                    treeutils.makeIntLiteral(Position.NOPOS, feasibilityCheckNumber));
                             solver.assertExpr(smttrans.convertExpr(bin));
                             solverResponse = solver.check_sat();
                         }
@@ -438,7 +440,7 @@ public class MethodProverSMT {
                         // FIXME - get rid of the next line some time when we can change the test results
                         if (Utils.testingMode) loc = ""; else loc = loc + " ";
                         String msg =  (utils.jmlverbose >= Utils.PROGRESS) ? 
-                                ("Feasibility check #" + k + " - " + description + " : ")
+                                ("Feasibility check #" + feasibilityCheckNumber + " - " + description + " : ")
                                 :("Feasibility check - " + description + " : ");
                         boolean infeasible = solverResponse.equals(unsatResponse);
                         utils.progress(0,1,loc + msg + (infeasible ? "infeasible": "OK"));
