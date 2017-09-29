@@ -325,6 +325,10 @@ public abstract class JmlTestCase {
     protected String actualErr;
     protected String actualOut;
 
+    /** Manages the capturing of output to System.out and System.err; call with argument=true to start
+     * capturing; all with the argument=false to stop capturing, at which point with Strings actualOut 
+     * and actualErr will contain the collected output (access them through output() and errorOutput() ).
+     */
     public void collectOutput(boolean collect) {
         if (collect) {
             actualOut = null;
@@ -345,7 +349,9 @@ public abstract class JmlTestCase {
         }
     }
     
+    /** Returns the standard-out output; valid once collectOutput(false) has been called. */
     public String output() { return actualOut; }
+    /** Returns the standard-err output; valid once collectOutput(false) has been called. */
     public String errorOutput() { return actualErr; }
 
 
@@ -447,6 +453,9 @@ public abstract class JmlTestCase {
         return diff.isEmpty() ? null : diff;
     }
     
+    /** Compare the content of 'actualFile' against the files dir + "/" + root and then with 1, 2, 3, etc.
+     * appended. If none match, then returns the diffs against the last one.
+     */
     public void compareFileToMultipleFiles(String actualFile, String dir, String root) {
         String diffs = "";
         for (String f: new File(dir).list()) {

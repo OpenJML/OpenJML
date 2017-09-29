@@ -231,8 +231,8 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
                 that.code,
                 that.token,
                 that.also,
-                copy(that.clauses,p));
-        copy.block = copy(that.block,p);
+                copy(that.clauses,p),
+                copy(that.block,p));
         copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         return copy;

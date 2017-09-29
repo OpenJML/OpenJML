@@ -530,6 +530,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         } else {
             matchSym = specsVarDecl.sym;
         }
+        if (specsVarDecl.sym == null && matchSym != null && matchSym.pos == Position.NOPOS) {
+            matchSym.pos = specsVarDecl.pos;
+        }
         
         // matchsym == null ==> no match; otherwise matchSym is the matching symbol
         

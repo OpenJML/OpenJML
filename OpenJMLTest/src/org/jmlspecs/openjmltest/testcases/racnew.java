@@ -1134,7 +1134,7 @@ public class racnew extends RacBase {
         addMockFile("$A/tt/A.jml","package tt; public class A { //@ ghost public static int i = 0;\n  //@ public invariant i == 0; \n //@ requires i == 1;\n static public int m(); }");
         helpTCX("tt.A","package tt; public class A { static public int m() { return 0; }  \n public static void main(String[] args) { m(); System.out.println(\"END\"); }}"
                 ,"/tt/A.java:2: JML precondition is false"
-                ,"/$A/tt/A.jml:4: Associated declaration"
+                ,"/tt/A.java:1: Associated declaration"
                 ,"/$A/tt/A.jml:3: JML precondition is false"
                 ,"END"
                 );

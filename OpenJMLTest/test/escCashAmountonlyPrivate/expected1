@@ -12,8 +12,8 @@ Starting proof of CashAmountOnlyPrivate.increase(CashAmountOnlyPrivate) with pro
     return new CashAmountOnlyPrivate(new_dollars, new_cents);
            ^
 ../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:50: warning: Associated declaration
-  public CashAmountOnlyPrivate(final int the_dollars, final int the_cents) {
-         ^
+  /*@ pure */ public CashAmountOnlyPrivate(final int the_dollars, final int the_cents) {
+                     ^
 ../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:40: warning: Precondition conjunct is false: -100 < the_cents
   //@ requires -100 < the_cents && the_cents < 100;
                ^

@@ -3421,9 +3421,6 @@ public class JavacParser implements Parser {
         int pos = token.pos;
         accept(INTERFACE);
         Name name = ident();
-        if (name.toString().equals("List")) {
-            System.out.println();
-        }
 
         List<JCTypeParameter> typarams = typeParametersOpt();
 

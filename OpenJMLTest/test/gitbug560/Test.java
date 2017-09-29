@@ -1,8 +1,10 @@
 public class Test {
    public static int k;
    
-   //@ pure 
+   //@ assignable k;
+   //@ ensures k == 1;
    public void mm(/*@{B}*/ A b) {
+       k = 1;
        b.m();
    }
 }

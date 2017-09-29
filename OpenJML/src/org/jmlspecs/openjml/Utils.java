@@ -751,7 +751,10 @@ public class Utils {
         if (parent.isInterface()) return true; // everything in an interface is public and hence visible
         if ((flags & Flags.PRIVATE) != 0) return false; // Private things are never visible outside their own class
         if (base.packge().equals(parent.packge())) return true; // Protected and default things are visible if in the same package
-        return (flags & Flags.PROTECTED) != 0 && base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses
+        if ((flags & Flags.PROTECTED) == 0) return false; // Otherwise default things are not visible
+        // Just left with protected things, so is base a subclass of parent
+        while (base instanceof Symbol.TypeVariableSymbol) base = ((Symbol.TypeVariableSymbol)base).type.getUpperBound().tsym;
+        return base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses
     }
 
     /** Returns true if a declaration in the 'parent' class with the given flags 
@@ -838,7 +841,7 @@ public class Utils {
         return classQualifiedName(sym.owner) + "." + sym;
     }
 
-    /** Returns a fully-qualified name for a method symbol, without the signature */ // FIXME - may include <init>
+    /** Returns a fully-qualified name for a symbol, without the signature */ // FIXME - may include <init>
     public String qualifiedName(Symbol sym) {
         return classQualifiedName(sym.owner) + "." + sym.name;
     }
@@ -1013,31 +1016,34 @@ public class Utils {
 
     public void warning(JavaFileObject source, int pos, String key, Object ... args) {
         Log log = log();
-        JavaFileObject prev = log.useSource(source);
+        JavaFileObject prev = null;
+        if (source != null) prev = log.useSource(source);
         try {
             log.warning(pos, key, args);
         } finally {
-            log.useSource(prev);
+            if (prev != null) log.useSource(prev);
         }
     }
     
     public void error(JavaFileObject source, int pos, String key, Object ... args) {
         Log log = log();
-        JavaFileObject prev = log.useSource(source);
+        JavaFileObject prev = null;
+        if (source != null) prev = log.useSource(source);
         try {
             log.error(pos, key, args);
         } finally {
-            log.useSource(prev);
+            if (prev != null) log.useSource(prev);
         }
     }
     
     public void error(JavaFileObject source, DiagnosticPosition pos, String key, Object ... args) {
         Log log = log();
-        JavaFileObject prev = log.useSource(source);
+        JavaFileObject prev = null;
+        if (source != null) prev = log.useSource(source);
         try {
             log.error(pos, key, args);
         } finally {
-            log.useSource(prev);
+            if (prev != null) log.useSource(prev);
         }
     }
     

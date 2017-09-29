@@ -53,7 +53,8 @@ public class esc extends EscBase {
 				"package tt; \n"
 						+ "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
 						+ "  public String m(java.lang.Integer i, Number b) {\n"
-						+ "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n" + "    return null; \n" // FAILS
+						+ "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n" 
+						+ "    return null; \n" // FAILS
 						+ "  }\n" + "}\n",
 				"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method m", 5,
 				"/tt/TestJava.java:3: warning: Associated declaration", 17);
@@ -78,6 +79,7 @@ public class esc extends EscBase {
 	@Test
 	public void testCollectB() {
 		main.addOptions("-nonnullByDefault", "-timeout=300"); //, "-show","-method=m","-checkFeasibility=debug");
+        //main.addOptions("-show","-method=m","-checkFeasibility=debug:250","-progress");
 		helpTCX("tt.TestJava",
 				"package tt; \n"
 						+ "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
@@ -295,9 +297,8 @@ public class esc extends EscBase {
 				16, "/tt/TestJava.java:11: warning: Associated declaration", 14);
 	}
 
-	@Test
-	public void testForEach2a() {
-		Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+	@Test @Ignore // FIXME - timesout
+	public void testForEach2a1() {
 		main.addOptions("escMaxWarnings=1");
 		helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
 				+ "public class TestJava { \n"
@@ -308,82 +309,119 @@ public class esc extends EscBase {
 				+ "    }\n" 
 				+ "  }\n"
 
-				+ "  //@ public normal_behavior  ensures true;\n" 
-				+ "  public void m2() {\n" // Line 10
-				+ "    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
-				+ "    //@ assert values.content.owner == values;\n"
-				+ "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
-				+ "    //@ assume values.content.owner == values;\n"
-				+ "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
-				+ "    //@ assume values.content.owner == values;\n" 
-				+ "    Map.Entry<String,String> k; \n"
-				+ "    //@ assert values.content.owner == values;\n"
-				+ "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
-				+ "    //@ loop_invariant values == v && values.content.owner == values; \n"
-				+ "    for (; it.hasNext(); values.add(k) ) {\n"  // FIXME - why need k ! null below since implied by second conjunct
-				+ "        k = it.next();  //@ assume k != null && \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
-						// FIXME - problems if we have erased type names
-				+ "    }\n" 
-				+ "  }\n"
-
-				+ "  //@ public normal_behavior  ensures true;\n" 
-				+ "  public void m2a() {\n" // Line 26
-				+ "    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
-				+ "    //@ assert values.content.owner == values;\n"
-				+ "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
-				+ "    //@ assume values.content.owner == values;\n"
-				+ "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
-				+ "    //@ assume values.content.owner == values;\n" 
-				+ "    Map.Entry<String,String> k;\n"
-				+ "    //@ assert values.content.owner == values;\n"
-				+ "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
-				+ "    // @ loop_invariant values == v && values.content.owner == values; \n"
-				+ "    if (it.hasNext()) {\n" 
-				+ "        //@ assert values.content.owner == values;\n"
-				+ "        k = it.next();  //@ assume k != null &&  \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
-								// FIXME - problems if we have erased type names
-				+ "        //@ assert values.content.owner == values;\n" 
-				+ "        values.add(k); \n"
-								// FIXME - problems if we have erased type names
-				+ "    }\n" 
-				+ "  }\n"
-
-				+ "  //@ public normal_behavior  ensures true;\n" 
-				+ "  public void m3() {\n" 
-				+ "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
-				+ "    //@ assert values.content.owner == values;\n" 
-				+ "    Integer k = new Integer(1);\n"
-				+ "    //@ assert values.content.owner == values;\n" 
-				+ "    values.add(k);\n" 
-				+ "  }\n"
-
-				+ "  //@ public normal_behavior  ensures true;\n"
-				+ "  public void m4() {\n"
-				+ "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
-				+ "    Integer k = 0;\n" 
-				+ "    values.add(k);\n" 
-				+ "  }\n"
 
 				+ "  public TestJava() {}"
 
 				+ "}"
 
-		// ,"/tt/TestJava.java:13: warning: The prover cannot establish an
-		// assertion (Assert) in method m3",11
-		// ,"/tt/TestJava.java:34: warning: The prover cannot establish an
-		// assertion (Assert) in method m5",14
-		// ,"/tt/TestJava.java:54: warning: The prover cannot establish an
-		// assertion (LoopDecreases) in method m7a",21
-		// ,"/tt/TestJava.java:53: warning: Associated declaration",9
-		// ,"/tt/TestJava.java:60: warning: The prover cannot establish an
-		// assertion (LoopInvariant) in method m8",5
-		// ,"/tt/TestJava.java:59: warning: Associated declaration",9
-		// ,"/tt/TestJava.java:66: warning: The prover cannot establish an
-		// assertion (LoopInvariant) in method m9",21
-		// ,"/tt/TestJava.java:65: warning: Associated declaration",9
 		);
 	}
 
+    @Test @Ignore // FIXME - timesout
+    public void testForEach2a2() {
+        main.addOptions("escMaxWarnings=1");
+        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+                + "public class TestJava { \n"
+
+                + "  //@ public normal_behavior  ensures true;\n" 
+                + "  public void m2() {\n" // Line 10
+                + "    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
+                + "    //@ assert values.content.owner == values;\n"
+                + "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
+                + "    //@ assume values.content.owner == values;\n"
+                + "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
+                + "    //@ assume values.content.owner == values;\n" 
+                + "    Map.Entry<String,String> k; \n"
+                + "    //@ assert values.content.owner == values;\n"
+                + "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
+                + "    //@ loop_invariant values == v && values.content.owner == values; \n"
+                + "    for (; it.hasNext(); values.add(k) ) {\n"  // FIXME - why need k ! null below since implied by second conjunct
+                + "        k = it.next();  //@ assume k != null && \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
+                        // FIXME - problems if we have erased type names
+                + "    }\n" 
+                + "  }\n"
+
+
+                + "  public TestJava() {}"
+
+                + "}"
+
+        );
+    }
+    @Test @Ignore // FIXME - timesout
+    public void testForEach2a2a() {
+        main.addOptions("escMaxWarnings=1");
+        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+                + "public class TestJava { \n"
+
+                + "  //@ public normal_behavior  ensures true;\n" 
+                + "  public void m2a() {\n" // Line 26
+                + "    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
+                + "    //@ assert values.content.owner == values;\n"
+                + "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
+                + "    //@ assume values.content.owner == values;\n"
+                + "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
+                + "    //@ assume values.content.owner == values;\n" 
+                + "    Map.Entry<String,String> k;\n"
+                + "    //@ assert values.content.owner == values;\n"
+                + "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
+                + "    // @ loop_invariant values == v && values.content.owner == values; \n"
+                + "    if (it.hasNext()) {\n" 
+                + "        //@ assert values.content.owner == values;\n"
+                + "        k = it.next();  //@ assume k != null &&  \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
+                                // FIXME - problems if we have erased type names
+                + "        //@ assert values.content.owner == values;\n" 
+                + "        values.add(k); \n"
+                                // FIXME - problems if we have erased type names
+                + "    }\n" 
+                + "  }\n"
+
+                + "  public TestJava() {}"
+
+                + "}"
+
+        );
+    }
+    @Test
+    public void testForEach2a3() {
+        main.addOptions("escMaxWarnings=1");
+        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+                + "public class TestJava { \n"
+
+                + "  //@ public normal_behavior  ensures true;\n" 
+                + "  public void m3() {\n" 
+                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
+                + "    //@ assert values.content.owner == values;\n" 
+                + "    Integer k = new Integer(1);\n"
+                + "    //@ assert values.content.owner == values;\n" 
+                + "    values.add(k);\n" 
+                + "  }\n"
+
+                + "  public TestJava() {}"
+
+                + "}"
+
+        );
+    }
+    @Test
+    public void testForEach2a4() {
+        main.addOptions("escMaxWarnings=1");
+        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+                + "public class TestJava { \n"
+
+                + "  //@ public normal_behavior  ensures true;\n"
+                + "  public void m4() {\n"
+                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
+                + "    Integer k = 0;\n" 
+                + "    values.add(k);\n" 
+                + "  }\n"
+
+                + "  public TestJava() {}"
+
+                + "}"
+
+        );
+    }
 	@Test
 	public void testForEachBad() {
 		expectedExit = 1;
@@ -1704,14 +1742,21 @@ public class esc extends EscBase {
 
 	@Test
 	public void testOldJava() {
+	   // main.addOptions("-show","-method=TestJava","-checkFeasibility=debug","-progress");
 		helpTCX("tt.TestJava",
-				"package tt; \n" + "/*@ code_java_math*/ public class TestJava { \n" + "  static public  int i;\n"
-						+ "  //@ static public constraint i > \\old(i);\n" + "  //@ modifies i;\n"
-						+ "  //@ ensures true;\n" + "  public static void bok() { i = i - 1; }\n" + "}",
-				"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Constraint) in method TestJava",
-				29, "/tt/TestJava.java:4: warning: Associated declaration", 21,
-				"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Constraint) in method bok", 22,
-				"/tt/TestJava.java:4: warning: Associated declaration", 21);
+				"package tt; \n" 
+				 + "/*@ code_java_math*/ public class TestJava { \n" 
+				 + "  static public  int i;\n"
+				 + "  //@ static public constraint i > \\old(i);\n" 
+				 + "  //@ modifies i;\n"
+				 + "  //@ ensures true;\n" 
+				 + "  public static void bok() { i = i - 1; }\n" 
+				 + "}"
+				 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Constraint) in method TestJava",29
+				, "/tt/TestJava.java:4: warning: Associated declaration", 21
+				,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Constraint) in method bok", 22
+				,"/tt/TestJava.java:4: warning: Associated declaration", 21
+				);
 	}
 
     @Test
@@ -2025,63 +2070,60 @@ public class esc extends EscBase {
 
 	@Test // FIXME - problem with maintaining result of j
 	public void testMethodCallThis() {
+	    //main.addOptions("-show","-method=instok","-subexpressions");
 		helpTCX("tt.TestJava",
-				"package tt; import org.jmlspecs.annotation.*; \n" + "/*@ code_java_math*/ public class TestJava { \n"
-						+ "  public static TestJava o;\n" + "  public static TestJava p;\n"
+				"package tt; import org.jmlspecs.annotation.*; \n" 
+		                + "/*@ code_java_math*/ public class TestJava { \n"
+						+ "  public static TestJava o;\n" 
+				        + "  public static TestJava p;\n"
 						+ "  public int j; static public int sj; \n"
 
-						+ "  //@ assignable \\nothing; ensures \\result == j;\n" + "  public int m() { return j; }\n"
+						+ "  //@ assignable \\nothing; ensures \\result == j;\n" 
+						+ "  public int m() { return j; }\n"
 
-						+ "  //@ modifies j,sj;\n" + "  //@ ensures \\result == \\old(j);\n"
+						+ "  //@ modifies j,sj;\n" 
+						+ "  //@ ensures \\result == \\old(j);\n"
 						+ "  public int nold() { return j; }\n"
 
-						+ "  //@ modifies j,sj;\n" + "  //@ ensures \\result == j;\n"
+						+ "  //@ modifies j,sj;\n" 
+						+ "  //@ ensures \\result == j;\n"
 						+ "  public int n() { return j; }\n"
 
-						+ "  //@ modifies j,sj;\n" + "  //@ ensures \\result == sj;\n"
+						+ "  //@ modifies j,sj;\n" 
+						+ "  //@ ensures \\result == sj;\n"
 						+ "  public int sn() { return sj; }\n"
 
 						+ "  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3;\n"
-						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" + "  //@ ensures \\result == 6;\n"
+						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" 
+						+ "  //@ ensures \\result == 6;\n"
 						+ "  public int inst() { return o.m() + p.m() + j; }\n" // Line 20
 
 						+ "  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3 && o!=this && p!= this;\n"
-						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" + "  //@ ensures \\result == 6;\n"
-						+ "  public int instok() { return o.nold() + p.nold() + j; }\n" // o.n
-																						// and
-																						// p.n
-																						// modify
-																						// o.j
-																						// and
-																						// p.j,
-																						// returned
-																						// value
-																						// is
-																						// before
-																						// mod
+						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" 
+						+ "  //@ ensures \\result == 6;\n"
+						+ "  public int instok() { int jj = j; /*@ assert (\\lbl OJ o.j) + (\\lbl PJ p.j) + (\\lbl JJ j) == 6; */ return o.nold() + p.nold() + jj; }\n"   
+						// o.n and p.n modify o.j and p.j, returned value is before mod
 
 						+ "  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3;\n"
-						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" + "  //@ ensures \\result == 6;\n"
-						+ "  public int instbadx() { return o.n() + p.n() + j; }\n" // returned
-																					// value
-																					// is
-																					// after
-																					// modification
+						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" 
+						+ "  //@ ensures \\result == 6;\n"
+						+ "  public int instbadx() { return o.n() + p.n() + j; }\n" // returned value is after modification
 
 						+ "  //@ modifies j,sj;\n" + "  //@ ensures \\result == 6;\n"
-						+ "  public int instbad() { return n() + j; }\n" // n()
-																			// modifies
-																			// this.j
+						+ "  public int instbad() { return n() + j; }\n" // n() modifies this.j
 
 						+ "  //@ requires o!=null && p != null && sj == 3;\n"
-						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" + "  //@ ensures \\result == 9;\n"
-						+ "  public int instbad2() { return o.sn() + p.sn() + sj; }\n" + "}",
-				"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Postcondition) in method instbadx",
-				27, "/tt/TestJava.java:27: warning: Associated declaration", 7,
-				"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Postcondition) in method instbad",
-				26, "/tt/TestJava.java:30: warning: Associated declaration", 7,
-				"/tt/TestJava.java:35: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",
-				27, "/tt/TestJava.java:34: warning: Associated declaration", 7);
+						+ "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" 
+						+ "  //@ ensures \\result == 9;\n"
+						+ "  public int instbad2() { return o.sn() + p.sn() + sj; }\n" 
+						+ "}"
+				,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Postcondition) in method instbadx",27
+				,"/tt/TestJava.java:27: warning: Associated declaration", 7
+				,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Postcondition) in method instbad",26
+				,"/tt/TestJava.java:30: warning: Associated declaration", 7
+				,"/tt/TestJava.java:35: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",27
+				,"/tt/TestJava.java:34: warning: Associated declaration", 7
+				);
 	}
 
 	// TODO need tests for for loops
@@ -2169,12 +2211,14 @@ public class esc extends EscBase {
 						+ "  public void instc() { int i = 5; /*@ loop_invariant i<=5 && i>=0; decreases i; */ while (i>0) { i = i+1; } /*@ assert i == 0; */ }\n"
 						+ "  public void instd() { int i = 5; /*@ loop_invariant i<=5 && i>0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
 						+ "}"
-				,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",69// 91
+				,anyorder(
+				seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",69)
 				// ,"/tt/TestJava.java:4: warning: Associated declaration",69
-				,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",69// 100
+				,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",69)
 				// ,"/tt/TestJava.java:5: warning: Associated declaration",69
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopInvariant) in method instc",40
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (LoopInvariant) in method instd",40// 99
+                ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopInvariant) in method instc",40)
+                ,seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (LoopInvariant) in method instd",40)
+                )
 		// ,"/tt/TestJava.java:6: warning: Associated declaration",40
 		// FIXME - adjust to have the location + associated declaration
 		);
@@ -3837,5 +3881,47 @@ public class esc extends EscBase {
                 );
     }
 
+    @Test
+    public void testExitInfo2() {
+        expectedExit = 0;
+        main.addOptions("-escExitInfo","-escMaxWarnings=3");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  /*@ requires o != null; ensures \\result == (j>=0); pure function */ public static boolean positive(Object o, int j) { return j >= 0; }\n"
+                        + "  public int j; \n"
+                        + "  //@ signals (NullPointerException e) positive(null,j); \n"
+                        + "  //@ signals (NegativeArraySizeException e) positive(null,j); \n"
+                        + "  public void m0(int i, Object o) {\n"
+                        + "      if (i == 1) { j = -2; throw new NullPointerException(); }\n" 
+                        + "           if (i == 2) { j = -1; throw new NegativeArraySizeException(); }\n" 
+                        + "  }\n" 
+                        + "}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
+                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                ,"/tt/TestJava.java:9: warning: Associated method exit",34
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",48
+                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                ,"/tt/TestJava.java:8: warning: Associated method exit",29
+                );
+    }
+
+    @Test
+    public void testExitInfo() {
+        expectedExit = 0;
+        main.addOptions("-escExitInfo","-escMaxWarnings=3");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public int j; \n"
+                        + "  //@ ensures j >= 0; \n"
+                        + "  public void m0(int i, Object o) {\n"
+                        + "      j = -1; \n" 
+                        + "  }\n" 
+                        + "}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method m0",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                );
+    }
 
 }

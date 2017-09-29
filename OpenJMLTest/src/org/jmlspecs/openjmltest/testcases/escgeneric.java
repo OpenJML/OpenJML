@@ -119,7 +119,7 @@ public class escgeneric extends EscBase {
                 +"    //@ assert \\type(T) <: \\type(B);\n" // true
                 +"    //@ assert \\type(T) <: \\type(C);\n" // false
                 +"  }\n"
-                +"  public TestJava() {}\n"
+                +"  /*@ pure */ public TestJava() {}\n"
                 +"}\n"
                 +"class B {}\n"
                 +"class C extends TestJava<B> {}\n"
@@ -372,7 +372,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testGenericThrow() {
-        main.addOptions("-show","-method=rt");
+        main.addOptions("-method=rt");
         helpTCX("tt.TestJava",
         		 "public class TestJava { \n"
         	    +" //@ public exceptional_behavior \n"

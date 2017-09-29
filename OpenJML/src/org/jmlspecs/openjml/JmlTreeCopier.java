@@ -395,7 +395,8 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 that.code,
                 that.token,
                 that.also,
-                copy(that.clauses,p));
+                copy(that.clauses,p),
+                copy(that.block));
         copy.block = copy(that.block,p);
         copy.sourcefile = that.sourcefile;
         copy.type = that.type;
@@ -428,6 +429,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 copy(that.expression,p));
         copy.optionalExpression = copy(that.optionalExpression,p);
         copy.associatedPos = that.associatedPos;
+        copy.associatedClause = that.associatedClause;
         //copy.line = that.line;
         copy.source = that.source;
         copy.type = that.type;

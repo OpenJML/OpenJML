@@ -151,10 +151,10 @@ public abstract class EscBase extends JmlTestCase {
         this.solver = solver;
     }
     
-    public void printDiagnostics() {
-        System.out.println("SOLVER: " + solver + " " + options);
-        super.printDiagnostics();
-    }
+//    public void printDiagnostics() {
+//        System.out.println("SOLVER: " + solver + " " + options);
+//        super.printDiagnostics();
+//    }
 
     protected static String z = java.io.File.pathSeparator;
     protected static String testspecpath1 = "$A"+z+"$B";
@@ -173,7 +173,7 @@ public abstract class EscBase extends JmlTestCase {
         super.setUp();
         main.addOptions("-specspath",   testspecpath);
         main.addOptions("-command","esc");
-        main.addOptions("-no-purityCheck");
+        main.addOptions("-no-escExitInfo","-no-purityCheck");
 //        main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");
         main.addUncheckedOption("openjml.defaultProver=z3_4_4");
@@ -213,6 +213,7 @@ public abstract class EscBase extends JmlTestCase {
     			diffs = compareFiles(name, actCompile);
     		}
     		if (diffs != null) {
+    		    System.out.println("TEST DIFFERENCES: " + testname.getMethodName());
     			System.out.println(diffs);
     			fail("Files differ: " + diffs);
     		}  

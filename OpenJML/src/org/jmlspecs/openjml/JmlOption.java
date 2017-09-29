@@ -79,6 +79,7 @@ public enum JmlOption implements IOption {
     TRACE("-trace",false,false,"ESC: Enables tracing of counterexamples",null),
     SHOW("-show",false,false,"Show intermediate programs",null),
     ESC_BV("-escBV",true,"auto","ESC: If enabled, use bit-vector arithmetic (auto, true, false)",null),
+    ESC_EXIT_INFO("-escExitInfo",false,true,"ESC: Show exit location for postconditions (default true)",null),
     ESC_MAX_WARNINGS("-escMaxWarnings",true,"all","ESC: Maximum number of warnings to find per method",null),
     MAXWARNINGSPATH("-escMaxWarningsPath",false,false,"ESC: If true, find all counterexample paths to each invalid assert",null),
     COUNTEREXAMPLE("-counterexample",false,false,"ESC: Enables output of complete, raw counterexample",null),
@@ -102,6 +103,8 @@ public enum JmlOption implements IOption {
 
     PROPERTIES("-properties",true,null,"Specifies the path to the properties file",null),
     PROPERTIES_DEFAULT("-properties-default",true,null,"Specifies the path to the default properties file",null),
+    
+    DEFAULTS("-defaults",true,"","Specifies various default behaviors: constructor:pure|everything",null),
     
     // Obsolete
     NOCHECKSPECSPATHX("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false",true),
@@ -343,5 +346,17 @@ public enum JmlOption implements IOption {
                 noticeWriter.println(key + " = " + JmlOption.value(context,key));
             }
         }
+    }
+    
+    /** A helper function to extract values from the 'defaults' option */
+    public static /*@ nullable */ String defaultsValue(Context context, String key, String def) {
+        String defaultsValue = value(context,JmlOption.DEFAULTS);
+        if (defaultsValue == null) return def;
+        for (String s: defaultsValue.split(",")) {
+            if (s.startsWith(key + ":")) {
+                return s.substring(key.length()+1);
+            }
+        } 
+        return def;
     }
 }

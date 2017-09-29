@@ -77,6 +77,7 @@ JML options:
   -trace                     ESC: Enables tracing of counterexamples
   -show                      Show intermediate programs
   -escBV                     ESC: If enabled, use bit-vector arithmetic (auto, true, false)
+  -escExitInfo               ESC: Show exit location for postconditions (default true)
   -escMaxWarnings            ESC: Maximum number of warnings to find per method
   -escMaxWarningsPath        ESC: If true, find all counterexample paths to each invalid assert
   -counterexample            ESC: Enables output of complete, raw counterexample
@@ -96,3 +97,4 @@ JML options:
   -racMissingModelFieldRepBinary RAC: action when a model field for a binary class has no representation (zero,warn,skip)
   -properties                Specifies the path to the properties file
   -properties-default        Specifies the path to the default properties file
+  -defaults                  Specifies various default behaviors: constructor:pure|everything

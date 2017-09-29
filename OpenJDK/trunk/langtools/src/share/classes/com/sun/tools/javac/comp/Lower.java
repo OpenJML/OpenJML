@@ -1105,7 +1105,7 @@ public class Lower extends TreeTranslator {
             ClassSymbol c = currentClass;
             if (tree.hasTag(SELECT) && (sym.flags() & STATIC) == 0) {
                 qualifier = ((JCFieldAccess) tree).selected.type.tsym;
-                while (!qualifier.isSubClass(c, types)) {
+                while (!qualifier.isSubClass(c, types)) { 
                     c = c.owner.enclClass();
                 }
                 return c;
