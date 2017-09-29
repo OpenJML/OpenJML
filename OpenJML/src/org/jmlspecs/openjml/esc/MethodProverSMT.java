@@ -909,6 +909,7 @@ public class MethodProverSMT {
                     } else {
                         if (assertStat.source != null) prev = log.useSource(assertStat.source);
                     }
+                    JavaFileObject mainSource = log.currentSourceFile();
                     String associatedLocation = Strings.empty;
                     if (assertStat.associatedPos != Position.NOPOS && !Utils.testingMode) {
                         associatedLocation = ": " + utils.locationString(assertStat.associatedPos,assertStat.associatedSource); 
@@ -947,6 +948,18 @@ public class MethodProverSMT {
                                 loc);
                         tracer.appendln(associatedLocation + " Associated location");
                         if (assertStat.associatedSource != null) log.useSource(prev);
+                    }
+                    if (assertStat.associatedClause != null && JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
+                        JmlTokenKind tkind = assertStat.associatedClause.token;
+                        if (tkind == JmlTokenKind.ENSURES || tkind == JmlTokenKind.SIGNALS || tkind == JmlTokenKind.SIGNALS_ONLY) {  // FIXME - actually - any postcondition check
+                            int p = terminationPos;
+                            if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
+                                if (terminationPos == decl.pos) p = decl.getEndPosition(log.getSource(mainSource).getEndPosTable());
+                                JavaFileObject prevv = log.useSource(mainSource);
+                                if (p != Position.NOPOS) log.warning(p, "jml.message", "Associated method exit");
+                                log.useSource(prevv);
+                            }
+                        }
                     }
 
                     if (label == Label.PRECONDITION) {

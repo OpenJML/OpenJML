@@ -298,8 +298,7 @@ public class esc extends EscBase {
 	}
 
 	@Test
-	public void testForEach2a() {
-		Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+	public void testForEach2a1() {
 		main.addOptions("escMaxWarnings=1");
 		helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
 				+ "public class TestJava { \n"
@@ -310,82 +309,119 @@ public class esc extends EscBase {
 				+ "    }\n" 
 				+ "  }\n"
 
-				+ "  //@ public normal_behavior  ensures true;\n" 
-				+ "  public void m2() {\n" // Line 10
-				+ "    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
-				+ "    //@ assert values.content.owner == values;\n"
-				+ "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
-				+ "    //@ assume values.content.owner == values;\n"
-				+ "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
-				+ "    //@ assume values.content.owner == values;\n" 
-				+ "    Map.Entry<String,String> k; \n"
-				+ "    //@ assert values.content.owner == values;\n"
-				+ "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
-				+ "    //@ loop_invariant values == v && values.content.owner == values; \n"
-				+ "    for (; it.hasNext(); values.add(k) ) {\n"  // FIXME - why need k ! null below since implied by second conjunct
-				+ "        k = it.next();  //@ assume k != null && \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
-						// FIXME - problems if we have erased type names
-				+ "    }\n" 
-				+ "  }\n"
-
-				+ "  //@ public normal_behavior  ensures true;\n" 
-				+ "  public void m2a() {\n" // Line 26
-				+ "    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
-				+ "    //@ assert values.content.owner == values;\n"
-				+ "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
-				+ "    //@ assume values.content.owner == values;\n"
-				+ "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
-				+ "    //@ assume values.content.owner == values;\n" 
-				+ "    Map.Entry<String,String> k;\n"
-				+ "    //@ assert values.content.owner == values;\n"
-				+ "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
-				+ "    // @ loop_invariant values == v && values.content.owner == values; \n"
-				+ "    if (it.hasNext()) {\n" 
-				+ "        //@ assert values.content.owner == values;\n"
-				+ "        k = it.next();  //@ assume k != null &&  \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
-								// FIXME - problems if we have erased type names
-				+ "        //@ assert values.content.owner == values;\n" 
-				+ "        values.add(k); \n"
-								// FIXME - problems if we have erased type names
-				+ "    }\n" 
-				+ "  }\n"
-
-				+ "  //@ public normal_behavior  ensures true;\n" 
-				+ "  public void m3() {\n" 
-				+ "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
-				+ "    //@ assert values.content.owner == values;\n" 
-				+ "    Integer k = new Integer(1);\n"
-				+ "    //@ assert values.content.owner == values;\n" 
-				+ "    values.add(k);\n" 
-				+ "  }\n"
-
-				+ "  //@ public normal_behavior  ensures true;\n"
-				+ "  public void m4() {\n"
-				+ "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
-				+ "    Integer k = 0;\n" 
-				+ "    values.add(k);\n" 
-				+ "  }\n"
 
 				+ "  public TestJava() {}"
 
 				+ "}"
 
-		// ,"/tt/TestJava.java:13: warning: The prover cannot establish an
-		// assertion (Assert) in method m3",11
-		// ,"/tt/TestJava.java:34: warning: The prover cannot establish an
-		// assertion (Assert) in method m5",14
-		// ,"/tt/TestJava.java:54: warning: The prover cannot establish an
-		// assertion (LoopDecreases) in method m7a",21
-		// ,"/tt/TestJava.java:53: warning: Associated declaration",9
-		// ,"/tt/TestJava.java:60: warning: The prover cannot establish an
-		// assertion (LoopInvariant) in method m8",5
-		// ,"/tt/TestJava.java:59: warning: Associated declaration",9
-		// ,"/tt/TestJava.java:66: warning: The prover cannot establish an
-		// assertion (LoopInvariant) in method m9",21
-		// ,"/tt/TestJava.java:65: warning: Associated declaration",9
 		);
 	}
 
+    @Test
+    public void testForEach2a2() {
+        main.addOptions("escMaxWarnings=1");
+        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+                + "public class TestJava { \n"
+
+                + "  //@ public normal_behavior  ensures true;\n" 
+                + "  public void m2() {\n" // Line 10
+                + "    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
+                + "    //@ assert values.content.owner == values;\n"
+                + "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
+                + "    //@ assume values.content.owner == values;\n"
+                + "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
+                + "    //@ assume values.content.owner == values;\n" 
+                + "    Map.Entry<String,String> k; \n"
+                + "    //@ assert values.content.owner == values;\n"
+                + "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
+                + "    //@ loop_invariant values == v && values.content.owner == values; \n"
+                + "    for (; it.hasNext(); values.add(k) ) {\n"  // FIXME - why need k ! null below since implied by second conjunct
+                + "        k = it.next();  //@ assume k != null && \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
+                        // FIXME - problems if we have erased type names
+                + "    }\n" 
+                + "  }\n"
+
+
+                + "  public TestJava() {}"
+
+                + "}"
+
+        );
+    }
+    @Test
+    public void testForEach2a2a() {
+        main.addOptions("escMaxWarnings=1");
+        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+                + "public class TestJava { \n"
+
+                + "  //@ public normal_behavior  ensures true;\n" 
+                + "  public void m2a() {\n" // Line 26
+                + "    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
+                + "    //@ assert values.content.owner == values;\n"
+                + "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
+                + "    //@ assume values.content.owner == values;\n"
+                + "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
+                + "    //@ assume values.content.owner == values;\n" 
+                + "    Map.Entry<String,String> k;\n"
+                + "    //@ assert values.content.owner == values;\n"
+                + "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
+                + "    // @ loop_invariant values == v && values.content.owner == values; \n"
+                + "    if (it.hasNext()) {\n" 
+                + "        //@ assert values.content.owner == values;\n"
+                + "        k = it.next();  //@ assume k != null &&  \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
+                                // FIXME - problems if we have erased type names
+                + "        //@ assert values.content.owner == values;\n" 
+                + "        values.add(k); \n"
+                                // FIXME - problems if we have erased type names
+                + "    }\n" 
+                + "  }\n"
+
+                + "  public TestJava() {}"
+
+                + "}"
+
+        );
+    }
+    @Test
+    public void testForEach2a3() {
+        main.addOptions("escMaxWarnings=1");
+        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+                + "public class TestJava { \n"
+
+                + "  //@ public normal_behavior  ensures true;\n" 
+                + "  public void m3() {\n" 
+                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
+                + "    //@ assert values.content.owner == values;\n" 
+                + "    Integer k = new Integer(1);\n"
+                + "    //@ assert values.content.owner == values;\n" 
+                + "    values.add(k);\n" 
+                + "  }\n"
+
+                + "  public TestJava() {}"
+
+                + "}"
+
+        );
+    }
+    @Test
+    public void testForEach2a4() {
+        main.addOptions("escMaxWarnings=1");
+        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+                + "public class TestJava { \n"
+
+                + "  //@ public normal_behavior  ensures true;\n"
+                + "  public void m4() {\n"
+                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
+                + "    Integer k = 0;\n" 
+                + "    values.add(k);\n" 
+                + "  }\n"
+
+                + "  public TestJava() {}"
+
+                + "}"
+
+        );
+    }
 	@Test
 	public void testForEachBad() {
 		expectedExit = 1;
@@ -3845,5 +3881,47 @@ public class esc extends EscBase {
                 );
     }
 
+    @Test
+    public void testExitInfo2() {
+        expectedExit = 0;
+        main.addOptions("-escExitInfo","-escMaxWarnings=3");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  /*@ requires o != null; ensures \\result == (j>=0); pure function */ public static boolean positive(Object o, int j) { return j >= 0; }\n"
+                        + "  public int j; \n"
+                        + "  //@ signals (NullPointerException e) positive(null,j); \n"
+                        + "  //@ signals (NegativeArraySizeException e) positive(null,j); \n"
+                        + "  public void m0(int i, Object o) {\n"
+                        + "      if (i == 1) { j = -2; throw new NullPointerException(); }\n" 
+                        + "           if (i == 2) { j = -1; throw new NegativeArraySizeException(); }\n" 
+                        + "  }\n" 
+                        + "}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
+                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                ,"/tt/TestJava.java:9: warning: Associated method exit",34
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",48
+                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                ,"/tt/TestJava.java:8: warning: Associated method exit",29
+                );
+    }
+
+    @Test
+    public void testExitInfo() {
+        expectedExit = 0;
+        main.addOptions("-escExitInfo","-escMaxWarnings=3");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public int j; \n"
+                        + "  //@ ensures j >= 0; \n"
+                        + "  public void m0(int i, Object o) {\n"
+                        + "      j = -1; \n" 
+                        + "  }\n" 
+                        + "}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method m0",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                );
+    }
 
 }

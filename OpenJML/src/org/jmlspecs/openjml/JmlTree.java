@@ -2756,6 +2756,8 @@ public class JmlTree implements IJmlTree {
          */
         public JCTree.JCExpression optionalExpression = null;
         
+        public JmlMethodClause associatedClause = null;
+        
         /** The source file in which the statement sits (and the file to which pos and line correspond) */
         public JavaFileObject source;
         

@@ -514,6 +514,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     public JCExpression condition;
     
+    public JmlMethodClause conditionAssociatedClause = null;
+    
     // FIXME - dcoument
     protected java.util.List<JmlStatementExpr> wellDefinedConditions = new java.util.LinkedList<JmlStatementExpr>();
     
@@ -1822,6 +1824,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             st.optionalExpression = info;
             st.id = assertID;
             st.description = extra.isEmpty() ? null : extra;
+            st.associatedClause = conditionAssociatedClause;
             treeutils.copyEndPosition(st.expression, translatedExpr);
             treeutils.copyEndPosition(st, translatedExpr); // Note that the position of the expression may be that of the associatedPos, not of the original assert, if there even is one
 
@@ -4163,6 +4166,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 for (JmlMethodClause clause : scase.clauses) {
                     try {
+                        conditionAssociatedClause = clause;
                         switch (clause.token) {
                             // FIXME - would be nice if RAC postconditions could refer to the last return that was executed
                             case ENSURES:
@@ -4313,6 +4317,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     } catch (JmlNotImplementedException e) {
                         notImplemented(clause.token.internedName() + " clause containing ",e, clause.source());
                         continue;
+                    } finally {
+                        conditionAssociatedClause = null;
                     }
                     
                 }
@@ -8354,6 +8360,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             try {
                                                 prevSource = log.useSource(clauseSource);
                                                 assumingPureMethod = true;
+                                                conditionAssociatedClause = clause;
                                                 JCExpression e = convertJML(((JmlMethodClauseExpr)clause).expression, condition, false);
                                                 log.useSource(prevSource);
                                                 addAssume(that,Label.POSTCONDITION,e,clause,clauseSource);
@@ -8364,6 +8371,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             } finally {
                                                 if (prevSource != null) log.useSource(prevSource);
                                                 assumingPureMethod = savedAssuming;
+                                                conditionAssociatedClause = null;
                                             }
                                             JCBlock bl = popBlock(0,that,check7);
                                             addStat( wrapRuntimeException(clause, bl, // wrapRuntimeException is a no-op except for rac
@@ -8445,6 +8453,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             }
                                             // FIXME - we should have a condition that the exception is an Exception (not a Throwable)
                                             prevSource = log.useSource(clauseSource);
+                                            conditionAssociatedClause = clause;
                                             JCExpression e = convertJML(ex, condition, false);
                                             log.useSource(prevSource);
                                             addAssume(that,Label.SIGNALS,e,clause,clauseSource);
@@ -8464,6 +8473,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             notImplemented(clause.token.internedName() + " clause containing ",e, clause.source());
                                         } finally {
                                             if (prevSource != null) log.useSource(prevSource);
+                                            conditionAssociatedClause = null;
                                         }
                                         break;
                                     case SIGNALS_ONLY:

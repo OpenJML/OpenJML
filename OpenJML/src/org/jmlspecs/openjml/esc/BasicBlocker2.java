@@ -1331,6 +1331,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             st.description = that.description;
             st.source = that.source;
             st.type = that.type;
+            st.associatedClause = that.associatedClause;
             copyEndPosition(st,that);
             currentBlock.statements.add(st);
         } else {

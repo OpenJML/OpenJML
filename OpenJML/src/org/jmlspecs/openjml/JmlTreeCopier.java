@@ -429,6 +429,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 copy(that.expression,p));
         copy.optionalExpression = copy(that.optionalExpression,p);
         copy.associatedPos = that.associatedPos;
+        copy.associatedClause = that.associatedClause;
         //copy.line = that.line;
         copy.source = that.source;
         copy.type = that.type;
