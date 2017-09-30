@@ -834,7 +834,7 @@ public class MethodProverSMT {
                         spanType = val == null ? Span.NORMAL : val.equals("true") ? Span.TRUE : Span.FALSE;
                     }
                     //log.getWriter(WriterKind.NOTICE).println("SPAN " + sp + " " + ep + " " + spanType);
-                    if (sp != Position.NOPOS) {
+                    if (sp > Position.NOPOS) { // Neither -2 nor NOPOS
                         if (ep >= sp) path.add(new Span(sp,ep,spanType));
 //                        else log.warning(Position.NOPOS,"jml.internal.notsobad","Incomplete position information (" + sp + " " + ep + ") for " + origStat);
                     } else {

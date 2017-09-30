@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
+import org.eclipse.core.commands.Command;
+import org.eclipse.core.commands.State;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -44,9 +46,13 @@ import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
+import org.eclipse.ui.handlers.RadioState;
+import org.eclipse.ui.handlers.RegistryToggleState;
 import org.eclipse.ui.internal.dialogs.ViewContentProvider;
 import org.eclipse.ui.internal.dialogs.ViewLabelProvider;
 import org.eclipse.ui.part.ViewPart;
@@ -162,11 +168,16 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     
     public final static Color white = new Color(null,255,255,255);
     public final static Color red = new Color(null,255,0,0);
+    public final static Color palered = new Color(null,255,192,192);
     public final static Color pink = new Color(null,255,128,128);
     public final static Color green = new Color(null,0,255,0);
+    public final static Color palegreen = new Color(null,176,255,176);
     public final static Color orange = new Color(null,255,128,0);
+    public final static Color paleorange = new Color(null,255,176,128);
     public final static Color yellow = new Color(null,255,255,0);
+    public final static Color paleyellow = new Color(null,255,255,176);
     public final static Color blue = new Color(null,128,128,255);
+    public final static Color paleblue = new Color(null,176,176,255);
 
     Map<String,TreeItem> treeitems = new HashMap<String,TreeItem>();
     Map<TreeItem,ICounterexample> treece = new HashMap<TreeItem,ICounterexample>();
@@ -272,21 +283,25 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 
     	String text = sym.toString();
     	TreeItem tiii = treeitems.get(key);
+    	boolean tiii_isNew = tiii == null;
+    	Color oldColor =null;
     	if (tiii == null) {
     		int index = where2(tii,key);
     		tiii = new TreeItem(tii,SWT.NONE,index);
     		treeitems.put(key, tiii);
+    	} else {
+    	    oldColor = tiii.getBackground();
     	}
 
-    	Kind k = result == null ? null : result.result();
+    	Kind resultKind = result == null ? null : result.result();
     	String info = result == null ? "" : (" ["
     			+ (org.jmlspecs.openjml.Utils.testingMode ? "TIME" : String.format("%5.3f", result.duration())) 
     			+ " " + result.prover() + "] ");
     	tiii.removeAll();
-    	String name = k == null ? "" : k.toString();
+    	String name = resultKind == null ? "" : resultKind.toString();
     	String padding = "      ";
     	padding = padding.substring(0,name.length() <= padding.length() ? padding.length()-name.length() : 0);
-    	String alltext = k == null ? text : ("[" + k.toString() + "] " + text + info);
+    	String alltext = resultKind == null ? text : ("[" + resultKind.toString() + "] " + text + info);
     	Color color = white;
     	{
     		Info iteminfo = new Info();
@@ -296,7 +311,8 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     		iteminfo.signature = key;
     		tiii.setData(iteminfo);
     	}
-    	if (k == IProverResult.SAT || k == IProverResult.POSSIBLY_SAT) {
+    	treece.remove(tiii);
+    	if (resultKind == IProverResult.SAT || resultKind == IProverResult.POSSIBLY_SAT) {
     		alltext = ("[INVALID] " + text + info);
     		color = orange;
     		List<IProverResult.Item> presults = ((org.jmlspecs.openjml.proverinterface.ProverResult)result).details();
@@ -319,28 +335,28 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     					treece.put(tiiii, (ICounterexample)ce);
     				}
     			}
-    			tiii.setExpanded(true);
+    			//tiii.setExpanded(true);
     		}
-    	} else if (k == IProverResult.UNSAT) {
+    	} else if (resultKind == IProverResult.UNSAT) {
     		alltext = ("[VALID]    " + text + info);
     		color = green;
-    	} else if (k == IProverResult.ERROR) {
+    	} else if (resultKind == IProverResult.ERROR) {
     		color = red;
-        } else if (k == IProverResult.TIMEOUT) {
+        } else if (resultKind == IProverResult.TIMEOUT) {
             color = pink;
-    	} else if (k == IProverResult.UNKNOWN) {
+    	} else if (resultKind == IProverResult.UNKNOWN) {
     		color = pink;
-    	} else if (k == IProverResult.INFEASIBLE) {
+    	} else if (resultKind == IProverResult.INFEASIBLE) {
     		color = yellow;
-    	} else if (k == IProverResult.SKIPPED) {
+    	} else if (resultKind == IProverResult.SKIPPED) {
     		color = blue;
-    	} else if (k == IProverResult.RUNNING) {
+    	} else if (resultKind == IProverResult.RUNNING) {
     		color = white;
-    	} else if (k == IProverResult.CANCELLED) {
+    	} else if (resultKind == IProverResult.CANCELLED) {
     		color = blue;
-    	} else if (k == IProverResult.COMPLETED) {
+    	} else if (resultKind == IProverResult.COMPLETED) {
     		return; // No change
-    	} else if (k == null) {
+    	} else if (resultKind == null) {
     		alltext = text;
     		color = white;
     	} else {
@@ -348,11 +364,53 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	}
     	tiii.setText(alltext);
     	tiii.setBackground(color);
-//          treeroot.setExpanded(true);
-//    		ti.setExpanded(true);
-//    		tii.setExpanded(true);
-    		
-    		treeroot.getParent().showItem(tiii);
+    	
+    	setSummaryColor(tii);
+    	setSummaryColor(ti);
+    	
+    	// Show the item if (it did not exist)  
+        //    || ((the user set the toggle to allow auto open) && (the color is changing on refresh))
+        //    || ((the user set the toggle to allow auto open on Error) && (some sort of error occurred))
+        boolean autoOpen = false;
+    	if (!tiii_isNew) { // Don't bother checking the menu state if we are going to auto open anyway
+    	    try {
+    	        IWorkbenchWindow w = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+    	        ICommandService csrv = (ICommandService) w.getService(ICommandService.class);
+    	        Command command2 = csrv.getCommand("org.openjml.commands.ToggleAutoOpen"); //$NON-NLS-1$
+                autoOpen = (Boolean) command2.getState(RegistryToggleState.STATE_ID).getValue() && !color.equals(oldColor);
+//    	        Command command = csrv.getCommand("org.openjml.commands.RadioAutoOpen"); //$NON-NLS-1$
+//    	        String radioState = (String) command.getState(RadioState.STATE_ID).getValue();
+//                if ("Error".equals(radioState) && color != green && color != white) autoOpen = true;
+//                if ("Auto".equals(radioState) && !color.equals(oldColor)) autoOpen = true;
+    	    } catch (Exception e) {
+    	        // Just in case something goes wrong
+    	    }
+    	}
+        if (tiii_isNew || autoOpen) treeroot.getParent().showItem(tiii);
+        if (resultKind != IProverResult.RUNNING && key.equals(Activator.utils().currentTraceViewUISignature(null))) {
+            // Don't update if we are in a RUNNING state - we get spurious messages that the counterexample is out of date
+            // FIXME - why is there any coujnterexample at all to update?
+            updateCEView(tiii,false);
+        }
+    }
+    
+    private void setSummaryColor(TreeItem tii) {
+        Color worst = palegreen;
+        for (TreeItem t: tii.getItems()) {
+            Color itemColor = t.getBackground();
+            if (itemColor == null) continue;
+            if (itemColor == red || itemColor == palered) worst = palered; 
+            if (worst == palered) continue;
+            if (itemColor == pink) worst = palered; 
+            if (worst == palered) continue;
+            if (itemColor == orange || itemColor == paleorange) worst = paleorange;
+            if (worst == paleorange) continue;
+            if (itemColor == yellow || itemColor == paleyellow) worst = paleyellow;
+            if (worst == paleyellow) continue;
+            if (itemColor == blue || itemColor == paleblue) worst = paleblue;
+            if (itemColor == white) worst = white;
+        }
+        tii.setBackground(worst);
     }
     
     private boolean getCurrentFileData() {
@@ -383,6 +441,9 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	} catch (Exception e) {
     		return false;
     	}
+    }
+    
+    public void toggleAutoOpen(boolean newValue) {
     }
 
     public void clearProofResults() {
@@ -546,6 +607,10 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 		if (!multi) selectedList.clear();
 		selectedList.add(ti);
 		if (ti == null) return;
+		updateCEView(ti,true);
+	}
+	
+	public void updateCEView(TreeItem ti, boolean show) {
 		Info info = (Info)ti.getData();
 		TreeItem pi = ti;
 		if (info == null) {
@@ -560,9 +625,9 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 			if (r != null) Activator.utils().deleteHighlights(r,null); // FIXME - would like to clear just the java element, not the whole compilation unit
 			if (pr != null) {
 				ICounterexample ce = treece.get(ti);
-				if (ce instanceof Counterexample) {
+				if (ce instanceof Counterexample ) {
 					String text = ((Counterexample)ce).traceText; // FIXME - change to method on interface
-					Activator.utils().setTraceViewUI(null,info.signature,text);
+					Activator.utils().setTraceViewUI(null,info.signature,text,show);
 					if (info.javaElement instanceof IMethod) {
 						iface.highlightCounterexamplePath((IMethod)info.javaElement,info.proofResult,ce);
 					}
@@ -578,7 +643,8 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 								+ info.key;
 					Object extra = pr.otherInfo();
 					if (extra != null) text = text + Strings.eol + extra.toString();
-					Activator.utils().setTraceViewUI(null, info.signature, text);
+					Activator.utils().setTraceViewUI(null, info.signature, text, show);
+					treece.remove(pi);
 				}
 			}
 		}
