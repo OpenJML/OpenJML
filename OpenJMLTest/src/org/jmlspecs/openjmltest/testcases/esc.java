@@ -3124,15 +3124,31 @@ public class esc extends EscBase {
 	public void testUndefinedInSpec3() {
 		main.addOptions("-keys=DEBUG");
 		helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
-				+ "/*@ nullable_by_default */ public class TestJava { \n" + "  public int j = 1;\n"
-				+ "  public static @Nullable TestJava t;\n" + "  public static void m(TestJava o) { \n"
-				+ "    //@ assume o.j == 1; \n" + "  }\n  " + "  public static void m1(TestJava o) { \n"
-				+ "    //@ assert o.j == 1 ? true : true; \n" + "  }\n  " + "  public static void m2(TestJava o) { \n"
-				+ "    //@ ghost int i = o.j; \n" + "  }\n  " + "  public static void m3(TestJava o) { \n"
-				+ "    //@ ghost int i; debug i = o.j; \n" + "  }\n  " + "  //@ requires o.j == 1;\n"
-				+ "  public static void m4(@Nullable TestJava o) { \n" + "  }\n  "
-				+ "  //@ ensures t.j == 1 ? true : true;\n" + "  public static void m5(TestJava o) { \n" + "  }\n  "
-				+ "  public static void m6(TestJava o) { \n" + "    //@ ghost int i; set i = o.j; \n" + "  }\n  " + "}",
+				+ "/*@ nullable_by_default */ public class TestJava { \n" 
+				+ "  public int j = 1;\n"
+				+ "  public static @Nullable TestJava t;\n" 
+				+ "  public static void m(TestJava o) { \n"
+				+ "    //@ assume o.j == 1; \n" 
+				+ "  }\n  " 
+				+ "  public static void m1(TestJava o) { \n"
+				+ "    //@ assert o.j == 1 ? true : true; \n" 
+				+ "  }\n  " 
+				+ "  public static void m2(TestJava o) { \n"
+				+ "    //@ ghost int i = o.j; \n" 
+				+ "  }\n  " 
+				+ "  public static void m3(TestJava o) { \n"
+				+ "    //@ ghost int i; debug i = o.j; \n" 
+				+ "  }\n  " 
+				+ "  //@ requires o.j == 1;\n"
+				+ "  public static void m4(@Nullable TestJava o) { \n" 
+				+ "  }\n  "
+				+ "  //@ ensures t.j == 1 ? true : true;\n" 
+				+ "  public static void m5(TestJava o) { \n" 
+				+ "  }\n  "
+				+ "  public static void m6(TestJava o) { \n" 
+				+ "    //@ ghost int i; set i = o.j; \n" 
+				+ "  }\n  " 
+				+ "}",
 				"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",
 				17,
 				"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1",
@@ -3145,6 +3161,8 @@ public class esc extends EscBase {
 				19,
 				"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m5",
 				18,
+				"/tt/TestJava.java:22: warning: Associated method exit",
+				4,
 				"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m6",
 				31);
 	}

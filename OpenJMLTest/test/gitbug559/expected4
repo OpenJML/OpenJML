@@ -10,6 +10,21 @@ test/gitbug559/EntryList.java:14: warning: The prover cannot establish an assert
 test/gitbug559/EntryList.java:26: warning: Associated method exit
     }
      ^
+test/gitbug559/EntryList.java:14: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method size
+      @ (\result == rest.size() + 1);
+                        ^
+test/gitbug559/EntryList.java:19: warning: Associated method exit
+            return 0;
+            ^
+test/gitbug559/EntryList.java:13: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method size
+    /*@ ensures (this.first == null && \result == 0) ||(this.rest == null && \result == 1)  ||
+                     ^
+test/gitbug559/EntryList.java:14: warning: Associated declaration
+      @ (\result == rest.size() + 1);
+                             ^
+test/gitbug559/EntryList.java:19: warning: Associated method exit
+            return 0;
+            ^
 Completed proof of EntryList.size() with prover !!!! - with warnings
 Completed proving methods in EntryList
-2 warnings
+7 warnings

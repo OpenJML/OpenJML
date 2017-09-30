@@ -173,7 +173,7 @@ public abstract class EscBase extends JmlTestCase {
         super.setUp();
         main.addOptions("-specspath",   testspecpath);
         main.addOptions("-command","esc");
-        main.addOptions("-no-escExitInfo","-no-purityCheck");
+        main.addOptions("-escExitInfo","-no-purityCheck");
 //        main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");
         main.addUncheckedOption("openjml.defaultProver=z3_4_4");
