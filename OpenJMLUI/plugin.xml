@@ -447,6 +447,53 @@
       <menuContribution
             locationURI="menu:org.openjml.proofview"
             allPopups="true">
+            <!--
+            <menu id="org.openjml.proofview.autoopen"
+                label="Auto Open"
+                >
+		    <command
+	            commandId="org.openjml.proofview.RadioAutoOpen"
+	            id="org.openjml.proofview.On"
+	            label="Auto"
+	            style="radio">
+		        <parameter
+ 	                name="org.eclipse.ui.commands.radioStateParameter"
+	                value="Auto">
+	        	</parameter>
+		    </command>
+ 		    <command
+	            commandId="org.openjml.proofview.RadioAutoOpen"
+	            id="org.openjml.proofview.Error"
+	            label="On Error"
+	            style="radio">
+		        <parameter
+ 	                name="org.eclipse.ui.commands.radioStateParameter"
+	                value="Error">
+	        	</parameter>
+		    </command>
+		    <command
+	            commandId="org.openjml.proofview.RadioAutoOpen"
+	            id="org.openjml.proofview.Off"
+	            label="Off"
+	            style="radio">
+		        <parameter
+ 	                name="org.eclipse.ui.commands.radioStateParameter"
+	                value="Off">
+	        	</parameter>
+		    </command>
+         </menu>
+         -->
+         <command 
+      			id="org.openjml.proofview.ToggleAutoOpen" 
+                commandId="org.openjml.commands.ToggleAutoOpen"
+      			label="Auto Open"
+      			style="toggle"
+      			> 
+         </command> 
+		 <separator
+	            name="org.openjml.proofview.separator"
+	            visible="true">
+		 </separator>
          <command
                label="Rerun Selected Checks"
                id="org.openjml.proofview.RerunStaticCheck"
@@ -1170,6 +1217,35 @@
             id="org.openjml.commands.ClearAllProofResults"
             defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ClearAllProofResults"
             >
+      </command>
+      <command
+            name="Toggle Auto Open"
+            description="Toggles the Auto Open setting in the OpenJML results view"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.ToggleAutoOpen"
+            defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ToggleAutoOpen"
+            >
+   				<state 
+         			class="org.eclipse.ui.handlers.RegistryToggleState:true" 
+         			id="org.eclipse.ui.commands.toggleState"> 
+   				</state> 
+      </command>
+      <command
+            name="Radio Auto Open"
+            description="Sets the Auto Open setting in the OpenJML results view"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.RadioAutoOpen"
+            defaultHandler="org.jmlspecs.openjml.eclipse.Commands$RadioAutoOpen"
+            >
+	  	<commandParameter
+ 	        id="org.eclipse.ui.commands.radioStateParameter"
+ 	        name="State"
+ 	        optional="false">
+	   	</commandParameter>
+	   	<state
+	         class="org.eclipse.ui.handlers.RadioState:Auto"
+	         id="org.eclipse.ui.commands.radioState">
+	   	</state>
       </command>
       <command
             name="Export Proof Results"

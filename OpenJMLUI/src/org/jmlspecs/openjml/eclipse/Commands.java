@@ -10,8 +10,10 @@ import java.io.FileWriter;
 import java.util.Arrays;
 
 import org.eclipse.core.commands.AbstractHandler;
+import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.commands.State;
 import org.eclipse.core.resources.IResourceRuleFactory;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -25,7 +27,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.handlers.HandlerUtil;
+import org.eclipse.ui.handlers.RadioState;
+import org.eclipse.ui.handlers.RegistryToggleState;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.Main.Cmd;
@@ -76,29 +81,74 @@ abstract public class Commands extends AbstractHandler {
     @Override
     abstract public Object execute(ExecutionEvent event);
 
-    /**
-	 * This action enables the JML nature on the selected projects,
-	 * so that checking happens as part of compilation.
-	 * 
-	 * @author David Cok
-	 *
-	 */
-	static public class ClearAllProofResults extends Commands {
-	    // This is all done in the UI thread with no progress monitor
-	    @Override
-		public Object execute(ExecutionEvent event) {
-			try {
-				if (Options.uiverboseness) {
-					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
-				}
-	    		getInfo(event);
-	            utils.findView().clearProofResults();
-	        } catch (Exception e) {
-	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);
-			}
-			return null;
-		}
-	}
+    static public class ToggleAutoOpen extends Commands {
+        // This is all done in the UI thread with no progress monitor
+        @Override
+        public Object execute(ExecutionEvent event) {
+            try {
+                if (Options.uiverboseness) {
+                    Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
+                }
+                getInfo(event);
+                Command command = event.getCommand(); 
+                boolean oldValue = HandlerUtil.toggleCommandState(command);
+//                State state = command.getState(RegistryToggleState.STATE_ID);
+//                state.setValue(!oldValue);
+                utils.findView().toggleAutoOpen(!oldValue);
+            } catch (Exception e) {
+                utils.topLevelException(shell,this.getClass().getSimpleName(),e);
+            }
+            return null;
+        }
+    }
+
+    static public class RadioAutoOpen extends Commands {
+        // This is all done in the UI thread with no progress monitor
+        @Override
+        public Object execute(ExecutionEvent event) {
+            try {
+                if (Options.uiverboseness) {
+                    Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
+                }
+                getInfo(event);
+                if(HandlerUtil.matchesRadioState(event))
+                    return null; // we are already in the updated state - do nothing
+             
+                String currentState = event.getParameter(RadioState.PARAMETER_ID);
+                System.out.println("RADIO" + currentState);
+             
+                // do whatever having "currentState" implies
+             
+                // and finally update the current state
+                HandlerUtil.updateRadioState(event.getCommand(), currentState);
+
+//                ICommandService service = (ICommandService) HandlerUtil
+//                                        .getActiveWorkbenchWindowChecked(event).getService(
+//                                            ICommandService.class);
+//                service.refreshElements(event.getCommand().getId(), null);
+            } catch (Exception e) {
+                utils.topLevelException(shell,this.getClass().getSimpleName(),e);
+            }
+            return null;
+        }
+    }
+
+    static public class ClearAllProofResults extends Commands {
+        // This is all done in the UI thread with no progress monitor
+        @Override
+        public Object execute(ExecutionEvent event) {
+            try {
+                if (Options.uiverboseness) {
+                    Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
+                }
+                getInfo(event);
+                utils.findView().clearProofResults();
+            } catch (Exception e) {
+                utils.topLevelException(shell,this.getClass().getSimpleName(),e);
+            }
+            return null;
+        }
+    }
 
 	static public class ClearSelectedProofResults extends Commands {
 	    // This is all done in the UI thread with no progress monitor
@@ -157,7 +207,6 @@ abstract public class Commands extends AbstractHandler {
 					String key = info.key;
 					IJavaElement je = info.javaElement;
 					if (je == null) continue; // FIXME - this can happen if a default constructor is selected - but we should still run on the file
-					String filepath = je.getResource().getLocation().toOSString();
 					args.add(je);
 				}
 				String title = "Rerunning selected items from project " + jp.getResource().getName();
