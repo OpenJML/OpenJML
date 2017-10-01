@@ -42,9 +42,9 @@ public class SFBugs extends EscBase {
 	public void helpTCF(String sourceDirname, String outDir, String ... opts) {
     	//Assert.fail(); // FIXME - Java8 - long running
 	    ArrayList<String> list = new ArrayList<String>();
-	    list.addAll(Arrays.asList(opts));
 	    list.add("-code-math=bigint");
 	    list.add("-spec-math=bigint");
+        list.addAll(Arrays.asList(opts));
 		escOnFiles(sourceDirname,outDir,list.toArray(opts));
 	}
 
@@ -504,6 +504,26 @@ public class SFBugs extends EscBase {
     @Test public void gitbug560() {
         expectedExit = 0;
         helpTCG();
+    }
+    
+    @Test public void gitbug567() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test public void gitbug567a() {
+        expectedExit = 0;
+        helpTCF("test/gitbug567","test/gitbug567a","-code-math=java");
+    }
+    
+    @Test public void gitbug567b() {
+        expectedExit = 0;
+        helpTCF("test/gitbug567","test/gitbug567b","-code-math=safe");
+    }
+    
+    @Test public void gitbug567c() {
+        expectedExit = 0;
+        helpTCF("test/gitbug567","test/gitbug567c","-code-math=bigint");
     }
     
      public void gitbug888() {
