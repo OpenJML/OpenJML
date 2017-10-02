@@ -280,6 +280,12 @@ public class JmlResolve extends Resolve {
          if (sym instanceof Symbol.VarSymbol) {
              JmlSpecs.FieldSpecs f = JmlSpecs.instance(context).getSpecs((Symbol.VarSymbol)sym);
              if (f != null) mods = f.mods;
+         } else if (sym instanceof Symbol.MethodSymbol) {
+             JmlSpecs.MethodSpecs f = JmlSpecs.instance(context).getSpecs((Symbol.MethodSymbol)sym);
+             if (f != null) mods = f.mods;
+         } else if (sym instanceof Symbol.ClassSymbol) {
+             JmlSpecs.TypeSpecs f = JmlSpecs.instance(context).getSpecs((Symbol.ClassSymbol)sym);
+             if (f != null) mods = f.modifiers;
          }
          
          if (specPublicSym == null) {

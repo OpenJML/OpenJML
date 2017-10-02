@@ -551,8 +551,14 @@ public class escfiles extends EscBase {
     // The following are really just typecheck problems
 
     @Test
+    public void testEscPrivate() {
+        expectedExit = 0;
+        helpTF("escPrivate");
+    }
+
+    @Test
     public void testEscVisibilitySimple() {
-    	expectedExit = 1;
+        expectedExit = 1;
         helpTF("visibilitySimple");
     }
 

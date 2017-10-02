@@ -3942,4 +3942,19 @@ public class esc extends EscBase {
                 );
     }
 
+    @Test
+    public void testFinalInvariant() {
+        expectedExit = 0;
+        main.addOptions("-show","-method=TestJava","-checkFeasibility=debug","-progress");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public static final int ii = mm(); \n"
+                        + "  //@ public final invariant ii == 19; \n"
+                        + "  //@ public normal_behavior ensures \\result == 10 + 9; pure\n"
+                        + "  public static int mm() { return 19; }"
+                        + "}"
+                );
+    }
+
 }
