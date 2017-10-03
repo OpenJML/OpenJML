@@ -3363,7 +3363,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             st.associatedPos = p;
             st.associatedSource = null;
             st.optionalExpression = null;
-        } 
+        } else {
+            if (JmlOption.isOption(context,JmlOption.STATIC_INIT_WARNING))
+            if (!hasStaticInitializer((ClassSymbol)convertedfa.sym.owner) && !convertedfa.sym.isEnum()
+                    && (convertedfa.sym.flags() & Flags.PRIVATE) == 0) {
+                log.warning(convertedfa, "jml.message", "Use a static_initializer clause to specify the values of static final fields: " + utils.qualifiedName(convertedfa.sym));
+                if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note(convertedfa, "jml.message", "Warned about a non-constant initalized static final field: " + st.toString());
+            }
+            discoveredFields.stats = discoveredFields.stats.append(st);
+        }
         if (st == null) {
         xx: {
             Symbol owner = convertedfa.sym.owner;
@@ -3395,6 +3403,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
 
         return ;
+    }
+    
+    public boolean hasStaticInitializer(JmlClassDecl decl) {
+        JmlSpecs.TypeSpecs ts = specs.getSpecs(decl.sym);
+        return ts.staticInitializerSpec != null;
+    }
+
+    public boolean hasStaticInitializer(ClassSymbol sym) {
+        JmlSpecs.TypeSpecs ts = specs.getSpecs(sym);
+        return ts.staticInitializerSpec != null;
     }
 
     /** Add all constant final static fields from this specific class */
@@ -3479,6 +3497,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     public final IClassOp axiomAdder = new IClassOp() { public void classOp(ClassSymbol cs) { addClassAxioms(cs); }};
     public final IClassOp finalStaticFieldAdder = new IClassOp() { public void classOp(ClassSymbol cs) { addFinalStaticFields(cs); }};
+    public final IClassOp staticInitializerAdder = new IClassOp() { public void classOp(ClassSymbol cs) { addStaticInitialization(cs); }};
     public final IClassOp staticInvariantAdder = new IClassOp() { public void classOp(ClassSymbol cs) { assumeStaticInvariants(cs); }};
     
 
@@ -3534,7 +3553,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addForClasses(collector.classes, axiomAdder);
             addStat(comment(methodDecl,"Assume static final constant fields",null));
             addForClasses(collector.classes, finalStaticFieldAdder);
-            if (isConstructor) {
+            addStat(comment(methodDecl,"Assume static initialization",null));
+            addForClasses(collector.classes, staticInitializerAdder);
+            {
                 addStat(comment(methodDecl.pos(),"Static initialization",log.currentSourceFile()));
                 addStaticInitialization((ClassSymbol)methodDecl.sym.owner);
             }
@@ -4560,11 +4581,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // If there is a static initializer, use it
         if (tspecs != null) {
-            for (JmlTypeClause tc: tspecs.clauses) {
-                if (tc instanceof JmlTypeClauseInitializer && 
-                        (tc.modifiers.flags & Flags.STATIC) != 0) {
-                    JmlTypeClauseInitializer tci = (JmlTypeClauseInitializer)tc;
+            {
+                JmlTypeClauseInitializer tci = tspecs.staticInitializerSpec;
+                if (tci != null) {
+                    JavaFileObject prev = log.currentSourceFile();
                     for (JmlSpecificationCase cs: tci.specs.cases) {
+                        log.useSource(cs.source());
                         // FIXME - visibility?
                         JCExpression pre = null;
                         JCExpression post = null;
@@ -4580,56 +4602,61 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             }
                         }
                         if (post == null) post = treeutils.trueLit;
-                        addAssume(tc,Label.POSTCONDITION,post);
+                        addAssume(tci,Label.POSTCONDITION,post);
                     }
+                    log.useSource(prev);
                     return; // There must be at most one static initializer
                 }
             }
         }
         
-        if (true) return;
+        // We could declare and initialize all the static fields here, but that results in 
+        // declarations of many fields that may not be needed. So static final fields are
+        // declared on demand (as part of 'discovered' fields)
         
-        // Otherwise we construct it from the static fields
-
-        Env<AttrContext> enva = Enter.instance(context).getEnv(csym);
-        if (enva == null) return;
-        JmlClassDecl decl = (JmlClassDecl)enva.tree;
-        if (decl == null) return;
-
-        for (JCTree t: decl.defs) {
-            if (t instanceof JmlVariableDecl) {
-                JmlVariableDecl d = (JmlVariableDecl)t;
-                if (!d.sym.isStatic()) continue;   // FIXME _ JML static?
-                alreadyDiscoveredFields.add(d.sym);
-                JCIdent id = treeutils.makeIdent(d.pos, d.sym);
-                JCExpression z = treeutils.makeZeroEquivalentLit(d.pos,d.type);
-                addStat(treeutils.makeAssignStat(d.pos, id, z));
-            }
-        }
-        
-        pushBlock();
-        for (JCTree t: decl.defs) {
-            if (t instanceof JmlVariableDecl) {
-                JmlVariableDecl d = (JmlVariableDecl)t;
-                if (!d.sym.isStatic()) continue;   // FIXME _ JML static?
-                if (d.init == null) continue;
-                JCIdent id = treeutils.makeIdent(d.pos, d.sym);
-                JCExpression z = addImplicitConversion(d, d.type, convertExpr(d.init));
-                addAssumeCheck(t,currentStatements,"Extra-Assume");  
-                addStat(treeutils.makeAssignStat(d.pos, id, z));
-                addAssumeCheck(t,currentStatements,"Extra-Assume");  
-           }
-        }
-        DiagnosticPosition p = decl.pos();
-        JCBlock bl = popBlock(0L,p);
-        pushBlock();
-        addAssert(p,Label.EXPLICIT_ASSERT,treeutils.makeBooleanLiteral(p.getPreferredPosition(),false));
-        JCBlock cb = popBlock(0L,p);
-
-        JCVariableDecl exceptionDecl = newTempDecl(p,syms.exceptionType);
-        JCCatch catcher = M.Catch(exceptionDecl,cb);
-        JCStatement t = M.Try(bl,List.<JCCatch>of(catcher),null);
-        addStat(t);
+//        if (true) return;
+//        
+//        // Otherwise we construct it from the static fields
+//
+//        Env<AttrContext> enva = Enter.instance(context).getEnv(csym);
+//        if (enva == null) return;
+//        JmlClassDecl decl = (JmlClassDecl)enva.tree;
+//        if (decl == null) return;
+//
+//        for (JCTree t: decl.defs) {
+//            if (t instanceof JmlVariableDecl) {
+//                JmlVariableDecl d = (JmlVariableDecl)t;
+//                if (!d.sym.isStatic()) continue;   // FIXME _ JML static?
+//                alreadyDiscoveredFields.add(d.sym);
+//                JCIdent id = treeutils.makeIdent(d.pos, d.sym);
+//                JCExpression z = treeutils.makeZeroEquivalentLit(d.pos,d.type);
+//                addStat(treeutils.makeAssignStat(d.pos, id, z));
+//            }
+//        }
+//        
+//        pushBlock();
+//        for (JCTree t: decl.defs) {
+//            if (t instanceof JmlVariableDecl) {
+//                JmlVariableDecl d = (JmlVariableDecl)t;
+//                if (!d.sym.isStatic()) continue;   // FIXME _ JML static?
+//                if (d.init == null) continue;
+//                JCIdent id = treeutils.makeIdent(d.pos, d.sym);
+//                JCExpression z = addImplicitConversion(d, d.type, convertExpr(d.init));
+//                addAssumeCheck(t,currentStatements,"Extra-Assume");  
+//                addStat(treeutils.makeAssignStat(d.pos, id, z));
+//                addAssumeCheck(t,currentStatements,"Extra-Assume");  
+//           }
+//        }
+//        DiagnosticPosition p = decl.pos();
+//        JCBlock bl = popBlock(0L,p);
+//        pushBlock();
+//        addAssert(p,Label.EXPLICIT_ASSERT,treeutils.makeBooleanLiteral(p.getPreferredPosition(),false));
+//        JCBlock cb = popBlock(0L,p);
+//
+//        JCVariableDecl exceptionDecl = newTempDecl(p,syms.exceptionType);
+//        JCCatch catcher = M.Catch(exceptionDecl,cb);
+//        JCStatement t = M.Try(bl,List.<JCCatch>of(catcher),null);
+//        addStat(t);
     }
     
 
@@ -10582,7 +10609,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
             else newfa = treeutils.makeSelect(that.pos, trexpr, sym);
         }
-        if (!rac && s != null && alreadyDiscoveredFields.add(s)) { // true if s was NOT in the set already
+        if (!rac && s != null && s.name != names._class && alreadyDiscoveredFields.add(s)) { // true if s was NOT in the set already
             if (utils.isJMLStatic(s) && (s.flags_field & Flags.FINAL) != 0) {
                 addFinalStaticField(newfa);
             } else {
@@ -11412,6 +11439,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         case MAPS:
                         case READABLE:
                         case WRITABLE:
+                        case INITIALIZER:
+                        case STATIC_INITIALIZER:
                             // skip
                             break;
                         default:

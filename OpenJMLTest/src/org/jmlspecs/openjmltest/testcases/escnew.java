@@ -1526,7 +1526,7 @@ public class escnew extends EscBase {
                 +"  public final static int CHILD; static { CHILD = 3; }\n"
                 +"  //@ static final public invariant CHILD == 3;\n"
 
-                
+                +"  //@ public normal_behavior ensures true; static_initializer\n"
                 +"  //@ helper pure \n"
                 +"  public static void m1() {\n"
                 +"    //@ assert CHILD == 3 ;\n"
@@ -1558,6 +1558,7 @@ public class escnew extends EscBase {
                 +"  public /*@ final */ static int[] FIELD = new int[]{1,2,3,4,5};\n"
                 +"  public /*@ final */ static int[] FIELD2 = {1,2,3,4,5,6};\n"
 
+                +"  //@ public normal_behavior ensures true; static_initializer\n"
                 
                 +"  //@  pure \n"
                 +"  public static void m1() {\n"
@@ -1572,6 +1573,8 @@ public class escnew extends EscBase {
                 +"  public /*@ final */ static int ZZZZ = 79;\n"
                 +"  public /*@ final */ static int[] CHILD = new int[]{1,2,3,4,5};\n"
                 +"  public /*@ final */ static int[] CHILD2 = {1,2,3,4,5,6};\n"
+
+                +"  //@ public normal_behavior ensures true; static_initializer\n"
                 +"}\n"
                 );
         

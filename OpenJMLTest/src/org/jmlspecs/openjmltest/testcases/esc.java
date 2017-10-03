@@ -3943,9 +3943,71 @@ public class esc extends EscBase {
     }
 
     @Test
+    public void testFinalInvariant2() {
+        expectedExit = 0;
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public static final int ii = mm(); \n"
+                        +  " //@ ensures ii == 19; static_initializer "
+                        
+                        + "  //@ public final invariant ii == 19; \n"
+                        
+                        + "  //@ public normal_behavior ensures \\result == 10 + 9; pure\n"
+                        + "  public static int mm() { return 19; }"
+                        
+                        + "  //@ public normal_behavior ensures \\result == 19; pure\n"
+                        + "  public int mmm() { return ii; }"
+                        + "}"
+                );
+    }
+
+    @Test
+    public void testFinalInvariant1() {
+        expectedExit = 0;
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public static final int jj = 21; \n"
+                        + "  public static final int ii = mm(); \n"
+                        +  " //@ ensures ii == 19 && jj == 21; static_initializer "
+                        
+                        + "  //@ public final invariant ii == 19; \n"
+                        
+                        + "  //@ public normal_behavior ensures \\result == 10 + 9; pure\n"
+                        + "  public static int mm() { return 19; }"
+                        
+                        + "  //@ public normal_behavior ensures \\result == 21; pure\n"
+                        + "  public int mmm() { return jj; }"
+                        + "}"
+                );
+    }
+
+
+    @Test
+    public void testFinalInvariant3() {
+        expectedExit = 0;
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public static final int ii = mm(); \n"
+                        +  " //@ ensures ii == mm(); static_initializer "
+                        
+                        + "  //@ public final invariant ii == 19; \n"
+                        
+                        + "  //@ public normal_behavior ensures \\result == 10 + 9; pure\n"
+                        + "  public static int mm() { return 19; }"
+                        
+                        + "  //@ public normal_behavior ensures \\result == 19; pure\n"
+                        + "  public int mmm() { return ii; }"
+                        + "}"
+                );
+    }
+
+    @Test
     public void testFinalInvariant() {
         expectedExit = 0;
-        main.addOptions("-show","-method=TestJava","-checkFeasibility=debug","-progress");
+        //main.addOptions("-show","-method=TestJava","-checkFeasibility=debug","-progress");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -3954,7 +4016,11 @@ public class esc extends EscBase {
                         + "  //@ public normal_behavior ensures \\result == 10 + 9; pure\n"
                         + "  public static int mm() { return 19; }"
                         + "}"
-                );
+                        ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.ii",27
+                        ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.ii",27
+                        ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",8
+                        ,"/tt/TestJava.java:4: warning: Associated declaration",20
+                                );
     }
 
 }
