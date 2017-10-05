@@ -527,12 +527,12 @@ public class SFBugs extends EscBase {
     }
     
     @Test public void gitbug572() {
-        expectedExit = 0;
+        expectedExit = 1;
         helpTCG();
     }
     
     @Test public void gitbug573() {
-        expectedExit = 0;
+        expectedExit = 1;
         helpTCF("test/gitbug573/pckg/A.jml","test/gitbug573","-sourcepath","test/gitbug573");
     }
     

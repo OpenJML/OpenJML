@@ -64,7 +64,7 @@ public class JmlDeferredAttr extends DeferredAttr {
 
         // FIXME - motivate this override
         protected boolean isSimpleReceiver(JCTree rec) {
-            if (rec.getTag() == null) return true;
+            if (rec.getTag() == JCTree.Tag.NO_TAG) return true;
             return super.isSimpleReceiver(rec);
         }
     }

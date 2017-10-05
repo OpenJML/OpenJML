@@ -3702,7 +3702,6 @@ public class Attr extends JCTree.Visitor {
          */
         Env<AttrContext> enclosingInitEnv(Env<AttrContext> env) {
             while (true) {
-                if (env.tree.getTag() == null) return null;  // OPENJML - for quantifiers in invariants
                 switch (env.tree.getTag()) {
                     case VARDEF:
                         JCVariableDecl vdecl = (JCVariableDecl)env.tree;
@@ -3720,6 +3719,7 @@ public class Attr extends JCTree.Visitor {
                     case METHODDEF:
                     case CLASSDEF:
                     case TOPLEVEL:
+                    case NO_TAG:  // OPENJML - for quantifiers in invariants
                         return null;
                 }
                 Assert.checkNonNull(env.next);
