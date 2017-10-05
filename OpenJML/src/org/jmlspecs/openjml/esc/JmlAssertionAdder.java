@@ -4533,7 +4533,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         (tc.modifiers.flags & Flags.STATIC) == 0) {
                     JmlTypeClauseInitializer tci = (JmlTypeClauseInitializer)tc;
                     addStat( comment(methodDecl,"Instance initializer",null));
-                    for (JmlSpecificationCase cs: tci.specs.cases) {
+                    if (tci.specs != null) for (JmlSpecificationCase cs: tci.specs.cases) {
                         // FIXME - visibility?
                         JCExpression pre = null;
                         JCExpression post = null;
@@ -4583,7 +4583,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (tspecs != null) {
             {
                 JmlTypeClauseInitializer tci = tspecs.staticInitializerSpec;
-                if (tci != null) {
+                if (tci != null && tci.specs != null) {  // FIXME check that tci.specs == null when there is a naked static_initializer clause -- should it be null or empty?
                     JavaFileObject prev = log.currentSourceFile();
                     for (JmlSpecificationCase cs: tci.specs.cases) {
                         log.useSource(cs.source());
@@ -6252,7 +6252,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 asg == treeutils.falseLit ? nasg :
                                     nasg == treeutils.falseLit ? asg :
                                         asg == treeutils.trueLit ? asg :
-                                            treeutils.makeOr(storeref.pos,asg,nasg);
+                                            treeutils.makeOrSimp(storeref.pos,asg,nasg);
                         }
                         anyAccessClauses = true;
                 }
@@ -6284,7 +6284,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         asg == treeutils.falseLit ? nasg :
                             nasg == treeutils.falseLit ? asg :
                                 asg == treeutils.trueLit ? asg :
-                                    treeutils.makeOr(storeref.pos,asg,nasg);
+                                    treeutils.makeOrSimp(storeref.pos,asg,nasg);
                 }
             } catch (JmlNotImplementedException e) {
                 notImplemented("assignable/accessible clause containing ",e); // FIXME - clause source
@@ -6292,7 +6292,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         asg = treeutils.makeOrSimp(asg.pos, asg, isLocal);
         if (asg != treeutils.trueLit && speccasePrecondition != null) {
-            return treeutils.makeImplies(storeref.pos, speccasePrecondition, asg);
+            return treeutils.makeImpliesSimp(storeref.pos, speccasePrecondition, asg);
         } else {
             return asg;
         }
@@ -8069,7 +8069,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 notImplemented(clause.token.internedName() + " clause containing ",e, clause.source());
                             }
                         }
-                        if (useDefault && !translatingJML && cs.token != JmlTokenKind.MODEL_PROGRAM && !inliningCall) {
+                        if (useDefault && !translatingJML && cs.token != JmlTokenKind.MODEL_PROGRAM && cs.block == null && !inliningCall) {
                             log.warning(cs,"jml.internal","Unexpected absence of an assignable clause after desugaring: " + mpsym.owner + " " + mpsym.toString());
                         }
 //                      }
@@ -10582,8 +10582,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     public JCExpression conditionedAssertion(DiagnosticPosition pos, JCExpression expr) {
         int p = pos.getPreferredPosition();
-        if (oldenv != null) expr = treeutils.makeOld(p, expr, oldenv);
-        if (condition != null) expr = treeutils.makeImplies(p, condition, expr);
+        if (expr instanceof JCLiteral) {} // no need to wrap in an old
+        else if (oldenv != null) expr = treeutils.makeOld(p, expr, oldenv);
+        if (condition != null) expr = treeutils.makeImpliesSimp(p, condition, expr);
         return expr;
     }
 
@@ -10646,6 +10647,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // continue
                 } else {
                     JCExpression nonnull = treeutils.makeNotNull(that.pos, selected); 
+                    if (selected.toString().contains("NEWOBJECT")) nonnull = treeutils.trueLit;
 
                     nonnull = conditionedAssertion(that,nonnull);
                     if (javaChecks && localVariables.isEmpty()) {
@@ -10703,7 +10705,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // continue
                 } else {
                     JCExpression nonnull = treeutils.makeNotNull(that.pos, selected); 
-
+                    if (selected.toString().contains("NEWOBJECT")) nonnull = treeutils.trueLit;
+                    
                     if (translatingJML) nonnull = conditionedAssertion(that, nonnull);
                     if (javaChecks && localVariables.isEmpty()) {
                         addAssert(that,
