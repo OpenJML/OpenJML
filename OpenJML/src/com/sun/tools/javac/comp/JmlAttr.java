@@ -3128,7 +3128,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // so it is not checked for specification cases that are part of a 
             // refining statement
             if (c.modifiers != null && tree.decl != null) { // tree.decl is null for initializers and refining statements
-                long methodMod = enclosingMethodEnv.enclMethod.mods.flags & Flags.AccessFlags;
+                JCMethodDecl mdecl = enclosingMethodEnv.enclMethod;
+                long methodMod = jmlAccess(mdecl.mods);
                 long caseMod = c.modifiers.flags & Flags.AccessFlags;
                 if (methodMod == 0 && enclosingMethodEnv.enclClass.sym.isInterface()) methodMod = Flags.PUBLIC;
                 if (methodMod != caseMod && c.token != null) {
@@ -4693,6 +4694,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         checkVisibility(tree, jmlVisibility, tree.sym);
         result = saved;
+    }
+    
+    protected long jmlAccess(JCModifiers mods) {
+        long v = mods.flags & Flags.AccessFlags;
+        if (findMod(mods,JmlTokenKind.SPEC_PUBLIC) != null) v = Flags.PUBLIC;
+        if (findMod(mods,JmlTokenKind.SPEC_PROTECTED) != null) v = Flags.PROTECTED;
+        return v;
     }
     
     protected void checkVisibility(DiagnosticPosition pos, long jmlVisibility, Symbol sym) {

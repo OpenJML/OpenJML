@@ -440,6 +440,13 @@ public class JmlTreeUtils {
         return r;
     }
 
+    public JCLiteral makeBooleanLiteral(DiagnosticPosition pos, boolean value) {
+        int v = value?1:0;
+        JCLiteral r = factory.at(pos).Literal(TypeTag.BOOLEAN,v);
+        r.type = syms.booleanType.constType(v);
+        return r;
+    }
+
     /** Makes a constant String literal AST node.
      * @param pos the position to use for the node
      * @param value the String value of the constant node
@@ -729,6 +736,16 @@ public class JmlTreeUtils {
     public JCExpression makeNot(int pos, JCExpression arg) {
         return makeUnary(pos,JCTree.Tag.NOT,arg);
     }
+    public JCExpression makeNotSimp(DiagnosticPosition pos, JCExpression arg) {
+        if (isTrueLit(arg)) return makeBooleanLiteral(pos,false);
+        else if (isFalseLit(arg)) return makeBooleanLiteral(pos,true);
+        else return makeUnary(pos,JCTree.Tag.NOT,arg);
+    }
+    public JCExpression makeNotSimp(int pos, JCExpression arg) {
+        if (isTrueLit(arg)) return makeBooleanLiteral(pos,false);
+        else if (isFalseLit(arg)) return makeBooleanLiteral(pos,true);
+        else return makeUnary(pos,JCTree.Tag.NOT,arg);
+    }
 
     /** Make an attributed binary expression.
      *  @param pos      The pseudo-position at which to place the node
@@ -863,6 +880,15 @@ public class JmlTreeUtils {
 
     /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
     public JCExpression makeImplies(int pos, JCExpression lhs, JCExpression rhs) {
+        return makeBinary(pos,JCTree.Tag.OR,orSymbol,
+                makeNot(pos,lhs), rhs);
+    }
+
+    /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
+    public JCExpression makeImpliesSimp(int pos, JCExpression lhs, JCExpression rhs) {
+        if (isTrueLit(lhs) || isTrueLit(rhs)) return rhs;
+        else if (isFalseLit(lhs)) return makeBooleanLiteral(pos,true);
+        else if (isTrueLit(rhs)) return makeNot(pos,lhs);
         return makeBinary(pos,JCTree.Tag.OR,orSymbol,
                 makeNot(pos,lhs), rhs);
     }
