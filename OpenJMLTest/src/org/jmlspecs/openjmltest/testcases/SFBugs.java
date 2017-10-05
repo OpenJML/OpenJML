@@ -224,7 +224,7 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug463() {
     	expectedExit = 0;
-        helpTCF("test/gitbug463","test/gitbug463", "-cp", "test/gitbug463","-purityCheck");
+        helpTCF("test/gitbug463","test/gitbug463", "-cp", "test/gitbug463");
     }
     
     @Test public void gitbug463a() {
@@ -524,6 +524,21 @@ public class SFBugs extends EscBase {
     @Test public void gitbug567c() {
         expectedExit = 0;
         helpTCF("test/gitbug567","test/gitbug567c","-code-math=bigint");
+    }
+    
+    @Test public void gitbug572() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test public void gitbug573() {
+        expectedExit = 0;
+        helpTCF("test/gitbug573/pckg/A.jml","test/gitbug573","-sourcepath","test/gitbug573");
+    }
+    
+    @Test public void gitbug573a() {
+        expectedExit = 0;
+        helpTCG();
     }
     
      public void gitbug888() {
