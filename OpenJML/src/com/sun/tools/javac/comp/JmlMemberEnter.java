@@ -411,6 +411,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     MethodSpecs ms;
                     if (m.specsDecl == null) {
                         ms = specs.defaultSpecs(m);
+                        annotateLater(tree.mods.annotations, methodEnv((JmlMethodDecl)t, env), m.sym, tree.pos());
                     } else {
                         ms = new MethodSpecs(m.specsDecl);
                     }

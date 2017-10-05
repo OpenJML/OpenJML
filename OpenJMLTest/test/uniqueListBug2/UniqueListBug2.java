@@ -65,6 +65,7 @@ public class UniqueListBug2 {
 	  @ ensures \result <= length;
 	  @ ensures contains(value) ==> value == values[\result];
 	  @ ensures !contains(value) ==> \result == length;
+      @ pure
 	  @*/
 	public int find(int value) {
 		for(int i = 0; i < length; i++){
@@ -77,6 +78,7 @@ public class UniqueListBug2 {
 	
 	/*@
 	  @ ensures \result == (\exists int i; 0 <= i && i < length; value == values[i]);
+      @ pure
 	  @*/
 	public boolean contains(int value){
 		for(int i = 0; i < length; i++){

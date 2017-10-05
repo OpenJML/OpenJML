@@ -35,7 +35,7 @@ public class ListSeq<E extends Object> implements Seq<E> {
         return list.get(pos-1);
     }
 
-    @Override
+    @Override  //@ pure helper
     public Integer length() {
         return list.size();
     }

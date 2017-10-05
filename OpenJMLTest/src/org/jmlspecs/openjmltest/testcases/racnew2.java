@@ -146,10 +146,10 @@ public class racnew2 extends RacBase {
     @Test public void testNewObject2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  // @ assert (new TestJava()).m(15) == 16;\n" +
-                "  //@ assert (new TestJava() { public int m(int i) { return i + 2; } }).m(15) == 17;\n" +
+                "  //@ assert (new TestJava() { public pure int m(int i) { return i + 2; } }).m(15) == 17;\n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
-                "  public int m(int i) { return i + 1; } \n" +
+                "  /*@ pure */ public int m(int i) { return i + 1; } \n" +
                 "}"
                 ,"END"
         );        
@@ -160,7 +160,7 @@ public class racnew2 extends RacBase {
         helpTCX("tt.TestJava","package tt; public class TestJava { \n" +
                 "public int k;\n" +
                 "//@requires i > 0; ensures k == i;\n" +
-                "public TestJava(int i) { k = i < 2 ? i : 5; }\n" +
+                "public /*@ pure */ TestJava(int i) { k = i < 2 ? i : 5; }\n" +
                 "public static void main(String[] args) { \n" +
                 "  System.out.println(\"TestJava - 1\");\n" +
                 "  TestJava t = new TestJava(1);\n" +
@@ -877,8 +877,8 @@ public class racnew2 extends RacBase {
     /** Checks one can do assignments in a model method. */
     @Test public void testModelMethod() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                " //@ assert m(); \n" +
-                " //@ assert m(); \n" +
+                " //@ ghost boolean k; set k = m(); assert k; \n" +
+                " //@                  set k = m(); assert k; \n" +
                 " System.out.println(\"END\"); } \n" +
                 " //@ ghost static int i = 0; \n" +
                 " //@ ghost static int j = 0; \n" +

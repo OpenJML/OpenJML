@@ -1317,6 +1317,12 @@ public class JmlTree implements IJmlTree {
         public int getStartPosition() {
             return pos;
         }
+        
+//        @Override
+//        public Tag getTag() {
+//            return Tag.NO_TAG;
+//        }
+
     }
     
     /** This class is simply a superclass for all AST classes representing 

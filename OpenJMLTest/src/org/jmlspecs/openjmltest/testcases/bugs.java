@@ -168,7 +168,7 @@ public class bugs extends TCBase {
                 +"    boolean bb = b instanceof Double ;\n"
                 +"    Object o = (Class<?>)v.getClass();\n"
                 +"    \n"
-                +"  } boolean mm() { return true; } \n"
+                +"  } /*@ pure */ boolean mm() { return true; } \n"
                 +"}\n"
                 ,"/A.java:3: cannot find symbol\n  symbol:   variable Short\n  location: class A",37
                 ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",57
@@ -189,7 +189,7 @@ public class bugs extends TCBase {
         helpTCF("A.java","\n"
                 +"public class A extends java.io.InputStream implements Comparable<A> { \n"
                 +"  public boolean mm() { return m(java.lang.Long.TYPE) && m(java.lang.Long);}\n"
-                +"  public boolean m(Object i) {\n"
+                +"  public /*@ pure */ boolean m(Object i) {\n"
                 +"  }  \n"
                 +"}\n"
                 ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",64
@@ -202,7 +202,7 @@ public class bugs extends TCBase {
         helpTCF("A.java","\n"
                 +"public class A extends java.io.InputStream implements Comparable<A> { \n"
                 +"  //@ public invariant m(java.lang.Long.TYPE) && m(java.lang.Long);\n"
-                +"  public boolean m(Object i) {\n"
+                +"  public /*@ pure */ boolean m(Object i) {\n"
                 +"  }  \n"
                 +"}\n"
                 ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",56
