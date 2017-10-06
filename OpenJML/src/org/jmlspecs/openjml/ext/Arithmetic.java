@@ -279,6 +279,9 @@ abstract public class Arithmetic extends ExpressionExtension {
                     JCExpression maxlit = rewriter.treeutils.makeIntLiteral(p, Integer.MAX_VALUE);
                     JCExpression minlit = rewriter.treeutils.makeIntLiteral(p, Integer.MIN_VALUE);
                     JCExpression zerolit = rewriter.treeutils.makeIntLiteral(p, 0);
+                    // a == 0 < lhs ; b1 == 0 < rhs ; b2 == rhs < 0
+                    // +) c == MAX - rhs ; d == lhs <= c == lhs <= (MAX - rhs) ; x == (a && b1) ==> d
+                    // -) c == MAX + rhs ; d == lhs <= c == lhs <= (MAX + rhs) ; x == (a && b2) ==> d
                     JCExpression a = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, zerolit, rewriter.convertCopy(lhs), newtype);
                     JCExpression b1 = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, zerolit, rewriter.convertCopy(rhs), newtype);
                     JCExpression b2 = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, rewriter.convertCopy(rhs), zerolit, newtype);
@@ -288,6 +291,9 @@ abstract public class Arithmetic extends ExpressionExtension {
                     JCExpression x = rewriter.treeutils.makeImplies(p, rewriter.treeutils.makeAnd(p,a,b), d);
                     x = condition(rewriter, x);
                     rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, x, "overflow in int " + str);
+                    // a == lhs < 0 ; b1 == 0 < rhs ; b2 == rhs < 0
+                    // +) c == MIN - rhs ; d == c <= lhs == (MIN - rhs) <= lhs; x == (a && b2) ==> d
+                    // -) c == MIN + rhs ; d == c <= lhs == (MIN + rhs) <= lhs; x == (a && b1) ==> d
                     a = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, rewriter.convertCopy(lhs), zerolit, newtype);
                     b = optag == JCTree.Tag.PLUS ? b2 : b1;
                     c = rewriter.makeBin(that,  optagn,  sym, minlit, rewriter.convertCopy(rhs), newtype);
@@ -397,6 +403,7 @@ abstract public class Arithmetic extends ExpressionExtension {
                     if (typetag == TypeTag.INT) {
                         JCExpression minlit = rewriter.treeutils.makeIntLiteral(p, Integer.MIN_VALUE);
                         JCExpression maxlit = rewriter.treeutils.makeIntLiteral(p, Integer.MAX_VALUE);
+                        // a = bin > MAX ; b = bin < MIN ; d = bin - MIN - MIN ; f = bin + MIN + MIN ; g = (bin>MAX) ? f : (bin<MIN) ? d : bin;
                         JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.GT, rewriter.treeutils.intgtSymbol, rewriter.convertCopy(bin), maxlit);
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, rewriter.convertCopy(bin), minlit);
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.intminusSymbol, rewriter.convertCopy(bin), minlit);

@@ -7951,7 +7951,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
                 // FIXME - what about interaction of assignables with model programs or inlined content?
 
+                ListBuffer<JCStatement> havocBlockCheck = pushBlock();
                 addStat(comment(that, "... Adding havoc statements for the call of " + calleeMethodSym + " in " + calleeMethodSym.owner.toString(),null));
+                ListBuffer<JCStatement> havocs = new ListBuffer<>();
                 for (Pair<MethodSymbol,Type> pair: overridden) {
                     MethodSymbol mpsym = pair.first;
                     Type classType = pair.second;
@@ -7993,13 +7995,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         if (!translatingJML) {
                                         useDefault = false;
                                         addStat(comment(clause));
-                                        ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
+                                        ListBuffer<JCStatement> elses = new ListBuffer<>();
                                         List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym);
                                         for (JCExpression location: storerefs) {
+                                            boolean containsEverything = false;
+                                            JCIdent preXout = newTemp(location,syms.booleanType);
+                                            JCIdent loXout = newTemp(location,syms.intType);
+                                            JCIdent hiXout = newTemp(location,syms.intType);
+                                            ListBuffer<JCStatement> check4 = pushBlock();
+                                            ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
                                             JCExpression trlocation = convertAssignable(location,newThisId,true,clause.source());
                                             JCExpression prex = checkAgainstAllCalleeSpecs(calleeMethodSym,token,that,location,trlocation,pre,newThisId,newThisId,clause.source(),false);
-                                            boolean containsEverything = false;
-                                            ListBuffer<JCStatement> check4 = pushBlock();
                                             if (trlocation instanceof JCFieldAccess) {
                                                 // FIXME _ aren't these cases (* and model fields) handled by expandStoreRefLet ?
 //                                                JCFieldAccess fa = (JCFieldAccess)trlocation;
@@ -8023,6 +8029,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                                                    }
 //                                                } else {
                                                     newlist.add(trlocation); 
+                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, preXout, prex));
+                                                    ListBuffer<JCStatement> prev = currentStatements;
+                                                    currentStatements = elses;
+                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, preXout, treeutils.falseLit));
+                                                    currentStatements = prev;
                                                     //continue;
 //                                                }
                                             } else if (location instanceof JmlStoreRefArrayRange) {
@@ -8037,28 +8048,57 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                     newloc.setType(loc.type);
                                                     newloc.arraysId = null;
                                                     newlist.add(newloc);
+                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, index));
+                                                    ListBuffer<JCStatement> prev = currentStatements;
+                                                    currentStatements = elses;
+                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, treeutils.zero));
+                                                    currentStatements = prev;
                                                 } else {
+                                                    // An array range. Compute the two limits and assign them to temporaries.
                                                     // FIXME 
                                                     //log.error("jml.internal","not implemented: assignable translation for array ranges");
-                                                    newlist.add(trlocation);
+                                                    JCExpression receiver = newThisId;
+                                                    JCExpression lolimit = convertAssignable(loc.lo,receiver,true,clause.source());
+                                                    JCExpression hilimit = convertAssignable(loc.hi,receiver,true,clause.source());
+                                                    JCExpression array = convertAssignable(loc.expression,receiver,true,clause.source());
+                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, lolimit));
+                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, hiXout, hilimit));
+                                                    ListBuffer<JCStatement> prev = currentStatements;
+                                                    currentStatements = elses;
+                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, treeutils.zero));
+                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, hiXout, treeutils.zero));
+                                                    currentStatements = prev;
+                                                    JmlStoreRefArrayRange newloc = M.at(loc.pos).JmlStoreRefArrayRange(array,loXout,hiXout); // FIXME - switch to factory
+                                                    newloc.setType(loc.type);
+                                                    newlist.add(newloc);
                                                 }
+                                                addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, preXout, prex));
+                                                ListBuffer<JCStatement> prev = currentStatements;
+                                                currentStatements = elses;
+                                                addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, preXout, treeutils.falseLit));
+                                                currentStatements = prev;
                                             } else {
                                                 newlist.add(trlocation);
                                                 if (location instanceof JmlStoreRefKeyword && ((JmlStoreRefKeyword)location).token == JmlTokenKind.BSEVERYTHING) {
                                                     containsEverything = true;
                                                 }
                                             }
-                                            JCStatement havoc = M.at(clause.pos).JmlHavocStatement(newlist.toList());
-                                            addStat(havoc);
-                                            if (containsEverything) {
-                                                addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false, currentThisExpr == null);
-                                            }
                                             JCBlock bl = popBlock(0,cs,check4);
-                                            JCStatement st = M.at(cs.pos+1).If(prex,bl,null);
-                                            bl = M.at(cs.pos+1).Block(0,List.<JCStatement>of(st));
+                                            JCStatement st = M.at(cs.pos+1).If(prex,bl,M.Block(0L,elses.toList()));
                                             currentStatements.add( wrapRuntimeException(cs, bl, "JML undefined precondition while checking postconditions - exception thrown", null));
-
+                                            pushBlock();
+                                            JCStatement havoc = M.at(clause.pos).JmlHavocStatement(newlist.toList());
+                                            JCBlock havocblock = M.at(clause.pos).Block(0L, List.<JCStatement>of(havoc));
+                                            addStat(havocblock);
+                                            if (containsEverything) {
+                                            	addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false, currentThisExpr == null);
+                                            }
+                                            bl = popBlock(0,cs);
+                                            st = M.at(cs.pos+1).If(preXout,bl,null);
+                                            havocs.add(st);
+                                            
                                         }
+
                                         }
                                         break;
                                     default:
@@ -8134,6 +8174,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                     paramActuals = null;
                 }
+                currentStatements.addAll(havocs);
+                addStat(popBlock(0L,that,havocBlockCheck));
             }
             typevarMapping = newTypeVarMapping;
             if (newclass != null || (!specs.isPure(calleeMethodSym) && !calleeMethodSym.isConstructor())) {
