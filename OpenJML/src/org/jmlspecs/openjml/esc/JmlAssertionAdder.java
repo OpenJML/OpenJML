@@ -8043,16 +8043,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                     JCExpression receiver = newThisId;
                                                     JCExpression index = convertAssignable(loc.lo,receiver,true,clause.source());
                                                     JCExpression array = convertAssignable(loc.expression,receiver,true,clause.source());
-                                                    JmlBBArrayAccess newloc = new JmlBBArrayAccess(null,array,index); // FIXME - switch to factory
-                                                    newloc.pos = loc.pos;
-                                                    newloc.setType(loc.type);
-                                                    newloc.arraysId = null;
-                                                    newlist.add(newloc);
                                                     addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, index));
                                                     ListBuffer<JCStatement> prev = currentStatements;
                                                     currentStatements = elses;
                                                     addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, treeutils.zero));
                                                     currentStatements = prev;
+                                                    JmlBBArrayAccess newloc = new JmlBBArrayAccess(null,array,loXout); // FIXME - switch to factory
+                                                    newloc.pos = loc.pos;
+                                                    newloc.setType(loc.type);
+                                                    newloc.arraysId = null;
+                                                    newlist.add(newloc);
                                                 } else {
                                                     // An array range. Compute the two limits and assign them to temporaries.
                                                     // FIXME 
