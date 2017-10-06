@@ -553,7 +553,12 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug573c/java/lang/Integer.jml","test/gitbug573c","-sourcepath","test/gitbug573c","-no-internalSpecs");
     }
     
-     public void gitbug888() {
+    @Test public void gitbug574() {
+        expectedExit = 1;
+        helpTCG();
+    }
+    
+    public void gitbug888() {
     	expectedExit = 0;
         helpTCG();
     }
