@@ -1670,8 +1670,8 @@ public class JmlSpecs {
         if (specs) {
             f = JmlSpecs.instance(context).findAnySpecFile(pack == null ? rootname : (pack + "." + rootname));
         } else {
-            rootname = rootname + Strings.javaSuffix;
-            f = JmlSpecs.instance(context).findSpecificSourceFile(pack == null ? rootname : (pack + "." + rootname));
+            String path = (pack == null ? rootname : (pack + "." + rootname)).replace('.', '/') + Strings.javaSuffix;
+            f = JmlSpecs.instance(context).findSpecificSourceFile(path);
         }
         return f;
     }

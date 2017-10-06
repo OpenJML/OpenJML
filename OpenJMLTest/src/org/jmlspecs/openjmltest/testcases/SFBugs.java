@@ -531,14 +531,26 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
+    // The .jml file is on the command-line, which caused a crash, now fixed
     @Test public void gitbug573() {
-        expectedExit = 1;
+        expectedExit = 0;
         helpTCF("test/gitbug573/pckg/A.jml","test/gitbug573","-sourcepath","test/gitbug573");
     }
     
     @Test public void gitbug573a() {
         expectedExit = 0;
         helpTCG();
+    }
+    
+    // Here .jml is on the command-line, but the .java does not exist
+    @Test public void gitbug573b() {
+        expectedExit = 1;
+        helpTCF("test/gitbug573b/pckg/A.jml","test/gitbug573b","-sourcepath","test/gitbug573b");
+    }
+    
+    @Test public void gitbug573c() {
+        expectedExit = 1;
+        helpTCF("test/gitbug573c/java/lang/Integer.jml","test/gitbug573c","-sourcepath","test/gitbug573c","-no-internalSpecs");
     }
     
      public void gitbug888() {
