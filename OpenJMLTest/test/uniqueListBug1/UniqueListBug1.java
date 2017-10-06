@@ -33,6 +33,7 @@ public class UniqueListBug1 {
 	  @ requires index2 < length;
 	  @ ensures values[index1] == \old(values[index2]);
 	  @ ensures values[index2] == \old(values[index1]);
+	  @ pure
 	  @*/
 	public void swap(int index1, int index2){
 		int temp = values[index1];
@@ -66,6 +67,7 @@ public class UniqueListBug1 {
 	  @ ensures \result <= length;
 	  @ ensures contains(value) ==> value == values[\result];
 	  @ ensures !contains(value) ==> \result == length;
+      @ pure
 	  @*/
 	public int find(int value) {
 		for(int i = 0; i < length; i++){
@@ -78,6 +80,7 @@ public class UniqueListBug1 {
 	
 	/*@
 	  @ ensures \result == (\exists int i; 0 <= i && i < length; value == values[i]);
+      @ pure
 	  @*/
 	public boolean contains(int value){
 		for(int i = 0; i < length; i++){

@@ -275,7 +275,7 @@ public abstract class EscBase extends JmlTestCase {
 
     protected void helpTCX(String classname, String s, Object... list) {
         try {
-            String filename = classname.replace(".","/")+".java";
+            String filename = classname.replace(".","/") +".java";  // FIXME - I think this string should be prefixed with $A/ 
             JavaFileObject f = new TestJavaFileObject(filename,s);
             Log.instance(context).useSource(f);
             helpTCXB(List.of(f),list);

@@ -4023,4 +4023,64 @@ public class esc extends EscBase {
                                 );
     }
 
+    @Test
+    public void testEnumStaticInitializer() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public enum TestJava  { \n" 
+                        + "    A(1), B(2), C(3);   private TestJava(int i) {bit = i; }\n"
+                        + "    private int bit;\n"
+                        + "    static /*@ spec_public */ private int num = 10;\n"
+                        + "  //@ public normal_behavior \n"
+                        + "  //@   ensures num == 10; \n"
+                        + "  //@   ensures A.bit == 1; \n"
+                        + "  //@   ensures B.bit == 2; \n"
+                        + "  //@ static_initializer \n"
+                        + "  public void m() {}"
+                        + "}\n"
+                        ,"/tt/TestJava.java:8: An identifier with private visibility may not be used in a ensures clause with public visibility",18
+                        ,"/tt/TestJava.java:9: An identifier with private visibility may not be used in a ensures clause with public visibility",18
+                        );
+    }
+
+    @Test
+    public void testEnumStaticInitializer2() {
+        expectedExit = 0;
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public enum TestJava  { \n" 
+                        + "    A(1), B(2), C(3);   private TestJava(int i) {bit = i; }\n"
+                        + "    /*@ spec_public */ private int bit;\n"
+                        + "    static /*@ spec_public */ private int num = 10;\n"
+                        + "  //@ public normal_behavior \n"
+                        + "  //@   ensures num == 10; \n"
+                        + "  //@   ensures A.bit == 1; \n"
+                        + "  //@   ensures B.bit == 2; \n"
+                        + "  //@ static_initializer \n"
+                        + "  public void m() {}"
+                        + "}\n"
+                        );
+    }
+    
+    @Test
+    public void testNonNullElements() {
+        expectedExit = 0;
+        main.addOptions("-code-math=bigint");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public static class Key { public int k; } \n"
+                        + "  //@ public normal_behavior \n"
+                        + "  //@   requires \\nonnullelements(arr); \n"
+                        + "  public static void m( Key... arr) {\n"
+                        + "     int s = 0;\n"
+                        + "     for (Key i: arr) {\n"
+                        + "        s = s + i.k;\n"
+                        + "     }\n"
+                        + "  }\n"
+                        + "}\n"
+                        );
+    }
+
 }

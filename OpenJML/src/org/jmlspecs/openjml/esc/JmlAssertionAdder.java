@@ -7463,13 +7463,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 JmlSpecs.MethodSpecs s = specs.getSpecs(calleeMethodSym);
                 if (s == null) {
-                    JmlMethodSpecs defaults = JmlSpecs.defaultSpecs(context,methodDecl, methodDecl.sym,methodDecl.pos).cases;
+                    JmlMethodSpecs defaults = JmlSpecs.instance(context).defaultSpecs(methodDecl, methodDecl.sym,methodDecl.pos).cases;
                     s = new JmlSpecs.MethodSpecs(methodDecl.mods,defaults);
                     specs.putSpecs(calleeMethodSym, s);
                     s.cases.deSugared = null;  
                 } else {
                     JmlMethodDecl decl = s.cases.decl;
-                    JmlMethodSpecs defaults = JmlSpecs.defaultSpecs(context,decl,
+                    JmlMethodSpecs defaults = JmlSpecs.instance(context).defaultSpecs(decl,
                             decl == null ? calleeMethodSym : decl.sym,   // FIXME - why is decl ever null?
                             decl == null ? methodDecl.pos : decl.pos).cases;
                     s.cases = defaults;

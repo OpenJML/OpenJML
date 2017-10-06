@@ -224,7 +224,7 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug463() {
     	expectedExit = 0;
-        helpTCF("test/gitbug463","test/gitbug463", "-cp", "test/gitbug463","-purityCheck");
+        helpTCF("test/gitbug463","test/gitbug463", "-cp", "test/gitbug463");
     }
     
     @Test public void gitbug463a() {
@@ -526,7 +526,39 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug567","test/gitbug567c","-code-math=bigint");
     }
     
-     public void gitbug888() {
+    @Test public void gitbug572() {
+        expectedExit = 1;
+        helpTCG();
+    }
+    
+    // The .jml file is on the command-line, which caused a crash, now fixed
+    @Test public void gitbug573() {
+        expectedExit = 0;
+        helpTCF("test/gitbug573/pckg/A.jml","test/gitbug573","-sourcepath","test/gitbug573");
+    }
+    
+    @Test public void gitbug573a() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    // Here .jml is on the command-line, but the .java does not exist
+    @Test public void gitbug573b() {
+        expectedExit = 1;
+        helpTCF("test/gitbug573b/pckg/A.jml","test/gitbug573b","-sourcepath","test/gitbug573b");
+    }
+    
+    @Test public void gitbug573c() {
+        expectedExit = 1;
+        helpTCF("test/gitbug573c/java/lang/Integer.jml","test/gitbug573c","-sourcepath","test/gitbug573c","-no-internalSpecs");
+    }
+    
+    @Test public void gitbug574() {
+        expectedExit = 1;
+        helpTCG();
+    }
+    
+    public void gitbug888() {
     	expectedExit = 0;
         helpTCG();
     }

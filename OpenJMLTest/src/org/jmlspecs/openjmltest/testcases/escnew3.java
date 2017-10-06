@@ -829,7 +829,7 @@ public class escnew3 extends EscBase {
                   "package tt; \n"
                 + "public class TestJava { \n"
                 + "  public int k;\n"
-                + "  /*@ ensures \\result == k; */ public int mm() { return k; }\n"
+                + "  /*@ ensures \\result == k; pure */ public int mm() { return k; }\n"
                 + "  //@ requires k == 10;\n"
                 + "  public void m() {\n"
                 + "     a:{}\n"

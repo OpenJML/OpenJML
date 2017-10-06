@@ -14,7 +14,7 @@ public class purity extends TCBase {
 //        jmldebug = true;
         useSystemSpecs = true;
         super.setUp();
-        main.addOptions("-purityCheck=true");
+        main.addOptions("-purityCheck=false");  // Do not warn about library calls -- everything else is warned about
     }
 
     /** Test scanning something very simple */
@@ -119,11 +119,19 @@ public class purity extends TCBase {
                 );
     }
 
-    /** Test that pure is not inherited */
+    /** Test that pure is inherited by method */
     @Test
     public void testPureClass2() {
         expectedExit = 0;
         helpTC(" class A extends B { boolean mm() { return true; } \n //@ invariant mm(); \n} /*@ pure */ class B { boolean mm() { return true; } }"
+                );
+    }
+
+    /** Test that pure is not inherited by class */
+    @Test
+    public void testPureClass2a() {
+        expectedExit = 0;
+        helpTC(" class A extends B { boolean mm() { return true; } \n //@ invariant mm(); \n} /*@ pure */ class B {  }"
                 ,"/TEST.java:2: warning: A non-pure method is being called where it is not permitted: A.mm()",18
                 );
     }

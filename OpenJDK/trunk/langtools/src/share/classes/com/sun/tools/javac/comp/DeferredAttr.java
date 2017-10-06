@@ -1317,7 +1317,7 @@ public class DeferredAttr extends JCTree.Visitor {
 
             Type site;
 
-            if (rec != null && rec.getTag() != null) { // OpenJML - added the second guard
+            if (rec != null && rec.getTag() != Tag.NO_TAG) { // OpenJML - added the second guard
                 switch (rec.getTag()) {
                     case APPLY:
                         if (((JCMethodInvocation)rec).meth == null) return null; // OPENJML - added to handle JML constucts

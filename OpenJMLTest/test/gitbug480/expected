@@ -8,7 +8,7 @@ test\gitbug480\Bug.java:14: warning: The prover cannot establish an assertion (P
     return new BitSet();
     ^
 test\gitbug480\Bug.java:11: warning: Associated declaration
-  ensures  Crypto.encrypt(this.Na).equals(\result);  // - won't be provable in this simplified example
+  ensures  Crypto.encrypt(this.Na).equals(\result);  pure // - won't be provable in this simplified example
   ^
 Completed proof of xATransport.send3(int) with prover !!!! - with warnings
 Completed proving methods in xATransport

@@ -50,6 +50,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.comp.Annotate;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Enter;
 import com.sun.tools.javac.comp.Env;
@@ -62,6 +63,7 @@ import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
@@ -69,6 +71,7 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
+import com.sun.tools.javac.util.Position;
 
 /** This class manages the specifications of various Java entities
  * during a compilation.  There should be just one instance of JmlSpecs
@@ -955,7 +958,7 @@ public class JmlSpecs {
         MethodSpecs s = getSpecs(m);
         if (s == null) {
             // This can happen when -no-internalSpecs is used, probably for a binary class, but it probably shouldn't - specs should be created when the class is laoded - FIXME
-            s = defaultSpecs(context,null,m,1);  // FIXME - what position should be used
+            s = defaultSpecs(null,m,1);  // FIXME - what position should be used
             putSpecs(m,s);
             s.cases.deSugared = s.cases;
             return s.cases;    // FIXME - this is not actually fully desugared, but we don't have a decl to call deSugarMethodSpecs
@@ -969,59 +972,46 @@ public class JmlSpecs {
     // TODO - document
     // FIXME - this needs to be made consistent with the below
     public MethodSpecs defaultSpecs(JmlMethodDecl m) {
-        return defaultSpecs(context, m, m.sym, m.pos);
-//        // FIXME - should use a factory
-//        JmlTree.Maker M = JmlTree.Maker.instance(context);
-//        JmlMethodSpecs ms = new JmlMethodSpecs();
-//        MethodSpecs mspecs = new MethodSpecs(null,ms); // FIXME - empty instead of null modifiers?
-//        ms.pos =  m.pos;
-//        ms.decl = m;
-//        ms.deSugared = null; // FIXME- was ms?
-//
-//        if ((m.mods.flags & Flags.GENERATEDCONSTR) != 0) {
-//            int pos = m.pos;
-//            JmlMethodClause clp = new JmlTree.JmlMethodClauseStoreRef(pos,JmlTokenKind.ASSIGNABLE,
-//                    com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSNOTHING)));
-//
-//            JmlMethodClauseSignals sig = new JmlMethodClauseSignals(pos, JmlTokenKind.SIGNALS, null, JmlTreeUtils.instance(context).falseLit);
-//            JmlSpecificationCase cs = new JmlSpecificationCase(pos, M.Modifiers(0), false,null,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig), null);
-//            mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
-//            return mspecs;
-//            // FIXME - this should also be pure
-//            // FIXME - this case should happen only if parent constructors are pure and have no signals clause
-//        }
-//
-//        ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
-//        // sym can be null if the method call is in a field initializer (and not in the body of a method)
-//        // Not sure when sym.type is null - but possibly when an initializer block is created to hold translated
-//        // material from a field initializer
-//        for (JCExpression t: m.thrown) {
-//            list.add(t);
-//        }
-//        list.add(JmlTreeUtils.instance(context).makeType(m.pos, Symtab.instance(context).runtimeExceptionType));
-//        JmlMethodClauseSignalsOnly cl = new JmlMethodClauseSignalsOnly(m.pos,JmlTokenKind.SIGNALS_ONLY, list.toList());
-//        JmlSpecificationCase cs = new JmlSpecificationCase(m.pos, M.Modifiers(0), false,null,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(cl), null);
-//        mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
-//        return mspecs;
+        return defaultSpecs(m, m.sym, m.pos);
     }
 
     // TODO - document
-    public static MethodSpecs defaultSpecs(Context context, /*@ nullable */ JmlMethodDecl decl, MethodSymbol sym, int pos) {
+    public MethodSpecs defaultSpecs(/*@ nullable */ JmlMethodDecl decl, MethodSymbol sym, int pos) {
         // FIXME - should use a factory
         JmlTree.Maker M = JmlTree.Maker.instance(context);
         JmlMethodSpecs ms = M.at(pos).JmlMethodSpecs(com.sun.tools.javac.util.List.<JmlSpecificationCase>nil());
-        JCModifiers mods = M.at(pos).Modifiers(sym.flags() & Flags.AccessFlags);
+        JCTree.JCModifiers mods;
+        if (decl != null) {
+            mods = M.at(pos).Modifiers(decl.mods.flags);
+            mods.annotations = mods.annotations.appendList(decl.mods.annotations);
+        } else {
+            mods = M.at(pos).Modifiers(sym.flags() & Flags.AccessFlags);
+//            for (Attribute.Compound a: sym.getAnnotationMirrors()) {
+//                JCAnnotation at = M.at(Position.NOPOS).Annotation(a);
+//                mods.annotations = mods.annotations.append(at);
+//            }
+        }
         MethodSpecs mspecs = new MethodSpecs(mods,ms); // FIXME - empty instead of null modifiers?
         ms.pos = pos;
         ms.decl = decl;
         ms.deSugared = null; // FIXME- was ms?
         
+        // FIXME - check the case of a binary generated constructor with a declzration in JML
         if (((sym.flags() & Flags.GENERATEDCONSTR) != 0) || ( sym.owner == Symtab.instance(context).objectType.tsym && sym.isConstructor()) || sym.owner == Symtab.instance(context).enumSym ) {
             JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
                     com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSNOTHING)));
+            if (sym.isConstructor()) {
+                JCAnnotation annotation = org.jmlspecs.openjml.Utils.instance(context).tokenToAnnotationAST(JmlTokenKind.PURE, pos, pos);
+                JCFieldAccess fa = (JCTree.JCFieldAccess)annotation.annotationType;
+                fa.sym = JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlTokenKind.PURE);
+                annotation.type = fa.type = fa.sym.type;
+                
+                mods.annotations = mods.annotations.append(annotation);
+            }
 
             JmlMethodClauseSignals sig = M.at(pos).JmlMethodClauseSignals(JmlTokenKind.SIGNALS, null, JmlTreeUtils.instance(context).falseLit);
-            JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( mods, false,JmlTokenKind.BEHAVIOR,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig),null);
+            JCModifiers csm = M.at(pos).Modifiers(mods.flags & Flags.AccessFlags);
+            JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false,JmlTokenKind.BEHAVIOR,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig),null);
             mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
             return mspecs;
             // FIXME - this should also be pure
@@ -1046,7 +1036,8 @@ public class JmlSpecs {
         com.sun.tools.javac.util.List<JmlMethodClause> clauses;
         if (decl == null) clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,clpa,cl);
         else clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(cl);
-        JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase(mods, false, JmlTokenKind.BEHAVIOR,null,clauses,null);
+        JCModifiers csm = M.at(pos).Modifiers(mods.flags & Flags.AccessFlags);
+        JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase(csm, false, JmlTokenKind.BEHAVIOR,null,clauses,null);
         mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
         if (decl == null) mspecs.cases.deSugared = mspecs.cases;
         return mspecs;
@@ -1436,22 +1427,48 @@ public class JmlSpecs {
     
     /** Caches the symbol for a Pure annotation, which is computed on demand. */
     private ClassSymbol pureAnnotationSymbol = null;
+    private ClassSymbol queryAnnotationSymbol = null;
     private ClassSymbol functionAnnotationSymbol = null;
 
-    /** Returns true if the given method symbol is annotated as Pure */
-    public boolean isPure(MethodSymbol symbol) {
+    protected ClassSymbol pureAnnotationSymbol() {
         if (pureAnnotationSymbol == null) {
             pureAnnotationSymbol = utils.createClassSymbol(Strings.pureAnnotation);
         }
+        return pureAnnotationSymbol;
+    }
+    
+    protected ClassSymbol functionAnnotationSymbol() {
         if (functionAnnotationSymbol == null) {
             functionAnnotationSymbol = utils.createClassSymbol(Strings.functionAnnotation);
         }
-        MethodSpecs mspecs = getSpecs((Symbol.MethodSymbol)symbol);
-        if (mspecs != null && utils.findMod(mspecs.mods,pureAnnotationSymbol) != null) return true;
-        if (mspecs != null && utils.findMod(mspecs.mods,functionAnnotationSymbol) != null) return true;
-        TypeSpecs tspecs = getSpecs((Symbol.ClassSymbol)symbol.owner);
+        return functionAnnotationSymbol;
+    }
+    
+    /** Returns true if the given method symbol is annotated as Pure */
+    public boolean isPure(MethodSymbol symbol) {
+        MethodSpecs mspecs = getSpecs(symbol);
+        if (mspecs != null && utils.findMod(mspecs.mods,pureAnnotationSymbol()) != null) return true;
+        if (mspecs != null && utils.findMod(mspecs.mods,functionAnnotationSymbol()) != null) return true;
+        return isPure((Symbol.ClassSymbol)symbol.owner);
+    }
+    
+    public boolean isPure(ClassSymbol symbol) {
+        TypeSpecs tspecs = getSpecs(symbol);
         // FIXME - the following will not find a pure annotation on the class in a .jml file.
-        if (tspecs != null && utils.findMod(tspecs.modifiers,pureAnnotationSymbol) != null) return true;
+        if (tspecs != null && utils.findMod(tspecs.modifiers,pureAnnotationSymbol()) != null) return true;
+        return false;
+    }
+    
+    /** Returns true if the given method symbol is annotated as Pure */
+    public boolean isQuery(MethodSymbol symbol) {
+        if (queryAnnotationSymbol == null) {
+            queryAnnotationSymbol = utils.createClassSymbol(Strings.queryAnnotation);
+        }
+        MethodSpecs mspecs = getSpecs(symbol);
+        if (mspecs != null && utils.findMod(mspecs.mods,queryAnnotationSymbol) != null) return true;
+        TypeSpecs tspecs = getSpecs((Symbol.ClassSymbol)symbol.owner);
+        // FIXME - the following will not find a query annotation on the class in a .jml file.
+        if (tspecs != null && utils.findMod(tspecs.modifiers,queryAnnotationSymbol) != null) return true;
         return false;
     }
     
@@ -1653,8 +1670,8 @@ public class JmlSpecs {
         if (specs) {
             f = JmlSpecs.instance(context).findAnySpecFile(pack == null ? rootname : (pack + "." + rootname));
         } else {
-            rootname = rootname + Strings.javaSuffix;
-            f = JmlSpecs.instance(context).findSpecificSourceFile(pack == null ? rootname : (pack + "." + rootname));
+            String path = (pack == null ? rootname : (pack + "." + rootname)).replace('.', '/') + Strings.javaSuffix;
+            f = JmlSpecs.instance(context).findSpecificSourceFile(path);
         }
         return f;
     }
