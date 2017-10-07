@@ -8028,6 +8028,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                     });
                                                     JCFieldAccess newloc = treeutils.makeSelect(loc.pos,recXout,loc.sym);
                                                     newlist.add(newloc); 
+
                                                 } else {
                                                     check4 = pushBlock();
                                                     JCFieldAccess newloc = treeutils.makeSelect(loc.pos,loc.selected,loc.sym);
