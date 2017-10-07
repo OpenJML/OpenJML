@@ -2234,9 +2234,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * RuntimeException; the catch block prints the given message; esc just
      * returns the given block
      */
-    public JCStatement wrapRuntimeException(DiagnosticPosition pos, JCBlock block, String message, @Nullable JCBlock catchStats) {
-        if (!rac) return block;
-        if (isOnlyComment(block)) return block;
+    public JCStatement wrapRuntimeException(DiagnosticPosition pos, JCStatement statement, String message, @Nullable JCBlock catchStats) {
+        if (!rac) return statement;
+        JCBlock block = statement instanceof JCBlock ? (JCBlock)statement : M.at(statement).Block(0L,List.<JCStatement>of(statement));
+        if (isOnlyComment(block)) return statement;
         int p = pos.getPreferredPosition();
         Name n = names.fromString(Strings.runtimeException); // FIXME - this does not need to be repeated every time
         JCVariableDecl vd = treeutils.makeVarDef(syms.runtimeExceptionType, n, methodDecl.sym, p);
@@ -6694,6 +6695,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return id;
     }
     
+    protected void addToStats(ListBuffer<JCStatement> stats, Runnable action) {
+        ListBuffer<JCStatement> prev = currentStatements;
+        currentStatements = stats;
+        action.run();;
+        currentStatements = prev;
+    }
+    
     Map<JmlSpecificationCase,JCIdent> preExpressions;
 
     
@@ -7016,7 +7024,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     currentThisId = newThisId;
                     currentThisExpr = newThisExpr;
 
-                    if (calleeMethodSym.name.toString().equals("m")) Utils.stop();
                     // First check all invariants // FIXME - use addInvariants?
                     if (details && !isHelper(calleeMethodSym) && !isSuperCall && !isThisCall &&
                             !startInvariants(calleeMethodSym.owner,that)) {
@@ -7167,7 +7174,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             
             // Implement by inlining specs, rather than creating method axioms
-            methodsInlined.add(calleeMethodSym);
+            if (that instanceof JCIdent && !addInlinedMethod(heapCount,calleeMethodSym)) {
+                // Under current logic, if a method has been inlined, a subsequent call will be handled by 
+                // the method axioms branch, so this error won't happen. The check is here defensively,
+                // though it only catches calls through JCIdent, not through qualified names.
+                log.error(that,"jml.recursive.invariants",utils.qualifiedName(calleeMethodSym));
+            }
             
             // Set up the result variable - for RAC we have to do this
             // outside the block that starts a few lines down, because the
@@ -7972,7 +7984,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
                         if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
                         JCExpression pre = convertCopy(preExpressions.get(cs));
-                        if (pre == treeutils.falseLit) continue; // Don't bother with postconditions if corresponding precondition is explicitly false 
+                        if (pre == treeutils.falseLit) continue; // Don't bother with checks if corresponding precondition is explicitly false 
                         condition = pre; // FIXME - is this right? what about the havoc statement?
 
                         boolean useDefault = true;
@@ -7997,99 +8009,87 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         addStat(comment(clause));
                                         ListBuffer<JCStatement> elses = new ListBuffer<>();
                                         List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym);
+                                        ListBuffer<JCStatement> check4 = null;
                                         for (JCExpression location: storerefs) {
                                             boolean containsEverything = false;
                                             JCIdent preXout = newTemp(location,syms.booleanType);
-                                            JCIdent loXout = newTemp(location,syms.intType);
-                                            JCIdent hiXout = newTemp(location,syms.intType);
-                                            ListBuffer<JCStatement> check4 = pushBlock();
                                             ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
                                             JCExpression trlocation = convertAssignable(location,newThisId,true,clause.source());
                                             JCExpression prex = checkAgainstAllCalleeSpecs(calleeMethodSym,token,that,location,trlocation,pre,newThisId,newThisId,clause.source(),false);
                                             if (trlocation instanceof JCFieldAccess) {
-                                                // FIXME _ aren't these cases (* and model fields) handled by expandStoreRefLet ?
-//                                                JCFieldAccess fa = (JCFieldAccess)trlocation;
-//                                                if (fa.sym == null) {
-//                                                    JCExpression e = fa.selected;
-//                                                    boolean isStatic = treeutils.isATypeTree(e);
-//                                                    for (VarSymbol v: utils.listJmlVisibleFields(e.type.tsym, e.type.tsym, calleeMethodSym.flags()&Flags.AccessFlags, isStatic)) {
-//                                                        JCFieldAccess newfa = treeutils.makeSelect(location.pos, e, v);
-//                                                        JCExpression trfa= convertAssignable(newfa,newThisId,true,clause.source());
-//                                                        newlist.add(trfa);
-//                                                    }
-//                                                } else if (isModel(fa.sym)){
-//                                                    JCExpression e = fa.selected;
-//                                                    boolean isStatic = treeutils.isATypeTree(e);
-//                                                    for (VarSymbol v: utils.listJmlVisibleFields(e.type.tsym, e.type.tsym, Flags.PRIVATE, isStatic)) {
-//                                                        if (isContainedIn(v,fa.sym)) { 
-//                                                            JCFieldAccess newfa = treeutils.makeSelect(location.pos, e, v);
-//                                                            JCExpression trfa= convertAssignable(newfa,newThisId,true,clause.source());
-//                                                            newlist.add(trfa);
-//                                                        }
-//                                                    }
-//                                                } else {
-                                                    newlist.add(trlocation); 
-                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, preXout, prex));
-                                                    ListBuffer<JCStatement> prev = currentStatements;
-                                                    currentStatements = elses;
-                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, preXout, treeutils.falseLit));
-                                                    currentStatements = prev;
-                                                    //continue;
-//                                                }
-                                            } else if (location instanceof JmlStoreRefArrayRange) {
-                                                JmlStoreRefArrayRange loc = (JmlStoreRefArrayRange)location;
-                                                if (loc.lo == loc.hi && loc.lo != null) {
-                                                    //Just an array access
-                                                    JCExpression receiver = newThisId;
-                                                    JCExpression index = convertAssignable(loc.lo,receiver,true,clause.source());
-                                                    JCExpression array = convertAssignable(loc.expression,receiver,true,clause.source());
-                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, index));
-                                                    ListBuffer<JCStatement> prev = currentStatements;
-                                                    currentStatements = elses;
-                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, treeutils.zero));
-                                                    currentStatements = prev;
-                                                    JmlBBArrayAccess newloc = new JmlBBArrayAccess(null,array,loXout); // FIXME - switch to factory
-                                                    newloc.pos = loc.pos;
-                                                    newloc.setType(loc.type);
-                                                    newloc.arraysId = null;
-                                                    newlist.add(newloc);
+                                                JCFieldAccess loc = (JCFieldAccess)trlocation;
+                                                boolean isStatic = utils.isJMLStatic(loc.sym);
+                                                if (!isStatic) {
+                                                    JCIdent recXout = newTemp(location,loc.selected.type);
+                                                    check4 = pushBlock();
+                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, recXout, loc.selected));
+                                                    addToStats(elses, () -> {
+                                                        addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, recXout, treeutils.nullLit));
+                                                    });
+                                                    JCFieldAccess newloc = treeutils.makeSelect(loc.pos,recXout,loc.sym);
+                                                    newlist.add(newloc); 
                                                 } else {
-                                                    // An array range. Compute the two limits and assign them to temporaries.
-                                                    // FIXME 
-                                                    //log.error("jml.internal","not implemented: assignable translation for array ranges");
-                                                    JCExpression receiver = newThisId;
-                                                    JCExpression lolimit = convertAssignable(loc.lo,receiver,true,clause.source());
-                                                    JCExpression hilimit = convertAssignable(loc.hi,receiver,true,clause.source());
-                                                    JCExpression array = convertAssignable(loc.expression,receiver,true,clause.source());
-                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, lolimit));
-                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, hiXout, hilimit));
-                                                    ListBuffer<JCStatement> prev = currentStatements;
-                                                    currentStatements = elses;
-                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, treeutils.zero));
-                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, hiXout, treeutils.zero));
-                                                    currentStatements = prev;
-                                                    JmlStoreRefArrayRange newloc = M.at(loc.pos).JmlStoreRefArrayRange(array,loXout,hiXout); // FIXME - switch to factory
-                                                    newloc.setType(loc.type);
-                                                    newlist.add(newloc);
+                                                    check4 = pushBlock();
+                                                    JCFieldAccess newloc = treeutils.makeSelect(loc.pos,loc.selected,loc.sym);
+                                                    newlist.add(newloc); 
                                                 }
-                                                addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, preXout, prex));
-                                                ListBuffer<JCStatement> prev = currentStatements;
-                                                currentStatements = elses;
-                                                addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, preXout, treeutils.falseLit));
-                                                currentStatements = prev;
+                                            } else if (trlocation instanceof JmlBBArrayAccess) { 
+                                                //Just an array access
+                                                JmlBBArrayAccess loc = (JmlBBArrayAccess)trlocation;
+                                                JCIdent arrayXout = newTemp(location,loc.indexed.type);
+                                                JCIdent loXout = newTemp(location,syms.intType);
+                                                check4 = pushBlock();
+                                                addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, arrayXout, loc.indexed));
+                                                addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, loc.index));
+
+                                                addToStats(elses, () -> {
+                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, arrayXout, treeutils.nullLit));
+                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, treeutils.zero));
+                                                });
+
+                                                JmlBBArrayAccess newloc = new JmlBBArrayAccess(null,arrayXout,loXout); // FIXME - switch to factory
+                                                newloc.pos = loc.pos;
+                                                newloc.setType(loc.type);
+                                                newloc.arraysId = null;
+                                                newlist.add(newloc);
+                                            } else if (trlocation instanceof JmlStoreRefArrayRange) { 
+                                                JmlStoreRefArrayRange loc = (JmlStoreRefArrayRange)trlocation;
+                                                // An array range: [ i .. j] [i .. ]  [*]
+                                                JCIdent arrayXout = newTemp(location,loc.expression.type);
+                                                JCIdent loXout = newTemp(location,syms.intType);
+                                                JCIdent hiXout = newTemp(location,syms.intType);
+                                                check4 = pushBlock();
+                                                addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, arrayXout, loc.expression));
+                                                if (loc.lo != null) addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, loc.lo));
+                                                if (loc.hi != null) addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, hiXout, loc.hi));
+
+                                                addToStats(elses, () -> {
+                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, arrayXout, treeutils.nullLit));
+                                                    if (loc.lo != null) addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, treeutils.zero));
+                                                    if (loc.hi != null) addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, hiXout, treeutils.zero));
+                                                });
+
+                                                JmlStoreRefArrayRange newloc = M.at(loc.pos).JmlStoreRefArrayRange(arrayXout,loXout,hiXout); // FIXME - switch to factory
+                                                newloc.pos = loc.pos;
+                                                newloc.setType(loc.type);
+                                                newlist.add(newloc);
                                             } else {
-                                                newlist.add(trlocation);
+                                                check4 = pushBlock();
                                                 if (location instanceof JmlStoreRefKeyword && ((JmlStoreRefKeyword)location).token == JmlTokenKind.BSEVERYTHING) {
                                                     containsEverything = true;
                                                 }
+                                                newlist.add(trlocation); 
                                             }
+                                            addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, preXout, prex));
+                                            addToStats(elses, () -> {
+                                                addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, preXout, treeutils.falseLit));
+                                            });
                                             JCBlock bl = popBlock(0,cs,check4);
-                                            JCStatement st = M.at(cs.pos+1).If(prex,bl,M.Block(0L,elses.toList()));
-                                            currentStatements.add( wrapRuntimeException(cs, bl, "JML undefined precondition while checking postconditions - exception thrown", null));
+                                            JCStatement st = M.at(cs.pos+1).If(pre,bl,M.Block(0L,elses.toList()));
+                                            currentStatements.add( wrapRuntimeException(cs, st, "JML undefined precondition while checking postconditions - exception thrown", null));
                                             pushBlock();
                                             JCStatement havoc = M.at(clause.pos).JmlHavocStatement(newlist.toList());
-                                            JCBlock havocblock = M.at(clause.pos).Block(0L, List.<JCStatement>of(havoc));
-                                            addStat(havocblock);
+                                            addStat(havoc);
                                             if (containsEverything) {
                                             	addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false, currentThisExpr == null);
                                             }

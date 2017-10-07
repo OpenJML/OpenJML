@@ -1576,16 +1576,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     return;
                 }
                 JmlSpecs.MethodSpecs jms = JmlSpecs.instance(context).defaultSpecs(decl);
+                decl.methodSpecsCombined = jms;
+                specs.putSpecs(decl.sym,jms);
                 methodSpecs = jms.cases;
-                // FIXMNE - jms.mods may have pure added, bukgt that is lost here - does this fix it?
-                if (!desugaringPure) {
-                    JCAnnotation tpure = findMod(jms.mods,JmlTokenKind.PURE);
-                    if (tpure != null) { 
-                        pure = tpure; 
-                        desugaringPure = true; 
-                        msp.mods.annotations = msp.mods.annotations.append(tpure);
-                    }
-                }
+//                // FIXMNE - jms.mods may have pure added, bukgt that is lost here - does this fix it?
+//                if (!desugaringPure) {
+//                    JCAnnotation tpure = findMod(jms.mods,JmlTokenKind.PURE);
+//                    if (tpure != null) { 
+//                        pure = tpure; 
+//                        desugaringPure = true; 
+//                        msp.mods.annotations = msp.mods.annotations.append(tpure);
+//                    }
+//                }
 
             }
 

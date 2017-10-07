@@ -2779,6 +2779,15 @@ public class JmlTree implements IJmlTree {
             this.lo = lo;
             this.hi = hi;
         }
+        
+        @Override 
+        public int getEndPosition(EndPosTable endPosTable) {
+            int p = endPosTable.getEndPos(this);
+            if (p == Position.NOPOS) p = pos; // FIXMNE - this should never happen - ofrgot to set endpos
+            return p;
+        }
+        
+
     
         @Override
         public void accept(Visitor v) {

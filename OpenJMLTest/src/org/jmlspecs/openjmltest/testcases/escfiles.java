@@ -311,13 +311,7 @@ public class escfiles extends EscBase {
     @Test
     public void testRecursiveInvariant() {
         expectedExit = 1;
-        helpTF("escRecursiveInvariant","-no-minQuant");
-    }
-
-    @Test
-    public void testRecursiveInvariantMQ() {
-        expectedExit = 0;  // FIXME - reinsert the recursive error check
-        helpTF("escRecursiveInvariantMQ","-minQuant");
+        helpTF("escRecursiveInvariant");
     }
 
     @Test

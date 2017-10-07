@@ -982,8 +982,13 @@ public class JmlSpecs {
         JmlMethodSpecs ms = M.at(pos).JmlMethodSpecs(com.sun.tools.javac.util.List.<JmlSpecificationCase>nil());
         JCTree.JCModifiers mods;
         if (decl != null) {
-            mods = M.at(pos).Modifiers(decl.mods.flags);
-            mods.annotations = mods.annotations.appendList(decl.mods.annotations);
+            if (decl.methodSpecsCombined != null) {
+                mods = M.at(pos).Modifiers(decl.methodSpecsCombined.mods.flags);
+                mods.annotations = mods.annotations.appendList(decl.methodSpecsCombined.mods.annotations);
+            } else {
+                mods = M.at(pos).Modifiers(decl.mods.flags);
+                mods.annotations = mods.annotations.appendList(decl.mods.annotations);
+            }
         } else {
             mods = M.at(pos).Modifiers(sym.flags() & Flags.AccessFlags);
 //            for (Attribute.Compound a: sym.getAnnotationMirrors()) {
@@ -996,7 +1001,7 @@ public class JmlSpecs {
         ms.decl = decl;
         ms.deSugared = null; // FIXME- was ms?
         
-        // FIXME - check the case of a binary generated constructor with a declzration in JML
+        // FIXME - check the case of a binary generated constructor with a declaration in JML
         if (((sym.flags() & Flags.GENERATEDCONSTR) != 0) || ( sym.owner == Symtab.instance(context).objectType.tsym && sym.isConstructor()) || sym.owner == Symtab.instance(context).enumSym ) {
             JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
                     com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSNOTHING)));
