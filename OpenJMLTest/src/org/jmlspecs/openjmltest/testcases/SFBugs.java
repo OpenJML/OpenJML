@@ -371,6 +371,10 @@ public class SFBugs extends EscBase {
     
 
 
+    @Test public void gitbug528() {
+        helpTCG("-strictJML","-check");  // Just checking
+    }
+
     @Test public void gitbug529() {
         helpTCG("-rac");  // Just RAC compilation  // FIXME - try running also
     }

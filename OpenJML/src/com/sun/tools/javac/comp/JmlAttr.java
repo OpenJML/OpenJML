@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import javax.lang.model.type.TypeKind;
 import javax.tools.JavaFileObject;
@@ -1063,6 +1064,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            ((JmlCheck)chk).noDuplicateWarn = false;
             super.visitMethodDef(m);
 //            ((JmlCheck)chk).noDuplicateWarn = prevChk;
+//            if (JmlOption.isOption(context, JmlOption.STRICT)) checkClauseOrder(jmethod.methodSpecsCombined);
             if (isJmlDecl) jmlresolve.setAllowJML(prevAllowJML);
             relax = prevRelax;
             if (jmethod.methodSpecsCombined != null) { // FIXME - should we get the specs to check from JmlSpecs?
@@ -1101,6 +1103,55 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (prevSource != null) log.useSource(prevSource);
             labelEnvs.clear();
             labelEnvs = prevLabelEnvs;
+        }
+    }
+    
+    final static Map<JmlTokenKind, int[]> stateTable = new HashMap<>();
+    {
+        // state -1 - error
+        // state 0 - start
+        // state 1 - postcondition
+        // state 2 - start of spec group
+        stateTable.put(JmlTokenKind.REQUIRES, new int[]{0,-1,-1});
+        stateTable.put(JmlTokenKind.OLD, new int[]{0,-1,-1});
+        stateTable.put(JmlTokenKind.FORALL, new int[]{0,-1,-1});
+        stateTable.put(JmlTokenKind.ASSIGNABLE, new int[]{1,1,1});
+        stateTable.put(JmlTokenKind.ENSURES, new int[]{1,1,1});
+        stateTable.put(JmlTokenKind.SIGNALS, new int[]{1,1,1});
+        stateTable.put(JmlTokenKind.SIGNALS_ONLY, new int[]{1,1,1});
+        stateTable.put(JmlTokenKind.CALLABLE, new int[]{1,1,1});
+        stateTable.put(JmlTokenKind.SPEC_GROUP_START, new int[]{0,1,-1});
+//        stateTable.put(JmlTokenKind.ALSO, new int[]{-1,10,-1});
+//        stateTable.put(JmlTokenKind.SPEC_GROUP_END, new int[]{-1,10,-1});
+    }
+    
+    public void checkClauseOrder(JmlSpecs.MethodSpecs mspecs) {
+        if (mspecs.cases == null) return;
+        for (JmlSpecificationCase scase: mspecs.cases.cases) {
+            int state = 0;
+            checkClauseOrder(state,scase.clauses);
+        }
+    }
+    
+    // FIXME - finish this 
+    public void checkClauseOrder(int state, List<JmlMethodClause> clauses) {
+        for (JmlMethodClause clause: clauses) {
+            JmlTokenKind tk = clause.token;
+            int[] next = stateTable.get(tk);
+            if (next == null) {
+                //                   log.warning(clause, "jml.message", "Unimplemented clause type in order checker: " + tk);
+                return;
+            }
+            state = next[state];
+            if (state == -1) {
+                log.warning(clause,  "jml.message", "Clause " + tk + " is out of order for JML strict mode");
+                return;
+            }
+            if (tk == JmlTokenKind.SPEC_GROUP_START) {
+                for (JmlSpecificationCase scase:  ((JmlMethodClauseGroup) clause).cases) {
+                    checkClauseOrder(state,scase.clauses);
+                }
+            }
         }
     }
     
