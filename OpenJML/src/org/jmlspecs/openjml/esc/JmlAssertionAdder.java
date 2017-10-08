@@ -7174,11 +7174,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             
             // Implement by inlining specs, rather than creating method axioms
-            if (that instanceof JCIdent && !addInlinedMethod(heapCount,calleeMethodSym)) {
+            if (!addInlinedMethod(heapCount,calleeMethodSym)  && that instanceof JCIdent) {
                 // Under current logic, if a method has been inlined, a subsequent call will be handled by 
                 // the method axioms branch, so this error won't happen. The check is here defensively,
                 // though it only catches calls through JCIdent, not through qualified names.
-                log.error(that,"jml.recursive.invariants",utils.qualifiedName(calleeMethodSym));
+                log.error(that,"jml.message","Recursively inlining the method " + utils.qualifiedName(calleeMethodSym));
             }
             
             // Set up the result variable - for RAC we have to do this

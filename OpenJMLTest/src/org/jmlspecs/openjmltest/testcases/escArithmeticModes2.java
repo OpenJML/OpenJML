@@ -189,10 +189,11 @@ public class escArithmeticModes2 extends EscBase {
                 +"  public void ma(int i, int j) {\n"
                 +"    //@ assert (\\lbl I i) + 0*(\\lbl J j) == i; \n" // Just to print i and j
                 +"    int q = (i/j) ;\n"
-                +"    //@ assert (\\lbl Q q) * 0 == 0; \n" // Just to print q
-                +"    int k = q * j + (i%j);\n"
+                +"    int m = (i%j) ;\n"
+                +"    //@ assert ((\\lbl Q q) + (\\lbl M m))* 0 == 0; \n" // Just to print q
+                +"    int k = q * j + m;\n"
                 +"    //@ assert (\\lbl K k) == (\\lbl I i); \n"
-                +"    //@ assert (\\lbl D ((\\lbl I i)/(\\lbl J j)))*j + (\\lbl M (i%j)) == i; \n"  // not OK for i = MIN && j = -1
+                +"    //@ assert (\\lbl SUM (\\lbl PROD (\\lbl D ((\\lbl I i)/(\\lbl J j)))*(\\lbl JJ j)) + (\\lbl M (i%j))) == i; \n"  // not OK for i = MIN && j = -1
                 +"  }\n"
                 +"}\n"
               );

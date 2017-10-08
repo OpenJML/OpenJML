@@ -403,30 +403,37 @@ public abstract class JmlTestCase {
             exp = new BufferedReader(new FileReader(expected));
             act = new BufferedReader(new FileReader(actual));
             
-            boolean same = true;
             int line = 0;
             while (true) {
                 line++;
                 String sexp = exp.readLine();
-                if (sexp != null) sexp = sexp.replace("\r\n", "\n");
+                if (sexp != null) {
+                    sexp = sexp.replace("\r\n", "\n");
+                    sexp = sexp.replace("$ROOT",root);
+                    String env = System.getenv("SPECSDIR");
+                    if (env == null) System.out.println("The SPECSDIR environment variable is required to be set for testing");
+                    else sexp = sexp.replace("$SPECS", env);
+                    sexp = sexp.replace('\\','/');
+                }
                 while (true) {
                 	String sact = act.readLine();
-                	if (sact != null) sact = sact.replace("\r\n", "\n");
+                	if (sact != null) {
+                	    sact = sact.replace("\r\n", "\n");
+                	    sact = sact.replace('\\','/');
+                	}
                 	if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
                 	if (sexp != null && sact == null) {
                 		diff += ("Less actual input than expected" + eol);
                 		return diff;
                 	}
-                	if (sexp == null && sact != null) {
-                		if (sact.startsWith("Note: ") && ignoreNotes) continue;
+                    if (sact != null && !sact.equals(sexp)) {
+                        if (sact.startsWith("Note: ") && ignoreNotes) continue;
+                    }
+                    if (sexp == null && sact != null) {
                 		diff += ("More actual input than expected" + eol);
                 		return diff;
                 	}
-                	sexp = sexp.replace("$ROOT",root);
-                	String env = System.getenv("SPECSDIR");
-                	if (env == null) System.out.println("The SPECSDIR environment variable is required to be set for testing");
-                	else sexp = sexp.replace("$SPECS", env);
-                	if (!sexp.equals(sact) && !sexp.replace('\\','/').equals(sact.replace('\\','/'))) {
+                	if (!sexp.equals(sact)) {
                 		int k = sexp.indexOf('(');
                 		if (k != -1 && sexp.contains("at java.") && sexp.substring(0,k).equals(sact.substring(0,k))) {
                 			// OK

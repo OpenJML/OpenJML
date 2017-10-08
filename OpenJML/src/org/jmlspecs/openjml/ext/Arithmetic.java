@@ -326,6 +326,7 @@ abstract public class Arithmetic extends ExpressionExtension {
             } else if (optag == JCTree.Tag.MUL) {
                 if (rewriter.useBV || rewriter.rac) {
                     if (newtype.getTag() == TypeTag.INT) {
+                        // a = lhs * rhs ; b = a / lhs; c = lhs == 0 ; d = b == rhs; check = c || d = (lhs == 0) || (lhs*lhs)/lhs == rhs;
                         JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), rewriter.convertCopy(lhs), rewriter.convertCopy(rhs));
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.DIV, rewriter.treeutils.intdivideSymbol, a, rewriter.convertCopy(lhs));
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, rewriter.convertCopy(lhs), rewriter.treeutils.makeIntLiteral(p, 0));
@@ -342,6 +343,7 @@ abstract public class Arithmetic extends ExpressionExtension {
                     }
                 } else {
                     if (newtype.getTag() == TypeTag.INT) {
+                        // check =  MIN <= lhs*rhs && lhs*rhs <= MAX
                         JCExpression minlit = rewriter.treeutils.makeIntLiteral(p, Integer.MIN_VALUE);
                         JCExpression maxlit = rewriter.treeutils.makeIntLiteral(p, Integer.MAX_VALUE);
                         JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), rewriter.convertCopy(lhs), rewriter.convertCopy(rhs));

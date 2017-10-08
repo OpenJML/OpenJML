@@ -1811,7 +1811,8 @@ public class SMTTranslator extends JmlTreeScanner {
                     // bvsdiv truncates towards zero
                 	result = F.fcn(F.symbol("bvsdiv"), args);
                 else
-                    // div truncates towards minus infinity
+                    // div truncates towards minus infinity, java / truncates towards 0
+                    // lhs / rhs ===  lhs >= 0 ? lhs div rhs : (-lhs) div (-rhs)
                     result = F.fcn(F.symbol("ite"), 
                             F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
                             F.fcn(F.symbol("div"), args),
@@ -1823,7 +1824,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 // mod in the Ints theory does not - it produces modulo (always positive) not remainders
                 if (useBV)
                     result = F.fcn(F.symbol("bvsrem"), args);
-                else
+                else  // lhs % rhs === lhs >= 0 ? lhs mod rhs : - ( (-lhs) mod (-rhs) )
                     result = F.fcn(F.symbol("ite"), 
                                     F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
                                     F.fcn(F.symbol("mod"), args),

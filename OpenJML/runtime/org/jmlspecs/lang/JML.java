@@ -1,7 +1,7 @@
 package org.jmlspecs.lang;
 
 import org.jmlspecs.utils.Utils;
-//@ pure  // Needed to use in specs, but do report out to SYstem.out
+
 public class JML {
     // Note that there is a JML.jml file; it contains all of the specifications
     // for the following methods and additional model methods. It needs to be

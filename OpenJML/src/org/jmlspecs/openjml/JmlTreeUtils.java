@@ -239,9 +239,13 @@ public class JmlTreeUtils {
      * the nodes are assumed to reference the same source file. */
     public void copyEndPosition(JCTree newnode, JCTree srcnode) {
         EndPosTable z = log.currentSource().getEndPosTable();
+        try {
         if (z != null) {
         	int end = srcnode.getEndPosition(z);
         	z.storeEnd(newnode, end);
+        }
+        } catch (StackOverflowError e) {
+            System.out.println();
         }
     }
 

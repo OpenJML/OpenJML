@@ -310,13 +310,13 @@ public class escfiles extends EscBase {
 
     @Test
     public void testRecursiveInvariant() {
-        expectedExit = 1;
+        expectedExit = -1;
         helpTF("escRecursiveInvariant");
     }
 
     @Test
     public void testRecursiveInvariant2() {
-        expectedExit = 1;
+        expectedExit = -1;
         helpTF("escRecursiveInvariant2");
     }
 
