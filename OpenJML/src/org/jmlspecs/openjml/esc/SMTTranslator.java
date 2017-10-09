@@ -1632,7 +1632,6 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         if (that.token == JmlTokenKind.BSTYPELC) {
-            if (that.toString().equals("\\typej(short)")) Utils.stop();
             Type t = that.args.get(0).type;
             addType(t);
             result = that.javaType ? javaTypeSymbol(t) : jmlTypeSymbol(t);

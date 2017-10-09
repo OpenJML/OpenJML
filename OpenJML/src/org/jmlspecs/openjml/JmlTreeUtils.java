@@ -24,6 +24,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type.ClassType;
+import com.sun.tools.javac.code.Type.IntersectionClassType;
 import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.comp.AttrContext;
@@ -1272,6 +1273,10 @@ public class JmlTreeUtils {
     /** Returns the AST for ( \typeof(id) == \type(type) && id instanceof 'erasure of type') */
     public JCExpression makeDynamicTypeEquality(DiagnosticPosition pos, JCExpression id, Type type) {
         int p = pos.getPreferredPosition();
+        // FIXME - this does not handle intersection types
+        if (type instanceof IntersectionClassType) {
+//            log.warning(pos,  "jml.message", "Intersection type not handled: " + type.toString());
+        }
         
         JCExpression lhs = makeTypeof(id);
         JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(JmlTokenKind.BSTYPELC,makeType(p,type));
@@ -1315,6 +1320,17 @@ public class JmlTreeUtils {
     
     /** Returns the AST for \typeof(id) <: \type(type) && id instanceof 'erasure of type' */
     public JCExpression makeNonNullDynamicTypeInEquality(DiagnosticPosition pos, JCExpression id, Type type) {
+        if (type instanceof IntersectionClassType) {
+            IntersectionClassType itype = (IntersectionClassType)type;
+            List<Type> ecomp = itype.getExplicitComponents();
+            //List<Type> comp = itype.getComponents();// FIXME - not sure how this is different than the above
+            JCExpression ee = trueLit;
+            for (Type ictype: ecomp) {
+                JCExpression e = makeNonNullDynamicTypeInEquality(pos, id, ictype);
+                ee = makeAndSimp(pos.getPreferredPosition(), ee,e);
+            }
+            return ee;
+        }
         int p = pos.getPreferredPosition();
         if (type.getKind().isPrimitive()) return trueLit;
         JCExpression lhs = makeTypeof(id); // FIXME - copy?
