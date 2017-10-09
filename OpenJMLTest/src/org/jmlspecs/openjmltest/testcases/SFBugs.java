@@ -48,16 +48,25 @@ public class SFBugs extends EscBase {
 		escOnFiles(sourceDirname,outDir,list.toArray(opts));
 	}
 
-	public void helpTCG(String ... opts) {
-		String dir = "test/" + getMethodName(1);
-		List<String> a = new LinkedList<>();
-		a.add(0,"-cp"); 
-		a.add(1,dir);
+    public void helpTCG(String ... opts) {
+        String dir = "test/" + getMethodName(1);
+        List<String> a = new LinkedList<>();
+        a.add(0,"-cp"); 
+        a.add(1,dir);
         a.add("-code-math=bigint");
         a.add("-spec-math=bigint");
-		a.addAll(Arrays.asList(opts));
-		escOnFiles(dir, dir, a.toArray(new String[a.size()]));
-	}
+        a.addAll(Arrays.asList(opts));
+        escOnFiles(dir, dir, a.toArray(new String[a.size()]));
+    }
+
+    public void helpTCGNoOptions(String ... opts) {
+        String dir = "test/" + getMethodName(1);
+        List<String> a = new LinkedList<>();
+        a.add(0,"-cp"); 
+        a.add(1,dir);
+        a.addAll(Arrays.asList(opts));
+        escOnFiles(dir, dir, a.toArray(new String[a.size()]));
+    }
 
 
 
@@ -575,5 +584,12 @@ public class SFBugs extends EscBase {
     	expectedExit = 0;
         helpTCG();
     }
+    
+    @Test
+    public void rise4fun() {
+        expectedExit = 0;
+        helpTCGNoOptions();
+    }
+
 }
 
