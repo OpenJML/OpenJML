@@ -622,6 +622,11 @@
                id="org.jmlspecs.openjml.eclipse.MenuActions.JmlDoc"
                commandId="org.jmlspecs.eclipse.commands.JmlDoc">
              </command>
+             <command
+               label="%openjml.ui.command.createJML"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.CreateJML"
+               commandId="org.jmlspecs.eclipse.commands.CreateJML">
+             </command>
              
              <separator name="org.jmlspecs.openjml.paths" visible="true"/>
              <command
@@ -1037,6 +1042,14 @@
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.CheckJML"
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$CheckJML"
+            >
+      </command>
+      <command
+            name="%openjml.ui.command.createJML"
+            description="%openjml.ui.command.createJML.description"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.CreateJmlTemplate"
+            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActionsCreateJmlTemplate"
             >
       </command>
       <command

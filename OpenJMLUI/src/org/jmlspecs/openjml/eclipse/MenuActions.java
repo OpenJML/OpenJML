@@ -5,13 +5,39 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.FileWriter;
+import java.io.InputStream;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
+import org.jmlspecs.openjml.Strings;
+
+import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Symtab;
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.jvm.ClassReader;
+import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Names;
 
 /**
  * This class holds the implementations of utility classes registered against
@@ -425,10 +451,9 @@ abstract public class MenuActions extends AbstractHandler {
 		public Object execute(ExecutionEvent event) {
 			try {
 				if (Options.uiverboseness) {
-					Log.log("Show Specifications action initiated"); //$NON-NLS-1$
+					Log.log("Create JML Template action initiated"); //$NON-NLS-1$
 				}
 	    		getInfo(event);
-	            utils.showSpecsForSelection(selection,window,shell);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,"MenuActions.ShowSpecs",e); //$NON-NLS-1$
 			}
@@ -535,6 +560,95 @@ abstract public class MenuActions extends AbstractHandler {
     		return null;
     	}
     }
+
+	static public class CreateJmlTemplate extends Commands {
+	    // This is all done in the UI thread with no progress monitor
+	    @Override
+		public Object execute(ExecutionEvent event) {
+			try {
+				if (true || Options.uiverboseness) {
+					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
+				}
+	    		getInfo(event);
+	    		utils.showMessageInUI(shell, "OpenJML", "This operation is not yet implemented");
+	            ITextSelection selected = utils.getSelectedText(selection);
+	            String text = selected.getText();
+	            if (text.length() == 0) return null;
+				IEditorPart p = window.getActivePage().getActiveEditor();
+				IEditorInput e = p == null ? null : p.getEditorInput();
+				IFile o = e == null ? null : (IFile) e.getAdapter(IFile.class);
+				IJavaProject jp = o == null ? null : JavaCore.create(o)
+						.getJavaProject();
+				
+				Context context = new Context();
+				ClassSymbol csym = ClassReader.instance(context).loadClass(Names.instance(context).fromString(text));
+
+				String name = text;
+				int k = name.lastIndexOf('.');
+				String packName = name.substring(0,k);
+				String cname = name.substring(k+1);
+				String dir = "/Users/davidcok/projects/OpenJML/Specs/java8";
+				String filepath = dir + "/" + name.replace('.', '/') + ".jml";
+				StringBuilder sb = new StringBuilder();
+				sb.append("package " + packName + ";" + Strings.eol + Strings.eol);
+				sb.append(Flags.toString(csym.flags()) + " class " + csym.getSimpleName()) ;
+				if (!csym.getSuperclass().toString().equals("java.lang.Object")) {
+					sb.append("extends ").append(csym.getSuperclass().toString());
+				}
+				boolean first = true;
+				for (Type type: csym.getInterfaces()) {
+					if (first) {
+						sb.append("implements ").append(type.toString());
+					} else {
+						sb.append(", ").append(type.toString());
+					}
+				}
+				
+				sb.append(" {").append(Strings.eol);
+				
+				String indent = "    ";
+				for (Symbol element: csym.getEnclosedElements()) {
+					
+					if (element instanceof VarSymbol) {
+						VarSymbol vsym = (VarSymbol)element;
+						sb.append(indent).append(Flags.toString(vsym.flags()))
+								.append(" ")
+								.append(vsym.type.toString())
+								.append(" ")
+								.append(vsym.name.toString())
+								.append(";")
+								.append(Strings.eol);
+						
+					} else if (element instanceof MethodSymbol) {
+						MethodSymbol msym = (MethodSymbol)element;
+						sb.append(indent)
+								.append(Flags.toString(msym.flags()))
+								.append(" ")
+								.append(msym.getReturnType().toString())
+								.append(" ")
+								.append(msym.name.toString())
+								.append("(")
+								// Need parameters
+								.append(");")
+								.append(Strings.eol);
+						
+					} else if (element instanceof ClassSymbol) {
+						// Needs to be recursive, with indentation
+					}
+					
+				}
+				sb.append(Strings.eol);
+				sb.append("}" + Strings.eol);
+				
+				FileWriter fw = new FileWriter(filepath);
+				fw.write(sb.toString());
+				fw.close();
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);
+			}
+			return null;
+		}
+	}
 
 
 }
