@@ -3692,9 +3692,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 addTraceableComment(decl,clause.toString());
                                 Name name = names.fromString(decl.name.toString() + "__OLD_" + decl.pos);
                                 JCVariableDecl newdecl = treeutils.makeVarDef(decl.type, name, decl.sym.owner, decl.pos);
-                                newdecl.init = treeutils.makeZeroEquivalentLit(decl.init.pos, decl.init.type);
+                                JCExpression newinit = addImplicitConversion(decl.init, decl.type, decl.init);
+                                newdecl.init = treeutils.makeZeroEquivalentLit(decl.init.pos, decl.type);
                                 JCExpression init =
-                                        convertJML(treeutils.isTrueLit(preexpr) ? decl.init : treeutils.makeConditional(pos, preexpr, decl.init, treeutils.makeZeroEquivalentLit(pos, decl.init.type)));
+                                        convertJML(treeutils.isTrueLit(preexpr) ? newinit : treeutils.makeConditional(pos, preexpr, newinit, treeutils.makeZeroEquivalentLit(pos, decl.init.type)));
 
                                 addStat(initialStats, newdecl);
                                 JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
