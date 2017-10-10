@@ -1487,7 +1487,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     /** Issues an error message about something not being implemented */
     public void notImpl(DiagnosticPosition pos, String msg) {
-        log.error(pos, "esc.not.implemented","Not yet supported feature in converting BasicPrograms to SMTLIB: " + msg);
+        log.warning(pos, "esc.not.implemented","Not yet supported feature in converting BasicPrograms to SMTLIB: " + msg);
     }
     
     /** Issues an error message that a particular AST node should not be being used in the input basic block program */
@@ -2318,6 +2318,9 @@ public class SMTTranslator extends JmlTreeScanner {
                 result = F.exists(params,value);
             } else {
                 notImpl(that, "JML Quantified expression using " + that.op.internedName());
+                ISymbol sym = F.symbol("|" + that.toString().replace('|', '#').replace('\\', '#') + "|");
+                addConstant(sym,convertSort(that.type),null);
+                result = sym;
             }
             // Can't do this, because then the quantified expression is evaluated
             // in the wrong context (I think)

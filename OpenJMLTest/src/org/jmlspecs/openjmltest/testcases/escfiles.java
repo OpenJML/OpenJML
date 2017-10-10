@@ -320,6 +320,12 @@ public class escfiles extends EscBase {
         helpTF("escRecursiveInvariant2");
     }
 
+    @Test
+    public void testquant() {
+        expectedExit = -1;
+        helpTF("testquant");
+    }
+
     // FIXME - reasoning about getClass
     @Test
     public void testBadCast() {
