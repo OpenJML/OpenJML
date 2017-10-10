@@ -127,7 +127,7 @@ public class JmlEsc extends JmlTreeScanner {
         // Pick a prover to use
         String proverToUse = JmlOption.value(context,JmlOption.PROVER);
         if (proverToUse == null) proverToUse = Options.instance(context).get(Strings.defaultProverProperty);
-        if (proverToUse == null) {
+        if (proverToUse == null || proverToUse.equals("z3")) {
             proverToUse = "z3_4_3";
         }
         return proverToUse;

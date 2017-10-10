@@ -48,16 +48,25 @@ public class SFBugs extends EscBase {
 		escOnFiles(sourceDirname,outDir,list.toArray(opts));
 	}
 
-	public void helpTCG(String ... opts) {
-		String dir = "test/" + getMethodName(1);
-		List<String> a = new LinkedList<>();
-		a.add(0,"-cp"); 
-		a.add(1,dir);
+    public void helpTCG(String ... opts) {
+        String dir = "test/" + getMethodName(1);
+        List<String> a = new LinkedList<>();
+        a.add(0,"-cp"); 
+        a.add(1,dir);
         a.add("-code-math=bigint");
         a.add("-spec-math=bigint");
-		a.addAll(Arrays.asList(opts));
-		escOnFiles(dir, dir, a.toArray(new String[a.size()]));
-	}
+        a.addAll(Arrays.asList(opts));
+        escOnFiles(dir, dir, a.toArray(new String[a.size()]));
+    }
+
+    public void helpTCGNoOptions(String ... opts) {
+        String dir = "test/" + getMethodName(1);
+        List<String> a = new LinkedList<>();
+        a.add(0,"-cp"); 
+        a.add(1,dir);
+        a.addAll(Arrays.asList(opts));
+        escOnFiles(dir, dir, a.toArray(new String[a.size()]));
+    }
 
 
 
@@ -371,6 +380,10 @@ public class SFBugs extends EscBase {
     
 
 
+    @Test public void gitbug528() {
+        helpTCG("-strictJML","-check");  // Just checking
+    }
+
     @Test public void gitbug529() {
         helpTCG("-rac");  // Just RAC compilation  // FIXME - try running also
     }
@@ -563,13 +576,27 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
+    @Test public void gitbug578() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
     public void gitbug888() {
     	expectedExit = 0;
         helpTCG();
     }
+    
+    @Test
     public void gitbug999() {
     	expectedExit = 0;
         helpTCG();
     }
+    
+    @Test
+    public void rise4fun() {
+        expectedExit = 0;
+        helpTCGNoOptions();
+    }
+
 }
 

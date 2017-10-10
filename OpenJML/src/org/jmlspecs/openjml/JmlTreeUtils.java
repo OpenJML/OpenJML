@@ -468,17 +468,18 @@ public class JmlTreeUtils {
      * @return the AST node
      */ 
     public JCLiteral makeZeroEquivalentLit(int pos, Type type) {
-//        if (type == types.BIGINT) {
-//            return makeLit(pos,type,0);
-//           
-//        } else if (type == types.REAL) {
-//            return makeLit(pos,type,0.0);
-//            
-//        } else if (type == types.TYPE) {
-//            // FIXME - ???
-//            return makeNullLiteral(pos);
-//            
-//        } else {
+        if (type == types.BIGINT) {
+            return makeLit(pos,syms.intType,0);
+           
+        } else if (type == types.REAL) {
+            return makeLit(pos,syms.doubleType,0.0);
+            
+        } else if (type == types.TYPE) {
+            log.error(pos, "jml.message","old clause is not implemented for \\TYPE variables");
+            // FIXME - ???
+            return null;//makeTypelc(null);  // FIXME _ should have a pos argument
+            
+        } else {
         switch (type.getTag()) {
             case CHAR:
                 return makeLit(pos,type,0); // Character literal requires an int value
@@ -501,7 +502,7 @@ public class JmlTreeUtils {
             default:
                 return makeNullLiteral(pos);
         }
-//        }
+        }
     }
 
     // FIXME - the following method appears to be misnamed

@@ -75,6 +75,7 @@ import org.smtlib.command.C_push;
 import org.smtlib.command.C_set_logic;
 import org.smtlib.command.C_set_option;
 import org.smtlib.impl.Factory;
+import org.smtlib.impl.SMTExpr.Numeral;
 import org.smtlib.impl.Script;
 
 import com.sun.tools.javac.code.Flags;
@@ -1888,6 +1889,17 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitTypeCast(JCTypeCast tree) {
         result = convertExpr(tree.expr);
+        if (result instanceof Numeral) {
+            TypeTag tagr = tree.type.getTag();
+            TypeTag tage = tree.expr.type.getTag();
+            if ((tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) && ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                if ((tage == TypeTag.NONE || tage == TypeTag.UNKNOWN) && ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) return;
+                java.math.BigInteger b = ((Numeral)result).value();
+                double d = b.doubleValue(); // FIXME - this may not be in range
+                result = makeRealValue(d);
+                return;
+            }
+        }
         if (tree.type.isPrimitive() == tree.expr.type.isPrimitive()) {
             TypeTag tagr = tree.type.getTag();
             TypeTag tage = tree.expr.type.getTag();
@@ -2243,7 +2255,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     @Override 
     public void visitLambda(JCTree.JCLambda that) {
-        String s = "|" + that.toString() + "|";
+        String s = "|" + that.toString().replace('|', '#') + "|";
         ISymbol sym = F.symbol(s);
         functionSymbols.add(sym);
         addConstant(sym, refSort, that);

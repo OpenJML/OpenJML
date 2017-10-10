@@ -15,6 +15,4 @@ test/gitbug567/Amount.java:16: warning: Precondition conjunct is false: euros < 
 	                       ^
 Completed proof of Amount.negate() with prover !!!! - with warnings
 Completed proving methods in Amount
-Note: /Users/davidcok/cok/projects/OpenJMLB/Specs/java8/java/util/Random.jml uses internal proprietary API that may be removed in a future release.
-Note: Recompile with -Xlint:sunapi for details.
 3 warnings
