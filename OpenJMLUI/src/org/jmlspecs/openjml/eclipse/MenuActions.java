@@ -451,9 +451,10 @@ abstract public class MenuActions extends AbstractHandler {
 		public Object execute(ExecutionEvent event) {
 			try {
 				if (Options.uiverboseness) {
-					Log.log("Create JML Template action initiated"); //$NON-NLS-1$
+					Log.log("Show Specifications action initiated"); //$NON-NLS-1$
 				}
 	    		getInfo(event);
+	            utils.showSpecsForSelection(selection,window,shell);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,"MenuActions.ShowSpecs",e); //$NON-NLS-1$
 			}
