@@ -120,7 +120,7 @@ public class JmlCompiler extends JavaCompiler {
     @Override
     public JCCompilationUnit parse(JavaFileObject fileobject, CharSequence content) {
         // TODO: Use a TaskEvent and a TaskListener here?
-        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(0,2,"parsing " + fileobject.toUri() );
+        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"parsing " + fileobject.toUri() );
         JCCompilationUnit cu = super.parse(fileobject,content);
         if (inSequence) {
             return cu;
@@ -368,10 +368,10 @@ public class JmlCompiler extends JavaCompiler {
     public  <T> List<T> stopIfError(CompileState cs, List<T> list) {
         if (shouldStop(cs)) {
             if (JmlOption.isOption(context,JmlOption.STOPIFERRORS)) {
-                if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,1,"Stopping because of parsing errors");
+                if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(1,"Stopping because of parsing errors");
                 return List.<T>nil();
             } else {
-                if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,1,"Continuing bravely despite parsing errors");
+                if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(1,"Continuing bravely despite parsing errors");
             }
         }
         return list;
@@ -385,7 +385,7 @@ public class JmlCompiler extends JavaCompiler {
         ListBuffer<Pair<Env<AttrContext>, JCClassDecl>> results = new ListBuffer<>();
         
         if (envs.isEmpty()) {
-        	if (utils.esc) context.get(Main.IProgressListener.class).report(0,1,"Operation not performed because of parse or type errors");
+        	if (utils.esc) context.get(Main.IProgressListener.class).report(1,"Operation not performed because of parse or type errors");
 //        	try {
 //				Thread.sleep(10000);
 //			} catch (InterruptedException e) {
@@ -411,7 +411,7 @@ public class JmlCompiler extends JavaCompiler {
                 if (env == null) continue; // FIXME - error? just keep oroginal env?
                 
                 if (utils.jmlverbose >= Utils.JMLVERBOSE) 
-                    context.get(Main.IProgressListener.class).report(0,2,"desugar " + todo.size() + " " + 
+                    context.get(Main.IProgressListener.class).report(2,"desugar " + todo.size() + " " + 
                         (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
                             t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));
             }

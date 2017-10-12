@@ -994,7 +994,8 @@ public class Utils {
      */
     public void progress(int ticks, int level, String message) {
         org.jmlspecs.openjml.Main.IProgressListener pr = context.get(org.jmlspecs.openjml.Main.IProgressListener.class);
-        boolean cancelled = pr == null ? false : pr.report(ticks,level,message);
+        boolean cancelled = pr == null ? false : pr.report(level,message);
+        if (pr != null && ticks != 0) pr.worked(ticks);
         if (cancelled) {
             throw new PropagatedException(new Main.JmlCanceledException("ESC operation cancelled"));
         }

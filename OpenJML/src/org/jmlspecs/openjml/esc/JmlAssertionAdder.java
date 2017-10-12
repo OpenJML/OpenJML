@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.type.TypeKind;
@@ -85,6 +86,7 @@ import org.jmlspecs.openjml.Utils.JmlNotImplementedException;
 import org.jmlspecs.openjml.ext.Arithmetic;
 
 import com.sun.source.tree.*;
+import com.sun.tools.classfile.InnerClasses_attribute.Info;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Attribute.Compound;
 import com.sun.tools.javac.code.Scope;
@@ -599,6 +601,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         oldHeapMethods.put(null, new HashMap<Symbol,MethodSymbol>());
     }
     
+    public class LambdaInfo {
+        public List<JCExpression> untrArgs;
+        public MethodSymbol msym;
+        public Type.MethodType actualType;
+    }
+    public Stack<LambdaInfo> lambdaUnTrArgs = new Stack<LambdaInfo>(); { lambdaUnTrArgs.push(null); }
+    boolean applyingLambda = false;
+    
+    public Stack<JCIdent> inlinedReturns = new Stack<JCIdent>(); { inlinedReturns.push(null); }
     public JCIdent inlinedReturn = null;
     
     public boolean useNamesForHeap = true; // if false, use arguments for heap
@@ -1836,7 +1847,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             currentStatements.add(assertDecl);
             currentStatements.add(st);
-            if (assertCount == 181) savedAssert = translatedExpr;
             if (associatedPos == null && nestedCallLocation != null) {
                 st.associatedPos = nestedCallLocation.pos;
                 st.associatedSource = st.source;  // FIXME _ this is wrong - noty necessarily the same file
@@ -1894,7 +1904,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return null;
     }
     
-    static JCExpression savedAssert = null;
 
     /** Adds an assertion with the given label and (already translated) expression
      * to 'currentStatements'. 'codepos' is the position within the code where
@@ -4866,7 +4875,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (isInInitializerBlock) { // FIXME - need a better way to tell which kind of block we are in
                 classDefs.add(bl);
             } else {
-                addStat(bl);
+                addStat(bl);  // FIXME - don't always want this
             }
             methodDecl = prev;
             result = bl;
@@ -4947,9 +4956,64 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     @Override
     public void visitLambda(JCLambda that) {
+        if (pureCopy || !applyingLambda) {
+            pushBlock(); // To swallow and ignore the addStat of a block in visitBlock
+            JCLambda nthat = M.Lambda(convert(that.params), convert(that.body));
+            nthat.pos = that.pos;
+            nthat.type = that.type;
+            result = eresult = nthat;
+            popBlock(0L,that);
+            return;
+        }
+
         // If lambda expressions are always inlined then we do not need to do anything here.
         // FIXME - what about RAC - will want to insert runtime-checking annotations
-        result = eresult = that;
+        
+        // Translating a lambda expression can result in a block of statements
+        // Record the parameters as local variables that translate to themselves
+        
+        LambdaInfo info = lambdaUnTrArgs.pop();
+        Type.MethodType mtype = info.actualType;
+        List<JCExpression> untrArgs = info.untrArgs;
+        List<JCExpression> trArgs = convertArgs(that, untrArgs, mtype.argtypes, false); // FIXME - varargs ever allowed?
+
+        Iterator<JCExpression> iter = trArgs.iterator();
+        for (JCVariableDecl param: that.params) {
+            if (!iter.hasNext()) {
+                log.error(that.pos, "jml.internal", "Unexpectedly too few arguments in inlining a lambda expression");
+                break;
+            }
+            JCExpression arg = iter.next();
+            paramActuals.put(param.sym, arg);  // FIXME - what if a lambda expression is inlined recursively?
+        }
+        if (iter.hasNext()) {
+            log.error(iter.next().pos, "jml.internal", "Unexpectedly too many arguments in inlining a lambda expression");
+        }
+
+        inlinedReturns.push((JCIdent)resultExpr);
+        boolean isVoid = mtype.getReturnType().getTag() == TypeTag.VOID;
+        if (!isVoid) addStat(comment(that,"return result for inlined lambda expression",log.currentSourceFile()));
+        JCIdent localResult = isVoid ? null : newTemp(that,mtype.getReturnType());
+        ListBuffer<JCStatement> check = pushBlock();
+        resultExpr = localResult;
+        resultSym = localResult == null ? null : (VarSymbol)localResult.sym;
+        try {
+            convert(that.body);
+            if (!isVoid && that.body instanceof JCExpression) {
+                addStat(treeutils.makeAssignStat(that.body.pos,localResult,eresult));
+            }
+            JCBlock bl = popBlock(0L,that.pos(), check);
+            addStat(bl);
+//            JCLambda newlambda = M.at(that.pos).Lambda(that.params,bl);
+//            newlambda.type = that.type;
+            result = eresult = localResult;
+        } finally {
+            resultExpr = inlinedReturns.pop();
+            resultSym = resultExpr == null ? null : (VarSymbol)(((JCIdent)resultExpr).sym);
+            for (JCVariableDecl param: that.params) {
+                localVariables.remove(param.sym);
+            }
+        }
     }
     
     @Override
@@ -5480,13 +5544,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             int p = that.pos;
             if (retValue != null) { // Checks for empty returns
                 retValue = addImplicitConversion(that,resultSym.type,retValue);
-                JCIdent resultid = treeutils.makeIdent(p,resultSym);
-                JCStatement stat = treeutils.makeAssignStat(p,resultid,retValue);
+                JCIdent resultId;
+                if (inlinedReturns.peek() != null) {
+                    resultId = (JCIdent)resultExpr;
+                } else {
+                    resultId = treeutils.makeIdent(p,resultSym);
+                }
+                JCStatement stat = treeutils.makeAssignStat(p,resultId,retValue);
                 addStat(stat);
                 retValue = treeutils.makeIdent(p,resultSym);
             }
             
-            if (inlinedReturn != null) return;
+            if (inlinedReturns.peek() != null) return;
             
             // Record the value of the termination location
             JCIdent id = treeutils.makeIdent(p,terminationSym);
@@ -6821,45 +6890,66 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCFieldAccess fa = (JCFieldAccess)meth;
                 receiverType = fa.selected.type;
                 newTypeVarMapping = typevarMapping = typemapping(receiverType, fa.sym, null, meth.type.asMethodType());
-                if (fa.toString().startsWith("condition")) Utils.stop();
-                convertedReceiver = alreadyConverted ? fa.selected : convertExpr(fa.selected);
                 //if (isFunctional(convertedReceiver.type)) 
+                
+                LambdaInfo info = new LambdaInfo(); info.msym = (MethodSymbol)fa.sym; info.untrArgs = untrArgs; info.actualType = meth.type.asMethodType();
+                lambdaUnTrArgs.push(info);
+                boolean savedApplyingLambda = applyingLambda;
+                applyingLambda = true;
+                convertedReceiver = alreadyConverted ? fa.selected : convertExpr(fa.selected);
+                applyingLambda = savedApplyingLambda;
+                
+                LambdaInfo top = lambdaUnTrArgs.peek();
+                if (top != info) {
+                    // We did a lambda expression and already processed all the arguments and inlined the call
+                    return;
+                }
+                untrArgs = lambdaUnTrArgs.pop().untrArgs;
                 xx: {
                     // We are presuming here that the receiver is being invoked for its abstract method
 //                    typeargs = convert(typeargs);
-                    if (convertedReceiver instanceof JCLambda) {
-                        trArgs = convertArgs(that, untrArgs, meth.type.asMethodType().argtypes,  (fa.sym.flags() & Flags.VARARGS) != 0);
-
-                        Iterator<JCExpression> iter = trArgs.iterator();
-                        List<JCVariableDecl> params = ((JCLambda)convertedReceiver).params;
-                        for (JCVariableDecl param: params) {
-                            if (!iter.hasNext()) {
-                                log.error(that.pos, "jml.internal", "Unexpectedly too few arguments in inlining a lambda expression");
-                                break;
-                            }
-                            JCExpression arg = iter.next();
-                            paramActuals.put(param.sym, arg);  // FIXME - what if a lambda expression is inlined recursively?
-                        }
-                        if (iter.hasNext()) {
-                            log.error(iter.next().pos, "jml.internal", "Unexpectedly too many arguments in inlining a lambda expression");
-                        }
-                        JCTree body = ((JCLambda)convertedReceiver).body;
-                        // Note that the current 'this' for the body is the same is in the environment in which the lambda expression is
-                        // syntactially written.
-                        // FIXME - here we are not changing currentYThisExpr, but there may well be sicrcumstances where we should somehosw.
-                        // body can be an expression, possibly with void result, or a block containing a sequence of statements, followed by an expression
-                        if (body instanceof JCExpression) {
-                            JavaFileObject pfo = log.useSource(methodDecl.sourcefile); // FIXME - really need to know the parse location of the lambda
-                            try {
-                                result = eresult = convertExpr((JCExpression)body);
-                            } finally {
-                                log.useSource(pfo);
-                            }
-                        } else {
-                            notImplemented(that,"Lambda with body type " + body.getClass());
-                            result = eresult = null;
-                        }
-                    } else if (convertedReceiver instanceof JCTree.JCMemberReference) {
+//                    if (isFunctional(fa.selected.type)) {
+//
+//                        
+//                        trArgs = convertArgs(that, untrArgs, meth.type.asMethodType().argtypes,  (fa.sym.flags() & Flags.VARARGS) != 0);
+//
+//                        Iterator<JCExpression> iter = trArgs.iterator();
+//                        List<JCVariableDecl> params = ((JCLambda)convertedReceiver).params;
+//                        for (JCVariableDecl param: params) {
+//                            if (!iter.hasNext()) {
+//                                log.error(that.pos, "jml.internal", "Unexpectedly too few arguments in inlining a lambda expression");
+//                                break;
+//                            }
+//                            JCExpression arg = iter.next();
+//                            paramActuals.put(param.sym, arg);  // FIXME - what if a lambda expression is inlined recursively?
+//                        }
+//                        if (iter.hasNext()) {
+//                            log.error(iter.next().pos, "jml.internal", "Unexpectedly too many arguments in inlining a lambda expression");
+//                        }
+//                        // Note that the current 'this' for the body is the same is in the environment in which the lambda expression is
+//                        // syntactially written.
+//                        // FIXME - here we are not changing currentYThisExpr, but there may well be sicrcumstances where we should somehosw.
+//                        // body can be an expression, possibly with void result, or a block containing a sequence of statements, followed by an expression
+////                        if (body instanceof JCExpression) {
+////                            JavaFileObject pfo = log.useSource(methodDecl.sourcefile); // FIXME - really need to know the parse location of the lambda
+////                            try {
+////                                result = eresult = convertExpr((JCExpression)body);
+////                            } finally {
+////                                log.useSource(pfo);
+////                            }
+////                        } else if (body instanceof JCBlock) {
+////                            JavaFileObject pfo = log.useSource(methodDecl.sourcefile); // FIXME - really need to know the parse location of the lambda
+////                            try {
+////                                convert(body);
+////                            } finally {
+////                                log.useSource(pfo);
+////                            }
+////                        } else {
+////                            notImplemented(that,"Lambda with body type " + body.getClass());
+////                            result = eresult = null;
+////                        }
+//                    } else 
+                    if (convertedReceiver instanceof JCTree.JCMemberReference) {
                         // Make a method invocation in which the method reference has the argument list
                         JCTree.JCMemberReference mref = (JCTree.JCMemberReference)convertedReceiver;
                         JCExpression mexpr = mref.expr;
@@ -7821,7 +7911,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         }
                         
                         if (cs.block != null)  { // Note: inlining for RAC, also -- FIXME - need to check this
-                            inlinedReturn = resultId;
+                            inlinedReturns.push(resultId);
                             ListBuffer<JCStatement> checkInline = pushBlock();
                             addStat(comment(cs.block, "Inlining model program ",log.currentSourceFile()));  // FIXME - source file for inlining?
                             JavaFileObject prevv = log.useSource(cs.source());
@@ -7840,7 +7930,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             } catch (Exception e) {
                                 error(that, "Unexpected exception while inlining model program: " + e.toString());
                             } finally {
-                                inlinedReturn = null;
+                                resultId = inlinedReturns.pop();
+                                resultSym = resultId == null ? null : (VarSymbol)resultId.sym;
                                 log.useSource(prevv);
                             }
                             JCBlock b = popBlock(0L,that,checkInline);
@@ -7849,7 +7940,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                     
                     if (inliningCall)  { // Note: inlining for RAC, also -- FIXME - need to check this
-                        inlinedReturn = resultId;
+                        inlinedReturns.push(resultId);
                         try {
 
                             ListBuffer<JCStatement> checkInline = pushBlock();
@@ -7872,7 +7963,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         } catch (Exception e) {
                             error(that, "Unexpected exception while inlining body of method " + calleeMethodSym + ": " + e.toString());
                         } finally {
-                            inlinedReturn = null;
+                            resultId = inlinedReturns.pop();
+                            resultSym = resultId == null ? null : (VarSymbol)resultId.sym;
                         }
                     }
 
@@ -9945,8 +10037,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return;
              
         } else if (translatingJML) {
+            boolean savedApplyingLambda = applyingLambda;
+            applyingLambda = false;
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
+            applyingLambda = savedApplyingLambda;
             
             Type maxJmlType = lhs.type;
             boolean lhsIsPrim = lhs.type.isPrimitive() && lhs.type.getTag() != TypeTag.BOT;
@@ -10851,7 +10946,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         JCFieldAccess newfa = null;
         if (sym != null && sym.owner instanceof ClassSymbol) {
-            if (that.toString().equals("ff") && currentThisExpr.toString().contains("NEWOBJECT")) Utils.stop();
             if (currentThisExpr != null && sym instanceof VarSymbol && sym.owner != currentThisExpr.type.tsym && (currentThisExpr.type.tsym instanceof ClassSymbol)) {
                 ClassSymbol base = (ClassSymbol)currentThisExpr.type.tsym;
                 ClassSymbol fieldOwner = (ClassSymbol)sym.owner;
@@ -11039,6 +11133,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // FIXME - the old may imappropriately encapsulate the receiver
                 result = eresult = treeutils.makeOld(that.pos, eresult, oldenv);
                 treeutils.copyEndPosition(eresult, that);
+            }
+            if (eresult instanceof JCLambda) {
+                result = eresult = convert(eresult);
             }
         
         } finally {

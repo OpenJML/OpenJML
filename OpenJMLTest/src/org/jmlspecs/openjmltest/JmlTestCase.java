@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.URI;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -56,7 +57,8 @@ import com.sun.tools.javac.util.Options;
  */
 public abstract class JmlTestCase {
 
-    public final static String specsdir = System.getenv("SPECSDIR");
+    // This value is for running tests, so we can presume the current directory is .../OpenJML/OpenJMLTest
+    public final static String specsdir = System.getenv("SPECSDIR") != null ? System.getenv("SPECSDIR") : Paths.get("../../Specs").toAbsolutePath().toString();
 
     static protected boolean isWindows = System.getProperty("os.name").contains("Wind");
 
@@ -410,9 +412,7 @@ public abstract class JmlTestCase {
                 if (sexp != null) {
                     sexp = sexp.replace("\r\n", "\n");
                     sexp = sexp.replace("$ROOT",root);
-                    String env = System.getenv("SPECSDIR");
-                    if (env == null) System.out.println("The SPECSDIR environment variable is required to be set for testing");
-                    else sexp = sexp.replace("$SPECS", env);
+                    sexp = sexp.replace("$SPECS", specsdir);
                     sexp = sexp.replace('\\','/');
                 }
                 while (true) {
@@ -536,9 +536,7 @@ public abstract class JmlTestCase {
                     return diff;
                 }
                 sexp = sexp.replace("$ROOT",root);
-                String env = System.getenv("SPECSDIR");
-                if (env == null) System.out.println("The SPECSDIR environment variable is required to be set for testing");
-                else sexp = sexp.replace("$SPECS", env);
+                sexp = sexp.replace("$SPECS", specsdir);
                 String sact = lines[line-1];
                 if (sexp.equals(sact)) {
                     // OK
