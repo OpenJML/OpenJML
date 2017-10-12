@@ -60,7 +60,7 @@ abstract public class MenuActions extends AbstractHandler {
     /** Populates the class fields with data about the event, for use in the
      * derived classes.
      */
-    protected void getInfo(ExecutionEvent event) throws ExecutionException {
+    protected void initInfo(ExecutionEvent event) throws ExecutionException {
     	window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
     	shell = window.getShell();
     	selection = window.getSelectionService().getSelection();
@@ -97,7 +97,7 @@ abstract public class MenuActions extends AbstractHandler {
 				if (Options.uiverboseness) {
 					Log.log("Enable JML action initiated"); //$NON-NLS-1$
 				}
-	    		getInfo(event);
+	    		initInfo(event);
 	            utils.changeJmlNatureSelection(true,selection,window,shell);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,"MenuActions.EnableJML",e); //$NON-NLS-1$
@@ -120,7 +120,7 @@ abstract public class MenuActions extends AbstractHandler {
 				if (Options.uiverboseness) {
 					Log.log("Disable JML action initiated"); //$NON-NLS-1$
 				}
-	    		getInfo(event);
+	    		initInfo(event);
 	            utils.changeJmlNatureSelection(false,selection,window,shell);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,"MenuActions.DisableJML",e); //$NON-NLS-1$
@@ -146,7 +146,7 @@ abstract public class MenuActions extends AbstractHandler {
     			if (Options.uiverboseness) {
     				Log.log("Type-check action initiated"); //$NON-NLS-1$
     			}
-        		getInfo(event);
+        		initInfo(event);
     			utils.checkSelection(selection,window,shell);
     		} catch (Exception e) {
     			utils.topLevelException(shell,"MenuActions.CheckJML",e); //$NON-NLS-1$
@@ -170,8 +170,8 @@ abstract public class MenuActions extends AbstractHandler {
     			if (Options.uiverboseness) {
     				Log.log("ESC action initiated"); //$NON-NLS-1$
     			}
-        		getInfo(event);
-                utils.checkESCSelection(selection,window,shell);
+        		initInfo(event);
+        		utils.checkESCSelection(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.CheckESC",e); //$NON-NLS-1$
     		}
@@ -193,7 +193,7 @@ abstract public class MenuActions extends AbstractHandler {
     			if (Options.uiverboseness) {
     				Log.log("RAC action initiated"); //$NON-NLS-1$
     			}
-        		getInfo(event);
+        		initInfo(event);
                 utils.racSelection(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.RAC",e); //$NON-NLS-1$
@@ -216,7 +216,7 @@ abstract public class MenuActions extends AbstractHandler {
     			if (Options.uiverboseness) {
     				Log.log("RAC Marked files action initiated"); //$NON-NLS-1$
     			}
-        		getInfo(event);
+        		initInfo(event);
                 utils.racMarked(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.RACMarked",e); //$NON-NLS-1$
@@ -237,7 +237,7 @@ abstract public class MenuActions extends AbstractHandler {
 				if (Options.uiverboseness) {
 					Log.log("Mark for RAC action initiated"); //$NON-NLS-1$
 				}
-	    		getInfo(event);
+	    		initInfo(event);
 	            utils.racMark(true,selection,window,shell);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,"MenuActions.EnableForRac",e); //$NON-NLS-1$
@@ -258,7 +258,7 @@ abstract public class MenuActions extends AbstractHandler {
 				if (Options.uiverboseness) {
 					Log.log("Unmark For RAC action initiated"); //$NON-NLS-1$
 				}
-	    		getInfo(event);
+	    		initInfo(event);
 	            utils.racMark(false,selection,window,shell);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,"MenuActions.DisableForRac",e); //$NON-NLS-1$
@@ -279,7 +279,7 @@ abstract public class MenuActions extends AbstractHandler {
 				if (Options.uiverboseness) {
 					Log.log("Choose For RAC action initiated"); //$NON-NLS-1$
 				}
-	        	getInfo(event);
+	        	initInfo(event);
 	            utils.racChoose(selection,window,shell);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,"MenuActions.ChooseForRac",e); //$NON-NLS-1$
@@ -300,7 +300,7 @@ abstract public class MenuActions extends AbstractHandler {
 				if (Options.uiverboseness) {
 					Log.log("Clear RAC Marks action initiated"); //$NON-NLS-1$
 				}
-	        	getInfo(event);
+	        	initInfo(event);
 	            utils.racClear(selection,window,shell);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,"MenuActions.ClearForRac",e); //$NON-NLS-1$
@@ -323,7 +323,7 @@ abstract public class MenuActions extends AbstractHandler {
     			if (Options.uiverboseness) {
     				Log.log("Delete Markers action initiated"); //$NON-NLS-1$
     			}
-        		getInfo(event);
+        		initInfo(event);
         		utils.deleteMarkersInSelection(selection,window,shell);
     		} catch (Exception e) {
     			utils.topLevelException(shell,"MenuActions.DeleteJMLMarkers",e); //$NON-NLS-1$
@@ -343,7 +343,7 @@ abstract public class MenuActions extends AbstractHandler {
 				if (Options.uiverboseness) {
 					Log.log("Add To Specs Path action initiated"); //$NON-NLS-1$
 				}
-	    		getInfo(event);
+	    		initInfo(event);
 	            utils.addSelectionToSpecsPath(selection,window,shell);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,"MenuActions.AddToSpecsPath",e); //$NON-NLS-1$
@@ -363,7 +363,7 @@ abstract public class MenuActions extends AbstractHandler {
 				if (Options.uiverboseness) {
 					Log.log("Remove From Specs Path action initiated"); //$NON-NLS-1$
 				}
-	    		getInfo(event);
+	    		initInfo(event);
 	            utils.removeSelectionFromSpecsPath(selection,window,shell);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,"MenuActions.RemoveFromSpecsPath",e); //$NON-NLS-1$
@@ -383,7 +383,7 @@ abstract public class MenuActions extends AbstractHandler {
 				if (Options.uiverboseness) {
 					Log.log("Edit Paths action initiated"); //$NON-NLS-1$
 				}
-	    		getInfo(event);
+	    		initInfo(event);
 	            utils.manipulateSpecsPath(selection,window,shell);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,"MenuActions.SpecsPath",e); //$NON-NLS-1$
@@ -404,7 +404,7 @@ abstract public class MenuActions extends AbstractHandler {
 				if (Options.uiverboseness) {
 					Log.log("Show Paths action initiated"); //$NON-NLS-1$
 				}
-	    		getInfo(event);
+	    		initInfo(event);
 	            utils.showPaths(selection,window,shell);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,"MenuActions.ShowPaths",e); //$NON-NLS-1$
@@ -425,7 +425,7 @@ abstract public class MenuActions extends AbstractHandler {
     			if (Options.uiverboseness) {
     				Log.log("Open Specs Editor action initiated"); //$NON-NLS-1$
     			}
-        		getInfo(event);
+        		initInfo(event);
                 utils.openSpecEditorForSelection(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.SpecsEditor",e); //$NON-NLS-1$
@@ -453,7 +453,7 @@ abstract public class MenuActions extends AbstractHandler {
 				if (Options.uiverboseness) {
 					Log.log("Create JML Template action initiated"); //$NON-NLS-1$
 				}
-	    		getInfo(event);
+	    		initInfo(event);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,"MenuActions.ShowSpecs",e); //$NON-NLS-1$
 			}
@@ -472,7 +472,7 @@ abstract public class MenuActions extends AbstractHandler {
     			if (Options.uiverboseness) {
     				Log.log("Show Proof Information action initiated"); //$NON-NLS-1$
     			}
-        		getInfo(event);
+        		initInfo(event);
                 utils.showProofInfoForSelection(selection,window,shell,false);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.ShowProofInformation",e); //$NON-NLS-1$
@@ -492,7 +492,7 @@ abstract public class MenuActions extends AbstractHandler {
     			if (Options.uiverboseness) {
     				Log.log("Show Proof Information action initiated"); //$NON-NLS-1$
     			}
-        		getInfo(event);
+        		initInfo(event);
                 utils.showProofInfoForSelection(selection,window,shell,true);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.DetailedShowProofInformation",e); //$NON-NLS-1$
@@ -513,7 +513,7 @@ abstract public class MenuActions extends AbstractHandler {
     			if (Options.uiverboseness) {
     				Log.log("Show Counterexample action initiated"); //$NON-NLS-1$
     			}
-        		getInfo(event);
+        		initInfo(event);
                 utils.showCEValueForTextSelection(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.ShowCounterexampleValue",e); //$NON-NLS-1$
@@ -550,7 +550,7 @@ abstract public class MenuActions extends AbstractHandler {
     			if (Options.uiverboseness) {
     				Log.log("JMLdoc action initiated"); //$NON-NLS-1$
     			}
-        		getInfo(event);
+        		initInfo(event);
         		utils.showMessageInUI(shell, "OpenJML - Not Yet Implemented", //$NON-NLS-1$
         				"jmldoc is not yet implemented"); //$NON-NLS-1$
                 if (false) utils.jmldocSelection(selection,window,shell);
@@ -569,7 +569,7 @@ abstract public class MenuActions extends AbstractHandler {
 				if (true || Options.uiverboseness) {
 					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
 				}
-	    		getInfo(event);
+	    		initInfo(event);
 	    		utils.showMessageInUI(shell, "OpenJML", "This operation is not yet implemented");
 	            ITextSelection selected = utils.getSelectedText(selection);
 	            String text = selected.getText();
