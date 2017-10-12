@@ -502,5 +502,134 @@ public class esclambdas extends EscBase {
                 );
     }
     
+    @Test
+    public void testBindLambda() {
+        main.addOptions("-method=mm");
+        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        //@ nullableByDefault
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"      public Object ppp; \n"
+
+                +"  public void mm(Object ppp) {\n"
+                +"      boolean b = m(ppp, x->{return this.ppp;}); \n"
+                +"       //@ assert b;\n"  // Should be false
+                +"  }\n"
+                +"  //@ inline \n"
+                +"  final public boolean m(Object aaa, /*@ non_null */ java.util.function.Function<Object,Object> f) {\n"
+                +"       Object a = aaa; return a != f.apply(null);"
+                +"  }\n"
+                +"  }\n"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method mm",12
+                );
+    }
+    
+    @Test
+    public void testBindLambdaA() {
+        main.addOptions("-method=mm");
+        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        //@ nullableByDefault
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"      public Object ppp; \n"
+
+                +"  //@ requires ppp == this.ppp;\n"
+                +"  public void mm(Object ppp) {\n"
+                +"      boolean b = m(ppp, x->{return this.ppp;}); \n"
+                +"       //@ assert b;\n"  // Should be true
+                +"  }\n"
+                +"  //@ inline \n"
+                +"  final public boolean m(Object aaa, /*@ non_null */ java.util.function.Function<Object,Object> f) {\n"
+                +"       Object a = aaa; return a == f.apply(null);"
+                +"  }\n"
+                +"  }\n"
+                );
+    }
+    
+    @Test
+    public void testBindLambdaB() {
+        main.addOptions("-method=mm");
+        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        //@ nullableByDefault
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"      public Object ppp; \n"
+
+                +"  public void mm(Object ppp) {\n"
+                +"      boolean b = m(this.ppp, x->{return this.ppp;}); \n"
+                +"       //@ assert b;\n"
+                +"  }\n"
+                +"  //@ inline \n"
+                +"  final public boolean m(Object aaa, /*@ non_null */ java.util.function.Function<Object,Object> f) {\n"
+                +"       Object a = aaa; return a == f.apply(null);"
+                +"  }\n"
+                +"  }\n"
+                );  // No errors
+    }
+    
+    @Test
+    public void testBindLambdaC() {
+        main.addOptions("-method=mm");
+        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        //@ nullableByDefault
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"      public Object ppp; \n"
+
+                +"  public void mm(Object ppp) {\n"
+                +"      boolean b = m(this.ppp, x->{return x;}); \n"
+                +"       //@ assert b;\n"
+                +"  }\n"
+                +"  //@ inline \n"
+                +"  final public boolean m(Object aaa, /*@ non_null */ java.util.function.Function<Object,Object> f) {\n"
+                +"       Object a = aaa; return a == f.apply(this.ppp);"
+                +"  }\n"
+                +"  }\n"
+                );  // No errors
+    }
+    
+    @Test
+    public void testBindLambdaD() {
+        main.addOptions("-method=mm");
+        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        //@ nullableByDefault
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"      public Object ppp; \n"
+
+                +"  public void mm(Object ppp) {\n"
+                +"      boolean b = m(this.ppp, x->x); \n"
+                +"       //@ assert b;\n"  // SHould be true
+                +"  }\n"
+                +"  //@ inline \n"
+                +"  final public boolean m(Object aaa, /*@ non_null */ java.util.function.Function<Object,Object> f) {\n"
+                +"       Object a = aaa; return a == f.apply(this.ppp);"
+                +"  }\n"
+                +"  }\n"
+                );
+    }
+    
+    @Test
+    public void testBindLambda2() {
+        main.addOptions("-method=mm");
+        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"      public int a = 11; \n"
+
+                +"  //@ requires this.a == 11;\n"
+                +"  public void mm() {\n"
+                +"      int a = 9; \n"
+                +"      int b = a + m(a, this.a, x->{return x+a+this.a+100;}); \n"
+                +"       //@ assert b == 9 + 7 + 11 + (11+9+11+100);\n"
+                +"  }\n"
+                +"  //@ inline \n"
+                +"  final public int m(int aa, int b, /*@ non_null */ java.util.function.Function<Integer,Integer> f) {\n"
+                +"       int a = 7; return a + b + f.apply(this.a);"
+                +"  }\n"
+                +"  }\n"
+                );  // No errors
+    }
+    
 
 }

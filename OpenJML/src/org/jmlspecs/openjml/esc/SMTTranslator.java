@@ -1487,6 +1487,11 @@ public class SMTTranslator extends JmlTreeScanner {
     
     /** Issues an error message about something not being implemented */
     public void notImpl(DiagnosticPosition pos, String msg) {
+        log.error(pos, "esc.not.implemented","Not yet supported feature in converting BasicPrograms to SMTLIB: " + msg);
+    }
+    
+    /** Issues an error message about something not being implemented */
+    public void notImplWarn(DiagnosticPosition pos, String msg) {
         log.warning(pos, "esc.not.implemented","Not yet supported feature in converting BasicPrograms to SMTLIB: " + msg);
     }
     
@@ -2317,7 +2322,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 if (range != null) value = F.fcn(F.symbol("and"),range,value);
                 result = F.exists(params,value);
             } else {
-                notImpl(that, "JML Quantified expression using " + that.op.internedName());
+                notImplWarn(that, "JML Quantified expression using " + that.op.internedName());
                 ISymbol sym = F.symbol("|" + that.toString().replace('|', '#').replace('\\', '#') + "|");
                 addConstant(sym,convertSort(that.type),null);
                 result = sym;

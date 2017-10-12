@@ -376,7 +376,8 @@ public abstract class EscBase extends JmlTestCase {
         	return false;
         }
         String act = noSource(collector.getDiagnostics().get(j));
-        String exp = list[i].toString().replace("$SPECS", specsdir);
+        String exp = null;
+        if (list[i] != null) exp = list[i].toString().replace("$SPECS", specsdir);
         long actualColumn = -1;
         if (!exp.equals(act) 
                 && !exp.replace('\\','/').equals(act.replace('\\','/'))) {

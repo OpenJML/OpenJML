@@ -139,7 +139,7 @@ public class JmlEsc extends JmlTreeScanner {
         Main.instance(context).pushOptions(node.mods);
 
         // The super class takes care of visiting all the methods
-        utils.progress(1,1,"Proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
+        utils.progress(0,1,"Proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
         boolean doDefsInSortedOrder = true;
         if (doDefsInSortedOrder && !Utils.testingMode) { // Don't sort in tests because too many golden outputs were created before sorting
             scan(node.mods);
@@ -158,7 +158,7 @@ public class JmlEsc extends JmlTreeScanner {
         } else {
             super.visitClassDef(node);
         }
-        utils.progress(1,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
+        utils.progress(0,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
         Main.instance(context).popOptions();
     }
     
@@ -229,7 +229,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     public IProverResult markMethodSkipped(JmlMethodDecl methodDecl, String reason) {
-        utils.progress(2,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$ //$NON-NLS-2$
+        utils.progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$ //$NON-NLS-2$
         
         // FIXME - this is all a duplicate from MethodProverSMT
         IProverResult.IFactory factory = new IProverResult.IFactory() {
@@ -253,11 +253,11 @@ public class JmlEsc extends JmlTreeScanner {
     /** Do the actual work of proving the method */
     protected IProverResult doMethod(@NonNull JmlMethodDecl methodDecl) {
         boolean printPrograms = this.verbose || JmlOption.isOption(context, JmlOption.SHOW);
-
+        
         if (skip(methodDecl)) {
             return markMethodSkipped(methodDecl," (because of SkipEsc annotation)");
         }
-        utils.progress(1,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
+        utils.progress(0,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
         log.resetRecord();
 //        int prevErrors = log.nerrors;
 
