@@ -1187,27 +1187,36 @@ public class SMTTranslator extends JmlTreeScanner {
         while (iter.hasNext()) {
             convertDeclaration(iter.next());
         }
+
         // Then construct the block expression from the end to the start
-//        iter = block.statements.listIterator();
-//        tail = convertList(iter,tail);
-        tail = convertList(block.statements,tail);
         
-        // This would be an excellent candidate for iterating through the list of 
-        // statements in the block in reverse order, since that is the
-        // natural way to construct the block expression and avoids having
-        // a deep call stack (of the length of a block). However, the statements
-        // in the block have to be translated in forward order, or auxiliary
-        // commands produced in their translations are added to 'commands' in
-        // reverse order.
-        //        while (iter.hasPrevious()) {
-        //            tail = convertStatement(iter.previous(),tail);
-        //        }
+        if (false) {
+            // Each block statement is one (potentially very long) assertion
+
+            // This would be an excellent candidate for iterating through the list of 
+            // statements in the block in reverse order, since that is the
+            // natural way to construct the block expression and avoids having
+            // a deep call stack (of the length of a block). However, the statements
+            // in the block have to be translated in forward order, or auxiliary
+            // commands produced in their translations are added to 'commands' in
+            // reverse order.
+            //        while (iter.hasPrevious()) {
+            //            tail = convertStatement(iter.previous(),tail);
+            //        }
+            tail = convertList(block.statements,tail);
+            
+        } else {
+
+            tail = convertList2(block.id.toString(),block.statements,tail);
+
+        }
+
         LinkedList<IExpr> args = new LinkedList<IExpr>();
         args.add(F.symbol(block.id.toString()));
         args.add(tail);
         tail = F.fcn(eqSym,args);
         commands.add(new C_assert(tail));
-        
+
     }
     
     /** If the statement is a variable declaration, converts it to an SMT
@@ -1244,10 +1253,10 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
     
-    /** The alternate implementation, commented out below, uses recursive calls
+    /** An alternate implementation, commented out below, uses recursive calls
      * to assemble the block encoding. That can give quite deep call stacks. 
      * Instead we iterate down the list and back, storing each expression on 
-     * a stack. So replace the call stack with a simple expression stack.
+     * a stack. That is we are replacing the call stack with a simple expression stack.
      */
     public IExpr convertList(List<JCStatement> list, IExpr tail) {
         ListIterator<JCStatement> iter = list.listIterator();
@@ -1381,7 +1390,104 @@ public class SMTTranslator extends JmlTreeScanner {
 //        }
 //        return tail;
 //    }
+
+    public IExpr convertList2(String blockid, List<JCStatement> list, IExpr tail) {
+        ListIterator<JCStatement> iter = list.listIterator();
+        Stack<IExpr> stack = new Stack<IExpr>();
+        int count = 0;
+        
+        while (iter.hasNext()) {
+            JCStatement stat = iter.next();
+            try {
+                if (stat instanceof JmlVariableDecl) {
+                    continue;
+                } else if (stat instanceof JmlStatementExpr) {
+                    JmlStatementExpr s = (JmlStatementExpr)stat;
+                    if (s.token == JmlTokenKind.ASSUME) {
+                        if (s.label == Label.METHOD_DEFINITION) {
+                            JCExpression ex = s.expression;
+                            ex = ((JmlQuantifiedExpr)ex).value;
+                            JCExpression lhs = ((JCTree.JCBinary)ex).lhs;
+                            JCTree.JCMethodInvocation mcall = (JCTree.JCMethodInvocation)lhs;
+                            JCExpression nm = mcall.meth;
+                            JCExpression rhs = ((JCTree.JCBinary)ex).rhs;
+                            addFunctionDefinition(nm.toString(),mcall.args,rhs);
+                        } else {
+                            IExpr exx = convertExpr(s.expression);
+                            ISymbol newsym = F.symbol(blockid + "__A" + (++count));
+                            commands.add(new C_define_fun(newsym,new LinkedList<IDeclaration>(),boolSort,exx));
+                            stack.push(newsym);
+                        }
+                    } else if (s.token == JmlTokenKind.ASSERT) {
+                        IExpr exx = convertExpr(s.expression);
+                        stack.push(exx);
+                    } else if (s.token == JmlTokenKind.COMMENT) {
+                        if (s.id == null || !s.id.startsWith("ACHECK")) continue;
+                        int k = s.id.indexOf(" ");
+                        k = Integer.valueOf(s.id.substring(k+1));
+                        s.optionalExpression = k != assumeCount ? null : (treeutils.falseLit);;
+                        if (k != assumeCount) continue;
+                        IExpr exx = convertExpr(treeutils.falseLit);
+                        stack.push(exx);
+                    } else {
+                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
+                        break;
+                    }
+                } else {
+                    log.error("jml.internal", "Incorrect kind of statement encountered when converting a BasicProgram to SMTLIB: " + stat.getClass());
+                    break;
+                }
+            } catch (RuntimeException ee) {
+                // There is no recovery from this
+                log.error("jml.internal", "Exception while translating block: " + ee);
+                break;
+            }
+        }
+        while (iter.hasPrevious()) {
+            JCStatement stat = iter.previous();
+            try {
+                if (stat instanceof JmlVariableDecl) {
+                    continue;
+                } else if (stat instanceof JmlStatementExpr) {
+                    JmlStatementExpr s = (JmlStatementExpr)stat;
+                    if (s.token == JmlTokenKind.ASSUME) {
+                        if (s.label == Label.METHOD_DEFINITION) {
+                            // skip
+                        } else {
+                            IExpr exx = stack.pop();
+                            tail = F.fcn(impliesSym, exx, tail);
+                        }
+                    } else if (s.token == JmlTokenKind.ASSERT) {
+                        IExpr exx = stack.pop();
+                        // The first return is the classic translation; the second
+                        // effectively inserts an assume after an assert. I'm not
+                        // sure it makes any difference. TODO - evaluate this sometime.
+                        //return F.fcn(F.symbol("and"), exx, tail);
+                        tail = F.fcn(F.symbol("and"), exx, F.fcn(impliesSym, exx, tail));
+                    } else if (s.token == JmlTokenKind.COMMENT) {
+                        if (s.id == null || !s.id.startsWith("ACHECK")) continue;
+                        int k = s.id.indexOf(" ");
+                        k = Integer.valueOf(s.id.substring(k+1));
+                        if (k != assumeCount) continue;
+                        IExpr exx = stack.pop();
+                        tail = exx;
+                    } else {
+                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
+                        break;
+                    }
+                } else {
+                    log.error("jml.internal", "Incorrect kind of statement encountered when converting a BasicProgram to SMTLIB: " + stat.getClass());
+                    break;
+                }
+            } catch (RuntimeException ee) {
+                // skip - error already issued // FIXME - better recovery
+                break;
+            }
+        }
+        return tail;
+    }
     
+
     /** Converts a basic block statement to an SMT expression, tacking it on
      * the front of tail and returning the composite expression.
      */

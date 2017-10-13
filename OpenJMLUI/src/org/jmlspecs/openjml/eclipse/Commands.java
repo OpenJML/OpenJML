@@ -52,6 +52,9 @@ abstract public class Commands extends AbstractHandler {
 
     /** The current selection. */
     protected ISelection selection;
+    
+    //** The Command that is being responded to */
+    protected Command command;
 
     /** Cached value of the utility object */
     protected Utils utils = Activator.utils();
@@ -59,10 +62,14 @@ abstract public class Commands extends AbstractHandler {
     /** Populates the class fields with data about the event, for use in the
      * derived classes.
      */
-    protected void getInfo(ExecutionEvent event) throws ExecutionException {
+    protected void initInfo(ExecutionEvent event) throws ExecutionException {
+        if (Options.uiverboseness) {
+            Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
+        }
     	window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
     	shell = window.getShell();
     	selection = window.getSelectionService().getSelection();
+        command = event.getCommand(); 
     }
 
     /**
@@ -86,11 +93,7 @@ abstract public class Commands extends AbstractHandler {
         @Override
         public Object execute(ExecutionEvent event) {
             try {
-                if (Options.uiverboseness) {
-                    Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
-                }
-                getInfo(event);
-                Command command = event.getCommand(); 
+                initInfo(event);
                 boolean oldValue = HandlerUtil.toggleCommandState(command);
 //                State state = command.getState(RegistryToggleState.STATE_ID);
 //                state.setValue(!oldValue);
@@ -107,15 +110,12 @@ abstract public class Commands extends AbstractHandler {
         @Override
         public Object execute(ExecutionEvent event) {
             try {
-                if (Options.uiverboseness) {
-                    Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
-                }
-                getInfo(event);
-                if(HandlerUtil.matchesRadioState(event))
+                initInfo(event);
+                if(HandlerUtil.matchesRadioState(event)) {
                     return null; // we are already in the updated state - do nothing
-             
+                }
+                
                 String currentState = event.getParameter(RadioState.PARAMETER_ID);
-                System.out.println("RADIO" + currentState);
              
                 // do whatever having "currentState" implies
              
@@ -138,10 +138,7 @@ abstract public class Commands extends AbstractHandler {
         @Override
         public Object execute(ExecutionEvent event) {
             try {
-                if (Options.uiverboseness) {
-                    Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
-                }
-                getInfo(event);
+                initInfo(event);
                 utils.findView().clearProofResults();
             } catch (Exception e) {
                 utils.topLevelException(shell,this.getClass().getSimpleName(),e);
@@ -155,10 +152,7 @@ abstract public class Commands extends AbstractHandler {
 	    @Override
 		public Object execute(ExecutionEvent event) {
 			try {
-				if (Options.uiverboseness) {
-					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
-				}
-	    		getInfo(event);
+	    		initInfo(event);
 	            utils.findView().clearSelectedProofResults();
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);
@@ -171,10 +165,7 @@ abstract public class Commands extends AbstractHandler {
 	    @Override
 		public Object execute(ExecutionEvent event) {
 			try (FileWriter fw = new FileWriter(new File(System.getProperty("user.home") + "/resultsOutput"))) {
-				if (Options.uiverboseness) {
-					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
-				}
-	    		getInfo(event);
+	    		initInfo(event);
 		    	OpenJMLView.exportProofResults(fw);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);
@@ -188,48 +179,34 @@ abstract public class Commands extends AbstractHandler {
 	    @Override
 		public Object execute(ExecutionEvent event) {
 			try {
-				if (Options.uiverboseness) {
-					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
-				}
-	    		getInfo(event);
-	    		if (!utils.checkForDirtyEditors()) return null;
-	    		final OpenJMLView view = utils.findView();
-	    		if (view == null || view.selectedList.isEmpty()) return null;
+	    		initInfo(event);
 	    		
-				utils.showView(); // Must be called from a UI thread
-				final OpenJMLInterface iface = utils.getInterface(utils.findView().currentProject);
-				IJavaProject jp = iface.jproject;
-				final java.util.List<IJavaElement> args = new java.util.LinkedList<>();
+                if (!utils.checkForDirtyEditors()) return null;
 
-				for (TreeItem ti : view.selectedList) {
-					OpenJMLView.Info info = (OpenJMLView.Info)ti.getData();
-					if (info == null) continue;
-					String key = info.key;
-					IJavaElement je = info.javaElement;
-					if (je == null) continue; // FIXME - this can happen if a default constructor is selected - but we should still run on the file
-					args.add(je);
-				}
-				String title = "Rerunning selected items from project " + jp.getResource().getName();
-				Job j = new Job(title) {
-					public IStatus run(IProgressMonitor monitor) {
-						monitor.beginTask(title, 1);
-						monitor.subTask("Detailed progress will be shown only if the verbosity preference is at least 'progress'");
-						boolean c = false;
-						try {
-							iface.executeESCCommand(Main.Cmd.ESC, args, monitor);
-							//iface.api.execute(null,args.toArray(new String[args.size()]));
-						} catch (Exception e) {
-							// FIXME - this will block, preventing progress on the rest of the projects
-							Log.errorlog("Exception during Static Checking - " + jp.getElementName(), e);
-							utils.showExceptionInUI(null, "Exception during Static Checking - " + jp.getElementName(), e);
-							c = true;
-						}
-						return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
-					}
-				};
-	    		j.setRule(jp.getProject()); // FIXME - this locks teh whole project - is that what we want?
-	    		j.setUser(true); // true since the job has been initiated by an end-user
-	    		j.schedule();
+                final OpenJMLView view = utils.findView();
+                if (view == null || view.selectedList.isEmpty()) return null;
+                
+                utils.showView(); // Must be called from a UI thread
+                final OpenJMLInterface iface = utils.getInterface(utils.findView().currentProject);
+                final IJavaProject jp = iface.jproject;
+                
+                
+                final java.util.List<Object> elements = new java.util.LinkedList<>();
+
+                for (TreeItem ti : view.selectedList) {
+                    OpenJMLView.Info info = (OpenJMLView.Info)ti.getData();
+                    if (info == null) continue;
+                    String key = info.key;
+                    IJavaElement je = info.javaElement;
+                    if (je == null) continue; // FIXME - this can happen if a default constructor is selected - but we should still run on the file
+                    elements.add(je);
+                }
+                String reason = "Rerunning selected items from project " + jp.getResource().getName();
+	    		
+                // The following call launches the actual work in a computational thread
+                utils.checkESCProject(jp, elements, shell, reason, null);
+
+	    		
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);
 			}
@@ -242,10 +219,8 @@ abstract public class Commands extends AbstractHandler {
 	    @Override
 		public Object execute(ExecutionEvent event) {
 			try {
-				if (true || Options.uiverboseness) {
-					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
-				}
-	    		getInfo(event);
+	    		initInfo(event);
+	    		// FIXME - iomplement
 	    		utils.showMessageInUI(shell, "OpenJML", "This operation is not yet implemented");
 	            //utils.changeJmlNatureSelection(true,selection,window,shell);
 	        } catch (Exception e) {
