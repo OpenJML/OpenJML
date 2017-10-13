@@ -376,10 +376,13 @@ public class JmlParser extends JavacParser {
     @Override
     List<JCTree> classOrInterfaceBody(Name className, boolean isInterface) {
         boolean savedJmlKeyword = S.jmlkeyword;
+        JmlMethodSpecs savedMethodSpecs = currentMethodSpecs;
+        currentMethodSpecs = null;
         S.setJmlKeyword(true);
         try {
             return super.classOrInterfaceBody(className, isInterface);
         } finally {
+            currentMethodSpecs = savedMethodSpecs;
             S.setJmlKeyword(savedJmlKeyword);
             rescan();
         }

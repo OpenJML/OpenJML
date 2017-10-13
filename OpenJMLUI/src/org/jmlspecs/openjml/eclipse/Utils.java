@@ -421,7 +421,7 @@ public class Utils {
             b0 = new BButton(pp,"As one sequential job",OneJobStrategy.class);
             b1 = new BButton(pp,"Split by selected items",SelectedItemStrategy.class);
             b2 = new BButton(pp,"Split by package",MultiSelectedItemStrategy.class);
-            b3 = new BButton(pp,"Split by file",null);
+            //b3 = new BButton(pp,"Split by file",null);
             
             return null;
         }
