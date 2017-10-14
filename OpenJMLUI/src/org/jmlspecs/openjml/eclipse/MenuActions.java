@@ -6,6 +6,9 @@
 package org.jmlspecs.openjml.eclipse;
 
 import java.io.BufferedInputStream;
+
+// FIXME - should these be combined with Commands.
+
 import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.InputStream;
@@ -61,7 +64,10 @@ abstract public class MenuActions extends AbstractHandler {
      * derived classes.
      */
     protected void initInfo(ExecutionEvent event) throws ExecutionException {
-    	window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
+        if (Options.uiverboseness) {
+            Log.log(getClass().getSimpleName() + " action initiated"); //$NON-NLS-1$
+        }
+        window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
     	shell = window.getShell();
     	selection = window.getSelectionService().getSelection();
     }
@@ -77,10 +83,23 @@ abstract public class MenuActions extends AbstractHandler {
     }
 
     /** Called by the system in response to a menu selection (or other command).
-     * This should be overridden for individual menu items.
      */
     @Override
-    abstract public Object execute(ExecutionEvent event);
+    public Object execute(ExecutionEvent event) {
+        try {
+            initInfo(event);
+            action();
+        } catch (Exception e) {
+            report(e);
+        }
+        return null;
+    }
+    
+    public abstract void action();
+    
+    protected void report(Exception e) {
+        utils.topLevelException(shell,this.getClass().getSimpleName(),e);
+    }
 
     /**
 	 * This action enables the JML nature on the selected projects,
@@ -92,17 +111,8 @@ abstract public class MenuActions extends AbstractHandler {
 	static public class EnableJMLNature extends MenuActions {
 	    // This is all done in the UI thread with no progress monitor
 	    @Override
-		public Object execute(ExecutionEvent event) {
-			try {
-				if (Options.uiverboseness) {
-					Log.log("Enable JML action initiated"); //$NON-NLS-1$
-				}
-	    		initInfo(event);
-	            utils.changeJmlNatureSelection(true,selection,window,shell);
-	        } catch (Exception e) {
-	            utils.topLevelException(shell,"MenuActions.EnableJML",e); //$NON-NLS-1$
-			}
-			return null;
+		public void action() {
+	        utils.changeJmlNatureSelection(true,selection,window,shell);
 		}
 	}
 
@@ -115,17 +125,8 @@ abstract public class MenuActions extends AbstractHandler {
 	static public class DisableJMLNature extends MenuActions {
 	    // This is all done in the UI thread with no progress monitor
 	    @Override
-		public Object execute(ExecutionEvent event) {
-			try {
-				if (Options.uiverboseness) {
-					Log.log("Disable JML action initiated"); //$NON-NLS-1$
-				}
-	    		initInfo(event);
-	            utils.changeJmlNatureSelection(false,selection,window,shell);
-	        } catch (Exception e) {
-	            utils.topLevelException(shell,"MenuActions.DisableJML",e); //$NON-NLS-1$
-			}
-			return null;
+        public void action() {
+			utils.changeJmlNatureSelection(false,selection,window,shell);
 		}
 	}
 
@@ -140,18 +141,9 @@ abstract public class MenuActions extends AbstractHandler {
      */
     public static class CheckJML extends MenuActions {
     	@Override
-    	public Object execute(ExecutionEvent event) {
+        public void action() {
     		// For now at least, only IResources are accepted for selection
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("Type-check action initiated"); //$NON-NLS-1$
-    			}
-        		initInfo(event);
-    			utils.checkSelection(selection,window,shell);
-    		} catch (Exception e) {
-    			utils.topLevelException(shell,"MenuActions.CheckJML",e); //$NON-NLS-1$
-    		}
-    		return null;
+    		utils.checkSelection(selection,window,shell);
     	}
     }
 
@@ -165,17 +157,8 @@ abstract public class MenuActions extends AbstractHandler {
      */
     public static class CheckESC extends MenuActions {
     	@Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("ESC action initiated"); //$NON-NLS-1$
-    			}
-        		initInfo(event);
-        		utils.checkESCSelection(selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.CheckESC",e); //$NON-NLS-1$
-    		}
-    		return null;
+        public void action() {
+    		utils.checkESCSelection(selection,window,shell);
     	}
     }
 
@@ -188,17 +171,8 @@ abstract public class MenuActions extends AbstractHandler {
      */
     public static class RAC extends MenuActions {
         @Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("RAC action initiated"); //$NON-NLS-1$
-    			}
-        		initInfo(event);
-                utils.racSelection(selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.RAC",e); //$NON-NLS-1$
-    		}
-    		return null;
+        public void action() {
+    		utils.racSelection(selection,window,shell);
     	}
     }
 
@@ -211,17 +185,8 @@ abstract public class MenuActions extends AbstractHandler {
      */
     public static class RACMarked extends MenuActions {
         @Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("RAC Marked files action initiated"); //$NON-NLS-1$
-    			}
-        		initInfo(event);
-                utils.racMarked(selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.RACMarked",e); //$NON-NLS-1$
-    		}
-    		return null;
+        public void action() {
+    		utils.racMarked(selection,window,shell);
     	}
     }
 
@@ -232,17 +197,8 @@ abstract public class MenuActions extends AbstractHandler {
 	static public class EnableForRAC extends MenuActions {
 	    // This is done in the UI thread. 
 	    @Override
-		public Object execute(ExecutionEvent event) {
-			try {
-				if (Options.uiverboseness) {
-					Log.log("Mark for RAC action initiated"); //$NON-NLS-1$
-				}
-	    		initInfo(event);
-	            utils.racMark(true,selection,window,shell);
-	        } catch (Exception e) {
-	            utils.topLevelException(shell,"MenuActions.EnableForRac",e); //$NON-NLS-1$
-			}
-			return null;
+        public void action() {
+			utils.racMark(true,selection,window,shell);
 		}
 	}
 
@@ -253,17 +209,8 @@ abstract public class MenuActions extends AbstractHandler {
 	static public class DisableForRAC extends MenuActions {
 	    // This is done in the UI thread. 
 	    @Override
-		public Object execute(ExecutionEvent event) {
-			try {
-				if (Options.uiverboseness) {
-					Log.log("Unmark For RAC action initiated"); //$NON-NLS-1$
-				}
-	    		initInfo(event);
-	            utils.racMark(false,selection,window,shell);
-	        } catch (Exception e) {
-	            utils.topLevelException(shell,"MenuActions.DisableForRac",e); //$NON-NLS-1$
-			}
-			return null;
+        public void action() {
+			utils.racMark(false,selection,window,shell);
 		}
 	}
 
@@ -274,17 +221,8 @@ abstract public class MenuActions extends AbstractHandler {
 	static public class ChooseForRAC extends MenuActions {
 	    // This is done in the UI thread. 
 	    @Override
-	    public Object execute(ExecutionEvent event) {
-	        try {
-				if (Options.uiverboseness) {
-					Log.log("Choose For RAC action initiated"); //$NON-NLS-1$
-				}
-	        	initInfo(event);
-	            utils.racChoose(selection,window,shell);
-	        } catch (Exception e) {
-	            utils.topLevelException(shell,"MenuActions.ChooseForRac",e); //$NON-NLS-1$
-	        }
-	        return null;
+        public void action() {
+	        utils.racChoose(selection,window,shell);
 	    }
 	}
 
@@ -295,17 +233,8 @@ abstract public class MenuActions extends AbstractHandler {
 	static public class ClearForRAC extends MenuActions {
 	    // This is done in the UI thread. 
 	    @Override
-	    public Object execute(ExecutionEvent event) {
-	        try {
-				if (Options.uiverboseness) {
-					Log.log("Clear RAC Marks action initiated"); //$NON-NLS-1$
-				}
-	        	initInfo(event);
-	            utils.racClear(selection,window,shell);
-	        } catch (Exception e) {
-	            utils.topLevelException(shell,"MenuActions.ClearForRac",e); //$NON-NLS-1$
-	        }
-	        return null;
+        public void action() {
+	        utils.racClear(selection,window,shell);
 	    }
 	}
 
@@ -318,17 +247,8 @@ abstract public class MenuActions extends AbstractHandler {
      */
     public static class DeleteJMLMarkers extends MenuActions {
     	@Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("Delete Markers action initiated"); //$NON-NLS-1$
-    			}
-        		initInfo(event);
-        		utils.deleteMarkersInSelection(selection,window,shell);
-    		} catch (Exception e) {
-    			utils.topLevelException(shell,"MenuActions.DeleteJMLMarkers",e); //$NON-NLS-1$
-    		}
-    		return null;
+        public void action() {
+    		utils.deleteMarkersInSelection(selection,window,shell);
     	}
     }
 
@@ -338,17 +258,8 @@ abstract public class MenuActions extends AbstractHandler {
 	static public class AddToSpecsPath extends MenuActions {
 	    // This is done in the UI thread. 
 		@Override
-		public Object execute(ExecutionEvent event) {
-			try {
-				if (Options.uiverboseness) {
-					Log.log("Add To Specs Path action initiated"); //$NON-NLS-1$
-				}
-	    		initInfo(event);
-	            utils.addSelectionToSpecsPath(selection,window,shell);
-	        } catch (Exception e) {
-	            utils.topLevelException(shell,"MenuActions.AddToSpecsPath",e); //$NON-NLS-1$
-			}
-			return null;
+        public void action() {
+			utils.addSelectionToSpecsPath(selection,window,shell);
 		}
 	}
 
@@ -358,17 +269,8 @@ abstract public class MenuActions extends AbstractHandler {
 	static public class RemoveFromSpecsPath extends MenuActions {
 	    // This is done in the UI thread. 
 	    @Override
-		public Object execute(ExecutionEvent event) {
-			try {
-				if (Options.uiverboseness) {
-					Log.log("Remove From Specs Path action initiated"); //$NON-NLS-1$
-				}
-	    		initInfo(event);
-	            utils.removeSelectionFromSpecsPath(selection,window,shell);
-	        } catch (Exception e) {
-	            utils.topLevelException(shell,"MenuActions.RemoveFromSpecsPath",e); //$NON-NLS-1$
-			}
-			return null;
+        public void action() {
+			utils.removeSelectionFromSpecsPath(selection,window,shell);
 		}
 	}
 
@@ -378,17 +280,8 @@ abstract public class MenuActions extends AbstractHandler {
 	static public class EditPaths extends MenuActions {
 	    // This is done in the UI thread. 
 	    @Override
-		public Object execute(ExecutionEvent event) {
-			try {
-				if (Options.uiverboseness) {
-					Log.log("Edit Paths action initiated"); //$NON-NLS-1$
-				}
-	    		initInfo(event);
-	            utils.manipulateSpecsPath(selection,window,shell);
-	        } catch (Exception e) {
-	            utils.topLevelException(shell,"MenuActions.SpecsPath",e); //$NON-NLS-1$
-			}
-			return null;
+        public void action() {
+			utils.manipulateSpecsPath(selection,window,shell);
 		}
 	}
 
@@ -399,17 +292,8 @@ abstract public class MenuActions extends AbstractHandler {
 	static public class ShowPaths extends MenuActions {
 	    // This is done in the UI thread. 
 		@Override
-		public Object execute(ExecutionEvent event) {
-			try {
-				if (Options.uiverboseness) {
-					Log.log("Show Paths action initiated"); //$NON-NLS-1$
-				}
-	    		initInfo(event);
-	            utils.showPaths(selection,window,shell);
-	        } catch (Exception e) {
-	            utils.topLevelException(shell,"MenuActions.ShowPaths",e); //$NON-NLS-1$
-			}
-			return null;
+        public void action() {
+			utils.showPaths(selection,window,shell);
 		}
 	}
 
@@ -420,17 +304,8 @@ abstract public class MenuActions extends AbstractHandler {
     static public class SpecsEditor extends MenuActions {
         // This is done in the UI thread.
         @Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("Open Specs Editor action initiated"); //$NON-NLS-1$
-    			}
-        		initInfo(event);
-                utils.openSpecEditorForSelection(selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.SpecsEditor",e); //$NON-NLS-1$
-    		}
-    		return null;
+        public void action() {
+    		utils.openSpecEditorForSelection(selection,window,shell);
     	}
     }
 
@@ -448,17 +323,8 @@ abstract public class MenuActions extends AbstractHandler {
 	    // thread.  However, the display of specs has to wait for that to
 	    // complete in any case.
 	    @Override
-		public Object execute(ExecutionEvent event) {
-			try {
-				if (Options.uiverboseness) {
-					Log.log("Show Specifications action initiated"); //$NON-NLS-1$
-				}
-	    		initInfo(event);
-	            utils.showSpecsForSelection(selection,window,shell);
-	        } catch (Exception e) {
-	            utils.topLevelException(shell,"MenuActions.ShowSpecs",e); //$NON-NLS-1$
-			}
-			return null;
+        public void action() {
+			utils.showSpecsForSelection(selection,window,shell);
 		}
 	}
 
@@ -468,17 +334,8 @@ abstract public class MenuActions extends AbstractHandler {
      */
     static public class ProofInformation extends MenuActions {
         @Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("Show Proof Information action initiated"); //$NON-NLS-1$
-    			}
-        		initInfo(event);
-                utils.showProofInfoForSelection(selection,window,shell,false);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.ShowProofInformation",e); //$NON-NLS-1$
-    		}
-    		return null;
+        public void action() {
+    		utils.showProofInfoForSelection(selection,window,shell,false);
     	}
     }
 
@@ -488,17 +345,8 @@ abstract public class MenuActions extends AbstractHandler {
      */
     static public class DetailedProofInformation extends MenuActions {
         @Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("Show Proof Information action initiated"); //$NON-NLS-1$
-    			}
-        		initInfo(event);
-                utils.showProofInfoForSelection(selection,window,shell,true);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.DetailedShowProofInformation",e); //$NON-NLS-1$
-    		}
-    		return null;
+        public void action() {
+    		utils.showProofInfoForSelection(selection,window,shell,true);
     	}
     }
 
@@ -509,17 +357,8 @@ abstract public class MenuActions extends AbstractHandler {
     static public class ShowCounterexampleValue extends MenuActions {
         // This is not done in the UI thread. // FIXME - check all statements about UI thread 
         @Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("Show Counterexample action initiated"); //$NON-NLS-1$
-    			}
-        		initInfo(event);
-                utils.showCEValueForTextSelection(selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.ShowCounterexampleValue",e); //$NON-NLS-1$
-    		}
-    		return null;
+        public void action() {
+    		utils.showCEValueForTextSelection(selection,window,shell);
     	}
     }
 
@@ -530,9 +369,8 @@ abstract public class MenuActions extends AbstractHandler {
     static public class ShowProofView extends MenuActions {
         // This is done in the UI thread. // FIXME - check all statements about UI thread 
         @Override
-    	public Object execute(ExecutionEvent event) {
-    		utils.refreshView();
-    		return null;
+        public void action() {
+            utils.showCEValueForTextSelection(selection,window,shell);
     	}
     }
 
@@ -546,35 +384,21 @@ abstract public class MenuActions extends AbstractHandler {
         // except for the actual creating of the specs path folders, // FIXME - this comment is not correct; function not yet implemented
         // since for some reason that can take a long time
         @Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("JMLdoc action initiated"); //$NON-NLS-1$
-    			}
-        		initInfo(event);
-        		utils.showMessageInUI(shell, "OpenJML - Not Yet Implemented", //$NON-NLS-1$
+        public void action() {
+    		utils.showMessageInUI(shell, "OpenJML - Not Yet Implemented", //$NON-NLS-1$
         				"jmldoc is not yet implemented"); //$NON-NLS-1$
-                if (false) utils.jmldocSelection(selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.JmlDoc",e); //$NON-NLS-1$
-    		}
-    		return null;
+            if (false) utils.jmldocSelection(selection,window,shell);
     	}
     }
 
-	static public class CreateJmlTemplate extends Commands {
+	static public class CreateJmlTemplate extends MenuActions {
 	    // This is all done in the UI thread with no progress monitor
 	    @Override
-		public Object execute(ExecutionEvent event) {
-			try {
-				if (true || Options.uiverboseness) {
-					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
-				}
-	    		initInfo(event);
+        public void action() {
 	    		utils.showMessageInUI(shell, "OpenJML", "This operation is not yet implemented");
 	            ITextSelection selected = utils.getSelectedText(selection);
 	            String text = selected.getText();
-	            if (text.length() == 0) return null;
+	            if (text.length() == 0) return ;
 				IEditorPart p = window.getActivePage().getActiveEditor();
 				IEditorInput e = p == null ? null : p.getEditorInput();
 				IFile o = e == null ? null : (IFile) e.getAdapter(IFile.class);
@@ -641,15 +465,13 @@ abstract public class MenuActions extends AbstractHandler {
 				sb.append(Strings.eol);
 				sb.append("}" + Strings.eol);
 				
+				try {
 				FileWriter fw = new FileWriter(filepath);
 				fw.write(sb.toString());
 				fw.close();
-	        } catch (Exception e) {
-	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);
-			}
-			return null;
+				} catch (java.io.IOException ee) {
+				    throw new RuntimeException(ee);
+				}
 		}
 	}
-
-
 }
