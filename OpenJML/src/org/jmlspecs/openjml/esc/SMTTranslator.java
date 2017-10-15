@@ -2366,7 +2366,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     @Override 
     public void visitLambda(JCTree.JCLambda that) {
-        String s = "|" + that.toString().replace('|', '#') + "|";
+        String s = "|" + that.toString().replace('|', '#').replace("\r", "").replace('\n', ' ') + "|";
         ISymbol sym = F.symbol(s);
         functionSymbols.add(sym);
         addConstant(sym, refSort, that);
