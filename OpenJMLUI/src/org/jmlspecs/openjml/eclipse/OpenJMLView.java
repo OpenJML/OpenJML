@@ -1,5 +1,7 @@
 package org.jmlspecs.openjml.eclipse;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
@@ -251,8 +253,22 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	IProverResult result = results.get(key);
     	Symbol sym = result.methodSymbol();
     	
-    	PackageSymbol p = sym.packge();
-    	String pname = p.getQualifiedName().toString();
+    	String pname, scname, cname;
+    	Symbol classSym = null;
+    	if (sym != null) {
+    		PackageSymbol p = sym.packge();
+    		pname = p.getQualifiedName().toString();
+        	classSym = sym.owner;
+        	scname = iface.keyForSym(classSym);
+        	cname = classSym.getSimpleName().toString();
+    	} else {
+    		int k = key.indexOf('(');
+    		k = key.lastIndexOf('.',k);
+    		scname = key.substring(0,k);
+    		int kk = key.lastIndexOf('.',k-1);
+    		cname = key.substring(kk+1,k);
+    		pname = key.substring(0, kk);
+    	}
     	if (pname.isEmpty()) pname = "<default package>";
     	TreeItem ti = treeitems.get(pname);
     	if (ti == null) {
@@ -262,9 +278,6 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     		treeitems.put(pname, ti);
     	}
 
-    	Symbol classSym = sym.owner;
-    	String scname = iface.keyForSym(classSym);
-    	String cname = classSym.getSimpleName().toString();
     	TreeItem tii = treeitems.get(scname);
     	if (tii == null) {
     		int index = where(ti,scname);
@@ -275,13 +288,13 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     			Info iteminfo = new Info();
     			iteminfo.key = scname;
     			iteminfo.proofResult = null;
-    			iteminfo.javaElement = iface.convertType((Symbol.ClassSymbol)classSym);
-    			iteminfo.signature = classSym.getSimpleName().toString();
+    			iteminfo.javaElement = sym == null ? null : iface.convertType((Symbol.ClassSymbol)classSym);
+    			iteminfo.signature = sym == null ? cname : classSym.getSimpleName().toString();
     			tii.setData(iteminfo);
     		}
     	}
 
-    	String text = sym.toString();
+    	String text = sym == null ? key : sym.toString();
     	TreeItem tiii = treeitems.get(key);
     	boolean tiii_isNew = tiii == null;
     	Color oldColor =null;
@@ -307,7 +320,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     		Info iteminfo = new Info();
     		iteminfo.key = key;
     		iteminfo.proofResult = result;
-    		iteminfo.javaElement = iface.convertMethod((MethodSymbol)sym);
+    		if (sym != null) iteminfo.javaElement = iface.convertMethod((MethodSymbol)sym);
     		iteminfo.signature = key;
     		tiii.setData(iteminfo);
     	}
@@ -531,6 +544,38 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     		return brief.toString();
     	} catch (IOException e) {
     		return null;
+    	}
+    }
+    
+    static public void importProofResults(/*@ nullable */FileReader input) {
+    	try ( BufferedReader br = new BufferedReader(input)){
+    		final OpenJMLView view = Utils.findView();
+    		if (view == null) return ;
+    		if (input == null && view.currentProject == null) return ;
+    		OpenJMLInterface iface = Activator.utils().getInterface(view.currentProject);
+    		Map<String,IProverResult> proofResults = iface.getProofResults();
+    		String line = null;
+    		String unknowns = "";
+    		while ((line = br.readLine()) != null) {
+    			String[] tokens = line.trim().split("[ ]+");
+    			String t = tokens[0].replace("[","").replace("]","");
+    			IProverResult pr;
+    			switch (t) {
+    			case "VALID": proofResults.put(tokens[2], new ProverResult(null,IProverResult.UNSAT,null)); break;
+    			case "INVALID": proofResults.put(tokens[2], new ProverResult(null,IProverResult.SAT,null)); break;
+    			case "TIMEOUT": proofResults.put(tokens[1], new ProverResult(null,IProverResult.TIMEOUT,null)); break;
+    			case "SKIPPED": proofResults.put(tokens[1], new ProverResult(null,IProverResult.SKIPPED,null)); break;
+    			case "ERROR": proofResults.put(tokens[1], new ProverResult(null,IProverResult.ERROR,null)); break;
+    			case "RUNNING": proofResults.put(tokens[1], new ProverResult(null,IProverResult.RUNNING,null)); break;
+    			case "CANCELLED": proofResults.put(tokens[1], new ProverResult(null,IProverResult.CANCELLED,null)); break;
+    			case "INFEASIBLE": proofResults.put(tokens[1], new ProverResult(null,IProverResult.INFEASIBLE,null)); break;
+//    			default:
+//    				unknowns = unknowns + " " + tokens[0];
+    			}
+    		}
+			view.refresh();
+    	} catch (IOException e) {
+    		return ;
     	}
     }
     

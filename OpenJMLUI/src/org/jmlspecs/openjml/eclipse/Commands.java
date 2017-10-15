@@ -6,6 +6,7 @@
 package org.jmlspecs.openjml.eclipse;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.Arrays;
 
@@ -167,6 +168,19 @@ abstract public class Commands extends AbstractHandler {
 			try (FileWriter fw = new FileWriter(new File(System.getProperty("user.home") + "/resultsOutput"))) {
 	    		initInfo(event);
 		    	OpenJMLView.exportProofResults(fw);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);
+			}
+			return null;
+		}
+	}
+
+	static public class ImportProofResults extends Commands {
+	    @Override
+		public Object execute(ExecutionEvent event) {
+			try (FileReader fw = new FileReader(new File(System.getProperty("user.home") + "/resultsOutput"))) {
+	    		initInfo(event);
+		    	OpenJMLView.importProofResults(fw);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);
 			}

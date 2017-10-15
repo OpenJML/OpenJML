@@ -507,6 +507,12 @@
                > 
          </command>
          <command
+               label="Import Results"
+               id="org.openjml.proofview.ImportProofResults"
+               commandId="org.openjml.commands.ImportProofResults"
+               > 
+         </command>
+         <command
                label="Clear All Results"
                id="org.openjml.proofview.ClearAllProofResults"
                commandId="org.openjml.commands.ClearAllProofResults"
@@ -1266,6 +1272,14 @@
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.openjml.commands.ExportProofResults"
             defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ExportProofResults"
+            >
+      </command>
+      <command
+            name="Import Proof Results"
+            description="Imports proof results from a file"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.ImportProofResults"
+            defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ImportProofResults"
             >
       </command>
       <command

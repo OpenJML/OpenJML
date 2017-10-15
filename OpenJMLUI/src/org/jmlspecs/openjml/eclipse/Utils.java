@@ -414,7 +414,7 @@ public class Utils {
             Combo c = queues = new Combo(p,SWT.DROP_DOWN|SWT.READ_ONLY);
             c.setItems(new String[]{"1","2","3","4","5","6","7","8","9"});
             c.select(procs-1);
-            c.addSelectionListener(new SelectionAdapter() { public void widgetSelected(SelectionEvent event) { jp.queues = ((Combo)event.item).getSelectionIndex()+1; }});
+            c.addSelectionListener(new SelectionAdapter() { public void widgetSelected(SelectionEvent event) { jp.queues = ((Combo)event.widget).getSelectionIndex()+1; }});
             new Label(parent,SWT.NONE).setText("What job scheduling policy should be used? ");
             Composite pp = new Composite(parent,SWT.NONE);
             pp.setLayout(new GridLayout(1,true));
