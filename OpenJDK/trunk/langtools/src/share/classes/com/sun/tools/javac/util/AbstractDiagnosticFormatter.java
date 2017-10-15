@@ -218,7 +218,6 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
     }
     //where
             private String expr2String(JCExpression tree) {
-                if (tree.getTag() == null) return Pretty.toSimpleString(tree); // DRC - to accomodate JML
                 switch(tree.getTag()) {
                     case PARENS:
                         return expr2String(((JCParens)tree).expr);
@@ -229,7 +228,7 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
                     default:
 //                        Assert.error("unexpected tree kind " + tree.getKind());
 //                        return null;
-                        return Pretty.toSimpleString(tree); // DRC - use this instead of the above
+                        return Pretty.toSimpleString(tree); // OPENJML - check if this was added?
                 }
             }
 

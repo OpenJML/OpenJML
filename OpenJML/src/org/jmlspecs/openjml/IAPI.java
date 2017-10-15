@@ -67,7 +67,7 @@ public interface IAPI {
         
         /** Called by the subscribed object when a diagnostic report is made */
         @Override
-        public abstract boolean report(int ticks, int level, String message);
+        public abstract boolean report(int level, String message);
 
         // FIXME - can we get rid of this? in the meantime, it must be called to set the context to match that of the compilation context being listened to
         @Override

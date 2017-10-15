@@ -42,22 +42,31 @@ public class SFBugs extends EscBase {
 	public void helpTCF(String sourceDirname, String outDir, String ... opts) {
     	//Assert.fail(); // FIXME - Java8 - long running
 	    ArrayList<String> list = new ArrayList<String>();
-	    list.addAll(Arrays.asList(opts));
 	    list.add("-code-math=bigint");
 	    list.add("-spec-math=bigint");
+        list.addAll(Arrays.asList(opts));
 		escOnFiles(sourceDirname,outDir,list.toArray(opts));
 	}
 
-	public void helpTCG(String ... opts) {
-		String dir = "test/" + getMethodName(1);
-		List<String> a = new LinkedList<>();
-		a.add(0,"-cp"); 
-		a.add(1,dir);
+    public void helpTCG(String ... opts) {
+        String dir = "test/" + getMethodName(1);
+        List<String> a = new LinkedList<>();
+        a.add(0,"-cp"); 
+        a.add(1,dir);
         a.add("-code-math=bigint");
         a.add("-spec-math=bigint");
-		a.addAll(Arrays.asList(opts));
-		escOnFiles(dir, dir, a.toArray(new String[a.size()]));
-	}
+        a.addAll(Arrays.asList(opts));
+        escOnFiles(dir, dir, a.toArray(new String[a.size()]));
+    }
+
+    public void helpTCGNoOptions(String ... opts) {
+        String dir = "test/" + getMethodName(1);
+        List<String> a = new LinkedList<>();
+        a.add(0,"-cp"); 
+        a.add(1,dir);
+        a.addAll(Arrays.asList(opts));
+        escOnFiles(dir, dir, a.toArray(new String[a.size()]));
+    }
 
 
 
@@ -224,7 +233,7 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug463() {
     	expectedExit = 0;
-        helpTCF("test/gitbug463","test/gitbug463", "-cp", "test/gitbug463","-purityCheck");
+        helpTCF("test/gitbug463","test/gitbug463", "-cp", "test/gitbug463");
     }
     
     @Test public void gitbug463a() {
@@ -371,6 +380,10 @@ public class SFBugs extends EscBase {
     
 
 
+    @Test public void gitbug528() {
+        helpTCG("-strictJML","-check");  // Just checking
+    }
+
     @Test public void gitbug529() {
         helpTCG("-rac");  // Just RAC compilation  // FIXME - try running also
     }
@@ -392,7 +405,7 @@ public class SFBugs extends EscBase {
     @Ignore // FIXME - timeout
     @Test public void gitbug481b() {
     	expectedExit = 0;
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481b", "-cp", "test/gitbug481b","-method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry");
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481b", "-cp", "test/gitbug481b","-method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry","-no-staticInitWarning");
     }
 
     static String p = "org.apache.commons.math3.linear.ArrayFieldVector.";
@@ -410,55 +423,55 @@ public class SFBugs extends EscBase {
     static String all = m1+";"+m2+";"+m3+";"+m4+";"+m5+";"+m6+";"+m7+";"+m8+";"+m9+";"+m10;
     
     @Test public void gitbug481a1() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a1", "-cp", "test/gitbug481b","-method="+m1);
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a1", "-cp", "test/gitbug481b","-method="+m1,"-no-staticInitWarning");
     }
 
     @Test public void gitbug481a2() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a2", "-cp", "test/gitbug481b","-method="+m2);
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a2", "-cp", "test/gitbug481b","-method="+m2,"-no-staticInitWarning");
     }
 
     @Test public void gitbug481a3() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a3", "-cp", "test/gitbug481b","-method="+m3);
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a3", "-cp", "test/gitbug481b","-method="+m3,"-no-staticInitWarning");
     }
 
     @Ignore // FIXME - timeout
     @Test public void gitbug481a4() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a4", "-cp", "test/gitbug481b","-method="+m4);
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a4", "-cp", "test/gitbug481b","-method="+m4,"-no-staticInitWarning");
     }
 
     @Ignore // FIXME - timeout
     @Test public void gitbug481a5() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a5", "-cp", "test/gitbug481b","-method="+m5);
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a5", "-cp", "test/gitbug481b","-method="+m5,"-no-staticInitWarning");
     }
 
     @Ignore // FIXME - timeout
     @Test public void gitbug481a6() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a6", "-cp", "test/gitbug481b","-method="+m6);
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a6", "-cp", "test/gitbug481b","-method="+m6,"-no-staticInitWarning");
     }
 
     @Ignore // FIXME - timeout
     @Test public void gitbug481a7() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a7", "-cp", "test/gitbug481b","-method="+m7);
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a7", "-cp", "test/gitbug481b","-method="+m7,"-no-staticInitWarning");
     }
 
     @Test public void gitbug481a8() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a8", "-cp", "test/gitbug481b","-method="+m8);
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a8", "-cp", "test/gitbug481b","-method="+m8,"-no-staticInitWarning");
     }
 
     @Ignore // FIXME - timeout
     @Test public void gitbug481a9() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a9", "-cp", "test/gitbug481b","-method="+m9);
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a9", "-cp", "test/gitbug481b","-method="+m9,"-no-staticInitWarning");
     }
 
     @Ignore // FIXME - timeout
     @Test public void gitbug481a10() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a10", "-cp", "test/gitbug481b","-method="+m10);
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a10", "-cp", "test/gitbug481b","-method="+m10,"-no-staticInitWarning");
     }
 
     @Ignore // FIXME - timeout
     @Test public void gitbug481arest() {
     	expectedExit = 1;
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a", "-cp", "test/gitbug481b","-exclude="+all);
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a", "-cp", "test/gitbug481b","-exclude="+all,"-no-staticInitWarning");
     }
 
     @Test public void gitbug482() {
@@ -506,13 +519,89 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
-     public void gitbug888() {
+    @Test public void gitbug567() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test public void gitbug567a() {
+        expectedExit = 0;
+        helpTCF("test/gitbug567","test/gitbug567a","-code-math=java");
+    }
+    
+    @Test public void gitbug567b() {
+        expectedExit = 0;
+        helpTCF("test/gitbug567","test/gitbug567b","-code-math=safe");
+    }
+    
+    @Test public void gitbug567c() {
+        expectedExit = 0;
+        helpTCF("test/gitbug567","test/gitbug567c","-code-math=bigint");
+    }
+    
+    @Test public void gitbug572() {
+        expectedExit = 1;
+        helpTCG();
+    }
+    
+    // The .jml file is on the command-line, which caused a crash, now fixed
+    @Test public void gitbug573() {
+        expectedExit = 0;
+        helpTCF("test/gitbug573/pckg/A.jml","test/gitbug573","-sourcepath","test/gitbug573");
+    }
+    
+    @Test public void gitbug573a() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    // Here .jml is on the command-line, but the .java does not exist
+    @Test public void gitbug573b() {
+        expectedExit = 1;
+        helpTCF("test/gitbug573b/pckg/A.jml","test/gitbug573b","-sourcepath","test/gitbug573b");
+    }
+    
+    @Test public void gitbug573c() {
+        expectedExit = 1;
+        helpTCF("test/gitbug573c/java/lang/Integer.jml","test/gitbug573c","-sourcepath","test/gitbug573c","-no-internalSpecs");
+    }
+    
+    @Test public void gitbug574() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test public void gitbug575() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test public void gitbug578() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test public void gitbug580() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    public void gitbug888() {
     	expectedExit = 0;
         helpTCG();
     }
+    
+    @Test
     public void gitbug999() {
     	expectedExit = 0;
         helpTCG();
     }
+    
+    @Test
+    public void rise4fun() {
+        expectedExit = 0;
+        helpTCGNoOptions();
+    }
+
 }
 

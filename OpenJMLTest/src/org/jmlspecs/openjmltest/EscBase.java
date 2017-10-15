@@ -176,7 +176,7 @@ public abstract class EscBase extends JmlTestCase {
         main.addOptions("-escExitInfo","-no-purityCheck");
 //        main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");
-        main.addUncheckedOption("openjml.defaultProver=z3_4_4");
+        main.addUncheckedOption("openjml.defaultProver=z3_4_3");
         addOptions(options);
         if (solver != null) main.addOptions(JmlOption.PROVER.optionName(),solver);
         specs = JmlSpecs.instance(context);
@@ -217,7 +217,7 @@ public abstract class EscBase extends JmlTestCase {
     			System.out.println(diffs);
     			fail("Files differ: " + diffs);
     		}  
-    		if (ex != expectedExit) fail("Compile ended with exit code " + ex);
+    		if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex);
     		new File(actCompile).delete();
 
     	} catch (Exception e) {
@@ -275,7 +275,7 @@ public abstract class EscBase extends JmlTestCase {
 
     protected void helpTCX(String classname, String s, Object... list) {
         try {
-            String filename = classname.replace(".","/")+".java";
+            String filename = classname.replace(".","/") +".java";  // FIXME - I think this string should be prefixed with $A/ 
             JavaFileObject f = new TestJavaFileObject(filename,s);
             Log.instance(context).useSource(f);
             helpTCXB(List.of(f),list);
@@ -376,7 +376,8 @@ public abstract class EscBase extends JmlTestCase {
         	return false;
         }
         String act = noSource(collector.getDiagnostics().get(j));
-        String exp = list[i].toString().replace("$SPECS", specsdir);
+        String exp = null;
+        if (list[i] != null) exp = list[i].toString().replace("$SPECS", specsdir);
         long actualColumn = -1;
         if (!exp.equals(act) 
                 && !exp.replace('\\','/').equals(act.replace('\\','/'))) {

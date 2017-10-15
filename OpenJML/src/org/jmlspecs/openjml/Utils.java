@@ -765,7 +765,7 @@ public class Utils {
      * if checking the visibility, say of a clause.
      */
     public boolean jmlvisible(/*@ nullable */ Symbol s, Symbol base, Symbol parent, long flags, long methodFlags) {
-        if (!visible(base,parent,flags)) return false;  // FIXME - this looks backwards - if it is Java-visible, then it ought to be JML visible???
+        if (visible(base,parent,flags)) return true;
         
         // In JML the clause must be at least as visible to clients as the method
         flags &= Flags.AccessFlags;
@@ -994,7 +994,8 @@ public class Utils {
      */
     public void progress(int ticks, int level, String message) {
         org.jmlspecs.openjml.Main.IProgressListener pr = context.get(org.jmlspecs.openjml.Main.IProgressListener.class);
-        boolean cancelled = pr == null ? false : pr.report(ticks,level,message);
+        boolean cancelled = pr == null ? false : pr.report(level,message);
+        if (pr != null && ticks != 0) pr.worked(ticks);
         if (cancelled) {
             throw new PropagatedException(new Main.JmlCanceledException("ESC operation cancelled"));
         }

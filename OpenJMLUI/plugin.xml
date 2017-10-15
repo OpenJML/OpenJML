@@ -507,6 +507,12 @@
                > 
          </command>
          <command
+               label="Import Results"
+               id="org.openjml.proofview.ImportProofResults"
+               commandId="org.openjml.commands.ImportProofResults"
+               > 
+         </command>
+         <command
                label="Clear All Results"
                id="org.openjml.proofview.ClearAllProofResults"
                commandId="org.openjml.commands.ClearAllProofResults"
@@ -621,6 +627,11 @@
                tooltip="Generates javadoc pages containing JML specifications"
                id="org.jmlspecs.openjml.eclipse.MenuActions.JmlDoc"
                commandId="org.jmlspecs.eclipse.commands.JmlDoc">
+             </command>
+             <command
+               label="%openjml.ui.command.createJML"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.CreateJML"
+               commandId="org.jmlspecs.eclipse.commands.CreateJML">
              </command>
              
              <separator name="org.jmlspecs.openjml.paths" visible="true"/>
@@ -1040,6 +1051,14 @@
             >
       </command>
       <command
+            name="%openjml.ui.command.createJML"
+            description="%openjml.ui.command.createJML.description"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.CreateJmlTemplate"
+            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActionsCreateJmlTemplate"
+            >
+      </command>
+      <command
             name="%openjml.ui.command.ESC"
             description="%openjml.ui.command.ESC.description"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
@@ -1253,6 +1272,14 @@
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.openjml.commands.ExportProofResults"
             defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ExportProofResults"
+            >
+      </command>
+      <command
+            name="Import Proof Results"
+            description="Imports proof results from a file"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.ImportProofResults"
+            defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ImportProofResults"
             >
       </command>
       <command

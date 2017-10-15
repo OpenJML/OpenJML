@@ -73,6 +73,9 @@ public class Strings {
     /** The fully-qualified name of the Pure annotation */
     static public final String pureAnnotation = jmlAnnotationPackage + ".Pure"; //$NON-NLS-1$
     
+    /** The fully-qualified name of the Query annotation */
+    static public final String queryAnnotation = jmlAnnotationPackage + ".Query"; //$NON-NLS-1$
+    
     /** The fully-qualified name of the Function annotation */
     static public final String functionAnnotation = jmlAnnotationPackage + ".Function"; //$NON-NLS-1$
     

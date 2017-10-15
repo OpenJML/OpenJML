@@ -24,6 +24,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type.ClassType;
+import com.sun.tools.javac.code.Type.IntersectionClassType;
 import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.comp.AttrContext;
@@ -239,9 +240,13 @@ public class JmlTreeUtils {
      * the nodes are assumed to reference the same source file. */
     public void copyEndPosition(JCTree newnode, JCTree srcnode) {
         EndPosTable z = log.currentSource().getEndPosTable();
+        try {
         if (z != null) {
         	int end = srcnode.getEndPosition(z);
         	z.storeEnd(newnode, end);
+        }
+        } catch (StackOverflowError e) {
+            System.out.println();
         }
     }
 
@@ -440,6 +445,13 @@ public class JmlTreeUtils {
         return r;
     }
 
+    public JCLiteral makeBooleanLiteral(DiagnosticPosition pos, boolean value) {
+        int v = value?1:0;
+        JCLiteral r = factory.at(pos).Literal(TypeTag.BOOLEAN,v);
+        r.type = syms.booleanType.constType(v);
+        return r;
+    }
+
     /** Makes a constant String literal AST node.
      * @param pos the position to use for the node
      * @param value the String value of the constant node
@@ -456,17 +468,18 @@ public class JmlTreeUtils {
      * @return the AST node
      */ 
     public JCLiteral makeZeroEquivalentLit(int pos, Type type) {
-//        if (type == types.BIGINT) {
-//            return makeLit(pos,type,0);
-//           
-//        } else if (type == types.REAL) {
-//            return makeLit(pos,type,0.0);
-//            
-//        } else if (type == types.TYPE) {
-//            // FIXME - ???
-//            return makeNullLiteral(pos);
-//            
-//        } else {
+        if (type == types.BIGINT) {
+            return makeLit(pos,syms.intType,0);
+           
+        } else if (type == types.REAL) {
+            return makeLit(pos,syms.doubleType,0.0);
+            
+        } else if (type == types.TYPE) {
+            log.error(pos, "jml.message","old clause is not implemented for \\TYPE variables");
+            // FIXME - ???
+            return null;//makeTypelc(null);  // FIXME _ should have a pos argument
+            
+        } else {
         switch (type.getTag()) {
             case CHAR:
                 return makeLit(pos,type,0); // Character literal requires an int value
@@ -489,7 +502,7 @@ public class JmlTreeUtils {
             default:
                 return makeNullLiteral(pos);
         }
-//        }
+        }
     }
 
     // FIXME - the following method appears to be misnamed
@@ -729,6 +742,16 @@ public class JmlTreeUtils {
     public JCExpression makeNot(int pos, JCExpression arg) {
         return makeUnary(pos,JCTree.Tag.NOT,arg);
     }
+    public JCExpression makeNotSimp(DiagnosticPosition pos, JCExpression arg) {
+        if (isTrueLit(arg)) return makeBooleanLiteral(pos,false);
+        else if (isFalseLit(arg)) return makeBooleanLiteral(pos,true);
+        else return makeUnary(pos,JCTree.Tag.NOT,arg);
+    }
+    public JCExpression makeNotSimp(int pos, JCExpression arg) {
+        if (isTrueLit(arg)) return makeBooleanLiteral(pos,false);
+        else if (isFalseLit(arg)) return makeBooleanLiteral(pos,true);
+        else return makeUnary(pos,JCTree.Tag.NOT,arg);
+    }
 
     /** Make an attributed binary expression.
      *  @param pos      The pseudo-position at which to place the node
@@ -863,6 +886,15 @@ public class JmlTreeUtils {
 
     /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
     public JCExpression makeImplies(int pos, JCExpression lhs, JCExpression rhs) {
+        return makeBinary(pos,JCTree.Tag.OR,orSymbol,
+                makeNot(pos,lhs), rhs);
+    }
+
+    /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
+    public JCExpression makeImpliesSimp(int pos, JCExpression lhs, JCExpression rhs) {
+        if (isTrueLit(lhs) || isTrueLit(rhs)) return rhs;
+        else if (isFalseLit(lhs)) return makeBooleanLiteral(pos,true);
+        else if (isTrueLit(rhs)) return makeNot(pos,lhs);
         return makeBinary(pos,JCTree.Tag.OR,orSymbol,
                 makeNot(pos,lhs), rhs);
     }
@@ -1242,6 +1274,10 @@ public class JmlTreeUtils {
     /** Returns the AST for ( \typeof(id) == \type(type) && id instanceof 'erasure of type') */
     public JCExpression makeDynamicTypeEquality(DiagnosticPosition pos, JCExpression id, Type type) {
         int p = pos.getPreferredPosition();
+        // FIXME - this does not handle intersection types
+        if (type instanceof IntersectionClassType) {
+//            log.warning(pos,  "jml.message", "Intersection type not handled: " + type.toString());
+        }
         
         JCExpression lhs = makeTypeof(id);
         JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(JmlTokenKind.BSTYPELC,makeType(p,type));
@@ -1285,6 +1321,17 @@ public class JmlTreeUtils {
     
     /** Returns the AST for \typeof(id) <: \type(type) && id instanceof 'erasure of type' */
     public JCExpression makeNonNullDynamicTypeInEquality(DiagnosticPosition pos, JCExpression id, Type type) {
+        if (type instanceof IntersectionClassType) {
+            IntersectionClassType itype = (IntersectionClassType)type;
+            List<Type> ecomp = itype.getExplicitComponents();
+            //List<Type> comp = itype.getComponents();// FIXME - not sure how this is different than the above
+            JCExpression ee = trueLit;
+            for (Type ictype: ecomp) {
+                JCExpression e = makeNonNullDynamicTypeInEquality(pos, id, ictype);
+                ee = makeAndSimp(pos.getPreferredPosition(), ee,e);
+            }
+            return ee;
+        }
         int p = pos.getPreferredPosition();
         if (type.getKind().isPrimitive()) return trueLit;
         JCExpression lhs = makeTypeof(id); // FIXME - copy?

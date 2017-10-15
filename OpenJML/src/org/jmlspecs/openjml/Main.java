@@ -166,7 +166,8 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     public static interface IProgressListener {
         void setContext(Context context);
-        boolean report(int ticks, int level, String message);
+        boolean report(int level, String message);
+        void worked(int ticks);
     }
     
     /** The compilation Context only allows one instance to be registered for
@@ -182,11 +183,14 @@ public class Main extends com.sun.tools.javac.main.Main {
         /** The delegate to which this class passes reports. */
         private IProgressListener delegate;
         /** The callback that is called when the application has progress to report */
-        public boolean report(int ticks, int level, String message) {
-            if (delegate != null) return delegate.report(ticks,level,message);
+        public boolean report(int level, String message) {
+            if (delegate != null) return delegate.report(level,message);
             return false;
         }
         
+        public void worked(int ticks) {
+            if (delegate != null) delegate.worked(ticks);
+        }
         /** Returns true if there is a listener. */
         @Pure
         public boolean hasDelegate() { return delegate != null; }
@@ -219,13 +223,16 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         
         @Override
-        public boolean report(int ticks, int level, String message) {
+        public boolean report(int level, String message) {
             if (level <= 1 || (context != null && Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE)) {
                 pw.println(message);
                 pw.flush();
             }
             return false;
         }
+        
+        @Override
+        public void worked(int ticks) {}
 
         @Override
         public void setContext(Context context) { this.context = context; }

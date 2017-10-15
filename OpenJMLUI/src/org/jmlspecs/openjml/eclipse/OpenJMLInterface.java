@@ -365,13 +365,13 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     }
 
     /** Executes the JML ESC (static checking) operation
-     * on the given set of resources. Must be called in a computational thread.
+     * on the given set of resources; launches computational threads.
      * @param command should be ESC
      * @param things the set of files (or containers) or Java elements to check
      * @param monitor the progress monitor the UI is using
      */
     // TODO - Review this
-    public void executeESCCommand(Main.Cmd command, List<?> things, IProgressMonitor monitor) {
+    public void executeESCCommand(Main.Cmd command, List<?> things, IProgressMonitor monitor, String description) {
         try {
         	Date start = new Date();
             if (things.isEmpty()) {
@@ -394,45 +394,25 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             List<IJavaElement> elements = new LinkedList<IJavaElement>();
             
             IResource rr;
-            int count = 0;
-    		utils.refreshView(); // Sets up the view - then each result is added incrementally
-            for (Object r: things) {
-            	try {
-            		if (r instanceof IPackageFragment) {
-            			count += utils.countMethods((IPackageFragment)r);
-            		} else if (r instanceof IJavaProject) {
-            			count += utils.countMethods((IJavaProject)r);
-            		} else if (r instanceof IProject) {
-            			count += utils.countMethods((IProject)r);
-            		} else if (r instanceof IPackageFragmentRoot) {
-            			count += utils.countMethods((IPackageFragmentRoot)r);
-            		} else if (r instanceof ICompilationUnit) {
-            			count += utils.countMethods((ICompilationUnit)r);
-            		} else if (r instanceof IType) {
-            			count += utils.countMethods((IType)r);
-                    } else if (r instanceof IMethod) {
-                        count += 1;
-                    } else if (r instanceof IFile || r instanceof IFolder) {
-                        // If a file is not part of a source folder, then we
-                        // don't have Java elements and it is not a ICompilationUnit
-                        // So we can't really count the methods in it.
-                        // The number used here is arbitrary, and will result in
-                        // a bad estimate of the work to be done. 
-                        // TODO - count the methods using the OpenJML AST.
-                        count += 2;
-            		} else {
-            			Log.log("Can't count methods in a " + r.getClass());
-            		}
-            	} catch (Exception e) {
-            		// FIXME - record exception
-            	}
-            }
+            utils.refreshView(); // Sets up the view - then each result is added incrementally
+    		int count = utils.countMethods(things);
             final int oldArgsSize = args.size();
             for (Object r: things) { 
             	// an IType is adaptable to an IResource (the containing file), but we want it left as an IType
                 if (!(r instanceof IType) && r instanceof IAdaptable 
                 		&& (rr=(IResource)((IAdaptable)r).getAdapter(IResource.class)) != null) {
-                	r = rr;
+                	if (r instanceof IPackageFragment && ((IPackageFragment)r).isDefaultPackage()) {
+                	    // Do not add subdirectories
+                	    try {
+                	    for (IResource rrr: ((IFolder)rr).members(IResource.NONE)) {
+                	        if (rrr instanceof IFile && ((IFile)rrr).getFileExtension().equals("java")) {
+                	            args.add(((IResource)rrr).getLocation().toString());
+                	        }
+                	    }
+                	    } catch (CoreException e) {} // FIXME - log an error
+                	    continue;
+                	}
+                    r = rr;
                 }
                 if (r instanceof IFolder) {
                 	if (hasAtLeastOneSourceFile((IFolder) r)) {
@@ -460,7 +440,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             }
             
             if (monitor != null) {
-            	monitor.beginTask("Static checks in project " + jproject.getElementName(),  2*count); // ticks at begin and end of check
+            	monitor.beginTask(description,  count); // 1 tick for each completion
             	monitor.subTask("Starting ESC on " + jproject.getElementName());
             }
 
@@ -1075,7 +1055,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
          */
         //@ ensures not_assigned(this.*);
         @Override
-        public boolean report(final int ticks, final int level, final String message) {
+        public boolean report(final int level, final String message) {
             Display d = shell == null ? Display.getDefault() : shell.getDisplay();
             String summary = OpenJMLView.exportProofResults(null);
             final String message2 = summary == null ? message : (summary + Strings.eol + message);
@@ -1084,7 +1064,6 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                 public void run() {
                     if (monitor != null) {
                     	if (level <= 1) monitor.subTask(message2);
-                    	monitor.worked(ticks);
                     }
                     Log.log(message);
                 }
@@ -1096,6 +1075,11 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
 //            	//throw new PropagatedException(new Main.JmlCanceledException("Operation cancelled")); //$NON-NLS-1$
 //            }
             return cancel;
+        }
+        
+        @Override
+        public void worked(int ticks) {
+            if (monitor != null) monitor.worked(ticks);
         }
         
         /** Sets the OpenJML compilation context associated with this listener. */
@@ -1140,7 +1124,12 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     	proofResults.put(key,result);
     	IMethod m = convertMethod(msym);
     	methodResults.put(m, key);
-    	utils.refreshView(jproject,key);
+    	Runnable runnable = new Runnable() {
+    	    public void run() {
+    	        utils.refreshView(jproject,key);
+    	    }
+    	};
+    	Display.getDefault().asyncExec(runnable);
     }
     
     static MethodSymbol currentMethod;

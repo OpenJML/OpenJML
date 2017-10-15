@@ -59,7 +59,7 @@ public enum JmlOption implements IOption {
     CHECK_ACCESSIBLE("-checkAccessible",false,false,"When on (the default), JML accessible clauses are checked",null),
     SPECS("-specspath",true,null,"Specifies the directory path to search for specification files",null),
     CHECKSPECSPATH("-checkSpecsPath",false,true,"When on (the default), warnings for non-existent specification path directories are issued",null),
-    PURITYCHECK("-purityCheck",false,false,"When on (off by default), warnings for use of impure methods are issued",null),
+    PURITYCHECK("-purityCheck",false,false,"When on (off by default), warnings for use of impure methods from system libraries are issued",null),
     INTERNALSPECS("-internalSpecs",false,true,"When on (the default), automatically appends the internal specs directory to the specification path",null),
     INTERNALRUNTIME("-internalRuntime",false,true,"When on (the default), automatically appends the internal JML runtime library to the classpath",null),
     TIMEOUT("-timeout",true,null,"Number of seconds to limit any individual proof attempt (default infinite)",null),
@@ -105,6 +105,7 @@ public enum JmlOption implements IOption {
     PROPERTIES_DEFAULT("-properties-default",true,null,"Specifies the path to the default properties file",null),
     
     DEFAULTS("-defaults",true,"","Specifies various default behaviors: constructor:pure|everything",null),
+    STATIC_INIT_WARNING("-staticInitWarning",false,true,"Warns about mssing static_initializer clauses",null),
     
     // Obsolete
     NOCHECKSPECSPATHX("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false",true),

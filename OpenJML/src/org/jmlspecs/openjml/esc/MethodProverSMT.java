@@ -452,7 +452,7 @@ public class MethodProverSMT {
                                 break;
                             } else {
                                 log.warning(stat.pos(), "esc.infeasible.assumption", description, utils.qualifiedMethodSig(methodDecl.sym));
-                                proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
+                                if (Strings.feasibilityContains(stat.description,context)) proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
                             }
                         } else if (solverResponse.isError()) {
                             if (usePushPop) solver.exit();
@@ -1090,7 +1090,13 @@ public class MethodProverSMT {
     /** Query the solver for any type of value of an id in the current model */
     public String getValue(String id, SMT smt, ISolver solver, boolean report) {
         org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id);
-        IResponse resp = solver.get_value(s);
+        IResponse resp = null;
+        try {
+            resp = solver.get_value(s);
+        } catch (StackOverflowError e) {
+            log.error("jml.message", "Stack overflow when querying solver for the value of '" + s + "'");
+            return null;
+        }
         String out;
         if (resp instanceof IResponse.IError) {
             if (report) log.error("jml.internal.notsobad", ((IResponse.IError)resp).errorMsg()); //$NON-NLS-1$

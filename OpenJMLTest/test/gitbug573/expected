@@ -1,0 +1,16 @@
+Proving methods in pckg.A
+Starting proof of pckg.A.A() with prover !!!!
+test/gitbug573/pckg/A.java:5: warning: The prover cannot establish an assertion (NullField) in method A
+	public B b;
+	         ^
+Completed proof of pckg.A.A() with prover !!!! - with warnings
+Starting proof of pckg.A.test() with prover !!!!
+test/gitbug573/pckg/A.java:8: warning: The prover cannot establish an assertion (Postcondition) in method test
+	  return 0;
+	  ^
+test/gitbug573/pckg/A.jml:5: warning: Associated declaration
+	//@ensures \result == 1;
+	   ^
+Completed proof of pckg.A.test() with prover !!!! - with warnings
+Completed proving methods in pckg.A
+3 warnings

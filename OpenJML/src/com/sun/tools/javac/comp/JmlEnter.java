@@ -183,7 +183,7 @@ public class JmlEnter extends Enter {
         }
         JmlCompilationUnit jmltree = (JmlCompilationUnit)tree;
 
-        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(0,2,"entering " + jmltree.sourcefile.getName());
+        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"entering " + jmltree.sourcefile.getName());
         
         // FIXME - a problem here is that the specs and the model fields/classes/methods will be attributed using the set of imports from the Java source file
 
@@ -240,7 +240,7 @@ public class JmlEnter extends Enter {
             }
 //            specscu.packge = jmltree.packge;
         }
-        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(0,2,"  completed entering " + jmltree.sourcefile.getName());
+        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"  completed entering " + jmltree.sourcefile.getName());
 
         } finally {
             log.useSource(prevSource);

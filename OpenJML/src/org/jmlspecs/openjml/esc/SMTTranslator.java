@@ -75,6 +75,7 @@ import org.smtlib.command.C_push;
 import org.smtlib.command.C_set_logic;
 import org.smtlib.command.C_set_option;
 import org.smtlib.impl.Factory;
+import org.smtlib.impl.SMTExpr.Numeral;
 import org.smtlib.impl.Script;
 
 import com.sun.tools.javac.code.Flags;
@@ -1186,27 +1187,36 @@ public class SMTTranslator extends JmlTreeScanner {
         while (iter.hasNext()) {
             convertDeclaration(iter.next());
         }
+
         // Then construct the block expression from the end to the start
-//        iter = block.statements.listIterator();
-//        tail = convertList(iter,tail);
-        tail = convertList(block.statements,tail);
         
-        // This would be an excellent candidate for iterating through the list of 
-        // statements in the block in reverse order, since that is the
-        // natural way to construct the block expression and avoids having
-        // a deep call stack (of the length of a block). However, the statements
-        // in the block have to be translated in forward order, or auxiliary
-        // commands produced in their translations are added to 'commands' in
-        // reverse order.
-        //        while (iter.hasPrevious()) {
-        //            tail = convertStatement(iter.previous(),tail);
-        //        }
+        if (false) {
+            // Each block statement is one (potentially very long) assertion
+
+            // This would be an excellent candidate for iterating through the list of 
+            // statements in the block in reverse order, since that is the
+            // natural way to construct the block expression and avoids having
+            // a deep call stack (of the length of a block). However, the statements
+            // in the block have to be translated in forward order, or auxiliary
+            // commands produced in their translations are added to 'commands' in
+            // reverse order.
+            //        while (iter.hasPrevious()) {
+            //            tail = convertStatement(iter.previous(),tail);
+            //        }
+            tail = convertList(block.statements,tail);
+            
+        } else {
+
+            tail = convertList2(block.id.toString(),block.statements,tail);
+
+        }
+
         LinkedList<IExpr> args = new LinkedList<IExpr>();
         args.add(F.symbol(block.id.toString()));
         args.add(tail);
         tail = F.fcn(eqSym,args);
         commands.add(new C_assert(tail));
-        
+
     }
     
     /** If the statement is a variable declaration, converts it to an SMT
@@ -1243,10 +1253,10 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
     
-    /** The alternate implementation, commented out below, uses recursive calls
+    /** An alternate implementation, commented out below, uses recursive calls
      * to assemble the block encoding. That can give quite deep call stacks. 
      * Instead we iterate down the list and back, storing each expression on 
-     * a stack. So replace the call stack with a simple expression stack.
+     * a stack. That is we are replacing the call stack with a simple expression stack.
      */
     public IExpr convertList(List<JCStatement> list, IExpr tail) {
         ListIterator<JCStatement> iter = list.listIterator();
@@ -1380,7 +1390,104 @@ public class SMTTranslator extends JmlTreeScanner {
 //        }
 //        return tail;
 //    }
+
+    public IExpr convertList2(String blockid, List<JCStatement> list, IExpr tail) {
+        ListIterator<JCStatement> iter = list.listIterator();
+        Stack<IExpr> stack = new Stack<IExpr>();
+        int count = 0;
+        
+        while (iter.hasNext()) {
+            JCStatement stat = iter.next();
+            try {
+                if (stat instanceof JmlVariableDecl) {
+                    continue;
+                } else if (stat instanceof JmlStatementExpr) {
+                    JmlStatementExpr s = (JmlStatementExpr)stat;
+                    if (s.token == JmlTokenKind.ASSUME) {
+                        if (s.label == Label.METHOD_DEFINITION) {
+                            JCExpression ex = s.expression;
+                            ex = ((JmlQuantifiedExpr)ex).value;
+                            JCExpression lhs = ((JCTree.JCBinary)ex).lhs;
+                            JCTree.JCMethodInvocation mcall = (JCTree.JCMethodInvocation)lhs;
+                            JCExpression nm = mcall.meth;
+                            JCExpression rhs = ((JCTree.JCBinary)ex).rhs;
+                            addFunctionDefinition(nm.toString(),mcall.args,rhs);
+                        } else {
+                            IExpr exx = convertExpr(s.expression);
+                            ISymbol newsym = F.symbol(blockid + "__A" + (++count));
+                            commands.add(new C_define_fun(newsym,new LinkedList<IDeclaration>(),boolSort,exx));
+                            stack.push(newsym);
+                        }
+                    } else if (s.token == JmlTokenKind.ASSERT) {
+                        IExpr exx = convertExpr(s.expression);
+                        stack.push(exx);
+                    } else if (s.token == JmlTokenKind.COMMENT) {
+                        if (s.id == null || !s.id.startsWith("ACHECK")) continue;
+                        int k = s.id.indexOf(" ");
+                        k = Integer.valueOf(s.id.substring(k+1));
+                        s.optionalExpression = k != assumeCount ? null : (treeutils.falseLit);;
+                        if (k != assumeCount) continue;
+                        IExpr exx = convertExpr(treeutils.falseLit);
+                        stack.push(exx);
+                    } else {
+                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
+                        break;
+                    }
+                } else {
+                    log.error("jml.internal", "Incorrect kind of statement encountered when converting a BasicProgram to SMTLIB: " + stat.getClass());
+                    break;
+                }
+            } catch (RuntimeException ee) {
+                // There is no recovery from this
+                log.error("jml.internal", "Exception while translating block: " + ee);
+                break;
+            }
+        }
+        while (iter.hasPrevious()) {
+            JCStatement stat = iter.previous();
+            try {
+                if (stat instanceof JmlVariableDecl) {
+                    continue;
+                } else if (stat instanceof JmlStatementExpr) {
+                    JmlStatementExpr s = (JmlStatementExpr)stat;
+                    if (s.token == JmlTokenKind.ASSUME) {
+                        if (s.label == Label.METHOD_DEFINITION) {
+                            // skip
+                        } else {
+                            IExpr exx = stack.pop();
+                            tail = F.fcn(impliesSym, exx, tail);
+                        }
+                    } else if (s.token == JmlTokenKind.ASSERT) {
+                        IExpr exx = stack.pop();
+                        // The first return is the classic translation; the second
+                        // effectively inserts an assume after an assert. I'm not
+                        // sure it makes any difference. TODO - evaluate this sometime.
+                        //return F.fcn(F.symbol("and"), exx, tail);
+                        tail = F.fcn(F.symbol("and"), exx, F.fcn(impliesSym, exx, tail));
+                    } else if (s.token == JmlTokenKind.COMMENT) {
+                        if (s.id == null || !s.id.startsWith("ACHECK")) continue;
+                        int k = s.id.indexOf(" ");
+                        k = Integer.valueOf(s.id.substring(k+1));
+                        if (k != assumeCount) continue;
+                        IExpr exx = stack.pop();
+                        tail = exx;
+                    } else {
+                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
+                        break;
+                    }
+                } else {
+                    log.error("jml.internal", "Incorrect kind of statement encountered when converting a BasicProgram to SMTLIB: " + stat.getClass());
+                    break;
+                }
+            } catch (RuntimeException ee) {
+                // skip - error already issued // FIXME - better recovery
+                break;
+            }
+        }
+        return tail;
+    }
     
+
     /** Converts a basic block statement to an SMT expression, tacking it on
      * the front of tail and returning the composite expression.
      */
@@ -1487,6 +1594,11 @@ public class SMTTranslator extends JmlTreeScanner {
     /** Issues an error message about something not being implemented */
     public void notImpl(DiagnosticPosition pos, String msg) {
         log.error(pos, "esc.not.implemented","Not yet supported feature in converting BasicPrograms to SMTLIB: " + msg);
+    }
+    
+    /** Issues an error message about something not being implemented */
+    public void notImplWarn(DiagnosticPosition pos, String msg) {
+        log.warning(pos, "esc.not.implemented","Not yet supported feature in converting BasicPrograms to SMTLIB: " + msg);
     }
     
     /** Issues an error message that a particular AST node should not be being used in the input basic block program */
@@ -1632,7 +1744,6 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         if (that.token == JmlTokenKind.BSTYPELC) {
-            if (that.toString().equals("\\typej(short)")) Utils.stop();
             Type t = that.args.get(0).type;
             addType(t);
             result = that.javaType ? javaTypeSymbol(t) : jmlTypeSymbol(t);
@@ -1811,7 +1922,8 @@ public class SMTTranslator extends JmlTreeScanner {
                     // bvsdiv truncates towards zero
                 	result = F.fcn(F.symbol("bvsdiv"), args);
                 else
-                    // div truncates towards minus infinity
+                    // div truncates towards minus infinity, java / truncates towards 0
+                    // lhs / rhs ===  lhs >= 0 ? lhs div rhs : (-lhs) div (-rhs)
                     result = F.fcn(F.symbol("ite"), 
                             F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
                             F.fcn(F.symbol("div"), args),
@@ -1823,7 +1935,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 // mod in the Ints theory does not - it produces modulo (always positive) not remainders
                 if (useBV)
                     result = F.fcn(F.symbol("bvsrem"), args);
-                else
+                else  // lhs % rhs === lhs >= 0 ? lhs mod rhs : - ( (-lhs) mod (-rhs) )
                     result = F.fcn(F.symbol("ite"), 
                                     F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
                                     F.fcn(F.symbol("mod"), args),
@@ -1888,6 +2000,17 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitTypeCast(JCTypeCast tree) {
         result = convertExpr(tree.expr);
+        if (result instanceof Numeral) {
+            TypeTag tagr = tree.type.getTag();
+            TypeTag tage = tree.expr.type.getTag();
+            if ((tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) && ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                if ((tage == TypeTag.NONE || tage == TypeTag.UNKNOWN) && ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) return;
+                java.math.BigInteger b = ((Numeral)result).value();
+                double d = b.doubleValue(); // FIXME - this may not be in range
+                result = makeRealValue(d);
+                return;
+            }
+        }
         if (tree.type.isPrimitive() == tree.expr.type.isPrimitive()) {
             TypeTag tagr = tree.type.getTag();
             TypeTag tage = tree.expr.type.getTag();
@@ -2243,7 +2366,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     @Override 
     public void visitLambda(JCTree.JCLambda that) {
-        String s = "|" + that.toString() + "|";
+        String s = "|" + that.toString().replace('|', '#').replace("\r", "").replace('\n', ' ') + "|";
         ISymbol sym = F.symbol(s);
         functionSymbols.add(sym);
         addConstant(sym, refSort, that);
@@ -2305,7 +2428,10 @@ public class SMTTranslator extends JmlTreeScanner {
                 if (range != null) value = F.fcn(F.symbol("and"),range,value);
                 result = F.exists(params,value);
             } else {
-                notImpl(that, "JML Quantified expression using " + that.op.internedName());
+                notImplWarn(that, "JML Quantified expression using " + that.op.internedName());
+                ISymbol sym = F.symbol("|" + that.toString().replace('|', '#').replace('\\', '#') + "|");
+                addConstant(sym,convertSort(that.type),null);
+                result = sym;
             }
             // Can't do this, because then the quantified expression is evaluated
             // in the wrong context (I think)

@@ -311,20 +311,20 @@ public class escfiles extends EscBase {
 
     @Test
     public void testRecursiveInvariant() {
-        expectedExit = 1;
-        helpTF("escRecursiveInvariant","-no-minQuant");
-    }
-
-    @Test
-    public void testRecursiveInvariantMQ() {
-        expectedExit = 0;  // FIXME - reinsert the recursive error check
-        helpTF("escRecursiveInvariantMQ","-minQuant");
+        expectedExit = -1;
+        helpTF("escRecursiveInvariant");
     }
 
     @Test
     public void testRecursiveInvariant2() {
-        expectedExit = 1;
+        expectedExit = -1;
         helpTF("escRecursiveInvariant2");
+    }
+
+    @Test
+    public void testquant() {
+        expectedExit = -1;
+        helpTF("testquant");
     }
 
     // FIXME - reasoning about getClass
@@ -552,8 +552,14 @@ public class escfiles extends EscBase {
     // The following are really just typecheck problems
 
     @Test
+    public void testEscPrivate() {
+        expectedExit = 0;
+        helpTF("escPrivate");
+    }
+
+    @Test
     public void testEscVisibilitySimple() {
-    	expectedExit = 1;
+        expectedExit = 1;
         helpTF("visibilitySimple");
     }
 

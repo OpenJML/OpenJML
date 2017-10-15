@@ -794,21 +794,6 @@ public class JmlTree implements IJmlTree {
         System.out.println("A " + t.getClass() + " expects an IJmlVisitor, not a " + visitor.getClass());
     }
     
-    public abstract class JCTreeX extends JCTree {
-        
-        @Override
-        public Tag getTag() {
-            return null;
-        }
-
-        @Override
-        public Kind getKind() {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-    }
-    
     /** This is an interface for any node that contains source file information. */
     public interface JmlSource {
         
@@ -1317,6 +1302,23 @@ public class JmlTree implements IJmlTree {
         public int getStartPosition() {
             return pos;
         }
+        
+        // This should be overridden in derived classes, but if it is not, we get a 
+        // stack overflow. So this implementation is defensive.
+        @Override 
+        public int getEndPosition(EndPosTable endPosTable) {
+            return pos;
+        }
+        
+        @Override
+        public Tag getTag() {
+            return Tag.NO_TAG;
+        }
+
+        @Override
+        public Kind getKind() { 
+            return Kind.OTHER; // See note above
+        }
     }
     
     /** This class is simply a superclass for all AST classes representing 
@@ -1331,6 +1333,16 @@ public class JmlTree implements IJmlTree {
         
         public int getStartPosition() {
             return pos;
+        }
+        
+        @Override
+        public Tag getTag() {
+            return Tag.NO_TAG;
+        }
+        
+        @Override
+        public Kind getKind() { 
+            return Kind.OTHER; // See note above
         }
     }
 
@@ -1372,17 +1384,6 @@ public class JmlTree implements IJmlTree {
 //        public Symbol getOperator() {
 //            return null; // FIXME
 //        }
-
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
-        @Override
-        public Tag getTag() {
-            // This is used in determining start and end positions
-            return null;
-        }
         
         @Override
         public void accept(Visitor v) {
@@ -1443,7 +1444,7 @@ public class JmlTree implements IJmlTree {
         
         @Override
         public Tag getTag() {
-            return null;
+            return Tag.NO_TAG;
         }
         
         @Override
@@ -1519,18 +1520,7 @@ public class JmlTree implements IJmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
-        
-        @Override
-        public int getStartPosition() {
-            return -1;
-        }
-    
-        @Override
-        public int getEndPosition(EndPosTable table) {
-            return -1;
-        }
-    
-    }
+     }
 
     /** This class wraps a Java enhanced loop just so it can attach some specs
      * to it.
@@ -1581,7 +1571,6 @@ public class JmlTree implements IJmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
-
     }
     
     public static interface IJmlLoop {
@@ -1631,7 +1620,6 @@ public class JmlTree implements IJmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
-    
     }
 
     /** This class wraps a Java while loop just so it can attach some specs
@@ -1674,7 +1662,6 @@ public class JmlTree implements IJmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
-    
     }
 
     /** This class represents a group in an "in" or "maps" type clause in a class specification */
@@ -1695,13 +1682,13 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getStartPosition() {
-            return pos;
+        public Tag getTag() {
+            return Tag.NO_TAG;
         }
         
         @Override
-        public Tag getTag() {
-            return null;
+        public int getStartPosition() {
+            return pos;
         }
         
         @Override
@@ -1785,16 +1772,6 @@ public class JmlTree implements IJmlTree {
         }
     
         @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
-        @Override
-        public Tag getTag() {
-            return null;
-        }
-        
-        @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlLblExpression(this); 
@@ -1840,16 +1817,6 @@ public class JmlTree implements IJmlTree {
             this.predicate = predicate;
         }
     
-        @Override
-        public Tag getTag() {
-            return null;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
@@ -1927,12 +1894,6 @@ public class JmlTree implements IJmlTree {
                 return super.accept(v,d);
             }
         }
-        
-//        @Override  -- FIXME - do we want this?
-//        public Tag getTag() {
-//            return JMLFUNCTION;
-//        }
-//    
     }
 
     /** This class represents a method specification clause that has just an
@@ -1951,16 +1912,6 @@ public class JmlTree implements IJmlTree {
             this.methodSignatures = methodSignatures;
         }
 
-        @Override
-        public Tag getTag() {
-            return null;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
@@ -1996,16 +1947,6 @@ public class JmlTree implements IJmlTree {
         }
 
         @Override
-        public Tag getTag() {
-            return null;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
-        @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlMethodClauseDecl(this); 
@@ -2040,16 +1981,6 @@ public class JmlTree implements IJmlTree {
             this.expression = expression;
         }
 
-        @Override
-        public Tag getTag() {
-            return null;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
@@ -2091,16 +2022,6 @@ public class JmlTree implements IJmlTree {
         }
 
         @Override
-        public Tag getTag() {
-            return null;
-        }
-
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-
-        @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlMethodClauseGroup(this); 
@@ -2134,16 +2055,6 @@ public class JmlTree implements IJmlTree {
             this.token = token;
             this.vardef = var;
             this.expression = expression;
-        }
-        
-        @Override
-        public Tag getTag() {
-            return null;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
         }
         
         @Override
@@ -2182,16 +2093,6 @@ public class JmlTree implements IJmlTree {
         }
 
         @Override
-        public Tag getTag() {
-            return null;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-
-        @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlMethodClauseSigOnly(this); 
@@ -2223,16 +2124,6 @@ public class JmlTree implements IJmlTree {
             this.pos = pos;
             this.token = token;
             this.list = list;
-        }
-
-        @Override
-        public Tag getTag() {
-            return null;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
         }
 
         @Override
@@ -2296,16 +2187,6 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public Tag getTag() {
-            return null;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-    
-        @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlMethodSpecs(this); 
@@ -2341,16 +2222,6 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public Tag getTag() {
-            return item.getTag();
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-    
-        @Override
         public void accept(Visitor v) {
             // Simply delegate to the wrapped construct
             item.accept(v);
@@ -2380,16 +2251,6 @@ public class JmlTree implements IJmlTree {
         @Override
         public String toString() {
             return token != null ? token.internedName() : super.toString();
-        }
-    
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
-        @Override
-        public Tag getTag() {
-            return null;
         }
     
         @Override
@@ -2445,7 +2306,7 @@ public class JmlTree implements IJmlTree {
         protected JmlQuantifiedExpr(int pos, JmlTokenKind op,
                 List<JCVariableDecl> decls,
                 JCExpression range, JCExpression value) {
-            this.pos = pos;
+            this.pos = pos;  // Start of the token
             this.op = op;
             this.decls = decls;
             this.range = range;
@@ -2453,15 +2314,17 @@ public class JmlTree implements IJmlTree {
             this.racexpr = null;
         }
         
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
+        @Override 
+        public int getStartPosition() {
+            return pos;
         }
         
-        @Override
-        public Tag getTag() {
-            return null;
+        @Override 
+        public int getEndPosition(EndPosTable endPosTable) {
+            return value.getEndPosition(endPosTable);
         }
+        
+
         
         @Override
         public void accept(Visitor v) {
@@ -2503,18 +2366,13 @@ public class JmlTree implements IJmlTree {
         }
 
         @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-
-        @Override
-        public Tag getTag() {
-            return null;
-        }
-
-        @Override
         public String toString() {
             return token.internedName();
+        }
+        
+        @Override
+        public int getEndPosition(EndPosTable endPosTable) {
+            return pos + token.internedName().length();
         }
 
         @Override
@@ -2552,16 +2410,6 @@ public class JmlTree implements IJmlTree {
             this.predicate = predicate;
         }
     
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
-        @Override
-        public Tag getTag() {
-            return null;
-        }
-        
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
@@ -2618,17 +2466,6 @@ public class JmlTree implements IJmlTree {
         @Override
         public JavaFileObject source() { return sourcefile; }
     
-    
-        @Override
-        public Tag getTag() {
-            return null;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
@@ -2665,16 +2502,6 @@ public class JmlTree implements IJmlTree {
         }
     
         @Override
-        public Tag getTag() {
-            return null;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-    
-        @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlStatement(this); 
@@ -2707,16 +2534,6 @@ public class JmlTree implements IJmlTree {
             this.pos = pos;
             this.token = JmlTokenKind.GHOST;
             this.list = list;
-        }
-    
-        @Override
-        public Tag getTag() {
-            return null;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
         }
     
         @Override
@@ -2793,11 +2610,6 @@ public class JmlTree implements IJmlTree {
         }
     
         @Override
-        public Tag getTag() {
-            return null;
-        }
-        
-        @Override
         public int getStartPosition() {
             return expression != null ? expression.getStartPosition() : this.pos;
         }
@@ -2807,11 +2619,6 @@ public class JmlTree implements IJmlTree {
             return optionalExpression != null ? optionalExpression.getEndPosition(table) : expression != null ? expression.getEndPosition(table) : this.pos;
         }
         
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-    
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
@@ -2851,16 +2658,6 @@ public class JmlTree implements IJmlTree {
             this.pos = pos;
             this.token = JmlTokenKind.HAVOC;
             this.storerefs = storerefs;
-        }
-    
-        @Override
-        public Tag getTag() {
-            return null;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
         }
     
         @Override
@@ -2911,16 +2708,6 @@ public class JmlTree implements IJmlTree {
         }
     
         @Override
-        public Tag getTag() {
-            return null;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-    
-        @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlStatementSpec(this); 
@@ -2953,16 +2740,6 @@ public class JmlTree implements IJmlTree {
             this.pos = pos;
             this.token = token;
             this.expression = expression;
-        }
-    
-        @Override
-        public Tag getTag() {
-            return null;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
         }
     
         @Override
@@ -3002,17 +2779,16 @@ public class JmlTree implements IJmlTree {
             this.lo = lo;
             this.hi = hi;
         }
+        
+        @Override 
+        public int getEndPosition(EndPosTable endPosTable) {
+            int p = endPosTable.getEndPos(this);
+            if (p == Position.NOPOS) p = pos; // FIXMNE - this should never happen - ofrgot to set endpos
+            return p;
+        }
+        
+
     
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
-        @Override
-        public Tag getTag() {
-            return null;
-        }
-        
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
@@ -3044,17 +2820,12 @@ public class JmlTree implements IJmlTree {
             this.pos = pos;
             this.token = token;
         }
+        
+        @Override
+        public int getEndPosition(EndPosTable endPosTable) {
+            return pos + token.internedName().length();
+        }
 
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
-        @Override
-        public Tag getTag() {
-            return null;
-        }
-        
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
@@ -3086,16 +2857,6 @@ public class JmlTree implements IJmlTree {
             this.pos = pos;
             this.token = token;
             this.list = list;
-        }
-
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-
-        @Override
-        public Tag getTag() {
-            return null;
         }
 
         @Override
@@ -3149,6 +2910,11 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
+        public Kind getKind() { 
+            return Kind.OTHER; // See note above
+        }
+        
+        @Override
         public Tag getTag() {
             return Tag.NO_TAG;
         }
@@ -3173,16 +2939,6 @@ public class JmlTree implements IJmlTree {
             this.token = JmlTokenKind.CONSTRAINT;
             this.expression = expression;
             this.sigs = sigs; // Method signatures
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
-        @Override
-        public Tag getTag() {
-            return null;
         }
         
         @Override
@@ -3219,16 +2975,6 @@ public class JmlTree implements IJmlTree {
             this.token = token;
             this.identifier = ident;
             this.expression = expression;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
-        @Override
-        public Tag getTag() {
-            return null;
         }
         
         @Override
@@ -3270,14 +3016,9 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
+        public Tag getTag() {
+            return decl.getTag();
         }
-        
-//        @Override
-//        public Tag getTag() {
-//            return null;
-//        }
         
         @Override
         public void accept(Visitor v) {
@@ -3313,16 +3054,6 @@ public class JmlTree implements IJmlTree {
             this.token = token;
             this.expression = expression;
         }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
-//        @Override
-//        public Tag getTag() {
-//            return null;
-//        }
         
         @Override
         public void accept(Visitor v) {
@@ -3369,16 +3100,6 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
-//        @Override
-//        public Tag getTag() {
-//            return null;
-//        }
-        
-        @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlTypeClauseIn(this); 
@@ -3412,16 +3133,6 @@ public class JmlTree implements IJmlTree {
             this.source = null;
             this.modifiers = mods; 
         }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
-//        @Override
-//        public Tag getTag() {
-//            return null;
-//        }
         
         @Override
         public void accept(Visitor v) {
@@ -3463,16 +3174,6 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
-//        @Override
-//        public Tag getTag() {
-//            return null;
-//        }
-        
-        @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlTypeClauseMaps(this); 
@@ -3507,16 +3208,6 @@ public class JmlTree implements IJmlTree {
             this.token = JmlTokenKind.MONITORS_FOR;
             this.list = list;
         }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
-//        @Override
-//        public Tag getTag() {
-//            return null;
-//        }
         
         @Override
         public void accept(Visitor v) {
@@ -3560,16 +3251,6 @@ public class JmlTree implements IJmlTree {
             this.expression = expression;
             this.suchThat = suchThat;
         }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-        
-//        @Override
-//        public Tag getTag() {
-//            return null;
-//        }
         
         @Override
         public void accept(Visitor v) {

@@ -1611,25 +1611,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //    }
     
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-//        if (that.toString().contains("ASSERT_165")) Utils.stop();
-//        String sss = JmlAssertionAdder.savedAssert.toString();
-//        if (that.toString().contains("ASSERT_167")) Utils.stop();
-//        sss = JmlAssertionAdder.savedAssert.toString();
-//        if (that.toString().contains("ASSERT_169")) Utils.stop();
-//        sss = JmlAssertionAdder.savedAssert.toString();
-//        if (that.toString().contains("ASSERT_170")) Utils.stop();
-//        sss = JmlAssertionAdder.savedAssert.toString();
-//        if (that.toString().contains("ASSERT_174")) Utils.stop();
-//        sss = JmlAssertionAdder.savedAssert.toString();
-//        if (that.toString().contains("ASSERT_176")) Utils.stop();
-//        sss = JmlAssertionAdder.savedAssert.toString();
-//        if (that.toString().contains("ASSERT_177")) Utils.stop();
-//        sss = JmlAssertionAdder.savedAssert.toString();
-//        if (that.toString().contains("ASSERT_178")) Utils.stop();
-//        sss = JmlAssertionAdder.savedAssert.toString();
-//        if (that.toString().contains("ASSERT_179")) Utils.stop();
-//        sss = JmlAssertionAdder.savedAssert.toString();
-//        if (that.toString().contains("ASSERT_181")) Utils.stop();
         if (that.sym == null || that.sym.owner == null) {
             if (that.init != null) {
                 scan(that.init);

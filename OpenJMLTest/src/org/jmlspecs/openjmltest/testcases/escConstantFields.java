@@ -100,6 +100,7 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testFieldsNotConstant() {
+        main.addOptions("-no-staticInitWarning");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final static int I = z();\n"  // FIXME - static initialization check should fail
@@ -127,6 +128,7 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testFieldsNotConstantNoInvariant() {
+        main.addOptions("-no-staticInitWarning");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final static int I = z();\n"  
@@ -152,6 +154,7 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testFieldsNotConstantWithHelper() {
+        main.addOptions("-no-staticInitWarning");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final static int I = z();\n"

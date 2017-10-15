@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import javax.lang.model.type.TypeKind;
 import javax.tools.JavaFileObject;
@@ -407,7 +408,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing specs for " + c + " " + level);
         level++;
         if (c != syms.predefClass) {
-            if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(0,2,"typechecking " + c);
+            if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"typechecking " + c);
         }
 
         // classSpecs.file is only useful for the modifiers/annotations
@@ -466,7 +467,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (prev != null) log.useSource(prev);
             level--;
             if (c != syms.predefClass) {
-                if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(0,2,"typechecked " + c);
+                if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"typechecked " + c);
             }
             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-complete " + c.fullname + " " + level);
             if (level == 0) completeTodo();
@@ -950,9 +951,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 Symbol sym = tree.constructor;
                 MethodSymbol msym = null;
                 if (sym instanceof MethodSymbol) msym = (MethodSymbol)sym;
-                boolean isPure = msym == null || isPureMethod(msym);
-                if (!isPure && JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
-                    log.warning(tree.pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
+                boolean isAllowed = isPureMethod(msym) || isQueryMethod(msym);
+                if (!isAllowed) {
+                    nonPureWarning(tree, msym);
                 }
             }
             Type saved = result;
@@ -966,6 +967,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             implementationAllowed = prev;
             isInJmlDeclaration = prevJml;
         }
+    }
+    
+    protected void nonPureWarning(DiagnosticPosition pos, MethodSymbol msym) {
+        String name = msym.owner != null ? msym.owner.toString() : "";
+        boolean libraryMethod = name.startsWith("java") 
+                || name.startsWith("org.jmlspecs.models") // FIXME - the models should be annotated and shjoiuld work
+                || name.startsWith("org.jmlspecs.lang.JML");  // FIXME - these should work but don't
+        if (!libraryMethod || JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
+            log.warning(pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
+        }
+
     }
     
     @Override 
@@ -1052,6 +1064,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            ((JmlCheck)chk).noDuplicateWarn = false;
             super.visitMethodDef(m);
 //            ((JmlCheck)chk).noDuplicateWarn = prevChk;
+//            if (JmlOption.isOption(context, JmlOption.STRICT)) checkClauseOrder(jmethod.methodSpecsCombined);
             if (isJmlDecl) jmlresolve.setAllowJML(prevAllowJML);
             relax = prevRelax;
             if (jmethod.methodSpecsCombined != null) { // FIXME - should we get the specs to check from JmlSpecs?
@@ -1090,6 +1103,55 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (prevSource != null) log.useSource(prevSource);
             labelEnvs.clear();
             labelEnvs = prevLabelEnvs;
+        }
+    }
+    
+    final static Map<JmlTokenKind, int[]> stateTable = new HashMap<>();
+    {
+        // state -1 - error
+        // state 0 - start
+        // state 1 - postcondition
+        // state 2 - start of spec group
+        stateTable.put(JmlTokenKind.REQUIRES, new int[]{0,-1,-1});
+        stateTable.put(JmlTokenKind.OLD, new int[]{0,-1,-1});
+        stateTable.put(JmlTokenKind.FORALL, new int[]{0,-1,-1});
+        stateTable.put(JmlTokenKind.ASSIGNABLE, new int[]{1,1,1});
+        stateTable.put(JmlTokenKind.ENSURES, new int[]{1,1,1});
+        stateTable.put(JmlTokenKind.SIGNALS, new int[]{1,1,1});
+        stateTable.put(JmlTokenKind.SIGNALS_ONLY, new int[]{1,1,1});
+        stateTable.put(JmlTokenKind.CALLABLE, new int[]{1,1,1});
+        stateTable.put(JmlTokenKind.SPEC_GROUP_START, new int[]{0,1,-1});
+//        stateTable.put(JmlTokenKind.ALSO, new int[]{-1,10,-1});
+//        stateTable.put(JmlTokenKind.SPEC_GROUP_END, new int[]{-1,10,-1});
+    }
+    
+    public void checkClauseOrder(JmlSpecs.MethodSpecs mspecs) {
+        if (mspecs.cases == null) return;
+        for (JmlSpecificationCase scase: mspecs.cases.cases) {
+            int state = 0;
+            checkClauseOrder(state,scase.clauses);
+        }
+    }
+    
+    // FIXME - finish this 
+    public void checkClauseOrder(int state, List<JmlMethodClause> clauses) {
+        for (JmlMethodClause clause: clauses) {
+            JmlTokenKind tk = clause.token;
+            int[] next = stateTable.get(tk);
+            if (next == null) {
+                //                   log.warning(clause, "jml.message", "Unimplemented clause type in order checker: " + tk);
+                return;
+            }
+            state = next[state];
+            if (state == -1) {
+                log.warning(clause,  "jml.message", "Clause " + tk + " is out of order for JML strict mode");
+                return;
+            }
+            if (tk == JmlTokenKind.SPEC_GROUP_START) {
+                for (JmlSpecificationCase scase:  ((JmlMethodClauseGroup) clause).cases) {
+                    checkClauseOrder(state,scase.clauses);
+                }
+            }
         }
     }
     
@@ -1564,7 +1626,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     methodSpecs.deSugared = newspecs;
                     return;
                 }
-                methodSpecs = JmlSpecs.defaultSpecs(context, decl, decl.sym, decl.pos).cases;
+                JmlSpecs.MethodSpecs jms = JmlSpecs.instance(context).defaultSpecs(decl);
+                decl.methodSpecsCombined = jms;
+                specs.putSpecs(decl.sym,jms);
+                methodSpecs = jms.cases;
+//                // FIXMNE - jms.mods may have pure added, bukgt that is lost here - does this fix it?
+//                if (!desugaringPure) {
+//                    JCAnnotation tpure = findMod(jms.mods,JmlTokenKind.PURE);
+//                    if (tpure != null) { 
+//                        pure = tpure; 
+//                        desugaringPure = true; 
+//                        msp.mods.annotations = msp.mods.annotations.append(tpure);
+//                    }
+//                }
+
             }
 
             JCLiteral nulllit = make.Literal(TypeTag.BOT, null).setType(syms.objectType.constType(null));
@@ -1613,7 +1688,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     endPosTable.storeEnd(id,annotationEnd);
                     JmlTokenKind prev = currentClauseType;
                     currentClauseType = JmlTokenKind.ENSURES;
-                    attribExpr(e,env);
+                    //attribExpr(e,env);
                     currentClauseType = prev;
                     JmlMethodClauseExpr cl = jmlMaker.at(annotationPos).JmlMethodClauseExpr(JmlTokenKind.ENSURES,e);
                     cl.sourcefile = decl.source();
@@ -2061,6 +2136,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         checkEnumInitializer(tree, env, v);
 
+    }
+    
+    protected void checkEnumInitializer(JCTree tree, Env<AttrContext> env, VarSymbol v) { // DRCok - private to protected
+        if (isStaticEnumField(v)) {
+            if (currentClauseType != null) return;  // ASWemahy reference enums in specificatinos.  FIXME: always? everywhere?  interaction with JLS restriction?
+        }
+        super.checkEnumInitializer(tree,env,v);
     }
 
     
@@ -3099,7 +3181,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // so it is not checked for specification cases that are part of a 
             // refining statement
             if (c.modifiers != null && tree.decl != null) { // tree.decl is null for initializers and refining statements
-                long methodMod = enclosingMethodEnv.enclMethod.mods.flags & Flags.AccessFlags;
+                JCMethodDecl mdecl = enclosingMethodEnv.enclMethod;
+                long methodMod = jmlAccess(mdecl.mods);
                 long caseMod = c.modifiers.flags & Flags.AccessFlags;
                 if (methodMod == 0 && enclosingMethodEnv.enclClass.sym.isInterface()) methodMod = Flags.PUBLIC;
                 if (methodMod != caseMod && c.token != null) {
@@ -3578,11 +3661,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (pureEnvironment && tree.meth.type != null && tree.meth.type.getTag() != TypeTag.ERROR) {
             // Check that the method being called is pure
             if (msym != null) {
-                boolean isPure = isPureMethod(msym);
-                if (!isPure && JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
-                    log.warning(tree.pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
+                boolean isAllowed = isPureMethod(msym) || isQueryMethod(msym);
+                if (!isAllowed) {
+                    nonPureWarning(tree, msym);
                 }
-                if (isPure && currentClauseType == JmlTokenKind.INVARIANT
+                if (isAllowed && currentClauseType == JmlTokenKind.INVARIANT
                         && msym.owner == enclosingClassEnv.enclClass.sym
                         && !isHelper(msym)
                         && utils.rac) {
@@ -4666,6 +4749,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = saved;
     }
     
+    protected long jmlAccess(JCModifiers mods) {
+        long v = mods.flags & Flags.AccessFlags;
+        if (findMod(mods,JmlTokenKind.SPEC_PUBLIC) != null) v = Flags.PUBLIC;
+        if (findMod(mods,JmlTokenKind.SPEC_PROTECTED) != null) v = Flags.PROTECTED;
+        return v;
+    }
+    
     protected void checkVisibility(DiagnosticPosition pos, long jmlVisibility, Symbol sym) {
         if (jmlVisibility != -1) {
             long v = (sym.flags() & Flags.AccessFlags);
@@ -5260,13 +5350,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public boolean isPureMethod(MethodSymbol symbol) {
         for (MethodSymbol msym: Utils.instance(context).parents(symbol)) {
             MethodSpecs mspecs = specs.getSpecs(msym);
+            if (mspecs == null) {  // FIXME - observed to happen for in gitbug498 for JMLObjectBag.insert
+                // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
+                if (msym.toString().equals("size()") && msym.owner.toString().equals(Strings.jmlSpecsPackage + ".JMLList")) return true;
+                // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
+                return specs.isPure((ClassSymbol)msym.owner);
+            }
+            boolean isPure = specs.isPure(msym);
+            if (isPure) return true;
+        }
+        return false;
+    }
+    
+    public boolean isQueryMethod(MethodSymbol symbol) {
+        for (MethodSymbol msym: Utils.instance(context).parents(symbol)) {
+            MethodSpecs mspecs = specs.getSpecs(msym);
             if (mspecs == null) {
                 // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
                 if (msym.toString().equals("size()") && msym.owner.toString().equals(Strings.jmlSpecsPackage + ".JMLList")) return true;
                 // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
                 continue;
             }
-            boolean isPure = specs.isPure(symbol);
+            boolean isPure = specs.isQuery(symbol);
             if (isPure) return true;
         }
         return false;

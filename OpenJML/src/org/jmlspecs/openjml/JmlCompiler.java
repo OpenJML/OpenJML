@@ -120,11 +120,12 @@ public class JmlCompiler extends JavaCompiler {
     @Override
     public JCCompilationUnit parse(JavaFileObject fileobject, CharSequence content) {
         // TODO: Use a TaskEvent and a TaskListener here?
-        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(0,2,"parsing " + fileobject.toUri() );
+        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"parsing " + fileobject.toUri() );
         JCCompilationUnit cu = super.parse(fileobject,content);
         if (inSequence) {
             return cu;
         }
+        boolean onlyJML = false;
         if (cu instanceof JmlCompilationUnit) {
             JmlCompilationUnit jmlcu = (JmlCompilationUnit)cu;
             if (fileobject.getKind() == JavaFileObject.Kind.SOURCE) { // A .java file
@@ -174,6 +175,8 @@ public class JmlCompiler extends JavaCompiler {
                     cu = javacu;
                 } else {
                     log.warning("jml.no.java.file",jmlcu.sourcefile);
+                    jmlcu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
+                    onlyJML = true;
                 }
             }
         } else {
@@ -182,13 +185,14 @@ public class JmlCompiler extends JavaCompiler {
                             + cu.getClass() + " instead, for source " + cu.getSourceFile().toUri().getPath());
         }
         try {
-            if (cu.endPositions != null) { // FIXME - is this ever non-null? and why only of we are in the mode of parsing multiple files
+            if (!onlyJML && cu.endPositions != null) { // FIXME - is this ever non-null? and why only of we are in the mode of parsing multiple files
                 JavaFileObject prev = log.useSource(fileobject);
                 log.setEndPosTable(fileobject,cu.endPositions);
                 log.useSource(prev);
             }
         } catch (Exception e) {
         	// End-position table set twice - so far just encountered this when a class name is used but is not defined in the file by that name
+            // Also happens if there is a .jml file on the command-line with no corresponding .java file - hence the !onlyJML guard above.
             log.error("jml.file.class.mismatch",fileobject.getName());
         }
         return cu;
@@ -232,6 +236,10 @@ public class JmlCompiler extends JavaCompiler {
             } else {
                 return null;
             }
+//        } catch (IllegalStateException e) {
+//            // This happens when the .java ana .jml files are not on the paths correctly, and the .jml file is parsed twice
+//            // FIXME _ I think an error message has already been given
+//            return null;
         } finally {
             inSequence = false;
         }
@@ -243,7 +251,11 @@ public class JmlCompiler extends JavaCompiler {
     public List<JCCompilationUnit> parseFiles(Iterable<JavaFileObject> fileObjects) {
         List<JCCompilationUnit> list = super.parseFiles(fileObjects);
         for (JCCompilationUnit cu: list) {
-            ((JmlCompilationUnit)cu).mode = JmlCompilationUnit.JAVA_SOURCE_FULL;  // FIXME - does this matter? is it right? there could be jml files on the command line
+            JmlCompilationUnit jcu = (JmlCompilationUnit)cu;
+            // Note - can certainly have modes 2 and 6 at this point.
+            // FIXME - the setting and use of these modes needs review
+            if (jcu.mode != 2 && jcu.mode != 6) 
+                jcu.mode = JmlCompilationUnit.JAVA_SOURCE_FULL;  // FIXME - does this matter? is it right? there could be jml files on the command line
         }
         return list;
     }
@@ -356,10 +368,10 @@ public class JmlCompiler extends JavaCompiler {
     public  <T> List<T> stopIfError(CompileState cs, List<T> list) {
         if (shouldStop(cs)) {
             if (JmlOption.isOption(context,JmlOption.STOPIFERRORS)) {
-                if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,1,"Stopping because of parsing errors");
+                if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(1,"Stopping because of parsing errors");
                 return List.<T>nil();
             } else {
-                if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,1,"Continuing bravely despite parsing errors");
+                if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(1,"Continuing bravely despite parsing errors");
             }
         }
         return list;
@@ -373,7 +385,7 @@ public class JmlCompiler extends JavaCompiler {
         ListBuffer<Pair<Env<AttrContext>, JCClassDecl>> results = new ListBuffer<>();
         
         if (envs.isEmpty()) {
-        	if (utils.esc) context.get(Main.IProgressListener.class).report(0,1,"Operation not performed because of parse or type errors");
+        	if (utils.esc) context.get(Main.IProgressListener.class).report(1,"Operation not performed because of parse or type errors");
 //        	try {
 //				Thread.sleep(10000);
 //			} catch (InterruptedException e) {
@@ -399,7 +411,7 @@ public class JmlCompiler extends JavaCompiler {
                 if (env == null) continue; // FIXME - error? just keep oroginal env?
                 
                 if (utils.jmlverbose >= Utils.JMLVERBOSE) 
-                    context.get(Main.IProgressListener.class).report(0,2,"desugar " + todo.size() + " " + 
+                    context.get(Main.IProgressListener.class).report(2,"desugar " + todo.size() + " " + 
                         (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
                             t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));
             }

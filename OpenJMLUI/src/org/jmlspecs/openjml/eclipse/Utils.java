@@ -11,14 +11,21 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.IJobChangeListener;
+import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+import org.eclipse.core.runtime.jobs.JobGroup;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -27,17 +34,29 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.*;
 import org.eclipse.ui.part.FileEditorInput;
-import org.eclipse.ui.views.IViewDescriptor;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.annotation.Query;
 import org.jmlspecs.openjml.Main.Cmd;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.eclipse.PathItem.ProjectPath;
 import org.jmlspecs.openjml.esc.MethodProverSMT.Counterexample;
@@ -45,8 +64,9 @@ import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 import org.osgi.framework.Bundle;
 
-import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.tree.JCTree;
+
+import sun.net.www.content.image.jpeg;
 
 // FIXME - review UI Utils class
 
@@ -291,14 +311,15 @@ public class Utils {
 				return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
 			}
 		};
-        IResourceRuleFactory ruleFactory = 
-                ResourcesPlugin.getWorkspace().getRuleFactory();
-// FIXME        ISchedulingRule rule = ruleFactory.markerRule(r);
-		if (sorted.keySet().size() == 1) {
-			j.setRule(sorted.keySet().iterator().next().getProject());
-		} else {
-			j.setRule(ResourcesPlugin.getWorkspace().getRoot());
-		}
+//        IResourceRuleFactory ruleFactory = 
+//                ResourcesPlugin.getWorkspace().getRuleFactory();
+//// FIXME        ISchedulingRule rule = ruleFactory.markerRule(r);
+//		if (sorted.keySet().size() == 1) {
+//			j.setRule(sorted.keySet().iterator().next().getProject());
+//		} else {
+//			j.setRule(ResourcesPlugin.getWorkspace().getRoot());
+//		}
+		j.setRule(null);
 		j.setUser(true); // true since the job has been initiated by an end-user
 		j.schedule();
 	}
@@ -332,42 +353,119 @@ public class Utils {
 		}
 		final Map<IJavaProject, List<Object>> sorted = sortByProject(res);
 		deleteMarkers(res, shell); // FIXME - does this trigger a rebuild?
+        JobControl.JobParameters jobParameters = JobControl.launchJobControlDialog(selection,window,shell);
+        if (jobParameters == null) return;
+        {
+            Log.log("Parameters: " + jobParameters.queues + " " + jobParameters.strategy);
+        }
 		for (final IJavaProject jp : sorted.keySet()) {
-			checkESCProject(jp,sorted.get(jp),shell,"Static Checks - Manual");
+			checkESCProject(jp,sorted.get(jp),shell,"Static Checks - Manual",jobParameters);
 		}
 	}
 	
-	public void checkESCProject(final IJavaProject jp, final List<?> ores, /*@ nullable */Shell shell, String reason) {
-		Job j = new Job(reason) {
-			public IStatus run(IProgressMonitor monitor) {
-				monitor.beginTask("Static checking of " + jp.getElementName(), 1);
-				boolean c = false;
-				try {
-					if (ores == null) {
-						LinkedList<Object> list = new LinkedList<Object>();
-						list.add(jp);
-						final List<Object> res = list;
-						getInterface(jp).executeESCCommand(Cmd.ESC, res,
-								monitor);
-					} else if (ores.size() != 0){
-						getInterface(jp).executeESCCommand(Cmd.ESC, ores,
-								monitor);
-					}
-				} catch (Exception e) {
-					// FIXME - this will block, preventing progress on the rest of the projects
-					Log.errorlog("Exception during Static Checking - " + jp.getElementName(), e);
-					showExceptionInUI(null, "Exception during Static Checking - " + jp.getElementName(), e);
-					c = true;
-				}
-				return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
-			}
-		};
-        IResourceRuleFactory ruleFactory = 
-                ResourcesPlugin.getWorkspace().getRuleFactory();
-		j.setRule(jp.getProject());
-		j.setUser(true); // true since the job has been initiated by an end-user
-		j.schedule();
+
+    JobControl data = new JobControl();
+
+
+    /** Creates and schedules a Job to do the desired computation.
+     */
+	public void checkESCProject(final IJavaProject jp, /*@ nullable */ final List<Object> ores, /*@ nullable */Shell shell, String reason, JobControl.JobParameters jobParameters) {
+//	    if (progressGroup == null) progressGroup = Job.getJobManager().createProgressGroup();
+//        IResourceRuleFactory ruleFactory = 
+//                ResourcesPlugin.getWorkspace().getRuleFactory();
+	    try {
+	    OpenJMLInterface iface = getInterface(jp);
+	    JobControl.JobStrategy strategy1 = new JobControl.SelectedItemStrategy(jp,ores,2,reason);
+	    if (jobParameters != null) strategy1 = jobParameters.strategy.getConstructor(IJavaProject.class,List.class,int.class,String.class).newInstance(jp,ores,2,reason);
+        final JobControl.JobStrategy strategy = strategy1;
+	    int qs = strategy.queues();
+	    
+	     Job job = new Job("") {
+	        public IStatus run(IProgressMonitor m) {
+	            final Job jjob = this;
+	            if (qs == 1) {
+	                while (true) {
+	                    Job j = strategy.nextJob(iface,0);
+	                    if (j == null) break;
+	                    //j.setProgressGroup(progressGroup,IProgressMonitor.UNKNOWN);
+	                    j.setRule(null);
+	                    j.setUser(true); // true since the job has been initiated by an end-user
+	                    j.schedule();
+	                    Log.log.equals("Scheduled a job");
+	                    try { 
+	                        j.join(); 
+	                        Log.log.equals("Joined a job");
+	                    } catch (InterruptedException e) { break; }
+	                }
+	                return Status.OK_STATUS;
+	            } else {
+	                JobGroup jobGroup = new JobGroup("",qs,qs);
+	                Job[] jobs = new Job[qs];
+	                OpenJMLInterface ifaces[] = new OpenJMLInterface[qs];
+	                for (int i=0; i<ifaces.length; ++i) ifaces[i] = new OpenJMLInterface(jp);
+	                AtomicInteger aq = new AtomicInteger();
+	                while (true) {
+	                    while (aq.get()<qs) {
+	                        int q = 0;
+	                        for (;q < qs; q++) if (jobs[q] == null) break;
+	                        Job j = strategy.nextJob(ifaces[q],q);
+                            jobs[q] = j;
+	                        if (j == null) break;
+                            aq.incrementAndGet();
+	                        //j.setProgressGroup(progressGroup,IProgressMonitor.UNKNOWN);
+	                        j.addJobChangeListener(new JobChangeAdapter() { public void done(IJobChangeEvent e) {
+	                            for (int i=0; i<qs; i++) if (e.getJob() == jobs[i]) { 
+	                                jobs[i] = null; 
+	                                break; 
+	                            }
+	                            int qq = aq.decrementAndGet();
+                                Log.log("Job completed " + qq);
+	                            Job.getJobManager().wakeUp(jjob);
+	                        } });
+	                        j.setJobGroup(jobGroup);
+	                        j.setRule(null);
+	                        j.setUser(true); // true since the job has been initiated by an end-user
+	                        j.schedule();
+	                        Log.log.equals("Scheduled a job " + q + " " + aq.get());
+	                    }
+	                    if (aq.get() == qs) {
+	                        while (aq.get() == qs) {
+	                            // Could have a race: if check test above; job completes; decrements aq; wakes this job; then this job sleeps 
+	                            Log.log("Going to sleep " + aq.get());
+	                            jjob.sleep();
+                                Log.log("Awake " + aq.get());
+	                            try { Thread.sleep(3000); } catch (InterruptedException e) {}
+	                        }
+	                    } else {
+	                        break;
+	                    }
+	                }
+                    Log.log("Going to join " + aq.get());
+                    try { jobGroup.join(0,null); }  catch (InterruptedException e) {}
+                    Log.log("All done " + aq.get());
+                    return Status.OK_STATUS;
+	            }
+	        };
+	    };
+	    IFile f = jp.getProject().getFile(".joblock");
+	    if (!f.exists()) {
+	    	try {
+	    		f.create(new ByteArrayInputStream(new byte[0]), IResource.NONE, null);
+	    	} catch (ResourceException e) {
+	    		// Already exists? - we get here despite the f.exists test.
+	    	} catch (Exception e) {
+	    		Log.log("Failed to lock " + e.getMessage());
+	    	}
+	    }
+	    job.setRule(f);
+	    job.belongsTo(job);
+	    job.setUser(false);
+	    job.schedule();
+	    } catch (Exception e) {
+	        // FIXME Failure
+	    }
 	}
+
 
 	static public java.util.Properties getProperties() {
 		return org.jmlspecs.openjml.Utils.findProperties(null);
@@ -2714,7 +2812,7 @@ public class Utils {
 	 * @param msg
 	 *            The message to display in the dialog
 	 */
-	public void showMessageInUI(@Nullable Shell shell,
+	public static void showMessageInUI(@Nullable Shell shell,
 			@NonNull final String title, @NonNull final String msg) {
 		final Shell fshell = shell;
 		Display d = fshell == null ? Display.getDefault() : fshell.getDisplay();
@@ -2728,7 +2826,7 @@ public class Utils {
 	/** Pops up a dialog showing the given message and thte stack trace of the
 	 * given exception; may be called from the computational thread.
 	 */
-	public void showExceptionInUI(@Nullable Shell shell, String message,
+	public static void showExceptionInUI(@Nullable Shell shell, String message,
 			Throwable e) {
 		
 		String emsg = e == null ? null : e.getMessage();
@@ -2943,6 +3041,41 @@ public class Utils {
 		}
 		return count;
 	}
+	public int countMethods(List<?> elements) {
+	    int count = 0;
+        for (Object r: elements) {
+            try {
+                if (r instanceof IPackageFragment) {
+                    count += countMethods((IPackageFragment)r);
+                } else if (r instanceof IJavaProject) {
+                    count += countMethods((IJavaProject)r);
+                } else if (r instanceof IProject) {
+                    count += countMethods((IProject)r);
+                } else if (r instanceof IPackageFragmentRoot) {
+                    count += countMethods((IPackageFragmentRoot)r);
+                } else if (r instanceof ICompilationUnit) {
+                    count += countMethods((ICompilationUnit)r);
+                } else if (r instanceof IType) {
+                    count += countMethods((IType)r);
+                } else if (r instanceof IMethod) {
+                    count += 1;
+                } else if (r instanceof IFile || r instanceof IFolder) {
+                    // If a file is not part of a source folder, then we
+                    // don't have Java elements and it is not a ICompilationUnit
+                    // So we can't really count the methods in it.
+                    // The number used here is arbitrary, and will result in
+                    // a bad estimate of the work to be done. 
+                    // TODO - count the methods using the OpenJML AST.
+                    count += 1;
+                } else {
+                    Log.log("Can't count methods in a " + r.getClass());
+                }
+            } catch (Exception e) {
+                // FIXME - record exception
+            }
+        }
+        return count;
+	}
 	
 	public int countMethods(IPackageFragment pf) throws Exception {
 		int count = 0;
@@ -2954,12 +3087,29 @@ public class Utils {
 		}
 		return count;
 	}
+	
 	public int countMethods(ICompilationUnit cu) throws Exception {
-		int count = 1; // For the file
-		for (IType t: cu.getTypes()) {
-			count += countMethods(t);
-		}
+	    int count = 0;
+	    for (IType t: cu.getTypes()) {
+	        count += countMethods(t);
+	    }
 		return count;
+	}
+	
+	public static class Counter extends JmlTreeScanner {
+
+	    int count = 0;
+	    
+	    public void visitJmlMethodDecl(JmlMethodDecl m) {
+	        count++;
+	        super.visitJmlMethodDecl(m);
+	    }
+	    
+	    public static int count(JCTree t) {
+	        Counter c = new Counter();
+	        t.accept(c);
+	        return c.count;
+	    }
 	}
 
 	public int countMethods(IResource f) throws Exception {
@@ -2978,7 +3128,7 @@ public class Utils {
 	}
 
 	public int countMethods(IType t) throws Exception {
-		// FIXME - this does not count methods in anonymous or local types
+		// FIXME - this does not count anonymous or local types or their methods
 		int count = 0;
 		IType[] types = t.getTypes();
 		for (IType tt: types) {
@@ -2993,7 +3143,8 @@ public class Utils {
 		return methods.length + count;  
 	}
 
-	public int countMethods(IMethod m) throws Exception {
+	public int countMethods(IMethod m) throws Exception { 
+	    // Does not find local or anonymous classes
 		return 1;
 	}
 

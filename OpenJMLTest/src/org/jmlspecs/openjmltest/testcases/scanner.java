@@ -10,8 +10,10 @@ import org.jmlspecs.openjmltest.TestJavaFileObject;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.JmlToken;
+import com.sun.tools.javac.parser.ParserFactory;
 import com.sun.tools.javac.parser.Scanner;
 import com.sun.tools.javac.parser.ScannerFactory;
 import com.sun.tools.javac.parser.Tokens;
@@ -114,7 +116,6 @@ public class scanner extends JmlTestCase {
             fail("Exception thrown while processing test: " + e);
         }
     }
-
     ////////////////////////////////////////////////////////////////////////
     
     /** Test scanning something very simple */

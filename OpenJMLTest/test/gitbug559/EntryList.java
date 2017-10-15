@@ -1,5 +1,5 @@
 /* A simple linked list of entries. */  
-// This is the original error report - the stacvk overflow stems from repeatedly inlining the size() call in the ensures clause
+// This is the original error report - the stack overflow stems from repeatedly inlining the size() call in the ensures clause
 // Added the nullable and pure modifiers
 public class EntryList {
     /*@spec_public nullable @*/ Object first;
