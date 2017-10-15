@@ -3365,6 +3365,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!(convertedfa.sym instanceof VarSymbol)) return;
         VarSymbol vsym = ((VarSymbol)convertedfa.sym);
         Object value = vsym.getConstantValue();
+
+        discoveredFields.stats.appendList(
+            collectStats( () -> {addNullnessAllocationTypeCondition(convertedfa,vsym,false);})
+            );
+        
         if (value != null) {
             JCExpression lit = treeutils.makeLit(p, convertedfa.type, value);
             JCExpression eq = treeutils.makeEquality(p, convertedfa, lit);
@@ -6772,6 +6777,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         currentStatements = prev;
     }
     
+    protected List<JCStatement> collectStats(Runnable action) {
+        ListBuffer<JCStatement> prev = currentStatements;
+        currentStatements = new ListBuffer<JCStatement>();
+        try {
+            action.run();
+            return currentStatements.toList();
+        } finally {
+            currentStatements = prev;
+        }
+    }
+    
     Map<JmlSpecificationCase,JCIdent> preExpressions;
 
     
@@ -7315,6 +7331,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     resultId = newTemp(that,resultType);
                     resultSym = (VarSymbol) resultId.sym;
                     addNullnessAllocationTypeCondition(that, resultSym, false, false, false);
+                    {
+                        JmlMethodDecl mdecl = specs.getSpecs(calleeMethodSym).cases.decl;
+                        int p = (mdecl != null) ? mdecl.pos : 0;
+                        Name newMethodName = newNameForCallee(p, calleeMethodSym, !calleeIsFunction ? heapCount : -1);
+                        ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+                        if (!utils.isJMLStatic(calleeMethodSym)) newargs.add(newThisExpr);
+                        newargs.addAll(trArgs);
+                        JCIdent id = M.at(p).Ident(newMethodName);
+                        JCExpression newCall = M.at(p).Apply(List.<JCExpression>nil(),id,newargs.toList());
+                        newCall.setType(that.type);
+                        addAssumeEqual(that, Label.IMPLICIT_ASSUME, resultId, newCall);
+                    }
                 } else {
                     // ESC - Constructor call
                     Type t = that.type;
@@ -15197,6 +15225,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         public boolean alltrue;
     }
     
+    protected Name newNameForCallee(int pos, MethodSymbol msym, int heap) {
+        return names.fromString(utils.qualifiedName(msym).replace('.', '_') + ( heap < 0 ? "_"  : "_H" + heap + "_") + pos);
+    }
+    
     /** Creates and adds to the current statements axioms for the method given by msym.
      * Suppose method M(T i) has a spec requires P; ensures Q;. Then we define a
      * function M(heap,i) and assume (for each postcondition)
@@ -15230,7 +15262,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // FIXME - we get calleeSpecs == null when using -no-internalSpecs - shoudl we?
         int pos = calleeSpecs != null && calleeSpecs.decl != null ? calleeSpecs.decl.pos : methodDecl.pos;
 
-        Name newMethodName = names.fromString(utils.qualifiedName(msym).replace('.', '_') + "_" + pos);
+        Name newMethodName = newNameForCallee(pos, msym, -1);
         addStat(comment(callLocation,"Axioms for method " + utils.qualifiedMethodSig(msym),null));
         JCExpression combinedPre = null;
         JCExpression falses = null;
@@ -15289,7 +15321,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // Create the symbol for the new method
             int hc = heapCount;
             if (oldenv != null) hc = oldHeapValues.get(oldenv.name);
-            Name newMethodNameWithHeap = names.fromString(newMethodName.toString() +  ((useNamesForHeap && !isFunction) ? ("H" + hc) : ""));
+            Name newMethodNameWithHeap = newNameForCallee(pos,msym, (useNamesForHeap && !isFunction) ? hc : -1);
             JCModifiers newmods;
             MethodSymbol newsym;
             if (inClassDecl()) {
