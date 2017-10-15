@@ -1591,10 +1591,10 @@ public class escnew extends EscBase {
                 +"  //@ ensures true; pure\n"
                 +"  public int mmr(int i) { return 0; };\n"
                 
-                +"  //@ ensures true; pure\n"
+                +"  //@ ensures !\\fresh(\\result); pure\n"
                 +"  //@ model public <TT> TT mt(int i);\n"
                 
-                +"  //@ ensures true; pure\n"
+                +"  //@ ensures !\\fresh(\\result); pure\n"
                 +"  public /*@ nullable */ <TT> TT mtr(int i) { return null; };\n"
                 
                 +"  //@ ensures true; pure\n"
@@ -1632,10 +1632,6 @@ public class escnew extends EscBase {
                 
                
                 +"}"
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Postcondition) in method m3",15
-                ,"/tt/TestJava.java:23: warning: Associated declaration",7
-                ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Postcondition) in method <T>m3x",5
-                ,"/tt/TestJava.java:26: warning: Associated declaration",7
                 );
     }
 
