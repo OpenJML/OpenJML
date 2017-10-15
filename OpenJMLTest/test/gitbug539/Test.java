@@ -9,3 +9,4 @@ public class Test {
         return new T();
     }
 }
+// Default constructors should have just normal pure behavior

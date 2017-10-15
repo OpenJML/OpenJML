@@ -1,3 +1,7 @@
+// This example fails to prove a number of postconditions be\cause stratic tyupes are used to resolve
+// the model field _base. If tighter types are used in from and add in the childe classes, then all is OK.
+// We will leave this behavior as acceptabble for now. (FIXME)
+
 //@ non_null_by_default
 @org.jmlspecs.annotation.CodeBigintMath @org.jmlspecs.annotation.SpecBigintMath
 abstract public class MultipleModel {

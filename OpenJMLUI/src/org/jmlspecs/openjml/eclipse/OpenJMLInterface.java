@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -372,6 +373,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     // TODO - Review this
     public void executeESCCommand(Main.Cmd command, List<?> things, IProgressMonitor monitor) {
         try {
+        	Date start = new Date();
             if (things.isEmpty()) {
                 Log.log("Nothing applicable to process");
                 Activator.utils().showMessageInUI(null,"JML","Nothing applicable to process");
@@ -503,43 +505,61 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             	for (IJavaElement je: elements) {
             		utils.deleteMarkers(je.getResource(),null); // FIXME - would prefer to delete markers and highlighting on just the method.
             	}
-            	for (IJavaElement je: elements) {
-            		if (je instanceof IMethod) {
-            			MethodSymbol msym = convertMethod((IMethod)je);
-            			if (msym == null) {
-            				IResource r = je.getResource();
-            				String filename = null;
-            				try {
-            					filename = r.getLocation().toString();
-            					int errors = api.typecheck(api.parseFiles(filename));
-            					if (errors == 0) {
-            						msym = convertMethod((IMethod)je);
-            					} else {
-            						utils.showMessageInUI(null,"JML Error","ESC could not be performed because of JML typechecking errors");
-            						msym = null;
-            					}
-            				} catch (java.io.IOException e) {
-            					// FIXME - record or show exception?
-        						utils.showMessageInUI(null,"JML Error","ESC could not be performed because of JML typechecking errors");
-            					msym = null;
-            				}
-            			}
-            			if (msym != null) {
-            				Timer t = new Timer();
-            				if (Options.uiverboseness)
-            					Log.log("Beginning ESC on " + msym);
-            				if (monitor != null) monitor.subTask("ESChecking " + msym);
-            				IProverResult res = api.doESC(msym);
-            				highlightCounterexamplePath((IMethod)je,res,null);
-            			}
-            			else {} // ERROR - FIXME
-            		} else if (je instanceof IType) {
-            			ClassSymbol csym = convertType((IType)je);
-            			if (csym != null) api.doESC(csym);
-            			else {} // ERROR - FIXME
-            		}
+            	
+                args = getOptions(jproject,Main.Cmd.CHECK);
+                //api.initOptions(null,  args.toArray(new String[args.size()]));
+                //args.clear();
+                for (IJavaElement je: elements) {
+                    String filepath = je.getResource().getLocation().toOSString();
+                    args.add(filepath);
+                }
+                int ret = api.execute(null,args.toArray(new String[args.size()]));
+                if (ret != 0) {
+                    Activator.utils().showMessageInUI(null,"JML Execution Failure","Static check aborted because of syntax errors");
+                    Log.log(Timer.timer.getTimeString() + " Static check aborted because of syntax errors");
+                } else {
+
+                    args = getOptions(jproject,Main.Cmd.ESC);
+                    api.initOptions(null,  args.toArray(new String[args.size()]));
+
+                    for (IJavaElement je: elements) {
+                        if (je instanceof IMethod) {
+                            MethodSymbol msym = convertMethod((IMethod)je);
+                            if (msym == null) {
+                                IResource r = je.getResource();
+                                String filename = null;
+                                try {
+                                    filename = r.getLocation().toString();
+                                    int errors = api.typecheck(api.parseFiles(filename));
+                                    if (errors == 0) {
+                                        msym = convertMethod((IMethod)je);
+                                    } else {
+                                        utils.showMessageInUI(null,"JML Error","ESC could not be performed because of JML typechecking errors");
+                                        msym = null;
+                                    }
+                                } catch (java.io.IOException e) {
+                                    // FIXME - record or show exception?
+                                    utils.showMessageInUI(null,"JML Error","ESC could not be performed because of JML typechecking errors");
+                                    msym = null;
+                                }
+                            }
+                            if (msym != null) {
+                                Timer t = new Timer();
+                                if (Options.uiverboseness)
+                                    Log.log("Beginning ESC on " + msym);
+                                if (monitor != null) monitor.subTask("ESChecking " + msym);
+                                IProverResult res = api.doESC(msym);
+                                highlightCounterexamplePath((IMethod)je,res,null);
+                            }
+                            else {} // ERROR - FIXME
+                        } else if (je instanceof IType) {
+                            ClassSymbol csym = convertType((IType)je);
+                            if (csym != null) api.doESC(csym);
+                            else {} // ERROR - FIXME
+                        }
+                    }
+                    if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Completed ESC operation on individual methods");
             	}
-                if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Completed ESC operation on individual methods");
             }
             if (monitor != null) {
                 monitor.subTask("Completed ESC operation");
@@ -549,6 +569,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                 monitor.subTask("Canceled ESC operation");
             }
             if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Canceled ESC operation");
+        } finally {
+        	OpenJMLView.stop();
         }
     }
     

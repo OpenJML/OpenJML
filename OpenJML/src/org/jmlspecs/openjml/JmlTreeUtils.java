@@ -52,6 +52,7 @@ import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree.JCWildcard;
+import com.sun.tools.javac.tree.JCTree.Tag;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
@@ -764,6 +765,26 @@ public class JmlTreeUtils {
     public JCBinary makeBinary(int pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
         return makeBinary(pos,optag,findOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
     }
+    
+    public /*@ nullable */ String opname(Type t, JCTree.Tag tag) {
+        JmlTypes jmltypes = JmlTypes.instance(context);
+        String prefix = jmltypes.isJmlTypeOrRep(t, jmltypes.BIGINT) ? "bigint_" : jmltypes.isJmlTypeOrRep(t, jmltypes.REAL) ? "real_" : null;
+        String suffix = null;
+        switch (tag) {
+            case LE: suffix = "le"; break;
+            case LT: suffix = "lt"; break;
+            case GE: suffix = "ge"; break;
+            case GT: suffix = "gt"; break;
+            case EQ: suffix = "eq"; break;
+            case NE: suffix = "ne"; break;
+        }
+        if (prefix == null || suffix == null) {
+            return null;
+        } else {
+            return prefix + suffix;
+        }
+    }
+
 
     /** Produces an Equality AST node; presumes that the lhs and rhs have the 
      * same type.

@@ -45,6 +45,7 @@ public class TraceView extends ViewPart {
 //    private Action processExpressionsWP;
 //    private Action saveExpressions;
     
+    public String signature;
     Text text;
     
     public TraceView() {
@@ -171,6 +172,7 @@ public class TraceView extends ViewPart {
     }
     
     public void setText(String methodName, String t) {
+        signature = methodName;
     	if (methodName == null) {
             this.setPartName("OpenJML Trace");
             text.setText("<no method specified>");

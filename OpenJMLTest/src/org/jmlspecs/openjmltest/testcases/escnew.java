@@ -808,8 +808,12 @@ public class escnew extends EscBase {
 
                 +"}"
                 ,anyorder(
-                        seq("/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",16)
-                        ,seq("/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1bad",16)
+                        seq("/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",16
+                        	,"/tt/TestJava.java:5: warning: Associated method exit",4
+                        	)
+                        ,seq("/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1bad",16
+                        		,"/tt/TestJava.java:5: warning: Associated method exit",4
+                        		)
                         ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",15
                                 ,"/tt/TestJava.java:3: warning: Associated declaration",7)
                                 )
@@ -1516,7 +1520,6 @@ public class escnew extends EscBase {
 
     @Test // Allow final on invariant to mean assume regardless of helper status
     public void testInvariantInheritance() {
-    	main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava  { \n"
                 
@@ -1533,7 +1536,6 @@ public class escnew extends EscBase {
         }
     @Test
     public void testInvariantInheritance3() {
-    	//main.addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava  { \n"
                 

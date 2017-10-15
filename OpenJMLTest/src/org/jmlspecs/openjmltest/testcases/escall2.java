@@ -61,9 +61,11 @@ public class escall2 extends EscBase {
         +" public TestJava() {}\n"
         +" } \n"
         ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:32: warning: Associated declaration",14
+        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
         ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Precondition) in method m8",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:32: warning: Associated declaration",14
+        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
         );
     }
 
@@ -106,9 +108,11 @@ public class escall2 extends EscBase {
         +" public TestJava() {}\n"
         +" } \n"
         ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:32: warning: Associated declaration",14
+        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
         ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Precondition) in method m8",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:32: warning: Associated declaration",14
+        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
         );
     }
 
@@ -151,9 +155,11 @@ public class escall2 extends EscBase {
         +" public TestJava() {}\n"
         +" } \n"
         ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:32: warning: Associated declaration",14
+        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
         ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Precondition) in method m3",8
-        ,"/tt/TestJava.java:33: warning: Associated declaration",24
+        ,"/tt/TestJava.java:33: warning: Associated declaration",14
+        ,"/tt/TestJava.java:33: warning: Precondition conjunct is false: s != null",24
         );
     }
     @Test
@@ -195,9 +201,11 @@ public class escall2 extends EscBase {
         +" public TestJava() {}\n"
         +" } \n"
         ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:32: warning: Associated declaration",14
+        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
         ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Precondition) in method m3",8
-        ,"/tt/TestJava.java:33: warning: Associated declaration",24
+        ,"/tt/TestJava.java:33: warning: Associated declaration",14
+        ,"/tt/TestJava.java:33: warning: Precondition conjunct is false: s != null",24
         );
     }
 
@@ -240,9 +248,11 @@ public class escall2 extends EscBase {
         +" public TestJava() {}\n"
         +" } \n"
         ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:32: warning: Associated declaration",14
+        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
         ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Precondition) in method m8",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:32: warning: Associated declaration",14
+        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
         );
     }
 
@@ -285,9 +295,11 @@ public class escall2 extends EscBase {
         +" public TestJava() {}\n"
         +" } \n"
         ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:32: warning: Associated declaration",14
+        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
         ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Precondition) in method m3",8
-        ,"/tt/TestJava.java:33: warning: Associated declaration",24
+        ,"/tt/TestJava.java:33: warning: Associated declaration",14
+        ,"/tt/TestJava.java:33: warning: Precondition conjunct is false: s != null",24
         );
     }
     

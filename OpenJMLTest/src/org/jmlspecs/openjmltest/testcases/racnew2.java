@@ -176,7 +176,7 @@ public class racnew2 extends RacBase {
                 ,"TestJava - 1"
                 ,"TestJava - 0"
                 ,"/tt/TestJava.java:9: JML precondition is false" // caller check -- TestJava(0)
-                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:4: Associated declaration"
                 ,"/tt/TestJava.java:3: JML precondition is false" // callee check
                 ,"TestJava - 2"
                 ,"/tt/TestJava.java:4: JML postcondition is false" // callee check

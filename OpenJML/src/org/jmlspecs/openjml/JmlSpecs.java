@@ -953,7 +953,13 @@ public class JmlSpecs {
     // TODO - document
     public JmlMethodSpecs getDenestedSpecs(MethodSymbol m) {
         MethodSpecs s = getSpecs(m);
-        if (s == null) return null;
+        if (s == null) {
+            // This can happen when -no-internalSpecs is used, probably for a binary class, but it probably shouldn't - specs should be created when the class is laoded - FIXME
+            s = defaultSpecs(context,null,m,1);  // FIXME - what position should be used
+            putSpecs(m,s);
+            s.cases.deSugared = s.cases;
+            return s.cases;    // FIXME - this is not actually fully desugared, but we don't have a decl to call deSugarMethodSpecs
+        }
         if (s.cases.deSugared == null) {
             attr.deSugarMethodSpecs(s.cases.decl,s);
         }
@@ -963,57 +969,59 @@ public class JmlSpecs {
     // TODO - document
     // FIXME - this needs to be made consistent with the below
     public MethodSpecs defaultSpecs(JmlMethodDecl m) {
-        // FIXME - should use a factory
-        JmlTree.Maker M = JmlTree.Maker.instance(context);
-        JmlMethodSpecs ms = new JmlMethodSpecs();
-        MethodSpecs mspecs = new MethodSpecs(null,ms); // FIXME - empty instead of null modifiers?
-        ms.pos =  m.pos;
-        ms.decl = m;
-        ms.deSugared = null; // FIXME- was ms?
-
-        if ((m.mods.flags & Flags.GENERATEDCONSTR) != 0) {
-            int pos = m.pos;
-            JmlMethodClause clp = new JmlTree.JmlMethodClauseStoreRef(pos,JmlTokenKind.ASSIGNABLE,
-                    com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSNOTHING)));
-
-            JmlMethodClauseSignals sig = new JmlMethodClauseSignals(pos, JmlTokenKind.SIGNALS, null, JmlTreeUtils.instance(context).falseLit);
-            JmlSpecificationCase cs = new JmlSpecificationCase(pos, M.Modifiers(0), false,null,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig));
-            mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
-            return mspecs;
-            // FIXME - this should also be pure
-            // FIXME - this case should happen only if parent constructors are pure and have no signals clause
-        }
-
-        ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
-        // sym can be null if the method call is in a field initializer (and not in the body of a method)
-        // Not sure when sym.type is null - but possibly when an initializer block is created to hold translated
-        // material from a field initializer
-        for (JCExpression t: m.thrown) {
-            list.add(t);
-        }
-        list.add(JmlTreeUtils.instance(context).makeType(m.pos, Symtab.instance(context).runtimeExceptionType));
-        JmlMethodClauseSignalsOnly cl = new JmlMethodClauseSignalsOnly(m.pos,JmlTokenKind.SIGNALS_ONLY, list.toList());
-        JmlSpecificationCase cs = new JmlSpecificationCase(m.pos, M.Modifiers(0), false,null,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(cl));
-        mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
-        return mspecs;
+        return defaultSpecs(context, m, m.sym, m.pos);
+//        // FIXME - should use a factory
+//        JmlTree.Maker M = JmlTree.Maker.instance(context);
+//        JmlMethodSpecs ms = new JmlMethodSpecs();
+//        MethodSpecs mspecs = new MethodSpecs(null,ms); // FIXME - empty instead of null modifiers?
+//        ms.pos =  m.pos;
+//        ms.decl = m;
+//        ms.deSugared = null; // FIXME- was ms?
+//
+//        if ((m.mods.flags & Flags.GENERATEDCONSTR) != 0) {
+//            int pos = m.pos;
+//            JmlMethodClause clp = new JmlTree.JmlMethodClauseStoreRef(pos,JmlTokenKind.ASSIGNABLE,
+//                    com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSNOTHING)));
+//
+//            JmlMethodClauseSignals sig = new JmlMethodClauseSignals(pos, JmlTokenKind.SIGNALS, null, JmlTreeUtils.instance(context).falseLit);
+//            JmlSpecificationCase cs = new JmlSpecificationCase(pos, M.Modifiers(0), false,null,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig), null);
+//            mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
+//            return mspecs;
+//            // FIXME - this should also be pure
+//            // FIXME - this case should happen only if parent constructors are pure and have no signals clause
+//        }
+//
+//        ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
+//        // sym can be null if the method call is in a field initializer (and not in the body of a method)
+//        // Not sure when sym.type is null - but possibly when an initializer block is created to hold translated
+//        // material from a field initializer
+//        for (JCExpression t: m.thrown) {
+//            list.add(t);
+//        }
+//        list.add(JmlTreeUtils.instance(context).makeType(m.pos, Symtab.instance(context).runtimeExceptionType));
+//        JmlMethodClauseSignalsOnly cl = new JmlMethodClauseSignalsOnly(m.pos,JmlTokenKind.SIGNALS_ONLY, list.toList());
+//        JmlSpecificationCase cs = new JmlSpecificationCase(m.pos, M.Modifiers(0), false,null,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(cl), null);
+//        mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
+//        return mspecs;
     }
 
     // TODO - document
-    public static MethodSpecs defaultSpecs(Context context, MethodSymbol sym, int pos) {
+    public static MethodSpecs defaultSpecs(Context context, /*@ nullable */ JmlMethodDecl decl, MethodSymbol sym, int pos) {
         // FIXME - should use a factory
         JmlTree.Maker M = JmlTree.Maker.instance(context);
-        JmlMethodSpecs ms = new JmlMethodSpecs();
-        MethodSpecs mspecs = new MethodSpecs(null,ms); // FIXME - empty instead of null modifiers?
+        JmlMethodSpecs ms = M.at(pos).JmlMethodSpecs(com.sun.tools.javac.util.List.<JmlSpecificationCase>nil());
+        JCModifiers mods = M.at(pos).Modifiers(sym.flags() & Flags.AccessFlags);
+        MethodSpecs mspecs = new MethodSpecs(mods,ms); // FIXME - empty instead of null modifiers?
         ms.pos = pos;
-        ms.decl = null; // FIXME - this needs filling in?
+        ms.decl = decl;
         ms.deSugared = null; // FIXME- was ms?
         
-        if ((sym.flags() & Flags.GENERATEDCONSTR) != 0) {
-            JmlMethodClause clp = new JmlTree.JmlMethodClauseStoreRef(pos,JmlTokenKind.ASSIGNABLE,
+        if (((sym.flags() & Flags.GENERATEDCONSTR) != 0) || ( sym.owner == Symtab.instance(context).objectType.tsym && sym.isConstructor()) || sym.owner == Symtab.instance(context).enumSym ) {
+            JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
                     com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSNOTHING)));
 
-            JmlMethodClauseSignals sig = new JmlMethodClauseSignals(pos, JmlTokenKind.SIGNALS, null, JmlTreeUtils.instance(context).falseLit);
-            JmlSpecificationCase cs = new JmlSpecificationCase(pos, M.Modifiers(0), false,null,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig));
+            JmlMethodClauseSignals sig = M.at(pos).JmlMethodClauseSignals(JmlTokenKind.SIGNALS, null, JmlTreeUtils.instance(context).falseLit);
+            JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( mods, false,JmlTokenKind.BEHAVIOR,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig),null);
             mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
             return mspecs;
             // FIXME - this should also be pure
@@ -1028,10 +1036,19 @@ public class JmlSpecs {
             JCExpression e = JmlTreeUtils.instance(context).makeType(pos, t);
             list.add(e);
         }
+        JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
+                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSEVERYTHING)));
+        JmlMethodClause clpa = new JmlTree.JmlMethodClauseStoreRef(pos,JmlTokenKind.ACCESSIBLE,
+                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSEVERYTHING)));
+
         list.add(JmlTreeUtils.instance(context).makeType(pos, Symtab.instance(context).runtimeExceptionType));
-        JmlMethodClauseSignalsOnly cl = new JmlMethodClauseSignalsOnly(pos,JmlTokenKind.SIGNALS_ONLY, list.toList());
-        JmlSpecificationCase cs = new JmlSpecificationCase(pos, M.Modifiers(0), false,null,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(cl));
+        JmlMethodClauseSignalsOnly cl = M.at(pos).JmlMethodClauseSignalsOnly(JmlTokenKind.SIGNALS_ONLY, list.toList());
+        com.sun.tools.javac.util.List<JmlMethodClause> clauses;
+        if (decl == null) clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,clpa,cl);
+        else clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(cl);
+        JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase(mods, false, JmlTokenKind.BEHAVIOR,null,clauses,null);
         mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
+        if (decl == null) mspecs.cases.deSugared = mspecs.cases;
         return mspecs;
     }
 
@@ -1349,6 +1366,7 @@ public class JmlSpecs {
             if (utils.findMod(decl.mods, nonnullbydefaultAnnotationSymbol) != null) return true;
         }
         Symbol parent = decl.sym.owner;
+        while (parent instanceof MethodSymbol) parent = parent.owner;
         if (!(parent instanceof Symbol.ClassSymbol)) return defaultNullity(null) == JmlTokenKind.NONNULL;  // FIXME - is this OK for interfaces
         if (Enter.instance(context).getEnv((Symbol.TypeSymbol)parent) == null) return defaultNullity(null) == JmlTokenKind.NONNULL;
         JmlClassDecl encl = (JmlClassDecl)Enter.instance(context).getEnv((Symbol.TypeSymbol)parent).tree;
@@ -1545,13 +1563,23 @@ public class JmlSpecs {
         
         public MethodSpecs(JmlMethodDecl m) { 
             this.mods = m.mods;
-            cases = m.cases != null ? m.cases : new JmlMethodSpecs(); 
+            if (m.cases == null) {
+                cases = new JmlMethodSpecs();
+                cases.pos = m.pos;
+            } else {
+                cases = m.cases;
+            }
             cases.decl = m;
         }
         
         public MethodSpecs(JCTree.JCModifiers mods, JmlMethodSpecs m) { 
             this.mods = mods;
-            cases = m != null ? m : new JmlMethodSpecs(); 
+            if (m.cases == null) {
+                cases = new JmlMethodSpecs();
+                cases.pos = m.pos;
+            } else {
+                cases = m;
+            }
         }
         
         public String toString() {

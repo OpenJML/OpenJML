@@ -119,6 +119,7 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
+import com.sun.tools.javac.util.Position;
 
 /** This class converts a Java AST into basic block form (including DSA and
  * passification). All Java (and JML) statements are rewritten into assume and
@@ -355,6 +356,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         super.scan(tree);
         if (tree instanceof JCExpression && !(tree instanceof JCAssign)) {
             bimap.put(tree, result);
+//            if (tree.toString().contains("CPRE")) log.note("jml.message", "BBBIMAP-C " + tree + " ### " + result);
+//            if (tree.toString().contains("CPRE__4_4")) Utils.stop();
         }
     }
 
@@ -403,7 +406,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      */
     protected Name encodedName(VarSymbol sym, long incarnationPosition) {
         Symbol own = sym.owner;
-        if (incarnationPosition <= 0 || own == null || (!isConstructor && (sym.flags() & Flags.FINAL) != 0) || (isConstructor && (sym.flags() & (Flags.STATIC|Flags.FINAL)) == (Flags.STATIC|Flags.FINAL))) { 
+        if (incarnationPosition == Position.NOPOS || own == null || (!isConstructor && (sym.flags() & Flags.FINAL) != 0) || (isConstructor && (sym.flags() & (Flags.STATIC|Flags.FINAL)) == (Flags.STATIC|Flags.FINAL))) { 
             Name n = sym.getQualifiedName();
             if (sym.pos >= 0 && !n.toString().equals(Strings.thisName)) n = names.fromString(n.toString() + ("_" + sym.pos));
             if (own != null && own != methodDecl.sym.owner && own instanceof TypeSymbol) {
@@ -1328,6 +1331,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             st.description = that.description;
             st.source = that.source;
             st.type = that.type;
+            st.associatedClause = that.associatedClause;
             copyEndPosition(st,that);
             currentBlock.statements.add(st);
         } else {
@@ -1469,7 +1473,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         JCExpression right = convertExpr(that.rhs);
         result = doAssignment(that.type,left,right,that.pos,that);
         bimap.put(left, result);
+        if (left.toString().contains("CPRE")) log.note("jml.message", "BBBIMAP-A " + left + " ### " + result);
         bimap.putf(that, result);
+        if (that.toString().contains("CPRE")) log.note("jml.message", "BBBIMAP-B " + that + " ### " + result);
         copyEndPosition(result,that);
     }
 //    
@@ -1566,7 +1572,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             // declared variable.  Actually if there is such a situation, it 
             // will likely generate an error about use of an uninitialized variable.
             scan(that.init);
-            JCBinary expr = treeutils.makeBinary(that.pos,JCBinary.Tag.EQ,lhs,that.init);
+            JCExpression expr = treeutils.makeBinary(that.pos,JCBinary.Tag.EQ,lhs,that.init);
             addAssume(that.getStartPosition(),Label.ASSIGNMENT,expr,currentBlock.statements);
         }
     }
@@ -1650,7 +1656,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             if (that.init != null) {
                 scan(that.init);
                 that.init = result;
-                JCBinary expr = treeutils.makeBinary(that.pos,JCBinary.Tag.EQ, that.ident != null ? that.ident : lhs,that.init);
+                JCExpression expr = treeutils.makeBinary(that.pos,JCBinary.Tag.EQ, that.ident != null ? that.ident : lhs,that.init);
                 addAssume(that.getStartPosition(),Label.ASSIGNMENT,expr,currentBlock.statements);
             }
         }

@@ -2012,6 +2012,7 @@ public class Utils {
 				try {
 					IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(OpenJMLView.ID);
 					((OpenJMLView)view).refresh();
+					((OpenJMLView)view).start();
 				} catch (PartInitException e) {
 					// FIXME - report error?
 				}
@@ -2073,23 +2074,37 @@ public class Utils {
 		Display d = Display.getDefault();
 		d.asyncExec(new Runnable() {
 			public void run() {
-				setTraceViewUI(null, methodName,text);
+				setTraceViewUI(null, methodName,text,true);
 			}
 		});
 	}
 	
 	/** Creates (if needed) and returns the trace view, setting the given data; MUST be called from the UI thread */
-	public void setTraceViewUI(/*@ nullable*/ TraceView tview, final String methodName, final String text) {
+	public void setTraceViewUI(/*@ nullable*/ TraceView tview, final String methodName, final String text, boolean show) {
 		try {
 			if (tview == null) {
-				IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TraceView.ID);
-				if (!(view instanceof TraceView)) return; // FIXME - this would be an internal error
+			    IViewPart view;
+			    if (show) {
+			        view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TraceView.ID);
+			    } else {
+	                view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(TraceView.ID);
+			    }
+                if (!(view instanceof TraceView)) return; // FIXME - this would be an internal error
 				tview = (TraceView)view;
 			}
 			tview.setText(methodName, text);
 		} catch (PartInitException e) {
 			// FIXME - report error?
 		}
+	}
+	
+	public String currentTraceViewUISignature(/*@ nullable*/ TraceView tview) {
+	    if (tview == null) {
+	        IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(TraceView.ID);
+	        if (!(view instanceof TraceView)) return null; // FIXME - this would be an internal error
+	        tview = (TraceView)view;
+	    }
+	    return tview.signature;
 	}
 	
 	/** Creates (if needed) and returns the trace view, setting it to data for the most recent selection in the Proof View. */
@@ -2102,7 +2117,7 @@ public class Utils {
         String methodName = ti.getText();
         ICounterexample ce = res == null ? null : res.counterexample();
         String text = ce instanceof Counterexample ? ((Counterexample)ce).traceText : null;
-        setTraceViewUI(tview, methodName, text);
+        setTraceViewUI(tview, methodName, text, true);
 	}
 	
 	public void setTraceView(final IJavaProject currentProject) {

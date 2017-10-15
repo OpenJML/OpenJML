@@ -467,7 +467,7 @@ public class escstrings extends EscBase {
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",27
-                ,"$SPECS/java5/java/lang/CharSequence.jml:63: warning: Associated declaration",14
+                ,"$SPECS/java5/java/lang/CharSequence.jml:71: warning: Associated declaration",14
                 //,"$SPECS/java5/java/lang/String.jml:282: warning: Associated declaration",11
                 );
     }

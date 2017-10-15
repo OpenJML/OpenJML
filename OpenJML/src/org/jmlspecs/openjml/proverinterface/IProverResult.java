@@ -87,6 +87,8 @@ public interface IProverResult {
     
     /** The time to compute this result, in seconds */
     public double duration();
+    
+    public int episodes();
 
     /** The time at which the computation of the result began */
     public Date timestamp();

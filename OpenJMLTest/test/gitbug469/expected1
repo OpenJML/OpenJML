@@ -13,16 +13,24 @@ Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of Repro.Bar.getSeed(int) with prover !!!! - no warnings
 Starting proof of Repro.Bar.getSeed2(int) with prover !!!!
-test\gitbug469\Repro.java:36: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method getSeed2
+test/gitbug469/Repro.java:36: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method getSeed2
         byte[] result = new byte[length];
                         ^
-test\gitbug469\Repro.java:38: warning: The prover cannot establish an assertion (Precondition) in method getSeed2
+test/gitbug469/Repro.java:38: warning: The prover cannot establish an assertion (Precondition) in method getSeed2
     URANDOM.read(result, read, length-read);
                 ^
-$SPECS\java5\java\io\InputStream.jml:173: warning: Associated declaration
-    public int read(byte[] b, int off, int len) throws IOException;
-                           ^
+    public int read(byte[] bytes, int off, int len) throws IOException;
+               ^
+$SPECS/Specs/java5/java/io/InputStream.jml:141: warning: Precondition conjunct is false: isOpen
+      @   requires isOpen && availableBytes == 0;
+                   ^
+$SPECS/Specs/java5/java/io/InputStream.jml:147: warning: Precondition conjunct is false: availableBytes > 0
+      @   requires availableBytes > 0;
+                   ^
+$SPECS/java5/java/io/InputStream.jml:164: warning: Precondition conjunct is false: (len > 0 && !isOpen) || b == null || off < 0 || len < 0 || off + len > b.length
+      @   requires (len > 0 && !isOpen) || b == null || off < 0 || 
+                   ^
 Completed proof of Repro.Bar.getSeed2(int) with prover !!!! - with warnings
 Completed proving methods in Repro.Bar
 Completed proving methods in Repro
-3 warnings
+6 warnings

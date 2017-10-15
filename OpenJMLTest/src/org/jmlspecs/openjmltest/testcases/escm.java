@@ -306,12 +306,13 @@ public class escm extends EscBase {
                     ,"/tt/TestJava.java:14: warning: Associated declaration",7
                     ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m4bad",28
                     ,"/tt/TestJava.java:28: warning: Associated declaration",9
+                    ,"/tt/TestJava.java:36: warning: Associated method exit",8
                 );
     }
 
     @Test
     public void testFunctionsInSpecs() {
-        main.addOptions("-no-minQuant");
+        //main.addOptions("-no-minQuant");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { static public boolean b; \n"
@@ -374,6 +375,7 @@ public class escm extends EscBase {
                     ,"/tt/TestJava.java:14: warning: Associated declaration",7
                     ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m4bad",28
                     ,"/tt/TestJava.java:28: warning: Associated declaration",9
+                    ,"/tt/TestJava.java:36: warning: Associated method exit",8
                 );
     }
 

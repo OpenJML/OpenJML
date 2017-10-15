@@ -114,6 +114,9 @@ public class MethodProverSMT {
      */
     public IProverResult.IFactory factory;
     
+    /** Starting feasibility check -- purely for debugging */
+    static public int startFeasibilityCheck = 0;
+    
     /** The interface for new ITracer factories */
     public interface ITracerFactory {
         public ITracer makeTracer(Context context, SMT smt, ISolver solver, Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap);
@@ -168,7 +171,7 @@ public class MethodProverSMT {
                 ProverResult pr = new ProverResult(prover,kind,msym);
                 pr.methodSymbol = msym;
                 if (start != null) {
-                    pr.setDuration((pr.timestamp().getTime()-start.getTime())/1000.);
+                    pr.accumulateDuration((pr.timestamp().getTime()-start.getTime())/1000.);
                     pr.setTimestamp(start);
                 }
                 return pr;
@@ -369,11 +372,10 @@ public class MethodProverSMT {
                     }
 
                     java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.assumeChecks.get(methodDecl);
-                    int k = 0;
+                    int feasibilityCheckNumber = 0;
                     if (checks != null) for (JmlStatementExpr stat: checks) {
-                        ++k;
-//                        if (k < 290) continue;
-//                        if (k > 100) break;
+                        ++feasibilityCheckNumber;
+                        if (feasibilityCheckNumber < startFeasibilityCheck) continue;
                         if (prevErrors != log.nerrors) break;
                         
                         // Only do the feasibility check if called for by the feasibility option
@@ -389,7 +391,7 @@ public class MethodProverSMT {
                                     commands.remove(commands.size()-1);
                                     commands.remove(commands.size()-1);
                                 }
-                                JCExpression lit = treeutils.makeIntLiteral(Position.NOPOS, k);
+                                JCExpression lit = treeutils.makeIntLiteral(Position.NOPOS, feasibilityCheckNumber);
                                 JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.Tag.EQ,treeutils.inteqSymbol,
                                         treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.assumeCheckSym),
                                         lit);
@@ -429,7 +431,7 @@ public class MethodProverSMT {
                             solver.push(1); // Mark the top
                             JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.Tag.EQ,treeutils.inteqSymbol,
                                     treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.assumeCheckSym),
-                                    treeutils.makeIntLiteral(Position.NOPOS, k));
+                                    treeutils.makeIntLiteral(Position.NOPOS, feasibilityCheckNumber));
                             solver.assertExpr(smttrans.convertExpr(bin));
                             solverResponse = solver.check_sat();
                         }
@@ -438,7 +440,7 @@ public class MethodProverSMT {
                         // FIXME - get rid of the next line some time when we can change the test results
                         if (Utils.testingMode) loc = ""; else loc = loc + " ";
                         String msg =  (utils.jmlverbose >= Utils.PROGRESS) ? 
-                                ("Feasibility check #" + k + " - " + description + " : ")
+                                ("Feasibility check #" + feasibilityCheckNumber + " - " + description + " : ")
                                 :("Feasibility check - " + description + " : ");
                         boolean infeasible = solverResponse.equals(unsatResponse);
                         utils.progress(0,1,loc + msg + (infeasible ? "infeasible": "OK"));
@@ -590,7 +592,7 @@ public class MethodProverSMT {
                     if (solverResponse.equals(unsatResponse)) break;
                     // TODO -  checking each assertion separately
                 }
-                pr.setDuration((new Date().getTime() - pr.timestamp().getTime())/1000.);
+                //pr.accumulateDuration((new Date().getTime() - pr.timestamp().getTime())/1000.);
             }
         }
         if (usePushPop) solver.exit();
@@ -733,6 +735,7 @@ public class MethodProverSMT {
                 Name n = ((JCVariableDecl)stat).name;
                 String ns = n.toString();
                 if (ns.startsWith(Strings.labelVarString)) {
+                    JavaFileObject prev = log.useSource( ((JmlVariableDecl)stat).sourcefile );
                     int k = ns.lastIndexOf(Strings.underscore);
                     if (ns.startsWith(prefix_lblpos)) {
                         Boolean b = getBoolValue(ns,smt,solver);
@@ -752,6 +755,7 @@ public class MethodProverSMT {
                     } else {
                         log.warning(stat.pos,"jml.internal.notsobad","Unknown label: " + ns); //$NON-NLS-1$
                     }
+                    log.useSource(prev);
                 }
             }
             
@@ -830,7 +834,7 @@ public class MethodProverSMT {
                         spanType = val == null ? Span.NORMAL : val.equals("true") ? Span.TRUE : Span.FALSE;
                     }
                     //log.getWriter(WriterKind.NOTICE).println("SPAN " + sp + " " + ep + " " + spanType);
-                    if (sp != Position.NOPOS) {
+                    if (sp > Position.NOPOS) { // Neither -2 nor NOPOS
                         if (ep >= sp) path.add(new Span(sp,ep,spanType));
 //                        else log.warning(Position.NOPOS,"jml.internal.notsobad","Incomplete position information (" + sp + " " + ep + ") for " + origStat);
                     } else {
@@ -905,6 +909,7 @@ public class MethodProverSMT {
                     } else {
                         if (assertStat.source != null) prev = log.useSource(assertStat.source);
                     }
+                    JavaFileObject mainSource = log.currentSourceFile();
                     String associatedLocation = Strings.empty;
                     if (assertStat.associatedPos != Position.NOPOS && !Utils.testingMode) {
                         associatedLocation = ": " + utils.locationString(assertStat.associatedPos,assertStat.associatedSource); 
@@ -914,7 +919,7 @@ public class MethodProverSMT {
                     if (optional != null) {
                         if (optional instanceof JCTree.JCLiteral) extra = ": " + ((JCTree.JCLiteral)optional).getValue().toString(); //$NON-NLS-1$
                     }
-                    if (assertStat.description != null) {
+                    if (assertStat.description != null && label != Label.PRECONDITION) {
                         extra = ": " + assertStat.description;
                     }
                     
@@ -944,7 +949,60 @@ public class MethodProverSMT {
                         tracer.appendln(associatedLocation + " Associated location");
                         if (assertStat.associatedSource != null) log.useSource(prev);
                     }
+                    if (assertStat.associatedClause != null && JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
+                        JmlTokenKind tkind = assertStat.associatedClause.token;
+                        if (tkind == JmlTokenKind.ENSURES || tkind == JmlTokenKind.SIGNALS || tkind == JmlTokenKind.SIGNALS_ONLY) {  // FIXME - actually - any postcondition check
+                            int p = terminationPos;
+                            if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
+                                if (terminationPos == decl.pos) p = decl.getEndPosition(log.getSource(mainSource).getEndPosTable());
+                                JavaFileObject prevv = log.useSource(mainSource);
+                                if (p != Position.NOPOS) log.warning(p, "jml.message", "Associated method exit");
+                                log.useSource(prevv);
+                            }
+                        }
+                    }
 
+                    if (label == Label.PRECONDITION) {
+                        //BiMap<JCTree,JCTree> bimap = jmlesc.assertionAdder.exprBiMap;
+                        //for (int pdetail=1; pdetail <= jmlesc.assertionAdder.preconditionDetail; pdetail++) 
+                        {
+                           String nm = assertStat.description;
+                           //logPreValue(nm,cemap);
+                           Boolean v = findPreValue(nm,cemap);
+                            //log.note("jml.message",nm + " " + v);
+                           if (v != null && !v) {
+                                int pdetail2 = 0;
+                                while (true) {
+                                    pdetail2++;
+                                    String nmm = nm + "_" + pdetail2;
+                                    Boolean vv = findPreValue(nmm,cemap);
+                                    //log.note("jml.message",nmm + " " + vv);
+                                    if (vv == null && pdetail2 > 6) break;
+                                    if (true || !vv) {
+                                        int pdetail3 = 0;
+                                        while (true) {
+                                            pdetail3++;
+                                            String nmmm = nmm + "_" + pdetail3;
+                                            Boolean vvv = findPreValue(nmmm,cemap);
+                                            //log.note("jml.message",nmmm + " " + vvv);
+                                            if (vvv == null) break;
+                                            if (!vvv) {
+                                                JCTree s = findPreExpr(nmmm,cemap);
+                                                JavaFileObject prevv = log.useSource(jmlesc.assertionAdder.preconditionDetailClauses.get(nmmm));
+                                                log.warning(s.pos,"esc.false.precondition.conjunct", s.toString());
+                                                log.useSource(prevv);
+                                                break;
+                                            } else {
+                                                continue;
+                                            }
+                                        }
+                                    } else {
+                                        // FIXME - there cannot be a true value here
+                                    }
+                                }
+                            }
+                        }
+                    }
                     // Found an invalid assertion, so we can terminate
                     // Negate the path condition
                     return pathCondition; 
@@ -961,10 +1019,61 @@ public class MethodProverSMT {
         }
         return null; // Did not find anything in this block or its followers
     }
+    
+    protected void logPreValue(String preid, Map<JCTree,String> cemap) {
+        BiMap<JCTree,JCTree> bimap = jmlesc.assertionAdder.exprBiMap;
+        JCTree s = null;
+        for (JCTree t: bimap.forward.keySet()) {
+            JCTree n = bimap.getf(t);
+            if (n != null && n.toString().contains(preid)) log.note("jml.message",  t.toString() + " >>> " + n);
+        }
+            for (JCTree t: bimap.reverse.keySet()) { 
+//            if (t instanceof JCIdent && ((JCIdent)t).name.toString().contains(preid)) { 
+            if (t instanceof JCIdent && t.toString().contains(preid)) {
+                s = bimap.getr(t); 
+                String vs = s == null ? null : cemap.get(s);
+                Boolean v = vs == null ? null : "true".equals(vs);
+                log.note("jml.message", t + " <<< " +  s + " " + vs + " " + v );
+            }
+        }
+    }
+
+    protected Boolean findPreValue(String preid, Map<JCTree,String> cemap) {
+        BiMap<JCTree,JCTree> bimap = jmlesc.assertionAdder.exprBiMap;
+        JCTree s = null;
+        for (JCTree t: bimap.reverse.keySet()) { 
+            if (t instanceof JCIdent && ((JCIdent)t).name.toString().equals(preid)) { 
+                s = bimap.getr(t); 
+                break; 
+            }
+        }
+        String vs = s == null ? null : cemap.get(s);
+        Boolean v = vs == null ? null : "true".equals(vs);
+        return v;
+    }
+
+    protected JCTree findPreExpr(String preid, Map<JCTree,String> cemap) {
+        BiMap<JCTree,JCTree> bimap = jmlesc.assertionAdder.exprBiMap;
+        JCTree s = null;
+        for (JCTree t: bimap.reverse.keySet()) { 
+            if (t instanceof JCIdent && ((JCIdent)t).name.toString().equals(preid)) { 
+                s = bimap.getr(t); 
+                break; 
+            }
+        }
+        return s;
+    }
 
     /** Query the solver for the (boolean) value of an id in the current model */
     public Boolean getBoolValue(String id, SMT smt, ISolver solver) {
         String v = getValue(id,smt,solver);
+        if (v == null) return null;
+        return !v.contains("false");
+    }
+    
+    /** Query the solver for the (boolean) value of an id in the current model */
+    public Boolean getBoolValueOrNull(String id, SMT smt, ISolver solver) {
+        String v = getValue(id,smt,solver,false);
         if (v == null) return null;
         return !v.contains("false");
     }
@@ -1260,38 +1369,9 @@ public class MethodProverSMT {
     
     static public String benchmarkName = null;
     static private int benchmarkCount = 0;
-//    public void saveBenchmark(String solverName, String methodname) {
-//        String benchmarkDir = JmlOption.value(context,JmlOption.BENCHMARKS);
-//        if (benchmarkDir == null) return;
-//        String n;
-//        if (benchmarkName != null) {
-//            if ("<init>".equals(methodname)) methodname = "INIT";
-//            int count = 0;
-//            String root = benchmarkDir + "/" + benchmarkName + "." + methodname;
-//            n = root + ".smt2";
-//            while (true) {
-//                Path p = FileSystems.getDefault().getPath(n);
-//                if (!java.nio.file.Files.exists(p)) break;
-//                count++;
-//                n = root + (-count) + ".smt2";
-//            }
-//        } else {
-//            benchmarkCount++;
-//            n = String.format("%s/bench-%05d.smt2",benchmarkDir,benchmarkCount);
-//        }
-//        try {
-//            Path p = FileSystems.getDefault().getPath(n);
-//            java.nio.file.Files.deleteIfExists(p);
-//            java.nio.file.Files.move(FileSystems.getDefault().getPath("solver.out.z3"),p);
-//        } catch (IOException e) {
-//            System.out.println(e);
-//        }
-//    }
     
     public void setBenchmark(String solverName, String methodname, SMT.Configuration config) {
         String benchmarkDir = JmlOption.value(context,JmlOption.BENCHMARKS);
-//        if (benchmarkDir == null) benchmarkDir = "benchmarks";
-//      config.logfile = "solver.out";
         if (benchmarkDir == null) return;
         new java.io.File(benchmarkDir).mkdirs();
         String n;
@@ -1363,10 +1443,11 @@ public class MethodProverSMT {
             if (!(t instanceof JCExpression)) continue;
             // t is the original source expression
             JCTree t1 = assertionAdder.exprBiMap.getf(t);
-            // t1 is the result of JmlAssertionAdder, which should be a new AST
+  //          if (t1 != null && t1.toString().contains("CPRE__4_4")) Utils.stop();
+           // t1 is the result of JmlAssertionAdder, which should be a new AST
             JCExpression t2 = basicBlocker.bimap.getf(t1);
             // t2 is the result of BasicBlocker2, which may have changed AST nodes in place
-            if (t2 == null && t1 instanceof JCIdent) t2 = (JCIdent)t1; // this can happen if the Ident ends up being declared in a declaration (such as wtih field or array assignments)
+            if (t2 == null && t1 instanceof JCIdent) t2 = (JCIdent)t1; // this can happen if the Ident ends up being declared in a declaration (such as with field or array assignments)
 
             IExpr smtexpr = smttrans.bimap.getf(t2);
             if (smtexpr == null) continue;
@@ -1392,8 +1473,10 @@ public class MethodProverSMT {
 
 //            String t3 = t2 == null ? null : ce.get(t2.toString());
             values.put(t, t3);
-            if (verbose) log.getWriter(WriterKind.NOTICE).println(t + " >>>> " + t1 + " >>>> " + t2 + " >>>> " + 
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(t + " >>>> " + t1 + " >>>> " + t2 + " >>>> " + 
                     smt.smtConfig.defaultPrinter.toString(smtexpr) + " >>>> "+ t3);
+            }
         }
         return values;
     }

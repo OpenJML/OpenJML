@@ -1243,11 +1243,8 @@ public class escall3 extends EscBase {
     
     @Test public void testMethodWithConstructorNameBug() {
         main.addOptions("-no-internalSpecs");
-        // If there are no internal specs, then the implicit super() call of the
-        // Object() constructor may throw an exception. Then TestJava() would
-        // terminate exceptionally - and the invariant would not be established in
-        // that case either. With internal Specs, Object() is pure and has 
-        // only normal termination.
+        // Tests that without specs, the built-in spec for Object() is still
+        // normal_behavior and pure
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1259,11 +1256,8 @@ public class escall3 extends EscBase {
 
                 
                 +"}"
-                ,anyorder(
-                        seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",10
-                           ,"/tt/TestJava.java:4: warning: Associated declaration",14)
-                ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExceptionExit) in method TestJava",21
-                ,"/tt/TestJava.java:4: warning: Associated declaration",14))
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",10
+                ,"/tt/TestJava.java:4: warning: Associated declaration",14
                 );
     }
     
@@ -1425,7 +1419,7 @@ public class escall3 extends EscBase {
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2b() {
-    	main.addOptions("-checkFeasibility=all");
+        main.addOptions("-checkFeasibility=all","-defaults=constructor:pure");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
@@ -1473,7 +1467,7 @@ public class escall3 extends EscBase {
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2c() {
-    	main.addOptions("-checkFeasibility=all");
+        main.addOptions("-checkFeasibility=all","-defaults=constructor:pure");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends RuntimeException {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
@@ -1520,7 +1514,7 @@ public class escall3 extends EscBase {
     
     // Checks the class of the resulting exception when close calls throw exceptions, but not the try body
     @Test public void testTryResources2a() {
-    	main.addOptions("-checkFeasibility=all");
+    	main.addOptions("-checkFeasibility=all","-defaults=constructor:pure");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"

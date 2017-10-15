@@ -59,7 +59,7 @@ public interface FieldVector<T extends FieldElement<T>>  {
     /**
      * Get the type of field elements of the vector.
      * @return type of field elements of the vector
-     */
+     */ //@ non_null
     Field<T> getField();
 
     /**

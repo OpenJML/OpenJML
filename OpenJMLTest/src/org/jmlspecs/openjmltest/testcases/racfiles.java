@@ -310,6 +310,19 @@ public class racfiles extends RacBase {
     }
 
     @Test
+    public void gitbug533() {
+    	//runrac = false;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug533","test/gitbug533","TestSum","-racCheckAssumptions");
+    }
+
+    @Test
+    public void gitbug533a() {
+    	//runrac = false;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug533a","test/gitbug533a","TestSum");
+    }
+
     public void gitbug534() {
     	runrac = true;
         expectedRACExit = 0;
@@ -318,17 +331,66 @@ public class racfiles extends RacBase {
 
     @Test
     public void gitbug536() {
-    	runrac = true;
+        runrac = true;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug536","test/gitbug536","Test536","-code-math=safe","-spec-math=safe");
+    }
+
+    @Test
+    public void gitbug536a() {
+        runrac = true;
         expectedRACExit = 0;
         helpTCF("test/gitbug536","test/gitbug536","Test536","-code-math=safe","-spec-math=bigint");
     }
 
-//    @Test
-//    public void gitbug533() {
-//    	//runrac = false;
-//        expectedRACExit = 0;
-//        helpTCF("test/gitbug533a","test/gitbug533a","TestSum");
-//    }
+    @Test
+    public void gitbug542() {
+        runrac = true;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug542","test/gitbug542","Test542");
+    }
+
+    @Test
+    public void gitbug542a() {
+        runrac = true;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug542","test/gitbug542a","Test542","-spec-math=java");
+    }
+
+    @Test
+    public void gitbug542b() {
+        runrac = true;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug542","test/gitbug542b","Test542","-spec-math=safe");
+    }
+
+    @Test
+    public void gitbug542c() {
+        runrac = true;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug542","test/gitbug542c","Test542","-spec-math=bigint");
+    }
+
+    @Test
+    public void gitbug547() {
+        runrac = true;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug547","test/gitbug547","Test547");
+    }
+
+    @Test
+    public void gitbug548rac() {
+        runrac = true;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug548rac","test/gitbug548rac","Test");
+    }
+
+    @Test
+    public void gitbug548racB() {
+        runrac = true;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug548racB","test/gitbug548racB","Test");
+    }
 
     @Test
     public void sfbug413() {

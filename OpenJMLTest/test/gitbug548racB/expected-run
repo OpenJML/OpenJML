@@ -1,0 +1,6 @@
+OUT:
+java.lang.AbstractMethodError: Test.get(I)I
+java.lang.AbstractMethodError: Test.get(I)I
+	at Test.main(Test.java:7)
+
+ERR:

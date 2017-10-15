@@ -3,14 +3,14 @@ public class TestBoolean {
 
 	@org.jmlspecs.annotation.SkipEsc
 	public static void main(String... args) {
-		esc();
+		esc(true,true);
 	}
 	
-	public static void esc() {
+	public static void esc(boolean p, boolean q) {
 		Boolean t = new Boolean(true);
 		Boolean f = new Boolean(false);
-		//@ assert t == Boolean.TRUE;   // ERROR - not necessarily true
-		//@ assert f == Boolean.FALSE;   // ERROR - not necessarily true
+		//@ assert p ==> t == Boolean.TRUE;   // ERROR - not necessarily true
+		//@ assert q ==> f == Boolean.FALSE;   // ERROR - not necessarily true
 		//@ assert t != null;
 		//@ assert f != null;
 		

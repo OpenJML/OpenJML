@@ -1,24 +1,17 @@
-test\gitbug499\Interval.java:43: error: Expected a declaration or a JML construct inside the JML annotation here
+test/gitbug499/Interval.java:43: error: Expected a declaration or a JML construct inside the JML annotation here
             //@ contains(i);
                 ^
-test\gitbug499\Interval.java:64: error: illegal start of type
-        //@ !contains(i);
-            ^
-test\gitbug499\Interval.java:64: error: ';' expected
-        //@ !contains(i);
-             ^
-test\gitbug499\Interval.java:64: error: illegal start of type
+test/gitbug499/Interval.java:64: error: Incorrectly formed or terminated JML construct near here
         //@ !contains(i);
                      ^
-test\gitbug499\Interval.java:64: error: ';' expected
-        //@ !contains(i);
-                       ^
-test\gitbug499\Interval.java:67: error: class, interface, or enum expected
-    public /*@ pure @*/ int size() {
-                        ^
-test\gitbug499\Interval.java:69: error: class, interface, or enum expected
+test/gitbug499/Interval.java:65: error: <identifier> expected
     }
-    ^
+^
 Continuing bravely despite parsing errors
+test/gitbug499/Interval.java:64: error: cannot find symbol
+        //@ !contains(i);
+             ^
+  symbol:   class contains
+  location: class Interval
 Operation not performed because of parse or type errors
-7 errors
+4 errors

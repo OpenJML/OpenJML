@@ -171,6 +171,9 @@ public class JmlEnter extends Enter {
      * class declarations and top-level model declarations.
      */
     public void visitTopLevel(JCCompilationUnit tree) {
+        JavaFileObject prevSource = log.useSource(tree.sourcefile);
+        try {
+            
         // Already set: toplevel, sourcefile, specsCompilationUnit, 
         // Need to set: topLevelEnv
         if (!(tree instanceof JmlCompilationUnit)) {
@@ -238,6 +241,10 @@ public class JmlEnter extends Enter {
 //            specscu.packge = jmltree.packge;
         }
         if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(0,2,"  completed entering " + jmltree.sourcefile.getName());
+
+        } finally {
+            log.useSource(prevSource);
+        }
     }
 
 
@@ -578,7 +585,8 @@ public class JmlEnter extends Enter {
             // Matching classes has to come before visitClassDef because we need to filter out any non-Java class declarations
             // but we cannot add JML classes here because we don't have a class symbol yet
             if (!isSpecForBinary) {
-                that.defs = matchClasses(that.defs, specstree.defs, thattree.source().toString());
+                JavaFileObject source = thattree.source();
+                that.defs = matchClasses(that.defs, specstree.defs, source == null ? null : source.toString());
             } else {
                 specstree.defs = matchClassesForBinary(null, flatname, specstree.defs, unmatched, thattree.source().toString());
             }

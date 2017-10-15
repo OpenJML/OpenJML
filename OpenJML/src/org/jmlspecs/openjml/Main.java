@@ -31,6 +31,7 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.openjml.esc.JmlEsc;
+import org.jmlspecs.openjml.esc.MethodProverSMT;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 
 import com.sun.tools.javac.code.JmlTypes;
@@ -789,17 +790,30 @@ public class Main extends com.sun.tools.javac.main.Main {
         
         String t = options.get(JmlOption.JMLTESTING.optionName());
         Utils.testingMode =  ( t != null && !t.equals("false"));
-        if (Utils.testingMode) {
-            if (options.get(JmlOption.BENCHMARKS.optionName()) == null) {
-                options.put(JmlOption.BENCHMARKS.optionName(),"benchmarks");
-            }
-        }
         String benchmarkDir = options.get(JmlOption.BENCHMARKS.optionName());
         if (benchmarkDir != null) {
             new File(benchmarkDir).mkdir();
         }
         
         utils.jmlverbose = Utils.NORMAL;
+        
+        {
+            // Automatically set verboseness to PROGRESS if we are debugging checkFeasibility.
+            // So do this determination before we interpret the verboseness option.
+            t = options.get(JmlOption.FEASIBILITY.optionName());
+            if (t != null) {
+                if (t.startsWith("debug")) utils.jmlverbose = Utils.PROGRESS;
+                int k = t.indexOf(":");
+                if (k > 0) { 
+                    try {
+                        MethodProverSMT.startFeasibilityCheck = Integer.parseInt(t.substring(k+1));
+                    } catch (Exception e) {
+                        // continue
+                    }
+                }
+            }
+        }
+        
         String n = JmlOption.VERBOSENESS.optionName().trim();
         String levelstring = options.get(n);
         if (levelstring != null) {
@@ -886,7 +900,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         } 
         if (check.equals(Strings.feas_all)) {
             options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls);
-        } else if (check.equals(Strings.feas_debug)) {
+        } else if (check.startsWith(Strings.feas_debug)) {
             options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls+",debug");
             if (utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
         } 

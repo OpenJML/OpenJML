@@ -1,3 +1,5 @@
+Proving methods in stack.Stack
+Completed proving methods in stack.Stack
 Proving methods in stack.StackImpl
 Starting proof of stack.StackImpl.StackImpl() with prover !!!!
 Feasibility check #1 - end of preconditions : OK

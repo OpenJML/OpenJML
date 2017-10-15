@@ -105,7 +105,8 @@ public class escnew2 extends EscBase {
                 +"z = a.m(1); \n"
                 +"}}"
                 ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method mm",8
-                ,"/tt/A.java:4: warning: Associated declaration",5
+                ,"/tt/A.java:4: warning: Associated declaration",57
+                ,"/tt/A.java:4: warning: Precondition conjunct is false: i == j",14
                 );
     }
 
@@ -131,7 +132,8 @@ public class escnew2 extends EscBase {
                 +"z = m(2); \n"
                 +"}}"
                 ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method mm",6
-                ,"/tt/A.java:4: warning: Associated declaration",5
+                ,"/tt/A.java:4: warning: Associated declaration",57
+                ,"/tt/A.java:4: warning: Precondition conjunct is false: i == j",14
                 );
     }
 
@@ -157,7 +159,8 @@ public class escnew2 extends EscBase {
                 +"z = this.m(2); \n"
                 +"}}"
                 ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method mm",11
-                ,"/tt/A.java:4: warning: Associated declaration",5
+                ,"/tt/A.java:4: warning: Associated declaration",57
+                ,"/tt/A.java:4: warning: Precondition conjunct is false: i == j",14
                 );
     }
 
@@ -208,7 +211,7 @@ public class escnew2 extends EscBase {
 
      @Test public void testReceiver5() { 
         helpTCX("tt.A","package tt; public class A { \n"
-                +"//@ ensures i == k; \n "
+                +"//@ ensures i == k; pure \n "
                 +"public A(int k) { i = k; } \n"
                 
                 +" public int i; \n"
@@ -225,7 +228,7 @@ public class escnew2 extends EscBase {
     @Test public void testReceiver6() { 
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.A","package tt; public class A { \n"
-                +"//@ ensures i == k; \n "
+                +"//@ ensures i == k; pure \n "
                 +"public A(int k) { i = k; } \n"
                 
                 +" public int i; \n"
@@ -331,7 +334,8 @@ public class escnew2 extends EscBase {
                 +"   public B() { super(0); }\n"
                 +"}}"
                 ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method B",22
-                ,"/tt/A.java:3: warning: Associated declaration",6
+                ,"/tt/A.java:4: warning: Associated declaration",9
+                ,"/tt/A.java:3: warning: Precondition conjunct is false: k > 0",15
                 );
     }
     
@@ -368,13 +372,14 @@ public class escnew2 extends EscBase {
                 +"public A() { this(0); }\n"
                 +"}"
                 ,"/tt/A.java:6: warning: The prover cannot establish an assertion (Precondition) in method A",18
-                ,"/tt/A.java:3: warning: Associated declaration",5
+                ,"/tt/A.java:4: warning: Associated declaration",9
+                ,"/tt/A.java:3: warning: Precondition conjunct is false: k > 0",14
                 );
     }
 
     @Test public void testNullField() { 
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        main.addOptions("-show","-method=A");
+ //       main.addOptions("-show","-method=A");
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a) { \n"

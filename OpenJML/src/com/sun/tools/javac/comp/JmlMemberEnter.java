@@ -530,6 +530,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         } else {
             matchSym = specsVarDecl.sym;
         }
+        if (specsVarDecl.sym == null && matchSym != null && matchSym.pos == Position.NOPOS) {
+            matchSym.pos = specsVarDecl.pos;
+        }
         
         // matchsym == null ==> no match; otherwise matchSym is the matching symbol
         
@@ -820,6 +823,22 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         Map<Name,JmlVariableDecl> modelMethodNames = new HashMap<>();
         Symbol modelSym = attr.tokenToAnnotationSymbol.get(JmlTokenKind.MODEL);
         if (specstree != null) for (JCTree decl: specstree.defs) {  // FIXME - should specstree ever be null
+            if (decl instanceof JmlMethodDecl) {
+                if (!utils.rac) continue;
+                JmlMethodDecl md = (JmlMethodDecl)decl;
+                if (!md.isJML() || md.body != null) continue;
+                boolean isModel = utils.findMod(md.mods,JmlTokenKind.MODEL)!= null;
+                if (!isModel) continue;
+                if ((md.mods.flags & Flags.DEFAULT) != 0 || (md.mods.flags & Flags.ABSTRACT) == 0) {
+                    JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
+                    JCExpression expr = treeutils.makeUtilsMethodCall(md.pos, "noModelMethodImplementation",
+                            treeutils.makeStringLiteral(md.pos, md.name.toString()));
+                    JCStatement stat = jmlF.Exec(expr);
+                    JCStatement stat2 = jmlF.Return(treeutils.makeZeroEquivalentLit(decl.pos,md.sym.getReturnType()));
+                    md.body = jmlF.Block(0L, List.<JCStatement>of(stat,stat2));
+                } 
+                continue;
+            }
             if (!(decl instanceof JmlVariableDecl)) continue;
             JmlVariableDecl vdecl = (JmlVariableDecl)decl;
             JCAnnotation annotation = utils.findMod(vdecl.mods, modelSym);

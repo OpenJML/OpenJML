@@ -164,6 +164,8 @@ public class Utils {
 
     // FIXME - describe  - used to be the DEFAULT flag
     final public static long JMLADDED = 1L << 58;
+    
+    final public static long JMLINSTANCE = 1L << 57;
 
     /** Tests whether the JML flag is set in the given modifiers object
      * @param mods the instance of JCModifiers to test
@@ -284,6 +286,7 @@ public class Utils {
             if ((sym.flags() & STATIC) == 0) return false;
         } else {
             if (!sym.isStatic()) return false;
+            if ((sym.flags() & STATIC) == 0 || (sym.flags_field & Utils.JMLINSTANCE) != 0) return false;
         }
         if (isJML(sym.flags())) {
             Symbol csym = sym.owner;
@@ -291,7 +294,7 @@ public class Utils {
                 // TODO - should cleanup this reference to JmlAttr from Utils
                 if (JmlAttr.instance(context).hasAnnotation(sym,JmlTokenKind.INSTANCE)) return false;
             } 
-        }
+        } else if (JmlAttr.instance(context).hasAnnotation(sym,JmlTokenKind.INSTANCE)) return false;
         return true;
     }
 
@@ -303,6 +306,7 @@ public class Utils {
         if ((csym.flags() & Flags.INTERFACE) != 0) {
             // TODO - should cleanup this reference to JmlAttr from Utils
             if (JmlAttr.instance(context).findMod(mods,JmlTokenKind.INSTANCE) != null) return false;
+            if ((mods.flags & STATIC) == 0 || (mods.flags & Utils.JMLINSTANCE) != 0) return false;
         } 
         return ((mods.flags & Flags.STATIC) != 0);
     }
@@ -593,6 +597,10 @@ public class Utils {
     // Includes self
     public java.util.List<ClassSymbol> parents(TypeSymbol ct, boolean includeEnclosingClasses) {
         ArrayList<ClassSymbol> interfaces = new ArrayList<ClassSymbol>(20);
+        if (ct instanceof Symbol.TypeVariableSymbol) {
+            ct = ct.type.getUpperBound().tsym;
+            // FIXME - what if bound is also a type variable?
+        }
         if (!(ct instanceof ClassSymbol)) return interfaces;
         ClassSymbol c = (ClassSymbol)ct; // FIXME - what if we want the parents of a type variable?
         List<ClassSymbol> classes = new LinkedList<ClassSymbol>();
@@ -603,7 +611,16 @@ public class Utils {
         while (!todo.isEmpty()) {
             cc = todo.remove(0);
             if (cc == null) continue;
-            if (cc.owner instanceof ClassSymbol) todo.add((ClassSymbol)cc.owner); // FIXME - can this be an interface?
+            if (classes.contains(cc)) {
+                classes.remove(cc);
+                classes.add(0,cc);
+                continue;
+            }
+            if (includeEnclosingClasses) {
+                Symbol sym =  cc.getEnclosingElement();
+                while (sym instanceof MethodSymbol) sym = sym.owner;
+                if (sym instanceof ClassSymbol) todo.add((ClassSymbol)sym); // FIXME - can this be an interface?
+            }
             todo.add((ClassSymbol)cc.getSuperclass().tsym);
             classes.add(0,cc);
         }
@@ -622,21 +639,30 @@ public class Utils {
             for (Type ifc : ifs) {
                 ClassSymbol sym = (ClassSymbol)ifc.tsym;
                 if (interfaceSet.add(sym)) interfaces.add(sym);
+                // FIXME - what about the owners of interfaces
             }
         }
+        ClassSymbol o = classes.remove(0);
         interfaces.addAll(classes);
+        interfaces.add(0,o);
         return interfaces;
     }
 
     // Includes self // FIXME - review for order
     public java.util.List<MethodSymbol> parents(MethodSymbol m) {
         List<MethodSymbol> methods = new LinkedList<MethodSymbol>();
-        for (ClassSymbol c: parents((ClassSymbol)m.owner, false)) {
-            for (Symbol mem: c.getEnclosedElements()) {
-                if (mem instanceof MethodSymbol &&
-                        mem.name.equals(m.name) &&
-                        (mem ==m || m.overrides(mem, c, Types.instance(context), true))) {
-                    methods.add((MethodSymbol)mem);
+        if (isJMLStatic(m)) {
+            methods.add(m); 
+        } else if (m.toString().contains("toString")) {  // FIXME - experimental not inherit
+            methods.add(m); 
+        } else {
+            for (ClassSymbol c: parents((ClassSymbol)m.owner, false)) {
+                for (Symbol mem: c.getEnclosedElements()) {
+                    if (mem instanceof MethodSymbol &&
+                            mem.name.equals(m.name) &&
+                            (mem ==m || m.overrides(mem, c, Types.instance(context), true))) {
+                        methods.add((MethodSymbol)mem);
+                    }
                 }
             }
         }
@@ -725,7 +751,10 @@ public class Utils {
         if (parent.isInterface()) return true; // everything in an interface is public and hence visible
         if ((flags & Flags.PRIVATE) != 0) return false; // Private things are never visible outside their own class
         if (base.packge().equals(parent.packge())) return true; // Protected and default things are visible if in the same package
-        return (flags & Flags.PROTECTED) != 0 && base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses
+        if ((flags & Flags.PROTECTED) == 0) return false; // Otherwise default things are not visible
+        // Just left with protected things, so is base a subclass of parent
+        while (base instanceof Symbol.TypeVariableSymbol) base = ((Symbol.TypeVariableSymbol)base).type.getUpperBound().tsym;
+        return base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses
     }
 
     /** Returns true if a declaration in the 'parent' class with the given flags 
@@ -776,9 +805,10 @@ public class Utils {
 
     }
     
-    public List<Symbol.VarSymbol> listJmlVisibleFields(TypeSymbol base, long baseVisibility, boolean forStatic) {
+    // Lists all fields of 'owner' that are visible from 'base' in an environment with baseVisibility, according to JML visibility rules
+    public List<Symbol.VarSymbol> listJmlVisibleFields(TypeSymbol owner, TypeSymbol base, long baseVisibility, boolean forStatic) {
         List<Symbol.VarSymbol> list = new LinkedList<Symbol.VarSymbol>();
-        for (TypeSymbol csym: parents(base, true)) {
+        for (TypeSymbol csym: parents(owner, true)) {
             for (Symbol s: csym.members().getElements()) {
                 if (s.kind != Kinds.VAR) continue;
                 if (isJMLStatic(s) != forStatic) continue;
@@ -811,7 +841,7 @@ public class Utils {
         return classQualifiedName(sym.owner) + "." + sym;
     }
 
-    /** Returns a fully-qualified name for a method symbol, without the signature */ // FIXME - may include <init>
+    /** Returns a fully-qualified name for a symbol, without the signature */ // FIXME - may include <init>
     public String qualifiedName(Symbol sym) {
         return classQualifiedName(sym.owner) + "." + sym.name;
     }
@@ -911,6 +941,13 @@ public class Utils {
             super(location);
             this.pos = pos;
         }
+        
+        public static class Quantifier extends JmlNotImplementedException {
+            private static final long serialVersionUID = 1L;
+            public Quantifier(DiagnosticPosition pos, String location) {
+                super(pos,location);
+            }
+        }
     }
 
     
@@ -979,31 +1016,34 @@ public class Utils {
 
     public void warning(JavaFileObject source, int pos, String key, Object ... args) {
         Log log = log();
-        JavaFileObject prev = log.useSource(source);
+        JavaFileObject prev = null;
+        if (source != null) prev = log.useSource(source);
         try {
             log.warning(pos, key, args);
         } finally {
-            log.useSource(prev);
+            if (prev != null) log.useSource(prev);
         }
     }
     
     public void error(JavaFileObject source, int pos, String key, Object ... args) {
         Log log = log();
-        JavaFileObject prev = log.useSource(source);
+        JavaFileObject prev = null;
+        if (source != null) prev = log.useSource(source);
         try {
             log.error(pos, key, args);
         } finally {
-            log.useSource(prev);
+            if (prev != null) log.useSource(prev);
         }
     }
     
     public void error(JavaFileObject source, DiagnosticPosition pos, String key, Object ... args) {
         Log log = log();
-        JavaFileObject prev = log.useSource(source);
+        JavaFileObject prev = null;
+        if (source != null) prev = log.useSource(source);
         try {
             log.error(pos, key, args);
         } finally {
-            log.useSource(prev);
+            if (prev != null) log.useSource(prev);
         }
     }
     
