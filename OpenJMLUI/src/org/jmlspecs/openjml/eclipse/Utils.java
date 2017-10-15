@@ -17,6 +17,7 @@ import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
@@ -447,7 +448,15 @@ public class Utils {
 	        };
 	    };
 	    IFile f = jp.getProject().getFile(".joblock");
-	    if (!f.exists()) f.create(new ByteArrayInputStream(new byte[0]), IResource.NONE, null);
+	    if (!f.exists()) {
+	    	try {
+	    		f.create(new ByteArrayInputStream(new byte[0]), IResource.NONE, null);
+	    	} catch (ResourceException e) {
+	    		// Already exists? - we get here despite the f.exists test.
+	    	} catch (Exception e) {
+	    		Log.log("Failed to lock " + e.getMessage());
+	    	}
+	    }
 	    job.setRule(f);
 	    job.belongsTo(job);
 	    job.setUser(false);
