@@ -341,11 +341,6 @@ public class Utils {
 	public void checkESCSelection(ISelection selection,
 			@Nullable IWorkbenchWindow window, @Nullable final Shell shell) {
 		if (!checkForDirtyEditors()) return;
-        Utils.JobParameters jobParameters =  launchJobControlDialog(selection,window,shell);
-        if (jobParameters == null) return;
-        {
-            Log.log("Parameters: " + jobParameters.queues + " " + jobParameters.strategy);
-        }
 		if (selection == null) {
 			showMessage(shell, "ESC", "Nothing selected to check");
 			return;
@@ -357,90 +352,31 @@ public class Utils {
 		}
 		final Map<IJavaProject, List<Object>> sorted = sortByProject(res);
 		deleteMarkers(res, shell); // FIXME - does this trigger a rebuild?
+        JobControl.JobParameters jobParameters = JobControl.launchJobControlDialog(selection,window,shell);
+        if (jobParameters == null) return;
+        {
+            Log.log("Parameters: " + jobParameters.queues + " " + jobParameters.strategy);
+        }
 		for (final IJavaProject jp : sorted.keySet()) {
 			checkESCProject(jp,sorted.get(jp),shell,"Static Checks - Manual",jobParameters);
 		}
 	}
 	
-    public JobParameters launchJobControlDialog(ISelection selection,
-                            @Nullable IWorkbenchWindow window, @Nullable final Shell shell) {
-        JobParameters jp = new JobParameters();
-        JobControlDialog j = new JobControlDialog(jp);
-        int ok = j.open();
-        if (ok == IStatus.OK) {
-            return jp;
-        } else {
-            return null;
-        }
-    }
-    
-    public static class JobParameters {
-        public int queues;
-        public Class<? extends JobStrategy> strategy;
-    }
-    
-    public static class JobControlDialog extends MessageDialog {
- 
-        JobParameters jp;
 
-        public JobControlDialog(JobParameters jp) {
-            super(null,"OpenJML Job Control",null,"",MessageDialog.NONE,0,"OK","CANCEL");
-            this.jp = jp;
-        }
+    JobControl data = new JobControl();
 
-        class BButton {
-            Button b;
-            Class<? extends JobStrategy> strategy;
-            public BButton(Composite pp, String title, Class<? extends JobStrategy> strategy) { 
-                b = new Button (pp,SWT.RADIO); 
-                b.setText(strategy.getName()); 
-                this.strategy = strategy; 
-                if (strategy==null) b.setEnabled(false);
-                b.addSelectionListener(new SelectionAdapter() { public void widgetSelected(SelectionEvent event) { if (b.isEnabled()) jp.strategy = strategy; }});
-            }
-        };
 
-        Combo queues;
-        BButton b0,b1,b2,b3;
-       
-        @Override
-        public Control createCustomArea(Composite parent) {
-            int procs = Runtime.getRuntime().availableProcessors();
-            new Label(parent,SWT.NONE).setText("This computer has " + procs + " available processors");
-            Composite p = new Composite(parent,SWT.NONE);
-            p.setLayout(new RowLayout());
-            new Label(p,SWT.NONE).setText("How many job queues should be used? ");
-            //new org.eclipse.swt.widgets.List(parent,SWT.SINGLE).setItems(new String[]{"1","2","3","4","5","6","7","8","9"});
-            Combo c = queues = new Combo(p,SWT.DROP_DOWN|SWT.READ_ONLY);
-            c.setItems(new String[]{"1","2","3","4","5","6","7","8","9"});
-            c.select(procs-1);
-            c.addSelectionListener(new SelectionAdapter() { public void widgetSelected(SelectionEvent event) { jp.queues = ((Combo)event.widget).getSelectionIndex()+1; }});
-            new Label(parent,SWT.NONE).setText("What job scheduling policy should be used? ");
-            Composite pp = new Composite(parent,SWT.NONE);
-            pp.setLayout(new GridLayout(1,true));
-            b0 = new BButton(pp,"As one sequential job",OneJobStrategy.class);
-            b1 = new BButton(pp,"Split by selected items",SelectedItemStrategy.class);
-            b2 = new BButton(pp,"Split by package",MultiSelectedItemStrategy.class);
-            //b3 = new BButton(pp,"Split by file",null);
-            
-            return null;
-        }
-        
-    }
-    
-    IProgressMonitor progressGroup;
-    
     /** Creates and schedules a Job to do the desired computation.
      */
-	public void checkESCProject(final IJavaProject jp, /*@ nullable */ final List<Object> ores, /*@ nullable */Shell shell, String reason, JobParameters jobParameters) {
+	public void checkESCProject(final IJavaProject jp, /*@ nullable */ final List<Object> ores, /*@ nullable */Shell shell, String reason, JobControl.JobParameters jobParameters) {
 //	    if (progressGroup == null) progressGroup = Job.getJobManager().createProgressGroup();
 //        IResourceRuleFactory ruleFactory = 
 //                ResourcesPlugin.getWorkspace().getRuleFactory();
 	    try {
 	    OpenJMLInterface iface = getInterface(jp);
-	    JobStrategy strategy1 = new Utils.SelectedItemStrategy(jp,ores,2,reason);
+	    JobControl.JobStrategy strategy1 = new JobControl.SelectedItemStrategy(jp,ores,2,reason);
 	    if (jobParameters != null) strategy1 = jobParameters.strategy.getConstructor(IJavaProject.class,List.class,int.class,String.class).newInstance(jp,ores,2,reason);
-        final JobStrategy strategy = strategy1;
+        final JobControl.JobStrategy strategy = strategy1;
 	    int qs = strategy.queues();
 	    
 	     Job job = new Job("") {
@@ -510,166 +446,17 @@ public class Utils {
 	            }
 	        };
 	    };
+	    IFile f = jp.getProject().getFile(".joblock");
+	    if (!f.exists()) f.create(new ByteArrayInputStream(new byte[0]), IResource.NONE, null);
+	    job.setRule(f);
 	    job.belongsTo(job);
+	    job.setUser(false);
 	    job.schedule();
 	    } catch (Exception e) {
 	        // FIXME Failure
 	    }
 	}
 
-    public static abstract class JobStrategy {
-        List<?> elements;
-        String title;
-        IJavaProject jp;
-        public abstract String name();
-        public abstract int queues();
-        public abstract Job nextJob(OpenJMLInterface iface, int queue);
-    }
-    
-    public static class OneJobStrategy extends JobStrategy {
-        
-        public OneJobStrategy(IJavaProject jp, List<Object> elements, int availableProcessors, String title) {
-            this.elements = elements;
-            this.title = title;
-            this.jp = jp;
-            if (elements == null) {
-                elements = new LinkedList<Object>();
-                elements.add(jp);
-            }
-        }
-        
-        public boolean done = false;
-        
-        public String name() { return "As one sequential job"; }
-        
-        public int queues() { return 1; }
-        
-        public /*@ nullable */ Job nextJob(OpenJMLInterface iface, int queue) {
-            if (done || elements == null || elements.isEmpty()) return null;
-            String description = "Static checks of items in project " + jp.getElementName();
-            Job j = new Job(title) {
-                public IStatus run(IProgressMonitor mon) {
-                    SubMonitor monitor = SubMonitor.convert(mon);
-                    // The actual amount of work will be determined in executeESCCommand
-//                    monitor.beginTask(title, IProgressMonitor.UNKNOWN);
-//                    // FIXME - perhaps just set verbosity to at least progress
-//                    monitor.subTask("Detailed progress will be shown only if the verbosity preference is at least 'progress'");
-                    boolean c = false;
-                    try {
-                        iface.executeESCCommand(Cmd.ESC, elements, monitor, description);
-                    } catch (Exception e) {
-                        // FIXME - this will block, preventing progress on the rest of the projects
-                        Log.errorlog("Exception during Static Checking - " + jp.getElementName(), e);
-                        showExceptionInUI(null, "Exception during Static Checking - " + jp.getElementName(), e);
-                        c = true;
-                    }
-                    return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
-                }
-            };
-            done = true;
-            return j;
-        }
-    }
-    
-    public static class SelectedItemStrategy extends JobStrategy {
-        
-        public SelectedItemStrategy(IJavaProject jp, List<Object> elements, int availableProcessors, String title) {
-            this.elements = elements;
-            this.title = title;
-            this.jp = jp;
-            if (elements == null) {
-                elements = new LinkedList<Object>();
-                elements.add(jp);
-            }
-            iter = elements.iterator();
-        }
-        
-        public String name() { return "Split by selected items"; }
-        
-        public int queues() { return 1; }
-        
-        public Iterator<Object> iter;
-        
-        public /*@ nullable */ Job nextJob(OpenJMLInterface iface, int queue) {
-            if (!iter.hasNext()) return null;
-            Object o = iter.next();
-            String description = "Static checks in project " + jp.getElementName() + " - " + o.toString();
-            Job j = new Job(title) {
-                public IStatus run(IProgressMonitor mon) {
-                    SubMonitor monitor = SubMonitor.convert(mon);
-                    // The actual amount of work will be determined in executeESCCommand
-//                    monitor.beginTask(description, IProgressMonitor.UNKNOWN);
-//                    // FIXME - perhaps just set verbosity to at least progress
-//                    monitor.subTask("Detailed progress will be shown only if the verbosity preference is at least 'progress'");
-                    boolean c = false;
-                    try {
-                        List<Object> list = new LinkedList<Object>();
-                        list.add(o);
-                        iface.executeESCCommand(Cmd.ESC, list, monitor, description);
-                    } catch (Exception e) {
-                        // FIXME - this will block, preventing progress on the rest of the projects
-                        Log.errorlog("Exception during Static Checking - " + jp.getElementName(), e);
-                        showExceptionInUI(null, "Exception during Static Checking - " + jp.getElementName(), e);
-                        c = true;
-                    }
-                    return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
-                }
-            };
-            return j;
-        }
-    }
-    
-    public static class MultiSelectedItemStrategy extends JobStrategy {
-        
-        public MultiSelectedItemStrategy(IJavaProject jp, List<Object> elements, int availableProcessors, String title) {
-            this.elements = elements;
-            this.title = title;
-            this.jp = jp;
-            if (elements == null) {
-                elements = new LinkedList<Object>();
-                elements.add(jp);
-            }
-            iter = elements.iterator();
-        }
-        
-        public boolean done = false;
-        
-        public String name() { return "Split by selected items - parallel execution"; }
-        
-        public int queues() { return 2; }
-        
-        public Iterator<Object> iter;
-        
-        public /*@ nullable */ Job nextJob(OpenJMLInterface iface, int queue) {
-            if (!iter.hasNext()) return null;
-            Object o = iter.next();
-            String description = "Static checks of items in project " + jp.getElementName();
-            Job j = new Job(title) {
-                public IStatus run(IProgressMonitor mon) {
-                    SubMonitor monitor = SubMonitor.convert(mon);
-                    // The actual amount of work will be determined in executeESCCommand
-//                    monitor.beginTask(reason, IProgressMonitor.UNKNOWN);
-//                    // FIXME - perhaps just set verbosity to at least progress
-//                    monitor.subTask("Detailed progress will be shown only if the verbosity preference is at least 'progress'");
-                    boolean c = false;
-                    try {
-                        List<Object> list = new LinkedList<Object>();
-                        list.add(o);
-                        iface.executeESCCommand(Cmd.ESC, list, monitor, description);
-                    } catch (Exception e) {
-                        // FIXME - this will block, preventing progress on the rest of the projects
-                        Log.errorlog("Exception during Static Checking - " + jp.getElementName(), e);
-                        showExceptionInUI(null, "Exception during Static Checking - " + jp.getElementName(), e);
-                        c = true;
-                    }
-                    return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
-                }
-            };
-            done = true;
-            return j;
-        }
-    }
-    
 
 	static public java.util.Properties getProperties() {
 		return org.jmlspecs.openjml.Utils.findProperties(null);

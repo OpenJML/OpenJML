@@ -11328,16 +11328,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 return;
             }
             if (that.op != JmlTokenKind.SUBTYPE_OF && that.op != JmlTokenKind.JSUBTYPE_OF) {
-                lhs = addImplicitConversion(that.lhs,that.type,lhs);
+                lhs = addImplicitConversion(that.lhs,syms.booleanType,lhs);
             }
             JCExpression rhs,t;
             switch (that.op) {
                 case IMPLIES: // P ==> Q is !P || Q
-                    if (oldenv != null) Utils.stop();
-                    if (translatingJML) addToCondition(that.pos, lhs);
                     if (lhs instanceof JCLiteral && ((JCLiteral)lhs).getValue().equals(Boolean.FALSE)) {
                         eresult = treeutils.makeBooleanLiteral(lhs.pos, true);
                     } else if (splitExpressions) {  // temp = true; if (P) { temp = Q; }
+                        if (translatingJML) addToCondition(that.pos, lhs);
                         JCIdent id = newTemp(treeutils.trueLit);
                         pushBlock();
                         try {
@@ -11350,6 +11349,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         }
                         eresult = treeutils.makeIdent(that.pos, id.sym);
                     } else { 
+                        if (translatingJML) addToCondition(that.pos, lhs);
                         rhs = convertExpr(that.rhs);
                         rhs = addImplicitConversion(that.rhs,that.type,rhs);
                         t = treeutils.makeNot(lhs.pos, lhs);
