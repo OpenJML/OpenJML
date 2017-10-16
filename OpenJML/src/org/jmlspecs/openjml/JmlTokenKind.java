@@ -139,7 +139,8 @@ public enum JmlTokenKind implements ITokenKind {
     BSRESULT("\\result"), // Keep this one the first of the backslash tokens
     BSEVERYTHING("\\everything"),
     BSLOCKSET("\\lockset"),
-    BSINDEX("\\index"),
+    BSCOUNT("\\count"), // New version of \index
+    BSINDEX("\\index"), // Obsolete in favor of \count
     BSVALUES("\\values"),
     BSNOTHING("\\nothing"),
     BSSAME("\\same"),

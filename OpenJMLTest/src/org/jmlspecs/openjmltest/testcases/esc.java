@@ -132,37 +132,37 @@ public class esc extends EscBase {
 		helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
 
 				+ "  public void m1() {\n" + "    long[] a = { 1,2,3,4};\n" + "    for (Long k: a) {\n"
-				+ "      //@ assert \\index >= 0;\n" // OK
-				+ "      //@ assert \\index < a.length;\n" // OK
+				+ "      //@ assert \\count >= 0;\n" // OK
+				+ "      //@ assert \\count < a.length;\n" // OK
 				+ "    }\n" + "  }\n"
 
 				+ "  public void m3() {\n" // Line 10
-				+ "    long[] a = { 1,2,3,4};\n" + "    for (long k: a) {\n" + "      //@ assert \\index >= 1;\n" // BAD
+				+ "    long[] a = { 1,2,3,4};\n" + "    for (long k: a) {\n" + "      //@ assert \\count >= 1;\n" // BAD
 				+ "    }\n" + "  }\n"
 
 				+ "  public void m4() {\n" + "    long[] a = { 1};\n" + "    long[] b = { 1,2};\n"
-				+ "    for (long k: a) {\n" + "      //@ ghost int i = \\index;\n" // OK
+				+ "    for (long k: a) {\n" + "      //@ ghost int i = \\count;\n" // OK
 																					// //
 																					// Line
 																					// 20
-				+ "      //@ assert \\index >= 0;\n" // OK
-				+ "      for (long kk: b) {\n" + "         //@ assert \\index < 2;\n" // OK
-				+ "      }\n" + "      //@ assert \\index == i;\n" // OK
+				+ "      //@ assert \\count >= 0;\n" // OK
+				+ "      for (long kk: b) {\n" + "         //@ assert \\count < 2;\n" // OK
+				+ "      }\n" + "      //@ assert \\count == i;\n" // OK
 				+ "    }\n" + "  }\n"
 
 				+ "  public void m5() {\n" + "    long[] a = { 1,2,3,4};\n" + "    long[] b = { 1,2};\n" // Line
 																											// 30
-				+ "    for (long k: a) {\n" + "      //@ ghost int i = \\index;\n" + "      for (long kk: b) {\n"
-				+ "         //@ assert \\index == i;\n" // BAD
+				+ "    for (long k: a) {\n" + "      //@ ghost int i = \\count;\n" + "      for (long kk: b) {\n"
+				+ "         //@ assert \\count == i;\n" // BAD
 				+ "      }\n" + "    }\n" + "  }\n"
 
 				+ "  public void m6() {\n" + "    long[] a = { 1,2,3,4};\n"
-				+ "    //@ loop_invariant \\index >= 0 && \\index <= a.length;\n" // OK
-				+ "    //@ decreases a.length - \\index;\n" // OK
+				+ "    //@ loop_invariant \\count >= 0 && \\count <= a.length;\n" // OK
+				+ "    //@ decreases a.length - \\count;\n" // OK
 				+ "    for (long k: a) {\n" + "    }\n" + "  }\n"
 
 				+ "  public void m7x() {\n" + "    long[] a = { 1,2,3,4};\n"
-				+ "    //@ decreases a.length - \\index -1;\n" // 0 on last
+				+ "    //@ decreases a.length - \\count -1;\n" // 0 on last
 																// iteration -
 																// BAD
 				+ "    for (long k: a) {\n" + "    }\n" + "  }\n" // Line 50
@@ -181,27 +181,27 @@ public class esc extends EscBase {
 
 				+ "  public void m7y() {\n" 
 				+ "    long[] a = { 1,2,3,4};\n"
-				+ "    //@ decreases a.length - \\index -2;\n" // BAD - last time through
+				+ "    //@ decreases a.length - \\count -2;\n" // BAD - last time through
 				+ "    for (long k: a) {\n" 
 				+ "    }\n" + "  }\n"
 
 				+ "  public void m7a() {\n" 
 				+ "    long[] a = { 1,2,3,4};\n" 
-				+ "    //@ decreases \\index+10;\n" // BAD - loop does not decrease variant
+				+ "    //@ decreases \\count+10;\n" // BAD - loop does not decrease variant
 				+ "    for (long k: a) {\n" 
 				+ "    }\n" 
 				+ "  }\n"
 
 				+ "  public void m8() {\n" 
 				+ "    long[] a = { 1,2,3,4};\n"
-				+ "    //@ loop_invariant \\index > 0 && \\index <= a.length;\n" // BAD - first time through loop
+				+ "    //@ loop_invariant \\count > 0 && \\count <= a.length;\n" // BAD - first time through loop
 				+ "    for (long k: a) {\n" 
 				+ "    }\n" 
 				+ "  }\n"
 
 				+ "  public void m9() {\n" 
 				+ "    long[] a = { 1,2,3,4};\n"
-				+ "    //@ loop_invariant \\index >= 0 && \\index < a.length;\n" // BAD - laswt time through loop
+				+ "    //@ loop_invariant \\count >= 0 && \\count < a.length;\n" // BAD - laswt time through loop
 				+ "    for (long k: a) {\n" 
 				+ "    }\n" 
 				+ "  }\n"
@@ -209,8 +209,8 @@ public class esc extends EscBase {
 				+ "  public void m2() {\n" 
 				+ "    long[] a = { 1L,2L,3L };\n" 
 				+ "    for (Long k: a) {\n"
-				+ "      //@ assert \\index >= 0;\n" // OK
-				+ "      //@ assert \\index < a.length;\n" // OK
+				+ "      //@ assert \\count >= 0;\n" // OK
+				+ "      //@ assert \\count < a.length;\n" // OK
 				+ "    }\n" 
 				+ "  }\n"
 
@@ -218,12 +218,12 @@ public class esc extends EscBase {
 				+ "    long[] a = { 1,2 };\n" 
 				+ "    long[] b = { 1,2};\n"
 				+ "    for (long k: a) {\n" 
-				+ "      //@ ghost int i = \\index;\n" // OK
-				+ "      //@ assert \\index >= 0;\n" // OK
+				+ "      //@ ghost int i = \\count;\n" // OK
+				+ "      //@ assert \\count >= 0;\n" // OK
 				+ "      for (long kk: b) {\n" 
-				+ "         //@ assert \\index < 2;\n" // OK
+				+ "         //@ assert \\count < 2;\n" // OK
 				+ "      }\n" 
-				+ "      //@ assert \\index == i;\n" // OK
+				+ "      //@ assert \\count == i;\n" // OK
 				+ "    }\n" 
 				+ "  }\n"
 
@@ -253,20 +253,20 @@ public class esc extends EscBase {
 		helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
 
 				+ "  public void m1() {\n" + "    Integer[] a = { 1,2,3,4};\n"
-				+ "    //@ loop_invariant \\values.size() == \\index;\n" + "    for (Integer k: a) {\n" + "    }\n"
+				+ "    //@ loop_invariant \\values.size() == \\count;\n" + "    for (Integer k: a) {\n" + "    }\n"
 				+ "  }\n"
 
 				+ "  public void m2() {\n" + "    Integer[] a = { 1,2,3,4};\n"
-				+ "    //@ loop_invariant \\values.size() == \\index;\n" + "    for (Integer k: a) {\n"
-				+ "      //@ assert \\values.size() == \\index;\n" + "    }\n" + "  }\n"
+				+ "    //@ loop_invariant \\values.size() == \\count;\n" + "    for (Integer k: a) {\n"
+				+ "      //@ assert \\values.size() == \\count;\n" + "    }\n" + "  }\n"
 
 				+ "  public void m3() {\n" + "    Integer[] a = { 1,2,3,4};\n" + "    for (Integer k: a) {\n"
-				+ "      //@ assert \\values.size() == \\index;\n" + "    }\n" + "  }\n"
+				+ "      //@ assert \\values.size() == \\count;\n" + "    }\n" + "  }\n"
 
 				+ "  public TestJava() {}\n"
 
 				+ "  public void m3a() {\n" // Line 23
-				+ "    long[] a = { 1,2,3,4};\n" + "    for (long k: a) {\n" + "      //@ assert \\index >= 1;\n" // BAD
+				+ "    long[] a = { 1,2,3,4};\n" + "    for (long k: a) {\n" + "      //@ assert \\count >= 1;\n" // BAD
 				+ "    }\n" + "  }\n"
 
 				+ "}"
@@ -428,16 +428,16 @@ public class esc extends EscBase {
 		helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
 
 				+ "  public void m1a() {\n" + "    long[] a = { 1,2,3,4};\n" + "    for (long k: a) {\n" + "    }\n"
-				+ "    //@ ghost int i = \\index;\n" // Out of scope
+				+ "    //@ ghost int i = \\count;\n" // Out of scope
 				+ "  }\n"
 
-				+ "  public void m2() {\n" + "    long[] a = { 1,2,3,4};\n" + "    //@ ghost int i = \\index;\n" // Out
+				+ "  public void m2() {\n" + "    long[] a = { 1,2,3,4};\n" + "    //@ ghost int i = \\count;\n" // Out
 																													// of
 																													// scope
 				+ "  }\n"
 
 				+ "  public void m4() {\n" + "    long[] a = { 1,2,3,4};\n" + "    for (long k: a) {\n"
-				+ "      //@ set \\index = 6;\n" // Syntax error
+				+ "      //@ set \\count = 6;\n" // Syntax error
 				+ "    }\n" + "  }\n"
 
 				+ "  public void v1a() {\n" + "    Integer[] a = { 1,2,3,4};\n" + "    for (Integer k: a) {\n"
@@ -462,8 +462,8 @@ public class esc extends EscBase {
 
 				+ "}"
 
-				, "/tt/TestJava.java:7: A \\index token is used outside the scope of a foreach loop", 23,
-				"/tt/TestJava.java:11: A \\index token is used outside the scope of a foreach loop", 23,
+				, "/tt/TestJava.java:7: A \\count token is used outside the scope of a foreach loop", 23,
+				"/tt/TestJava.java:11: A \\count token is used outside the scope of a foreach loop", 23,
 				"/tt/TestJava.java:16: unexpected type\n  required: variable\n  found:    value", 15,
 				"/tt/TestJava.java:23: A \\values token is used outside the scope of a foreach loop", 45,
 				"/tt/TestJava.java:27: A \\values token is used outside the scope of a foreach loop", 45,
@@ -2199,7 +2199,7 @@ public class esc extends EscBase {
 		helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
 				+ "  public void inst(int[] a) { \n" + "    boolean b = false;\n"
 				+ "    //@ assume a != null && a.length > 2 && a[0] == 1;\n"
-				+ "    //@ loop_invariant (\\forall int k; 0<=k && k < \\index; b ==> a[k] > 0);\n"
+				+ "    //@ loop_invariant (\\forall int k; 0<=k && k < \\count; b ==> a[k] > 0);\n"
 				+ "    for(int i: a) if (i > 0) b = true; \n" + "    //@ assert b ==> a[1] > 0;\n" + "  }\n" + "}");
 	}
 

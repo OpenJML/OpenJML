@@ -2796,8 +2796,12 @@ public class JmlParser extends JavacParser {
                 return t;
             }
             switch (jt) {
-                case BSEXCEPTION:// FIXME - what can follow this?
                 case BSINDEX:
+                    // FIXME - turn the following one when we have time to fix the tests - perhaps guard with an option
+//                    log.warning(p,jt.internedName() + " is deprecated -- use \\count instead");
+                    // fall-through
+                case BSEXCEPTION:// FIXME - what can follow this?
+                case BSCOUNT:
                 case BSVALUES:// FIXME - what can follow this?
                     if (JmlOption.isOption(context,JmlOption.STRICT)) {
                         log.warning(p,"jml.not.strict",jt.internedName());

@@ -3850,6 +3850,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
                 
             case BSINDEX:
+            case BSCOUNT:
                 t = syms.intType;
                 if (loopStack.isEmpty()) {
                     log.error(that.pos,"jml.outofscope",jt.internedName());

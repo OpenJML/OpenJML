@@ -12001,7 +12001,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // Compute the condition, recording any side-effects
             {
 
-                JmlSingleton index = M.at(that.pos).JmlSingleton(JmlTokenKind.BSINDEX);
+                JmlSingleton index = M.at(that.pos).JmlSingleton(JmlTokenKind.BSCOUNT);
                 index.type = syms.intType;
                 JCExpression ocond = treeutils.makeBinary(that.pos, JCTree.Tag.LT, 
                         index,
@@ -13959,8 +13959,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 break;
 
             case BSINDEX:
+            case BSCOUNT:
                 if (indexStack.isEmpty()) {
-                    error(that,"\\index expression used outside a loop");
+                    error(that,that.token.toString() + " expression used outside a loop");
                 } else {
                     // Get the index of the inner most loop
                     JCVariableDecl vd = indexStack.get(0);
