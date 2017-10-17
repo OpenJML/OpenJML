@@ -121,7 +121,7 @@ public class escnew extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method m1a",15
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
-                ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.m1b(int)",-15
+                ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.m1b(int)",15
                 );
     }
     

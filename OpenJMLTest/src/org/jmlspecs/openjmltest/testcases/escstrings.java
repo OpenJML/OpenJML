@@ -232,7 +232,7 @@ public class escstrings extends EscBase {
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",-45
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",45
                 );
     }
    
@@ -249,14 +249,16 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       //@ assert (s+ss).equals(s+ss);\n"  // FIXME - not sure why the null errors
+                +"       //@ assert (s+ss).equals(s+ss);\n"
                 +"  }\n"
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",-25
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",-25
+                ,anyorder(
+//                 seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",25)
+//                ,
+                seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12)
+                )
                 );
     }
    
