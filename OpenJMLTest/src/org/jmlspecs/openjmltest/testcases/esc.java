@@ -1336,13 +1336,17 @@ public class esc extends EscBase {
 						+ "  //@ modifies b[i];\n" + "  public void c4(int i) {}\n" + "}",
 				seq("/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method m5a", 9,
 						anyorder(
-								seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m6a:  a[i]",
-										7
-										, "/tt/TestJava.java:45: warning: Associated declaration", 15
-										,"/tt/TestJava.java:43: warning: Precondition conjunct is false: i < a.length",35
+								seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m6a:  a[i]",7
+										, "/tt/TestJava.java:20: warning: Associated declaration", 7
 										),
-								seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m6a",
-										7, "/tt/TestJava.java:43: warning: Associated declaration", 7))));
+								seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m6a",7
+										, "/tt/TestJava.java:45: warning: Associated declaration", 15
+                                        ,
+                                        oneof(
+                                        seq("/tt/TestJava.java:43: warning: Precondition conjunct is false: a != null",16)
+                                        ,seq("/tt/TestJava.java:43: warning: Precondition conjunct is false: i < a.length",16)
+                                        )
+										))));
 	}
 
 	@Test
@@ -1689,44 +1693,32 @@ public class esc extends EscBase {
 				+ "  public static void bassumeCHAIN1(boolean bb, boolean b) { if (bb) { /*@ assume !bb; assume bb;*/ b = true;  /* @ assert false; */ } }\n"
 				+ "  public static void bassumeCHAIN2(boolean bb, boolean b) { if (bb) { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */ } }\n"
 				+ "  public static void bassumeMULT(boolean bb, boolean b) { if (bb) { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */ } else { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */} }\n"
-				+ "  public TestJava() {}\n" + "}",
-				"/tt/TestJava.java:5: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeBADASSUMP(boolean)",
-				56,
-				"/tt/TestJava.java:5: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.bassumeBADASSUMP(boolean)",
-				77,
-				"/tt/TestJava.java:5: warning: There is no feasible path to program point at program exit in method tt.TestJava.bassumeBADASSUMP(boolean)",
-				22, "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method bifOK",
-				113,
-				"/tt/TestJava.java:9: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bifBAD(boolean,boolean)",
-				84,
-				"/tt/TestJava.java:9: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.bifBAD(boolean,boolean)",
-				101,
-				"/tt/TestJava.java:12: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeBADASSUMP2(boolean)",
-				57,
-				"/tt/TestJava.java:12: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.bassumeBADASSUMP2(boolean)",
-				78,
-				"/tt/TestJava.java:12: warning: There is no feasible path to program point at program exit in method tt.TestJava.bassumeBADASSUMP2(boolean)",
-				22,
+				+ "  public TestJava() {}\n" + "}"
+				,"/tt/TestJava.java:5: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeBADASSUMP(boolean)",56
+				,"/tt/TestJava.java:5: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.bassumeBADASSUMP(boolean)",77
+				,"/tt/TestJava.java:5: warning: There is no feasible path to program point at program exit in method tt.TestJava.bassumeBADASSUMP(boolean)",22
+				,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method bifOK",113
+				,"/tt/TestJava.java:9: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bifBAD(boolean,boolean)",84
+				,"/tt/TestJava.java:9: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.bifBAD(boolean,boolean)",101
+				,"/tt/TestJava.java:12: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeBADASSUMP2(boolean)",57
+				,"/tt/TestJava.java:12: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.bassumeBADASSUMP2(boolean)",78
+				,"/tt/TestJava.java:12: warning: There is no feasible path to program point at program exit in method tt.TestJava.bassumeBADASSUMP2(boolean)",22
 				// The following error is required, but can occur before or
 				// after the error on the same line
-				"/tt/TestJava.java:13: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeCHAIN1(boolean,boolean)",
-				-87,
-				"/tt/TestJava.java:13: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeCHAIN1(boolean,boolean)",
-				75,
-				"/tt/TestJava.java:13: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeCHAIN1(boolean,boolean)",
-				-87,
-				"/tt/TestJava.java:14: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeCHAIN2(boolean,boolean)",
-				85,
+				,anyorder(
+				seq("/tt/TestJava.java:13: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeCHAIN1(boolean,boolean)",87)
+				,seq("/tt/TestJava.java:13: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeCHAIN1(boolean,boolean)",75)
+				)
+				,"/tt/TestJava.java:14: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeCHAIN2(boolean,boolean)",85
 				// The following error is required, but can occur before or
 				// after the error on the same line
-				"/tt/TestJava.java:15: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeMULT(boolean,boolean)",
-				83,
-				"/tt/TestJava.java:15: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeMULT(boolean,boolean)",
-				142,
-				"/tt/TestJava.java:15: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeMULT(boolean,boolean)",
-				153,
-				"/tt/TestJava.java:15: warning: There is no feasible path to program point at program exit in method tt.TestJava.bassumeMULT(boolean,boolean)",
-				22); // FIXME - use Optional etc.
+				,anyorder(
+				seq("/tt/TestJava.java:15: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeMULT(boolean,boolean)",83)
+				,seq("/tt/TestJava.java:15: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeMULT(boolean,boolean)",142)
+				)
+				,"/tt/TestJava.java:15: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeMULT(boolean,boolean)",153
+				,"/tt/TestJava.java:15: warning: There is no feasible path to program point at program exit in method tt.TestJava.bassumeMULT(boolean,boolean)",22
+				);
 	}
 
 	@Ignore // FIXME - rejuvenate dead branch detection some time
