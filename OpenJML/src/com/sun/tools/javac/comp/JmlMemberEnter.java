@@ -254,6 +254,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         if (remove == null) remove = new ListBuffer<>();
                         remove.add(t);
                     }
+                    if (t instanceof JCMethodDecl && ((JCMethodDecl)t).sym == null) {
+                        if (remove == null) remove = new ListBuffer<>();
+                        remove.add(t);
+                    }
                 }
                 if (remove != null) {
                     for (JCTree t: remove) {
@@ -443,7 +447,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     protected boolean noEntering = false;
     
     
-    protected void visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, Scope enclScope) {
+    protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, Scope enclScope) {
         if (chk.checkUnique(tree.pos(), m, enclScope)) {
             if (!noEntering) {
                 if (tree.body == null && m.owner.isInterface() && utils.isJML(m.flags())) {
@@ -452,6 +456,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 }
                 enclScope.enter(m);
             }
+            return true;
+        } else {
+            if (!((JmlCheck)chk).noDuplicateWarn) tree.sym = null;  // FIXME - this needs some testing
+            return false;
         }
     }
 

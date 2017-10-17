@@ -305,8 +305,9 @@ public class escm extends EscBase {
                     ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",8
                     ,"/tt/TestJava.java:14: warning: Associated declaration",7
                     ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m4bad",28
-                    ,"/tt/TestJava.java:28: warning: Associated declaration",9
+                    ,"/tt/TestJava.java:31: warning: Associated declaration",21
                     ,"/tt/TestJava.java:36: warning: Associated method exit",8
+                    ,optional("/tt/TestJava.java:28: warning: Precondition conjunct is false: b",18)
                 );
     }
 
@@ -374,8 +375,9 @@ public class escm extends EscBase {
                     ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",8
                     ,"/tt/TestJava.java:14: warning: Associated declaration",7
                     ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m4bad",28
-                    ,"/tt/TestJava.java:28: warning: Associated declaration",9
+                    ,"/tt/TestJava.java:31: warning: Associated declaration",21
                     ,"/tt/TestJava.java:36: warning: Associated method exit",8
+                    ,optional("/tt/TestJava.java:28: warning: Precondition conjunct is false: b",18)
                 );
     }
 

@@ -1223,10 +1223,10 @@ public class escall2 extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m2",17
                 ,"/tt/TestJava.java:8: warning: Associated declaration",20
-                ,"/tt/TestJava.java:7: warning: Precondition conjunct is false: b",39
+                ,optional("/tt/TestJava.java:7: warning: Precondition conjunct is false: b",39)
                 ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m1a",17
                 ,"/tt/TestJava.java:8: warning: Associated declaration",20
-                ,"/tt/TestJava.java:7: warning: Precondition conjunct is false: b",39
+                ,optional("/tt/TestJava.java:7: warning: Precondition conjunct is false: b",39)
                 ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m1b",9
                  );
     }
