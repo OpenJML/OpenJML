@@ -67,6 +67,8 @@ public abstract class JmlTestCase {
     static protected String root = new File(".").getAbsoluteFile().getParentFile().getParentFile().getParent();
     
     protected boolean ignoreNotes = false;
+    
+    public OutputCompare outputCompare = new OutputCompare();
 
     /** This is here so we can get the name of a test, using name.getMethodName() */
     @Rule public TestName name = new TestName();
@@ -246,7 +248,7 @@ public abstract class JmlTestCase {
      * @param dd the diagnostic
      * @return
      */
-    protected String noSource(Diagnostic<? extends JavaFileObject> dd) {
+    static protected String noSource(Diagnostic<? extends JavaFileObject> dd) {
         return dd instanceof JCDiagnostic ? noSource((JCDiagnostic)dd) : dd.toString();
     }
 
@@ -374,13 +376,15 @@ public abstract class JmlTestCase {
      */
     protected void addMockJavaFile(String filename, /*@ non_null */String content) {
         try {
-            addMockJavaFile(filename,new TestJavaFileObject(new URI("file:///" + filename),content));
+            addMockFile(filename,new TestJavaFileObject(new URI("file:///" + filename),content));
         } catch (Exception e) {
             fail("Exception in creating a URI: " + e);
         }
     }
-
-    /** Used to add a pseudo file to the command-line.
+    
+    /** Used to add a pseudo file to the file system. Note that for testing, a 
+     * typical filename given here might be #B/A.java, where #B denotes a 
+     * mock directory on the specification path
      * @param filename the name of the file, including leading directory components 
      * @param file the JavaFileObject to be associated with this name
      */
@@ -390,180 +394,11 @@ public abstract class JmlTestCase {
 
     
     /** Returns the diagnostic message without source location information */
-    String noSource(JCDiagnostic dd) {
+    static String noSource(JCDiagnostic dd) {
         return dd.noSource();
     }
 
 
-    /** Compares two files, returning null if the same; returning a String of
-     * explanation if they are different.
-     */
-    public String compareFiles(String expected, String actual) {
-        BufferedReader exp = null,act = null;
-        String diff = "";
-        try {
-            exp = new BufferedReader(new FileReader(expected));
-            act = new BufferedReader(new FileReader(actual));
-            
-            int line = 0;
-            while (true) {
-                line++;
-                String sexp = exp.readLine();
-                if (sexp != null) {
-                    sexp = sexp.replace("\r\n", "\n");
-                    sexp = sexp.replace("$ROOT",root);
-                    sexp = sexp.replace("$SPECS", specsdir);
-                    sexp = sexp.replace('\\','/');
-                }
-                while (true) {
-                	String sact = act.readLine();
-                	if (sact != null) {
-                	    sact = sact.replace("\r\n", "\n");
-                	    sact = sact.replace('\\','/');
-                	}
-                	if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
-                	if (sexp != null && sact == null) {
-                		diff += ("Less actual input than expected" + eol);
-                		return diff;
-                	}
-                    if (sact != null && !sact.equals(sexp)) {
-                        if (sact.startsWith("Note: ") && ignoreNotes) continue;
-                    }
-                    if (sexp == null && sact != null) {
-                		diff += ("More actual input than expected" + eol);
-                		return diff;
-                	}
-                	if (!sexp.equals(sact)) {
-                		int k = sexp.indexOf('(');
-                		if (k != -1 && sexp.contains("at java.") && sexp.substring(0,k).equals(sact.substring(0,k))) {
-                			// OK
-                		} else {         
-                			if (sact.startsWith("Note: ") && ignoreNotes) continue;
-                			diff += ("Lines differ at " + line + eol)
-                					+ ("EXP: " + sexp + eol)
-                					+ ("ACT: " + sact + eol);
-                		}
-                	}
-                	break;
-                }
-            }
-        } catch (FileNotFoundException e) {
-            diff += ("No expected file found: " + expected + eol);
-        } catch (Exception e) {
-            diff += ("Exception on file comparison" + eol);
-        } finally {
-            try {
-                if (exp != null) exp.close();
-                if (act != null) act.close();
-            } catch (Exception e) {}
-        }
-        return diff.isEmpty() ? null : diff;
-    }
-    
-    /** Compare the content of 'actualFile' against the files dir + "/" + root and then with 1, 2, 3, etc.
-     * appended. If none match, then returns the diffs against the last one.
-     */
-    public void compareFileToMultipleFiles(String actualFile, String dir, String root) {
-        String diffs = "";
-        for (String f: new File(dir).list()) {
-            if (!f.contains(root)) continue;
-            diffs = compareFiles(dir + "/" + f, actualFile);
-            if (diffs == null) break;
-        }
-        if (diffs != null) {
-            if (diffs.isEmpty()) {
-                fail("No expected output file");
-            } else {
-                System.out.println(diffs);
-                fail("Unexpected output: " + diffs);
-            }
-        } else {
-            new File(actualFile).delete();
-        }
-    }
-
-    public void compareTextToMultipleFiles(String output, String dir, String root, String actualLocation) {
-        String diffs = "";
-        for (String f: new File(dir).list()) {
-            if (!f.contains(root)) continue;
-            diffs = compareText(dir + "/" + f,output);
-            if (diffs == null) break;
-        }
-        if (diffs != null) {
-            try (BufferedWriter b = new BufferedWriter(new FileWriter(actualLocation));) {
-                b.write(output);
-            } catch (IOException e) {
-                fail("Failure writing output");
-            }
-            if (diffs.isEmpty()) {
-                fail("No expected output file");
-            } else {
-                System.out.println(diffs);
-                fail("Unexpected output: " + diffs);
-            }
-        } else {
-            new File(actualLocation).delete();
-        }
-    }
-
-    /** Compares a file to an actual String (ignoring difference kinds of 
-     * line separators); returns null if they are the same, returns the
-     * explanation string if they are different.
-     */
-    public String compareText(String expectedFile, String actual) {
-        String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
-        BufferedReader exp = null;
-        String[] lines = actual.split(term,-1); // -1 so we do not discard empty lines
-        String diff = "";
-        try {
-            exp = new BufferedReader(new FileReader(expectedFile));
-            
-            boolean same = true;
-            int line = 0;
-            while (true) {
-                line++;
-                String sexp = exp.readLine();
-                if (sexp == null) {
-                    if (line == lines.length) return diff.isEmpty() ? null : diff;
-
-                    else {
-                        diff += ("More actual input than expected" + eol);
-                        return diff;
-                    }
-                }
-                if (line > lines.length) {
-                    diff += ("Less actual input than expected" + eol);
-                    return diff;
-                }
-                sexp = sexp.replace("$ROOT",root);
-                sexp = sexp.replace("$SPECS", specsdir);
-                String sact = lines[line-1];
-                if (sexp.equals(sact)) {
-                    // OK
-                } else if (sexp.replace('\\','/').equals(sact.replace('\\','/'))) {
-                    // OK
-                } else {
-                	int k = sexp.indexOf('(');
-                	if (k != -1 && sexp.contains("at ") && sexp.substring(0,k).equals(sact.substring(0,k))) {
-                		// OK
-                	} else {         
-                        diff += ("Lines differ at " + line + eol)
-                            + ("EXP: " + sexp + eol)
-                            + ("ACT: " + sact + eol);
-                	}
-                }
-            }
-        } catch (FileNotFoundException e) {
-            diff += ("No expected file found: " + expectedFile + eol);
-        } catch (Exception e) {
-            diff += ("Exception on file comparison" + eol);
-        } finally {
-            try {
-                if (exp != null) exp.close();
-            } catch (Exception e) {}
-        }
-        return diff.isEmpty() ? null : diff;
-    }
 }
 
 

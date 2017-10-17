@@ -1,11 +1,9 @@
 package org.jmlspecs.openjmltest;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.PrintWriter;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -14,12 +12,10 @@ import java.util.concurrent.TimeUnit;
 
 import javax.tools.JavaFileObject;
 
-import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.MethodProverSMT;
-import org.jmlspecs.openjmltest.JmlTestCase.FilteredDiagnosticCollector;
+import org.jmlspecs.openjmltest.OutputCompare.*;
 import org.junit.Rule;
 import org.junit.rules.TestName;
 import org.junit.rules.Timeout;
@@ -204,13 +200,13 @@ public abstract class EscBase extends JmlTestCase {
     			pw.close();
     		}
 
-    		String diffs = compareFiles(outDir + "/expected", actCompile);
+    		String diffs = outputCompare.compareFiles(outDir + "/expected", actCompile);
     		int n = 0;
     		while (diffs != null) {
     			n++;
     			String name = outDir + "/expected" + n;
     			if (!new File(name).exists()) break;
-    			diffs = compareFiles(name, actCompile);
+    			diffs = outputCompare.compareFiles(name, actCompile);
     		}
     		if (diffs != null) {
     		    System.out.println("TEST DIFFERENCES: " + testname.getMethodName());
@@ -293,8 +289,7 @@ public abstract class EscBase extends JmlTestCase {
             if (captureOutput) collectOutput(false);
             
             if (print) printDiagnostics();
-            expectedErrors = compareResults(list);
-            assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
+            outputCompare.compareResults(list,collector);
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
 
         } catch (Exception e) {
@@ -307,270 +302,191 @@ public abstract class EscBase extends JmlTestCase {
         }
     }
     
-    protected class Special {
-        public String toString(String head, Object[] list) {
-        	String s = head + "(";
-        	for (Object o: list) {
-        		if (o instanceof Object[]) {
-        			s = s + toString("",(Object[])o);
-        		} else {
-        			s = s + o + ",\n";
-        		}
-        	}
-        	s = s + ")\n";
-        	return s;
-        }
-    }
-    
-    protected class Optional extends Special {
-        public Object[] list;
-        public Optional(Object... list) {
-            this.list = list;
-        }
-        public String toString() {
-        	return toString("optional",list);
-        }
-    }
-    
-    protected class OneOf extends Special {
-        public Object[] list;
-        public OneOf(Object ... list) {
-            this.list = list;
-        }
-        public String toString() {
-        	return toString("oneof",list);
-        }
-    }
-    
-    protected class Seq extends Special {
-        public Object[] list;
-        public Seq(Object ... list) {
-            this.list = list;
-        }
-        public String toString() {
-        	return toString("seq",list);
-        }
-    }
-    
-    protected class AnyOrder extends Special {
-        public Object[] list;
-        public AnyOrder(Object ... list) {
-            this.list = list;
-        }
-        public String toString() {
-        	return toString("anyorder",list);
-        }
-    }
-
     protected OneOf oneof(Object ... list) { return new OneOf(list); }
     protected AnyOrder anyorder(Object ... list) { return new AnyOrder(list); }
     protected Optional optional(Object ... list) { return new Optional(list); }
     protected Seq seq(Object ... list) { return new Seq(list); }
     
 
-    protected boolean comparePair(Object[] list, int i, int j, boolean issueErrors) {
-        int col = ((Integer)list[i+1]).intValue();
-        if (collector.getDiagnostics().size() <= j) {
-            failureLocation = j;
-            failureString = null;
-        	return false;
-        }
-        String act = noSource(collector.getDiagnostics().get(j));
-        String exp = null;
-        if (list[i] != null) exp = list[i].toString().replace("$SPECS", specsdir);
-        long actualColumn = -1;
-        if (!exp.equals(act) 
-                && !exp.replace('\\','/').equals(act.replace('\\','/'))) {
-            failureLocation = j;
-            failureString = list[i].toString();
-            if (issueErrors) assertEquals("Error " + j, list[i], noSource(collector.getDiagnostics().get(j)));
-            return false;
-        } else if (col != (actualColumn = Math.abs(collector.getDiagnostics().get(j).getColumnNumber()))) {
-            failureLocation = j;
-            failureString = null;
-            failureCol = col;
-            if (issueErrors) assertEquals("Error " + j, col, actualColumn);
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    /** Compares actual diagnostics against the given list of expected results */
-    protected int compareResults(Object[] list) {
-    	return compareResults(list,0,false);
-    }
-
-    /** Compares actual diagnostics, beginning at position j, to given list. The
-     * returned result is either the initial value of j, if no match was made,
-     * or the value of j advanced over all matching items. If optional is false,
-     * then error messages are printed if no match is found.
-     */
-    protected int compareResults(Object list, int j, boolean optional) {
-    	return compareResults(new Object[]{list}, j, optional);
-    }
-    protected int compareResults(Object[] list, int j, boolean optional) {
-        int i = 0;
-        while (i < list.length) {
-            if (list[i] == null) { i+=2; continue; }
-            if (!(list[i] instanceof Special)) {
-                int col = ((Integer)list[i+1]).intValue();
-                if (col < 0) {
-                    // allowed to be optional
-                    if (j >= collector.getDiagnostics().size()) {
-                        // OK - just skip
-                    } else if (list[i].equals(noSource(collector.getDiagnostics().get(j))) &&
-                            -col == Math.abs(collector.getDiagnostics().get(j).getColumnNumber())) {
-                        j++;
-                    } else {
-                        // Not equal and the expected error is optional so just skip
-                    }
-                } else {
-                    if (noAssociatedDeclaration && list[i].toString().contains("Associated declaration")) {
-                        // OK - skip
-                    } else {
-                        if (j < collector.getDiagnostics().size()) {
-                        	if (!comparePair(list,i,j, !optional)) {
-                                if (!optional) {
-                                    assertEquals("Error " + j, col, collector.getDiagnostics().get(j).getColumnNumber());
-                                	assertEquals("Error " + j, list[i], noSource(collector.getDiagnostics().get(j)));
-                                }
-                            }
-                        }
-                        j++;
-                    }
-                }
-                i += 2;
-            } else if (list[i] instanceof AnyOrder) {
-                j = compareAnyOrder(((AnyOrder)list[i]).list, j, optional);
-                ++i;
-            } else if (list[i] instanceof OneOf) {
-                j = compareOneOf(((OneOf)list[i]).list, j, optional);
-                ++i;
-            } else if (list[i] instanceof Optional) {
-                j = compareOptional(((Optional)list[i]).list, j);
-                ++i;
-            } else if (list[i] instanceof Seq) {
-                j = compareResults(((Seq)list[i]).list, j, optional);
-                ++i;
-            }
-        }
-        return j;
-    }
-    
-    protected int failureLocation;
-    protected String failureString;
-    protected int failureCol;
-    
-    protected int compareOptional(Object[] list, int j) {
-        int i = 0;
-        int jj = j;
-        while (i < list.length) {
-            if (!comparePair(list,i,j, false)) {
-                // Comparison failed - failureLocation set
-                return jj;
-            }
-            i += 2;
-            j++;
-        }
-        return j;
-    }
-
-    protected int compareOneOf(Object[] list, int j, boolean optional) {
-        // None of lists[i] may be null or empty
-        int i = 0;
-        int jj = j;
-        int latestFailure = -2;
-        String latestString = null;
-        int latestCol = 0;
-        while (i < list.length) {
-            int jjj = compareResults(list[i],j,true);
-            if (jjj > j) {
-                // Matched
-                return jjj;
-            }
-            i++;
-            if (failureLocation > latestFailure) {
-                latestFailure = failureLocation;
-                latestString = failureString;
-                latestCol = failureCol;
-            }
-        }
-        failureLocation = latestFailure;
-        if (!optional) { // None matched;
-        	assertEquals("Error " + failureLocation, latestString, noSource(collector.getDiagnostics().get(failureLocation)));
-        	assertEquals("Error " + failureLocation, latestCol, collector.getDiagnostics().get(failureLocation).getColumnNumber());
-        }
-        return jj;
-    }
-
-
-    protected int compareAnyOrder(Object[] list, int j, boolean optional) {
-        // None of lists[i] may be null or empty
-        boolean[] used = new boolean[list.length];
-        for (int i=0; i<used.length; ++i) used[i] = false;
-        
-        int latestFailure = -2;
-        String latestString = null;
-        int latestCol = 0;
-        int toMatch = list.length;
-        more: while (toMatch > 0) {
-            for (int i = 0; i < list.length; ++i) {
-                if (used[i]) continue;
-                int jjj = compareResults(list[i],j,true);
-                if (jjj > j) {
-                    // Matched
-                    j = jjj;
-                    used[i] = true;
-                    toMatch--;
-                    continue more;
-                } else {
-                    if (failureLocation > latestFailure) {
-                        latestFailure = failureLocation;
-                        latestString = failureString;
-                        latestCol = failureCol;
-                    }
-                }
-            }
-            // No options match
-            break;
-        }
-        if (toMatch > 0) {
-            failureLocation = latestFailure;
-            // None matched;
-            if (failureLocation >= collector.getDiagnostics().size()) {
-            	fail("Less output than expected");
-            } else {
-            	assertEquals("Error " + failureLocation, latestString, noSource(collector.getDiagnostics().get(failureLocation)));
-            	assertEquals("Error " + failureLocation, latestCol, collector.getDiagnostics().get(failureLocation).getColumnNumber());
-            }
-        }
-        return j;
-    }
-
-    /** Used to add a pseudo file to the file system. Note that for testing, a 
-     * typical filename given here might be #B/A.java, where #B denotes a 
-     * mock directory on the specification path
-     * @param filename the name of the file, including leading directory components 
-     * @param content the String constituting the content of the pseudo-file
-     */
-    protected void addMockFile(/*@ non_null */ String filename, /*@ non_null */String content) {
-        try {
-            addMockFile(filename,new TestJavaFileObject(new URI("file:///" + filename),content));
-        } catch (Exception e) {
-            fail("Exception in creating a URI: " + e);
-        }
-    }
-
-    /** Used to add a pseudo file to the file system. Note that for testing, a 
-     * typical filename given here might be #B/A.java, where #B denotes a 
-     * mock directory on the specification path
-     * @param filename the name of the file, including leading directory components 
-     * @param file the JavaFileObject to be associated with this name
-     */
-    protected void addMockJavaFile(String filename, JavaFileObject file) {
-        mockFiles.add(file);
-    }
+//    protected boolean comparePair(Object[] list, int i, int j, boolean issueErrors) {
+//        int col = ((Integer)list[i+1]).intValue();
+//        if (collector.getDiagnostics().size() <= j) {
+//            failureLocation = j;
+//            failureString = null;
+//        	return false;
+//        }
+//        String act = noSource(collector.getDiagnostics().get(j));
+//        String exp = null;
+//        if (list[i] != null) exp = list[i].toString().replace("$SPECS", specsdir);
+//        long actualColumn = -1;
+//        if (!exp.equals(act) 
+//                && !exp.replace('\\','/').equals(act.replace('\\','/'))) {
+//            failureLocation = j;
+//            failureString = list[i].toString();
+//            if (issueErrors) assertEquals("Error " + j, list[i], noSource(collector.getDiagnostics().get(j)));
+//            return false;
+//        } else if (col != (actualColumn = Math.abs(collector.getDiagnostics().get(j).getColumnNumber()))) {
+//            failureLocation = j;
+//            failureString = null;
+//            failureCol = col;
+//            if (issueErrors) assertEquals("Error " + j, col, actualColumn);
+//            return false;
+//        } else {
+//            return true;
+//        }
+//    }
+//
+//    /** Compares actual diagnostics against the given list of expected results */
+//    protected int compareResults(Object[] list) {
+//    	return compareResults(list,0,false);
+//    }
+//
+//    /** Compares actual diagnostics, beginning at position j, to given list. The
+//     * returned result is either the initial value of j, if no match was made,
+//     * or the value of j advanced over all matching items. If optional is false,
+//     * then error messages are printed if no match is found.
+//     */
+//    protected int compareResults(Object list, int j, boolean optional) {
+//    	return compareResults(new Object[]{list}, j, optional);
+//    }
+//    protected int compareResults(Object[] list, int j, boolean optional) {
+//        int i = 0;
+//        while (i < list.length) {
+//            if (list[i] == null) { i+=2; continue; }
+//            if (!(list[i] instanceof Special)) {
+//                int col = ((Integer)list[i+1]).intValue();
+//                if (col < 0) {
+//                    // allowed to be optional
+//                    if (j >= collector.getDiagnostics().size()) {
+//                        // OK - just skip
+//                    } else if (list[i].equals(noSource(collector.getDiagnostics().get(j))) &&
+//                            -col == Math.abs(collector.getDiagnostics().get(j).getColumnNumber())) {
+//                        j++;
+//                    } else {
+//                        // Not equal and the expected error is optional so just skip
+//                    }
+//                } else {
+//                    if (noAssociatedDeclaration && list[i].toString().contains("Associated declaration")) {
+//                        // OK - skip
+//                    } else {
+//                        if (j < collector.getDiagnostics().size()) {
+//                        	if (!comparePair(list,i,j, !optional)) {
+//                                if (!optional) {
+//                                    assertEquals("Error " + j, col, collector.getDiagnostics().get(j).getColumnNumber());
+//                                	assertEquals("Error " + j, list[i], noSource(collector.getDiagnostics().get(j)));
+//                                }
+//                            }
+//                        }
+//                        j++;
+//                    }
+//                }
+//                i += 2;
+//            } else if (list[i] instanceof AnyOrder) {
+//                j = compareAnyOrder(((AnyOrder)list[i]).list, j, optional);
+//                ++i;
+//            } else if (list[i] instanceof OneOf) {
+//                j = compareOneOf(((OneOf)list[i]).list, j, optional);
+//                ++i;
+//            } else if (list[i] instanceof Optional) {
+//                j = compareOptional(((Optional)list[i]).list, j);
+//                ++i;
+//            } else if (list[i] instanceof Seq) {
+//                j = compareResults(((Seq)list[i]).list, j, optional);
+//                ++i;
+//            }
+//        }
+//        return j;
+//    }
+//    
+//    protected int failureLocation;
+//    protected String failureString;
+//    protected int failureCol;
+//    
+//    protected int compareOptional(Object[] list, int j) {
+//        int i = 0;
+//        int jj = j;
+//        while (i < list.length) {
+//            if (!comparePair(list,i,j, false)) {
+//                // Comparison failed - failureLocation set
+//                return jj;
+//            }
+//            i += 2;
+//            j++;
+//        }
+//        return j;
+//    }
+//
+//    protected int compareOneOf(Object[] list, int j, boolean optional) {
+//        // None of lists[i] may be null or empty
+//        int i = 0;
+//        int jj = j;
+//        int latestFailure = -2;
+//        String latestString = null;
+//        int latestCol = 0;
+//        while (i < list.length) {
+//            int jjj = compareResults(list[i],j,true);
+//            if (jjj > j) {
+//                // Matched
+//                return jjj;
+//            }
+//            i++;
+//            if (failureLocation > latestFailure) {
+//                latestFailure = failureLocation;
+//                latestString = failureString;
+//                latestCol = failureCol;
+//            }
+//        }
+//        failureLocation = latestFailure;
+//        if (!optional) { // None matched;
+//        	assertEquals("Error " + failureLocation, latestString, noSource(collector.getDiagnostics().get(failureLocation)));
+//        	assertEquals("Error " + failureLocation, latestCol, collector.getDiagnostics().get(failureLocation).getColumnNumber());
+//        }
+//        return jj;
+//    }
+//
+//
+//    protected int compareAnyOrder(Object[] list, int j, boolean optional) {
+//        // None of lists[i] may be null or empty
+//        boolean[] used = new boolean[list.length];
+//        for (int i=0; i<used.length; ++i) used[i] = false;
+//        
+//        int latestFailure = -2;
+//        String latestString = null;
+//        int latestCol = 0;
+//        int toMatch = list.length;
+//        more: while (toMatch > 0) {
+//            for (int i = 0; i < list.length; ++i) {
+//                if (used[i]) continue;
+//                int jjj = compareResults(list[i],j,true);
+//                if (jjj > j) {
+//                    // Matched
+//                    j = jjj;
+//                    used[i] = true;
+//                    toMatch--;
+//                    continue more;
+//                } else {
+//                    if (failureLocation > latestFailure) {
+//                        latestFailure = failureLocation;
+//                        latestString = failureString;
+//                        latestCol = failureCol;
+//                    }
+//                }
+//            }
+//            // No options match
+//            break;
+//        }
+//        if (toMatch > 0) {
+//            failureLocation = latestFailure;
+//            // None matched;
+//            if (failureLocation >= collector.getDiagnostics().size()) {
+//            	fail("Less output than expected");
+//            } else {
+//            	assertEquals("Error " + failureLocation, latestString, noSource(collector.getDiagnostics().get(failureLocation)));
+//            	assertEquals("Error " + failureLocation, latestCol, collector.getDiagnostics().get(failureLocation).getColumnNumber());
+//            }
+//        }
+//        return j;
+//    }
 
 
 }

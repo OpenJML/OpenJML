@@ -41,7 +41,7 @@ public class escTrace extends EscBase {
         String error = errorOutput();
         Assert.assertEquals("Mismatched error output","",error);
         
-        compareTextToMultipleFiles(output, dir, "testSimpleTrace-expected", dir + "/testSimpleTrace-actual");
+        outputCompare.compareTextToMultipleFiles(output, dir, "testSimpleTrace-expected", dir + "/testSimpleTrace-actual");
    }
 
     // FIXME - the ??? is the trace values
@@ -66,7 +66,7 @@ public class escTrace extends EscBase {
         String output = output();
         String error = errorOutput();
         Assert.assertEquals("Mismatched error output","",error);
-        compareTextToMultipleFiles(output, dir, "testFieldTrace-expected", dir + "/testFieldTrace-actual");
+        outputCompare.compareTextToMultipleFiles(output, dir, "testFieldTrace-expected", dir + "/testFieldTrace-actual");
        //Assert.assertEquals(expectedOut,output);
     }
 

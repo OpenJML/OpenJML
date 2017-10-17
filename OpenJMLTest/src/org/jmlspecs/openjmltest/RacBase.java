@@ -310,14 +310,14 @@ public abstract class RacBase extends JmlTestCase {
             
             String compdiffs = "";
             if (new File(outputdir + "/" + expected_compile).exists()) {
-            	compdiffs = compareFiles(outputdir + "/" + expected_compile, actCompile);
+            	compdiffs = outputCompare.compareFiles(outputdir + "/" + expected_compile, actCompile);
         		if (compdiffs == null) {
         			new File(actCompile).delete();
         		} 
         	} else {
             	for (String file: new File(outputdir).list()) {
             		if (!file.contains("expected-compile")) continue;
-            		compdiffs = compareFiles(outputdir + "/" + file, actCompile);
+            		compdiffs = outputCompare.compareFiles(outputdir + "/" + file, actCompile);
             		if (compdiffs == null) {
             			new File(actCompile).delete();
             			break;
@@ -354,7 +354,7 @@ public abstract class RacBase extends JmlTestCase {
                 String diffs = "";
                 for (String file: new File(outputdir).list()) {
                     if (!file.contains("expected-run")) continue;
-                    diffs = compareText(outputdir + "/" + file,output);
+                    diffs = outputCompare.compareText(outputdir + "/" + file,output);
                     if (diffs == null) break;
                 }
                 if (diffs != null) {
