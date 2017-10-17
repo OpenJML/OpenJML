@@ -590,6 +590,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public Map<JmlMethodDecl,java.util.List<JmlStatementExpr>> assumeChecks = new HashMap<JmlMethodDecl,java.util.List<JmlStatementExpr>>();
     
     public int heapCount = 0;
+    public int topHeapCount = 0;
+    public int nextHeapCount() {
+        heapCount = ++topHeapCount;
+        return heapCount;
+    }
     
     public VarSymbol heapSym = null;
     
@@ -663,7 +668,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.pureCopy = !(esc||rac);
         this.treeMap.clear();
         this.oldenv = null;
-        this.heapCount = 0;
+        this.heapCount = this.topHeapCount = 0;
         this.oldHeapValues.put(names.fromString(""), this.heapCount);
         this.heapVarName = names.fromString("_heap__"); // FIXME - cf. BasicBlocker2
         this.applyNesting = 0;
@@ -3568,8 +3573,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ListBuffer<JCStatement> savedCurrentStatements = currentStatements;
         currentStatements = initialStats;
         
-        int preheapcount = ++heapCount;
-        int savedheapcount = heapCount;
+        int preheapcount = nextHeapCount();
+        int savedheapcount = preheapcount;
 
         heapCount = preheapcount;
         
@@ -5471,12 +5476,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // The scanned result of the then and else parts must always be a block
             // because multiple statements might be produced, even from a single
             // statement in the branch.
-
+            int savedHeapCount = heapCount;
+            
             JCBlock thenpart = convertIntoBlock(that.thenpart,that.thenpart);
 
+            int resultHeapCount = heapCount;
+            heapCount = savedHeapCount;
             JCBlock elsepart = that.elsepart == null ? null :
                 convertIntoBlock(that.elsepart, that.elsepart);
 
+            if (resultHeapCount != heapCount) heapCount = nextHeapCount();
             JCStatement st = M.at(that).If(cond,thenpart,elsepart).setType(that.type);
             result = addStat( st );
         }
@@ -6741,7 +6750,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected void changeState() {
         if (esc) {
-            ++heapCount;
+            heapCount = nextHeapCount();
             int p = methodDecl.pos; // FIXME - better position?
             JCStatement assign = treeutils.makeAssignStat(p, treeutils.makeIdent(p,heapSym),
                       treeutils.makeIntLiteral(p, heapCount));
@@ -8076,7 +8085,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             ensuresStatsOuter.add(comment(that,"Assuming callee normal postconditions for " + calleeMethodSym,null));
             exsuresStatsOuter.add(comment(that,"Assuming callee exceptional postconditions for " + calleeMethodSym,null));
 
-            if (!rac && newclass == null && !calleeMethodSym.isConstructor() && resultType.getTag() != TypeTag.VOID) { // FIXME why is resultSYm nonull for a void method
+            if (!rac && newclass == null && !calleeMethodSym.isConstructor() && resultType.getTag() != TypeTag.VOID) {
                 MethodSymbol calleeMethodSym1 = calleeMethodSym;
                 JCExpression newThisExpr1 = newThisExpr;
                 JCIdent resultId1 = resultId;
@@ -12169,6 +12178,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JmlWhileLoop loop = M.at(that).WhileLoop(treeutils.trueLit,null);
         treeMap.put(that, loop);
 
+        int savedHeapCount = -1;
         if (that.expr.type.getTag() == TypeTag.ARRAY) {
         
             JCExpression lengthExpr = treeutils.makeLength(array, array);
@@ -12202,6 +12212,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 // The exit block tests the condition; if exiting, it tests the
                 // invariant and breaks.
+                savedHeapCount = heapCount;
                 loopHelperMakeBreak(that.loopSpecs,cond,loop,that);
             }
 
@@ -12257,6 +12268,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 // The exit block tests the condition; if exiting, it tests the
                 // invariant and breaks.
+                savedHeapCount = heapCount;
                 loopHelperMakeBreak(that.loopSpecs,cond,loop,that);
             }
             
@@ -12299,6 +12311,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Finish up the new loop body
         // Finish up the output block
+        heapCount = savedHeapCount; // FIXME - only if no break statements targeted the end of the loop
         loopHelperFinish(loop,that); // Does two popBlock operations
 
         
@@ -12651,6 +12664,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
         
         // Compute the condition, recording any side-effects
+        int savedHeapCount = -1;
         if (that.cond != null) {
             
             addTraceableComment(that.cond,that.cond,"Loop test");
@@ -12658,6 +12672,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             // The exit block tests the condition; if exiting, it breaks out of the loop
             loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
+            savedHeapCount = heapCount;
         }
         
         // Now in the loop, so check that the variants are non-negative
@@ -12678,6 +12693,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Finish up the new loop body
         // Finish up the output block
+        heapCount = savedHeapCount; // FIXME - only if no break statements targeted the end of the loop
         loopHelperFinish(loop,that);
     }
 
@@ -15057,15 +15073,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
         
         // Compute the condition, recording any side-effects
-        {
+        
             
             addTraceableComment(that.cond,that.cond,"Loop test");
             JCExpression cond = convertExpr(that.cond);
 
             // The exit block tests the condition; if exiting, it tests the
             // invariant and breaks.
+            int savedHeapCount = heapCount;
             loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
-        }
+        
         if (esc) changeState(); // loop is different state than break block
         
         // Now in the loop, so check that the variants are non-negative
@@ -15084,6 +15101,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Finish up the new loop body
         // Finish up the output block
         loopHelperFinish(loop,that);
+        heapCount = savedHeapCount;
     }
     
     public static class PositionChecker extends JmlTreeScanner {
