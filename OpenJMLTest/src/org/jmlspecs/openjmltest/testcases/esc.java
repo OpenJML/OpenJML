@@ -1834,10 +1834,16 @@ public class esc extends EscBase {
     @Test
     public void testOld2() {
         helpTCX("tt.TestJava",
-                "package tt; \n" + "/*@ code_java_math spec_java_math*/ public class TestJava { \n" + "  static public int i;\n"
-                        + "  //@ modifies i;\n" + "  //@ ensures i == \\old(i)+2;\n"
-                        + "  public static void bok() { i = i + 1; i = i + 1;}\n" + "  //@ modifies i;\n"
-                        + "  //@ ensures i == \\old(i+1);\n" + "  public static void bbad() { i = i - 1; }\n" + "}",
+                "package tt; \n" 
+                		+ "/*@ code_java_math spec_java_math*/ public class TestJava { \n" 
+                		+ "  static public int i;\n"
+                        + "  //@ modifies i;\n" 
+                		+ "  //@ ensures i == \\old(i)+2;\n"
+                        + "  public static void bok() { i = i + 1; i = i + 1;}\n" 
+                		+ "  //@ modifies i;\n"
+                        + "  //@ ensures i == \\old(i+1);\n" 
+                		+ "  public static void bbad() { i = i - 1; }\n" 
+                        + "}",
                 "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method bbad",
                 22, "/tt/TestJava.java:8: warning: Associated declaration", 7);
     }
@@ -3650,12 +3656,36 @@ public class esc extends EscBase {
 	@Test
 	public void testMethodAxioms2() {
 		helpTCX("tt.TestJava",
-				"package tt; \n" + "public class TestJava  { \n" + "  //@ normal_behavior \n"
-						+ "  //@ ensures \\result == (i > 0 && i < 10);\n" + "  //@ pure\n"
+				"package tt; \n" 
+						+ "public class TestJava  { \n" 
+						+ "  //@ normal_behavior \n"
+						+ "  //@ ensures \\result == (i > 0 && i < 10);\n" 
+						+ "  //@ pure function\n"
+						+ "  //@ model public static boolean m(int i);\n"
+
+						+ "  //@ pure\n" 
+						+ "  public void mm() {\n"
+						+ "  //@ assert !(\\forall int k; 3<k && k <11; m(k));\n" 
+						+ "  }\n" + "}"
+			//	,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method mm", 7
+						);
+	}
+
+	@Test
+	public void testMethodAxioms2a() {
+		main.addOptions("-show","-method=mm");
+		helpTCX("tt.TestJava",
+				"package tt; \n" 
+						+ "public class TestJava  { \n" 
+						+ "  //@ normal_behavior \n"
+						+ "  //@ ensures \\result == (i > 0 && i < 10);\n" 
+						+ "  //@ pure\n"
 						+ "  //@ model public boolean m(int i);\n"
 
-						+ "  //@ pure\n" + "  public void mm() {\n"
-						+ "  //@ assert !(\\forall int k; 3<k && k <11; m(k));\n" + "  }\n" + "}"
+						+ "  //@ pure\n" 
+						+ "  public void mm() {\n"
+						+ "  //@ assert !(\\forall int k; 3<k && k <11; m(k));\n" 
+						+ "  }\n" + "}"
 			//	,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method mm", 7
 						);
 	}
@@ -3964,7 +3994,7 @@ public class esc extends EscBase {
     @Test
     public void testExitInfo2() {
         expectedExit = 0;
-        main.addOptions("-escExitInfo","-escMaxWarnings=3");
+        main.addOptions("-escExitInfo","-escMaxWarnings=10");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -3978,10 +4008,10 @@ public class esc extends EscBase {
                         + "  }\n" 
                         + "}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
-                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                ,"/tt/TestJava.java:3: warning: Associated declaration",93
                 ,"/tt/TestJava.java:9: warning: Associated method exit",34
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",48
-                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                ,"/tt/TestJava.java:3: warning: Associated declaration",93
                 ,"/tt/TestJava.java:8: warning: Associated method exit",29
                 );
     }

@@ -127,7 +127,7 @@ public class escbitvector extends EscBase {
                                 
                 +"}"
                 ,"/tt/TestJava.java:9: NOT IMPLEMENTED: Not yet supported feature in converting BasicPrograms to SMTLIB: Bit-operation BITAND",22
-                ,"/tt/TestJava.java:5: NOT IMPLEMENTED: Not yet supported feature in converting BasicPrograms to SMTLIB: Bit-operation BITAND",16
+                ,"/tt/TestJava.java:5: NOT IMPLEMENTED: Not yet supported feature in converting BasicPrograms to SMTLIB: Bit-operation BITAND",23
                 );
     }
     

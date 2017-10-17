@@ -252,6 +252,7 @@ public class escfiles extends EscBase {
         helpTF("escArrayCopy");
     }
 
+// FIXME - there is a problem with instantiating the model field or the getter functions, such that my_dollars differs from dollars()
     @Test 
     public void testCashAmount() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
