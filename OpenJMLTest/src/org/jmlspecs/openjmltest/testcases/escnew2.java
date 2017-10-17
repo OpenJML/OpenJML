@@ -43,13 +43,11 @@ public class escnew2 extends EscBase {
                 +"  }\n"
                 
                 +"}" // We should get all three messages, but in some arbitrary order. We hack it by making some of them optional
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",-15
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",-15
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",-15
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m",15
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",-15
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",-15
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",-15
+                ,anyorder(
+                seq("/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",15)
+                ,seq("/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",15)
+                ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m",15)
+                )
                 );
     }
     
