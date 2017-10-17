@@ -1862,5 +1862,97 @@ public class escnew extends EscBase {
                 );
         }
 
+    @Test 
+    public void testConstantFolding() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> { \n"
+
+                // FIXME - lots more tests needed
+                +"  public Object mm(int i) {\n" 
+                +"      boolean b = true && false;\n" 
+                +"      //@ assert !b;\n" 
+                +"      b = true || false;\n" 
+                +"      //@ assert b;\n" 
+                
+                +"      b = true == false;\n" 
+                +"      //@ assert !b;\n" 
+                +"      b = true != false;\n" 
+                +"      //@ assert b;\n" 
+                +"      b = 3L != 2;\n" 
+                +"      //@ assert b;\n" 
+                +"      b = (short)3 == (short)3;\n" 
+                +"      //@ assert b;\n" 
+                +"      b = \"\" == \"\";\n" 
+                +"      //@ assert b;\n" 
+                +"      b = ' ' == ' ';\n" 
+                +"      //@ assert b;\n" 
+                
+                +"      int a = 2 + 3;\n" 
+                +"      //@ assert a == 5;\n" 
+                +"      a = (short)2 + (short)3;\n" 
+                +"      //@ assert a == 5;\n" 
+                +"      long g = 2L + 3;\n" 
+                +"      //@ assert g == 5;\n" 
+                +"      g = (short)2 + (short)3;\n" 
+                +"      //@ assert g == 5;\n" 
+                
+                +"      a = 2 / 0;\n" 
+                +"      a = 2 / (1-1);\n" 
+                +"      a = (short)3 / (short)2;\n" 
+                +"      //@ assert a == 1;\n" 
+                +"      g = 3L / 0;\n" 
+                +"      g = 3L / 2;\n" 
+                +"      //@ assert g == 1;\n" 
+                +"      g = (short)3 / (short)2;\n" 
+                +"      //@ assert g == 1;\n" 
+                
+                +"      String s = \"x\" + \"y\";\n" 
+                +"      //@ assert s = \"xy\";\n" 
+                +"      s = \"x\" + 1;\n" 
+                +"      //@ assert s = \"x1\";\n" 
+                +"      s = \"x\" + true;\n" 
+                +"      //@ assert s = \"xtrue\";\n" 
+                +"      s = false + \"x\";\n" 
+                +"      //@ assert s = \"falsex\";\n" 
+                +"      s = \"x\" + null;\n" 
+                +"      //@ assert s = \"xnull\";\n" 
+
+                +"  }\n"
+                
+               
+                +"}"
+                );
+    }
+
+    @Test 
+    public void testPreconditionInfo() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> { \n"
+
+                +"  //@ requires i == 4;\n" 
+                +"  //@ ensures \\result == 5;\n" 
+                +"  //@ also\n" 
+                +"  //@ requires i == 5;\n" 
+                +"  //@ ensures \\result == 6;\n" 
+                +"  /*@ pure */ public int m(int i) {\n" 
+                +"     return i + 1;\n"
+                +"  }\n"
+                
+                +"  public void mm(int i) {\n" 
+                +"  //@ assert 0<m(3);\n" 
+
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method mm",17
+                ,"/tt/TestJava.java:8: warning: Associated declaration",26
+                ,optional(  // -no-minQuant does not expand out the precondition conjunctions
+                "/tt/TestJava.java:3: warning: Precondition conjunct is false: i == 4",16
+                ,"/tt/TestJava.java:6: warning: Precondition conjunct is false: i == 5",16
+                )
+                
+               
+                );
+    }
+
 
 }

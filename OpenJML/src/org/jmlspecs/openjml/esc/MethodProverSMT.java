@@ -919,7 +919,7 @@ public class MethodProverSMT {
                     if (optional != null) {
                         if (optional instanceof JCTree.JCLiteral) extra = ": " + ((JCTree.JCLiteral)optional).getValue().toString(); //$NON-NLS-1$
                     }
-                    if (assertStat.description != null && label != Label.PRECONDITION) {
+                    if (assertStat.description != null && label != Label.PRECONDITION && label != Label.UNDEFINED_PRECONDITION) {
                         extra = ": " + assertStat.description;
                     }
                     
@@ -962,7 +962,7 @@ public class MethodProverSMT {
                         }
                     }
 
-                    if (label == Label.PRECONDITION) {
+                    if (label == Label.PRECONDITION || label == Label.UNDEFINED_PRECONDITION) {
                         //BiMap<JCTree,JCTree> bimap = jmlesc.assertionAdder.exprBiMap;
                         //for (int pdetail=1; pdetail <= jmlesc.assertionAdder.preconditionDetail; pdetail++) 
                         {

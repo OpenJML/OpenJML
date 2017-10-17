@@ -186,7 +186,7 @@ public class racnew2 extends RacBase {
                 ,"/tt/TestJava.java:11: JML assertion is false"
                 ,"TestJava - 0"
                 ,"/tt/TestJava.java:13: JML a method called in a JML expression is undefined because its precondition is false"
-                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:4: Associated declaration"
                 ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"END"
         );        

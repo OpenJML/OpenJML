@@ -4266,7 +4266,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     // FIXME - if the clause is synthetic, the source file may be null, and for signals clause
                                     addAssert(true,methodDecl,Label.POSTCONDITION,ex,clause,clause.sourcefile,null);
                                 } finally {
-                                    JCBlock bl = popBlock(0,clause);
+                                    JCBlock bl = popBlock(0L,clause);
                                     JCStatement st = M.at(clause.pos).If(preident, bl, null);
                                     addStat(st);
                                 }
@@ -6777,7 +6777,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     private int index3;
     protected JCExpression splitConjunctions(JCExpression expr, JCExpression condition, int index, int index2, JavaFileObject source) {
-        index3 = 0;
         String nm = "_$CPRE__" + index + "_" + index2;
         JCExpression e = convertJML(expr, condition, false);
         preconditionDetailClauses.put(nm,source);
@@ -6786,6 +6785,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         saveMapping(convertCopy(expr),id);
  //       if (nm.contains("CPRE__4_4")) Utils.stop();
  //       log.note("jml.message", expr.toString() + " >>> " + id.toString());
+        index3 = 0;
         splitConjunctions(expr, condition, index, index2, index3, source );
         return id;
     }
@@ -6802,13 +6802,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
             index3++;
             String nm = "_$CPRE__" + index + "_" + index2 + "_" + index3;
+            int localIndex3 = index3;
             JCExpression e = convertJML(expr, condition, false);
             preconditionDetailClauses.put(nm,source);
             JCIdent id = newTemp(expr.pos, nm, e);
  //           saveMapping(expr,id);
             saveMapping(convertCopy(expr),id);
  //           log.note("jml.message", expr.toString() + " >>> " + id.toString());
-        
+            index3 = localIndex3;
         return id;
     }
     
@@ -6828,6 +6829,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } finally {
             currentStatements = prev;
         }
+    }
+    
+    protected JCBlock collectBlock(DiagnosticPosition pos, Runnable action) {
+        List<JCStatement> stats = collectStats(action);
+        return M.at(pos).Block(0L, stats);
     }
     
     Map<JmlSpecificationCase,JCIdent> preExpressions;
@@ -7643,6 +7649,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             { // In quantifications, splitExpressions is set to false
                 boolean combinedNoModel = false;
                 if (splitExpressions) preconditionDetail++;
+                int preconditionDetailLocal = preconditionDetail;
                 int preconditionDetail2 = 0;
                 addStat(comment(that, "Checking preconditions of callee " + calleeMethodSym + " by the caller",null));
                 for (Pair<MethodSymbol,Type> pair: overridden) {
@@ -7768,7 +7775,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             if (prex == null) {
                                 pre = treeutils.trueLit;
                             } else {
-                                if (splitExpressions && !rac) pre = splitConjunctions(prex, pre, preconditionDetail, ++preconditionDetail2,cs.sourcefile);
+                                if (splitExpressions && !rac) pre = splitConjunctions(prex, pre, preconditionDetailLocal, ++preconditionDetail2,cs.sourcefile);
                                 else pre  = convertJML(prex,pre,false);
                             }
                         } catch (NoModelMethod e) {
@@ -7805,22 +7812,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (clauseToReference != null) {
                     ListBuffer<JCStatement> check3 = pushBlock();
                     if (splitExpressions) {
-                        String nm = "_$CPRE__" + preconditionDetail;
+                        String nm = "_$CPRE__" + preconditionDetailLocal;
                         preconditionDetailClauses.put(nm,methodDecl.sourcefile);
                         combinedPrecondition = newTemp(combinedPrecondition.pos, nm, combinedPrecondition);
                     }
                     if (combinedNoModel) {
                         // skip
-                    } else if (translatingJML) {
-                        //JCExpression conj = treeutils.makeAnd(methodDecl.pos, collectedInvariants, combinedPrecondition);
-                        addAssert(that,Label.UNDEFINED_PRECONDITION,
-                                conditionedAssertion(methodDecl, combinedPrecondition),
-                                clauseToReference,clauseToReference.source());
+//                    } else if (translatingJML) {
+//                        //JCExpression conj = treeutils.makeAnd(methodDecl.pos, collectedInvariants, combinedPrecondition);
+//                        addAssert(that,Label.UNDEFINED_PRECONDITION,
+//                                conditionedAssertion(methodDecl, combinedPrecondition),
+//                                clauseToReference,clauseToReference.source());
 
                     } else {
                         JmlSource loc = mspecs == null ? null : mspecs.decl;
                         if (loc == null) loc = clauseToReference;
-                        JCStatement stat = addAssert(that,Label.PRECONDITION,
+                        JCStatement stat = addAssert(that,translatingJML ? Label.UNDEFINED_PRECONDITION : Label.PRECONDITION,
                                 combinedPrecondition,
                                 (DiagnosticPosition)loc,loc.source());
                         if (stat instanceof JmlStatementExpr) ((JmlStatementExpr)stat).description = combinedPrecondition.toString();
@@ -10001,6 +10008,119 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return treeutils.makeOld(pos, arg, oldenv);
     }
     
+    public JCExpression foldConstants(JCBinary that) {
+        JCLiteral lhs = (JCLiteral)that.lhs;
+        JCLiteral rhs = (JCLiteral)that.rhs;
+        Object lhsv = lhs.getValue();
+        Object rhsv = rhs.getValue();
+        Object res = null;
+        switch (that.getTag()) {
+            case EQ: res = lhsv.equals(rhsv); break;
+            case NE: res = !lhsv.equals(rhsv); break;
+            case AND: res = (Boolean)lhsv && (Boolean)rhsv; break;
+            case OR: res = (Boolean)lhsv && (Boolean)rhsv; break;
+            case PLUS: // FIXME - what about overflow checks and arithmetic mode
+            { if (that.type.getTag() == TypeTag.INT) {
+                res = ((Number)lhsv).intValue() + ((Number)rhsv).intValue();
+              } else if (that.type.getTag() == TypeTag.LONG) {
+                  res = ((Number)lhsv).longValue() + ((Number)rhsv).longValue();
+              } else if (types.isSameType(that.type,syms.stringType)) {
+                  // FIXME - what about null arguments?
+                  res = lhs.toString() + rhsv.toString();
+              } // bigint, real
+              break;
+            }
+            case MINUS: // FIXME - what about overflow checks and arithmetic mode
+            { if (that.type.getTag() == TypeTag.INT) {
+                res = ((Number)lhsv).intValue() - ((Number)rhsv).intValue();
+              } else if (that.type.getTag() == TypeTag.LONG) {
+                  res = ((Number)lhsv).longValue() - ((Number)rhsv).longValue();
+              } // bigint, real
+              break;
+            }
+            case MUL: // FIXME - what about overflow checks and arithmetic mode
+            { if (that.type.getTag() == TypeTag.INT) {
+                res = ((Number)lhsv).intValue() * ((Number)rhsv).intValue();
+              } else if (that.type.getTag() == TypeTag.LONG) {
+                  res = ((Number)lhsv).longValue() * ((Number)rhsv).longValue();
+              } // bigint, real
+              break;
+            }
+            case DIV: // FIXME - what about overflow checks and arithmetic mode
+            { if (that.type.getTag() == TypeTag.INT) {
+                int d = ((Number)rhsv).intValue();
+                if (d == 0) {
+                    log.warning(that.rhs, "jml.message", "Literal divide by zero");
+                    res = 0;
+                } else {
+                    res = ((Number)lhsv).intValue() / d;
+                }
+              } else if (that.type.getTag() == TypeTag.LONG) {
+                  long d = ((Number)rhsv).longValue();
+                  if (d == 0) {
+                      log.warning(that.rhs, "jml.message", "Literal divide by zero");
+                      res = 0;
+                  } else {
+                      res = ((Number)lhsv).longValue() / d;
+                  }
+              }
+            // bigint, real
+
+              break;
+            }
+            case MOD: // FIXME - what about overflow checks and arithmetic mode
+            { if (that.type.getTag() == TypeTag.INT) {
+                int d = ((Number)rhsv).intValue();
+                if (d == 0) {
+                    log.warning(that.rhs, "jml.message", "Literal mod by zero");
+                    res = 0;
+                } else {
+                    res = ((Number)lhsv).intValue() % d;
+                }
+              } else if (that.type.getTag() == TypeTag.LONG) {
+                  long d = ((Number)rhsv).longValue();
+                  if (d == 0) {
+                      log.warning(that.rhs, "jml.message", "Literal mod by zero");
+                      res = 0;
+                  } else {
+                      res = ((Number)lhsv).longValue() % d;
+                  }
+              }
+            // bigint, real
+
+              break;
+            }
+            case BITAND:
+            { if (that.type.getTag() == TypeTag.INT) {
+                res = ((Number)lhsv).intValue() & ((Number)rhsv).intValue();
+              } else if (that.type.getTag() == TypeTag.LONG) {
+                  res = ((Number)lhsv).longValue() & ((Number)rhsv).longValue();
+              } // bigint
+              break;
+            }
+            case BITOR:
+            { if (that.type.getTag() == TypeTag.INT) {
+                res = ((Number)lhsv).intValue() | ((Number)rhsv).intValue();
+              } else if (that.type.getTag() == TypeTag.LONG) {
+                  res = ((Number)lhsv).longValue() & ((Number)rhsv).longValue();
+              } // bigint
+              break;
+            }
+            case BITXOR:
+            { if (that.type.getTag() == TypeTag.INT) {
+                res = ((Number)lhsv).intValue() ^ ((Number)rhsv).intValue();
+              } else if (that.type.getTag() == TypeTag.LONG) {
+                  res = ((Number)lhsv).longValue() & ((Number)rhsv).longValue();
+              } // bigint
+              break;
+            }
+                
+            // shifts comparison eq ne
+                
+        }
+        if (res == null) log.error(that,"jml.internal", "Constant folding here not implemented");
+        return M.at(that).Literal(res);
+    }
 
     // OK
     @Override
@@ -10018,6 +10138,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
             result = eresult = treeutils.makeBinary(that.pos,optag,that.getOperator(),lhs,rhs);
+//        } else if (that.lhs instanceof JCLiteral && that.rhs instanceof JCLiteral) {
+//            result = eresult = foldConstants(that);
         } else if (optag == JCTree.Tag.PLUS && that.type.equals(syms.stringType)) {
             if (esc) {
                 Symbol s = utils.findMember(syms.stringType.tsym,"concat");
@@ -11395,41 +11517,33 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (translatingJML) addToCondition(that.pos, lhs);
                     if (lhs instanceof JCLiteral && ((JCLiteral)lhs).getValue().equals(Boolean.FALSE)) {
                         eresult = treeutils.makeBooleanLiteral(lhs.pos, true);
-                    // or should this check be (rac)
-                    } else if (splitExpressions) {  // temp = true; if (P) { temp = Q; }
+                    } else if (rac) {  // temp = true; if (P) { temp = Q; }
                         if (translatingJML) addToCondition(that.pos, lhs);
                         JCIdent id = newTemp(treeutils.trueLit);
-                        pushBlock();
-                        try {
-                            rhs = convertExpr(that.rhs);
-                            rhs = addImplicitConversion(that.rhs,that.type,rhs);
-                            addStat(treeutils.makeAssignStat(that.rhs.pos,treeutils.makeIdent(rhs.pos, id.sym), rhs));
-                        } finally { // Particularly NoModelMethod
-                            JCBlock bl = popBlock(0L,that.rhs);
-                            addStat(M.If(lhs, bl, null));
-                        }
-                        eresult = treeutils.makeIdent(that.pos, id.sym);
+                        id.pos = that.pos;
+                        JCBlock thenBlock = collectBlock(that,
+                                () -> 
+                                {
+                                    JCExpression rhse = convertExpr(that.rhs);
+                                    rhse = addImplicitConversion(that.rhs,that.type,rhse);
+                                    addStat(treeutils.makeAssignStat(that.rhs.pos,treeutils.makeIdent(rhse.pos, id.sym), rhse));
+                                } );
+                        addStat(M.If(lhs, thenBlock, null));
+                        eresult = convertCopy(id);
                     } else if (splitExpressions) {  // if (P) { temp = Q; } else temp = true;
-                        JCConditional cond = M.at(that).Conditional(lhs,that.rhs,treeutils.trueLit);
-                        cond.setType(that.type);
-                        visitConditional(cond);
-                        return;
-//
-//                        JCVariableDecl decl = newTempDecl(that,syms.booleanType);
-//                        addStat(decl);
-//                        pushBlock();
-//                        addStat(treeutils.makeAssignStat(that.rhs.pos,treeutils.makeIdent(that.rhs.pos, decl.sym), treeutils.trueLit));
-//                        JCBlock blelse = popBlock(0L,that);
-//                        pushBlock();
-//                        try {
-//                            rhs = convertExpr(that.rhs);
-//                            rhs = addImplicitConversion(that.rhs,that.type,rhs);
-//                            addStat(treeutils.makeAssignStat(that.rhs.pos,treeutils.makeIdent(rhs.pos, decl.sym), rhs));
-//                        } finally { // Particularly NoModelMethod
-//                            JCBlock bl = popBlock(0L,that.rhs);
-//                            addStat(M.at(that.pos).If(lhs, bl, blelse));
-//                        }
-//                        eresult = treeutils.makeIdent(that.pos, decl.sym);
+                        if (translatingJML) addToCondition(that.pos, lhs);
+                        JCIdent id = newTemp(that,that.type);
+                        JCBlock thenBlock = collectBlock(that,
+                                () -> 
+                                {
+                                    JCExpression rhse = convertExpr(that.rhs);
+                                    rhse = addImplicitConversion(that.rhs,that.type,rhse);
+                                    addStat(treeutils.makeAssignStat(that.rhs.pos,treeutils.makeIdent(rhse.pos, id.sym), rhse));
+                                } );
+                        JCBlock elseBlock = collectBlock(that,
+                                () -> { addStat(treeutils.makeAssignStat(that.pos, convertCopy(id), treeutils.trueLit)); });
+                        addStat(M.If(lhs, thenBlock, elseBlock));
+                        eresult = convertCopy(id);
                     } else { // !P || Q
                         if (translatingJML) addToCondition(that.pos, lhs);
                         rhs = convertExpr(that.rhs);
@@ -11446,38 +11560,31 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (translatingJML) addToCondition(that.pos, t);
                     if (lhs instanceof JCLiteral && ((JCLiteral)lhs).getValue().equals(Boolean.TRUE)) {
                         eresult = treeutils.makeBooleanLiteral(lhs.pos, true);
-                    } else if (rac) { // FIXME - not sure why this is needed
+                    } else if (rac) {  // temp = true; if (!P) temp = !Q
                         JCIdent id = newTemp(treeutils.trueLit);
-                        pushBlock();
-                        try {
-                            rhs = convertExpr(that.rhs);
-                            rhs = addImplicitConversion(that.rhs,that.type,rhs);
-                            addStat(treeutils.makeAssignStat(that.rhs.pos,treeutils.makeIdent(rhs.pos, id.sym), treeutils.makeNot(rhs.pos, rhs)));
-                        } finally {
-                            JCBlock bl = popBlock(0L,that.rhs);
-                            addStat(M.If(treeutils.makeNot(lhs.pos, lhs), bl, null));
-                        }
-                        eresult = treeutils.makeIdent(that.pos, id.sym);
+                        id.pos = that.pos;
+                        JCBlock bl = collectBlock(that, () ->
+                                {
+                                    JCExpression rhse = convertExpr(that.rhs);
+                                    rhse = addImplicitConversion(that.rhs,that.type,rhse);
+                                    addStat(treeutils.makeAssignStat(that.rhs.pos,treeutils.makeIdent(rhse.pos, id.sym), treeutils.makeNot(rhse.pos, rhse)));
+                                } );
+
+                        addStat(M.If(treeutils.makeNot(lhs.pos, lhs), bl, null));
+                        eresult = convertCopy(id);
                     } else if (splitExpressions) { // if (P) { temp = true; } else { temp = (not Q); } 
-                        JCConditional cond = M.at(that).Conditional(lhs,treeutils.trueLit,treeutils.makeNot(that.rhs.pos,that.rhs));
-                        cond.setType(that.type);
-                        visitConditional(cond);
-                        return;
-//                        JCVariableDecl decl = newTempDecl(that,syms.booleanType);
-//                        addStat(decl);
-//                        pushBlock();
-//                        addStat(treeutils.makeAssignStat(that.rhs.pos,treeutils.makeIdent(that.rhs.pos, decl.sym), treeutils.trueLit));
-//                        JCBlock blif = popBlock(0L,that);
-//                        pushBlock();
-//                        try {
-//                            rhs = convertExpr(that.rhs);
-//                            rhs = addImplicitConversion(that.rhs,that.type,rhs);
-//                            addStat(treeutils.makeAssignStat(that.rhs.pos,treeutils.makeIdent(rhs.pos, decl.sym), treeutils.makeNot(rhs.pos, rhs)));
-//                        } finally {
-//                            JCBlock bl = popBlock(0L,that.rhs);
-//                            addStat(M.If(lhs, blif, bl));
-//                        }
-//                        eresult = treeutils.makeIdent(that.pos, decl.sym);
+                        JCIdent id = newTemp(treeutils.trueLit);
+                        id.pos = that.pos;
+                        JCBlock thenBlock = collectBlock(that,
+                                () -> { addStat(treeutils.makeAssignStat(that.pos, convertCopy(id), treeutils.trueLit)); });
+                        JCBlock elseBlock = collectBlock(that, () ->
+                                {
+                                    JCExpression rhse = convertExpr(that.rhs);
+                                    rhse = addImplicitConversion(that.rhs,that.type,rhse);
+                                    addStat(treeutils.makeAssignStat(that.rhs.pos,convertCopy(id), treeutils.makeNot(rhse.pos, rhse)));
+                                } );
+                        addStat(M.If(lhs, thenBlock, elseBlock));
+                        eresult = convertCopy(id);
                     } else {
                         rhs = convertExpr(that.rhs);
                         rhs = addImplicitConversion(that.rhs,that.type,rhs);
@@ -15367,8 +15474,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(msym);
         // FIXME - we get calleeSpecs == null when using -no-internalSpecs - shoudl we?
-        int pos = calleeSpecs != null && calleeSpecs.decl != null ? calleeSpecs.decl.pos : methodDecl.pos;
-
+        int calleeDeclPos = calleeSpecs != null && calleeSpecs.decl != null ? calleeSpecs.decl.pos : methodDecl.pos;
+        DiagnosticPosition calleeDeclDPos = calleeSpecs != null && calleeSpecs.decl != null ? calleeSpecs.decl : methodDecl;
+        JavaFileObject calleeDeclSource = calleeSpecs != null && calleeSpecs.decl != null ? calleeSpecs.decl.sourcefile : methodDecl.sourcefile;
+        
         addStat(comment(callLocation,"Axioms for method " + utils.qualifiedMethodSig(msym),null));
         JCExpression combinedPre = null;
         JCExpression falses = null;
@@ -15385,7 +15494,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCIdent qthisid = null;
             JCExpression qthisnn = null;
             if (!isStatic) {
-                JCVariableDecl newDecl = treeutils.makeVarDef(receiverType, names.fromString("QTHIS"), ownerSym, pos);
+                JCVariableDecl newDecl = treeutils.makeVarDef(receiverType, names.fromString("QTHIS"), ownerSym, calleeDeclPos);
                 newDecls.add(newDecl);
                 qthisid = treeutils.makeIdent(callLocation,newDecl.sym);
                 newparamsWithHeap.add(qthisid);
@@ -15427,7 +15536,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // Create the symbol for the new method
             int hc = heapCount;
             if (oldenv != null) hc = oldHeapValues.get(oldenv.name);
-            Name newMethodNameWithHeap = newNameForCallee(pos,msym, (useNamesForHeap && !isFunction) );
+            Name newMethodNameWithHeap = newNameForCallee(calleeDeclPos,msym, (useNamesForHeap && !isFunction) );
             JCModifiers newmods;
             MethodSymbol newsym;
             if (inClassDecl()) {
@@ -15615,15 +15724,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 wellDefinedCheck.put(msym, info);
             } else {
                 MethodSymbol methodDefinedSym = treeutils.makeMethodSym(methodDecl.mods, names.fromString("_JML_METHODEF__" + newMethodNameWithHeap.toString()), syms.booleanType, classDecl.sym, newParamTypes);
-                JCExpression methodDefinedFcn = M.at(pos).Ident(methodDefinedSym);
-                JCMethodInvocation wellDefinedCall = M.at(pos).Apply(
+                JCExpression methodDefinedFcn = M.at(calleeDeclPos).Ident(methodDefinedSym);
+                JCMethodInvocation wellDefinedCall = M.at(calleeDeclPos).Apply(
                         List.<JCExpression>nil(), methodDefinedFcn, newParamsWithHeap);
                 wellDefinedCall.type = syms.booleanType;
                 WellDefined info = new WellDefined();
                 info.sym = methodDefinedSym;
                 info.wellDefinedExpression = combinedPre;
-                info.pos = clauseToReference != null ? clauseToReference : methodDecl;
-                info.source = clauseToReference != null ? clauseToReference.source() : methodDecl.source();
+//                info.pos = clauseToReference != null ? clauseToReference : methodDecl;
+//                info.source = clauseToReference != null ? clauseToReference.source() : methodDecl.source();
+                info.pos = calleeDeclDPos;
+                info.source = calleeDeclSource;
                 info.alltrue = false;
                 wellDefinedCheck.put(msym, info);
             
@@ -15635,11 +15746,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                        ei = treeutils.makeInstanceOf(qthisid.pos,convertCopy(qthisid),qthisid.sym.type);
 //                    }
 
-                    JCExpression e = M.at(pos).JmlQuantifiedExpr(
+                    JCExpression e = M.at(calleeDeclPos).JmlQuantifiedExpr(
                             JmlTokenKind.BSFORALL,
                             newDeclsList,
                             ei,
-                            treeutils.makeEquality(pos, wellDefinedCall, combinedPre));
+                            treeutils.makeEquality(calleeDeclPos, wellDefinedCall, combinedPre));
                     e.type = syms.booleanType;
                     addAssume(clauseToReference,useNamesForHeap ? Label.METHOD_DEFINITION : Label.IMPLICIT_ASSUME,e);
                 }

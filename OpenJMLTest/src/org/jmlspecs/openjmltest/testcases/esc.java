@@ -3994,7 +3994,7 @@ public class esc extends EscBase {
     @Test
     public void testExitInfo2() {
         expectedExit = 0;
-        main.addOptions("-escExitInfo","-escMaxWarnings=3");
+        main.addOptions("-escExitInfo","-escMaxWarnings=10");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -4008,10 +4008,10 @@ public class esc extends EscBase {
                         + "  }\n" 
                         + "}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
-                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                ,"/tt/TestJava.java:3: warning: Associated declaration",93
                 ,"/tt/TestJava.java:9: warning: Associated method exit",34
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",48
-                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                ,"/tt/TestJava.java:3: warning: Associated declaration",93
                 ,"/tt/TestJava.java:8: warning: Associated method exit",29
                 );
     }
