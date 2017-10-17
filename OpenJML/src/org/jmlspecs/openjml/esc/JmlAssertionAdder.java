@@ -8076,7 +8076,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             ensuresStatsOuter.add(comment(that,"Assuming callee normal postconditions for " + calleeMethodSym,null));
             exsuresStatsOuter.add(comment(that,"Assuming callee exceptional postconditions for " + calleeMethodSym,null));
 
-            if (!rac && newclass != null && resultSym != null) {
+            if (!rac && newclass == null && !calleeMethodSym.isConstructor() && resultType.getTag() != TypeTag.VOID) { // FIXME why is resultSYm nonull for a void method
                 MethodSymbol calleeMethodSym1 = calleeMethodSym;
                 JCExpression newThisExpr1 = newThisExpr;
                 JCIdent resultId1 = resultId;
