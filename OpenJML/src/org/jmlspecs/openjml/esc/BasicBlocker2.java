@@ -356,8 +356,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         super.scan(tree);
         if (tree instanceof JCExpression && !(tree instanceof JCAssign)) {
             bimap.put(tree, result);
-//            if (tree.toString().contains("CPRE")) log.note("jml.message", "BBBIMAP-C " + tree + " ### " + result);
-//            if (tree.toString().contains("CPRE__4_4")) Utils.stop();
         }
     }
 
@@ -1473,9 +1471,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         JCExpression right = convertExpr(that.rhs);
         result = doAssignment(that.type,left,right,that.pos,that);
         bimap.put(left, result);
-        if (left.toString().contains("CPRE")) log.note("jml.message", "BBBIMAP-A " + left + " ### " + result);
         bimap.putf(that, result);
-        if (that.toString().contains("CPRE")) log.note("jml.message", "BBBIMAP-B " + that + " ### " + result);
         copyEndPosition(result,that);
     }
 //    

@@ -355,9 +355,6 @@ public class Utils {
 		deleteMarkers(res, shell); // FIXME - does this trigger a rebuild?
         JobControl.JobParameters jobParameters = JobControl.launchJobControlDialog(selection,window,shell);
         if (jobParameters == null) return;
-        {
-            Log.log("Parameters: " + jobParameters.queues + " " + jobParameters.strategy);
-        }
 		for (final IJavaProject jp : sorted.keySet()) {
 			checkESCProject(jp,sorted.get(jp),shell,"Static Checks - Manual",jobParameters);
 		}
