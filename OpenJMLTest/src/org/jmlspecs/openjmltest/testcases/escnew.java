@@ -1946,8 +1946,8 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method mm",17
                 ,"/tt/TestJava.java:8: warning: Associated declaration",26
                 ,optional(  // -no-minQuant does not expand out the precondition conjunctions
-                "/tt/TestJava.java:3: warning: Precondition conjunct is false: i == 4",16
-                ,"/tt/TestJava.java:6: warning: Precondition conjunct is false: i == 5",16
+                "/tt/TestJava.java:3: warning: Precondition conjunct is false: i == 4",18
+                ,"/tt/TestJava.java:6: warning: Precondition conjunct is false: i == 5",18
                 )
                 
                

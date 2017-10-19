@@ -27,11 +27,13 @@ $SPECS/java5/java/io/InputStream.jml:141: warning: Precondition conjunct is fals
                    ^
 $SPECS/java5/java/io/InputStream.jml:147: warning: Precondition conjunct is false: availableBytes > 0
       @   requires availableBytes > 0;
-                   ^
-$SPECS/java5/java/io/InputStream.jml:164: warning: Precondition conjunct is false: (len > 0 && !isOpen) || b == null || off < 0 || len < 0 || off + len > b.length
-      @   requires (len > 0 && !isOpen) || b == null || off < 0 || 
-                   ^
+                                  ^
+$SPECS/java5/java/io/InputStream.jml:165: warning: Precondition conjunct is false: (len > 0 && !isOpen) || b == null || off < 0 || len < 0 || off + len > b.length
+                              len < 0 || off+len > b.length;
+                                      ^
 Completed proof of Repro.Bar.getSeed2(int) with prover !!!! - with warnings
 Completed proving methods in Repro.Bar
 Completed proving methods in Repro
+Note: /Users/davidcok/cok/projects/OpenJMLB/Specs/java8/java/util/Random.jml uses internal proprietary API that may be removed in a future release.
+Note: Recompile with -Xlint:sunapi for details.
 6 warnings

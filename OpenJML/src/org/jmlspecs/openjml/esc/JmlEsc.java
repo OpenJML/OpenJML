@@ -14,6 +14,7 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.IAPI;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
+import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.Main;
@@ -313,7 +314,12 @@ public class JmlEsc extends JmlTreeScanner {
             );
             throw e;
         } catch (Exception e) {
-            JCDiagnostic d = log.factory().error(log.currentSource(), null, "jml.internal","Prover aborted with exception: " + e.getMessage());
+            JCDiagnostic d;
+            if (e instanceof SMTTranslator.JmlBVException) {
+                d = log.factory().error(log.currentSource(), methodDecl, "jml.message", "Proof aborted because bit-vector operations are not supported. Use option -escBV=true");
+            } else {
+                d = log.factory().error(log.currentSource(), null, "jml.internal","Prover aborted with exception: " + e.getMessage());
+            }
             log.report(d);
 
             res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl.sym).setOtherInfo(d);

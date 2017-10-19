@@ -1247,6 +1247,8 @@ public class SMTTranslator extends JmlTreeScanner {
                  // An identifier may be appended to a JmlVariableDecl simply
                  // to have an expression with which to associated an SMT value
                  if (decl.ident != null) bimap.put(decl.ident, sym);
+            } catch (JmlBVException ee) {
+                throw ee;
             } catch (RuntimeException ee) {
                 // skip - error already issued // FIXME - better recovery
             }
@@ -1437,6 +1439,8 @@ public class SMTTranslator extends JmlTreeScanner {
                     log.error("jml.internal", "Incorrect kind of statement encountered when converting a BasicProgram to SMTLIB: " + stat.getClass());
                     break;
                 }
+            } catch (JmlBVException ee) {
+                throw ee;
             } catch (RuntimeException ee) {
                 // There is no recovery from this
                 log.error("jml.internal", "Exception while translating block: " + ee);
@@ -1594,6 +1598,14 @@ public class SMTTranslator extends JmlTreeScanner {
     /** Issues an error message about something not being implemented */
     public void notImpl(DiagnosticPosition pos, String msg) {
         log.error(pos, "esc.not.implemented","Not yet supported feature in converting BasicPrograms to SMTLIB: " + msg);
+    }
+    
+    public static class JmlBVException extends RuntimeException {}
+    
+    /** Issues an error message about bit-vector operations */
+    public void notImplBV(DiagnosticPosition pos, String msg) {
+        if ("auto".equals(JmlOption.value(context, JmlOption.ESC_BV))) throw new JmlBVException();
+        log.error(pos, "jml.message","This method uses bit-vector operations and must be run with -escBV=true (or auto) [" + msg + "]");
     }
     
     /** Issues an error message about something not being implemented */
@@ -1949,7 +1961,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else if (useBV) {
                 	result = F.fcn(F.symbol("bvand"), args);
                 } else {
-                    notImpl(tree, "Bit-operation " + op);
+                    notImplBV(tree, "Bit-operation " + op);
                 }
                 break;
             case BITOR:
@@ -1958,7 +1970,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else if (useBV) {
                 	result = F.fcn(F.symbol("bvor"), args);
                 } else {
-                    notImpl(tree, "Bit-operation " + op);
+                    notImplBV(tree, "Bit-operation " + op);
                 }
                 break;
             case BITXOR:
@@ -1967,28 +1979,28 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else if (useBV) {
                 	result = F.fcn(F.symbol("bvxor"), args);
                 } else {
-                    notImpl(tree, "Bit-operation " + op);
+                    notImplBV(tree, "Bit-operation " + op);
                 }
                 break;
             case SL:
             	if (useBV) {
             		result = F.fcn(F.symbol("bvshl"), args);
             	} else {
-            		notImpl(tree, "Bit-operation " + op);
+            		notImplBV(tree, "Bit-operation " + op);
             	}
                 break;
             case SR:
             	if (useBV) {
             		result = F.fcn(F.symbol("bvashr"), args);
             	} else {
-            		notImpl(tree, "Bit-operation " + op);
+            		notImplBV(tree, "Bit-operation " + op);
             	}
                 break;
             case USR:
             	if (useBV) {
             		result = F.fcn(F.symbol("bvlshr"), args);
             	} else {
-            		notImpl(tree, "Bit-operation " + op);
+            		notImplBV(tree, "Bit-operation " + op);
             	}
                 break;
             default:

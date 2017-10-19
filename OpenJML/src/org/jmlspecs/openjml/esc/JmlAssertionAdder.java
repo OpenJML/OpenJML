@@ -10434,7 +10434,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCBinary bin = treeutils.makeBinary(that.pos,optag,that.getOperator(),lhs,rhs);
             result = eresult = splitExpressions ? newTemp(bin) : bin;
         }
-        eresult.pos = that.getStartPosition(); // Need to make the start of the temporary Ident the same as the start of the expression it represents
+        if (splitExpressions) eresult.pos = that.getStartPosition(); // Need to make the start of the temporary Ident the same as the start of the expression it represents
         treeutils.copyEndPosition(eresult, that);
     }
     
