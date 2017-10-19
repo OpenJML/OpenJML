@@ -126,8 +126,8 @@ public class escbitvector extends EscBase {
                 +"  }\n"
                                 
                 +"}"
-                ,"/tt/TestJava.java:9: NOT IMPLEMENTED: Not yet supported feature in converting BasicPrograms to SMTLIB: Bit-operation BITAND",22
-                ,"/tt/TestJava.java:5: NOT IMPLEMENTED: Not yet supported feature in converting BasicPrograms to SMTLIB: Bit-operation BITAND",23
+                ,"/tt/TestJava.java:9: This method uses bit-vector operations and must be run with -escBV=true (or auto) [Bit-operation BITAND]",22
+                ,"/tt/TestJava.java:5: This method uses bit-vector operations and must be run with -escBV=true (or auto) [Bit-operation BITAND]",23
                 );
     }
     
@@ -215,6 +215,68 @@ public class escbitvector extends EscBase {
                 +"}"
                 ,"warning: The last command-line option expects a parameter: -escBV",-1
 //                ,"Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: "
+          );
+    }
+    
+    @Test
+    public void testBVauto() {
+        // This test first tries SMT translation without BV, which fails, and then it tries with, and succeeeds.
+        expectedExit = 0;
+        main.addOptions("-escBV=auto","-method=m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +" class A { \n"
+                +"   //@ requires (i&1) == 1; pure \n"
+                +"   public static boolean mm(int i) { return true; } \n"
+                +"}\n"
+                
+                +" public class TestJava { \n"
+                +"  //@ requires A.mm(1);\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                                
+                +"}"
+          );
+    }
+    
+    @Test
+    public void testBVauto2() {
+        // This test, the same code as above, only tries SMT translation without BV, which fails.
+        expectedExit = 1;
+        main.addOptions("-escBV=false","-method=m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +" class A { \n"
+                +"   //@ requires (i&1) == 1; pure \n"
+                +"   public static boolean mm(int i) { return true; } \n"
+                +"}\n"
+                
+                +" public class TestJava { \n"
+                +"  //@ requires A.mm(1);\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                                
+                +"}"  // FIXME - why the repeated message
+                ,"/tt/TestJava.java:3: This method uses bit-vector operations and must be run with -escBV=true (or auto) [Bit-operation BITAND]",19
+                ,optional("/tt/TestJava.java:3: This method uses bit-vector operations and must be run with -escBV=true (or auto) [Bit-operation BITAND]",19)
+          );
+    }
+    
+    @Test
+    public void testBVauto3() {
+        // This test, the same code as above, only tries SMT translation with BV the first time.
+        expectedExit = 0;
+        main.addOptions("-escBV=true","-method=m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +" class A { \n"
+                +"   //@ requires (i&1) == 1; pure \n"
+                +"   public static boolean mm(int i) { return true; } \n"
+                +"}\n"
+                
+                +" public class TestJava { \n"
+                +"  //@ requires A.mm(1);\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                                
+                +"}"
           );
     }
     

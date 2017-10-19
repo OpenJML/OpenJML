@@ -823,7 +823,7 @@ public class escnew3 extends EscBase {
         
     }
 
-    @Test
+     @Test
     public void testLabels2() {
         helpTCX("tt.TestJava",
                   "package tt; \n"

@@ -285,7 +285,11 @@ public class MethodProverSMT {
 
             // convert the basic block form to SMT
             try {
-                script = smttrans.convert(program,smt,methodDecl.usedBitVectors);
+                try {
+                    script = smttrans.convert(program,smt,methodDecl.usedBitVectors);
+                } catch (SMTTranslator.JmlBVException e) {
+                    script = new SMTTranslator(context, methodDecl.sym.toString()).convert(program,smt,true);
+                }
                 if (printPrograms) {
                     try {
                         log.getWriter(WriterKind.NOTICE).println(Strings.empty);
@@ -299,6 +303,8 @@ public class MethodProverSMT {
                         log.getWriter(WriterKind.NOTICE).print("Exception while printing SMT script: " + e); //$NON-NLS-1$
                     }
                 }
+            } catch (SMTTranslator.JmlBVException e) {
+                throw e;
             } catch (Exception e) {
                 //log.error("jml.internal", "Failed to convert to SMT: " + e);
                 JCDiagnostic d = log.factory().warning(log.currentSource(), null, "jml.internal", "Failed to convert to SMT: " + e);
@@ -360,6 +366,11 @@ public class MethodProverSMT {
                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
             }
             if (solverResponse.equals(unsatResponse)) {
+                String loc = utils.qualifiedNameNoInit(methodDecl.sym) + " ";
+                // FIXME - get rid of the next line some time when we can change the test results
+                if (Utils.testingMode) loc = "";
+                if (!Utils.testingMode) utils.progress(0,1,loc + "Method assertions are validated");
+
                 if (verbose) log.getWriter(WriterKind.NOTICE).println("Method checked OK");
                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
                 
@@ -436,14 +447,13 @@ public class MethodProverSMT {
                             solverResponse = solver.check_sat();
                         }
                         String description = stat.description; // + " " + stat;
-                        String loc = utils.qualifiedName(methodDecl.sym);
-                        // FIXME - get rid of the next line some time when we can change the test results
-                        if (Utils.testingMode) loc = ""; else loc = loc + " ";
+                        String fileLocation = utils.locationString(stat.pos, log.currentSourceFile());
                         String msg =  (utils.jmlverbose >= Utils.PROGRESS) ? 
                                 ("Feasibility check #" + feasibilityCheckNumber + " - " + description + " : ")
                                 :("Feasibility check - " + description + " : ");
                         boolean infeasible = solverResponse.equals(unsatResponse);
-                        utils.progress(0,1,loc + msg + (infeasible ? "infeasible": "OK"));
+                        if (Utils.testingMode) fileLocation = loc;
+                        utils.progress(0,1,fileLocation + msg + (infeasible ? "infeasible": "OK"));
                         if (infeasible) {
                             if (Strings.preconditionAssumeCheckDescription.equals(description)) {
                                 log.warning(stat.pos(), "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));

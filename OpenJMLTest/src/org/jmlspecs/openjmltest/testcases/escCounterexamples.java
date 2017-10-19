@@ -84,7 +84,7 @@ public class escCounterexamples extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Precondition) in method m1",7
                 ,"/tt/TestJava.java:10: warning: Associated declaration",15
-                ,"/tt/TestJava.java:9: warning: Precondition conjunct is false: k == 0",16
+                ,"/tt/TestJava.java:9: warning: Precondition conjunct is false: k == 0",18
                 );
     }
     

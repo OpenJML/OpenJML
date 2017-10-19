@@ -1343,8 +1343,8 @@ public class esc extends EscBase {
 										, "/tt/TestJava.java:45: warning: Associated declaration", 15
                                         ,
                                         oneof(
-                                        seq("/tt/TestJava.java:43: warning: Precondition conjunct is false: a != null",16)
-                                        ,seq("/tt/TestJava.java:43: warning: Precondition conjunct is false: i < a.length",16)
+                                        seq("/tt/TestJava.java:43: warning: Precondition conjunct is false: a != null",17)
+                                        ,seq("/tt/TestJava.java:43: warning: Precondition conjunct is false: i < a.length",17)
                                         )
 										))));
 	}
@@ -2051,9 +2051,8 @@ public class esc extends EscBase {
 				+ "  public int instbad2(boolean b, int i) { m(1); return j; }\n" + "}"
 				,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Precondition) in method instbad",43
 				,"/tt/TestJava.java:7: warning: Associated declaration", 22
-				,"/tt/TestJava.java:4: warning: Precondition conjunct is false: i > 0",16
-				,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",
-				49
+				,"/tt/TestJava.java:4: warning: Precondition conjunct is false: i > 0",17
+				,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",49
 				, "/tt/TestJava.java:16: warning: Associated declaration", 7
 				);
 	}
@@ -2087,7 +2086,7 @@ public class esc extends EscBase {
 				+ "}"
 				,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Precondition) in method instbad",43
 				, "/tt/TestJava.java:7: warning: Associated declaration",15
-				,"/tt/TestJava.java:4: warning: Precondition conjunct is false: i > 0",16
+				,"/tt/TestJava.java:4: warning: Precondition conjunct is false: i > 0",17
 				,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method instbad2",49
 				, "/tt/TestJava.java:16: warning: Associated declaration", 7);
 	}
@@ -2873,9 +2872,9 @@ public class esc extends EscBase {
 				+ "}"
 				,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Precondition) in method m1a",35
 				,"/tt/TestJava.java:18: warning: Associated declaration",14
-				,"/tt/TestJava.java:3: warning: Precondition conjunct is false: iii == 1",16
-				,"/tt/TestJava.java:9: warning: Precondition conjunct is false: ii == 2",16
-				,"/tt/TestJava.java:15: warning: Precondition conjunct is false: i == 3",16
+				,"/tt/TestJava.java:3: warning: Precondition conjunct is false: iii == 1",20
+				,"/tt/TestJava.java:9: warning: Precondition conjunct is false: ii == 2",19
+				,"/tt/TestJava.java:15: warning: Precondition conjunct is false: i == 3",18
 				);
 	}
 
@@ -3660,7 +3659,7 @@ public class esc extends EscBase {
 
 	@Test
 	public void testMethodAxioms2a() {
-		main.addOptions("-show","-method=mm");
+		//main.addOptions("-show","-method=mm");
 		helpTCX("tt.TestJava",
 				"package tt; \n" 
 						+ "public class TestJava  { \n" 
@@ -3994,12 +3993,14 @@ public class esc extends EscBase {
                         + "           if (i == 2) { j = -1; throw new NegativeArraySizeException(); }\n" 
                         + "  }\n" 
                         + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
+                        ,anyorder(seq(
+                 "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
                 ,"/tt/TestJava.java:3: warning: Associated declaration",93
-                ,"/tt/TestJava.java:9: warning: Associated method exit",34
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",48
+                ,"/tt/TestJava.java:9: warning: Associated method exit",34)
+                ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",48
                 ,"/tt/TestJava.java:3: warning: Associated declaration",93
                 ,"/tt/TestJava.java:8: warning: Associated method exit",29
+                ))
                 );
     }
 
