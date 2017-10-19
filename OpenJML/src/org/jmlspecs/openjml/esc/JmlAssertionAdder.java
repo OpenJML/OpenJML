@@ -6955,6 +6955,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 calleeMethodSym = (MethodSymbol)id.sym;
                 newTypeVarMapping = typevarMapping = typemapping(receiverType, calleeMethodSym, typeargs);
+                
+                if (meth instanceof JCTree.JCLambda) {
+                    // Now need to apply the lambda to its arguments, by substitution
+                    JCBlock block = (JCBlock)((JCTree.JCLambda)meth).body;
+                    // If there are arguments or a return value, we need to do a substitution pass
+                    if (trArgs.size() != 0 || that.type.getTag() != TypeTag.VOID) {
+                        
+                    }
+                    
+                    addStat(comment(that,"Translated body of lambda: " + that.toString(), log.currentSourceFile()));
+                    addStat(block);
+                    result = eresult = null; // FIXME WHAT should this be?
+                }
+
 
                 JCMethodInvocation mExpr = M.at(that).Apply(typeargs,meth,trArgs);
                 mExpr.setType(that.type);
@@ -6999,6 +7013,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         
                         addStat(comment(that,"Translated body of lambda: " + that.toString(), log.currentSourceFile()));
                         addStat(block);
+                        result = eresult = null; // FIXME WHAT should this be?
                     }
 
                     // We are presuming here that the receiver is being invoked for its abstract method
@@ -8179,6 +8194,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (esc && isPure(calleeMethodSym)) {
                 addStat(comment(that, "... Not adding havoc statements for pure callee " + calleeMethodSym + " in " + calleeMethodSym.owner.toString(),null));
             }
+            boolean anyHavocs = false;
             if (esc && !isPure(calleeMethodSym)) {
                 // Now we iterate over all specification cases in all parent
                 // methods again, this time putting in the assignable havoc statements
@@ -8300,10 +8316,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 newlist.add(newloc);
                                             } else {
                                                 check4 = pushBlock();
-                                                if (location instanceof JmlStoreRefKeyword && ((JmlStoreRefKeyword)location).token == JmlTokenKind.BSEVERYTHING) {
-                                                    containsEverything = true;
+                                                if (location instanceof JmlStoreRefKeyword && ((JmlStoreRefKeyword)location).token == JmlTokenKind.BSNOTHING) {
+                                                    // skip
+                                                } else {
+                                                    if (location instanceof JmlStoreRefKeyword && ((JmlStoreRefKeyword)location).token == JmlTokenKind.BSEVERYTHING) {
+                                                        containsEverything = true;
+                                                    }
+                                                    newlist.add(trlocation); 
                                                 }
-                                                newlist.add(trlocation); 
                                             }
                                             addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, preXout, prex));
                                             addToStats(elses, () -> {
@@ -8319,9 +8339,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             	addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false, currentThisExpr == null);
                                             }
                                             bl = popBlock(0,cs);
-                                            st = M.at(cs.pos+1).If(preXout,bl,null);
-                                            havocs.add(st);
-                                            
+                                            if (!bl.stats.isEmpty()) {
+                                                st = M.at(cs.pos+1).If(preXout,bl,null);
+                                                havocs.add(st);
+                                                anyHavocs = true;
+                                            }
                                         }
 
                                         }
@@ -8404,7 +8426,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             typevarMapping = newTypeVarMapping;
             if (newclass != null || (!specs.isPure(calleeMethodSym) && !calleeMethodSym.isConstructor())) {
-                if (inProcessInvariants.isEmpty() && !translatingJML) changeState();
+                if (anyHavocs && inProcessInvariants.isEmpty() && !translatingJML) changeState();
             }
 
             // Ensure determinism
