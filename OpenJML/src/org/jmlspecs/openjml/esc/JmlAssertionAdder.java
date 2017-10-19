@@ -5008,7 +5008,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     @Override
     public void visitLambda(JCLambda that) {
-        if (pureCopy || !applyingLambda) {
+        if (pureCopy) {
             pushBlock(); // To swallow and ignore the addStat of a block in visitBlock
             JCLambda nthat = M.Lambda(convert(that.params), convert(that.body));
             nthat.pos = that.pos;
@@ -5024,28 +5024,31 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Translating a lambda expression can result in a block of statements
         // Record the parameters as local variables that translate to themselves
         
-        LambdaInfo info = lambdaUnTrArgs.pop();
-        Type.MethodType mtype = info.actualType;
-        List<JCExpression> untrArgs = info.untrArgs;
-        List<JCExpression> trArgs = convertArgs(that, untrArgs, mtype.argtypes, false); // FIXME - varargs ever allowed?
-
-        Iterator<JCExpression> iter = trArgs.iterator();
-        for (JCVariableDecl param: that.params) {
-            if (!iter.hasNext()) {
-                log.error(that.pos, "jml.internal", "Unexpectedly too few arguments in inlining a lambda expression");
-                break;
-            }
-            JCExpression arg = iter.next();
-            paramActuals.put(param.sym, arg);  // FIXME - what if a lambda expression is inlined recursively?
-        }
-        if (iter.hasNext()) {
-            log.error(iter.next().pos, "jml.internal", "Unexpectedly too many arguments in inlining a lambda expression");
-        }
+//        LambdaInfo info = lambdaUnTrArgs.pop();
+//        Type.MethodType mtype = info.actualType;
+//        List<JCExpression> untrArgs = info.untrArgs;
+//        List<JCExpression> trArgs = convertArgs(that, untrArgs, mtype.argtypes, false); // FIXME - varargs ever allowed?
+//
+//        Iterator<JCExpression> iter = trArgs.iterator();
+//        for (JCVariableDecl param: that.params) {
+//            if (!iter.hasNext()) {
+//                log.error(that.pos, "jml.internal", "Unexpectedly too few arguments in inlining a lambda expression");
+//                break;
+//            }
+//            JCExpression arg = iter.next();
+//            paramActuals.put(param.sym, arg);  // FIXME - what if a lambda expression is inlined recursively?
+//        }
+//        if (iter.hasNext()) {
+//            log.error(iter.next().pos, "jml.internal", "Unexpectedly too many arguments in inlining a lambda expression");
+//        }
 
         inlinedReturns.push((JCIdent)resultExpr);
-        boolean isVoid = mtype.getReturnType().getTag() == TypeTag.VOID;
+        Type returnType = that.body.type;
+        if (returnType == null) returnType = syms.voidType;
+        boolean isVoid = returnType == null || returnType.getTag() == TypeTag.VOID;
         if (!isVoid) addStat(comment(that,"return result for inlined lambda expression",log.currentSourceFile()));
-        JCIdent localResult = isVoid ? null : newTemp(that,mtype.getReturnType());
+        JCIdent localResult = isVoid ? null : newTemp(that,returnType);
+        
         ListBuffer<JCStatement> check = pushBlock();
         resultExpr = localResult;
         resultSym = localResult == null ? null : (VarSymbol)localResult.sym;
@@ -5055,16 +5058,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addStat(treeutils.makeAssignStat(that.body.pos,localResult,eresult));
             }
             JCBlock bl = popBlock(0L,that.pos(), check);
-            addStat(bl);
+            result = eresult = M.Lambda(that.params, bl);
+            eresult.pos = that.pos;
+            eresult.type = that.type;
+//            addStat(bl);
 //            JCLambda newlambda = M.at(that.pos).Lambda(that.params,bl);
 //            newlambda.type = that.type;
-            result = eresult = localResult;
+//            result = eresult = localResult;
         } finally {
             resultExpr = inlinedReturns.pop();
             resultSym = resultExpr == null ? null : (VarSymbol)(((JCIdent)resultExpr).sym);
-            for (JCVariableDecl param: that.params) {
-                localVariables.remove(param.sym);
-            }
+//            for (JCVariableDecl param: that.params) {
+//                localVariables.remove(param.sym);
+//            }
         }
     }
     
@@ -6965,20 +6971,36 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 newTypeVarMapping = typevarMapping = typemapping(receiverType, fa.sym, null, meth.type.asMethodType());
                 //if (isFunctional(convertedReceiver.type)) 
                 
-                LambdaInfo info = new LambdaInfo(); info.msym = (MethodSymbol)fa.sym; info.untrArgs = untrArgs; info.actualType = meth.type.asMethodType();
-                lambdaUnTrArgs.push(info);
-                boolean savedApplyingLambda = applyingLambda;
-                applyingLambda = true;
+//                LambdaInfo info = new LambdaInfo(); info.msym = (MethodSymbol)fa.sym; info.untrArgs = untrArgs; info.actualType = meth.type.asMethodType();
+//                lambdaUnTrArgs.push(info);
+//                boolean savedApplyingLambda = applyingLambda;
+//                applyingLambda = true;
                 convertedReceiver = alreadyConverted ? fa.selected : convertExpr(fa.selected);
-                applyingLambda = savedApplyingLambda;
                 
-                LambdaInfo top = lambdaUnTrArgs.peek();
-                if (top != info) {
-                    // We did a lambda expression and already processed all the arguments and inlined the call
-                    return;
-                }
-                untrArgs = lambdaUnTrArgs.pop().untrArgs;
+                typeargs = convert(typeargs); // FIXME - should this be translated before or after the receiver, here and elsewhere
+                trArgs = convertArgs(that, untrArgs,meth.type.asMethodType().argtypes,  (fa.sym.flags() & Flags.VARARGS) != 0);
+
+//                applyingLambda = savedApplyingLambda;
+                
+//                LambdaInfo top = lambdaUnTrArgs.peek();
+//                if (top != info) {
+//                    // We did a lambda expression and already processed all the arguments and inlined the call
+//                    return;
+//                }
+//                untrArgs = lambdaUnTrArgs.pop().untrArgs;
                 xx: {
+                    if (convertedReceiver instanceof JCTree.JCLambda) {
+                        // Now need to apply the lambda to its arguments, by substitution
+                        JCBlock block = (JCBlock)((JCTree.JCLambda)convertedReceiver).body;
+                        // If there are arguments or a return value, we need to do a substitution pass
+                        if (trArgs.size() != 0 || convertedReceiver.type.asMethodType().getReturnType().getTag() != TypeTag.VOID) {
+                            
+                        }
+                        
+                        addStat(comment(that,"Translated body of lambda: " + that.toString(), log.currentSourceFile()));
+                        addStat(block);
+                    }
+
                     // We are presuming here that the receiver is being invoked for its abstract method
 //                    typeargs = convert(typeargs);
 //                    if (isFunctional(fa.selected.type)) {
@@ -7083,8 +7105,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
 
-                typeargs = convert(typeargs);
-                trArgs = convertArgs(that, untrArgs,meth.type.asMethodType().argtypes,  (fa.sym.flags() & Flags.VARARGS) != 0);
 
                 JCFieldAccess fameth = (JCFieldAccess)M.at(meth.pos).Select(
                         !utils.isJMLStatic(fa.sym) ? newThisExpr : convertedReceiver, fa.sym);
@@ -7852,198 +7872,203 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // Now for each specification case, we create a block that checks the assignable statements
                 // Unfortunately we have to do the requires and old statements within the block, so we have to compute them over again
                 // FIXME - perhaps that can be optimized
-                for (Pair<MethodSymbol,Type> pair: overridden) {
-                    MethodSymbol mpsym = pair.first;
-                    Type classType = pair.second;
-                    addStat(comment(that, "... Checking assignables of callee " + calleeMethodSym + " in " + classType.toString(),null));
-                    
-                    
-                    // FIXME - from here down to loop is duplicated from above
-                    
-                    // FIXME - meth is null for constructors - fix that also; also generic types
-                    typevarMapping = typemapping(classType, calleeMethodSym, typeargs, 
-                            meth == null ? null : meth.type instanceof Type.MethodType ? (Type.MethodType)meth.type : null);
-                    // This initial logic must match that below for postconditions
+                if (isPure(calleeMethodSym)) {
+                    addStat(comment(that, "... Not checking assignables of pure callee " + calleeMethodSym,null));
+                } else {
+                    for (Pair<MethodSymbol,Type> pair: overridden) {
+                        MethodSymbol mpsym = pair.first;
+                        Type classType = pair.second;
+                        addStat(comment(that, "... Checking assignables of callee " + calleeMethodSym + " in " + classType.toString(),null));
 
 
-                    JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
-                    if (calleeSpecs == null) continue; // FIXME - not sure about this - should get a default?
+                        // FIXME - from here down to loop is duplicated from above
 
-                    paramActuals = mapParamActuals.get(mpsym);
-                    
-                    
-                    for (JmlSpecificationCase cs : calleeSpecs.cases) {
-                        if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
-                        if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
-                        if (mpsym != calleeMethodSym && cs.code) continue;
-                        JCExpression pre = preExpressions.get(cs);
-                        if ((!translatingJML || rac) && methodDecl != null && methodDecl.sym != null) {  // FIXME - not quite sure of this guard // FIXME - what should we check for field initializers
-                            // Handle assignable & accessible clauses
-                            ListBuffer<JCStatement> check2 = pushBlock(); // A block for assignable and accessible tests
-                            boolean anyAssignableClauses = false;
-                            boolean anyCallableClauses = false;
-                            boolean anyAccessibleClauses = false;
-                            for (JmlMethodClause clause : cs.clauses) {
-                                // We iterate over each storeref item in each assignable clause
-                                // of each specification case of the callee - for each item we check
-                                // that assigning to it (under the appropriate preconditions)
-                                // is allowed by each of the specification cases of the callee and caller specs.
-                                try {
-                                    if (clause.token == JmlTokenKind.OLD) { // FIXME - these need to be conditioned on the requires clauses
-                                        // FIXME - ignore if after all requires?
-                                        // FIXME - needs to be in a block, but don't like to have assignments to compute the preconditions
-                                        insertDeclarationsForOld(null, (JmlMethodClauseDecl)clause);
+                        // FIXME - meth is null for constructors - fix that also; also generic types
+                        typevarMapping = typemapping(classType, calleeMethodSym, typeargs, 
+                                meth == null ? null : meth.type instanceof Type.MethodType ? (Type.MethodType)meth.type : null);
+                        // This initial logic must match that below for postconditions
 
-                                    } else if (clause.token == JmlTokenKind.FORALL) { 
-//                                        notImplemented(clause,"forall clause in method specs",clause.source()); // Don't repeat the warning message
-                                    } else if (clause.token == JmlTokenKind.ASSIGNABLE) {
-                                        List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym);
-                                        for (JCExpression item: storerefs) {
-                                            addStat(comment(item,"Is " + item + " assignable? " + utils.locationString(item.pos,clause.source()),clause.source()));
-                                            JCExpression trItem = convertAssignable(item,newThisExpr,true,clause.source());
-                                            JCExpression allowed = checkAgainstAllCalleeSpecs(calleeMethodSym,clause.token, that, item, trItem ,pre, newThisId, newThisId, clause.source(), true);
-                                            checkAgainstCallerSpecs(clause.token, that, item, trItem ,allowed, savedThisId, newThisId, clause.source());
-                                        }
-                                        anyAssignableClauses = true;
-                                    } else if (clause.token == JmlTokenKind.ACCESSIBLE) {
-                                        if (checkAccessEnabled) {
+
+                        JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
+                        if (calleeSpecs == null) continue; // FIXME - not sure about this - should get a default?
+
+                        paramActuals = mapParamActuals.get(mpsym);
+
+
+                        for (JmlSpecificationCase cs : calleeSpecs.cases) {
+                            if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
+                            if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
+                            if (mpsym != calleeMethodSym && cs.code) continue;
+                            if (cs.block != null) continue; // No checks if there is an inlined model 
+                            JCExpression pre = preExpressions.get(cs);
+                            if ((!translatingJML || rac) && methodDecl != null && methodDecl.sym != null) {  // FIXME - not quite sure of this guard // FIXME - what should we check for field initializers
+                                // Handle assignable & accessible clauses
+                                ListBuffer<JCStatement> check2 = pushBlock(); // A block for assignable and accessible tests
+                                boolean anyAssignableClauses = false;
+                                boolean anyCallableClauses = false;
+                                boolean anyAccessibleClauses = false;
+                                for (JmlMethodClause clause : cs.clauses) {
+                                    // We iterate over each storeref item in each assignable clause
+                                    // of each specification case of the callee - for each item we check
+                                    // that assigning to it (under the appropriate preconditions)
+                                    // is allowed by each of the specification cases of the callee and caller specs.
+                                    try {
+                                        if (clause.token == JmlTokenKind.OLD) { // FIXME - these need to be conditioned on the requires clauses
+                                            // FIXME - ignore if after all requires?
+                                            // FIXME - needs to be in a block, but don't like to have assignments to compute the preconditions
+                                            insertDeclarationsForOld(null, (JmlMethodClauseDecl)clause);
+
+                                        } else if (clause.token == JmlTokenKind.FORALL) { 
+                                            //                                        notImplemented(clause,"forall clause in method specs",clause.source()); // Don't repeat the warning message
+                                        } else if (clause.token == JmlTokenKind.ASSIGNABLE) {
                                             List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym);
                                             for (JCExpression item: storerefs) {
-                                                addStat(comment(item,"Is " + item + " accessible?",clause.source()));
-                                                JCExpression trItem = convertAssignable(item, newThisExpr, true, clause.source());
-                                                checkAgainstCallerSpecs(clause.token, that, item, trItem ,pre, savedThisId, newThisId, clause.source());
+                                                addStat(comment(item,"Is " + item + " assignable? " + utils.locationString(item.pos,clause.source()),clause.source()));
+                                                JCExpression trItem = convertAssignable(item,newThisExpr,true,clause.source());
+                                                JCExpression allowed = checkAgainstAllCalleeSpecs(calleeMethodSym,clause.token, that, item, trItem ,pre, newThisId, newThisId, clause.source(), true);
+                                                checkAgainstCallerSpecs(clause.token, that, item, trItem ,allowed, savedThisId, newThisId, clause.source());
                                             }
-                                            anyAccessibleClauses = true;
-                                        }
-                                    } else if (clause.token == JmlTokenKind.CALLABLE) {
-                                        anyCallableClauses = true;
-                                        JmlMethodClauseCallable callableClause = (JmlMethodClauseCallable)clause;
-                                        if (callableClause.keyword != null) {
-                                            if (callableClause.keyword.token == JmlTokenKind.BSNOTHING){
-                                                // callee is callable \nothing - no problem
-                                            } else if (callableClause.keyword.token == JmlTokenKind.BSEVERYTHING) {
-                                                checkThatMethodIsCallable(callableClause.keyword, null);
-                                            } else if (callableClause.keyword.token == JmlTokenKind.BSNOTSPECIFIED) {
-                                                checkThatMethodIsCallable(callableClause.keyword, null);
+                                            anyAssignableClauses = true;
+                                        } else if (clause.token == JmlTokenKind.ACCESSIBLE) {
+                                            if (checkAccessEnabled) {
+                                                List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym);
+                                                for (JCExpression item: storerefs) {
+                                                    addStat(comment(item,"Is " + item + " accessible?",clause.source()));
+                                                    JCExpression trItem = convertAssignable(item, newThisExpr, true, clause.source());
+                                                    checkAgainstCallerSpecs(clause.token, that, item, trItem ,pre, savedThisId, newThisId, clause.source());
+                                                }
+                                                anyAccessibleClauses = true;
                                             }
-                                        } else {
-                                            List<JmlMethodSig> sigs = callableClause.methodSignatures;
-                                            if (sigs != null) {
-                                                for (JmlMethodSig item: sigs) {
-                                                    addStat(comment(item,"Is " + item + " callable?",clause.source()));
-                                                    checkThatMethodIsCallable(item, item.methodSymbol);
+                                        } else if (clause.token == JmlTokenKind.CALLABLE) {
+                                            anyCallableClauses = true;
+                                            JmlMethodClauseCallable callableClause = (JmlMethodClauseCallable)clause;
+                                            if (callableClause.keyword != null) {
+                                                if (callableClause.keyword.token == JmlTokenKind.BSNOTHING){
+                                                    // callee is callable \nothing - no problem
+                                                } else if (callableClause.keyword.token == JmlTokenKind.BSEVERYTHING) {
+                                                    checkThatMethodIsCallable(callableClause.keyword, null);
+                                                } else if (callableClause.keyword.token == JmlTokenKind.BSNOTSPECIFIED) {
+                                                    checkThatMethodIsCallable(callableClause.keyword, null);
+                                                }
+                                            } else {
+                                                List<JmlMethodSig> sigs = callableClause.methodSignatures;
+                                                if (sigs != null) {
+                                                    for (JmlMethodSig item: sigs) {
+                                                        addStat(comment(item,"Is " + item + " callable?",clause.source()));
+                                                        checkThatMethodIsCallable(item, item.methodSymbol);
+                                                    }
                                                 }
                                             }
                                         }
+                                    } catch (NoModelMethod e) {
+                                        // continue // FIXME - warn?
+                                    } catch (JmlNotImplementedException e) {
+                                        notImplemented(clause.token.internedName() + " clause containing ",e); // FIXME - clause source
                                     }
-                                } catch (NoModelMethod e) {
-                                    // continue // FIXME - warn?
-                                } catch (JmlNotImplementedException e) {
-                                    notImplemented(clause.token.internedName() + " clause containing ",e); // FIXME - clause source
                                 }
-                            }
-                            if (cs.block == null) { // no defaults if rthere is a model program,
-//                                if (!anyAssignableClauses) {
-//                                    // If there are no assignable clauses in the spec case, use a default
-//                                    if (mpsym.isConstructor()) {
-//                                        // But the default for a constructor call the fields of the constructor
-//                                        // and the fields of the constructor are allowed to be assigned in any case
-//                                        // So there is nothing to check
-//
-//                                        //                                    for (JCExpression item: defaultStoreRefs(cs,mpsym)) {
-//                                        //                                        checkAgainstCallerSpecs(that, convertJML(item),pre, savedThisId, newThisId);
-//                                        //                                    }
-//
-//                                        // FIXME _ check callee
-//                                        checkAgainstCallerSpecs(JmlTokenKind.ASSIGNABLE, that, M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSNOTHING),pre, savedThisId, newThisId, cs.source());
-//
-//                                    } else {
-//                                        if (isPure(mpsym)) {
-//                                            // FIXME _ check callee
-//                                            checkAgainstCallerSpecs(JmlTokenKind.ASSIGNABLE, that, M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSNOTHING),pre, savedThisId, newThisId, cs.source());
-//                                        } else {
-//                                            // the default is \\everything
-//                                            // FIXME _ check callee
-//                                            JCExpression item = M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING);
-//                                            JCExpression allowed = checkAgainstAllCalleeSpecs(calleeMethodSym,JmlTokenKind.ASSIGNABLE, that, item, pre, newThisId, newThisId, cs.source());
-//                                            checkAgainstCallerSpecs(JmlTokenKind.ASSIGNABLE, that, item, allowed, savedThisId, newThisId, cs.source());
-//                                        }
-//                                    }
-//                                }
-//                                if (!anyAccessibleClauses && checkAccessEnabled) {
-//                                    // If there are no accessible clauses in the spec case, use a default
-//                                    // the default is \\everything
-//                                    checkAgainstCallerSpecs(JmlTokenKind.ACCESSIBLE, that, M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING),pre, savedThisId, newThisId, cs.source());
-//                                }
-                                if (!anyCallableClauses) {
-                                    // The callee is implicitly callable \everything,
-                                    // so the caller must be also be implicitly callable \everything
-                                    checkThatMethodIsCallable(cs, null);
+                                if (cs.block == null) { // no defaults if rthere is a model program,
+                                    //                                if (!anyAssignableClauses) {
+                                    //                                    // If there are no assignable clauses in the spec case, use a default
+                                    //                                    if (mpsym.isConstructor()) {
+                                    //                                        // But the default for a constructor call the fields of the constructor
+                                    //                                        // and the fields of the constructor are allowed to be assigned in any case
+                                    //                                        // So there is nothing to check
+                                    //
+                                    //                                        //                                    for (JCExpression item: defaultStoreRefs(cs,mpsym)) {
+                                    //                                        //                                        checkAgainstCallerSpecs(that, convertJML(item),pre, savedThisId, newThisId);
+                                    //                                        //                                    }
+                                    //
+                                    //                                        // FIXME _ check callee
+                                    //                                        checkAgainstCallerSpecs(JmlTokenKind.ASSIGNABLE, that, M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSNOTHING),pre, savedThisId, newThisId, cs.source());
+                                    //
+                                    //                                    } else {
+                                    //                                        if (isPure(mpsym)) {
+                                    //                                            // FIXME _ check callee
+                                    //                                            checkAgainstCallerSpecs(JmlTokenKind.ASSIGNABLE, that, M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSNOTHING),pre, savedThisId, newThisId, cs.source());
+                                    //                                        } else {
+                                    //                                            // the default is \\everything
+                                    //                                            // FIXME _ check callee
+                                    //                                            JCExpression item = M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING);
+                                    //                                            JCExpression allowed = checkAgainstAllCalleeSpecs(calleeMethodSym,JmlTokenKind.ASSIGNABLE, that, item, pre, newThisId, newThisId, cs.source());
+                                    //                                            checkAgainstCallerSpecs(JmlTokenKind.ASSIGNABLE, that, item, allowed, savedThisId, newThisId, cs.source());
+                                    //                                        }
+                                    //                                    }
+                                    //                                }
+                                    //                                if (!anyAccessibleClauses && checkAccessEnabled) {
+                                    //                                    // If there are no accessible clauses in the spec case, use a default
+                                    //                                    // the default is \\everything
+                                    //                                    checkAgainstCallerSpecs(JmlTokenKind.ACCESSIBLE, that, M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING),pre, savedThisId, newThisId, cs.source());
+                                    //                                }
+                                    if (!anyCallableClauses) {
+                                        // The callee is implicitly callable \everything,
+                                        // so the caller must be also be implicitly callable \everything
+                                        checkThatMethodIsCallable(cs, null);
+                                    }
                                 }
+                                JCBlock bl = popBlock(0,cs,check2); // Ending the assignable tests block
+                                if (!bl.stats.isEmpty()) addStat( M.at(cs).If(pre, bl, null) );
                             }
-                            JCBlock bl = popBlock(0,cs,check2); // Ending the assignable tests block
-                            if (!bl.stats.isEmpty()) addStat( M.at(cs).If(pre, bl, null) );
+
+                            if (cs.block != null)  { // Note: inlining for RAC, also -- FIXME - need to check this
+                                inlinedReturns.push(resultId);
+                                ListBuffer<JCStatement> checkInline = pushBlock();
+                                addStat(comment(cs.block, "Inlining model program ",log.currentSourceFile()));  // FIXME - source file for inlining?
+                                JavaFileObject prevv = log.useSource(cs.source());
+
+                                try {
+
+                                    // Don't need these assignments because the values of actuals are stored in actualParams
+                                    // Besides, using the actual names might conflict with other declarations
+                                    //                                // Make assignments for parameters
+                                    //                                for (VarSymbol n: calleeMethodSym.params()) {
+                                    //                                    JCExpression e = paramActuals.get(n);
+                                    //                                    addStat(treeutils.makeVariableDecl(n, e));
+                                    //                                }
+                                    visitBlock(cs.block);
+
+                                } catch (Exception e) {
+                                    error(that, "Unexpected exception while inlining model program: " + e.toString());
+                                } finally {
+                                    resultId = inlinedReturns.pop();
+                                    resultSym = resultId == null ? null : (VarSymbol)resultId.sym;
+                                    log.useSource(prevv);
+                                }
+                                JCBlock b = popBlock(0L,that,checkInline);
+                                addStat(b);
+                            }
                         }
-                        
-                        if (cs.block != null)  { // Note: inlining for RAC, also -- FIXME - need to check this
+
+                        if (inliningCall)  { // Note: inlining for RAC, also -- FIXME - need to check this
                             inlinedReturns.push(resultId);
-                            ListBuffer<JCStatement> checkInline = pushBlock();
-                            addStat(comment(cs.block, "Inlining model program ",log.currentSourceFile()));  // FIXME - source file for inlining?
-                            JavaFileObject prevv = log.useSource(cs.source());
-                            
                             try {
 
-    // Don't need these assignments because the values of actuals are stored in actualParams
-    // Besides, using the actual names might conflict with other declarations
-//                                // Make assignments for parameters
-//                                for (VarSymbol n: calleeMethodSym.params()) {
-//                                    JCExpression e = paramActuals.get(n);
-//                                    addStat(treeutils.makeVariableDecl(n, e));
-//                                }
-                                visitBlock(cs.block);
+                                ListBuffer<JCStatement> checkInline = pushBlock();
+                                addStat(comment(that, "Inlining method " + calleeMethodSym.toString(),log.currentSourceFile()));
+                                // Don't need these assignments because the values of actuals are stored in actualParams
+                                // Besides, using the actual names might conflict with other declarations
+                                //                            // Make assignments for parameters
+                                //                            for (VarSymbol n: calleeMethodSym.params()) {
+                                //                                JCExpression e = paramActuals.get(n);
+                                //                                addStat(treeutils.makeVariableDecl(n, e));
+                                //                            }
+                                // Find definition of method to be inlined
+                                JmlSpecs.MethodSpecs m = JmlSpecs.instance(context).getSpecs(calleeMethodSym);
+                                JmlMethodDecl mdecl = m.cases.decl;
+                                JCBlock methodBody = mdecl.body;
+                                visitBlock(methodBody);
 
+                                JCBlock b = popBlock(0L,that,checkInline);
+                                addStat(b);
                             } catch (Exception e) {
-                                error(that, "Unexpected exception while inlining model program: " + e.toString());
+                                error(that, "Unexpected exception while inlining body of method " + calleeMethodSym + ": " + e.toString());
                             } finally {
                                 resultId = inlinedReturns.pop();
                                 resultSym = resultId == null ? null : (VarSymbol)resultId.sym;
-                                log.useSource(prevv);
                             }
-                            JCBlock b = popBlock(0L,that,checkInline);
-                            addStat(b);
                         }
+
+                        paramActuals = null;
                     }
-                    
-                    if (inliningCall)  { // Note: inlining for RAC, also -- FIXME - need to check this
-                        inlinedReturns.push(resultId);
-                        try {
-
-                            ListBuffer<JCStatement> checkInline = pushBlock();
-                            addStat(comment(that, "Inlining method " + calleeMethodSym.toString(),log.currentSourceFile()));
-// Don't need these assignments because the values of actuals are stored in actualParams
-// Besides, using the actual names might conflict with other declarations
-//                            // Make assignments for parameters
-//                            for (VarSymbol n: calleeMethodSym.params()) {
-//                                JCExpression e = paramActuals.get(n);
-//                                addStat(treeutils.makeVariableDecl(n, e));
-//                            }
-                            // Find definition of method to be inlined
-                            JmlSpecs.MethodSpecs m = JmlSpecs.instance(context).getSpecs(calleeMethodSym);
-                            JmlMethodDecl mdecl = m.cases.decl;
-                            JCBlock methodBody = mdecl.body;
-                            visitBlock(methodBody);
-
-                            JCBlock b = popBlock(0L,that,checkInline);
-                            addStat(b);
-                        } catch (Exception e) {
-                            error(that, "Unexpected exception while inlining body of method " + calleeMethodSym + ": " + e.toString());
-                        } finally {
-                            resultId = inlinedReturns.pop();
-                            resultSym = resultId == null ? null : (VarSymbol)resultId.sym;
-                        }
-                    }
-
-                    paramActuals = null;
                 }
             }
             
@@ -8151,7 +8176,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
             }
 
-            if (esc) {
+            if (esc && isPure(calleeMethodSym)) {
+                addStat(comment(that, "... Not adding havoc statements for pure callee " + calleeMethodSym + " in " + calleeMethodSym.owner.toString(),null));
+            }
+            if (esc && !isPure(calleeMethodSym)) {
                 // Now we iterate over all specification cases in all parent
                 // methods again, this time putting in the assignable havoc statements
                 // These havocs need to be after we do all the checking of assignability
@@ -10251,11 +10279,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return;
              
         } else if (translatingJML) {
-            boolean savedApplyingLambda = applyingLambda;
-            applyingLambda = false;
+//            boolean savedApplyingLambda = applyingLambda;
+//            applyingLambda = false;
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
-            applyingLambda = savedApplyingLambda;
+//            applyingLambda = savedApplyingLambda;
             
             Type maxJmlType = lhs.type;
             boolean lhsIsPrim = lhs.type.isPrimitive() && lhs.type.getTag() != TypeTag.BOT;

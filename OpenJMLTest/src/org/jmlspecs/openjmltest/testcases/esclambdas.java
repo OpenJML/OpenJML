@@ -632,5 +632,50 @@ public class esclambdas extends EscBase {
                 );  // No errors
     }
     
+    @Test
+    public void testBindLambdaByte() {
+        main.addOptions("-method=mm","-show");
+        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  private /*@ spec_public nullable */ Byte aaaaaaaaaaa = null; \n"
+
+                +"      //@ assignable this.aaaaaaaaaaa;\n"
+                +"      //@ ensures this.aaaaaaaaaaa != null;\n"
+                +"      //@ ensures this.aaaaaaaaaaa.byteValue() == aaaaaaaaaaa;\n"
+                +"  public void mm(byte aaaaaaaaaaa) {\n"
+                +"      set(()->this.aaaaaaaaaaa = aaaaaaaaaaa);\n"
+                +"  }\n"
+                +"  //@ public model static interface NoException { public normal_behavior ensures true; void run(); } \n"
+                +"  //@ public normal_behavior requires true; { r.run(); } ensures true; \n"
+                +"  public void set(/*@{NoException}*/ Runnable r) {\n"
+                +"       r.run();"
+                +"  }\n"
+                +"}\n"
+                );  // No errors
+    }
+    
+    @Test
+    public void testBindLambdaInt() {
+    //   main.addOptions("-method=mm","-show");
+        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public /*@ nullable */ Integer aaaaaaaaaaa = null; \n"
+
+                +"      //@ assignable this.aaaaaaaaaaa;\n"
+                +"      //@ ensures this.aaaaaaaaaaa != null;\n"
+                +"      //@ ensures this.aaaaaaaaaaa.intValue() == aaaaaaaaaaa;\n"
+                +"  public void mm(int aaaaaaaaaaa) {\n"
+                +"      set(()->this.aaaaaaaaaaa = aaaaaaaaaaa);\n"
+                +"  }\n"
+                +"  //@ public normal_behavior requires true; { r.run(); } ensures true; \n"
+                +"  public void set(Runnable r) {\n"
+                +"       r.run();"
+                +"  }\n"
+                +"}\n"
+                );  // No errors
+    }
+    
 
 }
