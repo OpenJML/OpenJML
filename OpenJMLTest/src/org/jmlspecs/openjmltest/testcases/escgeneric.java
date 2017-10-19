@@ -56,7 +56,8 @@ public class escgeneric extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method mx",17
                 ,"/tt/TestJava.java:12: warning: Associated declaration",10
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",16                );
+                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
+                );
     }
     
     /** Tests that we can reason about the result of \\typeof */
@@ -185,7 +186,7 @@ public class escgeneric extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",22
                 ,"/tt/TestJava.java:12: warning: Associated declaration",26
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",16
+                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
         );
     }
 
@@ -207,7 +208,7 @@ public class escgeneric extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",13
                 ,"/tt/TestJava.java:12: warning: Associated declaration",26
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",16
+                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
         );
     }
 
@@ -229,7 +230,7 @@ public class escgeneric extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method mb",21
                 ,"/tt/TestJava.java:12: warning: Associated declaration",26
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) == \\type(Integer)",16
+                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) == \\type(Integer)",25
         );
     }
 
@@ -251,7 +252,7 @@ public class escgeneric extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method mb",13
                 ,"/tt/TestJava.java:12: warning: Associated declaration",26
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) == \\type(Integer)",16
+                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) == \\type(Integer)",25
         );
     }
 
@@ -273,7 +274,7 @@ public class escgeneric extends EscBase {
                 +"}\n"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
                 ,"/tt/TestJava.java:12: warning: Associated declaration",17
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",18
+                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
                 );
     }
     
@@ -300,7 +301,7 @@ public class escgeneric extends EscBase {
                 +"}\n"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
                 ,"/tt/TestJava.java:16: warning: Associated declaration",17
-                ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",18
+                ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
                 );
     }
  

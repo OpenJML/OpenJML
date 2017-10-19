@@ -843,7 +843,14 @@ public class Utils {
 
     /** Returns a fully-qualified name for a symbol, without the signature */ // FIXME - may include <init>
     public String qualifiedName(Symbol sym) {
-        return classQualifiedName(sym.owner) + "." + sym.name;
+        return classQualifiedName(sym.owner) + "." + sym.name.toString();
+    }
+
+    // FIXME - probably replace all calls to the above with the one below (and change its name) - but needs to be tested.
+    
+    /** Returns a fully-qualified name for a symbol, without the signature */ // FIXME - may include <init>
+    public String qualifiedNameNoInit(Symbol sym) {
+        return classQualifiedName(sym.owner) + "." + sym.name.toString().replace("<init>", sym.owner.getSimpleName().toString());
     }
 
     /** Returns a fully-qualified name for a class symbol, with adjustments for anonymous types */

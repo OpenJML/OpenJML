@@ -104,7 +104,7 @@ public class escnew2 extends EscBase {
                 +"}}"
                 ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method mm",8
                 ,"/tt/A.java:4: warning: Associated declaration",57
-                ,"/tt/A.java:4: warning: Precondition conjunct is false: i == j",14
+                ,"/tt/A.java:4: warning: Precondition conjunct is false: i == j",16
                 );
     }
 
@@ -131,7 +131,7 @@ public class escnew2 extends EscBase {
                 +"}}"
                 ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method mm",6
                 ,"/tt/A.java:4: warning: Associated declaration",57
-                ,"/tt/A.java:4: warning: Precondition conjunct is false: i == j",14
+                ,"/tt/A.java:4: warning: Precondition conjunct is false: i == j",16
                 );
     }
 
@@ -158,7 +158,7 @@ public class escnew2 extends EscBase {
                 +"}}"
                 ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method mm",11
                 ,"/tt/A.java:4: warning: Associated declaration",57
-                ,"/tt/A.java:4: warning: Precondition conjunct is false: i == j",14
+                ,"/tt/A.java:4: warning: Precondition conjunct is false: i == j",16
                 );
     }
 
@@ -333,7 +333,7 @@ public class escnew2 extends EscBase {
                 +"}}"
                 ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method B",22
                 ,"/tt/A.java:4: warning: Associated declaration",9
-                ,"/tt/A.java:3: warning: Precondition conjunct is false: k > 0",15
+                ,"/tt/A.java:3: warning: Precondition conjunct is false: k > 0",17
                 );
     }
     
@@ -371,7 +371,7 @@ public class escnew2 extends EscBase {
                 +"}"
                 ,"/tt/A.java:6: warning: The prover cannot establish an assertion (Precondition) in method A",18
                 ,"/tt/A.java:4: warning: Associated declaration",9
-                ,"/tt/A.java:3: warning: Precondition conjunct is false: k > 0",14
+                ,"/tt/A.java:3: warning: Precondition conjunct is false: k > 0",16
                 );
     }
 

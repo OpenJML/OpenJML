@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
 
@@ -95,8 +96,9 @@ public class OutputCompare {
             if (collector.getDiagnostics().size() <= failureLocation) {
                 Assert.fail("Too little actual output");
             } else {
-                String act = JmlTestCase.noSource(collector.getDiagnostics().get(failureLocation));
-                long actualColumn = collector.getDiagnostics().get(failureLocation).getColumnNumber();
+                Diagnostic<? extends JavaFileObject> d = collector.getDiagnostics().get(failureLocation);
+                String act = JmlTestCase.noSource(d);
+                long actualColumn = d.getColumnNumber();
                 if (failureString != null) {
                     assertEquals("Error " + failureLocation, failureString, act);
                 } else {
