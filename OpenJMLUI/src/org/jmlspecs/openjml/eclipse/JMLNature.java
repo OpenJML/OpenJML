@@ -98,6 +98,17 @@ public class JMLNature implements IProjectNature {
 	public void setProject(@NonNull IProject project) {
 		this.project = project;
 	}
+	
+	static public boolean isJMLNature(@NonNull IProject project) throws CoreException {
+		IProjectDescription description = project.getDescription();
+		String[] natures = description.getNatureIds();
+		for (int i = 0; i < natures.length; ++i) {
+			if (Env.JML_NATURE_ID.equals(natures[i])) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Enables the JML nature on a project
@@ -120,6 +131,9 @@ public class JMLNature implements IProjectNature {
 			if (!hasJava) {
 				if (Options.uiverboseness) Log.log("Non-Java project: " + project.getName()); //$NON-NLS-1$
 				return; // Was not a Java project after all
+			} else {
+				if (Options.uiverboseness) Log.log("JML Nature already present in " + project.getName()); //$NON-NLS-1$
+
 			}
 
 			// Add the nature

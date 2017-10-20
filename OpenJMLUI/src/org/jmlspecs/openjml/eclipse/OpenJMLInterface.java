@@ -1201,7 +1201,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             String v = Options.value(Options.timeoutKey);
             if (v != null && !v.isEmpty()) opts.add(JmlOption.TIMEOUT.optionName() +eq+ v);
             // FIXME - add an actual option
-            opts.add("-code-math=java");
+            opts.add("-code-math=safe");
+            opts.add("-spec-math=bigint");
         }
         
         if (cmd == Main.Cmd.RAC || cmd == null) {
