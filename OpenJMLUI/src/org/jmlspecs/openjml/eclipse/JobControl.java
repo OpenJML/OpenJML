@@ -53,8 +53,6 @@ public class JobControl {
         public Class<? extends JobStrategy> strategy;
     }
     
-    public static int defaultQueues = 2;
-    
     public static class JobControlDialog extends MessageDialog {
  
         JobParameters jp;
@@ -83,22 +81,35 @@ public class JobControl {
         public Control createCustomArea(Composite parent) {
             int procs = Runtime.getRuntime().availableProcessors();
             new Label(parent,SWT.NONE).setText("This computer has " + procs + " available processors");
+
             Composite p = new Composite(parent,SWT.NONE);
             p.setLayout(new RowLayout());
             new Label(p,SWT.NONE).setText("How many job queues should be used? ");
             //new org.eclipse.swt.widgets.List(parent,SWT.SINGLE).setItems(new String[]{"1","2","3","4","5","6","7","8","9"});
             Combo c = queues = new Combo(p,SWT.DROP_DOWN|SWT.READ_ONLY);
             c.setItems(new String[]{"1","2","3","4","5","6","7","8","9"});
-            c.select(defaultQueues-1);
-            jp.queues = defaultQueues;
+            int defaultSelection = c.indexOf(Options.value(Options.jobQueuesKey));
+            if (defaultSelection < 0) defaultSelection = 0;
+            c.select(defaultSelection);
+            // FIXME - else an error
+            jp.queues = defaultSelection + 1;
             c.addSelectionListener(new SelectionAdapter() { public void widgetSelected(SelectionEvent event) { jp.queues = ((Combo)event.widget).getSelectionIndex()+1; }});
+ 
             new Label(parent,SWT.NONE).setText("What job scheduling policy should be used? ");
+            String defaultStrategy = Options.value(Options.jobStrategyKey);
+            Class<?> defaultStrategyClass;
+            try {
+            	defaultStrategyClass = Class.forName(defaultStrategy);
+            } catch (ClassNotFoundException e) {
+            	defaultStrategyClass = strategies[0].getClass();
+            }
             Composite pp = new Composite(parent,SWT.NONE);
             pp.setLayout(new GridLayout(1,true));
             for (JobStrategy s: strategies) {
-                new BButton(pp,s.description(),s.getClass()).b.setSelection(s==defaultJobStrategy);
+            	boolean select = s.getClass() == defaultStrategyClass;
+            	if (select) jp.strategy = s.getClass();
+                new BButton(pp,s.description(),s.getClass()).b.setSelection(select);
             }
-            jp.strategy = defaultJobStrategy.getClass();
             return null;
         }
     }
@@ -117,8 +128,6 @@ public class JobControl {
         new SelectedItemStrategy(),
         new MultiSelectedItemStrategy(),
     };
-
-    public static JobStrategy defaultJobStrategy = strategies[1];
 
     public static class OneJobStrategy extends JobStrategy {
         

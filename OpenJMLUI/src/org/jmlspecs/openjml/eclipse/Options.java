@@ -114,8 +114,14 @@ public class Options {
 //	}
 
 
+	/** The preference key for a JmlOption */
 	public static String key(JmlOption opt) {
 		return prefix + opt.optionName().substring(1);
+	}
+	
+	/** The preference key for a non-JmlOption */
+	public static String key(String s) {
+		return prefix + s;
 	}
 	
 	// Note: The values of the keys must correspond to the names of the 
@@ -202,5 +208,9 @@ public class Options {
 	
 	// FIXME - change this
 	final static public String defaultProverKey = Strings.defaultProverProperty;
+	
+	// Job Control preferences (no corresponding JmlOption option)
+	final static public String jobQueuesKey = key("jobQueues");
+	final static public String jobStrategyKey = key("jobStrategy");
 	
 }

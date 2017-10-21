@@ -107,7 +107,6 @@ IWorkbenchPreferencePage {
 					Log.log("Reading property: " + key + " = " + value); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 				FieldEditor field = fieldMap.get(key);
-				System.out.println("INIT: " + key + " " + value + " " + (field == null ? null : field.getClass().toString()));
 				if (field != null) {
 					if (field instanceof BooleanFieldEditor) {
 						getPreferenceStore().setValue(key,Boolean.parseBoolean(value));
@@ -132,7 +131,7 @@ IWorkbenchPreferencePage {
     }
     
     /** A mapping of option keys to field names */
-    protected Map<String,FieldEditor> fieldMap = new HashMap<String,FieldEditor>();
+    static protected Map<String,FieldEditor> fieldMap = new HashMap<String,FieldEditor>();
 
     /** Overridden to add the field to the fieldMap */
     @Override
