@@ -1083,6 +1083,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         
     }    
     
+    /** Sets options (first argument) from any relevant properties (second argument) */
     protected void setPropertiesFileOptions(Options opts, Properties properties){
         for (Map.Entry<Object,Object> p : properties.entrySet()) {
             Object o = p.getKey();

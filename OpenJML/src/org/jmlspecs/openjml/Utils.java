@@ -480,6 +480,18 @@ public class Utils {
         else if (esc) log().warning(pos,"jml.not.implemented.esc",feature);
     }
     
+    public static void setPropertiesFromOptionsDefaults(Properties properties) {
+        for (JmlOption opt: JmlOption.values()) {
+            String key = Strings.optionPropertyPrefix + opt.optionName().substring(1);
+            Object defaultValue = opt.defaultValue();
+            // Options with synonyms are not true options (they are translated to their synonym)
+            if (opt.synonym() == null) properties.put(key, defaultValue == null ? "" : defaultValue.toString());
+        }
+    }
+
+    
+
+    
     /** Finds OpenJML properties files in pre-defined places, reading their
      * contents and loading them into the System property set.
      */
@@ -489,9 +501,17 @@ public class Utils {
         //          JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
         //          Options.instance(context).get("-verbose") != null;
 
+    	if (context == null) context = new Context();
         boolean verbose = context != null && Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE;
-        Properties properties = System.getProperties();
-        PrintWriter noticeWriter = Log.instance(context).getWriter(WriterKind.NOTICE);
+        PrintWriter noticeWriter = context == null ? null : Log.instance(context).getWriter(WriterKind.NOTICE);
+        Properties properties = new Properties();
+        
+        // Initialize with builtin defaults
+        setPropertiesFromOptionsDefaults(properties);
+        
+        // Override with any system properties
+        properties.putAll(System.getProperties());
+        
         // Load properties files found in these locations:
         // These are read in inverse order of priority, so that later reads
         // overwrite the earlier ones.

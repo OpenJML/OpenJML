@@ -33,7 +33,7 @@ public class JMLNature implements IProjectNature {
 		// This code records whether the internal runtime library was automatically
 		// configured into the project classpath. We remember what was done, so it 
 		// can be undone on deconfiguring.
-		if (!Options.isOption(Options.noInternalRuntimeKey)) {
+		if (Options.isOption(Options.useInternalRuntimeKey)) {
 			Activator.utils().addRuntimeToProjectClasspath(JavaCore.create(project));
 		}
 		
@@ -63,7 +63,7 @@ public class JMLNature implements IProjectNature {
 	 */
 	@Override
 	public void deconfigure() throws CoreException {
-		if (!Options.isOption(Options.noInternalRuntimeKey)) {
+		if (Options.isOption(Options.useInternalRuntimeKey)) {
 			Activator.utils().removeFromClasspath(JavaCore.create(project),null);
 		}
 		IProjectDescription description = getProject().getDescription();
