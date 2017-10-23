@@ -75,6 +75,7 @@ import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.Position;
 
 public class MethodProverSMT {
@@ -182,7 +183,7 @@ public class MethodProverSMT {
     /** Returns the prover exec specified by the options */
     public /*@ nullable */ String pickProverExec(String proverToUse) {
         String exec = JmlOption.value(context, JmlOption.PROVEREXEC);
-        if (exec == null) exec = JmlOption.value(context, Strings.proverPropertyPrefix + proverToUse);
+        if (exec == null || exec.isEmpty()) exec = JmlOption.value(context, Strings.proverPropertyPrefix + proverToUse);
         return exec;
     }
 
@@ -1388,7 +1389,7 @@ public class MethodProverSMT {
     
     public void setBenchmark(String solverName, String methodname, SMT.Configuration config) {
         String benchmarkDir = JmlOption.value(context,JmlOption.BENCHMARKS);
-        if (benchmarkDir == null) return;
+        if (benchmarkDir == null || benchmarkDir.isEmpty()) return;
         new java.io.File(benchmarkDir).mkdirs();
         String n;
         if (benchmarkName != null) {

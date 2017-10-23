@@ -760,17 +760,17 @@ public class Main extends com.sun.tools.javac.main.Main {
             }
         }
         
-        if(o != null && o.equals(JmlOption.PROPERTIES)){
+        if (o != null && o.equals(JmlOption.PROPERTIES)){
             Properties properties = System.getProperties();
             String file = JmlOption.value(context,JmlOption.PROPERTIES);
-            try {
-                if(file != null){
+            if (file != null && !file.isEmpty()) {
+                try {
                     Utils.readProps(properties,file);  
+                } catch (java.io.IOException e) {
+                    Log.instance(context).getWriter(WriterKind.NOTICE).println("Failed to read property file " + file); // FIXME - review
                 }
-            } catch (java.io.IOException e) {
-                Log.instance(context).getWriter(WriterKind.NOTICE).println("Failed to read property file " + file); // FIXME - review
+                setPropertiesFileOptions(options, properties);
             }
-            setPropertiesFileOptions(options, properties);
         }
         return i;
     }

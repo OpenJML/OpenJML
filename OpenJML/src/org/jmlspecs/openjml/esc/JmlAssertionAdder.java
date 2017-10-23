@@ -8098,12 +8098,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (!utils.isJMLStatic(calleeMethodSym1)) newargs.add(newThisExpr1);
                         newargs.addAll(trArgs);
                         JCIdent id = M.at(p).Ident(newMethodName);
+                        id.sym = calleeMethodSym1;
                         JCExpression newCall = M.at(p).Apply(List.<JCExpression>nil(),id,newargs.toList());
                         newCall.setType(that.type);
-                        addAssumeEqual(that, Label.IMPLICIT_ASSUME, resultId1, newCall);
+                        addAssumeEqual(that, Label.METHOD_ASSUME, resultId1, newCall);
                     });
                 JCBlock bl = M.at(that.pos).Block(0L,stats);
-                if (!resultSym.type.isPrimitive()) {
+                if (!resultSym.type.isPrimitiveOrVoid()) {
                     JCExpression isNotFresh = treeutils.makeNot(that.pos,
                             makeFreshExpression(that,resultId,preLabel.name));
                     JCStatement stat = M.at(that.pos).If(isNotFresh,bl,null);
@@ -13615,13 +13616,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ee = e; //treeutils.makeAnd(that.pos, e, ee);
         
         JCExpression exprCopy = convertCopy(arg);
-        if (assumingPostConditions) {
-            // allocCounter is already bumped up earlier when it was declared that the result was allocated
-            e = allocCounterGT(pos, exprCopy, allocCounter-1);
-        } else {
+//        if (assumingPostConditions) {
+//            // allocCounter is already bumped up earlier when it was declared that the result was allocated
+//            e = allocCounterGT(pos, exprCopy, allocCounter-1);
+//        } else {
             // FIXME - explain why this is different than the above - this would be the postcondition for the method
-            e = allocCounterGT(pos, exprCopy, 0);
-        }
+            e = allocCounterGT(pos, exprCopy, ac);
+//        }
         return treeutils.makeAnd(p, e, ee);
     }
     

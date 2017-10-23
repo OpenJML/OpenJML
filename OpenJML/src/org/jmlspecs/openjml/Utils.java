@@ -569,7 +569,7 @@ public class Utils {
         {
             String properties_file = JmlOption.value(context,JmlOption.PROPERTIES_DEFAULT);            
            
-            if (properties_file != null) {
+            if (properties_file != null && !properties_file.isEmpty()) {
                 try {
                     boolean found = readProps(properties,properties_file);
                     if (verbose) {

@@ -59,6 +59,9 @@ public class Label {
     /** Used for implicit, miscellaneous JML assume statements */
     /*@ non_null*/ public final static Label METHOD_DEFINITION = new Label("MethodDefinition");
     
+    /** Used for implicit, miscellaneous JML assume statements */
+    /*@ non_null*/ public final static Label METHOD_ASSUME = new Label("MethodAssume");
+    
     /** Used for basic assume statements generated from assignments */
     /*@ non_null*/ public final static Label ASSIGNMENT = new Label("Assignment");
     
@@ -139,6 +142,9 @@ public class Label {
 
     /** Used for assume statements generated to adjust DSA variables */
     /*@ non_null*/ public final static Label DSA = new Label("DSA");
+
+    /** Used for assume statements generated to adjust DSA variables */
+    /*@ non_null*/ public final static Label SOURCEBLOCK = new Label("SOURCEBLOCK");
 
     /** Used for explicit, user-specified assert statements */
     /*@ non_null*/ public final static Label EXPLICIT_ASSERT = new Label("Assert");

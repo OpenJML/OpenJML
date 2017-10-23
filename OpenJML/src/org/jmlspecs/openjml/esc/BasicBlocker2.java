@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -75,6 +76,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type.ArrayType;
+import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
@@ -250,6 +252,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     /** Place to put new background assertions, such as axioms and class predicates */
     protected List<JCExpression> background;
     
+    protected Set<Symbol> methodsSeen;
+    
     /** This is an integer that rises monotonically on each use and is used
      * to make sure new identifiers are unique.
      */
@@ -339,6 +343,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         this.bimap.clear();
         this.pathmap.clear();
         this.heapVar = treeutils.makeIdent(0,assertionAdder.heapSym);
+        this.methodsSeen = new HashSet<Symbol>();
         // currentMap is set when starting a block
         // premap is set during execution
     }
@@ -691,8 +696,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
  
     /** Adds a (copy of) a JCIdent in the list of declarations of the BasicProgram being produced */
     protected void addDeclaration(JCIdent that) {
-        JCIdent t = treeutils.makeIdent(0,that.sym);
-        t.name = that.name;
+        JCIdent t = treeutils.makeIdent(0,that.name,that.sym);
+        t.type = that.type;
         program.declarations.add(t);
     }
     
@@ -820,6 +825,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                             addAssume(pos,Label.DSA,eq,b.statements);
                         }
                     }
+                    
                 } else {
                     // If the symbol is owned by the method, then if it is not 
                     // in every inherited map,
@@ -868,7 +874,15 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     //}
                 }
             }
-        }
+            JCIdent sourceId = M.Ident(block.id().toString() + "_source");
+            sourceId.setType(syms.intType);
+            addDeclaration(sourceId);
+            for (BasicBlock b: block.preceders) {
+                JCLiteral lit = treeutils.makeIntLiteral(Position.NOPOS,b.unique);
+                JCBinary eq = treeutils.makeEquality(pos,sourceId,lit);
+                addAssume(pos,Label.SOURCEBLOCK,eq,b.statements);
+            }
+       }
         // Note - this is the map at the start of processing a block
 //        log.noticeWriter.println("MAP FOR BLOCK " + block.id + JmlTree.eol + newMap.toString());
         blockmaps.put(block,newMap);
@@ -1333,10 +1347,189 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             st.type = that.type;
             st.associatedClause = that.associatedClause;
             copyEndPosition(st,that);
+            if (that.token == JmlTokenKind.ASSUME && that.label == Label.METHOD_ASSUME) {
+                JCExpression expr = that.expression;
+                JCMethodInvocation call = (JCMethodInvocation)((JCBinary)expr).rhs;
+                Symbol sym = treeutils.getSym(call.meth);
+                if (!methodsSeen.add(sym)) {
+                    addMethodEqualities(call,currentBlock); // Execute if the method has already been seen
+                }
+            }
             currentBlock.statements.add(st);
         } else {
             log.error(that.pos,"esc.internal.error","Unknown token in BasicBlocker2.visitJmlStatementExpr: " + that.token.internedName());
         }
+    }
+    
+    protected void traceMethod(JCMethodInvocation call) {
+        MethodSymbol msym = (MethodSymbol)((JCIdent)call.meth).sym;
+        if (JmlAttr.instance(context).isFunction(msym)) return;
+        findInBlock(call, currentBlock,msym,new LinkedList<JCStatement>());
+    }
+    
+    protected void findInBlock(JCMethodInvocation call, BasicBlock bl, MethodSymbol msym, List<JCStatement> list) {
+        List<JCStatement> stats = bl.statements;
+        boolean sourceBlockFound = false;
+        ListIterator<JCStatement> iter = stats.listIterator(stats.size());
+        try {
+        while (iter.hasPrevious()) {
+            JCStatement stat = iter.previous();
+            if (stat instanceof JmlStatementExpr) {
+                Label label = ((JmlStatementExpr)stat).label;
+                if (label == Label.METHOD_ASSUME) {
+                    JCMethodInvocation prevcall = (JCMethodInvocation)(((JCBinary)((JmlStatementExpr)stat).expression).rhs);
+                    MethodSymbol mm = (MethodSymbol)((JCIdent)prevcall.meth).sym;
+                    if (mm == msym) {
+                        JCExpression ex = treeutils.trueLit;
+                        for (JCStatement s: list) {
+                            JCBinary bin = ((JCBinary)((JmlStatementExpr)s).expression);
+                            ex = treeutils.makeAnd(Position.NOPOS, ex, bin);
+                        }
+                        JCExpression newrecv = null;
+                        if (prevcall.meth instanceof JCIdent) {
+                            newrecv = (JCIdent)prevcall.meth;
+                            if (((JCIdent)prevcall.meth).name == ((JCIdent)call.meth).name) return;
+                        } else if (prevcall.meth instanceof JCFieldAccess) {
+                            JCExpression callrecv = ((JCFieldAccess)call.meth).selected;
+                            newrecv = M.Select(callrecv, ((JCFieldAccess)prevcall.meth).name);
+                            if (((JCFieldAccess)prevcall.meth).name == ((JCFieldAccess)call.meth).name) return;
+                        } else {
+                            log.error("jml.internal","Call receiver not implemented " + call.meth.toString());
+                        }
+                        JCExpression eq = M.Apply(call.typeargs,newrecv,call.args);
+                        eq.type = call.type;
+                        eq = treeutils.makeEquality(Position.NOPOS, call, eq);
+                        ex = treeutils.makeImplies(Position.NOPOS, ex, eq);
+                        JmlStatementExpr st = M.at(Position.NOPOS).JmlExpressionStatement(JmlTokenKind.ASSUME,Label.DSA,ex);
+                        currentBlock.statements.add(st);
+                        return ;
+                    }
+                } else if (label == Label.ASSIGNMENT && stat.toString().contains("_heap___")) {
+                    return;
+                } else if (label == Label.SOURCEBLOCK) {
+                    list.add(0,stat);
+                    sourceBlockFound = true;
+                }
+            }
+        }
+        for (BasicBlock bll: bl.preceders) {
+//            System.out.println("LOOKING IN " + bll.id());
+            findInBlock(call, bll,msym, list);
+//            System.out.println("NOTHING IN " + bll.id());
+        }
+        } finally {
+            if (sourceBlockFound) list.remove(0);
+        }
+    }
+    
+    protected void addMethodEqualities(JCMethodInvocation call, BasicBlock bl) {
+        MethodSymbol msym = (MethodSymbol)((JCIdent)call.meth).sym;
+        if (JmlAttr.instance(context).isFunction(msym)) return;
+        summarizeBlock( currentBlock);
+        List<BasicProgram.BasicBlock.MethodInfo> list = currentBlock.methodInfoMap.get(msym);
+        currentBlock.methodInfoMap = null;
+        if (list != null) for (BasicProgram.BasicBlock.MethodInfo info: list) {
+            if (msym != treeutils.getSym(info.meth)) continue;
+            JCExpression newrecv = null;
+            if (info.meth instanceof JCIdent) {
+                newrecv = info.meth;
+                if (((JCIdent)info.meth).name == ((JCIdent)call.meth).name) continue;
+            } else if (info.meth instanceof JCFieldAccess) {
+                JCExpression callrecv = ((JCFieldAccess)call.meth).selected;
+                newrecv = M.Select(callrecv, ((JCFieldAccess)info.meth).name);
+                if (((JCFieldAccess)info.meth).name == ((JCFieldAccess)call.meth).name) continue;
+            } else {
+                log.error("jml.internal","Call receiver not implemented " + call.meth.toString());
+            }
+            JCExpression eq = M.Apply(call.typeargs,newrecv,call.args);
+            eq.type = call.type;
+            eq = treeutils.makeEquality(Position.NOPOS, call, eq);
+            JCExpression ex = treeutils.makeImplies(Position.NOPOS, info.path, eq);
+            JmlStatementExpr st = M.at(Position.NOPOS).JmlExpressionStatement(JmlTokenKind.ASSUME,Label.DSA,ex);
+            currentBlock.statements.add(st);
+        }
+    }
+    
+   protected void summarizeBlock(BasicBlock bl) {
+       // Check for a heap item
+
+       boolean heapAssignFound = false;
+       List<JCStatement> stats = bl.statements;
+       ListIterator<JCStatement> iter = stats.listIterator(stats.size());
+       while (iter.hasPrevious()) {
+           JCStatement stat = iter.previous();
+           if (stat instanceof JmlStatementExpr) {
+               Label label = ((JmlStatementExpr)stat).label;
+               if (label == Label.ASSIGNMENT && stat.toString().contains("_heap___")) {
+                   heapAssignFound = true;
+                   break;
+               }
+           }
+       }
+
+       Map<MethodSymbol,List<BasicProgram.BasicBlock.MethodInfo>> myStartMap = new HashMap<>();
+       yy: if (!heapAssignFound) {
+           // Combine information from preceders
+           for (BasicBlock bll: bl.preceders) {
+               if (bll.methodInfoMap == null) summarizeBlock(bll);
+           }
+           int numpreceders = bl.preceders.size();
+           xx: {
+               if (numpreceders == 2 && bl.preceders.get(0).preceders.size() == 1 &&
+                       bl.preceders.get(1).preceders.size() == 1) {
+                   Map<MethodSymbol,List<BasicProgram.BasicBlock.MethodInfo>> map0 = bl.preceders.get(0).methodInfoMap;
+                   Map<MethodSymbol,List<BasicProgram.BasicBlock.MethodInfo>> map1 = bl.preceders.get(1).methodInfoMap;
+                   if (map0.entrySet().size() != map1.entrySet().size()) break xx;
+                   for (MethodSymbol m: map0.keySet()) {
+                       if (map0.get(m) != map1.get(m)) break xx;
+                   }
+                   myStartMap.putAll(map0);
+                   break yy;
+               }
+           }
+           if (numpreceders == 1) {
+               BasicBlock bll = bl.preceders.get(0);
+               myStartMap.putAll(bll.methodInfoMap);
+           } else {
+               for (BasicBlock bll: bl.preceders) {
+                   JCBinary bin = null;
+                   JCExpression id = M.at(Position.NOPOS).Ident(bl.id() + "_source").setType(syms.intType);
+                   JCExpression lit = M.Literal(bll.unique).setType(syms.intType);
+                   bin = M.at(Position.NOPOS).Binary(JCTree.Tag.EQ, id, lit);
+                   bin.setType(syms.booleanType);
+                   bin.operator = treeutils.inteqSymbol;
+                   for (Map.Entry<MethodSymbol,List<BasicProgram.BasicBlock.MethodInfo>> entry: bll.methodInfoMap.entrySet()) {
+                       MethodSymbol msym = entry.getKey();
+                       if (!myStartMap.containsKey(msym)) myStartMap.put(msym, new LinkedList<BasicProgram.BasicBlock.MethodInfo>());
+                       List<BasicProgram.BasicBlock.MethodInfo> mylist = myStartMap.get(msym);
+                       for (BasicProgram.BasicBlock.MethodInfo e: entry.getValue()) {
+                           JCExpression a = treeutils.makeAnd(Position.NOPOS, e.path, bin);
+                           mylist.add(new BasicProgram.BasicBlock.MethodInfo(e.meth, a));
+                       }
+                   }
+               }
+           }
+           
+           iter = stats.listIterator(0);
+       }
+       
+       // Now add in information from current block
+         
+        while (iter.hasNext()) {
+            JCStatement stat = iter.next();
+            if (stat instanceof JmlStatementExpr) {
+                Label label = ((JmlStatementExpr)stat).label;
+                if (label == Label.METHOD_ASSUME) {
+                    JCMethodInvocation prevcall = (JCMethodInvocation)(((JCBinary)((JmlStatementExpr)stat).expression).rhs);
+                    MethodSymbol msym = (MethodSymbol)treeutils.getSym(prevcall.meth);
+                    myStartMap.put(msym, new LinkedList<BasicProgram.BasicBlock.MethodInfo>());
+                    BasicProgram.BasicBlock.MethodInfo info = new BasicProgram.BasicBlock.MethodInfo(prevcall.meth,treeutils.trueLit);
+                    myStartMap.get(msym).add(info);
+                }
+            }
+        }
+        
+        bl.methodInfoMap = myStartMap;
     }
     
     // OK

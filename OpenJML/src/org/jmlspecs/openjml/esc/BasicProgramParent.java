@@ -84,6 +84,8 @@ abstract public class BasicProgramParent<T extends BasicProgramParent.BlockParen
     static abstract public class BlockParent<T extends BasicProgramParent.BlockParent<T>> {
         /** The identifier of the block */
         /*@ non_null*/protected JCIdent id;
+        protected int unique;
+        JCIdent sourceId;
         
         /** Constructs a block with the given id. The id is used both for its
          * name, which is an identifier of the block, and its position, which
@@ -94,6 +96,7 @@ abstract public class BasicProgramParent<T extends BasicProgramParent.BlockParen
          */
         public BlockParent(JCIdent id) {
             this.id = id;
+            this.unique = -1;
         }
         
         /** Returns the id of the block
