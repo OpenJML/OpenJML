@@ -327,6 +327,12 @@ public class escfiles extends EscBase {
         helpTF("testquant");
     }
 
+    @Test
+    public void testConstructorDefaults() {
+        expectedExit = 0;
+        helpTF("constructorDefaults");
+    }
+
     // FIXME - reasoning about getClass
     @Test
     public void testBadCast() {

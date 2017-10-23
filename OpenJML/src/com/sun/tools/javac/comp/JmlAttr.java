@@ -1630,15 +1630,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 decl.methodSpecsCombined = jms;
                 specs.putSpecs(decl.sym,jms);
                 methodSpecs = jms.cases;
-//                // FIXMNE - jms.mods may have pure added, bukgt that is lost here - does this fix it?
-//                if (!desugaringPure) {
-//                    JCAnnotation tpure = findMod(jms.mods,JmlTokenKind.PURE);
-//                    if (tpure != null) { 
-//                        pure = tpure; 
-//                        desugaringPure = true; 
-//                        msp.mods.annotations = msp.mods.annotations.append(tpure);
-//                    }
-//                }
+                // msp = jms;
+                    JCAnnotation tpure = findMod(jms.mods,JmlTokenKind.PURE);
+                    if (tpure != null) { 
+                        pure = tpure; 
+                        desugaringPure = true; 
+                        msp.mods.annotations = msp.mods.annotations.append(tpure);
+                    }
 
             }
 
@@ -1784,6 +1782,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             newspecs.decl = decl;
             msp.cases.deSugared = newspecs;
+            specs.putSpecs(decl.sym, msp);
+            // FIXME - still have some tests in which the specs are put but don't
+            // respond to isPure - perhaps we need to add an annotation as well.
+//            if (desugaringPure) {
+//                if (!specs.isPure(decl.sym)) {
+//                    System.out.println();
+//                    specs.isPure(decl.sym);
+//                }
+//                if (!isPureMethod(decl.sym)) {
+//                    System.out.println();
+//                    isPureMethod(decl.sym);
+//                }
+//            }
         } finally {
             if (env != null) env.enclMethod = prevEnclMethod;
             env = prevEnv;
@@ -2004,7 +2015,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                             // is by default static. However, it might be a
                             // JML field marked as instance.
                             VarSymbol sym = (VarSymbol)((JCIdent)tt).sym;
-                            if (utils.isJMLStatic(sym)) {
+                            if (sym != null && utils.isJMLStatic(sym)) {  // FIXME _ I don't think this should ever be null and is a problem if it is
                                 jmlerror(tt,"jml.pure.constructor",tt);
                             }
                         } else if (tt instanceof JCTree.JCFieldAccess) {
@@ -5348,9 +5359,30 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 ////            return findMod(tspecs.modifiers,PURE) != null;
 //    }
     
-    public boolean isPureMethod(MethodSymbol symbol) {
-        for (MethodSymbol msym: Utils.instance(context).parents(symbol)) {
+    public boolean isPureMethodRaw(MethodSymbol symbol) {
+        java.util.List<MethodSymbol> overrideList = Utils.instance(context).parents(symbol);
+        java.util.ListIterator<MethodSymbol> iter = overrideList.listIterator(overrideList.size());
+        while (iter.hasPrevious()) {
+            MethodSymbol msym = iter.previous();
             MethodSpecs mspecs = specs.getSpecs(msym);
+            if (mspecs == null) {  // FIXME - observed to happen for in gitbug498 for JMLObjectBag.insert
+                // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
+                if (msym.toString().equals("size()") && msym.owner.toString().equals(Strings.jmlSpecsPackage + ".JMLList")) return true;
+                // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
+                return specs.isPure((ClassSymbol)msym.owner);
+            }
+            boolean isPure = specs.isPure(msym);
+            if (isPure) return true;
+        }
+        return false;
+    }
+    
+    public boolean isPureMethod(MethodSymbol symbol) {
+        java.util.List<MethodSymbol> overrideList = Utils.instance(context).parents(symbol);
+        java.util.ListIterator<MethodSymbol> iter = overrideList.listIterator(overrideList.size());
+        while (iter.hasPrevious()) {
+            MethodSymbol msym = iter.previous();
+            JmlMethodSpecs mspecs = specs.getDenestedSpecs(msym);
             if (mspecs == null) {  // FIXME - observed to happen for in gitbug498 for JMLObjectBag.insert
                 // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
                 if (msym.toString().equals("size()") && msym.owner.toString().equals(Strings.jmlSpecsPackage + ".JMLList")) return true;
