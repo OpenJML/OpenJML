@@ -111,7 +111,7 @@ public class Extensions {
         }
         if (JmlOption.isOption(context, JmlOption.STRICT)) return;
         String exts = JmlOption.value(context, JmlOption.EXTENSIONS);
-        if (exts == null) return;
+        if (exts == null || exts.isEmpty()) return;
         for (String extname : exts.split(",")) {
             try {
                 Class<?> cl = Class.forName(extname);

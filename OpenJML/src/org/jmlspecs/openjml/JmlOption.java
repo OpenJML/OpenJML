@@ -48,7 +48,7 @@ public enum JmlOption implements IOption {
     EXCLUDE("-exclude",true,null,"Comma-separated list of method name patterns to exclude from ESC",null),
     PROVER("-prover",true,null,"The prover to use to check verification conditions",null),
     PROVEREXEC("-exec",true,null,"The prover executable to use",null),
-    LOGIC("-logic",true,null,"The SMT logic to use (default ALL)",null),
+    LOGIC("-logic",true,"ALL","The SMT logic to use (default ALL)",null),
     
     NONNULLBYDEFAULT("-nonnullByDefault",false,false,"Makes references non_null by default","-nullableByDefault=false"),
     NULLABLEBYDEFAULT("-nullableByDefault",false,false,"Makes references nullable by default",null),
@@ -71,8 +71,8 @@ public enum JmlOption implements IOption {
     QUIET("-quiet",false,null,"Only output warnings and errors","-verboseness="+Utils.QUIET),
     NORMAL("-normal",false,null,"Limited output","-verboseness="+Utils.NORMAL),
     PROGRESS("-progress",false,null,"Shows progress through compilation phases","-verboseness="+Utils.PROGRESS),
-    JMLVERBOSE("-jmlverbose",false,null,"Like -verbose, but only jml information and not as much","-verboseness="+Utils.JMLVERBOSE),
-    JMLDEBUG("-jmldebug",false,null,"When on, the program emits lots of output (includes -progress)","-verboseness="+Utils.JMLDEBUG),
+    JMLVERBOSE("-jmlverbose",false,false,"Like -verbose, but only jml information and not as much","-verboseness="+Utils.JMLVERBOSE),
+    JMLDEBUG("-jmldebug",false,false,"When on, the program emits lots of output (includes -progress)","-verboseness="+Utils.JMLDEBUG),
     SHOW_OPTIONS("-showOptions",true, "none","When enabled, the values of options and properties are printed, for debugging",null),
     
     JMLTESTING("-jmltesting",false,false,"Only used to generate tracing information during testing",null),
@@ -85,7 +85,7 @@ public enum JmlOption implements IOption {
     COUNTEREXAMPLE("-counterexample",false,false,"ESC: Enables output of complete, raw counterexample",null),
     CE("-ce",false,null,"ESC: Enables output of complete, raw counterexample","-counterexample"),
     SUBEXPRESSIONS("-subexpressions",false,false,"ESC: Enables tracing with subexpressions",null),
-    FEASIBILITY("-checkFeasibility",true,null,"ESC: Check feasibility of assumptions",null),
+    FEASIBILITY("-checkFeasibility",true,"all","ESC: Check feasibility of assumptions",null),
     BENCHMARKS("-benchmarks",true,null,"ESC: Collects solver communications",null),
     MINIMIZE_QUANTIFICATIONS("-minQuant",false,true,"Minimizes using quantifications, in favor of inlining",null),
     QUANTS_FOR_TYPES("-typeQuants",true,"auto","Introduces quantified assertions for type variables (true, false, or auto)",null),
@@ -105,8 +105,10 @@ public enum JmlOption implements IOption {
     PROPERTIES_DEFAULT("-properties-default",true,null,"Specifies the path to the default properties file",null),
     
     DEFAULTS("-defaults",true,"","Specifies various default behaviors: constructor:pure|everything",null),
-    STATIC_INIT_WARNING("-staticInitWarning",false,true,"Warns about mssing static_initializer clauses",null),
-    
+    STATIC_INIT_WARNING("-staticInitWarning",false,true,"Warns about missing static_initializer clauses",null),
+    // Experimental
+    DETERMINISM("-determinism",false,true,"Experimental: enables better determinism",null),
+
     // Obsolete
     NOCHECKSPECSPATHX("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false",true),
     NOPURITYCHECKX("-noPurityCheck",false,false,"When on, no warnings for use of impure methods are issued","-purityCheck=false",true),

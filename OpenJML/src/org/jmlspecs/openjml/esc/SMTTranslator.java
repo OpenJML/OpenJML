@@ -792,7 +792,7 @@ public class SMTTranslator extends JmlTreeScanner {
         
         // set the logic
         String s = JmlOption.value(context, JmlOption.LOGIC);
-        if (useBV && !s.equals("ALL")) s = "QF_AUFBV";
+        if (useBV && !"ALL".equals(s)) s = "QF_AUFBV";
         c = new C_set_logic(F.symbol(s));
         startCommands.add(c);
         
@@ -979,10 +979,10 @@ public class SMTTranslator extends JmlTreeScanner {
     protected void addConstant(JCIdent id) {
         if (defined.add(id.name)) {
             try {
-                ISort sort = convertSort(id.type);
                 String nm = id.name.toString();
+                ISort sort = convertSort(id.type);
                 // FIXME - I don't think 'this' should ever get this far
-                if (id.sym.owner instanceof Symbol.ClassSymbol && !Utils.instance(context).isJMLStatic(id.sym) && !id.sym.name.toString().equals("this")) {
+                if (id.sym != null && id.sym.owner instanceof Symbol.ClassSymbol && !Utils.instance(context).isJMLStatic(id.sym) && !id.sym.name.toString().equals("this")) {
                     // The name is a non-static field of a class, so the sort is an SMT Array
                     sort = F.createSortExpression(arraySym,refSort,sort);
                 } else if (nm.startsWith(arrays_)) {

@@ -1,5 +1,11 @@
 Proving methods in RecursiveInvariant
 Starting proof of RecursiveInvariant.RecursiveInvariant() with prover !!!!
+test/escRecursiveInvariant/RecursiveInvariant.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method RecursiveInvariant
+public class RecursiveInvariant {
+       ^
+test/escRecursiveInvariant/RecursiveInvariant.java:4: warning: Associated declaration
+    //@ public invariant m();
+               ^
 test/escRecursiveInvariant/RecursiveInvariant.java:4: warning: The prover cannot establish an assertion (InvariantEntrance) in method RecursiveInvariant:  (Caller: RecursiveInvariant.RecursiveInvariant(), Callee: RecursiveInvariant.m())
     //@ public invariant m();
                           ^
@@ -24,4 +30,4 @@ test/escRecursiveInvariant/RecursiveInvariant.java:4: warning: Associated declar
                ^
 Completed proof of RecursiveInvariant.t() with prover !!!! - with warnings
 Completed proving methods in RecursiveInvariant
-6 warnings
+8 warnings

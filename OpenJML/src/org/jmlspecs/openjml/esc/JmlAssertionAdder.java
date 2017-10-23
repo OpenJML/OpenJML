@@ -549,17 +549,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected JCBlock axiomBlock = null;
     
-    protected Map<Symbol,Map<String,VarSymbol>> determinismSymbols;
-    protected void saveDeterminismSymbol(Symbol methodSym, String name, VarSymbol varSym) {
-        Map<String,VarSymbol> submap = determinismSymbols.get(methodSym);
-        if (submap == null) determinismSymbols.put(methodSym,submap = new HashMap<>());
-        submap.put(name,varSym);
-    }
-    protected /*@ nullable */ VarSymbol getDeterminismSymbol(Symbol methodSym, String name) {
-        Map<String,VarSymbol> submap = determinismSymbols.get(methodSym);
-        if (submap == null) return null;
-        return submap.get(name);
-    }
+//    protected Map<Symbol,Map<String,VarSymbol>> determinismSymbols;
+//    protected void saveDeterminismSymbol(Symbol methodSym, String name, VarSymbol varSym) {
+//        Map<String,VarSymbol> submap = determinismSymbols.get(methodSym);
+//        if (submap == null) determinismSymbols.put(methodSym,submap = new HashMap<>());
+//        submap.put(name,varSym);
+//    }
+//    protected /*@ nullable */ VarSymbol getDeterminismSymbol(Symbol methodSym, String name) {
+//        Map<String,VarSymbol> submap = determinismSymbols.get(methodSym);
+//        if (submap == null) return null;
+//        return submap.get(name);
+//    }
     /** Assertions that can be changed to be feasibility checks */
     public Map<Symbol,java.util.List<JCTree.JCParens>> assumptionChecks = new HashMap<Symbol,java.util.List<JCTree.JCParens>>();
     public Map<Symbol,java.util.List<JmlTree.JmlStatementExpr>> assumptionCheckStats = new HashMap<Symbol,java.util.List<JmlTree.JmlStatementExpr>>();
@@ -849,7 +849,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Set<Symbol> savedInProcessInvariants = this.inProcessInvariants;
         Name savedOldLabel = defaultOldLabel;
         boolean isModel = isModel(pmethodDecl.sym);
-        Map<Symbol,Map<String,VarSymbol>> savedDeterminismSymbols = determinismSymbols;
+//        Map<Symbol,Map<String,VarSymbol>> savedDeterminismSymbols = determinismSymbols;
         JCBlock savedDiscoveredFields = discoveredFields;
         Set<Symbol> savedAlreadyDiscoveredFields = alreadyDiscoveredFields;
         int savedAllocCounter = allocCounter;
@@ -863,7 +863,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             isAllocSym.flags_field |= Utils.JMLINSTANCE;
         }
         
-        determinismSymbols = new HashMap<>();
+//        determinismSymbols = new HashMap<>();
                         
         // Collect all classes that are mentioned in the method
         ClassCollector collector = ClassCollector.collect(pclassDecl,pmethodDecl);
@@ -1078,7 +1078,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             
             addStat( comment(methodDecl,"Method Body",null));
-            labelHeapCounts.put(preLabel.name, heapCount);
+            LabelProperties lp = new LabelProperties();
+            lp.allocCounter = 0;
+            lp.heapCount = heapCount;
+            labelProperties.put(preLabel.name,lp);
+
             if (methodDecl.body != null) {
                 if (callingThis || callingSuper) {
                     convert(iter.next());
@@ -1190,7 +1194,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             this.enclosingClass = savedEnclosingClass;
             this.defaultOldLabel = savedOldLabel;
             this.currentArithmeticMode = savedArithmeticMode;
-            this.determinismSymbols = savedDeterminismSymbols;
+//            this.determinismSymbols = savedDeterminismSymbols;
             this.alreadyDiscoveredFields = savedAlreadyDiscoveredFields;
             this.discoveredFields = savedDiscoveredFields;
             this.allocCounter = savedAllocCounter;
@@ -4962,17 +4966,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * when an \old expression appears that references the label: in RAC mode we
      * need to insert a computation of the desired quantity.
      */ // FIXME - determine if these need to be two separate lists. The difference at present is that those in the active list are not yet closed.
-    protected
-    Map<Name,ListBuffer<JCStatement>> labelActiveOldLists = new HashMap<Name,ListBuffer<JCStatement>>();
-    protected
-    Map<Name,ListBuffer<JCStatement>> labelOldLists = new HashMap<Name,ListBuffer<JCStatement>>();
-    protected
-    Map<Name,JmlLabeledStatement> labelStatements = new HashMap<Name,JmlLabeledStatement>();
-    protected
-    Map<Name,Integer> labelHeapCounts = new HashMap<Name,Integer>();
+//    protected
+//    Map<Name,ListBuffer<JCStatement>> labelActiveOldLists = new HashMap<Name,ListBuffer<JCStatement>>();
+//    protected
+//    Map<Name,ListBuffer<JCStatement>> labelOldLists = new HashMap<Name,ListBuffer<JCStatement>>();
+//    protected
+//    Map<Name,JmlLabeledStatement> labelStatements = new HashMap<Name,JmlLabeledStatement>();
+//    protected
+//    Map<Name,Integer> labelHeapCounts = new HashMap<Name,Integer>();
 
     public static class LabelProperties {
         int allocCounter;
+        int heapCount;
+        JmlLabeledStatement labeledStatement;
+        ListBuffer<JCStatement> oldLists;
+        ListBuffer<JCStatement> activeOldLists;
     }
     
     protected Map<Name,LabelProperties> labelProperties = new HashMap<>();
@@ -4988,20 +4996,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         LabelProperties lp = new LabelProperties();
         labelProperties.put(that.label,lp);
         lp.allocCounter = allocCounter;
+        lp.activeOldLists = currentStatements;
+        lp.oldLists = null;
+        lp.heapCount = heapCount;
         JmlLabeledStatement stat = M.at(that).JmlLabeledStatement(that.label, null, null);
+        lp.labeledStatement = stat;
         markLocation(that.label,currentStatements,stat);
         treeMap.put(that, stat); // we store the mapping from old to new so that we can appropriately translate the targets of break and continue statements
-        labelActiveOldLists.put(that.label, currentStatements);
-        labelStatements.put(that.label, stat);
-        labelHeapCounts.put(that.label, heapCount);
+
         JCBlock block;
         try {
             block = convertIntoBlock(that,that.body);
             stat.body = block;
             result = addStat(stat);
         } finally {
-            labelActiveOldLists.remove(that.label);
-            labelOldLists.put(that.label,  currentStatements);
+            labelProperties.get(that.label).activeOldLists = null;
+            labelProperties.get(that.label).oldLists = currentStatements;
             treeMap.remove(that); // Remove the statement because we are leaving the scope of the label
         }
     }
@@ -6763,7 +6773,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    treeutils.makeBinary(p, JCTree.Tag.PLUS, treeutils.makeIdent(p,heapSym), treeutils.makeIntLiteral(p,1)));
             currentStatements.add(assign);
             wellDefinedCheck.clear();
-            determinismSymbols.clear(); // FIXME - might need them again in  \old expressions
+//            determinismSymbols.clear(); // FIXME - might need them again in  \old expressions
         }
         clearInvariants(); // FIXME - is this needed for rac?
     }
@@ -7304,69 +7314,69 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 JCExpression convertedResult = eresult;
                 
-                // Ensure determinism
-                // FIXME - make this work for old environments as well
-                Type rt = calleeMethodSym.getReturnType();
-                if (esc && newclass == null && rt != null && rt.getTag() != TypeTag.VOID && oldenv == null) xx: {
+//                // Ensure determinism
+//                // FIXME - make this work for old environments as well
+//                Type rt = calleeMethodSym.getReturnType();
+//                if (esc && newclass == null && rt != null && rt.getTag() != TypeTag.VOID && oldenv == null) xx: {
 //                    if (calleeMethodSym.toString().startsWith("intValue") && methodDecl.name.toString().equals("incr_test2")) Utils.stop();
-                    if (newThisExpr != null && newThisExpr.toString().contains("\\old")) break xx; // FIXME - sfbug410 has shared ASTs that lead to bad SSA translation in incr_test2
-                    // Make an encoded name
-                    // FIXME - we should include resolved type variables in the mangled name; also need to distinguish methods with the same name
-                    String loc = mspecs != null && mspecs.decl != null ? Integer.toString(mspecs.decl.pos) : "00" ; // FIXME -if no position we run the risk of name conflict; should also qualify by the file 
-                    String nm = "__JMLSaved_" + calleeMethodSym.owner.getQualifiedName().toString().replace('.','_') + "_" + calleeMethodSym.name + "_"  + loc;
-                    nm = nm + "__H" + heapCount;
-                    VarSymbol vresult = getDeterminismSymbol(calleeMethodSym,nm);
-                    boolean first = false;
-                    if (vresult == null) {
-                        Name name = names.fromString(nm);
-                        vresult = treeutils.makeVarSymbol(0L, name, rt, that.pos);
-                        saveDeterminismSymbol(calleeMethodSym, nm, vresult);
-                        first = true;
-                    }
-                    JCExpression savedResult = eresult;
-                    JCExpression e = treeutils.trueLit;
-                    if (!calleeMethodSym.isStatic()) {
-                        {
-                            String nm0 = nm + "__RECV";
-                            VarSymbol v = getDeterminismSymbol(calleeMethodSym,nm0);
-                            if (v == null) {
-                                Name name = names.fromString(nm0);
-                                v = treeutils.makeVarSymbol(0L, name, newThisExpr.type, that.pos);
-                                saveDeterminismSymbol(calleeMethodSym, nm0, v);
-                            }
-                            JCIdent id = treeutils.makeIdent(that.pos, v);
-                            e = treeutils.makeEquality(that.pos, convertCopy(newThisExpr), id);
-                        }
-                    }
-                    int argNumber = 1;
-                    for (JCExpression arg: trArgs) {
-                        if (arg instanceof JCLambda) break xx; // if there is a Lambda expression just abandon this saving of values
-                        String nm0 = nm + "__ARG" + (argNumber++);
-                        VarSymbol v = getDeterminismSymbol(calleeMethodSym,nm0);
-                        if (v == null) {
-                            Name name = names.fromString(nm0);
-                            v = treeutils.makeVarSymbol(0L, name, arg.type, that.pos);
-                            saveDeterminismSymbol(calleeMethodSym, nm0, v);
-                        }
-                        JCIdent id = treeutils.makeIdent(that.pos, v);
-
-                        e = treeutils.makeAnd(that.pos, e, treeutils.makeEquality(that.pos, convertCopy(arg), id));
-                    }
-                    JCExpression ee = treeutils.makeEquality(that.pos, savedResult, treeutils.makeIdent(that.pos, vresult));
-                    e = first ? treeutils.makeAnd(that.pos, e, ee) : treeutils.makeImplies(that.pos, e, ee);
-                    if (!calleeMethodSym.getReturnType().isPrimitive()) {
-                        boolean savedAPC = assumingPostConditions;
-                        assumingPostConditions = false;
-                        try {
-                            JCExpression c = treeutils.makeNot(that.pos, makeFreshExpression(that,savedResult,preLabel.name));
-                            e = treeutils.makeImplies(that.pos, c, e);
-                        } finally {
-                            assumingPostConditions = savedAPC;
-                        }
-                    }
-                    addAssume(that.pos(), Label.IMPLICIT_ASSUME, e);
-                    result = eresult = savedResult;
-                }
+//                    if (newThisExpr != null && newThisExpr.toString().contains("\\old")) break xx; // FIXME - sfbug410 has shared ASTs that lead to bad SSA translation in incr_test2
+//                    // Make an encoded name
+//                    // FIXME - we should include resolved type variables in the mangled name; also need to distinguish methods with the same name
+//                    String loc = mspecs != null && mspecs.decl != null ? Integer.toString(mspecs.decl.pos) : "00" ; // FIXME -if no position we run the risk of name conflict; should also qualify by the file 
+//                    String nm = "__JMLSaved_" + calleeMethodSym.owner.getQualifiedName().toString().replace('.','_') + "_" + calleeMethodSym.name + "_"  + loc;
+//                    nm = nm + "__H" + heapCount;
+//                    VarSymbol vresult = getDeterminismSymbol(calleeMethodSym,nm);
+//                    boolean first = false;
+//                    if (vresult == null) {
+//                        Name name = names.fromString(nm);
+//                        vresult = treeutils.makeVarSymbol(0L, name, rt, that.pos);
+//                        saveDeterminismSymbol(calleeMethodSym, nm, vresult);
+//                        first = true;
+//                    }
+//                    JCExpression savedResult = eresult;
+//                    JCExpression e = treeutils.trueLit;
+//                    if (!calleeMethodSym.isStatic()) {
+//                        {
+//                            String nm0 = nm + "__RECV";
+//                            VarSymbol v = getDeterminismSymbol(calleeMethodSym,nm0);
+//                            if (v == null) {
+//                                Name name = names.fromString(nm0);
+//                                v = treeutils.makeVarSymbol(0L, name, newThisExpr.type, that.pos);
+//                                saveDeterminismSymbol(calleeMethodSym, nm0, v);
+//                            }
+//                            JCIdent id = treeutils.makeIdent(that.pos, v);
+//                            e = treeutils.makeEquality(that.pos, convertCopy(newThisExpr), id);
+//                        }
+//                    }
+//                    int argNumber = 1;
+//                    for (JCExpression arg: trArgs) {
+//                        if (arg instanceof JCLambda) break xx; // if there is a Lambda expression just abandon this saving of values
+//                        String nm0 = nm + "__ARG" + (argNumber++);
+//                        VarSymbol v = getDeterminismSymbol(calleeMethodSym,nm0);
+//                        if (v == null) {
+//                            Name name = names.fromString(nm0);
+//                            v = treeutils.makeVarSymbol(0L, name, arg.type, that.pos);
+//                            saveDeterminismSymbol(calleeMethodSym, nm0, v);
+//                        }
+//                        JCIdent id = treeutils.makeIdent(that.pos, v);
+//
+//                        e = treeutils.makeAnd(that.pos, e, treeutils.makeEquality(that.pos, convertCopy(arg), id));
+//                    }
+//                    JCExpression ee = treeutils.makeEquality(that.pos, savedResult, treeutils.makeIdent(that.pos, vresult));
+//                    e = first ? treeutils.makeAnd(that.pos, e, ee) : treeutils.makeImplies(that.pos, e, ee);
+//                    if (!calleeMethodSym.getReturnType().isPrimitive()) {
+//                        boolean savedAPC = assumingPostConditions;
+//                        assumingPostConditions = false;
+//                        try {
+//                            JCExpression c = treeutils.makeNot(that.pos, makeFreshExpression(that,savedResult,preLabel.name));
+//                            e = treeutils.makeImplies(that.pos, c, e);
+//                        } finally {
+//                            assumingPostConditions = savedAPC;
+//                        }
+//                    }
+//                    addAssume(that.pos(), Label.IMPLICIT_ASSUME, e);
+//                    result = eresult = savedResult;
+//                }
             
                 result = eresult = convertedResult;
                 return;
@@ -7529,16 +7539,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCBlock bl = M.at(that).Block(0L, List.<JCStatement>nil());
                 String label = "_JMLCALL_" + that.pos + "_" + (++count);
                 calllabel = names.fromString(label);
+                LabelProperties lp = new LabelProperties();
+                labelProperties.put(calllabel, lp);
                 JmlLabeledStatement stat = M.at(that).JmlLabeledStatement(calllabel,null,bl);
                 addStat(stat);
-                labelHeapCounts.put(calllabel,heapCount);
+                lp.labeledStatement = stat;
+                lp.heapCount = heapCount;
+                lp.allocCounter = allocCounter;
                 preLabel = M.at(that).Ident(calllabel);
                 
-                labelOldLists.put(calllabel,  currentStatements);
+                lp.oldLists = currentStatements;
                 oldStatements = currentStatements;
                 defaultOldLabel = calllabel;
                 
-                labelStatements.put(calllabel, stat);
                 stat.extraStatements.addAll(currentStatements);
                 
                 markLocation(calllabel,currentStatements,stat);
@@ -8138,12 +8151,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (!utils.isJMLStatic(calleeMethodSym1)) newargs.add(newThisExpr1);
                         newargs.addAll(trArgs);
                         JCIdent id = M.at(p).Ident(newMethodName);
+                        id.sym = calleeMethodSym1;
                         JCExpression newCall = M.at(p).Apply(List.<JCExpression>nil(),id,newargs.toList());
                         newCall.setType(that.type);
-                        addAssumeEqual(that, Label.IMPLICIT_ASSUME, resultId1, newCall);
+                        addAssumeEqual(that, Label.METHOD_ASSUME, resultId1, newCall);
                     });
                 JCBlock bl = M.at(that.pos).Block(0L,stats);
-                if (!resultSym.type.isPrimitive()) {
+                if (!resultSym.type.isPrimitiveOrVoid()) {
                     JCExpression isNotFresh = treeutils.makeNot(that.pos,
                             makeFreshExpression(that,resultId,preLabel.name));
                     JCStatement stat = M.at(that.pos).If(isNotFresh,bl,null);
@@ -8429,64 +8443,64 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (anyHavocs && inProcessInvariants.isEmpty() && !translatingJML) changeState();
             }
 
-            // Ensure determinism
-            // FIXME - make this work for old environments as well
-            if (esc && newclass == null && resultType != null && resultType.getTag() != TypeTag.VOID && oldenv == null) xx: {
-                // Make an encoded name
-                // FIXME - we should include resolved type variables in the mangled name; also need to distinguish methods with the same name
-                String loc = mspecs != null && mspecs.decl != null ? Integer.toString(mspecs.decl.pos) : "00" ; // FIXME -if no position we run the risk of name conflict; should also qualify by the file 
-                String nm = "__JMLSaved_" + calleeMethodSym.owner.getQualifiedName().toString().replace('.','_') + "_" + calleeMethodSym.name + "_"  + loc;
-                nm = nm + "__H" + heapCount;
-                VarSymbol vresult = getDeterminismSymbol(calleeMethodSym,nm);
-                boolean first = false;
-                if (vresult == null) {
-                    Name name = names.fromString(nm);
-                    vresult = treeutils.makeVarSymbol(0L, name, resultType, that.pos);
-                    saveDeterminismSymbol(calleeMethodSym, nm, vresult);
-                    first = true;
-                }
-                JCExpression e = treeutils.trueLit;
-                if (!calleeMethodSym.isStatic()) {
-                    {
-                        String nm0 = nm + "__RECV";
-                        VarSymbol v = getDeterminismSymbol(calleeMethodSym,nm0);
-                        if (v == null) {
-                            Name name = names.fromString(nm0);
-                            v = treeutils.makeVarSymbol(0L, name, newThisExpr.type, that.pos);
-                            saveDeterminismSymbol(calleeMethodSym, nm0, v);
-                        }
-                        JCIdent id = treeutils.makeIdent(that.pos, v);
-                        e = treeutils.makeEquality(that.pos, convertCopy(newThisExpr), id);
-                    }
-                }
-                int argNumber = 1;
-                for (JCExpression arg: trArgs) {
-                    if (arg instanceof JCLambda) break xx; // if there is a Lambda expression just abandon this saving of values
-                    String nm0 = nm + "__ARG" + (argNumber++);
-                    VarSymbol v = getDeterminismSymbol(calleeMethodSym,nm0);
-                    if (v == null) {
-                        Name name = names.fromString(nm0);
-                        v = treeutils.makeVarSymbol(0L, name, arg.type, that.pos);
-                        saveDeterminismSymbol(calleeMethodSym, nm0, v);
-                    }
-                    JCIdent id = treeutils.makeIdent(that.pos, v);
-
-                    e = treeutils.makeAnd(that.pos, e, treeutils.makeEquality(that.pos, convertCopy(arg), id));
-                }
-                JCExpression ee = treeutils.makeEquality(that.pos, resultId, treeutils.makeIdent(that.pos, vresult));
-                e = first ? treeutils.makeAnd(that.pos, e, ee) : treeutils.makeImplies(that.pos, e, ee);
-                if (!calleeMethodSym.getReturnType().isPrimitive()) {
-                    boolean savedAPC = assumingPostConditions;
-                    assumingPostConditions = false;
-                    try {
-                        JCExpression c = treeutils.makeNot(that.pos, makeFreshExpression(that,resultId,preLabel.name));
-                        e = treeutils.makeImplies(that.pos, c, e);
-                    } finally {
-                        assumingPostConditions = savedAPC;
-                    }
-                }
-                addAssume(that.pos(), Label.IMPLICIT_ASSUME, e);
-            }
+//            // Ensure determinism
+//            // FIXME - make this work for old environments as well
+//            if (esc && newclass == null && resultType != null && resultType.getTag() != TypeTag.VOID && oldenv == null) xx: {
+//                // Make an encoded name
+//                // FIXME - we should include resolved type variables in the mangled name; also need to distinguish methods with the same name
+//                String loc = mspecs != null && mspecs.decl != null ? Integer.toString(mspecs.decl.pos) : "00" ; // FIXME -if no position we run the risk of name conflict; should also qualify by the file 
+//                String nm = "__JMLSaved_" + calleeMethodSym.owner.getQualifiedName().toString().replace('.','_') + "_" + calleeMethodSym.name + "_"  + loc;
+//                nm = nm + "__H" + heapCount;
+//                VarSymbol vresult = getDeterminismSymbol(calleeMethodSym,nm);
+//                boolean first = false;
+//                if (vresult == null) {
+//                    Name name = names.fromString(nm);
+//                    vresult = treeutils.makeVarSymbol(0L, name, resultType, that.pos);
+//                    saveDeterminismSymbol(calleeMethodSym, nm, vresult);
+//                    first = true;
+//                }
+//                JCExpression e = treeutils.trueLit;
+//                if (!calleeMethodSym.isStatic()) {
+//                    {
+//                        String nm0 = nm + "__RECV";
+//                        VarSymbol v = getDeterminismSymbol(calleeMethodSym,nm0);
+//                        if (v == null) {
+//                            Name name = names.fromString(nm0);
+//                            v = treeutils.makeVarSymbol(0L, name, newThisExpr.type, that.pos);
+//                            saveDeterminismSymbol(calleeMethodSym, nm0, v);
+//                        }
+//                        JCIdent id = treeutils.makeIdent(that.pos, v);
+//                        e = treeutils.makeEquality(that.pos, convertCopy(newThisExpr), id);
+//                    }
+//                }
+//                int argNumber = 1;
+//                for (JCExpression arg: trArgs) {
+//                    if (arg instanceof JCLambda) break xx; // if there is a Lambda expression just abandon this saving of values
+//                    String nm0 = nm + "__ARG" + (argNumber++);
+//                    VarSymbol v = getDeterminismSymbol(calleeMethodSym,nm0);
+//                    if (v == null) {
+//                        Name name = names.fromString(nm0);
+//                        v = treeutils.makeVarSymbol(0L, name, arg.type, that.pos);
+//                        saveDeterminismSymbol(calleeMethodSym, nm0, v);
+//                    }
+//                    JCIdent id = treeutils.makeIdent(that.pos, v);
+//
+//                    e = treeutils.makeAnd(that.pos, e, treeutils.makeEquality(that.pos, convertCopy(arg), id));
+//                }
+//                JCExpression ee = treeutils.makeEquality(that.pos, resultId, treeutils.makeIdent(that.pos, vresult));
+//                e = first ? treeutils.makeAnd(that.pos, e, ee) : treeutils.makeImplies(that.pos, e, ee);
+//                if (!calleeMethodSym.getReturnType().isPrimitive()) {
+//                    boolean savedAPC = assumingPostConditions;
+//                    assumingPostConditions = false;
+//                    try {
+//                        JCExpression c = treeutils.makeNot(that.pos, makeFreshExpression(that,resultId,preLabel.name));
+//                        e = treeutils.makeImplies(that.pos, c, e);
+//                    } finally {
+//                        assumingPostConditions = savedAPC;
+//                    }
+//                }
+//                addAssume(that.pos(), Label.IMPLICIT_ASSUME, e);
+//            }
         
 
             if (!nodoTranslations) {
@@ -13162,13 +13176,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             popBlock();
         } else {
             // FIXME _ I don;'t beklieve the use of currentStsatements is correct here
-            ListBuffer<JCStatement> list = labelActiveOldLists.get(label.name);
-            JmlLabeledStatement labelStat = labelStatements.get(label.name);
+            ListBuffer<JCStatement> list = labelProperties.get(label.name).activeOldLists;
+            JmlLabeledStatement labelStat = labelProperties.get(label.name).labeledStatement;
             labelStat.extraStatements.add(stat);
             if (list != null) {
                 list.add(stat);
             } else {
-                ListBuffer<JCStatement> stlist = labelOldLists.get(label.name);
+                ListBuffer<JCStatement> stlist = labelProperties.get(label.name).oldLists;
                 ListBuffer<JCStatement> newlist = new ListBuffer<JCStatement>();
                 for (JCStatement st: stlist) {
                     if (st instanceof JCLabeledStatement && ((JCLabeledStatement)st).label.equals(label.name)) {
@@ -13263,13 +13277,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 addStat(v);
                                 // FIXME - what happens to simple \old
                                 if (that.args.size() == 2) {
-                                    ListBuffer<JCStatement> list = labelActiveOldLists.get(label);
-                                    JmlLabeledStatement labelStat = labelStatements.get(label);
+                                    ListBuffer<JCStatement> list = labelProperties.get(label).activeOldLists;
+                                    JmlLabeledStatement labelStat = labelProperties.get(label).labeledStatement;
                                     labelStat.extraStatements.add(v);
                                     if (list != null) {
                                         list.add(v);
                                     } else {
-                                        ListBuffer<JCStatement> stlist = labelOldLists.get(label);
+                                        ListBuffer<JCStatement> stlist = labelProperties.get(label).oldLists;
                                         ListBuffer<JCStatement> newlist = new ListBuffer<JCStatement>();
                                         for (JCStatement st: stlist) {
                                             if (st instanceof JCLabeledStatement && ((JCLabeledStatement)st).label.equals(label)) {
@@ -13302,13 +13316,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 addStat(st);
                                 if (label != null) {
                                     //JCExpression e = that.args.get(1);
-                                    ListBuffer<JCStatement> list = labelActiveOldLists.get(label);
-                                    JmlLabeledStatement labelStat = labelStatements.get(label);
+                                    ListBuffer<JCStatement> list = labelProperties.get(label).activeOldLists;
+                                    JmlLabeledStatement labelStat = labelProperties.get(label).labeledStatement;
                                     labelStat.extraStatements.add(v);
                                     if (list != null) {
                                         list.add(v);
                                     } else {
-                                        ListBuffer<JCStatement> stlist = labelOldLists.get(label);
+                                        ListBuffer<JCStatement> stlist = labelProperties.get(label).oldLists;
                                         if (stlist != currentStatements) {
                                             ListBuffer<JCStatement> newlist = new ListBuffer<JCStatement>();
                                             for (JCStatement stt: stlist) {
@@ -13665,13 +13679,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ee = e; //treeutils.makeAnd(that.pos, e, ee);
         
         JCExpression exprCopy = convertCopy(arg);
-        if (assumingPostConditions) {
-            // allocCounter is already bumped up earlier when it was declared that the result was allocated
-            e = allocCounterGT(pos, exprCopy, allocCounter-1);
-        } else {
+//        if (assumingPostConditions) {
+//            // allocCounter is already bumped up earlier when it was declared that the result was allocated
+//            e = allocCounterGT(pos, exprCopy, allocCounter-1);
+//        } else {
             // FIXME - explain why this is different than the above - this would be the postcondition for the method
-            e = allocCounterGT(pos, exprCopy, 0);
-        }
+            e = allocCounterGT(pos, exprCopy, ac);
+//        }
         return treeutils.makeAnd(p, e, ee);
     }
     
@@ -15508,7 +15522,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected Name newNameForCallee(int pos, MethodSymbol msym, boolean useheap) {
-        int heap = inOldEnv ? labelHeapCounts.get(oldenv.name) : heapCount;
+        int heap = inOldEnv ? labelProperties.get(oldenv.name).heapCount : heapCount;
         return names.fromString(utils.qualifiedName(msym).replace('.', '_') + ( !useheap ? "_"  : "_H" + heap + "_") + pos);
     }
     

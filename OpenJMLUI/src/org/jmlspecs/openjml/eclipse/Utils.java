@@ -355,7 +355,7 @@ public class Utils {
 		deleteMarkers(res, shell); // FIXME - does this trigger a rebuild?
         JobControl.JobParameters jobParameters = JobControl.launchJobControlDialog(selection,window,shell);
         if (jobParameters == null) return;
-		for (final IJavaProject jp : sorted.keySet()) {
+    	for (final IJavaProject jp : sorted.keySet()) {
 			checkESCProject(jp,sorted.get(jp),shell,"Static Checks - Manual",jobParameters);
 		}
 	}
@@ -544,8 +544,10 @@ public class Utils {
 			return;
 		}
 		
+		
 		final @NonNull Map<IJavaProject, List<IResource>> sorted = sortByProject(res);
 		for (final IJavaProject jp : sorted.keySet()) {
+			checkForJmlEnabled(shell,jp);
 			Job j = new Job("Compiling Runtime Assertions on selected resources") {
 				public IStatus run(IProgressMonitor monitor) {
 					boolean c = false;
@@ -567,6 +569,34 @@ public class Utils {
 			j.setUser(true); // true since the job has been initiated by an
 								// end-user
 			j.schedule();
+		}
+	}
+	
+	public void checkForJmlEnabled(Shell shell, IJavaProject project) {
+		try {
+			if (JMLNature.isJMLNature(project.getProject())) return;
+		} catch (CoreException e) {
+			// Log an error but proceed
+			Log.errorlog("Core Exception encountered on trying to check for a JML nature on project " + project.getElementName() + ": ",e);
+		}
+		List<String> cpes = getClasspath(project);
+		for (String s: cpes) {
+			if (s.contains("jmlruntime")) return;
+		}
+		
+		String msg = "You are compiling classes with RAC in a project that is not" +
+				" enabled for JML. The compiled executable will require the JML" +
+				" runtime library on its path to run successfully. You can either\n" +
+				"\n" +
+				"1) Enable JML for the project by selecting the project and then the menu action 'Enable JML'. " +
+				"This will add the internal instance of jmlruntime.jar to the project classpath.\n" +
+				"\n    or   \n\n" +
+				"2) You can manually add an instance of jmlruntime.jar as an 'External Jar' in the Project Properties/Java Build Path/Libraries dialog." +
+				" An instance of jmlruntime.jar is available, for example, in the download of the OpenJML command-line tools." +
+				"\n\nShall I Enable JML on the " + project.getElementName() + " project for you now?";
+		boolean ok = showConfirmInUI(shell,"OpenJML classpath warning",msg);
+		if (ok) {
+			JMLNature.enableJMLNature(project.getProject());
 		}
 	}
 
@@ -596,7 +626,9 @@ public class Utils {
 			showMessage(shell, "JML RAC Marked", "No projects selected");
 			return;
 		}
+		
 		for (final IJavaProject jp : projects) {
+			checkForJmlEnabled(shell,jp);
 			racMarked(jp);
 		}
 	}
@@ -2818,6 +2850,19 @@ public class Utils {
 				MessageDialog.openInformation(fshell, title, msg);
 			}
 		});
+	}
+
+	// Must already be in the UI thread
+	public static boolean showConfirmInUI(@Nullable Shell shell,
+			@NonNull final String title, @NonNull final String msg) {
+		final Shell fshell = shell;
+		Display d = fshell == null ? Display.getDefault() : fshell.getDisplay();
+//		d.asyncExec(new Runnable() {
+//			public void run() {
+//				MessageDialog.openConfirm(fshell, title, msg);
+//			}
+//		});
+		return MessageDialog.openConfirm(fshell, title, msg);
 	}
 
 	/** Pops up a dialog showing the given message and thte stack trace of the

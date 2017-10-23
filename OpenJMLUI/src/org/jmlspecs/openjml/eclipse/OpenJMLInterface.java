@@ -1187,7 +1187,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         }
         {
             opts.add(JmlOption.STRICT.optionName() +eq+ Options.isOption(Options.strictKey));
-            opts.add(JmlOption.PURITYCHECK.optionName() +eq+ !Options.isOption(Options.noCheckPurityKey));
+            opts.add(JmlOption.PURITYCHECK.optionName() +eq+ Options.isOption(Options.purityCheckKey));
             opts.add(JmlOption.SHOW.optionName() +eq+ Options.isOption(Options.showKey));
         }
         if (cmd == Main.Cmd.ESC || cmd == null) {
@@ -1201,11 +1201,12 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             String v = Options.value(Options.timeoutKey);
             if (v != null && !v.isEmpty()) opts.add(JmlOption.TIMEOUT.optionName() +eq+ v);
             // FIXME - add an actual option
-            opts.add("-code-math=java");
+            opts.add("-code-math=safe");
+            opts.add("-spec-math=bigint");
         }
         
         if (cmd == Main.Cmd.RAC || cmd == null) {
-            opts.add(JmlOption.RAC_SHOW_SOURCE.optionName() +eq+ !Options.isOption(Options.racNoShowSource));
+            opts.add(JmlOption.RAC_SHOW_SOURCE.optionName() +eq+ Options.isOption(Options.racShowSource));
             opts.add(JmlOption.RAC_CHECK_ASSUMPTIONS.optionName() +eq+ Options.isOption(Options.racCheckAssumptions));
             opts.add(JmlOption.RAC_PRECONDITION_ENTRY.optionName() +eq+ Options.isOption(Options.racPreconditionEntry));
             opts.add(JmlOption.RAC_JAVA_CHECKS.optionName() +eq+ Options.isOption(Options.racCheckJavaFeatures));
@@ -1261,7 +1262,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         // The runtime library is always either in the classpath or added 
         // here by the plugin, so openjml itself never adds it
         opts.add("-no"+JmlOption.INTERNALRUNTIME.optionName());
-        if (!Options.isOption(Options.noInternalRuntimeKey)) {
+        if (Options.isOption(Options.useInternalRuntimeKey)) {
         	String runtime = utils.fetchRuntimeLibEntry();
         	if (runtime != null) {
         		ss.append(File.pathSeparator);

@@ -5,6 +5,10 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.lang.reflect.Field;
+import java.util.Properties;
+
+import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.Strings;
@@ -51,17 +55,74 @@ public class Options {
 		Options.uiverboseness = Options.isOption(Options.uiverbosityKey);
 	}
 	
-	public static void initialize(boolean override, Context context) {
+    public void setStoreToDefaults() {
+    	IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+    	for (Field f: Options.class.getDeclaredFields()) {
+    		String fieldName = f.getName();
+    		if (fieldName.endsWith("Key")) {
+    			try {
+    				String key = f.get(null).toString(); // value of the field
+    				store.setToDefault(key);
+    			} catch (IllegalAccessException e) {
+    				// Should never happen
+    			}
+    		}
+    	}
+    }
+    
+
+	
+	/** Initializes preference store from properties and JmlOptions */
+	public static void initialize() {
 		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
-		for (JmlOption opt: JmlOption.values()) {
-			String key = Strings.optionPropertyPrefix + opt.optionName().substring(1); // The substring is to remove the initial hyphen
-			if (override || !store.contains(key)) {
-				store.putValue(key, opt.defaultValue().toString());
+		boolean b = store.getBoolean(Options.alreadyInitializedKey);
+		boolean bb = store.getBoolean(Options.initializeOnStartupKey);
+		if (!b || bb) {
+			Properties properties = org.jmlspecs.openjml.Utils.findProperties(null);
+			for (java.util.Map.Entry<Object,Object> entry: properties.entrySet()) {
+				String key = entry.getKey().toString();
+				String value = entry.getValue().toString();
+				if (key.startsWith(Strings.optionPropertyPrefix)) {
+					boolean isBoolean = false;
+					String optname = "-" + key.substring(Strings.optionPropertyPrefix.length());
+					for (JmlOption o: JmlOption.values()) {
+						if (o.optionName().equals(optname)) {
+							isBoolean = !o.hasArg();
+							break;
+						}
+					}
+					if (isBoolean) {
+						store.setValue(key, Boolean.parseBoolean(value));
+					} else {
+						store.setValue(key, value);
+					}
+				}
 			}
+			store.setValue(Options.alreadyInitializedKey,true);
 		}
+		Options.cache();
 	}
+	
+//	public static void initialize(boolean override, Context context) {
+//		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+//		for (JmlOption opt: JmlOption.values()) {
+//			String key = Strings.optionPropertyPrefix + opt.optionName().substring(1); // The substring is to remove the initial hyphen
+//			if (override || !store.contains(key)) {
+//				store.putValue(key, opt.defaultValue().toString());
+//			}
+//		}
+//	}
 
 
+	/** The preference key for a JmlOption */
+	public static String key(JmlOption opt) {
+		return prefix + opt.optionName().substring(1);
+	}
+	
+	/** The preference key for a non-JmlOption */
+	public static String key(String s) {
+		return prefix + s;
+	}
 	
 	// Note: The values of the keys must correspond to the names of the 
 	// command-line options. That way we can load them automatically.
@@ -72,10 +133,14 @@ public class Options {
 	/** A fake preference store key for the update button. */
 	final static public String updateKey = prefix + "update"; //$NON-NLS-1$
 
+	final static public String alreadyInitializedKey = prefix + "alreadyInitialized";
+	/** The preference store key for the initialize on startup button */
+	final static public String initializeOnStartupKey = prefix + "initializeOnStartup";
+	
 	/** The preference store key for the checkSpecsPath option. */
-	final static public String checkSpecsPathKey = prefix + "checkSpecsPath"; //$NON-NLS-1$
+	final static public String checkSpecsPathKey = key(JmlOption.CHECKSPECSPATH);
 	/** The preference store key for the nonnullByDefault option. */
-	final static public String nullableByDefaultKey = prefix + "nullableByDefault"; //$NON-NLS-1$
+	final static public String nullableByDefaultKey = key(JmlOption.NULLABLEBYDEFAULT);
 	/** The preference store key for the Java verbosity (boolean). */
 	final static public String javaverboseKey = prefix + "verbose"; //$NON-NLS-1$
 	/** The preference store key for the verbosity (quiet, nowarnings, verbose) option. */
@@ -85,45 +150,45 @@ public class Options {
 	/** The preference store key for the show-error-popups UI control. */
 	final static public String showErrorPopupsKey = prefix + "showErrorPopups"; //$NON-NLS-1$
 	/** The preference store key for the -show option. */
-	final static public String showKey = prefix + "show"; //$NON-NLS-1$
+	final static public String showKey = key(JmlOption.SHOW);
 	/** The preference store key for the -checkFeasibility option. */
-	final static public String feasibilityKey = prefix + "checkFeasibility"; //$NON-NLS-1$
+	final static public String feasibilityKey = key(JmlOption.FEASIBILITY);
 	
 //	/** The preference store key for the show trace info option. */
 //	final static public String traceKey = prefix + "trace"; //$NON-NLS-1$
 //	/** The preference store key for the -subexpressions option. */
 //	final static public String subexpressionsKey = prefix + "subexpressions"; //$NON-NLS-1$
 	/** The preference store key for the max esc warnings option. */
-	final static public String escMaxWarningsKey = prefix + "escMaxWarnings"; //$NON-NLS-1$
+	final static public String escMaxWarningsKey = key(JmlOption.ESC_MAX_WARNINGS);
 	/** The preference store key for the strict JML option. */
-	final static public String strictKey = prefix + "strictJML"; //$NON-NLS-1$
+	final static public String strictKey = key(JmlOption.STRICT);
 	/** The preference store key for the check purity option. */
-	final static public String noCheckPurityKey = prefix + "noPurityCheck"; //$NON-NLS-1$
+	final static public String purityCheckKey = key(JmlOption.PURITYCHECK);
 	/** The preference store key for the timeout option. */
-	final static public String timeoutKey = prefix + "timeout"; //$NON-NLS-1$
+	final static public String timeoutKey = key(JmlOption.TIMEOUT);
 	/** The preference store key for the keys option. */
 	final static public String optionalKeysKey = prefix + "optionalKeys"; //$NON-NLS-1$
 	/** The preference store key for the showNotImplemented option. */
-	final static public String showNotImplementedKey = prefix + "showNotImplemented"; //$NON-NLS-1$
+	final static public String showNotImplementedKey = key(JmlOption.SHOW_NOT_IMPLEMENTED);
 	/** The preference store key for the showNotExecutable option. */
-	final static public String showNotExecutableKey = prefix + "showNotExecutable"; //$NON-NLS-1$
+	final static public String showNotExecutableKey = key(JmlOption.SHOW_NOT_EXECUTABLE);
 	/** The preference store key for the noInternalSpecs option. */
-	final static public String noInternalSpecsKey = prefix + "noInternalSpecs"; //$NON-NLS-1$
+	final static public String useInternalSpecsKey = key(JmlOption.INTERNALSPECS);
 	/** The preference store key for the noInternalRuntime option. */
-	final static public String noInternalRuntimeKey = prefix + "noInternalRuntime"; //$NON-NLS-1$
-	/** The preference store key for the noInternalRuntime option. */
+	final static public String useInternalRuntimeKey = key(JmlOption.INTERNALRUNTIME);
+	/** The preference store key for the list of other options */
 	final static public String otherOptionsKey = prefix + "otherOptions"; //$NON-NLS-1$
 
 	/** RAC option that says to use Java asserts when compiling assertions */
-	final static public String compileToJavaAssert = prefix + "compileToJavaAssert"; //$NON-NLS-1$
+	final static public String compileToJavaAssert = key(JmlOption.RAC_COMPILE_TO_JAVA_ASSERT);
 	/** RAC option that skips checking Java features such as Null Pointer Exceptions, letting Java issue its own exception */
-	final static public String racCheckJavaFeatures = prefix + "racCheckJavaFeatures"; //$NON-NLS-1$
+	final static public String racCheckJavaFeatures = key(JmlOption.RAC_JAVA_CHECKS);
 	/** RAC option that disables checking assumptions */
-	final static public String racCheckAssumptions = prefix + "racCheckAssumptions"; //$NON-NLS-1$
+	final static public String racCheckAssumptions = key(JmlOption.RAC_CHECK_ASSUMPTIONS);
 	/** RAC option that distinguishes internal and entry precondition errors */
-	final static public String racPreconditionEntry = prefix + "racPreconditionEntry"; //$NON-NLS-1$
+	final static public String racPreconditionEntry = key(JmlOption.RAC_PRECONDITION_ENTRY);
 	/** RAC option which disables including source code in compiled-in error messages */
-	final static public String racNoShowSource = prefix + "racNoShowSource"; //$NON-NLS-1$
+	final static public String racShowSource = key(JmlOption.RAC_SHOW_SOURCE);
 
 	/** If enabled, ESC is performed automatically upon an Eclipse build */
 	final static public String enableESCKey = prefix + "enableESC"; //$NON-NLS-1$
@@ -143,5 +208,9 @@ public class Options {
 	
 	// FIXME - change this
 	final static public String defaultProverKey = Strings.defaultProverProperty;
+	
+	// Job Control preferences (no corresponding JmlOption option)
+	final static public String jobQueuesKey = key("jobQueues");
+	final static public String jobStrategyKey = key("jobStrategy");
 	
 }

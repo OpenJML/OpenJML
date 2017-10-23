@@ -90,6 +90,12 @@
             name="%openjml.ui.PreferencePage">
       </page>
       <page
+            class="org.jmlspecs.openjml.eclipse.JobControlPage"
+            id="org.jmlspecs.openjml.eclipse.JobControlPage"
+            category="org.jmlspecs.openjml.eclipse.SettingsPage"
+            name="%openjml.ui.PreferencePage.JobControl">
+      </page>
+      <page
             class="org.jmlspecs.openjml.eclipse.SolversPage"
             id="org.jmlspecs.openjml.eclipse.SolversPage"
             category="org.jmlspecs.openjml.eclipse.SettingsPage"

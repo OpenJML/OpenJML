@@ -760,17 +760,17 @@ public class Main extends com.sun.tools.javac.main.Main {
             }
         }
         
-        if(o != null && o.equals(JmlOption.PROPERTIES)){
+        if (o != null && o.equals(JmlOption.PROPERTIES)){
             Properties properties = System.getProperties();
             String file = JmlOption.value(context,JmlOption.PROPERTIES);
-            try {
-                if(file != null){
+            if (file != null && !file.isEmpty()) {
+                try {
                     Utils.readProps(properties,file);  
+                } catch (java.io.IOException e) {
+                    Log.instance(context).getWriter(WriterKind.NOTICE).println("Failed to read property file " + file); // FIXME - review
                 }
-            } catch (java.io.IOException e) {
-                Log.instance(context).getWriter(WriterKind.NOTICE).println("Failed to read property file " + file); // FIXME - review
+                setPropertiesFileOptions(options, properties);
             }
-            setPropertiesFileOptions(options, properties);
         }
         return i;
     }
@@ -867,10 +867,12 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (!picked) utils.check = true;
         
         val = options.get(JmlOption.ESC_BV.optionName());
-        if("auto".equals(val) || "true".equals(val) || "false".equals(val)) {}
-        else {
+        if (val == null || val.isEmpty()) {
+            options.put(JmlOption.ESC_BV.optionName(),(String)JmlOption.ESC_BV.defaultValue());
+        } else if("auto".equals(val) || "true".equals(val) || "false".equals(val)) {
+        } else {
             Log.instance(context).getWriter(WriterKind.NOTICE).println("Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: " + val);
-            options.put(JmlOption.ESC_BV.optionName(),"auto");
+            options.put(JmlOption.ESC_BV.optionName(),(String)JmlOption.ESC_BV.defaultValue());
         }
 
         String keysString = options.get(JmlOption.KEYS.optionName());
@@ -888,7 +890,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (JmlOption.isOption(context,JmlOption.INTERNALRUNTIME)) appendRuntime(context);
         
         String limit = JmlOption.value(context,JmlOption.ESC_MAX_WARNINGS);
-        if (limit == null || limit.equals("all")) {
+        if (limit == null || limit.isEmpty() || limit.equals("all")) {
             utils.maxWarnings = Integer.MAX_VALUE; // no limit is the default
         } else {
             try {
@@ -902,7 +904,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         
         String check = JmlOption.value(context,JmlOption.FEASIBILITY);
-        if (check == null || check.equals(Strings.feas_default)) {
+        if (check == null || check.isEmpty() || check.equals(Strings.feas_default)) {
             options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_defaults);
         } 
         if (check.equals(Strings.feas_all)) {
@@ -1081,6 +1083,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         
     }    
     
+    /** Sets options (first argument) from any relevant properties (second argument) */
     protected void setPropertiesFileOptions(Options opts, Properties properties){
         for (Map.Entry<Object,Object> p : properties.entrySet()) {
             Object o = p.getKey();

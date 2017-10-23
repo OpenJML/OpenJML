@@ -588,7 +588,7 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug582() {
         expectedExit = 0;
-        helpTCG();
+        helpTCG("-purityCheck");
     }
     
     public void gitbug888() {

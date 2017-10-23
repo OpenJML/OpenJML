@@ -90,9 +90,6 @@ public class JmlEsc extends JmlTreeScanner {
     /** The assertion adder instance used to translate */
     public JmlAssertionAdder assertionAdder;
     
-    /** The prover to use  - initialized here and then used in visitMethods */
-    protected /*@NonNull*/ String proverToUse;
-    
     /** The JmlEsc constructor, which initializes all the tools and other fields. */
     public JmlEsc(Context context) {
         this.context = context;
@@ -110,7 +107,6 @@ public class JmlEsc extends JmlTreeScanner {
         try {
             // We convert the whole tree first
         	assertionAdder.convert(tree); // get at the converted tree through the map
-        	proverToUse = pickProver(); // FIXME - this should be picked at the time of proving because options can change
         	// And then we walk the tree to see which items are to be proved
         	tree.accept(this);
         } catch (PropagatedException e) {
@@ -121,17 +117,6 @@ public class JmlEsc extends JmlTreeScanner {
         	// No further error messages needed - FIXME - is this true?
             log.error("jml.internal","Should not be catching an exception in JmlEsc.check: "+ e.toString());
         }
-    }
-    
-    /** Returns the prover specified by the options. */
-    public String pickProver() {
-        // Pick a prover to use
-        String proverToUse = JmlOption.value(context,JmlOption.PROVER);
-        if (proverToUse == null) proverToUse = Options.instance(context).get(Strings.defaultProverProperty);
-        if (proverToUse == null || proverToUse.equals("z3")) {
-            proverToUse = "z3_4_3";
-        }
-        return proverToUse;
     }
     
     /** Visit a class definition */
@@ -176,7 +161,7 @@ public class JmlEsc extends JmlTreeScanner {
             JCDiagnostic d = (log.factory().warning(log.currentSource(), decl.pos(), "jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + utils.qualifiedMethodSig(decl.sym)));
             log.report(d);
             //log.warning(decl.pos(),"jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + utils.qualifiedMethodSig(decl.sym)); //$NON-NLS-2$
-            res = new ProverResult(proverToUse,ProverResult.ERROR,decl.sym).setOtherInfo(d);
+            res = new ProverResult("",ProverResult.ERROR,decl.sym).setOtherInfo(d);
             return;
         }
         JmlMethodDecl methodDecl = (JmlMethodDecl)decl;
@@ -199,7 +184,7 @@ public class JmlEsc extends JmlTreeScanner {
     	    res = doMethod(methodDecl);
         } catch (PropagatedException e) {
             IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
-            if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult(proverToUse,IProverResult.CANCELLED,methodDecl.sym));
+            if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult("",IProverResult.CANCELLED,methodDecl.sym));
             throw e;
         }
         Main.instance(context).popOptions();
@@ -245,11 +230,24 @@ public class JmlEsc extends JmlTreeScanner {
                 return pr;
             }
         };
-        IProverResult res = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.SKIPPED,new java.util.Date());
+        IProverResult res = factory.makeProverResult(methodDecl.sym,"",IProverResult.SKIPPED,new java.util.Date());
         IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
         if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);
         return res;
     }
+    
+    /** Returns the prover specified by the options. */
+    public String pickProver() {
+        // Pick a prover to use
+        String proverToUse = JmlOption.value(context,JmlOption.PROVER);
+        if (proverToUse == null || proverToUse.isEmpty()) proverToUse = Options.instance(context).get(Strings.defaultProverProperty);
+        if (proverToUse == null || proverToUse.isEmpty() || proverToUse.equals("z3")) {
+            proverToUse = "z3_4_3";
+        }
+        return proverToUse;
+    }
+    
+
     
     /** Do the actual work of proving the method */
     protected IProverResult doMethod(@NonNull JmlMethodDecl methodDecl) {
@@ -258,6 +256,9 @@ public class JmlEsc extends JmlTreeScanner {
         if (skip(methodDecl)) {
             return markMethodSkipped(methodDecl," (because of SkipEsc annotation)");
         }
+        
+        String proverToUse = pickProver();
+        
         utils.progress(0,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
         log.resetRecord();
 //        int prevErrors = log.nerrors;
@@ -271,7 +272,7 @@ public class JmlEsc extends JmlTreeScanner {
         boolean isConstructor = methodDecl.sym.isConstructor();
         boolean doEsc = ((methodDecl.mods.flags & (Flags.SYNTHETIC|Flags.ABSTRACT|Flags.NATIVE)) == 0);
             // TODO: Could check that abstract or native methods have consistent specs
-        
+
         // Don't do ESC on the constructor of Object
         // FIXME - why?  (we don't have the source anyway, so how would we get here?)
         if (methodDecl.sym.owner == syms.objectType.tsym && isConstructor) doEsc = false;
@@ -351,7 +352,7 @@ public class JmlEsc extends JmlTreeScanner {
         String fullyQualifiedSig = utils.qualifiedMethodSig(methodDecl.sym);
 
         String excludes = JmlOption.value(context,JmlOption.EXCLUDE);
-        if (excludes != null) {
+        if (excludes != null && !excludes.isEmpty()) {
             for (String exclude: excludes.split(";")) { //$NON-NLS-1$
                 if (fullyQualifiedName.equals(exclude) ||
                         fullyQualifiedSig.equals(exclude) ||
@@ -375,10 +376,12 @@ public class JmlEsc extends JmlTreeScanner {
         }
 
         String methodsToDo = JmlOption.value(context,JmlOption.METHOD);
-        if (methodsToDo != null) {
+        if (methodsToDo != null && !methodsToDo.isEmpty()) {
             match: {
                 if (fullyQualifiedSig.equals(methodsToDo)) break match; // A hack to allow at least one signature-containing item in the methods list
                 for (String methodToDo: methodsToDo.split(";")) { //$NON-NLS-1$ 
+                	methodToDo = methodToDo.trim();
+                	if (methodToDo.isEmpty()) continue;
                     if (fullyQualifiedName.equals(methodToDo) ||
                             methodToDo.equals(simpleName) ||
                             fullyQualifiedSig.equals(methodToDo)) {

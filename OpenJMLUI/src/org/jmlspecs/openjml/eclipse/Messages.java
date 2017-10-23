@@ -48,6 +48,7 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_PreferencesPage_Show;
 	public static String OpenJMLUI_PreferencesPage_JavaVerbose;
 	public static String OpenJMLUI_PreferencesPage_JmlOptions;
+	public static String OpenJMLUI_PreferencesPage_InitializeOnStartup;
 	public static String OpenJMLUI_PreferencesPage_NullableByDefault;
 	public static String OpenJMLUI_PreferencesPage_normal;
 	public static String OpenJMLUI_PreferencesPage_timeout;
@@ -62,11 +63,11 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_PreferencesPage_racNoShowSource;
 	public static String OpenJMLUI_PreferencesPage_progress;
 	public static String OpenJMLUI_PreferencesPage_quiet;
-	public static String OpenJMLUI_PreferencesPage_SkipPurityCheck;
+	public static String OpenJMLUI_PreferencesPage_PurityCheck;
 	public static String OpenJMLUI_PreferencesPage_UIVerbose;
 	public static String OpenJMLUI_PreferencesPage_UpdateFromPropertiesFiles;
-	public static String OpenJMLUI_PreferencesPage_UseExternalRuntimeLibrary;
-	public static String OpenJMLUI_PreferencesPage_UseExternalSystemSpecs;
+	public static String OpenJMLUI_PreferencesPage_UseInternalRuntimeLibrary;
+	public static String OpenJMLUI_PreferencesPage_UseInternalSystemSpecs;
 	public static String OpenJMLUI_PreferencesPage_verbose;
 	public static String OpenJMLUI_PreferencesPage_VerbosenessAndDebugging;
 	public static String OpenJMLUI_PreferencesPage_VerbosityLevel;
@@ -89,6 +90,7 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_SolversPage_DialogTitle;
 	public static String OpenJMLUI_SolversPage_DefaultLabel;
 	public static String OpenJMLUI_SolversPage_Title;
+	public static String OpenJMLUI_JobControlPage_Title;
 	public static String OpenJMLUI_SolversListEditor_Title;
 	public static String OpenJMLUI_SolversPage_EditButton;
 	static {

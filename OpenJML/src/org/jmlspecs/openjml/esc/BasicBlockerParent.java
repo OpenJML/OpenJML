@@ -569,6 +569,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         String name = blockName(pos,key);
         JCIdent id = treeutils.makeIdent(pos,name,syms.booleanType);
         T bb = newBlock(id);
+        bb.unique = blockCount;
         blockLookup.put(name,bb);
         name = name.substring(0,name.lastIndexOf("_"));
         blockLookup.put(name, bb);
@@ -589,6 +590,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         // See the comment in the newBlock(...) method above
         JCIdent id = treeutils.makeIdent(pos,name,syms.booleanType);
         T bb = newBlock(id,previousBlock);
+        bb.unique = blockCount;
         blockLookup.put(name, bb);
         name = name.substring(0,name.lastIndexOf("_"));
         blockLookup.put(name, bb);

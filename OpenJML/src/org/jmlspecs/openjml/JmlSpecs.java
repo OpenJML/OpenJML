@@ -251,11 +251,11 @@ public class JmlSpecs {
     public void initializeSpecsPath() {
         Options options = Options.instance(context);
         String s = JmlOption.value(context,JmlOption.SPECS);
-        if (s == null) s = options.get(Strings.specsPathEnvironmentPropertyName);
-        if (s == null) s = options.get(Strings.sourcepathOptionName);
-        if (s == null) s = options.get(Strings.classpathOptionName);
-        if (s == null) s = System.getProperty("java.class.path");
-        if (s == null) s = "";
+        if (s == null || s.isEmpty()) s = options.get(Strings.specsPathEnvironmentPropertyName);
+        if (s == null || s.isEmpty()) s = options.get(Strings.sourcepathOptionName);
+        if (s == null || s.isEmpty()) s = options.get(Strings.classpathOptionName);
+        if (s == null || s.isEmpty()) s = System.getProperty("java.class.path");
+        if (s == null) s = Strings.empty;
         setSpecsPath(s);
     }
     
