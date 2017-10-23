@@ -2365,9 +2365,19 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
     
+    protected String makeBarEnclosedString(JCTree tree) {
+        String s = tree.toString();
+        s = s.replace('|','#').replace('\n', ' ').replace("\r","").replace("\\","#");
+        if (s.length() > 40) {
+            s = s.substring(0, 40) + s.hashCode();
+        }
+        s = "|" + s + "|";
+        return s;
+    }
+    
     @Override
     public void visitReference(JCTree.JCMemberReference that) {
-        String s = "|" + that.toString() + "|";
+        String s = makeBarEnclosedString(that);
         ISymbol sym = F.symbol(s);
         functionSymbols.add(sym);
         addConstant(sym, refSort, that);
@@ -2378,7 +2388,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     @Override 
     public void visitLambda(JCTree.JCLambda that) {
-        String s = "|" + that.toString().replace('|', '#').replace("\r", "").replace('\n', ' ') + "|";
+        String s = makeBarEnclosedString(that);
         ISymbol sym = F.symbol(s);
         functionSymbols.add(sym);
         addConstant(sym, refSort, that);
@@ -2441,7 +2451,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 result = F.exists(params,value);
             } else {
                 notImplWarn(that, "JML Quantified expression using " + that.op.internedName());
-                ISymbol sym = F.symbol("|" + that.toString().replace('|', '#').replace('\\', '#') + "|");
+                ISymbol sym = F.symbol(makeBarEnclosedString(that));
                 addConstant(sym,convertSort(that.type),null);
                 result = sym;
             }
