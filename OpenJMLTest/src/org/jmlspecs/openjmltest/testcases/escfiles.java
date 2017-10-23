@@ -472,7 +472,7 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testPreconditionDetail() {
+    public void testPreconditionDetail() {  // FIXME - why multiple conjuncts reported
         helpTF("preconditionDetail");
     }
 

@@ -74,7 +74,7 @@ public class escall3 extends EscBase {
     
     @Test
     public void testFieldAccess() {
-        main.addOptions("-checkFeasibility=none");
+        main.addOptions("-checkFeasibility=none"); // Part of test
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                  
@@ -291,7 +291,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testFieldAssign() {
-        main.addOptions("-checkFeasibility=none");
+        main.addOptions("-checkFeasibility=none"); // Part of test
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                  
@@ -1419,7 +1419,7 @@ public class escall3 extends EscBase {
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2b() {
-        main.addOptions("-checkFeasibility=all","-defaults=constructor:pure");
+        main.addOptions("-checkFeasibility=all","-defaults=constructor:pure"); // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
@@ -1467,7 +1467,7 @@ public class escall3 extends EscBase {
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2c() {
-        main.addOptions("-checkFeasibility=all","-defaults=constructor:pure");
+        main.addOptions("-checkFeasibility=all","-defaults=constructor:pure"); // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends RuntimeException {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
@@ -1514,7 +1514,7 @@ public class escall3 extends EscBase {
     
     // Checks the class of the resulting exception when close calls throw exceptions, but not the try body
     @Test public void testTryResources2a() {
-    	main.addOptions("-checkFeasibility=all","-defaults=constructor:pure");
+    	main.addOptions("-checkFeasibility=all","-defaults=constructor:pure");  // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"

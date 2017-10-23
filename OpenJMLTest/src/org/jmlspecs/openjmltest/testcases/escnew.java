@@ -1677,6 +1677,38 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:20: warning: Associated declaration",7
                 );
     }
+    
+    @Test
+    public void testMethodMatching() {
+    	main.addOptions("-method=mm"); // Part of test
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> { \n"
+                +"   int k;\n"
+                +"  //@ ensures true; pure \n"
+                +"  public int mpure(int i) { return i+17; }\n"
+                
+                +"  public void mm(int i) { \n"
+                +"     int j = 0; \n"
+                +"     if (i == 1) j = mpure(i); \n"
+                +"     else if (i == 2) { j = mpure(i); k = 0; } \n"
+                +"     else  j = 29; \n"
+                +"     //@ assert i==1 ==> j == mpure(1); \n"
+                +"     //@ assert i==2 ==> j == mpure(2); \n" // ERROR
+                +"     //@ assert i==3 ==> j == mpure(1); \n" // ERROR
+                +"     //@ assert i==3 ==> j != mpure(1); \n" // ERROR
+                
+                +"  }\n"
+                
+                
+               
+                +"}"
+                ,anyorder(
+                 seq("/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method mm",10)
+                ,seq("/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method mm",10)
+                ,seq("/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assert) in method mm",10)
+                )
+                );
+    }
 
     @Test
     public void testExplicitAssert() {
