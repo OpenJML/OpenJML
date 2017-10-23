@@ -106,7 +106,9 @@ public enum JmlOption implements IOption {
     
     DEFAULTS("-defaults",true,"","Specifies various default behaviors: constructor:pure|everything",null),
     STATIC_INIT_WARNING("-staticInitWarning",false,true,"Warns about missing static_initializer clauses",null),
-    
+    // Experimental
+    DETERMINISM("-determinism",false,true,"Experimental: enables better determinism",null),
+
     // Obsolete
     NOCHECKSPECSPATHX("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false",true),
     NOPURITYCHECKX("-noPurityCheck",false,false,"When on, no warnings for use of impure methods are issued","-purityCheck=false",true),
