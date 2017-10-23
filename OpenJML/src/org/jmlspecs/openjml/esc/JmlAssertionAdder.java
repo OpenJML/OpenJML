@@ -1078,7 +1078,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             
             addStat( comment(methodDecl,"Method Body",null));
-            labelHeapCounts.put(preLabel.name, heapCount);
+            LabelProperties lp = new LabelProperties();
+            lp.allocCounter = 0;
+            lp.heapCount = heapCount;
+            labelProperties.put(preLabel.name,lp);
+
             if (methodDecl.body != null) {
                 if (callingThis || callingSuper) {
                     convert(iter.next());
@@ -4962,17 +4966,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * when an \old expression appears that references the label: in RAC mode we
      * need to insert a computation of the desired quantity.
      */ // FIXME - determine if these need to be two separate lists. The difference at present is that those in the active list are not yet closed.
-    protected
-    Map<Name,ListBuffer<JCStatement>> labelActiveOldLists = new HashMap<Name,ListBuffer<JCStatement>>();
-    protected
-    Map<Name,ListBuffer<JCStatement>> labelOldLists = new HashMap<Name,ListBuffer<JCStatement>>();
-    protected
-    Map<Name,JmlLabeledStatement> labelStatements = new HashMap<Name,JmlLabeledStatement>();
-    protected
-    Map<Name,Integer> labelHeapCounts = new HashMap<Name,Integer>();
+//    protected
+//    Map<Name,ListBuffer<JCStatement>> labelActiveOldLists = new HashMap<Name,ListBuffer<JCStatement>>();
+//    protected
+//    Map<Name,ListBuffer<JCStatement>> labelOldLists = new HashMap<Name,ListBuffer<JCStatement>>();
+//    protected
+//    Map<Name,JmlLabeledStatement> labelStatements = new HashMap<Name,JmlLabeledStatement>();
+//    protected
+//    Map<Name,Integer> labelHeapCounts = new HashMap<Name,Integer>();
 
     public static class LabelProperties {
         int allocCounter;
+        int heapCount;
+        JmlLabeledStatement labeledStatement;
+        ListBuffer<JCStatement> oldLists;
+        ListBuffer<JCStatement> activeOldLists;
     }
     
     protected Map<Name,LabelProperties> labelProperties = new HashMap<>();
@@ -4988,20 +4996,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         LabelProperties lp = new LabelProperties();
         labelProperties.put(that.label,lp);
         lp.allocCounter = allocCounter;
+        lp.activeOldLists = currentStatements;
+        lp.oldLists = null;
+        lp.heapCount = heapCount;
         JmlLabeledStatement stat = M.at(that).JmlLabeledStatement(that.label, null, null);
+        lp.labeledStatement = stat;
         markLocation(that.label,currentStatements,stat);
         treeMap.put(that, stat); // we store the mapping from old to new so that we can appropriately translate the targets of break and continue statements
-        labelActiveOldLists.put(that.label, currentStatements);
-        labelStatements.put(that.label, stat);
-        labelHeapCounts.put(that.label, heapCount);
+
         JCBlock block;
         try {
             block = convertIntoBlock(that,that.body);
             stat.body = block;
             result = addStat(stat);
         } finally {
-            labelActiveOldLists.remove(that.label);
-            labelOldLists.put(that.label,  currentStatements);
+            labelProperties.get(that.label).activeOldLists = null;
+            labelProperties.get(that.label).oldLists = currentStatements;
             treeMap.remove(that); // Remove the statement because we are leaving the scope of the label
         }
     }
@@ -7494,16 +7504,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCBlock bl = M.at(that).Block(0L, List.<JCStatement>nil());
                 String label = "_JMLCALL_" + that.pos + "_" + (++count);
                 calllabel = names.fromString(label);
+                LabelProperties lp = new LabelProperties();
+                labelProperties.put(calllabel, lp);
                 JmlLabeledStatement stat = M.at(that).JmlLabeledStatement(calllabel,null,bl);
                 addStat(stat);
-                labelHeapCounts.put(calllabel,heapCount);
+                lp.labeledStatement = stat;
+                lp.heapCount = heapCount;
+                lp.allocCounter = allocCounter;
                 preLabel = M.at(that).Ident(calllabel);
                 
-                labelOldLists.put(calllabel,  currentStatements);
+                lp.oldLists = currentStatements;
                 oldStatements = currentStatements;
                 defaultOldLabel = calllabel;
                 
-                labelStatements.put(calllabel, stat);
                 stat.extraStatements.addAll(currentStatements);
                 
                 markLocation(calllabel,currentStatements,stat);
@@ -13113,13 +13126,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             popBlock();
         } else {
             // FIXME _ I don;'t beklieve the use of currentStsatements is correct here
-            ListBuffer<JCStatement> list = labelActiveOldLists.get(label.name);
-            JmlLabeledStatement labelStat = labelStatements.get(label.name);
+            ListBuffer<JCStatement> list = labelProperties.get(label.name).activeOldLists;
+            JmlLabeledStatement labelStat = labelProperties.get(label.name).labeledStatement;
             labelStat.extraStatements.add(stat);
             if (list != null) {
                 list.add(stat);
             } else {
-                ListBuffer<JCStatement> stlist = labelOldLists.get(label.name);
+                ListBuffer<JCStatement> stlist = labelProperties.get(label.name).oldLists;
                 ListBuffer<JCStatement> newlist = new ListBuffer<JCStatement>();
                 for (JCStatement st: stlist) {
                     if (st instanceof JCLabeledStatement && ((JCLabeledStatement)st).label.equals(label.name)) {
@@ -13214,13 +13227,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 addStat(v);
                                 // FIXME - what happens to simple \old
                                 if (that.args.size() == 2) {
-                                    ListBuffer<JCStatement> list = labelActiveOldLists.get(label);
-                                    JmlLabeledStatement labelStat = labelStatements.get(label);
+                                    ListBuffer<JCStatement> list = labelProperties.get(label).activeOldLists;
+                                    JmlLabeledStatement labelStat = labelProperties.get(label).labeledStatement;
                                     labelStat.extraStatements.add(v);
                                     if (list != null) {
                                         list.add(v);
                                     } else {
-                                        ListBuffer<JCStatement> stlist = labelOldLists.get(label);
+                                        ListBuffer<JCStatement> stlist = labelProperties.get(label).oldLists;
                                         ListBuffer<JCStatement> newlist = new ListBuffer<JCStatement>();
                                         for (JCStatement st: stlist) {
                                             if (st instanceof JCLabeledStatement && ((JCLabeledStatement)st).label.equals(label)) {
@@ -13253,13 +13266,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 addStat(st);
                                 if (label != null) {
                                     //JCExpression e = that.args.get(1);
-                                    ListBuffer<JCStatement> list = labelActiveOldLists.get(label);
-                                    JmlLabeledStatement labelStat = labelStatements.get(label);
+                                    ListBuffer<JCStatement> list = labelProperties.get(label).activeOldLists;
+                                    JmlLabeledStatement labelStat = labelProperties.get(label).labeledStatement;
                                     labelStat.extraStatements.add(v);
                                     if (list != null) {
                                         list.add(v);
                                     } else {
-                                        ListBuffer<JCStatement> stlist = labelOldLists.get(label);
+                                        ListBuffer<JCStatement> stlist = labelProperties.get(label).oldLists;
                                         if (stlist != currentStatements) {
                                             ListBuffer<JCStatement> newlist = new ListBuffer<JCStatement>();
                                             for (JCStatement stt: stlist) {
@@ -15459,7 +15472,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected Name newNameForCallee(int pos, MethodSymbol msym, boolean useheap) {
-        int heap = inOldEnv ? labelHeapCounts.get(oldenv.name) : heapCount;
+        int heap = inOldEnv ? labelProperties.get(oldenv.name).heapCount : heapCount;
         return names.fromString(utils.qualifiedName(msym).replace('.', '_') + ( !useheap ? "_"  : "_H" + heap + "_") + pos);
     }
     
