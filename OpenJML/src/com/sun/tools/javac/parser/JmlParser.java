@@ -693,6 +693,35 @@ public class JmlParser extends JavacParser {
                     rescan();
                     needSemi = false;
 
+                } else if (jtoken == JmlTokenKind.SHOW) {
+                    if (JmlOption.isOption(context, JmlOption.STRICT)) {
+                        log.warning(pos(),"jml.not.strict","show statement");
+                    }
+                    S.setJmlKeyword(false);
+                    nextToken();
+                    // Only expressions are allowed -
+                    // but JML constructs are allowed.
+                    boolean prev = inJmlDeclaration;
+                    inJmlDeclaration = true;
+                    ListBuffer<JCExpression> expressions = new ListBuffer<>();
+                    JCExpression t = super.parseExpression();
+                    expressions.add(t);
+                    while (token.kind == TokenKind.COMMA) {
+                        accept(TokenKind.COMMA);
+                        t = super.parseExpression();
+                        expressions.add(t);
+                    }
+                    S.setJmlKeyword(true);
+                    if (token.kind != TokenKind.SEMI) {
+                        jmlerror(pos(), pos()+1, "jml.bad.expression.list.in.show");
+                        skipThroughSemi();
+                    } else {
+                        accept(TokenKind.SEMI);
+                    }
+                    st = toP(jmlF.at(pos).JmlStatementShow(jtoken,expressions.toList()));
+                    inJmlDeclaration = prev;
+                    needSemi = false;
+
                 } else if (methodClauseTokens.contains(jtoken)) {
                     if (JmlOption.isOption(context, JmlOption.STRICT)) {
                         log.warning(pos(),"jml.refining.required");

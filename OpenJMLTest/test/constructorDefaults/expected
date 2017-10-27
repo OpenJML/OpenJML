@@ -18,5 +18,3 @@ Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of B.mm() with prover !!!! - no warnings
 Completed proving methods in B
-Note: /Users/davidcok/cok/projects/OpenJMLA/Specs/java8/java/util/Random.jml uses internal proprietary API that may be removed in a future release.
-Note: Recompile with -Xlint:sunapi for details.

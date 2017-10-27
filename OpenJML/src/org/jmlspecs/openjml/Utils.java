@@ -54,6 +54,8 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
@@ -936,11 +938,28 @@ public class Utils {
         if (c == null) return null;
         JmlTree.Maker F = JmlTree.Maker.instance(context);
         Names names = Names.instance(context);
-        JCExpression t = nametree(position, "org.jmlspecs.annotation");
-        t = (F.at(position).Select(t, names.fromString(c.getSimpleName())));
+        JCExpression p = nametree(position, "org.jmlspecs.annotation");
+        JCFieldAccess t = (F.at(position).Select(p, names.fromString(c.getSimpleName())));
         JCAnnotation ann = (F.at(position).Annotation(t,
                 com.sun.tools.javac.util.List.<JCExpression> nil()));
         ((JmlTree.JmlAnnotation)ann).sourcefile = log().currentSourceFile();
+        
+        ClassSymbol sym = JmlAttr.instance(context).tokenToAnnotationSymbol.get(jt);
+        if (sym != null) {
+            ann.type = sym.type;
+            t.sym = sym;         // org.jmlspecs.annotation.X
+            t.type = sym.type;
+            JCFieldAccess pa = (JCFieldAccess)p;  // org.jmlspecs.annotation
+            pa.sym = sym.owner;
+            pa.type = pa.sym.type;
+            pa = (JCFieldAccess)pa.selected;  // org.jmlspecs
+            pa.sym = sym.owner.owner;
+            pa.type = pa.sym.type;
+            JCIdent porg = (JCIdent)pa.selected;  // org
+            porg.sym = sym.owner.owner.owner;
+            porg.type = porg.sym.type;
+       }
+
         return ann;
     }
     

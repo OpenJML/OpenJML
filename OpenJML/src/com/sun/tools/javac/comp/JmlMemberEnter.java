@@ -902,7 +902,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         mr.mods.flags |= Utils.JMLADDED;   // FIXME - why?
         mr.pos = modelVarDecl.pos;
         utils.setJML(mr.mods);
-        mr.mods.annotations = List.<JCAnnotation>of(utils.tokenToAnnotationAST(JmlTokenKind.MODEL,modelVarDecl.pos,modelVarDecl.getEndPosition(log.getSource(modelVarDecl.sourcefile).getEndPosTable())));
+        int endpos = modelVarDecl.getEndPosition(log.getSource(modelVarDecl.sourcefile).getEndPosTable());
+        mr.mods.annotations = List.<JCAnnotation>of(utils.tokenToAnnotationAST(JmlTokenKind.MODEL,modelVarDecl.pos,endpos),
+                                                    utils.tokenToAnnotationAST(JmlTokenKind.PURE,modelVarDecl.pos,endpos)
+                );
         JmlSpecs.FieldSpecs fspecs = specs.getSpecs(modelVarDecl.sym);
         JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);
         tcd.pos = mr.pos;

@@ -11,6 +11,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import com.sun.source.tree.LabeledStatementTree;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeScanner;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 
@@ -232,6 +233,10 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 
     public void visitJmlStatement(JmlStatement tree) {
         scan(tree.statement);
+    }
+    
+    public void visitJmlStatementShow(JmlStatementShow tree) {
+        for (JCExpression e: tree.expressions) scan(e);
     }
     
     public void visitJmlStatementDecls(JmlStatementDecls tree) {

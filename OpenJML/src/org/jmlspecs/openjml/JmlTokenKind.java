@@ -32,6 +32,7 @@ public enum JmlTokenKind implements ITokenKind {
     HAVOC("havoc"), // Just used in ESC
     DEBUG("debug"),
     SET("set"),
+    SHOW("show"),
     DECREASES("decreases"),
     LOOP_INVARIANT("loop_invariant"),
     HENCE_BY("hence_by"),

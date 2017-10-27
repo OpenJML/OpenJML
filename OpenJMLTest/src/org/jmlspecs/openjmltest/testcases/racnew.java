@@ -3107,6 +3107,35 @@ public class racnew extends RacBase {
         
     }
     
+    @Test
+    public void testShowStatement() {
+        expectedExit = 0;
+        main.addOptions("-code-math=bigint","-method=m");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public static void main(String[] args) { m(3,-8); } \n"
+                        + "  //@ public normal_behavior \n"
+                        + "  //@   requires true; \n"
+                        + "  public static void m(int i, int j) {\n"
+                        + "     //@ show i, j+1;\n"
+                        + "     int k = i+j;\n"
+                        + "     //@ show k;\n"
+                        + "     //@ assert k > 0;\n"
+                        + "     int m = i-j;\n"
+                        + "     //@ show m,k;\n"
+                        + "     //@ assert m > 0;\n"
+                        + "  }\n"
+                        + "}\n"
+                        ,"LABEL JMLSHOW_1 = 3"
+                        ,"LABEL JMLSHOW_2 = -7"
+                        ,"LABEL JMLSHOW_3 = -5"
+                        ,"/tt/TestJava.java:10: JML assertion is false"
+                        ,"LABEL JMLSHOW_4 = 11"
+                        ,"LABEL JMLSHOW_5 = -5"
+                        );
+    }
+
 
 
 }

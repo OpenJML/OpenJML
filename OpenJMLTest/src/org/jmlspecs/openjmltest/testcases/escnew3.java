@@ -756,6 +756,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testVarargs3() {
+        main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires ints.length == 0 || ints[0] != null;\n"

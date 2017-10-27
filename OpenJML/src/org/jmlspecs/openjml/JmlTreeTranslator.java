@@ -13,6 +13,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeTranslator;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
@@ -322,6 +323,16 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     public void visitJmlStatement(JmlStatement that) {
         JmlStatement r = that;
         r.statement = translate(that.statement);
+        result = r;
+        // Not translating: token
+    }
+
+    @Override
+    public void visitJmlStatementShow(JmlStatementShow that) {
+        JmlStatementShow r = that;
+        ListBuffer<JCExpression> expressions = new ListBuffer<>();
+        for (JCExpression e: that.expressions) expressions.add( translate(e));
+        that.expressions = expressions.toList();
         result = r;
         // Not translating: token
     }

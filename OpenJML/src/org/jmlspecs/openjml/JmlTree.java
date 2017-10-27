@@ -121,6 +121,7 @@ public class JmlTree implements IJmlTree {
         JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlTokenKind t, JmlTokenKind also, List<JmlMethodClause> clauses, JCBlock block);
         JmlSpecificationCase JmlSpecificationCase(JmlSpecificationCase sc, List<JmlMethodClause> clauses);
         JmlStatement JmlStatement(JmlTokenKind t, JCTree.JCExpressionStatement e);
+        JmlStatementShow JmlStatementShow(JmlTokenKind t, List<JCExpression> expressions);
         JmlStatementDecls JmlStatementDecls(List<JCTree.JCStatement> list);
         JmlStatementLoop JmlStatementLoop(JmlTokenKind t, JCTree.JCExpression e);
         JmlStatementSpec JmlStatementSpec(JmlMethodSpecs specs);
@@ -566,6 +567,11 @@ public class JmlTree implements IJmlTree {
         @Override
         public JmlStatement JmlStatement(JmlTokenKind t, JCTree.JCExpressionStatement e) {
             return new JmlStatement(pos,t,e);
+        }
+
+        @Override
+        public JmlStatementShow JmlStatementShow(JmlTokenKind t, List<JCExpression> expressions) {
+            return new JmlStatementShow(pos,t,expressions);
         }
 
         @Override
@@ -2515,6 +2521,38 @@ public class JmlTree implements IJmlTree {
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlStatement(this, d);
+            } else {
+                //System.out.println("A JmlStatement expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
+            }
+        }
+    }
+
+    public static class JmlStatementShow extends JmlAbstractStatement {
+        public JmlTokenKind token;
+        public List<JCTree.JCExpression> expressions;
+        
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        protected JmlStatementShow(int pos, JmlTokenKind token, List<JCTree.JCExpression> expressions) {
+            this.pos = pos;
+            this.token = token;
+            this.expressions = expressions;
+        }
+    
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlStatementShow(this); 
+            } else {
+                //System.out.println("A JmlStatement expects an IJmlVisitor, not a " + v.getClass());
+                super.accept(v);
+            }
+        }
+    
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlStatementShow(this, d);
             } else {
                 //System.out.println("A JmlStatement expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);

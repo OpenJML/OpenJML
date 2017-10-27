@@ -46,6 +46,7 @@ import org.jmlspecs.openjml.JmlTree.JmlStatementDecls;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.JmlTree.JmlStatementHavoc;
 import org.jmlspecs.openjml.JmlTree.JmlStatementLoop;
+import org.jmlspecs.openjml.JmlTree.JmlStatementShow;
 import org.jmlspecs.openjml.JmlTree.JmlStatementSpec;
 import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
 import org.jmlspecs.openjml.JmlTree.JmlStoreRefKeyword;
@@ -519,6 +520,22 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             print(that.token.internedName());
             print(" ");
             that.statement.accept(this);
+            if (useJMLComments) print("*/");
+        } catch (IOException e) { perr(that,e); }
+    }
+
+    /** show statement */
+    public void visitJmlStatementShow(JmlStatementShow that) {
+        try { 
+            if (useJMLComments) print ("/*@ ");
+            print(that.token.internedName());
+            boolean first = true;
+            for (JCExpression e: that.expressions) {
+                if (!first) print(",");
+                print(" ");
+                e.accept(this);
+            }
+            print(";");
             if (useJMLComments) print("*/");
         } catch (IOException e) { perr(that,e); }
     }
@@ -1120,15 +1137,17 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public static JmlPrettyFormatter racFormatter;
     
     interface JmlPrettyFormatter {
-        public String formatLine(String file, int lineNumber, String line);
+        default public String formatLine(String file, int lineNumber, String line) {
+            return line;
+        }
     }
     
     static {
         racFormatter = new JmlPrettyFormatter() {
-            @Override
-            public String formatLine(String file, int lineNumber, String line) {
-                return String.format("[jmlrac:%s:%d]    %s", file, lineNumber, line);
-            }
+//            @Override
+//            public String formatLine(String file, int lineNumber, String line) {
+//                return String.format("[jmlrac:%s:%d]    %s", file, lineNumber, line);
+//            }
         };
 
     }

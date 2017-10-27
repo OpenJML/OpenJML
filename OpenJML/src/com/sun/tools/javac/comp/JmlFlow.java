@@ -168,6 +168,11 @@ public class JmlFlow extends Flow  {
         }
 
         @Override
+        public void visitJmlStatementShow(JmlStatementShow that) {
+            scan(that.expressions);
+        }
+
+        @Override
         public void visitJmlStatementDecls(JmlStatementDecls that) {
             for (JCStatement s: that.list) {
                 scan(s);
@@ -534,6 +539,11 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitJmlStatement(JmlStatement that) {
             scan(that.statement);
+        }
+        
+        @Override
+        public void visitJmlStatementShow(JmlStatementShow that) {
+            scan(that.expressions);
         }
 
         @Override
@@ -909,6 +919,11 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitJmlStatement(JmlStatement that) {
             scan(that.statement);
+        }
+
+        @Override
+        public void visitJmlStatementShow(JmlStatementShow that) {
+            scan(that.expressions);
         }
 
         @Override

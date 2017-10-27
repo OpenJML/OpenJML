@@ -612,7 +612,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambda2() {
-        main.addOptions("-method=mm");
+        main.addOptions("-method=mm","-show");
         main.addOptions("-code-math=bigint","-spec-math=bigint");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -634,7 +634,6 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambdaByte() {
-        main.addOptions("-method=mm","-show");
         main.addOptions("-code-math=bigint","-spec-math=bigint");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -644,6 +643,7 @@ public class esclambdas extends EscBase {
                 +"      //@ ensures this.aaaaaaaaaaa != null;\n"
                 +"      //@ ensures this.aaaaaaaaaaa.byteValue() == aaaaaaaaaaa;\n"
                 +"  public void mm(byte aaaaaaaaaaa) {\n"
+                +"      //this.aaaaaaaaaaa = aaaaaaaaaaa;\n"
                 +"      set(()->this.aaaaaaaaaaa = aaaaaaaaaaa);\n"
                 +"  }\n"
                 +"  //@ public model static interface NoException { public normal_behavior ensures true; void run(); } \n"
@@ -657,7 +657,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambdaInt() {
-    //   main.addOptions("-method=mm","-show");
+       main.addOptions("-method=mm","-show");
         main.addOptions("-code-math=bigint","-spec-math=bigint");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

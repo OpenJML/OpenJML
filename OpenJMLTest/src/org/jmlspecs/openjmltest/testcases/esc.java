@@ -4163,4 +4163,51 @@ public class esc extends EscBase {
                         );
     }
 
+    @Test
+    public void testShowStatementESC() {
+        expectedExit = 0;
+        main.addOptions("-code-math=bigint","-method=m","-escMaxWarnings=1");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public static class Key { public int k; } \n"
+                        + "  //@ public normal_behavior \n"
+                        + "  //@   requires true; \n"
+                        + "  public static void m(int i, int j) {\n"
+                        + "     //@ show i, j+1;\n"
+                        + "     int k = i+j;\n"
+                        + "     //@ show k;\n"
+                        + "     //@ assert k > 0;\n"
+                        + "     int m = i-j;\n"
+                        + "     //@ show m,k;\n"
+                        + "     //@ assert m > 0;\n"
+                        + "  }\n"
+                        + "}\n"
+                        ,"/tt/TestJava.java:7: warning: Label JMLSHOW_1 has value 0",15
+                        ,"/tt/TestJava.java:7: warning: Label JMLSHOW_2 has value 2",18
+                        ,"/tt/TestJava.java:9: warning: Label JMLSHOW_3 has value 1",15
+                        ,"/tt/TestJava.java:12: warning: Label JMLSHOW_4 has value ( - 1 )",15
+                        ,"/tt/TestJava.java:12: warning: Label JMLSHOW_5 has value 1",17
+                        ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m",10
+                        );
+    }
+
+    @Test
+    public void testShowStatement() {
+        expectedExit = 0;
+        main.addOptions("-strictJML");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public static class Key { public int k; } \n"
+                        + "  //@ public normal_behavior \n"
+                        + "  //@   requires true; \n"
+                        + "  public static void m(int i, int j) {\n"
+                        + "     //@ show i;\n"
+                        + "  }\n"
+                        + "}\n"
+                        ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under -strictJML",10
+                        );
+    }
+
 }

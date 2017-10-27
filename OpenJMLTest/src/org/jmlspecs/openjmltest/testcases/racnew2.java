@@ -126,6 +126,7 @@ public class racnew2 extends RacBase {
 
     /** Tests new object */
     @Test public void testNewObject() {
+        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  TestJava a = new TestJava();\n" +
                 "  int i = a.m(10); \n" +
@@ -387,6 +388,7 @@ public class racnew2 extends RacBase {
     }
     
     @Test public void testSimpleBreak() {
+        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                                 "  m(0);  m(2);  \n" +
                                 "  System.out.println(\"END\"); \n" +

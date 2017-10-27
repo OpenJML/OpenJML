@@ -1783,7 +1783,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             newspecs.decl = decl;
             msp.cases.deSugared = newspecs;
             specs.putSpecs(decl.sym, msp);
-            // FIXME - still have some tests in which the specs are put but don't
+            // FIXME - still have some tests in which the specs are pure but don't
             // respond to isPure - perhaps we need to add an annotation as well.
 //            if (desugaringPure) {
 //                if (!specs.isPure(decl.sym)) {
@@ -3813,6 +3813,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JmlTokenKind prevClauseType = currentClauseType;
         currentClauseType = tree.token;
         if (tree.statement != null) attribStat(tree.statement,env);
+        currentClauseType = prevClauseType;
+        jmlresolve.setAllowJML(prevAllowJML);
+    }
+
+    /** This handles JML show statement */
+    public void visitJmlStatementShow(JmlTree.JmlStatementShow tree) { 
+        boolean prevAllowJML = jmlresolve.setAllowJML(true);
+        JmlTokenKind prevClauseType = currentClauseType;
+        currentClauseType = tree.token;
+        if (tree.expressions != null) for (JCExpression e: tree.expressions) attribExpr(e,env);
         currentClauseType = prevClauseType;
         jmlresolve.setAllowJML(prevAllowJML);
     }

@@ -9,8 +9,6 @@ import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.source.tree.*;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.LetExpr;
 import com.sun.tools.javac.tree.TreeCopier;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
@@ -392,6 +390,17 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
         JmlStatement copy = M.at(that.pos).JmlStatement(
                 that.token,
                 copy(that.statement,p));
+        copy.type = that.type;
+        return copy;
+    }
+
+    @Override
+    public JCTree visitJmlStatementShow(JmlStatementShow that, Void p) {
+        ListBuffer<JCExpression> expressions = new ListBuffer<>();
+        for (JCExpression e: that.expressions) expressions.add( copy(e,p));
+        JmlStatementShow copy = M.at(that.pos).JmlStatementShow(
+                that.token,
+                copy(that.expressions,p));
         copy.type = that.type;
         return copy;
     }
