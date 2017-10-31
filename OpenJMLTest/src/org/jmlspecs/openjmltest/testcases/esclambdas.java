@@ -197,7 +197,7 @@ public class esclambdas extends EscBase {
 
     @Test
     public void testIdentity4() {
-    	main.addOptions("-show","-method=m1","-subexpressions");
+    	//main.addOptions("-show","-method=m1","-subexpressions");
         helpTCX("tt.TestJava","package tt;  import java.util.function.Function;\n"
                                 +"public class TestJava { \n"
                                 
@@ -612,10 +612,10 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambda2() {
-        main.addOptions("-method=mm","-show");
+        main.addOptions("-method=mm");
         main.addOptions("-code-math=bigint","-spec-math=bigint");
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
+                +"/*@ non_null_by_default*/ public class TestJava { \n"
                 +"      public int a = 11; \n"
 
                 +"  //@ requires this.a == 11;\n"
@@ -626,6 +626,29 @@ public class esclambdas extends EscBase {
                 +"  }\n"
                 +"  //@ inline \n"
                 +"  final public int m(int aa, int b, /*@ non_null */ java.util.function.Function<Integer,Integer> f) {\n"
+                +"       int a = 7; return a + b + f.apply(this.a);"
+                +"  }\n"
+                +"  }\n"
+                );  // No errors
+    }
+    
+    @Test
+    public void testBindLambda21() {
+        main.addOptions("-method=m");
+        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        helpTCX("tt.TestJava","package tt; import java.util.function.Function; \n"
+                +"/*@ non_null_by_default*/ public class TestJava { \n"
+                +"      //@ model public static interface NNFunction<T,R> extends Function<T,R> { non_null R apply(non_null T t); } \n"
+                +"      public int a = 11; \n"
+
+                +"  //@ requires this.a == 11;\n"
+                +"  public void mm() {\n"
+                +"      int a = 9; \n"
+                +"      int b = a + m(a, this.a, x->{return x+a+this.a+100;}); \n"
+                +"       //@ assert b == 9 + 7 + 11 + (11+9+11+100);\n"
+                +"  }\n"
+                +"  //@ requires f != null; inline \n"
+                +"  final public int m(int aa, int b, /*@{NNFunction<Integer,Integer>}*/ Function<Integer,Integer> f) {\n"
                 +"       int a = 7; return a + b + f.apply(this.a);"
                 +"  }\n"
                 +"  }\n"
@@ -657,7 +680,6 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambdaInt() {
-       main.addOptions("-method=mm","-show");
         main.addOptions("-code-math=bigint","-spec-math=bigint");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -669,7 +691,7 @@ public class esclambdas extends EscBase {
                 +"  public void mm(int aaaaaaaaaaa) {\n"
                 +"      set(()->this.aaaaaaaaaaa = aaaaaaaaaaa);\n"
                 +"  }\n"
-                +"  //@ public normal_behavior requires true; { r.run(); } ensures true; \n"
+                +"  //@ public behavior requires true; { r.run(); } ensures true; \n"
                 +"  public void set(Runnable r) {\n"
                 +"       r.run();"
                 +"  }\n"

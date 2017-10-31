@@ -258,6 +258,7 @@ public class JmlParser extends JavacParser {
         replacementType = null;
         JmlVariableDecl param = (JmlVariableDecl)super.formalParameter(lambdaParameter);
         insertReplacementType(param,replacementType);
+        replacementType = null;
         return param;
     }
 
@@ -3351,7 +3352,10 @@ public class JmlParser extends JavacParser {
             pushBackModifiers = null;
         }
         T list = super.variableDeclarators(mods,type,vdefs);
-        if (replacementType != null) for (Object decl: list) insertReplacementType(decl,replacementType);
+        if (replacementType != null) {
+            for (Object decl: list) insertReplacementType(decl,replacementType);
+            replacementType = null;
+        }
         return list;
     }
 

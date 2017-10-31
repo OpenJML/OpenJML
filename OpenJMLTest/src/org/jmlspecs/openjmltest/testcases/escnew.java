@@ -1334,6 +1334,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testBoxing() {
+        main.addOptions("-show","-method=m1bad");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

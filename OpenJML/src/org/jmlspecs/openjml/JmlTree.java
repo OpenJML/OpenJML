@@ -149,7 +149,7 @@ public class JmlTree implements IJmlTree {
         /** The factory keeps a reference to the context in which it was
          * created, for handy use later on.
          */
-        protected Context context;
+        public Context context;
         
         /** A constructor for the factory
          * @param context the compilation context with which to associate this factory

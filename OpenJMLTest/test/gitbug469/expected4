@@ -1,0 +1,39 @@
+Proving methods in Repro
+Starting proof of Repro.Repro() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Repro.Repro() with prover !!!! - no warnings
+Proving methods in Repro.Bar
+Starting proof of Repro.Bar.Bar() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Repro.Bar.Bar() with prover !!!! - no warnings
+Starting proof of Repro.Bar.getSeed(int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Repro.Bar.getSeed(int) with prover !!!! - no warnings
+Starting proof of Repro.Bar.getSeed2(int) with prover !!!!
+test/gitbug469/Repro.java:38: warning: The prover cannot establish an assertion (Precondition) in method getSeed2
+    URANDOM.read(result, read, length-read);
+                ^
+/Users/davidcok/cok/projects/OpenJMLB/Specs/java7/java/io/FileInputStream.jml:73: warning: Associated declaration
+    public int read(byte[] bytes, int off, int len) throws IOException;
+               ^
+/Users/davidcok/cok/projects/OpenJMLB/Specs/java5/java/io/InputStream.jml:141: warning: Precondition conjunct is false: isOpen
+      @   requires isOpen && availableBytes == 0;
+                   ^
+/Users/davidcok/cok/projects/OpenJMLB/Specs/java5/java/io/InputStream.jml:147: warning: Precondition conjunct is false: availableBytes > 0
+      @   requires availableBytes > 0;
+                                  ^
+/Users/davidcok/cok/projects/OpenJMLB/Specs/java5/java/io/InputStream.jml:165: warning: Precondition conjunct is false: (len > 0 && !isOpen) || b == null || off < 0 || len < 0 || off + len > b.length
+                              len < 0 || off+len > b.length;
+                                      ^
+test/gitbug469/Repro.java:36: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method getSeed2
+        byte[] result = new byte[length];
+                        ^
+Completed proof of Repro.Bar.getSeed2(int) with prover !!!! - with warnings
+Completed proving methods in Repro.Bar
+Completed proving methods in Repro
+Note: /Users/davidcok/cok/projects/OpenJMLB/Specs/java8/java/util/Random.jml uses internal proprietary API that may be removed in a future release.
+Note: Recompile with -Xlint:sunapi for details.
+6 warnings
