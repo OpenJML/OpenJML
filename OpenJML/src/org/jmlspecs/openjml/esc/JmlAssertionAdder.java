@@ -7511,7 +7511,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCIdent resultId  = newTemp(that,resultType);
                     resultSym = (VarSymbol) resultId.sym;
                     resultExpr = resultId;
-                    boolean nn = attr.isNonNull(mspecs.decl.mods);
+                    boolean nn;  // Not sure this is giving the correct nullity
+                    if (mspecs.decl != null) nn = attr.isNonNull(mspecs.decl.mods);
+                    else nn = specs.isNonNull(calleeMethodSym.owner);
                     addNullnessAllocationTypeCondition(that, resultSym, nn, false, false);
                 } else {
                     // ESC - Constructor call
@@ -13186,6 +13188,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // FIXME - also it does not work for rac at labelled locations
                 boolean savedInOldEnv = inOldEnv;
                 inOldEnv = true;
+                int savedHeap = heapCount;
                 try {
                     if (rac) {
                         ListBuffer<JCStatement> saved = currentStatements;
@@ -13198,6 +13201,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 currentStatements = oldStatements;
                                 label = defaultOldLabel;
                             }
+                            heapCount = labelProperties.get(label).heapCount;
                             JCExpression arg = (that.args.get(0));
                             if (!convertingAssignable && arg instanceof JCArrayAccess && (
                                     ((JCArrayAccess)arg).indexed instanceof JCIdent ||
@@ -13344,6 +13348,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } finally {
                     oldenv = savedEnv;
                     inOldEnv = savedInOldEnv;
+                    heapCount = savedHeap;
                 }
             }
             break;

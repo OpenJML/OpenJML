@@ -99,7 +99,7 @@ public class compiler {
         actualOutput = removeNotes(actualOutput);
         
         if (print) System.out.println("EXPECTING: " + output[0]);
-        print = true;
+//        print = true;
         if (print) System.out.println("ACTUAL OUT: " + actualOutput);
         if (print) System.out.println("ACTUAL ERR: " + errOutput);
         if (output.length <= 1 && errOutput.length() == 0 && !actualOutput.startsWith("Note:")) errOutput = actualOutput;
@@ -128,7 +128,11 @@ public class compiler {
             }
             assertEquals("The exit code is wrong",expectedExitCode,exitCode);
         } catch (AssertionError ex) {
-            if (!print) System.out.println("TEST: " + name.getMethodName() + " exit=" + exitCode + eol + berr.toString());
+            if (!print) {
+                System.out.println("TEST: " + name.getMethodName() + " exit=" + exitCode + eol + berr.toString());
+                System.out.println("ACTUAL OUT: " + actualOutput);
+                System.out.println("ACTUAL ERR: " + errOutput);
+            }
             throw ex;
         }
     }
@@ -315,7 +319,7 @@ public class compiler {
      */ 
     @Test
     public void testJML1() throws Exception {
-        print = true;
+        //print = true;
         helper(new String[]
                           { "-classpath","../OpenJML/runtime",
                             "-sourcepath","test/testJavaErrors2",

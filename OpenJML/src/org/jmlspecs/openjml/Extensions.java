@@ -124,10 +124,13 @@ public class Extensions {
             }
             try {
                 p = Package.getPackage(extname);
-                registerPackage(context,p);
+                if (p != null) {
+                    registerPackage(context,p);
+                } else {
+                    Log.instance(context).error("jml.extension.failed", extname,"No such package found");
+                }
             } catch (Exception e) {
-                Log.instance(context).error("jml.extension.failed", extname,
-                        p == null ? "No such package found" : e.toString());
+                Log.instance(context).error("jml.extension.failed", extname, e.toString());
             }
         }
     }

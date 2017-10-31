@@ -1447,6 +1447,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 break;
             }
         }
+        int n = 0;
         while (iter.hasPrevious()) {
             JCStatement stat = iter.previous();
             try {
@@ -1460,6 +1461,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         } else {
                             IExpr exx = stack.pop();
                             tail = F.fcn(impliesSym, exx, tail);
+                            ++n;
                         }
                     } else if (s.token == JmlTokenKind.ASSERT) {
                         IExpr exx = stack.pop();
@@ -1468,6 +1470,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         // sure it makes any difference. TODO - evaluate this sometime.
                         //return F.fcn(F.symbol("and"), exx, tail);
                         tail = F.fcn(F.symbol("and"), exx, F.fcn(impliesSym, exx, tail));
+                        ++n;
                     } else if (s.token == JmlTokenKind.COMMENT) {
                         if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                         int k = s.id.indexOf(" ");
@@ -1478,6 +1481,14 @@ public class SMTTranslator extends JmlTreeScanner {
                     } else {
                         log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
                         break;
+                    }
+                    if (n > 250) { // 250 is chosen just to make sure there is not a stack overflow if there is a huge basic block
+                        ISymbol nm = F.symbol("|##PTMP_" + (++ptmp)+ "##|");  // Just something that will not be encoutered elsewhere
+                        C_define_fun c = new C_define_fun(nm, new LinkedList<IDeclaration>(), boolSort, tail);
+                        commands.add(c);
+                        tail = nm;
+                        n = 0;
+
                     }
                 } else {
                     log.error("jml.internal", "Incorrect kind of statement encountered when converting a BasicProgram to SMTLIB: " + stat.getClass());
@@ -1491,6 +1502,7 @@ public class SMTTranslator extends JmlTreeScanner {
         return tail;
     }
     
+    int ptmp = 0;
 
     /** Converts a basic block statement to an SMT expression, tacking it on
      * the front of tail and returning the composite expression.

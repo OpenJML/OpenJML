@@ -98,4 +98,5 @@ JML options:
   -properties                Specifies the path to the properties file
   -properties-default        Specifies the path to the default properties file
   -defaults                  Specifies various default behaviors: constructor:pure|everything
-  -staticInitWarning         Warns about mssing static_initializer clauses
+  -staticInitWarning         Warns about missing static_initializer clauses
+  -determinism               Experimental: enables better determinism

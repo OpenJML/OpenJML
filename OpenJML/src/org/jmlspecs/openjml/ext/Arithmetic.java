@@ -25,6 +25,7 @@ import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.Tag;
 import com.sun.tools.javac.util.Context;
@@ -172,6 +173,21 @@ abstract public class Arithmetic extends ExpressionExtension {
         arg = rewriter.addImplicitConversion(arg,newtype,arg);
         JCTree.Tag optag = that.getTag();
         TypeTag typetag = that.type.getTag();
+        if (implementOverflow && !(arg instanceof JCLiteral)) {
+            if (typetag == TypeTag.INT) {
+                JCExpression maxlit = rewriter.treeutils.makeIntLiteral(arg, Integer.MAX_VALUE);
+                JCExpression minlit = rewriter.treeutils.makeIntLiteral(arg, Integer.MIN_VALUE);
+                JCExpression a = rewriter.makeBin(arg, JCTree.Tag.LE, rewriter.treeutils.intleSymbol, minlit, rewriter.convertCopy(arg), newtype);
+                JCExpression b = rewriter.makeBin(arg, JCTree.Tag.LE, rewriter.treeutils.intleSymbol, rewriter.convertCopy(arg), maxlit, newtype);
+                rewriter.addAssume(that, Label.IMPLICIT_ASSUME, rewriter.treeutils.makeAnd(that,a,b));
+            } else if (typetag == TypeTag.LONG) {
+                JCExpression maxlit = rewriter.treeutils.makeLongLiteral(arg, Long.MAX_VALUE);
+                JCExpression minlit = rewriter.treeutils.makeLongLiteral(arg, Long.MIN_VALUE);
+                JCExpression a = rewriter.makeBin(arg, JCTree.Tag.LE, rewriter.treeutils.longleSymbol, minlit, rewriter.convertCopy(arg), newtype);
+                JCExpression b = rewriter.makeBin(arg, JCTree.Tag.LE, rewriter.treeutils.longleSymbol, rewriter.convertCopy(arg), maxlit, newtype);
+                rewriter.addAssume(that, Label.IMPLICIT_ASSUME, rewriter.treeutils.makeAnd(that,a,b));
+            }
+        }
         JCExpression eresult = null;
         if (warnOverflow && optag == JCTree.Tag.NEG && rewriter.jmltypes.isSameType(that.type,that.getExpression().type)) {
             if (typetag == TypeTag.INT) {
@@ -262,6 +278,35 @@ abstract public class Arithmetic extends ExpressionExtension {
         if (rewriter.jmltypes.isJmlType(lhs.type)) newtype = lhs.type;
         else if (rewriter.jmltypes.isJmlType(rhs.type)) newtype = rhs.type;
         
+        if (implementOverflow && !rewriter.jmltypes.isJmlType(newtype)) {
+            if (newtype.getTag() == TypeTag.INT) {
+                JCExpression maxlit = rewriter.treeutils.makeIntLiteral(p, Integer.MAX_VALUE);
+                JCExpression minlit = rewriter.treeutils.makeIntLiteral(p, Integer.MIN_VALUE);
+                if (!(lhs instanceof JCLiteral)) {
+                    JCExpression a = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.intleSymbol, minlit, rewriter.convertCopy(lhs), newtype);
+                    JCExpression b = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.intleSymbol, rewriter.convertCopy(lhs), maxlit, newtype);
+                    rewriter.addAssume(that, Label.IMPLICIT_ASSUME, rewriter.treeutils.makeAnd(that,a,b));
+                }
+                if (!(rhs instanceof JCLiteral)) {
+                    JCExpression a = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.intleSymbol, minlit, rewriter.convertCopy(rhs), newtype);
+                    JCExpression b = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.intleSymbol, rewriter.convertCopy(rhs), maxlit, newtype);
+                    rewriter.addAssume(that, Label.IMPLICIT_ASSUME, rewriter.treeutils.makeAnd(that,a,b));
+                }
+            } else if (newtype.getTag() == TypeTag.LONG) {
+                JCExpression maxlit = rewriter.treeutils.makeLongLiteral(p, Long.MAX_VALUE);
+                JCExpression minlit = rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE);
+                if (!(lhs instanceof JCLiteral)) {
+                    JCExpression a = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.longleSymbol, minlit, rewriter.convertCopy(lhs), newtype);
+                    JCExpression b = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.longleSymbol, rewriter.convertCopy(lhs), maxlit, newtype);
+                    rewriter.addAssume(that, Label.IMPLICIT_ASSUME, rewriter.treeutils.makeAnd(that,a,b));
+                }
+                if (!(rhs instanceof JCLiteral)) {
+                    JCExpression a = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.longleSymbol, minlit, rewriter.convertCopy(rhs), newtype);
+                    JCExpression b = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.longleSymbol, rewriter.convertCopy(rhs), maxlit, newtype);
+                    rewriter.addAssume(that, Label.IMPLICIT_ASSUME, rewriter.treeutils.makeAnd(that,a,b));
+                }
+            }
+        }
 
         TypeTag typetag = newtype.getTag();
         
