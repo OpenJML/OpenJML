@@ -5074,10 +5074,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void visitLambda(JCLambda that) {
         if (pureCopy) {
             pushBlock(); // To swallow and ignore the addStat of a block in visitBlock  // which no longer happens
+            boolean saved = translatingJML;
+            translatingJML = false;
             JCLambda nthat = M.Lambda(convert(that.params), convert(that.body));
             nthat.pos = that.pos;
             nthat.type = that.type;
             result = eresult = nthat;
+            translatingJML = saved;
             popBlock(0L,that);
             return;
         }
@@ -5101,6 +5104,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCStatement stat = M.Return((JCExpression)that.body);
                 body = M.Block(0L, List.<JCStatement>of(stat));
             }
+        } else if (that.type.getTypeArguments().size() == 0) {
+            returnType = null;
         } else {
             List<Type> typeargs = that.type.getTypeArguments();
             returnType = typeargs.get(typeargs.size()-1);  // FIXME M- tyhis is only coprtrectx for Function typoes./
@@ -10256,13 +10261,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (splitExpressions) result = eresult = newTemp(eresult);
             return;
              
+        } else if (equality && ((that.lhs instanceof JCLambda && treeutils.isNullLit(that.rhs)) || (that.rhs instanceof JCLambda && treeutils.isNullLit(that.lhs)))) {
+            result = eresult = treeutils.makeBooleanLiteral(that.pos, optag == JCTree.Tag.NE);
+            return;
         } else if (translatingJML) {
 //            boolean savedApplyingLambda = applyingLambda;
 //            applyingLambda = false;
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
 //            applyingLambda = savedApplyingLambda;
-            
+            if (equality && ((that.lhs instanceof JCLambda && treeutils.isNullLit(that.rhs)) || (that.rhs instanceof JCLambda && treeutils.isNullLit(that.lhs)))) {
+                result = eresult = treeutils.makeBooleanLiteral(that.pos, optag == JCTree.Tag.NE);
+                return;
+            }
             Type maxJmlType = lhs.type;
             boolean lhsIsPrim = lhs.type.isPrimitive() && lhs.type.getTag() != TypeTag.BOT;
             boolean rhsIsPrim = rhs.type.isPrimitive() && rhs.type.getTag() != TypeTag.BOT;
@@ -10435,7 +10446,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 else rhs = addImplicitConversion(rhs,that.type,rhs);
             }
-            
+            if (equality && ((that.lhs instanceof JCLambda && treeutils.isNullLit(that.rhs)) || (that.rhs instanceof JCLambda && treeutils.isNullLit(that.lhs)))) {
+                result = eresult = treeutils.makeBooleanLiteral(that.pos, optag == JCTree.Tag.NE);
+                return;
+            }
+             
             addBinaryChecks(that,optag,lhs,rhs,null);
             JCBinary bin = treeutils.makeBinary(that.pos,optag,that.getOperator(),lhs,rhs);
             result = eresult = splitExpressions ? newTemp(bin) : bin;

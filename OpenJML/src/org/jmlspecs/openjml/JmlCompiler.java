@@ -398,8 +398,11 @@ public class JmlCompiler extends JavaCompiler {
             return results; // Empty list - do nothing more
         } else if (utils.esc) {
         	try {
-        	for (Env<AttrContext> env: envs)
-        		esc(env);
+                JmlEsc esc = JmlEsc.instance(context); // FIXME - get this once at initialization?
+                esc.initCounts();
+        	    for (Env<AttrContext> env: envs) esc(env);
+        	    String summary = esc.reportCounts();
+        	    if (utils.jmlverbose >= Utils.PROGRESS) log.note("jml.message", summary);
         	} catch (PropagatedException e) {
         		// cancelation
         	}
