@@ -7,6 +7,7 @@ package org.jmlspecs.openjml.esc;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9306,8 +9307,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * the given expression to the given type; the 'expr' argument is already converted.
      */
     public JCExpression addImplicitConversion(DiagnosticPosition pos, Type annotatedNewtype, JCExpression expr) {
+        //if (expr instanceof JCLambda) return expr;  // We depend on seeing JCLambda literals so we can't hide them behind a cast, but FIXME: does this cause other problems, what about for MemberReferences?
         Type newtype = annotatedNewtype.unannotatedType();
-        Type origtype = convertType(expr.type); // Subsitutes type variables
+        Type origtype = convertType(expr.type); // Substitutes type variables
         if (pureCopy) return expr;
         if (paramActuals != null && newtype instanceof Type.TypeVar) {
             JCExpression e = paramActuals.get(newtype.toString());
@@ -16191,6 +16193,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // FIXME - we use /*@ nullable */ java.util.List because @Nullable java.util.List gives an Eclipse IDE error -- why
         
+    }
+    
+    public Map<URI,Integer> jfoToInt = new HashMap<>();
+    public ArrayList<JavaFileObject> intToJfo = new ArrayList<>();
+    public int getFileIndex(JavaFileObject jfo) {
+        URI uri = jfo.toUri();
+        Integer i = jfoToInt.get(uri);
+        if (i == null) {
+            i = jfoToInt.size();
+            jfoToInt.put(uri,i);
+            intToJfo.add(i, jfo);
+        }
+        return i;
+    }
+    public JavaFileObject getFileByIndex(int i) {
+        return intToJfo.get(i);
     }
     
 }

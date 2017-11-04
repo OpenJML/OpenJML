@@ -402,7 +402,7 @@ public class JmlCompiler extends JavaCompiler {
                 esc.initCounts();
         	    for (Env<AttrContext> env: envs) esc(env);
         	    String summary = esc.reportCounts();
-        	    if (utils.jmlverbose >= Utils.PROGRESS) log.note("jml.message", summary);
+        	    if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode) log.note("jml.message", summary);
         	} catch (PropagatedException e) {
         		// cancelation
         	}
