@@ -1654,7 +1654,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
     @Override
     public void visitAssignop(JCAssignOp that) {
-        // These should be desugared to assignments.
+        // These should be already desugared to assignments.
         shouldNotBeCalled(that);
     }
     

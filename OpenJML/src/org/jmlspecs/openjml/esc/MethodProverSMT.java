@@ -661,16 +661,15 @@ public class MethodProverSMT {
 
     }
     
-    Set<String> blocks = new java.util.HashSet<String>();
-    
     /** Iterates through the basic blocks to find and report the invalid assertion
-     * that caused the SAT result from the prover.
+     * that caused the SAT result from the prover. The pathCondition that is returned is
+     * the negation of the conjunction of the block conditions on the path leading to the false assertion;
+     * that is, if the returned expression is assumed, the false assertion will
+     * not be reachable, so another invalid assertion may be found.
      */
     public JCExpression reportInvalidAssertion(BasicProgram program, SMT smt, ISolver solver, JCMethodDecl decl,
             Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap,
             BiMap<JCTree,JCTree> aaPathMap, BiMap<JCTree,JCTree> bbPathMap) {
-        exprValues = new HashMap<JCTree,String>();
-        blocks.clear();
         JCExpression pathCondition = reportInvalidAssertion(program.startBlock(),smt,solver,decl,0, JmlTreeUtils.instance(context).falseLit,cemap,jmap,aaPathMap,bbPathMap);
         if (pathCondition == null) {
             log.warning("jml.internal.notsobad","Could not find an invalid assertion even though the proof result was satisfiable: " + decl.sym); //$NON-NLS-1$ //$NON-NLS-2$
@@ -678,8 +677,6 @@ public class MethodProverSMT {
         }
         return pathCondition;
     }
-    
-    Map<JCTree,String> exprValues = new HashMap<JCTree,String>();
     
     // These strings must mirror the strings used in JmlAsssertionAdder.visitJmlLblExpression
     private final static String prefix_lblpos = Strings.labelVarString + JmlTokenKind.BSLBLPOS.internedName().substring(1) + "_";
@@ -711,9 +708,13 @@ public class MethodProverSMT {
     
     /** Helper method for iterating through the basic blocks to find and report the invalid assertion
      * that caused the SAT result from the prover; 
-     * Returns true if an invalid assertion was found and reported */
+     * Returns non-null if an invalid assertion was found and reported.
+     * The terminationPos is the value of terminationPos found so far; it is used
+     * in the report of invalid postconditions to say which exit path results in
+     * the false postcondition.
+     */
     // How this works: If there is an invalid assertion, then the value of the blockid
-    // of the bloc containing that assertion is false; recursively, the blockid
+    // of the block containing that assertion is false; recursively, the blockid
     // is false for any block that has a following block with a false blockid.
     // Thus if there is an invalid assertion the start block is false and there is
     // a path of false blocks to the invalid assertion. There could possibly be
@@ -721,13 +722,14 @@ public class MethodProverSMT {
     public JCExpression reportInvalidAssertion(BasicProgram.BasicBlock block, SMT smt, ISolver solver, JCMethodDecl decl, int terminationPos, JCExpression pathCondition,
             Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap,
             BiMap<JCTree,JCTree> aaPathMap, BiMap<JCTree,JCTree> bbPathMap) {
+        boolean verbose = utils.jmlverbose >= Utils.JMLVERBOSE;
         String id = block.id.name.toString();
         Boolean value = getBoolValue(id,smt,solver);
         if (value == null) {
             // FIXME - error and what to do ?
             return null;
         }
-        if (utils.jmlverbose >= Utils.JMLVERBOSE && (JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE) || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS))) {
+        if (verbose && (JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE) || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS))) {
             tracer.appendln("Block " + id + " is " + value);  //$NON-NLS-1$//$NON-NLS-2$
         }
         if (value) {
@@ -741,7 +743,7 @@ public class MethodProverSMT {
         // FIXME - would like to have a range, not just a single position point,
         // for the terminationPos
         for (JCStatement stat: block.statements()) {
-            // Report any statements that are JML-labeled
+            // Report any statements that are JML-labels
             if (stat instanceof JCVariableDecl) {
                 Name n = ((JCVariableDecl)stat).name;
                 String ns = n.toString();
@@ -784,7 +786,10 @@ public class MethodProverSMT {
                     int spanType = Span.NORMAL;
                     JCTree toTrace = null;
                     String val = null;
-                    if (origStat instanceof JCIf) {
+                    if (origStat instanceof JmlStatementExpr && ((JmlStatementExpr)origStat).token == JmlTokenKind.ASSUME) {
+                        //toTrace = ((JmlStatementExpr)stat).expression;
+                        break ifstat;
+                    } else if (origStat instanceof JCIf) {
                         toTrace = ((JCIf)origStat).getCondition();
                     } else if (origStat instanceof JCSwitch) {
                         toTrace = ((JCSwitch)origStat).getExpression();
@@ -795,11 +800,6 @@ public class MethodProverSMT {
                         sp = origStat.getStartPosition();
                         // 8 is the length of "default:"
                         ep = toTrace == null ? sp + 8 : toTrace.getEndPosition(log.currentSource().getEndPosTable());
-//                    } else if (origStat instanceof JCCatch) { // catches come as JmlVariableDecls
-//                        JCVariableDecl d = ((JCCatch)origStat).param;
-//                        sp = origStat.getStartPosition();
-//                        ep = d.getEndPosition(log.currentSource().getEndPosTable());
-//                        toTrace = null ; // FIXME - not working correctly yet
                     } else if (origStat instanceof JCSynchronized) {
                         toTrace = ((JCSynchronized)origStat).getExpression();
                     } else if (origStat instanceof JmlForLoop) {
@@ -831,10 +831,6 @@ public class MethodProverSMT {
                         break ifstat;
 //                    } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.COMMENT && ((JmlStatementExpr)stat).expression.toString().contains("ImplicitAssume")) {
 //                        break ifstat;
-                    } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.ASSUME) {
-                        toTrace = ((JmlStatementExpr)stat).expression;
-//                    } else if (comment.startsWith("AssumeCheck assertion")) {
-//                    	break ifstat;
                     } else {
                         toTrace = origStat;
                     }
@@ -853,7 +849,7 @@ public class MethodProverSMT {
                     }
                     if (comment != null) {
                         if (comment.startsWith("AssumeCheck assertion")) break ifstat;
-                        tracer.appendln(loc + " \t" + comment);
+                        if (verbose || toTrace != null) tracer.appendln(loc + " \t" + comment);
                     }
                     if (toTrace != null && showSubexpressions) tracer.trace(toTrace);
                     String s = ((JmlStatementExpr)bbstat).id;
@@ -874,13 +870,13 @@ public class MethodProverSMT {
                 log.getWriter(WriterKind.NOTICE).println("STATEMENT: " + stat);
                 if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr x = (JmlStatementExpr)stat;
-                    traceSubExpr(x.expression);
+                    tracer.trace(x.expression);
                     log.getWriter(WriterKind.NOTICE).println(tracer.text());
                     tracer.clear();
                 } else if (stat instanceof JCVariableDecl) {
                     JCVariableDecl vd = (JCVariableDecl)stat;
                     Name n = vd.name;
-                    if (vd.init != null) traceSubExpr(vd.init);
+                    if (vd.init != null) tracer.trace(vd.init);
                     log.getWriter(WriterKind.NOTICE).println("DECL: " + n + " === " + getValue(n.toString(),smt,solver));
                 }
             }
@@ -1098,7 +1094,10 @@ public class MethodProverSMT {
     	return getValue(id,smt,solver,true);
     }
 
-    /** Query the solver for any type of value of an id in the current model */
+    /** Query the solver for any type of value of an id in the current model;
+     * if 'report' is true then emit an error message if the response to the query
+     * by the solver is an error or is null. 
+     */
     public String getValue(String id, SMT smt, ISolver solver, boolean report) {
         org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id);
         IResponse resp = null;
@@ -1131,13 +1130,9 @@ public class MethodProverSMT {
     }
     
 
-    /** Write out (through log.getWriter(WriterKind.NOTICE)) the values of the given expression
-     * and, recursively, of any subexpressions.
+    /** If the type of the result is char, then adjust the output to show char values
+     * and not just the int value.
      */
-    public void traceSubExpr(JCExpression e) {
-        tracer.trace(e);
-    }
-
     protected String showChar(String userString) {
         try {
             int i = Integer.parseInt(userString);
@@ -1158,10 +1153,10 @@ public class MethodProverSMT {
         void clear();
     }
     
-    /** This class walks the expression subtrees, printing out the value of each
-     * subexpression. It is used by creating an instance of the Tracer (using
+    /** This class walks the expression subtrees, printing the value of each
+     * subexpression to the internal StringBuilder. It is used by creating an instance of the Tracer (using
      * the constructor), and then calling scan() on an AST. scan() is called
-     * recursively to find and print all expressions. Statements are not printed
+     * recursively to find and print all subexpressions. Statements are not printed
      * but are scanned for any subexpressions.
      */
     // Not static so we have access to getValue
@@ -1171,7 +1166,7 @@ public class MethodProverSMT {
         Map<JCTree,String> cemap;
         Log log;
         String result;
-        StringBuffer traceText = new StringBuffer();
+        StringBuilder traceText = new StringBuilder();
         
         public void append(String s) {
             traceText.append(s);
@@ -1237,8 +1232,10 @@ public class MethodProverSMT {
                         if (that.type.getTag() == TypeTag.CHAR) userString = showChar(userString);
                         traceText.append("\t\t\tVALUE: " + expr + "\t === " + userString);
                         traceText.append(Strings.eol);
+                    } else {
+                        // Turn printing back on, after being turned off because of a void return
+                        print = true;
                     }
-                    else print = true;
                 }
             } catch (Exception e) {
                 traceText.append("\t\t\tVALUE: " + that + "\t === " + "<Internal Exception>");

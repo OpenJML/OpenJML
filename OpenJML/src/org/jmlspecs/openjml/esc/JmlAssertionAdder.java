@@ -279,7 +279,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * Non-AST objects
      * such as Type, Token or JmlToken values are not duplicated in any case.
      */
-    public boolean fullTranslation = true;
+    public boolean fullTranslation = true; // FIXME - should be able to  be false,  but causes RAC errors
     
     // NOTE: We support !esc || !rac but not esc && rac.
     //@ invariant !esc || !rac;
@@ -1333,7 +1333,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (tree == null) { result = null; return null; }
         scan(tree);
 
-        if (localVariables.isEmpty()) saveMapping(tree, result);
+        saveMapping(tree, result);
 
         return (T)result;
     }
@@ -1404,7 +1404,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (tree != null) {
                 super.scan(tree);
                 if (rac && eresult != null && eresult.type != null && jmltypes.isJmlType(eresult.type)) eresult.type = jmltypes.repSym((JmlType)eresult.type).type;
-                if (localVariables.isEmpty()) saveMapping(tree,eresult);
+                saveMapping(tree,eresult);
             }
         } finally {
             translatingJML = savedT;
@@ -1425,8 +1425,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         eresult = null; // Just so it is initialized in case assignment is forgotten
         if (tree != null) {
             super.scan(tree);
-            if (rac && eresult != null && eresult.type != null && jmltypes.isJmlType(eresult.type)) eresult.type = jmltypes.repSym((JmlType)eresult.type).type;
-            if (!pureCopy && localVariables.isEmpty()) saveMapping(tree,eresult);
+            if (rac && eresult != null && eresult.type != null && jmltypes.isJmlType(eresult.type)) {
+                eresult.type = jmltypes.repSym((JmlType)eresult.type).type;
+            }
+            saveMapping(tree,eresult);
         }
         return eresult;
     }
@@ -1441,7 +1443,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             scan(t);
             if (eresult == null) eresult = t;
             newlist.add(eresult);
-            if (localVariables.isEmpty()) saveMapping(t,eresult);
+            saveMapping(t,eresult);
         }
         return newlist.toList();
     }
@@ -1461,25 +1463,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             splitExpressions = savedSplit;
             popBlock();
         }
-    }
-    
-    public @Nullable <T extends JCTree> T convertCopyNoEmit(@Nullable T tree) {
-        boolean savedCopy = pureCopy;
-        boolean savedSplit = splitExpressions;
-        ListBuffer<JCStatement> prev = currentStatements;
-        currentStatements = null;
-        try {
-            pureCopy = true;
-            splitExpressions = false;
-            return convert(tree);
-        } finally {
-            pureCopy = savedCopy;
-            splitExpressions = savedSplit;
-            currentStatements = prev;
-        }
-    }
-    
-    
+    }    
 
     /** Does a pure copy of the list of trees */
     public  <T extends JCTree> List<T> convertCopy(List<T> trees) {
@@ -1545,6 +1529,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * this call is used to switch to the translatingJML mode, setting the
      * condition and isPostcondition to the given values,
      * restoring isPostcondition and translatingJML upon return.
+     * When isPostcondition is true, then parameter variables are mapped to
+     * the pre-state of the method, rather than to the current state.
      */
     public @Nullable JCExpression convertJML(@Nullable JCExpression that, JCExpression condition, boolean isPostcondition) {
         if (that == null) return null;
@@ -1583,7 +1569,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
 
     
-    /** Applies convertJML to a list of expressions, returning the new list. */
+    /** Applies convertJML to a list of nno-postcondition expressions, returning the new list. */
     public @Nullable List<JCExpression> convertJML(@Nullable List<JCExpression> trees) {
         if (trees==null) return null;
         else {
@@ -1755,15 +1741,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return e;
     }
     
-    protected void saveMapping(JCTree t, JCTree tt) {
-//        JCTree ttt = exprBiMap.getf(t);
-//        if (ttt != null && ttt.toString().endsWith("CPRE__3_2_2")) {
-//            Utils.stop();
-//        }
-//        if (tt != null && tt.toString().endsWith("CPRE__3_2_2")) {
-//            Utils.stop();
-//        }
-        exprBiMap.put(t, tt);
+    /** JmlAssertionAdder creates temporaries for each subexpression for which
+     * a counterexample value may be wanted; this routine saves such mappings 
+     * from original AST (before any translation or copying) to the temporary id.
+     * The original AST is needed because that is the AST that is used when the
+     * source code is traced or when a location is found in the source code editor.
+     * @param original
+     * @param ident
+     */
+    protected void saveMapping(JCTree original, JCTree ident) {
+        if (!pureCopy && original instanceof JCExpression && localVariables.isEmpty() && exprBiMap.getf(original) == null) {
+            exprBiMap.put(original, ident);
+        }
+    }
+    
+    protected void saveMappingOverride(JCTree original, JCTree ident) {
+        if (!pureCopy && original instanceof JCExpression && localVariables.isEmpty()) {
+            exprBiMap.put(original, ident);
+        }
     }
     
     /** Add a statement at the end of the active currentStatements sequence,
@@ -6914,7 +6909,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         preconditionDetailClauses.put(nm,source);
         JCIdent id = newTemp(expr.pos, nm, e);
  //       saveMapping(expr,id);
-        saveMapping(convertCopy(expr),id);
+        saveMappingOverride(convertCopy(expr),id);
  //       if (nm.contains("CPRE__4_4")) Utils.stop();
  //       log.note("jml.message", expr.toString() + " >>> " + id.toString());
         index3 = 0;
@@ -6939,7 +6934,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             preconditionDetailClauses.put(nm,source);
             JCIdent id = newTemp(expr.pos, nm, e);
  //           saveMapping(expr,id);
-            saveMapping(convertCopy(expr),id);
+            saveMappingOverride(convertCopy(expr),id);
  //           log.note("jml.message", expr.toString() + " >>> " + id.toString());
             index3 = localIndex3;
         return id;
@@ -7962,7 +7957,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (splitExpressions) {
                         String nm = "_$CPRE__" + preconditionDetailLocal;
                         preconditionDetailClauses.put(nm,methodDecl.sourcefile);
-                        combinedPrecondition = newTemp(combinedPrecondition.pos, nm, combinedPrecondition);
+                        JCExpression temp = newTemp(combinedPrecondition.pos, nm, combinedPrecondition);
+                        saveMapping(combinedPrecondition, temp);
+                        combinedPrecondition = temp;
                     }
                     if (combinedNoModel) {
                         // skip
@@ -11374,13 +11371,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitLiteral(JCLiteral that) {
         result = eresult = that;
-        if (fullTranslation) {
-            result = eresult = treeutils.makeDuplicateLiteral(that.pos, that);
-            treeutils.copyEndPosition(eresult, that);
+        boolean traceInfo = esc;
+        boolean stringType = esc && types.isSameType(that.type,syms.stringType);
+        boolean makeCopy = (traceInfo || fullTranslation || stringType || pureCopy);
+        JCIdent id = null;
+        if (makeCopy) {
+            JCLiteral init = treeutils.makeDuplicateLiteral(that.pos, that);
+            treeutils.copyEndPosition(init, that);
+            if (pureCopy) {
+                result = eresult = init;
+                return;
+            }
+            id = newTemp(init);
         }
-        if (pureCopy || rac) return;
-        if (types.isSameType(that.type,syms.stringType)) {
-            JCIdent id = newTemp(that);
+        if (traceInfo) {
+            // This block is only needed for tracing
+            saveMapping(that,id);
+        }
+        if (stringType && !pureCopy) {
             JCExpression e = treeutils.makeNeqObject(that.pos,id,treeutils.nullLit);
             addAssume(that,Label.IMPLICIT_ASSUME,e);
 

@@ -916,7 +916,6 @@ public class SMTTranslator extends JmlTreeScanner {
                         new LinkedList<IDeclaration>(),
                         convertSort(e.id.type),
                         result);
-                if (((C_define_fun)c).resultSort().toString().equals("T_sassy_util")) Utils.stop();
                 commands.add(c);
                 bimap.put(e.id,sym);
             } catch (RuntimeException ee) {
@@ -1242,7 +1241,6 @@ public class SMTTranslator extends JmlTreeScanner {
                         new LinkedList<IDeclaration>(),
                         convertSort(decl.type),
                         init);
-                                if (c instanceof C_declare_fun && ((C_declare_fun)c).resultSort().toString().contains("T_sassy_util")) Utils.stop();
                  commands.add(c);
                  // An identifier may be appended to a JmlVariableDecl simply
                  // to have an expression with which to associated an SMT value
@@ -1548,7 +1546,6 @@ public class SMTTranslator extends JmlTreeScanner {
             log.error("jml.internal", "No type translation implemented when converting a BasicProgram to SMTLIB: " + t);
             throw new RuntimeException();
         } else {
- //           if (t.toString().equals("\\bigint")) Utils.stop();
             TypeTag tag = t.getTag();
             if (tag == TypeTag.BOOLEAN) {
                 return F.Bool();
@@ -1572,6 +1569,8 @@ public class SMTTranslator extends JmlTreeScanner {
                 return realSort;
             } else if (tag == TypeTag.ARRAY) {
                 return refSort;
+//                ArrayType at = (ArrayType)t;
+//                return F.createSortExpression(F.symbol("Array"),refSort,convertSort(at.elemtype));
             } else if (tag == TypeTag.BOT) {
                 return refSort;
             } else if (tag == TypeTag.NONE || tag == TypeTag.UNKNOWN){
