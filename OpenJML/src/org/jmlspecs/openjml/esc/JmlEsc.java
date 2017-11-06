@@ -5,6 +5,7 @@
 package org.jmlspecs.openjml.esc;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -129,6 +130,7 @@ public class JmlEsc extends JmlTreeScanner {
 
         // The super class takes care of visiting all the methods
         utils.progress(0,1,"Proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
+        long classStart = System.currentTimeMillis();
         boolean doDefsInSortedOrder = true;
         if (doDefsInSortedOrder && !Utils.testingMode) { // Don't sort in tests because too many golden outputs were created before sorting
             scan(node.mods);
@@ -147,7 +149,9 @@ public class JmlEsc extends JmlTreeScanner {
         } else {
             super.visitClassDef(node);
         }
-        utils.progress(0,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
+        long classDuration = System.currentTimeMillis() - classStart;
+        utils.progress(0,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) +  //$NON-NLS-1$
+                (Utils.testingMode ? "" : String.format(" [%4.2f secs]", (classDuration/1000.0)))); //$NON-NLS-1$
         Main.instance(context).popOptions();
     }
     
@@ -266,6 +270,7 @@ public class JmlEsc extends JmlTreeScanner {
         String proverToUse = pickProver();
         
         utils.progress(0,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
+        long methodStart = System.currentTimeMillis();
         log.resetRecord();
 //        int prevErrors = log.nerrors;
 
@@ -301,12 +306,14 @@ public class JmlEsc extends JmlTreeScanner {
             } else {
                 res = new MethodProverSMT(this).prove(methodDecl,proverToUse);
             }
+            long duration = System.currentTimeMillis() - methodStart;
             utils.progress(1,1,"Completed proof of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
                     + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
                     + " - "
                     + (  res.isSat() ? "with warnings" 
                        : res.result() == IProverResult.UNSAT ? "no warnings"
                                : res.result().toString())
+                    + (Utils.testingMode ? "" : String.format(" [%4.2f secs]", (duration/1000.0)))
                     );
             count(res.result());
             

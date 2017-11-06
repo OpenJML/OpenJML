@@ -1805,7 +1805,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         final int maxlength = 80;
         if (k > maxlength) { s = s.substring(0,k) + " ..."; }
         JavaFileObject source = null;
-        if (t instanceof JmlStatementExpr) source = ((JmlStatementExpr)t).source;
+        if (t instanceof JmlSource) source = ((JmlSource)t).source();
         return comment(t,s,source);
     }
     

@@ -20,6 +20,7 @@ import org.jmlspecs.openjml.JmlTree.JmlBinary;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
@@ -329,6 +330,7 @@ public class MethodProverSMT {
             	} catch (Exception e) {
             		// Not sure there is anything to worry about, but just in case
             		//log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
+            	    solver.exit();
                     JCDiagnostic d = log.factory().error(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), e.toString());
                     log.report(d);
             		return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
@@ -523,7 +525,9 @@ public class MethodProverSMT {
                             String msg = ": ";
                             if (JmlOption.value(context,JmlOption.TIMEOUT) != null) msg = " (possible timeout): ";
                             log.warning(methodDecl,"esc.nomodel","method " + utils.qualifiedName(methodDecl.sym) + " - " + msg + r);
-                            proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNKNOWN,start);
+                            if (proofResult.result() == IProverResult.UNSAT) {
+                                proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNKNOWN,start);
+                            }
                             break b;
                         }
 
@@ -833,8 +837,8 @@ public class MethodProverSMT {
 //                        break ifstat;
                     } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.ASSUME) {
                         toTrace = ((JmlStatementExpr)stat).expression;
-//                    } else if (comment.startsWith("AssumeCheck assertion")) {
-//                    	break ifstat;
+                    } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.ASSERT) {
+                        toTrace = ((JmlStatementExpr)stat).expression;
                     } else {
                         toTrace = origStat;
                     }
