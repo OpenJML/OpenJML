@@ -1210,6 +1210,7 @@ public class MethodProverSMT {
                     if (print) {
                         String expr = that.toString();
                         String sv = cemap.get(that);
+                        if (sv == null) return;  // Comment this line out to show values that are not in the counterexample
                         if (sv == null && that instanceof JCIdent) {
                             sv = getValue(expr,smt,solver,false); // Fail softly
                         }
@@ -1290,11 +1291,11 @@ public class MethodProverSMT {
             if (tree.getTag() == JCTree.Tag.OR) {
                 scan(tree.lhs);
                 String v = cemap.get(tree.lhs);
-                if ("false".equals(v)) scan(tree.rhs);
+                if (!"true".equals(v)) scan(tree.rhs);
             } else if (tree.getTag() == JCTree.Tag.AND) {
                 scan(tree.lhs);
                 String v = cemap.get(tree.lhs);
-                if ("true".equals(v)) scan(tree.rhs);
+                if (!"false".equals(v)) scan(tree.rhs);
             } else {
                 super.visitBinary(tree);
             }

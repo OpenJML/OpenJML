@@ -261,10 +261,7 @@ public class JmlTree implements IJmlTree {
             tree.pos = pos;
             return tree;
         }
-
-
-
-        
+       
         /** Convenience method to create a JCIdent from a string
          * (use a Name if you have one, since this method creates a Name).
          * @param name the string to convert to wrap as an identifier

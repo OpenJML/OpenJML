@@ -1733,7 +1733,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 // FIXME - set line and source
                 newStatement = addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
                 newIdentIncarnation(heapVar,pos);
-                newExpr = left;
+                JCFieldAccess newfa = (JCFieldAccess)M.at(left.pos).Select(fa.selected, newfield.sym);
+                newfa.name = newfield.name;
+                newExpr = newfa;
             }
         } else {
             log.error("jml.internal","Unexpected case in BasicBlocker2.doAssignment: " + left.getClass() + " " + left);

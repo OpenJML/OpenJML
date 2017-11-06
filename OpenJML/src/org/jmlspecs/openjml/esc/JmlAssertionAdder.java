@@ -1749,7 +1749,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * @param original
      * @param ident
      */
-    protected void saveMapping(JCTree original, JCTree ident) {
+    public void saveMapping(JCTree original, JCTree ident) {
         if (!pureCopy && original instanceof JCExpression && localVariables.isEmpty() && exprBiMap.getf(original) == null) {
             exprBiMap.put(original, ident);
         }
@@ -1923,7 +1923,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (trace) {
                 JCExpression newexpr = convertCopy(translatedExpr);
                 assertDecl.init = newexpr;
-                addTraceableComment(st,translatedExpr,label + " assertion: " + translatedExpr.toString());
+                if (label != Label.POSTCONDITION) addTraceableComment(st,translatedExpr,label + " assertion: " + translatedExpr.toString());
             }
 
             currentStatements.add(assertDecl);
@@ -4302,11 +4302,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 pushBlock();
                                 try {
                                     JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
-                                    ex = convertJML(ex,preident,true);
+                                    JCExpression convertedex = convertJML(ex,preident,true);
                                     //ex = treeutils.makeImplies(clause.pos, preident, ex);
                                     addTraceableComment(ex,clause.toString());
                                     // FIXME - if the clause is synthetic, the source file may be null, and for signals clause
-                                    addAssert(true,methodDecl,Label.POSTCONDITION,ex,clause,clause.sourcefile,null);
+                                    addAssert(true,methodDecl,Label.POSTCONDITION,convertedex,clause,clause.sourcefile,null);
                                 } finally {
                                     JCBlock bl = popBlock(0L,clause);
                                     JCStatement st = M.at(clause.pos).If(preident, bl, null);
@@ -9599,14 +9599,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat( st );
             lastStat = st.expr;
             result = eresult = lhs;
-            saveMapping(that, eresult);
-            saveMapping(that.lhs, eresult);
 
-            if (!(lhs instanceof JCIdent)) {
-                result = eresult = newTemp(lhs);
-                saveMapping(that.lhs, eresult);
-                saveMapping(that, eresult);
+            if (splitExpressions && !(lhs instanceof JCIdent)) {
+                result = eresult = newTemp(convertCopy(lhs));
             }
+            saveMapping(that.lhs, eresult);
+            saveMapping(that, eresult);
 
         } else if (that.lhs instanceof JCFieldAccess) {
             JCFieldAccess fa = (JCFieldAccess)(that.lhs);
@@ -11355,11 +11353,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 result = eresult = treeutils.makeOld(that.pos, eresult, oldenv);
                 treeutils.copyEndPosition(eresult, that);
             }
+            if (esc && splitExpressions && !(eresult instanceof JCIdent) && sym instanceof VarSymbol && !(eresult instanceof JCLambda) && !(eresult instanceof JCMemberReference)) {
+                // Just for tracing
+                JCIdent nm = newTemp(eresult);
+                saveMapping(that,nm);
+                // Can't set eresult = nm because this ident might be an LHS.
+            }
         
         } finally {
             // Note that since 'this' is a ClassSymbol, not a VarSymbol, no check for non-null is made here, which is just fine.
             // Also lambda expressions as actual arguments are automatically non-null
-            if (translatingJML && sym instanceof VarSymbol && specs.isNonNull(sym) && eresult != null && !(eresult instanceof JCLambda)) {
+            if (translatingJML && sym instanceof VarSymbol && specs.isNonNull(sym) && eresult != null && !(eresult instanceof JCLambda) && !(eresult instanceof JCMemberReference)) {
                 JCExpression nn = treeutils.makeNotNull(that.pos,eresult);
                 addToCondition(that.pos, nn);
             }
@@ -11371,6 +11375,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitLiteral(JCLiteral that) {
         result = eresult = that;
+        if (rac) return;  // FIXME - something goes wrong with duplicated literals in rac
         boolean traceInfo = esc;
         boolean stringType = esc && types.isSameType(that.type,syms.stringType);
         boolean makeCopy = (traceInfo || fullTranslation || stringType || pureCopy);
@@ -15757,7 +15762,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 currentStatements = ignore;
                                 //addStat(comment(clause));
                                 // Note - convertJML uses resultExpr and currentThisExpr and paramActuals
-                                JCExpression e = convertNoSplit(((JmlMethodClauseExpr)clause).expression, condition, false);
+                                JCExpression e = convertJML(((JmlMethodClauseExpr)clause).expression, condition, false);
                                 if (treeutils.isFalseLit(e)) {
                                     JCExpression not = treeutils.makeNot(pre.pos, convertCopy(pre));
                                     falses = falses == null ? not : treeutils.makeAnd(falses.pos, falses, not);
