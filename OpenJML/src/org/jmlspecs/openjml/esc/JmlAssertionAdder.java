@@ -10969,6 +10969,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         JCFieldAccess newfa = null;
         Symbol sym = s;
+        JCExpression eee = null;
         if (sym != null && sym.owner instanceof ClassSymbol) {
             if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
             else newfa = treeutils.makeSelect(that.pos, trexpr, sym);
@@ -10990,17 +10991,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         checkRW(JmlTokenKind.READABLE,that.sym,trexpr,that);
         if (!convertingAssignable && checkAccessEnabled) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, that, currentThisExpr, currentThisExpr);
         if (localVariables.containsKey(s)) {
-            result = eresult = newfa;
-        } else if (esc && s != null && (s == classSuffix || "class".equals(s.toString()))) {
-            classSuffix = s;
-            result = eresult = treeutils.makeJavaTypelc(that.selected);
+            eee = newfa;
+        } else if (esc && s != null && s.name == names._class) {
+            eee = treeutils.makeJavaTypelc(that.selected);
         } else if (translatingJML && s == null) {
             // This can happen while scanning a store-ref x.* 
             JCExpression sel = trexpr; // FIXME - what if static; what if not a variable
             JCFieldAccess fa = M.Select(sel, (Name)null);
             fa.pos = that.pos;
             fa.sym = null;
-            result = eresult = fa;
+            eee = fa;
         } else if (translatingJML && s instanceof VarSymbol && attr.isModel(s) && !convertingAssignable && !reps.contains(s)) {
             selected = convertCopy(trexpr);
             boolean var = false;
@@ -11027,17 +11027,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (type instanceof Type.TypeVar) type = ((Type.TypeVar)type).bound;
             addRepresentsAxioms((ClassSymbol)type.tsym, s, that, convertCopy(trexpr));
             // The tsym can be a TypeVar
+            result = eresult = treeutils.makeSelect(that.pos, sel, s);
             return;
         } else if (s instanceof Symbol.TypeSymbol) {
             // This is a type name, so the tree should be copied, but without inserting temporary assignments
             // makeType creates a fully-qualified name
-            result = eresult = treeutils.makeType(that.pos,that.type);
+            eee = treeutils.makeType(that.pos,that.type);
         } else if (translatingJML && esc && !localVariables.isEmpty()) {
             selected = trexpr;
             JCFieldAccess fa = treeutils.makeSelect(that.pos,selected,s);
-            result = eresult = fa;
+            eee = fa;
             if (oldenv != null) {
-                result = eresult = treeutils.makeOld(that.pos,eresult,oldenv);
+                eee = treeutils.makeOld(that.pos,eee,oldenv);
             }
 //        } else if (translatingJML) {
 //            selected = convertExpr(that.selected);
@@ -11049,7 +11050,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            }
         } else if (s instanceof MethodSymbol && s.name.toString().equals("erasure") && utils.qualifiedName((MethodSymbol)s).equals(Strings.jmlSpecsPackage + ".JML.erasure")) {
             JCMethodInvocation m = treeutils.makeUtilsMethodCall(that.pos,"erasure");
-            result = eresult = m.meth;
+            eee = m.meth;
         } else {
             selected = convertCopy(trexpr);
             boolean var = false;
@@ -11061,7 +11062,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     VarSymbol vsym = makeEnclosingSymbol(classDecl.sym,null);
                     selected = currentThisExpr;
                     s = vsym;
-                    result = eresult = treeutils.makeSelect(that.pos, currentThisExpr, vsym);
+                    eee = treeutils.makeSelect(that.pos, currentThisExpr, vsym);
                 }
             } else if (!utils.isJMLStatic(s) && that.selected instanceof JCIdent && !localVariables.containsKey(((JCIdent)that.selected).sym)) {
                 if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
@@ -11102,9 +11103,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     //        if (!translatingJML && !pureCopy && that.sym != syms.lengthVar) checkAccess(JmlToken.ACCESSIBLE, that, that, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
             JCFieldAccess fa = treeutils.makeSelect(that.pos,selected,s);
             fa.type = that.type; // in rac the type can be changed to a representation type
-            result = eresult = (translatingJML || !var || convertingAssignable) ? fa : newTemp(fa);
+            eee = (translatingJML || !var || convertingAssignable) ? fa : newTemp(fa);
             if (oldenv != null) {
-                result = eresult = treeutils.makeOld(that.pos,eresult,oldenv); // FIXME - will make overly nested \old expressions
+                eee = treeutils.makeOld(that.pos,eee,oldenv); // FIXME - will make overly nested \old expressions
 //                if (oldenv.name == names.empty && inOldEnv) { // FIXME - should do this for all labels; also don't want to repeat if already present
 //                    JCExpression savedThisExpression = currentThisExpr;
 //                    try {
@@ -11122,12 +11123,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         treeutils.copyEndPosition(result, that);
         if (translatingJML && !pureCopy && s instanceof VarSymbol && specs.isNonNull(s) ) {
-            JCExpression nn = treeutils.makeNeqObject(that.pos,eresult,treeutils.nullLit);
+            JCExpression nn = treeutils.makeNeqObject(that.pos,eee,treeutils.nullLit);
             addToCondition(that.pos, nn);
-        } else if (esc && splitExpressions && s == classSuffix) {
-            JCExpression nn = treeutils.makeNeqObject(that.pos,eresult,treeutils.nullLit);
+        } else if (esc && splitExpressions && s.name == names._class) {
+            JCExpression nn = treeutils.makeNeqObject(that.pos,eee,treeutils.nullLit);
             addAssume(that,Label.IMPLICIT_ASSUME, nn);
         }
+        result = eresult = eee;
     }
     
     protected Symbol classSuffix = null;
