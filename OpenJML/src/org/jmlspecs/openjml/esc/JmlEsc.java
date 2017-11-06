@@ -5,6 +5,7 @@
 package org.jmlspecs.openjml.esc;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -114,8 +115,11 @@ public class JmlEsc extends JmlTreeScanner {
     		Main.instance(context).canceled = true;
     		throw e;
         } catch (Exception e) {
-        	// No further error messages needed - FIXME - is this true?
+            // No further error messages needed - FIXME - is this true?
             log.error("jml.internal","Should not be catching an exception in JmlEsc.check: "+ e.toString());
+        } catch (Throwable e) {
+            // No further error messages needed - FIXME - is this true?
+            log.error("jml.internal","Should not be catching a Java error in JmlEsc.check: "+ e.toString());
         }
     }
     
@@ -126,6 +130,7 @@ public class JmlEsc extends JmlTreeScanner {
 
         // The super class takes care of visiting all the methods
         utils.progress(0,1,"Proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
+        long classStart = System.currentTimeMillis();
         boolean doDefsInSortedOrder = true;
         if (doDefsInSortedOrder && !Utils.testingMode) { // Don't sort in tests because too many golden outputs were created before sorting
             scan(node.mods);
@@ -144,7 +149,9 @@ public class JmlEsc extends JmlTreeScanner {
         } else {
             super.visitClassDef(node);
         }
-        utils.progress(0,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
+        long classDuration = System.currentTimeMillis() - classStart;
+        utils.progress(0,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) +  //$NON-NLS-1$
+                (Utils.testingMode ? "" : String.format(" [%4.2f secs]", (classDuration/1000.0)))); //$NON-NLS-1$
         Main.instance(context).popOptions();
     }
     
@@ -186,6 +193,8 @@ public class JmlEsc extends JmlTreeScanner {
             IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
             if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult("",IProverResult.CANCELLED,methodDecl.sym));
             throw e;
+        } catch (Throwable e) {
+            log.error("jml.internal","Should not be catching a Java error in JmlEsc.dcoMethod: "+ e.toString());
         }
         Main.instance(context).popOptions();
         return;        
@@ -233,6 +242,7 @@ public class JmlEsc extends JmlTreeScanner {
         IProverResult res = factory.makeProverResult(methodDecl.sym,"",IProverResult.SKIPPED,new java.util.Date());
         IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
         if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);
+        count(IProverResult.SKIPPED);
         return res;
     }
     
@@ -260,6 +270,7 @@ public class JmlEsc extends JmlTreeScanner {
         String proverToUse = pickProver();
         
         utils.progress(0,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
+        long methodStart = System.currentTimeMillis();
         log.resetRecord();
 //        int prevErrors = log.nerrors;
 
@@ -295,13 +306,17 @@ public class JmlEsc extends JmlTreeScanner {
             } else {
                 res = new MethodProverSMT(this).prove(methodDecl,proverToUse);
             }
+            long duration = System.currentTimeMillis() - methodStart;
             utils.progress(1,1,"Completed proof of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
                     + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
                     + " - "
                     + (  res.isSat() ? "with warnings" 
                        : res.result() == IProverResult.UNSAT ? "no warnings"
                                : res.result().toString())
+                    + (Utils.testingMode ? "" : String.format(" [%4.2f secs]", (duration/1000.0)))
                     );
+            count(res.result());
+            
 //            if (log.nerrors != prevErrors) {
 //                res = new ProverResult(proverToUse,IProverResult.ERROR,methodDecl.sym);
 //            }
@@ -403,6 +418,46 @@ public class JmlEsc extends JmlTreeScanner {
         }
         
         return true;
+    }
+    
+    public Map<IProverResult.Kind,Integer> counts = new HashMap<>();
+    
+    private long startTime;
+    
+    public void initCounts() {
+        counts = new HashMap<>();
+        startTime = System.currentTimeMillis();
+    }
+    
+    public void count(IProverResult.Kind r) {
+        counts.put(r,  value(r) + 1);
+    }
+    
+    public int value(IProverResult.Kind r) {
+        Integer i = counts.get(r);
+        return i == null ? 0 : i;
+    }
+    
+    public String reportCounts() {
+        StringBuilder s = new StringBuilder();
+        int t = 0; int tt;
+        s.append("Summary:" + Strings.eol);
+        s.append("  Valid:      " + (tt=value(IProverResult.UNSAT)) + Strings.eol);
+        t += tt;
+        s.append("  Invalid:    " + (tt=value(IProverResult.SAT)+value(IProverResult.POSSIBLY_SAT)+value(IProverResult.UNKNOWN)) + Strings.eol);
+        t += tt;
+        s.append("  Infeasible: " + (tt=value(IProverResult.INFEASIBLE)) + Strings.eol);
+        t += tt;
+        s.append("  Timeout:    " + (tt=value(IProverResult.TIMEOUT)) + Strings.eol);
+        t += tt;
+        s.append("  Error:      " + (tt=value(IProverResult.ERROR)) + Strings.eol);
+        t += tt;
+        s.append("  Skipped:    " + (tt=value(IProverResult.SKIPPED)) + Strings.eol);
+        t += tt;
+        s.append(" TOTAL:       " + t + Strings.eol);
+        long duration = System.currentTimeMillis() - startTime;
+        s.append(" DURATION: " + String.format("%12.1f",(duration/1000.0)) + " secs" + Strings.eol);
+        return s.toString();
     }
     
 //    // FIXME - move these away from being globals

@@ -161,6 +161,7 @@ public class JmlTreeUtils {
     final public JCLiteral trueLit;
     final public JCLiteral falseLit;
     final public JCLiteral zero;
+    final public JCLiteral longzero;
     final public JCLiteral one;
     final public JCLiteral longone;
     final public JCLiteral nullLit;
@@ -224,6 +225,7 @@ public class JmlTreeUtils {
         falseLit = makeLit(0,syms.booleanType,0);
         zero = makeLit(0,syms.intType,0);
         one = makeLit(0,syms.intType,1);
+        longzero = makeLit(0,syms.longType,Long.valueOf(0L));
         longone = makeLit(0,syms.longType,Long.valueOf(1L));
         nullLit = makeLit(0,syms.botType, null);
         maxIntLit = makeLit(0,syms.intType,Integer.MAX_VALUE);
@@ -395,12 +397,20 @@ public class JmlTreeUtils {
      * but with the new position. */
     public JCLiteral makeDuplicateLiteral(DiagnosticPosition pos, JCLiteral lit) {
         // Note that lit.typetag can be different from lit.type.tag - e.g for null values
-        return factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
+        JCLiteral r = factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
+        if (r.getValue() == null && r.type != syms.botType) { // This check is just because null sometimes has a Object type, and that causes problems in RAC
+            r.type = syms.botType;  // FIXME - ti seems a bug that this should ever be needed
+        }
+        return r;
     }
     
     public JCLiteral makeDuplicateLiteral(int pos, JCLiteral lit) {
         // Note that lit.typetag can be different from lit.type.tag - e.g for null values
-        return factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
+        JCLiteral r = factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
+        if (r.getValue() == null && r.type != syms.botType) { // This check is just because null sometimes has a Object type, and that causes problems in RAC
+            r.type = syms.botType;  // FIXME - ti seems a bug that this should ever be needed
+        }
+        return r;
     }
     
     /** Make an attributed tree representing an integer literal. */
