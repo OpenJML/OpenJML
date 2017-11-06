@@ -227,6 +227,7 @@ public class esclambdas extends EscBase {
 
     @Test
     public void testIterable4() {
+    	main.addOptions("-show","-method=bump");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

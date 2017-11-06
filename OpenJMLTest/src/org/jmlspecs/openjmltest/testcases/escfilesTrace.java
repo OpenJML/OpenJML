@@ -101,7 +101,7 @@ public class escfilesTrace extends EscBase {
     @Test
     public void testTrace() {
         expectedExit = 0;
-        helpTCF("test/escTrace","test/escTrace",
+        helpTCF("test/escTrace","test/escTrace","-show",
                 "-method=m","-escMaxWarnings=1",enableSubexpressions ? "-subexpressions" : "");
     }
 

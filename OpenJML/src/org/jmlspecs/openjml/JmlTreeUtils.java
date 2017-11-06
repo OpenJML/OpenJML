@@ -397,12 +397,20 @@ public class JmlTreeUtils {
      * but with the new position. */
     public JCLiteral makeDuplicateLiteral(DiagnosticPosition pos, JCLiteral lit) {
         // Note that lit.typetag can be different from lit.type.tag - e.g for null values
-        return factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
+        JCLiteral r = factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
+        if (r.getValue() == null && r.type != syms.botType) { // This check is just because null sometimes has a Object type, and that causes problems in RAC
+            r.type = syms.botType;  // FIXME - ti seems a bug that this should ever be needed
+        }
+        return r;
     }
     
     public JCLiteral makeDuplicateLiteral(int pos, JCLiteral lit) {
         // Note that lit.typetag can be different from lit.type.tag - e.g for null values
-        return factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
+        JCLiteral r = factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
+        if (r.getValue() == null && r.type != syms.botType) { // This check is just because null sometimes has a Object type, and that causes problems in RAC
+            r.type = syms.botType;  // FIXME - ti seems a bug that this should ever be needed
+        }
+        return r;
     }
     
     /** Make an attributed tree representing an integer literal. */

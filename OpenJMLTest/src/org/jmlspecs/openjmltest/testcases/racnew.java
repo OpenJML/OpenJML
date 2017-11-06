@@ -2343,7 +2343,7 @@ public class racnew extends RacBase {
                 +"int mb() { return 0; }\n"
                 +"}"
                 //,"/tt/A.java:2: Note: Not implemented for runtime assertion checking: axiom clause",5
-                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",32
+                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",31
                 ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",31
                 ,"/tt/A.java:9: Note: Not implemented for runtime assertion checking: hence_by statement",9
                 ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration",25
