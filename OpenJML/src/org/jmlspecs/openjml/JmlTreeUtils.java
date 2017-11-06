@@ -161,6 +161,7 @@ public class JmlTreeUtils {
     final public JCLiteral trueLit;
     final public JCLiteral falseLit;
     final public JCLiteral zero;
+    final public JCLiteral longzero;
     final public JCLiteral one;
     final public JCLiteral longone;
     final public JCLiteral nullLit;
@@ -224,6 +225,7 @@ public class JmlTreeUtils {
         falseLit = makeLit(0,syms.booleanType,0);
         zero = makeLit(0,syms.intType,0);
         one = makeLit(0,syms.intType,1);
+        longzero = makeLit(0,syms.longType,Long.valueOf(0L));
         longone = makeLit(0,syms.longType,Long.valueOf(1L));
         nullLit = makeLit(0,syms.botType, null);
         maxIntLit = makeLit(0,syms.intType,Integer.MAX_VALUE);

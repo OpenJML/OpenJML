@@ -7,6 +7,7 @@ package org.jmlspecs.openjml.esc;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -5069,10 +5070,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void visitLambda(JCLambda that) {
         if (pureCopy) {
             pushBlock(); // To swallow and ignore the addStat of a block in visitBlock  // which no longer happens
+            boolean saved = translatingJML;
+            translatingJML = false;
             JCLambda nthat = M.Lambda(convert(that.params), convert(that.body));
             nthat.pos = that.pos;
             nthat.type = that.type;
             result = eresult = nthat;
+            translatingJML = saved;
             popBlock(0L,that);
             return;
         }
@@ -5096,6 +5100,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCStatement stat = M.Return((JCExpression)that.body);
                 body = M.Block(0L, List.<JCStatement>of(stat));
             }
+        } else if (that.type.getTypeArguments().size() == 0) {
+            returnType = null;
         } else {
             List<Type> typeargs = that.type.getTypeArguments();
             returnType = typeargs.get(typeargs.size()-1);  // FIXME M- tyhis is only coprtrectx for Function typoes./
@@ -9298,8 +9304,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * the given expression to the given type; the 'expr' argument is already converted.
      */
     public JCExpression addImplicitConversion(DiagnosticPosition pos, Type annotatedNewtype, JCExpression expr) {
+        //if (expr instanceof JCLambda) return expr;  // We depend on seeing JCLambda literals so we can't hide them behind a cast, but FIXME: does this cause other problems, what about for MemberReferences?
         Type newtype = annotatedNewtype.unannotatedType();
-        Type origtype = convertType(expr.type); // Subsitutes type variables
+        Type origtype = convertType(expr.type); // Substitutes type variables
         if (pureCopy) return expr;
         if (paramActuals != null && newtype instanceof Type.TypeVar) {
             JCExpression e = paramActuals.get(newtype.toString());
@@ -10251,13 +10258,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (splitExpressions) result = eresult = newTemp(eresult);
             return;
              
+        } else if (equality && ((that.lhs instanceof JCLambda && treeutils.isNullLit(that.rhs)) || (that.rhs instanceof JCLambda && treeutils.isNullLit(that.lhs)))) {
+            result = eresult = treeutils.makeBooleanLiteral(that.pos, optag == JCTree.Tag.NE);
+            return;
         } else if (translatingJML) {
 //            boolean savedApplyingLambda = applyingLambda;
 //            applyingLambda = false;
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
 //            applyingLambda = savedApplyingLambda;
-            
+            if (equality && ((that.lhs instanceof JCLambda && treeutils.isNullLit(that.rhs)) || (that.rhs instanceof JCLambda && treeutils.isNullLit(that.lhs)))) {
+                result = eresult = treeutils.makeBooleanLiteral(that.pos, optag == JCTree.Tag.NE);
+                return;
+            }
             Type maxJmlType = lhs.type;
             boolean lhsIsPrim = lhs.type.isPrimitive() && lhs.type.getTag() != TypeTag.BOT;
             boolean rhsIsPrim = rhs.type.isPrimitive() && rhs.type.getTag() != TypeTag.BOT;
@@ -10430,7 +10443,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 else rhs = addImplicitConversion(rhs,that.type,rhs);
             }
-            
+            if (equality && ((that.lhs instanceof JCLambda && treeutils.isNullLit(that.rhs)) || (that.rhs instanceof JCLambda && treeutils.isNullLit(that.lhs)))) {
+                result = eresult = treeutils.makeBooleanLiteral(that.pos, optag == JCTree.Tag.NE);
+                return;
+            }
+             
             addBinaryChecks(that,optag,lhs,rhs,null);
             JCBinary bin = treeutils.makeBinary(that.pos,optag,that.getOperator(),lhs,rhs);
             result = eresult = splitExpressions ? newTemp(bin) : bin;
@@ -16189,6 +16206,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // FIXME - we use /*@ nullable */ java.util.List because @Nullable java.util.List gives an Eclipse IDE error -- why
         
+    }
+    
+    public Map<URI,Integer> jfoToInt = new HashMap<>();
+    public ArrayList<JavaFileObject> intToJfo = new ArrayList<>();
+    public int getFileIndex(JavaFileObject jfo) {
+        URI uri = jfo.toUri();
+        Integer i = jfoToInt.get(uri);
+        if (i == null) {
+            i = jfoToInt.size();
+            jfoToInt.put(uri,i);
+            intToJfo.add(i, jfo);
+        }
+        return i;
+    }
+    public JavaFileObject getFileByIndex(int i) {
+        return intToJfo.get(i);
     }
     
 }
