@@ -474,7 +474,7 @@ public class MethodProverSMT {
                             log.report(d);
                             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
                         }
-
+                        // FIXME - what about timeout?
                     }
                 }
             } else b: { // Proof was not UNSAT, so there may be a counterexample
@@ -483,6 +483,7 @@ public class MethodProverSMT {
                 ProverResult pr = (ProverResult)factory.makeProverResult(methodDecl.sym,proverToUse,
                         solverResponse.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT,start);
                 proofResult = pr;
+                boolean haveFailedAssertion = false;
                 while (prevErrors == log.nerrors) {
 
                     if (solverResponse.isError()) {
@@ -509,7 +510,7 @@ public class MethodProverSMT {
                                 boolean timeout = msg.contains("timeout");
                                 if (timeout) {
                                 	log.warning(methodDecl,"esc.resourceout",": " + msg);
-                                    proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.TIMEOUT,start);
+                                	if (!haveFailedAssertion) proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.TIMEOUT,start);
                                     break b;
                                 }
                             }
@@ -525,9 +526,7 @@ public class MethodProverSMT {
                             String msg = ": ";
                             if (JmlOption.value(context,JmlOption.TIMEOUT) != null) msg = " (possible timeout): ";
                             log.warning(methodDecl,"esc.nomodel","method " + utils.qualifiedName(methodDecl.sym) + " - " + msg + r);
-                            if (proofResult.result() == IProverResult.UNSAT) {
-                                proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNKNOWN,start);
-                            }
+                            if (!haveFailedAssertion) proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNKNOWN,start);
                             break b;
                         }
 
@@ -539,13 +538,14 @@ public class MethodProverSMT {
                         String msg = ": ";
                         if (JmlOption.value(context,JmlOption.TIMEOUT) != null) msg = " (possible timeout): ";
                         log.warning(methodDecl,"esc.nomodel",msg + r);
-                        proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNKNOWN,start);
+                        if (!haveFailedAssertion) proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNKNOWN,start);
                         break b;
                     }
 
 
                     if (print) log.getWriter(WriterKind.NOTICE).println("Some assertion is not valid");
-
+                    haveFailedAssertion = true;
+                    
                     // FIXME - decide how to show counterexamples when there is no tracing
                     Map<JCTree,String> cemap = constructCounterexample(jmlesc.assertionAdder,basicBlocker,smttrans,smt,solver);
                     BiMap<JCTree,JCExpression> jmap = jmlesc.assertionAdder.exprBiMap.compose(basicBlocker.bimap);
