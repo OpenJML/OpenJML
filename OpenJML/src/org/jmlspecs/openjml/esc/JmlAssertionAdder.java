@@ -11042,9 +11042,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression sel = trexpr; // FIXME - what if static; what if not a variable
             Type type = that.selected.type;
             if (type instanceof Type.TypeVar) type = ((Type.TypeVar)type).bound;
+            // The following method sets result and eresult
             addRepresentsAxioms((ClassSymbol)type.tsym, s, that, convertCopy(trexpr));
             // The tsym can be a TypeVar
-            result = eresult = treeutils.makeSelect(that.pos, sel, s);
+            //result = eresult = treeutils.makeSelect(that.pos, sel, s);
             return;
         } else if (s instanceof Symbol.TypeSymbol) {
             // This is a type name, so the tree should be copied, but without inserting temporary assignments
