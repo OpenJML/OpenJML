@@ -7,8 +7,12 @@ package org.jmlspecs.openjml.eclipse;
 import java.io.File;
 import java.io.PrintWriter;
 import java.net.URI;
+import java.net.URL;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -27,10 +31,12 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.eclipse.jdt.internal.core.JavaProject;
@@ -1193,7 +1199,27 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         if (cmd == Main.Cmd.ESC || cmd == null) {
             String prover = Options.value(Options.defaultProverKey);
             opts.add(JmlOption.PROVER.optionName() +eq+ prover);
-            opts.add(JmlOption.PROVEREXEC.optionName() +eq+ Options.value(Options.proverPrefix + prover));
+            
+            String internal_external = Options.value(SolversPage.execLocKeyPrefix + prover);
+        	String exec = null;
+            if ("internal".equals(internal_external)) {
+        		URL url = null;
+        		try {
+        			url = FileLocator.resolve(FileLocator.find(Platform.getBundle("org.jmlspecs.openjml.Solvers-macos"), new Path("z3-4.3.1"), Collections.EMPTY_MAP));
+                    exec = url.getFile();
+        		} catch (java.io.IOException e) {
+        			// Nothing to be done
+        		}
+        		java.nio.file.Path path = FileSystems.getDefault().getPath(exec);
+        		if (exec == null || !Files.exists(path)) {
+        			utils.showMessageInUI(null,"OpenJML error","Internal solver for " + prover + "is not found");
+        		} else if (!Files.isExecutable(path)) {
+        			utils.showMessageInUI(null,"OpenJML error","Internal solver for " + prover + "is not executable");
+        		}
+        	} else {
+        		exec = Options.value(Options.proverPrefix + prover);
+        	}
+            opts.add(JmlOption.PROVEREXEC.optionName() +eq+ exec);
             opts.add(JmlOption.ESC_MAX_WARNINGS.optionName() +eq+ Options.value(Options.escMaxWarningsKey));
             opts.add(JmlOption.TRACE.optionName() +eq+ "true");
             opts.add(JmlOption.SUBEXPRESSIONS.optionName() +eq+ "true");
