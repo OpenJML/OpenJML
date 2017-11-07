@@ -2245,9 +2245,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Creates a declaration for the given name initialized to the given expression. */
     public JCIdent newTemp(int pos, String name, /*@ non_null */JCExpression expr) {
         Name n = M.Name(name);
+        Type type = expr.type;
+        if (type instanceof Type.WildcardType) {
+            Type.WildcardType wtype = (Type.WildcardType)type;
+            type = wtype.type;
+        }
         // By having the owner be null, the BasicBlocker2 does not append any unique-ifying suffix - FIXME - does this affect RAC?
         JmlVariableDecl d = (JmlVariableDecl)treeutils.makeVarDef(
-                expr.type.getTag() == TypeTag.BOT ? syms.objectType : expr.type, 
+                type.getTag() == TypeTag.BOT ? syms.objectType : type, 
                 n, 
                 esc ? null : methodDecl != null ? methodDecl.sym : classDecl.sym, 
                 expr); 
