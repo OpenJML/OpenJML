@@ -3,38 +3,14 @@ TRACE of tt.TestJava.m1(int)
 /tt/TestJava.java:4:  	int j = 5
 			VALUE: 5	 === 5
 			VALUE: j	 === 5
-			VALUE: j_97_97___16	 === 5
-			VALUE: 5	 === ???
-			VALUE: j_97_97___16 == 5	 === ???
 /tt/TestJava.java:5:  	j = j + i
 			VALUE: j	 === 5
 			VALUE: i	 === 2
 			VALUE: j + i	 === 7
 			VALUE: j = j + i	 === 7
-			VALUE: -2147483648	 === ???
-			VALUE: j_97_97___16	 === 5
-			VALUE: -2147483648 <= j_97_97___16	 === ???
-			VALUE: -2147483648 <= j_97_97___16 && j_97_97___16 <= 2147483647	 === ???
-				ASSUME_83 = null
-			VALUE: -2147483648	 === ???
-			VALUE: i_81_0___1	 === 2
-			VALUE: -2147483648 <= i_81_0___1	 === ???
-			VALUE: -2147483648 <= i_81_0___1 && i_81_0___1 <= 2147483647	 === ???
-				ASSUME_84 = null
-			VALUE: j_97_111___17	 === 7
-			VALUE: _JML__tmp4	 === 7
-			VALUE: j_97_111___17 == _JML__tmp4	 === ???
 /tt/TestJava.java:6:  	assert Assert j != 7;
 			VALUE: j	 === 7
 			VALUE: 7	 === 7
 			VALUE: j != 7	 === false
-			VALUE: ASSERT_85_133	 === true
-			VALUE: __JML_AssumeCheck_	 === 0
-			VALUE: 2	 === ???
-			VALUE: __JML_AssumeCheck_ != 2	 === ???
-			VALUE: ASSERT_85_133 == (__JML_AssumeCheck_ != 2)	 === ???
-			VALUE: ASSERT_86_140	 === false
-			VALUE: _JML__tmp5	 === false
-			VALUE: ASSERT_86_140 == _JML__tmp5	 === ???
 /tt/TestJava.java:6:  Invalid assertion (Assert)
 
