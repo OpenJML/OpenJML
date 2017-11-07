@@ -835,10 +835,6 @@ public class MethodProverSMT {
                         break ifstat;
 //                    } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.COMMENT && ((JmlStatementExpr)stat).expression.toString().contains("ImplicitAssume")) {
 //                        break ifstat;
-                    } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.ASSUME) {
-                        toTrace = ((JmlStatementExpr)stat).expression;
-                    } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.ASSERT) {
-                        toTrace = ((JmlStatementExpr)stat).expression;
                     } else {
                         toTrace = origStat;
                     }
