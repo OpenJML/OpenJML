@@ -397,14 +397,15 @@ public class JmlCompiler extends JavaCompiler {
             // Stop here
             return results; // Empty list - do nothing more
         } else if (utils.esc) {
+            JmlEsc esc = JmlEsc.instance(context); // FIXME - get this once at initialization?
         	try {
-                JmlEsc esc = JmlEsc.instance(context); // FIXME - get this once at initialization?
                 esc.initCounts();
         	    for (Env<AttrContext> env: envs) esc(env);
-        	    String summary = esc.reportCounts();
-        	    if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode) log.note("jml.message", summary);
         	} catch (PropagatedException e) {
         		// cancelation
+        	} finally {
+                String summary = esc.reportCounts();
+                if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode) log.note("jml.message", summary);
         	}
     		return results; // Empty list - Do nothing more
         } else if (utils.rac) {
