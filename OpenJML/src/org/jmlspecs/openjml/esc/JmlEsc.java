@@ -113,12 +113,15 @@ public class JmlEsc extends JmlTreeScanner {
         } catch (PropagatedException e) {
         	// Canceled
     		Main.instance(context).canceled = true;
+    		count(IProverResult.ERROR);
     		throw e;
         } catch (Exception e) {
             // No further error messages needed - FIXME - is this true?
+            count(IProverResult.ERROR);
             log.error("jml.internal","Should not be catching an exception in JmlEsc.check: "+ e.toString());
         } catch (Throwable e) {
             // No further error messages needed - FIXME - is this true?
+            count(IProverResult.ERROR);
             log.error("jml.internal","Should not be catching a Java error in JmlEsc.check: "+ e.toString());
         }
     }
@@ -194,7 +197,7 @@ public class JmlEsc extends JmlTreeScanner {
             if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult("",IProverResult.CANCELLED,methodDecl.sym));
             throw e;
         } catch (Throwable e) {
-            log.error("jml.internal","Should not be catching a Java error in JmlEsc.dcoMethod: "+ e.toString());
+            log.error("jml.internal","Should not be catching a Java error in JmlEsc.doMethod: "+ e.toString());
         }
         Main.instance(context).popOptions();
         return;        

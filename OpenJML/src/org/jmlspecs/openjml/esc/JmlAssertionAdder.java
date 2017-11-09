@@ -1709,6 +1709,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         currentStatements = statementStack.removeFirst();
         if (check != currentStatements) {
             log.error("jml.internal", "MISMATCHED BLOCKS");
+            throw new RuntimeException("MISMATCHED BLOCKS");
         }
         return b;
     }
@@ -5414,8 +5415,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - review and cleanup for both esc and rac
     @Override
     public void visitTry(JCTry that) {
+        if (pureCopy) {
+            JCTry t = M.Try(convert(that.body), convert(that.catchers), convert(that.finalizer));
+            t.pos = that.pos;
+            t.resources = convert(that.resources);
+            t.type = that.type;
+            t.finallyCanCompleteNormally = that.finallyCanCompleteNormally;
+            result = t;
+            return;
+        }
         if (that.resources != null && !that.resources.isEmpty()) transformTryWithResources(that);
-        if (!pureCopy) addStat(comment(that,"try ...",null)); // Don't need to trace the try keyword
+        addStat(comment(that,"try ...",null)); // Don't need to trace the try keyword
         JCBlock body = convertBlock(that.body);
 
         List<JCCatch> catchers = null;
@@ -5485,6 +5495,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitCatch(JCCatch that) {
         // Catch statements are handled along with Try
+        if (pureCopy) {
+            JCCatch c = M.Catch(convert(that.param),convert(that.body));
+            c.pos = that.pos;
+            c.type = that.type;
+            result = c;
+            return;
+        }
         error(that,"JmlAssertionAdder.visitCatch should not be called");
     }
     
@@ -7302,6 +7319,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     boolean nodoTranslations = !rac && translatingJML && (uma ||  !localVariables.isEmpty()) && isPure(calleeMethodSym);
             if (nodoTranslations && that instanceof JCNewClass) nodoTranslations = false; // FIXME - work this out in more detail. At least there should not be anonymous classes in JML expressions
             boolean calleeIsFunction = attr.isFunction(calleeMethodSym);
+            nodoTranslations = false;
             if (calleeIsFunction && translatingJML) nodoTranslations = true;
             if (methodsInlined.contains(calleeMethodSym)) {
                 // Recursive inlining

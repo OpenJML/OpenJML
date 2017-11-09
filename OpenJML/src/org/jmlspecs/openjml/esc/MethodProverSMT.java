@@ -1097,7 +1097,7 @@ public class MethodProverSMT {
     public String getValue(String id, SMT smt, ISolver solver) {
     	return getValue(id,smt,solver,true);
     }
-
+    
     /** Query the solver for any type of value of an id in the current model;
      * if 'report' is true then emit an error message if the response to the query
      * by the solver is an error or is null. 
@@ -1108,8 +1108,9 @@ public class MethodProverSMT {
         try {
             resp = solver.get_value(s);
         } catch (StackOverflowError e) {
-            log.error("jml.message", "Stack overflow when querying solver for the value of '" + s + "'");
-            return null;
+            // Cannot call log.error here or we risk StackOverflow again
+            String emergencyError = "Stack overflow when querying solver for the value of '" + s + "'";
+            throw new RuntimeException(emergencyError,e);  // FIXME - a better exception type to use?
         }
         String out;
         if (resp instanceof IResponse.IError) {
