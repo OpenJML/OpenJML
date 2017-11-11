@@ -367,7 +367,7 @@ abstract public class Arithmetic extends ExpressionExtension {
             } else if (optag == JCTree.Tag.MUL) {
                 if (rewriter.useBV || rewriter.rac) {
                     if (newtype.getTag() == TypeTag.INT) {
-                        // a = lhs * rhs ; b = a / lhs; c = lhs == 0 ; d = b == rhs; check = c || d = (lhs == 0) || (lhs*lhs)/lhs == rhs;
+                        // a = lhs * rhs ; b = a / lhs; c = lhs == 0 ; d = b == rhs; check = c || d = (lhs == 0) || (lhs*rhs)/lhs == rhs;
                         JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), rewriter.convertCopy(lhs), rewriter.convertCopy(rhs));
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.DIV, rewriter.treeutils.intdivideSymbol, a, rewriter.convertCopy(lhs));
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, rewriter.convertCopy(lhs), rewriter.treeutils.makeIntLiteral(p, 0));
@@ -468,13 +468,20 @@ abstract public class Arithmetic extends ExpressionExtension {
                         bin = g;
                     }
                 } else if (optag == JCTree.Tag.MUL) {
-                    // Note all of this arithmetic will be done in unbounded integers in SMT
+                    // Note all of this arithmetic will be done in unbounded integers in SMT  -- not quite true - currently auto does not do a retranalsation
+                    // a = lhs * rhs;  b = min <= a; c = max <= a; ; e = b && c; longbin = (long)(lhs*rhs); pos = 0 <= a;
+                    // f = ( longbin % biglit) ; fneg = f; big = f > max ; small = fneg < min; sub = f - biglit;
+                    // posvalue =  big ? sub : f;
+                    // negvalue = small ? fneg + biglit : fneg
+                    // result = g = e ? bin : pos ? posvalue : negvalue;
                     if (typetag == TypeTag.INT) {
                         // The MOD here is Java %, which is negative if the dividend is negative
                         // DIV is OK here because it is exact
                         JCExpression zero = rewriter.treeutils.makeIntLiteral(p, 0);
                         JCExpression minlit = rewriter.treeutils.makeIntLiteral(p, Integer.MIN_VALUE);
+                        JCExpression minlitL = rewriter.treeutils.makeLongLiteral(p, Integer.MIN_VALUE);
                         JCExpression maxlit = rewriter.treeutils.makeIntLiteral(p, Integer.MAX_VALUE);
+                        JCExpression maxlitL = rewriter.treeutils.makeLongLiteral(p, Integer.MAX_VALUE);
                         JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), rewriter.convertCopy(lhs), rewriter.convertCopy(rhs));
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE, rewriter.treeutils.intleSymbol,  minlit, rewriter.convertCopy(a));
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE, rewriter.treeutils.intleSymbol,  rewriter.convertCopy(a), maxlit);
@@ -485,15 +492,15 @@ abstract public class Arithmetic extends ExpressionExtension {
                         JCExpression f = rewriter.treeutils.makeBinary(p, JCTree.Tag.MOD, 
                                 rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.longType), longbin, biglit);
                         JCExpression fneg = rewriter.treeutils.makeBinary(p, JCTree.Tag.MOD, 
-                                        rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.longType), 
-                                        f, 
-                                        biglit);
-                        JCExpression big = rewriter.treeutils.makeBinary(p, JCTree.Tag.GT, rewriter.treeutils.intgtSymbol,  rewriter.convertCopy(f), maxlit);
-                        JCExpression small = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.intltSymbol,  rewriter.convertCopy(fneg), minlit);
+                                rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.longType), rewriter.convertCopy(longbin), biglit);
+                        JCExpression big = rewriter.treeutils.makeBinary(p, JCTree.Tag.GT, rewriter.treeutils.longltSymbol,  maxlitL, rewriter.convertCopy(f));
+                        JCExpression small = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.longltSymbol,  rewriter.convertCopy(fneg), minlitL);
                         JCExpression sub = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.intminusSymbol,  rewriter.convertCopy(f), biglit);
                         JCExpression posvalue = rewriter.treeutils.makeConditional(p, big, sub, rewriter.convertCopy(f));
+                        posvalue = rewriter.addImplicitConversion(that, syms.intType, posvalue);
                         JCExpression negvalue = rewriter.treeutils.makeConditional(p, small, 
                                     rewriter.treeutils.makeBinary(p, JCTree.Tag.PLUS, rewriter.convertCopy(fneg), biglit), rewriter.convertCopy(fneg));
+                        negvalue = rewriter.addImplicitConversion(that, syms.intType, negvalue);
                         JCExpression g = rewriter.treeutils.makeConditional(p, e, rewriter.convertCopy(bin), rewriter.treeutils.makeConditional(p, pos, posvalue, negvalue)); 
                         bin = g;
                     } else if (typetag == TypeTag.LONG) {
@@ -508,12 +515,12 @@ abstract public class Arithmetic extends ExpressionExtension {
                         JCExpression pos = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE, rewriter.treeutils.longleSymbol,  zero, rewriter.convertCopy(a));
                         JCExpression biglit = rewriter.treeutils.makeBinary(p,  JCTree.Tag.MUL,  
                                 rewriter.treeutils.makeLongLiteral(p, -2L),
-                                rewriter.treeutils.makeLongLiteral(p, Integer.MIN_VALUE));
+                                rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE));
                         JCExpression f = rewriter.treeutils.makeBinary(p, JCTree.Tag.MOD, 
                                 rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.longType), longbin, biglit);
                         JCExpression fneg = rewriter.treeutils.makeBinary(p, JCTree.Tag.MOD, 
                                         rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.longType), 
-                                        rewriter.convertCopy(f), 
+                                        rewriter.convertCopy(longbin), 
                                         biglit);
                         JCExpression big = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.longltSymbol,  maxlit, rewriter.convertCopy(f));
                         JCExpression small = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.longltSymbol,  rewriter.convertCopy(fneg), minlit);
@@ -522,6 +529,7 @@ abstract public class Arithmetic extends ExpressionExtension {
                         JCExpression posvalue = rewriter.treeutils.makeConditional(p, big, sub, rewriter.convertCopy(f));
                         JCExpression negvalue = rewriter.treeutils.makeConditional(p, small, add, rewriter.convertCopy(fneg));
                         JCExpression g = rewriter.treeutils.makeConditional(p, e, bin, rewriter.treeutils.makeConditional(p, pos, posvalue, negvalue)); 
+                        bin = g;
                     }
                 } else if (optag == JCTree.Tag.DIV) {
                     if (typetag == TypeTag.INT) {
