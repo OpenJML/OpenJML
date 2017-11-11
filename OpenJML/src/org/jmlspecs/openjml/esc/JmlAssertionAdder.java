@@ -37,6 +37,7 @@ import com.sun.tools.javac.code.Attribute.Compound;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol.*;
 import com.sun.tools.javac.comp.*;
+import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.tree.*;
@@ -4945,6 +4946,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
+    Type getLambdaReturnType(JCLambda that) {
+        ClassType ctype = (ClassType)that.type;
+        TypeSymbol csym = ctype.tsym;
+        for (Symbol sym: csym.getEnclosedElements()) {
+            if (sym instanceof MethodSymbol) {
+                MethodSymbol msym = (MethodSymbol)sym;
+                if (msym.isDefault()) continue;
+                if ((msym.flags() & Flags.ABSTRACT) != 0) {
+                    // Should check that ther is just one abstract method,
+                    // but it would not be the type of a lmbda if that were not the case
+                    
+                    return msym.getReturnType();
+                }
+            }
+        }
+        return null;  // ERROR
+    }
+    
+    boolean translatingLambda = false;
+    
     @Override
     public void visitLambda(JCLambda that) {
         if (pureCopy) {
@@ -4967,11 +4988,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         JCExpression savedExpr = resultExpr;
         resultExpr = null;
-        Type returnType;
+        Type returnType = getLambdaReturnType(that);;
         JCTree body = that.body;
         if (that.body instanceof JCExpression) {
-            returnType = that.body.type;
-            if (returnType == null) {
+            if (returnType == null || returnType.getTag() == TypeTag.VOID) {
                 returnType = syms.voidType;
                 JCStatement stat = M.Exec((JCExpression)that.body);
                 body = M.Block(0L, List.<JCStatement>of(stat));
@@ -4996,8 +5016,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ListBuffer<JCStatement> check = pushBlock();
 //        resultExpr = localResult;
 //        resultSym = localResult == null ? null : (VarSymbol)localResult.sym;
+        boolean savedTL = translatingLambda;
+        int saveHC = heapCount;
         try {
-            int saveHC = heapCount;
+            translatingLambda = true;
             convert(body);
 //            if (!isVoid && that.body instanceof JCExpression) {
 //                addStat(treeutils.makeAssignStat(that.body.pos,localResult,eresult));
@@ -5008,12 +5030,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = eresult = M.Lambda(that.params, bl);
             eresult.pos = that.pos;
             eresult.type = that.type;
-            heapCount = saveHC;
 //            addStat(bl);
 //            JCLambda newlambda = M.at(that.pos).Lambda(that.params,bl);
 //            newlambda.type = that.type;
 //            result = eresult = localResult;
         } finally {
+            heapCount = saveHC;
+            translatingLambda = savedTL;
             addStat(M.Block(0L,collectedAxioms.toList()));
             resultExpr = savedExpr;
             collectedAxioms = saved;
@@ -5616,7 +5639,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             int p = that.pos;
             if (retValue != null)  {
                 retValue = addImplicitConversion(that,resultExpr.type,retValue);
-                if (resultSym != null) {
+                if (resultSym != null && !translatingLambda) {
                     JCIdent resultId;
                     resultId = treeutils.makeIdent(p,resultSym);
                     JCStatement stat = treeutils.makeAssignStat(p,resultId,retValue);
@@ -5629,7 +5652,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 result = addStat(M.at(p).Break(breakName));
                 return ;
                 
-            } else if (resultExpr != null) {
+            } else if (resultExpr != null && !translatingLambda) {
             
                 // Record the value of the termination location
                 JCIdent id = treeutils.makeIdent(p,terminationSym);
@@ -6695,6 +6718,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 currentArgType = ((Type.ArrayType)argtypes.last()).getComponentType();
                 a = addImplicitConversion(a,currentArgType,a);
                 usedVarArgs = true;
+            } else if (a instanceof JCLambda) {
+                // No casts - obscures the fact that the atranslated arg is a JCLambda
+                // also a.type ihas type variables resolved
+                // Just continue
             } else {
                 if (currentArgType != null) a = addImplicitConversion(a,currentArgType,a);  // FIXME - currentArgType should not be null
             }
@@ -7033,7 +7060,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         }
                         // If there are arguments or a return value, we need to do a substitution pass
                         addStat(comment(that, "Inlining lambda",log.currentSourceFile()));
-                        if (trArgs.size() != 0 || resultType.getTag() != TypeTag.VOID) {
+                        if (true || trArgs.size() != 0 || resultType.getTag() != TypeTag.VOID) {
                             Map<Object,JCExpression> replacements = new HashMap<Object,JCExpression>();
                             Iterator<JCExpression> iter = trArgs.iterator();
                             for (JCVariableDecl d: ((JCTree.JCLambda)convertedReceiver).params) {
@@ -13686,9 +13713,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         nonignoredStatements = currentStatements;
                         pushBlock(); // A // FIXME - we have not implemented guarding conditions for expressions inside quantifiers
                     }
+                    List<JCVariableDecl> dd = convertCopy(that.decls);
                     JmlQuantifiedExpr q = M.at(that).
                             JmlQuantifiedExpr(that.op,
-                                    convertCopy(that.decls),
+                                    dd, // convertCopy(that.decls),
                                     convertNoSplit(that.range),
                                     convertNoSplit(that.value));
                     q.setType(that.type);
