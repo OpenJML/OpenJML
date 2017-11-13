@@ -32,11 +32,16 @@ import com.sun.tools.javac.util.Context;
 public class Options {
 	
 	/** Returns the value of a Boolean-valued option. */
-	static boolean isOption(String key) {
-		Boolean value = Activator.getDefault().getPreferenceStore().getBoolean(key);
-		return value != null && value;
-	}
-	
+    static public boolean isOption(String key) {
+        Boolean value = Activator.getDefault().getPreferenceStore().getBoolean(key);
+        return value != null && value;
+    }
+    
+    /** Sets the value of a Boolean-valued option. */
+    static public void setOption(String key, boolean value) {
+        Activator.getDefault().getPreferenceStore().setValue(key,value);
+    }
+    
 	/** Returns the value of a String-valued option. */
 	static String value(String key) {
 		return Activator.getDefault().getPreferenceStore().getString(key);
@@ -75,6 +80,7 @@ public class Options {
 	/** Initializes preference store from properties and JmlOptions */
 	public static void initialize() {
 		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+		store.setDefault(Options.showJobControlDialogKey, true);
 		boolean b = store.getBoolean(Options.alreadyInitializedKey);
 		boolean bb = store.getBoolean(Options.initializeOnStartupKey);
 		if (!b || bb) {
@@ -210,7 +216,9 @@ public class Options {
 	final static public String defaultProverKey = Strings.defaultProverProperty;
 	
 	// Job Control preferences (no corresponding JmlOption option)
-	final static public String jobQueuesKey = key("jobQueues");
+    final static public String alwaysSaveJobControlDialogKey = key("alwaysSaveJobControlDialog");
+    final static public String showJobControlDialogKey = key("showJobControlDialog");
+    final static public String jobQueuesKey = key("jobQueues");
 	final static public String jobStrategyKey = key("jobStrategy");
 	
 }

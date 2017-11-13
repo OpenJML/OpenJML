@@ -355,6 +355,8 @@ public class Utils {
 		deleteMarkers(res, shell); // FIXME - does this trigger a rebuild?
         JobControl.JobParameters jobParameters = JobControl.launchJobControlDialog(selection,window,shell);
         if (jobParameters == null) return;
+        if (jobParameters.alwaysSave) jobParameters.save();
+        
     	for (final IJavaProject jp : sorted.keySet()) {
 			checkESCProject(jp,sorted.get(jp),shell,"Static Checks - Manual",jobParameters);
 		}
@@ -376,13 +378,18 @@ public class Utils {
 	    if (jobParameters != null) strategy1 = jobParameters.strategy.getConstructor(IJavaProject.class,List.class,int.class,String.class).newInstance(jp,ores,2,reason);
         final JobControl.JobStrategy strategy = strategy1;
 	    int qs = strategy.queues();
+	    int work = strategy.totalWork();
 	    
-	     Job job = new Job("") {
+	     Job job = new Job("Master ESC Job") {
 	        public IStatus run(IProgressMonitor m) {
+	            SubMonitor parentSubMonitor = SubMonitor.convert(m);
+	            parentSubMonitor.beginTask("Static checking project " + jp.getElementName(), work+1);
+	            parentSubMonitor = null;
+	            //iface.setMonitor(parentSubMonitor);
 	            final Job jjob = this;
 	            if (qs == 1) {
 	                while (true) {
-	                    Job j = strategy.nextJob(iface,0);
+	                    Job j = strategy.nextJob(iface,0,parentSubMonitor);
 	                    if (j == null) break;
 	                    //j.setProgressGroup(progressGroup,IProgressMonitor.UNKNOWN);
 	                    j.setRule(null);
@@ -390,7 +397,9 @@ public class Utils {
 	                    j.schedule();
 	                    Log.log.equals("Scheduled a job");
 	                    try { 
+	                        //this.sleep();
 	                        j.join(); 
+	                        if (j.getResult() == Status.CANCEL_STATUS) return Status.CANCEL_STATUS;
 	                        Log.log.equals("Joined a job");
 	                    } catch (InterruptedException e) { break; }
 	                }
@@ -405,7 +414,7 @@ public class Utils {
 	                    while (aq.get()<qs) {
 	                        int q = 0;
 	                        for (;q < qs; q++) if (jobs[q] == null) break;
-	                        Job j = strategy.nextJob(ifaces[q],q);
+	                        Job j = strategy.nextJob(ifaces[q],q,parentSubMonitor);
                             jobs[q] = j;
 	                        if (j == null) break;
                             aq.incrementAndGet();
@@ -421,7 +430,7 @@ public class Utils {
 	                        } });
 	                        j.setJobGroup(jobGroup);
 	                        j.setRule(null);
-	                        j.setUser(true); // true since the job has been initiated by an end-user
+	                        j.setUser(true); // false, to suppress the progress monitor dialog
 	                        j.schedule();
 	                        Log.log.equals("Scheduled a job " + q + " " + aq.get());
 	                    }
@@ -455,8 +464,8 @@ public class Utils {
 	    	}
 	    }
 	    job.setRule(f);
-	    job.belongsTo(job);
-	    job.setUser(false);
+	    //job.belongsTo(job);
+	    job.setUser(false);  // true to show the composite progress monitor
 	    job.schedule();
 	    } catch (Exception e) {
 	        // FIXME Failure

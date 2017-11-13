@@ -10,6 +10,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
@@ -76,8 +77,13 @@ IWorkbenchPreferencePage {
     @Override
     protected void createFieldEditors() {
 
-        int procs = Runtime.getRuntime().availableProcessors();
-        addField(new LabelFieldEditor("zzz.JC","This computer has " + procs + " available processors", SWT.NONE, getFieldEditorParent()));
+        addField(new BooleanFieldEditor(Options.showJobControlDialogKey, "Show the job control dialog when an ESC job is launched",
+                                getFieldEditorParent()));
+        
+        addField(new LabelFieldEditor("","",SWT.NONE,getFieldEditorParent()));
+
+//        int procs = Runtime.getRuntime().availableProcessors();
+//        addField(new LabelFieldEditor("zzz.JC","This computer has " + procs + " available processors", SWT.NONE, getFieldEditorParent()));
 
         addField(new ComboFieldEditor(Options.jobQueuesKey,"How many job queues should be used? ",
         		new String[][]{ 
