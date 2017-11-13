@@ -17,7 +17,7 @@ public class escArithmeticModes2 extends EscBase {
     
     @Parameters
     static public Collection<String[]> parameters() {
-        String[] options = {"-escBV=false,-minQuant","-escBV=false,-no-minQuant","-escBV=true,-minQuant","-escBV=true,-no-minQuant"};
+        String[] options = {"-escBV=false,-minQuant","-escBV=false,-no-minQuant","-escBV=true,-minQuant","-escBV=true,-no-minQuant","-escBV=auto,-minQuant","-escBV=auto,-no-minQuant"};
         return optionsAndSolvers(options,solvers);
     }
 
