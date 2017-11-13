@@ -360,9 +360,9 @@ public class JmlTreeUtils {
 //        }
 //    }
     
-    /** Make an attributed tree representing a literal - NOT FOR BOOLEAN or NULL or CHARACTER values.
+    /** Make an attributed tree representing a literal - NOT FOR BOOLEAN or CHARACTER values.
      *  @param pos        The node position
-     *  @param type       The literal's type.
+     *  @param type       The literal's type. (syms.botType for null)
      *  @param value      The literal's value; use 0 or 1 for Boolean; use an int for char literals.
      */
     public JCLiteral makeLit(int pos, Type type, Object value) {
@@ -496,11 +496,8 @@ public class JmlTreeUtils {
             case LONG:
                 return makeLit(pos,type,(long)0);
             case INT:
-                return makeLit(pos,type,0);
             case SHORT:
-                return makeLit(pos,type,(short)0);
             case BYTE:
-                return makeLit(pos,type,(byte)0);
             case BOOLEAN:
                 return makeLit(pos,type,0); // Boolean literal requires an int value
             case FLOAT:

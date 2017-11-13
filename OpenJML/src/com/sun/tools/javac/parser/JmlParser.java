@@ -2673,9 +2673,20 @@ public class JmlParser extends JavacParser {
     @Override
     public Name ident() {
         if (token.kind == CUSTOM) {
-            jmlerror(pos(),endPos(),"jml.keyword.instead.of.ident",jmlTokenKind().internedName());
-            nextToken();
-            return names.error;
+            if (((JmlToken)token).jmlkind == JmlTokenKind.ENDJMLCOMMENT) {
+                jmlerror(pos(),endPos(),"jml.end.instead.of.ident");
+                nextToken();
+                return names.error;
+// We used to give an error if a JML reserved word was used as an identifier. But this should
+// be allowed in Java code. We relax it everywhere though this may have some unintended consequences.
+//              jmlerror(pos(),endPos(),"jml.keyword.instead.of.ident",jmlTokenKind().internedName());
+//              nextToken();
+//              return names.error;
+            } else {
+                Name name = names.fromString(((JmlToken)token).jmlkind.internedName());
+                token = new Tokens.NamedToken(IDENTIFIER, token.pos, token.endPos, name, token.comments);
+                return super.ident();
+            }
         } else {
             return super.ident();
         }

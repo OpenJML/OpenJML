@@ -29,7 +29,7 @@ import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.util.Log;
 
-// This test classs checks that the parser produces correct positions for the various parsed 
+// This test class checks that the parser produces correct positions for the various parsed 
 // constructs. Each one should have a start position, end position, and a preferred position.
 // The first two should span the construct from beginning to end. Note that the end position is
 // one beyond the textual end; also these are character positions from the beginning of the file,

@@ -156,7 +156,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     
     // TODO - review use of and document these progress reporters; perhaps move them
     
-    public DelegatingProgressListener progressDelegate = new DelegatingProgressListener();
+    public DelegatingProgressListener progressDelegator = new DelegatingProgressListener();
 
     /** An interface for progress information; the implementation reports progress
      * by calling report(...); clients will receive notification of progress
@@ -837,9 +837,9 @@ public class Main extends com.sun.tools.javac.main.Main {
             // OpenJML programmatically, they may have set one up already.
             // Note, though that this won't udo the setting, if verbosity is
             // turned off.
-            if (!progressDelegate.hasDelegate()) progressDelegate.setDelegate(new PrintProgressReporter(context,out));
+            if (!progressDelegator.hasDelegate()) progressDelegator.setDelegate(new PrintProgressReporter(context,out));
         } else {
-            progressDelegate.setDelegate(null);
+            progressDelegator.setDelegate(null);
         }
         
         boolean b = JmlOption.isOption(context,JmlOption.USEJAVACOMPILER);
@@ -956,8 +956,8 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     public void register(/*@ non_null @*/ Context context) {
         this.context = context;// A hack so that context is available in processArgs()
-        if (progressDelegate != null) progressDelegate.setContext(context);
-        context.put(IProgressListener.class,progressDelegate);
+        if (progressDelegator != null) progressDelegator.setContext(context);
+        context.put(IProgressListener.class,progressDelegator);
         context.put(key, this);
         registerTools(context,out,diagListener);
         // Since we can only set a context value once, we create this listener that just delegates to 

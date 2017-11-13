@@ -493,7 +493,7 @@ abstract public class Arithmetic extends ExpressionExtension {
                                 rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.longType), longbin, biglit);
                         JCExpression fneg = rewriter.treeutils.makeBinary(p, JCTree.Tag.MOD, 
                                 rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.longType), rewriter.convertCopy(longbin), biglit);
-                        JCExpression big = rewriter.treeutils.makeBinary(p, JCTree.Tag.GT, rewriter.treeutils.longltSymbol,  maxlitL, rewriter.convertCopy(f));
+                        JCExpression big = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.longltSymbol,  maxlitL, rewriter.convertCopy(f));
                         JCExpression small = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.longltSymbol,  rewriter.convertCopy(fneg), minlitL);
                         JCExpression sub = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.intminusSymbol,  rewriter.convertCopy(f), biglit);
                         JCExpression posvalue = rewriter.treeutils.makeConditional(p, big, sub, rewriter.convertCopy(f));

@@ -1213,7 +1213,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             opts.add(JmlOption.RAC_COMPILE_TO_JAVA_ASSERT.optionName() +eq+ Options.isOption(Options.compileToJavaAssert));
         }
         
-        opts.add(JmlOption.VERBOSENESS.optionName()+eq+Options.value(Options.verbosityKey));
+        String v = Options.value(Options.verbosityKey);
+        opts.add(JmlOption.VERBOSENESS.optionName()+eq+"2"); // If not at least progress, the monitors will be stuck
         
         if (Options.isOption(Options.javaverboseKey)) {
         	opts.add(com.sun.tools.javac.main.Option.VERBOSE.getText());
