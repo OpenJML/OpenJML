@@ -9381,78 +9381,98 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected JCExpression createUnboxingExpr(JCExpression expr) {
+        boolean useMethod = false;
         Type origtype = convertType(expr.type);
         Type unboxed = unboxedType(expr.type);
         TypeTag tag = unboxed.getTag();
-        String methodName =
-                tag == TypeTag.INT ? "intValue" :
-                tag == TypeTag.SHORT ? "shortValue" :
-                tag == TypeTag.LONG ? "longValue" :
-                tag == TypeTag.BOOLEAN ? "booleanValue" :
-                tag == TypeTag.DOUBLE ? "doubleValue" :
-                tag == TypeTag.FLOAT ? "floatValue" :
-                tag == TypeTag.BYTE ? "byteValue" :
-                tag == TypeTag.CHAR ? "charValue" : "";
-                ;
+        if (rac || useMethod) {
+            String methodName = unboxed.toString() + "Value";
 
-        Name id = names.fromString(methodName);
-        MethodSymbol msym = getMethod(expr.type,id);
+            Name id = names.fromString(methodName);
+            MethodSymbol msym = getMethod(expr.type,id);
+            if (msym == null) {
+                log.error(expr, "jml.message", "Could not find method " + methodName);
+                // ERROR - throw something
+            }
 
-        JCFieldAccess receiver = M.at(expr).Select(expr, id);
-        receiver.type = msym.type;
-        receiver.sym = msym;
+            JCFieldAccess receiver = M.at(expr).Select(expr, id);
+            receiver.type = msym.type;
+            receiver.sym = msym;
 
-        JCMethodInvocation call = M.at(expr).Apply(List.<JCExpression>nil(), receiver, List.<JCExpression>nil());
-        call.setType(unboxed);
-        boolean saved = alreadyConverted;
-        alreadyConverted = true;
-        try {
-            return convertExpr(call);
-        } finally {
-            alreadyConverted = saved;
-        }
+            JCMethodInvocation call = M.at(expr).Apply(List.<JCExpression>nil(), receiver, List.<JCExpression>nil());
+            call.setType(unboxed);
+            boolean saved = alreadyConverted;
+            alreadyConverted = true;
+            try {
+                // FIXME - explain what happens when alreadyCOnverted is set
+                return convertExpr(call);
+            } finally {
+                alreadyConverted = saved;
+            }
+        } else { // use model field 
+            String fieldName = "the" + origtype.tsym.getSimpleName().toString();
+            Name id = names.fromString(fieldName);
+            VarSymbol fsym = getField(expr.type,id);
+            if (fsym == null) {
+                log.error(expr, "jml.message", "Could not find model field " + fieldName);
+                // ERROR - throw something
+            }
+            JCExpression fa = M.at(expr).Select(expr, fsym);
+            fa.setType(unboxed);
+            return fa;
+       }
     }
     
     protected boolean alreadyConverted = false;
     
+    // Presume exactly one element with thast name
     protected MethodSymbol getMethod(Type type, Name nm) {
         Iterator<Symbol> iter = type.tsym.members().getElementsByName(nm).iterator();
         if (iter.hasNext()) return (MethodSymbol)iter.next();
         return null;
     }
     
+    // Presume exactly one element with thast name
+    protected VarSymbol getField(Type type, Name nm) {
+        Iterator<Symbol> iter = type.tsym.members().getElementsByName(nm).iterator();
+        if (iter.hasNext()) return (VarSymbol)iter.next();
+        return null;
+    }
+    
     protected JCExpression createBoxingStatsAndExpr(JCExpression expr, Type newtype) {
         TypeTag tag = expr.type.getTag();
         newtype = boxedType(expr.type);
-        String methodName =
-                tag == TypeTag.INT ? "intValue" :
-                tag == TypeTag.SHORT ? "shortValue" :
-                tag == TypeTag.LONG ? "longValue" :
-                tag == TypeTag.BOOLEAN ? "booleanValue" :
-                tag == TypeTag.DOUBLE ? "doubleValue" :
-                tag == TypeTag.FLOAT ? "floatValue" :
-                tag == TypeTag.BYTE ? "byteValue" :
-                tag == TypeTag.CHAR ? "charValue" : "";
-                ;
-        Name id = names.fromString(methodName);
-        MethodSymbol msym = getMethod(newtype,id);
+//        String methodName =
+//                tag == TypeTag.INT ? "intValue" :
+//                tag == TypeTag.SHORT ? "shortValue" :
+//                tag == TypeTag.LONG ? "longValue" :
+//                tag == TypeTag.BOOLEAN ? "booleanValue" :
+//                tag == TypeTag.DOUBLE ? "doubleValue" :
+//                tag == TypeTag.FLOAT ? "floatValue" :
+//                tag == TypeTag.BYTE ? "byteValue" :
+//                tag == TypeTag.CHAR ? "charValue" : "";
+//                ;
+//        Name id = names.fromString(methodName);
+//        MethodSymbol msym = getMethod(newtype,id);
         addStat(comment(expr,"Boxing an " + expr.type, log.currentSourceFile()));
+        
+        // Create a temporary that is the boxed value; assume it is non-null
         JCIdent tmp = newTemp(expr.pos(), newtype); // the result - uninitialized id of type 'newtype'
-        // assume id != null
-//        JCExpression e = treeutils.makeNeqObject(expr.getPreferredPosition(), tmp, treeutils.nullLit);
-//        addAssume(expr,Label.IMPLICIT_ASSUME,e);
-
         addNullnessTypeConditionId(tmp, expr, tmp.sym, true, false);
 
-        JCFieldAccess receiver = M.at(expr).Select(tmp, id);
-        receiver.type = msym.type;
-        receiver.sym = msym;
-        JCMethodInvocation call = M.at(expr).Apply(List.<JCExpression>nil(), receiver, List.<JCExpression>nil());
-        call.setType(expr.type); // Note: no symbol set, OK since this is esc
-        JCExpression e = treeutils.makeEquality(expr.pos,call,expr);
+//        JCFieldAccess receiver = M.at(expr).Select(tmp, id);
+//        receiver.type = msym.type;
+//        receiver.sym = msym;
+//        JCMethodInvocation call = M.at(expr).Apply(List.<JCExpression>nil(), receiver, List.<JCExpression>nil());
+//        call.setType(expr.type); // Note: no symbol set, OK since this is esc
+
+        // Equate the unboxed value of tmp to 'expr'
+        // 'createUnboxingExpr' might use a method call (e.g. intValue()) or a field (e.g. theInteger)
+        JCExpression unboxedExpr = createUnboxingExpr(tmp);
+        JCExpression e = treeutils.makeEquality(expr.pos,unboxedExpr,expr);
         addAssume(expr,Label.IMPLICIT_ASSUME,convertExpr(e));
 
-        // assume 
+        // assume the tyep conditions about the boxed value
         addAssume(expr,Label.IMPLICIT_ASSUME,
                 treeutils.makeDynamicTypeEquality(expr, 
                         treeutils.makeIdent(expr.getPreferredPosition(), tmp.sym), 
