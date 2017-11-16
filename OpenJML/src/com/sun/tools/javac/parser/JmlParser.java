@@ -699,25 +699,36 @@ public class JmlParser extends JavacParser {
                         log.warning(pos(),"jml.not.strict","show statement");
                     }
                     S.setJmlKeyword(false);
-                    nextToken();
-                    // Only expressions are allowed -
-                    // but JML constructs are allowed.
-                    boolean prev = inJmlDeclaration;
-                    inJmlDeclaration = true;
                     ListBuffer<JCExpression> expressions = new ListBuffer<>();
-                    JCExpression t = super.parseExpression();
-                    expressions.add(t);
-                    while (token.kind == TokenKind.COMMA) {
-                        accept(TokenKind.COMMA);
-                        t = super.parseExpression();
-                        expressions.add(t);
-                    }
-                    S.setJmlKeyword(true);
-                    if (token.kind != TokenKind.SEMI) {
-                        jmlerror(pos(), pos()+1, "jml.bad.expression.list.in.show");
-                        skipThroughSemi();
-                    } else {
+                    boolean prev = inJmlDeclaration;
+                    nextToken();
+                    if (token.kind == TokenKind.SEMI) {
+                        // empty expression list - OK
+                        // list is empty
                         accept(TokenKind.SEMI);
+                    } else if (token.ikind == JmlTokenKind.ENDJMLCOMMENT) {
+                        // show with no list and no semicolon
+                        jmlerror(pos()-1, pos(), "jml.missing.semicolon.in.show");
+                    } else {
+                        // Only expressions are allowed -
+                        // but JML constructs are allowed.
+                        inJmlDeclaration = true;
+                        JCExpression t = super.parseExpression();
+                        expressions.add(t);
+                        while (token.kind == TokenKind.COMMA) {
+                            accept(TokenKind.COMMA);
+                            t = super.parseExpression();
+                            expressions.add(t);
+                        }
+                        S.setJmlKeyword(true);
+                        if (token.kind == TokenKind.SEMI) {
+                            accept(TokenKind.SEMI);
+                        } else if (token.ikind == JmlTokenKind.ENDJMLCOMMENT) {
+                            jmlerror(pos()-1, pos(), "jml.missing.semicolon.in.show");
+                        } else {
+                            jmlerror(pos(), pos()+1, "jml.bad.expression.list.in.show");
+                            skipThroughSemi();
+                        }
                     }
                     st = toP(jmlF.at(pos).JmlStatementShow(jtoken,expressions.toList()));
                     inJmlDeclaration = prev;

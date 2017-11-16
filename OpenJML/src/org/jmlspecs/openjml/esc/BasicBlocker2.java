@@ -922,6 +922,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override
     public void visitJmlLabeledStatement(JmlLabeledStatement that) {
         VarMap map = currentMap.copy();
+        if (that.label == null) premap = map;
         labelmaps.put(that.label,map); // if that.label is null, this is the premap
         super.visitJmlLabeledStatement(that);
     }
@@ -1679,7 +1680,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         if (left instanceof JCIdent) {
             JCIdent id = (JCIdent)left;
             JCIdent newid = newIdentIncarnation(id,sp);
-            //currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
             JCBinary expr = treeutils.makeEquality(pos,newid,right);
             //copyEndPosition(expr,right);
             newStatement = addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);

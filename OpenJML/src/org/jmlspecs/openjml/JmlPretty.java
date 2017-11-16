@@ -532,6 +532,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             boolean first = true;
             for (JCExpression e: that.expressions) {
                 if (!first) print(",");
+                else first = false;
                 print(" ");
                 e.accept(this);
             }

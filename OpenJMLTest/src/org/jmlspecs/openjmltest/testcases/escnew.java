@@ -501,7 +501,6 @@ public class escnew extends EscBase {
     
     @Test
     public void testTry() {
-    	//main.addOptions("-show","-method=m2good","-checkFeasibility=debug","-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1334,7 +1333,6 @@ public class escnew extends EscBase {
 
     @Test
     public void testBoxing() {
-        main.addOptions("-show","-method=m1bad");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1984,6 +1982,87 @@ public class escnew extends EscBase {
                 )
                 
                
+                );
+    }
+
+    @Test 
+    public void testOldInAssign() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+
+                +" public int f;\n" 
+                +" public int[] a = new int[10];\n" 
+
+                +"  //@ old int j = i+2;\n" 
+                +"  //@ requires 0 <= j && j < 10;\n" 
+                +"  //@ requires a != null && a.length == 10;\n" 
+                +"  //@ assignable a[j];\n" 
+                +"  //@ ensures a[j] == 42;\n" 
+                +"  public void m(int i) {\n" 
+                +"     a[i+2] = 42;\n"
+                +"  }\n"
+                
+                +"  //@ requires 0 <= i && i < 8;\n" 
+                +"  //@ requires a != null && a.length == 10;\n" 
+                +"  //@ assignable a[i];\n" 
+                +"  public void m1bad(int i) {\n" 
+                +"     i += 2; a[i] = 42;\n"
+                +"  }\n"
+                
+                +"  //@ requires 0 <= i && i < 8;\n" 
+                +"  //@ requires a != null && a.length == 10;\n" 
+                +"  //@ assignable a[i+2];\n" 
+                +"  public void m2(int i) {\n" 
+                +"     i += 2; a[i] = 42;\n"
+                +"  }\n"
+                
+                +"  //@ old int j = i+1;\n" 
+                +"  //@ requires 0 <= j && j < 9;\n" 
+                +"  //@ requires a != null && a.length == 10;\n" 
+                +"  //@ assignable a[j];\n" 
+                +"  public void mbad(int i) {\n" 
+                +"     a[i+2] = 42;\n"
+                +"  }\n"
+                
+
+                +"}"
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assignable) in method m1bad:  a[i]",19
+                ,"/tt/TestJava.java:15: warning: Associated declaration",7
+                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (Assignable) in method mbad:  a[i + 2]",13
+                ,"/tt/TestJava.java:28: warning: Associated declaration",7
+                
+               
+                );
+    }
+
+    @Test 
+    public void testOldInCall() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+
+                +" public int f;\n" 
+                +" public int[] a = new int[100];\n" 
+
+                +"  //@ old int j = i+off;\n" 
+                +"  //@ requires a != null && a.length == 100;\n" 
+                +"  //@ requires 0 <= i && i < 50 && 0 <= off && off < 30;\n" 
+                +"  //@ assignable a[j];\n" 
+                +"  public void mmm(int i, int off) {\n" 
+                +"     a[i+off] = 42;\n"
+                +"  }\n"
+                
+                +"  //@ requires 0 <= i && i < 50;\n" 
+                +"  //@ requires a != null && a.length == 100;\n" 
+                +"  //@ assignable a[i],a[i+10],a[i+25];\n" 
+                +"  public void m(int i) {\n" 
+                +"     mmm(i,0);\n"
+                +"     mmm(i,10);\n"
+                +"     mmm(i,25);\n"
+                +"  }\n"
+                
+
+
+                +"}"
                 );
     }
 

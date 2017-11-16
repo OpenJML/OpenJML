@@ -227,7 +227,6 @@ public class esclambdas extends EscBase {
 
     @Test
     public void testIterable4() {
-    	main.addOptions("-show","-method=bump");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -361,7 +360,6 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testConstructor() {
-//    	main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -454,7 +452,6 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testCast() {
-//        main.addOptions("-show","-method=mm");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

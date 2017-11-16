@@ -4210,4 +4210,27 @@ public class esc extends EscBase {
                         );
     }
 
+    @Test
+    public void testShowStatementErrors() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public static class Key { public int k; } \n"
+                        + "  //@ public normal_behavior \n"
+                        + "  //@   requires true; \n"
+                        + "  public static void m(int i, int j) {\n"
+                        + "     //@ show i;\n"
+                        + "     //@ show \n"
+                        + "     //@ show i i;\n"
+                        + "     //@ show;\n"
+                        + "     //@ show i\n"
+                        + "  }\n"
+                        + "}\n"
+                        ,"/tt/TestJava.java:8: Expected a semicolon to terminate the expression list",14
+                        ,"/tt/TestJava.java:9: Bad syntax in the expression list in show statement",17
+                        ,"/tt/TestJava.java:11: Expected a semicolon to terminate the expression list",15
+                        );
+    }
+
 }
