@@ -374,11 +374,11 @@ public class MethodProverSMT {
                 log.report(d);
                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
             }
+            String loc = utils.qualifiedNameNoInit(methodDecl.sym);
+            if (Utils.testingMode) loc = "";
             if (solverResponse.equals(unsatResponse)) {
-                String loc = utils.qualifiedNameNoInit(methodDecl.sym) + " ";
                 // FIXME - get rid of the next line some time when we can change the test results
-                if (Utils.testingMode) loc = "";
-                if (!Utils.testingMode) utils.progress(0,1,loc + "Method assertions are validated");
+                if (!Utils.testingMode) utils.progress(0,1,loc + " Method assertions are validated");
 
                 if (verbose) log.getWriter(WriterKind.NOTICE).println("Method checked OK");
                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
@@ -484,6 +484,7 @@ public class MethodProverSMT {
                     }
                 }
             } else b: { // Proof was not UNSAT, so there may be a counterexample
+                if (!Utils.testingMode) utils.progress(0,1,loc + " Method assertions are INVALID");
                 int count = Utils.instance(context).maxWarnings;
                 boolean byPath = JmlOption.isOption(context, JmlOption.MAXWARNINGSPATH);
                 ProverResult pr = (ProverResult)factory.makeProverResult(methodDecl.sym,proverToUse,

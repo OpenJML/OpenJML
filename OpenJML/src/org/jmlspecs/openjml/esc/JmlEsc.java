@@ -327,7 +327,7 @@ public class JmlEsc extends JmlTreeScanner {
         } catch (Main.JmlCanceledException | PropagatedException e) {
             res = new ProverResult(proverToUse,ProverResult.CANCELLED,methodDecl.sym); // FIXME - I think two ProverResult.CANCELLED are being reported
            // FIXME - the following will throw an exception because progress checks whether the operation is cancelled
-            utils.progress(1,1,"Proof ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
+            utils.progress(1,1,"Proof CANCELLED of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
             + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
             + " - exception"
             );
@@ -340,6 +340,7 @@ public class JmlEsc extends JmlTreeScanner {
                 d = log.factory().error(log.currentSource(), null, "jml.internal","Prover aborted with exception: " + e.getMessage());
             }
             log.report(d);
+            count(IProverResult.ERROR);
 
             res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl.sym).setOtherInfo(d);
             //log.error("jml.internal","Prover aborted with exception: " + e.getMessage());
