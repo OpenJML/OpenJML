@@ -2453,6 +2453,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             JmlTypeClauseExpr t;
                             DiagnosticPosition cpos = clause;
                             boolean clauseIsStatic = utils.isJMLStatic(clause.modifiers,csym);
+                            boolean clauseIsFinal = (clause.modifiers.flags & Flags.FINAL) != 0;
                             currentStatements = clauseIsStatic? staticStats : instanceStats;
                             //JavaFileObject prevSource = log.useSource(clause.source());
                             try {
@@ -2474,6 +2475,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     case INVARIANT:
                                     {
                                         if (contextIsStatic && !clauseIsStatic) break;
+                                        if (clauseIsFinal && !isConstructor) break;
                                         if (isHelper) break;
                                         if (isSuper && !isPost) break;
                                         boolean doit = false;
@@ -2615,6 +2617,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (t.token != JmlTokenKind.INVARIANT) continue;
                 if (staticOnly && !utils.isJMLStatic(t.modifiers,csym)) continue;
                 if (helper && (t.modifiers.flags & Flags.FINAL) == 0) continue;
+                if (!assume && (t.modifiers.flags & Flags.FINAL) != 0) continue;
                 JavaFileObject prev = log.useSource(t.source);
                 try {
                     JCExpression e = convertJML( convertCopy((JmlTypeClauseExpr)t).expression); // FIXME - really need the convertCopy?
@@ -2645,6 +2648,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
 
+    // FIXME - not used?
     protected void addInvariants(boolean assume, JCVariableDecl d, ClassSymbol csym, JCExpression currentThis) {
         JCExpression saved = currentThisExpr;
         currentThisExpr = currentThis;
@@ -3473,6 +3477,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     utils.qualifiedMethodSig(methodDecl.sym));
         }
         endInvariants(csym);
+        for (Symbol ccsym: csym.getEnclosedElements()) {
+            if (ccsym instanceof ClassSymbol) {
+                assumeStaticInvariants((ClassSymbol)ccsym);
+            }
+        }
     }
 
     public interface IClassOp {
@@ -3534,6 +3543,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (esc) {
             addStat(comment(methodDecl,"Assume axioms",null));
             addForClasses(collector.classes, axiomAdder);
+            addStat(comment(methodDecl,"Assume static invariants",null));
+            addForClasses(collector.classes, staticInvariantAdder);
             addStat(comment(methodDecl,"Assume static final constant fields",null));
             addForClasses(collector.classes, finalStaticFieldAdder);
             addStat(comment(methodDecl,"Assume static initialization",null));
@@ -7255,7 +7266,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     boolean nodoTranslations = !rac && translatingJML && (uma ||  !localVariables.isEmpty()) && isPure(calleeMethodSym);
             if (nodoTranslations && that instanceof JCNewClass) nodoTranslations = false; // FIXME - work this out in more detail. At least there should not be anonymous classes in JML expressions
             boolean calleeIsFunction = attr.isFunction(calleeMethodSym);
-//            nodoTranslations = false;
+            nodoTranslations = false;
             if (calleeIsFunction && translatingJML) nodoTranslations = true;
             if (methodsInlined.contains(calleeMethodSym)) {
                 // Recursive inlining
@@ -9437,6 +9448,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Type origtype = convertType(expr.type);
         Type unboxed = unboxedType(expr.type);
         TypeTag tag = unboxed.getTag();
+        String origtypeString = origtype.tsym.getSimpleName().toString();
         if (rac || useMethod) {
             String methodName = unboxed.toString() + "Value";
 
@@ -9462,7 +9474,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 alreadyConverted = saved;
             }
         } else { // use model field 
-            String fieldName = "the" + origtype.tsym.getSimpleName().toString();
+            String fieldName = "the" + origtypeString;
+            if (origtypeString.equals("BigInteger")) fieldName = "value";
             Name id = names.fromString(fieldName);
             VarSymbol fsym = getField(expr.type,id);
             if (fsym == null) {
@@ -11209,7 +11222,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!rac && sym != null && alreadyDiscoveredFields.add(sym)) { // true if s was NOT in the set already
             if (utils.isJMLStatic(sym) && isFinal(sym)) {
                 if (newfa != null) addFinalStaticField(newfa);
-            } else if (sym.kind == Kinds.VAR && sym.owner != null && sym.owner.kind == Kinds.MTH) {
+            } else if (sym.kind == Kinds.VAR && sym.owner != null && sym.owner.kind == Kinds.MTH && splitExpressions && !localVariables.containsKey(sym)) {
                 addLocalVar(that);
             } else {
                 if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note("jml.message", "No invariants created for " + that);
@@ -12690,7 +12703,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Havoc all items that might be changed in the loop
         if (esc) {
             loopHelperHavoc(that.body,indexDecl,that.init,that.step,that.body,that.cond);
-            changeState();
+            changeState();  // FIXME _ but only if something is havoced? and it is not a local variable?
         }
         
         loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
@@ -15140,7 +15153,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Havoc all items that might be changed in the loop
         if (esc) {
             loopHelperHavoc(that.body,indexDecl,null,that.body,that.cond);
-            changeState();
+            changeState();  // FIXME - but only if somethings non-local is havoced?
         }
         
         loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);

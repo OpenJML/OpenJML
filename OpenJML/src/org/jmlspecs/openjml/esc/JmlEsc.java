@@ -196,8 +196,6 @@ public class JmlEsc extends JmlTreeScanner {
             IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
             if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult("",IProverResult.CANCELLED,methodDecl.sym));
             throw e;
-        } catch (Throwable e) {
-            log.error("jml.internal","Should not be catching a Java error in JmlEsc.doMethod: "+ e.toString());
         }
         Main.instance(context).popOptions();
         return;        
@@ -332,7 +330,7 @@ public class JmlEsc extends JmlTreeScanner {
             + " - exception"
             );
             throw e;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             JCDiagnostic d;
             if (e instanceof SMTTranslator.JmlBVException) {
                 d = log.factory().error(log.currentSource(), methodDecl, "jml.message", "Proof aborted because bit-vector operations are not supported. Use option -escBV=true");
