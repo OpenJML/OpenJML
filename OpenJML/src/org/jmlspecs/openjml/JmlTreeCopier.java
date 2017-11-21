@@ -458,10 +458,19 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     @Override
-    public JCTree visitJmlStatementLoop(JmlStatementLoop that, Void p) {
-        JmlStatementLoop copy = M.at(that.pos).JmlStatementLoop(
+    public JCTree visitJmlStatementLoopExpr(JmlStatementLoopExpr that, Void p) {
+        JmlStatementLoopExpr copy = M.at(that.pos).JmlStatementLoopExpr(
                 that.token,
                 copy(that.expression,p));
+        copy.type = that.type;
+        return copy;
+    }
+
+    @Override
+    public JCTree visitJmlStatementLoopModifies(JmlStatementLoopModifies that, Void p) {
+        JmlStatementLoopModifies copy = M.at(that.pos).JmlStatementLoopModifies(
+                that.token,
+                copy(that.storerefs,p));
         copy.type = that.type;
         return copy;
     }

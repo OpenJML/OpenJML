@@ -14,50 +14,8 @@ import java.util.Map;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.*;
-import org.jmlspecs.openjml.JmlTree.IJmlLoop;
-import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
-import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
-import org.jmlspecs.openjml.JmlTree.JmlBlock;
-import org.jmlspecs.openjml.JmlTree.JmlChoose;
-import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
-import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
-import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
-import org.jmlspecs.openjml.JmlTree.JmlForLoop;
-import org.jmlspecs.openjml.JmlTree.JmlGroupName;
-import org.jmlspecs.openjml.JmlTree.JmlImport;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignals;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
-import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
-import org.jmlspecs.openjml.JmlTree.JmlSingleton;
-import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
-import org.jmlspecs.openjml.JmlTree.JmlStatement;
-import org.jmlspecs.openjml.JmlTree.JmlStatementLoop;
-import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
-import org.jmlspecs.openjml.JmlTree.JmlStoreRefKeyword;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConditional;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConstraint;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseIn;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMaps;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
-import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
+
+import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.source.tree.Tree.Kind;
@@ -71,20 +29,7 @@ import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
 import com.sun.tools.javac.parser.Tokens.ITokenKind;
 import com.sun.tools.javac.tree.*;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCBlock;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
-import com.sun.tools.javac.tree.JCTree.JCErroneous;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
-import com.sun.tools.javac.tree.JCTree.JCSkip;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Assert;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
@@ -644,12 +589,12 @@ public class JmlParser extends JavacParser {
                     S.setJmlKeyword(false);
                     nextToken();
                     JCExpression t = parseExpression();
-                    JmlStatementLoop ste = to(jmlF.at(pos).JmlStatementLoop(
+                    JmlStatementLoopExpr ste = to(jmlF.at(pos).JmlStatementLoopExpr(
                             jtoken, t));
                     // ste.source = log.currentSourceFile();
                     // ste.line = log.currentSource().getLineNumber(pos);
                     st = ste;
-                } else if (jtoken == JmlTokenKind.HAVOC ) {
+                } else if (jtoken == LOOP_MODIFIES || jtoken == JmlTokenKind.HAVOC ) {
                     S.setJmlKeyword(false);
                     nextToken();
 
@@ -669,7 +614,8 @@ public class JmlParser extends JavacParser {
                         }
                         nextToken();
                     }
-                    st = toP(jmlF.at(pos).JmlHavocStatement(list.toList()));
+                    if (jtoken == JmlTokenKind.HAVOC) st = toP(jmlF.at(pos).JmlHavocStatement(list.toList()));
+                    else st = toP(jmlF.at(pos).JmlStatementLoopModifies(jtoken,list.toList()));
                     S.setJmlKeyword(true); // This comes a token too late.
                     rescan();
                     needSemi = false;

@@ -118,7 +118,8 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     public R visitJmlStatementDecls(JmlStatementDecls that, P p)                        { return shouldNotBeCalled(that); }
     public R visitJmlStatementExpr(JmlStatementExpr that, P p)                          { return shouldNotBeCalled(that); }
     public R visitJmlStatementHavoc(JmlStatementHavoc that, P p)                        { return shouldNotBeCalled(that); }
-    public R visitJmlStatementLoop(JmlStatementLoop that, P p)                          { return shouldNotBeCalled(that); }
+    public R visitJmlStatementLoopExpr(JmlStatementLoopExpr that, P p)                          { return shouldNotBeCalled(that); }
+    public R visitJmlStatementLoopModifies(JmlStatementLoopModifies that, P p)                          { return shouldNotBeCalled(that); }
     public R visitJmlStatementSpec(JmlStatementSpec that, P p)                          { return shouldNotBeCalled(that); }
     public R visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that, P p)                { return shouldNotBeCalled(that); }
     public R visitJmlStoreRefKeyword(JmlStoreRefKeyword that, P p)                      { return shouldNotBeCalled(that); }
