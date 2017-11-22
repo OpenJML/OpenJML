@@ -2369,6 +2369,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 for (Type ctype: parents) {
                     if (!(ctype.tsym instanceof ClassSymbol)) continue;
+                    if (isDataGroup(ctype)) continue;
+                    
                     typevarMapping = typemapping(ctype, null, null);
                     ListBuffer<JCStatement> check = pushBlock();
                     ListBuffer<JCStatement> instanceStats = currentStatements;
@@ -3806,6 +3808,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         currentStatements = savedCurrentStatements;
     }
     
+    public boolean isDataGroup(Type type) {
+        return type.toString().contains("JMLDataGroup");  // FIXME - something better than string comparison?
+    }
+    
     protected void assumeFieldInvariants(JCMethodDecl methodDecl, JCClassDecl classDecl) {
         // Assume invariants for the class of each field of the owning class
         JCExpression savedThis = currentThisExpr;
@@ -3816,6 +3822,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym)) continue;
             
             if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
+            if (isDataGroup(d.type)) continue;
             
             if (dd.type.isParameterized()) {
                 List<Type> argtypes = dd.type.getTypeArguments();
@@ -3863,6 +3870,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCVariableDecl d = (JCVariableDecl)dd;
             if (d.sym.type.isPrimitive()) continue;
             if (staticOnly && !utils.isJMLStatic(d.sym)) continue;
+            if (isDataGroup(d.type)) continue;
             
             //if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
             
@@ -5006,6 +5014,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             popBlock(0L,that);
             return;
         }
+        if (convertingAssignable) {
+            result = eresult = that;
+            return;
+        }
         if (rac) {
             // FIXME - currently there is no rewriting for checking within RAC
             result = eresult = convertCopy(that);
@@ -5960,7 +5972,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression idthis = treeutils.makeOld(pos, baseThisExpr);
             if (rac) idthis = convertJML(idthis);
             JCExpression result = treeutils.makeEqObject(posp, idthis, 
-                     convertJML(fa.selected));
+                     convertJML(fa.selected));  // FIXM E- fa already translated - always?
             return treeutils.makeOrSimp(posp, isLocal, result); 
 
         } else if (pfac instanceof JCFieldAccess) {
@@ -5989,7 +6001,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             if (contained && !utils.isJMLStatic(pfa.sym)) {
                 // a.x vs. b.x  with x not static, so result is (a == b)
-                JCExpression result = treeutils.makeEqObject(posp, convertJML(fa.selected), convertJML(pfa.selected));
+                JCExpression result = treeutils.makeEqObject(posp, fa.selected, pfa.selected);
                 return treeutils.makeOrSimp(posp, isLocal, result);
             }
             if (contained && utils.isJMLStatic(pfa.sym)) {
@@ -6185,10 +6197,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             currentThisExpr = baseThisExpr; currentThisId = (JCIdent)currentThisExpr;
             JCExpression paat = convertJML(paa.index);
             currentThisExpr = targetThisExpr; currentThisId = (JCIdent)currentThisExpr;
-            JCExpression a1 = aa.lo == null ? treeutils.zero : convertJML(aa.lo);
+            JCExpression a1 = aa.lo == null ? treeutils.zero : aa.lo;
             result = treeutils.makeAnd(posp, result, treeutils.makeBinary(posp,JCTree.Tag.EQ,treeutils.inteqSymbol, 
                     a1, paat));
-            a1 = aa.hi != null ? convertJML(aa.hi) : treeutils.makeBinary(posp, JCTree.Tag.MINUS, treeutils.makeLength(pos, convertJML(aa.expression)), treeutils.one);
+            a1 = aa.hi != null ? aa.hi : treeutils.makeBinary(posp, JCTree.Tag.MINUS, treeutils.makeLength(pos, aa.expression), treeutils.one);
             result = treeutils.makeAnd(pos, result, treeutils.makeBinary(pos,JCTree.Tag.EQ,treeutils.inteqSymbol, 
                     a1, paat));
             currentThisId = savedId;
@@ -6200,7 +6212,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             e = convertAssignable(e,baseThisExpr,true);
             JCExpression result = treeutils.makeEqObject(posp, convertAssignable(aa.expression,baseThisExpr,true), e);
             currentThisExpr = targetThisExpr; currentThisId = (JCIdent)currentThisExpr;
-            JCExpression a1 = aa.lo == null ? treeutils.zero : convertJML(aa.lo);
+            JCExpression a1 = aa.lo == null ? treeutils.zero : (aa.lo);
             currentThisExpr = baseThisExpr; currentThisId = (JCIdent)currentThisExpr;
             JCExpression a2 = paa.lo == null ? treeutils.zero : convertJML(paa.lo);
             result = treeutils.makeAnd(posp, result, treeutils.makeBinary(posp,JCTree.Tag.LE,treeutils.intleSymbol, 
@@ -6208,7 +6220,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             try {
                 currentThisExpr = targetThisExpr; currentThisId = (JCIdent)currentThisExpr;
-                a1 = aa.hi != null ? convertJML(aa.hi) : treeutils.makeBinary(posp, JCTree.Tag.MINUS, treeutils.makeLength(pos, convertJML(aa.expression)), treeutils.one);
+                a1 = aa.hi != null ? aa.hi : treeutils.makeBinary(posp, JCTree.Tag.MINUS, treeutils.makeLength(pos, aa.expression), treeutils.one);
                 currentThisExpr = baseThisExpr; currentThisId = (JCIdent)currentThisExpr;
                 a2 = paa.hi != null ? convertJML(paa.hi) :  treeutils.makeBinary(posp, JCTree.Tag.MINUS, treeutils.makeLength(pos, convertJML(paa.expression)), treeutils.one);
             } finally {
