@@ -52,7 +52,14 @@ public class JobControl {
     
     /** Create a JobParameters structure, initialized from preferences */
     public static class JobParameters {
-        public int queues = Integer.valueOf(Options.value(Options.jobQueuesKey));
+        public int queues;
+        {try {
+        	String jq = Options.value(Options.jobQueuesKey);
+        	if (jq != null) jq = jq.trim();
+        	queues = jq == null || jq.isEmpty() ? 1 : Integer.valueOf(jq);
+        } catch (NumberFormatException e) {
+        	queues = 1;
+        }}
         public Class<? extends JobStrategy> strategy;
         { try {
             strategy = (Class<? extends JobStrategy>)Class.forName(Options.value(Options.jobStrategyKey));
