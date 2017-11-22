@@ -1002,7 +1002,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     Strings.feasibilityContains(Strings.feas_all,context) ||
                     Strings.feasibilityContains(Strings.feas_debug,context)
                     )) {
-                addAssumeCheck(methodDecl,outerFinalizeStats,Strings.atExitAssumeCheckDescription);
+                String vv = JmlOption.value(context, JmlOption.SPLIT);
+                if (vv == null || vv.isEmpty() || vv.endsWith("->")) {
+                    addAssumeCheck(methodDecl,outerFinalizeStats,Strings.atExitAssumeCheckDescription);
+                }
             }
             
             // The outerTryStatement just has a finally clause in which the
@@ -1224,7 +1227,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (trees==null) return null;
         ListBuffer<T> newlist = new ListBuffer<T>();
         for (T t: trees) {
-            newlist.add(convert(t));
+            T tt = convert(t);
+            if (tt != null) newlist.add(tt);
         }
         return newlist.toList();
     }
@@ -14321,7 +14325,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     result = null;
                 }
                 break;
-
+            case END:
+                // do nothing -- this should be part of a JmlStatementSpec
+                break;
             default:
                 String msg = "Unknown token in JmlAssertionAdder.visitJmlStatement: " + that.token.internedName();
                 error(that, msg);
@@ -14487,8 +14493,102 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlStatementSpec(JmlStatementSpec that) {
-        log.warning(that,"jml.refining.specs.not.implemented");
-        //result = M.at(that).JmlStatementSpec(convert(that.statementSpecs)).setType(that.type);
+        if (pureCopy) {
+            // FIXME - fix when copiers are implemented
+            JmlStatementSpec sp = M.at(that).JmlStatementSpec(convert(that.statementSpecs));
+            sp.statements = convert(that.statements);
+            sp.setType(that.type);
+            result = sp;
+            return;
+        }
+        final String splitter = "->";
+        String split = JmlOption.value(context, JmlOption.SPLIT);
+        if (split == null) split = ""; else split = split.trim();
+
+        if (rac || split.isEmpty()) {
+            // Ignore
+            convert(that.statements);
+            result = null;
+            return;
+        }
+        int k = split.indexOf(splitter);
+        String summ = split.substring(0,k);
+        String[] summarize =  (summ.isEmpty()) ? new String[0] : summ.split(",");
+        String prove = split.substring(k+splitter.length());
+        
+        JCStatement endStat = null;
+        if (that.statements != null) {
+            endStat = that.statements.last();
+            if (endStat instanceof JmlStatement && ((JmlStatement)endStat).token == JmlTokenKind.END) {
+            } else {
+                endStat = null;
+            }
+        }
+
+        // Make summary branch
+        JmlMethodSpecs sspecs = that.statementSpecs;
+        ListBuffer<JCStatement> check = pushBlock();
+        addStat(comment(that,"Summary branch",log.currentSourceFile()));
+        // Only implement for one case with assignable and ensures
+        JmlSpecificationCase cs = sspecs.cases.get(0);
+        for (JmlMethodClause clause: cs.clauses) {
+            if (clause.token != JmlTokenKind.ASSIGNABLE) continue;
+            JmlMethodClauseStoreRef a = (JmlMethodClauseStoreRef)clause;
+            ListBuffer<JCExpression> newlist = new ListBuffer<>();
+            for (JCExpression sf: a.list) {
+                newlist.add(convertAssignable(sf,currentThisExpr,true));
+            }
+            JmlStatementHavoc hv = M.at(a).JmlHavocStatement(newlist.toList());
+            addStat(hv);
+        }
+        for (JmlMethodClause clause: cs.clauses) {
+            if (clause.token != JmlTokenKind.ENSURES) continue;
+            JmlMethodClauseExpr a = (JmlMethodClauseExpr)clause;
+            addAssume(clause, Label.IMPLICIT_ASSUME, convertJML(a.expression));
+        }
+        JCBlock summaryBlock = popBlock(0L, that, check);
+        
+        
+        
+        // Make non-summary branch
+        check = pushBlock();
+        addStat(comment(that,"Non-summary branch",log.currentSourceFile()));
+        convert(that.statements);
+
+        if (!prove.isEmpty()) {
+            // Make proof branch
+            ListBuffer<JCStatement> check2 = pushBlock();
+            // Only implemented for one case with assignable and ensures
+            addStat(comment(that,"Proof branch",log.currentSourceFile()));
+            // FIXME - change the name on this and the defaults
+            addAssumeCheck(endStat != null ? endStat : that,currentStatements,Strings.atExitAssumeCheckDescription);
+            cs = sspecs.cases.get(0);
+            for (JmlMethodClause clause: cs.clauses) {
+                if (clause.token != JmlTokenKind.ENSURES) continue;
+                JmlMethodClauseExpr a = (JmlMethodClauseExpr)clause;
+                addAssert(clause, Label.EXPLICIT_ASSERT, convertJML(a.expression));  // FIXME - different label
+            }
+            if (endStat != null) addStat(endStat);
+            JCBlock proofBlock = popBlock(0L, that, check2);
+
+//            JCIdent nt = newTemp(that,syms.booleanType);
+//            JCIf ifStat = M.at(that).If(nt,proofBlock,null);
+//            addStat(ifStat);
+            
+            addStat(proofBlock);
+        }
+        JCBlock block = popBlock(0L,that.pos(),check);
+        
+        // Combine it all
+        if (summarize.length > 0) {
+            addStat(summaryBlock);
+        } else {
+//            JCIdent ntt = newTemp(that,syms.booleanType);
+//            JCIf ifStat = M.at(that).If(ntt,block,summaryBlock);
+//            addStat(ifStat);
+            addStat(block);
+        }
+        result = null;
     }
 
     // OK

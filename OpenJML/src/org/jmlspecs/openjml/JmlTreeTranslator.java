@@ -373,6 +373,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     public void visitJmlStatementSpec(JmlStatementSpec that) {
         JmlStatementSpec r = that;
         r.statementSpecs = translate(that.statementSpecs);
+        r.statements = translate(that.statements);
         result = r;
         // Not translating: none
     }

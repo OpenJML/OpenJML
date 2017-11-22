@@ -1355,9 +1355,34 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 }
             }
             currentBlock.statements.add(st);
+
         } else {
             log.error(that.pos,"esc.internal.error","Unknown token in BasicBlocker2.visitJmlStatementExpr: " + that.token.internedName());
         }
+    }
+    
+    public void visitJmlStatement(JmlStatement that) {
+        if (that.token == JmlTokenKind.END) {
+            // Modeled after vistReturn
+            if (!remainingStatements.isEmpty()) {
+                JCStatement stat = remainingStatements.get(0);
+                if (stat.toString().contains("JMLsaved")) remainingStatements.remove(0);
+                if (remainingStatements.get(0).toString().contains("JMLsaved")) remainingStatements.remove(0);
+                if (!remainingStatements.isEmpty()) {
+//                    // Not fatal, but does indicate a problem with the original
+//                    // program, which the compiler may have already identified
+//                    log.warning(remainingStatements.get(0).pos,
+//                            "esc.internal.error", //$NON-NLS-1$
+//                            "Unexpected statements following a END statement are ignored"); //$NON-NLS-1$
+                    remainingStatements.clear();
+                }
+            }
+
+            replaceFollows(currentBlock, new LinkedList<BasicBlock>());
+
+            processCurrentBlock();
+        }
+        
     }
     
     protected void traceMethod(JCMethodInvocation call) {
@@ -1932,7 +1957,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override public void visitJmlCompilationUnit(JmlCompilationUnit that)   { shouldNotBeCalled(that); }
     @Override public void visitJmlImport(JmlImport that)                     { shouldNotBeCalled(that); }
     @Override public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
-    @Override public void visitJmlStatement(JmlStatement that) { shouldNotBeCalled(that); }
+//    @Override public void visitJmlStatement(JmlStatement that)    { shouldNotBeCalled(that); }
     @Override public void visitJmlStatementSpec(JmlStatementSpec that) { shouldNotBeCalled(that); }
     @Override public void visitJmlStatementDecls(JmlStatementDecls that) { shouldNotBeCalled(that); }
     @Override public void visitMethodDef(JCMethodDecl that)        { shouldNotBeCalled(that); }

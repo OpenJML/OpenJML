@@ -31,6 +31,7 @@ public enum JmlTokenKind implements ITokenKind {
     COMMENT("comment"), // For comments in BasicBlock programs
     HAVOC("havoc"), // Just used in ESC
     DEBUG("debug"),
+    END("end"),
     SET("set"),
     SHOW("show"),
     DECREASES("decreases"),

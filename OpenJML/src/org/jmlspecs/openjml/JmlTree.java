@@ -2735,9 +2735,10 @@ public class JmlTree implements IJmlTree {
      */
     public static class JmlStatementSpec extends JmlAbstractStatement {
         public JmlMethodSpecs statementSpecs;
+        public List<JCStatement> statements;
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlStatementSpec(int pos, JmlMethodSpecs statementSpecs) {
+        protected JmlStatementSpec(int pos, JmlMethodSpecs statementSpecs) {  // FIXME - fix constructors and copiers
             this.pos = pos;
             this.statementSpecs = statementSpecs;
         }

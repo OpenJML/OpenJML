@@ -82,8 +82,20 @@ public class escfiles extends EscBase {
         helpTCF(d,"test/" + outdir,newopts);
     }
 
+    public void helpTCA(String sourceDirname, String outDir, String ... opts) {
+        int extraOpts = 5;
+        String[] newopts = new String[opts.length+extraOpts];
+        // Fill in exactly 'extraOpts' initial elements
+        newopts[0] = "-classpath";
+        newopts[1] = sourceDirname;
+        newopts[2] = "-checkFeasibility=precondition,reachable,exit";
+        newopts[3] = "-code-math=bigint"; // Just to avoid overflow errors in these tests
+        newopts[4] = "-spec-math=bigint"; // Just to avoid overflow errors in these tests
+        System.arraycopy(opts,0,newopts,extraOpts,opts.length);
+        escOnFiles(sourceDirname,outDir,newopts);
+    }
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
-    	escOnFiles(sourceDirname,outDir,opts);
+        escOnFiles(sourceDirname,outDir,opts);
     }
 
 
@@ -393,9 +405,29 @@ public class escfiles extends EscBase {
     }
     
     @Test
+    public void testEscLoopModifies() {
+        helpTF("escLoopModifies");
+    }
+
+    @Test
+    public void testEscBodySpecs() {
+        helpTF("escBodySpecs");
+    }
+
+    @Test
+    public void testEscBodySpecs1() {
+        helpTCA("test/escBodySpecs","test/escBodySpecs1","-split=A->");
+    }
+
+    @Test
+    public void testEscBodySpecs2() {
+        helpTCA("test/escBodySpecs","test/escBodySpecs2","-split=->A","-method=m");
+    }
+
+    @Test
     public void testEscDeterministic() {
         helpTF("escDeterministic");
-	}
+    }
 
     @Test
     public void testEscDeterministic2() {

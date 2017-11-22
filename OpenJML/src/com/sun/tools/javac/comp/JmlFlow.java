@@ -231,7 +231,10 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStatementSpec(JmlStatementSpec that) {
-            // Is called, but nothing to check
+            // No need to scan the specs
+            if (that.statements != null) {
+                scan(that.statements);
+            }
         }
 
         @Override
@@ -613,7 +616,10 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStatementSpec(JmlStatementSpec that) {
-            // Is called, but nothing to check
+            // No need to scxan specs
+            if (that.statements != null) {
+                scan(that.statements);
+            }
         }
 
         @Override
@@ -985,7 +991,10 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStatementSpec(JmlStatementSpec that) {
-            // Is called, but nothing to check
+            // No need to scan specs
+            if (that.statements != null) {
+                scan(that.statements);
+            }
         }
 
         @Override
