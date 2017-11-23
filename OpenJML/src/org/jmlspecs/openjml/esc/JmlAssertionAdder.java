@@ -3543,8 +3543,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (esc) {
             addStat(comment(methodDecl,"Assume axioms",null));
             addForClasses(collector.classes, axiomAdder);
-            addStat(comment(methodDecl,"Assume static invariants",null));
-            addForClasses(collector.classes, staticInvariantAdder);
+            if (isHelper(methodDecl.sym)) {
+                addStat(comment(methodDecl,"Method is helper so not assuming static invariants",null));
+            } else {
+                addStat(comment(methodDecl,"Assume static invariants",null));
+                addForClasses(collector.classes, staticInvariantAdder);
+            }
             addStat(comment(methodDecl,"Assume static final constant fields",null));
             addForClasses(collector.classes, finalStaticFieldAdder);
             addStat(comment(methodDecl,"Assume static initialization",null));
@@ -7266,7 +7270,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     boolean nodoTranslations = !rac && translatingJML && (uma ||  !localVariables.isEmpty()) && isPure(calleeMethodSym);
             if (nodoTranslations && that instanceof JCNewClass) nodoTranslations = false; // FIXME - work this out in more detail. At least there should not be anonymous classes in JML expressions
             boolean calleeIsFunction = attr.isFunction(calleeMethodSym);
-            nodoTranslations = false;
+ //           nodoTranslations = false;
             if (calleeIsFunction && translatingJML) nodoTranslations = true;
             if (methodsInlined.contains(calleeMethodSym)) {
                 // Recursive inlining
