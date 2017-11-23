@@ -729,6 +729,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         IArithmeticMode savedArithmeticMode = this.currentArithmeticMode;
         ListBuffer<JCStatement> prevStats = initialStatements;
         ListBuffer<JCStatement> savedOldStatements = oldStatements;
+        Map<Symbol,JCIdent> savedPreparams = preparams;
+        preparams = new HashMap<Symbol,JCIdent>(savedPreparams);
         JavaFileObject prevSource = log.useSource(pmethodDecl.source());
         Map<Object,JCExpression> savedParamActuals = paramActuals;
         java.util.List<Symbol> savedCompletedInvariants = this.completedInvariants;
@@ -1062,6 +1064,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             Log.instance(context).error("jml.internal.notsobad",message);
             return null;
         } finally {
+            this.preparams = savedPreparams;
             this.assumeCheckCount = prevAssumeCheckCount;
             this.methodDecl = prevMethodDecl;
             this.classDecl = prevClass;
@@ -2344,6 +2347,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!translatingJML) clearInvariants();
         if (startInvariants(basecsym,pos)) return;
 //        System.out.println("STARTING " + basecsym);
+        if (methodDecl.sym.isConstructor() && assume && types.isSameType(methodDecl.sym.type, basetype)) {
+            return;
+        }
+
         java.util.List<Type> parents = parents(basetype, true);
 //        boolean isConstructedObject = isConstructor && receiver.sym == currentThisId.sym;
         boolean self = basecsym == methodDecl.sym.owner; // true if we are inserting invariants for the base method, either as pre and post conditions or prior to calling a callee
@@ -2379,7 +2386,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JmlSpecs.TypeSpecs tspecs = specs.get(csym);
                         if (tspecs == null) continue; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
 
-                        if (prepost && !isPost && !methodDecl.sym.isConstructor()) {
+                        if (prepost && !isPost) {
                             // Adding in invariant about final fields
                             instanceStats.add(comment(pos,(assume? "Assume" : "Assert") + " final field invariants for " + csym,null));
                             JCExpression conj = null;
@@ -2477,12 +2484,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     case INVARIANT:
                                     {
                                         if (contextIsStatic && !clauseIsStatic) break;
-                                        if (clauseIsFinal && !isConstructor) break;
+                                        if (clauseIsFinal && !assume) break;
                                         if (isHelper) break;
                                         if (isSuper && !isPost) break;
                                         boolean doit = false;
                                         if (!isConstructor || isPost) doit = true; // pre and postcondition case
-                                        if (isConstructor && clauseIsStatic) doit = true;
+                                        if (isConstructor ) {
+                                            if (clauseIsStatic) doit = true;
+                                            boolean b = !types.isSubtype(basetype,ctype);
+                                            boolean bb =  !types.isSubtype(ctype,basetype);
+                                            if (b && bb) doit = true;
+                                        }
                                         if (doit) {
                                             t = (JmlTypeClauseExpr)convertCopy(clause); // FIXME - why copy the clause
                                             addTraceableComment(t.expression,clause.toString());
@@ -3523,6 +3535,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
          * parameters, so that they can be referred to in postconditions and other invariant checks. 
          */
         if (!methodDecl.params.isEmpty()) addStat(comment(methodDecl,"Declare pre-state value of formals",null));
+        for (Symbol sym: preparams.keySet()) {
+            JCIdent idd = preparams.get(sym);
+            JCVariableDecl dd = treeutils.makeVarDefWithSym((VarSymbol)sym, idd);
+            dd.pos = dd.sym.pos = idd.pos;
+            if (esc) dd.sym.owner = null; // FIXME - can get these straight from the labelmaps - do we need this?
+            addStat(dd);
+            // Declare allocation time of formals if they are not null
+            if (esc && !idd.type.isPrimitive()) {
+//                JCIdent id = treeutils.makeIdent(idd.pos, idd.sym);
+//                JCExpression nn = treeutils.makeEqNull(idd.pos,id);
+//                JCExpression fa = M.at(idd.pos).Select(id, allocSym);
+//                fa = treeutils.makeBinary(idd,JCTree.Tag.LE, fa, treeutils.makeIntLiteral(idd,0));
+//                fa = treeutils.makeOr(idd.pos, nn, fa);
+//                addStat(treeutils.makeAssume(idd, Label.IMPLICIT_ASSUME, fa ));
+                addNullnessAllocationTypeCondition2(dd,dd.sym,false);
+
+            }
+        }
         for (JCVariableDecl d: methodDecl.params) {
             JCVariableDecl dd = treeutils.makeVarDef(d.type,M.Name(Strings.formalPrefix+d.name.toString()),  
                     d.sym.owner, M.Ident(d.sym));
@@ -3540,6 +3570,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addStat(treeutils.makeAssume(d, Label.IMPLICIT_ASSUME, fa ));
             }
         }
+        
         
         // Assume all axioms of classes mentioned in the target method
         if (esc) {
@@ -3570,6 +3601,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, isConstructor, currentThisExpr == null);
             }
 
+            // FIXME - this could be combined with populating preparams above
             // For the parameters of the method
             addStat(comment(methodDecl,"Assume parameter type, allocation, and nullness",null));
             boolean varargs = (methodDecl.sym.flags() & Flags.VARARGS) != 0;
@@ -3624,19 +3656,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         addInvariants(methodDecl,owner.type,receiver,currentStatements,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),false,true,Label.INVARIANT_ENTRANCE,
                 utils.qualifiedMethodSig(methodDecl.sym) );
         // Assume invariants for the class of each parameter
-        for (JCVariableDecl v: methodDecl.params) {
-            if (v.type.isPrimitive()) continue;
-            JCIdent d = preparams.get(v.sym);
+//        for (JCVariableDecl v: methodDecl.params) {
+        for (Symbol vsym: preparams.keySet()) {
+            JCIdent idd = preparams.get(vsym);
+            if (vsym.type.isPrimitive()) continue;
+            JCIdent d = preparams.get(vsym);
             if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
-            if (owner.type.tsym == v.type.tsym && methodDecl.sym.isConstructor()) {
-                JCIdent id = treeutils.makeIdent(v.pos,d.sym);
-                addAssume(v,Label.IMPLICIT_ASSUME,
-                        treeutils.makeNeqObject(v.pos, id, currentThisExpr));
+            if (owner.type.tsym == vsym.type.tsym && methodDecl.sym.isConstructor()) {
+                JCIdent id = treeutils.makeIdent(idd.pos,d.sym);
+                addAssume(idd,Label.IMPLICIT_ASSUME,
+                        treeutils.makeNeqObject(idd.pos, id, currentThisExpr));
             }
-            JCIdent id = treeutils.makeIdent(v.pos,d.sym);
-            addStat(comment(v,"Adding invariants for method parameter " + v.sym,null));
-            addInvariants(v,v.type,id,currentStatements,true,false,false,false,false,true,Label.INVARIANT_ENTRANCE,
-                    utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
+            JCIdent id = treeutils.makeIdent(idd.pos,d.sym);
+            addStat(comment(idd,"Adding invariants for method parameter " + vsym,null));
+            addInvariants(idd,idd.type,id,currentStatements,true,false,false,false,false,true,Label.INVARIANT_ENTRANCE,
+                    utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + idd.name + ")");
         }
         
         
