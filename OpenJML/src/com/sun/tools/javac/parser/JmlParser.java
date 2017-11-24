@@ -446,6 +446,10 @@ public class JmlParser extends JavacParser {
     
     @Override List<JCStatement> blockStatements() {
         List<JCStatement> stats = super.blockStatements();
+        return collectLoopSpecs(stats);
+    }
+    
+    protected List<JCStatement> collectLoopSpecs(List<JCStatement> stats) {
         ListBuffer<JCStatement> newstats = new ListBuffer<>();
         ListBuffer<JmlStatementLoop> loopspecs = new ListBuffer<>();
         for (JCStatement s: stats) {
@@ -456,12 +460,13 @@ public class JmlParser extends JavacParser {
             if (!loopspecs.isEmpty()) {
                 if (s instanceof IJmlLoop) {
                     ((IJmlLoop)s).setLoopSpecs(loopspecs.toList());
+                    loopspecs = new ListBuffer<>();
                 } else {
                     jmlerror(loopspecs.first().pos,
                             loopspecs.last().getEndPosition(endPosTable),
                             "jml.loop.spec.misplaced");
+                    loopspecs.clear();
                 }
-                loopspecs = new ListBuffer<>();
             }
             newstats.add(s);
         }
@@ -469,7 +474,7 @@ public class JmlParser extends JavacParser {
             jmlerror(loopspecs.first().pos,
                     loopspecs.last().getEndPosition(endPosTable),
                     "jml.loop.spec.misplaced");
-            loopspecs = new ListBuffer<>();
+            loopspecs.clear();
         }
         return newstats.toList();
     }
@@ -807,13 +812,14 @@ public class JmlParser extends JavacParser {
                 log.warning(pos(),"jml.refining.required");
             }
         }
-        JCModifiers mods = jmlF.Modifiers(0);
+        JCModifiers mods = modifiersOpt();
         JmlMethodSpecs specs = parseMethodSpecs(mods);
         for (JmlSpecificationCase c : specs.cases) {
             if (!isNone(c.modifiers)) {
                 jmlerror(c.modifiers.getStartPosition(),
                         getEndPos(c.modifiers),
                         "jml.no.mods.in.refining");
+                c.modifiers = jmlF.Modifiers(0);
             }
         }
         ste = jmlF.at(pos).JmlStatementSpec(specs);
@@ -824,11 +830,9 @@ public class JmlParser extends JavacParser {
             List<JCStatement> stat = blockStatement();
             if (stat.isEmpty()) {
                 // FIXME - should have seen an END statement before the end of the block
-                ste.statements = stats.toList();
                 break;
             } else if (stat.get(0) instanceof JmlStatement && ((JmlStatement)stat.get(0)).token == JmlTokenKind.END) {
                 stats.addAll(stat);
-                ste.statements = stats.toList();
                 break;
             } else {
                 if (token.pos <= endPosTable.errorEndPos) {
@@ -838,6 +842,7 @@ public class JmlParser extends JavacParser {
                 stats.addAll(stat);
             }
         }
+        ste.statements = collectLoopSpecs(stats.toList());
         return ste;
     }
     
