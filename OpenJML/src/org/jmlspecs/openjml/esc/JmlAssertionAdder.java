@@ -14627,12 +14627,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            addStat(ifStat);
             
             addStat(proofBlock);
+            log.note("jml.messge","Proving refining block A");
         }
         JCBlock block = popBlock(0L,that.pos(),check);
         
         // Combine it all
         if (summarize.length > 0) {
             addStat(summaryBlock);
+            log.note("jml.messge","Summarizing refining block A");
         } else {
 //            JCIdent ntt = newTemp(that,syms.booleanType);
 //            JCIf ifStat = M.at(that).If(ntt,block,summaryBlock);
