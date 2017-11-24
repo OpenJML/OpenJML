@@ -3024,7 +3024,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) {
         for (JCTree e: tree.list) {
             attribExpr(e, env, Type.noType);
-            checkIfLocal(e);
+            if (!isRefining) checkIfLocal(e);
         }
         // FIXME - check the result
     }
@@ -3744,13 +3744,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         jmlresolve.setAllowJML(prevAllowJML);
     }
     
+    boolean isRefining = false;
     
     /** This handles JML statements that give method-type specs for method body statements. */
     public void visitJmlStatementSpec(JmlTree.JmlStatementSpec tree) {
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         JmlTokenKind prevClauseType = currentClauseType;
         currentClauseType = null;
-        if (tree.statementSpecs != null) attribStat(tree.statementSpecs,env);
+        boolean saved = isRefining;
+        try {
+            isRefining = true;
+            if (tree.statementSpecs != null) attribStat(tree.statementSpecs,env);
+        } finally {
+            isRefining = saved;
+        }
+        if (tree.statements != null) attribStats(tree.statements,env);
         currentClauseType = prevClauseType;
         jmlresolve.setAllowJML(prevAllowJML);
     }

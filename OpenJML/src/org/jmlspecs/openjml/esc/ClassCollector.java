@@ -76,6 +76,13 @@ class ClassCollector extends JmlTreeScanner {
 //        scan(tree.extending);
 //        scan(tree.implementing);
 //        if (doMethods) scan(tree.defs);
+        Symbol encl = tree.sym.owner;
+        while (encl instanceof Symbol.MethodSymbol){
+            encl = encl.owner;
+        }
+        if (encl instanceof ClassSymbol) {
+            save(encl);
+        }
     }
     
     public void visitAnnotation(JCAnnotation tree) {

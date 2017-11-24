@@ -264,6 +264,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     
     public void visitJmlStatementSpec(JmlStatementSpec tree) {
         scan(tree.statementSpecs);
+        scan(tree.statements);
     }
     
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {

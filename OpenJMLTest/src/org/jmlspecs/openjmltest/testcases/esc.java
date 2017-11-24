@@ -292,9 +292,10 @@ public class esc extends EscBase {
 
 				+ "  public TestJava() {}"
 
-				+ "}",
-				"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2bad",
-				16, "/tt/TestJava.java:11: warning: Associated declaration", 14);
+				+ "}"
+				,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2bad", 16
+				,"/tt/TestJava.java:11: warning: Associated declaration", 14
+				);
 	}
 
 	@Test @Ignore // FIXME - timesout
@@ -4098,8 +4099,8 @@ public class esc extends EscBase {
                         + "}"
                         ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.ii",27
                         ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.ii",27
-                        ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",8
-                        ,"/tt/TestJava.java:4: warning: Associated declaration",20
+//                        ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",8
+//                        ,"/tt/TestJava.java:4: warning: Associated declaration",20
                                 );
     }
 

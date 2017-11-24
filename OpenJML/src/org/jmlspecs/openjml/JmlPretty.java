@@ -15,15 +15,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.*;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCBlock;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCImport;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.*;
 //import com.sun.tools.javac.tree.Pretty.UncheckedIOException;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
@@ -461,13 +453,14 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(that,e); }
     }
 
-    /** debug and set statements */
+    /** debug and set and end statements */
     public void visitJmlStatement(JmlStatement that) {
         try { 
             if (useJMLComments) print ("/*@ ");
             print(that.token.internedName());
             print(" ");
-            that.statement.accept(this);
+            if (that.token == JmlTokenKind.END) print(": ");
+            else that.statement.accept(this);
             if (useJMLComments) print("*/");
         } catch (IOException e) { perr(that,e); }
     }
@@ -516,6 +509,13 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlStatementSpec(JmlStatementSpec that) {
         that.statementSpecs.accept(this);
+        if (that.statements != null) {
+            try {
+                printStats(that.statements);
+            } catch (IOException e) {
+                perr(that,e); 
+            }
+        }
     }
 
     public void visitJmlStatementExpr(JmlStatementExpr that) {
