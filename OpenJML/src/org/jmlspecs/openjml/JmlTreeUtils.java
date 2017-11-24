@@ -1065,6 +1065,13 @@ public class JmlTreeUtils {
         return d;
     }
 
+    public JCVariableDecl makeVarDefWithSym(VarSymbol v, @NonNull JCExpression init) {
+        v.pos = init.getStartPosition();
+        JCVariableDecl d = factory.VarDef(v,init);
+        d.pos = v.pos;
+        return d;
+    }
+
     public JCVariableDecl makeStaticVarDef(Type type, Name name, Symbol owner, @NonNull JCExpression init) {
         int modifierFlags = Flags.STATIC;
         // We use type.baseType() here to remove any constType in case the 
