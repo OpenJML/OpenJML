@@ -2386,7 +2386,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JmlSpecs.TypeSpecs tspecs = specs.get(csym);
                         if (tspecs == null) continue; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
 
-                        if (prepost && !isPost) {
+                        if (prepost && !isPost && !(isConstructor && types.isSubtype(basetype,ctype))) {
                             // Adding in invariant about final fields
                             instanceStats.add(comment(pos,(assume? "Assume" : "Assert") + " final field invariants for " + csym,null));
                             JCExpression conj = null;
@@ -2491,9 +2491,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         if (!isConstructor || isPost) doit = true; // pre and postcondition case
                                         if (isConstructor ) {
                                             if (clauseIsStatic) doit = true;
-                                            boolean b = !types.isSubtype(basetype,ctype);
-                                            boolean bb =  !types.isSubtype(ctype,basetype);
-                                            if (b && bb) doit = true;
+                                            // FIXME - should not use erasure here, but pasrameterized dtypes do not seem to work
+                                            // properly even if ctype is obtrained by collecting super classes and super interfaces of basetype
+                                            boolean b = !types.isAssignable(types.erasure(basetype),types.erasure(ctype));
+                                            if (b) doit = true;
                                         }
                                         if (doit) {
                                             t = (JmlTypeClauseExpr)convertCopy(clause); // FIXME - why copy the clause
@@ -9922,7 +9923,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             }
             addBinaryChecks(that,op,newfa,rhs,maxJmlType);
-            checkAccess(JmlTokenKind.ASSIGNABLE, that, lhs, lhs, currentThisId, currentThisId);
+            checkAccess(JmlTokenKind.ASSIGNABLE, that, that.lhs, newfa, currentThisId, currentThisId);
 
             // We have to make a copy because otherwise the old and new JCFieldAccess share
             // a name field, when in fact they must be different
@@ -11059,7 +11060,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addAssume(that,Label.IMPLICIT_ASSUME, treeutils.makeAnd(that,bina,binb));
         }
         checkRW(JmlTokenKind.READABLE,that.sym,trexpr,that);
-        if (!convertingAssignable && checkAccessEnabled) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, that, currentThisExpr, currentThisExpr);
+        if (!convertingAssignable && checkAccessEnabled) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, newfa, currentThisExpr, currentThisExpr);
         if (localVariables.containsKey(s)) {
             eee = newfa;
         } else if (esc && s != null && s.name == names._class) {
