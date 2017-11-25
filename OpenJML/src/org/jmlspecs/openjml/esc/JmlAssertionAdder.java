@@ -2489,7 +2489,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     {
                                         if (contextIsStatic && !clauseIsStatic) break;
                                         if (clauseIsFinal && !assume) break;
-                                        if (isHelper) break;
+                                        if (isHelper && (!clauseIsFinal || !assume)) break;
                                         if (isSuper && !isPost) break;
                                         boolean doit = false;
                                         if (!isConstructor || isPost) doit = true; // pre and postcondition case
@@ -5984,6 +5984,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // The .length pseudo-field of an array is always accessible
             if (fa.selected.type.hasTag(TypeTag.ARRAY)) return treeutils.trueLit;
         }
+        if (pstoreref instanceof JmlStoreRefArrayRange || pstoreref instanceof JCArrayAccess) return treeutils.falseLit;
         
         DiagnosticPosition pos = fa;
         int posp = pos.getPreferredPosition();
@@ -6238,7 +6239,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression result = treeutils.makeEqObject(posp, convertAssignable(aa.expression,targetThisExpr,true), e);
             if (paa.index == null) return result;
             currentThisExpr = baseThisExpr; currentThisId = (JCIdent)currentThisExpr;
-            JCExpression paat = convertJML(paa.index);
+            JCExpression paat = convertJML(treeutils.makeOld(paa.index));
             currentThisExpr = targetThisExpr; currentThisId = (JCIdent)currentThisExpr;
             JCExpression a1 = aa.lo == null ? treeutils.zero : aa.lo;
             result = treeutils.makeAnd(posp, result, treeutils.makeBinary(posp,JCTree.Tag.EQ,treeutils.inteqSymbol, 
@@ -6257,7 +6258,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             currentThisExpr = targetThisExpr; currentThisId = (JCIdent)currentThisExpr;
             JCExpression a1 = aa.lo == null ? treeutils.zero : (aa.lo);
             currentThisExpr = baseThisExpr; currentThisId = (JCIdent)currentThisExpr;
-            JCExpression a2 = paa.lo == null ? treeutils.zero : convertJML(paa.lo);
+            JCExpression a2 = paa.lo == null ? treeutils.zero : convertJML(treeutils.makeOld(paa.lo));
             result = treeutils.makeAnd(posp, result, treeutils.makeBinary(posp,JCTree.Tag.LE,treeutils.intleSymbol, 
                     a2, a1));
 
@@ -6265,7 +6266,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 currentThisExpr = targetThisExpr; currentThisId = (JCIdent)currentThisExpr;
                 a1 = aa.hi != null ? aa.hi : treeutils.makeBinary(posp, JCTree.Tag.MINUS, treeutils.makeLength(pos, aa.expression), treeutils.one);
                 currentThisExpr = baseThisExpr; currentThisId = (JCIdent)currentThisExpr;
-                a2 = paa.hi != null ? convertJML(paa.hi) :  treeutils.makeBinary(posp, JCTree.Tag.MINUS, treeutils.makeLength(pos, convertJML(paa.expression)), treeutils.one);
+                a2 = paa.hi != null ? convertJML(convertJML(treeutils.makeOld(paa.hi))) :  treeutils.makeBinary(posp, JCTree.Tag.MINUS, treeutils.makeLength(pos, convertJML(treeutils.makeOld(paa.expression))), treeutils.one);
             } finally {
                 currentThisId = savedId;
                 currentThisExpr = savedExpr;
@@ -11135,7 +11136,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     result = eresult = that;
                     return;
                 } else {
-                    VarSymbol vsym = makeEnclosingSymbol(classDecl.sym,null);
+                    VarSymbol vsym = makeEnclosingSymbol(classDecl.sym,currentThisExpr);
                     selected = currentThisExpr;
                     s = vsym;
                     eee = treeutils.makeSelect(that.pos, currentThisExpr, vsym);
@@ -11805,11 +11806,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public VarSymbol makeEnclosingSymbol(ClassSymbol sym, JCExpression enclosingThisExpr) {
         VarSymbol result = enclosingClassFieldSymbols.get(sym);
         if (result != null) return result;
-        if (esc && sym.owner instanceof ClassSymbol && !sym.isStatic()) {
+        Symbol owner = sym.owner;
+        while (owner instanceof MethodSymbol) {
+            owner = owner.owner;
+        }
+        if (esc && owner instanceof ClassSymbol && !sym.isStatic()) {
+            // FIXME - this modeling of the enclosing this is not complete and likely not right.
+            // FIXME - enclosingThisExpr does not work as an initializer
             String s = "this$encl";
-            Type enclType = sym.owner.type;
+            Type enclType = owner.type;
             Name nm = names.fromString(s);
-            JCVariableDecl decl = treeutils.makeVarDef(enclType, nm, sym.owner, enclosingThisExpr);
+            JCVariableDecl decl = treeutils.makeVarDef(enclType, nm, owner, enclosingThisExpr.pos);
             if (currentStatements != null) addStat(decl);
             else this.classDefs.add(decl);
             enclosingClassFieldSymbols.put(sym, decl.sym);
@@ -14627,14 +14634,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            addStat(ifStat);
             
             addStat(proofBlock);
-            log.note("jml.messge","Proving refining block A");
+            log.note("jml.message","Proving refining block A");
         }
         JCBlock block = popBlock(0L,that.pos(),check);
         
         // Combine it all
         if (summarize.length > 0) {
             addStat(summaryBlock);
-            log.note("jml.messge","Summarizing refining block A");
+            log.note("jml.message","Summarizing refining block A");
         } else {
 //            JCIdent ntt = newTemp(that,syms.booleanType);
 //            JCIf ifStat = M.at(that).If(ntt,block,summaryBlock);

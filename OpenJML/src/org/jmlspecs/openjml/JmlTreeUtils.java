@@ -1124,6 +1124,11 @@ public class JmlTreeUtils {
         m.type = arg.type;
         return m;
     }
+    
+    public JCMethodInvocation makeOld(JCExpression arg) {
+        return makeOld(arg,arg);
+    }
+
    
     /** Makes a \past expression */
     public JCMethodInvocation makePast(int pos, JCExpression arg, JCIdent label) {
