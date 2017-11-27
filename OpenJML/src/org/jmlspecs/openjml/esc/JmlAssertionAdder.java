@@ -15853,7 +15853,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     pre = treeutils.makeAndSimp(pre.pos, pre, e);
                                 }
                                 if (clause.token == JmlTokenKind.OLD || clause.token == JmlTokenKind.FORALL) {
-                                    notImplemented(clause,"method axioms with old or forall clauses");
+                                    notImplemented(clause,"method axioms with old or forall clauses: method " + msym.toString(), clause.source());
                                 }
                             } catch (JmlNotImplementedException e) {
                                 notImplemented("requires clause containing ",e, clause.source());
