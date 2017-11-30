@@ -5132,14 +5132,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public JCExpression inlineBlock(JCBlock block, Map<Object,JCExpression> replacements, Type returnType) {
         DiagnosticPosition pos = block;
         Name breakName = names.fromString("JMLBreakForReturn_" + (++lblUnique));
-        JCIdent returnId = newTemp(pos,returnType);
+        JCIdent returnId = null;
+        if (returnType.getTag() != TypeTag.VOID) returnId = newTemp(pos,returnType);
         JmlLabeledStatement labeled = M.JmlLabeledStatement(breakName, null, null);
         treeMap.put(labeled,labeled);
         JmlTreeInline inliner = new JmlTreeInline(M, replacements, returnId, breakName) ;
         JCTree outBlock = inliner.copy(block);
         labeled.body = (JCBlock)outBlock;
         addStat(labeled);
-        JCExpression ex = addImplicitConversion(block,returnType,returnId);
+        JCExpression ex = null;
+        if (returnId != null) ex = addImplicitConversion(block,returnType,returnId);
         return ex;
     }
     
@@ -7711,7 +7713,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCIdent id = treeutils.makeIdent(v.pos,d.sym);
                     addStat(comment(v, "Checking invariants for caller parameter " + v.sym + " before calling method " + utils.qualifiedMethodSig(calleeMethodSym),null));
                     addInvariants(v,v.type,id,currentStatements,
-                            false,false,false,false,false,false,Label.INVARIANT_EXIT_CALLER, "(Parameter: " + v.sym + ", Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
+                            false,false,false,isHelper(calleeMethodSym),false,false,Label.INVARIANT_EXIT_CALLER, "(Parameter: " + v.sym + ", Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
                     clearInvariants();
                 }
             }
