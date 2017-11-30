@@ -1900,7 +1900,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // form assumeCheckVar != n, for different values of n > 0.
         // Then for normal checking of the method, we assert assumeCheckVar == 0
         // so all the introduced asserts are trivially true.
-        // But plater we can pop the assumeCheckVar == 0 and add 
+        // But later we can pop the assumeCheckVar == 0 and add 
         // assumeCHeckVar == k, to check feasibility at point k.
         
         ++assumeCheckCount;
@@ -7324,7 +7324,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     boolean nodoTranslations = !rac && translatingJML && (uma ||  !localVariables.isEmpty()) && isPure(calleeMethodSym);
             if (nodoTranslations && that instanceof JCNewClass) nodoTranslations = false; // FIXME - work this out in more detail. At least there should not be anonymous classes in JML expressions
             boolean calleeIsFunction = attr.isFunction(calleeMethodSym);
-//            nodoTranslations = false;
+            nodoTranslations = false;
             if (calleeIsFunction && translatingJML) nodoTranslations = true;
             if (methodsInlined.contains(calleeMethodSym)) {
                 // Recursive inlining
@@ -8954,6 +8954,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (resultExpr != null) result = eresult = treeutils.makeIdent(resultExpr.pos, resultSym);
             else result = eresult = null;
             
+        } catch (Exception e) {
+            throw e;
         } finally {
             this.freshnessReferenceCount = savedFreshnessReferenceCount;
             paramActuals = savedParamActuals;
@@ -11152,9 +11154,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     
                     if (translatingJML) nonnull = conditionedAssertion(that, nonnull);
                     if (javaChecks && localVariables.isEmpty()) {
-                        addAssert(that,
+                        if (splitExpressions) { // FIXM E- what should we do if !split, in particular what if this comes from convertAssignable
+                            addAssert(that,
                                 translatingJML? Label.UNDEFINED_NULL_DEREFERENCE : Label.POSSIBLY_NULL_DEREFERENCE,
                                         nonnull); // FIXME - what if the dereference happens in a spec in a different file - ,that,log.currentSourceFile());
+                    
+//                        } else if (!treeutils.isTrueLit(nonnull)){
+//                            condition = treeutils.makeImpliesSimp(that.pos, condition, nonnull);
+                        }
                     }
                 }
                 var = true;
@@ -11327,6 +11334,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addRepresentsAxioms(tsym, sym, that, currentThisExpr);
                 //         if (checkAccessEnabled) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
                 // FIXME - should we check accessibility for model fields
+                result = eresult = newfa;
                 return;
             }
             
