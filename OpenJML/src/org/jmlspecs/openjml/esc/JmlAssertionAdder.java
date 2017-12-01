@@ -5156,6 +5156,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         } catch (Exception e) {
             error(pos, "Unexpected exception while inlining " + place + ":"  + e.toString());
+        } catch (Error e) {
+            error(pos, "Unexpected exception while inlining " + place + ":"  + e.toString());
+            throw e;
         } finally {
             breakName = savedName;
         }
@@ -8174,7 +8177,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                         paramActuals = mapParamActuals.get(mpsym);
 
-
+                        LinkedList<ListBuffer<JCStatement>> temptt = markBlock();
                         for (JmlSpecificationCase cs : calleeSpecs.cases) {
                             if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
                             if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
@@ -8186,8 +8189,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 JavaFileObject prevv = log.useSource(cs.source());
                                 inlineConvertBlock(that,pre,cs.block,"model program");
                                 log.useSource(prevv);
+                                checkBlock(temptt);
                             }
                         }
+                        checkBlock(temptt);
 
                         if (inliningCall)  { // Note: inlining for RAC, also -- FIXME - need to check this
                             addStat(comment(that, "Inlining method " + calleeMethodSym.toString(),log.currentSourceFile()));
@@ -8196,7 +8201,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             JmlMethodDecl mdecl = m.cases.decl;
                             inlineConvertBlock(that,treeutils.trueLit, mdecl.body,"body of method " + calleeMethodSym);
                         }
-
+                        checkBlock(temptt);
                         paramActuals = null;
                     }
                 }
@@ -8449,13 +8454,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             JCBlock bl = popBlock(0,cs,check4);
                                             JCStatement st = M.at(cs.pos+1).If(pre,bl,M.Block(0L,elses.toList()));
                                             currentStatements.add( wrapRuntimeException(cs, st, "JML undefined precondition while checking postconditions - exception thrown", null));
-                                            pushBlock();
+                                            ListBuffer<JCStatement> checkbl = pushBlock();
                                             JCStatement havoc = M.at(clause.pos).JmlHavocStatement(newlist.toList());
                                             addStat(havoc);
                                             if (containsEverything) {
                                             	addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false, currentThisExpr == null);
                                             }
-                                            bl = popBlock(0,cs);
+                                            bl = popBlock(0,cs,checkbl);
                                             if (!bl.stats.isEmpty()) {
                                                 st = M.at(cs.pos+1).If(preXout,bl,null);
                                                 havocs.add(st);
@@ -8954,6 +8959,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (resultExpr != null) result = eresult = treeutils.makeIdent(resultExpr.pos, resultSym);
             else result = eresult = null;
             
+        } catch (Error e) {
+            throw e;
         } catch (Exception e) {
             throw e;
         } finally {
