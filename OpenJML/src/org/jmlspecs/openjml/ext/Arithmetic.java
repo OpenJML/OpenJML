@@ -457,12 +457,12 @@ abstract public class Arithmetic extends ExpressionExtension {
                     } else if (typetag == TypeTag.LONG) {
                         JCExpression minlit = rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE);
                         JCExpression maxlit = rewriter.treeutils.makeLongLiteral(p, Long.MAX_VALUE);
-                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.GT, rewriter.treeutils.intgtSymbol, rewriter.convertCopy(bin), maxlit);
-                        JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, rewriter.convertCopy(bin), minlit);
-                        JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.intminusSymbol, rewriter.convertCopy(bin), minlit);
-                        JCExpression d = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.intminusSymbol, c, minlit);
-                        JCExpression e = rewriter.treeutils.makeBinary(p, JCTree.Tag.PLUS, rewriter.treeutils.intplusSymbol, rewriter.convertCopy(bin), minlit);
-                        JCExpression f = rewriter.treeutils.makeBinary(p, JCTree.Tag.PLUS, rewriter.treeutils.intplusSymbol, e, minlit);
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.GT, rewriter.treeutils.longltSymbol, maxlit, rewriter.convertCopy(bin));
+                        JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.longltSymbol, rewriter.convertCopy(bin), minlit);
+                        JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.longminusSymbol, rewriter.convertCopy(bin), minlit);
+                        JCExpression d = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.longminusSymbol, c, minlit);
+                        JCExpression e = rewriter.treeutils.makeBinary(p, JCTree.Tag.PLUS, rewriter.treeutils.longplusSymbol, rewriter.convertCopy(bin), minlit);
+                        JCExpression f = rewriter.treeutils.makeBinary(p, JCTree.Tag.PLUS, rewriter.treeutils.longplusSymbol, e, minlit);
                         JCExpression g = rewriter.treeutils.makeConditional(p, a, f, 
                                 rewriter.treeutils.makeConditional(p, b, d, bin));
                         bin = g;
@@ -504,6 +504,11 @@ abstract public class Arithmetic extends ExpressionExtension {
                         JCExpression g = rewriter.treeutils.makeConditional(p, e, rewriter.convertCopy(bin), rewriter.treeutils.makeConditional(p, pos, posvalue, negvalue)); 
                         bin = g;
                     } else if (typetag == TypeTag.LONG) {
+                        // a = lhs * rhs;  b = min <= a; c = max <= a; ; e = b && c; longbin = (long)(lhs*rhs); pos = 0 <= a;
+                        // f = ( longbin % biglit) ; fneg = f; big = f > max ; small = fneg < min; sub = f - biglit;
+                        // posvalue =  big ? sub : f;
+                        // negvalue = small ? fneg + biglit : fneg
+                        // result = g = e ? bin : pos ? posvalue : negvalue;
                         JCExpression zero = rewriter.treeutils.makeLongLiteral(p, 0L);
                         JCExpression minlit = rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE);
                         JCExpression maxlit = rewriter.treeutils.makeLongLiteral(p, Long.MAX_VALUE);

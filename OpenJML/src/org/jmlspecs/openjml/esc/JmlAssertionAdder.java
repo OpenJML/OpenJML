@@ -1809,7 +1809,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (trace) {
                 JCExpression newexpr = convertCopy(translatedExpr);
                 assertDecl.init = newexpr;
-                if (label != Label.POSTCONDITION) addTraceableComment(st,translatedExpr,label + " assertion: " + translatedExpr.toString());
+                if (label != Label.POSTCONDITION) addTraceableComment(st,translatedExpr,label + " assertion: <omitted>" );//+ translatedExpr.toString());
             }
 
             currentStatements.add(assertDecl);
@@ -15682,7 +15682,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCTree ownerDecl = inClassDecl() ? classDecl : methodDecl;
         
         splitExpressions = false;
-        pushBlock();
+        ListBuffer<JCStatement> check = pushBlock();
         ListBuffer<JCStatement> saved = currentStatements;
         if (depth == 0) savedForAxioms = saved;
         depth++;
@@ -15983,7 +15983,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             depth--;
             if (depth == 0) savedForAxioms = null;
         }
-        JCBlock bl = popBlock(0L,null);
+        JCBlock bl = popBlock(0L,null,check);
         if (collectedAxioms != null) {
             collectedAxioms.add(bl);
             bl = null;
