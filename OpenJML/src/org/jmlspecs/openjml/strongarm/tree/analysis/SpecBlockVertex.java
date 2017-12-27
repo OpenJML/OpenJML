@@ -1,5 +1,8 @@
 package org.jmlspecs.openjml.strongarm.tree.analysis;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -14,6 +17,8 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.sun.tools.javac.util.List;
 
 public class SpecBlockVertex  {
@@ -141,6 +146,35 @@ public class SpecBlockVertex  {
         return theIntersection;
     }
 
+    public static String toJSON(Collection<SpecBlockVertex> vs)  {
+        
+        ArrayList<SpecBlockDTO> dtos = new ArrayList<SpecBlockDTO>();
+        
+        for(SpecBlockVertex v : vs) {
+            
+            SpecBlockDTO dto = new SpecBlockDTO();
+            
+            dto.type = "dis";
+            
+            for(JmlMethodClause c : v.clauses){
+                if(c instanceof JmlMethodClauseExpr ||  c instanceof JmlMethodClauseStoreRef){
+                    dto.clauses.add(c.toString());
+                }        
+            }
+
+            
+            dtos.add(dto);
+        }
+        
+        
+        Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+        
+        String buff =  gson.toJson(dtos);
+        
+        
+        return buff;
+    }
+    
     @Override
     public String toString() {
        
@@ -167,7 +201,6 @@ public class SpecBlockVertex  {
 //        }
         return sb.toString();
     }
-    
     
 }
 

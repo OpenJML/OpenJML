@@ -14,6 +14,7 @@ public class AnalysisTypes {
         FRAMES, 
         PURITY, 
         VISIBILITY,
+        FAR,
         ALL;
     }
     public static Context context;

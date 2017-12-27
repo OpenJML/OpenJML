@@ -58,6 +58,7 @@ public enum JmlOption implements IOption {
     INFER_PRECONDITIONS("-infer-preconditions", true, true, "If not specified, the precondition of methods lacking preconditions will be set to true (otherwise inference is skipped).", null),
     INFER_NO_EXIT("-noexit",true,null,"Infer contracts (suppress exiting)","-command=infer-no-exit"),
     INFER_MINIMIZE_EXPRS("-infer-minimize-expressions", false, null, "Minimize expressions where possible.", null),
+    INFER_DUMP_GRAPHS("-infer-dump-graphs", false, null, "Dump any specification that would have been inferred to a file for offline analysis", null),    
     
     //
     // Inference decides to write specs based on the following conditions

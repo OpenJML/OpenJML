@@ -7,6 +7,8 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
+import org.jmlspecs.openjml.strongarm.AnalysisTypes;
+import org.jmlspecs.openjml.strongarm.AnalysisTypes.AnalysisType;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
@@ -22,275 +24,375 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
 public class CleanupPrestateAssignable extends JmlTreeScanner {
-    
-    final protected Log                    log;
-    final protected Utils                  utils;
-    final protected JmlTreeUtils           treeutils;
-    final protected JmlTree.Maker          M;
-    final protected Context                context;
-    final Symtab syms;
-    public static boolean inferdebug = false; 
-    public static boolean verbose = false; 
+
+    final protected Log                     log;
+
+    final protected Utils                   utils;
+
+    final protected JmlTreeUtils            treeutils;
+
+    final protected JmlTree.Maker           M;
+
+    final protected Context                 context;
+
+    final Symtab                            syms;
+
+    public static boolean                   inferdebug = false;
+
+    public static boolean                   verbose    = false;
+
     public static CleanupPrestateAssignable instance;
 
-    
-    public CleanupPrestateAssignable(Context context){
-        
-        this.context    = context;
-        this.log        = Log.instance(context);
-        this.utils      = Utils.instance(context);
-        this.treeutils  = JmlTreeUtils.instance(context);
-        this.M          = JmlTree.Maker.instance(context);
-        this.syms       = Symtab.instance(context);
-        
-        this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);           
+    public CleanupPrestateAssignable(Context context) {
 
-        this.verbose = inferdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
-            || utils.jmlverbose >= Utils.JMLVERBOSE;
-            
+        this.context = context;
+        this.log = Log.instance(context);
+        this.utils = Utils.instance(context);
+        this.treeutils = JmlTreeUtils.instance(context);
+        this.M = JmlTree.Maker.instance(context);
+        this.syms = Symtab.instance(context);
+
+        this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);
+
+        this.verbose = inferdebug || JmlOption.isOption(context, "-verbose") // The
+                                                                             // Java
+                                                                             // verbose
+                                                                             // option
+                || utils.jmlverbose >= Utils.JMLVERBOSE;
+
     }
-    
-    public static void cache(Context context){
-        if(instance==null){
+
+    public static void cache(Context context) {
+        if (instance == null) {
             instance = new CleanupPrestateAssignable(context);
         }
     }
-    
-    
+
     /**
-     * Locals removed if they are a formal and primative OR if they are just local. Fields stay.  
+     * Locals removed if they are a formal and primative OR if they are just
+     * local. Fields stay.
      */
-    private boolean isAnAcceptableOperator(Symbol s){
+    private boolean isAnAcceptableOperator(Symbol s) {
         String str = s.toString();
-        
-        if(str.contains(">") || str.contains("<") || str.contains("==")){
+
+        if (str.contains(">") || str.contains("<") || str.contains("==")) {
             return true;
         }
-        
+
         return false;
-        
+
     }
-    public boolean shouldRemove(JmlMethodClause clause){
-        
-        if(clause.toString().contains(Strings.prePrefix)){
+
+    public boolean shouldRemove(JmlMethodClause clause) {
+
+        if (clause.toString().contains(Strings.prePrefix)) {
             return true;
         }
+
+//        if(clause.toString().contains("__")) {
+//            return true;
+//        }
         
-        if(clause instanceof JmlMethodClauseExpr){
-           
-            JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
-            
-            if(mExpr.token == JmlTokenKind.ENSURES && mExpr.expression instanceof JCBinary){
-                JCBinary b = (JCBinary)mExpr.expression;
-                
-                if(b.lhs.toString().equals("\\result") && isAnAcceptableOperator(b.operator)==false){
+        if (clause instanceof JmlMethodClauseExpr) {
+
+            JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr) clause;
+
+            if (mExpr.token == JmlTokenKind.ENSURES
+                    && mExpr.expression instanceof JCBinary) {
+                JCBinary b = (JCBinary) mExpr.expression;
+
+                if (b.lhs.toString().equals("\\result")
+                        && isAnAcceptableOperator(b.operator) == false) {
                     return true;
                 }
             }
-        }
-        
-        if(clause instanceof JmlMethodClauseStoreRef){
-            JmlMethodClauseStoreRef mExpr = (JmlMethodClauseStoreRef)clause;
             
-            if(mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString().startsWith("assignable \\result.")){
+//            if (mExpr.token == JmlTokenKind.REQUIRES) {
+//                if (mExpr.toString().contains("\\old")) {
+//                    return true;
+//                }
+//            }
+
+        }
+
+        if (clause instanceof JmlMethodClauseStoreRef) {
+            JmlMethodClauseStoreRef mExpr = (JmlMethodClauseStoreRef) clause;
+
+            if (mExpr.token == JmlTokenKind.ASSIGNABLE
+                    && mExpr.toString().startsWith("assignable \\result.")) {
+                return true;
+            }
+
+            if (mExpr.token == JmlTokenKind.ASSIGNABLE
+                    && mExpr.toString().startsWith("assignable \\result")) {
+                return true;
+            }
+            if (AnalysisTypes.enabled(context, AnalysisType.TAUTOLOGIES)) {
+                if (mExpr.token == JmlTokenKind.ASSIGNABLE
+                        && mExpr.toString().startsWith("assignable true")) {
                     return true;
+                }
             }
-            
-            if(mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString().startsWith("assignable \\result")){
+
+            if (mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString()
+                    .startsWith("assignable " + Strings.newArrayVarString)) {
                 return true;
             }
-        
-            if(mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString().startsWith("assignable true")){
-                return true;
-            }
-        
-            
-            if(mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString().startsWith("assignable " + Strings.newArrayVarString)){
-                return true;
-            }
-            
-            if(mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString().startsWith("assignable " + Strings.newObjectVarString)){
+
+            if (mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString()
+                    .startsWith("assignable " + Strings.newObjectVarString)) {
                 return true;
             }
 
         }
-        if(clause instanceof JmlMethodClauseExpr || clause instanceof JmlMethodClauseStoreRef){
-            // filter any junk here 
-            if((clause instanceof JmlMethodClauseExpr  || clause instanceof JmlMethodClauseStoreRef) && (clause.toString().contains(Strings.allocName) || clause.toString().contains(Strings.isAllocName))){
+        if (clause instanceof JmlMethodClauseExpr
+                || clause instanceof JmlMethodClauseStoreRef) {
+            // filter any junk here
+            if ((clause instanceof JmlMethodClauseExpr
+                    || clause instanceof JmlMethodClauseStoreRef)
+                    && (clause.toString().contains(Strings.allocName) || clause
+                            .toString().contains(Strings.isAllocName))) {
                 return true;
             }
-            
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().equals("true"))){
+
+            if (AnalysisTypes.enabled(context, AnalysisType.TAUTOLOGIES)) {
+                if (clause instanceof JmlMethodClauseExpr
+                        && (((JmlMethodClauseExpr) clause).expression.toString()
+                                .equals("true"))) {
+                    return true;
+                }
+            }
+
+            if (AnalysisTypes.enabled(context, AnalysisType.UNSAT)) {
+                if (clause instanceof JmlMethodClauseExpr
+                        && (((JmlMethodClauseExpr) clause).expression.toString()
+                                .contains("!true"))) {
+                    return true;
+                }
+            }
+
+            if (AnalysisTypes.enabled(context, AnalysisType.TAUTOLOGIES)) {
+                if (clause instanceof JmlMethodClauseExpr
+                        && (((JmlMethodClauseExpr) clause).expression.toString()
+                                .equals("true == true"))) {
+                    return true;
+                }
+
+                if (clause instanceof JmlMethodClauseExpr
+                        && (((JmlMethodClauseExpr) clause).expression.toString()
+                                .contains("null == null"))) {
+                    return true;
+                }
+
+                if (clause instanceof JmlMethodClauseExpr
+                        && (((JmlMethodClauseExpr) clause).expression.toString()
+                                .contains("0 == 0"))) {
+                    return true;
+                }
+            }
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("java_lang_CharSequence"))) {
                 return true;
             }
-            
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("!true"))){
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("/*mising*/"))) {
                 return true;
             }
-            
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().equals("true == true"))){
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("_heap__"))) {
                 return true;
             }
-            
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("null == null"))){
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("java_lang_reflect"))) {
                 return true;
             }
-            
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("0 == 0"))){
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("_JML_iterator"))) {
                 return true;
             }
-            
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("java_lang_CharSequence"))){
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("T[]"))) {
                 return true;
             }
-    
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("/*mising*/"))){
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("<captured wildcard>"))) {
                 return true;
             }
-    
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("_heap__"))){
+
+            if (AnalysisTypes.enabled(context, AnalysisType.TAUTOLOGIES)) {
+                if (clause instanceof JmlMethodClauseExpr
+                        && (((JmlMethodClauseExpr) clause).expression.toString()
+                                .contains("0 <= 0"))) {
+                    return true;
+                }
+            }
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("null."))) {
                 return true;
             }
-    
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("java_lang_reflect"))){
+
+            // if(clause instanceof JmlMethodClauseExpr &&
+            // (((JmlMethodClauseExpr)clause).expression.toString().contains("0
+            // >= 0"))){
+            // return true;
+            // }
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("\\type"))) {
                 return true;
             }
-    
-            
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("_JML_iterator"))){
+
+            if (clause.toString().contains(Strings.tmpVarString)) {
                 return true;
             }
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("T[]"))){
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains(Strings.newArrayVarString))) {
                 return true;
             }
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("<captured wildcard>"))){
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("_switchExpression"))) {
                 return true;
             }
-            
-            
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("0 <= 0"))){
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("> (0 > 0)"))) {
                 return true;
             }
-            
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("null."))){
-                return true;
-            }
-    
-    //        if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("0 >= 0"))){
-    //            return true;
-    //        }
-    
-            
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("\\type"))){
-                return true;
-            }
-            
-            
-            if(clause.toString().contains(Strings.tmpVarString)){
-                return true;
-            }
-    
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains(Strings.newArrayVarString))){
-                return true;
-            }
-            
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("_switchExpression"))){
-                return true;
-            }
-    
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("> (0 > 0)"))){
-                return true;
-            }
-    
+
             // weird edge case
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("result - (context.pos - context.readPos)"))){
-                return true;
-            }
-            
-           
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("null[0]"))){
-                return true;
-            }
-            if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("colSize == this.values"))){
-                return true;
-            }
-    
-            
-            if(clause instanceof JmlMethodClauseExpr &&  (((JmlMethodClauseExpr)clause).expression.toString().startsWith("this != null"))){
-                return true;
-            }
-            
-            if(clause instanceof JmlMethodClauseExpr && (((JmlMethodClauseExpr)clause).expression.toString().contains("(E)"))){
-                return true;
-            }
-    
-            if(clause instanceof JmlMethodClauseExpr &&  (((JmlMethodClauseExpr)clause).expression.toString().contains("result >"))){
-                return true;
-            }
-    
-            if(clause instanceof JmlMethodClauseExpr &&  (((JmlMethodClauseExpr)clause).expression.toString().contains("colSize =="))){
-                return true;
-            }
-    
-    
-            if(clause instanceof JmlMethodClauseExpr && (((JmlMethodClauseExpr)clause).expression.toString().contains("bigint)this.in.availableBytes;"))){
-                return true;
-            }
-            
-            if(clause instanceof JmlMethodClauseExpr && (((JmlMethodClauseExpr)clause).expression.toString().contains("bigint)"))){
-                return true;
-            }
-            
-    
-            if(clause instanceof JmlMethodClauseExpr && (((JmlMethodClauseExpr)clause).expression.toString().contains("data == availableBytes"))){
-                return true;
-            }
-            
-           
-            
-            if(clause instanceof JmlMethodClauseExpr && clause.token == JmlTokenKind.REQUIRES && (((JmlMethodClauseExpr)clause).expression.toString().contains("\\result"))){
-                return true;
-            }
-            
-            if(clause instanceof JmlMethodClauseExpr && clause.token == JmlTokenKind.ENSURES && (((JmlMethodClauseExpr)clause).expression.toString().contains("this.overallStart == time"))){
-                return true;
-            }
-            
-            if(clause instanceof JmlMethodClauseExpr && clause.token == JmlTokenKind.ENSURES && (((JmlMethodClauseExpr)clause).expression.toString().contains("colSize == children.content.theSize"))){
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains(
+                                    "result - (context.pos - context.readPos)"))) {
                 return true;
             }
 
-            
-    
-            if(clause.toString().contains(Strings.newObjectVarString)){
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("null[0]"))) {
                 return true;
             }
-            
-            if(clause.toString().contains("\"null\" != null;") || clause.toString().contains("\"\" != null;")){
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("colSize == this.values"))) {
+                return true;
+            }
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .startsWith("this != null"))) {
+                return true;
+            }
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("(E)"))) {
+                return true;
+            }
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("result >"))) {
+                return true;
+            }
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("colSize =="))) {
+                return true;
+            }
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("bigint)this.in.availableBytes;"))) {
+                return true;
+            }
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("bigint)"))) {
+                return true;
+            }
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("data == availableBytes"))) {
+                return true;
+            }
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && clause.token == JmlTokenKind.REQUIRES
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("\\result"))) {
+                return true;
+            }
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && clause.token == JmlTokenKind.ENSURES
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("this.overallStart == time"))) {
+                return true;
+            }
+
+            if (clause instanceof JmlMethodClauseExpr
+                    && clause.token == JmlTokenKind.ENSURES
+                    && (((JmlMethodClauseExpr) clause).expression.toString()
+                            .contains("colSize == children.content.theSize"))) {
+                return true;
+            }
+
+            if (clause.toString().contains(Strings.newObjectVarString)) {
+                return true;
+            }
+
+            if (clause.toString().contains("\"null\" != null;")
+                    || clause.toString().contains("\"\" != null;")) {
                 return true;
             }
         }
-        
+
         return false;
     }
-    
-    public void filterBlock(JmlSpecificationCase block){
-        
+
+    public void filterBlock(JmlSpecificationCase block) {
+
         List<JmlMethodClause> replacedClauses = null;
-        
-        if(block.clauses==null){return;}
-        
-        for(List<JmlMethodClause> clauses = block.clauses; clauses.nonEmpty(); clauses = clauses.tail){
-                        
-            if(shouldRemove(clauses.head) == false){
-                if(replacedClauses == null){
+
+        if (block.clauses == null) {
+            return;
+        }
+
+        for (List<JmlMethodClause> clauses = block.clauses; clauses
+                .nonEmpty(); clauses = clauses.tail) {
+
+            if (shouldRemove(clauses.head) == false) {
+                if (replacedClauses == null) {
                     replacedClauses = List.of(clauses.head);
-                }else{
+                } else {
                     replacedClauses = replacedClauses.append(clauses.head);
                 }
             }
         }
-        
+
         block.clauses = replacedClauses;
     }
 
@@ -298,18 +400,16 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
     public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
 
         filterBlock(tree);
-       
+
         super.visitJmlSpecificationCase(tree);
     }
-    
-        
-    public void scan(JCTree node) {        
+
+    public void scan(JCTree node) {
         super.scan(node);
     }
-    
-    public static void simplify(JCTree node){
+
+    public static void simplify(JCTree node) {
         instance.scan(node);
     }
-    
-    
+
 }

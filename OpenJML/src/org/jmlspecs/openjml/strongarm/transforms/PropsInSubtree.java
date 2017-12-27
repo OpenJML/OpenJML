@@ -35,6 +35,7 @@ public class PropsInSubtree extends JmlTreeScanner{
     private int props;
     private int ensures;
     private int assignable;
+    private int requires;
     
     public PropsInSubtree(){}
     
@@ -52,6 +53,11 @@ public class PropsInSubtree extends JmlTreeScanner{
             assignable++;
         }
         
+        if(tree.token==JmlTokenKind.REQUIRES){
+            requires++;
+        }
+
+        
         super.visitJmlMethodClauseExpr(tree);
     }
 
@@ -64,10 +70,18 @@ public class PropsInSubtree extends JmlTreeScanner{
         return instance.props;
     }
     
+    
     public static boolean viable(JCTree node){
         PropsInSubtree instance = new PropsInSubtree();
         instance.scan(node);
         
         return instance.assignable + instance.ensures > 0;
+    }
+    
+    public static boolean any(JCTree node){
+        PropsInSubtree instance = new PropsInSubtree();
+        instance.scan(node);
+        
+        return instance.assignable + instance.ensures + instance.requires > 0;
     }
 }
