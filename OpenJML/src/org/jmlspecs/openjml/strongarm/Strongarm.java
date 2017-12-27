@@ -1,5 +1,8 @@
 package org.jmlspecs.openjml.strongarm;
 
+import java.io.File;
+import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -27,6 +30,7 @@ import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebuggerConfigurati
 import org.jmlspecs.openjml.strongarm.transforms.CleanupPrestateAssignable;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
 import org.jmlspecs.openjml.strongarm.transforms.PropagateResults;
+import org.jmlspecs.openjml.strongarm.transforms.PropsInSubtree;
 import org.jmlspecs.openjml.strongarm.transforms.PruneUselessClauses;
 import org.jmlspecs.openjml.strongarm.transforms.Purifier;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveContradictions;
@@ -44,6 +48,7 @@ import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2;
 import org.jmlspecs.openjml.strongarm.transforms.TreeContains;
 import org.jmlspecs.openjml.strongarm.tree.Prop;
+import org.jmlspecs.openjml.strongarm.tree.analysis.AdjacencyMatrix;
 import org.jmlspecs.openjml.strongarm.tree.analysis.FindOldsAnalysis;
 import org.jmlspecs.openjml.strongarm.tree.analysis.SpecBlockVertex;
 import org.jmlspecs.openjml.strongarm.tree.analysis.ToReductionGraph;
@@ -56,7 +61,9 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 
+import jpaul.DataStructs.Pair;
 import jpaul.Graphs.DiGraph;
+import jpaul.Graphs.SCComponent;
 
 public class Strongarm  
  {
@@ -135,6 +142,9 @@ public class Strongarm
         // first, we translate the method to the basic block format
         boolean printContracts    = infer.printContracts;
         boolean verbose           = infer.verbose;
+        
+        
+        
         int initialContractLength = JDKListUtils.countLOC(methodDecl.cases);
                 
 
@@ -385,7 +395,34 @@ public class Strongarm
             if(JDKListUtils.countLOC(methodDecl.cases)==0){
                 methodDecl.cases = null;
                 methodDecl.methodSpecsCombined = null;
+                
+                
+                if (verbose) {
+                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                    log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); //$NON-NLS-1$
+                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                    log.getWriter(WriterKind.NOTICE).println("DID NOT INFER POSTCONDITION " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
+                    log.getWriter(WriterKind.NOTICE).println("(hint: enable -infer-default-preconditions to assume a precondition)");
+                }
 
+
+            }else {
+            
+                // make sure we have some clauses
+                if(PropsInSubtree.any(methodDecl.cases)==false) {
+                    
+                    methodDecl.cases = null;
+                    methodDecl.methodSpecsCombined = null;
+
+                    if (verbose) {
+                        log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                        log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); //$NON-NLS-1$
+                        log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                        log.getWriter(WriterKind.NOTICE).println("DID NOT INFER POSTCONDITION " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
+                        log.getWriter(WriterKind.NOTICE).println("(hint: enable -infer-default-preconditions to assume a precondition)");
+                    }                    
+                }
+            
             }
             
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(methodDecl));
@@ -525,7 +562,7 @@ public class Strongarm
  
         }
                  
-        if(reader.blocks.size() <= 100){
+        if(reader.blocks.size() <= 10){
             
             if(AnalysisTypes.enabled(context, AnalysisType.REDUNDANT)){
                 t = Timing.start();
@@ -992,7 +1029,34 @@ public class Strongarm
             }
         }
 
-        if(AnalysisTypes.enabled(context, AnalysisType.REDUNDANT)){
+        if(JmlOption.isOption(context, JmlOption.INFER_DUMP_GRAPHS)) {
+
+            Path dotPath = infer.jsonFilenameForSource(methodDecl.sourcefile.getName(), methodDecl);
+            try {
+                File file = dotPath.toFile();
+                
+                System.out.println(file.toString());
+                
+                file.createNewFile();
+                
+                // write out the spec in .dot format.            
+                ToReductionGraph analysis = new ToReductionGraph(Strongarm._context);
+                analysis.doAnalysis(methodDecl);
+                
+                Pair<DiGraph<SpecBlockVertex>,AdjacencyMatrix<SpecBlockVertex>> pair = analysis.toDiGraph(analysis.getVertexes());
+                
+                PrintWriter out = new PrintWriter(file);
+
+                out.write(SpecBlockVertex.toJSON(analysis.getVertexes()));
+                out.close();
+            }catch(Exception e) {
+                e.printStackTrace();
+            }
+            
+        }
+        
+        
+        if(AnalysisTypes.enabled(context, AnalysisType.FAR)){
 
             dieIfNeeded();
             

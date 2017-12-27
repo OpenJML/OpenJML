@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml.strongarm.tree.analysis;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,6 +44,10 @@ public class ToReductionGraph extends JmlTreeAnalysis {
     private Collection<SpecBlockVertex> residualVertexes;    
     private SpecBlockVertex residualRoot;
     
+    private Collection<Pair<SpecBlockVertex,SpecBlockVertex>> lastEdges;
+    private AdjacencyMatrix<SpecBlockVertex> lastMatrix;
+
+    
     public ToReductionGraph(Context context) {
         super(context);
         
@@ -58,9 +63,9 @@ public class ToReductionGraph extends JmlTreeAnalysis {
            //toDOTAnalysis(arcs, weights);
         }
     }
-    
-    private void toDOTAnalysis(Collection<Pair<SpecBlockVertex,SpecBlockVertex>> arcs, AdjacencyMatrix<SpecBlockVertex> weights){
-        
+
+    private String toDOT(Collection<Pair<SpecBlockVertex,SpecBlockVertex>> arcs, AdjacencyMatrix<SpecBlockVertex> weights){
+
         StringBuffer buff = new StringBuffer();
         
         buff.append("digraph BST {\n");
@@ -92,22 +97,46 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         }      
                
         buff.append("\n}");
+
         
+        return buff.toString();
+    }
+
+    public void saveAsDot(Collection<Pair<SpecBlockVertex,SpecBlockVertex>> arcs, AdjacencyMatrix<SpecBlockVertex> weights) throws IOException{
+        saveAsDot(arcs, weights, File.createTempFile("sample", ".dot"), true);
+    }
+    public void saveAsDot(Collection<Pair<SpecBlockVertex,SpecBlockVertex>> _arcs, AdjacencyMatrix<SpecBlockVertex> _weights, File f, boolean view){
+        
+        String dot = null;
+        
+        Collection<Pair<SpecBlockVertex,SpecBlockVertex>> arcs; 
+        AdjacencyMatrix<SpecBlockVertex> weights;
+        
+        
+        if(_arcs==null && _weights==null) {
+            arcs = lastEdges;
+            weights = lastMatrix;
+        }else{
+            arcs = _arcs;
+            weights = _weights;
+        }
+        
+        dot = toDOT(arcs, weights);
         
         try {
-            File f = File.createTempFile("sample", ".dot");
             File t = File.createTempFile("sample", ".pdf");
             
             PrintWriter out = new PrintWriter(f);
 
-            out.write(buff.toString());
+            out.write(dot);
             out.close();
             
-            Runtime r = Runtime.getRuntime();
-            
-            r.exec(String.format("/usr/local/bin/dot -Tpdf %s -o %s", f.getAbsolutePath(), t.getAbsolutePath())).waitFor();
-            r.exec(String.format("/usr/bin/open %s", t.getAbsolutePath()));
-           
+            if(view) {            
+                Runtime r = Runtime.getRuntime();
+                
+                r.exec(String.format("/usr/local/bin/dot -Tpdf %s -o %s", f.getAbsolutePath(), t.getAbsolutePath())).waitFor();
+                r.exec(String.format("/usr/bin/open %s", t.getAbsolutePath()));
+            }
             
         } catch (Exception e) {
             e.printStackTrace();
@@ -135,7 +164,7 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         super.visitJmlSpecificationCase(block);
     }
     
-    private Collection<SpecBlockVertex> getVertexes(){
+    public Collection<SpecBlockVertex> getVertexes(){
         return this.vertexes;
     }
     
@@ -147,6 +176,7 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         return residualVertexes;
     }
 
+    
     public Pair<DiGraph<SpecBlockVertex>,AdjacencyMatrix<SpecBlockVertex>> toDiGraph(Collection<SpecBlockVertex> vs){
         
         Collection<Pair<SpecBlockVertex,SpecBlockVertex>> edges = new LinkedHashSet<Pair<SpecBlockVertex,SpecBlockVertex>>();
@@ -169,6 +199,9 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         }
         
         DiGraph<SpecBlockVertex> dg = new ArcBasedDiGraph<SpecBlockVertex>(edges);
+        
+        lastEdges = edges;
+        lastMatrix = lastMatrix;
         
         if(verbose){
             printGraph(edges, matrix);
@@ -427,7 +460,7 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         return null;
     }
     
-    private void doAnalysis(JCTree tree) {
+    public void doAnalysis(JCTree tree) {
         scan(tree);
         
     }

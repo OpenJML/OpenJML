@@ -237,6 +237,21 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             }
         }
         
+        public Path jsonFilenameForSource(String source, JmlMethodDecl methodDecl){
+            
+            // the java source
+            Path java = Paths.get(source);
+            
+            // the dot source
+            Path dot = Paths.get(java.toString().substring(0, java.toString().toLowerCase().lastIndexOf(".java")) + "." + methodDecl.sym.name.toString() + ".json");
+            
+            if(persistPath!=null){
+                return persistPath.resolve(dot);
+            }else{
+                return dot;
+            }
+        }
+        
         public void weaveContract(String contract, String file, int position){
          // for each of these things, seek to the position the method begins, then write it out
             
