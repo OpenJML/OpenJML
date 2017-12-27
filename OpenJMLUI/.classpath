@@ -12,5 +12,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/JMLAnnotations"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="/OpenJML/otherlibs/jpaul-2.5.1.jar"/>
+	<classpathentry kind="lib" path="/OpenJML/otherlibs/gson-2.8.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
