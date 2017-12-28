@@ -1809,7 +1809,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (trace) {
                 JCExpression newexpr = convertCopy(translatedExpr);
                 assertDecl.init = newexpr;
-                if (label != Label.POSTCONDITION) addTraceableComment(st,translatedExpr,label + " assertion: <omitted>" );//+ translatedExpr.toString());
+                //if (label != Label.POSTCONDITION) addTraceableComment(st,translatedExpr,label + " assertion: <omitted>" );//+ translatedExpr.toString());
+                if (label != Label.POSTCONDITION) addTraceableComment(st,translatedExpr,label + " assertion: " + translatedExpr.toString());
             }
 
             currentStatements.add(assertDecl);
@@ -5248,7 +5249,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             treeMap.put(that,sw);
             ListBuffer<JCCase> cases = new ListBuffer<JCCase>();
             for (JCCase c: that.cases) {
-                JCExpression pat = convertExpr(c.pat);
+                JCExpression pat = (rac && c.pat instanceof JCIdent) ? c.pat : convertExpr(c.pat);
                 JCBlock b = convertIntoBlock(c,c.stats);
                 b.stats = b.stats.prepend(traceableComment(c,c,(c.pat == null ? "default:" : "case " + c.pat + ":"),null));
                 JCCase cc = M.at(c.pos).Case(pat,b.stats);
@@ -7327,7 +7328,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     boolean nodoTranslations = !rac && translatingJML && (uma ||  !localVariables.isEmpty()) && isPure(calleeMethodSym);
             if (nodoTranslations && that instanceof JCNewClass) nodoTranslations = false; // FIXME - work this out in more detail. At least there should not be anonymous classes in JML expressions
             boolean calleeIsFunction = attr.isFunction(calleeMethodSym);
-            nodoTranslations = false;
+  //          nodoTranslations = false;
             if (calleeIsFunction && translatingJML) nodoTranslations = true;
             if (methodsInlined.contains(calleeMethodSym)) {
                 // Recursive inlining
@@ -9685,8 +9686,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (splitExpressions && !(lhs instanceof JCIdent)) {
                 result = eresult = newTemp(convertCopy(lhs));
             }
-            saveMapping(that.lhs, eresult);
-            saveMapping(that, eresult);
+            saveMappingOverride(that.lhs, eresult);
+            saveMappingOverride(that, eresult);
 
         } else if (that.lhs instanceof JCFieldAccess) {
             JCFieldAccess fa = (JCFieldAccess)(that.lhs);
@@ -11287,8 +11288,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     else newfa = treeutils.makeSelect(that.pos, currentThisExpr, sym);
                 }
             } else {
-                if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
-                else newfa = treeutils.makeSelect(that.pos, currentThisExpr, sym);
+                if (utils.isJMLStatic(sym)) {
+                    newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
+                    newfa.type = that.type;
+                }
+                else {
+                    newfa = treeutils.makeSelect(that.pos, currentThisExpr, sym);
+                    newfa.type = that.type;
+                }
             }
         }
         if (!rac && sym != null && alreadyDiscoveredFields.add(sym)) { // true if s was NOT in the set already
@@ -11341,7 +11348,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addRepresentsAxioms(tsym, sym, that, currentThisExpr);
                 //         if (checkAccessEnabled) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
                 // FIXME - should we check accessibility for model fields
-                result = eresult = newfa;
+                if (!rac) result = eresult = newfa;
                 return;
             }
             

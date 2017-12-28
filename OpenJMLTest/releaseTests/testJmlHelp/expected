@@ -76,6 +76,7 @@ JML options:
   -jmltesting                Only used to generate tracing information during testing
   -trace                     ESC: Enables tracing of counterexamples
   -show                      Show intermediate programs
+  -split                     Split proof into sections
   -escBV                     ESC: If enabled, use bit-vector arithmetic (auto, true, false)
   -escExitInfo               ESC: Show exit location for postconditions (default true)
   -escMaxWarnings            ESC: Maximum number of warnings to find per method

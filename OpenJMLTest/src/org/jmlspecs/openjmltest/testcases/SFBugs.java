@@ -293,7 +293,7 @@ public class SFBugs extends EscBase {
 
     @Test public void gitbug478() {
     	expectedExit = 0;
-        helpTCG();
+        helpTCG();  // NOTE: Uses a custom instance of ByteBuffer.jml, which made the original bug
     }
 
     @Test public void gitbug480() {
@@ -581,6 +581,8 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
+    // Double operations (sqrt) not yet implemented
+    @Ignore
     @Test public void gitbug580() {
         expectedExit = 0;
         helpTCG();

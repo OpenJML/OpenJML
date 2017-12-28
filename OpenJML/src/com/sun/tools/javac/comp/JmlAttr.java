@@ -428,6 +428,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JavaFileObject prevv = log.useSource(eee.toplevel.sourcefile);
                 try {
                     super.attribClass(c); // No need to attribute the class itself if it was binary
+                    c.flags_field &= ~UNATTRIBUTED;
                     attribFieldSpecs(eee,c);
                 } finally {
                     log.useSource(prevv);

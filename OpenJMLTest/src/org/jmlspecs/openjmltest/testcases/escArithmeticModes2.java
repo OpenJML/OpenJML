@@ -37,7 +37,7 @@ public class escArithmeticModes2 extends EscBase {
         //print = true;
     }
  
-
+    // Checks the value and sign of int division and mod
     @Test
     public void testModJava() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -69,6 +69,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
+    // Checks the value and sign of int division and mod
     @Test
     public void testModJavaZ() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -94,6 +95,26 @@ public class escArithmeticModes2 extends EscBase {
                 +"    q = -k / -j;\n" 
                 +"    //@ assert i == -m && q == qq;\n" 
                 +"    //@ assert (-k%-j) == -m && ((-k)/-j) == qq;\n" 
+                +"    return k; \n"
+                +"  }\n"
+                +"}\n"
+              );
+    }
+
+    // Checks the value and sign of int division and mod
+    @Test
+    public void testModJava3() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeJavaMath @SpecSafeMath public class TestJava { \n"
+                +"  public long m() {\n"
+                +"    int k = - 2147483648 ;\n" 
+                +"    int j = - 1073740802;\n" 
+                +"    int m = - 2044;\n" 
+                +"    int qq = 2;\n" 
+                +"    int i = k % j;\n" 
+                +"    int q = k / j;\n" 
+                +"    //@ assert i == m && q == qq ;\n" 
+                +"    //@ assert (k%j) == m && (k/j) == qq;\n" 
                 +"    return k; \n"
                 +"  }\n"
                 +"}\n"
@@ -187,10 +208,10 @@ public class escArithmeticModes2 extends EscBase {
                 +"  //@ requires j != 0;\n"
                 +"  //@ requires j != -1 || i != 0x80000000;\n"
                 +"  public void ma(int i, int j) {\n"
-                +"    //@ assert (\\lbl I i) + 0*(\\lbl J j) == i; \n" // Just to print i and j
+                +"    //@ show i, j; \n"
                 +"    int q = (i/j) ;\n"
                 +"    int m = (i%j) ;\n"
-                +"    //@ assert ((\\lbl Q q) + (\\lbl M m))* 0 == 0; \n" // Just to print q
+                +"    //@ show q, m; \n"
                 +"    int k = q * j + m;\n"
                 +"    //@ assert (\\lbl K k) == (\\lbl I i); \n"
                 +"    //@ assert (\\lbl SUM (\\lbl PROD (\\lbl D ((\\lbl I i)/(\\lbl J j)))*(\\lbl JJ j)) + (\\lbl M (i%j))) == i; \n"  // not OK for i = MIN && j = -1
@@ -208,13 +229,15 @@ public class escArithmeticModes2 extends EscBase {
                 +"  //@ requires j != 0;\n"
                 +"  public void ma(int i, int j) {\n"
                 +"    int k = (i/j) * j + (i%j);\n"
+                +"    //@ show i,j, k, i/j, i%j, (i/j) * j + (i%j); \n"
                 +"    //@ assert k == i; \n"
                 +"    //@ assert (i/j) * j + (i%j) == i; \n"
                 +"  }\n"
                 +"}\n"   // FIXME - not sure why the multiply overflow is sometimes not reported
-                ,optional("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma:  int multiply overflow",19)
-                ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma:  overflow in int divide",15)
-                ,optional("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma:  int multiply overflow",19)
+                ,anyorder(
+                   seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma:  overflow in int divide",15)
+                  ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma:  int multiply overflow",19)
+                )
               );
     }
 
