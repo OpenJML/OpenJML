@@ -305,13 +305,14 @@ public class escArithmeticModes2 extends EscBase {
 
     @Test
     public void testModMathB() {
+    	//main.addOptions("-show","-subexpressions","-method=ma");
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeBigintMath @SpecBigintMath public class TestJava { \n"
                 +"  //@ requires j != 0;\n"
                 +"  public void ma(int i, int j) {\n"
-                +"    int k = (i/j) * j + (i%j);\n"
-                +"    //@ assert k == i; \n"
+                +"    int q,m; int k = (q=i/j) * j + (m=i%j);\n"
+                +"    //@ show i,j,k,q,m,i/j,i%j; assert k == i; \n"
                 +"    //@ assert (i/j) * j + (i%j) == i; \n"
                 +"  }\n"
                 +"}\n"
@@ -397,6 +398,174 @@ public class escArithmeticModes2 extends EscBase {
                 +"}\n"
               );
     }
+    
+    @Ignore // FIXME
+    @Test
+    public void testMult() {
+        Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeBigintMath @SpecBigintMath public class TestJava { \n"
+                +"  //@ requires j != 0;\n"
+                +"  //@ requires i * j <= Integer.MAX_VALUE && i*j >= Integer.MIN_VALUE;\n"
+                +"  public void ma(int i, int j) {\n"
+                +"    //@ show i,j,i*j,(i*j)/j;\n"
+                +"    //@ assert (i*j)/j == i;\n"
+                +"    boolean b =  (i*j)/j == i;\n"
+                +"    //@ assert b;\n"
+                +"  }\n"
+                +"}\n"
+              );
+    }
+    
+    @Ignore // FIXME
+    @Test
+    public void testMultLong() {
+        Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeBigintMath @SpecBigintMath public class TestJava { \n"
+                +"  //@ requires j != 0;\n"
+                +"  //@ requires i * j <= Long.MAX_VALUE && i*j >= Long.MIN_VALUE;\n"
+                +"  public void ma(long i, long j) {\n"
+                +"    //@ show i,j,i*j,(i*j)/j;\n"
+                +"    //@ assert (i*j)/j == i;\n"
+                +"    boolean b =  (i*j)/j == i;\n"
+                +"    //@ assert b;\n"
+                +"  }\n"
+                +"}\n"
+              );
+    }
+    
+    @Ignore // FIXME
+    @Test
+    public void testMultJava() {
+        Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeJavaMath @SpecBigintMath public class TestJava { \n"
+                +"  //@ requires j != 0;\n"
+                +"  //@ requires i * j <= Integer.MAX_VALUE && i*j >= Integer.MIN_VALUE;\n"
+                +"  public void ma(int i, int j) {\n"
+                +"    //@ show i,j,i*j,(i*j)/j;\n"
+                +"    //@ assert (i*j)/j == i;\n"
+                +"    boolean b =  (i*j)/j == i;\n"
+                +"    //@ assert b;\n"
+                +"  }\n"
+                +"}\n"
+              );
+    }
+    
+    @Ignore // FIXME
+    @Test
+    public void testMultJavaLong() {
+        Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeJavaMath @SpecBigintMath public class TestJava { \n"
+                +"  //@ requires j != 0;\n"
+                +"  //@ requires i * j <= Long.MAX_VALUE && i*j >= Long.MIN_VALUE;\n"
+                +"  public void ma(long i, long j) {\n"
+                +"    //@ show i,j,i*j,(i*j)/j;\n"
+                +"    //@ assert (i*j)/j == i;\n"
+                +"    boolean b =  (i*j)/j == i;\n"
+                +"    //@ assert b;\n"
+                +"  }\n"
+                +"}\n"
+              );
+    }
+    
+    @Ignore // FIXME
+    @Test
+    public void testMultSafe() {
+        Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeSafeMath @SpecBigintMath public class TestJava { \n"
+                +"  //@ requires j != 0;\n"
+                +"  //@ requires i * j <= Integer.MAX_VALUE && i*j >= Integer.MIN_VALUE;\n"
+                +"  public void ma(int i, int j) {\n"
+                +"    //@ assert (i*j)/j == i;\n"
+                +"    boolean b =  (i*j)/j == i;\n"
+                +"    //@ assert b;\n"
+                +"  }\n"
+                +"}\n"
+              );
+    }
+    
+    @Ignore // FIXME
+    @Test
+    public void testMultSafeLong() {
+        Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeSafeMath @SpecBigintMath public class TestJava { \n"
+                +"  //@ requires j != 0;\n"
+                +"  //@ requires i * j <= Long.MAX_VALUE && i*j >= Long.MIN_VALUE;\n"
+                +"  public void ma(long i, long j) {\n"
+                +"    //@ assert (i*j)/j == i;\n"
+                +"    boolean b =  (i*j)/j == i;\n"
+                +"    //@ assert b;\n"
+                +"  }\n"
+                +"}\n"
+              );
+    }
+    
+    @Ignore // FIXME
+    @Test
+    public void testDiv() {
+    	main.addOptions("-show","-method=ma","-subexpressions");
+        Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeBigintMath @SpecBigintMath public class TestJava { \n"
+                +"  //@ requires j != 0;\n"
+                +"  public void ma(int i, int j) {\n"
+                +"    int q = i/j; //@ ghost int qq = i/j; \n"
+                +"    int m = i%j;\n"
+                +"    //@ show i,j,q,qq,m,i/j,i%j,j*q,j*(q+1),j*(q-1),j*q+m;\n"
+                +"    if (i >= 0 && j >= 0) { /*@ assert q >= 0; assert i >= j*q; assert i-j < j*(q+1); assert m >= 0 && m < j; assert i == (j*q) + m; */ }\n"
+                +"    if (i >= 0 && j < 0) { /*@ assert q <= 0; assert i >= j*q; assert i < j*(q-1);  assert m >= 0 && m < -j; assert i == (j*q) + m; */ }\n"
+                +"    if (i < 0 && j >= 0) { /*@ assert q <= 0; assert i <= j*q; assert i > j*(q-1); assert m <= 0 && m > -j; assert i == (j*q) + m; */ }\n"
+                +"    if (i < 0 && j < 0) { /*@ assert q >= 0; assert i <= j*q; assert i > j*(q+1); assert m <= 0 && m > j; assert i == (j*q) + m; */ }\n"
+                +"  }\n"
+                +"}\n"
+              );
+    }
+    
+    @Ignore // FIXME
+    @Test
+    public void testDivJava() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeJavaMath @SpecSafeMath public class TestJava { \n"
+                +"  //@ requires j != 0;\n"
+                +"  //@ requires i != 0x8000000000000000L || j != -1;\n"
+                +"  public void ma(int i, int j) {\n"
+                +"    int q = i/j;\n"
+                +"    int m = i%j;\n"
+                +"    //@ show i,j,q,m,j*q,j*(q+1),j*(q-1),j*q+m;\n"
+                +"    if (i >= 0 && j >= 0) { /*@ assert q >= 0; assert i >= j*q; assert i < j*(q+1); assert m >= 0 && m < j; assert i == (j*q) + m; */ }\n"
+                +"    if (i >= 0 && j < 0) { /*@ assert q <= 0; assert i >= j*q; assert i < j*(q-1);  assert m >= 0 && m < -j; assert i == (j*q) + m; */ }\n"
+                +"    if (i < 0 && j >= 0) { /*@ assert q <= 0; assert i <= j*q; assert i > j*(q-1); assert m <= 0 && m < -j; assert i == (j*q) + m; */ }\n"
+                +"    if (i < 0 && j < 0) { /*@ assert q >= 0; assert i <= j*q; assert i > j*(q+1); assert m <= 0 && m > j; assert i == (j*q) + m; */ }\n"
+                +"  }\n"
+                +"}\n"
+              );
+    }
+    
+    @Ignore // FIXME
+    @Test
+    public void testDivSafe() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeSafeMath @SpecSafeMath public class TestJava { \n"
+                +"  //@ requires j != 0;\n"
+                +"  //@ requires i != 0x8000000000000000L || j != -1;\n"
+               +"  public void ma(int i, int j) {\n"
+                +"    int q = i/j;\n"
+                +"    int m = i%j;\n"
+                +"    //@ show i,j,q,m,j*q,j*(q+1),j*(q-1),j*q+m;\n"
+                +"    if (i >= 0 && j >= 0) { /*@ assert q >= 0; assert i >= j*q; assert m >= 0 && m < j; assert i == (j*q) + m; */ }\n"
+                +"    if (i >= 0 && j < 0) { /*@ assert q <= 0; assert i >= j*q;  assert m >= 0 && m < -j; assert i == (j*q) + m; */ }\n"
+                +"    if (i < 0 && j >= 0) { /*@ assert q <= 0; assert i <= j*q; assert m <= 0 && m < -j; assert i == (j*q) + m; */ }\n"
+                +"    if (i < 0 && j < 0) { /*@ assert q >= 0; assert i <= j*q; assert m <= 0 && m > j; assert i == (j*q) + m; */ }\n"
+                +"  }\n"
+                +"}\n"
+              );
+    }
+    
 
 
 }

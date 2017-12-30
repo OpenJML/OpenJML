@@ -1265,6 +1265,9 @@ public class SMTTranslator extends JmlTreeScanner {
 
     }
     
+    // FIXME - things ought to work equivalently with this variable flase
+    public static boolean useFcnDef = true;
+    
     /** If the statement is a variable declaration, converts it to an SMT
      * declare-fun or define-fun of the appropriate sort, depending on whether
      * there is an initializer or not.
@@ -1275,7 +1278,8 @@ public class SMTTranslator extends JmlTreeScanner {
             try {
                 JmlVariableDecl decl = (JmlVariableDecl)stat;
                 // convert to a declaration or definition
-                IExpr init = decl.init == null ? null : convertExpr(decl.init);
+                IExpr init = null;
+                if (useFcnDef) init = decl.init == null ? null : convertExpr(decl.init);
                 
                 ISymbol sym = F.symbol(decl.name.toString());
                 ICommand c = init == null ?
@@ -1447,6 +1451,14 @@ public class SMTTranslator extends JmlTreeScanner {
             JCStatement stat = iter.next();
             try {
                 if (stat instanceof JmlVariableDecl) {
+                    JmlVariableDecl decl = (JmlVariableDecl)stat;
+                    if (!useFcnDef && decl.init != null) {
+                        IExpr exx = convertExpr(decl.init);
+                        exx = F.fcn(F.symbol("="), F.symbol(decl.name.toString()), exx);
+                        ISymbol newsym = F.symbol(blockid + "__A" + (++count));
+                        commands.add(new C_define_fun(newsym,new LinkedList<IDeclaration>(),boolSort,exx));
+                        stack.push(newsym);
+                    }
                     continue;
                 } else if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
@@ -2007,10 +2019,15 @@ public class SMTTranslator extends JmlTreeScanner {
                     result = F.fcn(F.symbol("bvsrem"), args);
                 else  // lhs % rhs === lhs >= 0 ? lhs mod rhs : - ( (-lhs) mod rhs )
                     result = F.fcn(F.symbol("ite"), 
-                                    F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
-                                    F.fcn(F.symbol("mod"), args),
-                                    F.fcn(F.symbol("-"), F.fcn(F.symbol("mod"), F.fcn(F.symbol("-"), args.get(0)), args.get(1)))
-                                    );
+                            F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
+                            F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("div"), args))),
+                            F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("div"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1)))))
+                            );
+//                result = F.fcn(F.symbol("ite"), 
+//                        F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
+//                        F.fcn(F.symbol("mod"), args),
+//                        F.fcn(F.symbol("-"), F.fcn(F.symbol("mod"), F.fcn(F.symbol("-"), args.get(0)), args.get(1)))
+//                        );
                 break;
                 // FIXME - implement bit operations
             case BITAND:
