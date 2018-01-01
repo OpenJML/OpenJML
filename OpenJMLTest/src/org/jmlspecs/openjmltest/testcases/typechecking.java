@@ -178,6 +178,7 @@ public class typechecking extends TCBase {
         		,"/A.java:2: A \\invariant_for expression expects just 1 argument, not 2", 26
         		,"/A.java:2: The argument of \\invariant_for must be of reference type", 27
         		,"/A.java:2: The argument of \\invariant_for must be of reference type", 35
+        		,"$SPECS/java7/java/nio/ByteBuffer.jml:260: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",37
         		);
     }
 
@@ -191,6 +192,7 @@ public class typechecking extends TCBase {
     	main.addOptions("-strictJML");
         helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for();\n}}"
         		,"/A.java:2: A \\invariant_for expression expects just 1 argument, not 0", 26
+                ,"$SPECS/java7/java/nio/ByteBuffer.jml:260: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",37
         		);
     }
 
@@ -844,8 +846,8 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testId() {
-        helpTCF("A.java","public class A {\n //@ public model int duration;  \n }"
-                ,"/A.java:2: Expected an identifier, found a JML keyword instead: duration",23
+        helpTCF("A.java","public class A {\n //@ public model int duration;  \n void m() { //@ set duration = 0;\n } \n }"
+//                ,"/A.java:2: Expected an identifier, found a JML keyword instead: duration",23
         );
     }
 
@@ -898,7 +900,7 @@ public class typechecking extends TCBase {
     
     @Test public void testBadModelImport3() { // FIXME - could be a better error message
         helpTCF("A.java","/*@ model import */ java.util.List;\n public class A {\n  \n }"
-                ,"/A.java:1: Expected an identifier, found a JML keyword instead: <JMLEND>",18
+                ,"/A.java:1: Expected an identifier, found end of JML comment instead",18
                 ,"/A.java:1: '.' expected",20
                 ,"/A.java:1: package <error>.java.util does not exist",30
                 ,"/A.java:1: package <error>.java.util does not exist",30
@@ -1102,6 +1104,16 @@ public class typechecking extends TCBase {
 
                 +"}"
                 ,"/TestJava.java:5: A JML label expression may not be within a quantified or set-comprehension expression",63
+                );
+    }
+
+    @Test public void testKeywords() {
+        helpTCF("TestJava.java","package tt; \n"
+                +"public class TestJava { \n"
+
+                +"  //@ model public void m1bad(java.util.function.Function<Integer,Integer> f) ;\n"                
+
+                +"}"
                 );
     }
 

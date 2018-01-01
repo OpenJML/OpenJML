@@ -38,9 +38,11 @@ public class JobControl {
     public static JobParameters launchJobControlDialog(ISelection selection,
                             @Nullable IWorkbenchWindow window, @Nullable final Shell shell) {
         JobParameters jp = new JobParameters();
+        if (!Options.isOption(Options.showJobControlDialogKey)) return jp;
         JobControlDialog j = new JobControlDialog(jp);
         int ok = j.open();
         if (ok == IStatus.OK) {
+            Options.setOption(Options.showJobControlDialogKey, !jp.noShowAgain);
             return jp;
         } else {
             return null;
@@ -48,9 +50,33 @@ public class JobControl {
     }
     
     
+    /** Create a JobParameters structure, initialized from preferences */
     public static class JobParameters {
         public int queues;
+        {try {
+        	String jq = Options.value(Options.jobQueuesKey);
+        	if (jq != null) jq = jq.trim();
+        	queues = jq == null || jq.isEmpty() ? 1 : Integer.valueOf(jq);
+        } catch (NumberFormatException e) {
+        	queues = 1;
+        }}
         public Class<? extends JobStrategy> strategy;
+        { try {
+            strategy = (Class<? extends JobStrategy>)Class.forName(Options.value(Options.jobStrategyKey));
+        } catch (Exception e) {
+            strategy = SelectedItemStrategy.class;
+        }}
+        
+        public boolean noShowAgain = !Options.isOption(Options.showJobControlDialogKey);
+        public boolean alwaysSave = Options.isOption(Options.alwaysSaveJobControlDialogKey);
+        
+        /** Save the field values back to preferences */
+        public void save() {
+            Options.setOption(Options.alwaysSaveJobControlDialogKey, this.alwaysSave);
+            Options.setOption(Options.showJobControlDialogKey, !this.noShowAgain);
+            Options.setValue(Options.jobQueuesKey, Integer.toString(this.queues));
+            Options.setValue(Options.jobStrategyKey, this.strategy.getName());
+        }
     }
     
     public static class JobControlDialog extends MessageDialog {
@@ -73,10 +99,9 @@ public class JobControl {
                 b.addSelectionListener(new SelectionAdapter() { public void widgetSelected(SelectionEvent event) { if (b.isEnabled()) jp.strategy = strategy; }});
             }
         };
-
+        
         Combo queues;
-//        BButton b0,b1,b2,b3;
-       
+
         @Override
         public Control createCustomArea(Composite parent) {
             int procs = Runtime.getRuntime().availableProcessors();
@@ -86,14 +111,14 @@ public class JobControl {
             p.setLayout(new RowLayout());
             new Label(p,SWT.NONE).setText("How many job queues should be used? ");
             //new org.eclipse.swt.widgets.List(parent,SWT.SINGLE).setItems(new String[]{"1","2","3","4","5","6","7","8","9"});
-            Combo c = queues = new Combo(p,SWT.DROP_DOWN|SWT.READ_ONLY);
-            c.setItems(new String[]{"1","2","3","4","5","6","7","8","9"});
-            int defaultSelection = c.indexOf(Options.value(Options.jobQueuesKey));
+            queues = new Combo(p,SWT.DROP_DOWN|SWT.READ_ONLY);
+            queues.setItems(new String[]{"1"}); // ,"2","3","4","5","6","7","8","9"});
+            int defaultSelection = jp.queues - 1;
             if (defaultSelection < 0) defaultSelection = 0;
-            c.select(defaultSelection);
+            queues.select(defaultSelection);
             // FIXME - else an error
             jp.queues = defaultSelection + 1;
-            c.addSelectionListener(new SelectionAdapter() { public void widgetSelected(SelectionEvent event) { jp.queues = ((Combo)event.widget).getSelectionIndex()+1; }});
+            queues.addSelectionListener(new SelectionAdapter() { public void widgetSelected(SelectionEvent event) { jp.queues = ((Combo)event.widget).getSelectionIndex()+1; }});
  
             new Label(parent,SWT.NONE).setText("What job scheduling policy should be used? ");
             String defaultStrategy = Options.value(Options.jobStrategyKey);
@@ -110,6 +135,16 @@ public class JobControl {
             	if (select) jp.strategy = s.getClass();
                 new BButton(pp,s.description(),s.getClass()).b.setSelection(select);
             }
+            
+            Button noShowAgain = new Button(parent, SWT.CHECK);
+            noShowAgain.setText("Do not show this item again (always use job settings from Preferences page)");
+            noShowAgain.setSelection(jp.noShowAgain);
+            noShowAgain.addSelectionListener(new SelectionAdapter() { public void widgetSelected(SelectionEvent event) { jp.noShowAgain = noShowAgain.isEnabled(); }});
+            
+            Button alwaysSave = new Button(parent, SWT.CHECK);
+            alwaysSave.setText("Save these settings back to Preferences");
+            alwaysSave.setSelection(jp.alwaysSave);
+            alwaysSave.addSelectionListener(new SelectionAdapter() { public void widgetSelected(SelectionEvent event) { jp.alwaysSave = alwaysSave.isEnabled(); }});
             return null;
         }
     }
@@ -120,7 +155,8 @@ public class JobControl {
         IJavaProject jp;
         public abstract String description();
         public abstract int queues();
-        public abstract Job nextJob(OpenJMLInterface iface, int queue);
+        public abstract Job nextJob(OpenJMLInterface iface, int queue, SubMonitor parentMonitor);
+        public abstract int totalWork();
     }
     
     public static JobStrategy[] strategies = new JobStrategy[]{
@@ -141,22 +177,28 @@ public class JobControl {
                 elements = new LinkedList<Object>();
                 elements.add(jp);
             }
+            work = Activator.utils().countMethods(elements);
         }
         
-        public boolean done = false;
+        private boolean done = false;
+        
+        public int work;
         
         public String description() { return "As one sequential job"; }
         
         public int queues() { return 1; }
         
-        public /*@ nullable */ Job nextJob(OpenJMLInterface iface, int queue) {
+        public int totalWork() { return work; }
+        
+        public /*@ nullable */ Job nextJob(OpenJMLInterface iface, int queue, SubMonitor parentMonitor) {
             if (done || elements == null || elements.isEmpty()) return null;
             String description = "Static checks of items in project " + jp.getElementName();
             Job j = new Job(title) {
                 public IStatus run(IProgressMonitor mon) {
                     SubMonitor monitor = SubMonitor.convert(mon);
+                    if (parentMonitor != null) monitor = parentMonitor;
                     // The actual amount of work will be determined in executeESCCommand
-//                    monitor.beginTask(title, IProgressMonitor.UNKNOWN);
+ //                   monitor.beginTask(title, IProgressMonitor.UNKNOWN);
 //                    // FIXME - perhaps just set verbosity to at least progress
 //                    monitor.subTask("Detailed progress will be shown only if the verbosity preference is at least 'progress'");
                     boolean c = false;
@@ -188,16 +230,22 @@ public class JobControl {
                 elements = new LinkedList<Object>();
                 elements.add(jp);
             }
+            work = Activator.utils().countMethods(elements);
+
             iter = elements.iterator();
         }
+        
+        int work;
         
         public String description() { return "Split by selected items"; }
         
         public int queues() { return 1; }
         
+        public int totalWork() { return work; }
+        
         public Iterator<Object> iter;
         
-        public /*@ nullable */ Job nextJob(OpenJMLInterface iface, int queue) {
+        public /*@ nullable */ Job nextJob(OpenJMLInterface iface, int queue, SubMonitor parentMonitor) {
             if (!iter.hasNext()) return null;
             Object o = iter.next();
             String id1 = o.toString();
@@ -215,6 +263,7 @@ public class JobControl {
             Job j = new Job(title) {
                 public IStatus run(IProgressMonitor mon) {
                     SubMonitor monitor = SubMonitor.convert(mon);
+                    if (parentMonitor != null) monitor = parentMonitor;
                     // The actual amount of work will be determined in executeESCCommand
 //                    monitor.beginTask(description, IProgressMonitor.UNKNOWN);
 //                    // FIXME - perhaps just set verbosity to at least progress
@@ -258,15 +307,18 @@ public class JobControl {
         
         public int queues() { return 2; }
         
+        public int totalWork() { return 100; }
+        
         public Iterator<Object> iter;
         
-        public /*@ nullable */ Job nextJob(OpenJMLInterface iface, int queue) {
+        public /*@ nullable */ Job nextJob(OpenJMLInterface iface, int queue, SubMonitor parentMonitor) {
             if (!iter.hasNext()) return null;
             Object o = iter.next();
             String description = "Static checks of items in project " + jp.getElementName();
             Job j = new Job(title) {
                 public IStatus run(IProgressMonitor mon) {
                     SubMonitor monitor = SubMonitor.convert(mon);
+                    if (parentMonitor != null) monitor = parentMonitor;
                     // The actual amount of work will be determined in executeESCCommand
 //                    monitor.beginTask(reason, IProgressMonitor.UNKNOWN);
 //                    // FIXME - perhaps just set verbosity to at least progress

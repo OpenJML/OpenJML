@@ -262,7 +262,6 @@ public class racfiles extends RacBase {
     			"-rac",
     			"-specspath","test/hans/OpenJMLTest/specs",
     			"-racCheckAssumptions","-racJavaChecks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
-//    			,"-show"
     			);
     }
 
@@ -292,7 +291,7 @@ public class racfiles extends RacBase {
     public void gitbug524() {
     	//runrac = false;
         expectedRACExit = 0;
-        helpTCF("test/gitbug524","test/gitbug524","Test");
+        helpTCF("test/gitbug524","test/gitbug524","Test","-show");
     }
 
     @Test

@@ -113,12 +113,15 @@ public class JmlEsc extends JmlTreeScanner {
         } catch (PropagatedException e) {
         	// Canceled
     		Main.instance(context).canceled = true;
+    		count(IProverResult.ERROR);
     		throw e;
         } catch (Exception e) {
             // No further error messages needed - FIXME - is this true?
+            count(IProverResult.ERROR);
             log.error("jml.internal","Should not be catching an exception in JmlEsc.check: "+ e.toString());
         } catch (Throwable e) {
             // No further error messages needed - FIXME - is this true?
+            count(IProverResult.ERROR);
             log.error("jml.internal","Should not be catching a Java error in JmlEsc.check: "+ e.toString());
         }
     }
@@ -193,8 +196,6 @@ public class JmlEsc extends JmlTreeScanner {
             IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
             if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult("",IProverResult.CANCELLED,methodDecl.sym));
             throw e;
-        } catch (Throwable e) {
-            log.error("jml.internal","Should not be catching a Java error in JmlEsc.dcoMethod: "+ e.toString());
         }
         Main.instance(context).popOptions();
         return;        
@@ -324,19 +325,21 @@ public class JmlEsc extends JmlTreeScanner {
         } catch (Main.JmlCanceledException | PropagatedException e) {
             res = new ProverResult(proverToUse,ProverResult.CANCELLED,methodDecl.sym); // FIXME - I think two ProverResult.CANCELLED are being reported
            // FIXME - the following will throw an exception because progress checks whether the operation is cancelled
-            utils.progress(1,1,"Proof ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
+            utils.progress(1,1,"Proof CANCELLED of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
             + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
             + " - exception"
             );
             throw e;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             JCDiagnostic d;
             if (e instanceof SMTTranslator.JmlBVException) {
                 d = log.factory().error(log.currentSource(), methodDecl, "jml.message", "Proof aborted because bit-vector operations are not supported. Use option -escBV=true");
             } else {
-                d = log.factory().error(log.currentSource(), null, "jml.internal","Prover aborted with exception: " + e.getMessage());
+                d = log.factory().error(log.currentSource(), null, "jml.internal","Prover aborted with exception: " + e.toString());
+                e.printStackTrace(System.out);
             }
             log.report(d);
+            count(IProverResult.ERROR);
 
             res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl.sym).setOtherInfo(d);
             //log.error("jml.internal","Prover aborted with exception: " + e.getMessage());

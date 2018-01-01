@@ -68,6 +68,26 @@ public class escbitvector extends EscBase {
     }
     
     @Test 
+    public void testBV2b() {
+        main.addOptions("-escBV=true","-logic=ALL");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires n <= 0x7ffffff0;\n"
+                +"  //@ ensures n <= \\result;\n"
+                +"  //@ ensures \\result <= n+15;\n"
+                +"  //@ ensures (\\result%16) == 0;\n"
+                +"  //@ pure;\n"
+                +"//@ code_java_math spec_java_math\n"
+                +"  public int m1(int n) {\n"
+                +"    return n + ((-n) & 0x0f);\n"
+                +"  }\n"
+                                
+                +"}"
+                );
+    }
+    
+    @Test 
     public void testBV1() {
         main.addOptions("-logic=ALL");  // Should use BV
         helpTCX("tt.TestJava","package tt; \n"
@@ -132,7 +152,7 @@ public class escbitvector extends EscBase {
     }
     
     // FIXME - should the following emit a command-line error exit code and stop?
-    @Test @Ignore
+    @Test 
     public void testBVe1() {
         main.addOptions("-escBV","-logic=ALL");
         helpTCX("tt.TestJava","package tt; \n"
@@ -153,7 +173,7 @@ public class escbitvector extends EscBase {
           );
     }
     
-    @Test @Ignore
+    @Test 
     public void testBVe2() {
         main.addOptions("-escBV=xx","-logic=ALL");
         helpTCX("tt.TestJava","package tt; \n"
@@ -174,7 +194,7 @@ public class escbitvector extends EscBase {
          );
     }
     
-    @Test @Ignore
+    @Test 
     public void testBVe3() {
         main.addOptions("-escBV=","-logic=ALL");
         helpTCX("tt.TestJava","package tt; \n"
@@ -195,9 +215,9 @@ public class escbitvector extends EscBase {
           );
     }
     
-    @Test @Ignore
+    @Test 
     public void testBVe4() {
-        expectedExit = 1;
+        expectedExit = 0;
         main.addOptions("-escBV");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -214,7 +234,6 @@ public class escbitvector extends EscBase {
                                 
                 +"}"
                 ,"warning: The last command-line option expects a parameter: -escBV",-1
-//                ,"Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: "
           );
     }
     

@@ -37,6 +37,5 @@ Export-Package: com.sun.javadoc,
  com.sun.tools.javap
 Bundle-ClassPath: bin/
 Import-Package: com.sun.source.tree,
- com.sun.tools.javac.api,
- org.jmlspecs.openjml
+ com.sun.tools.javac.api
 Require-Bundle: org.eclipse.jdt.core

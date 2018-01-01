@@ -237,7 +237,7 @@ public class escnew3 extends EscBase {
                 +"  //@ modifies \\everything;\n"
                 +"  public void m1b() {\n"
                 +"    t = new TestJava();\n"
-                +"    //@ assert \\not_modified(t.i) ? true: true;\n"  // BAD
+                +"    //@ assert \\not_modified(t.i) ? true: true;\n"  // OK
                 +"  }\n"
                 
                 +"  //@ modifies \\everything;\n"
@@ -248,7 +248,6 @@ public class escnew3 extends EscBase {
                  
                 +"}"
                 ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1a",31
-                ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1b",31
                 ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1c",31
                 );
     }
@@ -756,7 +755,6 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testVarargs3() {
-        main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires ints.length == 0 || ints[0] != null;\n"
@@ -826,7 +824,6 @@ public class escnew3 extends EscBase {
 
      @Test
     public void testLabels2() {
-    	 main.addOptions("-show","-method=m","-checkFeasibility=exit","-progress");
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { \n"

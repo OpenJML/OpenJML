@@ -407,8 +407,10 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             // log a warning, ignore the block, and continue processing.
             // Note that the block will still have an id and be in the 
             // id map (blockLookup).
+            // This can also happen if the previous block ended with a JML end statement.
             if (!block.statements.isEmpty() && !block.id().name.toString().contains(TRYFINALLYNORMAL) && !block.id().name.toString().contains("finallyExit")) {
-                log.warning("jml.internal","A basic block has no predecessors - ignoring it: " + block.id);
+                // Because of the possibility of end statements, for now we will not issue this warning
+                //                log.warning("jml.internal","A basic block has no predecessors - ignoring it: " + block.id);
             }
             program.blocks.remove(block);
             for (T b: block.followers()) {

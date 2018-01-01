@@ -5,6 +5,8 @@
 // FIXME - do a review
 package org.jmlspecs.openjml;
 
+import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
+
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -329,12 +331,11 @@ public class JmlCompiler extends JavaCompiler {
             ClassSymbol csymbol = binaryEnterTodo.remove();
             if (JmlSpecs.instance(context).get(csymbol) != null) continue;
             
-            //if (csymbol.toString().contains("AbstractStringBuilder")) Utils.stop();
-
             // Record default specs just to show they are in process
             // If there are actual specs, they will be recorded later
             // We do this, in combination with the check above, to avoid recursive loops
             ((JmlEnter)enter).recordEmptySpecs(csymbol);
+            csymbol.flags_field |= UNATTRIBUTED;
             
             JmlCompilationUnit speccu = parseSpecs(csymbol);
             if (speccu != null) {
@@ -397,14 +398,15 @@ public class JmlCompiler extends JavaCompiler {
             // Stop here
             return results; // Empty list - do nothing more
         } else if (utils.esc) {
+            JmlEsc esc = JmlEsc.instance(context); // FIXME - get this once at initialization?
         	try {
-                JmlEsc esc = JmlEsc.instance(context); // FIXME - get this once at initialization?
                 esc.initCounts();
         	    for (Env<AttrContext> env: envs) esc(env);
-        	    String summary = esc.reportCounts();
-        	    if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode) log.note("jml.message", summary);
         	} catch (PropagatedException e) {
         		// cancelation
+        	} finally {
+                String summary = esc.reportCounts();
+                if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode) log.note("jml.message", summary);
         	}
     		return results; // Empty list - Do nothing more
         } else if (utils.rac) {

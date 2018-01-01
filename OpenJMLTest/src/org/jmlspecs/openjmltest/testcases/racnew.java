@@ -1529,7 +1529,7 @@ public class racnew extends RacBase {
     
     /** Duplicate represents */
     @Test public void testModelField1() {
-        main.addOptions("-keys=DEBUG");
+        main.addOptions("-keys=DEBUG","-show");
         continueAnyway = true;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; \n "
@@ -3073,6 +3073,7 @@ public class racnew extends RacBase {
     
     @Test
     public void testOldClause() {
+        main.addOptions("-show");
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { public static void main(String[] args) { m(6); k = 6; m(6); } \n"

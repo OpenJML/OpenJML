@@ -30,7 +30,7 @@ public class racArithmeticModes extends RacBase {
         //noCollectDiagnostics = true; print = true;
         super.setUp();
         //main.addOptions("-verboseness=4");
-        expectedNotes = 2;
+        expectedNotes = 4;  // FIXME - GET RID OF DEPENDENCE ON STATING THIS NUMBER
         main.addOptions("-jmltesting");
     }
     

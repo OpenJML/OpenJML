@@ -153,9 +153,9 @@ public class API implements IAPI {
      */
     @Override
     public void setProgressListener(/*@ nullable */ Main.IProgressListener p) {
-        if (main.progressDelegate != null) {
+        if (main.progressDelegator != null) {
             p.setContext(context());
-            main.progressDelegate.setDelegate(p);
+            main.progressDelegator.setDelegate(p);
         }
     }
     

@@ -72,34 +72,18 @@ public class JmlTreeInline extends JmlTreeCopier {
         this.breakName = breakName;
     }
     
-//    /** A (overridable) factory method that returns a new (or derived) instance
-//     * of a JmlCopier object.
-//     */
-//    @Override
-//    public JmlTreeInline newCopier(JmlTree.Maker maker) {
-//        return new JmlTreeInline(maker); // FIXME - can we use the same replacements map with a new Maker object?
-//    }
-    
-//    /** Static method to create a copy of the given AST with the given factory */
-//    public static JCBlock inline(JmlTree.Maker maker, @Nullable JCBlock that,
-//            Map<Object,JCExpression> replacements, JCIdent returnId, Name breakName) {
-//        JCBlock outer = maker.Block(0L,null);
-//        JCLabeledStatement stat = maker.Labelled(breakName,outer);
-//        
-//        JmlTreeInline inliner = new JmlTreeInline(maker);
-//        inliner.replacements = replacements;
-//        inliner.returnId = returnId;
-//        inliner.breakName = breakName;
-//        JCBlock bl inliner.copy(that,null);
-//    }
-    
-
     
     public JCTree visitReturn(ReturnTree node, Void p) {
-        JCExpression e = (JCExpression)node.getExpression().accept(this, p);
-        JCStatement assign = M.Assignment(returnId.sym, e);
-        JCStatement br = M.Break(breakName);
-        return M.Block(0L, List.<JCStatement>of(assign,br));
+        ExpressionTree rv = node.getExpression();
+        if (rv != null) {
+            JCExpression e = (JCExpression)rv.accept(this, p);
+            JCStatement assign = M.Assignment(returnId.sym, e);
+            JCStatement br = M.Break(breakName);
+            return M.Block(0L, List.<JCStatement>of(assign,br));
+        } else {
+            JCStatement br = M.Break(breakName);
+            return M.Block(0L, List.<JCStatement>of(br));
+        }
     }
 
 
@@ -118,6 +102,18 @@ public class JmlTreeInline extends JmlTreeCopier {
             return copy(newexpr);
         } 
     }
+    
+    @Override
+    public JCTree visitArrayAccess(ArrayAccessTree node, Void p) {
+        if (node instanceof JmlBBArrayAccess) {
+            JmlBBArrayAccess aa = (JmlBBArrayAccess)node;
+            return new JmlBBArrayAccess(aa.arraysId, aa.indexed, aa.index, aa.pos, aa.type);
+        } else {
+            return super.visitArrayAccess(node,p).setType(((JCTree)node).type);
+        }
+    }
+    
+    // FIXME - do we need array assignment and field assignment ?
     
     @Override
     public JCTree visitJmlSingleton(JmlSingleton that, Void p) {

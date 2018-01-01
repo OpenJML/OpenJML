@@ -428,6 +428,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JavaFileObject prevv = log.useSource(eee.toplevel.sourcefile);
                 try {
                     super.attribClass(c); // No need to attribute the class itself if it was binary
+                    c.flags_field &= ~UNATTRIBUTED;
                     attribFieldSpecs(eee,c);
                 } finally {
                     log.useSource(prevv);
@@ -1169,7 +1170,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         new JmlTokenKind[] {
         MODEL, PURE, NONNULL, NULLABLE, OPTIONS, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, QUERY, FUNCTION,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
+        PEER, REP, READONLY, INLINE // FIXME - allowing these until the rules are really implemented
 
     };
     
@@ -1187,7 +1188,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         new JmlTokenKind[] {
         MODEL, PURE, NONNULL, NULLABLE, OPTIONS, HELPER, QUERY, SECRET, FUNCTION,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
+        PEER, REP, READONLY, INLINE // FIXME - allowing these until the rules are really implemented
 
     };
     
@@ -1275,7 +1276,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             // Check rules about helper
             if ( (a=utils.findMod(mods,tokenToAnnotationSymbol.get(HELPER))) != null  &&
-                    utils.findMod(mods,tokenToAnnotationSymbol.get(PURE)) == null  && 
+                    !isPureMethod(javaMethodTree.sym)  && 
                     (    (mods.flags & Flags.PRIVATE) == 0 
                     || utils.findMod(mods,tokenToAnnotationSymbol.get(SPEC_PUBLIC)) != null
                     || utils.findMod(mods,tokenToAnnotationSymbol.get(SPEC_PROTECTED)) != null
@@ -1290,7 +1291,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             
             if ( (a=utils.findMod(mods,tokenToAnnotationSymbol.get(INLINE))) != null  &&
-                    ((mods.flags & Flags.FINAL) == 0)  &&
+                    ((javaMethodTree.sym.enclClass().flags() & Flags.FINAL) == 0)  &&
+                    ((mods.flags & (Flags.FINAL|Flags.STATIC)) == 0)  &&
                     !isConstructor
                     ) {
                 log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
@@ -3070,7 +3072,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) {
         for (JCTree e: tree.list) {
             attribExpr(e, env, Type.noType);
-            checkIfLocal(e);
+            if (!isRefining) checkIfLocal(e);
         }
         // FIXME - check the result
     }
@@ -3784,13 +3786,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         jmlresolve.setAllowJML(prevAllowJML);
     }
     
+    boolean isRefining = false;
     
     /** This handles JML statements that give method-type specs for method body statements. */
     public void visitJmlStatementSpec(JmlTree.JmlStatementSpec tree) {
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         JmlTokenKind prevClauseType = currentClauseType;
         currentClauseType = null;
-        if (tree.statementSpecs != null) attribStat(tree.statementSpecs,env);
+        boolean saved = isRefining;
+        try {
+            isRefining = true;
+            if (tree.statementSpecs != null) attribStat(tree.statementSpecs,env);
+        } finally {
+            isRefining = saved;
+        }
+        if (tree.statements != null) attribStats(tree.statements,env);
         currentClauseType = prevClauseType;
         jmlresolve.setAllowJML(prevAllowJML);
     }

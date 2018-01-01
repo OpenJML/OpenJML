@@ -292,9 +292,10 @@ public class esc extends EscBase {
 
 				+ "  public TestJava() {}"
 
-				+ "}",
-				"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2bad",
-				16, "/tt/TestJava.java:11: warning: Associated declaration", 14);
+				+ "}"
+				,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2bad", 16
+				,"/tt/TestJava.java:11: warning: Associated declaration", 14
+				);
 	}
 
 	@Test @Ignore // FIXME - timesout
@@ -670,31 +671,37 @@ public class esc extends EscBase {
 	public void testNotModified2() {
 		helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
 
-				+ "  public int i;\n" + "  public static /*@ nullable */ TestJava t;\n"
+				+ "  public int i;\n" 
+				+ "  public static /*@ nullable */ TestJava t;\n"
 
-				+ "  //@ requires t != null;\n" + "  //@ modifies \\everything;\n" + "  public void m0() {\n"
+				+ "  //@ requires t != null;\n" 
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m0() {\n"
 				+ "    //@ assert \\not_modified(t.i);\n" // OK
 				+ "  }\n"
 
-				+ "  //@ requires t != null;\n" + "  //@ modifies \\everything;\n" + "  public void m1a() {\n"
-				+ "    t = null;\n" + "    //@ assert \\not_modified(t.i) ? true: true;\n" // BAD
-				+ "  }\n"
-
-				+ "  //@ requires t == null;\n" + "  //@ modifies \\everything;\n" + "  public void m1b() {\n"
-				+ "    t = new TestJava();\n" + "    //@ assert \\not_modified(t.i) ? true: true;\n" // BAD
-				+ "  }\n"
-
-				+ "  //@ modifies \\everything;\n" + "  public void m1c() {\n"
+				+ "  //@ requires t != null;\n" 
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m1a() {\n"
+				+ "    t = null;\n" 
 				+ "    //@ assert \\not_modified(t.i) ? true: true;\n" // BAD
 				+ "  }\n"
 
-				+ "}",
-				"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1a",
-				31,
-				"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1b",
-				31,
-				"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1c",
-				31);
+				+ "  //@ requires t == null;\n" 
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m1b() {\n"
+				+ "    t = new TestJava();\n" 
+				+ "    //@ assert \\not_modified(t.i) ? true: true;\n" // OK
+				+ "  }\n"
+
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m1c() {\n"
+				+ "    //@ assert \\not_modified(t.i) ? true: true;\n" // BAD
+				+ "  }\n"
+
+				+ "}"
+				,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1a",31
+				,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1c",31);
 	}
 
 	// TODO - test not_modified and old nested in each other; remember to test
@@ -4098,8 +4105,8 @@ public class esc extends EscBase {
                         + "}"
                         ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.ii",27
                         ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.ii",27
-                        ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",8
-                        ,"/tt/TestJava.java:4: warning: Associated declaration",20
+//                        ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",8
+//                        ,"/tt/TestJava.java:4: warning: Associated declaration",20
                                 );
     }
 
@@ -4207,6 +4214,30 @@ public class esc extends EscBase {
                         + "  }\n"
                         + "}\n"
                         ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under -strictJML",10
+                        ,"$SPECS/java7/java/nio/ByteBuffer.jml:260: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",37
+                        );
+    }
+
+    @Test
+    public void testShowStatementErrors() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public static class Key { public int k; } \n"
+                        + "  //@ public normal_behavior \n"
+                        + "  //@   requires true; \n"
+                        + "  public static void m(int i, int j) {\n"
+                        + "     //@ show i;\n"
+                        + "     //@ show \n"
+                        + "     //@ show i i;\n"
+                        + "     //@ show;\n"
+                        + "     //@ show i\n"
+                        + "  }\n"
+                        + "}\n"
+                        ,"/tt/TestJava.java:8: Expected a semicolon to terminate the expression list",14
+                        ,"/tt/TestJava.java:9: Bad syntax in the expression list in show statement",17
+                        ,"/tt/TestJava.java:11: Expected a semicolon to terminate the expression list",15
                         );
     }
 

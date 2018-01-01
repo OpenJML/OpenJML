@@ -2491,7 +2491,7 @@ public class JmlTree implements IJmlTree {
     }
 
     /** This class represents JML statements within the body of a method
-     * that take a statement, such as set and debug
+     * that take a statement, such as set and debug and end
      */
     public static class JmlStatement extends JmlAbstractStatement {
         public JmlTokenKind token;
@@ -2504,6 +2504,12 @@ public class JmlTree implements IJmlTree {
             this.statement = statement;
         }
     
+        @Override
+        public int getEndPosition(EndPosTable table) {
+            if (token == JmlTokenKind.END || statement == null) return pos; // FIXME - could be better
+            return statement.getEndPosition(table);
+        }
+        
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
@@ -2735,9 +2741,10 @@ public class JmlTree implements IJmlTree {
      */
     public static class JmlStatementSpec extends JmlAbstractStatement {
         public JmlMethodSpecs statementSpecs;
+        public List<JCStatement> statements;
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlStatementSpec(int pos, JmlMethodSpecs statementSpecs) {
+        protected JmlStatementSpec(int pos, JmlMethodSpecs statementSpecs) {  // FIXME - fix constructors and copiers
             this.pos = pos;
             this.statementSpecs = statementSpecs;
         }

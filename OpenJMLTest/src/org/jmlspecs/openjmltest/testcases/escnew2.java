@@ -377,7 +377,6 @@ public class escnew2 extends EscBase {
 
     @Test public void testNullField() { 
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
- //       main.addOptions("-show","-method=A");
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a) { \n"
@@ -466,7 +465,6 @@ public class escnew2 extends EscBase {
     
     @Test
     public void testBreak() {
-//    	main.addOptions("-show","-method=m1bad","-subexpressions");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
