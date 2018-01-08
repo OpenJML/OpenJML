@@ -184,8 +184,24 @@ public class MethodProverSMT {
     
     /** Returns the prover exec specified by the options */
     public /*@ nullable */ String pickProverExec(String proverToUse) {
+        org.smtlib.SolverProcess.useMultiThreading = false;
+        org.smtlib.SolverProcess.useNotifyWait = false;
         String exec = JmlOption.value(context, JmlOption.PROVEREXEC);
         if (exec == null || exec.isEmpty()) exec = JmlOption.value(context, Strings.proverPropertyPrefix + proverToUse);
+        if (exec == null || exec.isEmpty()) {
+            String loc = utils.findInstallLocation();
+            String os = utils.identifyOS();
+            String ex = null;
+            if (proverToUse.equals("z3_4_3")) ex = "z3-4.3.1";
+            if (proverToUse.equals("z3_4_5")) ex = "z3-4.5.0";
+            if (proverToUse.equals("z3_4_6")) ex = "z3-4.6.0";
+            
+            if (loc != null && os != null && ex != null) {
+                exec = loc + "Solvers-" + os + java.io.File.separator + ex;
+                if (!new java.io.File(exec).exists()) log.warning("jml.message","DOES NOT EXIST " + exec);
+                if (!new java.io.File(exec).exists()) exec = null;
+            }
+        }
         return exec;
     }
 

@@ -275,6 +275,49 @@ public class Utils {
         }
         return symbol.attribute(helperAnnotationSymbol)!=null;
     }
+    
+    public String identifyOS() {
+        String sp = JmlOption.value(context, JmlOption.OSNAME);
+        if (sp != null && !sp.isEmpty()) return sp;
+        
+        sp = System.getProperty("os.name");
+        if (sp.contains("mac") || sp.contains("Mac")) return "macos";
+        if (sp.contains("win") || sp.contains("Win")) return "windows";
+        return null;
+    }
+    
+    //@ non_null
+    public String findInstallLocation() {
+        String sp = System.getProperty("java.class.path");
+        String[] ss = sp.split(java.io.File.pathSeparator);
+        boolean verbose = jmlverbose >= Utils.PROGRESS;
+        // This should work for a command-line installation
+        for (String s: ss) {
+            if (s.endsWith(Strings.releaseJar)) {
+                s = s.substring(0,s.length() - Strings.releaseJar.length());
+                if (s.isEmpty()) s = "." + java.io.File.separator;
+                File d = new java.io.File(s);
+                if (d.exists() && d.isDirectory()) {
+                    if (verbose) log.getWriter(WriterKind.NOTICE).println("Installation location " + d);
+                    return s;
+                }
+            }
+        }
+        // This should work for running in the aeclipse developmente environment
+        for (String s: ss) {
+            if (s.endsWith("bin-runtime")) {
+                s = s + java.io.File.separator + ".." + java.io.File.separator + ".." + java.io.File.separator + ".."  + java.io.File.separator + "Solvers" + java.io.File.separator;
+                File d = new java.io.File(s);
+                if (d.exists() && d.isDirectory()) {
+                    if (verbose) log.getWriter(WriterKind.NOTICE).println("Installation location " + d);
+                    return s;
+                }
+            }
+        }
+        
+        return null;
+    }
+ 
 
     /** Returns true if the given symbol is marked static or is a member of a JML interface
      * that is not marked as 'instance'
