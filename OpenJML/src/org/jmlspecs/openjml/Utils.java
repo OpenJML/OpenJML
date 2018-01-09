@@ -282,6 +282,7 @@ public class Utils {
         
         sp = System.getProperty("os.name");
         if (sp.contains("mac") || sp.contains("Mac")) return "macos";
+        if (sp.contains("lin") || sp.contains("Lin")) return "linux";
         if (sp.contains("win") || sp.contains("Win")) return "windows";
         return null;
     }
@@ -290,7 +291,7 @@ public class Utils {
     public String findInstallLocation() {
         String sp = System.getProperty("java.class.path");
         String[] ss = sp.split(java.io.File.pathSeparator);
-        boolean verbose = jmlverbose >= Utils.PROGRESS;
+        boolean verbose = jmlverbose >= Utils.JMLVERBOSE;
         // This should work for a command-line installation
         for (String s: ss) {
             if (s.endsWith(Strings.releaseJar)) {
@@ -298,7 +299,7 @@ public class Utils {
                 if (s.isEmpty()) s = "." + java.io.File.separator;
                 File d = new java.io.File(s);
                 if (d.exists() && d.isDirectory()) {
-                    if (verbose) log.getWriter(WriterKind.NOTICE).println("Installation location " + d);
+                    if (verbose) log().getWriter(WriterKind.NOTICE).println("Installation location " + d);
                     return s;
                 }
             }
@@ -309,7 +310,7 @@ public class Utils {
                 s = s + java.io.File.separator + ".." + java.io.File.separator + ".." + java.io.File.separator + ".."  + java.io.File.separator + "Solvers" + java.io.File.separator;
                 File d = new java.io.File(s);
                 if (d.exists() && d.isDirectory()) {
-                    if (verbose) log.getWriter(WriterKind.NOTICE).println("Installation location " + d);
+                    if (verbose) log().getWriter(WriterKind.NOTICE).println("Installation location " + d);
                     return s;
                 }
             }

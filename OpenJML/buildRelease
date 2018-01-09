@@ -95,7 +95,7 @@ NAMEZ=openjml-${VERSION}.zip
 	## The openjml.jar file contains the OpenJDK and OpenJML class files, and the specs directories, combined for each Java version
 	(cd temp/specs18; jar -cf ../../${TEMPJAR}/jmlspecs.jar . ) || exit 1
 	
-	(cd temp; jar xf ../jsmtlib.jar ) || exit 1
+	(cd temp; jar xf ../jSMTLIB.jar ) || exit 1
 	cp -r bin-runtime/* temp
     cp -r ${ANNOTATIONS}/bin/* temp
     touch temp/JMLRUNTIME_MARKER
