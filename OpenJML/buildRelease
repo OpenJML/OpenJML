@@ -109,7 +109,10 @@ NAMEZ=openjml-${VERSION}.zip
 	echo "   " jmlspecs.jar openjml.jar created
 	
     rm -rf temp temp2
-    
+
+##### Copy solvers to the tar file location
+    cp -r ../../Solvers/Solvers-* ${TEMPJAR}
+        
 ##### Collect other files for the tar file
     cp legal/* ${TEMPJAR}
         ##(echo Building user manual; cd documentation/OpenJMLUserGuide; rm -f *.pdf; make all > build.log )

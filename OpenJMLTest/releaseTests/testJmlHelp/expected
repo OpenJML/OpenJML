@@ -101,3 +101,4 @@ JML options:
   -defaults                  Specifies various default behaviors: constructor:pure|everything
   -staticInitWarning         Warns about missing static_initializer clauses
   -determinism               Experimental: enables better determinism
+  -osname                    Name of OS to use in selecting solver executable
