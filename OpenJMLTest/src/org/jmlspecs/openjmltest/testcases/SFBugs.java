@@ -593,6 +593,18 @@ public class SFBugs extends EscBase {
         helpTCG("-purityCheck");
     }
     
+    @Test
+    public void gitbug598() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug598a() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
     public void gitbug888() {
     	expectedExit = 0;
         helpTCG();
