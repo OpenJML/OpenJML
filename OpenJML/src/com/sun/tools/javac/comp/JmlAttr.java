@@ -5177,7 +5177,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             result = check(that, t, VAL, resultInfo);
         } else {
             t = ((ArrayType)t).getComponentType();
-            result = check(that, t, VAL, resultInfo);
+            result = check(that, t, VAR, resultInfo);
         }
     }
 
