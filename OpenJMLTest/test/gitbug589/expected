@@ -1,0 +1,6 @@
+test/gitbug589/A.java:3: error: Incorrectly formed or terminated store-reference near here
+	//@ represents = 1 * 2 + 3;
+	               ^
+Continuing bravely despite parsing errors
+Operation not performed because of parse or type errors
+1 error
