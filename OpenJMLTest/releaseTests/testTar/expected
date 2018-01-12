@@ -1,5 +1,7 @@
 LICENSE.rtf
 Solvers-linux/
+Solvers-linux/z3-4.3.0
+Solvers-linux/z3-4.3.1
 Solvers-macos/
 Solvers-macos/.classpath
 Solvers-macos/._.DS_Store

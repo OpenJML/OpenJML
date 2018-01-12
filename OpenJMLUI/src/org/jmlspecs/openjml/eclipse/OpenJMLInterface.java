@@ -1205,7 +1205,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             if ("internal".equals(internal_external)) {
         		URL url = null;
         		try {
-        			url = FileLocator.resolve(FileLocator.find(Platform.getBundle("org.jmlspecs.openjml.Solvers-macos"), new Path("z3-4.3.1"), Collections.EMPTY_MAP));
+        			String osname = org.jmlspecs.openjml.Utils.identifyOS(null);
+        			url = FileLocator.resolve(FileLocator.find(Platform.getBundle("org.jmlspecs.openjml.Solvers"), new Path("Solvers-"+osname+"/z3-4.3.1"), Collections.EMPTY_MAP));
                     exec = url.getFile();
         		} catch (java.io.IOException e) {
         			// Nothing to be done

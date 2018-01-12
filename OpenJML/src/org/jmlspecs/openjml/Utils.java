@@ -276,8 +276,8 @@ public class Utils {
         return symbol.attribute(helperAnnotationSymbol)!=null;
     }
     
-    public String identifyOS() {
-        String sp = JmlOption.value(context, JmlOption.OSNAME);
+    public static String identifyOS(Context context) {
+        String sp = context == null ? null : JmlOption.value(context, JmlOption.OSNAME);
         if (sp != null && !sp.isEmpty()) return sp;
         
         sp = System.getProperty("os.name");

@@ -190,7 +190,7 @@ public class MethodProverSMT {
         if (exec == null || exec.isEmpty()) exec = JmlOption.value(context, Strings.proverPropertyPrefix + proverToUse);
         if (exec == null || exec.isEmpty()) {
             String loc = utils.findInstallLocation();
-            String os = utils.identifyOS();
+            String os = Utils.identifyOS(context);
             String ex = null;
             if (proverToUse.equals("z3_4_3")) ex = "z3-4.3.1";
             if (proverToUse.equals("z3_4_5")) ex = "z3-4.5.0";
