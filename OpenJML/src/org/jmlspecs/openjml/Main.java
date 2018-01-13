@@ -1072,7 +1072,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             opts.putAll(options);
         }
 
-        if (args != null && args.length > 0) try {
+        if (args != null) try { // Do the following even if there are no args, because other setup is done as well (e.g. extensions)
             Collection<File> files = processArgs(CommandLine.parse(args));
             if (files != null && !files.isEmpty()) {
                 Log.instance(context).warning("jml.ignore.extra.material",files.iterator().next().getName());
