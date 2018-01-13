@@ -50,10 +50,4 @@ https://sourceforge.net/projects/jmlspecs/
          version="0.8.25"
          unpack="false"/>
 
-   <plugin
-         id="org.jmlspecs.openjml.Solvers"
-         download-size="0"
-         install-size="0"
-         version="0.8.25"/>
-
 </feature>

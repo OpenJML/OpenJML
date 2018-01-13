@@ -110,24 +110,24 @@ NAMEZ=openjml-${VERSION}.zip
 	
     rm -rf temp temp2
 
-##### Copy solvers to the tar file location
+##### Copy solvers to the zip file location
     cp -r ../../Solvers/Solvers-* ${TEMPJAR}
         
 ##### Collect other files for the tar file
-    cp legal/* ${TEMPJAR}
-        ##(echo Building user manual; cd documentation/OpenJMLUserGuide; rm -f *.pdf; make all > build.log )
-    if [ -e documentation/OpenJMLUserGuide/OpenJMLUserGuide.pdf ]; then
-        cp documentation/OpenJMLUserGuide/OpenJMLUserGuide.pdf ${TEMPJAR} && echo Manual built and copied
-    else
-        echo No User Guide file is found
-    fi
+#    cp legal/* ${TEMPJAR}
+#        ##(echo Building user manual; cd documentation/OpenJMLUserGuide; rm -f *.pdf; make all > build.log )
+#    if [ -e documentation/OpenJMLUserGuide/OpenJMLUserGuide.pdf ]; then
+#        cp documentation/OpenJMLUserGuide/OpenJMLUserGuide.pdf ${TEMPJAR} && echo Manual built and copied
+#    else
+#        echo No User Guide file is found
+#    fi
     
-##### Build the tar file
+##### Build the zip file
 	(cd ${TEMPJAR}; \
     cp ../openjml-template.properties . ;\
-	tar -zcf ../${NAME} * ; zip -q ../${NAMEZ} *)
+	zip -qr ../${NAMEZ} *)
 	##rm -rf ${TEMPJAR}  ## We don't delete them because some tests use them
-	echo "   " tar created
+	echo "   " zip created ../${NAMEZ}
 	    
 ##### End	
 	echo Release complete

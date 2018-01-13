@@ -58,6 +58,7 @@ import org.jmlspecs.openjml.eclipse.Utils.OpenJMLException;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
+import org.osgi.framework.Bundle;
 
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
@@ -1206,10 +1207,14 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         		URL url = null;
         		try {
         			String osname = org.jmlspecs.openjml.Utils.identifyOS(null);
-        			url = FileLocator.resolve(FileLocator.find(Platform.getBundle("org.jmlspecs.openjml.Solvers"), new Path("Solvers-"+osname+"/z3-4.3.1"), Collections.EMPTY_MAP));
-                    exec = url.getFile();
+        			Bundle bundle = Platform.getBundle("org.jmlspecs.Solvers");
+        			if (bundle != null) {
+        				url = FileLocator.find(bundle, new Path("Solvers-"+osname+"/z3-4.3.1"), Collections.EMPTY_MAP);
+        				if (url != null) url = FileLocator.toFileURL(url);
+                        if (url != null) exec = url.getFile();
+        			}
         		} catch (java.io.IOException e) {
-        			// Nothing to be done
+        			exec = null;
         		}
         		java.nio.file.Path path = FileSystems.getDefault().getPath(exec);
         		if (exec == null || !Files.exists(path)) {
