@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -1211,9 +1212,12 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         			if (bundle != null) {
         				url = FileLocator.find(bundle, new Path("Solvers-"+osname+"/z3-4.3.1"), Collections.EMPTY_MAP);
         				if (url != null) url = FileLocator.toFileURL(url);
-                        if (url != null) exec = url.getFile();
+                        if (url != null) {
+                        	exec = url.getFile();
+                        	Files.setPosixFilePermissions(java.nio.file.Paths.get(url.toURI()), PosixFilePermissions.fromString("rwxr-xr-x"));
+                        }
         			}
-        		} catch (java.io.IOException e) {
+        		} catch (Exception e) {
         			exec = null;
         		}
         		java.nio.file.Path path = FileSystems.getDefault().getPath(exec);
