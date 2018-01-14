@@ -223,7 +223,8 @@ abstract public class Arithmetic extends ExpressionExtension {
             // Implement overflow when not using bit operations
             // RAC implements bit-limited arithmetic anyway, so don't need to do it here
             // If we have implicitly converted, which would be from a smaller type, then negate won't overflow
-            eresult = rewriter.treeutils.makeUnary(that.pos,optag,that.getOperator(),arg);
+            if (optag == JCTree.Tag.POS) eresult = arg;
+            else eresult = rewriter.treeutils.makeUnary(that.pos,optag,that.getOperator(),arg);
             if (implementOverflow && rewriter.esc && optag == JCTree.Tag.NEG && !rewriter.useBV && rewriter.jmltypes.isSameType(that.type,that.getExpression().type)) {
                 // FIXME - when this was accidentally enabled for rac, the conditional expression did not work correctly; not sure why - perhaps shared ASTs?
                 // result == (arg == MIN_VALUE ? MIN_VALUE : -arg) 
@@ -608,7 +609,7 @@ abstract public class Arithmetic extends ExpressionExtension {
                     e = makeUnaryOp(rewriter,that,newtype,false,false);
                     break;
                 } 
-                case PLUS:
+                case POS:
                 case COMPL: {
                     Type newtype = that.type; // No overflows possible - do not need to promote the type
                     e = makeUnaryOp(rewriter,that,newtype,false,false);

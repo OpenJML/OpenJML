@@ -20,7 +20,7 @@ export SPECS=../Specs
 
 
 VERSION=`date +%Y%m%d`
-NAME=openjml-${VERSION}.tar.gz
+NAME=openjml-${VERSION}.zip
 
 echo Testing
 chmod ugo+x releaseTests/runTests releaseTests/releaseTestHelper 

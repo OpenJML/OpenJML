@@ -597,6 +597,72 @@ public class SFBugs extends EscBase {
         helpTCG("-purityCheck");
     }
     
+    @Test
+    public void gitbug589() {
+    	expectedExit = 1;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug591() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug593() {
+    	expectedExit = 0;
+        helpTCG("-check");
+    }
+    
+    @Test
+    public void gitbug594() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug596a() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug596b() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug596c() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug596d() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug597() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug598() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug598a() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
     public void gitbug888() {
     	expectedExit = 0;
         helpTCG();

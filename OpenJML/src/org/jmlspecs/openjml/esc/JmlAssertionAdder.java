@@ -10183,7 +10183,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
               break;
             }
-            case BITAND:
+            case BITAND:  // FIXME - logical result?
             { if (that.type.getTag() == TypeTag.INT) {
                 res = ((Number)lhsv).intValue() & ((Number)rhsv).intValue();
               } else if (that.type.getTag() == TypeTag.LONG) {
@@ -10191,7 +10191,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
               } // bigint
               break;
             }
-            case BITOR:
+            case BITOR:  // FIXME - logical result?
             { if (that.type.getTag() == TypeTag.INT) {
                 res = ((Number)lhsv).intValue() | ((Number)rhsv).intValue();
               } else if (that.type.getTag() == TypeTag.LONG) {
@@ -10199,7 +10199,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
               } // bigint
               break;
             }
-            case BITXOR:
+            case BITXOR:  // FIXME - logical result?
             { if (that.type.getTag() == TypeTag.INT) {
                 res = ((Number)lhsv).intValue() ^ ((Number)rhsv).intValue();
               } else if (that.type.getTag() == TypeTag.LONG) {
