@@ -151,7 +151,7 @@ public class escbitvector extends EscBase {
                 );
     }
     
-    // FIXME - should the following emit a command-line error exit code and stop?
+    // FIXME - should the following emit a command-line error exit code and stop?  Yes.
     @Test 
     public void testBVe1() {
         main.addOptions("-escBV","-logic=ALL");
@@ -175,7 +175,7 @@ public class escbitvector extends EscBase {
     
     @Test 
     public void testBVe2() {
-        main.addOptions("-escBV=xx","-logic=ALL");
+        main.addOptions("-escBV=xx","-logic=ALL");  // FIXME - this should cause an error
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

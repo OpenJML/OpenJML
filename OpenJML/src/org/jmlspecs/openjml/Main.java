@@ -553,7 +553,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         this.context = context;
         register(context);
         setProofResultListener(prl);
-        initializeOptions(savedOptions);
+        initializeOptions(savedOptions,null);
         if (args.length == 0
                 && (processors == null || !processors.iterator().hasNext())
                 && fileObjects.isEmpty()) {
