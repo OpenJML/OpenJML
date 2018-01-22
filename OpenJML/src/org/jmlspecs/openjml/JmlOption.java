@@ -110,6 +110,8 @@ public enum JmlOption implements IOption {
     // Experimental
     DETERMINISM("-determinism",false,true,"Experimental: enables better determinism",null),
 
+    OSNAME("-osname",true,null,"Name of OS to use in selecting solver executable",null),
+
     // Obsolete
     NOCHECKSPECSPATHX("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false",true),
     NOPURITYCHECKX("-noPurityCheck",false,false,"When on, no warnings for use of impure methods are issued","-purityCheck=false",true),

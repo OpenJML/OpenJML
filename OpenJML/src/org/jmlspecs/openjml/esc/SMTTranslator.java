@@ -808,6 +808,53 @@ public class SMTTranslator extends JmlTreeScanner {
 //        	commands.add(c);
 //        }
         
+        // Constants
+        if (useBV) {
+            addCommand(smt,"(define-sort |#BV32#| () (_ BitVec 32))");
+            addCommand(smt,"(define-sort |#BV64#| () (_ BitVec 64))");
+            addCommand(smt,"(define-fun |#max32BV#| () |#BV32#| #x7fffffff)");
+            addCommand(smt,"(define-fun |#min32BV#| () |#BV32#| #x80000000)");
+            addCommand(smt,"(define-fun |#zero32BV#| () |#BV32#| #x00000000)");
+            addCommand(smt,"(define-fun |#max64BV#| () |#BV64#| #x7fffffffffffffff)");
+            addCommand(smt,"(define-fun |#min64BV#| () |#BV64#| #x8000000000000000)");
+            addCommand(smt,"(define-fun |#zero64BV#| () |#BV64#| #x0000000000000000)");
+       } else {
+            addCommand(smt,"(define-fun |#big32#| () Int 4294967296)");
+            addCommand(smt,"(define-fun |#big64#| () Int (* 4294967296 4294967296))");
+            addCommand(smt,"(define-fun |#max32#| () Int 2147483647)");
+            addCommand(smt,"(define-fun |#min32#| () Int (- 2147483648))");
+            addCommand(smt,"(define-fun |#max64#| () Int (- (* 2147483648 2147483648 2) 1))");
+            addCommand(smt,"(define-fun |#min64#| () Int (- (* 2147483648 2147483648 2)))");
+        }
+        
+        // Predicates to check for over/underflow - note different predicates for BV vs. Int arithmetic
+        if (useBV) {
+            addCommand(smt,"(define-fun |#isAddOverflow32BV#| ((x |#BV32#|) (y |#BV32#|)) Bool (and (bvsge x |#zero32BV#|) (bvsge y |#zero32BV#|) (bvslt (bvadd x y) |#zero32BV#|)))");
+            addCommand(smt,"(define-fun |#isAddOverflow64BV#| ((x |#BV64#|) (y |#BV64#|)) Bool (and (bvsge x |#zero64BV#|) (bvsge y |#zero64BV#|) (bvslt (bvadd x y) |#zero64BV#|)))");
+            addCommand(smt,"(define-fun |#isAddUnderflow32BV#| ((x |#BV32#|) (y |#BV32#|)) Bool (and (bvsle x |#zero32BV#|) (bvsle y |#zero32BV#|) (bvsgt (bvadd x y) |#zero32BV#|)))");
+            addCommand(smt,"(define-fun |#isAddUnderflow64BV#| ((x |#BV64#|) (y |#BV64#|)) Bool (and (bvsle x |#zero64BV#|) (bvsle y |#zero64BV#|) (bvsgt (bvadd x y) |#zero64BV#|)))");
+            addCommand(smt,"(define-fun |#isSubOverflow32BV#| ((x |#BV32#|) (y |#BV32#|)) Bool (and (bvsge x |#zero32BV#|) (bvsle y |#zero32BV#|) (bvslt (bvsub x y) |#zero32BV#|)))");
+            addCommand(smt,"(define-fun |#isSubOverflow64BV#| ((x |#BV64#|) (y |#BV64#|)) Bool (and (bvsge x |#zero64BV#|) (bvsle y |#zero64BV#|) (bvslt (bvsub x y) |#zero64BV#|)))");
+            addCommand(smt,"(define-fun |#isSubUnderflow32BV#| ((x |#BV32#|) (y |#BV32#|)) Bool (and (bvsle x |#zero32BV#|) (bvsge y |#zero32BV#|) (bvsgt (bvsub x y) |#zero32BV#|)))");
+            addCommand(smt,"(define-fun |#isSubUnderflow64BV#| ((x |#BV64#|) (y |#BV64#|)) Bool (and (bvsle x |#zero64BV#|) (bvsge y |#zero64BV#|) (bvsgt (bvsub x y) |#zero64BV#|)))");
+            addCommand(smt,"(define-fun |#isMulOverflow32BV#| ((x |#BV32#|) (y |#BV32#|)) Bool (let ((prod (bvmul x y))) (and (distinct y #x00000000) (= x (bvsdiv prod y)))))");
+       } else {
+            addCommand(smt,"(define-fun |#isAddOverflow32#| ((x Int) (y Int)) Bool (> (+ x y) |#max32#|))");
+            addCommand(smt,"(define-fun |#isAddOverflow64#| ((x Int) (y Int)) Bool (> (+ x y) |#max64#|))");
+            addCommand(smt,"(define-fun |#isAddUnderflow32#| ((x Int) (y Int)) Bool (< (+ x y) |#min32#|))");
+            addCommand(smt,"(define-fun |#isAddUnderflow64#| ((x Int) (y Int)) Bool (< (+ x y) |#min64#|))");
+            addCommand(smt,"(define-fun |#isSubOverflow32#| ((x Int) (y Int)) Bool (> (- x y) |#max32#|))");
+            addCommand(smt,"(define-fun |#isSubOverflow64#| ((x Int) (y Int)) Bool (> (- x y) |#max64#|))");
+            addCommand(smt,"(define-fun |#isSubUnderflow32#| ((x Int) (y Int)) Bool (< (- x y) |#min32#|))");
+            addCommand(smt,"(define-fun |#isSubUnderflow64#| ((x Int) (y Int)) Bool (< (- x y) |#min64#|))");
+            addCommand(smt,"(define-fun |#isMulOverflow32#| ((x Int) (y Int)) Bool (let ((prod (* x y))) (or (> prod |#max32#|) (< prod |#min32#|))))");
+            // Int arithmetic operations to do wrap-around operations
+            addCommand(smt,"(define-fun |#addWrap32#| ((x Int) (y Int)) Int (let ((sum (+ x y))) (ite (> sum |#max32#|) (- sum |#big32#|) (ite (< sum |#max32#|) (+ sum |#big32#|) sum)))))");
+            addCommand(smt,"(define-fun |#addWrap64#| ((x Int) (y Int)) Int (let ((sum (+ x y))) (ite (> sum |#max64#|) (- sum |#big64#|) (ite (< sum |#max64#|) (+ sum |#big64#|) sum)))))");
+        }
+        
+        
+        
         int loc = addTypeModel(smt);
         
         // List types that we always want defined in the SMT script, whether
@@ -1170,6 +1217,9 @@ public class SMTTranslator extends JmlTreeScanner {
 
     }
     
+    // FIXME - things ought to work equivalently with this variable flase
+    public static boolean useFcnDef = true;
+    
     /** If the statement is a variable declaration, converts it to an SMT
      * declare-fun or define-fun of the appropriate sort, depending on whether
      * there is an initializer or not.
@@ -1180,7 +1230,8 @@ public class SMTTranslator extends JmlTreeScanner {
             try {
                 JmlVariableDecl decl = (JmlVariableDecl)stat;
                 // convert to a declaration or definition
-                IExpr init = decl.init == null ? null : convertExpr(decl.init);
+                IExpr init = null;
+                if (useFcnDef) init = decl.init == null ? null : convertExpr(decl.init);
                 
                 ISymbol sym = F.symbol(decl.name.toString());
                 ICommand c = init == null ?
@@ -1352,6 +1403,14 @@ public class SMTTranslator extends JmlTreeScanner {
             JCStatement stat = iter.next();
             try {
                 if (stat instanceof JmlVariableDecl) {
+                    JmlVariableDecl decl = (JmlVariableDecl)stat;
+                    if (!useFcnDef && decl.init != null) {
+                        IExpr exx = convertExpr(decl.init);
+                        exx = F.fcn(F.symbol("="), F.symbol(decl.name.toString()), exx);
+                        ISymbol newsym = F.symbol(blockid + "__A" + (++count));
+                        commands.add(new C_define_fun(newsym,new LinkedList<IDeclaration>(),boolSort,exx));
+                        stack.push(newsym);
+                    }
                     continue;
                 } else if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
@@ -1910,12 +1969,17 @@ public class SMTTranslator extends JmlTreeScanner {
                 // mod in the Ints theory does not - it produces modulo (always positive) not remainders
                 if (useBV)
                     result = F.fcn(F.symbol("bvsrem"), args);
-                else  // lhs % rhs === lhs >= 0 ? lhs mod rhs : - ( (-lhs) mod (-rhs) )
+                else  // lhs % rhs === lhs >= 0 ? lhs mod rhs : - ( (-lhs) mod rhs )
                     result = F.fcn(F.symbol("ite"), 
-                                    F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
-                                    F.fcn(F.symbol("mod"), args),
-                                    F.fcn(F.symbol("-"), F.fcn(F.symbol("mod"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1))))
-                                    );
+                            F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
+                            F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("div"), args))),
+                            F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("div"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1)))))
+                            );
+//                result = F.fcn(F.symbol("ite"), 
+//                        F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
+//                        F.fcn(F.symbol("mod"), args),
+//                        F.fcn(F.symbol("-"), F.fcn(F.symbol("mod"), F.fcn(F.symbol("-"), args.get(0)), args.get(1)))
+//                        );
                 break;
                 // FIXME - implement bit operations
             case BITAND:

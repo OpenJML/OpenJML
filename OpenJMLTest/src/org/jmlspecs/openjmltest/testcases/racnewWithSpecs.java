@@ -39,7 +39,7 @@ public class racnewWithSpecs extends RacBase {
 
 
     @Test public void testTypeOf() {
-        expectedNotes = 2;
+        expectedNotes = 4;
         helpTCX("tt.TestJava","package tt; import static org.jmlspecs.lang.JML.*; public class TestJava { public static void main(String[] args) { \n" 
                 + "m(new Object()); m(new String()); m(Boolean.TRUE); System.out.println(\"END\"); } \n" 
                 + " //@ requires JML.informal(\"asd\") && (\\lbl CLS JML.erasure(\\typeof(i))) == Object.class; \n" 

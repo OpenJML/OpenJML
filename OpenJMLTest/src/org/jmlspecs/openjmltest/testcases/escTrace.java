@@ -100,7 +100,7 @@ public class escTrace extends EscBase {
     /** This String declaration and assignment */
     @Test
     public void testEnsuresSafeTrace() {
-        main.addOptions("-method=m1");
+        main.addOptions("-method=m1"); // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +"/*@ code_safe_math */ public class TestJava { \n"
                 +"       int k;\n"

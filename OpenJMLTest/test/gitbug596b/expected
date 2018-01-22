@@ -1,0 +1,10 @@
+Proving methods in TestCase
+Starting proof of TestCase.TestCase() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of TestCase.TestCase() with prover !!!! - no warnings
+Starting proof of TestCase.timesMinusOne(int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of TestCase.timesMinusOne(int) with prover !!!! - no warnings
+Completed proving methods in TestCase

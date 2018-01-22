@@ -1,0 +1,20 @@
+Proving methods in C
+Starting proof of C.C(int[]) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of C.C(int[]) with prover !!!! - no warnings
+Starting proof of C.search(int[],int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of C.search(int[],int) with prover !!!! - no warnings
+Starting proof of C.addIndex(int[],int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of C.addIndex(int[],int) with prover !!!! - no warnings
+Starting proof of C.addIndex2(int[],int) with prover !!!!
+test/gitbug591/C.java:88: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method addIndex2
+		indices[next] = idx;
+		       ^
+Completed proof of C.addIndex2(int[],int) with prover !!!! - with warnings
+Completed proving methods in C
+1 warning

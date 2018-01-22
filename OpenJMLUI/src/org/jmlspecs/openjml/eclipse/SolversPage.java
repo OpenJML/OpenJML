@@ -14,6 +14,7 @@ import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.RadioGroupFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -48,6 +49,7 @@ public class SolversPage extends FieldEditorPreferencePage implements
 IWorkbenchPreferencePage {
 
     final static public String execKeyPrefix = Strings.proverPropertyPrefix;
+    final static public String execLocKeyPrefix = "openjml.exec.loc.";
 
 	protected String[] solvers;
 	
@@ -115,8 +117,15 @@ IWorkbenchPreferencePage {
 				listener,
 				getFieldEditorParent())
 		);
+		
+        final String[][] locchoices = new String[][]{{"internal","internal"},{"external","external"}};
 
     	for (String solver: solvers) {
+    		addField(new RadioGroupFieldEditor(execLocKeyPrefix + solver,
+        			solver,
+        			2, // number of columns
+        				locchoices,
+        				getFieldEditorParent()));
 	        addField(new FileFieldEditor(execKeyPrefix + solver, solver + ": ", //$NON-NLS-1$
 	                getFieldEditorParent()));
     	}

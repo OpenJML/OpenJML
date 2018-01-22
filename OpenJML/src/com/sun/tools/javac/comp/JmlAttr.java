@@ -381,6 +381,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JavaFileObject prevv = log.useSource(eee.toplevel.sourcefile);
                 try {
                     super.attribClass(c); // No need to attribute the class itself if it was binary
+                    c.flags_field &= ~UNATTRIBUTED;
                     attribFieldSpecs(eee,c);
                 } finally {
                     log.useSource(prevv);
@@ -1122,7 +1123,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         new JmlTokenKind[] {
         MODEL, PURE, NONNULL, NULLABLE, OPTIONS, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, QUERY, FUNCTION,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
+        PEER, REP, READONLY, INLINE // FIXME - allowing these until the rules are really implemented
 
     };
     
@@ -1140,7 +1141,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         new JmlTokenKind[] {
         MODEL, PURE, NONNULL, NULLABLE, OPTIONS, HELPER, QUERY, SECRET, FUNCTION,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
+        PEER, REP, READONLY, INLINE // FIXME - allowing these until the rules are really implemented
 
     };
     
@@ -5135,7 +5136,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             result = check(that, t, VAL, resultInfo);
         } else {
             t = ((ArrayType)t).getComponentType();
-            result = check(that, t, VAL, resultInfo);
+            result = check(that, t, VAR, resultInfo);
         }
     }
 

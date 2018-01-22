@@ -516,7 +516,7 @@ public class escfiles extends EscBase {
 
     @Test // FIXME - still has problems with imports in JML files and with checks on field initializers
     public void testEscJml() {
-        helpTCF("test/escJml/Test.java","test/escJml","-specspath=test/escJml/specs");
+        helpTCF("test/escJML/Test.java","test/escJML","-specspath=test/escJML/specs");
     }
 
     @Test

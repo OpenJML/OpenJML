@@ -671,31 +671,37 @@ public class esc extends EscBase {
 	public void testNotModified2() {
 		helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
 
-				+ "  public int i;\n" + "  public static /*@ nullable */ TestJava t;\n"
+				+ "  public int i;\n" 
+				+ "  public static /*@ nullable */ TestJava t;\n"
 
-				+ "  //@ requires t != null;\n" + "  //@ modifies \\everything;\n" + "  public void m0() {\n"
+				+ "  //@ requires t != null;\n" 
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m0() {\n"
 				+ "    //@ assert \\not_modified(t.i);\n" // OK
 				+ "  }\n"
 
-				+ "  //@ requires t != null;\n" + "  //@ modifies \\everything;\n" + "  public void m1a() {\n"
-				+ "    t = null;\n" + "    //@ assert \\not_modified(t.i) ? true: true;\n" // BAD
-				+ "  }\n"
-
-				+ "  //@ requires t == null;\n" + "  //@ modifies \\everything;\n" + "  public void m1b() {\n"
-				+ "    t = new TestJava();\n" + "    //@ assert \\not_modified(t.i) ? true: true;\n" // BAD
-				+ "  }\n"
-
-				+ "  //@ modifies \\everything;\n" + "  public void m1c() {\n"
+				+ "  //@ requires t != null;\n" 
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m1a() {\n"
+				+ "    t = null;\n" 
 				+ "    //@ assert \\not_modified(t.i) ? true: true;\n" // BAD
 				+ "  }\n"
 
-				+ "}",
-				"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1a",
-				31,
-				"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1b",
-				31,
-				"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1c",
-				31);
+				+ "  //@ requires t == null;\n" 
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m1b() {\n"
+				+ "    t = new TestJava();\n" 
+				+ "    //@ assert \\not_modified(t.i) ? true: true;\n" // OK
+				+ "  }\n"
+
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m1c() {\n"
+				+ "    //@ assert \\not_modified(t.i) ? true: true;\n" // BAD
+				+ "  }\n"
+
+				+ "}"
+				,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1a",31
+				,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1c",31);
 	}
 
 	// TODO - test not_modified and old nested in each other; remember to test
@@ -4208,6 +4214,7 @@ public class esc extends EscBase {
                         + "  }\n"
                         + "}\n"
                         ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under -strictJML",10
+                        ,"$SPECS/java7/java/nio/ByteBuffer.jml:260: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",37
                         );
     }
 

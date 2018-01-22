@@ -1089,11 +1089,11 @@ public class JmlParser extends JavacParser {
                 }
                 break;
             } else if (jt == INVARIANT || jt == INITIALLY || jt == AXIOM) {
-                list.append(parseInvariantInitiallyAxiom(mods));
+                appendIfNotNull(list,parseInvariantInitiallyAxiom(mods));
             } else if (jt == CONSTRAINT) {
-                list.append(parseConstraint(mods));
+                appendIfNotNull(list,parseConstraint(mods));
             } else if (jt == REPRESENTS) {
-                list.append(parseRepresents(mods));
+                appendIfNotNull(list,parseRepresents(mods));
             } else if (methodClauseTokens.contains(jt)
                     || specCaseTokens.contains(jt) 
                     || jt == SPEC_GROUP_START) {
@@ -1130,12 +1130,13 @@ public class JmlParser extends JavacParser {
                     currentVariableDecl = mostRecentVarDecl;
                 }
             } else if (jt == READABLE || jt == WRITABLE) {
-                list.append(parseReadableWritable(mods, jt));
+                appendIfNotNull(list,parseReadableWritable(mods, jt));
             } else if (jt == MONITORS_FOR) {
-                list.append(parseMonitorsFor(mods));
+                appendIfNotNull(list,parseMonitorsFor(mods));
             } else if (jt == INITIALIZER || jt == STATIC_INITIALIZER) {
                 //@ FIXME - modifiers?
                 JmlTypeClauseInitializer initializer = jmlF.at(pos()).JmlTypeClauseInitializer(jt,mods);
+                //@ FIXME - parse failure?
                 initializer.specs = currentMethodSpecs;
                 currentMethodSpecs = null;
                 list.append(to(initializer));
@@ -1148,6 +1149,10 @@ public class JmlParser extends JavacParser {
             }
         }
         return list.toList();
+    }
+    
+    public void appendIfNotNull(ListBuffer<JCTree> list, JmlTypeClause clause) {
+        if (clause != null) list.append(clause);
     }
 
     /**
@@ -1424,7 +1429,7 @@ public class JmlParser extends JavacParser {
             nextToken();
             e = parseExpression();
         } else {
-            jmlerror(pos(), endPos(), "jml.bad.represents.token");
+            if (id != null) jmlerror(pos(), endPos(), "jml.bad.represents.token");
             e = null;
             skipToSemi();
             suchThat = false;
@@ -1439,6 +1444,7 @@ public class JmlParser extends JavacParser {
         } else {
             nextToken();
         }
+        if (id == null) return null;
         if (mods == null) mods = jmlF.at(pos).Modifiers(0);
         JmlTypeClauseRepresents tcl = to(jmlF.at(pos).JmlTypeClauseRepresents(
                 mods, id, suchThat, e));
@@ -2360,7 +2366,10 @@ public class JmlParser extends JavacParser {
         JCExpression ss = parseStoreRefInit(strictId);
         if (ss instanceof JmlStoreRefKeyword)
             return ss;
-        else {
+        else if (ss == null) {
+            // Error happened and was reported
+            return null;
+        } else {
             JCExpression e = ss;
             while (true) {
                 if (token.kind == DOT) {

@@ -2498,7 +2498,7 @@ public class JmlTree implements IJmlTree {
     }
 
     /** This class represents JML statements within the body of a method
-     * that take a statement, such as set and debug
+     * that take a statement, such as set and debug and end
      */
     public static class JmlStatement extends JmlAbstractStatement {
         public JmlTokenKind token;
@@ -2511,6 +2511,12 @@ public class JmlTree implements IJmlTree {
             this.statement = statement;
         }
     
+        @Override
+        public int getEndPosition(EndPosTable table) {
+            if (token == JmlTokenKind.END || statement == null) return pos; // FIXME - could be better
+            return statement.getEndPosition(table);
+        }
+        
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {

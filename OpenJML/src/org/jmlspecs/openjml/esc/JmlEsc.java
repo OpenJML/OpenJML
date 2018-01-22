@@ -335,7 +335,8 @@ public class JmlEsc extends JmlTreeScanner {
             if (e instanceof SMTTranslator.JmlBVException) {
                 d = log.factory().error(log.currentSource(), methodDecl, "jml.message", "Proof aborted because bit-vector operations are not supported. Use option -escBV=true");
             } else {
-                d = log.factory().error(log.currentSource(), null, "jml.internal","Prover aborted with exception: " + e.getMessage());
+                d = log.factory().error(log.currentSource(), null, "jml.internal","Prover aborted with exception: " + e.toString());
+                e.printStackTrace(System.out);
             }
             log.report(d);
             count(IProverResult.ERROR);
