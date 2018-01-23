@@ -328,6 +328,12 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
+    public void visitJmlInlinedLoop(JmlInlinedLoop that) {
+        result = that;
+    }
+
+
+    @Override
     public void visitJmlStatementShow(JmlStatementShow that) {
         JmlStatementShow r = that;
         ListBuffer<JCExpression> expressions = new ListBuffer<>();

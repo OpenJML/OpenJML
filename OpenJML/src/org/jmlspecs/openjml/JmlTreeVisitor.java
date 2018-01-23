@@ -39,6 +39,7 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlForLoop(JmlForLoop that, P p)                   ;
     R visitJmlGroupName(JmlGroupName that, P p)               ;
     R visitJmlImport(JmlImport that, P p)                     ;
+    R visitJmlInlinedLoop(JmlInlinedLoop that, P p)           ;
     R visitJmlLabeledStatement(JmlLabeledStatement that, P p) ;
     R visitJmlLblExpression(JmlLblExpression that, P p)       ;
     R visitJmlMethodClauseCallable(JmlMethodClauseCallable that, P p) ;

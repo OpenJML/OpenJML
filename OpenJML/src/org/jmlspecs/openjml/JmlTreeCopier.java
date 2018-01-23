@@ -216,6 +216,14 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     @Override
+    public JCTree visitJmlInlinedLoop(JmlInlinedLoop that, Void p) {
+        JmlInlinedLoop copy = new JmlInlinedLoop(that.loopSpecs());
+        copy.pos = that.pos;
+        copy.type = that.type;
+        return copy;
+    }
+
+    @Override
     public JCTree visitJmlLabeledStatement(JmlLabeledStatement that, Void p) {
         return M.at(that.pos).JmlLabeledStatement(
                 that.label,

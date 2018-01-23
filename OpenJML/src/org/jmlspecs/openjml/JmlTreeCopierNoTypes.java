@@ -395,6 +395,14 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
     }
 
     @Override
+    public JCTree visitJmlInlinedLoop(JmlInlinedLoop that, Void p) {
+        JmlInlinedLoop copy = new JmlInlinedLoop(that.loopSpecs());
+        copy.pos = that.pos;
+        copy.type = that.type;
+        return copy;
+    }
+
+    @Override
     public JCTree visitJmlStatementShow(JmlStatementShow that, Void p) {
         ListBuffer<JCExpression> expressions = new ListBuffer<>();
         for (JCExpression e: that.expressions) expressions.add( copy(e,p));

@@ -16,6 +16,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
+import org.jmlspecs.openjml.ext.InlinedLoopStatement;
 
 import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Flags;
@@ -574,6 +575,16 @@ public class JmlParser extends JavacParser {
                     ste.source = log.currentSourceFile();
                     //ste.line = log.currentSource().getLineNumber(pos);
                     st = ste;
+                } else if (jtoken == INLINED_LOOP) {  // FIXME - use extensions
+                    S.setJmlKeyword(false);
+                    nextToken();
+                    JCExpression t = null;
+                    JmlTree.JmlInlinedLoop ste = to(jmlF.at(pos).JmlInlinedLoop(null));
+//                    ste.source = log.currentSourceFile();
+                    st = ste;
+                    if (JmlOption.isOption(context, JmlOption.STRICT)) {
+                        log.warning(ste.pos,"jml.not.strict",jtoken.internedName());
+                    }
                 } else if (jtoken == UNREACHABLE || jtoken == REACHABLE) {
                     S.setJmlKeyword(false);
                     nextToken();

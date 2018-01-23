@@ -12732,6 +12732,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         
         addTraceableComment(that,"for ...");
+        if (mostRecentLoopSpecs != null) {
+            that.loopSpecs = that.loopSpecs.appendList(mostRecentLoopSpecs);
+            mostRecentLoopSpecs = null;
+        }
         
         /*   loop_invariant INV
          *   loop_variant  VAR
@@ -14416,6 +14420,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
+    List<JmlStatementLoop> mostRecentLoopSpecs = null;
+    
+    @Override
+    public void visitJmlInlinedLoop(JmlInlinedLoop that) {
+        if (!that.consumed) {
+            mostRecentLoopSpecs = that.loopSpecs;
+            that.consumed = true;
+        }
+        result = null;
+    }
+
     protected int jmlShowUnique = 0;
 
     @Override
@@ -16260,7 +16275,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         public /*@ nullable */ java.util.List<JmlStatementExpr> visitJmlLabeledStatement(JmlLabeledStatement that, Void p) {
             return null;
         }
-        
+
+        @Override
+        public /*@ nullable */ java.util.List<JmlStatementExpr>  visitJmlInlinedLoop(JmlInlinedLoop that, Void p) {
+            return null;
+        }
+
+
         @Override
         public /*@ nullable */ java.util.List<JmlStatementExpr> visitJmlLblExpression(JmlLblExpression that, Void p) {
             // TODO Auto-generated method stub

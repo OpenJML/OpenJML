@@ -200,6 +200,11 @@ public class JmlFlow extends Flow  {
         }
         
         @Override
+        public void visitJmlInlinedLoop(JmlInlinedLoop that) {
+            // FIXME - do nothing?
+        }
+        
+        @Override
         public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
             // No action to take
         }
@@ -578,6 +583,11 @@ public class JmlFlow extends Flow  {
         }
         
         @Override
+        public void visitJmlInlinedLoop(JmlInlinedLoop that) {
+            // No action to take
+        }
+        
+       @Override
         public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
             // No action to take
         }
@@ -957,6 +967,11 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitJmlWhileLoop(JmlWhileLoop that) {
             visitWhileLoop(that);
+        }
+        
+        @Override
+        public void visitJmlInlinedLoop(JmlInlinedLoop that) {
+            // No action to take
         }
         
         @Override

@@ -54,6 +54,7 @@ import org.jmlspecs.openjml.JmlTree.JmlExpression;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
+import org.jmlspecs.openjml.JmlTree.JmlInlinedLoop;
 import org.jmlspecs.openjml.JmlTree.JmlLabeledStatement;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
@@ -3981,6 +3982,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlImport(JmlImport that) {
         visitImport(that);
         // FIXME - ignoring model
+    }
+    
+    public void visitJmlInlinedLoop(JmlInlinedLoop that) {
+        // FIXME - usees of \count will not bi hitched to the right variable when we get to the inlined loop
+        loopStack.add(0,treeutils.makeIdent(that.pos, "loopIndex_" + (++loopIndexCount), syms.intType));
+        Env<AttrContext> loopEnv =
+                env.dup(env.tree, env.info.dup(env.info.scope.dup()));
+        savedSpecOK = true;
+
+        attribLoopSpecs(that.loopSpecs, loopEnv);
+        // FIXME - should this be before or after the preceding statement
+
+        loopEnv.info.scope.leave();
+        loopStack.remove(0);
+        result = null;
     }
     
     public void visitJmlBlock(JmlBlock that) {

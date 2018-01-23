@@ -100,6 +100,7 @@ public class JmlTree implements IJmlTree {
         JmlForLoop JmlForLoop(JCForLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlGroupName JmlGroupName(JCExpression selection);
         JmlImport JmlImport(JCTree qualid, boolean staticImport, boolean isModel);
+        JmlInlinedLoop JmlInlinedLoop(List<JmlStatementLoop> loopSpecs);
         JmlLabeledStatement JmlLabeledStatement(Name label, ListBuffer<JCStatement> extra, JCStatement block);
         JmlLblExpression JmlLblExpression(int labelPosition, JmlTokenKind token, Name label, JCTree.JCExpression expr);
         JmlMethodClauseGroup JmlMethodClauseGroup(List<JmlSpecificationCase> cases);
@@ -453,6 +454,13 @@ public class JmlTree implements IJmlTree {
             return new JmlSetComprehension(pos,type,varDecl,value);
         }
         
+        /** Creates a JML inlined loop statement */
+        @Override
+        public JmlInlinedLoop JmlInlinedLoop(List<JmlStatementLoop>  loopSpecs) {
+            JmlInlinedLoop p = new JmlInlinedLoop(loopSpecs);
+            return p;
+        }
+
         /** Creates a JML labeled statement */
         @Override
         public JmlLabeledStatement JmlLabeledStatement(Name label, ListBuffer<JCStatement> extra, JCStatement body) {
@@ -1579,6 +1587,62 @@ public class JmlTree implements IJmlTree {
     public static interface IJmlLoop {
         List<JmlStatementLoop> loopSpecs();
         void setLoopSpecs(List<JmlStatementLoop> loopSpecs);
+    }
+    
+    public static class JmlInlinedLoop extends JmlAbstractStatement implements IJmlLoop {
+
+        public boolean consumed;
+        public List<JmlStatementLoop> loopSpecs;
+        
+        public List<JmlStatementLoop> loopSpecs() { return loopSpecs; }
+        public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) { this.loopSpecs = loopSpecs; }
+
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        // FIXME change to protesteced when factory method is implemented
+        public JmlInlinedLoop(List<JmlStatementLoop> loopSpecs) {
+            super();
+            this.pos = 0;
+            this.type = null;
+            this.loopSpecs = loopSpecs;
+            this.consumed = false;
+        }
+    
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlInlinedLoop(this); 
+            } else {
+                System.out.println("A JmlInlinedLoop expects an IJmlVisitor, not a " + v.getClass());
+                //super.accept(v);
+            }
+        }
+    
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlInlinedLoop(this, d);
+            } else {
+                System.out.println("A JmlInlinedLoop expects an JmlTreeVisitor, not a " + v.getClass());
+                return null;
+                //return super.accept(v,d);
+            }
+        }
+        
+        @Override
+        public String toString() {
+            return "inlined_loop;" ; // JmlTree.toString(this);  // FIXME 
+        }
+        @Override
+        public Kind getKind() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+        @Override
+        public Tag getTag() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
     }
 
     /** This class wraps a Java for loop just so it can attach some specs

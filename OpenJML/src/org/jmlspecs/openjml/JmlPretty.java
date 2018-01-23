@@ -20,6 +20,7 @@ import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
+import org.jmlspecs.openjml.JmlTree.JmlInlinedLoop;
 import org.jmlspecs.openjml.JmlTree.JmlLabeledStatement;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
@@ -513,6 +514,24 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             print(" ");
             if (that.token == JmlTokenKind.END) print(": ");
             else that.statement.accept(this);
+            if (useJMLComments) print("*/");
+        } catch (IOException e) { perr(that,e); }
+    }
+
+    /** inlined_loop statement */
+    public void visitJmlInlinedLoop(JmlInlinedLoop that) {
+        try {
+            if (that.loopSpecs != null) {
+                for (JmlStatementLoop s: that.loopSpecs) {
+                    s.accept(this);
+                    println();
+                    align();
+                }
+            }
+            if (useJMLComments) print ("/*@ ");
+            print(JmlTokenKind.INLINED_LOOP.internedName());
+            //print(that.token.internedName());
+            print(";");
             if (useJMLComments) print("*/");
         } catch (IOException e) { perr(that,e); }
     }
