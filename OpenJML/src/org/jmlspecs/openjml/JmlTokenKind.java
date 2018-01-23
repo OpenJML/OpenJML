@@ -37,6 +37,7 @@ public enum JmlTokenKind implements ITokenKind {
     DECREASES("decreases"),
     INLINED_LOOP("inlined_loop"),
     LOOP_INVARIANT("loop_invariant"),
+    LOOP_MODIFIES("loop_modifies"),
     HENCE_BY("hence_by"),
     REFINING("refining"),
     REACHABLE("reachable"),

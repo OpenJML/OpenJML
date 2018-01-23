@@ -12170,7 +12170,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Havoc all items that might be changed in the loop
         if (esc) {
-            loopHelperHavoc(that.body,indexDecl,null,that.body,that.cond);
+            loopHelperHavoc(that.loopSpecs,that.body,indexDecl,null,that.body,that.cond);
         }
         
         loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
@@ -12323,7 +12323,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             // Havoc all items that might be changed in the loop
             if (esc) {
-                loopHelperHavoc(that.body,indexDecl,null,that.body,that.expr);
+                loopHelperHavoc(that.loopSpecs,that.body,indexDecl,null,that.body,that.expr);
             }
 
             // Assume the invariants
@@ -12380,7 +12380,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             // Havoc all items that might be changed in the loop
             if (esc) {
-                loopHelperHavoc(that.body,indexDecl,null,that.expr,that.body);
+                loopHelperHavoc(that.loopSpecs,that.body,indexDecl,null,that.expr,that.body);
             }
 
             // Assume the invariants
@@ -12484,43 +12484,59 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Finds variables assigned in the loop body and adds a havoc statement */
     // OK
     // FIXME - needs checking that we are getting all of needed variables
-    protected void loopHelperHavoc(DiagnosticPosition pos, JCVariableDecl indexDecl, List<? extends JCTree> initlist, List<? extends JCTree> list, JCTree... trees) {
-        ListBuffer<JCExpression> targets = new ListBuffer<JCExpression>();
-        if (list != null) for (JCTree t: list) {
-            TargetFinder.findVars(t,targets);
-        }
-        for (JCTree t: trees) {
-            TargetFinder.findVars(t,targets);
-        }
-        targets.add(treeutils.makeIdent(pos.getPreferredPosition(),indexStack.get(0).sym));
-        // synthesize a modifies list
+    protected void loopHelperHavoc(List<JmlStatementLoop> loopSpecs, DiagnosticPosition pos, JCVariableDecl indexDecl, List<? extends JCTree> initlist, List<? extends JCTree> list, JCTree... trees) {
         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
-        for (JCExpression target: targets.toList()) {
-            JCExpression newtarget = null;
-            if (target instanceof JCArrayAccess) {
-                JCArrayAccess aa = (JCArrayAccess)target;
-                if (aa.index instanceof JCIdent) {
-                    JCIdent id = (JCIdent)aa.index;
-                    if (initlist != null && initlist.length() == 1) {
-                        JCTree t = initlist.head;
-                        if (t instanceof JCVariableDecl) {
-                            JCVariableDecl vd = (JCVariableDecl)t;
-                            if (id.sym == vd.sym) {
-//                               newtarget = aa;
+        boolean useDefaultModifies = true;
+        if (loopSpecs != null) for (JmlStatementLoop spec: loopSpecs) {
+            if (spec instanceof JmlStatementLoopModifies) {
+                for (JCExpression stref: ((JmlStatementLoopModifies)spec).storerefs) {
+                    newlist.add(convertNoSplit(stref));
+                }
+                if (useDefaultModifies) {
+                    JCIdent id = treeutils.makeIdent(pos.getPreferredPosition(),indexStack.get(0).sym);
+                    newlist.add(convertNoSplit(id));
+                }
+                useDefaultModifies = false;
+            }
+        }
+        if (useDefaultModifies) {
+            ListBuffer<JCExpression> targets = new ListBuffer<JCExpression>();
+            if (list != null) for (JCTree t: list) {
+                TargetFinder.findVars(t,targets);
+            }
+            for (JCTree t: trees) {
+                TargetFinder.findVars(t,targets);
+            }
+            targets.add(treeutils.makeIdent(pos.getPreferredPosition(),indexStack.get(0).sym));
+            // synthesize a modifies list
+            for (JCExpression target: targets.toList()) {
+                JCExpression newtarget = null;
+                if (target instanceof JCArrayAccess) {
+                    JCArrayAccess aa = (JCArrayAccess)target;
+                    if (aa.index instanceof JCIdent) {
+                        JCIdent id = (JCIdent)aa.index;
+                        if (initlist != null && initlist.length() == 1) {
+                            JCTree t = initlist.head;
+                            if (t instanceof JCVariableDecl) {
+                                JCVariableDecl vd = (JCVariableDecl)t;
+                                if (id.sym == vd.sym) {
+//                                   newtarget = aa;
+                                }
                             }
                         }
                     }
+                    // FIXME - we convert array accesses to the entire array.
+                    // This is partly because the array index may depend on the loop variable, which is also havoced.
+                    // But the test for whether the index is in range occurs before the invariants are assumed,
+                    // which would put the index back in range.
+                    if (newtarget == null) newtarget = M.at(target.pos).JmlStoreRefArrayRange(aa.indexed,null,null).setType(target.type);
+                } else {
+                    newtarget = target;
                 }
-                // FIXME - we convert array accesses to the entire array.
-                // This is partly because the array index may depend on the loop variable, which is also havoced.
-                // But the test for whether the index is in range occurs before the invariants are assumed,
-                // which would put the index back in range.
-                if (newtarget == null) newtarget = M.at(target.pos).JmlStoreRefArrayRange(aa.indexed,null,null).setType(target.type);
-            } else {
-                newtarget = target;
+                newlist.add(convertJML(newtarget));
             }
-            newlist.add(convertJML(newtarget));
         }
+        
         int p = pos.getPreferredPosition();
         JmlStatementHavoc st = M.at(p).JmlHavocStatement(newlist.toList());
         allocCounter++;
@@ -12547,8 +12563,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Finds variables assigned in the loop body and adds a havoc statement */
     // OK
     // FIXME - needs checking that we are getting all of needed variables
-    protected void loopHelperHavoc(DiagnosticPosition pos, JCVariableDecl indexDecl, /*@ nullable*/ List<? extends JCTree> initlist, JCTree... trees) {
-        loopHelperHavoc(pos, indexDecl, initlist, null, trees);
+    protected void loopHelperHavoc(List<JmlStatementLoop> loopSpecs, DiagnosticPosition pos, JCVariableDecl indexDecl, /*@ nullable*/ List<? extends JCTree> initlist, JCTree... trees) {
+        loopHelperHavoc(loopSpecs, pos, indexDecl, initlist, null, trees);
     }
     
     /** Adds a statement to increment the index variable */
@@ -12562,8 +12578,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Creates initial assert statements for any loop invariants */
     protected void loopHelperInitialInvariant(List<JmlStatementLoop> loopSpecs) {
         if (loopSpecs != null) {
-            for (JmlStatementLoop inv: loopSpecs) {
-                if (inv.token == JmlTokenKind.LOOP_INVARIANT) {
+            for (JmlStatementLoop loop: loopSpecs) {
+                if (loop.token == JmlTokenKind.LOOP_INVARIANT) {
+                    JmlStatementLoopExpr inv = (JmlStatementLoopExpr)loop;
                     try {
                         JCExpression copy = convertCopy(inv.expression); // Might throw NoModelMethod
                         addTraceableComment(inv,copy,inv.toString());
@@ -12613,8 +12630,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Assume the invariants
         if (loopSpecs != null) {
-            for (JmlStatementLoop inv: loopSpecs) {
-                if (inv.token == JmlTokenKind.LOOP_INVARIANT) {
+            for (JmlStatementLoop loop: loopSpecs) {
+                if (loop.token == JmlTokenKind.LOOP_INVARIANT) {
+                    JmlStatementLoopExpr inv = (JmlStatementLoopExpr)loop;
                     try {
                         JCExpression copy = convertCopy(inv.expression);
                         addTraceableComment(inv,copy,inv.toString());
@@ -12635,8 +12653,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         // Compute and remember the variants
         if (loopSpecs != null) {
-            for (JmlStatementLoop inv: loopSpecs) {
-                if (inv.token == JmlTokenKind.DECREASES) {
+            for (JmlStatementLoop loop: loopSpecs) {
+                if (loop.token == JmlTokenKind.DECREASES) {
+                    JmlStatementLoopExpr inv = (JmlStatementLoopExpr)loop;
                     try {
                         JCExpression copy = convertCopy(inv.expression);
                         addTraceableComment(inv,copy,inv.toString(),"Initial value of Loop Decreases expression");
@@ -12664,8 +12683,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Asserts the invariants and that the variants are decreasing */
     protected void loopHelperAssertInvariants(List<JmlStatementLoop> loopSpecs, java.util.List<JCIdent> decreasesIDs) {
         if (loopSpecs != null) {
-            for (JmlStatementLoop inv: loopSpecs) {
-                if (inv.token == JmlTokenKind.LOOP_INVARIANT) {
+            for (JmlStatementLoop loop: loopSpecs) {
+                if (loop.token == JmlTokenKind.LOOP_INVARIANT) {
+                    JmlStatementLoopExpr inv = (JmlStatementLoopExpr)loop;
                     try {
                         JCExpression copy = convertCopy(inv.expression);
                         addTraceableComment(inv,copy,inv.toString());
@@ -12678,8 +12698,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
 
             Iterator<JCIdent> iter = decreasesIDs.iterator();
-            for (JmlStatementLoop inv: loopSpecs) {
-                if (inv.token == JmlTokenKind.DECREASES) {
+            for (JmlStatementLoop loop: loopSpecs) {
+                if (loop.token == JmlTokenKind.DECREASES) {
+                    JmlStatementLoopExpr inv = (JmlStatementLoopExpr)loop;
                     try {
                         JCExpression copy = convertCopy(inv.expression);
                         addTraceableComment(inv,copy,inv.toString());
@@ -12792,7 +12813,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Havoc all items that might be changed in the loop
         if (esc) {
-            loopHelperHavoc(that.body,indexDecl,that.init,that.step,that.body,that.cond);
+            loopHelperHavoc(that.loopSpecs,that.body,indexDecl,that.init,that.step,that.body,that.cond);
             changeState();  // FIXME _ but only if something is havoced? and it is not a local variable?
         }
         
@@ -14577,10 +14598,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     // OK
     @Override
-    public void visitJmlStatementLoop(JmlStatementLoop that) {
+    public void visitJmlStatementLoopExpr(JmlStatementLoopExpr that) {
         boolean saved = assumingPostConditions;
         assumingPostConditions = false;
-        JmlStatementLoop st = M.at(that).JmlStatementLoop(that.token, convertExpr(that.expression));
+        JmlStatementLoopExpr st = M.at(that).JmlStatementLoopExpr(that.token, convertExpr(that.expression));
+        st.setType(that.type);
+        //st.sym = that.sym;
+        result = st;
+        assumingPostConditions = saved;
+    }
+
+    @Override
+    public void visitJmlStatementLoopModifies(JmlStatementLoopModifies that) {
+        boolean saved = assumingPostConditions;
+        assumingPostConditions = false;
+        JmlStatementLoopModifies st = M.at(that).JmlStatementLoopModifies(that.token, (that.storerefs));
         st.setType(that.type);
         //st.sym = that.sym;
         result = st;
@@ -15351,7 +15383,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Havoc all items that might be changed in the loop
         if (esc) {
-            loopHelperHavoc(that.body,indexDecl,null,that.body,that.cond);
+            loopHelperHavoc(that.loopSpecs,that.body,indexDecl,null,that.body,that.cond);
             changeState();  // FIXME - but only if somethings non-local is havoced?
         }
         

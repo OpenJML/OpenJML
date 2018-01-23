@@ -29,20 +29,7 @@ import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
 import com.sun.tools.javac.parser.Tokens.ITokenKind;
 import com.sun.tools.javac.tree.*;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCBlock;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
-import com.sun.tools.javac.tree.JCTree.JCErroneous;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
-import com.sun.tools.javac.tree.JCTree.JCSkip;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Assert;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
@@ -617,12 +604,12 @@ public class JmlParser extends JavacParser {
                     S.setJmlKeyword(false);
                     nextToken();
                     JCExpression t = parseExpression();
-                    JmlStatementLoop ste = to(jmlF.at(pos).JmlStatementLoop(
+                    JmlStatementLoopExpr ste = to(jmlF.at(pos).JmlStatementLoopExpr(
                             jtoken, t));
                     // ste.source = log.currentSourceFile();
                     // ste.line = log.currentSource().getLineNumber(pos);
                     st = ste;
-                } else if (jtoken == JmlTokenKind.HAVOC ) {
+                } else if (jtoken == LOOP_MODIFIES || jtoken == JmlTokenKind.HAVOC ) {
                     S.setJmlKeyword(false);
                     nextToken();
 
@@ -642,7 +629,8 @@ public class JmlParser extends JavacParser {
                         }
                         nextToken();
                     }
-                    st = toP(jmlF.at(pos).JmlHavocStatement(list.toList()));
+                    if (jtoken == JmlTokenKind.HAVOC) st = toP(jmlF.at(pos).JmlHavocStatement(list.toList()));
+                    else st = toP(jmlF.at(pos).JmlStatementLoopModifies(jtoken,list.toList()));
                     S.setJmlKeyword(true); // This comes a token too late.
                     rescan();
                     needSemi = false;

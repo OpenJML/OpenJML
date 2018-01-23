@@ -368,9 +368,17 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
-    public void visitJmlStatementLoop(JmlStatementLoop that) {
-        JmlStatementLoop r = that;
+    public void visitJmlStatementLoopExpr(JmlStatementLoopExpr that) {
+        JmlStatementLoopExpr r = that;
         r.expression = translate(that.expression);
+        result = r;
+        // Not translating: token, line, source - FIXME
+    }
+
+    @Override
+    public void visitJmlStatementLoopModifies(JmlStatementLoopModifies that) {
+        JmlStatementLoopModifies r = that;
+        r.storerefs = translate(that.storerefs);
         result = r;
         // Not translating: token, line, source - FIXME
     }
