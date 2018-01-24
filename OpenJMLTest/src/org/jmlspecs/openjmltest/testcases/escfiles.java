@@ -345,6 +345,13 @@ public class escfiles extends EscBase {
         helpTF("constructorDefaults");
     }
 
+    @Test
+    public void testInlinedLoop() {
+        expectedExit = 0;
+        helpTF("escInlineLoop");
+    }
+
+
     // FIXME - reasoning about getClass
     @Test
     public void testBadCast() {
