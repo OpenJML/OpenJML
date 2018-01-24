@@ -396,8 +396,7 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
 
     @Override
     public JCTree visitJmlInlinedLoop(JmlInlinedLoop that, Void p) {
-        JmlInlinedLoop copy = new JmlInlinedLoop(that.loopSpecs());
-        copy.pos = that.pos;
+        JmlInlinedLoop copy = M.at(that.pos).JmlInlinedLoop(copy(that.loopSpecs));
         copy.type = that.type;
         return copy;
     }

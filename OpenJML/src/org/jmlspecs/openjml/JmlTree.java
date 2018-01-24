@@ -458,7 +458,7 @@ public class JmlTree implements IJmlTree {
         /** Creates a JML inlined loop statement */
         @Override
         public JmlInlinedLoop JmlInlinedLoop(List<JmlStatementLoop>  loopSpecs) {
-            JmlInlinedLoop p = new JmlInlinedLoop(loopSpecs);
+            JmlInlinedLoop p = new JmlInlinedLoop(pos,loopSpecs);
             return p;
         }
 
@@ -1600,15 +1600,17 @@ public class JmlTree implements IJmlTree {
 
         public boolean consumed;
         public List<JmlStatementLoop> loopSpecs;
+        public List<JmlStatementLoop> translatedSpecs;
+        public java.util.List<JCIdent> countIds = new java.util.LinkedList<>();
         
         public List<JmlStatementLoop> loopSpecs() { return loopSpecs; }
         public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) { this.loopSpecs = loopSpecs; }
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         // FIXME change to protesteced when factory method is implemented
-        public JmlInlinedLoop(List<JmlStatementLoop> loopSpecs) {
+        public JmlInlinedLoop(int pos, List<JmlStatementLoop> loopSpecs) {
             super();
-            this.pos = 0;
+            this.pos = pos;
             this.type = null;
             this.loopSpecs = loopSpecs;
             this.consumed = false;
@@ -1619,8 +1621,8 @@ public class JmlTree implements IJmlTree {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlInlinedLoop(this); 
             } else {
-                System.out.println("A JmlInlinedLoop expects an IJmlVisitor, not a " + v.getClass());
-                //super.accept(v);
+                //System.out.println("A JmlInlinedLoop expects an IJmlVisitor, not a " + v.getClass());
+                super.accept(v);
             }
         }
     
@@ -1629,27 +1631,20 @@ public class JmlTree implements IJmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlInlinedLoop(this, d);
             } else {
-                System.out.println("A JmlInlinedLoop expects an JmlTreeVisitor, not a " + v.getClass());
-                return null;
-                //return super.accept(v,d);
+                //System.out.println("A JmlInlinedLoop expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
             }
         }
         
         @Override
         public String toString() {
-            return "inlined_loop;" ; // JmlTree.toString(this);  // FIXME 
-        }
-        @Override
-        public Kind getKind() {
-            // TODO Auto-generated method stub
-            return null;
-        }
-        @Override
-        public Tag getTag() {
-            // TODO Auto-generated method stub
-            return null;
+            return JmlTree.toString(this); 
         }
 
+        @Override
+        public int getEndPosition(EndPosTable table) {
+            return pos;  // FIXME - end position is not set apparently; also really want the end, not he begining
+        }
     }
 
     /** This class wraps a Java for loop just so it can attach some specs
@@ -2632,6 +2627,12 @@ public class JmlTree implements IJmlTree {
                 return super.accept(v,d);
             }
         }
+        
+        @Override
+        public int getEndPosition(EndPosTable table) {
+            return pos;  
+            // FIXME - end position is not set apparently; also really want the end, not he begining
+        }
     }
 
     /** This class represents JML ghost declarations and model local class
@@ -2844,9 +2845,17 @@ public class JmlTree implements IJmlTree {
     /** This is just an abstract class to mark all the kinds of statements that are
      * part of a loop specification.
      */
-    public static abstract class JmlStatementLoop extends JmlAbstractStatement {
+    public static abstract class JmlStatementLoop extends JmlAbstractStatement implements JmlSource {
         public JmlTokenKind token;
-    }
+        public boolean translated;
+ 
+        /** The source file in which the statement sits (and the file to which pos and line correspond) */
+        public JavaFileObject source;
+        
+        @Override
+        public JavaFileObject source() { return source; }
+        
+}
 
     /** This class represents JML statements within the body of a method
      * that apply to a following loop statement (decreases, loop_invariant)
@@ -2914,6 +2923,13 @@ public class JmlTree implements IJmlTree {
                 return super.accept(v,d);
             }
         }
+        
+        @Override
+        public int getEndPosition(EndPosTable table) {
+            return pos;  
+            // FIXME - end position is not set apparently; also really want the end, not he begining
+        }
+
     }
     
     /** This node represents a store-ref expression denoting an array range:

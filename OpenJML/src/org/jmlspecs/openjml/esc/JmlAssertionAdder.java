@@ -1695,7 +1695,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         throw new JmlInternalError(msg);
     }
     
-    /** Issue an internal warning message and throw an exception. */
+    /** Issue an error message. */
+    public void error(DiagnosticPosition pos, String key, Object ...  msg) {
+        log.error(pos, key, msg);
+    }
+    
+    /** Issue a warning message . */
     public void warning(DiagnosticPosition pos, String key, Object ...  msg) {
         log.warning(pos, key, msg);
     }
@@ -8188,7 +8193,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             if (cs.block != null)  { // Note: inlining for RAC, also -- FIXME - need to check this
                                 addStat(comment(cs.block, "Inlining model program ",cs.source()));  // FIXME - source file for inlining?
                                 JavaFileObject prevv = log.useSource(cs.source());
-                                inlineConvertBlock(that,pre,cs.block,"model program");
+                                // We make a copybecause the block being inlined might be inlined more than once
+                                // and it might have modifications to it, such as if there are any inlined_loop statements
+                                inlineConvertBlock(that,pre,convertCopy(cs.block),"model program");
                                 log.useSource(prevv);
                                 checkBlock(temptt);
                             }
@@ -12490,10 +12497,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (loopSpecs != null) for (JmlStatementLoop spec: loopSpecs) {
             if (spec instanceof JmlStatementLoopModifies) {
                 for (JCExpression stref: ((JmlStatementLoopModifies)spec).storerefs) {
-                    newlist.add(convertNoSplit(stref));
+                    newlist.add(spec.translated ? convertCopy(stref): convertNoSplit(stref));
+                }
+                for (JCTree t: initlist) {
+                    // FIXME - might be already present; if the loop_modifies was added by an inlining sepc it certainly would not be
+                    if (t instanceof JmlVariableDecl) {
+                        newlist.add(convertNoSplit( ((JmlVariableDecl)t).ident ));
+                    }
                 }
                 if (useDefaultModifies) {
-                    JCIdent id = treeutils.makeIdent(pos.getPreferredPosition(),indexStack.get(0).sym);
+                    JCIdent id = treeutils.makeIdent(pos.getPreferredPosition(),indexStack.get(0).sym);  // FIXME _ use indexDecl here?
                     newlist.add(convertNoSplit(id));
                 }
                 useDefaultModifies = false;
@@ -12584,7 +12597,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     try {
                         JCExpression copy = convertCopy(inv.expression); // Might throw NoModelMethod
                         addTraceableComment(inv,copy,inv.toString());
-                        JCExpression e = convertJML(copy);
+                        JCExpression e = inv.translated? copy : convertJML(copy);
                         addAssert(inv,Label.LOOP_INVARIANT_PRELOOP, e);
                     } catch (NoModelMethod e) {
                         // continue - skip the assertion
@@ -12636,7 +12649,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     try {
                         JCExpression copy = convertCopy(inv.expression);
                         addTraceableComment(inv,copy,inv.toString());
-                        JCExpression e = convertJML(copy);
+                        JCExpression e = inv.translated ? copy : convertJML(copy);
                         addAssume(inv,Label.LOOP_INVARIANT_ASSUMPTION, e);
                     } catch (NoModelMethod e ) {
                         // continue - no assertions added
@@ -12689,7 +12702,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     try {
                         JCExpression copy = convertCopy(inv.expression);
                         addTraceableComment(inv,copy,inv.toString());
-                        JCExpression e = convertJML(copy);
+                        JCExpression e = inv.translated ? copy : convertJML(copy);
                         addAssert(inv,Label.LOOP_INVARIANT, e);
                     } catch (NoModelMethod e) {
                         // continue
@@ -12704,7 +12717,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     try {
                         JCExpression copy = convertCopy(inv.expression);
                         addTraceableComment(inv,copy,inv.toString());
-                        JCExpression e = convertJML(copy);
+                        JCExpression e = inv.translated ? copy: convertJML(copy);
                         JCIdent id = newTemp(e);
                         JCBinary bin = treeutils.makeBinary(inv.pos, JCTree.Tag.LT,  treeutils.intltSymbol, id, iter.next());
                         addAssert(inv,Label.LOOP_DECREASES, bin);
@@ -12753,10 +12766,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         
         addTraceableComment(that,"for ...");
-        if (mostRecentLoopSpecs != null) {
-            that.loopSpecs = that.loopSpecs.appendList(mostRecentLoopSpecs);
-            mostRecentLoopSpecs = null;
-        }
         
         /*   loop_invariant INV
          *   loop_variant  VAR
@@ -12799,6 +12808,35 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         JCVariableDecl indexDecl = loopHelperDeclareIndex(that);
 
+        if (mostRecentInlinedLoop != null) {
+            for (JmlStatementLoop stat: mostRecentInlinedLoop.translatedSpecs) {
+                if (stat instanceof JmlStatementLoopExpr) {
+//                    if (mostRecentInlinedLoop.countIds.isEmpty()) {
+//                        
+//                    } else {
+                        JmlStatementLoopExpr loopEx = (JmlStatementLoopExpr)stat;
+                        JCExpression e = loopEx.expression;
+//                        JCIdent id = mostRecentInlinedLoop.countIds.get(0);
+//                        JCVariableDecl decl = treeutils.makeVariableDecl((VarSymbol)id.sym, treeutils.makeIdent(stat,indexDecl.sym));
+//                        decl.pos = stat.pos;
+//                        loopEx.expression = M.at(loopEx.pos).LetExpr(decl, e);
+                        JCIdent newid = treeutils.makeIdent(stat,indexDecl.sym);
+                        Map<Object,JCExpression> replacements = new HashMap<>();
+                        replacements.put(JmlTokenKind.BSCOUNT, newid);
+                        replacements.put(JmlTokenKind.BSINDEX, newid);
+                        loopEx.expression = JmlTreeSubstitute.substitute(M, e, replacements);
+//                    }
+                }
+            }
+//            for (JCIdent id: mostRecentInlinedLoop.countIds) {
+//                id.name = indexDecl.name;
+//                id.sym = indexDecl.sym;
+//                id.type = indexDecl.type; // TODO Presumably the type does not change?
+//            }
+            that.loopSpecs = that.loopSpecs.appendList(mostRecentInlinedLoop.translatedSpecs);
+            mostRecentInlinedLoop = null;
+        }
+        
         java.util.List<JCIdent> decreasesIDs = new java.util.LinkedList<JCIdent>();
 
         // Create this early so it is available as a target
@@ -14338,13 +14376,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             case BSINDEX:
             case BSCOUNT:
-                if (indexStack.isEmpty()) {
-                    error(that,that.token.toString() + " expression used outside a loop");
-                } else {
+                if (!indexStack.isEmpty()) {
                     // Get the index of the inner most loop
                     JCVariableDecl vd = indexStack.get(0);
                     JCIdent id = treeutils.makeIdent(that.pos,vd.sym);
                     eresult = id;
+                } else if (inlinedLoop != null) {
+//                    JCIdent id = treeutils.makeIdent(that.pos,"index_???",that.type);
+//                    eresult = id;
+//                    inlinedLoop.countIds.add(id);
+                    eresult = that;
+                } else {
+                    error(that,"jml.misplaced.count",that.token.internedName());
                 }
                 break;
 
@@ -14441,12 +14484,37 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
-    List<JmlStatementLoop> mostRecentLoopSpecs = null;
+    JmlInlinedLoop mostRecentInlinedLoop = null;
+    JmlInlinedLoop inlinedLoop = null;
     
     @Override
     public void visitJmlInlinedLoop(JmlInlinedLoop that) {
+        if (that.translatedSpecs == null) {
+            boolean saved = translatingJML;
+            JmlInlinedLoop savedL = inlinedLoop;
+            boolean savedSplit = splitExpressions;
+            translatingJML = true;
+            inlinedLoop = that;
+            splitExpressions = false;
+            try {
+                ListBuffer<JmlStatementLoop> trspecs = new ListBuffer<>(); 
+                for (JmlStatementLoop spec: that.loopSpecs) {
+                    condition = treeutils.trueLit;
+                    pushBlock();
+                    spec.accept(this);
+                    popBlock(); // FIXME - for now ignore well definedness conditions - which means method calls are not handled - needs to be repaired
+                    trspecs.add((JmlStatementLoop)result);
+                    ((JmlStatementLoop)result).translated = true;
+                }
+                that.translatedSpecs = trspecs.toList();
+            } finally {
+                translatingJML = saved;
+                inlinedLoop = savedL;
+                splitExpressions = savedSplit;
+            }
+        }
         if (!that.consumed) {
-            mostRecentLoopSpecs = that.loopSpecs;
+            mostRecentInlinedLoop = that;
             that.consumed = true;
         }
         result = null;

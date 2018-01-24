@@ -565,7 +565,6 @@ public class JmlParser extends JavacParser {
                 } else if (jtoken == INLINED_LOOP) {  // FIXME - use extensions
                     S.setJmlKeyword(false);
                     nextToken();
-                    JCExpression t = null;
                     JmlTree.JmlInlinedLoop ste = to(jmlF.at(pos).JmlInlinedLoop(null));
 //                    ste.source = log.currentSourceFile();
                     st = ste;
@@ -606,7 +605,7 @@ public class JmlParser extends JavacParser {
                     JCExpression t = parseExpression();
                     JmlStatementLoopExpr ste = to(jmlF.at(pos).JmlStatementLoopExpr(
                             jtoken, t));
-                    // ste.source = log.currentSourceFile();
+                    ste.source = log.currentSourceFile();
                     // ste.line = log.currentSource().getLineNumber(pos);
                     st = ste;
                 } else if (jtoken == LOOP_MODIFIES || jtoken == JmlTokenKind.HAVOC ) {
@@ -629,8 +628,14 @@ public class JmlParser extends JavacParser {
                         }
                         nextToken();
                     }
-                    if (jtoken == JmlTokenKind.HAVOC) st = toP(jmlF.at(pos).JmlHavocStatement(list.toList()));
-                    else st = toP(jmlF.at(pos).JmlStatementLoopModifies(jtoken,list.toList()));
+                    if (jtoken == JmlTokenKind.HAVOC) {
+                        st = toP(jmlF.at(pos).JmlHavocStatement(list.toList()));
+                    } else {
+                        JmlStatementLoop ste = toP(jmlF.at(pos).JmlStatementLoopModifies(jtoken,list.toList()));
+                        ste.source = log.currentSourceFile();
+                        st = ste;
+                    }
+
                     S.setJmlKeyword(true); // This comes a token too late.
                     rescan();
                     needSemi = false;

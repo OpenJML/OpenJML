@@ -70,6 +70,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
         return new JmlTreeSubstitute(context,maker,replacements); // FIXME - can we use the same replacements map with a new Maker object?
     }
     
+    // FIXME - substitute can change node type
     /** Static method to create a copy of the given AST with the given factory */
     public static <T extends JCTree> T substitute(JmlTree.Maker maker, @Nullable T that,
             Map<Object,JCExpression> replacements) {
@@ -96,6 +97,10 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
         // for substitution \result
         if (that.token == JmlTokenKind.BSRESULT) {
             @Nullable JCExpression newexpr = replacements.get(that.token);
+            if (newexpr != null) return copy(newexpr);
+            else return super.visitJmlSingleton(that,  p);
+        } else if (that.token == JmlTokenKind.BSINDEX || that.token == JmlTokenKind.BSCOUNT) {
+            @Nullable JCExpression newexpr = replacements.get(JmlTokenKind.BSCOUNT);
             if (newexpr != null) return copy(newexpr);
             else return super.visitJmlSingleton(that,  p);
         } else {
