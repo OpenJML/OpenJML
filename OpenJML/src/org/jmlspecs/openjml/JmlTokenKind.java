@@ -76,6 +76,7 @@ public enum JmlTokenKind implements ITokenKind {
     QUERY("query",org.jmlspecs.annotation.Query.class),  // FIXME - this is an extension - comment
     SECRET("secret",org.jmlspecs.annotation.Secret.class),  // FIXME - this is an extension - comment
     INLINE("inline",org.jmlspecs.annotation.Inline.class), // FIXME - This is an extension
+    NOINLINE("noinline",org.jmlspecs.annotation.NoInline.class), // FIXME - This is an extension
     LAST("_",null), // This is a fake entry that is the end of the standard+extension modifiers list
     
     // These are class/interface clause types

@@ -1242,6 +1242,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 checkForConflict(mods,SPEC_PUBLIC,SPEC_PROTECTED);
                 checkForRedundantSpecMod(mods);
             }
+            checkForConflict(mods,INLINE,NOINLINE);
             
             if ( (a=utils.findMod(mods,tokenToAnnotationSymbol.get(INLINE))) != null  &&
                     ((javaMethodTree.sym.enclClass().flags() & Flags.FINAL) == 0)  &&
@@ -3943,7 +3944,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void visitJmlInlinedLoop(JmlInlinedLoop that) {
-        // FIXME - usees of \count will not bi hitched to the right variable when we get to the inlined loop
         loopStack.add(0,treeutils.makeIdent(that.pos, "loopIndex_" + (++loopIndexCount), syms.intType));
         Env<AttrContext> loopEnv =
                 env.dup(env.tree, env.info.dup(env.info.scope.dup()));

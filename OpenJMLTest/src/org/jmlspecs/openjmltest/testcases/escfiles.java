@@ -546,6 +546,21 @@ public class escfiles extends EscBase {
         helpTF("escDup");
     }
 
+    @Test
+    public void testSpecificationInterface() {
+        helpTF("specificationInterfaceDemo");
+    }
+
+    @Test
+    public void testImplicitIteration() {
+        helpTF("implicitIteration","-method=testA","-show");
+    }
+
+    @Test
+    public void testImplicitIterationA() {
+        helpTF("implicitIterationA");
+    }
+
     // The following are split into multiple tests to minimize the combinatorial non-determinism in the output
     @Test
     public void testEscSF420() {

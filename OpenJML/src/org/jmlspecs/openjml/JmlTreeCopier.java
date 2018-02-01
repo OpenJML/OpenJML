@@ -733,7 +733,13 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     public JCTree visitArrayAccess(ArrayAccessTree node, Void p) {
-        return super.visitArrayAccess(node,p).setType(((JCTree)node).type);
+        if (node instanceof JmlBBArrayAccess) {
+            JmlBBArrayAccess n = (JmlBBArrayAccess)node;
+            JmlBBArrayAccess nn = new JmlBBArrayAccess(copy(n.arraysId),copy(n.indexed),copy(n.index),n.pos,n.type);
+            return nn;
+        } else {
+            return super.visitArrayAccess(node,p).setType(((JCTree)node).type);
+        }
     }
 
     public JCTree visitLabeledStatement(LabeledStatementTree node, Void p) {
