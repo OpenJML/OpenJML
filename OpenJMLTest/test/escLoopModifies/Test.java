@@ -8,7 +8,7 @@ public class Test {
         for (int i= 5; i<8; i++) {
             a[i] = -4;
         }
-        //@ assert a[3] == 10;
+        //@ assert a[3] == 10; // Not proved since the default loop_modifies is a[*]
     }
     
     //@ requires a != null && a.length > 10;
@@ -20,6 +20,6 @@ public class Test {
         for (int i= 5; i<8; i++) {
             a[i] = -4;
         }
-        //@ assert a[3] == 10;
+        //@ assert a[3] == 10;  // OK
     }
 }
