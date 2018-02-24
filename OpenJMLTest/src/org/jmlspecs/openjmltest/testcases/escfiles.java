@@ -417,6 +417,11 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testEscLoopAssignable() {
+        helpTF("escLoopAssignable");
+    }
+
+    @Test
     public void testEscBodySpecs() {
         helpTF("escBodySpecs");
     }
@@ -553,7 +558,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testImplicitIteration() {
-        helpTF("implicitIteration","-method=testA","-show");
+        helpTF("implicitIteration");
     }
 
     @Test

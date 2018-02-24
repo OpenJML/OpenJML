@@ -1,0 +1,13 @@
+test/gitbug518/Test.java:5: error: variable e is already defined in method m(int)
+    //@ signals (Exception e) e instanceof NullPointerException;
+                 ^
+test/gitbug518/Test.java:9: error: variable e is already defined in method mm(int,int)
+    //@ old boolean e = f == 0;
+                    ^
+test/gitbug518/Test.java:18: error: variable e is already defined in method mmm()
+        //@ signals (Exception e) e instanceof NullPointerException;
+                     ^
+test/gitbug518/Test.java:27: error: variable e is already defined in method mmm(int)
+        //@ old boolean e = f == 0;
+                        ^
+4 errors

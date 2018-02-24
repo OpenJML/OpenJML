@@ -26,6 +26,9 @@ public class ImplicitIterationDemo {
      //@ assert !noNulls;
    }
    
+   // FIXME - depsite the similarity to test(), this does not verify
+   // FIXME - I suspect something to do with autoboxing/unboxing
+   // FIXME - e.g. the (boolean) casts should not be needed -- see also implicitIterationA
    void testA() {
      Stream<Boolean> s = Stream.<Boolean>of(true,false,true);
      //@ assert (\forall int j; 0<=j && j<s.count(); s.values[j] != null);
@@ -37,7 +40,7 @@ public class ImplicitIterationDemo {
      //@ loop_modifies allTrue;
      //@ inlined_loop;
      s.forEachOrdered(b->check(b));
-     // @ assert allTrue==(\forall int j; 0<=j && j <s.count(); (boolean)s.values[j]);
-     // @ assert !allTrue;
+     //@ assert allTrue==(\forall int j; 0<=j && j <s.count(); (boolean)s.values[j]);
+     //@ assert !allTrue;
    }
 }
