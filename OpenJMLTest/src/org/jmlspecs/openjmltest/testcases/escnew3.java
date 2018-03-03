@@ -785,6 +785,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testBits() {
+    	main.addOptions("-show","-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m() {\n"
