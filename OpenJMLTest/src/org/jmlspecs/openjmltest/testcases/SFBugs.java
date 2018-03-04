@@ -355,7 +355,7 @@ public class SFBugs extends EscBase {
     }
 
     @Test public void gitbug543() {
-        helpTCG();
+        helpTCG();  // FIXME - problems with quantification over arrays
     }
 
     @Test public void gitbug545() {
