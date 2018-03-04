@@ -804,7 +804,7 @@ public class compiler {
                   "-extensions=X", // Ignored when strict
                   "test/testNoErrors/A.jml"
                 },0,0
-                ,"$SPECS/java7/java/nio/ByteBuffer.jml:260: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML\n"
+                ,"$SPECS/specs/java/nio/ByteBuffer.jml:260: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML\n"
                 +"\t    //@ model public static inline pure helper function int asUnsigned(byte b) { return (b >= 0 ? b : b + 256); }\n"
                 +"\t                            ^\n"
                 +"1 warning\n");

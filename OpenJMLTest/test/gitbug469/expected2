@@ -19,21 +19,21 @@ test/gitbug469/Repro.java:36: warning: The prover cannot establish an assertion 
 test/gitbug469/Repro.java:38: warning: The prover cannot establish an assertion (Precondition) in method getSeed2
     URANDOM.read(result, read, length-read);
                 ^
-$SPECS/java7/java/io/FileInputStream.jml:73: warning: Associated declaration
+$SPECS/specs/java/io/FileInputStream.jml:73: warning: Associated declaration
     public int read(byte[] bytes, int off, int len) throws IOException;
                ^
-$SPECS/java5/java/io/InputStream.jml:141: warning: Precondition conjunct is false: isOpen
+$SPECS/specs/java/io/InputStream.jml:141: warning: Precondition conjunct is false: isOpen
       @   requires isOpen && availableBytes == 0;
                    ^
-$SPECS/java5/java/io/InputStream.jml:147: warning: Precondition conjunct is false: availableBytes > 0
+$SPECS/specs/java/io/InputStream.jml:147: warning: Precondition conjunct is false: availableBytes > 0
       @   requires availableBytes > 0;
                                   ^
-$SPECS/java5/java/io/InputStream.jml:165: warning: Precondition conjunct is false: (len > 0 && !isOpen) || b == null || off < 0 || len < 0 || off + len > b.length
+$SPECS/specs/java/io/InputStream.jml:165: warning: Precondition conjunct is false: (len > 0 && !isOpen) || b == null || off < 0 || len < 0 || off + len > b.length
                               len < 0 || off+len > b.length;
                                       ^
 Completed proof of Repro.Bar.getSeed2(int) with prover !!!! - with warnings
 Completed proving methods in Repro.Bar
 Completed proving methods in Repro
-Note: /Users/davidcok/cok/projects/OpenJMLB/Specs/java8/java/util/Random.jml uses internal proprietary API that may be removed in a future release.
+Note: /Users/davidcok/cok/projects/OpenJMLB/Specs/specs/java/util/Random.jml uses internal proprietary API that may be removed in a future release.
 Note: Recompile with -Xlint:sunapi for details.
 6 warnings

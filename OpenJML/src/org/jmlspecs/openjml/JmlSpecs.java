@@ -252,7 +252,7 @@ public class JmlSpecs {
     public void initializeSpecsPath() {
         Options options = Options.instance(context);
         String s = JmlOption.value(context,JmlOption.SPECS);
-        if (s == null || s.isEmpty()) s = options.get(Strings.specsPathEnvironmentPropertyName);
+        if (s == null || s.isEmpty()) s = System.getProperty(Strings.specsPathEnvironmentPropertyName);
         if (s == null || s.isEmpty()) s = options.get(Strings.sourcepathOptionName);
         if (s == null || s.isEmpty()) s = options.get(Strings.classpathOptionName);
         if (s == null || s.isEmpty()) s = System.getProperty("java.class.path");
@@ -263,43 +263,21 @@ public class JmlSpecs {
     /** This method looks for the internal specification directories and, if
      * found, appends them to the argument. 
      * @param dirs the list to which to append the internal spec directories
-     * @return true if found, false if not
+     * @return true if any found, false if not
      */
     public boolean appendInternalSpecs(boolean verbose, java.util.List<Dir> dirs) {
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
-        String versionString = System.getProperty("java.version");
-        int version;
-        if (versionString.startsWith("1.6")) version = 6;
-        else if (versionString.startsWith("1.5")) version = 5;
-        else if (versionString.startsWith("1.4")) version = 4;
-        else if (versionString.startsWith("1.7")) version = 7;
-        else if (versionString.startsWith("1.")) version = versionString.charAt(2) - '0';
-        else {
-            noticeWriter.println("Unrecognized version: " + versionString);
-            version = 8; // default, if the version string is in an unexpected format
-        }
-        if (verbose) noticeWriter.println("Java version " + version);
        
-        // Look for a openjml.jar or jmlspecs.jar file on the classpath
-        // If present, use it (and use the first one found).  
+        // Look for jmlspecs.jar file on the classpath
+        // If present, use it.
+        // Otherwise look for openjml.jar
         // This happens in command-line mode.
         
         String sp = System.getProperty("java.class.path");
         String[] ss = sp.split(java.io.File.pathSeparator);
         Dir d;
         
-        String libToUse = prefix+version;
-        
-        for (String s: ss) {
-            if (s.endsWith(Strings.releaseJar)) {
-                d = new JarDir(s,libToUse);
-                if (d.exists()) {
-                    if (verbose) noticeWriter.println("Using internal specs " + d);
-                    dirs.add(d);
-                    return true;
-                }
-            }
-        }
+        // Look for jmlspecs.jar -- specs are at the top-level in this jar file
         for (String s: ss) {
             if (s.endsWith(Strings.specsJar)) {
                 d = new JarDir(s,"");
@@ -311,9 +289,34 @@ public class JmlSpecs {
             }
         }
         
-        // Next see if there is jar file on the classpath that contains
-        // specs16 or similar directories
+        // Next see if there is any jar file on the classpath that contains
+        // specs files at the top-level
         
+        for (String s: ss) {
+            if (s.endsWith(".jar")) {
+                d = new JarDir(s,"");
+                if (d.exists() && d.findFile("java/lang/Object.jml") != null) {
+                    if (verbose) noticeWriter.println("Using internal specs " + d);
+                    dirs.add(d);
+                    return true;
+                }
+            }
+        }
+        
+        // Next look for openjml.jar
+        String libToUse = "specs"; // The top-level subdirectory within openjml.jar
+        for (String s: ss) {
+            if (s.endsWith(Strings.releaseJar)) {
+                d = new JarDir(s,libToUse);
+                if (d.exists()) {
+                    if (verbose) noticeWriter.println("Using internal specs " + d);
+                    dirs.add(d);
+                    return true;
+                }
+            }
+        }
+        
+        // Or an equivalent
         for (String s: ss) {
             if (s.endsWith(".jar")) {
                 d = new JarDir(s,libToUse);
@@ -322,14 +325,9 @@ public class JmlSpecs {
                     dirs.add(d);
                     return true;
                 }
-                d = new JarDir(s,prefix + (version-1));
-                if (d.exists()) {
-                    if (verbose) noticeWriter.println("Using internal specs " + d);
-                    dirs.add(d);
-                    return true;
-                }
             }
         }
+        
         
         // FIXME - clean this all up and try to get rid of the dependency on eclipseSpecsProjectLocation
         // (which is used in tests) - be careful though, the UI can be tricky and operates
@@ -361,18 +359,14 @@ public class JmlSpecs {
 //        }
         // These are used in testing - sy should be the trunk directory of the Specs project
         if (sy != null) {
+            String pwd = System.getProperty("user.dir");
             
             boolean found = false;
             Dir dd;
-            for (int v = version; v >= 4; --v) {
-                dd = make(sy+"/java"+v);
-                if (dd.exists()) { 
-                    dirs.add(dd);
-                    found = true;
-                } else {
-                    // We found some directories - the others ought to exist
-                    if (found) log.error("jml.internal.specs.dir.not.exist",dd);
-                }
+            dd = make(sy + "/" + libToUse);
+            if (dd.exists()) {
+                dirs.add(dd);
+                found = true;
             }
             if (!found) log.error("jml.internal.specs.dir.not.exist",sy);
             return true;

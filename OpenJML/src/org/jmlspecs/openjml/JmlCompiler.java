@@ -28,6 +28,7 @@ import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
+import com.sun.tools.javac.comp.CompileStates;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
@@ -336,6 +337,14 @@ public class JmlCompiler extends JavaCompiler {
             // We do this, in combination with the check above, to avoid recursive loops
             ((JmlEnter)enter).recordEmptySpecs(csymbol);
             csymbol.flags_field |= UNATTRIBUTED;
+//
+//            Env<AttrContext> myEnv = enter.getEnv(csymbol);
+//            if (myEnv != null) {
+//                CompileState stat = CompileStates.instance(context).get(myEnv);
+//                if (stat.isAfter(CompileState.ATTR)) {
+//                    CompileStates.instance(context).put(myEnv,CompileState.ATTR);
+//                }
+//            }
             
             JmlCompilationUnit speccu = parseSpecs(csymbol);
             if (speccu != null) {
@@ -490,14 +499,22 @@ public class JmlCompiler extends JavaCompiler {
     /** Overridden to remove binary/spec entries from the list of Envs after processing */
     @Override
     protected void flow(Env<AttrContext> env, Queue<Env<AttrContext>> results) {
-        if (env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) unconditionallyStop = true;
+        if (env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
+//            unconditionallyStop = true;
+//            // FIXME - not sure why this is needed for rac but causes esc tests to fail
+//            if (utils.rac) CompileStates.instance(context).put(env,CompileState.FLOW);
+            return;
+        }
         super.flow(env,results);
     }
     
     // FIXME - this design prevents flow from running on spec files - we want actually to stop after the spec files are processed
     @Override
     protected boolean shouldStop(CompileState cs) {
-        if (unconditionallyStop) { unconditionallyStop = false; return true; }
+        if (unconditionallyStop) { 
+            unconditionallyStop = false; 
+            return true; 
+        }
         return super.shouldStop(cs);
     }
 

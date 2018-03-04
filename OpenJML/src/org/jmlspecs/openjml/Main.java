@@ -809,7 +809,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             // So do this determination before we interpret the verboseness option.
             t = options.get(JmlOption.FEASIBILITY.optionName());
             if (t != null) {
-                if (t.startsWith("debug")) utils.jmlverbose = Utils.PROGRESS;
+                if (t.startsWith("debug") && utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
                 int k = t.indexOf(":");
                 if (k > 0) { 
                     try {
@@ -829,9 +829,14 @@ public class Main extends com.sun.tools.javac.main.Main {
                 utils.jmlverbose = Integer.parseInt(levelstring);
             } catch (NumberFormatException e) {
                 Log.instance(context).warning("jml.message","The value of the " + n + " option or the " + Strings.optionPropertyPrefix + n.substring(1) + " property should be the string representation of an integer: \"" + levelstring + "\"");
+                options.put(n, "1");
             }
         }
-        
+        if (options.get("-verbose") != null) {
+            // If the Java -verbose option is set, we set -jmlverbose as well
+            utils.jmlverbose = Utils.JMLVERBOSE;
+        }
+
         if (utils.jmlverbose >= Utils.PROGRESS) {
             // We check for an existing delegate, because if someone is calling
             // OpenJML programmatically, they may have set one up already.
@@ -1290,6 +1295,15 @@ public class Main extends com.sun.tools.javac.main.Main {
                     // Just skip
                 }
             }
+        }
+        
+        if (jmlruntimePath == null) {
+        	// This is for the case of running the GUI in the development environment
+        	String srt = System.getProperty(Strings.eclipseSpecsProjectLocation);
+        	srt = srt + "/../OpenJML/OpenJML/bin-runtime";
+        	File f = new File(srt);
+        	if (f.exists() && f.isDirectory()) jmlruntimePath = srt;
+        	
         }
 
         if (jmlruntimePath != null) {

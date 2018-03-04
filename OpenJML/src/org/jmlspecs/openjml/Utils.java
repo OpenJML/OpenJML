@@ -292,19 +292,24 @@ public class Utils {
         String sp = System.getProperty("java.class.path");
         String[] ss = sp.split(java.io.File.pathSeparator);
         boolean verbose = jmlverbose >= Utils.JMLVERBOSE;
+        
+        // Find the item on the classpath that contains the OpenJML classes.
+        // The install location should be the parent of the .jar file.
         // This should work for a command-line installation
         for (String s: ss) {
-            if (s.endsWith(Strings.releaseJar)) {
-                s = s.substring(0,s.length() - Strings.releaseJar.length());
-                if (s.isEmpty()) s = "." + java.io.File.separator;
+            if (s.endsWith(".jar") && JmlSpecs.instance(context).new JarDir(s,"org/jmlspecs/openjml").exists()) {
+                s = new File(s).getParent();
+                if (s == null) s = "";
+                if (s.isEmpty()) s = ".";
                 File d = new java.io.File(s);
                 if (d.exists() && d.isDirectory()) {
                     if (verbose) log().getWriter(WriterKind.NOTICE).println("Installation location " + d);
-                    return s;
+                    return d.getAbsolutePath();
                 }
             }
         }
-        // This should work for running in the aeclipse developmente environment
+        
+        // This should work for running in the eclipse development environment
         for (String s: ss) {
             if (s.endsWith("bin-runtime")) {
                 s = s + java.io.File.separator + ".." + java.io.File.separator + ".." + java.io.File.separator + ".."  + java.io.File.separator + "Solvers" + java.io.File.separator;
@@ -548,8 +553,8 @@ public class Utils {
         //          Options.instance(context).get("-verbose") != null;
 
     	if (context == null) context = new Context();
-        boolean verbose = context != null && Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE;
-        PrintWriter noticeWriter = context == null ? null : Log.instance(context).getWriter(WriterKind.NOTICE);
+        boolean verbose = Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE;
+        PrintWriter noticeWriter = Log.instance(context).getWriter(WriterKind.NOTICE);
         Properties properties = new Properties();
         
         // Initialize with builtin defaults

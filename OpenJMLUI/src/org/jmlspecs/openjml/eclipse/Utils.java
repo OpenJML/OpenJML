@@ -145,16 +145,16 @@ public class Utils {
 		StringBuilder ss = new StringBuilder();
 		try {
 			boolean somethingPresent = false;
-			String versionString = System.getProperty("java.version"); //$NON-NLS-1$
-			int version = 7; // the current default
-			if (versionString.startsWith("1.") && versionString.length() > 3 //$NON-NLS-1$
-					&& (version = (versionString.charAt(2) - '0')) >= 4 && version <= 9) {
-				// found OK version number
-			} else {
-				Log.log("Unrecognized version: " + versionString); //$NON-NLS-1$
-				version = 7; // default, if the version string is in an
-								// unexpected format
-			}
+//			String versionString = System.getProperty("java.version"); //$NON-NLS-1$
+//			int version = 7; // the current default
+//			if (versionString.startsWith("1.") && versionString.length() > 3 //$NON-NLS-1$
+//					&& (version = (versionString.charAt(2) - '0')) >= 4 && version <= 9) {
+//				// found OK version number
+//			} else {
+//				Log.log("Unrecognized version: " + versionString); //$NON-NLS-1$
+//				version = 7; // default, if the version string is in an
+//								// unexpected format
+//			}
 
 			String[] defspecs = new String[8]; // null entries OK
 
@@ -174,23 +174,31 @@ public class Utils {
 				if (root.isFile()) {
 					// Presume it is a jar or zip file
 					JarFile j = new JarFile(root);
-					int i = 0;
-					for (int v = version; v >= 4; --v) {
-						JarEntry f = j.getJarEntry("java" + v); //$NON-NLS-1$
-						if (f != null)
-							defspecs[i++] = loc + "!java" + v; //$NON-NLS-1$
-					}
+					JarEntry f = j.getJarEntry("specs");
+					if (f != null)
+						defspecs[0] = loc + "!specs"; //$NON-NLS-1$
+					
+//					int i = 0;
+//					for (int v = version; v >= 4; --v) {
+//						JarEntry f = j.getJarEntry("java" + v); //$NON-NLS-1$
+//						if (f != null)
+//							defspecs[i++] = loc + "!java" + v; //$NON-NLS-1$
+//					}
 					j.close();
 				} else if (root.isDirectory()) {
 					// Normal file system directory
-					int i = 0;
-					for (int v = version; v >= 4; --v) {
-						File f = new File(root, "java" + v); //$NON-NLS-1$
-						if (f.exists())
-							defspecs[i++] = root.getAbsolutePath().replace(
-									'\\', '/')
-									+ filesep + "java" + v; //$NON-NLS-1$
-					}
+//					int i = 0;
+//					for (int v = version; v >= 4; --v) {
+//						File f = new File(root, "java" + v); //$NON-NLS-1$
+//						if (f.exists())
+//							defspecs[i++] = root.getAbsolutePath().replace(
+//									'\\', '/')
+//									+ filesep + "java" + v; //$NON-NLS-1$
+//					}
+					File f = new File(root, "specs"); //$NON-NLS-1$
+					if (f.exists())
+						defspecs[0] = f.getAbsolutePath().replace(
+								'\\', '/'); //$NON-NLS-1$
 				} else {
 					if (Options.uiverboseness)
 						Log.log("Expected contents (javaN subdirectories) not found in specs bundle at "
@@ -219,21 +227,30 @@ public class Utils {
 									+ root.exists());
 						int i = 0;
 						if (root.isDirectory()) {
-							for (int v = version; v >= 4; --v) {
-								File f = new File(root, ".." + filesep //$NON-NLS-1$
-										+ "specs" + filesep + "java" + v);  //$NON-NLS-1$//$NON-NLS-2$
-								if (f.exists())
-									defspecs[i++] = f.toString();
-							}
+//							for (int v = version; v >= 4; --v) {
+//								File f = new File(root, ".." + filesep //$NON-NLS-1$
+//										+ "specs" + filesep + "java" + v);  //$NON-NLS-1$//$NON-NLS-2$
+//								if (f.exists())
+//									defspecs[i++] = f.toString();
+//							}
+							File f = new File(root, ".." + filesep //$NON-NLS-1$
+									+ "specs");  //$NON-NLS-1$//$NON-NLS-2$
+							if (f.exists())
+								defspecs[i++] = f.toString();
 						} else {
 							JarFile j = new JarFile(root);
-							for (int v = version; v >= 4; --v) {
-								JarEntry f = j.getJarEntry("specs" + filesep
-										+ "java" + v);
-								if (f != null)
-									defspecs[i++] = root + "!specs" + filesep
-											+ "java" + v;
-							}
+//							for (int v = version; v >= 4; --v) {
+//								JarEntry f = j.getJarEntry("specs" + filesep
+//										+ "java" + v);
+//								if (f != null)
+//									defspecs[i++] = root + "!specs" + filesep
+//											+ "java" + v;
+//							}
+							JarEntry f = j.getJarEntry("specs" + filesep
+									+ "specs");
+							if (f != null)
+								defspecs[i++] = root + "!specs" + filesep
+										+ "specs";
 							j.close();
 						}
 						if (i > 0)
@@ -249,7 +266,7 @@ public class Utils {
 					ss.append(File.pathSeparator);
 				}
 			if (ss.length() > 0)
-				ss.setLength(ss.length() - File.pathSeparator.length());
+				ss.setLength(ss.length() - File.pathSeparator.length()); // Remove the extraneous last path separator
 		} catch (Exception e) {
 			Log.log("Failure finding internal specs: " + e); //$NON-NLS-1$
 		}

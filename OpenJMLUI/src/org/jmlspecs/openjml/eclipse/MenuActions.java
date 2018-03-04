@@ -412,7 +412,7 @@ abstract public class MenuActions extends AbstractHandler {
 				int k = name.lastIndexOf('.');
 				String packName = name.substring(0,k);
 				String cname = name.substring(k+1);
-				String dir = "/Users/davidcok/projects/OpenJML/Specs/java8";
+				String dir = "/Users/davidcok/projects/OpenJML/Specs/specs";
 				String filepath = dir + "/" + name.replace('.', '/') + ".jml";
 				StringBuilder sb = new StringBuilder();
 				sb.append("package " + packName + ";" + Strings.eol + Strings.eol);

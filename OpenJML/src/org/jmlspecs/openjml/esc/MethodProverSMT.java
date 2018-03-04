@@ -197,9 +197,11 @@ public class MethodProverSMT {
             if (proverToUse.equals("z3_4_6")) ex = "z3-4.6.0";
             
             if (loc != null && os != null && ex != null) {
-                exec = loc + "Solvers-" + os + java.io.File.separator + ex;
-                if (!new java.io.File(exec).exists()) log.warning("jml.message","DOES NOT EXIST " + exec);
-                if (!new java.io.File(exec).exists()) exec = null;
+                exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + ex;
+                if (!new java.io.File(exec).exists()) {
+                    log.warning("jml.message","Implicit executable does not exist " + exec);
+                    exec =  null;
+                }
             }
         }
         return exec;

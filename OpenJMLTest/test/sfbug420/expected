@@ -16,5 +16,5 @@ Feasibility check #2 - at program exit : OK
 Completed proof of stack.StackImpl.remove() with prover !!!! - no warnings
 Skipping proof of stack.StackImpl.main(java.lang.String[]) (excluded by -method)
 Completed proving methods in stack.StackImpl
-Note: $SPECS/java8/java/util/Random.jml uses internal proprietary API that may be removed in a future release.
+Note: $SPECS/specs/java/util/Random.jml uses internal proprietary API that may be removed in a future release.
 Note: Recompile with -Xlint:sunapi for details.

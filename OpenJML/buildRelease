@@ -75,25 +75,12 @@ NAMEZ=openjml-${VERSION}.zip
 	cp -r ${ROOT}/OpenJML/bin-runtime/* temp
 	cp -r ${ANNOTATIONS}/bin/* temp
 	cp jSMTLIB.jar temp
-	mkdir -p temp/specs14 temp/specs15 temp/specs16 temp/specs17 temp/specs18; chmod -R u+rwx,a+rx temp
-	cp -r ${SPECS}/java4/* temp/specs14
-    ( cd temp; /usr/bin/find specs14 -name '.svn' -exec rm -rf {} + )
-	cp -r temp/specs14/* temp/specs15
-	cp -r ${SPECS}/java5/* temp/specs15
-    ( cd temp; /usr/bin/find specs15 -name '.svn' -exec rm -rf {} + )
-    cp -r temp/specs15/* temp/specs16
-    cp -r ${SPECS}/java6/* temp/specs16
-    ( cd temp; /usr/bin/find specs16 -name '.svn' -exec rm -rf {} + )
-    cp -r temp/specs16/* temp/specs17
-    cp -r ${SPECS}/java7/* temp/specs17
-    ( cd temp; /usr/bin/find specs17 -name '.svn' -exec rm -rf {} + )
-    cp -r temp/specs17/* temp/specs18
-    cp -r ${SPECS}/java8/* temp/specs18
-    ( cd temp; /usr/bin/find specs18 -name '.svn' -exec rm -rf {} + )
+	mkdir -p temp/specs; chmod -R u+rwx,a+rx temp
+	cp -r ${SPECS}/specs/* temp/specs
 	echo "   " Creating jmlspecs.jar
 	## The jmlspecs.jar contains the composite Java 1.8 specs files
 	## The openjml.jar file contains the OpenJDK and OpenJML class files, and the specs directories, combined for each Java version
-	(cd temp/specs18; jar -cf ../../${TEMPJAR}/jmlspecs.jar . ) || exit 1
+	(cd temp/specs; jar -cf ../../${TEMPJAR}/jmlspecs.jar . ) || exit 1
 	
 	(cd temp; jar xf ../jSMTLIB.jar ) || exit 1
 	cp -r bin-runtime/* temp
