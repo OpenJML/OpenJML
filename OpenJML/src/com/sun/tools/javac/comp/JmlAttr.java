@@ -1242,7 +1242,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 checkForConflict(mods,SPEC_PUBLIC,SPEC_PROTECTED);
                 checkForRedundantSpecMod(mods);
             }
-            checkForConflict(mods,INLINE,NOINLINE);
             
             if ( (a=utils.findMod(mods,tokenToAnnotationSymbol.get(INLINE))) != null  &&
                     ((javaMethodTree.sym.enclClass().flags() & Flags.FINAL) == 0)  &&
