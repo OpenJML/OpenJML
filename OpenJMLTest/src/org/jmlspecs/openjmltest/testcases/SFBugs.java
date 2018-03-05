@@ -380,6 +380,11 @@ public class SFBugs extends EscBase {
     
 
 
+    @Test public void gitbug518() {
+    	expectedExit = 1;
+        helpTCG("-check");  // Just checking
+    }
+
     @Test public void gitbug528() {
         helpTCG("-strictJML","-check");  // Just checking
     }

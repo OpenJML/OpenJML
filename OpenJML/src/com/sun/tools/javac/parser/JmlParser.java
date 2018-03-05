@@ -16,6 +16,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
+import org.jmlspecs.openjml.ext.InlinedLoopStatement;
 
 import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Flags;
@@ -28,20 +29,7 @@ import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
 import com.sun.tools.javac.parser.Tokens.ITokenKind;
 import com.sun.tools.javac.tree.*;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCBlock;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
-import com.sun.tools.javac.tree.JCTree.JCErroneous;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
-import com.sun.tools.javac.tree.JCTree.JCSkip;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Assert;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
@@ -302,15 +290,17 @@ public class JmlParser extends JavacParser {
                     JCExpression ex = jmlF.at(id.pos).Binary(JCTree.Tag.EQ, ide, id);
                     disj = disj == null ? ex : jmlF.at(ex.pos).Binary(JCTree.Tag.OR,disj,ex);
                 }
-                args.add(F.Literal(TypeTag.BOT,null));
-                JCExpression ex = jmlF.at(s.pos).JmlMethodInvocation(JmlTokenKind.BSDISTINCT,args.toList());
-                JmlTypeClauseExpr axiom = jmlF.at(s.pos).JmlTypeClauseExpr(jmlF.Modifiers(0),JmlTokenKind.AXIOM,ex);
-                cd.defs = cd.defs.append(axiom);
-                JCVariableDecl decl = jmlF.at(cd.pos).VarDef(jmlF.Modifiers(0),n,jmlF.Ident(jmlF.Name("Object")),null);
-                ex = jmlF.JmlQuantifiedExpr(JmlTokenKind.BSFORALL,List.<JCVariableDecl>of(decl), null,
-                        jmlF.JmlBinary(JmlTokenKind.EQUIVALENCE, jmlF.TypeTest(jmlF.Ident(n), jmlF.Ident(cd.getSimpleName())),disj));
-                axiom = jmlF.at(s.pos).JmlTypeClauseExpr(jmlF.Modifiers(Flags.ENUM),JmlTokenKind.AXIOM,ex);
-                cd.defs = cd.defs.append(axiom);
+                if (disj != null) { // Must be at least one value
+                    args.add(F.Literal(TypeTag.BOT,null));
+                    JCExpression ex = jmlF.at(s.pos).JmlMethodInvocation(JmlTokenKind.BSDISTINCT,args.toList());
+                    JmlTypeClauseExpr axiom = jmlF.at(s.pos).JmlTypeClauseExpr(jmlF.Modifiers(0),JmlTokenKind.AXIOM,ex);
+                    cd.defs = cd.defs.append(axiom);
+                    JCVariableDecl decl = jmlF.at(cd.pos).VarDef(jmlF.Modifiers(0),n,jmlF.Ident(jmlF.Name("Object")),null);
+                    ex = jmlF.JmlQuantifiedExpr(JmlTokenKind.BSFORALL,List.<JCVariableDecl>of(decl), null,
+                            jmlF.JmlBinary(JmlTokenKind.EQUIVALENCE, jmlF.TypeTest(jmlF.Ident(n), jmlF.Ident(cd.getSimpleName())),disj));
+                    axiom = jmlF.at(s.pos).JmlTypeClauseExpr(jmlF.Modifiers(Flags.ENUM),JmlTokenKind.AXIOM,ex);
+                    cd.defs = cd.defs.append(axiom);
+                }
             }
             // Can also be a JCErroneous
 //            if (s instanceof JmlClassDecl) {
@@ -574,6 +564,15 @@ public class JmlParser extends JavacParser {
                     ste.source = log.currentSourceFile();
                     //ste.line = log.currentSource().getLineNumber(pos);
                     st = ste;
+                } else if (jtoken == INLINED_LOOP) {  // FIXME - use extensions
+                    S.setJmlKeyword(false);
+                    nextToken();
+                    JmlTree.JmlInlinedLoop ste = to(jmlF.at(pos).JmlInlinedLoop(null));
+//                    ste.source = log.currentSourceFile();
+                    st = ste;
+                    if (JmlOption.isOption(context, JmlOption.STRICT)) {
+                        log.warning(ste.pos,"jml.not.strict",jtoken.internedName());
+                    }
                 } else if (jtoken == UNREACHABLE || jtoken == REACHABLE) {
                     S.setJmlKeyword(false);
                     nextToken();
@@ -606,12 +605,12 @@ public class JmlParser extends JavacParser {
                     S.setJmlKeyword(false);
                     nextToken();
                     JCExpression t = parseExpression();
-                    JmlStatementLoop ste = to(jmlF.at(pos).JmlStatementLoop(
+                    JmlStatementLoopExpr ste = to(jmlF.at(pos).JmlStatementLoopExpr(
                             jtoken, t));
-                    // ste.source = log.currentSourceFile();
+                    ste.source = log.currentSourceFile();
                     // ste.line = log.currentSource().getLineNumber(pos);
                     st = ste;
-                } else if (jtoken == JmlTokenKind.HAVOC ) {
+                } else if (jtoken == LOOP_MODIFIES || jtoken == JmlTokenKind.HAVOC ) {
                     S.setJmlKeyword(false);
                     nextToken();
 
@@ -631,7 +630,14 @@ public class JmlParser extends JavacParser {
                         }
                         nextToken();
                     }
-                    st = toP(jmlF.at(pos).JmlHavocStatement(list.toList()));
+                    if (jtoken == JmlTokenKind.HAVOC) {
+                        st = toP(jmlF.at(pos).JmlHavocStatement(list.toList()));
+                    } else {
+                        JmlStatementLoop ste = toP(jmlF.at(pos).JmlStatementLoopModifies(jtoken,list.toList()));
+                        ste.source = log.currentSourceFile();
+                        st = ste;
+                    }
+
                     S.setJmlKeyword(true); // This comes a token too late.
                     rescan();
                     needSemi = false;

@@ -100,6 +100,7 @@ public class JmlTree implements IJmlTree {
         JmlForLoop JmlForLoop(JCForLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlGroupName JmlGroupName(JCExpression selection);
         JmlImport JmlImport(JCTree qualid, boolean staticImport, boolean isModel);
+        JmlInlinedLoop JmlInlinedLoop(List<JmlStatementLoop> loopSpecs);
         JmlLabeledStatement JmlLabeledStatement(Name label, ListBuffer<JCStatement> extra, JCStatement block);
         JmlLblExpression JmlLblExpression(int labelPosition, JmlTokenKind token, Name label, JCTree.JCExpression expr);
         JmlMethodClauseGroup JmlMethodClauseGroup(List<JmlSpecificationCase> cases);
@@ -123,7 +124,8 @@ public class JmlTree implements IJmlTree {
         JmlStatement JmlStatement(JmlTokenKind t, JCTree.JCExpressionStatement e);
         JmlStatementShow JmlStatementShow(JmlTokenKind t, List<JCExpression> expressions);
         JmlStatementDecls JmlStatementDecls(List<JCTree.JCStatement> list);
-        JmlStatementLoop JmlStatementLoop(JmlTokenKind t, JCTree.JCExpression e);
+        JmlStatementLoopExpr JmlStatementLoopExpr(JmlTokenKind t, JCTree.JCExpression e);
+        JmlStatementLoopModifies JmlStatementLoopModifies(JmlTokenKind t, List<JCTree.JCExpression> e);
         JmlStatementSpec JmlStatementSpec(JmlMethodSpecs specs);
         JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi);
         JmlStoreRefKeyword JmlStoreRefKeyword(JmlTokenKind t);
@@ -453,6 +455,13 @@ public class JmlTree implements IJmlTree {
             return new JmlSetComprehension(pos,type,varDecl,value);
         }
         
+        /** Creates a JML inlined loop statement */
+        @Override
+        public JmlInlinedLoop JmlInlinedLoop(List<JmlStatementLoop>  loopSpecs) {
+            JmlInlinedLoop p = new JmlInlinedLoop(pos,loopSpecs);
+            return p;
+        }
+
         /** Creates a JML labeled statement */
         @Override
         public JmlLabeledStatement JmlLabeledStatement(Name label, ListBuffer<JCStatement> extra, JCStatement body) {
@@ -490,8 +499,14 @@ public class JmlTree implements IJmlTree {
         
         /** Creates a JML loop specification statement (e.g. loop_invariant, decreases, ... )*/
         @Override
-        public JmlStatementLoop JmlStatementLoop(JmlTokenKind t, JCTree.JCExpression e) {
-            return new JmlStatementLoop(pos,t,e);
+        public JmlStatementLoopExpr JmlStatementLoopExpr(JmlTokenKind t, JCTree.JCExpression e) {
+            return new JmlStatementLoopExpr(pos,t,e);
+        }
+
+        /** Creates a JML loop specification statement (e.g. loop_invariant, decreases, ... )*/
+        @Override
+        public JmlStatementLoopModifies JmlStatementLoopModifies(JmlTokenKind t, List<JCTree.JCExpression> e) {
+            return new JmlStatementLoopModifies(pos,t,e);
         }
 
         /** Creates a JML do-while loop node that wraps a Java loop statement and a set of loop specifications */
@@ -1580,6 +1595,57 @@ public class JmlTree implements IJmlTree {
         List<JmlStatementLoop> loopSpecs();
         void setLoopSpecs(List<JmlStatementLoop> loopSpecs);
     }
+    
+    public static class JmlInlinedLoop extends JmlAbstractStatement implements IJmlLoop {
+
+        public boolean consumed;
+        public List<JmlStatementLoop> loopSpecs;
+        public List<JmlStatementLoop> translatedSpecs;
+        public java.util.List<JCIdent> countIds = new java.util.LinkedList<>();
+        
+        public List<JmlStatementLoop> loopSpecs() { return loopSpecs; }
+        public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) { this.loopSpecs = loopSpecs; }
+
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        // FIXME change to protesteced when factory method is implemented
+        public JmlInlinedLoop(int pos, List<JmlStatementLoop> loopSpecs) {
+            super();
+            this.pos = pos;
+            this.type = null;
+            this.loopSpecs = loopSpecs;
+            this.consumed = false;
+        }
+    
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlInlinedLoop(this); 
+            } else {
+                //System.out.println("A JmlInlinedLoop expects an IJmlVisitor, not a " + v.getClass());
+                super.accept(v);
+            }
+        }
+    
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlInlinedLoop(this, d);
+            } else {
+                //System.out.println("A JmlInlinedLoop expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
+            }
+        }
+        
+        @Override
+        public String toString() {
+            return JmlTree.toString(this); 
+        }
+
+        @Override
+        public int getEndPosition(EndPosTable table) {
+            return pos;  // FIXME - end position is not set apparently; also really want the end, not he begining
+        }
+    }
 
     /** This class wraps a Java for loop just so it can attach some specs
      * to it.
@@ -2561,6 +2627,12 @@ public class JmlTree implements IJmlTree {
                 return super.accept(v,d);
             }
         }
+        
+        @Override
+        public int getEndPosition(EndPosTable table) {
+            return pos;  
+            // FIXME - end position is not set apparently; also really want the end, not he begining
+        }
     }
 
     /** This class represents JML ghost declarations and model local class
@@ -2769,16 +2841,30 @@ public class JmlTree implements IJmlTree {
             }
         }
     }
+    
+    /** This is just an abstract class to mark all the kinds of statements that are
+     * part of a loop specification.
+     */
+    public static abstract class JmlStatementLoop extends JmlAbstractStatement implements JmlSource {
+        public JmlTokenKind token;
+        public boolean translated;
+ 
+        /** The source file in which the statement sits (and the file to which pos and line correspond) */
+        public JavaFileObject source;
+        
+        @Override
+        public JavaFileObject source() { return source; }
+        
+}
 
     /** This class represents JML statements within the body of a method
      * that apply to a following loop statement (decreases, loop_invariant)
      */
-    public static class JmlStatementLoop extends JmlAbstractStatement {
-        public JmlTokenKind token;
+    public static class JmlStatementLoopExpr extends JmlStatementLoop {
         public JCTree.JCExpression expression;
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlStatementLoop(int pos, JmlTokenKind token, JCTree.JCExpression expression) {
+        protected JmlStatementLoopExpr(int pos, JmlTokenKind token, JCTree.JCExpression expression) {
             this.pos = pos;
             this.token = token;
             this.expression = expression;
@@ -2787,7 +2873,7 @@ public class JmlTree implements IJmlTree {
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlStatementLoop(this); 
+                ((IJmlVisitor)v).visitJmlStatementLoopExpr(this); 
             } else {
                 //System.out.println("A JmlStatementLoop expects an IJmlVisitor, not a " + v.getClass());
                 super.accept(v);
@@ -2797,12 +2883,53 @@ public class JmlTree implements IJmlTree {
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlStatementLoop(this, d);
+                return ((JmlTreeVisitor<R,D>)v).visitJmlStatementLoopExpr(this, d);
             } else {
                 //System.out.println("A JmlStatementLoop expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);
             }
         }
+    }
+    
+    /** This class represents JML statements within the body of a method
+     * that apply to a following loop statement (decreases, loop_invariant)
+     */
+    public static class JmlStatementLoopModifies extends JmlStatementLoop {
+        public List<JCTree.JCExpression> storerefs;
+    
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        protected JmlStatementLoopModifies(int pos, JmlTokenKind token, List<JCTree.JCExpression> storerefs) {
+            this.pos = pos;
+            this.token = token;
+            this.storerefs = storerefs;
+        }
+    
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlStatementLoopModifies(this); 
+            } else {
+                //System.out.println("A JmlStatementLoop expects an IJmlVisitor, not a " + v.getClass());
+                super.accept(v);
+            }
+        }
+    
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlStatementLoopModifies(this, d);
+            } else {
+                //System.out.println("A JmlStatementLoop expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
+            }
+        }
+        
+        @Override
+        public int getEndPosition(EndPosTable table) {
+            return pos;  
+            // FIXME - end position is not set apparently; also really want the end, not he begining
+        }
+
     }
     
     /** This node represents a store-ref expression denoting an array range:

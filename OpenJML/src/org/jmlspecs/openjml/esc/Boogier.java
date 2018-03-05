@@ -1886,7 +1886,11 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 // Do not need to override these methods
 //  @Override public void visitSkip(JCSkip that) { super.visitSkip(that); }
         
-    public void visitJmlStatementLoop(JmlStatementLoop that) { 
+    public void visitJmlStatementLoopExpr(JmlStatementLoopExpr that) { 
+        shouldNotBeCalled(that); // These are the specs for loops - they are handled in the loop visitors
+    }
+    
+    public void visitJmlStatementLoopModifies(JmlStatementLoopModifies that) { 
         shouldNotBeCalled(that); // These are the specs for loops - they are handled in the loop visitors
     }
     

@@ -7,55 +7,7 @@ package org.jmlspecs.openjml.esc;
 import java.util.*;
 
 import org.jmlspecs.openjml.*;
-import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
-import org.jmlspecs.openjml.JmlTree.JmlBBArrayAssignment;
-import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
-import org.jmlspecs.openjml.JmlTree.JmlBinary;
-import org.jmlspecs.openjml.JmlTree.JmlChoose;
-import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
-import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
-import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
-import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
-import org.jmlspecs.openjml.JmlTree.JmlForLoop;
-import org.jmlspecs.openjml.JmlTree.JmlGroupName;
-import org.jmlspecs.openjml.JmlTree.JmlImport;
-import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignals;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
-import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlModelProgramStatement;
-import org.jmlspecs.openjml.JmlTree.JmlPrimitiveTypeTree;
-import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
-import org.jmlspecs.openjml.JmlTree.JmlSetComprehension;
-import org.jmlspecs.openjml.JmlTree.JmlSingleton;
-import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
-import org.jmlspecs.openjml.JmlTree.JmlStatementDecls;
-import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
-import org.jmlspecs.openjml.JmlTree.JmlStatementLoop;
-import org.jmlspecs.openjml.JmlTree.JmlStatementSpec;
-import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
-import org.jmlspecs.openjml.JmlTree.JmlStoreRefKeyword;
-import org.jmlspecs.openjml.JmlTree.JmlStoreRefListExpression;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConditional;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConstraint;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseIn;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMaps;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
-import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
+import org.jmlspecs.openjml.JmlTree.*;
 import org.smtlib.ICommand;
 import org.smtlib.ICommand.IScript;
 import org.smtlib.IExpr;
@@ -2629,7 +2581,8 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override public void visitJmlSpecificationCase(JmlSpecificationCase that) { shouldNotBeCalled(that); }
     @Override public void visitJmlStatementDecls(JmlStatementDecls that) { shouldNotBeCalled(that); }
     @Override public void visitJmlStatementExpr(JmlStatementExpr that) { shouldNotBeCalled(that); }
-    @Override public void visitJmlStatementLoop(JmlStatementLoop that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlStatementLoopExpr(JmlStatementLoopExpr that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlStatementLoopModifies(JmlStatementLoopModifies that) { shouldNotBeCalled(that); }
     @Override public void visitJmlStatementSpec(JmlStatementSpec that) { shouldNotBeCalled(that); }
     @Override public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) { shouldNotBeCalled(that); }
     @Override public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) { shouldNotBeCalled(that); }

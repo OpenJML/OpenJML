@@ -889,6 +889,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         
         if (utils.esc) utils.commentKeys.add("ESC"); 
         if (utils.rac) utils.commentKeys.add("RAC"); 
+        if (JmlOption.isOption(context,JmlOption.STRICT.optionName())) utils.commentKeys.add("STRICT"); 
         utils.commentKeys.add("OPENJML"); 
         JmlSpecs.instance(context).initializeSpecsPath();
 

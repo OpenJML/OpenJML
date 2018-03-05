@@ -226,11 +226,7 @@ public class Pretty extends JCTree.Visitor {
     /** Visitor method: print expression tree.
      *  @param prec  The current precedence level.
      */
-    JCTree previous = null;
     public void printExpr(JCTree tree, int prec) throws IOException {
-        if (tree == previous && !(tree instanceof JCLiteral)) {
-            System.out.println();
-        } else previous = tree;
         int prevPrec = this.prec;
         try {
             this.prec = prec;

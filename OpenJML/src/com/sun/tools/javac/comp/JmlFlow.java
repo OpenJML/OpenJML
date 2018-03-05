@@ -200,6 +200,11 @@ public class JmlFlow extends Flow  {
         }
         
         @Override
+        public void visitJmlInlinedLoop(JmlInlinedLoop that) {
+            // FIXME - do nothing?
+        }
+        
+        @Override
         public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
             // No action to take
         }
@@ -301,7 +306,12 @@ public class JmlFlow extends Flow  {
         }
 
         @Override
-        public void visitJmlStatementLoop(JmlStatementLoop that) {
+        public void visitJmlStatementLoopExpr(JmlStatementLoopExpr that) {
+            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStatementLoop");
+        }
+
+        @Override
+        public void visitJmlStatementLoopModifies(JmlStatementLoopModifies that) {
             Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStatementLoop");
         }
 
@@ -578,6 +588,11 @@ public class JmlFlow extends Flow  {
         }
         
         @Override
+        public void visitJmlInlinedLoop(JmlInlinedLoop that) {
+            // No action to take
+        }
+        
+       @Override
         public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
             // No action to take
         }
@@ -686,7 +701,12 @@ public class JmlFlow extends Flow  {
         }
 
         @Override
-        public void visitJmlStatementLoop(JmlStatementLoop that) {
+        public void visitJmlStatementLoopExpr(JmlStatementLoopExpr that) {
+            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStatementLoop");
+        }
+
+        @Override
+        public void visitJmlStatementLoopModifies(JmlStatementLoopModifies that) {
             Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStatementLoop");
         }
 
@@ -960,6 +980,11 @@ public class JmlFlow extends Flow  {
         }
         
         @Override
+        public void visitJmlInlinedLoop(JmlInlinedLoop that) {
+            // No action to take
+        }
+        
+        @Override
         public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
             // No action to take
         }
@@ -1061,7 +1086,12 @@ public class JmlFlow extends Flow  {
         }
 
         @Override
-        public void visitJmlStatementLoop(JmlStatementLoop that) {
+        public void visitJmlStatementLoopExpr(JmlStatementLoopExpr that) {
+            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStatementLoop");
+        }
+
+        @Override
+        public void visitJmlStatementLoopModifies(JmlStatementLoopModifies that) {
             Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStatementLoop");
         }
 

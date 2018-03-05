@@ -4,6 +4,7 @@
  */
 package org.jmlspecs.openjml;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 import org.jmlspecs.openjml.JmlTree.*;
@@ -235,6 +236,10 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(tree.statement);
     }
     
+    /** inlined_loop statement */
+    public void visitJmlInlinedLoop(JmlInlinedLoop that) {
+    }
+
     public void visitJmlStatementShow(JmlStatementShow tree) {
         for (JCExpression e: tree.expressions) scan(e);
     }
@@ -254,8 +259,12 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(tree.storerefs);
     }
 
-    public void visitJmlStatementLoop(JmlStatementLoop tree) {
+    public void visitJmlStatementLoopExpr(JmlStatementLoopExpr tree) {
         scan(tree.expression);
+    }
+    
+    public void visitJmlStatementLoopModifies(JmlStatementLoopModifies tree) {
+        scan(tree.storerefs);
     }
     
     public void visitJmlStatementSpec(JmlStatementSpec tree) {

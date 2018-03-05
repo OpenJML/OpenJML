@@ -345,6 +345,13 @@ public class escfiles extends EscBase {
         helpTF("constructorDefaults");
     }
 
+    @Test
+    public void testInlinedLoop() {
+        expectedExit = 0;
+        helpTF("escInlineLoop");
+    }
+
+
     // FIXME - reasoning about getClass
     @Test
     public void testBadCast() {
@@ -407,6 +414,11 @@ public class escfiles extends EscBase {
     @Test
     public void testEscLoopModifies() {
         helpTF("escLoopModifies");
+    }
+
+    @Test
+    public void testEscLoopAssignable() {
+        helpTF("escLoopAssignable");
     }
 
     @Test
@@ -537,6 +549,21 @@ public class escfiles extends EscBase {
     @Test
     public void testEscJmlDup() {
         helpTF("escDup");
+    }
+
+    @Test
+    public void testSpecificationInterface() {
+        helpTF("specificationInterfaceDemo");
+    }
+
+    @Test
+    public void testImplicitIteration() {
+        helpTF("implicitIteration");
+    }
+
+    @Test
+    public void testImplicitIterationA() {
+        helpTF("implicitIterationA");
     }
 
     // The following are split into multiple tests to minimize the combinatorial non-determinism in the output

@@ -216,6 +216,13 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     @Override
+    public JCTree visitJmlInlinedLoop(JmlInlinedLoop that, Void p) {
+        JmlInlinedLoop copy = M.at(that.pos).JmlInlinedLoop(copy(that.loopSpecs));
+        copy.type = that.type;
+        return copy;
+    }
+
+    @Override
     public JCTree visitJmlLabeledStatement(JmlLabeledStatement that, Void p) {
         return M.at(that.pos).JmlLabeledStatement(
                 that.label,
@@ -458,10 +465,19 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     @Override
-    public JCTree visitJmlStatementLoop(JmlStatementLoop that, Void p) {
-        JmlStatementLoop copy = M.at(that.pos).JmlStatementLoop(
+    public JCTree visitJmlStatementLoopExpr(JmlStatementLoopExpr that, Void p) {
+        JmlStatementLoopExpr copy = M.at(that.pos).JmlStatementLoopExpr(
                 that.token,
                 copy(that.expression,p));
+        copy.type = that.type;
+        return copy;
+    }
+
+    @Override
+    public JCTree visitJmlStatementLoopModifies(JmlStatementLoopModifies that, Void p) {
+        JmlStatementLoopModifies copy = M.at(that.pos).JmlStatementLoopModifies(
+                that.token,
+                copy(that.storerefs,p));
         copy.type = that.type;
         return copy;
     }
@@ -717,7 +733,13 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     public JCTree visitArrayAccess(ArrayAccessTree node, Void p) {
-        return super.visitArrayAccess(node,p).setType(((JCTree)node).type);
+        if (node instanceof JmlBBArrayAccess) {
+            JmlBBArrayAccess n = (JmlBBArrayAccess)node;
+            JmlBBArrayAccess nn = new JmlBBArrayAccess(copy(n.arraysId),copy(n.indexed),copy(n.index),n.pos,n.type);
+            return nn;
+        } else {
+            return super.visitArrayAccess(node,p).setType(((JCTree)node).type);
+        }
     }
 
     public JCTree visitLabeledStatement(LabeledStatementTree node, Void p) {
