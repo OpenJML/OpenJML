@@ -327,7 +327,7 @@ public class SFBugs extends EscBase {
     }
 
     @Test public void gitbug500c() {
-        helpTCG("-rac");  // Just RAC compilation
+        helpTCG("-rac");  // Just RAC compilation - RAC compile crash
     }
 
     @Test public void gitbug502() {
@@ -667,7 +667,7 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug600() {
     	expectedExit = 0;
-        helpTCG("-rac","-racCheckAssumptions","-racPreconditionEntry");
+        helpTCG("-rac","-racCheckAssumptions","-racPreconditionEntry"); // RAC compile crash
     }
     
     @Test

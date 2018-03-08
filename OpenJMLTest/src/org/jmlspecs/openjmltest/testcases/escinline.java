@@ -188,7 +188,7 @@ public class escinline extends EscBase {
                 +"  }\n"
                 +"}\n"
                 ,"/tt/TestJava.java:4: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML", 15
-                ,"$SPECS/java8/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -strictJML",41
+                ,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -strictJML",41
                 ,"/tt/TestJava.java:4: warning: Inlined methods should be final since overriding methods will be ignored: minline", 15
                 ,"$SPECS/specs/java/nio/ByteBuffer.jml:263: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",37
                 );

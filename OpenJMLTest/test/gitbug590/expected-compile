@@ -1,0 +1,4 @@
+test/gitbug590/Sequence.java:7: error: A method called in a represents clause must be a helper method: abstractionFunction()
+//@ private represents theSequence <- abstractionFunction();
+                                                         ^
+1 error

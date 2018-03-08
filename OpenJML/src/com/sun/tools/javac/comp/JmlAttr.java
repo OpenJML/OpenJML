@@ -3646,6 +3646,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             // FIXME - could be a super or this call
         }
+        if (currentClauseType == JmlTokenKind.REPRESENTS) {
+            if (!isHelper(msym)) {
+                log.error(tree.pos,"jml.helper.required.in.represents",msym);
+            }
+        }
         if (msym != null) checkSecretCallable(tree,msym);
         result = savedResult;
     }
