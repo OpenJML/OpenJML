@@ -11,6 +11,14 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -740,6 +748,36 @@ public class Main extends com.sun.tools.javac.main.Main {
                 } else if (file.isFile()) {
                     String ss = file.toString();
                     if (utils.hasJavaSuffix(ss)) files.add(ss); // FIXME - if we allow .jml files on the command line, we have to guard against parsing them twice
+                } else {
+                    try {
+                        String glob = file.toString();
+                        final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(
+                                "glob:"+glob);
+
+                        String location = ""; // System.getProperty("user.dir");
+                        Files.walkFileTree(Paths.get(location), new SimpleFileVisitor<Path>() {
+
+                            @Override
+                            public FileVisitResult visitFile(Path path,
+                                    BasicFileAttributes attrs) throws IOException {
+                                if (pathMatcher.matches(path)) {
+                                    todo.add(path.toFile());
+                                }
+                                return FileVisitResult.CONTINUE;
+                            }
+
+                            @Override
+                            public FileVisitResult visitFileFailed(Path file, IOException exc)
+                                    throws IOException {
+                                return FileVisitResult.CONTINUE;
+                            }
+                        });
+                    } catch (Exception e) {
+                        // FIXME - warn about exception
+                        System.out.println(e);
+                        // continue
+                    }
+
                 }
             }
         } else {

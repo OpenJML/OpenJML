@@ -481,7 +481,7 @@ public class SFBugs extends EscBase {
 
     @Test public void gitbug482() {
     	expectedExit = 0;
-        helpTCF("test/gitbug482/checkers/src/main","test/gitbug482", "-cp", "test/gitbug482/checkers/src/main","-check"); // check only, not esc
+        helpTCF("test/gitbug482/checkers/src/main/java/checkers/*.java","test/gitbug482", "-cp", "test/gitbug482/checkers/src/main","-check"); // check only, not esc
     }
 
     @Test public void gitbug556() {
