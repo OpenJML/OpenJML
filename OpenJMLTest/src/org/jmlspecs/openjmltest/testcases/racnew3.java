@@ -462,10 +462,10 @@ public class racnew3 extends RacBase {
                 
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
-                +"  public static void mmm() {\n"  // Line 26
+                +"  public static void mmm(boolean b) {\n"  // Line 26
                 +"    //@ assert TestJava.flag == 0;\n"
                 +"    try {\n"
-                +"      try (RR rr = new RR()){\n"
+                +"      if (b) try (RR rr = new RR()){\n"
                 +"       flag = 3; \n"
                 +"       //@ assert TestJava.flag == 3;\n"
                 +"       throw new EE3();\n"
@@ -479,7 +479,7 @@ public class racnew3 extends RacBase {
                 +"  }\n"
 
                 +"  public static void main(String ... args) {\n"
-                +"    mmm();\n" 
+                +"    mmm(true);\n" 
                 +"  }\n"
                  
                 +"}"
@@ -516,10 +516,10 @@ public class racnew3 extends RacBase {
                 
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
-                +"  public static void mmm() {\n"  // Line 26
+                +"  public static void mmm(boolean b) {\n"  // Line 26
                 +"    //@ assert TestJava.flag == 0;\n"
                 +"    try {\n"
-                +"      try (RR2 r = new RR2(); RR rr = new RR()){\n"
+                +"      if (b) try (RR2 r = new RR2(); RR rr = new RR()){\n"
                 +"       flag = 3; \n"
                 +"       //@ assert TestJava.flag == 3;\n"
                 +"       throw new EE3();\n"
@@ -533,7 +533,7 @@ public class racnew3 extends RacBase {
                 +"  }\n"
 
                 +"  public static void main(String ... args) {\n"
-                +"    mmm();\n" 
+                +"    mmm(true);\n" 
                 +"  }\n"
                  
                 +"}"

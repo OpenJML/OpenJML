@@ -1446,10 +1446,10 @@ public class escall3 extends EscBase {
                 
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
-                +"  public void mmm() {\n"  // Line 26
+                +"  public void mmm(boolean b) {\n"  // Line 26
                 +"    //@ assert TestJava.flag == 0;\n"
                 +"    try {\n"
-                +"      try (RR rr = new RR()){\n"
+                +"      if (b || !b) try (RR rr = new RR()){\n"
                 +"       flag = 3; \n"
                 +"       //@ assert TestJava.flag == 3;\n"
                 +"       throw new EE3();\n"
@@ -1461,7 +1461,7 @@ public class escall3 extends EscBase {
                 +"    }\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:34: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm()",11
+                ,"/tt/TestJava.java:34: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm(boolean)",11
                 );
     }
     
@@ -1494,10 +1494,10 @@ public class escall3 extends EscBase {
                 
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
-                +"  public void mmm() {\n"  // Line 26
+                +"  public void mmm(boolean b) {\n"  // Line 26
                 +"    //@ assert TestJava.flag == 0;\n"
                 +"    try {\n"
-                +"      try (RR2 r = new RR2(); RR rr = new RR()){\n"
+                +"      if (b || !b) try (RR2 r = new RR2(); RR rr = new RR()){\n"
                 +"       flag = 3; \n"
                 +"       //@ assert TestJava.flag == 3;\n"
                 +"       throw new EE3();\n"
@@ -1508,7 +1508,7 @@ public class escall3 extends EscBase {
                 +"    }\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:34: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm()",11
+                ,"/tt/TestJava.java:34: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm(boolean)",11
                 );
     }
     

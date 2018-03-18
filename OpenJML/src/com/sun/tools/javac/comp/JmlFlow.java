@@ -1,6 +1,7 @@
 /*
  * This file is part of the OpenJML project. 
  * Author: David R. Cok
+ * Reviewed: 2018-03-17
  */
 package com.sun.tools.javac.comp;
 
@@ -8,6 +9,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.IJmlVisitor;
 import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.Utils;
 
@@ -24,6 +26,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 
+// FIXME: The following list needs review; also whether JML constructs contribute to or mitigate such errors
 /**
  * This extends Flow to add flow checks to specifications.  Flow checks for:<BR>
  * uninitialized variables<BR>
@@ -49,10 +52,8 @@ public class JmlFlow extends Flow  {
      */
     public static void preRegister(final Context context) {
         context.put(Flow.flowKey, new Context.Factory<Flow>() {
-            Flow instance = null;
             public Flow make(Context context) { 
-                if (instance == null) instance = new JmlFlow(context);
-                return instance;
+                return new JmlFlow(context);
             }
         });
     }
@@ -70,19 +71,13 @@ public class JmlFlow extends Flow  {
     class JmlAliveAnalyzer extends AliveAnalyzer implements IJmlVisitor {
         
         /** This is a stack of the declarations occurring in JML quantifier expressions,
-         * possible nested (and therefore stacked).
+         * possibly nested (and therefore stacked).
          */
         protected java.util.List<List<JCVariableDecl>> quantDeclStack = new java.util.LinkedList<List<JCVariableDecl>>();
        
       
         //// These are implemented
         
-        /** This is overridden in order to handle JML method call-like features (e.g. \typeof) */
-        @Override
-        public void visitApply(JCMethodInvocation tree) {
-                super.visitApply(tree);
-        }
-
         @Override
         public void visitJmlMethodDecl(JmlMethodDecl that) {
             JavaFileObject prev = Log.instance(context).useSource(that.sourcefile);
@@ -106,7 +101,7 @@ public class JmlFlow extends Flow  {
         
         @Override
         public void visitJmlBlock(JmlBlock that) {
-            scan(that.stats);
+            scanStats(that.stats);
         }
         
         @Override
@@ -153,7 +148,7 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-//            scan(that.extraStatements.toList());
+//            scan(that.extraStatements.toList()); // TODO - check about this
             scan(that.body);
         }
 
@@ -174,14 +169,13 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStatementDecls(JmlStatementDecls that) {
-            for (JCStatement s: that.list) {
-                scan(s);
-            }
+            scan(that.list);
         }
 
         @Override
         public void visitJmlStatementExpr(JmlStatementExpr that) {
-            // nothing to do for this checker
+            scan(that.expression);
+            scan(that.optionalExpression);
         }
 
         @Override
@@ -201,7 +195,7 @@ public class JmlFlow extends Flow  {
         
         @Override
         public void visitJmlInlinedLoop(JmlInlinedLoop that) {
-            // FIXME - do nothing?
+            // No action to take
         }
         
         @Override
@@ -211,7 +205,7 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
-            // FIXME - check array dimensions?
+            // No action - cf. TreeScanner.visitTypeIdent
         }
 
         @Override
@@ -393,8 +387,9 @@ public class JmlFlow extends Flow  {
          */
         @Override
         public void moreClassDef(JCClassDecl tree) {
-            // Do nothing if the class is not attibuted
+            // Do nothing if the class is not attributed
             if (tree.sym == null) return;
+            
             // Do nothing if the class is already instrumented for RAC
             if (Utils.instance(context).isInstrumented(tree.mods.flags)) return;
             
@@ -402,6 +397,8 @@ public class JmlFlow extends Flow  {
             JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(tree.sym);
             if (tspecs == null) return;
 
+            // FIXME - it appears we are doing nothing here - so why this method?
+            
             // All of these are added to the main AST
 //            JavaFileObject prev = Log.instance(context).currentSourceFile();
 //            try {
@@ -432,7 +429,7 @@ public class JmlFlow extends Flow  {
                         jk.getTarget(exit.tree) == tree) {
                     exit.resolveJump();
                     resolved = true;
-                } else if(exit.tree.hasTag(jk.treeTag) &&
+                } else if(exit.tree.hasTag(jk.treeTag) &&  // FIXME - this branch appears to never be taken
                         jk.getTarget(exit.tree) == tree && tree instanceof JmlEnhancedForLoop && // JLS -- adapted to fit JDK8 programming style
                         jk.getTarget(exit.tree) == ((JmlEnhancedForLoop)tree).internalForLoop){
                     exit.resolveJump();
@@ -446,15 +443,15 @@ public class JmlFlow extends Flow  {
             return resolved;
         }
 
-        /** Resolve all continues of this statement. */
-        boolean resolveContinues(JCTree tree) {
-            return resolveJump(tree, new ListBuffer<PendingExit>(), JumpKind.CONTINUE);
-        }
-
-        /** Resolve all breaks of this statement. */
-        boolean resolveBreaks(JCTree tree, ListBuffer<PendingExit> oldPendingExits) {
-            return resolveJump(tree, oldPendingExits, JumpKind.BREAK);
-        }
+//        /** Resolve all continues of this statement. */
+//        boolean resolveContinues(JCTree tree) {
+//            return resolveJump(tree, new ListBuffer<PendingExit>(), JumpKind.CONTINUE);
+//        }
+//
+//        /** Resolve all breaks of this statement. */
+//        boolean resolveBreaks(JCTree tree, ListBuffer<PendingExit> oldPendingExits) {
+//            return resolveJump(tree, oldPendingExits, JumpKind.BREAK);
+//        }
 
         
         
@@ -473,15 +470,20 @@ public class JmlFlow extends Flow  {
         /** This is overridden in order to handle JML method call-like features (e.g. \typeof) */
         @Override
         public void visitApply(JCMethodInvocation tree) {
-            if (tree.meth == null) return;
-            if (tree.meth.type == null) {
+            if (tree.meth == null) {
+                if (((JmlMethodInvocation)tree).token == JmlTokenKind.BSOLD) {
+                    scanExpr(tree.args.get(0)); // A second argument is just a label, and not a regular identifier
+                    // FIXME - where do we check that the label is in scope
+                } else {
+                    scanExprs(tree.args);
+                }
+            } else if (tree.meth.type == null) {
                 // FIXME - need to do this just because we don't have full attribution in trEnhancedForLoop
                 scanExpr(tree.meth);
                 scanExprs(tree.args);
             } else {
                 super.visitApply(tree);
             }
-            // Ignore JML functions (FIXME - should we make this a JmlTreeScanner and do lots more checks?)
         }
 
         @Override
@@ -548,7 +550,7 @@ public class JmlFlow extends Flow  {
         }
 
         public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-//            scan(that.extraStatements.toList());
+//            scan(that.extraStatements.toList()); // TODO _ review this
             scan(that.body);
         }
         
@@ -570,9 +572,7 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStatementDecls(JmlStatementDecls that) {
-            for (JCStatement s: that.list) {
-                scan(s);
-            }
+            scan(that.list);
         }
 
         @Override
@@ -603,19 +603,19 @@ public class JmlFlow extends Flow  {
         
        @Override
         public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
-            // No action to take
+            // No action to take -- FIXME - should visit expressions? amnd elsewhere in this file?
         }
 
         @Override
         public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
-            // FIXME - check array dimensions?
+            // FIXME - check array dimensions? and elsewhere in this file?
         }
 
         @Override
         public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
             quantDeclStack.add(0,that.decls);
             if (that.racexpr != null) {
-                scanExpr(that.racexpr);
+                scanExpr(that.racexpr); // FIXME - do this elsewhere in this file also?
             } else {
                 scanExpr(that.range);
                 scanExpr(that.value);
@@ -635,15 +635,13 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlSetComprehension(JmlSetComprehension that) {
-            // FIXME: Skipping set comprehension
+            // FIXME: Skipping set comprehension - check elsewhere in this file also
         }
 
         @Override
         public void visitJmlStatementSpec(JmlStatementSpec that) {
             // No need to scxan specs
-            if (that.statements != null) {
-                scan(that.statements);
-            }
+            scan(that.statements);
         }
 
         @Override
@@ -794,8 +792,9 @@ public class JmlFlow extends Flow  {
          */
         @Override
         public void moreClassDef(JCClassDecl tree) {
-            // Do nothing if the class is not attibuted
+            // Do nothing if the class is not attributed
             if (tree.sym == null) return;
+            
             // Do nothing if the class is already instrumented for RAC
             if (Utils.instance(context).isInstrumented(tree.mods.flags)) return;
             
@@ -836,7 +835,7 @@ public class JmlFlow extends Flow  {
                         jk.getTarget(exit.tree) == tree) {
                     exit.resolveJump();
                     resolved = true;
-                } else if(exit.tree.hasTag(jk.treeTag) &&
+                } else if(exit.tree.hasTag(jk.treeTag) && // FIXME - this branch appears to never be taken
                         jk.getTarget(exit.tree) == tree && tree instanceof JmlEnhancedForLoop && // JLS -- adapted to fit JDK8 programming style
                         jk.getTarget(exit.tree) == ((JmlEnhancedForLoop)tree).internalForLoop){
                     exit.resolveJump();
@@ -850,16 +849,16 @@ public class JmlFlow extends Flow  {
             return resolved;
         }
 
-        /** Resolve all continues of this statement. */
-        boolean resolveContinues(JCTree tree) {
-            return resolveJump(tree, new ListBuffer<AssignAnalyzer.AssignPendingExit>(), JumpKind.CONTINUE);
-        }
-
-        /** Resolve all breaks of this statement. */
-        boolean resolveBreaks(JCTree tree, ListBuffer<AssignAnalyzer.AssignPendingExit> oldPendingExits) {
-            return resolveJump(tree, oldPendingExits, JumpKind.BREAK);
-        }
-        
+//        /** Resolve all continues of this statement. */
+//        boolean resolveContinues(JCTree tree) {
+//            return resolveJump(tree, new ListBuffer<AssignAnalyzer.AssignPendingExit>(), JumpKind.CONTINUE);
+//        }
+//
+//        /** Resolve all breaks of this statement. */
+//        boolean resolveBreaks(JCTree tree, ListBuffer<AssignAnalyzer.AssignPendingExit> oldPendingExits) {
+//            return resolveJump(tree, oldPendingExits, JumpKind.BREAK);
+//        }
+//        
         
        
 
@@ -948,7 +947,7 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-//            scan(that.extraStatements.toList());
+//            scan(that.extraStatements.toList()); // FIXME - REVIEW THIS
             scan(that.body);
         }
 
@@ -969,14 +968,13 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStatementDecls(JmlStatementDecls that) {
-            for (JCStatement s: that.list) {
-                scan(s);
-            }
+            scan(that.list);
         }
 
         @Override
         public void visitJmlStatementExpr(JmlStatementExpr that) {
-          // nothing to do for this checker
+            scan(that.expression);
+            scan(that.optionalExpression);
         }
 
         @Override
@@ -1001,7 +999,7 @@ public class JmlFlow extends Flow  {
         
         @Override
         public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
-            // No action to take
+            // No action to take -- FIXME - review
         }
 
         @Override
@@ -1011,7 +1009,7 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-            // nothing to do ofr this checker
+            // nothing to do for this checker -- FIXME - review
         }
         
         @Override
@@ -1032,9 +1030,7 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitJmlStatementSpec(JmlStatementSpec that) {
             // No need to scan specs
-            if (that.statements != null) {
-                scan(that.statements);
-            }
+            scan(that.statements);
         }
 
         @Override
@@ -1177,6 +1173,7 @@ public class JmlFlow extends Flow  {
         public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
             Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlModelProgramStatement");
         }
+        
      // Instead of overriding visitClassDef (which does a lot of processing), a hook
         // (moreClassDef) was added into the middle of its implementation; this hook does
         // nothing in the base class, but is overridden below to do additional processing.
@@ -1187,6 +1184,7 @@ public class JmlFlow extends Flow  {
         public void moreClassDef(JCClassDecl tree) {
             // Do nothing if the class is not attibuted
             if (tree.sym == null) return;
+            
             // Do nothing if the class is already instrumented for RAC
             if (Utils.instance(context).isInstrumented(tree.mods.flags)) return;
             
@@ -1225,7 +1223,7 @@ public class JmlFlow extends Flow  {
                         jk.getTarget(exit.tree) == tree) {
                     exit.resolveJump();
                     resolved = true;
-                } else if(exit.tree.hasTag(jk.treeTag) &&
+                } else if(exit.tree.hasTag(jk.treeTag) && // FIXME - this branch is never executed?
                         jk.getTarget(exit.tree) == tree && tree instanceof JmlEnhancedForLoop && // JLS -- adapted to fit JDK8 programming style
                         jk.getTarget(exit.tree) == ((JmlEnhancedForLoop)tree).internalForLoop){
                     exit.resolveJump();
@@ -1239,16 +1237,16 @@ public class JmlFlow extends Flow  {
             return resolved;
         }
 
-        /** Resolve all continues of this statement. */
-        boolean resolveContinues(JCTree tree) {
-            return resolveJump(tree, new ListBuffer<FlowAnalyzer.FlowPendingExit>(), JumpKind.CONTINUE);
-        }
-
-        /** Resolve all breaks of this statement. */
-        boolean resolveBreaks(JCTree tree, ListBuffer<FlowAnalyzer.FlowPendingExit> oldPendingExits) {
-            return resolveJump(tree, oldPendingExits, JumpKind.BREAK);
-        }
-        
+//        /** Resolve all continues of this statement. */
+//        boolean resolveContinues(JCTree tree) {
+//            return resolveJump(tree, new ListBuffer<FlowAnalyzer.FlowPendingExit>(), JumpKind.CONTINUE);
+//        }
+//
+//        /** Resolve all breaks of this statement. */
+//        boolean resolveBreaks(JCTree tree, ListBuffer<FlowAnalyzer.FlowPendingExit> oldPendingExits) {
+//            return resolveJump(tree, oldPendingExits, JumpKind.BREAK);
+//        }
+//        
         
     }
         
@@ -1260,8 +1258,4 @@ public class JmlFlow extends Flow  {
         new JmlFlowAnalyzer().analyzeTree(env, make);
         new CaptureAnalyzer().analyzeTree(env, make);
     }
-
-    
-    
-   
 }

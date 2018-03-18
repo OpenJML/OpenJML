@@ -70,7 +70,21 @@ public class jmltypes extends TCBase {
                 "public class A { \n" +
                 " void m() {\n" +
                 "  Class<?> c = Object.class; Object o = c; \n" +
-                "  //@ ghost \\TYPE t;\n" +
+                "  //@ ghost \\TYPE t = \\real;\n" +
+                "  //@ ghost boolean b = JML.typeargs(\\type(Object)).length == 0;\n" +
+                "  //@ set b = JML.typeargs(\\elemtype(t)).length == 0;\n" +
+                " }\n" +
+                "}\n"
+                );
+    }
+
+    @Test
+    public void testOK2a() {
+        helpTCF("A.java",
+                "public class A { \n" +
+                " void m() {\n" +
+                "  Class<?> c = Object.class; Object o = c; \n" +
+                "  //@ ghost \\TYPE t = \\type(Object);\n" +
                 "  //@ ghost boolean b = JML.typeargs(\\type(Object)).length == 0;\n" +
                 "  //@ set b = JML.typeargs(\\elemtype(t)).length == 0;\n" +
                 " }\n" +

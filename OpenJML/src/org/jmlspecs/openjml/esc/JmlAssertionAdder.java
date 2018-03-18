@@ -13949,11 +13949,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         pushBlock(); // A // FIXME - we have not implemented guarding conditions for expressions inside quantifiers
                     }
                     List<JCVariableDecl> dd = convertCopy(that.decls);
+                    JCExpression range = convertNoSplit(that.range);
+                    if (range != null) range = addImplicitConversion(range,syms.booleanType,range);
+                    JCExpression value = convertNoSplit(that.value);
+                    Type targetType = 
+                            that.op == JmlTokenKind.BSFORALL ? syms.booleanType :
+                            that.op == JmlTokenKind.BSEXISTS ? syms.booleanType :
+                            that.op == JmlTokenKind.BSNUMOF ? syms.booleanType :
+                                that.range.type;  // FIXME - not sure about this default
+                    value = addImplicitConversion(value,targetType,value);
                     JmlQuantifiedExpr q = M.at(that).
                             JmlQuantifiedExpr(that.op,
                                     dd, // convertCopy(that.decls),
-                                    convertNoSplit(that.range),
-                                    convertNoSplit(that.value));
+                                    range,
+                                    value);
                     q.setType(that.type);
                     result = eresult = q;
                 } finally {

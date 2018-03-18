@@ -673,7 +673,7 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug601() {
     	expectedExit = 0;
-        helpTCG();
+        helpTCG();  // FIXMNE Unimplemented floating point 
     }
     
     public void gitbug888() {

@@ -236,6 +236,8 @@ public enum JmlTokenKind implements ITokenKind {
     //@ nullable
     public Class<?> annotationType = null;
     
+    public boolean isRedundant;
+    
     /** A human readable form of the token, and how it appears in text
      * @return the canonical, printable form of the token (not the internal toString() form)
      */

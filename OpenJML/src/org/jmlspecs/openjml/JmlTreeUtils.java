@@ -774,6 +774,7 @@ public class JmlTreeUtils {
         //copyEndPosition(tree,rhs);
         return tree;
     }
+    
     public JCBinary makeBinary(int pos, JCTree.Tag optag, Symbol opSymbol, JCExpression lhs, JCExpression rhs) {
         JCBinary tree = factory.at(pos).Binary(optag, lhs, rhs);
         tree.operator = opSymbol;
@@ -781,6 +782,19 @@ public class JmlTreeUtils {
         //copyEndPosition(tree,rhs);
         return tree;
     }
+    
+    public JCExpression makeBinarySimp(DiagnosticPosition pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
+        if (optag == JCTree.Tag.OR) return makeOrSimp(pos.getStartPosition(), lhs, rhs);
+        if (optag == JCTree.Tag.AND) return makeAndSimp(pos.getStartPosition(), lhs, rhs);
+        return makeBinary(pos, optag,  lhs, rhs);
+    }
+
+    public JCExpression makeBinarySimp(int pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
+        if (optag == JCTree.Tag.OR) return makeOrSimp(pos, lhs, rhs);
+        if (optag == JCTree.Tag.AND) return makeAndSimp(pos, lhs, rhs);
+        return makeBinary(pos, optag,  lhs, rhs);
+    }
+
 
     /** Makes an attributed Java binary operator node (with boolean result)
      * @param pos the pseudo source code location of the node

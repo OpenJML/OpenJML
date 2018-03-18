@@ -312,7 +312,7 @@ public class Flow {
      */
     static abstract class BaseAnalyzer<P extends BaseAnalyzer.PendingExit> extends TreeScanner {
 
-        public void moreClassDef(JCClassDecl tree) {} // DRCok- Added an overridable hook
+        public void moreClassDef(JCClassDecl tree) {} // OPENJML - Added an overridable hook
         
         enum JumpKind {
             BREAK(JCTree.Tag.BREAK) {
@@ -369,7 +369,7 @@ public class Flow {
         }
 
         /** Resolve all jumps of this statement. */
-        protected boolean resolveJump(JCTree tree,            // JLS -- Changed visibility from private to protected
+        protected boolean resolveJump(JCTree tree,            // OPENJML -- Changed visibility from private to protected
                         ListBuffer<P> oldPendingExits,
                         JumpKind jk) {
             boolean resolved = false;
@@ -493,7 +493,7 @@ public class Flow {
                     }
                 }
                 
-                moreClassDef(tree); // DRC added
+                moreClassDef(tree); // OPENJML added
             } finally {
                 pendingExits = pendingExitsPrev;
                 alive = alivePrev;
@@ -935,7 +935,7 @@ public class Flow {
                     }
                 }
 
-                moreClassDef(tree); // DRC - added this hook
+                moreClassDef(tree); // OPENJML - added this hook
 
                 thrown = thrownPrev;
             } finally {

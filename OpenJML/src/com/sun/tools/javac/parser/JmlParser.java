@@ -2857,7 +2857,10 @@ public class JmlParser extends JavacParser {
             if (isJmlTypeToken(jt)) {
                 t = to(jmlF.at(p).JmlPrimitiveTypeTree(jt));
                 nextToken();
-                t = bracketsSuffix(bracketsOpt(t));
+                // Could be just a type value
+                if (token.kind == TokenKind.DOT || token.kind == TokenKind.LBRACKET) {
+                    t = bracketsSuffix(bracketsOpt(t));
+                }
                 return t;
             }
             switch (jt) {
@@ -2871,6 +2874,7 @@ public class JmlParser extends JavacParser {
                     if (JmlOption.isOption(context,JmlOption.STRICT)) {
                         log.warning(p,"jml.not.strict",jt.internedName());
                     }
+                    // fall-through
                 case BSRESULT:// FIXME - what can follow this?
                 case BSLOCKSET: // FIXME - what can follow this?
                     t = to(jmlF.at(p).JmlSingleton(jt));

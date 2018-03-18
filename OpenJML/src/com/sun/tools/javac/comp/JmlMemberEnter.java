@@ -1166,12 +1166,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JmlResolve jmlResolve = JmlResolve.instance(context);
         boolean prevSilentErrors = jmlResolve.silentErrors;
         jmlResolve.silentErrors = true;
-        jmlResolve.errorOccurred = false;
+//        jmlResolve.errorOccurred = false;
         try {
             s = jmlResolve.resolveMethod(tree.pos(), localEnv, tree.name, paramTypes.toList(),typaramTypes.toList());
         } finally {
             jmlResolve.silentErrors = prevSilentErrors;
-            if (jmlResolve.errorOccurred) s = null;
+//            if (jmlResolve.errorOccurred) s = null;
         }
 //        Symbol s = JmlResolve.instance(context).findMethod(env,csym.asType(),
 //                tree.name,paramTypes.toList(),typaramTypes.toList(),

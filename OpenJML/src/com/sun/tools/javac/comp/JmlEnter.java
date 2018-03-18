@@ -122,10 +122,8 @@ public class JmlEnter extends Enter {
      */
     public static void preRegister(final Context context) {
         context.put(enterKey, new Context.Factory<Enter>() {
-            Enter instance = null;
             public Enter make(Context context) {
-                return instance != null ? instance 
-                        : (instance = new JmlEnter(context));
+                return new JmlEnter(context);
             }
         });
     }

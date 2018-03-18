@@ -1,3 +1,8 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ * Reviewed: 2018-03-17
+ */
 package com.sun.tools.javac.comp;
 
 import org.jmlspecs.openjml.JmlTree;

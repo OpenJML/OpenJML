@@ -1011,6 +1011,7 @@ public class typechecking extends TCBase {
     
     // Bug: 3388690
     @Test public void testBug6() {
+    	expectedExit = 0;
         helpTCF("Test.java","public class Test {\n"
                 +"private final int my_height; /*@ in height; @*/\n"
   
@@ -1026,6 +1027,8 @@ public class typechecking extends TCBase {
                 +"    my_height = 1;\n"
                 +"  }\n"
                 +"}\n"
+                ,"/Test.java:4: warning: Do not include a datagroup in itself: height",22
+                ,"/Test.java:4: warning: Do not include a datagroup in itself: height",22
         );
         
     }
@@ -1046,9 +1049,9 @@ public class typechecking extends TCBase {
                 +"    my_height = 1;\n"
                 +"  }\n"
                 +"}\n"
-                ,"/Test.java:2: This field participates in a circular datagroup inclusion chain: my_height",19
-                ,"/Test.java:3: This field participates in a circular datagroup inclusion chain: height",24
-                ,"/Test.java:6: This field participates in a circular datagroup inclusion chain: height2",24
+                ,"/Test.java:2: This field participates in a circular datagroup inclusion chain: my_height -> height -> height2 -> height",19
+                ,"/Test.java:3: This field participates in a circular datagroup inclusion chain: height -> height2 -> height",24
+                ,"/Test.java:6: This field participates in a circular datagroup inclusion chain: height2 -> height -> height2",24
         );
         
     }
