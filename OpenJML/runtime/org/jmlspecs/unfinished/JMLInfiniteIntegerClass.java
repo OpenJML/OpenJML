@@ -29,7 +29,7 @@ import java.math.BigInteger;
  * @author Gary T. Leavens
  * @see java.math.BigInteger
  */
-//-@ immutable
+//+OPENJML@ immutable
 public abstract /*@ pure @*/ class JMLInfiniteIntegerClass
     implements JMLInfiniteInteger {
 

@@ -324,8 +324,8 @@ public class Tokens {
         }
 
         /** The token kind */
-        public final TokenKind kind; // DRC - changed to interface to allow extension; also corresponding changes to the use of kind
-        public final ITokenKind ikind; // DRC - changed to interface to allow extension; also corresponding changes to the use of kind
+        public final TokenKind kind; // OPENJML - changed to interface to allow extension; also corresponding changes to the use of kind
+        public final ITokenKind ikind; // OPENJML - changed to interface to allow extension; also corresponding changes to the use of kind
 
         /** The start position of this token */
         public final int pos;
@@ -336,7 +336,7 @@ public class Tokens {
         /** Comment reader associated with this token */
         public final List<Comment> comments;
 
-        Token(TokenKind kind, int pos, int endPos, List<Comment> comments) { // DRC - changed to ITokenKind to allow extension
+        Token(TokenKind kind, int pos, int endPos, List<Comment> comments) { // OPENJML - changed to ITokenKind to allow extension
             this.ikind = kind;
             this.kind = kind;
             this.pos = pos;
@@ -345,7 +345,7 @@ public class Tokens {
             checkKind();
         }
 
-        Token(ITokenKind ikind, int pos, int endPos, List<Comment> comments) { // DRC - changed to ITokenKind to allow extension
+        Token(ITokenKind ikind, int pos, int endPos, List<Comment> comments) { // OPENJML - changed to ITokenKind to allow extension
             this.ikind = ikind;
             this.kind = ikind instanceof TokenKind ? (TokenKind)ikind : TokenKind.CUSTOM;
             this.pos = pos;

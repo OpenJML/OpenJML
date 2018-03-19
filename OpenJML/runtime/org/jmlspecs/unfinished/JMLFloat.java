@@ -30,7 +30,7 @@ package org.jmlspecs.unfinished;
  * @see java.lang.Float
  * @see JMLDouble
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ strictfp class JMLFloat implements JMLComparable {
 
     /** The float that is the abstract value of this object.

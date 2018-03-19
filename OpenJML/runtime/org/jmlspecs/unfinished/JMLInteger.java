@@ -34,7 +34,7 @@ package org.jmlspecs.unfinished;
  * @see JMLChar
  * @see JMLType
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ class JMLInteger implements JMLComparable {
 
     /** The integer value of this object. */

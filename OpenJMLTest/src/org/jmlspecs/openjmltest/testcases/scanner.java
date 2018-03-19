@@ -18,6 +18,7 @@ import com.sun.tools.javac.parser.Scanner;
 import com.sun.tools.javac.parser.ScannerFactory;
 import com.sun.tools.javac.parser.Tokens;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Options;
 
 import static org.junit.Assert.*;
 
@@ -851,15 +852,35 @@ public class scanner extends JmlTestCase {
     }
 
     @Test public void testConditionalKey9() {
+    	Options.instance(context).put("-Xlint:deprecation","true");
         helpScanner("//+@ requires\n  /*+@ requires */",
                 new ITokenKind[]{REQUIRES,EJML,REQUIRES,EJML,EOF},
-                null);
+                null,2);
+        checkMessages("/TEST.java:1: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",3
+        		,"/TEST.java:2: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",5);
     }
 
     @Test public void testConditionalKey10() {
+    	Options.instance(context).put("-Xlint:deprecation","true");
         helpScanner("//-@ requires\n  /*-@ requires */",
                 new ITokenKind[]{EOF},
-                null);
+                null,
+                2);
+        checkMessages("/TEST.java:1: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",3
+        		,"/TEST.java:2: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",5);
+    }
+
+    @Test public void testConditionalKey9d() {
+        helpScanner("//+@ requires\n  /*+@ requires */",
+                new ITokenKind[]{REQUIRES,EJML,REQUIRES,EJML,EOF},
+                null,0);
+    }
+
+    @Test public void testConditionalKey10d() {
+        helpScanner("//-@ requires\n  /*-@ requires */",
+                new ITokenKind[]{EOF},
+                null,
+                0);
     }
 
 

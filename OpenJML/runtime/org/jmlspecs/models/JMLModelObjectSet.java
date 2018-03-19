@@ -35,7 +35,7 @@ package org.jmlspecs.models;
  * @version $Revision: 1.13 $
  * @author Gary T. Leavens
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ class JMLModelObjectSet {
 
     /** This class has no instances.

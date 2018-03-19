@@ -28,7 +28,7 @@ package org.jmlspecs.models;
  * @version $Revision: 1.6 $
  * @author Gary T. Leavens
  */
-//-@ immutable
+//+OPENJML@ immutable
 //@ pure
 public class JMLMapException extends IllegalArgumentException {
 

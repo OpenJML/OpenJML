@@ -61,7 +61,7 @@ import org.jmlspecs.lang.JMLIterator;
  * @see JMLObjectToValueRelation
  * @see JMLValueToValueRelation
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ class JMLObjectToEqualsRelation
     implements JMLCollection {
 

@@ -29,7 +29,7 @@ import org.jmlspecs.annotation.*;
  * @see java.lang.Double
  * @see JMLDouble
  */
-//-@ immutable
+//+OPENJML@ immutable
 public @Pure strictfp class JMLDouble implements JMLComparable<JMLDouble> {
 
     private static final long serialVersionUID = 1L;

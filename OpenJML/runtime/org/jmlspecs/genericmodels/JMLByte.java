@@ -34,7 +34,7 @@ import org.jmlspecs.annotation.*;
  * @see JMLShort
  * @see JMLLong
  */
-//-@ immutable
+//+OPENJML@ immutable
 public @Pure class JMLByte implements JMLComparable<JMLByte> {
 
     private static final long serialVersionUID = 769042189784802260L;

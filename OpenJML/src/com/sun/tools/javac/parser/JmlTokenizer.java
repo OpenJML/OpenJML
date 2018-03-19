@@ -24,7 +24,8 @@ import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.LayoutCharacters;
 import com.sun.tools.javac.util.Options;
 
-/* NOTE: - oddities in the Scanner class
+/* NOTE: (FIXME Review this now that Tokenizer has been refactored out) 
+ * - oddities in the Scanner class
  It seems that if the first character of a token is unicode, then pos is
  set to be the last character of that initial unicode sequence.
  I don't think the endPos value is set correctly when a unicode is read;
@@ -67,7 +68,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     protected boolean       jml        = false;
 
     /** The set of defined keys for identifying optional comments */
-    /*@NonNull*/ protected Set<String>     keys = new HashSet<>();
+    /*@ NonNull */ protected Set<String>     keys = new HashSet<>();
     
     /** A mode of the scanner that determines whether end of jml comment tokens are returned */
     public boolean returnEndOfCommentTokens = true;
@@ -84,7 +85,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
 
     /**
      * The style of comment, either CommentStyle.LINE or
-     * CommentStyle.BLOCK, prior to the scanner calling processComment()
+     * CommentStyle.BLOCK, set prior to the scanner calling processComment()
      */
     @Nullable protected CommentStyle  jmlcommentstyle;
 
@@ -93,7 +94,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     @Nullable protected JmlTokenKind   jmlTokenKind;
 
     
-    private JmlToken jmlToken;
+    private JmlToken jmlToken; // FIXME - does this need to be a field?
 
 
     /**
@@ -105,7 +106,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
 
      * @param fac The factory generating the scanner
      * @param input The character buffer to scan
-     * @param inputLength The number of characters in the buffer
+     * @param inputLength The number of characters to scan
      */
     //@ requires inputLength <= input.length;
     protected JmlTokenizer(JmlScanner.JmlFactory fac, char[] input, int inputLength) {
@@ -127,28 +128,34 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         getKeys();
     }
     
+    /** Sets the set of optional comment keys from the command-lkine options
+     */
     protected void getKeys() {
         keys.addAll(Utils.instance(context).commentKeys);
     }
 
     /**
-     * Sets the jml mode - used for testing to be able to test constructs that
+     * Sets the jml mode, returning the old value - 
+     * used for testing to be able to test constructs that
      * are within a JML comment.
      * 
      * @param j set the jml mode to this boolean value
      */
-    public void setJml(boolean j) {
+    public boolean setJml(boolean j) {
+        boolean t = jml;
         jml = j;
+        return t;
     }
 
     /**
-     * Sets the keyword mode
+     * Sets the keyword mode, returning the old value
      * 
-     * @param j
-     *            the new value of the keyword mode
+     * @param j the new value of the keyword mode
      */
-    public void setJmlKeyword(boolean j) {
+    public boolean setJmlKeyword(boolean j) {
+        boolean t = jmlkeyword;
         jmlkeyword = j;
+        return t;
     }
     
     /** The current set of conditional keys used by the tokenizer.
@@ -182,14 +189,16 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     
     // This is called whenever the Java (superclass) scanner has scanned a whole
     // comment. We override it in order to handle JML comments specially. The
-    // overridden
-    // method returns and proceeds immediately to scan for the next Java token.
+    // overridden method returns and proceeds immediately to scan for the 
+    // next Java token after the comment.
     // Here if the comment is indeed a JML comment, we reset the scanner to the
-    // beginning of the comment, set jml to true, and let the scanner proceed.
+    // beginning of the comment, set jml to true, and let the scanner proceed
+    // to scan the contents of the comment.
     @Override
     protected Tokens.Comment processComment(int pos, int endPos, CommentStyle style) {
+        // endPos is one beyond the last character of the comment
 
-        // The range pos() to endPos() does include the opening and closing
+        // The inclusive range pos to endPos-1 does include the opening and closing
         // comment characters.
         // It does not include line ending for line comments, so
         // an empty line comment can be just two characters.
@@ -217,13 +226,11 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         int ch = scanChar(); // The @, or a + or - if there are keys, or something else if it is not a JML comment
         int plusPosition = reader.bp;
 
-        // FIXME - do we need this line?
-        //if (bp >= end) return; // This can happen if there is a // right at the end of the line
         boolean someplus = false; // true when at least one + key has been read
         boolean foundplus = false; // true when a + key that is in the list of enabled keys has been read
-        while ((ch=reader.ch) != '@') {
+        while ((ch=reader.ch) != '@') { // On the first iteration, this is the same ch as above.
             if (ch != '+' && ch != '-') {
-                // Not a valid JML comment - just return
+                // Not a valid JML comment (ch is not @ or + or -), so just return
                 // Restart after the comment we are currently processing
                 restoreReaderState();
                 return super.processComment(pos, endPos, style);
@@ -234,14 +241,12 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             if (ch == '@') {
                 // Old -style //+@ or //-@ comments
                 
-                // Too many warnings to enable this message
                 if (Options.instance(context).isSet("-Xlint:deprecation")) {
                     log.warning(new DiagnosticPositionSE(commentStart,plusPosition,reader.bp),"jml.deprecated.conditional.annotation");
                 }
 
                 // To be backward compatible at the moment,
                 // quit for //-@, process the comment if //+@
-                // TODO: Change this behavior once the library specs have no more //+@ or /*+@ comments
                 if (isplus) break;
                 restoreReaderState();
                 return super.processComment(pos, endPos, style);
@@ -271,12 +276,14 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             }
         }
         if (!foundplus && someplus) {
-            // There were pluses but not the plus we were looking for, so ignore JML comment
+            // There were plus keys but not the key we were looking for, so ignore JML comment
             // Restart after the comment
             restoreReaderState();
             return super.processComment(pos, endPos, style);
         }
 
+        // Either there were no optional keys or we fiound the right ones, so continue to process the comment
+        
         while (reader.ch == '@') {
             reader.scanChar();
         } // Gobble up all leading @s
@@ -284,7 +291,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         if (jml) {
             // We are already in a JML comment - so we have an embedded comment.
             // The action is to just ignore the embedded comment start
-            // characters.
+            // characters that we just scanned.
             
             // do nothing
             
@@ -295,7 +302,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             jml = true;
             jmlkeyword = true;
         }
-        return null; // Tell the caller to ignore the comment
+        return null; // Tell the caller to ignore the comment - that is, to not consider it a regular comment
     }
     
     /**

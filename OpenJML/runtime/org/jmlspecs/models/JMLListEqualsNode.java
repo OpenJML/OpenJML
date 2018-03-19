@@ -39,7 +39,7 @@ package org.jmlspecs.models;
  * @see JMLEqualsBag
  * @see JMLEqualsSet
  */
-//-@ immutable
+//+OPENJML@ immutable
 // FIXME: adapt this file to non-null-by-default and remove the following modifier.
 /*@ nullable_by_default @*/ 
 /*@ pure spec_public @*/ class JMLListEqualsNode implements JMLType {

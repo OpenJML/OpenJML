@@ -28,7 +28,7 @@ package org.jmlspecs.models;
  * @author Gary T. Leavens
  * @see java.lang.Comparable
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ interface JMLComparable
     extends JMLType, Comparable {
 

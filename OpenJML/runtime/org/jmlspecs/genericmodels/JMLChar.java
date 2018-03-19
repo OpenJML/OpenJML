@@ -36,7 +36,7 @@ import org.jmlspecs.annotation.*;
  * @see JMLString
  * @see JMLType
  */
-//-@ immutable
+//+OPENJML@ immutable
 public @Pure class JMLChar implements JMLComparable<JMLChar> {
 
     private static final long serialVersionUID = -3180281121849234813L;

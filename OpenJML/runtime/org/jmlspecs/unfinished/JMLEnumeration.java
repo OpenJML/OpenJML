@@ -32,7 +32,7 @@ import org.jmlspecs.lang.JMLIterator;
  * @see JMLIterator
  * @see JMLEnumerationToIterator
  */
-//-@ immutable
+//+OPENJML@ immutable
 public interface JMLEnumeration extends Enumeration, JMLType {
 
     /** Return a clone of this enumeration.

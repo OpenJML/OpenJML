@@ -34,7 +34,7 @@ package org.jmlspecs.models;
  * @see JMLChar
  * @see JMLType
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ class JMLLong implements JMLComparable {
 
     /** The long value of this object.

@@ -37,7 +37,7 @@ package org.jmlspecs.models;
  * @see JMLObjectSet
  * @see JMLValueSet
  */
-//-@ immutable
+//+OPENJML@ immutable
 // FIXME: adapt this file to non-null-by-default and remove the following modifier.
 /*@ nullable_by_default @*/ 
 public /*@ pure @*/ class JMLObjectBag

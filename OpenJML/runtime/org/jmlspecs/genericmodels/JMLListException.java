@@ -26,7 +26,7 @@ import org.jmlspecs.annotation.*;
  * @version $Revision: 1.6 $
  * @author Gary T. Leavens, David R. Cok
  */
-//-@ immutable
+//+OPENJML@ immutable
 @Pure
 public class JMLListException extends JMLSequenceException {
 

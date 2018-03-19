@@ -34,7 +34,7 @@ import java.math.BigInteger;
  * @author Gary T. Leavens
  * @see java.math.BigInteger
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ interface JMLInfiniteInteger
     extends JMLComparable
 {
