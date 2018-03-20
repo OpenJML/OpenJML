@@ -415,47 +415,7 @@ public class JmlFlow extends Flow  {
 //                Log.instance(context).useSource(prev);
 //            }
         }
-        
-        @Override
-        protected boolean resolveJump(JCTree tree,
-                        ListBuffer<PendingExit> oldPendingExits,
-                        JumpKind jk) {
-            boolean resolved = false;
-            List<PendingExit> exits = pendingExits.toList();
-            pendingExits = oldPendingExits;
-            for (; exits.nonEmpty(); exits = exits.tail) {
-                PendingExit exit = exits.head;
-                if (exit.tree.hasTag(jk.treeTag) &&
-                        jk.getTarget(exit.tree) == tree) {
-                    exit.resolveJump();
-                    resolved = true;
-                } else if(exit.tree.hasTag(jk.treeTag) &&  // FIXME - this branch appears to never be taken
-                        jk.getTarget(exit.tree) == tree && tree instanceof JmlEnhancedForLoop && // JLS -- adapted to fit JDK8 programming style
-                        jk.getTarget(exit.tree) == ((JmlEnhancedForLoop)tree).internalForLoop){
-                    exit.resolveJump();
-                    resolved = true;
-                }
-                
-                else {
-                    pendingExits.append(exit);
-                }
-            }
-            return resolved;
-        }
-
-//        /** Resolve all continues of this statement. */
-//        boolean resolveContinues(JCTree tree) {
-//            return resolveJump(tree, new ListBuffer<PendingExit>(), JumpKind.CONTINUE);
-//        }
-//
-//        /** Resolve all breaks of this statement. */
-//        boolean resolveBreaks(JCTree tree, ListBuffer<PendingExit> oldPendingExits) {
-//            return resolveJump(tree, oldPendingExits, JumpKind.BREAK);
-//        }
-
-        
-        
-    }
+     }
     
     class JmlAssignAnalyzer extends AssignAnalyzer implements IJmlVisitor {
         
@@ -819,49 +779,6 @@ public class JmlFlow extends Flow  {
                 Log.instance(context).useSource(prev);
             }
         }
-        
-        
-        
-        @Override
-        protected boolean resolveJump(JCTree tree,
-                        ListBuffer<AssignAnalyzer.AssignPendingExit> oldPendingExits,
-                        JumpKind jk) {
-            boolean resolved = false;
-            List<AssignAnalyzer.AssignPendingExit> exits = pendingExits.toList();
-            pendingExits = oldPendingExits;
-            for (; exits.nonEmpty(); exits = exits.tail) {
-                PendingExit exit = exits.head;
-                if (exit.tree.hasTag(jk.treeTag) &&
-                        jk.getTarget(exit.tree) == tree) {
-                    exit.resolveJump();
-                    resolved = true;
-                } else if(exit.tree.hasTag(jk.treeTag) && // FIXME - this branch appears to never be taken
-                        jk.getTarget(exit.tree) == tree && tree instanceof JmlEnhancedForLoop && // JLS -- adapted to fit JDK8 programming style
-                        jk.getTarget(exit.tree) == ((JmlEnhancedForLoop)tree).internalForLoop){
-                    exit.resolveJump();
-                    resolved = true;
-                }
-                
-                else {
-                    pendingExits.append((AssignAnalyzer.AssignPendingExit) exit);
-                }
-            }
-            return resolved;
-        }
-
-//        /** Resolve all continues of this statement. */
-//        boolean resolveContinues(JCTree tree) {
-//            return resolveJump(tree, new ListBuffer<AssignAnalyzer.AssignPendingExit>(), JumpKind.CONTINUE);
-//        }
-//
-//        /** Resolve all breaks of this statement. */
-//        boolean resolveBreaks(JCTree tree, ListBuffer<AssignAnalyzer.AssignPendingExit> oldPendingExits) {
-//            return resolveJump(tree, oldPendingExits, JumpKind.BREAK);
-//        }
-//        
-        
-       
-
     }
     
     class JmlFlowAnalyzer extends FlowAnalyzer implements IJmlVisitor {
@@ -1209,45 +1126,6 @@ public class JmlFlow extends Flow  {
                 Log.instance(context).useSource(prev);
             }
         }
-       
-        @Override
-        protected boolean resolveJump(JCTree tree,
-                        ListBuffer<FlowAnalyzer.FlowPendingExit> oldPendingExits,
-                        JumpKind jk) {
-            boolean resolved = false;
-            List<FlowAnalyzer.FlowPendingExit> exits = pendingExits.toList();
-            pendingExits = oldPendingExits;
-            for (; exits.nonEmpty(); exits = exits.tail) {
-                PendingExit exit = exits.head;
-                if (exit.tree.hasTag(jk.treeTag) &&
-                        jk.getTarget(exit.tree) == tree) {
-                    exit.resolveJump();
-                    resolved = true;
-                } else if(exit.tree.hasTag(jk.treeTag) && // FIXME - this branch is never executed?
-                        jk.getTarget(exit.tree) == tree && tree instanceof JmlEnhancedForLoop && // JLS -- adapted to fit JDK8 programming style
-                        jk.getTarget(exit.tree) == ((JmlEnhancedForLoop)tree).internalForLoop){
-                    exit.resolveJump();
-                    resolved = true;
-                }
-                
-                else {
-                    pendingExits.append((FlowPendingExit) exit);
-                }
-            }
-            return resolved;
-        }
-
-//        /** Resolve all continues of this statement. */
-//        boolean resolveContinues(JCTree tree) {
-//            return resolveJump(tree, new ListBuffer<FlowAnalyzer.FlowPendingExit>(), JumpKind.CONTINUE);
-//        }
-//
-//        /** Resolve all breaks of this statement. */
-//        boolean resolveBreaks(JCTree tree, ListBuffer<FlowAnalyzer.FlowPendingExit> oldPendingExits) {
-//            return resolveJump(tree, oldPendingExits, JumpKind.BREAK);
-//        }
-//        
-        
     }
         
     // Overridden to call JML versions of visitors
