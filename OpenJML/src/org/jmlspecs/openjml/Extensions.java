@@ -188,7 +188,7 @@ public class Extensions {
         			if (k < 0) continue;
         			jar = new JarFile(n.substring(10,k));
         			Enumeration<JarEntry> entries = jar.entries();
-        			// Really would like to iterator over the directory named
+        			// Really would like to iterate over the directory named
         			// by 'path', instead of over every entry in the jar file
         			while (entries.hasMoreElements()) {
         				JarEntry entry = entries.nextElement();

@@ -783,7 +783,7 @@ public class JmlParser extends JavacParser {
                 if (token.kind == IDENTIFIER && S.jml()) {
                     JmlTokenKind tt = JmlTokenKind.allTokens.get(S.chars());
                     if (tt != null) {
-                        S.setToken(new JmlToken(tt, null, pos(), endPos())); // FIXME - but S.token is not set
+                        S.setToken(new JmlToken(tt, null, pos(), endPos()));
                     }
                 }
             } else if (token.ikind == ENDJMLCOMMENT) {

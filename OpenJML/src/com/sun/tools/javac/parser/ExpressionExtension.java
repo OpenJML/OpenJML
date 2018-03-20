@@ -127,7 +127,6 @@ abstract public class ExpressionExtension {
      */
     public JCExpression parse(JmlParser parser,
             @Nullable List<JCExpression> typeArgs) {
-        // TODO Auto-generated method stub
         this.parser = parser;
         JmlTokenKind jt = parser.jmlTokenKind();
         int p = parser.pos();
@@ -148,7 +147,6 @@ abstract public class ExpressionExtension {
     
     public JCExpression parseNoArgs(JmlParser parser,
             @Nullable List<JCExpression> typeArgs) {
-        // TODO Auto-generated method stub
         this.parser = parser;
         JmlTokenKind jt = parser.jmlTokenKind();
         int p = parser.pos();
