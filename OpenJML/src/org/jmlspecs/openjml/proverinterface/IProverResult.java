@@ -93,15 +93,17 @@ public interface IProverResult {
     /** The time at which the computation of the result began */
     public Date timestamp();
 
-    /** The time at which the computation of the result began */
+    /** The method for which this result was obtained */
     public Symbol.MethodSymbol methodSymbol();
 
     /** The satisfying assignment produced by the prover.
      * @return The satisfying assignment produced by the prover
      */
     //@ ensures result() != UNSAT ==> \result == null;
+    //@ nullable
     public ICounterexample counterexample();
 
+    //@ nullable pure
     public Object otherInfo();
 
     //@ ensures \result == this;
@@ -111,6 +113,7 @@ public interface IProverResult {
      * @return an item holding the core id information
      */
     //@ ensures result() != SAT ==> \result == null;
+    //@ nullable
     public ICoreIds coreIds();
 
     /** A marker interface for additional details produced by the prover -

@@ -12,7 +12,7 @@ import javax.tools.JavaFileObject;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.DiagnosticSource;
 
-/** This class records all the Nowarn annoations in an OpenJML compile. Nowarn
+/** This class records all the Nowarn annotations in an OpenJML compile. Nowarn
  * annotations are syntactic; they can appear anywhere in a line and affect
  * the reporting of warnings and errors against that line.
  */

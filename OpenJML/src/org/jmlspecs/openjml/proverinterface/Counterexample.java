@@ -19,6 +19,9 @@ import com.sun.tools.javac.tree.JCTree;
  * @author David Cok
  *
  */
+
+// FIXME _ describe the mapv
+
 public class Counterexample implements IProverResult.ICounterexample {
     protected SortedMap<String,String> map = new TreeMap<String,String>();
     protected Map<JCTree,String> mapv = new HashMap<JCTree,String>();

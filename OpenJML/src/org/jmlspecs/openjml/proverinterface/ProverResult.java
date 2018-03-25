@@ -107,7 +107,7 @@ public class ProverResult implements IProverResult {
     //@ also
     //@ assignable this.result;
     //@ ensures result() == r;
-    //JAVA16 @Override
+    @Override
     public void result(@NonNull Kind r) { result = r; }
 
     /** Returns true if the prover found a satisfying assignment 
@@ -137,6 +137,7 @@ public class ProverResult implements IProverResult {
     /** Returns the counterexample information, if any available and if the
      * prover supports it
      */
+    @Nullable
     public ICounterexample counterexample() {
         if (details == null) return null;
         for (IProverResult.Item i: details) {
@@ -151,6 +152,7 @@ public class ProverResult implements IProverResult {
      * prover
      * @return an object holding the core id information
      */
+    @Nullable
     public ICoreIds coreIds() {
         if (details == null) return null;
         for (IProverResult.Item i: details) {

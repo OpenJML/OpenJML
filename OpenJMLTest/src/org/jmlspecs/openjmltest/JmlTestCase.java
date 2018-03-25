@@ -216,14 +216,14 @@ public abstract class JmlTestCase {
      */
     @Before
     public void setUp() throws Exception {
-        main = new Main("",new PrintWriter(System.out, true),!noCollectDiagnostics?collector:null,null);
+        main = new Main("",new PrintWriter(System.out, true),!noCollectDiagnostics?collector:null, null,
+        		"-properties", "../OpenJML/openjml.properties");
         context = main.context();
         options = Options.instance(context);
         if (jmldebug) {  // FIXME - this is not the right way to set debugging
             Utils.instance(context).jmlverbose = Utils.JMLDEBUG; 
             main.addOptions("-jmlverbose", "4");
         }
-        main.addOptions("-properties", "../OpenJML/openjml.properties");
         print = false;
         mockFiles = new LinkedList<JavaFileObject>();
         Log.instance(context).multipleErrors = true;
