@@ -39,8 +39,7 @@ BRANCH=`git rev-parse --abbrev-ref HEAD`
 echo Branch = ${BRANCH}, Date = ${DATE}
 if [ "${BRANCH}" = "master" ]; then VERSION=$DATE ; else VERSION=${BRANCH}-${DATE}; fi
 
-NAME=openjml-${VERSION}.tar.gz
-NAMEZ=openjml-${VERSION}.zip
+NAME=openjml-${VERSION}.zip
 
 	echo Building ${NAME}, version ${VERSION} in `pwd`
 
@@ -101,20 +100,30 @@ NAMEZ=openjml-${VERSION}.zip
     cp -r ../../Solvers/Solvers-* ${TEMPJAR}
         
 ##### Collect other files for the tar file
-#    cp legal/* ${TEMPJAR}
+    cp legal/* ${TEMPJAR}
 #        ##(echo Building user manual; cd documentation/OpenJMLUserGuide; rm -f *.pdf; make all > build.log )
-#    if [ -e documentation/OpenJMLUserGuide/OpenJMLUserGuide.pdf ]; then
-#        cp documentation/OpenJMLUserGuide/OpenJMLUserGuide.pdf ${TEMPJAR} && echo Manual built and copied
-#    else
-#        echo No User Guide file is found
-#    fi
+    DOC=/Users/davidcok/cok/texstuff/papers/JMLBook
+    if [ -e $DOC/OpenJMLUserGuide.pdf ]; then
+        cp $DOC/OpenJMLUserGuide.pdf ${TEMPJAR} && echo "   " UserGuide copied
+        if ! cmp -s ${TEMPJAR}/OpenJMLUserGuide.pdf ../OpenJMLUI/html/OpenJMLUserGuide.pdf; then
+		    cp ${TEMPJAR}/OpenJMLUserGuide.pdf ../OpenJMLUI/html
+		    echo "        " Changed
+		fi
+		cp $DOC/jml-reference-manual.pdf ${TEMPJAR} && echo "   " RefMan copied
+        if ! cmp -s ${TEMPJAR}/jml-reference-manual.pdf ../OpenJMLUI/html/JMLReferenceManual.pdf; then
+		    cp ${TEMPJAR}/jml-reference-manual.pdf ../OpenJMLUI/html/JMLReferenceManual.pdf
+		    echo "        " Changed
+		fi
+    else
+        echo No User Guide file is found
+    fi
     
 ##### Build the zip file
 	(cd ${TEMPJAR}; \
     cp ../openjml-template.properties . ;\
-	zip -qr ../${NAMEZ} *)
+	zip -qr ../${NAME} *)
 	##rm -rf ${TEMPJAR}  ## We don't delete them because some tests use them
-	echo "   " zip created ../${NAMEZ}
+	echo "   " zip created ../${NAME}
 	    
 ##### End	
 	echo Release complete
