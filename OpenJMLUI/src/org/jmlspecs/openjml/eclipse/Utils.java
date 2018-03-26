@@ -49,6 +49,7 @@ import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.*;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
@@ -2824,6 +2825,10 @@ public class Utils {
 				jp = JavaCore.create(((IResource) o).getProject());
 			} else if (o instanceof IJavaElement) {
 				jp = ((IJavaElement) o).getJavaProject();
+			} else if (o instanceof IEditorInput) {
+				// This option happens if the file is not in a Java project
+				showMessageInUI(null,"OpenJML Error","To apply OpenJML tools, source files must be in Java projects, with a build environment set: " + ((IEditorInput)o).getName());
+				continue;
 			} else {
 				Log.errorlog(
 						"INTERNAL ERROR: Unexpected content for a selection List - "
