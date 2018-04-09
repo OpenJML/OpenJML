@@ -4190,11 +4190,11 @@ public class esc extends EscBase {
                         + "     //@ assert m > 0;\n"
                         + "  }\n"
                         + "}\n"
-                        ,"/tt/TestJava.java:7: warning: Label JMLSHOW_1 has value 0",15
-                        ,"/tt/TestJava.java:7: warning: Label JMLSHOW_2 has value 2",18
-                        ,"/tt/TestJava.java:9: warning: Label JMLSHOW_3 has value 1",15
-                        ,"/tt/TestJava.java:12: warning: Label JMLSHOW_4 has value ( - 1 )",15
-                        ,"/tt/TestJava.java:12: warning: Label JMLSHOW_5 has value 1",17
+                        ,"/tt/TestJava.java:7: warning: Show statement expression i has value 0",15
+                        ,"/tt/TestJava.java:7: warning: Show statement expression j + 1 has value 2",18
+                        ,"/tt/TestJava.java:9: warning: Show statement expression k has value 1",15
+                        ,"/tt/TestJava.java:12: warning: Show statement expression m has value ( - 1 )",15
+                        ,"/tt/TestJava.java:12: warning: Show statement expression k has value 1",17
                         ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m",10
                         );
     }

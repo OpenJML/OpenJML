@@ -14544,6 +14544,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JmlLblExpression e = M.at(expr.getStartPosition()).JmlLblExpression(expr.getStartPosition(),JmlTokenKind.BSLBLANY,n,expr);
                         e.type = expr.type;
                         visitJmlLblExpression(e);
+                        showExpressions.put(n.toString(),expr);
                     }
                 } catch (NoModelMethod e) {
                     // Ignore - don't add a statement
@@ -14558,6 +14559,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 error(that, msg);
         }
     }
+    
+    public Map<String,JCExpression> showExpressions = new HashMap<String,JCExpression>();
 
     // jmlrewriter? FIXME; also explain what this is
     @Override

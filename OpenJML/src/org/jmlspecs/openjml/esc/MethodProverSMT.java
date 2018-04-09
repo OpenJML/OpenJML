@@ -181,14 +181,22 @@ public class MethodProverSMT {
             String loc = utils.findInstallLocation();
             String os = Utils.identifyOS(context);
             String ex = null;
-            if (proverToUse.equals("z3_4_3")) ex = "z3-4.3.1";
-            if (proverToUse.equals("z3_4_5")) ex = "z3-4.5.0";
-            if (proverToUse.equals("z3_4_6")) ex = "z3-4.6.0";
+            ex = proverToUse.replace("z3_","z3-").replace('_','.');
+//            if (proverToUse.equals("z3_4_3")) ex = "z3-4.3.";
+//            if (proverToUse.equals("z3_4_5")) ex = "z3-4.5.";
+//            if (proverToUse.equals("z3_4_6")) ex = "z3-4.6.";
             
             if (loc != null && os != null && ex != null) {
-                exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + ex;
+                exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + proverToUse;
+                if (new java.io.File(exec).exists()) return exec;
+                exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + ex + ".";
+                for (int i=9; i>=0; --i) {
+                    if (new java.io.File(exec + i).exists()) {
+                        return exec + i;
+                    }
+                }
                 if (!new java.io.File(exec).exists()) {
-                    log.warning("jml.message","Implicit executable does not exist " + exec);
+                    log.warning("jml.message","Implicit executable does not exist " + exec + "X");
                     exec =  null;
                 }
             }
@@ -772,8 +780,10 @@ public class MethodProverSMT {
                         } else if (ns.startsWith(prefix_lbl)) {
                             String b = getValue(ns,info.smt,info.solver);
                             String label = ns.substring(prefix_lbl.length(),k); 
+                            JCExpression eshow = jmlesc.assertionAdder.showExpressions.get(label);
                             if (b == null) log.warning(stat.pos,"esc.label.value",label,"is unknown"); //$NON-NLS-1$
-                            else log.warning(stat.pos,"esc.label.value",label,b); //$NON-NLS-1$
+                            else if (eshow == null) log.warning(stat.pos,"esc.label.value",label,b); //$NON-NLS-1$
+                            else log.warning(stat.pos,"esc.label.expr",eshow.toString(),b);
                         } else {
                             log.warning(stat.pos,"jml.internal.notsobad","Unknown label: " + ns); //$NON-NLS-1$
                         }
@@ -1122,8 +1132,11 @@ public class MethodProverSMT {
                     } else if (ns.startsWith(prefix_lbl)) {
                         String b = getValue(ns,info.smt,info.solver);
                         String label = ns.substring(prefix_lbl.length(),k); 
+                        JCExpression eshow = jmlesc.assertionAdder.showExpressions.get(label);
+                        System.out.println(label + " " + eshow);
                         if (b == null) log.warning(stat.pos,"esc.label.value",label,"is unknown"); //$NON-NLS-1$
-                        else log.warning(stat.pos,"esc.label.value",label,b); //$NON-NLS-1$
+                        else if (eshow == null) log.warning(stat.pos,"esc.label.value",label,b); //$NON-NLS-1$
+                        else log.warning(stat.pos,"esc.label.value",eshow.toString(),b);
                     } else {
                         log.warning(stat.pos,"jml.internal.notsobad","Unknown label: " + ns); //$NON-NLS-1$
                     }
