@@ -1000,6 +1000,11 @@ public class JmlParser extends JavacParser {
                 if (startsInJml && !inLocalOrAnonClass) {
                     boolean prevInJmlDeclaration = inJmlDeclaration;
                     inJmlDeclaration = true;
+                    if (token.kind == TokenKind.BANG) {
+                        replacementType = unannotatedType();
+                        inJmlDeclaration = false;
+                        startsInJml = false;
+                    }
                     t = super.classOrInterfaceBodyDeclaration(
                             className, isInterface);
                     if (isInterface && t.head instanceof JmlMethodDecl) {
@@ -1743,7 +1748,9 @@ public class JmlParser extends JavacParser {
                     }
                     skipThroughEndOfJML();
                 }
-                if (!isBrace) return replacementType;
+                if (!isBrace) {
+                    return replacementType;
+                }
             }
         }
         JCExpression type = super.unannotatedType();
@@ -2825,7 +2832,7 @@ public class JmlParser extends JavacParser {
         if (!(t instanceof JmlToken)) return ParensResult.PARENS;
         JmlTokenKind jtk = ((JmlToken)t).jmlkind;
         switch (jtk) {
-            case BSTYPEUC: case BSREAL: case BSBIGINT:
+            case BSTYPEUC: case BSREAL: case BSBIGINT: case ENDJMLCOMMENT:
                 if (peekToken(lookahead, RPAREN)) {
                     //Type, ')' -> cast
                     return ParensResult.CAST;
@@ -3070,14 +3077,6 @@ public class JmlParser extends JavacParser {
         return toP(super.term3());
     }
     
-    @Override
-    protected JCExpression potentialCast() {
-        JmlTokenKind t = jmlTokenKind();
-        if (JmlTokenKind.jmloperators.contains(t)) return null;
-        return term3();
-    }
-
-
     protected boolean inCreator = false;
 
     public JCExpression parseQuantifiedExpr(int pos, JmlTokenKind jt) {
@@ -3556,9 +3555,18 @@ public class JmlParser extends JavacParser {
     public void skipThroughEndOfJML() {
         while (token.ikind != ENDJMLCOMMENT && token.kind != EOF)
             nextToken();
+        S.setJmlKeyword(false);
         S.setJml(false);
         inJmlDeclaration = false;
         if (token.kind != EOF) nextToken();
+    }
+
+    public void acceptEndOfJMLOptional() {
+        if (token.ikind == ENDJMLCOMMENT) {
+            S.setJml(false);
+            inJmlDeclaration = false;
+            nextToken();
+        }
     }
 
     /**
