@@ -8968,6 +8968,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             else result = eresult = null;
             
         } catch (Error e) {
+            log.error("jml.internal", e.toString()); // FIXME - improve error message
             throw e;
         } catch (Exception e) {
             throw e;
@@ -16107,6 +16108,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addAssume(clauseToReference,useNamesForHeap ? Label.METHOD_DEFINITION : Label.IMPLICIT_ASSUME,e);
                 }
             }
+        } catch (Exception e) {
+            throw e;
         } finally {
             resultExpr = savedResultExpr;
             currentThisId = savedCurrentThisId;
