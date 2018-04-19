@@ -724,8 +724,8 @@ public class Utils {
         List<MethodSymbol> methods = new LinkedList<MethodSymbol>();
         if (isJMLStatic(m)) {
             methods.add(m); 
-        } else if (m.toString().contains("toString")) {  // FIXME - experimental not inherit
-            methods.add(m); 
+//        } else if (m.toString().contains("toString")) {  // FIXME - experimental not inherit
+//            methods.add(m); 
         } else {
             for (ClassSymbol c: parents((ClassSymbol)m.owner, false)) {
                 for (Symbol mem: c.getEnclosedElements()) {

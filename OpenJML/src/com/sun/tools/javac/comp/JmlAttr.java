@@ -1162,13 +1162,26 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             boolean classIsModel = isModel(javaMethodTree.sym.owner);
             boolean model = isModel(mods);
             boolean synthetic = mods != null && (mods.flags & Flags.SYNTHETIC) != 0;
+            boolean abst = mods != null && (mods.flags & Flags.ABSTRACT) != 0;
             boolean anon = javaMethodTree.sym.owner.isAnonymous();
             boolean isConstructor = javaMethodTree.getReturnType() == null;
             if (classIsModel && model && !synthetic) {
                 log.useSource(javaMethodTree.sourcefile);
                 log.error(javaMethodTree.pos,"jml.no.nested.model.type");
             } else if (inJML && !model  && !isInJmlDeclaration) {
-                if (!anon) {
+                if (javaMethodTree.sym.isConstructor() && javaMethodTree.params.isEmpty()) {
+                    // OK
+                    for (Symbol elem: javaMethodTree.sym.owner.getEnclosedElements()) {
+                        if (elem != javaMethodTree.sym && elem instanceof Symbol.MethodSymbol && elem.isConstructor()) {
+                            // Found another constructor
+                            log.useSource(javaMethodTree.sourcefile);
+                            log.error(javaMethodTree.pos(),"jml.no.default.constructor");
+                            break;
+                        }
+                    }
+                } else if (abst) {
+                    // OK
+                } else if (!anon) {
                     log.useSource(javaMethodTree.sourcefile);
                     log.error(javaMethodTree.pos,"jml.missing.model");
                 }

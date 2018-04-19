@@ -148,7 +148,7 @@ public class TreeInfo {
      */
     public static boolean hasConstructors(List<JCTree> trees) {
         for (List<JCTree> l = trees; l.nonEmpty(); l = l.tail)
-            if (isConstructor(l.head)) return true;
+            if (isConstructor(l.head) && l.head instanceof JCMethodDecl && (((JCMethodDecl)l.head).mods.flags & (1L << 60)) == 0) return true; // OPENJML - added check for JML bit
         return false;
     }
 

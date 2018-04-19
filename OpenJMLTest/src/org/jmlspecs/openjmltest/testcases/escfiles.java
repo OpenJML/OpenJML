@@ -447,6 +447,22 @@ public class escfiles extends EscBase {
 	}
 
     @Test
+    public void testEscFunction() {
+        helpTF("escFunction","-show","-method=f","-checkFeasibility=debug");
+    }
+    
+    @Test
+    public void testAbstractSpecs() {
+        helpTF("escAbstractSpecs");
+    }
+    
+    @Test
+    public void testAbstractSpecs2() {
+    	expectedExit = 1;
+        helpTF("escAbstractSpecs2");
+    }
+    
+    @Test
     public void testEscInvariants() {
         helpTF("escInvariants");
     }

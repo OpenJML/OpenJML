@@ -446,8 +446,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     
     protected boolean noEntering = false;
     
-    
+    /** Returns true if there is a duplicate, whether or not it was warned about */
     protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, Scope enclScope) {
+        boolean was = ((JmlCheck)chk).noDuplicateWarn;
+        if (m.isConstructor() && (m.flags() & Utils.JMLBIT) != 0 && m.params().isEmpty()) {
+            ((JmlCheck)chk).noDuplicateWarn = true;
+        }
         if (chk.checkUnique(tree.pos(), m, enclScope)) {
             if (!noEntering) {
                 if (tree.body == null && m.owner.isInterface() && utils.isJML(m.flags())) {
@@ -456,9 +460,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 }
                 enclScope.enter(m);
             }
+            ((JmlCheck)chk).noDuplicateWarn = was;
             return true;
         } else {
             if (!((JmlCheck)chk).noDuplicateWarn) tree.sym = null;  // FIXME - this needs some testing
+            ((JmlCheck)chk).noDuplicateWarn = was;
             return false;
         }
     }
@@ -684,6 +690,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
         // The matches map holds any previous matches found - all to specification declarations
         JCTree prevMatch = matchesSoFar.get(matchSym);
+        if ((matchSym.flags() & Flags.GENERATEDCONSTR) != 0 && prevMatch instanceof JmlMethodDecl && utils.findMod(((JmlMethodDecl)prevMatch).mods, JmlTokenKind.MODEL) == null)  prevMatch = null;
         if (prevMatch != null) {
             // DO extra checking since we are discarding this declaration because it is already matched
             if (!utils.isJML(specsMethodDecl.mods)) {
