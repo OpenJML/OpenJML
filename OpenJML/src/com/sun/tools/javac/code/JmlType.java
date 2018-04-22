@@ -26,7 +26,7 @@ public class JmlType extends Type {
     /** The Class used to represent this type in RAC - do not use this
      * value directly since it is lazily initialized in JmlTypes.
      */
-    protected Symbol.ClassSymbol repSym;
+    public Symbol.ClassSymbol repSym;
     
     /** Creates a new primitive type with the given token - should be a 
      * singleton for each new JML type */

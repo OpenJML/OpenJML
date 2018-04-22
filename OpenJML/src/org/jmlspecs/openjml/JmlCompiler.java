@@ -502,7 +502,7 @@ public class JmlCompiler extends JavaCompiler {
         if (env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
 //            unconditionallyStop = true;
 //            // FIXME - not sure why this is needed for rac but causes esc tests to fail
-//            if (utils.rac) CompileStates.instance(context).put(env,CompileState.FLOW);
+            if (utils.rac) CompileStates.instance(context).put(env,CompileState.FLOW);
             return;
         }
         super.flow(env,results);

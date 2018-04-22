@@ -29,8 +29,16 @@ return p;
   @   (n > 1 ) && (\forall int d; 2<= d && d<= n-1; n % d != 0);
   @*/
 public static /*@ pure helper @*/ boolean is_prime(int n){
+	System.out.println("Checking " + n);
 return true; // A MODIFIER
  }
+
+
+public static void main(String ... args) {
+	is_prime(3);
+	is_prime(11);
+	is_prime(35);
+}
 }
 
 

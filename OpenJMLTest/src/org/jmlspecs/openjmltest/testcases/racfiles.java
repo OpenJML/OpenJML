@@ -289,9 +289,8 @@ public class racfiles extends RacBase {
 
     @Test
     public void gitbug524() {
-    	//runrac = false;
         expectedRACExit = 0;
-        helpTCF("test/gitbug524","test/gitbug524","Test");  // Crashing
+        helpTCF("test/gitbug524","test/gitbug524","Test"); 
     }
 
     @Test
@@ -437,6 +436,30 @@ public class racfiles extends RacBase {
         expectedRACExit = 0;
         runrac = false;
         helpTCF("test/sfbug396","test/sfbug396","Main");
+    }
+
+    @Test
+    public void racRM1() {
+        expectedRACExit = 0;
+        helpTCF("test/racRM1","test/racRM1","Main","-code-math=java","-spec-math=java");
+    }
+
+    @Test
+    public void racRM1a() {
+        expectedRACExit = 0;
+        helpTCF("test/racRM1","test/racRM1","Main","-code-math=safe","-spec-math=bigint");
+    }
+
+    @Test
+    public void racRM2() {
+        expectedRACExit = 0;
+        helpTCF("test/racRM2","test/racRM2","Main","-code-math=java","-spec-math=java");
+    }
+
+    @Test
+    public void racRM2a() {
+        expectedRACExit = 0;
+        helpTCF("test/racRM2","test/racRM2","Main","-code-math=safe","-spec-math=bigint");
     }
 
 

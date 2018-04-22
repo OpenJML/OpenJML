@@ -1,0 +1,4 @@
+Note: /Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/util/Optional.jml uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+Note: /Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/util/Random.jml uses internal proprietary API that may be removed in a future release.
+Note: Recompile with -Xlint:sunapi for details.

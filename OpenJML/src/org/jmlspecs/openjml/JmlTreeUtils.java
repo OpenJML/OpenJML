@@ -686,9 +686,9 @@ public class JmlTreeUtils {
         Type rhsu = unboxedType(rhs);
         if (lhsu.getTag() == TypeTag.BOOLEAN) return syms.booleanType;
         if (!lhsu.isPrimitive() || !rhsu.isPrimitive()) return syms.stringType;
-        if (lhs == types.REAL || rhs == types.REAL) return types.REAL;
-        if (lhs == types.BIGINT || rhs == types.BIGINT) return types.BIGINT;
-        if (lhs == types.TYPE || rhs == types.TYPE) return types.TYPE;
+        if (lhsu == types.REAL || rhsu == types.REAL) return types.REAL;
+        if (lhsu == types.BIGINT || rhsu == types.BIGINT) return types.BIGINT;
+        if (lhsu == types.TYPE || rhsu == types.TYPE) return types.TYPE;
         TypeTag ltag = lhsu.getTag();
         TypeTag rtag = rhsu.getTag();
         
