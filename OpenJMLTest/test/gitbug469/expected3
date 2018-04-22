@@ -34,6 +34,4 @@ test/gitbug469/Repro.java:38: warning: The prover cannot establish an assertion 
 Completed proof of Repro.Bar.getSeed2(int) with prover !!!! - with warnings
 Completed proving methods in Repro.Bar
 Completed proving methods in Repro
-Note: /Users/davidcok/cok/projects/OpenJMLA/Specs/java8/java/util/Random.jml uses internal proprietary API that may be removed in a future release.
-Note: Recompile with -Xlint:sunapi for details.
 6 warnings
