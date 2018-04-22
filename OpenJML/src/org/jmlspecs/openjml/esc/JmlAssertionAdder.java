@@ -3001,13 +3001,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                                        JCExpression e = treeutils.makeEquality(rep.pos,id,convertExpr(rep.expression));
 //                                        addAssume(that,Label.IMPLICIT_ASSUME,e);
                                         //result = eresult = id;
-                                        result = eresult = convertExpr(rep.expression);
+                                        JCExpression r = convertExpr(rep.expression);
                                         JCExpression e = treeutils.makeSelect(that.pos, translatedSelector, varsym);
-                                        e = treeutils.makeBinary(that.pos, JCTree.Tag.EQ, e, eresult);
+                                        e = treeutils.makeBinary(that.pos, JCTree.Tag.EQ, e, r);
                                         // FIXME - should not issue this when in a qiuantified expression
                                         // FIXME - whjy is splitEAxpressions false?
                                         addAssume(that, Label.IMPLICIT_ASSUME, e); // FIXME - use a label aboiut REPRESENTS?
-                                      
+                                        result = eresult = r;
                                     } finally {
                                         currentThisExpr = prev;
                                     }
@@ -8976,6 +8976,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             else result = eresult = null;
             
         } catch (Error e) {
+            log.error("jml.internal", e.toString()); // FIXME - improve error message
             throw e;
         } catch (Exception e) {
             throw e;
@@ -12521,7 +12522,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 for (JCExpression stref: ((JmlStatementLoopModifies)spec).storerefs) {
                     newlist.add(spec.translated ? convertCopy(stref): convertNoSplit(stref));
                 }
-                for (JCTree t: initlist) {
+                if (initlist != null) for (JCTree t: initlist) {
                     // FIXME - might be already present; if the loop_modifies was added by an inlining sepc it certainly would not be
                     if (t instanceof JmlVariableDecl) {
                         newlist.add(convertNoSplit( ((JmlVariableDecl)t).ident ));
@@ -16144,6 +16145,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addAssume(clauseToReference,useNamesForHeap ? Label.METHOD_DEFINITION : Label.IMPLICIT_ASSUME,e);
                 }
             }
+        } catch (Exception e) {
+            throw e;
         } finally {
             resultExpr = savedResultExpr;
             currentThisId = savedCurrentThisId;
