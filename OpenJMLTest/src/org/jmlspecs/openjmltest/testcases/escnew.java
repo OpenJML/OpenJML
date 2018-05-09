@@ -1931,7 +1931,7 @@ public class escnew extends EscBase {
                 +"public class TestJava<T> { \n"
 
                 // FIXME - lots more tests needed
-                +"  public Object mm(int i) {\n" 
+                +"  public void mm(int i) {\n" 
                 +"      boolean b = true && false;\n" 
                 +"      //@ assert !b;\n" 
                 +"      b = true || false;\n" 
@@ -1959,27 +1959,41 @@ public class escnew extends EscBase {
                 +"      g = (short)2 + (short)3;\n" 
                 +"      //@ assert g == 5;\n" 
                 
-                +"      a = 2 / 0;\n" 
-                +"      a = 2 / (1-1);\n" 
                 +"      a = (short)3 / (short)2;\n" 
                 +"      //@ assert a == 1;\n" 
-                +"      g = 3L / 0;\n" 
                 +"      g = 3L / 2;\n" 
                 +"      //@ assert g == 1;\n" 
                 +"      g = (short)3 / (short)2;\n" 
                 +"      //@ assert g == 1;\n" 
                 
-                +"      String s = \"x\" + \"y\";\n" 
-                +"      //@ assert s = \"xy\";\n" 
-                +"      s = \"x\" + 1;\n" 
-                +"      //@ assert s = \"x1\";\n" 
-                +"      s = \"x\" + true;\n" 
-                +"      //@ assert s = \"xtrue\";\n" 
-                +"      s = false + \"x\";\n" 
-                +"      //@ assert s = \"falsex\";\n" 
-                +"      s = \"x\" + null;\n" 
-                +"      //@ assert s = \"xnull\";\n" 
+//                +"      String s = \"x\" + \"y\";\n" 
+//                +"      //@ assert s = \"xy\";\n" 
+//                +"      s = \"x\" + 1;\n" 
+//                +"      //@ assert s = \"x1\";\n" 
+//                +"      s = \"x\" + true;\n" 
+//                +"      //@ assert s = \"xtrue\";\n" 
+//                +"      s = false + \"x\";\n" 
+//                +"      //@ assert s = \"falsex\";\n" 
+//                +"      s = \"x\" + null;\n" 
+//                +"      //@ assert s = \"xnull\";\n" 
 
+                +"  }\n"
+                
+               
+                +"}"
+                );
+    }
+
+    @Test 
+    public void testConstantFolding2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> { \n"
+
+                // FIXME - lots more tests needed
+                +"  public void mm(int i) {\n" 
+                +"      a = 2 / 0;\n" 
+                +"      a = 2 / (1-1);\n" 
+                +"      g = 3L / 0;\n" 
                 +"  }\n"
                 
                
