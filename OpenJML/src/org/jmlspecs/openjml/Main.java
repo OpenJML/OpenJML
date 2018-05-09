@@ -1296,7 +1296,8 @@ public class Main extends com.sun.tools.javac.main.Main {
         // The above all presume some variation on the conventional installation
         // of the command-line tool.  In the development environment, those
         // presumptions do not hold.  So in that case we use the appropriate
-        // bin directories directly. We make sure that we get both of them.
+        // bin directories directly. We make sure that we get both of them: 
+        // the annotations and runtime utilties.
         // This also takes care of the case in which the openjml.jar file is in 
         // the class path under a different name.
 
@@ -1314,7 +1315,9 @@ public class Main extends com.sun.tools.javac.main.Main {
                         s = s.substring(b);
                         s = new File(s).getParentFile().getParentFile().getParent();
                     }
-                    if (new File(s).exists()) jmlruntimePath = s;
+                    if (new File(s).exists()) {
+                    	jmlruntimePath = s;
+                    }
 
                     url = ClassLoader.getSystemResource(Strings.jmlSpecsPackage.replace('.','/'));
                     if (url != null) {
@@ -1328,7 +1331,9 @@ public class Main extends com.sun.tools.javac.main.Main {
                             s = s.substring(b);
                             s = new File(s).getParentFile().getParentFile().getParent();
                         }
-                        if (new File(s).exists() && !s.equals(jmlruntimePath)) jmlruntimePath = jmlruntimePath + java.io.File.pathSeparator + s;
+                        if (new File(s).exists() && !s.equals(jmlruntimePath)) {
+                        	jmlruntimePath = jmlruntimePath + java.io.File.pathSeparator + s;
+                        }
                     }
                 } catch (Exception e) {
                     // Just skip
@@ -1338,10 +1343,12 @@ public class Main extends com.sun.tools.javac.main.Main {
         
         if (jmlruntimePath == null) {
         	// This is for the case of running the GUI in the development environment
-        	String srt = System.getProperty(Strings.eclipseSpecsProjectLocation);
+        	String srt = System.getProperty(Strings.eclipseSpecsProjectLocation); // FIXME _ probably can replace this with finding a plugin
         	srt = srt + "/../OpenJML/OpenJML/bin-runtime";
         	File f = new File(srt);
-        	if (f.exists() && f.isDirectory()) jmlruntimePath = srt;
+        	if (f.exists() && f.isDirectory()) {
+        		jmlruntimePath = srt;
+        	}
         	
         }
 

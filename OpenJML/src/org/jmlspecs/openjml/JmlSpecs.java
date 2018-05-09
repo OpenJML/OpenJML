@@ -282,7 +282,7 @@ public class JmlSpecs {
             if (s.endsWith(Strings.specsJar)) {
                 d = new JarDir(s,"");
                 if (d.exists()) {
-                    if (verbose) noticeWriter.println("Using internal specs " + d);
+                    if (verbose) noticeWriter.println("Using internal specs A: " + d);
                     dirs.add(d);
                     return true;
                 }
@@ -296,20 +296,20 @@ public class JmlSpecs {
             if (s.endsWith(".jar")) {
                 d = new JarDir(s,"");
                 if (d.exists() && d.findFile("java/lang/Object.jml") != null) {
-                    if (verbose) noticeWriter.println("Using internal specs " + d);
+                    if (verbose) noticeWriter.println("Using internal specs B: " + d);
                     dirs.add(d);
                     return true;
                 }
             }
         }
         
-        // Next look for openjml.jar
+        // Next look for openjml.jar - this option applies to typical installed use
         String libToUse = "specs"; // The top-level subdirectory within openjml.jar
         for (String s: ss) {
             if (s.endsWith(Strings.releaseJar)) {
                 d = new JarDir(s,libToUse);
                 if (d.exists()) {
-                    if (verbose) noticeWriter.println("Using internal specs " + d);
+                    if (verbose) noticeWriter.println("Using internal specs C:" + d);
                     dirs.add(d);
                     return true;
                 }
@@ -317,11 +317,12 @@ public class JmlSpecs {
         }
         
         // Or an equivalent
+        // This alternative applies when openjml.jar has been renamed within a command-line installation
         for (String s: ss) {
             if (s.endsWith(".jar")) {
                 d = new JarDir(s,libToUse);
                 if (d.exists()) {
-                    if (verbose) noticeWriter.println("Using internal specs " + d);
+                    if (verbose) noticeWriter.println("Using internal specs D:" + d);
                     dirs.add(d);
                     return true;
                 }
@@ -333,34 +334,24 @@ public class JmlSpecs {
         // (which is used in tests) - be careful though, the UI can be tricky and operates
         // differently in development vs. deployed mode
         
-        // Finally, for working in the Eclipse environment, see if there
-        // is an environment variable that is set.
+        // This option applies for running the IDE in the development environment
+        Bundle specs = Platform.getBundle("org.jmlspecs.Specs");
+        if (specs != null) {
+        	String pp = specs.getLocation();
+        	int k = pp.lastIndexOf(":");
+        	if (k >= 0) pp = pp.substring(k+1);
+        	Dir dd = make(pp + "/" + libToUse);
+            if (dd.exists()) {
+                if (verbose) noticeWriter.println("Using internal specs F:" + dd);
+                dirs.add(dd);
+                return true;
+            }
+        }
         
-//        Bundle specs = Platform.getBundle("org.jmlspecs.Specs");
-//        if (specs != null) {
-//        	Enumeration<String> en = specs.getEntryPaths("java" + version);
-//        	String p = en.nextElement();
-//        		System.out.println(p);
-//        		String pp = specs.getLocation();
-//        		System.out.println(pp);
-//        		java.net.URL ppp = specs.getEntry("");
-//        		System.out.println(ppp);
-//        }
-        
+        // This option is needed for running command-line tests in the development environment.
+        // sy should be the trunk directory of the Specs project
         String sy = Options.instance(context).get(Strings.eclipseSpecsProjectLocation);
-//        if (sy == null) {
-//            Bundle specs = Platform.getBundle("org.jmlspecs.Specs");
-//            if (specs != null) {
-//            		String pp = specs.getLocation();
-//            		System.out.println(pp);
-//            		int k = pp.indexOf("file:/") + "file:/".length();
-//            		sy = pp.substring(k);
-//            }
-//        }
-        // These are used in testing - sy should be the trunk directory of the Specs project
         if (sy != null) {
-            String pwd = System.getProperty("user.dir");
-            
             boolean found = false;
             Dir dd;
             dd = make(sy + "/" + libToUse);
