@@ -2135,6 +2135,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public JCIdent newTemp(String name, /*@ non_null */JCExpression expr) {
         return newTemp(expr.pos, name, expr);
     }
+    
+    public Map<Symbol,JCLiteral> constants = new HashMap<>();
+    
+    public JCExpression simplifyAndSave(JmlVariableDecl d, JCExpression expr) {
+        if (expr instanceof JCIdent) {
+            Symbol sym = ((JCIdent)expr).sym;
+            JCLiteral lit = constants.get(sym);
+            if (lit != null) expr = lit;
+        }
+        if (expr instanceof JCLiteral) {
+            constants.put(d.sym,(JCLiteral)expr);
+        }
+        return expr;
+    }
 
     
     /** Creates a declaration for the given name initialized to the given expression. */
@@ -2150,7 +2164,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 type.getTag() == TypeTag.BOT ? syms.objectType : type, 
                 n, 
                 esc ? null : methodDecl != null ? methodDecl.sym : classDecl.sym, 
-                expr); 
+                expr);
+        d.init = simplifyAndSave(d,expr);
 //        d.sym.flags_field |= Flags.FINAL;
 //        d.mods.flags |= Flags.FINAL;
         d.pos = pos;
@@ -4584,7 +4599,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!(t instanceof JCVariableDecl)) continue;
             JCVariableDecl vd = (JCVariableDecl)t;
             if (utils.isJMLStatic(vd.sym)) continue; // FIXME - static fields have to be created sooner
-            if (isModel(vd.sym)) continue;
+            if (isModel(vd.sym) && vd.init == null) continue;
             JCExpression field = treeutils.makeIdent(vd.pos, vd.sym);
             field = convertJML(field);
             JCExpression z = treeutils.makeZeroEquivalentLit(vd.pos,vd.type);
@@ -4632,7 +4647,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCVariableDecl vd = (JCVariableDecl)t;
                 if (vd.init == null) continue;
                 if (utils.isJMLStatic(vd.sym)) continue; // FIXME - static fields have to be created sooner
-                if (isModel(vd.sym)) continue;
+                //if (isModel(vd.sym)) continue;
                 JCExpression receiver;
                 receiver = treeutils.makeIdent(vd.pos, vd.sym);
                 receiver = convertJML(receiver);
@@ -10137,7 +10152,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             case EQ: res = lhsv.equals(rhsv); break;
             case NE: res = !lhsv.equals(rhsv); break;
             case AND: res = (Boolean)lhsv && (Boolean)rhsv; break;
-            case OR: res = (Boolean)lhsv && (Boolean)rhsv; break;
+            case OR: res = (Boolean)lhsv || (Boolean)rhsv; break;
             case PLUS: // FIXME - what about overflow checks and arithmetic mode
             { if (that.type.getTag() == TypeTag.INT) {
                 res = ((Number)lhsv).intValue() + ((Number)rhsv).intValue();
@@ -10212,8 +10227,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             case BITAND:  // FIXME - logical result?
             { if (that.type.getTag() == TypeTag.INT) {
                 res = ((Number)lhsv).intValue() & ((Number)rhsv).intValue();
-              } else if (that.type.getTag() == TypeTag.LONG) {
-                  res = ((Number)lhsv).longValue() & ((Number)rhsv).longValue();
+            } else if (that.type.getTag() == TypeTag.LONG) {
+                res = ((Number)lhsv).longValue() & ((Number)rhsv).longValue();
+            } else if (that.type.getTag() == TypeTag.BOOLEAN) {
+                res = ((Boolean)lhsv).booleanValue() & ((Boolean)rhsv).booleanValue();
               } // bigint
               break;
             }
@@ -10222,6 +10239,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 res = ((Number)lhsv).intValue() | ((Number)rhsv).intValue();
               } else if (that.type.getTag() == TypeTag.LONG) {
                   res = ((Number)lhsv).longValue() & ((Number)rhsv).longValue();
+              } else if (that.type.getTag() == TypeTag.BOOLEAN) {
+                  res = ((Boolean)lhsv).booleanValue() | ((Boolean)rhsv).booleanValue();
               } // bigint
               break;
             }
@@ -10230,14 +10249,72 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 res = ((Number)lhsv).intValue() ^ ((Number)rhsv).intValue();
               } else if (that.type.getTag() == TypeTag.LONG) {
                   res = ((Number)lhsv).longValue() & ((Number)rhsv).longValue();
+              } else if (that.type.getTag() == TypeTag.BOOLEAN) {
+                  res = ((Boolean)lhsv).booleanValue() != ((Boolean)rhsv).booleanValue();
               } // bigint
               break;
             }
-                
-            // shifts comparison eq ne
-                
+            case GT:
+            { if (that.type.getTag() == TypeTag.INT) {
+                res = ((Number)lhsv).intValue() > ((Number)rhsv).intValue();
+              } else if (that.type.getTag() == TypeTag.LONG) {
+                  res = ((Number)lhsv).longValue() > ((Number)rhsv).longValue();
+              } // bigint, real
+              break;
+            }
+            case GE: // FIXME - what about overflow checks and arithmetic mode
+            { if (that.type.getTag() == TypeTag.INT) {
+                res = ((Number)lhsv).intValue() >= ((Number)rhsv).intValue();
+              } else if (that.type.getTag() == TypeTag.LONG) {
+                  res = ((Number)lhsv).longValue() >= ((Number)rhsv).longValue();
+              } // bigint, real
+              break;
+            }
+            case LT: // FIXME - what about overflow checks and arithmetic mode
+            { if (that.type.getTag() == TypeTag.INT) {
+                res = ((Number)lhsv).intValue() < ((Number)rhsv).intValue();
+              } else if (that.type.getTag() == TypeTag.LONG) {
+                  res = ((Number)lhsv).longValue() < ((Number)rhsv).longValue();
+              } // bigint, real
+              break;
+            }
+            case LE: // FIXME - what about overflow checks and arithmetic mode
+            { if (that.type.getTag() == TypeTag.INT) {
+                res = ((Number)lhsv).intValue() <= ((Number)rhsv).intValue();
+              } else if (that.type.getTag() == TypeTag.LONG) {
+                  res = ((Number)lhsv).longValue() <= ((Number)rhsv).longValue();
+              } // bigint, real
+              break;
+            }
+            case SL: // FIXME - what about overflow checks and arithmetic mode
+            { if (that.type.getTag() == TypeTag.INT) {
+                res = ((Number)lhsv).intValue() << ((Number)rhsv).intValue();
+              } else if (that.type.getTag() == TypeTag.LONG) {
+                  res = ((Number)lhsv).longValue() << ((Number)rhsv).longValue();
+              } // bigint, real
+              break;
+            }
+            case SR: // FIXME - what about overflow checks and arithmetic mode
+            { if (that.type.getTag() == TypeTag.INT) {
+                res = ((Number)lhsv).intValue() >> ((Number)rhsv).intValue();
+              } else if (that.type.getTag() == TypeTag.LONG) {
+                  res = ((Number)lhsv).longValue() >> ((Number)rhsv).longValue();
+              } // bigint, real
+              break;
+            }
+            case USR: // FIXME - what about overflow checks and arithmetic mode
+            { if (that.type.getTag() == TypeTag.INT) {
+                res = ((Number)lhsv).intValue() >>> ((Number)rhsv).intValue();
+              } else if (that.type.getTag() == TypeTag.LONG) {
+                  res = ((Number)lhsv).longValue() >>> ((Number)rhsv).longValue();
+              } // bigint, real
+              break;
+            }                
         }
-        if (res == null) log.error(that,"jml.internal", "Constant folding here not implemented");
+        if (res == null) {
+            log.error(that,"jml.internal", "Constant folding here not implemented");
+            return that;
+        }
         return M.at(that).Literal(res);
     }
 
@@ -10257,8 +10334,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
             result = eresult = treeutils.makeBinary(that.pos,optag,that.getOperator(),lhs,rhs);
-//        } else if (that.lhs instanceof JCLiteral && that.rhs instanceof JCLiteral) {
-//            result = eresult = foldConstants(that);
         } else if (optag == JCTree.Tag.PLUS && that.type.equals(syms.stringType)) {
             if (esc) {
                 Symbol s = utils.findMember(syms.stringType.tsym,"concat");

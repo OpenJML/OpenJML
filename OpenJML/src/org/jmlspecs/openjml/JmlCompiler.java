@@ -403,6 +403,17 @@ public class JmlCompiler extends JavaCompiler {
         	return results;
         }
 
+//        JmlConstantFolder cf = new JmlConstantFolder(context);
+//        for (Env<AttrContext> env: envs) {
+//            try {
+//                new JmlPretty(new java.io.PrintWriter(System.out),true).print(env.tree);
+//                env.tree = cf.translate(env.tree);
+//                new JmlPretty(new java.io.PrintWriter(System.out),true).print(env.tree);
+//            } catch (java.io.IOException e) {
+//                log.warning("jml.internal", e.toString());
+//            }
+//        }
+        
         if (utils.check || utils.doc) {
             // Stop here
             return results; // Empty list - do nothing more
