@@ -338,6 +338,7 @@ public class JmlSpecs {
         Bundle specs = Platform.getBundle("org.jmlspecs.Specs");
         if (specs != null) {
         	String pp = specs.getLocation();
+        	if (verbose) noticeWriter.println("Specs location: " + pp);
         	int k = pp.lastIndexOf(":");
         	if (k >= 0) pp = pp.substring(k+1);
         	Dir dd = make(pp + "/" + libToUse);
@@ -422,7 +423,7 @@ public class JmlSpecs {
         }
         String dir;
         boolean checkDirectories = JmlOption.isOption(context,JmlOption.CHECKSPECSPATH);
-        if (JmlOption.isOption(context,JmlOption.INTERNALSPECS)) {
+        if (JmlOption.isOption(context,JmlOption.INTERNALSPECS) && !Main.instance(context).initializingOptions) {
             todo.add("$SY");
         }
 

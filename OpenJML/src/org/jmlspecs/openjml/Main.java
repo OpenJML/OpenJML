@@ -1092,6 +1092,8 @@ public class Main extends com.sun.tools.javac.main.Main {
     
     // EXTERNAL API FOR PROGRAMATIC ACCESS TO JML COMPILER INTERNALS
     
+    public boolean initializingOptions = false;
+    
     /** This method initializes the Options.instance(context) instance of
      * Options class. If the options argument is not null, its content is used
      * to initialize Options.instance(context); if options is null, then
@@ -1103,6 +1105,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * warned about and ignored. 
      */
     public void initializeOptions(@Nullable Options options, @NonNull String... args) {
+        initializingOptions = true;
         Options opts = Options.instance(context);
         setOptions(opts);
         if (options == null) {
@@ -1124,7 +1127,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         } catch (java.io.IOException e) {
             Log.instance(context).error("jml.process.args.exception", e.toString());
         }
-        
+        initializingOptions = false;
     }    
     
     /** Sets options (first argument) from any relevant properties (second argument) */
@@ -1361,7 +1364,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             Options.instance(context).put("-classpath",cp);
             if (Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE) 
                 Log.instance(context).getWriter(WriterKind.NOTICE).println("Classpath: " + Options.instance(context).get("-classpath"));
-        } else {
+        } else if (!Main.instance(context).initializingOptions){
             Log.instance(context).warning("jml.no.internal.runtime");
         }
     }
