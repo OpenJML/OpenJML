@@ -34,6 +34,4 @@ $SPECS/specs/java/io/InputStream.jml:165: warning: Precondition conjunct is fals
 Completed proof of Repro.Bar.getSeed2(int) with prover !!!! - with warnings
 Completed proving methods in Repro.Bar
 Completed proving methods in Repro
-Note: /Users/davidcok/cok/projects/OpenJMLB/Specs/specs/java/util/Random.jml uses internal proprietary API that may be removed in a future release.
-Note: Recompile with -Xlint:sunapi for details.
 6 warnings

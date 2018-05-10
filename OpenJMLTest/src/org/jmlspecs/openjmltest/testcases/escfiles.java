@@ -623,6 +623,11 @@ public class escfiles extends EscBase {
         helpTF("sfbug420X");
     }
     
+    @Test
+    public void testRmLoop() {
+        helpTF("escrmloop","-method=doLRS","-timeout=1800");
+    }
+    
 
     
     @Test @Ignore // FIXME - ignore for now, because it slways times out.

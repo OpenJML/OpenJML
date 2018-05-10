@@ -1,2 +1,0 @@
-Note: $SPECS/specs/java/util/Random.jml uses internal proprietary API that may be removed in a future release.
-Note: Recompile with -Xlint:sunapi for details.

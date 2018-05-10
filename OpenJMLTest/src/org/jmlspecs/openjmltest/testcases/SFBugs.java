@@ -673,7 +673,13 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug601() {
     	expectedExit = 0;
-        helpTCG();  // FIXMNE Unimplemented floating point 
+        helpTCG();  // FIXME Unimplemented floating point 
+    }
+    
+    @Test
+    public void gitbug602() {
+    	expectedExit = 0;
+        helpTCG("-Xlint:unchecked","-Xlint:sunapi");
     }
     
     public void gitbug888() {
