@@ -143,6 +143,7 @@ public class Utils {
 
 	protected String getInternalSystemSpecs() {
 		String filesep = "/"; // Not File.separator I think //$NON-NLS-1$
+		String specsDir = "specs";
 		StringBuilder ss = new StringBuilder();
 		try {
 			boolean somethingPresent = false;
@@ -175,34 +176,19 @@ public class Utils {
 				if (root.isFile()) {
 					// Presume it is a jar or zip file
 					JarFile j = new JarFile(root);
-					JarEntry f = j.getJarEntry("specs");
+					JarEntry f = j.getJarEntry(specsDir);
 					if (f != null)
-						defspecs[0] = loc + "!specs"; //$NON-NLS-1$
-					
-//					int i = 0;
-//					for (int v = version; v >= 4; --v) {
-//						JarEntry f = j.getJarEntry("java" + v); //$NON-NLS-1$
-//						if (f != null)
-//							defspecs[i++] = loc + "!java" + v; //$NON-NLS-1$
-//					}
+						defspecs[0] = loc + "!" + specsDir; //$NON-NLS-1$
 					j.close();
 				} else if (root.isDirectory()) {
 					// Normal file system directory
-//					int i = 0;
-//					for (int v = version; v >= 4; --v) {
-//						File f = new File(root, "java" + v); //$NON-NLS-1$
-//						if (f.exists())
-//							defspecs[i++] = root.getAbsolutePath().replace(
-//									'\\', '/')
-//									+ filesep + "java" + v; //$NON-NLS-1$
-//					}
-					File f = new File(root, "specs"); //$NON-NLS-1$
+					File f = new File(root, specsDir); //$NON-NLS-1$
 					if (f.exists())
 						defspecs[0] = f.getAbsolutePath().replace(
 								'\\', '/'); //$NON-NLS-1$
 				} else {
 					if (Options.uiverboseness)
-						Log.log("Expected contents (javaN subdirectories) not found in specs bundle at "
+						Log.log("Expected contents (specs subdirectory) not found in " + Env.SPECS_PLUGIN_ID + " bundle at "
 								+ root);
 				}
 				for (String z : defspecs) {
@@ -228,30 +214,15 @@ public class Utils {
 									+ root.exists());
 						int i = 0;
 						if (root.isDirectory()) {
-//							for (int v = version; v >= 4; --v) {
-//								File f = new File(root, ".." + filesep //$NON-NLS-1$
-//										+ "specs" + filesep + "java" + v);  //$NON-NLS-1$//$NON-NLS-2$
-//								if (f.exists())
-//									defspecs[i++] = f.toString();
-//							}
 							File f = new File(root, ".." + filesep //$NON-NLS-1$
-									+ "specs");  //$NON-NLS-1$//$NON-NLS-2$
+									+ specsDir);  //$NON-NLS-1$//$NON-NLS-2$
 							if (f.exists())
 								defspecs[i++] = f.toString();
 						} else {
 							JarFile j = new JarFile(root);
-//							for (int v = version; v >= 4; --v) {
-//								JarEntry f = j.getJarEntry("specs" + filesep
-//										+ "java" + v);
-//								if (f != null)
-//									defspecs[i++] = root + "!specs" + filesep
-//											+ "java" + v;
-//							}
-							JarEntry f = j.getJarEntry("specs" + filesep
-									+ "specs");
+							JarEntry f = j.getJarEntry(specsDir);
 							if (f != null)
-								defspecs[i++] = root + "!specs" + filesep
-										+ "specs";
+								defspecs[i++] = root + "!" + specsDir;
 							j.close();
 						}
 						if (i > 0)

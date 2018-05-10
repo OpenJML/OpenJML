@@ -1205,12 +1205,14 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             String internal_external = Options.value(SolversPage.execLocKeyPrefix + prover);
         	String exec = null;
             if ("internal".equals(internal_external)) {
+            	//Log.log("Using internal solver. Default is " + prover);
         		URL url = null;
         		try {
         			String osname = org.jmlspecs.openjml.Utils.identifyOS(null);
         			Bundle bundle = Platform.getBundle("org.jmlspecs.Solvers");
         			if (bundle != null) {
-        				url = FileLocator.find(bundle, new Path("Solvers-"+osname+"/z3-4.3.1"), Collections.EMPTY_MAP);
+        				String ex = osname.equals("windows") ? "/z3-4.3.2.exe" : "/z3-4.3.1";
+        				url = FileLocator.find(bundle, new Path("Solvers-"+osname+ex), Collections.EMPTY_MAP);
         				if (url != null) url = FileLocator.toFileURL(url);
                         if (url != null) {
                         	exec = url.getFile();
@@ -1219,6 +1221,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         			}
         		} catch (Exception e) {
         			exec = null;
+                	Log.log("Internal solver exception " + e.toString());
         		}
         		java.nio.file.Path path = FileSystems.getDefault().getPath(exec);
         		if (exec == null || !Files.exists(path)) {
@@ -1228,6 +1231,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         		}
         	} else {
         		exec = Options.value(Options.proverPrefix + prover);
+        		Log.log("Using external solver " + exec);
         	}
             opts.add(JmlOption.PROVEREXEC.optionName() +eq+ exec);
             opts.add(JmlOption.ESC_MAX_WARNINGS.optionName() +eq+ Options.value(Options.escMaxWarningsKey));
