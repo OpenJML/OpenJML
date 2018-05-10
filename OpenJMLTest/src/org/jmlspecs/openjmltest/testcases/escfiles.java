@@ -448,7 +448,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testEscFunction() {
-        helpTF("escFunction","-show","-method=f","-checkFeasibility=debug");
+        helpTF("escFunction");
     }
     
     @Test
