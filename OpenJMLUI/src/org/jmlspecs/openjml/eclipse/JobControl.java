@@ -157,6 +157,7 @@ public class JobControl {
         public abstract int queues();
         public abstract Job nextJob(OpenJMLInterface iface, int queue, SubMonitor parentMonitor);
         public abstract int totalWork();
+        public void cancel() {}
     }
     
     public static JobStrategy[] strategies = new JobStrategy[]{
@@ -184,14 +185,23 @@ public class JobControl {
         
         public int work;
         
+        public OpenJMLInterface iface;
+        
         public String description() { return "As one sequential job"; }
         
         public int queues() { return 1; }
         
         public int totalWork() { return work; }
         
+        public void cancel() {
+        	//this.iface.
+//        	String s = "CANCELING";
+//        	System.out.println(s);
+        }
+        
         public /*@ nullable */ Job nextJob(OpenJMLInterface iface, int queue, SubMonitor parentMonitor) {
             if (done || elements == null || elements.isEmpty()) return null;
+            this.iface = iface;
             String description = "Static checks of items in project " + jp.getElementName();
             Job j = new Job(title) {
                 public IStatus run(IProgressMonitor mon) {

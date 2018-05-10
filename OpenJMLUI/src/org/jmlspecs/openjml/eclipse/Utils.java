@@ -373,8 +373,8 @@ public class Utils {
 	        public IStatus run(IProgressMonitor m) {
 	            SubMonitor parentSubMonitor = SubMonitor.convert(m);
 	            parentSubMonitor.beginTask("Static checking project " + jp.getElementName(), work+1);
-	            parentSubMonitor = null;
-	            //iface.setMonitor(parentSubMonitor);
+	            //parentSubMonitor = null;
+	            iface.setMonitor(parentSubMonitor);
 	            final Job jjob = this;
 	            if (qs == 1) {
 	                while (true) {
@@ -387,10 +387,30 @@ public class Utils {
 	                    Log.log.equals("Scheduled a job");
 	                    try { 
 	                        //this.sleep();
+//	                    	while (true) {
+//	                            boolean completed = j.join(500,parentSubMonitor); 
+//	                            boolean mIsCancelled = m.isCanceled();
+//	                            boolean sIsCancelled = parentSubMonitor.isCanceled();
+//	                            if (mIsCancelled || sIsCancelled) {
+//	                            	j.cancel();
+//	                            	continue;
+//	                            }
+//	                            IStatus r = j.getResult();
+//	                            if (r == null) continue;
+//	                            if (r == Status.CANCEL_STATUS) {
+//	                        	    return Status.CANCEL_STATUS;
+//	                            }
+//	                            if (r == Status.OK_STATUS) break;
+//	                    	}
 	                        j.join(); 
 	                        if (j.getResult() == Status.CANCEL_STATUS) return Status.CANCEL_STATUS;
 	                        Log.log.equals("Joined a job");
-	                    } catch (InterruptedException e) { break; }
+	                    } catch (InterruptedException e) { 
+	                    	break;
+	                	} catch (OperationCanceledException e) {
+	                		// Monitor canceled
+	                		j.cancel();
+	                	}
 	                }
 	                return Status.OK_STATUS;
 	            } else {

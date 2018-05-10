@@ -2165,7 +2165,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 n, 
                 esc ? null : methodDecl != null ? methodDecl.sym : classDecl.sym, 
                 expr);
-        d.init = simplifyAndSave(d,expr);
+        d.init = expr;
+//        d.init = simplifyAndSave(d,expr);
 //        d.sym.flags_field |= Flags.FINAL;
 //        d.mods.flags |= Flags.FINAL;
         d.pos = pos;
