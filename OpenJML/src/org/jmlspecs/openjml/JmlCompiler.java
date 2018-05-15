@@ -414,6 +414,12 @@ public class JmlCompiler extends JavaCompiler {
 //            }
 //        }
         
+        JmlUseSubstitutions subst = new JmlUseSubstitutions(context);
+        for (Env<AttrContext> env: envs) {
+            env.tree = subst.translate(env.tree);
+        }
+        
+        
         if (utils.check || utils.doc) {
             // Stop here
             return results; // Empty list - do nothing more

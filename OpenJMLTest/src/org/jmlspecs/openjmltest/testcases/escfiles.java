@@ -628,6 +628,16 @@ public class escfiles extends EscBase {
         helpTF("escrmloop","-method=doLRS","-timeout=1800");
     }
     
+    @Test
+    public void escFPcompose() {
+        helpTF("escFPcompose");
+    }
+    
+    @Test
+    public void escLemma() {
+        helpTF("escLemma");
+    }
+    
 
     
     @Test @Ignore // FIXME - ignore for now, because it slways times out.

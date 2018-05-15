@@ -545,7 +545,7 @@ public class JmlParser extends JavacParser {
                 JmlSpecificationCase spc;
                 if (jtoken != null)
                     reason = jtoken.internedName() + " statement";
-                if (jtoken == JmlTokenKind.ASSUME || jtoken == JmlTokenKind.ASSERT) {
+                if (jtoken == JmlTokenKind.ASSUME || jtoken == JmlTokenKind.ASSERT || jtoken == JmlTokenKind.USE) {
                     S.setJmlKeyword(false);
                     nextToken();
                     JCExpression t = null;

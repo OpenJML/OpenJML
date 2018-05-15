@@ -14723,7 +14723,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (o != null) opt = o;
                     }
                 }
-                result = addAssert(false,that,Label.EXPLICIT_ASSERT,e,null,null,opt);
+                Label label = that.label;
+                if (label == null) label = Label.EXPLICIT_ASSERT;
+                result = addAssert(false,that,label,e,null,null,opt);
                 break;
             case ASSUME:
                 addTraceableComment(that);
@@ -14761,6 +14763,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             case HENCE_BY:
                 // FIXME - implement HENCE_BY
                 notImplemented(that,"hence_by statement");
+                result = null;
+                break;
+            case USE:
+                // skip it - it has been handled previously
                 result = null;
                 break;
             default:

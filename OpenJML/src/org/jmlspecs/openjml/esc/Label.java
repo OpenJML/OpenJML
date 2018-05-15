@@ -239,6 +239,9 @@ public class Label {
     /** Used to designate an undefined pure expression because of a failed precondition in a called method */
     /*@ non_null*/ public final static Label UNDEFINED_PRECONDITION = new Label("UndefinedCalledMethodPrecondition");
     
+    /** Used to designate an undefined pure expression because of a failed precondition for a lemma */
+    /*@ non_null*/ public final static Label UNDEFINED_LEMMA = new Label("UndefinedLemmaPrecondition");
+    
     /** Used for assert statements generated from non-null checks when unboxing */
     /*@ non_null*/ public final static Label UNDEFINED_NULL_UNBOX = new Label("UndefinedNullUnbox");
     

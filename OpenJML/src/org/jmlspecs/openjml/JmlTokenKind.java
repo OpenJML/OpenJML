@@ -34,6 +34,7 @@ public enum JmlTokenKind implements ITokenKind {
     END("end"),
     SET("set"),
     SHOW("show"),
+    USE("use"),
     DECREASES("decreases"),
     INLINED_LOOP("inlined_loop"),
     LOOP_INVARIANT("loop_invariant"),
@@ -173,7 +174,9 @@ public enum JmlTokenKind implements ITokenKind {
     BSONLYCALLED("\\only_called"),
     BSONLYCAPTURED("\\only_captured"),
     BSPAST("\\past"),
-    BSPRE("\\pre"),
+    BSPRE("\\pre"), // overloaded both \post-like and \old-like
+    BSPOST("\\post"),
+    BSASSIGNS("\\assigns"),
     BSREACH("\\reach"),
     BSSPACE("\\space"),
     BSTYPEOF("\\typeof"),

@@ -3616,13 +3616,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** This handles JML statements such as assert and assume and unreachable and hence_by. */
     public void visitJmlStatementExpr(JmlTree.JmlStatementExpr tree) {
         if (tree.token == JmlTokenKind.COMMENT) { result = null; return; }
+        boolean isUse = tree.token == JmlTokenKind.USE;
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         boolean prev = pureEnvironment;
         pureEnvironment = true;
         JmlTokenKind prevClauseType = currentClauseType;
         currentClauseType = tree.token;
         // unreachable statements have a null expression
-        if (tree.expression != null) attribExpr(tree.expression,env,syms.booleanType);
+        if (tree.expression != null) attribExpr(tree.expression,env,isUse ? Type.noType : syms.booleanType);
         if (tree.optionalExpression != null) attribExpr(tree.optionalExpression,env,Type.noType);
         currentClauseType = prevClauseType;
         pureEnvironment = prev;
