@@ -203,6 +203,16 @@ public class MethodProverSMT {
         }
         return exec;
     }
+    
+    protected ISolver solver = null;
+    protected ISolver solver2 = null;
+    protected boolean aborted = false;
+    
+    public void abort() {
+        if (solver != null) solver.forceExit();
+        if (solver2 != null) solver2.forceExit();
+        aborted = true;
+    }
 
     /** The entry point to initiate proving a method. In the current implementation
      * the methodDecl is a method of the original AST and the original AST must
@@ -282,7 +292,6 @@ public class MethodProverSMT {
         smt.smtConfig.log.addListener(new SMTListener(log,smt.smtConfig.defaultPrinter));
         SMTTranslator smttrans = new SMTTranslator(context, methodDecl.sym.toString());
 
-        ISolver solver;
         IResponse solverResponse = null;
         BasicBlocker2 basicBlocker;
         BasicProgram program;
@@ -353,9 +362,14 @@ public class MethodProverSMT {
             		// Not sure there is anything to worry about, but just in case
             		//log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
             	    solver.exit();
+            	    solver = null;
                     JCDiagnostic d = log.factory().error(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), e.toString());
                     log.report(d);
             		return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
+            	} finally {
+                    if (aborted) {
+                    	throw new Main.JmlCanceledException("Aborted by user");
+                    }
             	}
             }
 
@@ -372,6 +386,9 @@ public class MethodProverSMT {
         {
             IResponse unsatResponse = smt.smtConfig.responseFactory.unsat();
             if (solverResponse.isError()) {
+                if (aborted) {
+                    throw new Main.JmlCanceledException("Aborted by user");
+                }
                 solver.exit();
                 //log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
                 String msg = smt.smtConfig.defaultPrinter.toString(solverResponse);
@@ -410,6 +427,10 @@ public class MethodProverSMT {
                     java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.assumeChecks.get(methodDecl);
                     int feasibilityCheckNumber = 0;
                     if (checks != null) for (JmlStatementExpr stat: checks) {
+                        if (aborted) {
+                        	throw new Main.JmlCanceledException("Aborted by user");
+                        }
+                        
                         ++feasibilityCheckNumber;
                         if (feasibilityCheckNumber < startFeasibilityCheck) continue;
                         if (prevErrors != log.nerrors) break;
@@ -418,7 +439,7 @@ public class MethodProverSMT {
                         if (!allFeasibilities && !Strings.feasibilityContains(stat.description,context)) continue;
                             
                         if (!usePushPop) {
-                            ISolver solver2 = smt.startSolver(smt.smtConfig,proverToUse,exec);
+                            solver2 = smt.startSolver(smt.smtConfig,proverToUse,exec);
                             if (JmlAssertionAdder.useAssertCount) {
                                 List<ICommand> commands = script.commands();
                                 commands.remove(commands.size()-1);
@@ -452,13 +473,15 @@ public class MethodProverSMT {
 //                            }
                             try {
                                 solverResponse = script.execute(solver2); // Note - the solver knows the smt configuration
-                                solver2.exit();
                             } catch (Exception e) {
                                 // Not sure there is anything to worry about, but just in case
                                 //log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
                                 JCDiagnostic d = log.factory().error(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), e.toString());
                                 log.report(d);
                                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
+                            } finally {
+                                solver2.exit();
+                                solver2 = null;
                             }
                            
                         }
@@ -508,6 +531,9 @@ public class MethodProverSMT {
                 proofResult = pr;
                 boolean haveFailedAssertion = false;
                 while (prevErrors == log.nerrors) {
+                    if (aborted) {
+                    	throw new Main.JmlCanceledException("Aborted by user");
+                    }
 
                     if (solverResponse.isError()) {
                         solver.exit();
@@ -633,7 +659,10 @@ public class MethodProverSMT {
                 //pr.accumulateDuration((new Date().getTime() - pr.timestamp().getTime())/1000.);
             }
         }
-        if (usePushPop) solver.exit();
+        if (usePushPop) {
+            solver.exit();
+            solver = null;
+        }
         smt.smtConfig.logfile = null;
 //        saveBenchmark(proverToUse,methodDecl.name.toString());
 //        jmlesc.mostRecentProgram = program;

@@ -393,12 +393,12 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
 //                api = new API(w,new EclipseDiagnosticListener(preq));
 //                api.setProgressReporter(new UIProgressReporter(api.context(),monitor,null));
 //            }
-            setMonitor(monitor);
            
             List<String> args = getOptions(jproject,Main.Cmd.ESC);
             api.initOptions(null,  args.toArray(new String[args.size()]));
 //            args.clear();
             
+            setMonitor(monitor); // Must be set after the options are initialized
             List<IJavaElement> elements = new LinkedList<IJavaElement>();
             
             IResource rr;

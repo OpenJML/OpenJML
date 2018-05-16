@@ -125,6 +125,8 @@ public interface IAPI {
     public @Nullable
     String getOption(String name);
 
+    public void abort();
+    
     /** Executes the command-line version of OpenJML, in a newly initialized
      * Main, with a new compilation context, returning the exit code.
      * The arguments are used to initialize the options and files just as

@@ -163,7 +163,7 @@ public class JobControl {
     public static JobStrategy[] strategies = new JobStrategy[]{
         new OneJobStrategy(),
         new SelectedItemStrategy(),
-        new MultiSelectedItemStrategy(),
+//        new MultiSelectedItemStrategy(),
     };
 
     public static class OneJobStrategy extends JobStrategy {
@@ -193,11 +193,7 @@ public class JobControl {
         
         public int totalWork() { return work; }
         
-        public void cancel() {
-        	//this.iface.
-//        	String s = "CANCELING";
-//        	System.out.println(s);
-        }
+        public void cancel() { }
         
         public /*@ nullable */ Job nextJob(OpenJMLInterface iface, int queue, SubMonitor parentMonitor) {
             if (done || elements == null || elements.isEmpty()) return null;
@@ -205,15 +201,12 @@ public class JobControl {
             String description = "Static checks of items in project " + jp.getElementName();
             Job j = new Job(title) {
                 public IStatus run(IProgressMonitor mon) {
-                    SubMonitor monitor = SubMonitor.convert(mon);
-                    if (parentMonitor != null) monitor = parentMonitor;
                     // The actual amount of work will be determined in executeESCCommand
- //                   monitor.beginTask(title, IProgressMonitor.UNKNOWN);
-//                    // FIXME - perhaps just set verbosity to at least progress
-//                    monitor.subTask("Detailed progress will be shown only if the verbosity preference is at least 'progress'");
+                	parentMonitor.beginTask(title, IProgressMonitor.UNKNOWN);
+                	parentMonitor.subTask("Detailed progress will be shown only if the verbosity preference is at least 'progress'");
                     boolean c = false;
                     try {
-                        iface.executeESCCommand(Cmd.ESC, elements, monitor, description);
+                        iface.executeESCCommand(Cmd.ESC, elements, parentMonitor, description);
                     } catch (Exception e) {
                         // FIXME - this will block, preventing progress on the rest of the projects
                         Log.errorlog("Exception during Static Checking - " + jp.getElementName(), e);
@@ -260,29 +253,23 @@ public class JobControl {
             Object o = iter.next();
             String id1 = o.toString();
             int k = id1.indexOf('[');
-//            try {
             id1 = o instanceof IMethod ? id1.substring(0, k > 0 ? k : id1.length()):
                 o instanceof IJavaElement ? ((IJavaElement)o).getElementName() : 
                 o instanceof IResource ? ((IResource)o).getName() :
                 id1;
-//            } catch (JavaModelException e) {
-//                id1 = "<JavaModelException>";
-//            }
             String id = id1;
             String description = "Static checks in project " + jp.getElementName() + " - " + id;
             Job j = new Job(title) {
                 public IStatus run(IProgressMonitor mon) {
-                    SubMonitor monitor = SubMonitor.convert(mon);
-                    if (parentMonitor != null) monitor = parentMonitor;
+                	// The monitor passed in here is not shown to the user, so we ignore it
                     // The actual amount of work will be determined in executeESCCommand
-//                    monitor.beginTask(description, IProgressMonitor.UNKNOWN);
-//                    // FIXME - perhaps just set verbosity to at least progress
-//                    monitor.subTask("Detailed progress will be shown only if the verbosity preference is at least 'progress'");
+                    parentMonitor.beginTask(description, IProgressMonitor.UNKNOWN);
+                    parentMonitor.subTask("Detailed progress will be shown only if the verbosity preference is at least 'progress'");
                     boolean c = false;
                     try {
                         List<Object> list = new LinkedList<Object>();
                         list.add(o);
-                        iface.executeESCCommand(Cmd.ESC, list, monitor, description);
+                        iface.executeESCCommand(Cmd.ESC, list, parentMonitor, description);
                     } catch (Exception e) {
                         // FIXME - this will block, preventing progress on the rest of the projects
                         Log.errorlog("Exception during Static Checking - " + jp.getElementName() + " _ " + id, e);
@@ -327,17 +314,14 @@ public class JobControl {
             String description = "Static checks of items in project " + jp.getElementName();
             Job j = new Job(title) {
                 public IStatus run(IProgressMonitor mon) {
-                    SubMonitor monitor = SubMonitor.convert(mon);
-                    if (parentMonitor != null) monitor = parentMonitor;
                     // The actual amount of work will be determined in executeESCCommand
-//                    monitor.beginTask(reason, IProgressMonitor.UNKNOWN);
-//                    // FIXME - perhaps just set verbosity to at least progress
-//                    monitor.subTask("Detailed progress will be shown only if the verbosity preference is at least 'progress'");
+                    parentMonitor.beginTask(description, IProgressMonitor.UNKNOWN);
+                    parentMonitor.subTask("Detailed progress will be shown only if the verbosity preference is at least 'progress'");
                     boolean c = false;
                     try {
                         List<Object> list = new LinkedList<Object>();
                         list.add(o);
-                        iface.executeESCCommand(Cmd.ESC, list, monitor, description);
+                        iface.executeESCCommand(Cmd.ESC, list, parentMonitor, description);
                     } catch (Exception e) {
                         // FIXME - this will block, preventing progress on the rest of the projects
                         Log.errorlog("Exception during Static Checking - " + jp.getElementName(), e);

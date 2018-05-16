@@ -155,7 +155,7 @@ public class API implements IAPI {
     public void setProgressListener(/*@ nullable */ Main.IProgressListener p) {
         if (main.progressDelegator != null) {
             p.setContext(context());
-            main.progressDelegator.setDelegate(p);
+            Main.progressListener = () -> p;
         }
     }
     
@@ -205,6 +205,12 @@ public class API implements IAPI {
     @Override
     public @Nullable String getOption(String name) {
         return Options.instance(context()).get(name);
+    }
+    
+    // Expected to be called in a different thread
+    @Override
+    public void abort() {
+       if (main != null) JmlEsc.instance(main.context()).abort();
     }
     
     /* (non-Javadoc)

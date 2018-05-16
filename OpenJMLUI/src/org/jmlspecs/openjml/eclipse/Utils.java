@@ -66,6 +66,7 @@ import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 import org.osgi.framework.Bundle;
 
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.util.PropagatedException;
 
 import sun.net.www.content.image.jpeg;
 
@@ -358,127 +359,120 @@ public class Utils {
     /** Creates and schedules a Job to do the desired computation.
      */
 	public void checkESCProject(final IJavaProject jp, /*@ nullable */ final List<Object> ores, /*@ nullable */Shell shell, String reason, JobControl.JobParameters jobParameters) {
-//	    if (progressGroup == null) progressGroup = Job.getJobManager().createProgressGroup();
-//        IResourceRuleFactory ruleFactory = 
-//                ResourcesPlugin.getWorkspace().getRuleFactory();
-	    try {
-	    OpenJMLInterface iface = getInterface(jp);
-	    JobControl.JobStrategy strategy1 = new JobControl.SelectedItemStrategy(jp,ores,2,reason);
-	    if (jobParameters != null) strategy1 = jobParameters.strategy.getConstructor(IJavaProject.class,List.class,int.class,String.class).newInstance(jp,ores,2,reason);
-        final JobControl.JobStrategy strategy = strategy1;
-	    int qs = strategy.queues();
-	    int work = strategy.totalWork();
-	    
-	     Job job = new Job("Master ESC Job") {
-	        public IStatus run(IProgressMonitor m) {
-	            SubMonitor parentSubMonitor = SubMonitor.convert(m);
-	            parentSubMonitor.beginTask("Static checking project " + jp.getElementName(), work+1);
-	            //parentSubMonitor = null;
-	            iface.setMonitor(parentSubMonitor);
-	            final Job jjob = this;
-	            if (qs == 1) {
-	                while (true) {
-	                    Job j = strategy.nextJob(iface,0,parentSubMonitor);
-	                    if (j == null) break;
-	                    //j.setProgressGroup(progressGroup,IProgressMonitor.UNKNOWN);
-	                    j.setRule(null);
-	                    j.setUser(true); // true since the job has been initiated by an end-user
-	                    j.schedule();
-	                    Log.log.equals("Scheduled a job");
-	                    try { 
-	                        //this.sleep();
-//	                    	while (true) {
-//	                            boolean completed = j.join(500,parentSubMonitor); 
-//	                            boolean mIsCancelled = m.isCanceled();
-//	                            boolean sIsCancelled = parentSubMonitor.isCanceled();
-//	                            if (mIsCancelled || sIsCancelled) {
-//	                            	j.cancel();
-//	                            	continue;
-//	                            }
-//	                            IStatus r = j.getResult();
-//	                            if (r == null) continue;
-//	                            if (r == Status.CANCEL_STATUS) {
-//	                        	    return Status.CANCEL_STATUS;
-//	                            }
-//	                            if (r == Status.OK_STATUS) break;
-//	                    	}
-	                        j.join(); 
-	                        if (j.getResult() == Status.CANCEL_STATUS) return Status.CANCEL_STATUS;
-	                        Log.log.equals("Joined a job");
-	                    } catch (InterruptedException e) { 
-	                    	break;
-	                	} catch (OperationCanceledException e) {
-	                		// Monitor canceled
-	                		j.cancel();
-	                	}
-	                }
-	                return Status.OK_STATUS;
-	            } else {
-	                JobGroup jobGroup = new JobGroup("",qs,qs);
-	                Job[] jobs = new Job[qs];
-	                OpenJMLInterface ifaces[] = new OpenJMLInterface[qs];
-	                for (int i=0; i<ifaces.length; ++i) ifaces[i] = new OpenJMLInterface(jp);
-	                AtomicInteger aq = new AtomicInteger();
-	                while (true) {
-	                    while (aq.get()<qs) {
-	                        int q = 0;
-	                        for (;q < qs; q++) if (jobs[q] == null) break;
-	                        Job j = strategy.nextJob(ifaces[q],q,parentSubMonitor);
-                            jobs[q] = j;
-	                        if (j == null) break;
-                            aq.incrementAndGet();
-	                        //j.setProgressGroup(progressGroup,IProgressMonitor.UNKNOWN);
-	                        j.addJobChangeListener(new JobChangeAdapter() { public void done(IJobChangeEvent e) {
-	                            for (int i=0; i<qs; i++) if (e.getJob() == jobs[i]) { 
-	                                jobs[i] = null; 
-	                                break; 
-	                            }
-	                            int qq = aq.decrementAndGet();
-                                Log.log("Job completed " + qq);
-	                            Job.getJobManager().wakeUp(jjob);
-	                        } });
-	                        j.setJobGroup(jobGroup);
-	                        j.setRule(null);
-	                        j.setUser(true); // false, to suppress the progress monitor dialog
-	                        j.schedule();
-	                        Log.log.equals("Scheduled a job " + q + " " + aq.get());
-	                    }
-	                    if (aq.get() == qs) {
-	                        while (aq.get() == qs) {
-	                            // Could have a race: if check test above; job completes; decrements aq; wakes this job; then this job sleeps 
-	                            Log.log("Going to sleep " + aq.get());
-	                            jjob.sleep();
-                                Log.log("Awake " + aq.get());
-	                            try { Thread.sleep(3000); } catch (InterruptedException e) {}
-	                        }
-	                    } else {
-	                        break;
-	                    }
-	                }
-                    Log.log("Going to join " + aq.get());
-                    try { jobGroup.join(0,null); }  catch (InterruptedException e) {}
-                    Log.log("All done " + aq.get());
-                    return Status.OK_STATUS;
-	            }
-	        };
-	    };
-	    IFile f = jp.getProject().getFile(".joblock");
-	    if (!f.exists()) {
-	    	try {
-	    		f.create(new ByteArrayInputStream(new byte[0]), IResource.NONE, null);
-	    	} catch (ResourceException e) {
-	    		// Already exists? - we get here despite the f.exists test.
-	    	} catch (Exception e) {
-	    		Log.log("Failed to lock " + e.getMessage());
-	    	}
-	    }
-	    job.setRule(f);
-	    //job.belongsTo(job);
-	    job.setUser(false);  // true to show the composite progress monitor
-	    job.schedule();
-	    } catch (Exception e) {
-	        // FIXME Failure
-	    }
+		try {
+			OpenJMLInterface iface = getInterface(jp);
+			JobControl.JobStrategy strategy1 = new JobControl.SelectedItemStrategy(jp,ores,2,reason);
+			if (jobParameters != null) strategy1 = jobParameters.strategy.getConstructor(IJavaProject.class,List.class,int.class,String.class).newInstance(jp,ores,2,reason);
+			final JobControl.JobStrategy strategy = strategy1;
+			int qs = strategy.queues();
+			int work = strategy.totalWork();
+			
+			Job job = new Job("Master ESC Job") {
+				public IStatus run(IProgressMonitor m) {
+					SubMonitor parentSubMonitor = SubMonitor.convert(m);
+					parentSubMonitor.beginTask("Static checking project " + jp.getElementName(), work+1);
+					//parentSubMonitor = null;
+					final Job jjob = this;
+					if (qs == 1) {
+						while (true) {
+							Job j = strategy.nextJob(iface,0,parentSubMonitor);
+		                    iface.setMonitor(parentSubMonitor);
+							if (j == null) break;
+							j.setRule(null);
+							j.setUser(false); // false so we do not get progress monitors for sub-jobs
+							try { 
+	                            j.schedule();
+	                            // join will throw OperationCanceledException if the monitor is canceled
+	                            // Use a timeout here so we can frequently poll for cancelation requests
+	                            // Timeout amount is somewhat arbitrary
+	                            while (!j.join(500,parentSubMonitor)) {} // spin until finished or canceled 
+								// Check for cancelation request after the job completed
+								if (j.getResult() == Status.CANCEL_STATUS) {
+	                                jjob.cancel(); // TODO - do we need this?
+	                                Log.log("Cancelled without completing all proof tasks - A");
+								    return Status.CANCEL_STATUS;
+								}
+								Log.log.equals("Completed a job " + j.getResult());
+							} catch (InterruptedException e) { 
+								break; // TODO - What is the correct action here?
+							} catch (OperationCanceledException e) {
+								// Cancelation request during join()
+								j.cancel();
+                                jjob.cancel(); // TODO - do we need this? or call done()
+                                iface.api.abort();
+                                Log.log("Cancelled without completing all proof tasks");
+								return Status.CANCEL_STATUS;
+							}
+						}
+						return Status.OK_STATUS;
+					} else {
+						JobGroup jobGroup = new JobGroup("",qs,qs);
+						Job[] jobs = new Job[qs];
+						OpenJMLInterface ifaces[] = new OpenJMLInterface[qs];
+						for (int i=0; i<ifaces.length; ++i) ifaces[i] = new OpenJMLInterface(jp);
+						AtomicInteger aq = new AtomicInteger();
+						while (true) {
+							while (aq.get()<qs) {
+								int q = 0;
+								for (;q < qs; q++) if (jobs[q] == null) break;
+								Job j = strategy.nextJob(ifaces[q],q,parentSubMonitor);
+								jobs[q] = j;
+								if (j == null) break;
+								aq.incrementAndGet();
+								j.addJobChangeListener(new JobChangeAdapter() { public void done(IJobChangeEvent e) {
+									for (int i=0; i<qs; i++) if (e.getJob() == jobs[i]) { 
+										jobs[i] = null; 
+										break; 
+									}
+									int qq = aq.decrementAndGet();
+									Log.log("Job completed " + qq);
+									Job.getJobManager().wakeUp(jjob);
+								} });
+								j.setJobGroup(jobGroup);
+								j.setRule(null);
+								j.setUser(false); // false, to suppress the progress monitor dialog for subtasks
+								j.schedule();
+								Log.log.equals("Scheduled a job " + q + " " + aq.get());
+							}
+							if (aq.get() == qs) {
+								while (aq.get() == qs) {
+									// Could have a race: if check test above; job completes; decrements aq; wakes this job; then this job sleeps 
+									//Log.log("Going to sleep " + aq.get());
+									jjob.sleep(); // sleep until some job terminates and calls wakeUp()
+									//Log.log("Awake " + aq.get());
+								}
+							} else {
+								break;
+							}
+						}
+						Log.log("Going to join " + aq.get());
+						try { jobGroup.join(0,null); }  catch (InterruptedException e) {}
+						Log.log("All done " + aq.get());
+						return Status.OK_STATUS;
+					}
+				};
+			};
+			IFile f = jp.getProject().getFile(".joblock");
+			if (!f.exists()) {
+				try {
+					f.create(new ByteArrayInputStream(new byte[0]), IResource.NONE, null);
+				} catch (ResourceException e) {
+					// Already exists? - we get here despite the f.exists test.
+				} catch (Exception e) {
+					Log.log("Failed to lock " + e.getMessage());
+				}
+			}
+			job.setRule(f);
+			//job.belongsTo(job);
+			job.setUser(true);  // true to show the composite progress monitor
+			job.schedule();
+//			job.join();
+//			if (job.getResult() == Status.CANCEL_STATUS) {
+//			    Log.log("Job queue canceled");
+//			}
+		} catch (Exception e) {
+			// FIXME Failure
+		}
 	}
 
 

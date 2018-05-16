@@ -424,7 +424,7 @@ public class JmlCompiler extends JavaCompiler {
             // Stop here
             return results; // Empty list - do nothing more
         } else if (utils.esc) {
-            JmlEsc esc = JmlEsc.instance(context); // FIXME - get this once at initialization?
+            JmlEsc esc = JmlEsc.instance(context); // FIXME - get this once at initialization? or does that mess up reportCOunts?
         	try {
                 esc.initCounts();
         	    for (Env<AttrContext> env: envs) esc(env);

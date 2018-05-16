@@ -110,7 +110,7 @@ public class JmlEsc extends JmlTreeScanner {
         	assertionAdder.convert(tree); // get at the converted tree through the map
         	// And then we walk the tree to see which items are to be proved
         	tree.accept(this);
-        } catch (PropagatedException e) {
+        } catch (PropagatedException | Main.JmlCanceledException e) {
         	// Canceled
     		Main.instance(context).canceled = true;
     		count(IProverResult.ERROR);
@@ -258,7 +258,12 @@ public class JmlEsc extends JmlTreeScanner {
         return proverToUse;
     }
     
+    // FIXME _ need synchronizatipon on this field
+    MethodProverSMT currentMethodProver = null;
 
+    public void abort() {
+        if (currentMethodProver != null) currentMethodProver.abort();
+    }
     
     /** Do the actual work of proving the method */
     protected IProverResult doMethod(@NonNull JmlMethodDecl methodDecl) {
@@ -305,7 +310,9 @@ public class JmlEsc extends JmlTreeScanner {
             if (JmlOption.isOption(context, JmlOption.BOOGIE)) {
                 res = new MethodProverBoogie(this).prove(methodDecl);
             } else {
-                res = new MethodProverSMT(this).prove(methodDecl,proverToUse);
+                currentMethodProver = new MethodProverSMT(this);
+                res = currentMethodProver.prove(methodDecl,proverToUse);
+                currentMethodProver = null;
             }
             long duration = System.currentTimeMillis() - methodStart;
             utils.progress(1,1,"Completed proof of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
@@ -329,7 +336,7 @@ public class JmlEsc extends JmlTreeScanner {
             + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
             + " - exception"
             );
-            throw e;
+            throw (e instanceof Main.JmlCanceledException) ? new PropagatedException(e) : e;
         } catch (Throwable e) {
             JCDiagnostic d;
             if (e instanceof SMTTranslator.JmlBVException) {

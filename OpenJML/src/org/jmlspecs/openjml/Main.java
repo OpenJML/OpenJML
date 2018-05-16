@@ -145,6 +145,8 @@ public class Main extends com.sun.tools.javac.main.Main {
     
     public boolean canceled = false;
     
+    static public java.util.function.Supplier<IProgressListener> progressListener;
+    
     /** The diagListener provided when an instance of Main is constructed.
      * The listener will be notified when any diagnostic is generated.
      */
@@ -876,13 +878,22 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
 
         if (utils.jmlverbose >= Utils.PROGRESS) {
+            // Why not let the progress listener decide what to print???
+            
             // We check for an existing delegate, because if someone is calling
             // OpenJML programmatically, they may have set one up already.
-            // Note, though that this won't udo the setting, if verbosity is
+            // Note, though that this won't undo the setting, if verbosity is
             // turned off.
-            if (!progressDelegator.hasDelegate()) progressDelegator.setDelegate(new PrintProgressReporter(context,out));
+            //if (!progressDelegator.hasDelegate()) {
+                try {
+                    progressDelegator.setDelegate(progressListener != null ? progressListener.get() : new PrintProgressReporter(context,out));
+                } catch (Exception e) {
+                    // FIXME - report problem
+                    // continue without installing a listener
+                }
+            //}
         } else {
-            progressDelegator.setDelegate(null);
+        	progressDelegator.setDelegate(null);
         }
         
         boolean b = JmlOption.isOption(context,JmlOption.USEJAVACOMPILER);
