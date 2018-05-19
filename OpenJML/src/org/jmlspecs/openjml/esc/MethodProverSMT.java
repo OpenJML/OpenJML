@@ -313,7 +313,7 @@ public class MethodProverSMT {
             // convert the basic block form to SMT
             try {
                 try {
-                    if (!Utils.testingMode && utils.jmlverbose >= Utils.PROGRESS && methodDecl.usedBitVectors && !JmlOption.value(context, JmlOption.ESC_BV).equals("true")) {
+                    if (utils.jmlverbose >= Utils.PROGRESS && methodDecl.usedBitVectors && !JmlOption.value(context, JmlOption.ESC_BV).equals("true")) {
                         log.note("jml.message", "Using bit-vector arithmetic");
                     }
                     script = smttrans.convert(program,smt,methodDecl.usedBitVectors);

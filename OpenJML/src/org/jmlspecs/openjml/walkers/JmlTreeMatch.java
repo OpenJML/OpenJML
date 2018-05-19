@@ -32,11 +32,15 @@ import com.sun.tools.javac.util.Log;
 public class JmlTreeMatch extends JmlTreeScanner {
     
     protected Log log;
+    protected Utils utils;
+    protected Context context;
     
     /** Creates a new copier, whose new nodes are generated from the given factory*/
     public JmlTreeMatch(Context context) {
         super();
         this.log = Log.instance(context);
+        this.utils = Utils.instance(context);
+        this.context = context;
     }
     
     public static class NoMatchException extends RuntimeException {}
@@ -49,9 +53,10 @@ public class JmlTreeMatch extends JmlTreeScanner {
         try {
             scan(tree);
         } catch (NoMatchException e) {
+            if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note(tree, "jml.message", "Match not found");
             return false;
         }
-        log.note(tree, "jml.message", "Match found");
+        if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note(tree, "jml.message", "Match found");
         return true;
     }
 
