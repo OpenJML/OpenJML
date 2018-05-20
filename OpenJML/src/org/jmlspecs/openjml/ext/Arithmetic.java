@@ -446,7 +446,7 @@ abstract public class Arithmetic extends ExpressionExtension {
                         JCExpression minlit = rewriter.treeutils.makeIntLiteral(p, Integer.MIN_VALUE);
                         JCExpression maxlit = rewriter.treeutils.makeIntLiteral(p, Integer.MAX_VALUE);
                         // a = bin > MAX ; b = bin < MIN ; d = bin - MIN - MIN ; f = bin + MIN + MIN ; g = (bin>MAX) ? f : (bin<MIN) ? d : bin;
-                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.GT, rewriter.treeutils.intgtSymbol, rewriter.convertCopy(bin), maxlit);
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, maxlit, rewriter.convertCopy(bin));
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, rewriter.convertCopy(bin), minlit);
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.intminusSymbol, rewriter.convertCopy(bin), minlit);
                         JCExpression d = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.intminusSymbol, c, minlit);
@@ -458,7 +458,7 @@ abstract public class Arithmetic extends ExpressionExtension {
                     } else if (typetag == TypeTag.LONG) {
                         JCExpression minlit = rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE);
                         JCExpression maxlit = rewriter.treeutils.makeLongLiteral(p, Long.MAX_VALUE);
-                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.GT, rewriter.treeutils.longltSymbol, maxlit, rewriter.convertCopy(bin));
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.longltSymbol, maxlit, rewriter.convertCopy(bin));
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.longltSymbol, rewriter.convertCopy(bin), minlit);
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.longminusSymbol, rewriter.convertCopy(bin), minlit);
                         JCExpression d = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.longminusSymbol, c, minlit);
