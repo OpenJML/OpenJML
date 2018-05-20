@@ -250,15 +250,15 @@ abstract public class Arithmetic extends ExpressionExtension {
         return rewriter.conditionedAssertion(e, e);
     }
     
-    public JCExpression makeBinaryOp(JmlAssertionAdder rewriter, JCBinary that, Type newtype, boolean implementOverflow, boolean checkOverflow) {
+    public JCExpression makeBinaryOp(JmlAssertionAdder rewriter, JCBinary that, Type newtype, boolean implementOverflow, boolean checkOverflow, boolean alreadyConverted) {
         int p = that.pos;
         this.javaChecks = (rewriter.esc || (rewriter.rac && JmlOption.isOption(context,JmlOption.RAC_JAVA_CHECKS)));
 
         JCTree.Tag optag = that.getTag();
         if (newtype == null) newtype = that.type;
         
-        JCExpression lhs = rewriter.convertExpr(that.getLeftOperand());
-        JCExpression rhs = rewriter.convertExpr(that.getRightOperand());
+        JCExpression lhs = alreadyConverted ? that.getLeftOperand() : rewriter.convertExpr(that.getLeftOperand());
+        JCExpression rhs = alreadyConverted ? that.getRightOperand() : rewriter.convertExpr(that.getRightOperand());
 
         // Need to do this operation before any implicit conversions, because those conversions may convert
         // to bigint or real, which complicates this test
@@ -623,13 +623,13 @@ abstract public class Arithmetic extends ExpressionExtension {
         }
         
         @Override
-        public JCExpression rewriteBinary(JmlAssertionAdder rewriter, JCBinary that) {
+        public JCExpression rewriteBinary(JmlAssertionAdder rewriter, JCBinary that, boolean alreadyConverted) {
             
             // Don't actually need to promote mod operations, but doing it for consistency
             Type newtype = that.type;
             if (rewriter.rac) newtype = mathType(rewriter,that.type);
             
-            return makeBinaryOp(rewriter, that, newtype, false, false);
+            return makeBinaryOp(rewriter, that, newtype, false, false, alreadyConverted);
 
         }
 
@@ -654,8 +654,8 @@ abstract public class Arithmetic extends ExpressionExtension {
         }
         
         @Override
-        public JCExpression rewriteBinary(JmlAssertionAdder rewriter, JCBinary that) {
-            return makeBinaryOp(rewriter, that, null, true, true);
+        public JCExpression rewriteBinary(JmlAssertionAdder rewriter, JCBinary that, boolean alreadyConverted) {
+            return makeBinaryOp(rewriter, that, null, true, true, alreadyConverted);
         }
         
     }
@@ -679,8 +679,8 @@ abstract public class Arithmetic extends ExpressionExtension {
         }
         
         @Override
-        public JCExpression rewriteBinary(JmlAssertionAdder rewriter, JCBinary that) {
-            return makeBinaryOp(rewriter, that, null, true, false);
+        public JCExpression rewriteBinary(JmlAssertionAdder rewriter, JCBinary that, boolean alreadyConverted) {
+            return makeBinaryOp(rewriter, that, null, true, false, alreadyConverted);
         }
 
     }

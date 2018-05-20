@@ -909,6 +909,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testInvariant1() {
+    	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -934,16 +935,19 @@ public class escall2 extends EscBase {
                 +"    ii = -ii;\n"
                 +"  }\n"
                 
+                +"  //@ requires i < Integer.MAX_VALUE;\n"
                 +"  //@ assignable \\everything; \n"
                 +"  public void m1good() {\n"
                 +"    ++i;\n"
                 +"  }\n"
                 
+                +"  //@ requires ii < Integer.MAX_VALUE;\n"
                 +"  //@ assignable \\everything; \n"
                 +"  public void m2good() {\n"
                 +"    ++ii;\n"
                 +"  }\n"
                 
+                +"  //@ requires ii < Integer.MAX_VALUE;\n"
                 +"  //@ assignable \\everything; \n"
                 +"  static public void m3good() {\n"
                 +"    ++ii;\n"
@@ -962,6 +966,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testConstraint1() {
+    	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava {\n"
@@ -987,16 +992,19 @@ public class escall2 extends EscBase {
                 +"    ii = -ii;\n"
                 +"  }\n"
                 
+                +"  //@ requires i < Integer.MAX_VALUE;\n"
                 +"  //@ assignable \\everything; \n"
                 +"  public void m1good() {\n"
                 +"    ++i;\n"
                 +"  }\n"
                 
+                +"  //@ requires ii < Integer.MAX_VALUE;\n"
                 +"  //@ assignable \\everything; \n"
                 +"  public void m2good() {\n"
                 +"    ++ii;\n"
                 +"  }\n"
                 
+                +"  //@ requires ii < Integer.MAX_VALUE;\n"
                 +"  //@ assignable \\everything; \n"
                 +"  static public void m3good() {\n"
                 +"    ++ii;\n"

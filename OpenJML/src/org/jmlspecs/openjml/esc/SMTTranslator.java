@@ -1581,7 +1581,7 @@ public class SMTTranslator extends JmlTreeScanner {
             } else if (tag == TypeTag.ARRAY) {
                 return refSort;
 //                ArrayType at = (ArrayType)t;
-//                return F.createSortExpression(F.symbol("Array"),refSort,convertSort(at.elemtype));
+//                return F.createSortExpression(F.symbol("Array"),refSort,F.createSortExpression(F.symbol("Array"),refSort,convertSort(at.elemtype)));
             } else if (tag == TypeTag.BOT) {
                 return refSort;
             } else if (tag == TypeTag.NONE || tag == TypeTag.UNKNOWN){
