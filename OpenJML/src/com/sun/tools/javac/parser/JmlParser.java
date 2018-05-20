@@ -2947,7 +2947,7 @@ public class JmlParser extends JavacParser {
                 case BSDISTINCT:
                 case BSDURATION:
                 case BSISINITIALIZED:
-                case BSINVARIANTFOR:
+                case BSINVARIANTFOR: {
                     int startx = pos();
                     nextToken();
                     if (token.kind != LPAREN) {
@@ -2968,7 +2968,8 @@ public class JmlParser extends JavacParser {
                         }
                         return te;
                     }
-
+                }
+                
 //                case BSESC:
 //                case BSRAC:
 //                case BSELEMTYPE:
@@ -2994,13 +2995,33 @@ public class JmlParser extends JavacParser {
 //                        return ne.parse(this, typeArgs);
 //                    }
 
-                case BSNOTMODIFIED:
+                case BSNOTMODIFIED: {
+                    int startx = pos();
+                    int preferred = pos();
+                    nextToken();
+                    List<JCExpression> args = arguments();
+                    JCExpression te = jmlF.at(preferred).JmlMethodInvocation(
+                            jt, args);
+                    ((JmlMethodInvocation)te).startpos = startx;
+                    te = toP(te);
+                    return te;
+                }
+                
+                case BSONLYACCESSED:  // FIXME
+                case BSONLYCAPTURED:  // FIXME
                 case BSNOTASSIGNED:
-                case BSONLYACCESSED:
-                case BSONLYCAPTURED:
-                case BSONLYASSIGNED:
-                    return parseStoreRefListExpr();
-
+                case BSONLYASSIGNED: {
+                    int preferred = pos();
+                    int startx = pos();
+                    nextToken();
+                    List<JCExpression> args = arguments();
+                    JCExpression te = jmlF.at(preferred).JmlMethodInvocation(
+                            jt, args);
+                    ((JmlMethodInvocation)te).startpos = startx;
+                    te = toP(te);
+                    return te;
+                }
+                
                 case BSFORALL:
                 case BSEXISTS:
                 case BSPRODUCT:
