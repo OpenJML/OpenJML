@@ -340,7 +340,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (classSpecs == null) {
                 // loadSpecsForBinary should always result in a TypeSpecs for the
                 // class symbol, even if the TypeSpecs is empty
-                log.warning("jml.internal.notsobad","loadSpecsForBinary failed for class " + c);
+                if (!(c.type instanceof Type.ErrorType)) log.warning("jml.internal.notsobad","loadSpecsForBinary failed for class " + c);
                 c.complete(); // At least complete it
             } 
         }

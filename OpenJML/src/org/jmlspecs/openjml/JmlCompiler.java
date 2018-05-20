@@ -330,7 +330,9 @@ public class JmlCompiler extends JavaCompiler {
     public void completeBinaryEnterTodo() {
         while (!binaryEnterTodo.isEmpty()) {
             ClassSymbol csymbol = binaryEnterTodo.remove();
-            if (csymbol.type instanceof Type.ErrorType) continue; // A bad type causes crashes later on
+            if (csymbol.type instanceof Type.ErrorType) {
+                continue; // A bad type causes crashes later on
+            }
             if (JmlSpecs.instance(context).get(csymbol) != null) continue;
             
             // Record default specs just to show they are in process
