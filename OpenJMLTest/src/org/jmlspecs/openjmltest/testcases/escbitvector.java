@@ -95,7 +95,7 @@ public class escbitvector extends EscBase {
                 
                 +"  //@ ensures n <= \\result;\n"
                 +"  //@ ensures \\result <= n+15;\n"
-                +"  //@ ensures (\\result&15) == 0;\n"
+                +"  //@ ensures (\\result&15) == 0;\n"  // FAILS for very large n, e.g. Integer.MAX_VALUE
                 +"  //@ pure;\n"
                 +"//@ code_java_math spec_java_math\n"
                 +"  public int m1(int n) {\n"
@@ -151,52 +151,43 @@ public class escbitvector extends EscBase {
                 );
     }
     
-    // FIXME - should the following emit a command-line error exit code and stop?  Yes.
     @Test 
     public void testBVe1() {
-        main.addOptions("-escBV","-logic=ALL");
+        main.addOptions("-escBV","-logic=ALL"); // Testing incorrect use of -escBV
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  //@ requires n <= 0x7ffffff0;\n"
-                +"  //@ ensures n <= \\result;\n"
-                +"  //@ ensures \\result <= n+15;\n"
-                +"  //@ ensures (\\result&15) == 0;\n"
-                +"  //@ pure;\n"
-                +"//@ code_java_math spec_java_math\n"
+                +"  //@ requires true;\n"
+                +"  //@ code_java_math spec_java_math\n"
                 +"  public int m1(int n) {\n"
-                +"    return n + ((-n) & 0x0f);\n" // ERROR - forcing no BV when there are BV ops
+                +"    return 0;\n"
                 +"  }\n"
                                 
                 +"}"
- //               ,"Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: -logic=ALL",0
+                ,"warning: Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: -logic=ALL",-1
           );
     }
     
     @Test 
     public void testBVe2() {
-        main.addOptions("-escBV=xx","-logic=ALL");  // FIXME - this should cause an error
+        main.addOptions("-escBV=xx","-logic=ALL");  // This should cause an error
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  //@ requires n <= 0x7ffffff0;\n"
-                +"  //@ ensures n <= \\result;\n"
-                +"  //@ ensures \\result <= n+15;\n"
-                +"  //@ ensures (\\result&15) == 0;\n"
-                +"  //@ pure;\n"
-                +"//@ code_java_math spec_java_math\n"
+                +"  //@ requires true;\n"
+                +"  //@ code_java_math spec_java_math\n"
                 +"  public int m1(int n) {\n"
-                +"    return n + ((-n) & 0x0f);\n" // ERROR - forcing no BV when there are BV ops
+                +"    return 0;\n"
                 +"  }\n"
                                 
                 +"}"
-//                ,"Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: xx",0
+                ,"warning: Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: xx",-1
          );
     }
     
     @Test 
     public void testBVe3() {
-        main.addOptions("-escBV=","-logic=ALL");
+        main.addOptions("-escBV=","-logic=ALL");  // Should revert to auto
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -207,11 +198,10 @@ public class escbitvector extends EscBase {
                 +"  //@ pure;\n"
                 +"//@ code_java_math spec_java_math\n"
                 +"  public int m1(int n) {\n"
-                +"    return n + ((-n) & 0x0f);\n" // ERROR - forcing no BV when there are BV ops
+                +"    return n + ((-n) & 0x0f);\n"
                 +"  }\n"
                                 
                 +"}"
-//                ,"Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: "
           );
     }
     
@@ -229,7 +219,7 @@ public class escbitvector extends EscBase {
                 +"  //@ pure;\n"
                 +"//@ code_java_math spec_java_math\n"
                 +"  public int m1(int n) {\n"
-                +"    return n + ((-n) & 0x0f);\n" // ERROR - forcing no BV when there are BV ops
+                +"    return n + ((-n) & 0x0f);\n"
                 +"  }\n"
                                 
                 +"}"
@@ -273,7 +263,7 @@ public class escbitvector extends EscBase {
                 +"  public void m1() {\n"
                 +"  }\n"
                                 
-                +"}"  // FIXME - why the repeated message
+                +"}"  // FIXME - Message repeats for mm and m1, but why optional, why not indicate which method?
                 ,"/tt/TestJava.java:3: This method uses bit-vector operations and must be run with -escBV=true (or auto) [Bit-operation BITAND]",19
                 ,optional("/tt/TestJava.java:3: This method uses bit-vector operations and must be run with -escBV=true (or auto) [Bit-operation BITAND]",19)
           );
