@@ -124,17 +124,19 @@ public class escArithmeticModes2 extends EscBase {
     @Test
     public void testModJavaB() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Very long - skip for now
-        //main.addOptions("-show","-method=ma","-subexpressions");
+        main.addOptions("-method=ma","-show","-subexpressions");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeJavaMath @SpecJavaMath public class TestJava { \n"
                 +"  //@ requires j != 0;\n"
                 +"  //@ requires j != -1 || i != 0x80000000;\n"
                 +"  public void ma(int i, int j) {\n"
                 +"    int q = i/j; int r = i%j; int k = q * j + r;\n"
-                +"    //@ assert (\\lbl KK (\\lbl Q q) * (\\lbl J j) + (\\lbl R r)) == (\\lbl I i); \n"
-                +"    //@ assert (\\lbl K k) == (\\lbl I i); \n"
+                +"    //@ show i, j, q, r, k;\n"
+                +"    //@ assert (\\lbl KK (q * j + r)) == i; \n"
+                +"    //@ assert k == i; \n"
                 +"    //@ assert (\\lbl QQ (i/j)) * j + (\\lbl RR (i%j)) == i; \n"
                 +"  }\n"
+                +"  //@ requires i == 0x80000000 && j == -8322579;\n public void mm(int i, int j) { int q = i/j; int r = i%j; //@ show q, r; assert false; \n}\n"
                 +"}\n"
               );
     }

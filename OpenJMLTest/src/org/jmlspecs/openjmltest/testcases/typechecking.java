@@ -1096,6 +1096,14 @@ public class typechecking extends TCBase {
                 );
     }
 
+    @Test public void testErrorGitBug609() {
+    	addMockFile("$A/B.java","package p; public class B{}");
+        helpTCF("A.java","package p; public class A implements Cloneable { private B b; A() { b = new B(); }}"
+                ,"/A.java:1: cannot find symbol\n  symbol:   class B\n  location: class p.A",58
+				,"/A.java:1: cannot find symbol\n  symbol:   class B\n  location: class p.A",77
+        		);
+    }
+
     @Test public void testJmlLabelExpression() {
         helpTCF("TestJava.java","package tt; \n"
                 +"public class TestJava { \n"

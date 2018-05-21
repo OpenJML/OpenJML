@@ -682,6 +682,36 @@ public class SFBugs extends EscBase {
         helpTCG("-Xlint:unchecked","-Xlint:sunapi");
     }
     
+    @Test
+    public void gitbug604() {
+    	expectedExit = 0;
+        helpTCG("-code-math=safe","-method=AbsInterval.add");
+    }
+    
+    @Test
+    public void gitbug605() {
+    	expectedExit = 0;
+        helpTCG("-code-math=safe");
+    }
+    
+    @Test
+    public void gitbug606() {
+    	expectedExit = 0;
+        helpTCG("-code-math=safe");
+    }
+    
+    @Test
+    public void gitbug608() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug610() {
+    	expectedExit = 0;
+        helpTCG("-code-math=safe");
+    }
+    
     public void gitbug888() {
     	expectedExit = 0;
         helpTCG();

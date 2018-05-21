@@ -312,6 +312,7 @@ public class escnew extends EscBase {
     // Tests use of \old token in called methods
     @Test
     public void testPostcondition5() {
+    	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int i;\n"
@@ -343,6 +344,7 @@ public class escnew extends EscBase {
     // Tests use of \old token in called methods
     @Test
     public void testPostcondition5a() {
+    	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int i;\n"
@@ -889,6 +891,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testIncDec() {
+    	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { static public int i; \n"
                 
@@ -1991,9 +1994,9 @@ public class escnew extends EscBase {
 
                 // FIXME - lots more tests needed
                 +"  public void mm(int i) {\n" 
-                +"      a = 2 / 0;\n" 
+                +"      int a = 2 / 0;\n" 
                 +"      a = 2 / (1-1);\n" 
-                +"      g = 3L / 0;\n" 
+                +"      long g = 3L / 0;\n" 
                 +"  }\n"
                 
                

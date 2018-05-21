@@ -9533,6 +9533,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCTypeCast t = M.at(pos).TypeCast(newtype,expr);
             t.clazz.type = newtype;
             t.type = newtype;
+//            if (!jmltypes.isIntegral(newtype) && jmltypes.isIntegral(origtype)) {
+//                JCExpression ee = M.Apply(null, fn, args)
+//            }
             eresult = t;
             // FIXME - for integer promotions, add assumptions about range of value
         }
@@ -9888,6 +9891,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression lhs = that.lhs;
         JCExpression rhs = that.rhs;
         JCTree.Tag op = that.getTag().noAssignOp();
+        boolean arith = op == JCTree.Tag.PLUS || op == JCTree.Tag.MINUS || op == JCTree.Tag.MUL || op == JCTree.Tag.DIV || op == JCTree.Tag.MOD;
         boolean lhsscanned = false;
         if (lhs instanceof JCIdent) {
             // Note checkRW is called during the following convertExpr
@@ -9926,7 +9930,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addBinaryChecks(that, op, lhsc, rhs, maxJmlType);
 
   //          if (jmltypes.isJmlType(maxJmlType)) {
-            	rhs = makeBin(that, op, that.getOperator(), lhsc , rhs, maxJmlType); // or lhsc
+            	rhs = makeBin(that, op, that.getOperator(), lhsc , rhs, maxJmlType);
   //          } else {
   //          	rhs = treeutils.makeBinary(that.pos,op,lhsc,rhs);
   //          }
@@ -9991,7 +9995,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression newfac = addImplicitConversion(newfa,optype,newfa);
             // Note that we need to introduce the temporary since the rhs may contain
             // identifiers that will be captured by the lhs. (TODO - example?)
-            rhs = treeutils.makeBinary(that.pos,op ,newfac,rhs);
+            rhs = makeBin(that, op, that.getOperator(), newfa , rhs, maxJmlType);
+            if (arith) {
+                // FIXME - this is going to call checkRW again, already called during convertExpr(rhs) above
+                rhs = currentArithmeticMode.rewriteBinary(this, (JCBinary)rhs, true);
+            }
+
+            //rhs = treeutils.makeBinary(that.pos,op ,newfac,rhs);
             JCIdent id = newTemp(rhs);
             JCExpression idc = addImplicitConversion(id, newlhs.type, id);
             JCExpressionStatement st = addStat(treeutils.makeAssignStat(that.getStartPosition(), newlhs, idc));
@@ -10022,7 +10032,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addAssert(that.lhs, Label.POSSIBLY_TOOLARGEINDEX, e);
             }
 
-            checkAccess(JmlTokenKind.ASSIGNABLE, that, lhs, lhs, currentThisId, currentThisId);
+            checkAccess(JmlTokenKind.ASSIGNABLE, that, lhs, newfa, currentThisId, currentThisId);
 
             rhs = convertExpr(rhs);
             rhs = addImplicitConversion(rhs,optype,rhs);
@@ -10034,10 +10044,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             nlhs = addImplicitConversion(nlhs,optype,nlhs);
 
             addBinaryChecks(that,op,nlhs,rhs,optype);
+            rhs = makeBin(that, op, that.getOperator(), nlhs , rhs, maxJmlType);
+            if (arith) {
+                rhs = currentArithmeticMode.rewriteBinary(this, (JCBinary)rhs, true);
+            }
             
             // Note that we need to introduce the temporary since the rhs contains
             // identifiers that will be captured by the lhs. (TODO _ example?)
-            rhs = treeutils.makeBinary(that.pos,op,nlhs,rhs);
+            //rhs = treeutils.makeBinary(that.pos,op,nlhs,rhs);
             JCIdent id = newTemp(rhs);
             JCExpression idc = addImplicitConversion(id, lhs.type, id);
             
@@ -10436,7 +10450,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression rhs = convertExpr(that.getRightOperand());
             result = eresult = makeBin(that,optag,that.getOperator(),lhs,rhs,lhs.type);
         } else if (arith) {
-            result = eresult = currentArithmeticMode.rewriteBinary(this, that);
+            result = eresult = currentArithmeticMode.rewriteBinary(this, that, false);
             if (splitExpressions) result = eresult = newTemp(eresult);
             return;
              
@@ -13887,8 +13901,56 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             case BSBIGINT_MATH:
             case BSSAFEMATH:
             case BSJAVAMATH:
+            case BSNOTASSIGNED:
+            case BSONLYASSIGNED:
+            case BSONLYCAPTURED:
                 // FIXME - not implemented
                 throw new JmlNotImplementedException(that,that.token.internedName());
+
+            case BSNOTMODIFIED:
+            {
+                JCExpression and = null;
+                for (JCExpression arg: that.args) {
+                    // FIXME - use past instead of old?
+                    // FIXME - what prestate should we refer to - e.g. refining statements and loops will have a different one
+                    JCIdent earlierState = preLabel;
+                    JCBinary bin;
+                    if (arg instanceof JCIdent) {
+                        JCExpression copy = convertCopy(arg);
+                        JCExpression old = treeutils.makeOld(arg.pos, copy, earlierState);
+                        if (rac) old = convertJML(old);
+                        bin = treeutils.makeEquality(arg.pos, arg, old);
+                    } else if (arg instanceof JCFieldAccess && ((JCFieldAccess)arg).name != null) {
+                        JCExpression copy = convertCopy(arg);
+                        JCExpression old = treeutils.makeOld(arg.pos, copy, earlierState);
+                        bin = treeutils.makeEquality(arg.pos, arg, old);
+                    } else if (arg instanceof JCArrayAccess) { 
+                        JCArrayAccess ar = (JCArrayAccess)arg;
+                        JCExpression copy = convertCopy(ar);
+                        JCExpression old = treeutils.makeOld(arg.pos, copy, earlierState);
+                        if (rac) old = convertJML(old);
+                        bin = treeutils.makeEquality(arg.pos, ar, old);
+                    } else if (arg instanceof JmlStoreRefArrayRange) { // Apparently even single indexes are parsed into ranges
+                        JmlStoreRefArrayRange ar = (JmlStoreRefArrayRange)arg;
+                        if (ar.lo == ar.hi) {
+                            JCExpression expr = M.at(arg.pos).Indexed(ar.expression,ar.lo);
+                            expr.type = arg.type;
+                            JCExpression copy = convertCopy(expr);
+                            JCExpression old = treeutils.makeOld(arg.pos, copy, earlierState);
+                            if (rac) old = convertJML(old);
+                            bin = treeutils.makeEquality(arg.pos, expr, old);
+                        } else {
+                            throw new JmlNotImplementedException(that,that.token.internedName());
+                        }
+                    } else {
+                        // could be a.*, a[*], a[i..j]
+                        throw new JmlNotImplementedException(that,that.token.internedName());
+                    }
+                    and = and == null ? bin : treeutils.makeAnd(that.pos, and, bin);
+                }
+                result = eresult = convertExpr(and);
+                break;
+            }
 
             default:
                 Log.instance(context).error("esc.internal.error","Unknown token in JmlAssertionAdder: " + that.token.internedName());
@@ -14958,44 +15020,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return;
         }
         switch (that.token){
-            case BSNOTMODIFIED:
-            {
-                JCExpression and = null;
-                for (JCExpression arg: that.list) {
-                    // FIXME - use past instead of old?
-                    // FIXME - what prestate should we refer to - e.g. refining statements and loops will have a different one
-                    JCIdent earlierState = preLabel;
-                    JCBinary bin;
-                    if (arg instanceof JCIdent) {
-                        JCExpression copy = convertCopy(arg);
-                        JCExpression old = treeutils.makeOld(arg.pos, copy, earlierState);
-                        if (rac) old = convertJML(old);
-                        bin = treeutils.makeEquality(arg.pos, arg, old);
-                    } else if (arg instanceof JCFieldAccess && ((JCFieldAccess)arg).name != null) {
-                        JCExpression copy = convertCopy(arg);
-                        JCExpression old = treeutils.makeOld(arg.pos, copy, earlierState);
-                        bin = treeutils.makeEquality(arg.pos, arg, old);
-                    } else if (arg instanceof JmlStoreRefArrayRange) { // Apparently even single indexes are parsed into ranges
-                        JmlStoreRefArrayRange ar = (JmlStoreRefArrayRange)arg;
-                        if (ar.lo == ar.hi) {
-                            JCExpression expr = M.at(arg.pos).Indexed(ar.expression,ar.lo);
-                            expr.type = arg.type;
-                            JCExpression copy = convertCopy(expr);
-                            JCExpression old = treeutils.makeOld(arg.pos, copy, earlierState);
-                            if (rac) old = convertJML(old);
-                            bin = treeutils.makeEquality(arg.pos, expr, old);
-                        } else {
-                            throw new JmlNotImplementedException(that,that.token.internedName());
-                        }
-                    } else {
-                        // could be a.*, a[*], a[i..j]
-                        throw new JmlNotImplementedException(that,that.token.internedName());
-                    }
-                    and = and == null ? bin : treeutils.makeAnd(that.pos, and, bin);
-                }
-                result = eresult = convertExpr(and);
-                break;
-            }
 
             default:
                 result = eresult = M.at(that).JmlStoreRefListExpression(that.token,convert(that.list)).setType(that.type);

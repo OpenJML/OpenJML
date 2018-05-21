@@ -1,16 +1,23 @@
-Note: Match found
-Note: Match found
 Proving methods in Test
 Starting proof of Test.Test() with prover !!!!
 Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Starting proof of Test.lemma(int) with prover !!!!
+Note: Using bit-vector arithmetic
 Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of Test.lemma(int) with prover !!!! - no warnings
+Starting proof of Test.mbit(int) with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #3 - at program exit : OK
+Completed proof of Test.mbit(int) with prover !!!! - no warnings
 Starting proof of Test.m(int) with prover !!!!
-test/escLemma/Test.java:12: warning: The prover cannot establish an assertion (UndefinedLemmaPrecondition) in method m
+test/escLemma/Test.java:19: warning: Show statement expression k has value ( - 1 )
+		//@ show k;
+		         ^
+test/escLemma/Test.java:21: warning: The prover cannot establish an assertion (UndefinedLemmaPrecondition) in method m
 		//@ use lemma((k+1));
 		    ^
 Completed proof of Test.m(int) with prover !!!! - with warnings
@@ -19,4 +26,4 @@ Feasibility check #1 - end of preconditions : OK
 Feasibility check #4 - at program exit : OK
 Completed proof of Test.mm(int) with prover !!!! - no warnings
 Completed proving methods in Test
-1 warning
+2 warnings

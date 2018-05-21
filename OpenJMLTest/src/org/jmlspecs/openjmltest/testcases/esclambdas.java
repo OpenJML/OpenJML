@@ -50,6 +50,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testIterable1b() {
+    	main.addOptions("-code-math=java");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -69,6 +70,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testIterable2() {
+    	main.addOptions("-code-math=java"); // Just to avoid ovcerflow errors
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -89,6 +91,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testIterable2b() {
+    	main.addOptions("-code-math=java"); // Just to avoid ovcerflow errors
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

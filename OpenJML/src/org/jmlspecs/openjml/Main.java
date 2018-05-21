@@ -925,7 +925,8 @@ public class Main extends com.sun.tools.javac.main.Main {
             options.put(JmlOption.ESC_BV.optionName(),(String)JmlOption.ESC_BV.defaultValue());
         } else if("auto".equals(val) || "true".equals(val) || "false".equals(val)) {
         } else {
-            Log.instance(context).getWriter(WriterKind.NOTICE).println("Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: " + val);
+            Log.instance(context).warning("jml.message","Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: " + val);
+            //Log.instance(context).getWriter(WriterKind.NOTICE).println("Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: " + val);
             options.put(JmlOption.ESC_BV.optionName(),(String)JmlOption.ESC_BV.defaultValue());
         }
 

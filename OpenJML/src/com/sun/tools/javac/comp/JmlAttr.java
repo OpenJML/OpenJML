@@ -340,7 +340,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (classSpecs == null) {
                 // loadSpecsForBinary should always result in a TypeSpecs for the
                 // class symbol, even if the TypeSpecs is empty
-                log.warning("jml.internal.notsobad","loadSpecsForBinary failed for class " + c);
+                if (!(c.type instanceof Type.ErrorType)) log.warning("jml.internal.notsobad","loadSpecsForBinary failed for class " + c);
                 c.complete(); // At least complete it
             } 
         }
@@ -3547,14 +3547,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case BSONLYASSIGNED: // FIXME - needs implementation
             case BSONLYACCESSED: // FIXME - needs implementation
             case BSONLYCAPTURED: // FIXME - needs implementation
-            case BSNOTASSIGNED: // FIXME - needs implementation
             case BSNOTMODIFIED: // FIXME - needs implementation
-                log.error(tree.pos,"jml.unknown.construct",token.internedName(),"JmlAttr.visitApply");
-                result = tree.type = syms.errType;
+            case BSNOTASSIGNED: {// FIXME - needs implementation
+                attribArgs(VAL, tree.args, localEnv, argtypesBuf);
+                if (!postClauses.contains(currentClauseType)) {
+                    log.error(tree.pos+1, "jml.misplaced.token", tree.token.internedName(), currentClauseType == null ? "jml declaration" : currentClauseType.internedName());
+                }
+                result = check(tree, syms.booleanType, VAL, resultInfo);
                 break;
-                
-
-                
+            }
         }
     }
     
