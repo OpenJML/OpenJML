@@ -13924,6 +13924,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCExpression copy = convertCopy(arg);
                         JCExpression old = treeutils.makeOld(arg.pos, copy, earlierState);
                         bin = treeutils.makeEquality(arg.pos, arg, old);
+                    } else if (arg instanceof JCArrayAccess) { 
+                        JCArrayAccess ar = (JCArrayAccess)arg;
+                        JCExpression copy = convertCopy(ar);
+                        JCExpression old = treeutils.makeOld(arg.pos, copy, earlierState);
+                        if (rac) old = convertJML(old);
+                        bin = treeutils.makeEquality(arg.pos, ar, old);
                     } else if (arg instanceof JmlStoreRefArrayRange) { // Apparently even single indexes are parsed into ranges
                         JmlStoreRefArrayRange ar = (JmlStoreRefArrayRange)arg;
                         if (ar.lo == ar.hi) {
