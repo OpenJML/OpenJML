@@ -712,6 +712,12 @@ public class SFBugs extends EscBase {
         helpTCG("-code-math=safe");
     }
     
+    @Test
+    public void gitbug611() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
     public void gitbug888() {
     	expectedExit = 0;
         helpTCG();
