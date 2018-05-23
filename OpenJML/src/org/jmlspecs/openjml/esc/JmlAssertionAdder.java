@@ -7170,10 +7170,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
             } else if (meth instanceof JCFieldAccess) {
                 JCFieldAccess fa = (JCFieldAccess)meth;
-                receiverType = fa.selected.type;
+                if (fa.selected instanceof JCIdent && ((JCIdent)fa.selected).name == names._this) {
+                    // We make a special case of this so that when 'this' is explicitly used in a parent class,
+                    // the children see 'this' with the type of the child and see the combined specs accordingly
+                    convertedReceiver = currentThisExpr;
+                    receiverType = currentThisExpr.type;
+                } else {
+                    receiverType = fa.selected.type;
+                    convertedReceiver = alreadyConverted ? fa.selected : convertExpr(fa.selected);
+                }
                 newTypeVarMapping = typevarMapping = typemapping(receiverType, fa.sym, null, meth.type.asMethodType());
 
-                convertedReceiver = alreadyConverted ? fa.selected : convertExpr(fa.selected);
       
                 typeargs = convert(typeargs); // FIXME - should this be translated before or after the receiver, here and elsewhere
                 trArgs = convertArgs(that, untrArgs,meth.type.asMethodType().argtypes,  (fa.sym.flags() & Flags.VARARGS) != 0);
