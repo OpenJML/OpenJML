@@ -77,7 +77,7 @@ public enum JmlOption implements IOption {
     
     JMLTESTING("-jmltesting",false,false,"Only used to generate tracing information during testing",null),
     TRACE("-trace",false,false,"ESC: Enables tracing of counterexamples",null),
-    SHOW("-show",false,false,"Show intermediate programs",null),
+    SHOW("-show",true,"","Show intermediate programs",null,false,"all"),
     SPLIT("-split",true,"","Split proof into sections",null),
     ESC_BV("-escBV",true,"auto","ESC: If enabled, use bit-vector arithmetic (auto, true, false)",null),
     ESC_EXIT_INFO("-escExitInfo",false,true,"ESC: Show exit location for postconditions (default true)",null),
@@ -134,6 +134,8 @@ public enum JmlOption implements IOption {
     /** The default value of the option */
     final private Object defaultValue;
     
+    public String enabledDefault = null;
+    
     /** The help string for this option */
     final private String help;
     
@@ -155,7 +157,7 @@ public enum JmlOption implements IOption {
             Object defaultValue,
             /*@ non_null */ String help,
             /*@ nullable */ String synonym) {
-        this(s,hasArg,defaultValue,help,synonym,false);
+        this(s,hasArg,defaultValue,help,synonym,false,null);
     }
     
     /** Private constructor to create Enum instances.
@@ -172,12 +174,31 @@ public enum JmlOption implements IOption {
             /*@ non_null */ String help,
             /*@ nullable */ String synonym,
             boolean obsolete) {
+        this(s,hasArg,defaultValue,help,synonym,obsolete,null);
+    }
+    
+    /** Private constructor to create Enum instances.
+     * @param s The option name, including any leading - character
+     * @param defaultValue the default value for the option
+     * @param hasArg Whether the option takes a (required) argument
+     * @param help The associated help string
+     * @param synonym an equivalent command-line argument
+     * @param obsolete whether the option is obsolete
+     */
+    private JmlOption(/*@ non_null */ String s, 
+            boolean hasArg, 
+            Object defaultValue,
+            /*@ non_null */ String help,
+            /*@ nullable */ String synonym,
+            boolean obsolete,
+            String enabledDefault) {
         this.name = s;
         this.hasArg = hasArg;
         this.defaultValue = defaultValue;
         this.help = help;
         this.synonym = synonym;
         this.obsolete = obsolete;
+        this.enabledDefault = enabledDefault;
     }
     
     /** Enables the given option
@@ -228,6 +249,14 @@ public enum JmlOption implements IOption {
      */
     public static boolean isOption(Context context, String option) {
         return value(context,option) != null;
+    }
+    
+    /** This is used for those options that allow a number of suboptions; it tests whether
+     * value is one of the comma-separated suboptions.
+     */
+    public static boolean includes(Context context, JmlOption option, String value) {
+        String v = JmlOption.value(context, option);
+        return "all".equals(v) || ( v.equals(value) || v.startsWith(value + ",") || v.endsWith("," + value) || v.contains("," + value +","));
     }
     
     /** Return the value of an option with an argument

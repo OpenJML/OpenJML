@@ -267,7 +267,8 @@ public class JmlEsc extends JmlTreeScanner {
     
     /** Do the actual work of proving the method */
     protected IProverResult doMethod(@NonNull JmlMethodDecl methodDecl) {
-        boolean printPrograms = this.verbose || JmlOption.isOption(context, JmlOption.SHOW);
+        boolean printPrograms = this.verbose || JmlOption.includes(context, JmlOption.SHOW, "translated");
+        boolean printSMT = this.verbose || JmlOption.includes(context, JmlOption.SHOW, "smt");
         
         if (skip(methodDecl)) {
             return markMethodSkipped(methodDecl," (because of SkipEsc annotation)");

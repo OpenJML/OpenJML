@@ -235,7 +235,9 @@ public class MethodProverSMT {
         int prevErrors = log.nerrors;
 
         boolean print = jmlesc.verbose;
-        boolean printPrograms = jmlesc.verbose || JmlOption.isOption(context, JmlOption.SHOW);
+        boolean printPrograms = jmlesc.verbose || JmlOption.includes(context, JmlOption.SHOW, "translated");
+        boolean printBB = jmlesc.verbose || JmlOption.includes(context, JmlOption.SHOW, "bb");
+        boolean printSMT = jmlesc.verbose || JmlOption.includes(context, JmlOption.SHOW, "smt");
         
         JmlClassDecl currentClassDecl = utils.getOwner(methodDecl);
         
@@ -302,7 +304,7 @@ public class MethodProverSMT {
             // now convert to basic block form
             basicBlocker = new BasicBlocker2(context);
             program = basicBlocker.convertMethodBody(newblock, methodDecl, denestedSpecs, currentClassDecl, jmlesc.assertionAdder);
-            if (printPrograms) {
+            if (printBB) {
                 log.getWriter(WriterKind.NOTICE).println(Strings.empty);
                 log.getWriter(WriterKind.NOTICE).println(separator);
                 log.getWriter(WriterKind.NOTICE).println(Strings.empty);
@@ -323,7 +325,7 @@ public class MethodProverSMT {
                     }
                     script = new SMTTranslator(context, methodDecl.sym.toString()).convert(program,smt,true);
                 }
-                if (printPrograms) {
+                if (printSMT) {
                     try {
                         log.getWriter(WriterKind.NOTICE).println(Strings.empty);
                         log.getWriter(WriterKind.NOTICE).println(separator);
@@ -978,7 +980,7 @@ public class MethodProverSMT {
                             extra = ": " + assertStat.description;
                         }
                         
-                        if (JmlOption.isOption(context, JmlOption.SHOW)) log.getWriter(WriterKind.NOTICE).println("Failed assert: " + e.toString());
+                        if (JmlOption.includes(context, JmlOption.SHOW,"translated")) log.getWriter(WriterKind.NOTICE).println("Failed assert: " + e.toString());
                         int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
                         String loc;
                         if (epos == Position.NOPOS || pos != assertStat.pos) {
@@ -1331,7 +1333,7 @@ public class MethodProverSMT {
                         extra = ": " + assertStat.description;
                     }
                     
-                    if (JmlOption.isOption(context, JmlOption.SHOW)) log.getWriter(WriterKind.NOTICE).println("Failed assert: " + e.toString());
+                    if (JmlOption.includes(context, JmlOption.SHOW, "translated")) log.getWriter(WriterKind.NOTICE).println("Failed assert: " + e.toString());
                     int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
                     String loc;
                     if (epos == Position.NOPOS || pos != assertStat.pos) {

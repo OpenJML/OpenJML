@@ -601,7 +601,7 @@ public class JmlCompiler extends JavaCompiler {
         
         if (env.tree instanceof JCClassDecl) {
             JCTree newtree;
-            if (JmlOption.isOption(context,JmlOption.SHOW)) {
+            if (JmlOption.includes(context,JmlOption.SHOW,"translated")) {
                 // FIXME - these are not writing out during rac, at least in debug in development, to the console
                 noticeWriter.println(String.format("[jmlrac] Translating: %s", currentFile));
                 noticeWriter.println(
@@ -639,7 +639,7 @@ public class JmlCompiler extends JavaCompiler {
 
             // Add the Import: import org.jmlspecs.utils.*;
             
-            if (JmlOption.isOption(context,JmlOption.SHOW)) { 
+            if (JmlOption.includes(context,JmlOption.SHOW,"translated")) {
                 noticeWriter.println(String.format("[jmlrac] RAC Transformed: %s", currentFile));
                 // this could probably be better - is it OK to modify the AST beforehand? JLS
                 noticeWriter.println(

@@ -711,7 +711,9 @@ public class Main extends com.sun.tools.javac.main.Main {
                 }
             }
         } else if (!negate && o.hasArg()) {
-            if (i < args.length) {
+            if (o instanceof JmlOption && ((JmlOption)o).enabledDefault != null && (i == args.length || args[i].charAt(0)=='.')) {
+                res = ((JmlOption)o).enabledDefault;
+            } else if (i < args.length) {
                 res = args[i++];
                 if (res != null && res.length() > 1 && res.charAt(0) == '"' && s.charAt(res.length()-1) == '"') {
                     res = res.substring(1,res.length()-1);
@@ -958,6 +960,9 @@ public class Main extends com.sun.tools.javac.main.Main {
                 utils.maxWarnings = Integer.MAX_VALUE;
             }
         }
+        
+        String v = JmlOption.value(context, JmlOption.SHOW);
+        if (v == null) options.put(JmlOption.SHOW.optionName(),"");
         
         String check = JmlOption.value(context,JmlOption.FEASIBILITY);
         if (check == null || check.isEmpty() || check.equals(Strings.feas_default)) {
