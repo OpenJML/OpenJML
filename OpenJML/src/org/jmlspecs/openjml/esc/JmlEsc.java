@@ -408,17 +408,26 @@ public class JmlEsc extends JmlTreeScanner {
                 for (String methodToDo: methodsToDo.split(";")) { //$NON-NLS-1$ 
                 	methodToDo = methodToDo.trim();
                 	if (methodToDo.isEmpty()) continue;
+                	// Match if methodToDo
+                	//    is the full FQN
+                	//    is just the name of the method
+                	//    contains a "." character before a "(" and is the same as the FQ signature
+                	//    does not contain a "." character before a "(" and is the tail of the FQ signature
                     if (fullyQualifiedName.equals(methodToDo) ||
                             methodToDo.equals(simpleName) ||
-                            fullyQualifiedSig.equals(methodToDo)) {
+                            ( methodToDo.contains(".") && methodToDo.contains("(") && methodToDo.indexOf(".") > methodToDo.indexOf("(") ? fullyQualifiedSig.equals(methodToDo) : fullyQualifiedSig.endsWith(methodToDo))) {
                         break match;
                     }
                     try {
+                        // Also check whether methodToDo, interpreted as a regular expression
+                        // matches either the signature or the name
+                        if (Pattern.matches(methodToDo,fullyQualifiedSig)) break match;
                         if (Pattern.matches(methodToDo,fullyQualifiedName)) break match;
                     } catch(PatternSyntaxException e) {
                         // The methodToDo can be a regular string and does not
                         // need to be legal Pattern expression
                         // skip
+                        int x = 0;
                     }
                 }
                 if (utils.jmlverbose > Utils.PROGRESS) {
