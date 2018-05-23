@@ -402,7 +402,7 @@ public class escArithmeticModes2 extends EscBase {
     }
     
     @Ignore // FIXME
-    @Test
+    @Test // Tests int multiplication in bigint mode
     public void testMult() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -420,7 +420,7 @@ public class escArithmeticModes2 extends EscBase {
     }
     
     @Ignore // FIXME
-    @Test
+    @Test // Tests long multiplication in bigint mode
     public void testMultLong() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -437,8 +437,8 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
     
-    @Ignore // FIXME
-    @Test
+//    @Ignore // FIXME
+    @Test // Tests int multiplication in java mode
     public void testMultJava() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -455,8 +455,8 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
     
-    @Ignore // FIXME
-    @Test
+//    @Ignore // FIXME
+    @Test // Tests long multiplication in java mode
     public void testMultJavaLong() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -473,8 +473,8 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
     
-    @Ignore // FIXME
-    @Test
+//    @Ignore // FIXME
+    @Test // Tests int multiplication in safe mode
     public void testMultSafe() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -490,8 +490,8 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
     
-    @Ignore // FIXME
-    @Test
+//    @Ignore // FIXME
+    @Test // Tests long multiplication in safe mode
     public void testMultSafeLong() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -507,10 +507,10 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
     
-    @Ignore // FIXME
-    @Test
+//    @Ignore // FIXME
+    @Test  // Tests that div and mod give correct answers, if they do not overflow, in bigint mode
     public void testDiv() {
-    	main.addOptions("-show","-method=ma","-subexpressions");
+    	//main.addOptions("-show","-method=ma","-subexpressions");
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeBigintMath @SpecBigintMath public class TestJava { \n"
@@ -528,8 +528,8 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
     
-    @Ignore // FIXME
-    @Test
+//    @Ignore // FIXME
+    @Test  // Tests that div and mod give correct answers, if they do not overflow, in java mode
     public void testDivJava() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeJavaMath @SpecSafeMath public class TestJava { \n"
@@ -548,8 +548,8 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
     
-    @Ignore // FIXME
-    @Test
+//    @Ignore // FIXME
+    @Test  // Tests that div and mod give correct answers, if they do not overflow, in safe mode
     public void testDivSafe() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeSafeMath @SpecSafeMath public class TestJava { \n"
