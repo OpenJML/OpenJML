@@ -1925,6 +1925,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JmlStatementExpr a = (JmlStatementExpr)addAssert(item, Label.ASSUME_CHECK, bin);
             a.description = description;
             a.source = (item instanceof JmlTree.JmlSource) ? ((JmlTree.JmlSource)item).source() : null;
+            a.associatedPos = assumeCheckCount;
             descs.add(a);
             currentStatements = prev;
         } else {

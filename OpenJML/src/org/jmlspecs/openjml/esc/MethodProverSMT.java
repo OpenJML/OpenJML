@@ -434,6 +434,9 @@ public class MethodProverSMT {
                         }
                         
                         ++feasibilityCheckNumber;
+                        if (feasibilityCheckNumber != stat.associatedPos) {
+                            log.note("jml.message", "XXX");
+                        }
                         if (feasibilityCheckNumber < startFeasibilityCheck) continue;
                         if (prevErrors != log.nerrors) break;
                         

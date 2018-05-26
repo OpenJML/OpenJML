@@ -64,95 +64,115 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
     
     @Override
     public JCTree translate(JCTree tree) {
-        if (exprHead != null && matcher.matches(tree,exprHead)) {
+        if (exprHead != null && tree != null && matcher.matches(tree,exprHead)) {
+            // log.note(tree.pos, "jml.message", "Substituting here: " + exprHead.toString() + " with " + exprTail.toString() + " and precondition " + exprPrecondition.toString());
             currentUse.expression = exprPrecondition;
             currentUse = null;
+            exprHead = null;
             return exprTail;
         } else {
             return super.translate(tree);
         }
     }
-    
+
     @Override
     public void visitJmlStatementExpr(JmlStatementExpr that) {
         if (that.token == JmlTokenKind.USE) {
             JCExpression expr = that.expression;
-            if (!(expr instanceof JCTree.JCMethodInvocation)) {
-                log.warning(that, "jml.message", "Use statement must contain a function application");
-                return;
-            }
-            JCExpression meth = ((JCMethodInvocation)expr).meth;
-            Symbol msym = treeutils.getSym(meth);
-            if (!(msym instanceof Symbol.MethodSymbol)) {
-                log.error(that,"jml.internal","No symbol found for " + meth.toString());
-                return;
-            }
-            
-            JmlSpecs.MethodSpecs lemmaspecs = specs.getSpecs((Symbol.MethodSymbol)msym);
-            if (lemmaspecs == null) {
-                log.error(that,"jml.internal","No symbol found for " + meth.toString());
-                return;
-            }
-            if (lemmaspecs.cases.cases.length() != 1) {
-                log.error(that,"jml.message", "Only exactly one specification case is implemented for 'use' lemmas");
-                return;
-            }
-            List<JCVariableDecl> vd = lemmaspecs.cases.decl.params;
-            Iterator<JCVariableDecl> iter = vd.iterator();
-            Map<Object,JCExpression> replacements = new HashMap<>();
-            for (JCExpression actualarg: ((JCMethodInvocation)expr).args) {
-                if (!iter.hasNext()) {
+            if (expr instanceof JmlBinary && ((JmlBinary)expr).op == JmlTokenKind.IMPLIES) {
+                JmlBinary imp = (JmlBinary)expr;
+                if (!(imp.rhs instanceof JCBinary && ((JCBinary)imp.rhs).getTag() == JCTree.Tag.EQ)) {
+                    log.error(expr, "jml.message", "Invalid kind of expression for a use statement; should be a lemma call, implication, or equality");
+                    return;
+                } else {
+                    JCBinary eq = (JCBinary)imp.rhs;
+                    exprPrecondition = imp.lhs;
+                    exprHead = eq.lhs;
+                    exprTail = eq.rhs;
+                    currentUse = that;
+                }
+            } else if (expr instanceof JCBinary && ((JCBinary)expr).getTag() == JCTree.Tag.EQ) {
+                JCBinary eq = (JCBinary)expr;
+                exprPrecondition = treeutils.trueLit;
+                exprHead = eq.lhs;
+                exprTail = eq.rhs;
+                currentUse = that;
+            } else if (expr instanceof JCTree.JCMethodInvocation) {
+                JCExpression meth = ((JCMethodInvocation)expr).meth;
+                Symbol msym = treeutils.getSym(meth);
+                if (!(msym instanceof Symbol.MethodSymbol)) {
+                    log.error(that,"jml.internal","No symbol found for " + meth.toString());
+                    return;
+                }
+
+                JmlSpecs.MethodSpecs lemmaspecs = specs.getSpecs((Symbol.MethodSymbol)msym);
+                if (lemmaspecs == null) {
+                    log.error(that,"jml.internal","No symbol found for " + meth.toString());
+                    return;
+                }
+                if (lemmaspecs.cases.cases.length() != 1) {
+                    log.error(that,"jml.message", "Only exactly one specification case is implemented for 'use' lemmas");
+                    return;
+                }
+                List<JCVariableDecl> vd = lemmaspecs.cases.decl.params;
+                Iterator<JCVariableDecl> iter = vd.iterator();
+                Map<Object,JCExpression> replacements = new HashMap<>();
+                for (JCExpression actualarg: ((JCMethodInvocation)expr).args) {
+                    if (!iter.hasNext()) {
+                        log.error(that,"jml.message", "Mismatched argument lists");
+                        return;
+                    }
+                    replacements.put(iter.next().sym, actualarg);
+                }
+                if (iter.hasNext()) {
                     log.error(that,"jml.message", "Mismatched argument lists");
                     return;
                 }
-                replacements.put(iter.next().sym, actualarg);
-            }
-            if (iter.hasNext()) {
-                log.error(that,"jml.message", "Mismatched argument lists");
-                return;
-            }
-            subst = new JmlTreeSubstitute(context,M,replacements);
-            
-            exprPrecondition = exprHead = null;
-            JmlSpecificationCase cs = lemmaspecs.cases.cases.head;
-            for (JmlMethodClause cl: cs.clauses) {
-                switch (cl.token) {
-                    case REQUIRES:
-                        expr = ((JmlMethodClauseExpr)cl).expression;
-                        if (exprPrecondition != null) {
-                            log.error(cl,"jml.internal","Use lemmas currently implement only one requires clause");
+                subst = new JmlTreeSubstitute(context,M,replacements);
+
+                exprPrecondition = exprHead = null;
+                JmlSpecificationCase cs = lemmaspecs.cases.cases.head;
+                for (JmlMethodClause cl: cs.clauses) {
+                    switch (cl.token) {
+                        case REQUIRES:
+                            expr = ((JmlMethodClauseExpr)cl).expression;
+                            if (exprPrecondition != null) {
+                                log.error(cl,"jml.internal","Use lemmas currently implement only one requires clause");
+                                return;
+                            } else {
+                                subst.replacements = replacements;
+                                exprPrecondition = subst.copy(expr);
+                            }
+                            break;
+                        case ENSURES:
+                            expr = ((JmlMethodClauseExpr)cl).expression;
+                            if (exprHead != null) {
+                                log.error(cl,"jml.internal","Use lemmas currently implement only one ensures clause");
+                                return;
+                            } else if (expr instanceof JCBinary && ((JCBinary)expr).getTag() == JCTree.Tag.EQ) {
+                                JCBinary bin = (JCBinary)expr;
+                                subst.replacements = replacements;
+                                exprHead = subst.copy(bin.lhs);
+                                exprTail = subst.copy(bin.rhs);
+                            } else if (expr instanceof JmlBinary && ((JmlBinary)expr).op == JmlTokenKind.IMPLIES) {
+                                JmlBinary bin = (JmlBinary)expr;
+                                subst.replacements = replacements;
+                                exprHead = subst.copy(bin.lhs);
+                                exprTail = subst.copy(bin.rhs);
+                            } else {
+                                log.error(cl,"jml.internal","Use lemma ensures clause must hold a == or ==> expression");
+                                return;
+                            }
+                            break;
+                        default:
+                            log.error(cl,"jml.internal","Use lemmas currently implement only requires and ensures clauses: " + cl.token.internedName());
                             return;
-                        } else {
-                            subst.replacements = replacements;
-                            exprPrecondition = subst.copy(expr);
-                        }
-                        break;
-                    case ENSURES:
-                        expr = ((JmlMethodClauseExpr)cl).expression;
-                        if (exprHead != null) {
-                            log.error(cl,"jml.internal","Use lemmas currently implement only one ensures clause");
-                            return;
-                        } else if (expr instanceof JCBinary && ((JCBinary)expr).getTag() == JCTree.Tag.EQ) {
-                            JCBinary bin = (JCBinary)expr;
-                            subst.replacements = replacements;
-                            exprHead = subst.copy(bin.lhs);
-                            exprTail = subst.copy(bin.rhs);
-                        } else if (expr instanceof JmlBinary && ((JmlBinary)expr).op == JmlTokenKind.IMPLIES) {
-                            JmlBinary bin = (JmlBinary)expr;
-                            subst.replacements = replacements;
-                            exprHead = subst.copy(bin.lhs);
-                            exprTail = subst.copy(bin.rhs);
-                        } else {
-                            log.error(cl,"jml.internal","Use lemma ensures clause must hold a == or ==> expression");
-                            return;
-                        }
-                        break;
-                    default:
-                        log.error(cl,"jml.internal","Use lemmas currently implement only requires and ensures clauses: " + cl.token.internedName());
-                        return;
+                    }
+                    currentUse = M.at(that).JmlExpressionStatement(JmlTokenKind.ASSERT,Label.UNDEFINED_LEMMA,treeutils.trueLit);
+                    result = currentUse;
                 }
-                currentUse = M.at(that).JmlExpressionStatement(JmlTokenKind.ASSERT,Label.UNDEFINED_LEMMA,treeutils.trueLit);
-                result = currentUse;
+            } else {
+                log.error(expr, "jml.message", "Invalid kind of expression for a use statement; should be a lemma call, implication, or equality");
             }
         } else {
             super.visitJmlStatementExpr(that);

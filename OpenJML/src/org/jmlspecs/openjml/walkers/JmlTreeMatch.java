@@ -46,6 +46,7 @@ public class JmlTreeMatch extends JmlTreeScanner {
     public static class NoMatchException extends RuntimeException {}
     
     JCTree top;
+    boolean p = false;
     
     public boolean matches(JCTree tree, JCTree arg) {
         if (tree == null) return false;
@@ -64,8 +65,16 @@ public class JmlTreeMatch extends JmlTreeScanner {
      */
     public void scan(JCTree tree) {
         if (tree!=null) {
-            if (tree.getClass() != top.getClass()) {
-                throw new NoMatchException();
+            while (tree.getClass() != top.getClass()) {
+                if (tree instanceof JCParens) {
+                    scan(((JCParens)tree).expr);
+                    return;
+                } else if (top instanceof JCParens) {
+                    top = ((JCParens)top).expr;
+                    continue;
+                } else {
+                    nomatch();
+                }
             }
             tree.accept(this);
         }
@@ -119,9 +128,9 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //        scan(tree.init);
 //    }
 //
-//    public void visitSkip(JCSkip tree) {
-//    }
-//
+    public void visitSkip(JCSkip tree) {
+    }
+
 //    public void visitBlock(JCBlock tree) {
 //        scan(tree.stats);
 //    }
@@ -180,22 +189,30 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //        scan(tree.body);
 //    }
 //
-//    public void visitConditional(JCConditional tree) {
-//        scan(tree.cond);
-//        scan(tree.truepart);
-//        scan(tree.falsepart);
-//    }
-//
+    public void visitConditional(JCConditional tree) {
+        JCConditional t = (JCConditional)top;
+        top = t.cond;
+        scan(tree.cond);
+        top = t.truepart;
+        scan(tree.truepart);
+        top = t.falsepart;
+        scan(tree.falsepart);
+        top = t;
+    }
+
 //    public void visitIf(JCIf tree) {
 //        scan(tree.cond);
 //        scan(tree.thenpart);
 //        scan(tree.elsepart);
 //    }
 //
-//    public void visitExec(JCExpressionStatement tree) {
-//        scan(tree.expr);
-//    }
-//
+    public void visitExec(JCExpressionStatement tree) {
+        JCExpressionStatement t = (JCExpressionStatement)top;
+        top = t.expr;
+        scan(tree.expr);
+        top = t;
+    }
+
 //    public void visitBreak(JCBreak tree) {
 //    }
 //
@@ -215,13 +232,17 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //        scan(tree.detail);
 //    }
 //
-//    public void visitApply(JCMethodInvocation tree) {
-//        scan(tree.typeargs);
-//        scan(tree.meth);
-//        scan(tree.args);
-//    }
-//
-//    public void visitNewClass(JCNewClass tree) {
+    public void visitApply(JCMethodInvocation tree) {
+        JCMethodInvocation t = (JCMethodInvocation)top;
+        //top = t.typeargs; // FIXME
+        scan(tree.typeargs);
+        top = t.meth;
+        scan(tree.meth);
+        //top = t.args;  // FIXME
+        scan(tree.args);
+    }
+
+//    public void visitNewClass(JCNewClass tree) {  FIXME
 //        scan(tree.encl);
 //        scan(tree.typeargs);
 //        scan(tree.clazz);
@@ -229,7 +250,7 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //        scan(tree.def);
 //    }
 //
-//    public void visitNewArray(JCNewArray tree) {
+//    public void visitNewArray(JCNewArray tree) { FIXME
 //        scan(tree.annotations);
 //        scan(tree.elemtype);
 //        scan(tree.dims);
@@ -238,7 +259,7 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //        scan(tree.elems);
 //    }
 //
-//    public void visitLambda(JCLambda tree) {
+//    public void visitLambda(JCLambda tree) {  FIXME
 //        scan(tree.body);
 //        scan(tree.params);
 //    }
@@ -250,27 +271,8 @@ public class JmlTreeMatch extends JmlTreeScanner {
         top = t;
     }
 
-//    public void visitAssign(JCAssign tree) {
-//        scan(tree.lhs);
-//        scan(tree.rhs);
-//    }
-//
-//    public void visitAssignop(JCAssignOp tree) {
-//        scan(tree.lhs);
-//        scan(tree.rhs);
-//    }
-//
-    public void visitUnary(JCUnary tree) {
-        JCUnary t = (JCUnary)top; 
-        if (t.getTag() != tree.getTag()) throw new NoMatchException();
-        top = t.arg;
-        scan(tree.arg);
-        top = t;
-    }
-
-    public void visitBinary(JCBinary tree) {
-        JCBinary t = (JCBinary)top; 
-        if (t.getTag() != tree.getTag()) throw new NoMatchException();
+    public void visitAssign(JCAssign tree) {
+        JCAssign t = (JCAssign)top;
         top = t.lhs;
         scan(tree.lhs);
         top = t.rhs;
@@ -278,26 +280,69 @@ public class JmlTreeMatch extends JmlTreeScanner {
         top = t;
     }
 
-//    public void visitTypeCast(JCTypeCast tree) {
-//        scan(tree.clazz);
-//        scan(tree.expr);
-//    }
-//
-//    public void visitTypeTest(JCInstanceOf tree) {
-//        scan(tree.expr);
-//        scan(tree.clazz);
-//    }
-//
-//    public void visitIndexed(JCArrayAccess tree) {
-//        scan(tree.indexed);
-//        scan(tree.index);
-//    }
-//
-//    public void visitSelect(JCFieldAccess tree) {
-//        scan(tree.selected);
-//    }
-//
-//    public void visitReference(JCMemberReference tree) {
+    public void visitAssignop(JCAssignOp tree) {
+        JCAssignOp t = (JCAssignOp)top;
+        if (t.getTag() != tree.getTag()) nomatch();
+        top = t.lhs;
+        scan(tree.lhs);
+        top = t.rhs;
+        scan(tree.rhs);
+        top = t;
+    }
+
+    public void visitUnary(JCUnary tree) {
+        JCUnary t = (JCUnary)top; 
+        if (t.getTag() != tree.getTag()) nomatch();
+        top = t.arg;
+        scan(tree.arg);
+        top = t;
+    }
+
+    public void visitBinary(JCBinary tree) {
+        JCBinary t = (JCBinary)top; 
+        if (t.getTag() != tree.getTag()) nomatch();
+        top = t.lhs;
+        scan(tree.lhs);
+        top = t.rhs;
+        scan(tree.rhs);
+        top = t;
+    }
+
+    public void visitTypeCast(JCTypeCast tree) {
+        JCTypeCast t = (JCTypeCast)top;
+        top = t.clazz;
+        scan(tree.clazz);
+        top = t.expr;
+        scan(tree.expr);
+        top = t;
+    }
+
+    public void visitTypeTest(JCInstanceOf tree) {
+        JCInstanceOf t = (JCInstanceOf)top;
+        top = t.expr;
+        scan(tree.expr);
+        top = t.clazz;
+        scan(tree.clazz);
+        top = t;
+    }
+
+    public void visitIndexed(JCArrayAccess tree) {
+        JCArrayAccess t = (JCArrayAccess)top; 
+        top = t.indexed;
+        scan(tree.indexed);
+        top = t.index;
+        scan(tree.index);
+        top = t;
+    }
+
+    public void visitSelect(JCFieldAccess tree) {
+        JCFieldAccess t = (JCFieldAccess)top; 
+        top = t.selected;
+        scan(tree.selected);
+        top = t;
+    }
+
+//    public void visitReference(JCMemberReference tree) {  // FIXME
 //        scan(tree.expr);
 //        scan(tree.typeargs);
 //    }
@@ -305,80 +350,84 @@ public class JmlTreeMatch extends JmlTreeScanner {
     @Override
     public void visitIdent(JCIdent tree) {
         JCIdent t = (JCIdent) top;
-        if (t.sym != tree.sym) throw new NoMatchException();
+        if (t.sym != tree.sym) nomatch();
     }
 
-//    public void visitLiteral(JCLiteral tree) {
+    public void visitLiteral(JCLiteral tree) {
+        JCLiteral t = (JCLiteral) top;
+        if (!t.value.equals(tree.value)) nomatch();
+    }
+
+//    public void visitTypeIdent(JCPrimitiveTypeTree tree) {  FIXME
 //    }
 //
-//    public void visitTypeIdent(JCPrimitiveTypeTree tree) {
-//    }
-//
-//    public void visitTypeArray(JCArrayTypeTree tree) {
+//    public void visitTypeArray(JCArrayTypeTree tree) {  FIXME
 //        scan(tree.elemtype);
 //    }
 //
-//    public void visitTypeApply(JCTypeApply tree) {
+//    public void visitTypeApply(JCTypeApply tree) {  FIXME
 //        scan(tree.clazz);
 //        scan(tree.arguments);
 //    }
 //
-//    public void visitTypeUnion(JCTypeUnion tree) {
+//    public void visitTypeUnion(JCTypeUnion tree) {  FIXME
 //        scan(tree.alternatives);
 //    }
 //
-//    public void visitTypeIntersection(JCTypeIntersection tree) {
+//    public void visitTypeIntersection(JCTypeIntersection tree) {  FIXME
 //        scan(tree.bounds);
 //    }
 //
-//    public void visitTypeParameter(JCTypeParameter tree) {
+//    public void visitTypeParameter(JCTypeParameter tree) {  FIXME
 //        scan(tree.annotations);
 //        scan(tree.bounds);
 //    }
 //
 //    @Override
-//    public void visitWildcard(JCWildcard tree) {
+//    public void visitWildcard(JCWildcard tree) {  FIXME
 //        scan(tree.kind);
 //        if (tree.inner != null)
 //            scan(tree.inner);
 //    }
 //
 //    @Override
-//    public void visitTypeBoundKind(TypeBoundKind that) {
+//    public void visitTypeBoundKind(TypeBoundKind that) {  FIXME
 //    }
 //
-//    public void visitModifiers(JCModifiers tree) {
+//    public void visitModifiers(JCModifiers tree) {  FIXME
 //        scan(tree.annotations);
 //    }
 //
-//    public void visitAnnotation(JCAnnotation tree) {
+//    public void visitAnnotation(JCAnnotation tree) {  FIXME
 //        scan(tree.annotationType);
 //        scan(tree.args);
 //    }
 //
-//    public void visitAnnotatedType(JCAnnotatedType tree) {
+//    public void visitAnnotatedType(JCAnnotatedType tree) {  FIXME
 //        scan(tree.annotations);
 //        scan(tree.underlyingType);
 //    }
 //
-//    public void visitErroneous(JCErroneous tree) {
-//    }
-//
-//    public void visitLetExpr(LetExpr tree) {
+    public void visitErroneous(JCErroneous tree) {
+        // Never a match even if both trees are erroneous
+        nomatch();
+    }
+
+//    public void visitLetExpr(LetExpr tree) {  FIXME
 //        scan(tree.defs);
 //        scan(tree.expr);
 //    }
 
     public void visitTree(JCTree tree) {
         // TODO - AND ALSO SOMETHING NOT IMPLEMENTED?
-        throw new NoMatchException();
+        nomatch();
     }
     
 
     
     public void visitJmlBinary(JmlBinary that) {
         JmlBinary t = (JmlBinary)top;
-        if (that.getOp() != t.getOp()) throw new NoMatchException();
+        if (that.getOp() != t.getOp()) nomatch();
         top = t.lhs;
         scan(that.lhs);
         top = t.rhs;
@@ -460,10 +509,15 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //        scan(that.body);
 //    }
 //    
-//    public void visitJmlLblExpression(JmlLblExpression that) {
-//        scan(that.expression);
-//    }
-//
+    public void visitJmlLblExpression(JmlLblExpression that) {
+        JmlLblExpression t = (JmlLblExpression)top;
+        if (t.token != that.token) nomatch();
+        // Labels may be different
+        top = t.expression;
+        scan(that.expression);
+        top = t;
+    }
+
 //    public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
 //        scan(tree.keyword);
 //        scan(tree.methodSignatures);
@@ -514,7 +568,7 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //        visitMethodDef(that);
 //    }
 //
-//    public void visitJmlMethodInvocation(JmlMethodInvocation that) {
+//    public void visitJmlMethodInvocation(JmlMethodInvocation that) {  FIXME
 //        scan(that.args);
 //    }
 //    
@@ -528,27 +582,29 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //        scan(that.item);
 //    }
 //
-//    public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree tree) {
+//    public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree tree) {  FIXME
 //        // no children to scan
 //    }
 //
-//    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+//    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) { FIXME
 //        scan(that.decls);
 //        scan(that.range);
 //        scan(that.value);
 //        scan(that.racexpr);
 //    }
 //
-//    public void visitJmlSetComprehension(JmlSetComprehension that) {
+//    public void visitJmlSetComprehension(JmlSetComprehension that) { FIXME
 //        scan(that.newtype);
 //        scan(that.variable);
 //        scan(that.predicate);
 //    }
 //
-//    public void visitJmlSingleton(JmlSingleton that) {
-//        // no children to scan
-//    }
-//
+    public void visitJmlSingleton(JmlSingleton that) {
+        JmlSingleton t = (JmlSingleton)top;
+        if (that.token != t.token) nomatch(); 
+        // no children to scan
+    }
+
 //    public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
 //        scan(tree.modifiers);
 //        scan(tree.clauses);
@@ -573,11 +629,16 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //        }
 //    }
 //
-//    public void visitJmlStatementExpr(JmlStatementExpr tree) {
-//        scan(tree.expression);
-//        scan(tree.optionalExpression);
-//    }
-//
+    public void visitJmlStatementExpr(JmlStatementExpr tree) {
+        JmlStatementExpr t = (JmlStatementExpr)top;
+        if (t.token != tree.token) nomatch(); 
+        top = t.expression;
+        scan(tree.expression);
+        top = t.optionalExpression;
+        scan(tree.optionalExpression);
+        top = t;
+    }
+
 //    public void visitJmlStatementHavoc(JmlStatementHavoc tree) {
 //        scan(tree.storerefs);
 //    }
@@ -601,10 +662,12 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //        scan(that.hi);
 //    }
 //
-//    public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
-//        // nothing to scan
-//    }
-//
+    public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
+        JmlStoreRefKeyword t = (JmlStoreRefKeyword)top;
+        if (t.token != that.token) nomatch();
+        // nothing to scan
+    }
+
 //    public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
 //        for (JCTree t: that.list) {
 //            scan(t);
@@ -687,5 +750,9 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //        scan(that.loopSpecs);
 //        visitWhileLoop(that);
 //    }
+    
+    public void nomatch() {
+        throw new NoMatchException();
+    }
 
 }
