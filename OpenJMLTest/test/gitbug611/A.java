@@ -17,7 +17,7 @@ interface AA {
 public class A implements AA {
 	public int lb;
 	
-	//@ ensures \result == (i>=lb);
+	//@ also ensures \result == (i>=lb);
 	public boolean ok(int i) { return i>=lb; }
 	
 	public boolean test(int i) {

@@ -22,6 +22,7 @@ public class methodspecs extends TCBase {
                 +"int m() { return 0; }\n"
                 +"}"
                 ,"/TEST.java:3: This is not a valid keyword in a method specification: r",5
+                ,"/TEST.java:3: warning: Method m does not override parent class methods and so its specification may not begin with 'also'",5
                 );
     }
 
@@ -29,7 +30,7 @@ public class methodspecs extends TCBase {
     @Test
     public void testBadKeyword2() {
         helpTC(" class A { \n"
-                +"//@ also\n"
+                +"\n"
                 +"//@ requires true;\n"
                 +"//@ s ignals_only Exception;\n"
                 +"int m() { return 0; }\n"

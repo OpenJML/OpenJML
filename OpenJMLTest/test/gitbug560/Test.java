@@ -21,7 +21,7 @@ interface A {
 /*@ model
 class B implements A {
 
-    //@ public normal_behavior
+    //@ also public normal_behavior
     //@   requires true;
     //@ pure
     public void m() {}

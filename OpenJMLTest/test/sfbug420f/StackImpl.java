@@ -12,7 +12,7 @@ public class StackImpl implements Stack {
 		stackCounter = 0;
 	}
 	
-	//@ ensures \result == stackCounter;
+	//@ also ensures \result == stackCounter;
 	//@ pure
 	//@ helper
 	public int count() {

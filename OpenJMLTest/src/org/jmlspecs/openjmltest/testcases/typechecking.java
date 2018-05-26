@@ -51,6 +51,58 @@ public class typechecking extends TCBase {
                 );
     }
 
+    @Test public void testAlso0() {
+        helpTC(" class B { void m() {} } class A extends B { /*@ also requires true; */ void m() {}  /*@ requires true; */ void n() {}}"
+                );
+    }
+
+    @Test public void testAlso1() {
+    	expectedExit = 0;
+        helpTC(" class B { void m() {} } class A extends B { /*@ requires true; */ void m() {} /*@ also requires true; */ void n() {}}"
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also'",50
+                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",89
+                );
+    }
+
+    @Test public void testAlso0I() {
+        helpTC(" interface B { void m(); } class A implements B { /*@ also requires true; */ public void m() {}  /*@ requires true; */ void n() {}}"
+                );
+    }
+
+    @Test public void testAlso1I() {
+    	expectedExit = 0;
+        helpTC(" interface B { void m(); } class A implements B { /*@ public normal_behavior requires true; */ public void m() {} /*@ also requires true; */ void n() {}}"
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also'",62
+                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",124
+                );
+    }
+
+    @Test public void testAlso0II() {
+        helpTC(" interface B { void m(); } interface A extends B { /*@ also requires true; */ public void m();  /*@ requires true; */ void n();}"
+                );
+    }
+
+    @Test public void testAlso1II() {
+    	expectedExit = 0;
+        helpTC(" interface B { void m(); } interface A extends B { /*@ requires true; */ void m(); /*@ also requires true; */ void n();}"
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also'",56
+                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",93
+                );
+    }
+
+    @Test public void testAlsoObject() {
+    	expectedExit = 0;
+        helpTC("  interface A { /*@ also public normal_behavior requires true; */ String toString();}"
+                );
+    }
+
+    @Test public void testAlsoObjectBad() {
+    	expectedExit = 0;
+        helpTC("  interface A { /*@ public normal_behavior requires true; */ String toString();}"
+                ,"/TEST.java:1: warning: Method toString overrides parent class methods and so its specification should begin with 'also'",28
+                );
+    }
+
     @Test public void testOld1() {
         helpTC(" class A { int k; boolean b; void m() { \n//@ assert \\old;\n}}",
                 "/TEST.java:2: A \\old expression must have an argument list",12);

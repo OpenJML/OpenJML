@@ -17,7 +17,7 @@ public class Container {
         return c;
     }
 
-    /*@ public normal_behavior
+    /*@ also public normal_behavior
       @   assignable \nothing;
       @   ensures \result <==> (obj instanceof Container) && ((Container) obj).a == a;
       @*/

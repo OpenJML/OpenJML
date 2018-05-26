@@ -2762,7 +2762,7 @@ public class racnew extends RacBase {
                 );
         addMockFile("$A/tt/C.java","package tt; public class C implements I { \n"
                 +"static public int i=0;  \n"
-                +"//@ ensures i == 3; \n"
+                +"//@ also ensures i == 3; \n"
                 +" public void m() {} ; \n"
                 +"}\n"
                 );
@@ -2809,7 +2809,7 @@ public class racnew extends RacBase {
                 );
         addMockFile("$A/ttt/C.java","package ttt; public class C implements tt.I { \n"
                 +"static public int i=0;  \n"
-                +"//@ ensures i == 3; \n"
+                +"//@ also ensures i == 3; \n"
                 +" public void m() {} ; \n"
                 +"}\n"
                 );

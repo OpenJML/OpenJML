@@ -69,7 +69,7 @@ public class escm extends EscBase {
                 +"       class C { /*@ ensures false; */ void mc() {  }};\n"
                 +"       C x;\n"
                 +"       class D { void md() {  }};\n" // Line 10
-                +"       D y = new D() { /*@ ensures false; */ void md() {}};\n"
+                +"       D y = new D() { /*@ also ensures false; */ void md() {}};\n"
                 +"       class E { /*@ ensures false; */void me() {  }};\n"
                 +"       E z = new E() {  void me() {}};\n"
                 +"  }\n"
@@ -85,8 +85,8 @@ public class escm extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method mc",45
                 ,"/tt/TestJava.java:8: warning: Associated declaration",22
-                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method md",51
-                ,"/tt/TestJava.java:11: warning: Associated declaration",28
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method md",56
+                ,"/tt/TestJava.java:11: warning: Associated declaration",33
                 ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Postcondition) in method me",44
                 ,"/tt/TestJava.java:12: warning: Associated declaration",22
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method me",30

@@ -38,7 +38,7 @@ class B extends A {
     static private int m() {
         return 2;
     }
-    //@ ensures \result == 2;
+    //@ also ensures \result == 2;
     //@ pure
     public int mi() {
         return 2;
