@@ -2812,7 +2812,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     }
                                     break;
                                 case INITIALLY:
-                                    if (isPost && isConstructor) {
+                                    if (isPost && isConstructor && !contextIsStatic) {
                                         pushBlock();
                                         try {
                                             t = (JmlTypeClauseExpr)clause;
@@ -4175,15 +4175,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addInvariants(methodDecl,resultSym.type,resultId,ensuresStats,false,false,false,false,true,false,Label.INVARIANT_EXIT,
                     utils.qualifiedMethodSig(methodDecl.sym) + " (for result type)");
         }
-        if (!methodDecl.sym.isConstructor()) {
+        // We are doing exceptional postconditions, so if this is a constructor, we only do static
+        // invariants which we indicate by setting the receiver null.
+        JCExpression treceiver = !methodDecl.sym.isConstructor() ? receiver : null;
+        {
             if (rac) {
-                addInvariants(methodDecl,owner.type,receiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,Label.INVARIANT_EXCEPTION_EXIT,
+                addInvariants(methodDecl,owner.type,treceiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,Label.INVARIANT_EXCEPTION_EXIT,
                         utils.qualifiedMethodSig(methodDecl.sym));
-                addConstraintInitiallyChecks(methodDecl,owner,receiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,null,
+                addConstraintInitiallyChecks(methodDecl,owner,treceiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,null,
                         utils.qualifiedMethodSig(methodDecl.sym));
             } else {
-                if (!isPure) addInvariants(methodDecl,owner.type,receiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,Label.INVARIANT_EXCEPTION_EXIT);
-                addConstraintInitiallyChecks(methodDecl,owner,receiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,null);
+                if (!isPure) addInvariants(methodDecl,owner.type,treceiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,Label.INVARIANT_EXCEPTION_EXIT);
+                addConstraintInitiallyChecks(methodDecl,owner,treceiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,null);
             }
         }
         
