@@ -490,6 +490,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             relax = true;  // Turns off some bogus lack of overriding warnings
             super.attribClassBody(env,c);
+            Enter.instance(context).typeEnvs.put(c,env); // TODO _ not sure why this is not already done, but is needed in some cases, e.g. immutable modifier on an enum class
             attribClassBodySpecs(env,c,prevIsInJmlDeclaration);
         
         } finally {
