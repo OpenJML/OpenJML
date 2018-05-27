@@ -683,7 +683,7 @@ public class SFBugs extends EscBase {
     }
     
     @Test
-    public void gitbug604() {
+    public void gitbug604() {  // FIXME requires implementatino of \not_assigned
     	expectedExit = 0;
         helpTCG("-code-math=safe","-method=AbsInterval.add");
     }
@@ -719,7 +719,7 @@ public class SFBugs extends EscBase {
     }
     
     @Test
-    public void gitbug612() {
+    public void gitbug613() {
     	expectedExit = 0;
         helpTCG();
     }
