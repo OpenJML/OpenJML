@@ -1,17 +1,39 @@
 Proving methods in Test
 Starting proof of Test.Test(int) with prover !!!!
-test/gitbug612/Test.java:16: warning: The prover cannot establish an assertion (InvariantExceptionExit) in method Test
+test/gitbug613/Test.java:16: warning: The prover cannot establish an assertion (InvariantExceptionExit) in method Test
 		if (i < 0) throw new RuntimeException();
 		           ^
-test/gitbug612/Test.java:5: warning: Associated declaration
+test/gitbug613/Test.java:5: warning: Associated declaration
 	//@ private static invariant zz == 1;
 	                   ^
 Completed proof of Test.Test(int) with prover !!!! - with warnings
 Completed proving methods in Test
+Proving methods in TestP
+Starting proof of TestP.TestP(int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of TestP.TestP(int) with prover !!!! - no warnings
+Completed proving methods in TestP
 Proving methods in Test2
 Starting proof of Test2.Test2(int) with prover !!!!
 Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of Test2.Test2(int) with prover !!!! - no warnings
 Completed proving methods in Test2
-2 warnings
+Proving methods in Test3B
+Starting proof of Test3B.Test3B(int) with prover !!!!
+test/gitbug613/Test.java:67: warning: The prover cannot establish an assertion (InvariantExit) in method Test3B
+		public Test3B(int i) {
+		       ^
+test/gitbug613/Test.java:62: warning: Associated declaration
+		//@ private invariant aa == 3;
+		            ^
+Completed proof of Test3B.Test3B(int) with prover !!!! - with warnings
+Completed proving methods in Test3B
+Proving methods in Test3
+Starting proof of Test3.Test3(int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Test3.Test3(int) with prover !!!! - no warnings
+Completed proving methods in Test3
+4 warnings
