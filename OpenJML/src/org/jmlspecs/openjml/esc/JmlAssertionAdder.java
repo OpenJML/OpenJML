@@ -4151,16 +4151,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Accumulate the invariants to be checked after the method returns
         clearInvariants();
+        if (rac) {
+            if (!isPure || isConstructor) addInvariants(methodDecl,owner.type,receiver,ensuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,Label.INVARIANT_EXIT,
+                    utils.qualifiedMethodSig(methodDecl.sym));
+            addConstraintInitiallyChecks(methodDecl,owner,receiver,ensuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,null,
+                    utils.qualifiedMethodSig(methodDecl.sym));
+        } else {
+            if (!isPure || isConstructor) addInvariants(methodDecl,owner.type,receiver,ensuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,Label.INVARIANT_EXIT);
+            addConstraintInitiallyChecks(methodDecl,owner,receiver,ensuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,null);
+        }
         if (!isPure || isConstructor) {
-            if (rac) {
-                addInvariants(methodDecl,owner.type,receiver,ensuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,Label.INVARIANT_EXIT,
-                        utils.qualifiedMethodSig(methodDecl.sym));
-                addConstraintInitiallyChecks(methodDecl,owner,receiver,ensuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,null,
-                        utils.qualifiedMethodSig(methodDecl.sym));
-            } else {
-                addInvariants(methodDecl,owner.type,receiver,ensuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,Label.INVARIANT_EXIT);
-                addConstraintInitiallyChecks(methodDecl,owner,receiver,ensuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,null);
-            }
             for (JCVariableDecl v: methodDecl.params) {
                 if (v.type.isPrimitive()) continue;
                 JCIdent d = preparams.get(v.sym);
@@ -4170,8 +4170,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addInvariants(v,v.type,id,ensuresStats,true,false,false,false,true,false,Label.INVARIANT_EXIT,
                         utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
             }
-            clearInvariants();
         }
+        clearInvariants();
         if (resultSym != null && !resultSym.type.isPrimitive() && !isConstructor) {
             JCIdent resultId = treeutils.makeIdent(methodDecl.pos, resultSym);
             addInvariants(methodDecl,resultSym.type,resultId,ensuresStats,false,false,false,false,true,false,Label.INVARIANT_EXIT,
@@ -4192,15 +4192,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         
-        for (JCVariableDecl v: methodDecl.params) {
-            if (v.type.isPrimitive()) continue;
-            JCIdent d = preparams.get(v.sym);
-            if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
-            JCIdent id = treeutils.makeIdent(v.pos,d.sym);
-            addInvariants(v,v.type,id,exsuresStats,false,false,false,false,true,false,Label.INVARIANT_EXCEPTION_EXIT,
-                    utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
-            addConstraintInitiallyChecks(v,v.type.tsym,id,exsuresStats,false,false,false,false,true,false,null,
-                    utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
+        if (!isPure || isConstructor) {
+            for (JCVariableDecl v: methodDecl.params) {
+                if (v.type.isPrimitive()) continue;
+                JCIdent d = preparams.get(v.sym);
+                if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
+                JCIdent id = treeutils.makeIdent(v.pos,d.sym);
+                addInvariants(v,v.type,id,exsuresStats,false,false,false,false,true,false,Label.INVARIANT_EXCEPTION_EXIT,
+                        utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
+                //            addConstraintInitiallyChecks(v,v.type.tsym,id,exsuresStats,false,false,false,false,true,false,null,
+                //                    utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
+            }
         }
 
         // Invariants for fields

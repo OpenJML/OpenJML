@@ -437,7 +437,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
     
-//    @Ignore // FIXME
+    @Ignore // FIXME - long running
     @Test // Tests int multiplication in java mode
     public void testMultJava() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
@@ -455,7 +455,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
     
-    @Ignore // FIXMEm -- long running
+    @Ignore // FIXME -- long running
     @Test // Tests long multiplication in java mode
     public void testMultJavaLong() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode

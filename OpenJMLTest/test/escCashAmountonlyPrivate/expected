@@ -16,7 +16,7 @@ Starting proof of CashAmountOnlyPrivate.increase(CashAmountOnlyPrivate) with pro
                      ^
 ../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:40: warning: Precondition conjunct is false: the_cents < 100
   //@ requires -100 < the_cents && the_cents < 100;
-                                   ^
+                                             ^
 Completed proof of CashAmountOnlyPrivate.increase(CashAmountOnlyPrivate) with prover !!!! - with warnings
 Starting proof of CashAmountOnlyPrivate.decrease(CashAmountOnlyPrivate) with prover !!!!
 Feasibility check #1 - end of preconditions : OK
