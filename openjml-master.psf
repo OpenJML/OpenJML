@@ -11,7 +11,7 @@
 <project reference="1.0,https://github.com/OpenJML/OpenJML.git,master,OpenJMLUI"/>
 <project reference="1.0,https://github.com/OpenJML/Specs.git,master,."/>
 <project reference="1.0,https://github.com/OpenJML/OpenJML.git,master,vendor"/>
-<project reference="1.0,https://github.com/OpenJML/Solvers.git,master,Solvers”/>
-<project reference="1.0,https://github.com/OpenJML/SMTSolvers.git,master,SMTSolvers”/>
+<project reference="1.0,https://github.com/OpenJML/Solvers.git,master,.”/>
+<project reference="1.0,https://github.com/OpenJML/SMTSolvers.git,master,.”/>
 </provider>
 </psf>
