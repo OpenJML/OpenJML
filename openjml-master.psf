@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<psf version="2.0">
+<provider id="org.eclipse.egit.core.GitProvider">
+<project reference="1.0,https://github.com/OpenJML/JMLAnnotations.git,master,."/>
+<project reference="1.0,https://github.com/OpenJML/OpenJML.git,master,OpenJDK"/>
+<project reference="1.0,https://github.com/OpenJML/OpenJML.git,master,OpenJML"/>
+<project reference="1.0,https://github.com/OpenJML/OpenJMLDemo.git,master,."/>
+<project reference="1.0,https://github.com/OpenJML/OpenJML.git,master,OpenJMLFeature"/>
+<project reference="1.0,https://github.com/OpenJML/OpenJML.git,master,OpenJMLGUITests"/>
+<project reference="1.0,https://github.com/OpenJML/OpenJML.git,master,OpenJMLTest"/>
+<project reference="1.0,https://github.com/OpenJML/OpenJML.git,master,OpenJMLUI"/>
+<project reference="1.0,https://github.com/OpenJML/Specs.git,master,."/>
+<project reference="1.0,https://github.com/OpenJML/OpenJML.git,master,vendor"/>
+<project reference="1.0,https://github.com/OpenJML/Solvers.git,master,Solvers”/>
+<project reference="1.0,https://github.com/OpenJML/SMTSolvers.git,master,SMTSolvers”/>
+</provider>
+</psf>
