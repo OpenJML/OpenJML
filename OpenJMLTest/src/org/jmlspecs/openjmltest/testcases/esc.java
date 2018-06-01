@@ -300,7 +300,7 @@ public class esc extends EscBase {
 
 	@Test @Ignore // FIXME - timesout
 	public void testForEach2a1() {
-		main.addOptions("escMaxWarnings=1");
+		main.addOptions("-escMaxWarnings=1");
 		helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
 				+ "public class TestJava { \n"
 				+ "  //@ public normal_behavior  ensures true;\n" 
@@ -320,7 +320,7 @@ public class esc extends EscBase {
 
     @Test @Ignore // FIXME - timesout
     public void testForEach2a2() {
-        main.addOptions("escMaxWarnings=1");
+        main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
                 + "public class TestJava { \n"
 
@@ -351,7 +351,7 @@ public class esc extends EscBase {
     }
     @Test @Ignore // FIXME - timesout
     public void testForEach2a2a() {
-        main.addOptions("escMaxWarnings=1");
+        main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
                 + "public class TestJava { \n"
 
@@ -385,7 +385,7 @@ public class esc extends EscBase {
     }
     @Test
     public void testForEach2a3() {
-        main.addOptions("escMaxWarnings=1");
+        main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
                 + "public class TestJava { \n"
 
@@ -406,7 +406,7 @@ public class esc extends EscBase {
     }
     @Test
     public void testForEach2a4() {
-        main.addOptions("escMaxWarnings=1");
+        main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
                 + "public class TestJava { \n"
 

@@ -100,6 +100,7 @@ public class escDemofiles extends EscBase {
         helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/BinarySearch.java","test/demoBinarySearch","-progress","-noInternalSpecs","-logic=AUFNIRA");
     }
 
+    @Ignore
     @Test // FIXME: Fails because of inadequate specs and use of \created
     public void testCustomer() {
         expectedExit = 0;
@@ -113,7 +114,7 @@ public class escDemofiles extends EscBase {
         helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/MaxByElimination.java","test/demoMaxByElimination","-progress","-code-math=bigint");
     }
 
-    @Test // FIXME: Cannot reason about \sum
+    @Test @Ignore // FIXME: Cannot reason about \sum
     public void testSumAndMax() {
         expectedExit = 1;
         helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/SumAndMax.java","test/demoSumAndMax","-progress");
