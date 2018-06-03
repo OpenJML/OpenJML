@@ -1012,6 +1012,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     // OK
     public void visitIf(JCIf that) {
         int pos = that.pos;
+        int posc = that.cond != null ? that.cond.pos : pos;
         currentBlock.statements.add(comment(that.pos(),"if..."));
         
         // Now create an (unprocessed) block for everything that follows the
@@ -1020,14 +1021,14 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         
         // Now make the then block
         T thenBlock = newBlock(THENSUFFIX,pos);
-        addAssume(that.cond.pos, Label.BRANCHT, that.cond, thenBlock.statements);
+        addAssume(posc, Label.BRANCHT, that.cond, thenBlock.statements);
         thenBlock.statements.add(that.thenpart);
         follows(thenBlock,afterIf);
         follows(currentBlock,thenBlock);
         
         // Now make the else block
         T elseBlock = newBlock(ELSESUFFIX,pos);
-        addAssume(that.cond.pos, Label.BRANCHE, treeutils.makeNot(that.cond.pos,that.cond), elseBlock.statements);
+        addAssume(posc, Label.BRANCHE, treeutils.makeNot(posc,that.cond), elseBlock.statements);
         if (that.elsepart != null) elseBlock.statements.add(that.elsepart);
         follows(elseBlock,afterIf);
         follows(currentBlock,elseBlock);
