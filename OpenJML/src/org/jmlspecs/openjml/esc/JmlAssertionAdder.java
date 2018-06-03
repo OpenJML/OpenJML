@@ -7482,61 +7482,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // Do any inlining
                 // This is duplicating the inlining code used below
                 resultExpr = eresult;
-                {
-                    for (Pair<MethodSymbol,Type> pair: overridden) {
-                        MethodSymbol mpsym = pair.first;
-                        Type classType = pair.second;
-                        addStat(comment(that, "... Checking for model programs " + calleeMethodSym + " in " + classType.toString(),null));
-
-
-                        // FIXME - from here down to loop is duplicated from above
-
-                        // FIXME - meth is null for constructors - fix that also; also generic types
-                        typevarMapping = typemapping(classType, calleeMethodSym, typeargs, 
-                                meth == null ? null : meth.type instanceof Type.MethodType ? (Type.MethodType)meth.type : null);
-                        // This initial logic must match that below for postconditions
-
-
-                        JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
-                        if (calleeSpecs == null) continue; // FIXME - not sure about this - should get a default?
-
-                        paramActuals = mapParamActuals.get(mpsym);
-
-                        LinkedList<ListBuffer<JCStatement>> temptt = markBlock();
-                        for (JmlSpecificationCase cs : calleeSpecs.cases) {
-                            if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
-                            if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
-                            if (mpsym != calleeMethodSym && cs.code) continue;
-                            JCExpression pre = preExpressions.get(cs);
-
-                            if (cs.block != null && !localVariables.isEmpty()) {
-                                log.warning(cs.block.pos, "jml.message", "Cannot use functions with model methods within quantified expressions");
-                                break;
-                            }
-                            if (cs.block != null)  { // Note: inlining for RAC, also -- FIXME - need to check this
-                                addStat(comment(cs.block, "Inlining model program ",cs.source()));  // FIXME - source file for inlining?
-                                JavaFileObject prevv = log.useSource(cs.source());
-                                // We make a copybecause the block being inlined might be inlined more than once
-                                // and it might have modifications to it, such as if there are any inlined_loop statements
-                                JCExpression cpre = treeutils.trueLit; // FIXME - needs to be the precondition
-                                inlineConvertBlock(that,cpre,convertCopy(cs.block),"model program");
-                                log.useSource(prevv);
-                                checkBlock(temptt);
-                            }
-                        }
-                        checkBlock(temptt);
-
-                        if (inliningCall)  { // Note: inlining for RAC, also -- FIXME - need to check this
-                            addStat(comment(that, "Inlining method " + calleeMethodSym.toString(),log.currentSourceFile()));
-                            // Find definition of method to be inlined
-                            JmlSpecs.MethodSpecs m = JmlSpecs.instance(context).getSpecs(calleeMethodSym);
-                            JmlMethodDecl mdecl = m.cases.decl;
-                            inlineConvertBlock(that,treeutils.trueLit, mdecl.body,"body of method " + calleeMethodSym);
-                        }
-                        checkBlock(temptt);
-                        paramActuals = null;
-                    }
-                }
+                insertAllModelProgramInlines(that, mapParamActuals,
+                        preExpressions, calleeMethodSym, typeargs, meth,
+                        inliningCall, overridden);
  
 //                // Ensure determinism
 //                // FIXME - make this work for old environments as well
@@ -8265,57 +8213,60 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 
                 // Do any inlining
+                insertAllModelProgramInlines(that, mapParamActuals,
+                        preExpressions, calleeMethodSym, typeargs, meth,
+                        inliningCall, overridden);
                 
-                {
-                    for (Pair<MethodSymbol,Type> pair: overridden) {
-                        MethodSymbol mpsym = pair.first;
-                        Type classType = pair.second;
-                        addStat(comment(that, "... Checking for model programs " + calleeMethodSym + " in " + classType.toString(),null));
-
-
-                        // FIXME - from here down to loop is duplicated from above
-
-                        // FIXME - meth is null for constructors - fix that also; also generic types
-                        typevarMapping = typemapping(classType, calleeMethodSym, typeargs, 
-                                meth == null ? null : meth.type instanceof Type.MethodType ? (Type.MethodType)meth.type : null);
-                        // This initial logic must match that below for postconditions
-
-
-                        JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
-                        if (calleeSpecs == null) continue; // FIXME - not sure about this - should get a default?
-
-                        paramActuals = mapParamActuals.get(mpsym);
-
-                        LinkedList<ListBuffer<JCStatement>> temptt = markBlock();
-                        for (JmlSpecificationCase cs : calleeSpecs.cases) {
-                            if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
-                            if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
-                            if (mpsym != calleeMethodSym && cs.code) continue;
-                            JCExpression pre = preExpressions.get(cs);
-
-                            if (cs.block != null)  { // Note: inlining for RAC, also -- FIXME - need to check this
-                                addStat(comment(cs.block, "Inlining model program ",cs.source()));  // FIXME - source file for inlining?
-                                JavaFileObject prevv = log.useSource(cs.source());
-                                // We make a copybecause the block being inlined might be inlined more than once
-                                // and it might have modifications to it, such as if there are any inlined_loop statements
-                                inlineConvertBlock(that,pre,convertCopy(cs.block),"model program");
-                                log.useSource(prevv);
-                                checkBlock(temptt);
-                            }
-                        }
-                        checkBlock(temptt);
-
-                        if (inliningCall)  { // Note: inlining for RAC, also -- FIXME - need to check this
-                            addStat(comment(that, "Inlining method " + calleeMethodSym.toString(),log.currentSourceFile()));
-                            // Find definition of method to be inlined
-                            JmlSpecs.MethodSpecs m = JmlSpecs.instance(context).getSpecs(calleeMethodSym);
-                            JmlMethodDecl mdecl = m.cases.decl;
-                            inlineConvertBlock(that,treeutils.trueLit, mdecl.body,"body of method " + calleeMethodSym);
-                        }
-                        checkBlock(temptt);
-                        paramActuals = null;
-                    }
-                }
+//                {
+//                    for (Pair<MethodSymbol,Type> pair: overridden) {
+//                        MethodSymbol mpsym = pair.first;
+//                        Type classType = pair.second;
+//                        addStat(comment(that, "... Checking for model programs " + calleeMethodSym + " in " + classType.toString(),null));
+//
+//
+//                        // FIXME - from here down to loop is duplicated from above
+//
+//                        // FIXME - meth is null for constructors - fix that also; also generic types
+//                        typevarMapping = typemapping(classType, calleeMethodSym, typeargs, 
+//                                meth == null ? null : meth.type instanceof Type.MethodType ? (Type.MethodType)meth.type : null);
+//                        // This initial logic must match that below for postconditions
+//
+//
+//                        JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
+//                        if (calleeSpecs == null) continue; // FIXME - not sure about this - should get a default?
+//
+//                        paramActuals = mapParamActuals.get(mpsym);
+//
+//                        LinkedList<ListBuffer<JCStatement>> temptt = markBlock();
+//                        for (JmlSpecificationCase cs : calleeSpecs.cases) {
+//                            if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
+//                            if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
+//                            if (mpsym != calleeMethodSym && cs.code) continue;
+//                            JCExpression pre = preExpressions.get(cs);
+//
+//                            if (cs.block != null)  { // Note: inlining for RAC, also -- FIXME - need to check this
+//                                addStat(comment(cs.block, "Inlining model program ",cs.source()));  // FIXME - source file for inlining?
+//                                JavaFileObject prevv = log.useSource(cs.source());
+//                                // We make a copybecause the block being inlined might be inlined more than once
+//                                // and it might have modifications to it, such as if there are any inlined_loop statements
+//                                inlineConvertBlock(that,pre,convertCopy(cs.block),"model program");
+//                                log.useSource(prevv);
+//                                checkBlock(temptt);
+//                            }
+//                        }
+//                        checkBlock(temptt);
+//
+//                        if (inliningCall)  { // Note: inlining for RAC, also -- FIXME - need to check this
+//                            addStat(comment(that, "Inlining method " + calleeMethodSym.toString(),log.currentSourceFile()));
+//                            // Find definition of method to be inlined
+//                            JmlSpecs.MethodSpecs m = JmlSpecs.instance(context).getSpecs(calleeMethodSym);
+//                            JmlMethodDecl mdecl = m.cases.decl;
+//                            inlineConvertBlock(that,treeutils.trueLit, mdecl.body,"body of method " + calleeMethodSym);
+//                        }
+//                        checkBlock(temptt);
+//                        paramActuals = null;
+//                    }
+//                }
             }
             
 
@@ -9102,6 +9053,69 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCBlock b = popBlock(0L,that,check0);
             currentStatements.addAll(b.stats);
             methodsInlined.remove(calleeMethodSym);
+        }
+    }
+
+    public void insertAllModelProgramInlines(JCExpression that,
+            Map<Symbol, Map<Object, JCExpression>> mapParamActuals,
+            Map<JmlSpecificationCase, JCIdent> preExpressions,
+            MethodSymbol calleeMethodSym, List<JCExpression> typeargs,
+            JCExpression meth, boolean inliningCall,
+            java.util.List<Pair<MethodSymbol, Type>> overridden) {
+        {
+            for (Pair<MethodSymbol,Type> pair: overridden) {
+                MethodSymbol mpsym = pair.first;
+                Type classType = pair.second;
+                addStat(comment(that, "... Checking for model programs " + calleeMethodSym + " in " + classType.toString(),null));
+
+
+                // FIXME - from here down to loop is duplicated from above
+
+                // FIXME - meth is null for constructors - fix that also; also generic types
+                typevarMapping = typemapping(classType, calleeMethodSym, typeargs, 
+                        meth == null ? null : meth.type instanceof Type.MethodType ? (Type.MethodType)meth.type : null);
+                // This initial logic must match that below for postconditions
+
+
+                JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
+                if (calleeSpecs == null) continue; // FIXME - not sure about this - should get a default?
+
+                paramActuals = mapParamActuals.get(mpsym);
+
+                LinkedList<ListBuffer<JCStatement>> temptt = markBlock();
+                for (JmlSpecificationCase cs : calleeSpecs.cases) {
+                    if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
+                    if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
+                    if (mpsym != calleeMethodSym && cs.code) continue;
+                    JCExpression pre = preExpressions.get(cs);
+
+                    if (cs.block != null && !localVariables.isEmpty()) {
+                        log.warning(cs.block.pos, "jml.message", "Cannot use functions with model methods within quantified expressions");
+                        break;
+                    }
+                    if (cs.block != null)  { // Note: inlining for RAC, also -- FIXME - need to check this
+                        addStat(comment(cs.block, "Inlining model program ",cs.source()));  // FIXME - source file for inlining?
+                        JavaFileObject prevv = log.useSource(cs.source());
+                        // We make a copybecause the block being inlined might be inlined more than once
+                        // and it might have modifications to it, such as if there are any inlined_loop statements
+                        JCExpression cpre = treeutils.trueLit; // FIXME - needs to be the precondition
+                        inlineConvertBlock(that,cpre,convertCopy(cs.block),"model program");
+                        log.useSource(prevv);
+                        checkBlock(temptt);
+                    }
+                }
+                checkBlock(temptt);
+
+                if (inliningCall)  { // Note: inlining for RAC, also -- FIXME - need to check this
+                    addStat(comment(that, "Inlining method " + calleeMethodSym.toString(),log.currentSourceFile()));
+                    // Find definition of method to be inlined
+                    JmlSpecs.MethodSpecs m = JmlSpecs.instance(context).getSpecs(calleeMethodSym);
+                    JmlMethodDecl mdecl = m.cases.decl;
+                    inlineConvertBlock(that,treeutils.trueLit, mdecl.body,"body of method " + calleeMethodSym);
+                }
+                checkBlock(temptt);
+                paramActuals = null;
+            }
         }
     }
 
