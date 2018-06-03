@@ -7480,11 +7480,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 JCExpression convertedResult = eresult;
                 // Do any inlining
-                // This is duplicating the inlining code used below
-                resultExpr = eresult;
-                insertAllModelProgramInlines(that, mapParamActuals,
+                JCExpression savedRE = resultExpr;
+                VarSymbol savedSym = resultSym;
+                resultSym = null;
+                resultExpr = convertedResult;
+                JCExpression res = insertAllModelProgramInlines(that, mapParamActuals,
                         preExpressions, calleeMethodSym, typeargs, meth,
                         inliningCall, overridden);
+                if (res != null) addAssumeEqual(that, Label.IMPLICIT_ASSUME, res, convertedResult);
+                resultExpr = savedRE;
+                resultSym = savedSym;
  
 //                // Ensure determinism
 //                // FIXME - make this work for old environments as well
@@ -8213,9 +8218,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 
                 // Do any inlining
-                insertAllModelProgramInlines(that, mapParamActuals,
+                VarSymbol savedSym = resultSym;
+                JCExpression res = insertAllModelProgramInlines(that, mapParamActuals,
                         preExpressions, calleeMethodSym, typeargs, meth,
                         inliningCall, overridden);
+                if (res != null) addAssumeEqual(that, Label.IMPLICIT_ASSUME, res, resultExpr);
+                resultSym = savedSym;
+                
                 
 //                {
 //                    for (Pair<MethodSymbol,Type> pair: overridden) {
@@ -9056,13 +9065,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
 
-    public void insertAllModelProgramInlines(JCExpression that,
+    public JCExpression insertAllModelProgramInlines(JCExpression that,
             Map<Symbol, Map<Object, JCExpression>> mapParamActuals,
             Map<JmlSpecificationCase, JCIdent> preExpressions,
             MethodSymbol calleeMethodSym, List<JCExpression> typeargs,
             JCExpression meth, boolean inliningCall,
             java.util.List<Pair<MethodSymbol, Type>> overridden) {
-        {
+        JCIdent localResult = null;
+        JCExpression savedResultExpr = resultExpr;
+        try {
             for (Pair<MethodSymbol,Type> pair: overridden) {
                 MethodSymbol mpsym = pair.first;
                 Type classType = pair.second;
@@ -9094,6 +9105,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         break;
                     }
                     if (cs.block != null)  { // Note: inlining for RAC, also -- FIXME - need to check this
+                        if (localResult == null) {
+                            localResult = newTemp(that,that.type);
+                        }
+                        resultSym = (VarSymbol)localResult.sym;
+                        resultExpr = localResult;
                         addStat(comment(cs.block, "Inlining model program ",cs.source()));  // FIXME - source file for inlining?
                         JavaFileObject prevv = log.useSource(cs.source());
                         // We make a copybecause the block being inlined might be inlined more than once
@@ -9107,6 +9123,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 checkBlock(temptt);
 
                 if (inliningCall)  { // Note: inlining for RAC, also -- FIXME - need to check this
+                    if (localResult == null) {
+                        localResult = newTemp(that,that.type);
+                    }
+                    resultSym = (VarSymbol)localResult.sym;
+                    resultExpr = localResult;
                     addStat(comment(that, "Inlining method " + calleeMethodSym.toString(),log.currentSourceFile()));
                     // Find definition of method to be inlined
                     JmlSpecs.MethodSpecs m = JmlSpecs.instance(context).getSpecs(calleeMethodSym);
@@ -9116,6 +9137,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 checkBlock(temptt);
                 paramActuals = null;
             }
+        } finally {
+            resultExpr = savedResultExpr;
+            return localResult;
         }
     }
 
