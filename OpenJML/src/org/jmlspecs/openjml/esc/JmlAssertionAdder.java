@@ -7487,7 +7487,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCExpression res = insertAllModelProgramInlines(that, mapParamActuals,
                         preExpressions, calleeMethodSym, typeargs, meth,
                         inliningCall, overridden);
-                if (res != null) addAssumeEqual(that, Label.IMPLICIT_ASSUME, res, convertedResult);
+                if (res != null) {
+                    addAssumeEqual(that, Label.IMPLICIT_ASSUME, res, convertedResult);
+                }
                 resultExpr = savedRE;
                 resultSym = savedSym;
  
@@ -8222,8 +8224,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCExpression res = insertAllModelProgramInlines(that, mapParamActuals,
                         preExpressions, calleeMethodSym, typeargs, meth,
                         inliningCall, overridden);
-                if (res != null) addAssumeEqual(that, Label.IMPLICIT_ASSUME, res, resultExpr);
                 resultSym = savedSym;
+                if (res != null && resultSym != null && resultSym.type.getTag() != TypeTag.VOID) {
+                    addAssumeEqual(that, Label.IMPLICIT_ASSUME, res, treeutils.makeIdent(that.pos, resultSym));
+                }
                 
                 
 //                {
