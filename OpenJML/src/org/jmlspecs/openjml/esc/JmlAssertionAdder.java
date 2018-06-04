@@ -9102,13 +9102,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
                     if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
                     if (mpsym != calleeMethodSym && cs.code) continue;
-                    JCExpression pre = preExpressions.get(cs);
 
                     if (cs.block != null && !localVariables.isEmpty()) {
                         log.warning(cs.block.pos, "jml.message", "Cannot use functions with model methods within quantified expressions");
                         break;
                     }
                     if (cs.block != null)  { // Note: inlining for RAC, also -- FIXME - need to check this
+                        JCExpression pre = preExpressions.get(cs);
+                        if (pre == null) {
+                            pre = treeutils.trueLit;
+                            for (JmlMethodClause clause: cs.clauses) {
+                                if (clause.token == JmlTokenKind.REQUIRES) {
+                                    JmlTree.JmlMethodClauseExpr cl = (JmlTree.JmlMethodClauseExpr) clause;
+                                    pre = treeutils.makeAndSimp(clause.pos, pre, convertCopy(cl.expression));
+                                }
+                            }
+                        }
                         if (localResult == null) {
                             localResult = newTemp(that,that.type);
                         }
@@ -9118,10 +9127,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JavaFileObject prevv = log.useSource(cs.source());
                         // We make a copybecause the block being inlined might be inlined more than once
                         // and it might have modifications to it, such as if there are any inlined_loop statements
-                        JCExpression cpre = treeutils.trueLit; // FIXME - needs to be the precondition
+                        JCExpression cpre = convertCopy(pre);
                         inlineConvertBlock(that,cpre,convertCopy(cs.block),"model program");
                         log.useSource(prevv);
-                        checkBlock(temptt);
                     }
                 }
                 checkBlock(temptt);
