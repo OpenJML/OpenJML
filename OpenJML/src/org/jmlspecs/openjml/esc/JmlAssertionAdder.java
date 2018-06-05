@@ -4018,6 +4018,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
 
     protected void addNullnessAndTypeConditionsForField(TypeSymbol csym, VarSymbol sy, boolean beingConstructed) {
+        if (isDataGroup(sy.type)) return;
         // Find the declaration for the variable symbol. This is only to hzve a 
         // sensible diagnostic position for it.
         
@@ -4042,6 +4043,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCVariableDecl d = (JCVariableDecl)t;
             if (d.sym == null) continue; // FIXME - model fields, at least, can have null symbols, I think
             if (beingConstructed && !utils.isJMLStatic(d.sym)) continue;
+            if (isDataGroup(d.type)) {
+                continue;
+            }
             addNullnessAllocationTypeCondition(d,sy,false);
             return;
         }
