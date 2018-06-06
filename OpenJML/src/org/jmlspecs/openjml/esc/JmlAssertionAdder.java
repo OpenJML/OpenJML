@@ -10231,7 +10231,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCAssignOp b = M.at(that).Assignop(tag == JCTree.Tag.POSTDEC ? JCTree.Tag.MINUS_ASG : JCTree.Tag.PLUS_ASG, that.getExpression() ,treeutils.one);
             treeutils.copyEndPosition(b, that);
             b.setType(that.type);
-            Type t = that.type.getTag().ordinal() < TypeTag.INT.ordinal() ? syms.intType : unboxedType(that.type);
+            TypeTag typetag = that.type.getTag();
+            Type t = (typetag == TypeTag.INT || typetag == TypeTag.BYTE || typetag == TypeTag.SHORT || typetag == TypeTag.CHAR) ? syms.intType : unboxedType(that.type);
             b.operator = treeutils.findOpSymbol(tag == JCTree.Tag.POSTDEC ? JCTree.Tag.MINUS : JCTree.Tag.PLUS, t);
             visitAssignopHelper(b,true);
             saveMapping(that.getExpression(),eresult);
