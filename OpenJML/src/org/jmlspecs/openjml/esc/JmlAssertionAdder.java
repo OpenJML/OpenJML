@@ -5172,6 +5172,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
+    Map<Name,JmlLabeledStatement> breakNames = new HashMap<>();
+    
     public JCExpression inlineBlock(JCBlock block, Map<Object,JCExpression> replacements, Type returnType) {
         DiagnosticPosition pos = block;
         Name breakName = names.fromString("JMLBreakForReturn_" + (++lblUnique));
@@ -5179,8 +5181,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (returnType.getTag() != TypeTag.VOID) returnId = newTemp(pos,returnType);
         JmlLabeledStatement labeled = M.JmlLabeledStatement(breakName, null, null);
         treeMap.put(labeled,labeled);
-        JmlTreeInline inliner = new JmlTreeInline(M, replacements, returnId, breakName) ;
+        breakNames.put(breakName, labeled);
+        JmlTreeInline inliner = new JmlTreeInline(M, replacements, returnId, breakName, labeled) ;
         JCTree outBlock = inliner.copy(block);
+        breakNames.remove(breakName);
         labeled.body = (JCBlock)outBlock;
         addStat(labeled);
         JCExpression ex = null;
@@ -5193,6 +5197,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Name savedName = breakName;
         breakName = names.fromString("JMLBreakForReturn_" + (++lblUnique));
         JmlLabeledStatement labeled = M.JmlLabeledStatement(breakName, null, null);
+        breakNames.put(breakName, labeled);
         treeMap.put(labeled,labeled);
         try {
             visitBlock(block);
@@ -5203,6 +5208,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             error(pos, "Unexpected exception while inlining " + place + ":"  + e.toString());
             throw e;
         } finally {
+            breakNames.remove(breakName);
             breakName = savedName;
         }
         JCBlock b = popBlock(0L,pos,checkInline);
@@ -5252,7 +5258,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected /*@ nullable */ MethodSymbol getFunctional(Type.ClassType inface) {
         MethodSymbol functional = null;
         for (Symbol sym: inface.tsym.getEnclosedElements()) {
-            if (sym instanceof MethodSymbol && (sym.flags() & Flags.ABSTRACT) != 0) {
+            if (sym instanceof MethodSymbol && (sym.flags() & Flags.ABSTRACT) != 0 && (sym.flags() & Flags.DEFAULT) == 0) {
                 if (functional != null) {
                     return null;
                 }
@@ -5781,7 +5787,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             
             if (breakName != null) {
-                result = addStat(M.at(p).Break(breakName));
+                JCBreak br = addStat(M.at(p).Break(breakName));
+                br.target = breakNames.get(breakName);
+                if (br.target == null) {
+                    //FIXME - error
+                }
+                result = br;
                 return ;
                 
             } else if (resultExpr != null && !translatingLambda) {
