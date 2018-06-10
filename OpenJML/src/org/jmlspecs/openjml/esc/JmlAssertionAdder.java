@@ -9133,14 +9133,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 }
                             }
                         }
-                        if (localResult == null) {
+                        if (localResult == null && that.type.getTag() != TypeTag.VOID) {
                             localResult = newTemp(that,that.type);
                         }
-                        resultSym = (VarSymbol)localResult.sym;
+                        resultSym = localResult == null ? null : (VarSymbol)localResult.sym;
                         resultExpr = localResult;
                         addStat(comment(cs.block, "Inlining model program ",cs.source()));  // FIXME - source file for inlining?
                         JavaFileObject prevv = log.useSource(cs.source());
-                        // We make a copybecause the block being inlined might be inlined more than once
+                        // We make a copy because the block being inlined might be inlined more than once
                         // and it might have modifications to it, such as if there are any inlined_loop statements
                         JCExpression cpre = convertCopy(pre);
                         inlineConvertBlock(that,cpre,convertCopy(cs.block),"model program");
