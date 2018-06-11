@@ -80,10 +80,14 @@ public class JmlTreeInline extends JmlTreeCopier {
         ExpressionTree rv = node.getExpression();
         if (rv != null) {
             JCExpression e = (JCExpression)rv.accept(this, p);
-            JCStatement assign = M.Assignment(returnId.sym, e);
             JCBreak br = M.Break(breakName);
             br.target = labelled;
-            return M.Block(0L, List.<JCStatement>of(assign,br));
+            if (returnId != null) {
+                JCStatement assign = M.Assignment(returnId.sym, e);
+                return M.Block(0L, List.<JCStatement>of(assign,br));
+            } else {
+                return M.Block(0L, List.<JCStatement>nil());
+            }
         } else {
             JCBreak br = M.Break(breakName);
             br.target = labelled;

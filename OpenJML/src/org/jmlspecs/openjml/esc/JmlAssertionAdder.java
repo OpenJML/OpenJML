@@ -7238,7 +7238,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             for (JCVariableDecl d: ((JCTree.JCLambda)convertedReceiver).params) {
                                 replacements.put(d.sym, iter.next());
                             }
+                            VarSymbol oldSymbol = resultSym;
                             result = eresult = inlineBlock(block,replacements,resultType);
+                            resultSym = oldSymbol;
                         } else {
                             addStat(block);
                             result = eresult = null; // FIXME WHAT should this be?
