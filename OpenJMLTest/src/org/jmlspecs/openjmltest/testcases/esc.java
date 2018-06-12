@@ -4214,8 +4214,8 @@ public class esc extends EscBase {
                         + "  }\n"
                         + "}\n"
                         ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under -strictJML",10
-                        ,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -strictJML",41
-                        ,"$SPECS/specs/java/nio/ByteBuffer.jml:263: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",37
+                        ,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -strictJML",37
+                        ,"$SPECS/specs/java/nio/ByteBuffer.jml:263: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",29
                   ); 
     }
 
