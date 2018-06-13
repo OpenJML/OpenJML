@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjmltest.EscBase;
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Assert;
@@ -683,6 +684,12 @@ public class SFBugs extends EscBase {
     }
     
     @Test
+    public void gitbug603() {
+    	expectedExit = Main.Result.CMDERR.exitCode;
+        helpTCG("-Xmaxwarns=100","-quiet"); // Arguments are part of the test
+    }
+    
+    @Test
     public void gitbug604() {  // FIXME requires implementatino of \not_assigned
     	expectedExit = 0;
         helpTCG("-code-math=safe","-method=AbsInterval.add");
@@ -698,6 +705,12 @@ public class SFBugs extends EscBase {
     public void gitbug606() {
     	expectedExit = 0;
         helpTCG("-code-math=safe");
+    }
+    
+    @Test
+    public void gitbug607() {
+    	expectedExit = 0;
+        helpTCG("-show","-method=x"); // Arguments are part of the test
     }
     
     @Test
@@ -722,6 +735,24 @@ public class SFBugs extends EscBase {
     public void gitbug613() {
     	expectedExit = 0;
         helpTCG();
+    }
+    
+    @Test
+    public void gitbug615() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug618() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug666() {
+    	expectedExit = 0;
+        helpTCG("-show=all","-method=pow");
     }
     
     public void gitbug888() {

@@ -1007,7 +1007,6 @@ public class JmlSpecs {
             JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false,JmlTokenKind.BEHAVIOR,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig),null);
             mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
             return mspecs;
-            // FIXME - this should also be pure
             // FIXME - this case should happen only if parent constructors are pure and have no signals clause
         }
 

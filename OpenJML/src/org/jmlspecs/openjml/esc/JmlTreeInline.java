@@ -63,13 +63,16 @@ public class JmlTreeInline extends JmlTreeCopier {
     
     protected Name breakName;
     
+    protected JmlLabeledStatement labelled;
+    
     /** Creates a new copier, whose new nodes are generated from the given factory*/
-    public JmlTreeInline(JmlTree.Maker maker, Map<Object,JCExpression> replacements, JCIdent returnId, Name breakName) {
+    public JmlTreeInline(JmlTree.Maker maker, Map<Object,JCExpression> replacements, JCIdent returnId, Name breakName, JmlLabeledStatement labelled) {
         super(maker.context,maker);
         this.treeutils = JmlTreeUtils.instance(context);
         this.replacements = replacements;
         this.returnId = returnId;
         this.breakName = breakName;
+        this.labelled = labelled;
     }
     
     
@@ -77,11 +80,17 @@ public class JmlTreeInline extends JmlTreeCopier {
         ExpressionTree rv = node.getExpression();
         if (rv != null) {
             JCExpression e = (JCExpression)rv.accept(this, p);
-            JCStatement assign = M.Assignment(returnId.sym, e);
-            JCStatement br = M.Break(breakName);
-            return M.Block(0L, List.<JCStatement>of(assign,br));
+            JCBreak br = M.Break(breakName);
+            br.target = labelled;
+            if (returnId != null) {
+                JCStatement assign = M.Assignment(returnId.sym, e);
+                return M.Block(0L, List.<JCStatement>of(assign,br));
+            } else {
+                return M.Block(0L, List.<JCStatement>nil());
+            }
         } else {
-            JCStatement br = M.Break(breakName);
+            JCBreak br = M.Break(breakName);
+            br.target = labelled;
             return M.Block(0L, List.<JCStatement>of(br));
         }
     }
