@@ -1,7 +1,6 @@
 #! /bin/bash
-
+## 
 cd "$( dirname "${BASH_SOURCE[0]}" )"
-( ( ls openjml.properties > /dev/null ) || ( echo "Not in correct directory"; pwd; exit 1 ) )
 
 REFBRANCH=`git rev-parse --abbrev-ref HEAD`
 echo REFBRANCH is $REFBRANCH

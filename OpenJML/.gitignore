@@ -4,8 +4,7 @@
 /openjml-2015*
 openjml.properties
 /log
-openjml-master-*
-openjml-*
+openjml-*.zip
 /temp/
 /releases/
 .DS_Store
