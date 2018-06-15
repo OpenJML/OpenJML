@@ -124,7 +124,7 @@ NAME=openjml-${VERSION}.zip
     cp ../openjml-template.properties . ;\
 	zip -qr ../${RB}/${NAME} *)
 	##rm -rf ${TEMPJAR}  ## We don't delete them because some tests use them
-	echo "   " zip created ../${RB}/${NAME}
+	echo "   " zip created ${RB}/${NAME}
 	    
 ##### End	
 	echo Release complete ${NAME}
