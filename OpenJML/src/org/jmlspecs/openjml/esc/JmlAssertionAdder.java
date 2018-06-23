@@ -7926,15 +7926,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             } else if (calleeMethodSym.type instanceof Type.ForAll) {
                                 t = ((Type.ForAll)calleeMethodSym.type).asMethodType();
                             }
-                            List<Type> list = t.argtypes;
+                            List<Type> list = t.getTypeArguments();
                             Iterator<Type> tpiter = list.iterator();
                             List<Type> formals = null;
                             if (meth.type instanceof Type.MethodType) formals = ((Type.MethodType)meth.type).getTypeArguments();
                             else if (meth.type instanceof Type.ForAll) formals = ((Type.ForAll)meth.type).getTypeArguments();
-                            for (Type tp: formals ) {
-                                Type tt = tpiter.next();
-                                if (tt instanceof Type.TypeVar) {
-                                    paramActuals.put(tt.toString(), treeutils.makeType(that.pos, tp));
+                            if (list.isEmpty()) {
+                                // No actual type arguments
+                            } else if (list.size() != formals.size()) {
+                                // ERROR: lists have different length
+                            } else {
+                                for (Type tp: formals ) {
+                                    Type tt = tpiter.next();
+                                    if (tt instanceof Type.TypeVar) {
+                                        paramActuals.put(tt.toString(), treeutils.makeType(that.pos, tp));
+                                    }
                                 }
                             }
                         }

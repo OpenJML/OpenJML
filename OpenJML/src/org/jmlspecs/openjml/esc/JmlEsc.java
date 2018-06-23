@@ -379,7 +379,8 @@ public class JmlEsc extends JmlTreeScanner {
 
         String excludes = JmlOption.value(context,JmlOption.EXCLUDE);
         if (excludes != null && !excludes.isEmpty()) {
-            for (String exclude: excludes.split(";")) { //$NON-NLS-1$
+            String[] splits = excludes.contains("(") || excludes.contains(";") ? excludes.split(";") : excludes.split(",");
+            for (String exclude: splits) { //$NON-NLS-1$
                 if (fullyQualifiedName.equals(exclude) ||
                         fullyQualifiedSig.equals(exclude) ||
                         simpleName.equals(exclude)) {
@@ -405,7 +406,8 @@ public class JmlEsc extends JmlTreeScanner {
         if (methodsToDo != null && !methodsToDo.isEmpty()) {
             match: {
                 if (fullyQualifiedSig.equals(methodsToDo)) break match; // A hack to allow at least one signature-containing item in the methods list
-                for (String methodToDo: methodsToDo.split(";")) { //$NON-NLS-1$ 
+                String[] splits = methodsToDo.contains("(") || methodsToDo.contains(";") ? methodsToDo.split(";") : methodsToDo.split(",");
+                for (String methodToDo: splits) { //$NON-NLS-1$ 
                 	methodToDo = methodToDo.trim();
                 	if (methodToDo.isEmpty()) continue;
                 	// Match if methodToDo
