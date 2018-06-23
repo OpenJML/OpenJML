@@ -4242,4 +4242,42 @@ public class esc extends EscBase {
                         );
     }
 
+    @Test
+    public void testArrayCopy() {
+//        main.addOptions("-method=m","-show");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public static class Key { public int k; } \n"
+                        + "  //@ public normal_behavior \n"
+                        + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <: \\type(Key); \n"
+                        + "  public static void m(Key[] k) {\n"
+                        + "     Key[] kk = java.util.Arrays.copyOfRange(k,0,k.length);\n"
+                        + "     //@ assert kk != null;\n"
+                        + "     //@ assert \\nonnullelements(kk);\n"
+                        + "     //@ assert \\elemtype(\\typeof(kk)) == \\type(Key);\n"
+                        + "  }\n"
+                        + "}\n"
+                        );
+    }
+
+    @Test
+    public void testArrayCopy2() {
+//        main.addOptions("-method=m","-show");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public static class Key { public int k; } \n"
+                        + "  //@ public normal_behavior \n"
+                        + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <: \\type(Key); \n"
+                        + "  public static void m(Key[] k) {\n"
+                        + "     Key[] kk = java.util.Arrays.<Key>copyOfRange(k,0,k.length);\n"
+                        + "     //@ assert kk != null;\n"
+                        + "     //@ assert \\nonnullelements(kk);\n"
+                        + "     //@ assert \\elemtype(\\typeof(kk)) == \\type(Key);\n"
+                        + "  }\n"
+                        + "}\n"
+                        );
+    }
+
 }
