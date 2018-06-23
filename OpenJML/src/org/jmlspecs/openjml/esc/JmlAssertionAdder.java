@@ -7399,7 +7399,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // Recursive inlining
                 nodoTranslations = true;
             }
-            boolean hasTypeArgs = calleeMethodSym.getReturnType() instanceof Type.TypeVar;  // FIXME - should iterate through the whole type, I think
+            boolean hasTypeArgs = calleeMethodSym.type instanceof Type.ForAll; 
 
             if (nodoTranslations && !hasTypeArgs && !isSuperCall && !isThisCall) {
                 List<JCExpression> ntrArgs = trArgs;
@@ -8732,7 +8732,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 for (Pair<MethodSymbol,Type> pair: overridden) {
                     MethodSymbol mpsym = pair.first;
                     Type classType = pair.second;
-                    typevarMapping = typemapping(classType, null, null);
+                    typevarMapping = typemapping(classType, calleeMethodSym, typeargs, 
+                            meth == null ? null : meth.type instanceof Type.MethodType ? (Type.MethodType)meth.type : null);
                     
                     // This initial logic must match that above for preconditions
                     JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
@@ -13558,6 +13559,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected JCExpression translateType(JCExpression arg) {
         if (arg.type instanceof Type.TypeVar) {
             Type tt = typevarMapping.get(arg.type.tsym);
+            if (tt == null) {
+                // FIXME - at least for generic functions, the wrong symbol is being looked up
+                for (TypeSymbol ts: typevarMapping.keySet()) {
+                    if (ts.toString().equals(arg.toString())) {
+                        tt = typevarMapping.get(ts);
+                        break;
+                    }
+                }
+            }
             if (tt == null) tt = arg.type;
             JCExpression t = treeutils.makeType(arg.pos, tt);
             if (t != null) arg = t;
@@ -15967,7 +15977,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 while (tti.hasNext()) {
                     Type t1 = tlisti.next();
                     Type t2 = tti.next();
-                    if (t1 instanceof Type.TypeVar) vars.put(t1.tsym, t2);
+                    unifyTypes(t1,t2,vars);
                 }
             }
         }
@@ -15979,11 +15989,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             List<Type> ttt = methodType.argtypes;
             for (Type t: args) {
                 Type value = tt.head;
-                if (t instanceof Type.TypeVar) vars.put(t.tsym, value); // FIXME: Need to iterate into nested type parameters
+                unifyTypes(t,value,vars);
                 tt = tt.tail;
             }
         }
         return vars;
+    }
+    
+    public boolean unifyTypes(Type t1, Type t2, Map<TypeSymbol,Type> vars) {
+        if (t1 instanceof Type.TypeVar) {
+            vars.put(t1.tsym, t2);
+            return true;
+        }
+        if (t1 instanceof Type.ArrayType && t2 instanceof Type.ArrayType) {
+            t1 = ((Type.ArrayType)t1).getComponentType();
+            t2 = ((Type.ArrayType)t2).getComponentType();
+            return unifyTypes(t1,t2,vars);
+        }
+        return false;
     }
 
     public java.util.List<Pair<MethodSymbol,Type>> parents(MethodSymbol m, Type classType) {
