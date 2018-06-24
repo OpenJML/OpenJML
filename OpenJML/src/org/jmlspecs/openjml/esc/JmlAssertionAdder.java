@@ -11673,7 +11673,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             } else if (sym instanceof Symbol.TypeSymbol) {
                 Type t = that.type;
-                if (t instanceof Type.TypeVar) {
+                if (t instanceof Type.TypeVar && typevarMapping != null) {
                     t = typevarMapping.get(sym.type.tsym);
                     if (t == null) t = that.type;
                 }
