@@ -311,6 +311,7 @@ public class SpecsBase extends TCBase {
     //@ modifies foundErrors;
     public void checkClass(String className, int n) {
         String program = "public class AJDK { "+ className + typeargs[n] +" o; }";
+        if (className.endsWith("java.lang.AbstractStringBuilder")) program = "package java.lang; " + program;
         helpTCFile("AJDK.java",program,className);
     }
         
