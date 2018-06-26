@@ -7312,8 +7312,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
 
 
-                JCFieldAccess fameth = (JCFieldAccess)M.at(meth.pos).Select(
+                JCFieldAccess fameth = (JCFieldAccess)M.at(meth.pos).Select(  // Select sets to fa,sym.type, kinstead of resolved type
                         !utils.isJMLStatic(fa.sym) ? newThisExpr : convertedReceiver, fa.sym);
+                fameth.setType(meth.type);
                 calleeMethodSym = (MethodSymbol)fa.sym;
                 
                 JCMethodInvocation mExpr = M.at(that).Apply(typeargs,fameth,trArgs);
@@ -7448,7 +7449,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         ntrArgs = ntrArgs.prepend(heap); // only if heap dependent
                     }
                     
-                    JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden,receiverType);
+                    JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden,receiverType,that.type);
                     if (details) { // FIXME - document this details check - if it is false, the axioms are dropped
                         // FIXME - actually should add these into whatever environment is operative
                         if (bl == null) {
@@ -7662,7 +7663,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             if (!translatingJML && calleeIsFunction && !rac) {
                 // FIXME - replicated from above
-                JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden,receiverType);
+                JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden,receiverType,that.type);
                 if (true) { // FIXME - document this details check - if it is false, the axioms are dropped
                     // FIXME - actually should add these into whatever environment is operative
                     if (bl == null) {
@@ -16137,7 +16138,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     int depth = 0;
     ListBuffer<JCStatement> savedForAxioms = null;
     protected JCBlock addMethodAxioms(DiagnosticPosition callLocation, MethodSymbol msym, 
-            java.util.List<Pair<MethodSymbol,Type>> overridden, Type receiverType) {
+            java.util.List<Pair<MethodSymbol,Type>> overridden, Type receiverType, Type returnType) {
         boolean isFunction = attr.isFunction(msym);
         if (!inOldEnv && !addAxioms(heapCount,msym)) { return M.at(Position.NOPOS).Block(0L, List.<JCStatement>nil()); }
         boolean isStatic = utils.isJMLStatic(msym);
@@ -16227,11 +16228,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (inClassDecl()) {
                 // Declaration within a class
                 newmods = M.at(calleeSpecs.decl.mods.pos).Modifiers(calleeSpecs.decl.mods.flags | Flags.STATIC, calleeSpecs.decl.mods.annotations); // Note: annotations not duplicated
-                newsym = treeutils.makeMethodSym(newmods, newMethodNameWithHeap, msym.getReturnType(), (TypeSymbol)classDecl.sym, newParamTypes);
+                newsym = treeutils.makeMethodSym(newmods, newMethodNameWithHeap, returnType, (TypeSymbol)classDecl.sym, newParamTypes);
             } else {
                 // Declaration within a method body
                 newmods = M.at(methodDecl.mods.pos).Modifiers(methodDecl.mods.flags | Flags.STATIC, methodDecl.mods.annotations); // Note: annotations not duplicated
-                newsym = treeutils.makeMethodSym(newmods, newMethodNameWithHeap, msym.getReturnType(), (TypeSymbol)methodDecl.sym.owner, newParamTypes);
+                newsym = treeutils.makeMethodSym(newmods, newMethodNameWithHeap, returnType, (TypeSymbol)methodDecl.sym.owner, newParamTypes);
             }
             
             //pureMethod.put(msym,newsym);

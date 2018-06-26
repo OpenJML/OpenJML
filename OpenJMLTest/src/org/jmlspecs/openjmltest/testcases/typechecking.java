@@ -179,7 +179,7 @@ public class typechecking extends TCBase {
         		,"/A.java:2: A \\invariant_for expression expects just 1 argument, not 2", 26
         		,"/A.java:2: The argument of \\invariant_for must be of reference type", 27
         		,"/A.java:2: The argument of \\invariant_for must be of reference type", 35
-        		,"$SPECS/specs/java/nio/ByteBuffer.jml:263: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",29
+        		,"$SPECS/specs/java/nio/ByteBuffer.jml:298: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",29
         		);
     }
 
@@ -194,7 +194,7 @@ public class typechecking extends TCBase {
         helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for();\n}}"
         		,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -strictJML",37
         		,"/A.java:2: A \\invariant_for expression expects just 1 argument, not 0", 26
-                ,"$SPECS/specs/java/nio/ByteBuffer.jml:263: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",29
+                ,"$SPECS/specs/java/nio/ByteBuffer.jml:298: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",29
         		);
     }
 
