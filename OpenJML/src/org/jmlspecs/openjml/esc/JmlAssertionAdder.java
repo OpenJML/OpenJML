@@ -2019,7 +2019,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             @Nullable JavaFileObject associatedSource, 
             @Nullable JCExpression info,
             Object ... args) {
-        if (translatedExpr.toString().contains("???")) Utils.stop();
         JCStatement stt = null;
         if (esc) {
             if (label != Label.ASSUME_CHECK && currentStatements != null 
@@ -2320,7 +2319,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (!utils.visible(classDecl.sym, csym, s.flags()/*, methodDecl.mods.flags*/)) continue;
                     if (!stat && contextIsStatic) continue;
                     if (!assume && isConstructor) continue;
-                    if (s.type.isPrimitive() || jmltypes.isJmlType(s.type)) continue;
+                    if (s.type.isPrimitive() || jmltypes.isJmlType(s.type) || jmltypes.isOnlyDataGroup(s.type)) continue;
                     VarSymbol v = (VarSymbol)s;
                     JCExpression e;
                     if (receiver == null) e = M.at(pos).Ident(v);
@@ -2467,7 +2466,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 JCExpression field;
                                 if (receiver == null) field = treeutils.makeIdent(pos,v);
                                 else field = M.at(pos).Select(receiver, v);
-                                if (!vartype.isPrimitive()) {
+                                if (vartype.isPrimitive()) {
+                                    // FIXME - range constraints?
+                                } else if (jmltypes.isOnlyDataGroup(field.type)) {
+                                    // JMLDataGroups do not have invariants
+                                } else {
                                     JCExpression e = treeutils.makeNotNull(pos.getStartPosition(),field); // FIXME - position not right
                                     if (specs.isNonNull(v)) {
                                         if (assume) addAssume(pos,Label.POSSIBLY_NULL_FIELD,
@@ -2482,8 +2485,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 null, null); // FIXME - associated position should be the declaration
                                     }
                                     
-                                } else {
-                                    // FIXME - range constraints?
                                 }
                             }
                         }
@@ -2649,6 +2650,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             for (Symbol s: cs.getElements()) {
                 if (!(s instanceof VarSymbol)) continue;
                 if (staticOnly && !utils.isJMLStatic(s)) continue;
+                if (jmltypes.isOnlyDataGroup(s.type)) continue;
                 addNullnessAllocationTypeCondition2(d,s,false);
                 if (fieldInvariants && !s.type.isPrimitive() && !isHelper(methodDecl.sym)) {
                     JCExpression var = convertJML(treeutils.makeIdent(null,s));
@@ -4010,6 +4012,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             for (Symbol sy: csym.members().getElements()) {
                 if (!(sy instanceof VarSymbol)) continue;
                 if (!utils.isJMLStatic(sy) && staticOnly) continue; 
+                if (jmltypes.isOnlyDataGroup(sy.type)) continue;
                 addNullnessAndTypeConditionsForField(csym, (VarSymbol)sy, beingConstructed);
                 // FIXME - why both of these?
                 addNullnessAllocationTypeCondition(methodDecl, sy, beingConstructed && !utils.isJMLStatic(sy));
@@ -7802,12 +7805,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
 
             JCExpression collectedInvariants = treeutils.trueLit; // FIXME - do we need this - do we include this in the 'condition' ?
-            
+            Label assertionLabel = Label.INVARIANT_ENTRANCE;
+            //if (translatingJML) assertionLabel = Label.
             if (!isSuperCall && !isThisCall && !isHelper(calleeMethodSym)) {   // Iterate through parent classes and interfaces, adding relevant invariants
                 String msg = "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")";
                 addStat(comment(that, "Checking callee invariants by the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " before calling method " + utils.qualifiedMethodSig(calleeMethodSym),null));
                 addInvariants(that,calleeClass.type,newThisExpr,currentStatements,
-                        false,calleeMethodSym.isConstructor(),false,isHelper(calleeMethodSym),false,false,Label.INVARIANT_ENTRANCE,msg);
+                        false,calleeMethodSym.isConstructor(),false,isHelper(calleeMethodSym),false,false,assertionLabel,msg);
                 for (JCExpression arg: trArgs) {
                     if (arg.type.isPrimitive()) continue;
                     currentStatements.add(comment(arg, "Asserting invariants for callee parameter before calling the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
@@ -7817,7 +7821,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         continue; // FIXME - see testbigint
                     }
                     addInvariants(arg,arg.type,id,currentStatements,
-                            false,false,false,false,false,false,Label.INVARIANT_ENTRANCE,msg);
+                            false,false,false,false,false,false,assertionLabel,msg);
                 }
             }
             
@@ -8608,13 +8612,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             calleeMethodSym.isConstructor());
                 }
 
-                if (!isHelper(calleeMethodSym)) addInvariants(that,calleeClass.type,newThisExpr,currentStatements,
-                        false,calleeMethodSym.isConstructor(),false,isHelper(calleeMethodSym),true,true,Label.INVARIANT_EXIT,
-                        msg);
-                addConstraintInitiallyChecks(that,calleeClass,newThisExpr,currentStatements,
-                        false,calleeMethodSym.isConstructor(),false,isHelper(calleeMethodSym),true,true,null,
-                        msg);
-                
                 if (esc && !methodDecl.sym.isConstructor()) {
                     if (methodDecl.name.toString().contains("JMLArrayListExample")) Utils.stop();
                     if (methodDecl.name.toString().contains("init")) Utils.stop();
@@ -8630,6 +8627,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         freshnessReferenceCount = savedCount;
                     }
                 }
+                if (!isHelper(calleeMethodSym)) {
+                    addInvariants(that,calleeClass.type,newThisExpr,currentStatements,
+                            false,calleeMethodSym.isConstructor(),false,isHelper(calleeMethodSym),true,true,Label.INVARIANT_EXIT,
+                            msg);
+                }
+                addConstraintInitiallyChecks(that,calleeClass,newThisExpr,currentStatements,
+                        false,calleeMethodSym.isConstructor(),false,isHelper(calleeMethodSym),true,true,null,
+                        msg);
                 
                 if (!isHelper(calleeMethodSym)) for (JCExpression arg: trArgs) {
                     if (arg.type.isPrimitive()) continue;
@@ -8679,6 +8684,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // both explicit invariants and invariants of the classes of the parameters
 
                 if (!isSuperCall && !isThisCall && !isHelper(calleeMethodSym) && !specs.isPure(calleeMethodSym)) {
+                    if (false) {
+                        currentStatements.add(comment(that, "Assuming caller field invariants upon reentering the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
+                        for (Type parentType : parents(calleeMethodSym.owner.type, false)) {
+                            Scope s = parentType.tsym.members();
+                            for (Symbol sym: s.getElements()) {
+                                if (!(sym instanceof VarSymbol)) continue;
+                                if (sym.type.isPrimitive()) continue; // FIXME should be isJMLPrimitivie?
+                                DiagnosticPosition pos = that; // FIXME - is this a good position?
+                                JCExpression expr = treeutils.makeSelect(pos.getPreferredPosition(),currentThisExpr,sym);
+                                addInvariants(pos,sym.type,expr,currentStatements,
+                                        false,false,true,false,true,true,Label.INVARIANT_REENTER_CALLER, "(Field: " + sym + ", Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
+                            }
+                        }
+                    }
                     currentStatements.add(comment(that, "Assuming caller invariants upon reentering the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
                     addInvariants(that,savedEnclosingClass.type,
                             savedEnclosingMethod == null || utils.isJMLStatic(savedEnclosingMethod)  ? null : savedThisExpr,
@@ -8704,7 +8723,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         Scope s = parentType.tsym.members();
                         for (Symbol sym: s.getElements()) {
                             if (!(sym instanceof VarSymbol)) continue;
-                            if (sym.type.isPrimitive()) continue; // FIXME should be isJMLPrimitivie?
+                            if (sym.type.isPrimitive() || jmltypes.isOnlyDataGroup(sym.type)) continue; // FIXME should be isJMLPrimitivie?
                             DiagnosticPosition pos = that; // FIXME - is this a good position?
                             JCExpression expr = treeutils.makeSelect(pos.getPreferredPosition(),currentThisExpr,sym);
                             addInvariants(pos,sym.type,expr,currentStatements,

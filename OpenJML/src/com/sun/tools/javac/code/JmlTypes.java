@@ -355,6 +355,11 @@ public class JmlTypes extends Types {
     public boolean isJmlTypeToken(JmlTokenKind t) {
         return jmltypes.get(t) != null;
     }
-
+    
+    /** Returns true iff the type is a JMLDataGroup. A field that is a model field and thereby a data group does not qualify. */
+    public boolean isOnlyDataGroup(Type t) {
+        // Careful: t can be something like (@org.jmlspecs.annotation.NonNull :: org.jmlspecs.lang.JMLDataGroup)
+        return t.toString().contains("JMLDataGroup"); // FIXME - implement a better way
+    }
 
 }
