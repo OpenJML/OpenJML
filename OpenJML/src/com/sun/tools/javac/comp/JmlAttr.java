@@ -1044,10 +1044,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     boolean specHasAlso = spec.also != null;
                     boolean methodOverrides = utils.parents(jmethod.sym).size() > 1;
                     if (specHasAlso && !methodOverrides) {
-                        if (!jmethod.name.toString().equals("compareTo") && !jmethod.name.toString().equals("definedComparison")) // FIXME
-                          log.warning(spec, "jml.message", "Method " + jmethod.name.toString() + " does not override parent class methods and so its specification may not begin with 'also'");
+                        if (!jmethod.name.toString().equals("compareTo") && !jmethod.name.toString().equals("definedComparison")) {// FIXME
+                            if (JmlOption.isOption(context, JmlOption.STRICT)) {
+                                log.error(spec, "jml.extra.also", jmethod.name.toString() );
+                            } else {
+                                log.warning(spec, "jml.extra.also", jmethod.name.toString() );
+                            }
+                        }
                     } else if (!specHasAlso && methodOverrides) {
-                        log.warning(spec, "jml.message", "Method " + jmethod.name.toString() + " overrides parent class methods and so its specification should begin with 'also'");
+                        if (JmlOption.isOption(context, JmlOption.STRICT)) {
+                            log.error(spec, "jml.missing.also", jmethod.name.toString());
+                        } else {
+                            log.warning(spec, "jml.missing.also", jmethod.name.toString());
+                        }
                     }
                 }
             }
