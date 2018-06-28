@@ -448,6 +448,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                     if (first) first = false; else { println(); align(); }
                     c.accept(this);
                 }
+                if (that.block != null) {
+                    println();
+                    align();
+                    that.block.accept(this);
+                }
             } finally {
                 undent();
             }

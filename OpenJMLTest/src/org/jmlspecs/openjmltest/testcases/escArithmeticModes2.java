@@ -473,7 +473,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
     
-//    @Ignore // FIXME
+    @Ignore // FIXME - long running
     @Test // Tests int multiplication in safe mode
     public void testMultSafe() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
@@ -491,7 +491,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
     
-//    @Ignore // FIXME 
+    @Ignore // FIXME - long
     @Test // Tests long multiplication in safe mode
     public void testMultSafeLong() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
@@ -530,7 +530,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
     
-//    @Ignore // FIXME
+    @Ignore // FIXME -- long running
     @Test  // Tests that div and mod give correct answers, if they do not overflow, in java mode
     public void testDivJava() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -550,7 +550,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
     
-//    @Ignore // FIXME
+    @Ignore // FIXME -- long running
     @Test  // Tests that div and mod give correct answers, if they do not overflow, in safe mode
     public void testDivSafe() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"

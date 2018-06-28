@@ -300,7 +300,7 @@ public class esc extends EscBase {
 
 	@Test @Ignore // FIXME - timesout
 	public void testForEach2a1() {
-		main.addOptions("escMaxWarnings=1");
+		main.addOptions("-escMaxWarnings=1");
 		helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
 				+ "public class TestJava { \n"
 				+ "  //@ public normal_behavior  ensures true;\n" 
@@ -320,7 +320,7 @@ public class esc extends EscBase {
 
     @Test @Ignore // FIXME - timesout
     public void testForEach2a2() {
-        main.addOptions("escMaxWarnings=1");
+        main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
                 + "public class TestJava { \n"
 
@@ -351,7 +351,7 @@ public class esc extends EscBase {
     }
     @Test @Ignore // FIXME - timesout
     public void testForEach2a2a() {
-        main.addOptions("escMaxWarnings=1");
+        main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
                 + "public class TestJava { \n"
 
@@ -385,7 +385,7 @@ public class esc extends EscBase {
     }
     @Test
     public void testForEach2a3() {
-        main.addOptions("escMaxWarnings=1");
+        main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
                 + "public class TestJava { \n"
 
@@ -406,7 +406,7 @@ public class esc extends EscBase {
     }
     @Test
     public void testForEach2a4() {
-        main.addOptions("escMaxWarnings=1");
+        main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
                 + "public class TestJava { \n"
 
@@ -4214,8 +4214,8 @@ public class esc extends EscBase {
                         + "  }\n"
                         + "}\n"
                         ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under -strictJML",10
-                        ,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -strictJML",41
-                        ,"$SPECS/specs/java/nio/ByteBuffer.jml:263: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",37
+                        ,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -strictJML",37
+                        ,"$SPECS/specs/java/nio/ByteBuffer.jml:298: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",29
                   ); 
     }
 
@@ -4239,6 +4239,44 @@ public class esc extends EscBase {
                         ,"/tt/TestJava.java:8: Expected a semicolon to terminate the expression list",14
                         ,"/tt/TestJava.java:9: Bad syntax in the expression list in show statement",17
                         ,"/tt/TestJava.java:11: Expected a semicolon to terminate the expression list",15
+                        );
+    }
+
+    @Test
+    public void testArrayCopy() {
+//        main.addOptions("-method=m","-show");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public static class Key { public int k; } \n"
+                        + "  //@ public normal_behavior \n"
+                        + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <: \\type(Key); \n"
+                        + "  public static void m(Key[] k) {\n"
+                        + "     Key[] kk = java.util.Arrays.copyOfRange(k,0,k.length);\n"
+                        + "     //@ assert kk != null;\n"
+                        + "     //@ assert \\nonnullelements(kk);\n"
+                        + "     //@ assert \\elemtype(\\typeof(kk)) == \\type(Key);\n"
+                        + "  }\n"
+                        + "}\n"
+                        );
+    }
+
+    @Test
+    public void testArrayCopy2() {
+//        main.addOptions("-method=m","-show");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public static class Key { public int k; } \n"
+                        + "  //@ public normal_behavior \n"
+                        + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <: \\type(Key); \n"
+                        + "  public static void m(Key[] k) {\n"
+                        + "     Key[] kk = java.util.Arrays.<Key>copyOfRange(k,0,k.length);\n"
+                        + "     //@ assert kk != null;\n"
+                        + "     //@ assert \\nonnullelements(kk);\n"
+                        + "     //@ assert \\elemtype(\\typeof(kk)) == \\type(Key);\n"
+                        + "  }\n"
+                        + "}\n"
                         );
     }
 

@@ -1,12 +1,8 @@
 Proving methods in esc.Child
 Starting proof of esc.Child.Child(int,int) with prover !!!!
-test\escInvariants2\Child.java:13: warning: The prover cannot establish an assertion (InvariantExceptionExit) in method Child
-    super(value_0);
-         ^
-test\escInvariants2\Child.java:4: warning: Associated declaration
-  //@ public invariant value > 0;
-             ^
-Completed proof of esc.Child.Child(int,int) with prover !!!! - with warnings
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of esc.Child.Child(int,int) with prover !!!! - no warnings
 Completed proving methods in esc.Child
 Proving methods in esc.Parent
 Starting proof of esc.Parent.Parent(int) with prover !!!!
@@ -14,4 +10,3 @@ Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of esc.Parent.Parent(int) with prover !!!! - no warnings
 Completed proving methods in esc.Parent
-2 warnings

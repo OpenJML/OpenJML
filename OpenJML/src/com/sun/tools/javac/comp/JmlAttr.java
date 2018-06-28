@@ -490,6 +490,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             relax = true;  // Turns off some bogus lack of overriding warnings
             super.attribClassBody(env,c);
+            Enter.instance(context).typeEnvs.put(c,env); // TODO _ not sure why this is not already done, but is needed in some cases, e.g. immutable modifier on an enum class
             attribClassBodySpecs(env,c,prevIsInJmlDeclaration);
         
         } finally {
@@ -2328,12 +2329,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     
     public void visitJmlGroupName(JmlGroupName tree) {
-        Type saved = result = attribExpr(tree.selection,env,Type.noType);
+        JCExpression nm = tree.selection;
+        Type saved = result = attribExpr(nm,env,Type.noType);
         Symbol sym = null;
-        if (tree.selection.type.getTag() == TypeTag.ERROR) return;
-        else if (tree.selection instanceof JCIdent) sym = ((JCIdent)tree.selection).sym;
-        else if (tree.selection instanceof JCFieldAccess) sym = ((JCFieldAccess)tree.selection).sym;
-        else if (tree.selection instanceof JCErroneous) return;
+        if (nm.type.getTag() == TypeTag.ERROR) return;
+        else if (nm instanceof JCIdent) sym = ((JCIdent)nm).sym;
+        else if (nm instanceof JCFieldAccess) sym = ((JCFieldAccess)nm).sym;
+        else if (nm instanceof JCErroneous) return;
         if (!(sym instanceof VarSymbol)) {
             // FIXME - does this happen?  emit errors
             sym = null;
@@ -2343,7 +2345,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             log.error(tree.pos,"jml.internal","Unexpectedly did not find a resolution for this data group expression");
             return;
         }
-        if (!isModel(sym)) {
+        
+        JmlSpecs.FieldSpecs fspecs = specs.getSpecs((VarSymbol)sym);
+        boolean isSpecPublic = findMod(fspecs.mods,JmlTokenKind.SPEC_PUBLIC) != null;
+        boolean isSpecProtected = findMod(fspecs.mods,JmlTokenKind.SPEC_PROTECTED) != null;
+        
+        if (!isModel(sym) && !isSpecPublic && !isSpecProtected) {
             log.error(tree.pos,"jml.datagroup.must.be.model.in.maps");
         }
         if (inVarDecl != null && utils.isJMLStatic(sym) && !utils.isJMLStatic(inVarDecl.sym)) {

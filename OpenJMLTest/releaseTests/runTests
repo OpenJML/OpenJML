@@ -6,6 +6,9 @@
 ## It is intended to be run with the OpenJML project directory as its 
 ## current working directory, but does its work in a temporary subdirectory
 
+## Name of folder holding releaseBuilds (within OpenJML)
+D=releaseBuilds
+
 ## Execute any local setup
 if [[ -n "${LOCAL_SETUP}" ]]; then
     echo Executing local setup ${LOCAL_SETUP}
@@ -20,16 +23,17 @@ if [[ "$COMSPEC" != "" ]] ; then
 Z=';'
 fi
 
-
+pushd $D
 REL=$1
 if [[ "$REL" == "" ]] ; then REL=`ls -t *zip | head -1` ; fi
 echo Testing $REL in `pwd`
+popd
 
 cd ../OpenJMLTest
 
 rm -rf temp-release
 mkdir temp-release
-cp ../OpenJML/$REL temp-release
+cp ../OpenJML/$D/$REL temp-release
 cd temp-release
 
 TESTLOC=../releaseTests

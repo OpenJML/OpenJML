@@ -1,0 +1,4 @@
+warning: Ignoring command-line argument -Xmaxwarns=100 which is either misspelled or is a JDK option using = to set an argument (which JDK does not support)
+openjml: no source files
+Usage: openjml <options> <source files>
+use -help for a list of possible options

@@ -32,6 +32,7 @@ fi
     UI=../OpenJMLUI
 
 TEMPJAR=tempjars
+RB=releaseBuilds
 
 DATE=`date +%Y%m%d`
 BRANCH=`git rev-parse --abbrev-ref HEAD`
@@ -99,7 +100,7 @@ NAME=openjml-${VERSION}.zip
 ##### Copy solvers to the zip file location
     cp -r ../../Solvers/Solvers-* ${TEMPJAR}
         
-##### Collect other files for the tar file
+##### Collect other files for the zip file
     cp legal/* ${TEMPJAR}
 #        ##(echo Building user manual; cd documentation/OpenJMLUserGuide; rm -f *.pdf; make all > build.log )
     DOC=/Users/davidcok/cok/texstuff/papers/JMLBook
@@ -121,9 +122,9 @@ NAME=openjml-${VERSION}.zip
 ##### Build the zip file
 	(cd ${TEMPJAR}; \
     cp ../openjml-template.properties . ;\
-	zip -qr ../${NAME} *)
+	zip -qr ../${RB}/${NAME} *)
 	##rm -rf ${TEMPJAR}  ## We don't delete them because some tests use them
-	echo "   " zip created ../${NAME}
+	echo "   " zip created ${RB}/${NAME}
 	    
 ##### End	
-	echo Release complete
+	echo Release complete ${NAME}

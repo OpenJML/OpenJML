@@ -698,7 +698,15 @@ public class Main extends com.sun.tools.javac.main.Main {
                 res = s.substring(k+1,s.length());
                 s = s.substring(0,k);
                 o = JmlOption.find(s);
-                if (o != null) {
+                if (o == null) {
+                    // This is not a JML option. Might be misspelled or it might
+                    // be a JDK option with an =, which JDK does not support.
+                    log.warning("jml.message", "Ignoring command-line argument " + args[i-1] + " which is either misspelled or is a JDK option using = to set an argument (which JDK does not support)");
+                } else if (res.isEmpty()) {
+                    // JML option with a naked = sign
+                    res = o.defaultValue().toString();
+
+                } else {
                     if (o.hasArg()) {}
                     else if ("false".equals(res)) negate = true;
                     else if ("true".equals(res)) res = "";
@@ -706,12 +714,10 @@ public class Main extends com.sun.tools.javac.main.Main {
                         res = "";
                         Log.instance(context).warning("jml.ignoring.parameter",s);
                     }
-                } else if (s.isEmpty()) {
-                	res = o.defaultValue().toString();
                 }
             }
         } else if (!negate && o.hasArg()) {
-            if (o instanceof JmlOption && ((JmlOption)o).enabledDefault != null && (i == args.length || args[i].charAt(0)=='.')) {
+            if (o instanceof JmlOption && ((JmlOption)o).enabledDefault != null) {
                 res = ((JmlOption)o).enabledDefault;
             } else if (i < args.length) {
                 res = args[i++];

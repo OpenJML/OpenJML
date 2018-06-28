@@ -894,6 +894,26 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                   } catch (NumberFormatException e) {
                       // ignore
                   }
+              } else if (value.startsWith("#x")) {
+            	  try {
+            		  value = value.substring(2);
+            		  if (value.length() > 2*Integer.BYTES) {
+            			  long i = Long.parseLong(value,16);
+            			  out = out + " (" + i + ")";
+            		  } else {
+            			  int i = (int)Long.parseLong(value,16);
+            			  if (i == Integer.MIN_VALUE) {
+            				  out = out + " (" + i + " == MININT)";
+
+            			  } else if (i == Integer.MAX_VALUE) {
+            				  out = out + " (" + i + " == MAXINT)";
+            			  } else {
+            				  out = out + " (" + i + ")";
+            			  }
+            		  }
+            	  } catch (Exception e) {
+            		  Object o = e;
+            	  }
               }
           }
           else out = text == null ? null : (out + "Value is unknown (type " + node.type + ")");

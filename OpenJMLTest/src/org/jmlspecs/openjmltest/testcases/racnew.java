@@ -2234,8 +2234,6 @@ public class racnew extends RacBase {
     }
 
     @Test public void testNullInitialization() {
-        noCollectDiagnostics = true;
-        print = true;
         helpTCX("tt.A","package tt; /*@nullable_by_default*/ public class A  { \n"
                 +"/*@non_null*/ static Object o,oo = null; \n"
                 +"static String ooo = null;\n"

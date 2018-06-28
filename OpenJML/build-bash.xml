@@ -37,7 +37,7 @@
 		description="creates a release build and tests it"/>
 		
 	<target name="release" depends="clean-temp,props"
-		description="creates a release build as a set of jars and a tar file with today's data embedded">
+		description="creates a release build as a set of jars and a tar file with today's date embedded">
 
 		<echo message="Building release using java.home = ${openjml.jdk}"/>
 		<chmod file="buildRelease" perm="ugo+x"/>

@@ -51,6 +51,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.comp.Annotate;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Enter;
@@ -63,6 +64,7 @@ import com.sun.tools.javac.file.ZipArchive;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
@@ -965,10 +967,13 @@ public class JmlSpecs {
 
     // TODO - document
     public MethodSpecs defaultSpecs(/*@ nullable */ JmlMethodDecl decl, MethodSymbol sym, int pos) {
+        // decl can be null in the case of Enum.values(), and others
         // FIXME - should use a factory
         JmlTree.Maker M = JmlTree.Maker.instance(context);
+        Symtab syms = Symtab.instance(context);
+        JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
         JmlMethodSpecs ms = M.at(pos).JmlMethodSpecs(com.sun.tools.javac.util.List.<JmlSpecificationCase>nil());
-        JCTree.JCModifiers mods;
+        JCTree.JCModifiers mods = M.at(pos).Modifiers(sym.flags() & Flags.AccessFlags);
         if (decl != null) {
             if (decl.methodSpecsCombined != null) {
                 mods = M.at(pos).Modifiers(decl.methodSpecsCombined.mods.flags);
@@ -978,7 +983,6 @@ public class JmlSpecs {
                 mods.annotations = mods.annotations.appendList(decl.mods.annotations);
             }
         } else {
-            mods = M.at(pos).Modifiers(sym.flags() & Flags.AccessFlags);
 //            for (Attribute.Compound a: sym.getAnnotationMirrors()) {
 //                JCAnnotation at = M.at(Position.NOPOS).Annotation(a);
 //                mods.annotations = mods.annotations.append(at);
@@ -990,7 +994,7 @@ public class JmlSpecs {
         ms.deSugared = null; // FIXME- was ms?
         
         // FIXME - check the case of a binary generated constructor with a declaration in JML
-        if (((sym.flags() & Flags.GENERATEDCONSTR) != 0) || ( sym.owner == Symtab.instance(context).objectType.tsym && sym.isConstructor()) || sym.owner == Symtab.instance(context).enumSym ) {
+        if (((sym.flags() & Flags.GENERATEDCONSTR) != 0) || ( sym.owner == syms.objectType.tsym && sym.isConstructor()) || sym.owner == Symtab.instance(context).enumSym ) {
             JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
                     com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSNOTHING)));
             if (sym.isConstructor()) {
@@ -1007,10 +1011,57 @@ public class JmlSpecs {
             JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false,JmlTokenKind.BEHAVIOR,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig),null);
             mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
             return mspecs;
-            // FIXME - this should also be pure
             // FIXME - this case should happen only if parent constructors are pure and have no signals clause
+        } else if ((sym.owner.flags() & Flags.ENUM) != 0) {
+            if (sym.name.equals(names.values)) {
+                // Default specs for the values() method of an Enum
+                // public behavior
+                //    [requires true;]
+                //    assignable \nothing;
+                //    accessible \nothing;
+                //    signals() false;
+                //    ensures \result != null;
+                //    ensures \result.length == <number of elements in enum>
+                //    for the ith enum item    ensures \result.get(i) == item
+                
+                JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
+                        com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSNOTHING)));
+                JmlMethodClause clpa = new JmlTree.JmlMethodClauseStoreRef(pos,JmlTokenKind.ACCESSIBLE,
+                        com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSNOTHING)));
+                JmlMethodClauseSignals sig = M.at(pos).JmlMethodClauseSignals(JmlTokenKind.SIGNALS, null, JmlTreeUtils.instance(context).falseLit);
+                JCExpression res = M.at(pos).JmlSingleton(JmlTokenKind.BSRESULT);
+                res.setType(((Type.MethodType)sym.type).restype);
+                Type elemtype = ((Type.ArrayType)res.type).elemtype;
+                List<Symbol> elems = elemtype.tsym.getEnclosedElements();
+                JCBinary nn = M.at(pos).Binary(JCTree.Tag.NE, res, treeutils.nullLit);
+                nn.operator = treeutils.objectneSymbol;
+                nn.setType(syms.booleanType);
+                JmlMethodClause en = new JmlTree.JmlMethodClauseExpr(pos,JmlTokenKind.ENSURES,nn);
+                JCModifiers csm = M.at(pos).Modifiers(mods.flags & Flags.AccessFlags);
+                com.sun.tools.javac.util.List<JmlMethodClause> clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,clp,sig,clpa);
+                int count = 0;
+                for (Symbol s: elems) if ((s.flags() & Flags.ENUM) != 0 && s instanceof VarSymbol) {
+                    count++;
+                }
+                JCExpression fa = treeutils.makeArrayLength(pos, res);
+                JCBinary len = M.at(pos).Binary(JCTree.Tag.EQ, fa, treeutils.makeIntLiteral(pos,count).setType(syms.intType));
+                len.operator = treeutils.inteqSymbol;
+                len.setType(syms.booleanType);
+                en = new JmlTree.JmlMethodClauseExpr(pos,JmlTokenKind.ENSURES,len);
+                clauses = clauses.append(en);
+                JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false,JmlTokenKind.BEHAVIOR,null,clauses,null);
+                mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
+                return mspecs;
+            }
+            
         }
 
+        // Non-special case. Default specs are
+        //   <same access as method> behavior
+        //        assignable \everything;
+        //        accessible \everything;
+        //        signals_only RuntimeException, <list of declared exceptions>;
+        
         ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
         // sym can be null if the method call is in a field initializer (and not in the body of a method)
         // Not sure when sym.type is null - but possibly when an initializer block is created to hold translated
