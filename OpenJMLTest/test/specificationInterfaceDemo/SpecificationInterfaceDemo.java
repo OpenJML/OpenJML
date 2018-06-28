@@ -5,7 +5,8 @@ public class SpecificationInterfaceDemo {
 
   public interface PositivePureFunction extends Function<Integer,Integer> {
 
-    //@   requires x > 0;
+    //@ also
+	//@   requires x > 0;
     //@   assignable \nothing;
     //@   ensures \result != null && \result > 0;
     Integer apply(Integer x);

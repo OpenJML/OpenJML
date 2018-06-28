@@ -40,6 +40,7 @@ import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
+import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Types;
@@ -713,11 +714,14 @@ public class Utils {
                 // FIXME - what about the owners of interfaces
             }
         }
-        ClassSymbol o = classes.remove(0);
+        if (objectSym == null) objectSym = (Symbol.ClassSymbol)Symtab.instance(context).objectType.tsym;
+        classes.remove(objectSym);
         interfaces.addAll(classes);
-        interfaces.add(0,o);
+        interfaces.add(0,objectSym);
         return interfaces;
     }
+    
+    private ClassSymbol objectSym = null;
 
     // Includes self // FIXME - review for order
     public java.util.List<MethodSymbol> parents(MethodSymbol m) {

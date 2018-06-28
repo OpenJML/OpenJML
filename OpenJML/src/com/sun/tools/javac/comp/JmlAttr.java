@@ -1037,7 +1037,31 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // A warning is already given in JmlMemberEnter.checkMethodMatch
             }
             checkMethodModifiers(jmethod);
-            
+  
+            if (jmethod.cases != null) { // FIXME - should we get the specs to check from JmlSpecs?
+                // Check the also designation
+                if (jmethod.cases.cases != null && jmethod.cases.cases.size() > 0) {
+                    JmlSpecificationCase spec = jmethod.cases.cases.get(0);
+                    boolean specHasAlso = spec.also != null;
+                    boolean methodOverrides = utils.parents(jmethod.sym).size() > 1;
+                    if (specHasAlso && !methodOverrides) {
+                        if (!jmethod.name.toString().equals("compareTo") && !jmethod.name.toString().equals("definedComparison")) {// FIXME
+                            if (JmlOption.isOption(context, JmlOption.STRICT)) {
+                                log.error(spec, "jml.extra.also", jmethod.name.toString() );
+                            } else {
+                                log.warning(spec, "jml.extra.also", jmethod.name.toString() );
+                            }
+                        }
+                    } else if (!specHasAlso && methodOverrides) {
+                        if (JmlOption.isOption(context, JmlOption.STRICT)) {
+                            log.error(spec, "jml.missing.also", jmethod.name.toString());
+                        } else {
+                            log.warning(spec, "jml.missing.also", jmethod.name.toString());
+                        }
+                    }
+                }
+            }
+
         } finally {
             currentSecretContext = previousSecretContext;
             currentQueryContext = previousQueryContext;

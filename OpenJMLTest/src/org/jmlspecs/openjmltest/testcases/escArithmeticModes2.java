@@ -121,7 +121,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
-    @Test
+    @Test @Ignore // FIXME - very long
     public void testModJavaB() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Very long - skip for now
         main.addOptions("-method=ma","-show","-subexpressions");
@@ -482,6 +482,7 @@ public class escArithmeticModes2 extends EscBase {
                 +"  //@ requires j != 0;\n"
                 +"  //@ requires i * j <= Integer.MAX_VALUE && i*j >= Integer.MIN_VALUE;\n"
                 +"  public void ma(int i, int j) {\n"
+                +"    //@ show i,j,i*j,(i*j)/j;\n"
                 +"    //@ assert (i*j)/j == i;\n"
                 +"    boolean b =  (i*j)/j == i;\n"
                 +"    //@ assert b;\n"
@@ -499,6 +500,7 @@ public class escArithmeticModes2 extends EscBase {
                 +"  //@ requires j != 0;\n"
                 +"  //@ requires i * j <= Long.MAX_VALUE && i*j >= Long.MIN_VALUE;\n"
                 +"  public void ma(long i, long j) {\n"
+                +"    //@ show i,j,i*j,(i*j)/j;\n"
                 +"    //@ assert (i*j)/j == i;\n"
                 +"    boolean b =  (i*j)/j == i;\n"
                 +"    //@ assert b;\n"
@@ -507,7 +509,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
     
-    @Ignore // FIXME
+    @Ignore // FIXME - long running
     @Test  // Tests that div and mod give correct answers, if they do not overflow, in bigint mode
     public void testDiv() {
     	//main.addOptions("-show","-method=ma","-subexpressions");
@@ -532,9 +534,9 @@ public class escArithmeticModes2 extends EscBase {
     @Test  // Tests that div and mod give correct answers, if they do not overflow, in java mode
     public void testDivJava() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeJavaMath @SpecSafeMath public class TestJava { \n"
+                +"@CodeJavaMath @SpecSafeMath @Options(\"-escMaxWarnings=1\") public class TestJava { \n"
                 +"  //@ requires j != 0;\n"
-                +"  //@ requires i != 0x8000000000000000L || j != -1;\n"
+                +"  //@ requires i != Integer.MIN_VALUE || j != -1;\n"
                 +"  public void ma(int i, int j) {\n"
                 +"    int q = i/j;\n"
                 +"    int m = i%j;\n"
@@ -552,13 +554,14 @@ public class escArithmeticModes2 extends EscBase {
     @Test  // Tests that div and mod give correct answers, if they do not overflow, in safe mode
     public void testDivSafe() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeSafeMath @SpecSafeMath public class TestJava { \n"
+                +"@CodeSafeMath @SpecSafeMath @Options(\"-escMaxWarnings=1\") public class TestJava { \n"
                 +"  //@ requires j != 0;\n"
-                +"  //@ requires i != 0x8000000000000000L || j != -1;\n"
+                +"  //@ requires i != Integer.MIN_VALUE || j != -1;\n"
                +"  public void ma(int i, int j) {\n"
-                +"    int q = i/j;\n"
+               +"     //@ show i,j;\n"
+               +"     int q = i/j;\n"
                 +"    int m = i%j;\n"
-                +"    //@ show i,j,q,m,j*q,j*(q+1),j*(q-1),j*q+m;\n"
+                +"    //@ show q,m,j*q,j*(q+1),j*(q-1),j*q+m;\n"
                 +"    if (i >= 0 && j >= 0) { /*@ assert q >= 0; assert i >= j*q; assert m >= 0 && m < j; assert i == (j*q) + m; */ }\n"
                 +"    if (i >= 0 && j < 0) { /*@ assert q <= 0; assert i >= j*q;  assert m >= 0 && m < -j; assert i == (j*q) + m; */ }\n"
                 +"    if (i < 0 && j >= 0) { /*@ assert q <= 0; assert i <= j*q; assert m <= 0 && m < -j; assert i == (j*q) + m; */ }\n"

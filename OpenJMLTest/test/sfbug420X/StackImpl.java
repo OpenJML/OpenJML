@@ -18,14 +18,14 @@ public class StackImpl implements Stack {
 		stackCounter = 0;
 	}
 	
-	//@ ensures \result == stackCounter;
+	//@ also ensures \result == stackCounter;
 	//@ pure
 	//@ helper
 	public int count() {
 		return stackCounter;
 	}
 
-	//@ requires 1 <= i && i <= count();
+	//@ also requires 1 <= i && i <= count();
     //@ ensures \result == internalStack[i-1];
 	//@ pure
 	public int itemAt(int i) {

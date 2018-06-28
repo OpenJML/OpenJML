@@ -266,7 +266,7 @@ public class esclambdas extends EscBase {
                 +"  }\n"
 
                 +"  /*@ @FunctionalInterface model public static interface FF extends BiFunction<TestJava,Integer,Integer> {  \n"
-                +"        assignable t.field; ensures t.field == n; ensures \\result == n+1;  \n"
+                +"        also assignable t.field; ensures t.field == n; ensures \\result == n+1;  \n"
                 +"        non_null  \n"
                 +"       Integer apply(TestJava t, Integer n);} */\n"
                 
