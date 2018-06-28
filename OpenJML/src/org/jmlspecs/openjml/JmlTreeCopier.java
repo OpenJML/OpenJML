@@ -127,9 +127,10 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.sourcefile = that.sourcefile;
         copy.specsDecl = that.specsDecl;// FIXME - copy
         copy.cases = copy(that.cases,p);
-        copy.methodSpecsCombined = new JmlSpecs.MethodSpecs( // FIXME - factory
-                copy(that.methodSpecsCombined.mods,p),
-                copy(that.methodSpecsCombined.cases,p));
+        copy.methodSpecsCombined = JmlSpecs.copy(that.methodSpecsCombined,p,this);
+//        new JmlSpecs.MethodSpecs( // FIXME - factory
+//                copy(that.methodSpecsCombined.mods,p),
+//                copy(that.methodSpecsCombined.cases,p));
         copy.type = that.type;
         return copy;
     }

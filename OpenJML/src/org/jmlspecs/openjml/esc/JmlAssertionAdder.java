@@ -3400,11 +3400,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             st.associatedSource = null;
             st.optionalExpression = null;
         } else {
-            if (JmlOption.isOption(context,JmlOption.STATIC_INIT_WARNING))
-            if (!hasStaticInitializer((ClassSymbol)convertedfa.sym.owner) && !convertedfa.sym.isEnum()
-                    && (convertedfa.sym.flags() & Flags.PRIVATE) == 0) {
-                log.warning(convertedfa, "jml.message", "Use a static_initializer clause to specify the values of static final fields: " + utils.qualifiedName(convertedfa.sym));
-                if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note(convertedfa, "jml.message", "Warned about a non-constant initalized static final field: " + st.toString());
+            if (JmlOption.isOption(context,JmlOption.STATIC_INIT_WARNING)) {
+                if (!hasStaticInitializer((ClassSymbol)convertedfa.sym.owner) && !convertedfa.sym.isEnum()
+                        && (convertedfa.sym.flags() & Flags.PRIVATE) == 0) {
+                    log.warning(convertedfa, "jml.message", "Use a static_initializer clause to specify the values of static final fields: " + utils.qualifiedName(convertedfa.sym));
+                    if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note(convertedfa, "jml.message", "Warned about a non-constant initialized static final field: " + st.toString());
+                }
             }
             discoveredFields.stats = discoveredFields.stats.append(st);
         }
@@ -3939,6 +3940,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression savedThis = currentThisExpr;
         JmlSpecs.TypeSpecs cspecs = specs.getSpecs(classSym); 
         if (cspecs.decl == null) return;
+        JavaFileObject prevJFO = log.currentSourceFile();
+        log.useSource(cspecs.decl.sourcefile);
         for (JCTree dd: cspecs.decl.defs) {
             if (!(dd instanceof JCVariableDecl)) continue;
             JCVariableDecl d = (JCVariableDecl)dd;
@@ -3962,13 +3965,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             boolean pv = checkAccessEnabled;
             checkAccessEnabled = false;
             try {
-                JCExpression fa = convertJML(treeutils.makeIdent(d.pos, d.sym));
                 addStat(comment(dd,"Adding invariants for field " + d.sym.flatName(),null));
+                JCExpression fa = convertJML(treeutils.makeIdent(d.pos, d.sym));
                 addRecInvariants(true,d,fa);
             } finally {
                 checkAccessEnabled = pv;
             }
         }
+        log.useSource(prevJFO);
         currentThisExpr = savedThis;
         for (JmlTypeClauseDecl dd: specs.get(classSym).decls) {
             JCTree tt = dd.decl;
@@ -8833,6 +8837,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 prevSource = log.useSource(clauseSource);
                                                 assumingPureMethod = true;
                                                 conditionAssociatedClause = clause;
+                                                log.useSource(clause.sourcefile);
                                                 JCExpression e = convertJML(((JmlMethodClauseExpr)clause).expression, condition, false);
                                                 log.useSource(prevSource);
                                                 addAssume(that,Label.POSTCONDITION,e,clause,clauseSource);

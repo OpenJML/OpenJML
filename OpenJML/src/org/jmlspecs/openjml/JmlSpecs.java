@@ -1614,6 +1614,16 @@ public class JmlSpecs {
         return tspecs;
     }
     
+    public static MethodSpecs copy(MethodSpecs m, Void p, JmlTreeCopier copier) {
+        if (m == null) return null;
+        MethodSpecs mr = new MethodSpecs(m.cases.decl);
+        mr.cases = copier.copy(m.cases,p);
+        mr.queryDatagroup = m.queryDatagroup;
+        mr.secretDatagroup = m.secretDatagroup;
+        mr.mods = copier.copy(m.mods,p);
+        return mr;
+    }
+    
     /** An ADT to hold the specs for a method or block */
     public static class MethodSpecs {
         

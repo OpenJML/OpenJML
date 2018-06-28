@@ -764,7 +764,13 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug622() {
     	expectedExit = 0;
-        helpTCG();
+        helpTCG("-staticInitWarning");
+    }
+    
+    @Test
+    public void gitbug622a() {
+    	expectedExit = 0;
+        helpTCG("-no-staticInitWarning");
     }
     
     @Test
