@@ -35,6 +35,7 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
@@ -88,6 +89,13 @@ public class Utils {
     
     /** The Log object - do not use this directly - use log() instead */
     private Log log;
+    
+    private JmlTypes jmltypes;
+    
+    public JmlTypes jmltypes() {
+        if (jmltypes == null) jmltypes = JmlTypes.instance(context);
+        return jmltypes;
+    }
 
     /** The key to use to retrieve the instance of this class from the Context object. */
     //@ non_null
@@ -118,7 +126,7 @@ public class Utils {
 
     /** The error and warning log. It is crucial that the log be obtained
      * lazily, and not before options are read; otherwise the Log object
-     * is not properly intialized from the Java options. */
+     * is not properly initialized from the Java options. */
     public final Log log() {
         if (log == null) log = Log.instance(context);
         return log;
@@ -887,6 +895,8 @@ public class Utils {
             for (Symbol s: csym.members().getElements()) {
                 if (s.kind != Kinds.VAR) continue;
                 if (isJMLStatic(s) != forStatic) continue;
+                if ((s.flags() & Flags.FINAL) != 0) continue;
+                if (jmltypes().isOnlyDataGroup(s.type)) continue;
                 if (!jmlvisible(s,base,csym,s.flags()&Flags.AccessFlags,baseVisibility)) continue; // FIXME - jml access flags? on base and on target?
                 list.add((Symbol.VarSymbol)s);
             }

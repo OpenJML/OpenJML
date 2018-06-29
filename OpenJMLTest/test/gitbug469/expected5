@@ -25,7 +25,7 @@ $SPECS/specs/java/io/InputStream.jml:141: warning: Precondition conjunct is fals
 $SPECS/specs/java/io/InputStream.jml:147: warning: Precondition conjunct is false: availableBytes > 0
       @   requires availableBytes > 0;
                                   ^
-$SPECS/java5/java/io/InputStream.jml:165: warning: Precondition conjunct is false: (len > 0 && !isOpen) || b == null || off < 0 || len < 0 || off + len > b.length
+$SPECS/specs/java/io/InputStream.jml:165: warning: Precondition conjunct is false: (len > 0 && !isOpen) || b == null || off < 0 || len < 0 || off + len > b.length
                               len < 0 || off+len > b.length;
                                       ^
 test/gitbug469/Repro.java:36: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method getSeed2
