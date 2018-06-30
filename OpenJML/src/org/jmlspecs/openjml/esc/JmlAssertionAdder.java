@@ -2302,6 +2302,28 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return (sym.flags() & Flags.FINAL) != 0;
     }
     
+    // From outermost in, with the argument being last
+    protected java.util.List<Pair<ClassSymbol,JCExpression>> getNonStaticEnclosingClasses(ClassSymbol bsym, JCExpression receiver) {
+        Symbol esym = bsym.getEnclosingElement();
+        Pair<ClassSymbol,JCExpression> elem = new Pair<>(bsym,receiver);
+        java.util.List<Pair<ClassSymbol,JCExpression>> list;
+        if (!bsym.isStatic() && esym instanceof ClassSymbol) {
+            ClassSymbol csym = (ClassSymbol)esym;
+            VarSymbol vsym = enclosingClassFieldSymbols.get(csym);
+            if (vsym != null) {
+                JCExpression fa = treeutils.makeSelect(Position.NOPOS,receiver,vsym);
+                list = getNonStaticEnclosingClasses(csym,fa);
+            } else {
+                list = new LinkedList<>();
+            }
+        } else {
+            list = new LinkedList<>();
+        }
+        list.add(elem);
+        return list;
+        
+    }
+    
     /** Adds in assumptions or assertions for the non_nullity of visible fields 
      * of the current and parent classes.
      */
@@ -2315,13 +2337,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             VarSymbol vsym = enclosingClassFieldSymbols.get(csym);
             if (vsym != null && esym instanceof ClassSymbol) {
                 JCExpression fa = treeutils.makeSelect(Position.NOPOS,receiver,vsym);
-                addNonNullChecks(assume, pos, csym.type, fa, isConstructor);
+                addNonNullChecks(assume, pos, ((ClassSymbol)esym).type, fa, false);
             }
         }
         currentThisExpr = savedThisExpr;
         addNonNullChecks2(assume, pos, baseType, receiver, isConstructor);
         
     }
+    
     public void addNonNullChecks2(boolean assume, DiagnosticPosition pos,
             Type baseType, JCExpression receiver, boolean isConstructor) {
         boolean contextIsStatic = receiver == null; // && !methodDecl.sym.isConstructor(); //|| (self && utils.isJMLStatic(methodDecl.sym));
@@ -2592,8 +2615,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCExpression fa = treeutils.makeSelect(Position.NOPOS,receiver,vsym);
                 currentThisExpr = fa;
                 
-                addNullnessDynamicTypeConditions(pos, ((ClassSymbol)esym).type, fa, isConstructor, assume, contextIsStatic, vsym.type, (ClassSymbol)esym);
-            }
+                addNullnessDynamicTypeConditions(pos, ((ClassSymbol)esym).type, fa, false, assume, contextIsStatic, vsym.type, (ClassSymbol)esym);
+                }
         }
         currentThisExpr = savedThisExpr;
         addNullnessDynamicTypeConditions2(pos, basetype, receiver, isConstructor, assume, contextIsStatic, ctype, csym);
@@ -2603,6 +2626,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             Type basetype, JCExpression receiver, boolean isConstructor,
             boolean assume, boolean contextIsStatic, Type ctype,
             ClassSymbol csym) {
+        if (isDataGroup(basetype) || isDataGroup(ctype)) return;
         for (Symbol s : csym.getEnclosedElements()) {
             if (s instanceof VarSymbol) {
                 if (!utils.visible(classDecl.sym, csym, s.flags()/*, methodDecl.mods.flags*/)) continue;
