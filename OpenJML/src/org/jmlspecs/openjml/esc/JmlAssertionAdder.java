@@ -2307,6 +2307,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     public void addNonNullChecks(boolean assume, DiagnosticPosition pos,
             Type baseType, JCExpression receiver, boolean isConstructor) {
+        JCExpression savedThisExpr = currentThisExpr;
+        TypeSymbol tsym = baseType.tsym;
+        Symbol esym = tsym.getEnclosingElement();
+        if (!tsym.isStatic() && tsym instanceof ClassSymbol) {
+            ClassSymbol csym = (ClassSymbol)tsym;
+            VarSymbol vsym = enclosingClassFieldSymbols.get(csym);
+            if (vsym != null && esym instanceof ClassSymbol) {
+                JCExpression fa = treeutils.makeSelect(Position.NOPOS,receiver,vsym);
+                addNonNullChecks(assume, pos, csym.type, fa, isConstructor);
+            }
+        }
+        currentThisExpr = savedThisExpr;
+        addNonNullChecks2(assume, pos, baseType, receiver, isConstructor);
+        
+    }
+    public void addNonNullChecks2(boolean assume, DiagnosticPosition pos,
+            Type baseType, JCExpression receiver, boolean isConstructor) {
         boolean contextIsStatic = receiver == null; // && !methodDecl.sym.isConstructor(); //|| (self && utils.isJMLStatic(methodDecl.sym));
         java.util.List<Type> parents = parents(baseType, false);
         for (Type ctype: parents) {
@@ -2456,38 +2473,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         staticStats.add(comment(pos,(assume? "Assume" : "Assert") + " invariants for " + csym,null));
                         // Do the non_null fields
                         // FIXME - not sure that we should exclue rac
-                        if (assume && !rac) for (Symbol s : csym.getEnclosedElements()) {
-                            if (s instanceof VarSymbol) {
-                                if (!utils.visible(classDecl.sym, csym, s.flags()/*, methodDecl.mods.flags*/)) continue;
-                                if (!utils.isJMLStatic(s) && contextIsStatic) continue;
-                                if (isConstructor && (!assume || basetype == ctype)) continue;
-                                VarSymbol v = (VarSymbol)s;
-                                Type vartype = v.type;
-                                JCExpression field;
-                                if (receiver == null) field = treeutils.makeIdent(pos,v);
-                                else field = M.at(pos).Select(receiver, v);
-                                if (vartype.isPrimitive()) {
-                                    // FIXME - range constraints?
-                                } else if (jmltypes.isOnlyDataGroup(field.type)) {
-                                    // JMLDataGroups do not have invariants
-                                } else {
-                                    JCExpression e = treeutils.makeNotNull(pos.getStartPosition(),field); // FIXME - position not right
-                                    if (specs.isNonNull(v)) {
-                                        if (assume) addAssume(pos,Label.POSSIBLY_NULL_FIELD,
-                                                e,
-                                                null,null); // FIXME - no associated position?
-                                        else  addAssert(pos,Label.POSSIBLY_NULL_FIELD,
-                                                e,
-                                                null,null); // FIXME - no associated position?
-                                    }
-                                    if (assume) {
-                                        addAssume(pos, Label.IMPLICIT_ASSUME, treeutils.makeDynamicTypeInEquality(pos, field, vartype), 
-                                                null, null); // FIXME - associated position should be the declaration
-                                    }
-                                    
-                                }
-                            }
-                        }
+                        if (assume && !rac) addNullnessDynamicTypeConditions(pos, basetype, receiver,
+                                isConstructor, assume, contextIsStatic, ctype,
+                                csym);
                         // Do the actual invariants
                         for (JmlTypeClause clause : tspecs.clauses) {
                             if (!utils.visible(classDecl.sym, csym, clause.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
@@ -2590,6 +2578,62 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             typevarMapping = savedTypevarMapping;
         }
 
+    }
+
+    private void addNullnessDynamicTypeConditions(DiagnosticPosition pos,
+            Type basetype, JCExpression receiver, boolean isConstructor,
+            boolean assume, boolean contextIsStatic, Type ctype,
+            ClassSymbol csym) {
+        JCExpression savedThisExpr = currentThisExpr;
+        if (!csym.isStatic()) {
+            Symbol esym = csym.getEnclosingElement();
+            VarSymbol vsym = enclosingClassFieldSymbols.get(csym);
+            if (vsym != null && esym instanceof ClassSymbol) {
+                JCExpression fa = treeutils.makeSelect(Position.NOPOS,receiver,vsym);
+                currentThisExpr = fa;
+                
+                addNullnessDynamicTypeConditions(pos, ((ClassSymbol)esym).type, fa, isConstructor, assume, contextIsStatic, vsym.type, (ClassSymbol)esym);
+            }
+        }
+        currentThisExpr = savedThisExpr;
+        addNullnessDynamicTypeConditions2(pos, basetype, receiver, isConstructor, assume, contextIsStatic, ctype, csym);
+    }
+    
+    private void addNullnessDynamicTypeConditions2(DiagnosticPosition pos,
+            Type basetype, JCExpression receiver, boolean isConstructor,
+            boolean assume, boolean contextIsStatic, Type ctype,
+            ClassSymbol csym) {
+        for (Symbol s : csym.getEnclosedElements()) {
+            if (s instanceof VarSymbol) {
+                if (!utils.visible(classDecl.sym, csym, s.flags()/*, methodDecl.mods.flags*/)) continue;
+                if (!utils.isJMLStatic(s) && contextIsStatic) continue;
+                if (isConstructor && (!assume || basetype == ctype)) continue;
+                if (isDataGroup(csym.type)) continue;
+                VarSymbol v = (VarSymbol)s;
+                Type vartype = v.type;
+                JCExpression field;
+                if (receiver == null) field = treeutils.makeIdent(pos,v);
+                else field = M.at(pos).Select(receiver, v);
+                if (!vartype.isPrimitive() && !isDataGroup(vartype)) {
+                    JCExpression e = treeutils.makeNotNull(pos.getStartPosition(),field); // FIXME - position not right
+                    if (specs.isNonNull(v)) {
+                        if (assume) addAssume(pos,Label.POSSIBLY_NULL_FIELD,
+                                e,
+                                null,null); // FIXME - no associated position?
+                        else  addAssert(pos,Label.POSSIBLY_NULL_FIELD,
+                                e,
+                                null,null); // FIXME - no associated position?
+                    }
+                    if (assume) {
+                        addAssume(pos, Label.IMPLICIT_ASSUME, treeutils.makeDynamicTypeInEquality(pos, field, vartype), 
+                                null, null); // FIXME - associated position should be the declaration
+                    }
+                    
+                } else {
+                    // FIXME - range constraints?
+                }
+            }
+        }
     }
     
     protected void assertInvariants(JCExpression expr, JCExpression currentThis) {
@@ -3057,7 +3101,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean isNonNull = true;
         Symbol owner = sym.owner;
         if (owner instanceof MethodSymbol) owner = owner.owner;
-        if (!sym.type.isPrimitive() && !jmltypes.isJmlType(sym.type)) {
+        if (!sym.type.isPrimitive() && !jmltypes.isJmlType(sym.type) && !isDataGroup(sym.type)) {
             isNonNull = specs.isNonNull(sym) ;
         }
         
@@ -3089,6 +3133,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed, boolean allocCheck) {
         int p = pos == null ? Position.NOPOS: pos.getPreferredPosition();
         JCExpression id;
+        if (isDataGroup(sym.type)) return false;
         if (sym.owner instanceof MethodSymbol || sym.owner == null) {
             // Local variable
             id = treeutils.makeIdent(p, sym);
@@ -3105,6 +3150,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     /** Returns true iff the declaration is explicitly or implicitly non_null */
     protected boolean addNullnessAllocationTypeConditionId(JCExpression id, DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed, boolean allocCheck) {
+        if (isDataGroup(sym.type)) return false;
         if (pos == null) pos = id;
         int p = pos.getPreferredPosition();
         boolean nnull = true;
@@ -3225,7 +3271,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected boolean addNullnessTypeConditionId(JCExpression id, DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed) {
         int p = pos.getPreferredPosition();
         boolean nnull = true;
-        if (!jmltypes.isJmlType(sym.type) && !sym.type.isPrimitive()) {
+        if (!jmltypes.isJmlType(sym.type) && !sym.type.isPrimitive() && !isDataGroup(sym.type)) {
 
             Symbol owner = sym.owner;
             if (owner instanceof MethodSymbol) owner = owner.owner;
@@ -4007,14 +4053,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected void addNullnessAndTypeConditionsForInheritedFields(TypeSymbol root, boolean beingConstructed, boolean staticOnly) {
         TypeSymbol sym = root;
-        while (sym != null) {
-            for (ClassSymbol csym: utils.parents(sym, false)) {
-                addNullnessAndTypeConditionsForFields(csym,beingConstructed,staticOnly);
-            }
-            if (sym.isStatic()) break;
-            Symbol esym = sym.getEnclosingElement();
-            if (esym instanceof TypeSymbol) sym = (TypeSymbol)esym;
+        JCExpression thisExpr = currentThisExpr;
+        for (ClassSymbol csym: utils.parents(sym, false)) {
+            addNullnessAndTypeConditionsForFields(csym,beingConstructed,staticOnly);
         }
+        if (!sym.isStatic()) {
+            Symbol esym = sym.getEnclosingElement();
+            VarSymbol vsym = enclosingClassFieldSymbols.get(sym);
+            if (vsym != null && esym instanceof TypeSymbol) {
+                JCExpression fa = treeutils.makeSelect(Position.NOPOS,resultExpr,vsym);
+                currentThisExpr = fa;
+                addNullnessAndTypeConditionsForInheritedFields((TypeSymbol)esym, beingConstructed, staticOnly);
+            }
+        }
+        currentThisExpr = thisExpr;
     }
     
     protected void addNullnessAndTypeConditionsForFields(TypeSymbol csym, boolean beingConstructed, boolean staticOnly) {
