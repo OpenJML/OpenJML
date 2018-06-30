@@ -4005,9 +4005,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
  //       }
     }
     
-    protected void addNullnessAndTypeConditionsForInheritedFields(TypeSymbol sym, boolean beingConstructed, boolean staticOnly) {
-        for (ClassSymbol csym: utils.parents(sym, false)) { // FIXME - ??? false or true
-            addNullnessAndTypeConditionsForFields(csym,beingConstructed,staticOnly);
+    protected void addNullnessAndTypeConditionsForInheritedFields(TypeSymbol root, boolean beingConstructed, boolean staticOnly) {
+        TypeSymbol sym = root;
+        while (sym != null) {
+            for (ClassSymbol csym: utils.parents(sym, false)) {
+                addNullnessAndTypeConditionsForFields(csym,beingConstructed,staticOnly);
+            }
+            if (sym.isStatic()) break;
+            Symbol esym = sym.getEnclosingElement();
+            if (esym instanceof TypeSymbol) sym = (TypeSymbol)esym;
         }
     }
     
