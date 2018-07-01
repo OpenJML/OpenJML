@@ -889,14 +889,14 @@ public class Utils {
     }
     
     // Lists all fields of 'owner' that are visible from 'base' in an environment with baseVisibility, according to JML visibility rules
-    public List<Symbol.VarSymbol> listJmlVisibleFields(TypeSymbol owner, TypeSymbol base, long baseVisibility, boolean forStatic) {
+    public List<Symbol.VarSymbol> listJmlVisibleFields(TypeSymbol owner, TypeSymbol base, long baseVisibility, boolean forStatic, boolean includeDataGroups) {
         List<Symbol.VarSymbol> list = new LinkedList<Symbol.VarSymbol>();
         for (TypeSymbol csym: parents(owner, true)) {
             for (Symbol s: csym.members().getElements()) {
                 if (s.kind != Kinds.VAR) continue;
                 if (isJMLStatic(s) != forStatic) continue;
                 if ((s.flags() & Flags.FINAL) != 0) continue;
-                if (jmltypes().isOnlyDataGroup(s.type)) continue;
+                if (!includeDataGroups && jmltypes().isOnlyDataGroup(s.type)) continue;
                 if (!jmlvisible(s,base,csym,s.flags()&Flags.AccessFlags,baseVisibility)) continue; // FIXME - jml access flags? on base and on target?
                 list.add((Symbol.VarSymbol)s);
             }

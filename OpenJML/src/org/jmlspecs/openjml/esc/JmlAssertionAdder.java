@@ -6174,7 +6174,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCFieldAccess pfa = (JCFieldAccess)pfac;
             if (pfa.name == null) {
                 JCExpression or = isLocal;
-                for (Symbol s: utils.listJmlVisibleFields(pfa.selected.type.tsym, pfa.selected.type.tsym, methodDecl.mods.flags&Flags.AccessFlags, treeutils.isATypeTree(pfa.selected))) {
+                for (Symbol s: utils.listJmlVisibleFields(pfa.selected.type.tsym, pfa.selected.type.tsym, methodDecl.mods.flags&Flags.AccessFlags, treeutils.isATypeTree(pfa.selected),true)) {
                     JCExpression newpfa = M.at(pfa.pos).Select(pfa.selected, s);
                     or = treeutils.makeOr(pfa.pos, or, accessAllowed(fa,newpfa,baseThisExpr,targetThisExpr));
 //                    if (s != fa.sym) continue;
@@ -6776,7 +6776,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCFieldAccess fa = (JCFieldAccess)item;
                 java.util.List<VarSymbol> exlist;
                 TypeSymbol csym = fa.selected.type.tsym;
-                exlist = utils.listJmlVisibleFields(csym, (TypeSymbol)base.owner,  base.flags() & Flags.AccessFlags, treeutils.isATypeTree(((JCFieldAccess)item).selected));
+                exlist = utils.listJmlVisibleFields(csym, (TypeSymbol)base.owner,  base.flags() & Flags.AccessFlags, treeutils.isATypeTree(((JCFieldAccess)item).selected),true);
 //              exlist = utils.listJmlVisibleFields((TypeSymbol)base.owner, base.flags() & Flags.AccessFlags, treeutils.isATypeTree(((JCFieldAccess)item).selected));
                 for (VarSymbol vsym : exlist) {
                     newlist.add(M.at(item).Select(fa.selected, vsym));
@@ -6811,9 +6811,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     /** Returns the list of store-ref items corresponding to this.*  */
     // FIXME - should we expand data groups?
-    protected List<JCExpression> thisStarStoreRefs(DiagnosticPosition pos, MethodSymbol base) {
+    protected List<JCExpression> thisStarStoreRefs(DiagnosticPosition pos, MethodSymbol base, boolean includeDataGroups) {
         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
-        for (VarSymbol vsym : utils.listJmlVisibleFields((TypeSymbol)base.owner, (TypeSymbol)base.owner, base.flags() & Flags.AccessFlags, utils.isJMLStatic(base))) {
+        for (VarSymbol vsym : utils.listJmlVisibleFields((TypeSymbol)base.owner, (TypeSymbol)base.owner, base.flags() & Flags.AccessFlags, utils.isJMLStatic(base), includeDataGroups)) {
             newlist.add(M.at(pos).Select(currentThisExpr, vsym));
         }
         return newlist.toList();
