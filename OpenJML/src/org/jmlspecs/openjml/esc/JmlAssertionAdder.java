@@ -2616,7 +2616,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 currentThisExpr = fa;
                 
                 addNullnessDynamicTypeConditions(pos, ((ClassSymbol)esym).type, fa, false, assume, contextIsStatic, vsym.type, (ClassSymbol)esym);
-                }
+            }
         }
         currentThisExpr = savedThisExpr;
         addNullnessDynamicTypeConditions2(pos, basetype, receiver, isConstructor, assume, contextIsStatic, ctype, csym);
@@ -4085,7 +4085,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             Symbol esym = sym.getEnclosingElement();
             VarSymbol vsym = enclosingClassFieldSymbols.get(sym);
             if (vsym != null && esym instanceof TypeSymbol) {
-                JCExpression fa = treeutils.makeSelect(Position.NOPOS,resultExpr,vsym);
+                JCExpression fa = treeutils.makeSelect(Position.NOPOS,currentThisExpr,vsym);
                 currentThisExpr = fa;
                 addNullnessAndTypeConditionsForInheritedFields((TypeSymbol)esym, beingConstructed, staticOnly);
             }
