@@ -704,7 +704,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                     log.warning("jml.message", "Ignoring command-line argument " + args[i-1] + " which is either misspelled or is a JDK option using = to set an argument (which JDK does not support)");
                 } else if (res.isEmpty()) {
                     // JML option with a naked = sign
-                    res = o.defaultValue().toString();
+                    Object def = o.defaultValue();
+                    res = def == null ? null : def.toString();
 
                 } else {
                     if (o.hasArg()) {}
