@@ -454,7 +454,7 @@ public class escall2 extends EscBase {
     @Test
     public void testNNAssign3() {
 //        Assume.assumeTrue(runLongTests);
-        main.addOptions("internalSpecs=false"); // Part of test
+        main.addOptions("-internalSpecs=false"); // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"
