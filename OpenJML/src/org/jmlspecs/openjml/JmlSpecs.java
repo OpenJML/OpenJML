@@ -45,6 +45,7 @@ import org.osgi.framework.Bundle;
 import com.sun.tools.classfile.Annotation;
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
@@ -1425,6 +1426,8 @@ public class JmlSpecs {
     
     public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
         if (symbol.type.isPrimitive()) return false;
+        if (JmlTypes.instance(context).isOnlyDataGroup(symbol.type)) return false;
+        
         // TODO - perhaps cache these when the JmlSpecs class is created? (watch for circular tool creation)
         makeAnnotationSymbols();
         Attribute.Compound attr;
