@@ -1854,6 +1854,13 @@ public class SMTTranslator extends JmlTreeScanner {
                 else
                     result = F.fcn(F.symbol("-"), args);
                 break;
+            case COMPL:
+                if (useBV) 
+                    result = F.fcn(F.symbol("bvnot"), args);
+                else
+                    result = F.fcn(F.symbol("-"), F.fcn(F.symbol("-"), arg), F.decimal("1"));
+                break;
+                
             default:
                 log.error("jml.internal","Don't know how to translate expression to SMTLIB: " + JmlPretty.write(tree));
                 throw new RuntimeException();
