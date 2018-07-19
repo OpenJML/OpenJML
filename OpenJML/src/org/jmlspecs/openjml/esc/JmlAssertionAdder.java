@@ -14426,6 +14426,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     value);
                     q.setType(that.type);
                     result = eresult = q;
+                    if (splitExpressions) result = eresult = newTemp(eresult);
                 } finally {
                     if (translatingJML) {
                         popBlock();  // A

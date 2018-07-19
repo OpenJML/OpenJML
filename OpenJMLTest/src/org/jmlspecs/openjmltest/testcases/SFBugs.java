@@ -780,6 +780,12 @@ public class SFBugs extends EscBase {
     }
     
     @Test
+    public void gitbug626() {
+    	expectedExit = 0;
+        helpTCG("-subexpressions"); // -subexpressions is part of the test
+    }
+    
+    @Test
     public void gitbug666() {
     	expectedExit = 0;
         helpTCG("-show=all","-method=pow");
