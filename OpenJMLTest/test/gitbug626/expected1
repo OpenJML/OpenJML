@@ -13,7 +13,7 @@ test/gitbug626/Test.java:8: warning: Associated declaration
 
 TRACE of Test.findFirstSetLoop(boolean[])
 test/gitbug626/Test.java:9:  	requires x != null; 
-			VALUE: x	 === REF!val!10
+			VALUE: x	 === REF!val!9
 			VALUE: null	 === NULL
 			VALUE: x != null	 === true
 test/gitbug626/Test.java:5:  	requires (x.length == 4); 

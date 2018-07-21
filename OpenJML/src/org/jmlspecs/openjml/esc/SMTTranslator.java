@@ -1234,20 +1234,29 @@ public class SMTTranslator extends JmlTreeScanner {
                 if (useFcnDef) init = decl.init == null ? null : convertExpr(decl.init);
                 
                 ISymbol sym = F.symbol(decl.name.toString());
-                ICommand c = init == null ?
-                        new C_declare_fun(
-                                sym,
-                                emptyList,
-                                convertSort(decl.type))
-                : new C_define_fun(
-                        sym,
-                        new LinkedList<IDeclaration>(),
-                        convertSort(decl.type),
-                        init);
-                 commands.add(c);
-                 // An identifier may be appended to a JmlVariableDecl simply
-                 // to have an expression with which to associated an SMT value
-                 if (decl.ident != null) bimap.put(decl.ident, sym);
+                if (init == null) {
+                    commands.add(new C_declare_fun(
+                            sym,
+                            emptyList,
+                            convertSort(decl.type)));
+                } else if (decl.init instanceof JmlQuantifiedExpr) {
+                    commands.add(new C_declare_fun(
+                            sym,
+                            emptyList,
+                            convertSort(decl.type)));
+                    commands.add(new C_assert(
+                            F.fcn(eqSym, sym, init)
+                            ));
+                } else {
+                    commands.add(new C_define_fun(
+                            sym,
+                            new LinkedList<IDeclaration>(),
+                            convertSort(decl.type),
+                            init));
+                }
+                // An identifier may be appended to a JmlVariableDecl simply
+                // to have an expression with which to associated an SMT value
+                if (decl.ident != null) bimap.put(decl.ident, sym);
             } catch (JmlBVException ee) {
                 throw ee;
             } catch (RuntimeException ee) {

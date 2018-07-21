@@ -14417,7 +14417,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             that.op == JmlTokenKind.BSFORALL ? syms.booleanType :
                             that.op == JmlTokenKind.BSEXISTS ? syms.booleanType :
                             that.op == JmlTokenKind.BSNUMOF ? syms.booleanType :
-                                that.range.type;  // FIXME - not sure about this default
+                                that.value.type;  // FIXME - not sure about this default
                     value = addImplicitConversion(value,targetType,value);
                     JmlQuantifiedExpr q = M.at(that).
                             JmlQuantifiedExpr(that.op,
@@ -14426,12 +14426,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     value);
                     q.setType(that.type);
                     result = eresult = q;
-                    if (splitExpressions) result = eresult = newTemp(eresult);
                 } finally {
                     if (translatingJML) {
                         popBlock();  // A
                         nonignoredStatements = prev;
                     }
+                }
+                if (splitExpressions) {
+                    // Normally the temporaries used to track subexpression values are introdcued
+                    // as an initialized expression, which becomes a define-fun in SMT, i.e.
+                    result = eresult = newTemp(eresult);
+                    // However, SMT ( at least Z3) does a direct substitution, so that when a get-value
+                    // query is made with the id, the expression is queried instead, which provokes an error
+                    // if the expression is a quantified expression. Hence we declare a variable and then 
+                    // add an assumption about its value.
+//                    JCIdent id = newTemp(that,syms.booleanType);
+//                    addAssumeEqual(that, Label.IMPLICIT_ASSUME, id, eresult);
+//                    result = eresult = id;
                 }
             } else {
                 java.util.List<Bound> bounds = new java.util.LinkedList<Bound>();

@@ -782,7 +782,7 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug626() {
     	expectedExit = 0;
-        helpTCG("-subexpressions"); // -subexpressions is part of the test
+        helpTCG("-subexpressions");//,"-show","-method=findFirstSetLoop"); // -subexpressions is part of the test
     }
     
     @Test
