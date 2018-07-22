@@ -807,10 +807,7 @@ public class compiler {
                 ,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The /count construct is an OpenJML extension to JML and not allowed under -strictJML\n"
                 +"            //@ loop_invariant i == /count && 0 <= i && i <= _length;\n"
                 +"                                    ^\n"
-                +"$SPECS/specs/java/nio/ByteBuffer.jml:300: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML\n"
-                +"    //@ model public static inline pure helper function int asUnsigned(byte b) { return (b >= 0 ? b : b + 256); }\n"
-                +"                            ^\n"
-                +"2 warnings\n");
+                +"1 warning\n");
     }
 
     @Test
