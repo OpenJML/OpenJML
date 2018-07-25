@@ -164,6 +164,13 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testOld12() {
+        helpTCF("A.java"," class A { boolean b; void m() { \n k: {};\n boolean bb = false; //@ assert \\old(bb) && \\old(bb,k);\n}}"
+                ,"/A.java:3: cannot find symbol\n  symbol:   variable bb\n  location: class A",38
+                ,"/A.java:3: cannot find symbol\n  symbol:   variable bb\n  location: class A",50
+                );
+    }
+
+    @Test public void testOld13() {
         helpTCF("A.java"," class A { boolean b; void m() { \n k: {};\n //@ assert \\old(b,k);\n}}"
                 );
     }

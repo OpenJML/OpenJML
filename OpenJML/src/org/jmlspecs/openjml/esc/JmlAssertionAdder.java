@@ -5118,6 +5118,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected Map<Name,LabelProperties> labelProperties = new HashMap<>();
     
+    protected LabelProperties recordLabel(Name labelName, JmlLabeledStatement stat) {
+        LabelProperties lp = new LabelProperties();
+        labelProperties.put(labelName, lp);
+        lp.labeledStatement = stat;
+        lp.heapCount = heapCount;
+        lp.allocCounter = allocCounter;
+        lp.activeOldLists = currentStatements;
+        lp.oldLists = null;
+        return lp;
+    }
+    
     //OK
     @Override
     public void visitLabelled(JCLabeledStatement that) {
@@ -5126,14 +5137,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Since declarations may not be labelled statements, there are no
         // declarations in the labelled statement that need to be in scope after
         // the labelled statement.
-        LabelProperties lp = new LabelProperties();
-        labelProperties.put(that.label,lp);
-        lp.allocCounter = allocCounter;
-        lp.activeOldLists = currentStatements;
-        lp.oldLists = null;
-        lp.heapCount = heapCount;
         JmlLabeledStatement stat = M.at(that).JmlLabeledStatement(that.label, null, null);
-        lp.labeledStatement = stat;
+        recordLabel(that.label,stat);
         markLocation(that.label,currentStatements,stat);
         treeMap.put(that, stat); // we store the mapping from old to new so that we can appropriately translate the targets of break and continue statements
 
@@ -8197,16 +8202,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCBlock bl = M.at(that).Block(0L, List.<JCStatement>nil());
                 String label = "_JMLCALL_" + that.pos + "_" + (++count);
                 calllabel = names.fromString(label);
-                LabelProperties lp = new LabelProperties();
-                labelProperties.put(calllabel, lp);
                 JmlLabeledStatement stat = M.at(that).JmlLabeledStatement(calllabel,null,bl);
                 addStat(stat);
-                lp.labeledStatement = stat;
-                lp.heapCount = heapCount;
-                lp.allocCounter = allocCounter;
+                LabelProperties lp = recordLabel(calllabel,stat);
+                lp.oldLists = currentStatements;
+                lp.activeOldLists = null;
                 preLabel = M.at(that).Ident(calllabel);
 
-                lp.oldLists = currentStatements;
                 oldStatements = currentStatements;
                 defaultOldLabel = calllabel;
 
@@ -13259,6 +13261,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             changeState();  // FIXME _ but only if something is havoced? and it is not a local variable?
         }
         
+        Name loopLabel = names.fromString("LoopBodyBegin");
+        JmlLabeledStatement lstat = M.at(that.body.pos).JmlLabeledStatement(loopLabel,null,null);
+        recordLabel(loopLabel,lstat);
+        addStat(lstat);
+        
         loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
         
         // Compute the condition, recording any side-effects
@@ -13286,6 +13293,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // increment the index
         loopHelperIncrementIndex(indexDecl);
         
+        Name loopLabel2 = names.fromString("LoopBodyBegin");
+ //       JmlLabeledStatement lstat = M.at(that.body.pos).JmlLabeledStatement(loopLabel,null,that.body);
+        recordLabel(loopLabel2,null);
+
         // After the loop, check the invariants and check that the variants have decreased
         loopHelperAssertInvariants(that.loopSpecs,decreasesIDs);
         
@@ -14097,9 +14108,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (that.args.size() > 1) {
                     JCExpression lb = that.args.get(1);
                     if (lb instanceof JCLiteral) {
+                    	// FIXME - I don't think a string is allowed by type-checking
                         String s = ((JCLiteral)lb).value.toString();
                         label = names.fromString(s);
                         if (labelProperties.get(label) == null) label = preLabel.name;
+                    } else {
+                        label = ((JCIdent)lb).name;
                     }
                 }
                 if (rac) {
@@ -14253,8 +14267,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (lp != null) {
                 ac = lp.allocCounter;
             } else if (label.toString().isEmpty()) {
-                // ERROR _ FIXME - forgot to insert a LabvelProerties for Pre
+                // ERROR _ FIXME - forgot to insert a LabelProperties for Pre
                 ac = 0;
+            } else if (label.toString().equals("LoopBodyBegin")) {
+                // Happens when a fresh expression referencing this label is in a loop_invariant
+                // The checking of the loop invariant before the loop begins occurs before the label
+                ac = allocCounter;
             } else {
                 // ERROR - FIXME
                 ac = 0;
