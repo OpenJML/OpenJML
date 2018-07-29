@@ -110,7 +110,7 @@ public class typechecking extends TCBase {
 
     @Test public void testOld2() {
         helpTC(" class A { int k; boolean b; void m() { \n//@ assert \\old();\n}}",
-                "/TEST.java:2: A \\old expression expects just 1 or 2 argument, not 0",16);
+                "/TEST.java:2: A \\old expression expects just 1 or 2 arguments, not 0",16);
     }
 
     @Test public void testOld2a() {
@@ -852,6 +852,7 @@ public class typechecking extends TCBase {
     
     @Test public void testFresh3() {
         helpTCF("A.java","public class A { Object o,oo; //@ ensures \\fresh(); \n void m() {}  \n }"
+                ,"/A.java:1: A \\fresh expression expects just 1 or 2 arguments, not 0",49
                 );
     }
     
