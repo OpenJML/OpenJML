@@ -874,7 +874,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override
     public void visitJmlLabeledStatement(JmlLabeledStatement that) {
         VarMap map = currentMap.copy();
-        if (that.label == null) premap = map;
+        if (that.label.toString().equals(Strings.preLabelBuiltin)) premap = map;
         labelmaps.put(that.label,map); // if that.label is null, this is the premap
         super.visitJmlLabeledStatement(that);
     }
@@ -978,12 +978,14 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         if (that.token == JmlTokenKind.BSOLD || that.token == JmlTokenKind.BSPRE || that.token == JmlTokenKind.BSPAST) {
             VarMap savedMap = currentMap;
             try {
-                if (that.args.size() == 1) {
-                    currentMap = premap;
-                    that.args.get(0).accept(this);
-                } else {
-                    JCIdent label = (JCIdent)that.args.get(1);
-                    currentMap = labelmaps.get(label.name);
+//                if (that.args.size() == 1) {
+//                    currentMap = premap;
+//                    that.args.get(0).accept(this);
+//                } else 
+                {
+                    Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).labeledStatement.label;
+                    //JCIdent label = (JCIdent)that.args.get(1);
+                    currentMap = labelmaps.get(label);
                     if (currentMap == null) {
                         // When method axioms are inserted they can appear before the label,
                         // in which case control flow comes here. SO we are counting on proper

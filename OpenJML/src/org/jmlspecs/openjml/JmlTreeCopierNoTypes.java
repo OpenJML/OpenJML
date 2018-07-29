@@ -313,7 +313,7 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
                 that.token,
                 copy(that.args,p));
         copy.startpos = that.startpos;
-        copy.label = that.label;
+        copy.labelProperties = that.labelProperties;
         copy.type = that.type;
         copy.meth = copy(that.meth,p);
         copy.typeargs = copy(that.typeargs,p);

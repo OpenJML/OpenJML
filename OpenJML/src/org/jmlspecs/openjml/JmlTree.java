@@ -465,6 +465,7 @@ public class JmlTree implements IJmlTree {
         /** Creates a JML labeled statement */
         @Override
         public JmlLabeledStatement JmlLabeledStatement(Name label, ListBuffer<JCStatement> extra, JCStatement body) {
+            if (body == null) body = JmlTree.Maker.instance(context).Block(0L, List.<JCStatement>nil());
             JmlLabeledStatement p = new JmlLabeledStatement(label,body);
             p.pos = pos;
             if (extra == null) extra = new ListBuffer<JCStatement>();
@@ -1799,7 +1800,9 @@ public class JmlTree implements IJmlTree {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlLabeledStatement(this); 
             } else {
-                //System.out.println("A JmlLblExpression expects an IJmlVisitor, not a " + v.getClass());
+                for (JCStatement s: extraStatements) {
+                    s.accept(v);
+                }
                 v.visitLabelled(this);
             }
         }
@@ -1912,7 +1915,7 @@ public class JmlTree implements IJmlTree {
     public static class JmlMethodInvocation extends JCMethodInvocation {
         public int startpos;
         public JmlTokenKind token;
-        public Label label = null; // FIXME - explain this
+        public Object labelProperties = null; // FIXME - explain this
         public boolean javaType = false; // FIXME - this is a hack
         
         /** Creates a method invocation for a JML specific construct (e.g. \typeof) -
