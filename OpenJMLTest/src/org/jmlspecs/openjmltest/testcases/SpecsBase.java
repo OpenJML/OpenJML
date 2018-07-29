@@ -234,7 +234,7 @@ public class SpecsBase extends TCBase {
      */
     static Set<String> donttest = new HashSet<String>();
     static {
-        donttest.add("java.lang.StringCoding"); // (FIXME) Turn this off because it is not public 
+        donttest.add("org.junit.Assert"); // (FIXME) Turn this off because the test coes not find the junit library 
     }
     
     static java.util.HashMap<String,Integer> counts = new java.util.HashMap<>();
@@ -257,41 +257,51 @@ public class SpecsBase extends TCBase {
             if (f.isDirectory()) {
                 list.addAll(findAllFiles(f, root));
             } else {
-                String ss = f.toString().substring(root.length()+1);
-                int p = ss.lastIndexOf('.');
-                ss = ss.substring(0,p).replace(File.separatorChar,'.');
-                list.add(ss);
-                try {
-                	// This is a imprecise method to count the number of type arguments, but so for I have not
-                	// found any .jml files for which it fails. If the number is wrong and non-zero, the test will fail,
-                	// but if wrong and 0 it may not.
-                	java.util.List<String> lines = java.nio.file.Files.readAllLines(f.toPath(), java.nio.charset.Charset.defaultCharset());
-                	StringBuffer sb = new StringBuffer();
-                	for (String line: lines) sb.append(line);
-                	String all = sb.toString();
-                	int k = ss.lastIndexOf('.');
-                	String tail = ss.substring(k+1);
-                	k = all.indexOf(tail + "<");
-                	int n = 0;
-                	if (k >= 0) {
-                		n = 1;
-                		k += (tail + "<").length();
-                		while (all.charAt(k) != '>') {
-                			if (all.charAt(k) == ',') n++;
-                			k++;
-                		}
-                	}
-                	Integer nn = counts.get(ss);
-                	if (nn == null || n > nn) counts.put(ss, n);
-                } catch (Exception e) {
-                	assertTrue("Failed to find number of generic type arguments", false);
-                }
+                String qualifiedName = f.toString().substring(root.length()+1);
+                int p = qualifiedName.lastIndexOf('.');
+                String baseName = qualifiedName.substring(0,p).replace(File.separatorChar,'.');
+                list.add(baseName);
+                int numArgs = countTypeArgs(f,baseName);
+                Integer nn = counts.get(baseName);
+                if (nn == null || numArgs > nn) counts.put(baseName, numArgs);
             }
         }
         return list;
     }
     
-    String[] typeargs = { "", "<?>", "<?,?>" };
+    public static int countTypeArgs(File f, String baseName) {
+        try {
+            // This is a imprecise method to count the number of type arguments, but so for I have not
+            // found any .jml files for which it fails. If the number is wrong and non-zero, the test will fail,
+            // but if wrong and 0 it may not.
+            java.util.List<String> lines = java.nio.file.Files.readAllLines(f.toPath(), java.nio.charset.Charset.defaultCharset());
+            StringBuffer sb = new StringBuffer();
+            for (String line: lines) sb.append(line);
+            String all = sb.toString();
+            int k = baseName.lastIndexOf('.');
+            String tail = baseName.substring(k+1);
+            k = all.indexOf(tail + "<");
+            int n = 0;
+            if (k >= 0) {
+                n = 1;
+                k += (tail + "<").length();
+                int depth = 0;
+                while (depth >= 0) {
+                    char c = all.charAt(k);
+                    if (c == '<') depth++;
+                    if (c == ',' && depth == 0) n++;
+                    if (c == '>') depth--;
+                    k++;
+                }
+            }
+            return n;
+        } catch (Exception e) {
+            assertTrue("Failed to find number of generic type arguments", false);
+            return 0;
+        }    
+    }
+    
+    String[] typeargs = { "", "<?>", "<?,?>" , "<?,?,?>" };
 
     /** Does a test on the given fully qualified,
      * dot-separated class name with n generic type arguments
@@ -301,6 +311,9 @@ public class SpecsBase extends TCBase {
     //@ modifies foundErrors;
     public void checkClass(String className, int n) {
         String program = "public class AJDK { "+ className + typeargs[n] +" o; }";
+        // Do these  because the classes are not public
+        if (className.equals("java.lang.AbstractStringBuilder")) program = "package java.lang; " + program;
+        if (className.equals("java.lang.StringCoding")) program = "package java.lang; " + program;
         helpTCFile("AJDK.java",program,className);
     }
         

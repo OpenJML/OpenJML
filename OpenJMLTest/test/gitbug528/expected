@@ -1,0 +1,7 @@
+$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \count construct is an OpenJML extension to JML and not allowed under -strictJML
+            //@ loop_invariant i == \count && 0 <= i && i <= _length;
+                                    ^
+$SPECS/specs/java/nio/ByteBuffer.jml:298: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML
+    //@ model public static inline pure helper function int asUnsigned(byte b) { return (b >= 0 ? b : b + 256); }
+                            ^
+2 warnings

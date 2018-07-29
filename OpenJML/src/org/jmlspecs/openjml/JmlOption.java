@@ -48,7 +48,7 @@ public enum JmlOption implements IOption {
     EXCLUDE("-exclude",true,null,"Comma-separated list of method name patterns to exclude from ESC",null),
     PROVER("-prover",true,null,"The prover to use to check verification conditions",null),
     PROVEREXEC("-exec",true,null,"The prover executable to use",null),
-    LOGIC("-logic",true,null,"The SMT logic to use",null),
+    LOGIC("-logic",true,"ALL","The SMT logic to use (default ALL)",null),
     
     
     // Options Related to Specification Inference
@@ -87,7 +87,7 @@ public enum JmlOption implements IOption {
     CHECK_ACCESSIBLE("-checkAccessible",false,false,"When on (the default), JML accessible clauses are checked",null),
     SPECS("-specspath",true,null,"Specifies the directory path to search for specification files",null),
     CHECKSPECSPATH("-checkSpecsPath",false,true,"When on (the default), warnings for non-existent specification path directories are issued",null),
-    PURITYCHECK("-purityCheck",false,false,"When on (off by default), warnings for use of impure methods are issued",null),
+    PURITYCHECK("-purityCheck",false,false,"When on (off by default), warnings for use of impure methods from system libraries are issued",null),
     INTERNALSPECS("-internalSpecs",false,true,"When on (the default), automatically appends the internal specs directory to the specification path",null),
     INTERNALRUNTIME("-internalRuntime",false,true,"When on (the default), automatically appends the internal JML runtime library to the classpath",null),
     TIMEOUT("-timeout",true,null,"Number of seconds to limit any individual proof attempt (default infinite)",null),
@@ -99,19 +99,22 @@ public enum JmlOption implements IOption {
     QUIET("-quiet",false,null,"Only output warnings and errors","-verboseness="+Utils.QUIET),
     NORMAL("-normal",false,null,"Limited output","-verboseness="+Utils.NORMAL),
     PROGRESS("-progress",false,null,"Shows progress through compilation phases","-verboseness="+Utils.PROGRESS),
-    JMLVERBOSE("-jmlverbose",false,null,"Like -verbose, but only jml information and not as much","-verboseness="+Utils.JMLVERBOSE),
-    JMLDEBUG("-jmldebug",false,null,"When on, the program emits lots of output (includes -progress)","-verboseness="+Utils.JMLDEBUG),
+    JMLVERBOSE("-jmlverbose",false,false,"Like -verbose, but only jml information and not as much","-verboseness="+Utils.JMLVERBOSE),
+    JMLDEBUG("-jmldebug",false,false,"When on, the program emits lots of output (includes -progress)","-verboseness="+Utils.JMLDEBUG),
     SHOW_OPTIONS("-showOptions",true, "none","When enabled, the values of options and properties are printed, for debugging",null),
     
     JMLTESTING("-jmltesting",false,false,"Only used to generate tracing information during testing",null),
     TRACE("-trace",false,false,"ESC: Enables tracing of counterexamples",null),
-    SHOW("-show",false,false,"Show intermediate programs",null),
+    SHOW("-show",true,"","Show intermediate programs",null,false,"all"),
+    SPLIT("-split",true,"","Split proof into sections",null),
+    ESC_BV("-escBV",true,"auto","ESC: If enabled, use bit-vector arithmetic (auto, true, false)",null),
+    ESC_EXIT_INFO("-escExitInfo",false,true,"ESC: Show exit location for postconditions (default true)",null),
     ESC_MAX_WARNINGS("-escMaxWarnings",true,"all","ESC: Maximum number of warnings to find per method",null),
     MAXWARNINGSPATH("-escMaxWarningsPath",false,false,"ESC: If true, find all counterexample paths to each invalid assert",null),
     COUNTEREXAMPLE("-counterexample",false,false,"ESC: Enables output of complete, raw counterexample",null),
     CE("-ce",false,null,"ESC: Enables output of complete, raw counterexample","-counterexample"),
     SUBEXPRESSIONS("-subexpressions",false,false,"ESC: Enables tracing with subexpressions",null),
-    FEASIBILITY("-checkFeasibility",true,null,"ESC: Check feasibility of assumptions",null),
+    FEASIBILITY("-checkFeasibility",true,"all","ESC: Check feasibility of assumptions",null),
     BENCHMARKS("-benchmarks",true,null,"ESC: Collects solver communications",null),
     MINIMIZE_QUANTIFICATIONS("-minQuant",false,true,"Minimizes using quantifications, in favor of inlining",null),
     QUANTS_FOR_TYPES("-typeQuants",true,"auto","Introduces quantified assertions for type variables (true, false, or auto)",null),
@@ -130,6 +133,13 @@ public enum JmlOption implements IOption {
     PROPERTIES("-properties",true,null,"Specifies the path to the properties file",null),
     PROPERTIES_DEFAULT("-properties-default",true,null,"Specifies the path to the default properties file",null),
     
+    DEFAULTS("-defaults",true,"","Specifies various default behaviors: constructor:pure|everything",null),
+    STATIC_INIT_WARNING("-staticInitWarning",false,true,"Warns about missing static_initializer clauses",null),
+    // Experimental
+    DETERMINISM("-determinism",false,true,"Experimental: enables better determinism",null),
+
+    OSNAME("-osname",true,null,"Name of OS to use in selecting solver executable",null),
+
     // Obsolete
     NOCHECKSPECSPATHX("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false",true),
     NOPURITYCHECKX("-noPurityCheck",false,false,"When on, no warnings for use of impure methods are issued","-purityCheck=false",true),
@@ -152,6 +162,8 @@ public enum JmlOption implements IOption {
     /** The default value of the option */
     final private Object defaultValue;
     
+    public String enabledDefault = null;
+    
     /** The help string for this option */
     final private String help;
     
@@ -173,7 +185,7 @@ public enum JmlOption implements IOption {
             Object defaultValue,
             /*@ non_null */ String help,
             /*@ nullable */ String synonym) {
-        this(s,hasArg,defaultValue,help,synonym,false);
+        this(s,hasArg,defaultValue,help,synonym,false,null);
     }
     
     /** Private constructor to create Enum instances.
@@ -190,12 +202,31 @@ public enum JmlOption implements IOption {
             /*@ non_null */ String help,
             /*@ nullable */ String synonym,
             boolean obsolete) {
+        this(s,hasArg,defaultValue,help,synonym,obsolete,null);
+    }
+    
+    /** Private constructor to create Enum instances.
+     * @param s The option name, including any leading - character
+     * @param defaultValue the default value for the option
+     * @param hasArg Whether the option takes a (required) argument
+     * @param help The associated help string
+     * @param synonym an equivalent command-line argument
+     * @param obsolete whether the option is obsolete
+     */
+    private JmlOption(/*@ non_null */ String s, 
+            boolean hasArg, 
+            Object defaultValue,
+            /*@ non_null */ String help,
+            /*@ nullable */ String synonym,
+            boolean obsolete,
+            String enabledDefault) {
         this.name = s;
         this.hasArg = hasArg;
         this.defaultValue = defaultValue;
         this.help = help;
         this.synonym = synonym;
         this.obsolete = obsolete;
+        this.enabledDefault = enabledDefault;
     }
     
     /** Enables the given option
@@ -246,6 +277,14 @@ public enum JmlOption implements IOption {
      */
     public static boolean isOption(Context context, String option) {
         return value(context,option) != null;
+    }
+    
+    /** This is used for those options that allow a number of suboptions; it tests whether
+     * value is one of the comma-separated suboptions.
+     */
+    public static boolean includes(Context context, JmlOption option, String value) {
+        String v = JmlOption.value(context, option);
+        return "all".equals(v) || ( v.equals(value) || v.startsWith(value + ",") || v.endsWith("," + value) || v.contains("," + value +","));
     }
     
     /** Return the value of an option with an argument
@@ -370,5 +409,17 @@ public enum JmlOption implements IOption {
                 noticeWriter.println(key + " = " + JmlOption.value(context,key));
             }
         }
+    }
+    
+    /** A helper function to extract values from the 'defaults' option */
+    public static /*@ nullable */ String defaultsValue(Context context, String key, String def) {
+        String defaultsValue = value(context,JmlOption.DEFAULTS);
+        if (defaultsValue == null) return def;
+        for (String s: defaultsValue.split(",")) {
+            if (s.startsWith(key + ":")) {
+                return s.substring(key.length()+1);
+            }
+        } 
+        return def;
     }
 }

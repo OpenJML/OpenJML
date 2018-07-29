@@ -24,7 +24,7 @@ package org.jmlspecs.models;
  * @version $Revision: 1.8 $
  * @author Katie Becker and Gary T. Leavens
  */
-//-@ immutable
+//+OPENJML@ immutable
 public class JMLNullSafe {
 
     /** No instances of this class can be created. */

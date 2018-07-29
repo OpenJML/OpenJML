@@ -34,7 +34,7 @@ import org.jmlspecs.annotation.*;
  * @see org.jmlspecs.models.JMLValueSet
  * @see org.jmlspecs.models.JMLObjectSet
  */
-//-@ immutable
+//+OPENJML@ immutable
 public @Pure interface JMLSetType<E> extends JMLIterable<E>
 {
     

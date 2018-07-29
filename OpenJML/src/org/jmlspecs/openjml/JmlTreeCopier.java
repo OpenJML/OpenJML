@@ -80,7 +80,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     /** Deep copy of a list of nodes */
-    public <T extends JCTree> com.sun.tools.javac.util.List<T> copy(@Nullable com.sun.tools.javac.util.List<T> trees, Void p) {
+    public <T extends JCTree> com.sun.tools.javac.util.List<T> copy(/*@ nullable */ com.sun.tools.javac.util.List<T> trees, Void p) {
         if (trees == null)
             return null;
         ListBuffer<T> lb = new ListBuffer<T>();
@@ -127,9 +127,10 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.sourcefile = that.sourcefile;
         copy.specsDecl = that.specsDecl;// FIXME - copy
         copy.cases = copy(that.cases,p);
-        copy.methodSpecsCombined = new JmlSpecs.MethodSpecs( // FIXME - factory
-                copy(that.methodSpecsCombined.mods,p),
-                copy(that.methodSpecsCombined.cases,p));
+        copy.methodSpecsCombined = JmlSpecs.copy(that.methodSpecsCombined,p,this);
+//        new JmlSpecs.MethodSpecs( // FIXME - factory
+//                copy(that.methodSpecsCombined.mods,p),
+//                copy(that.methodSpecsCombined.cases,p));
         copy.type = that.type;
         return copy;
     }
@@ -212,6 +213,13 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlImport copy = (JmlImport)visitImport(that,p);
         copy.isModel = that.isModel;
         // already done: copy.type = that.type;
+        return copy;
+    }
+
+    @Override
+    public JCTree visitJmlInlinedLoop(JmlInlinedLoop that, Void p) {
+        JmlInlinedLoop copy = M.at(that.pos).JmlInlinedLoop(copy(that.loopSpecs));
+        copy.type = that.type;
         return copy;
     }
 
@@ -395,7 +403,8 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 that.code,
                 that.token,
                 that.also,
-                copy(that.clauses,p));
+                copy(that.clauses,p),
+                copy(that.block));
         copy.block = copy(that.block,p);
         copy.sourcefile = that.sourcefile;
         copy.type = that.type;
@@ -410,6 +419,19 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.type = that.type;
         return copy;
     }
+    
+    @Override
+    public JCTree visitJmlStatementShow(JmlStatementShow that, Void p) {
+        ListBuffer<JCExpression> expressions = new ListBuffer<>();
+        for (JCExpression e: that.expressions) expressions.add( copy(e,p));
+        JmlStatementShow copy = M.at(that.pos).JmlStatementShow(
+                that.token,
+                copy(that.expressions,p));
+        copy.type = that.type;
+        return copy;
+    }
+
+    
 
     @Override
     public JCTree visitJmlStatementDecls(JmlStatementDecls that, Void p) {
@@ -428,6 +450,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 copy(that.expression,p));
         copy.optionalExpression = copy(that.optionalExpression,p);
         copy.associatedPos = that.associatedPos;
+        copy.associatedClause = that.associatedClause;
         //copy.line = that.line;
         copy.source = that.source;
         copy.type = that.type;
@@ -443,10 +466,19 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     @Override
-    public JCTree visitJmlStatementLoop(JmlStatementLoop that, Void p) {
-        JmlStatementLoop copy = M.at(that.pos).JmlStatementLoop(
+    public JCTree visitJmlStatementLoopExpr(JmlStatementLoopExpr that, Void p) {
+        JmlStatementLoopExpr copy = M.at(that.pos).JmlStatementLoopExpr(
                 that.token,
                 copy(that.expression,p));
+        copy.type = that.type;
+        return copy;
+    }
+
+    @Override
+    public JCTree visitJmlStatementLoopModifies(JmlStatementLoopModifies that, Void p) {
+        JmlStatementLoopModifies copy = M.at(that.pos).JmlStatementLoopModifies(
+                that.token,
+                copy(that.storerefs,p));
         copy.type = that.type;
         return copy;
     }
@@ -702,7 +734,13 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     public JCTree visitArrayAccess(ArrayAccessTree node, Void p) {
-        return super.visitArrayAccess(node,p).setType(((JCTree)node).type);
+        if (node instanceof JmlBBArrayAccess) {
+            JmlBBArrayAccess n = (JmlBBArrayAccess)node;
+            JmlBBArrayAccess nn = new JmlBBArrayAccess(copy(n.arraysId),copy(n.indexed),copy(n.index),n.pos,n.type);
+            return nn;
+        } else {
+            return super.visitArrayAccess(node,p).setType(((JCTree)node).type);
+        }
     }
 
     public JCTree visitLabeledStatement(LabeledStatementTree node, Void p) {

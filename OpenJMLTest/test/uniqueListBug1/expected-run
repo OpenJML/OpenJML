@@ -1,10 +1,10 @@
 OUT:
-test\uniqueListBug1\UniqueListBug1.java:95: JML precondition is false
+test\uniqueListBug1\UniqueListBug1.java:98: JML precondition is false
 		list.swap(0,2); // index2==2 is too big
 		         ^
-test\uniqueListBug1\UniqueListBug1.java:32: Associated declaration: test\uniqueListBug1\UniqueListBug1.java:95: 
-	  @ requires index1 < length;
-	    ^
+test\uniqueListBug1\UniqueListBug1.java:38: Associated declaration: test/uniqueListBug1/UniqueListBug1.java:98: 
+	public void swap(int index1, int index2){
+	            ^
 test\uniqueListBug1\UniqueListBug1.java:32: JML precondition is false
 	  @ requires index1 < length;
 	    ^

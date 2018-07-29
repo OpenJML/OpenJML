@@ -7,8 +7,14 @@ package org.jmlspecs.openjml.eclipse;
 import java.io.File;
 import java.io.PrintWriter;
 import java.net.URI;
+import java.net.URL;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,11 +32,13 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.eclipse.jdt.internal.core.JavaProject;
@@ -52,6 +60,7 @@ import org.jmlspecs.openjml.eclipse.Utils.OpenJMLException;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
+import org.osgi.framework.Bundle;
 
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
@@ -80,7 +89,10 @@ import com.sun.tools.javac.util.PropagatedException;
  */
 public class OpenJMLInterface implements IAPI.IProofResultListener {
 	
-    /** The API object corresponding to this Interface class. */
+    /** The API object corresponding to this Interface class. The api object changes 
+     * for each invocation of OpenJML, with a new context, and possibly new input files, etc. 
+     * The same API object can be used if all the input files are unchanged and only 
+     * new proof attempts are being attempted. */
     @NonNull
     protected IAPI api;
     
@@ -127,7 +139,6 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
        try { 
     	   api = Factory.makeAPI(w,new EclipseDiagnosticListener(preq), null, opts.toArray(new String[0])); 
     	   api.setProofResultListener(this);
-           api.main().proofResultListener = this;
        } catch (Exception e) {
     	   Log.errorlog("Failed to create an interface to OpenJML",e); //$NON-NLS-1$
        }
@@ -553,14 +564,15 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
 
 
     /** Executes the JML ESC (static checking) operation
-     * on the given set of resources. Must be called in a computational thread.
+     * on the given set of resources; launches computational threads.
      * @param command should be ESC
      * @param things the set of files (or containers) or Java elements to check
      * @param monitor the progress monitor the UI is using
      */
     // TODO - Review this
-    public void executeESCCommand(Main.Cmd command, List<?> things, IProgressMonitor monitor) {
+    public void executeESCCommand(Main.Cmd command, List<?> things, IProgressMonitor monitor, String description) {
         try {
+        	Date start = new Date();
             if (things.isEmpty()) {
                 Log.log("Nothing applicable to process");
                 Activator.utils().showMessageInUI(null,"JML","Nothing applicable to process");
@@ -572,54 +584,34 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
 //                api = new API(w,new EclipseDiagnosticListener(preq));
 //                api.setProgressReporter(new UIProgressReporter(api.context(),monitor,null));
 //            }
-            setMonitor(monitor);
            
             List<String> args = getOptions(jproject,Main.Cmd.ESC);
             api.initOptions(null,  args.toArray(new String[args.size()]));
 //            args.clear();
             
+            setMonitor(monitor); // Must be set after the options are initialized
             List<IJavaElement> elements = new LinkedList<IJavaElement>();
             
             IResource rr;
-            int count = 0;
-    		utils.refreshView(); // Sets up the view - then each result is added incrementally
-            for (Object r: things) {
-            	try {
-            		if (r instanceof IPackageFragment) {
-            			count += utils.countMethods((IPackageFragment)r);
-            		} else if (r instanceof IJavaProject) {
-            			count += utils.countMethods((IJavaProject)r);
-            		} else if (r instanceof IProject) {
-            			count += utils.countMethods((IProject)r);
-            		} else if (r instanceof IPackageFragmentRoot) {
-            			count += utils.countMethods((IPackageFragmentRoot)r);
-            		} else if (r instanceof ICompilationUnit) {
-            			count += utils.countMethods((ICompilationUnit)r);
-            		} else if (r instanceof IType) {
-            			count += utils.countMethods((IType)r);
-                    } else if (r instanceof IMethod) {
-                        count += 1;
-                    } else if (r instanceof IFile || r instanceof IFolder) {
-                        // If a file is not part of a source folder, then we
-                        // don't have Java elements and it is not a ICompilationUnit
-                        // So we can't really count the methods in it.
-                        // The number used here is arbitrary, and will result in
-                        // a bad estimate of the work to be done. 
-                        // TODO - count the methods using the OpenJML AST.
-                        count += 2;
-            		} else {
-            			Log.log("Can't count methods in a " + r.getClass());
-            		}
-            	} catch (Exception e) {
-            		// FIXME - record exception
-            	}
-            }
+            utils.refreshView(); // Sets up the view - then each result is added incrementally
+    		int count = utils.countMethods(things);
             final int oldArgsSize = args.size();
             for (Object r: things) { 
             	// an IType is adaptable to an IResource (the containing file), but we want it left as an IType
                 if (!(r instanceof IType) && r instanceof IAdaptable 
                 		&& (rr=(IResource)((IAdaptable)r).getAdapter(IResource.class)) != null) {
-                	r = rr;
+                	if (r instanceof IPackageFragment && ((IPackageFragment)r).isDefaultPackage()) {
+                	    // Do not add subdirectories
+                	    try {
+                	    for (IResource rrr: ((IFolder)rr).members(IResource.NONE)) {
+                	        if (rrr instanceof IFile && ((IFile)rrr).getFileExtension().equals("java")) {
+                	            args.add(((IResource)rrr).getLocation().toString());
+                	        }
+                	    }
+                	    } catch (CoreException e) {} // FIXME - log an error
+                	    continue;
+                	}
+                    r = rr;
                 }
                 if (r instanceof IFolder) {
                 	if (hasAtLeastOneSourceFile((IFolder) r)) {
@@ -647,7 +639,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             }
             
             if (monitor != null) {
-            	monitor.beginTask("Static checks in project " + jproject.getElementName(),  2*count); // ticks at begin and end of check
+            	monitor.beginTask(description,  count); // 1 tick for each completion
             	monitor.subTask("Starting ESC on " + jproject.getElementName());
             }
 
@@ -692,43 +684,61 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             	for (IJavaElement je: elements) {
             		utils.deleteMarkers(je.getResource(),null); // FIXME - would prefer to delete markers and highlighting on just the method.
             	}
-            	for (IJavaElement je: elements) {
-            		if (je instanceof IMethod) {
-            			MethodSymbol msym = convertMethod((IMethod)je);
-            			if (msym == null) {
-            				IResource r = je.getResource();
-            				String filename = null;
-            				try {
-            					filename = r.getLocation().toString();
-            					int errors = api.typecheck(api.parseFiles(filename));
-            					if (errors == 0) {
-            						msym = convertMethod((IMethod)je);
-            					} else {
-            						utils.showMessageInUI(null,"JML Error","ESC could not be performed because of JML typechecking errors");
-            						msym = null;
-            					}
-            				} catch (java.io.IOException e) {
-            					// FIXME - record or show exception?
-        						utils.showMessageInUI(null,"JML Error","ESC could not be performed because of JML typechecking errors");
-            					msym = null;
-            				}
-            			}
-            			if (msym != null) {
-            				Timer t = new Timer();
-            				if (Options.uiverboseness)
-            					Log.log("Beginning ESC on " + msym);
-            				if (monitor != null) monitor.subTask("ESChecking " + msym);
-            				IProverResult res = api.doESC(msym);
-            				highlightCounterexamplePath((IMethod)je,res,null);
-            			}
-            			else {} // ERROR - FIXME
-            		} else if (je instanceof IType) {
-            			ClassSymbol csym = convertType((IType)je);
-            			if (csym != null) api.doESC(csym);
-            			else {} // ERROR - FIXME
-            		}
+            	
+                args = getOptions(jproject,Main.Cmd.CHECK);
+                //api.initOptions(null,  args.toArray(new String[args.size()]));
+                //args.clear();
+                for (IJavaElement je: elements) {
+                    String filepath = je.getResource().getLocation().toOSString();
+                    args.add(filepath);
+                }
+                int ret = api.execute(null,args.toArray(new String[args.size()]));
+                if (ret != 0) {
+                    Activator.utils().showMessageInUI(null,"JML Execution Failure","Static check aborted because of syntax errors");
+                    Log.log(Timer.timer.getTimeString() + " Static check aborted because of syntax errors");
+                } else {
+
+                    args = getOptions(jproject,Main.Cmd.ESC);
+                    api.initOptions(null,  args.toArray(new String[args.size()]));
+
+                    for (IJavaElement je: elements) {
+                        if (je instanceof IMethod) {
+                            MethodSymbol msym = convertMethod((IMethod)je);
+                            if (msym == null) {
+                                IResource r = je.getResource();
+                                String filename = null;
+                                try {
+                                    filename = r.getLocation().toString();
+                                    int errors = api.typecheck(api.parseFiles(filename));
+                                    if (errors == 0) {
+                                        msym = convertMethod((IMethod)je);
+                                    } else {
+                                        utils.showMessageInUI(null,"JML Error","ESC could not be performed because of JML typechecking errors");
+                                        msym = null;
+                                    }
+                                } catch (java.io.IOException e) {
+                                    // FIXME - record or show exception?
+                                    utils.showMessageInUI(null,"JML Error","ESC could not be performed because of JML typechecking errors");
+                                    msym = null;
+                                }
+                            }
+                            if (msym != null) {
+                                Timer t = new Timer();
+                                if (Options.uiverboseness)
+                                    Log.log("Beginning ESC on " + msym);
+                                if (monitor != null) monitor.subTask("ESChecking " + msym);
+                                IProverResult res = api.doESC(msym);
+                                highlightCounterexamplePath((IMethod)je,res,null);
+                            }
+                            else {} // ERROR - FIXME
+                        } else if (je instanceof IType) {
+                            ClassSymbol csym = convertType((IType)je);
+                            if (csym != null) api.doESC(csym);
+                            else {} // ERROR - FIXME
+                        }
+                    }
+                    if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Completed ESC operation on individual methods");
             	}
-                if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Completed ESC operation on individual methods");
             }
             if (monitor != null) {
                 monitor.subTask("Completed ESC operation");
@@ -738,6 +748,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                 monitor.subTask("Canceled ESC operation");
             }
             if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Canceled ESC operation");
+        } finally {
+        	OpenJMLView.stop();
         }
     }
     
@@ -1073,6 +1085,26 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                   } catch (NumberFormatException e) {
                       // ignore
                   }
+              } else if (value.startsWith("#x")) {
+            	  try {
+            		  value = value.substring(2);
+            		  if (value.length() > 2*Integer.BYTES) {
+            			  long i = Long.parseLong(value,16);
+            			  out = out + " (" + i + ")";
+            		  } else {
+            			  int i = (int)Long.parseLong(value,16);
+            			  if (i == Integer.MIN_VALUE) {
+            				  out = out + " (" + i + " == MININT)";
+
+            			  } else if (i == Integer.MAX_VALUE) {
+            				  out = out + " (" + i + " == MAXINT)";
+            			  } else {
+            				  out = out + " (" + i + ")";
+            			  }
+            		  }
+            	  } catch (Exception e) {
+            		  Object o = e;
+            	  }
               }
           }
           else out = text == null ? null : (out + "Value is unknown (type " + node.type + ")");
@@ -1110,7 +1142,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         public EclipseDiagnosticListener(@NonNull IProblemRequestor p) {
             preq = p;
         }
-
+        
         /** This is the method that is called whenever a diagnostic is issued;
          * it will convert and pass it on to the problem requestor.  If the 
          * diagnostic cannot be converted to an Eclipse IProblem, then it is
@@ -1121,7 +1153,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         @Override
         @SuppressWarnings("restriction")
         public void report(@NonNull Diagnostic<? extends JavaFileObject> diagnostic) {
-            JavaFileObject javaFileObject = diagnostic.getSource();
+        	JavaFileObject javaFileObject = diagnostic.getSource();
             String message = diagnostic.getMessage(null); // uses default locale
             int id = 0; // TODO - we are not providing numerical ids for problems
             Diagnostic.Kind kind = diagnostic.getKind();
@@ -1151,6 +1183,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             long line = diagnostic.getLineNumber(); // 1-based
             long startPos = diagnostic.getStartPosition();  //0-based, from beginning of file
             long endPos = diagnostic.getEndPosition();
+            if (endPos <= 0) endPos = startPos; // This is defensive - sometimes there is no end position set
 
             int ENOPOS = -1; // Eclipse value for not having position information
 
@@ -1241,13 +1274,15 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
          */
         //@ ensures not_assigned(this.*);
         @Override
-        public boolean report(final int ticks, final int level, final String message) {
+        public boolean report(final int level, final String message) {
             Display d = shell == null ? Display.getDefault() : shell.getDisplay();
+            String summary = OpenJMLView.exportProofResults(null);
+            final String message2 = summary == null ? message : (summary + Strings.eol + message);
+            // Singleton reported that with asynExec, this would hang
             d.syncExec(new Runnable() {
                 public void run() {
                     if (monitor != null) {
-                    	if (level <= 1) monitor.subTask(message);
-                    	monitor.worked(ticks);
+                    	if (level <= 1) monitor.subTask(message2);
                     }
                     Log.log(message);
                 }
@@ -1259,6 +1294,11 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
 //            	//throw new PropagatedException(new Main.JmlCanceledException("Operation cancelled")); //$NON-NLS-1$
 //            }
             return cancel;
+        }
+        
+        @Override
+        public void worked(int ticks) {
+            if (monitor != null) monitor.worked(ticks);
         }
         
         /** Sets the OpenJML compilation context associated with this listener. */
@@ -1292,11 +1332,23 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     		currentMethod = null;
     		return;
     	}
+    	if (result.result() == IProverResult.ERROR) {
+    		if (result.otherInfo() == null) {
+    			List<String> messages = Log.collect(true);
+    			String text = String.join(Strings.eol, messages);
+    			result.setOtherInfo(text);
+    		}
+    	}
     	String key = keyForSym(msym);
     	proofResults.put(key,result);
     	IMethod m = convertMethod(msym);
     	methodResults.put(m, key);
-    	utils.refreshView(key);
+    	Runnable runnable = new Runnable() {
+    	    public void run() {
+    	        utils.refreshView(jproject,key);
+    	    }
+    	};
+    	Display.getDefault().asyncExec(runnable);
     }
     
     static MethodSymbol currentMethod;
@@ -1354,13 +1406,45 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         }
         {
             opts.add(JmlOption.STRICT.optionName() +eq+ Options.isOption(Options.strictKey));
-            opts.add(JmlOption.PURITYCHECK.optionName() +eq+ !Options.isOption(Options.noCheckPurityKey));
+            opts.add(JmlOption.PURITYCHECK.optionName() +eq+ Options.isOption(Options.purityCheckKey));
             opts.add(JmlOption.SHOW.optionName() +eq+ Options.isOption(Options.showKey));
         }
         if (cmd == Main.Cmd.ESC || cmd == null) {
             String prover = Options.value(Options.defaultProverKey);
             opts.add(JmlOption.PROVER.optionName() +eq+ prover);
-            opts.add(JmlOption.PROVEREXEC.optionName() +eq+ Options.value(Options.proverPrefix + prover));
+            
+            String internal_external = Options.value(SolversPage.execLocKeyPrefix + prover);
+        	String exec = null;
+            if ("internal".equals(internal_external)) {
+            	//Log.log("Using internal solver. Default is " + prover);
+        		URL url = null;
+        		try {
+        			String osname = org.jmlspecs.openjml.Utils.identifyOS(null);
+        			Bundle bundle = Platform.getBundle("org.jmlspecs.Solvers");
+        			if (bundle != null) {
+        				String ex = osname.equals("windows") ? "/z3-4.3.2.exe" : "/z3-4.3.1";
+        				url = FileLocator.find(bundle, new Path("Solvers-"+osname+ex), Collections.EMPTY_MAP);
+        				if (url != null) url = FileLocator.toFileURL(url);
+                        if (url != null) {
+                        	exec = url.getFile();
+                        	Files.setPosixFilePermissions(java.nio.file.Paths.get(url.toURI()), PosixFilePermissions.fromString("rwxr-xr-x"));
+                        }
+        			}
+        		} catch (Exception e) {
+        			exec = null;
+                	Log.log("Internal solver exception " + e.toString());
+        		}
+        		java.nio.file.Path path = FileSystems.getDefault().getPath(exec);
+        		if (exec == null || !Files.exists(path)) {
+        			utils.showMessageInUI(null,"OpenJML error","Internal solver for " + prover + "is not found");
+        		} else if (!Files.isExecutable(path)) {
+        			utils.showMessageInUI(null,"OpenJML error","Internal solver for " + prover + "is not executable");
+        		}
+        	} else {
+        		exec = Options.value(Options.proverPrefix + prover);
+        		Log.log("Using external solver " + exec);
+        	}
+            opts.add(JmlOption.PROVEREXEC.optionName() +eq+ exec);
             opts.add(JmlOption.ESC_MAX_WARNINGS.optionName() +eq+ Options.value(Options.escMaxWarningsKey));
             opts.add(JmlOption.TRACE.optionName() +eq+ "true");
             opts.add(JmlOption.SUBEXPRESSIONS.optionName() +eq+ "true");
@@ -1368,7 +1452,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             String v = Options.value(Options.timeoutKey);
             if (v != null && !v.isEmpty()) opts.add(JmlOption.TIMEOUT.optionName() +eq+ v);
             // FIXME - add an actual option
-            opts.add("-code-math=java");
+            opts.add("-code-math=safe");
+            opts.add("-spec-math=bigint");
         }
         
         if (cmd == Main.Cmd.INFER) {
@@ -1403,14 +1488,15 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         }
         
         if (cmd == Main.Cmd.RAC || cmd == null) {
-            opts.add(JmlOption.RAC_SHOW_SOURCE.optionName() +eq+ !Options.isOption(Options.racNoShowSource));
+            opts.add(JmlOption.RAC_SHOW_SOURCE.optionName() +eq+ Options.isOption(Options.racShowSource));
             opts.add(JmlOption.RAC_CHECK_ASSUMPTIONS.optionName() +eq+ Options.isOption(Options.racCheckAssumptions));
             opts.add(JmlOption.RAC_PRECONDITION_ENTRY.optionName() +eq+ Options.isOption(Options.racPreconditionEntry));
             opts.add(JmlOption.RAC_JAVA_CHECKS.optionName() +eq+ Options.isOption(Options.racCheckJavaFeatures));
             opts.add(JmlOption.RAC_COMPILE_TO_JAVA_ASSERT.optionName() +eq+ Options.isOption(Options.compileToJavaAssert));
         }
         
-        opts.add(JmlOption.VERBOSENESS.optionName()+eq+Options.value(Options.verbosityKey));
+        String v = Options.value(Options.verbosityKey);
+        opts.add(JmlOption.VERBOSENESS.optionName()+eq+"2"); // If not at least progress, the monitors will be stuck
         
         if (Options.isOption(Options.javaverboseKey)) {
         	opts.add(com.sun.tools.javac.main.Option.VERBOSE.getText());
@@ -1459,7 +1545,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         // The runtime library is always either in the classpath or added 
         // here by the plugin, so openjml itself never adds it
         opts.add("-no"+JmlOption.INTERNALRUNTIME.optionName());
-        if (!Options.isOption(Options.noInternalRuntimeKey)) {
+        if (Options.isOption(Options.useInternalRuntimeKey)) {
         	String runtime = utils.fetchRuntimeLibEntry();
         	if (runtime != null) {
         		ss.append(File.pathSeparator);

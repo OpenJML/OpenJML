@@ -36,11 +36,13 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.strongarm.JDKListUtils;
 
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
+import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Types;
@@ -55,6 +57,8 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
@@ -86,6 +90,13 @@ public class Utils {
     
     /** The Log object - do not use this directly - use log() instead */
     private Log log;
+    
+    private JmlTypes jmltypes;
+    
+    public JmlTypes jmltypes() {
+        if (jmltypes == null) jmltypes = JmlTypes.instance(context);
+        return jmltypes;
+    }
 
     /** The key to use to retrieve the instance of this class from the Context object. */
     //@ non_null
@@ -116,7 +127,7 @@ public class Utils {
 
     /** The error and warning log. It is crucial that the log be obtained
      * lazily, and not before options are read; otherwise the Log object
-     * is not properly intialized from the Java options. */
+     * is not properly initialized from the Java options. */
     public final Log log() {
         if (log == null) log = Log.instance(context);
         return log;
@@ -168,6 +179,8 @@ public class Utils {
 
     // FIXME - describe  - used to be the DEFAULT flag
     final public static long JMLADDED = 1L << 58;
+    
+    final public static long JMLINSTANCE = 1L << 57;
 
     /** Tests whether the JML flag is set in the given modifiers object
      * @param mods the instance of JCModifiers to test
@@ -275,6 +288,55 @@ public class Utils {
         }
         return symbol.attribute(helperAnnotationSymbol)!=null;
     }
+    
+    public static String identifyOS(Context context) {
+        String sp = context == null ? null : JmlOption.value(context, JmlOption.OSNAME);
+        if (sp != null && !sp.isEmpty()) return sp;
+        
+        sp = System.getProperty("os.name");
+        if (sp.contains("mac") || sp.contains("Mac")) return "macos";
+        if (sp.contains("lin") || sp.contains("Lin")) return "linux";
+        if (sp.contains("win") || sp.contains("Win")) return "windows";
+        return null;
+    }
+    
+    //@ non_null
+    public String findInstallLocation() {
+        String sp = System.getProperty("java.class.path");
+        String[] ss = sp.split(java.io.File.pathSeparator);
+        boolean verbose = jmlverbose >= Utils.JMLVERBOSE;
+        
+        // Find the item on the classpath that contains the OpenJML classes.
+        // The install location should be the parent of the .jar file.
+        // This should work for a command-line installation
+        for (String s: ss) {
+            if (s.endsWith(".jar") && JmlSpecs.instance(context).new JarDir(s,"org/jmlspecs/openjml").exists()) {
+                s = new File(s).getParent();
+                if (s == null) s = "";
+                if (s.isEmpty()) s = ".";
+                File d = new java.io.File(s);
+                if (d.exists() && d.isDirectory()) {
+                    if (verbose) log().getWriter(WriterKind.NOTICE).println("Installation location " + d);
+                    return d.getAbsolutePath();
+                }
+            }
+        }
+        
+        // This should work for running in the eclipse development environment
+        for (String s: ss) {
+            if (s.endsWith("bin-runtime")) {
+                s = s + java.io.File.separator + ".." + java.io.File.separator + ".." + java.io.File.separator + ".."  + java.io.File.separator + "Solvers" + java.io.File.separator;
+                File d = new java.io.File(s);
+                if (d.exists() && d.isDirectory()) {
+                    if (verbose) log().getWriter(WriterKind.NOTICE).println("Installation location " + d);
+                    return s;
+                }
+            }
+        }
+        
+        return null;
+    }
+ 
 
     /** Returns true if the given symbol is marked static or is a member of a JML interface
      * that is not marked as 'instance'
@@ -288,6 +350,7 @@ public class Utils {
             if ((sym.flags() & STATIC) == 0) return false;
         } else {
             if (!sym.isStatic()) return false;
+            if ((sym.flags() & STATIC) == 0 || (sym.flags_field & Utils.JMLINSTANCE) != 0) return false;
         }
         if (isJML(sym.flags())) {
             Symbol csym = sym.owner;
@@ -295,7 +358,7 @@ public class Utils {
                 // TODO - should cleanup this reference to JmlAttr from Utils
                 if (JmlAttr.instance(context).hasAnnotation(sym,JmlTokenKind.INSTANCE)) return false;
             } 
-        }
+        } else if (JmlAttr.instance(context).hasAnnotation(sym,JmlTokenKind.INSTANCE)) return false;
         return true;
     }
 
@@ -307,6 +370,7 @@ public class Utils {
         if ((csym.flags() & Flags.INTERFACE) != 0) {
             // TODO - should cleanup this reference to JmlAttr from Utils
             if (JmlAttr.instance(context).findMod(mods,JmlTokenKind.INSTANCE) != null) return false;
+            if ((mods.flags & STATIC) == 0 || (mods.flags & Utils.JMLINSTANCE) != 0) return false;
         } 
         return ((mods.flags & Flags.STATIC) != 0);
     }
@@ -480,6 +544,18 @@ public class Utils {
         else if (esc) log().warning(pos,"jml.not.implemented.esc",feature);
     }
     
+    public static void setPropertiesFromOptionsDefaults(Properties properties) {
+        for (JmlOption opt: JmlOption.values()) {
+            String key = Strings.optionPropertyPrefix + opt.optionName().substring(1);
+            Object defaultValue = opt.defaultValue();
+            // Options with synonyms are not true options (they are translated to their synonym)
+            if (opt.synonym() == null) properties.put(key, defaultValue == null ? "" : defaultValue.toString());
+        }
+    }
+
+    
+
+    
     /** Finds OpenJML properties files in pre-defined places, reading their
      * contents and loading them into the System property set.
      */
@@ -489,9 +565,17 @@ public class Utils {
         //          JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
         //          Options.instance(context).get("-verbose") != null;
 
-        boolean verbose = context != null && Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE;
-        Properties properties = System.getProperties();
+    	if (context == null) context = new Context();
+        boolean verbose = Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE;
         PrintWriter noticeWriter = Log.instance(context).getWriter(WriterKind.NOTICE);
+        Properties properties = new Properties();
+        
+        // Initialize with builtin defaults
+        setPropertiesFromOptionsDefaults(properties);
+        
+        // Override with any system properties
+        properties.putAll(System.getProperties());
+        
         // Load properties files found in these locations:
         // These are read in inverse order of priority, so that later reads
         // overwrite the earlier ones.
@@ -549,7 +633,7 @@ public class Utils {
         {
             String properties_file = JmlOption.value(context,JmlOption.PROPERTIES_DEFAULT);            
            
-            if (properties_file != null) {
+            if (properties_file != null && !properties_file.isEmpty()) {
                 try {
                     boolean found = readProps(properties,properties_file);
                     if (verbose) {
@@ -597,6 +681,10 @@ public class Utils {
     // Includes self
     public java.util.List<ClassSymbol> parents(TypeSymbol ct, boolean includeEnclosingClasses) {
         ArrayList<ClassSymbol> interfaces = new ArrayList<ClassSymbol>(20);
+        if (ct instanceof Symbol.TypeVariableSymbol) {
+            ct = ct.type.getUpperBound().tsym;
+            // FIXME - what if bound is also a type variable?
+        }
         if (!(ct instanceof ClassSymbol)) return interfaces;
         ClassSymbol c = (ClassSymbol)ct; // FIXME - what if we want the parents of a type variable?
         List<ClassSymbol> classes = new LinkedList<ClassSymbol>();
@@ -607,7 +695,16 @@ public class Utils {
         while (!todo.isEmpty()) {
             cc = todo.remove(0);
             if (cc == null) continue;
-            if (cc.owner instanceof ClassSymbol) todo.add((ClassSymbol)cc.owner); // FIXME - can this be an interface?
+            if (classes.contains(cc)) {
+                classes.remove(cc);
+                classes.add(0,cc);
+                continue;
+            }
+            if (includeEnclosingClasses) {
+                Symbol sym =  cc.getEnclosingElement();
+                while (sym instanceof MethodSymbol) sym = sym.owner;
+                if (sym instanceof ClassSymbol) todo.add((ClassSymbol)sym); // FIXME - can this be an interface?
+            }
             todo.add((ClassSymbol)cc.getSuperclass().tsym);
             classes.add(0,cc);
         }
@@ -626,21 +723,33 @@ public class Utils {
             for (Type ifc : ifs) {
                 ClassSymbol sym = (ClassSymbol)ifc.tsym;
                 if (interfaceSet.add(sym)) interfaces.add(sym);
+                // FIXME - what about the owners of interfaces
             }
         }
+        if (objectSym == null) objectSym = (Symbol.ClassSymbol)Symtab.instance(context).objectType.tsym;
+        classes.remove(objectSym);
         interfaces.addAll(classes);
+        interfaces.add(0,objectSym);
         return interfaces;
     }
+    
+    private ClassSymbol objectSym = null;
 
     // Includes self // FIXME - review for order
     public java.util.List<MethodSymbol> parents(MethodSymbol m) {
         List<MethodSymbol> methods = new LinkedList<MethodSymbol>();
-        for (ClassSymbol c: parents((ClassSymbol)m.owner, false)) {
-            for (Symbol mem: c.getEnclosedElements()) {
-                if (mem instanceof MethodSymbol &&
-                        mem.name.equals(m.name) &&
-                        (mem ==m || m.overrides(mem, c, Types.instance(context), true))) {
-                    methods.add((MethodSymbol)mem);
+        if (isJMLStatic(m)) {
+            methods.add(m); 
+//        } else if (m.toString().contains("toString")) {  // FIXME - experimental not inherit
+//            methods.add(m); 
+        } else {
+            for (ClassSymbol c: parents((ClassSymbol)m.owner, false)) {
+                for (Symbol mem: c.getEnclosedElements()) {
+                    if (mem instanceof MethodSymbol &&
+                            mem.name.equals(m.name) &&
+                            (mem ==m || m.overrides(mem, c, Types.instance(context), true))) {
+                        methods.add((MethodSymbol)mem);
+                    }
                 }
             }
         }
@@ -729,7 +838,10 @@ public class Utils {
         if (parent.isInterface()) return true; // everything in an interface is public and hence visible
         if ((flags & Flags.PRIVATE) != 0) return false; // Private things are never visible outside their own class
         if (base.packge().equals(parent.packge())) return true; // Protected and default things are visible if in the same package
-        return (flags & Flags.PROTECTED) != 0 && base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses
+        if ((flags & Flags.PROTECTED) == 0) return false; // Otherwise default things are not visible
+        // Just left with protected things, so is base a subclass of parent
+        while (base instanceof Symbol.TypeVariableSymbol) base = ((Symbol.TypeVariableSymbol)base).type.getUpperBound().tsym;
+        return base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses
     }
 
     /** Returns true if a declaration in the 'parent' class with the given flags 
@@ -740,7 +852,7 @@ public class Utils {
      * if checking the visibility, say of a clause.
      */
     public boolean jmlvisible(/*@ nullable */ Symbol s, Symbol base, Symbol parent, long flags, long methodFlags) {
-        if (!visible(base,parent,flags)) return false;  // FIXME - this looks backwards - if it is Java-visible, then it ought to be JML visible???
+        if (visible(base,parent,flags)) return true;
         
         // In JML the clause must be at least as visible to clients as the method
         flags &= Flags.AccessFlags;
@@ -780,12 +892,15 @@ public class Utils {
 
     }
     
-    public List<Symbol.VarSymbol> listJmlVisibleFields(TypeSymbol base, long baseVisibility, boolean forStatic) {
+    // Lists all fields of 'owner' that are visible from 'base' in an environment with baseVisibility, according to JML visibility rules
+    public List<Symbol.VarSymbol> listJmlVisibleFields(TypeSymbol owner, TypeSymbol base, long baseVisibility, boolean forStatic, boolean includeDataGroups) {
         List<Symbol.VarSymbol> list = new LinkedList<Symbol.VarSymbol>();
-        for (TypeSymbol csym: parents(base, true)) {
+        for (TypeSymbol csym: parents(owner, true)) {
             for (Symbol s: csym.members().getElements()) {
                 if (s.kind != Kinds.VAR) continue;
                 if (isJMLStatic(s) != forStatic) continue;
+                if ((s.flags() & Flags.FINAL) != 0) continue;
+                if (!includeDataGroups && jmltypes().isOnlyDataGroup(s.type)) continue;
                 if (!jmlvisible(s,base,csym,s.flags()&Flags.AccessFlags,baseVisibility)) continue; // FIXME - jml access flags? on base and on target?
                 list.add((Symbol.VarSymbol)s);
             }
@@ -842,9 +957,16 @@ public class Utils {
         return classQualifiedName(sym.owner) + "." + sym;
     }
 
-    /** Returns a fully-qualified name for a method symbol, without the signature */ // FIXME - may include <init>
+    /** Returns a fully-qualified name for a symbol, without the signature */ // FIXME - may include <init>
     public String qualifiedName(Symbol sym) {
-        return classQualifiedName(sym.owner) + "." + sym.name;
+        return classQualifiedName(sym.owner) + "." + sym.name.toString();
+    }
+
+    // FIXME - probably replace all calls to the above with the one below (and change its name) - but needs to be tested.
+    
+    /** Returns a fully-qualified name for a symbol, without the signature */ // FIXME - may include <init>
+    public String qualifiedNameNoInit(Symbol sym) {
+        return classQualifiedName(sym.owner) + "." + sym.name.toString().replace("<init>", sym.owner.getSimpleName().toString());
     }
 
     /** Returns a fully-qualified name for a class symbol, with adjustments for anonymous types */
@@ -910,11 +1032,28 @@ public class Utils {
         if (c == null) return null;
         JmlTree.Maker F = JmlTree.Maker.instance(context);
         Names names = Names.instance(context);
-        JCExpression t = nametree(position, "org.jmlspecs.annotation");
-        t = (F.at(position).Select(t, names.fromString(c.getSimpleName())));
+        JCExpression p = nametree(position, "org.jmlspecs.annotation");
+        JCFieldAccess t = (F.at(position).Select(p, names.fromString(c.getSimpleName())));
         JCAnnotation ann = (F.at(position).Annotation(t,
                 com.sun.tools.javac.util.List.<JCExpression> nil()));
         ((JmlTree.JmlAnnotation)ann).sourcefile = log().currentSourceFile();
+        
+        ClassSymbol sym = JmlAttr.instance(context).tokenToAnnotationSymbol.get(jt);
+        if (sym != null) {
+            ann.type = sym.type;
+            t.sym = sym;         // org.jmlspecs.annotation.X
+            t.type = sym.type;
+            JCFieldAccess pa = (JCFieldAccess)p;  // org.jmlspecs.annotation
+            pa.sym = sym.owner;
+            pa.type = pa.sym.type;
+            pa = (JCFieldAccess)pa.selected;  // org.jmlspecs
+            pa.sym = sym.owner.owner;
+            pa.type = pa.sym.type;
+            JCIdent porg = (JCIdent)pa.selected;  // org
+            porg.sym = sym.owner.owner.owner;
+            porg.type = porg.sym.type;
+       }
+
         return ann;
     }
     
@@ -941,6 +1080,13 @@ public class Utils {
         public JmlNotImplementedException(DiagnosticPosition pos, String location) {
             super(location);
             this.pos = pos;
+        }
+        
+        public static class Quantifier extends JmlNotImplementedException {
+            private static final long serialVersionUID = 1L;
+            public Quantifier(DiagnosticPosition pos, String location) {
+                super(pos,location);
+            }
         }
     }
 
@@ -988,7 +1134,8 @@ public class Utils {
      */
     public void progress(int ticks, int level, String message) {
         org.jmlspecs.openjml.Main.IProgressListener pr = context.get(org.jmlspecs.openjml.Main.IProgressListener.class);
-        boolean cancelled = pr == null ? false : pr.report(ticks,level,message);
+        boolean cancelled = pr == null ? false : pr.report(level,message);
+        if (pr != null && ticks != 0) pr.worked(ticks);
         if (cancelled) {
             throw new PropagatedException(new Main.JmlCanceledException("ESC operation cancelled"));
         }
@@ -1010,31 +1157,34 @@ public class Utils {
 
     public void warning(JavaFileObject source, int pos, String key, Object ... args) {
         Log log = log();
-        JavaFileObject prev = log.useSource(source);
+        JavaFileObject prev = null;
+        if (source != null) prev = log.useSource(source);
         try {
             log.warning(pos, key, args);
         } finally {
-            log.useSource(prev);
+            if (prev != null) log.useSource(prev);
         }
     }
     
     public void error(JavaFileObject source, int pos, String key, Object ... args) {
         Log log = log();
-        JavaFileObject prev = log.useSource(source);
+        JavaFileObject prev = null;
+        if (source != null) prev = log.useSource(source);
         try {
             log.error(pos, key, args);
         } finally {
-            log.useSource(prev);
+            if (prev != null) log.useSource(prev);
         }
     }
     
     public void error(JavaFileObject source, DiagnosticPosition pos, String key, Object ... args) {
         Log log = log();
-        JavaFileObject prev = log.useSource(source);
+        JavaFileObject prev = null;
+        if (source != null) prev = log.useSource(source);
         try {
             log.error(pos, key, args);
         } finally {
-            log.useSource(prev);
+            if (prev != null) log.useSource(prev);
         }
     }
     

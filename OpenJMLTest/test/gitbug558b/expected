@@ -1,0 +1,12 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m(java.security.KeyPair) with prover !!!!
+test/gitbug558b/Test.java:9: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m:  a java.security.PublicKey cannot be proved to be a javax.crypto.interfaces.DHPublicKey
+		BigInteger a = ((javax.crypto.interfaces.DHPublicKey)o.getPublic()).getY();
+		                ^
+Completed proof of Test.m(java.security.KeyPair) with prover !!!! - with warnings
+Completed proving methods in Test
+1 warning

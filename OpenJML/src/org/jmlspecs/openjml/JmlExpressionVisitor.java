@@ -101,6 +101,7 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     public R visitJmlForLoop(JmlForLoop that, P p)                                      { return shouldNotBeCalled(that); }
     public R visitJmlGroupName(JmlGroupName that, P p)                                  { return shouldNotBeCalled(that); }
     public R visitJmlImport(JmlImport that, P p)                                        { return shouldNotBeCalled(that); }
+    public R visitJmlnlinedLoop(JmlInlinedLoop that, P p)                               { return shouldNotBeCalled(that); }
     public R visitJmlMethodClauseCallable(JmlMethodClauseCallable that, P p)            { return shouldNotBeCalled(that); }
     public R visitJmlMethodClauseConditional(JmlMethodClauseConditional that, P p)      { return shouldNotBeCalled(that); }
     public R visitJmlMethodClauseDecl(JmlMethodClauseDecl that, P p)                    { return shouldNotBeCalled(that); }
@@ -114,10 +115,12 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     public R visitJmlModelProgramStatement(JmlModelProgramStatement that, P p)          { return shouldNotBeCalled(that); }
     public R visitJmlSpecificationCase(JmlSpecificationCase that, P p)                  { return shouldNotBeCalled(that); }
     public R visitJmlStatement(JmlStatement that, P p)                                  { return shouldNotBeCalled(that); }
+    public R visitJmlStatementShow(JmlStatementShow that, P p)                          { return shouldNotBeCalled(that); }
     public R visitJmlStatementDecls(JmlStatementDecls that, P p)                        { return shouldNotBeCalled(that); }
     public R visitJmlStatementExpr(JmlStatementExpr that, P p)                          { return shouldNotBeCalled(that); }
     public R visitJmlStatementHavoc(JmlStatementHavoc that, P p)                        { return shouldNotBeCalled(that); }
-    public R visitJmlStatementLoop(JmlStatementLoop that, P p)                          { return shouldNotBeCalled(that); }
+    public R visitJmlStatementLoopExpr(JmlStatementLoopExpr that, P p)                          { return shouldNotBeCalled(that); }
+    public R visitJmlStatementLoopModifies(JmlStatementLoopModifies that, P p)                          { return shouldNotBeCalled(that); }
     public R visitJmlStatementSpec(JmlStatementSpec that, P p)                          { return shouldNotBeCalled(that); }
     public R visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that, P p)                { return shouldNotBeCalled(that); }
     public R visitJmlStoreRefKeyword(JmlStoreRefKeyword that, P p)                      { return shouldNotBeCalled(that); }

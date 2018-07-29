@@ -87,6 +87,7 @@ public class SpecsRac extends RacBase {
     @Test
     public void testSpecificationFile() {
     	expectedExit = 0;
+    	ignoreNotes = true;
     	String subdir = "testspecs" + "/" + classname;
     	String testname = null;
         for (File f: new File(subdir).listFiles()) {

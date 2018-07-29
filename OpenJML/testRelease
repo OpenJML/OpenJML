@@ -2,9 +2,9 @@
 
 
 ## This script runs tests on a release build.
-## The working directory in running the script is expected to be the OpenJML
-## directory of the SVN tree and where the Eclipse project data is located
-## (e.g. where this file is kept, has files src, plugin.xml, etc.)
+## The working directory in running the script is expected to be the OpenJMLTest
+## directory of the SVN tree and where the Eclipse test data is located
+## (i.e. where this file is kept)
 
 ## It tests a build with today's date - i.e. the build just created by
 ## ./buildRelease
@@ -20,7 +20,7 @@ export SPECS=../Specs
 
 
 VERSION=`date +%Y%m%d`
-NAME=openjml-${VERSION}.tar.gz
+NAME=openjml-${VERSION}.zip
 
 echo Testing
 chmod ugo+x releaseTests/runTests releaseTests/releaseTestHelper 

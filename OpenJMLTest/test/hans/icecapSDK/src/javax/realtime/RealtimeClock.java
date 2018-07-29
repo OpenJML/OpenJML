@@ -62,7 +62,7 @@ class RealtimeClock extends Clock {
 	}
 
 	/*@ 
-	  public behaviour
+	  also public behaviour
 	    requires true;
 	    assignable \nothing;
 	    ensures \result.equals(new RelativeTime(0, 0, this));

@@ -34,7 +34,7 @@ package org.jmlspecs.unfinished;
  * @see JMLLong
  * @see JMLType
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ class JMLShort implements JMLComparable {
 
     /*@ axiom (\forall Comparable s; (\forall JMLShort ss,sss; 
@@ -165,7 +165,7 @@ public /*@ pure @*/ class JMLShort implements JMLComparable {
       @     ensures \result <==> op2 != null && op2 instanceof JMLShort 
       @                          && theShort == ((JMLShort)op2).theShort;
       @*/
-    //-@ function
+    //+OPENJML@ function
     public boolean equals(/*@ nullable @*/ Object op2) {
         return op2 != null && op2 instanceof JMLShort
             && shortValue == ((JMLShort)op2).shortValue;

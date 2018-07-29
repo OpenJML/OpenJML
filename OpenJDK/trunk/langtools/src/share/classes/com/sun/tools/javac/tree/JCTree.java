@@ -2044,8 +2044,8 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         public Object getValue() {
             switch (typetag) {
                 case BOOLEAN:
-                    int bi = (Integer) value;
-                    return (bi != 0);
+                    if (value instanceof Boolean) return value;
+                    else return 0 != ((Number)value).longValue();
                 case CHAR:
                     int ci = (Integer) value;
                     char c = (char) ci;

@@ -1,3 +1,9 @@
+Proving methods in Bottom
+Completed proving methods in Bottom
+Proving methods in Middle
+Completed proving methods in Middle
+Proving methods in Top
+Completed proving methods in Top
 Proving methods in Test
 Skipping proof of Test.Test() (excluded by -method)
 Starting proof of Test.run(Bottom) with prover !!!!

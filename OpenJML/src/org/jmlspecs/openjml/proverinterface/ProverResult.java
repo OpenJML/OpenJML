@@ -29,6 +29,8 @@ public class ProverResult implements IProverResult {
     /** Time taken ( in secs) to compute this proof result */
     protected double duration;
     
+    protected int episodes; // Number of different solver attempts that contributed to the duration
+    
     /** Time at which the proof attempt started */
     @NonNull
     protected Date timestamp;
@@ -70,9 +72,11 @@ public class ProverResult implements IProverResult {
     
     /** The time to compute this result, in seconds */
     public double duration() { return duration; }
+    
+    public int episodes() { return episodes; }
 
     /** Sets the time to compute this result */
-    public void setDuration(double d) { duration = d; }
+    public void accumulateDuration(double d) { duration += d; episodes++; }
     
     /** The method that was the target of this proof attempt */
     @NonNull
@@ -92,8 +96,9 @@ public class ProverResult implements IProverResult {
     /** Sets the associated information object. */
     //@ assignable otherInfo;
     //@ ensures o == otherInfo();
-    public void setOtherInfo(@Nullable Object o) {
+    public ProverResult setOtherInfo(@Nullable Object o) {
         otherInfo = o;
+        return this;
     }
     
     /** Sets the result category
@@ -102,7 +107,7 @@ public class ProverResult implements IProverResult {
     //@ also
     //@ assignable this.result;
     //@ ensures result() == r;
-    //JAVA16 @Override
+    @Override
     public void result(@NonNull Kind r) { result = r; }
 
     /** Returns true if the prover found a satisfying assignment 
@@ -124,7 +129,7 @@ public class ProverResult implements IProverResult {
      * 
      * @param item the detail item to add
      */
-    public void add(@NonNull IProverResult.Item item) {
+    public void add(IProverResult.@NonNull Item item) {
         if (details == null) details = new LinkedList<IProverResult.Item>();
         details.add(item);
     }
@@ -132,6 +137,7 @@ public class ProverResult implements IProverResult {
     /** Returns the counterexample information, if any available and if the
      * prover supports it
      */
+    @Nullable
     public ICounterexample counterexample() {
         if (details == null) return null;
         for (IProverResult.Item i: details) {
@@ -146,6 +152,7 @@ public class ProverResult implements IProverResult {
      * prover
      * @return an object holding the core id information
      */
+    @Nullable
     public ICoreIds coreIds() {
         if (details == null) return null;
         for (IProverResult.Item i: details) {

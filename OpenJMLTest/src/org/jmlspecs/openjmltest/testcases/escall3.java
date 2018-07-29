@@ -74,7 +74,7 @@ public class escall3 extends EscBase {
     
     @Test
     public void testFieldAccess() {
-        main.addOptions("-checkFeasibility=none");
+        main.addOptions("-checkFeasibility=none"); // Part of test
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                  
@@ -168,6 +168,21 @@ public class escall3 extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",6
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m2",16
+                );
+    }
+   
+    @Test
+    public void testArrayLength() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public void m1(int[] c) {\n"
+                +"    //@ assert c != null;\n"
+                +"    //@ assert c.length >= 0; \n"
+                +"  }\n"
+                
+                +"}"
                 );
     }
    
@@ -276,7 +291,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testFieldAssign() {
-        main.addOptions("-checkFeasibility=none");
+        main.addOptions("-checkFeasibility=none"); // Part of test
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                  
@@ -672,6 +687,51 @@ public class escall3 extends EscBase {
     }
 
 
+
+    @Test
+    public void testHavocB() {
+    	main.addOptions("-method=m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"/*@ nullable_by_default*/ public class TestJava { \n"
+                +"  /*@ non_null */ public TestJava ooo;\n"
+                +"  /*@ non_null */ public static TestJava sooo;\n"
+                
+                +"  public void m1(boolean b, /*@ non_null */ TestJava o) {\n"
+                +"    ooo = o; sooo = o;\n"
+                +"    if (b) meverything();\n"
+                +"    //@ assert ooo != null;\n"
+                +"    //@ assert ooo instanceof TestJava;\n"
+                +"  }\n"
+                
+                +"  public void meverything() {\n"
+                +"  }\n"
+                                
+                +"}"
+                );
+        }
+
+    @Test
+    public void testHavoc() {
+    	main.addOptions("-exclude=TestJava");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"/*@ nullable_by_default*/ public class TestJava { \n"
+                +"  /*@ non_null */ public TestJava ooo;\n"
+                +"  /*@ non_null */ public static TestJava sooo;\n"
+                
+                +"  public void m1(boolean b, /*@ non_null */ TestJava o) {\n"
+                +"    ooo = o; sooo = o;\n"
+                +"    if (b) meverything();\n"
+                +"    //@ assert ooo != null;\n"
+                +"    //@ assert ooo instanceof TestJava;\n"
+                +"  }\n"
+                
+                +"  //@ assignable ooo;\n"
+                +"  public void meverything() {\n"
+                +"  }\n"
+                                
+                +"}"
+                );
+        }
 
     @Test
     public void testAssignment() {
@@ -1183,11 +1243,8 @@ public class escall3 extends EscBase {
     
     @Test public void testMethodWithConstructorNameBug() {
         main.addOptions("-no-internalSpecs");
-        // If there are no internal specs, then the implicit super() call of the
-        // Object() constructor may throw an exception. Then TestJava() would
-        // terminate exceptionally - and the invariant would not be established in
-        // that case either. With internal Specs, Object() is pure and has 
-        // only normal termination.
+        // Tests that without specs, the built-in spec for Object() is still
+        // normal_behavior and pure
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1199,11 +1256,8 @@ public class escall3 extends EscBase {
 
                 
                 +"}"
-                ,anyorder(
-                        seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",10
-                           ,"/tt/TestJava.java:4: warning: Associated declaration",14)
-                ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExceptionExit) in method TestJava",21
-                ,"/tt/TestJava.java:4: warning: Associated declaration",14))
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",10
+                ,"/tt/TestJava.java:4: warning: Associated declaration",14
                 );
     }
     
@@ -1227,10 +1281,10 @@ public class escall3 extends EscBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ public normal_behavior\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also public normal_behavior\n"
+                +"       //@ assignable TestJava.flag, this.autocloseableContent;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
-                +"       public void close() { TestJava.flag = 1; }\n"
+                +"       public void close() { TestJava.flag = 1;  }\n"
                 +"    }\n"
                 
                 +"  //@ requires flag == 0;\n"
@@ -1254,7 +1308,8 @@ public class escall3 extends EscBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also\n"
+                +"       //@ assignable TestJava.flag, this.autocloseableContent;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
                 +"    }\n"
@@ -1282,7 +1337,8 @@ public class escall3 extends EscBase {
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
                 +"       /*@ pure */ public RR(){}\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also\n"
+                +"       //@ assignable TestJava.flag, this.autocloseableContent;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 10;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
@@ -1311,7 +1367,8 @@ public class escall3 extends EscBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also\n"
+                +"       //@ assignable TestJava.flag, this.autocloseableContent;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
@@ -1337,14 +1394,14 @@ public class escall3 extends EscBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ public normal_behavior\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also public normal_behavior\n"
+                +"       //@ assignable TestJava.flag, this.autocloseableContent;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
-                +"       public void close() { TestJava.flag = 1; }\n"
+                +"       public void close() { TestJava.flag = 1;}\n"
                 +"    }\n"
                 +"    public static class RR2 implements AutoCloseable {\n"
-                +"       //@ public normal_behavior\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also public normal_behavior\n"
+                +"       //@ assignable TestJava.flag, this.autocloseableContent;\n"
                 +"       //@ ensures TestJava.flag == 2;\n"
                 +"       public void close() { TestJava.flag = 2; }\n"
                 +"    }\n"
@@ -1365,8 +1422,7 @@ public class escall3 extends EscBase {
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2b() {
-    //	main.addOptions("-show","-progress","-method=mmm","-checkFeasibility=debug");
-    	main.addOptions("-checkFeasibility=all");
+        main.addOptions("-checkFeasibility=all","-defaults=constructor:pure"); // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
@@ -1375,17 +1431,17 @@ public class escall3 extends EscBase {
         		+"    public static class EE3 extends EE {/*@ public normal_behavior ensures true; */public EE3() {}}\n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       /*@ public normal_behavior ensures true; */ public RR() {}\n"
-                +"       //@ public exceptional_behavior\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       /*@ public normal_behavior ensures true; */ public RR() { }\n"
+                +"       //@ also public exceptional_behavior\n"
+                +"       //@ assignable TestJava.flag, this.autocloseableContent;\n"
                 +"       //@ signals_only EE1;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 1;\n"
                 +"       public void close() throws EE { TestJava.flag = 1; throw new EE1(); }\n"
                 +"    }\n"
                 +"    public static class RR2 implements AutoCloseable {\n"
-                +"       /*@ public normal_behavior ensures true; */ public RR2() {}\n"
-                +"       //@ public exceptional_behavior\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       /*@ public normal_behavior ensures true; */ public RR2() { }\n"
+                +"       //@ also public exceptional_behavior\n"
+                +"       //@ assignable TestJava.flag, this.autocloseableContent;\n"
                 +"       //@ signals_only EE2;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 2;\n"
                 +"       public void close() throws EE { TestJava.flag = 2; throw new EE2(); }\n"
@@ -1393,10 +1449,10 @@ public class escall3 extends EscBase {
                 
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
-                +"  public void mmm() {\n"  // Line 26
+                +"  public void mmm(boolean b) {\n"  // Line 26
                 +"    //@ assert TestJava.flag == 0;\n"
                 +"    try {\n"
-                +"      try (RR rr = new RR()){\n"
+                +"      if (b || !b) try (RR rr = new RR()){\n"
                 +"       flag = 3; \n"
                 +"       //@ assert TestJava.flag == 3;\n"
                 +"       throw new EE3();\n"
@@ -1408,14 +1464,13 @@ public class escall3 extends EscBase {
                 +"    }\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:34: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm()",11
+                ,"/tt/TestJava.java:34: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm(boolean)",11
                 );
     }
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2c() {
-    	//main.addOptions("-show","-progress","-method=mmm","-checkFeasibility=debug");
-    	main.addOptions("-checkFeasibility=all");
+        main.addOptions("-checkFeasibility=all","-defaults=constructor:pure"); // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends RuntimeException {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
@@ -1424,17 +1479,17 @@ public class escall3 extends EscBase {
         		+"    public static class EE3 extends EE {/*@ public normal_behavior ensures true; */public EE3() {}}\n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       /*@ public normal_behavior ensures true; */ public RR() {}\n"
-                +"       //@ public exceptional_behavior\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       /*@ public normal_behavior ensures true; */ public RR() { }\n"
+                +"       //@ also public exceptional_behavior\n"
+                +"       //@ assignable TestJava.flag, this.autocloseableContent;\n"
                 +"       //@ signals_only EE1;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; throw new EE1(); }\n"
                 +"    }\n"
                 +"    public static class RR2 implements AutoCloseable {\n"
-                +"       /*@ public normal_behavior ensures true; */ public RR2() {}\n"
-                +"       //@ public exceptional_behavior\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       /*@ public normal_behavior ensures true; */ public RR2() { }\n"
+                +"       //@ also public exceptional_behavior\n"
+                +"       //@ assignable TestJava.flag, this.autocloseableContent;\n"
                 +"       //@ signals_only EE2;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 2;\n"
                 +"       public void close() { TestJava.flag = 2; throw new EE2(); }\n"
@@ -1442,10 +1497,10 @@ public class escall3 extends EscBase {
                 
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
-                +"  public void mmm() {\n"  // Line 26
+                +"  public void mmm(boolean b) {\n"  // Line 26
                 +"    //@ assert TestJava.flag == 0;\n"
                 +"    try {\n"
-                +"      try (RR2 r = new RR2(); RR rr = new RR()){\n"
+                +"      if (b || !b) try (RR2 r = new RR2(); RR rr = new RR()){\n"
                 +"       flag = 3; \n"
                 +"       //@ assert TestJava.flag == 3;\n"
                 +"       throw new EE3();\n"
@@ -1456,13 +1511,13 @@ public class escall3 extends EscBase {
                 +"    }\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:34: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm()",11
+                ,"/tt/TestJava.java:34: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm(boolean)",11
                 );
     }
     
     // Checks the class of the resulting exception when close calls throw exceptions, but not the try body
     @Test public void testTryResources2a() {
-    	main.addOptions("-checkFeasibility=all");
+    	main.addOptions("-checkFeasibility=all","-defaults=constructor:pure");  // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
@@ -1470,17 +1525,19 @@ public class escall3 extends EscBase {
         		+"    public static class EE2 extends EE {/*@ public normal_behavior ensures true; */public EE2() {}}\n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       /*@ public normal_behavior ensures true; */ public RR() {}\n"
-                +"       //@ public exceptional_behavior\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ \n"
+                +"       /*@ public normal_behavior ensures true; */ public RR() { }\n"
+                +"       //@ also public exceptional_behavior\n"
+                +"       //@ assignable TestJava.flag,this.autocloseableContent;\n"
                 +"       //@ signals_only EE1;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 1;\n"
                 +"       public void close() throws EE1 { TestJava.flag = 1; throw new EE1(); }\n"
                 +"    }\n"
                 +"    public static class RR2 implements AutoCloseable {\n"
-                +"       /*@ public normal_behavior ensures true; */ public RR2() {}\n"
-                +"       //@ public exceptional_behavior\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ \n"
+                +"       /*@ public normal_behavior ensures true; */ public RR2() { }\n"
+                +"       //@ also public exceptional_behavior\n"
+                +"       //@ assignable TestJava.flag,this.autocloseableContent;\n"
                 +"       //@ signals_only EE2;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 2;\n"
                 +"       public void close() throws EE2 { TestJava.flag = 2; throw new EE2(); }\n"
@@ -1502,7 +1559,7 @@ public class escall3 extends EscBase {
                 +"    }\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:32: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm()",11
+                ,"/tt/TestJava.java:34: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm()",11
                 );
     }
     
@@ -1512,10 +1569,10 @@ public class escall3 extends EscBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ public normal_behavior\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also public normal_behavior\n"
+                +"       //@ assignable TestJava.flag, this.autocloseableContent;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
-                +"       public void close() { TestJava.flag = 1; }\n"
+                +"       public void close() { TestJava.flag = 1;  }\n"
                 +"    }\n"
                 
                 +"  //@ requires flag == 0;\n"
@@ -1540,10 +1597,10 @@ public class escall3 extends EscBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ public normal_behavior\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also public normal_behavior\n"
+                +"       //@ assignable TestJava.flag, this.autocloseableContent;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
-                +"       public void close() { TestJava.flag = 1; }\n"
+                +"       public void close() { TestJava.flag = 1;  }\n"
                 +"    }\n"
                 
                 +"  //@ requires flag == 0;\n"
@@ -1570,10 +1627,10 @@ public class escall3 extends EscBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ public normal_behavior\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also public normal_behavior\n"
+                +"       //@ assignable TestJava.flag, this.autocloseableContent;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
-                +"       public void close() { TestJava.flag = 1; }\n"
+                +"       public void close() { TestJava.flag = 1;  }\n"
                 +"    }\n"
                 
                 +"  //@ requires flag == 0;\n"
@@ -1598,9 +1655,10 @@ public class escall3 extends EscBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also\n"
+                +"       //@ assignable TestJava.flag, this.autocloseableContent;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
-                +"       public void close() { TestJava.flag = 1; }\n"
+                +"       public void close() { TestJava.flag = 1;  }\n"
                 +"    }\n"
                 
                 +"  //@ requires flag == 0;\n"
@@ -1626,10 +1684,10 @@ public class escall3 extends EscBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ public normal_behavior\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also public normal_behavior\n"
+                +"       //@ assignable TestJava.flag, this.autocloseableContent;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
-                +"       public void close() { TestJava.flag = 1; }\n"
+                +"       public void close() { TestJava.flag = 1;  }\n"
                 +"    }\n"
                 
                 +"  //@ requires flag == 0;\n"
@@ -1655,9 +1713,10 @@ public class escall3 extends EscBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also\n"
+                +"       //@ assignable TestJava.flag, this.autocloseableContent;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
-                +"       public void close() { TestJava.flag = 1; }\n"
+                +"       public void close() { TestJava.flag = 1;  }\n"
                 +"    }\n"
                 
                 +"  //@ requires flag == 0;\n"

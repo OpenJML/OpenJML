@@ -31,7 +31,7 @@ import java.math.BigInteger;
  * @see JMLInfiniteInteger
  * @see Runtime
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ class JMLResources {
 
     /** The number of JVM cycles used since beginning execution.

@@ -1,0 +1,10 @@
+OUT:
+test/gitbug542/Test542.java:17: JML precondition is false
+        t.m();
+           ^
+test/gitbug542/Test542.java:12: Associated declaration: test/gitbug542/Test542.java:17: 
+    public void m() {       
+                ^
+DONE
+
+ERR:

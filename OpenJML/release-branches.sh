@@ -1,4 +1,6 @@
 #! /bin/bash
+## 
+cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 REFBRANCH=`git rev-parse --abbrev-ref HEAD`
 echo REFBRANCH is $REFBRANCH
@@ -18,9 +20,6 @@ if [ -z "$REL" ]; then
     exit 1
 fi
 
-cd "$( dirname "${BASH_SOURCE[0]}" )"
-( ( ls openjml.properties > /dev/null ) || ( echo "Not in correct directory"; pwd; exit 1 ) )
-
 git checkout -B "$REL"
 cd ../../JMLAnnotations
 git checkout -B "$REL"
@@ -35,6 +34,8 @@ cd ../OpenJML/OpenJML
 ## FIXME - make platform independent - Eclipse does not set path
 if [ -e ~/apps/ant ]; then
   ~/apps/ant -f build-bash.xml release
+elif [ -e /opt/local/bin/ant ]; then
+  ant -f build-bash.xml release
 else
   C:/cygwin/home/dcok/mybin/ant -f build-bash.xml release
 fi

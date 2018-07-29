@@ -30,7 +30,7 @@ package org.jmlspecs.models;
  * @see java.lang.Double
  * @see JMLDouble
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
 
     /** The double that is the abstract value of this object.

@@ -136,7 +136,7 @@ public abstract class ManagedEventHandler extends BoundAsyncEventHandler impleme
 	}
 
 	/*@ 
-	  public behavior
+	  also public behavior
 	    requires true;
 	 
 //	    ensures javax.realtime.Clock.getRealtimeClock().getTime().compareTo(

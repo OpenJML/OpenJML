@@ -30,7 +30,7 @@ import java.util.NoSuchElementException;
  * @version $Revision: 1.7 $
  * @author Gary T. Leavens
  */
-//-@ immutable
+//+OPENJML@ immutable
 //@ pure
 public class JMLNoSuchElementException extends NoSuchElementException {
 

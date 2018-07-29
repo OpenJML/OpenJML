@@ -10,37 +10,37 @@ testfiles\escTraceLoops\trace.java:168:  	requires a != null;
 testfiles\escTraceLoops\trace.java:169:  	int j = 0
 			VALUE: 0	 === 0
 			VALUE: j	 === 0
-testfiles\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+testfiles\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \count && \count <= a.length;
 			VALUE: j	 === 0
 			VALUE: 0	 === 0
 			VALUE: j == 0	 === true
 			VALUE: 0	 === 0
-			VALUE: \index	 === 0
-			VALUE: 0 <= \index	 === true
-			VALUE: j == 0 && 0 <= \index	 === true
-			VALUE: \index	 === 0
+			VALUE: \count	 === 0
+			VALUE: 0 <= \count	 === true
+			VALUE: j == 0 && 0 <= \count	 === true
+			VALUE: \count	 === 0
 			VALUE: a	 === @uc_REF_2
 			VALUE: a.length	 === 1
-			VALUE: \index <= a.length	 === true
-			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === true
+			VALUE: \count <= a.length	 === true
+			VALUE: j == 0 && 0 <= \count && \count <= a.length	 === true
 testfiles\escTraceLoops\trace.java:171:  	Begin loop check
-testfiles\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+testfiles\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \count && \count <= a.length;
 			VALUE: j	 === 0
 			VALUE: 0	 === 0
 			VALUE: j == 0	 === true
 			VALUE: 0	 === 0
-			VALUE: \index	 === 1
-			VALUE: 0 <= \index	 === true
-			VALUE: j == 0 && 0 <= \index	 === true
-			VALUE: \index	 === 1
+			VALUE: \count	 === 1
+			VALUE: 0 <= \count	 === true
+			VALUE: j == 0 && 0 <= \count	 === true
+			VALUE: \count	 === 1
 			VALUE: a	 === @uc_REF_2
 			VALUE: a.length	 === 1
-			VALUE: \index <= a.length	 === true
-			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === true
+			VALUE: \count <= a.length	 === true
+			VALUE: j == 0 && 0 <= \count && \count <= a.length	 === true
 testfiles\escTraceLoops\trace.java:171:  	Loop test
-			VALUE: \index	 === 1
+			VALUE: \count	 === 1
 			VALUE: _JML__tmp90	 === 1
-			VALUE: \index < _JML__tmp90	 === false
+			VALUE: \count < _JML__tmp90	 === false
 testfiles\escTraceLoops\trace.java:174:  	assert Assert j == a.length;
 			VALUE: j	 === 0
 			VALUE: a	 === @uc_REF_2
@@ -59,49 +59,49 @@ testfiles\escTraceLoops\trace.java:168:  	requires a != null;
 testfiles\escTraceLoops\trace.java:169:  	int j = 0
 			VALUE: 0	 === 0
 			VALUE: j	 === 0
-testfiles\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+testfiles\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \count && \count <= a.length;
 			VALUE: j	 === 0
 			VALUE: 0	 === 0
 			VALUE: j == 0	 === true
 			VALUE: 0	 === 0
-			VALUE: \index	 === 0
-			VALUE: 0 <= \index	 === true
-			VALUE: j == 0 && 0 <= \index	 === true
-			VALUE: \index	 === 0
+			VALUE: \count	 === 0
+			VALUE: 0 <= \count	 === true
+			VALUE: j == 0 && 0 <= \count	 === true
+			VALUE: \count	 === 0
 			VALUE: a	 === @uc_REF_2
 			VALUE: a.length	 === 2
-			VALUE: \index <= a.length	 === true
-			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === true
+			VALUE: \count <= a.length	 === true
+			VALUE: j == 0 && 0 <= \count && \count <= a.length	 === true
 testfiles\escTraceLoops\trace.java:171:  	Begin loop check
-testfiles\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+testfiles\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \count && \count <= a.length;
 			VALUE: j	 === 0
 			VALUE: 0	 === 0
 			VALUE: j == 0	 === true
 			VALUE: 0	 === 0
-			VALUE: \index	 === 0
-			VALUE: 0 <= \index	 === true
-			VALUE: j == 0 && 0 <= \index	 === true
-			VALUE: \index	 === 0
+			VALUE: \count	 === 0
+			VALUE: 0 <= \count	 === true
+			VALUE: j == 0 && 0 <= \count	 === true
+			VALUE: \count	 === 0
 			VALUE: a	 === @uc_REF_2
 			VALUE: a.length	 === 2
-			VALUE: \index <= a.length	 === true
-			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === true
+			VALUE: \count <= a.length	 === true
+			VALUE: j == 0 && 0 <= \count && \count <= a.length	 === true
 testfiles\escTraceLoops\trace.java:171:  	Loop test
-			VALUE: \index	 === 0
+			VALUE: \count	 === 0
 			VALUE: _JML__tmp90	 === 2
-			VALUE: \index < _JML__tmp90	 === true
+			VALUE: \count < _JML__tmp90	 === true
 testfiles\escTraceLoops\trace.java:171:  	Begin loop body
 testfiles\escTraceLoops\trace.java:172:  	j += 1
 			VALUE: 1	 === 1
 			VALUE: j += 1	 === 1
-testfiles\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+testfiles\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \count && \count <= a.length;
 			VALUE: j	 === 1
 			VALUE: 0	 === 0
 			VALUE: j == 0	 === false
-			VALUE: j == 0 && 0 <= \index	 === false
-			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === false
+			VALUE: j == 0 && 0 <= \count	 === false
+			VALUE: j == 0 && 0 <= \count && \count <= a.length	 === false
 testfiles\escTraceLoops\trace.java:170: warning: The prover cannot establish an assertion (LoopInvariant) in method mforeach1
-        //@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+        //@ loop_invariant j == 0 && 0 <= \count && \count <= a.length;
             ^
 Completed proof of trace.mforeach1(int[]) with prover cvc4 - with warnings
 Completed proving methods in trace

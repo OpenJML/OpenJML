@@ -880,7 +880,7 @@ public class JavaCompiler {
      * The phases following annotation processing: attribution,
      * desugar, and finally code generation.
      */
-    protected void compile2(CompilePolicy compPolicy) { // DRC - changed from private to protected
+    public void compile2(CompilePolicy compPolicy) { // DRC - changed from private to public
         try {
             switch (compPolicy) { // DRC - changed this - investigate (FIXME)
             case SKIP:   // DRC - added for the convenience of derived classes defining new compile policy options

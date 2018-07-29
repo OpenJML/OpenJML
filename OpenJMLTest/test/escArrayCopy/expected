@@ -1,0 +1,34 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.copyByte(byte[],byte[]) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #4 - at program exit : OK
+Completed proof of Test.copyByte(byte[],byte[]) with prover !!!! - no warnings
+Starting proof of Test.copyInt(int[],int[]) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #4 - at program exit : OK
+Completed proof of Test.copyInt(int[],int[]) with prover !!!! - no warnings
+Starting proof of Test.copyBoolean(boolean[],boolean[]) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #4 - at program exit : OK
+Completed proof of Test.copyBoolean(boolean[],boolean[]) with prover !!!! - no warnings
+Starting proof of Test.copyChar(char[],char[]) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #4 - at program exit : OK
+Completed proof of Test.copyChar(char[],char[]) with prover !!!! - no warnings
+Starting proof of Test.copyShort(short[],short[]) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #4 - at program exit : OK
+Completed proof of Test.copyShort(short[],short[]) with prover !!!! - no warnings
+Starting proof of Test.copyLong(long[],long[]) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #4 - at program exit : OK
+Completed proof of Test.copyLong(long[],long[]) with prover !!!! - no warnings
+Starting proof of Test.copyObject(java.lang.Object[],java.lang.Object[]) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #4 - at program exit : OK
+Completed proof of Test.copyObject(java.lang.Object[],java.lang.Object[]) with prover !!!! - no warnings
+Completed proving methods in Test

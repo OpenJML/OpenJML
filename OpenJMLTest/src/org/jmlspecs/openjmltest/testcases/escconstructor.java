@@ -63,6 +63,7 @@ public class escconstructor extends EscBase {
 
 	@Test
 	public void testAssignableDefault() {
+	    main.addOptions("-defaults=constructor:pure");
 		helpTCX("tt.TestJava",
 						  "package tt; \n"
 						+ "public class TestJava { \n"

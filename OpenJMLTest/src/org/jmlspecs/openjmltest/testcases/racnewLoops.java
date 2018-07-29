@@ -24,12 +24,13 @@ public class racnewLoops extends RacBase {
         jdkrac = false;
         //noCollectDiagnostics = true; print = true;
         super.setUp();
+        main.addOptions("-code-math=java","-spec-math=java");  // FIXME - errors if we use bigint sermsantics
         //main.addOptions("-verboseness=4");
         expectedNotes = 0;
     }
     
     // FIXME - needs more tests with break and continue, including nested loops
-    // Also tests with \index and \values
+    // Also tests with \count and \values
 
     @Test public void testForLoop2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
@@ -67,8 +68,8 @@ public class racnewLoops extends RacBase {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " m(); System.out.println(\"END\"); } \n" +
                 " static void m() { \n" +
-                "    //@ loop_invariant i == \\index ; \n" +
-                "    //@ decreases 10-\\index; \n" +
+                "    //@ loop_invariant i == \\count ; \n" +
+                "    //@ decreases 10-\\count; \n" +
                 "    for (int i=0; i<10; i++) ; \n" +
                 "} " +
                 "}"
@@ -82,8 +83,8 @@ public class racnewLoops extends RacBase {
                 " static void m() { \n" +
                 "    //@ loop_invariant i <= 10 ; \n" +
                 "    for (int i=0; i<10; i++) {\n" +
-                "      //@ ghost int save = \\index;\n" +
-                "      //@ loop_invariant \\index <= save; \n" +
+                "      //@ ghost int save = \\count;\n" +
+                "      //@ loop_invariant \\count <= save; \n" +
                 "      for (int j=0; j<i; j++) {" +
                 "          ; \n" +
                 "      }\n" +
@@ -149,7 +150,7 @@ public class racnewLoops extends RacBase {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(5); m(0); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
-                "    //@ loop_invariant i + \\index == \\old(i); \n" +
+                "    //@ loop_invariant i + \\count == \\old(i); \n" +
                 "    //@ decreases i; \n" +
                 "    while (i>0) --i; \n" +
                 "} " +
@@ -250,7 +251,7 @@ public class racnewLoops extends RacBase {
                 " static void m(int i) { \n" +
                 "    //@ loop_invariant i>= 0; \n" +
                 "    //@ decreases i; \n" +
-                "    /*@ loop_invariant i + \\index == \\old(i); */" +
+                "    /*@ loop_invariant i + \\count == \\old(i); */" +
                 "    do {  --i; } while (i>0); \n" +
                 "} " +
                 "}"
@@ -263,7 +264,7 @@ public class racnewLoops extends RacBase {
                 "m(1); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
                 "    //@ decreases i; \n" +
-                "    /*@ loop_invariant i + \\index == \\old(i); */" +
+                "    /*@ loop_invariant i + \\count == \\old(i); */" +
                 "    do {  --i; --i; } while (i>0); \n" +
                 "    //@ assert i == -1;\n" +
                 "} " +

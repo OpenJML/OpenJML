@@ -25,7 +25,7 @@ import org.jmlspecs.annotation.*;
  *
  * @author Gary T. Leavens, David R. Cok
  */
-//-@ immutable
+//+OPENJML@ immutable
 @Pure
 public class JMLTypeException extends NumberFormatException {
 

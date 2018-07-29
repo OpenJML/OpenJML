@@ -1,6 +1,7 @@
 /*
  * This file is part of the OpenJML project. 
  * Author: David R. Cok
+ * Reviewed: 2018-03-18
  */
 package com.sun.tools.javac.parser;
 
@@ -36,10 +37,7 @@ public class JmlToken extends Token {
         this.jmlkind = jmlkind;
     }
 
-    protected void checkKind() { // FIXME - is it OK to override completely the baehavior in the super class?
-//        if (kind.tag != Tag.DEFAULT) {
-//            throw new AssertionError("Bad token kind - expected " + Tag.STRING);
-//        }
+    protected void checkKind() {
     }
 
     public String toString() {

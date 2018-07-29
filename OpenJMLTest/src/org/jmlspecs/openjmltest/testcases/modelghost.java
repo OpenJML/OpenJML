@@ -163,8 +163,8 @@ public class modelghost extends TCBase {
     public void testUseMethod() {
         helpTCF("A.java",
                 "public class A { \n" +
-                "  boolean m() {}\n" +  // OK
-                "  //@ model boolean m1() { return true; }\n" + // OK
+                "  /*@ pure */ boolean m() {}\n" +  // OK
+                "  //@ model pure boolean m1() { return true; }\n" + // OK
                 
                 "  //@ invariant m() && m1();\n" +
                 
@@ -194,8 +194,8 @@ public class modelghost extends TCBase {
                 
                 "}\n" +
                 "class B { \n" +
-                "  static boolean m() {}\n" +  // OK
-                "  //@ model static boolean m1() { return true; }\n" + // OK
+                "  static /*@ pure */ boolean m() {}\n" +  // OK
+                "  //@ model pure static boolean m1() { return true; }\n" + // OK
                 
                 "  //@ static invariant m() && m1();\n" +
                 

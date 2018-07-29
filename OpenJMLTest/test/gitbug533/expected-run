@@ -1,0 +1,21 @@
+OUT:
+test/gitbug533/TestSum.java:11: JML caller invariant is false on reentering calling method (Caller: TestSum.add(int), Callee: java.util.List.add(E))
+		list.add(i);
+		        ^
+test/gitbug533/TestSum.java:6: Associated declaration: test/gitbug533/TestSum.java:11: 
+	 private invariant (\sum Integer i; list.contains(i); i) >= 0; 
+	         ^
+test/gitbug533/TestSum.java:10: JML invariant is false on leaving method TestSum.add(int)
+	public void add(int i) {
+	            ^
+test/gitbug533/TestSum.java:6: Associated declaration: test/gitbug533/TestSum.java:10: 
+	 private invariant (\sum Integer i; list.contains(i); i) >= 0; 
+	         ^
+test/gitbug533/TestSum.java:16: JML invariant is false on leaving method TestSum.add(int), returning to TestSum.main(java.lang.String[])
+		t.add(-3);
+		     ^
+test/gitbug533/TestSum.java:6: Associated declaration: test/gitbug533/TestSum.java:16: 
+	 private invariant (\sum Integer i; list.contains(i); i) >= 0; 
+	         ^
+
+ERR:

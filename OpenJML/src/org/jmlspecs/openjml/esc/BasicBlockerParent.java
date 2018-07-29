@@ -13,56 +13,7 @@ import java.util.Map;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.*;
-import org.jmlspecs.openjml.JmlTree.JmlBinary;
-import org.jmlspecs.openjml.JmlTree.JmlBlock;
-import org.jmlspecs.openjml.JmlTree.JmlChoose;
-import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
-import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
-import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
-import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
-import org.jmlspecs.openjml.JmlTree.JmlForLoop;
-import org.jmlspecs.openjml.JmlTree.JmlGroupName;
-import org.jmlspecs.openjml.JmlTree.JmlImport;
-import org.jmlspecs.openjml.JmlTree.JmlLabeledStatement;
-import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignals;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
-import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlModelProgramStatement;
-import org.jmlspecs.openjml.JmlTree.JmlPrimitiveTypeTree;
-import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
-import org.jmlspecs.openjml.JmlTree.JmlSetComprehension;
-import org.jmlspecs.openjml.JmlTree.JmlSingleton;
-import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
-import org.jmlspecs.openjml.JmlTree.JmlStatement;
-import org.jmlspecs.openjml.JmlTree.JmlStatementDecls;
-import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
-import org.jmlspecs.openjml.JmlTree.JmlStatementHavoc;
-import org.jmlspecs.openjml.JmlTree.JmlStatementLoop;
-import org.jmlspecs.openjml.JmlTree.JmlStatementSpec;
-import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
-import org.jmlspecs.openjml.JmlTree.JmlStoreRefKeyword;
-import org.jmlspecs.openjml.JmlTree.JmlStoreRefListExpression;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConditional;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConstraint;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseIn;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMaps;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
-import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
+import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.BasicProgramParent.BlockParent;
 
 import com.sun.tools.javac.code.Symbol;
@@ -273,7 +224,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     @NonNull final protected JmlTreeUtils treeutils;
     
     /** The factory used to create AST nodes, initialized in the constructor */
-    @NonNull final protected JmlTree.Maker M;
+    final protected JmlTree.@NonNull Maker M;
 
     // The following fields depend on the method being converted but
     // are otherwise fixed for the life of the object
@@ -407,8 +358,10 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             // log a warning, ignore the block, and continue processing.
             // Note that the block will still have an id and be in the 
             // id map (blockLookup).
+            // This can also happen if the previous block ended with a JML end statement.
             if (!block.statements.isEmpty() && !block.id().name.toString().contains(TRYFINALLYNORMAL) && !block.id().name.toString().contains("finallyExit")) {
-                log.warning("jml.internal","A basic block has no predecessors - ignoring it: " + block.id);
+                // Because of the possibility of end statements, for now we will not issue this warning
+                //                log.warning("jml.internal","A basic block has no predecessors - ignoring it: " + block.id);
             }
             program.blocks.remove(block);
             for (T b: block.followers()) {
@@ -569,6 +522,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         String name = blockName(pos,key);
         JCIdent id = treeutils.makeIdent(pos,name,syms.booleanType);
         T bb = newBlock(id);
+        bb.unique = blockCount;
         blockLookup.put(name,bb);
         name = name.substring(0,name.lastIndexOf("_"));
         blockLookup.put(name, bb);
@@ -589,6 +543,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         // See the comment in the newBlock(...) method above
         JCIdent id = treeutils.makeIdent(pos,name,syms.booleanType);
         T bb = newBlock(id,previousBlock);
+        bb.unique = blockCount;
         blockLookup.put(name, bb);
         name = name.substring(0,name.lastIndexOf("_"));
         blockLookup.put(name, bb);
@@ -807,7 +762,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
                 
                 // create the case test, or null if this is the default case
                 JCIdent vdd = treeutils.makeIdent(caseValue == null ? Position.NOPOS : caseValue.getStartPosition(),vd.sym);
-                /*@ nullable */ JCBinary eq = caseValue == null ? null : treeutils.makeBinary(caseValue.getStartPosition(),JCTree.Tag.EQ,vdd,(caseValue));
+                /*@ nullable */ JCExpression eq = caseValue == null ? null : treeutils.makeBinary(caseValue.getStartPosition(),JCTree.Tag.EQ,vdd,(caseValue));
                 JmlStatementExpr asm = addAssume(vdd.pos,
                 		Label.CASECONDITION,eq,blockForTest.statements);
                 
@@ -1057,6 +1012,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     // OK
     public void visitIf(JCIf that) {
         int pos = that.pos;
+        int posc = that.cond != null ? that.cond.pos : pos;
         currentBlock.statements.add(comment(that.pos(),"if..."));
         
         // Now create an (unprocessed) block for everything that follows the
@@ -1065,14 +1021,14 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         
         // Now make the then block
         T thenBlock = newBlock(THENSUFFIX,pos);
-        addAssume(that.cond.pos, Label.BRANCHT, that.cond, thenBlock.statements);
+        addAssume(posc, Label.BRANCHT, that.cond, thenBlock.statements);
         thenBlock.statements.add(that.thenpart);
         follows(thenBlock,afterIf);
         follows(currentBlock,thenBlock);
         
         // Now make the else block
         T elseBlock = newBlock(ELSESUFFIX,pos);
-        addAssume(that.cond.pos, Label.BRANCHE, treeutils.makeNot(that.cond.pos,that.cond), elseBlock.statements);
+        addAssume(posc, Label.BRANCHE, treeutils.makeNot(posc,that.cond), elseBlock.statements);
         if (that.elsepart != null) elseBlock.statements.add(that.elsepart);
         follows(elseBlock,afterIf);
         follows(currentBlock,elseBlock);
@@ -1710,7 +1666,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     @Override public void visitJmlSpecificationCase(JmlSpecificationCase that)  { shouldNotBeCalled(that); }
     @Override public void visitJmlStatement(JmlStatement that)                  { shouldNotBeCalled(that); }
     @Override public void visitJmlStatementDecls(JmlStatementDecls that)        { shouldNotBeCalled(that); }
-    @Override public void visitJmlStatementLoop(JmlStatementLoop that)          { shouldNotBeCalled(that); }
+    @Override public void visitJmlStatementLoopExpr(JmlStatementLoopExpr that)  { shouldNotBeCalled(that); }
+    @Override public void visitJmlStatementLoopModifies(JmlStatementLoopModifies that)  { shouldNotBeCalled(that); }
     @Override public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that){ shouldNotBeCalled(that); }
     @Override public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that)      { shouldNotBeCalled(that); }
     @Override public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) { shouldNotBeCalled(that); }

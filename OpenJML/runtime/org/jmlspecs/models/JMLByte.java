@@ -34,7 +34,7 @@ package org.jmlspecs.models;
  * @see JMLShort
  * @see JMLLong
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ class JMLByte implements JMLComparable {
 
     /** The byte value of this object.

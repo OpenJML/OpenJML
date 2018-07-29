@@ -561,13 +561,15 @@ public class Log extends AbstractLog {
         writeDiagnostic(diags.warning(source, pos, key, args));
         nwarnings++;
     }
+    
+    static public boolean noWrite = false;
 
     /**
      * Primary method to report a diagnostic.
      * @param diagnostic
      */
     public void report(JCDiagnostic diagnostic) {
-        diagnosticHandler.report(diagnostic);
+        if (!noWrite) diagnosticHandler.report(diagnostic);
      }
 
     /**

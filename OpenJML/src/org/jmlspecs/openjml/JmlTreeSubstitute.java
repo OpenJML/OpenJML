@@ -70,6 +70,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
         return new JmlTreeSubstitute(context,maker,replacements); // FIXME - can we use the same replacements map with a new Maker object?
     }
     
+    // FIXME - substitute can change node type
     /** Static method to create a copy of the given AST with the given factory */
     public static <T extends JCTree> T substitute(JmlTree.Maker maker, @Nullable T that,
             Map<Object,JCExpression> replacements) {
@@ -96,6 +97,10 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
         // for substitution \result
         if (that.token == JmlTokenKind.BSRESULT) {
             @Nullable JCExpression newexpr = replacements.get(that.token);
+            if (newexpr != null) return copy(newexpr);
+            else return super.visitJmlSingleton(that,  p);
+        } else if (that.token == JmlTokenKind.BSINDEX || that.token == JmlTokenKind.BSCOUNT) {
+            @Nullable JCExpression newexpr = replacements.get(JmlTokenKind.BSCOUNT);
             if (newexpr != null) return copy(newexpr);
             else return super.visitJmlSingleton(that,  p);
         } else {
@@ -231,8 +236,8 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
                 that.code,
                 that.token,
                 that.also,
-                copy(that.clauses,p));
-        copy.block = copy(that.block,p);
+                copy(that.clauses,p),
+                copy(that.block,p));
         copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         return copy;
@@ -266,10 +271,19 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
     }
 
     @Override
-    public JCTree visitJmlStatementLoop(JmlStatementLoop that, Void p) {
-        JmlStatementLoop copy = M.at(that.pos).JmlStatementLoop(
+    public JCTree visitJmlStatementLoopExpr(JmlStatementLoopExpr that, Void p) {
+        JmlStatementLoopExpr copy = M.at(that.pos).JmlStatementLoopExpr(
                 that.token,
                 copy(that.expression,p));
+        copy.type = that.type;
+        return copy;
+    }
+
+    @Override
+    public JCTree visitJmlStatementLoopModifies(JmlStatementLoopModifies that, Void p) {
+        JmlStatementLoopModifies copy = M.at(that.pos).JmlStatementLoopModifies(
+                that.token,
+                copy(that.storerefs,p));
         copy.type = that.type;
         return copy;
     }

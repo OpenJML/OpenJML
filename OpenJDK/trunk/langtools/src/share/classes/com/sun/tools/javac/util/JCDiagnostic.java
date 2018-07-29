@@ -570,7 +570,7 @@ public class JCDiagnostic implements Diagnostic<JavaFileObject> {
         if (source != null && source != source.NO_SOURCE && source.getFile() != null) return defaultFormatter.format(this,Locale.getDefault(),
                 getPosition() != Position.NOPOS ? "%f:%l:%_%t%m" : "%f:%_%t%m"); 
         else return defaultFormatter.format(this,Locale.getDefault(),
-                getPosition() != Position.NOPOS ? "%l:%_%t%m" : "%_%t%m"); 
+                getPosition() != Position.NOPOS ? "%l:%_%t%m" : "%t%m"); 
     }
 
     private DiagnosticFormatter<JCDiagnostic> defaultFormatter;

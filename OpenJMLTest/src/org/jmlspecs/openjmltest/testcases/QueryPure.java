@@ -292,8 +292,20 @@ public class QueryPure extends TCBase {
                 "  //@ secret model Integer cache = null; //@ in value; \n" + 
                 "  //@ secret model Object value; in cache; \n" + // error - circular
                 "} \n"
-                ,"/A.java:3: This field participates in a circular datagroup inclusion chain: cache",28
-                ,"/A.java:4: This field participates in a circular datagroup inclusion chain: value",27
+                ,"/A.java:3: This field participates in a circular datagroup inclusion chain: cache -> value -> cache",28
+                ,"/A.java:4: This field participates in a circular datagroup inclusion chain: value -> cache -> value",27
+        );
+    }
+
+    @Test
+    public void testCircularSelf() {
+        expectedExit = 0;
+        helpTCF("A.java",
+                "import org.jmlspecs.annotation.*;\n" +
+                "public class A { \n" +
+                "  //@ secret model Object value; in value; \n" + // warning - circular
+                "} \n"
+                ,"/A.java:3: warning: Do not include a datagroup in itself: value",37
         );
     }
 

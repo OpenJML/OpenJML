@@ -67,7 +67,7 @@ public interface IAPI {
         
         /** Called by the subscribed object when a diagnostic report is made */
         @Override
-        public abstract boolean report(int ticks, int level, String message);
+        public abstract boolean report(int level, String message);
 
         // FIXME - can we get rid of this? in the meantime, it must be called to set the context to match that of the compilation context being listened to
         @Override
@@ -77,7 +77,7 @@ public interface IAPI {
     public static interface IProofResultListener {
         
         void reportProofResult(MethodSymbol msym, IProverResult result);
-        
+        default IProofResultListener setListener(IProofResultListener listener) { return null; }
     }
 
     /** Sets a progress listener that hears any progress reports (e.g. names of
@@ -85,13 +85,14 @@ public interface IAPI {
      * just one listener at a time).
      * @param p The listener
      */
-    public void setProgressListener(@Nullable Main.IProgressListener p);
+    public void setProgressListener(/*@ nullable */ Main.IProgressListener p);
     
     /** Sets a listener for ESC proof results as they are generated. Any previous
-     * listener is forgotten (there is just one listener at a time).
+     * listener is returned and forgotten (there is just one listener at a time, 
+     * unless they are explicitly chained).
      * @param p the listener
      */
-    public void setProofResultListener(@Nullable IProofResultListener p);
+    public IProofResultListener setProofResultListener(@Nullable IProofResultListener p);
 
     /** This method initializes the Options instance of the current compilation
      * context. If the options argument is not null, its content is used
@@ -124,6 +125,8 @@ public interface IAPI {
     public @Nullable
     String getOption(String name);
 
+    public void abort();
+    
     /** Executes the command-line version of OpenJML, in a newly initialized
      * Main, with a new compilation context, returning the exit code.
      * The arguments are used to initialize the options and files just as
@@ -150,6 +153,14 @@ public interface IAPI {
     /** Executes the jmldoc tool on the given command-line arguments. This is 
      * NOT CURRENTLY IMPLEMENTED and the API may change. */
     public int jmldoc(@NonNull String... args);
+    
+    /** Does not change the ASTs except to delete all type and name resolution information,
+     * so that typecheck() can be run again. This operation might be appropriate if an AST has 
+     * been modified, but without complete type information, so that typechecking has to be
+     * performed again. Ordinarily, the typecheck() operation does not re-typecheck subtrees
+     * that already have a type defined.
+     */
+    public void clearTypes(Collection<? extends JCCompilationUnit> trees);
     
     /** Returns true if the class has been type-checked */
     public boolean isTypechecked(ClassSymbol csym);
@@ -212,7 +223,7 @@ public interface IAPI {
     //@ ensures isOpen;
     //@ ensures files.length == \result.size();
     //@ ensures (* output elements are non-null *);
-    public @NonNull 
+    public /*@ non_null */ 
     java.util.List<JmlCompilationUnit> parseFiles(@NonNull String... filenames);
 
     /** Parses each java file and its specs returning a list of the ASTs for corresponding
@@ -225,7 +236,7 @@ public interface IAPI {
      * @param inputs a collection of JavaFileObject objects representing inputs
      * @return a list of corresponding ASTs
      */
-    public @NonNull 
+    public /*@ non_null */ 
     java.util.List<JmlCompilationUnit> parseFiles(@NonNull Collection<? extends JavaFileObject> inputs);
     
     /** Parses each java file and its specs returning a list of the ASTs for corresponding
@@ -243,7 +254,7 @@ public interface IAPI {
     //@ ensures isOpen;
     //@ ensures files.length == \result.size();
     //@ ensures (* output elements are non-null *);
-    public @NonNull
+    public /*@ non_null */
     java.util.List<JmlCompilationUnit> parseFiles(
             @NonNull File... files);
 
@@ -262,7 +273,7 @@ public interface IAPI {
     //@ ensures isOpen;
     //@ ensures inputs.length == \result.size();
     //@ ensures (* output elements are non-null *);
-    public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull JavaFileObject... inputs);
+    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(@NonNull JavaFileObject... inputs);
     
     /** Produces a parse tree for a single file without any specifications; the
      * file may be either a .java or a .jml file.  The trees are not
@@ -561,7 +572,7 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull
+    public /*@ non_null */
     JmlSpecs.MethodSpecs getSpecs(@NonNull MethodSymbol sym);
 
     /** Returns the specs for a given method, including specs of all overridden
@@ -602,7 +613,7 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull
+    public /*@ non_null */
     JmlTree.Maker nodeFactory();
 
     /** Prints out a given parse tree (or subtree).
@@ -643,7 +654,7 @@ public interface IAPI {
     //@ ensures isOpen;
     public @NonNull
     String prettyPrint(
-            @NonNull java.util.List<? extends JCTree> astlist,
+            /*@ non_null */ java.util.List<? extends JCTree> astlist,
             @NonNull String sep) throws java.io.IOException;
 
     /** Closes this instance of the compiler, releasing internal memory;

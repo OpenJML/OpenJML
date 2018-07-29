@@ -92,6 +92,8 @@ public class Activator extends AbstractUIPlugin {
 				return null;
 	    	}
 	    };
+	    
+	    Options.initialize();
 
 	}
 

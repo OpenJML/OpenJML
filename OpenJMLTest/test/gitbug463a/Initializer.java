@@ -20,7 +20,7 @@ public class Initializer {
         return other;
     }
 
-    /*@ public normal_behavior
+    /*@ also public normal_behavior
       @   assignable \nothing;
       @   ensures \result <==> obj instanceof Initializer && ((Initializer) obj).a == a;
       @*/

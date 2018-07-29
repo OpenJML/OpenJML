@@ -55,14 +55,15 @@ public class escgeneric extends EscBase {
                 +"  public TestG(E i) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method mx",17
-                ,"/tt/TestJava.java:11: warning: Associated declaration",7
+                ,"/tt/TestJava.java:12: warning: Associated declaration",10
+                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
                 );
     }
     
     /** Tests that we can reason about the result of \\typeof */
     @Test
     public void testTypeOf() {
-    	main.addOptions("-checkFeasibility=all");
+    	main.addOptions("-checkFeasibility=all");  // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -119,7 +120,7 @@ public class escgeneric extends EscBase {
                 +"    //@ assert \\type(T) <: \\type(B);\n" // true
                 +"    //@ assert \\type(T) <: \\type(C);\n" // false
                 +"  }\n"
-                +"  public TestJava() {}\n"
+                +"  /*@ pure */ public TestJava() {}\n"
                 +"}\n"
                 +"class B {}\n"
                 +"class C extends TestJava<B> {}\n"
@@ -169,7 +170,6 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testStatic() {
-    	main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
@@ -185,13 +185,13 @@ public class escgeneric extends EscBase {
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",22
-                ,"/tt/TestJava.java:11: warning: Associated declaration",7
+                ,"/tt/TestJava.java:12: warning: Associated declaration",26
+                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
         );
     }
 
     @Test
     public void testStaticB() {
-        //main.addOptions("-show","-method=mb");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
@@ -207,7 +207,8 @@ public class escgeneric extends EscBase {
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",13
-                ,"/tt/TestJava.java:11: warning: Associated declaration",7
+                ,"/tt/TestJava.java:12: warning: Associated declaration",26
+                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
         );
     }
 
@@ -228,7 +229,8 @@ public class escgeneric extends EscBase {
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method mb",21
-                ,"/tt/TestJava.java:11: warning: Associated declaration",7
+                ,"/tt/TestJava.java:12: warning: Associated declaration",26
+                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) == \\type(Integer)",25
         );
     }
 
@@ -249,7 +251,8 @@ public class escgeneric extends EscBase {
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method mb",13
-                ,"/tt/TestJava.java:11: warning: Associated declaration",7
+                ,"/tt/TestJava.java:12: warning: Associated declaration",26
+                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) == \\type(Integer)",25
         );
     }
 
@@ -270,7 +273,8 @@ public class escgeneric extends EscBase {
                 +"    public void mm(E t) {}\n"
                 +"}\n"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:11: warning: Associated declaration",9
+                ,"/tt/TestJava.java:12: warning: Associated declaration",17
+                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
                 );
     }
     
@@ -296,7 +300,8 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:15: warning: Associated declaration",9
+                ,"/tt/TestJava.java:16: warning: Associated declaration",17
+                ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
                 );
     }
  
@@ -363,6 +368,19 @@ public class escgeneric extends EscBase {
                 +"//@ assert \\elemtype(\\typeof(a)) == \\type(int); \n"
                 +"}}"
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Assert) in method m",5
+                );
+    }
+
+    @Test
+    public void testGenericThrow() {
+        main.addOptions("-method=rt");
+        helpTCX("tt.TestJava",
+        		 "public class TestJava { \n"
+        	    +" //@ public exceptional_behavior \n"
+        	    +" //@   requires true; \n"  // FIXME - should be t instanceof T
+        	    // Can't say signals_only T; because JML only deals with Exception, not Throwable
+        	    +" public static <T extends Throwable> RuntimeException rt(/*@ non_null*/ Throwable t) throws T { throw (T)t; } \n"
+                +"}"
                 );
     }
 

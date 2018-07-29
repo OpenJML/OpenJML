@@ -59,7 +59,7 @@ import java.util.Enumeration;
  * @see JMLObjectToValueRelation
  * @see JMLValueToValueRelation
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ class JMLObjectToEqualsRelation
     implements JMLCollection {
 

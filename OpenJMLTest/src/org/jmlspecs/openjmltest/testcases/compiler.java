@@ -84,7 +84,7 @@ public class compiler {
         String expected;
         if (expectedFile != null) {
         	try {
-        		expected = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(expectedFile))).replace("../testfiles","testfiles");
+        		expected = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(expectedFile))).replace("../testfiles","testfiles").replace("$SPECS",specsHome);
         	} catch (Exception ee) {
         		expected = null;
         		org.junit.Assert.fail(ee.toString());
@@ -96,9 +96,10 @@ public class compiler {
         actualOutput = actualOutput.replace("\r", "");
         errOutput = errOutput.replace("\r", "");
         expected = expected.replace("\r", "");
+        actualOutput = removeNotes(actualOutput);
         
         if (print) System.out.println("EXPECTING: " + output[0]);
-        print = true;
+//        print = true;
         if (print) System.out.println("ACTUAL OUT: " + actualOutput);
         if (print) System.out.println("ACTUAL ERR: " + errOutput);
         if (output.length <= 1 && errOutput.length() == 0 && !actualOutput.startsWith("Note:")) errOutput = actualOutput;
@@ -127,7 +128,11 @@ public class compiler {
             }
             assertEquals("The exit code is wrong",expectedExitCode,exitCode);
         } catch (AssertionError ex) {
-            if (!print) System.out.println("TEST: " + name.getMethodName() + " exit=" + exitCode + eol + berr.toString());
+            if (!print) {
+                System.out.println("TEST: " + name.getMethodName() + " exit=" + exitCode + eol + berr.toString());
+                System.out.println("ACTUAL OUT: " + actualOutput);
+                System.out.println("ACTUAL ERR: " + errOutput);
+            }
             throw ex;
         }
     }
@@ -314,7 +319,7 @@ public class compiler {
      */ 
     @Test
     public void testJML1() throws Exception {
-        print = true;
+        //print = true;
         helper(new String[]
                           { "-classpath","../OpenJML/runtime",
                             "-sourcepath","test/testJavaErrors2",
@@ -799,8 +804,13 @@ public class compiler {
                   "-extensions=X", // Ignored when strict
                   "test/testNoErrors/A.jml"
                 },0,0
-                ,""
-                );
+                ,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The /count construct is an OpenJML extension to JML and not allowed under -strictJML\n"
+                +"            //@ loop_invariant i == /count && 0 <= i && i <= _length;\n"
+                +"                                    ^\n"
+                +"$SPECS/specs/java/nio/ByteBuffer.jml:298: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML\n"
+                +"    //@ model public static inline pure helper function int asUnsigned(byte b) { return (b >= 0 ? b : b + 256); }\n"
+                +"                            ^\n"
+                +"2 warnings\n");
     }
 
     @Test

@@ -14,7 +14,7 @@ public class trace {
         int j = 0;
         //@ loop_invariant 0 <= i && i <= 10;
         //@ loop_invariant i == j;
-        //@ loop_invariant i == \index;
+        //@ loop_invariant i == \count;
         //@ decreases 9-i;
         for (int i=0; i<10; i++) {
             j = j + 1;

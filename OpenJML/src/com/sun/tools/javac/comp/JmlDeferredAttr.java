@@ -1,3 +1,8 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ * Reviewed: 2018-03-17
+ */
 package com.sun.tools.javac.comp;
 
 import org.jmlspecs.openjml.JmlTree;
@@ -64,7 +69,7 @@ public class JmlDeferredAttr extends DeferredAttr {
 
         // FIXME - motivate this override
         protected boolean isSimpleReceiver(JCTree rec) {
-            if (rec.getTag() == null) return true;
+            if (rec.getTag() == JCTree.Tag.NO_TAG) return true;
             return super.isSimpleReceiver(rec);
         }
     }

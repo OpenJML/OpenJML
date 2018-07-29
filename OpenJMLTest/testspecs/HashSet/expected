@@ -1,6 +1,4 @@
 Proving methods in TestHashSet
 Skipping proof of TestHashSet.TestHashSet() (excluded by -method)
-Skipping proof of TestHashSet.main(java.lang.String...) (excluded by -method)
+Skipping proof of TestHashSet.main(java.lang.String...) (excluded by skipesc)
 Completed proving methods in TestHashSet
-Note: testspecs/HashSet/TestHashSet.java uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.

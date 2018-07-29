@@ -387,13 +387,13 @@ public class escvisibility extends EscBase {
                 +"}\n"
                 
                 +"public class TestJava extends Parent { \n"
-                +"  //@ private normal_behavior ensures false;\n"
+                +"  //@ also private normal_behavior ensures false;\n"
                 +"  public void m1() {\n"
                 +"  }\n"
                 
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",31
+                ,"/tt/TestJava.java:7: warning: Associated declaration",36
                 );
     }
     
@@ -408,13 +408,13 @@ public class escvisibility extends EscBase {
                 +"}\n"
                 
                 +"public class TestJava extends Parent { \n"
-                +"  //@ public normal_behavior ensures false;\n"
+                +"  //@ also public normal_behavior ensures false;\n"
                 +"  public void m1() {\n"
                 +"  }\n"
                 
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",30
+                ,"/tt/TestJava.java:7: warning: Associated declaration",35
                 );
     }
     
@@ -429,13 +429,13 @@ public class escvisibility extends EscBase {
                 +"}\n"
                 
                 +"public class TestJava extends Parent { \n"
-                +"  //@ protected normal_behavior ensures false;\n"
+                +"  //@ also protected normal_behavior ensures false;\n"
                 +"  public void m1() {\n"
                 +"  }\n"
                 
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",33
+                ,"/tt/TestJava.java:7: warning: Associated declaration",38
                 );
     }
     
@@ -450,13 +450,13 @@ public class escvisibility extends EscBase {
                 +"}\n"
                 
                 +"public class TestJava extends Parent { \n"
-                +"  //@ normal_behavior ensures false;\n"
+                +"  //@ also normal_behavior ensures false;\n"
                 +"  public void m1() {\n"
                 +"  }\n"
                 
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",23
+                ,"/tt/TestJava.java:7: warning: Associated declaration",28
                 );
     }
     
@@ -649,7 +649,8 @@ public class escvisibility extends EscBase {
                 
                         
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m1",13
-                ,"/tx/B.java:2: warning: Associated declaration",8
+                ,"/tx/B.java:3: warning: Associated declaration",22
+                ,"/tx/B.java:2: warning: Precondition conjunct is false: false",17
                 );
     }
     
@@ -697,7 +698,8 @@ public class escvisibility extends EscBase {
                 
                         
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m1",13
-                ,"/tx/B.java:3: warning: Associated declaration",8
+                ,"/tx/B.java:4: warning: Associated declaration",22
+                ,"/tx/B.java:3: warning: Precondition conjunct is false: false",17
                 );
     }
     
@@ -787,7 +789,8 @@ public class escvisibility extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Precondition) in method m1",11
-                ,"/tt/TestJava.java:4: warning: Associated declaration",8
+                ,"/tt/TestJava.java:5: warning: Associated declaration",22
+                ,"/tt/TestJava.java:4: warning: Precondition conjunct is false: false",17
                 );
     }
     
@@ -810,7 +813,8 @@ public class escvisibility extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Precondition) in method m1",11
-                ,"/tt/TestJava.java:4: warning: Associated declaration",8
+                ,"/tt/TestJava.java:5: warning: Associated declaration",22
+                ,"/tt/TestJava.java:4: warning: Precondition conjunct is false: false",17
                 );
     }
     
@@ -833,7 +837,8 @@ public class escvisibility extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Precondition) in method m1",11
-                ,"/tt/TestJava.java:4: warning: Associated declaration",8
+                ,"/tt/TestJava.java:5: warning: Associated declaration",22
+                ,"/tt/TestJava.java:4: warning: Precondition conjunct is false: false",17
                 );
     }
 

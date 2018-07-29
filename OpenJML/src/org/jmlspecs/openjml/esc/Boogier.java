@@ -1622,7 +1622,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
             // declared variable.  Actually if there is such a situation, it 
             // will likely generate an error about use of an uninitialized variable.
             scan(that.init);
-            JCBinary expr = treeutils.makeBinary(that.pos,JCBinary.Tag.EQ,lhs,that.init);
+            JCExpression expr = treeutils.makeBinary(that.pos,JCBinary.Tag.EQ,lhs,that.init);
             // FIXME - INITIALIZATION instead of ASSIGNMENT?
             addAssume(that.getStartPosition(),Label.ASSIGNMENT,expr,currentBlock.statements);
         }
@@ -1886,7 +1886,11 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 // Do not need to override these methods
 //  @Override public void visitSkip(JCSkip that) { super.visitSkip(that); }
         
-    public void visitJmlStatementLoop(JmlStatementLoop that) { 
+    public void visitJmlStatementLoopExpr(JmlStatementLoopExpr that) { 
+        shouldNotBeCalled(that); // These are the specs for loops - they are handled in the loop visitors
+    }
+    
+    public void visitJmlStatementLoopModifies(JmlStatementLoopModifies that) { 
         shouldNotBeCalled(that); // These are the specs for loops - they are handled in the loop visitors
     }
     

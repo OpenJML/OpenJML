@@ -92,7 +92,6 @@ public class racJML extends RacBase {
 
     @Test
     public void testLBLshort() {
-    	//main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static void main(String... args) { \n"

@@ -29,7 +29,7 @@ package org.jmlspecs.unfinished;
  * @see java.lang.String
  * @see JMLType
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ class JMLString implements JMLComparable {
 
     /** The contents of this object.

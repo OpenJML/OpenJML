@@ -13,6 +13,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeTranslator;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
@@ -327,6 +328,22 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
+    public void visitJmlInlinedLoop(JmlInlinedLoop that) {
+        result = that;
+    }
+
+
+    @Override
+    public void visitJmlStatementShow(JmlStatementShow that) {
+        JmlStatementShow r = that;
+        ListBuffer<JCExpression> expressions = new ListBuffer<>();
+        for (JCExpression e: that.expressions) expressions.add( translate(e));
+        that.expressions = expressions.toList();
+        result = r;
+        // Not translating: token
+    }
+
+    @Override
     public void visitJmlStatementDecls(JmlStatementDecls that) {
         JmlStatementDecls r = that;
         r.list = translate(that.list);
@@ -351,9 +368,17 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
-    public void visitJmlStatementLoop(JmlStatementLoop that) {
-        JmlStatementLoop r = that;
+    public void visitJmlStatementLoopExpr(JmlStatementLoopExpr that) {
+        JmlStatementLoopExpr r = that;
         r.expression = translate(that.expression);
+        result = r;
+        // Not translating: token, line, source - FIXME
+    }
+
+    @Override
+    public void visitJmlStatementLoopModifies(JmlStatementLoopModifies that) {
+        JmlStatementLoopModifies r = that;
+        r.storerefs = translate(that.storerefs);
         result = r;
         // Not translating: token, line, source - FIXME
     }
@@ -362,6 +387,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     public void visitJmlStatementSpec(JmlStatementSpec that) {
         JmlStatementSpec r = that;
         r.statementSpecs = translate(that.statementSpecs);
+        r.statements = translate(that.statements);
         result = r;
         // Not translating: none
     }

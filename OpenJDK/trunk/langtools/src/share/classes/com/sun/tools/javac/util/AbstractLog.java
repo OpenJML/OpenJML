@@ -258,4 +258,6 @@ public abstract class AbstractLog {
     /** A cache of lightweight DiagnosticSource objects.
      */
     protected Map<JavaFileObject, DiagnosticSource> sourceMap;
+    
+    public JCDiagnostic.Factory factory() { return diags; } // OPENJML - added
 }

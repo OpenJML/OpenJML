@@ -104,7 +104,7 @@ public class Check {
     protected Check(Context context) {
         context.put(checkKey, this);
 
-        this.context = context; // DRC - added
+        this.context = context; // OPENJML - added
         names = Names.instance(context);
         dfltTargetMeta = new Name[] { names.PACKAGE, names.TYPE,
             names.FIELD, names.METHOD, names.CONSTRUCTOR,
@@ -3102,7 +3102,7 @@ public class Check {
                     (e.sym.flags() & SYNTHETIC) == 0)
                 members.add((MethodSymbol) e.sym);
 
-        // DRC - added this first case to take care of the situation in which there is just one member 
+        // OPENJML - added this first case to take care of the situation in which there is just one member 
         // that is assigned implicitly
         if (a.args.size() == 1 && members.size() == 1) {
             JCTree arg = a.args.iterator().next();

@@ -11,7 +11,16 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -30,8 +39,11 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.openjml.esc.JmlEsc;
+import org.jmlspecs.openjml.esc.MethodProverSMT;
+import org.jmlspecs.openjml.proverinterface.IProverResult;
 
 import com.sun.tools.javac.code.JmlTypes;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlCheck;
 import com.sun.tools.javac.comp.JmlDeferredAttr;
@@ -133,6 +145,8 @@ public class Main extends com.sun.tools.javac.main.Main {
     
     public boolean canceled = false;
     
+    static public java.util.function.Supplier<IProgressListener> progressListener;
+    
     /** The diagListener provided when an instance of Main is constructed.
      * The listener will be notified when any diagnostic is generated.
      */
@@ -152,7 +166,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     
     // TODO - review use of and document these progress reporters; perhaps move them
     
-    public DelegatingProgressListener progressDelegate = new DelegatingProgressListener();
+    public DelegatingProgressListener progressDelegator = new DelegatingProgressListener();
 
     /** An interface for progress information; the implementation reports progress
      * by calling report(...); clients will receive notification of progress
@@ -162,7 +176,8 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     public static interface IProgressListener {
         void setContext(Context context);
-        boolean report(int ticks, int level, String message);
+        boolean report(int level, String message);
+        void worked(int ticks);
     }
     
     /** The compilation Context only allows one instance to be registered for
@@ -178,11 +193,14 @@ public class Main extends com.sun.tools.javac.main.Main {
         /** The delegate to which this class passes reports. */
         private IProgressListener delegate;
         /** The callback that is called when the application has progress to report */
-        public boolean report(int ticks, int level, String message) {
-            if (delegate != null) return delegate.report(ticks,level,message);
+        public boolean report(int level, String message) {
+            if (delegate != null) return delegate.report(level,message);
             return false;
         }
         
+        public void worked(int ticks) {
+            if (delegate != null) delegate.worked(ticks);
+        }
         /** Returns true if there is a listener. */
         @Pure
         public boolean hasDelegate() { return delegate != null; }
@@ -215,13 +233,16 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         
         @Override
-        public boolean report(int ticks, int level, String message) {
+        public boolean report(int level, String message) {
             if (level <= 1 || (context != null && Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE)) {
                 pw.println(message);
                 pw.flush();
             }
             return false;
         }
+        
+        @Override
+        public void worked(int ticks) {}
 
         @Override
         public void setContext(Context context) { this.context = context; }
@@ -457,12 +478,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         return errorcode;
     }
     
-    // FIXME - this is a hack to communicate a parameter to where it can be used
-    public IAPI.IProofResultListener proofResultListener;
-
+    private IAPI.IProofResultListener prl;
+    
     public int executeNS(@NonNull PrintWriter writer, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, IAPI.IProofResultListener prListener, @Nullable Options options, @NonNull String[] args) {
         int errorcode = com.sun.tools.javac.main.Main.Result.ERROR.exitCode; // 1
-        this.proofResultListener = prListener;
         try {
             if (args == null) {
                 uninitializedLog().error("jml.main.null.args","org.jmlspecs.openjml.Main.main");
@@ -477,6 +496,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                 // apply them in the compile() call below.
                 savedOptions = Options.instance(context());
                 initialize(writer, diagListener, options, emptyArgs);
+                setProofResultListener(prListener);  // FIXME - this is wiped away in the compile() below, along with the initialization just above???
+                prl = prListener;                    // FIXME - necessitating this end run with prl
                 
                 // The following lines do an end-to-end compile, in a fresh context
                 errorcode = compile(args).exitCode; // context and new options are created in here
@@ -541,8 +562,8 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         this.context = context;
         register(context);
-        context.put(IAPI.IProofResultListener.class, proofResultListener);
-        initializeOptions(savedOptions);
+        setProofResultListener(prl);
+        initializeOptions(savedOptions,null);
         if (args.length == 0
                 && (processors == null || !processors.iterator().hasNext())
                 && fileObjects.isEmpty()) {
@@ -648,7 +669,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     //@ requires (* elements of remainingArgs are non-null *);
     //@ requires 0<= i && i< args.length;
     //@ ensures \result > i;
-    int processJmlArg(@NonNull String[] args, int i, @NonNull Options options, @NonNull java.util.List<String> remainingArgs, @NonNull java.util.List<String> files ) {
+    int processJmlArg(@NonNull String[] args, int i, @NonNull Options options, /*@ non_null */ java.util.List<String> remainingArgs, /*@ non_null */ java.util.List<String> files ) {
         String res = "";
         String s = args[i++];
         if (s == null || s.isEmpty()) return i; // For convenience, allow but ignore null or empty arguments
@@ -677,7 +698,16 @@ public class Main extends com.sun.tools.javac.main.Main {
                 res = s.substring(k+1,s.length());
                 s = s.substring(0,k);
                 o = JmlOption.find(s);
-                if (o != null) {
+                if (o == null) {
+                    // This is not a JML option. Might be misspelled or it might
+                    // be a JDK option with an =, which JDK does not support.
+                    log.warning("jml.message", "Ignoring command-line argument " + args[i-1] + " which is either misspelled or is a JDK option using = to set an argument (which JDK does not support)");
+                } else if (res.isEmpty()) {
+                    // JML option with a naked = sign
+                    Object def = o.defaultValue();
+                    res = def == null ? null : def.toString();
+
+                } else {
                     if (o.hasArg()) {}
                     else if ("false".equals(res)) negate = true;
                     else if ("true".equals(res)) res = "";
@@ -685,12 +715,12 @@ public class Main extends com.sun.tools.javac.main.Main {
                         res = "";
                         Log.instance(context).warning("jml.ignoring.parameter",s);
                     }
-                } else if (s.isEmpty()) {
-                	res = o.defaultValue().toString();
                 }
             }
         } else if (!negate && o.hasArg()) {
-            if (i < args.length) {
+            if (o instanceof JmlOption && ((JmlOption)o).enabledDefault != null) {
+                res = ((JmlOption)o).enabledDefault;
+            } else if (i < args.length) {
                 res = args[i++];
                 if (res != null && res.length() > 1 && res.charAt(0) == '"' && s.charAt(res.length()-1) == '"') {
                     res = res.substring(1,res.length()-1);
@@ -720,12 +750,45 @@ public class Main extends com.sun.tools.javac.main.Main {
             while (!todo.isEmpty()) {
                 File file = todo.remove(0);
                 if (file.isDirectory()) {
-                    for (File ff: file.listFiles()) {
-                        todo.add(ff);
+                    File[] fileArray = file.listFiles();
+                    // Comparator is intentionally reversed, so we push items on the front of the queue in reverse order
+                    Arrays.sort(fileArray, new java.util.Comparator<File>(){ public int compare(File f, File ff) { return (f.isFile() && ff.isDirectory()) ? 1 : (ff.isFile() && f.isDirectory()) ? -1 : -f.getPath().compareToIgnoreCase(ff.getPath()); }});
+                    for (File ff: fileArray) {
+                        todo.add(0,ff);
                     }
                 } else if (file.isFile()) {
                     String ss = file.toString();
                     if (utils.hasJavaSuffix(ss)) files.add(ss); // FIXME - if we allow .jml files on the command line, we have to guard against parsing them twice
+                } else {
+                    try {
+                        String glob = file.toString();
+                        final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(
+                                "glob:"+glob);
+
+                        String location = ""; // System.getProperty("user.dir");
+                        Files.walkFileTree(Paths.get(location), new SimpleFileVisitor<Path>() {
+
+                            @Override
+                            public FileVisitResult visitFile(Path path,
+                                    BasicFileAttributes attrs) throws IOException {
+                                if (pathMatcher.matches(path)) {
+                                    todo.add(path.toFile());
+                                }
+                                return FileVisitResult.CONTINUE;
+                            }
+
+                            @Override
+                            public FileVisitResult visitFileFailed(Path file, IOException exc)
+                                    throws IOException {
+                                return FileVisitResult.CONTINUE;
+                            }
+                        });
+                    } catch (Exception e) {
+                        // FIXME - warn about exception
+                        System.out.println(e);
+                        // continue
+                    }
+
                 }
             }
         } else {
@@ -746,23 +809,23 @@ public class Main extends com.sun.tools.javac.main.Main {
             }
         }
         
-        if(o != null && o.equals(JmlOption.PROPERTIES)){
+        if (o != null && o.equals(JmlOption.PROPERTIES)){
             Properties properties = System.getProperties();
             String file = JmlOption.value(context,JmlOption.PROPERTIES);
-            try {
-                if(file != null){
+            if (file != null && !file.isEmpty()) {
+                try {
                     Utils.readProps(properties,file);  
+                } catch (java.io.IOException e) {
+                    Log.instance(context).getWriter(WriterKind.NOTICE).println("Failed to read property file " + file); // FIXME - review
                 }
-            } catch (java.io.IOException e) {
-                Log.instance(context).getWriter(WriterKind.NOTICE).println("Failed to read property file " + file); // FIXME - review
+                setPropertiesFileOptions(options, properties);
             }
-            setPropertiesFileOptions(options, properties);
         }
         return i;
     }
     
-    /** This method is called after options are read, but before tools are 
-     * registered and before compilation actually begins; 
+    /** This method is called after options are read, but before  compilation actually begins; 
+     * requires tools to be registered, at least Log and Options
      * here any additional option checking or
      * processing can be performed.
      */
@@ -783,17 +846,30 @@ public class Main extends com.sun.tools.javac.main.Main {
         
         String t = options.get(JmlOption.JMLTESTING.optionName());
         Utils.testingMode =  ( t != null && !t.equals("false"));
-        if (Utils.testingMode) {
-            if (options.get(JmlOption.BENCHMARKS.optionName()) == null) {
-                options.put(JmlOption.BENCHMARKS.optionName(),"benchmarks");
-            }
-        }
         String benchmarkDir = options.get(JmlOption.BENCHMARKS.optionName());
         if (benchmarkDir != null) {
             new File(benchmarkDir).mkdir();
         }
         
         utils.jmlverbose = Utils.NORMAL;
+        
+        {
+            // Automatically set verboseness to PROGRESS if we are debugging checkFeasibility.
+            // So do this determination before we interpret the verboseness option.
+            t = options.get(JmlOption.FEASIBILITY.optionName());
+            if (t != null) {
+                if (t.startsWith("debug") && utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
+                int k = t.indexOf(":");
+                if (k > 0) { 
+                    try {
+                        MethodProverSMT.startFeasibilityCheck = Integer.parseInt(t.substring(k+1));
+                    } catch (Exception e) {
+                        // continue
+                    }
+                }
+            }
+        }
+        
         String n = JmlOption.VERBOSENESS.optionName().trim();
         String levelstring = options.get(n);
         if (levelstring != null) {
@@ -802,17 +878,31 @@ public class Main extends com.sun.tools.javac.main.Main {
                 utils.jmlverbose = Integer.parseInt(levelstring);
             } catch (NumberFormatException e) {
                 Log.instance(context).warning("jml.message","The value of the " + n + " option or the " + Strings.optionPropertyPrefix + n.substring(1) + " property should be the string representation of an integer: \"" + levelstring + "\"");
+                options.put(n, "1");
             }
         }
-        
+        if (options.get("-verbose") != null) {
+            // If the Java -verbose option is set, we set -jmlverbose as well
+            utils.jmlverbose = Utils.JMLVERBOSE;
+        }
+
         if (utils.jmlverbose >= Utils.PROGRESS) {
+            // Why not let the progress listener decide what to print???
+            
             // We check for an existing delegate, because if someone is calling
             // OpenJML programmatically, they may have set one up already.
-            // Note, though that this won't udo the setting, if verbosity is
+            // Note, though that this won't undo the setting, if verbosity is
             // turned off.
-            if (!progressDelegate.hasDelegate()) progressDelegate.setDelegate(new PrintProgressReporter(context,out));
+            //if (!progressDelegator.hasDelegate()) {
+                try {
+                    progressDelegator.setDelegate(progressListener != null ? progressListener.get() : new PrintProgressReporter(context,out));
+                } catch (Exception e) {
+                    // FIXME - report problem
+                    // continue without installing a listener
+                }
+            //}
         } else {
-            progressDelegate.setDelegate(null);
+        	progressDelegator.setDelegate(null);
         }
         
         boolean b = JmlOption.isOption(context,JmlOption.USEJAVACOMPILER);
@@ -841,6 +931,16 @@ public class Main extends com.sun.tools.javac.main.Main {
             return false;
         }
         if (!picked) utils.check = true;
+        
+        val = options.get(JmlOption.ESC_BV.optionName());
+        if (val == null || val.isEmpty()) {
+            options.put(JmlOption.ESC_BV.optionName(),(String)JmlOption.ESC_BV.defaultValue());
+        } else if("auto".equals(val) || "true".equals(val) || "false".equals(val)) {
+        } else {
+            Log.instance(context).warning("jml.message","Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: " + val);
+            //Log.instance(context).getWriter(WriterKind.NOTICE).println("Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: " + val);
+            options.put(JmlOption.ESC_BV.optionName(),(String)JmlOption.ESC_BV.defaultValue());
+        }
 
         String keysString = options.get(JmlOption.KEYS.optionName());
         utils.commentKeys = new HashSet<String>();
@@ -851,13 +951,14 @@ public class Main extends com.sun.tools.javac.main.Main {
         
         if (utils.esc) utils.commentKeys.add("ESC"); 
         if (utils.rac) utils.commentKeys.add("RAC"); 
+        if (JmlOption.isOption(context,JmlOption.STRICT.optionName())) utils.commentKeys.add("STRICT"); 
         utils.commentKeys.add("OPENJML"); 
         JmlSpecs.instance(context).initializeSpecsPath();
 
         if (JmlOption.isOption(context,JmlOption.INTERNALRUNTIME)) appendRuntime(context);
         
         String limit = JmlOption.value(context,JmlOption.ESC_MAX_WARNINGS);
-        if (limit == null || limit.equals("all")) {
+        if (limit == null || limit.isEmpty() || limit.equals("all")) {
             utils.maxWarnings = Integer.MAX_VALUE; // no limit is the default
         } else {
             try {
@@ -870,12 +971,19 @@ public class Main extends com.sun.tools.javac.main.Main {
             }
         }
         
+        String v = JmlOption.value(context, JmlOption.SHOW);
+        if (v == null) options.put(JmlOption.SHOW.optionName(),"");
+        
         String check = JmlOption.value(context,JmlOption.FEASIBILITY);
-        if (check == null || check.equals(Strings.feas_default)) {
+        if (check == null || check.isEmpty() || check.equals(Strings.feas_default)) {
             options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_defaults);
-        } else if (check.equals(Strings.feas_all)) {
+        } 
+        if (check.equals(Strings.feas_all)) {
             options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls);
-        }
+        } else if (check.startsWith(Strings.feas_debug)) {
+            options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls+",debug");
+            if (utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
+        } 
         String badString = Strings.isOK(check);
         if (badString != null) {
             Log.instance(context).getWriter(WriterKind.NOTICE).println("Unexpected value as argument for -checkFeasibility: " + badString);
@@ -903,7 +1011,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (!setupOptions()) return null;
 
         String showOptions = JmlOption.value(context,JmlOption.SHOW_OPTIONS);
-        if (!showOptions.equals("none")) {
+        if (showOptions != null && !showOptions.equals("none")) {  // FIXME - review and explain this
             JmlOption.listOptions(context, showOptions.equals("all"));
         }
         return files;
@@ -919,12 +1027,28 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     public void register(/*@ non_null @*/ Context context) {
         this.context = context;// A hack so that context is available in processArgs()
-        if (progressDelegate != null) progressDelegate.setContext(context);
-        context.put(IProgressListener.class,progressDelegate);
+        if (progressDelegator != null) progressDelegator.setContext(context);
+        context.put(IProgressListener.class,progressDelegator);
         context.put(key, this);
         registerTools(context,out,diagListener);
+        // Since we can only set a context value once, we create this listener that just delegates to 
+        // another listener, and then change the delegate when we need to, using setProofResultListener().
+        context.put(IAPI.IProofResultListener.class, 
+                new IAPI.IProofResultListener() {
+                    IAPI.IProofResultListener delegate = null;
+                    @Override
+                    public void reportProofResult(MethodSymbol sym, IProverResult res) { if (delegate != null) delegate.reportProofResult(sym,res); }
+                    @Override
+                    public IAPI.IProofResultListener setListener(IAPI.IProofResultListener listener) { 
+                        IAPI.IProofResultListener d = delegate; delegate = listener; return d; 
+                    }
+        });
     }
     
+    public void setProofResultListener(IAPI.IProofResultListener listener) {
+        context.get(IAPI.IProofResultListener.class).setListener(listener);
+    }
+
     public static Context.Key<Main> key = new Context.Key<Main>();
     
     public static Main instance(Context context) {
@@ -995,6 +1119,8 @@ public class Main extends com.sun.tools.javac.main.Main {
     
     // EXTERNAL API FOR PROGRAMATIC ACCESS TO JML COMPILER INTERNALS
     
+    public boolean initializingOptions = false;
+    
     /** This method initializes the Options.instance(context) instance of
      * Options class. If the options argument is not null, its content is used
      * to initialize Options.instance(context); if options is null, then
@@ -1006,6 +1132,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * warned about and ignored. 
      */
     public void initializeOptions(@Nullable Options options, @NonNull String... args) {
+        initializingOptions = true;
         Options opts = Options.instance(context);
         setOptions(opts);
         if (options == null) {
@@ -1019,7 +1146,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             opts.putAll(options);
         }
 
-        if (args != null && args.length > 0) try {
+        if (args != null) try { // Do the following even if there are no args, because other setup is done as well (e.g. extensions)
             Collection<File> files = processArgs(CommandLine.parse(args));
             if (files != null && !files.isEmpty()) {
                 Log.instance(context).warning("jml.ignore.extra.material",files.iterator().next().getName());
@@ -1027,9 +1154,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         } catch (java.io.IOException e) {
             Log.instance(context).error("jml.process.args.exception", e.toString());
         }
-        
+        initializingOptions = false;
     }    
     
+    /** Sets options (first argument) from any relevant properties (second argument) */
     protected void setPropertiesFileOptions(Options opts, Properties properties){
         for (Map.Entry<Object,Object> p : properties.entrySet()) {
             Object o = p.getKey();
@@ -1066,7 +1194,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * means.
      */
     protected void coreDefaultOptions(Options opts) {
-        opts.put(JmlOption.LOGIC.optionName(), "AUFLIA");
+        opts.put(JmlOption.LOGIC.optionName(), "ALL");
         opts.put(JmlOption.PURITYCHECK.optionName(), null);
     }
     
@@ -1105,6 +1233,10 @@ public class Main extends com.sun.tools.javac.main.Main {
 
     protected Name optionName;
 
+    /** Pushes the current options on the option stack (cf. JmlOption), retaining a copy;
+     * then adds to the current options using the Options annotation.
+     * @param mods
+     */
     public void pushOptions(JCModifiers mods) {
         if (optionName == null) optionName = Names.instance(context).fromString("org.jmlspecs.annotation.Options");
 
@@ -1116,17 +1248,18 @@ public class Main extends com.sun.tools.javac.main.Main {
             String[] opts = rhs instanceof JCNewArray ? ((JCNewArray)rhs).elems.toString().split(",")
                           : rhs instanceof JCLiteral ? new String[]{ rhs.toString() }
                           : null;
-//                System.out.println(opts);
             addOptions(opts);
             setupOptions();
         }
-        int v = Utils.instance(context).jmlverbose;
     }
     
+    // FIXME - the options popped and pushed should not be ones that have modifier/annotation equivalents
+    // So no nonnullbydefault/nullablebydefault and code-math and spec-math
+    
+    /** Pops a set of options off the options stack, making the popped set the current options. */
     public void popOptions() {
         ((JmlOptions)JmlOptions.instance(context)).popOptions();
         setupOptions();
-        int v = Utils.instance(context).jmlverbose;
     }
 
     
@@ -1193,7 +1326,8 @@ public class Main extends com.sun.tools.javac.main.Main {
         // The above all presume some variation on the conventional installation
         // of the command-line tool.  In the development environment, those
         // presumptions do not hold.  So in that case we use the appropriate
-        // bin directories directly. We make sure that we get both of them.
+        // bin directories directly. We make sure that we get both of them: 
+        // the annotations and runtime utilties.
         // This also takes care of the case in which the openjml.jar file is in 
         // the class path under a different name.
 
@@ -1211,7 +1345,9 @@ public class Main extends com.sun.tools.javac.main.Main {
                         s = s.substring(b);
                         s = new File(s).getParentFile().getParentFile().getParent();
                     }
-                    if (new File(s).exists()) jmlruntimePath = s;
+                    if (new File(s).exists()) {
+                    	jmlruntimePath = s;
+                    }
 
                     url = ClassLoader.getSystemResource(Strings.jmlSpecsPackage.replace('.','/'));
                     if (url != null) {
@@ -1225,12 +1361,25 @@ public class Main extends com.sun.tools.javac.main.Main {
                             s = s.substring(b);
                             s = new File(s).getParentFile().getParentFile().getParent();
                         }
-                        if (new File(s).exists() && !s.equals(jmlruntimePath)) jmlruntimePath = jmlruntimePath + java.io.File.pathSeparator + s;
+                        if (new File(s).exists() && !s.equals(jmlruntimePath)) {
+                        	jmlruntimePath = jmlruntimePath + java.io.File.pathSeparator + s;
+                        }
                     }
                 } catch (Exception e) {
                     // Just skip
                 }
             }
+        }
+        
+        if (jmlruntimePath == null) {
+        	// This is for the case of running the GUI in the development environment
+        	String srt = System.getProperty(Strings.eclipseSpecsProjectLocation); // FIXME _ probably can replace this with finding a plugin
+        	srt = srt + "/../OpenJML/OpenJML/bin-runtime";
+        	File f = new File(srt);
+        	if (f.exists() && f.isDirectory()) {
+        		jmlruntimePath = srt;
+        	}
+        	
         }
 
         if (jmlruntimePath != null) {
@@ -1242,7 +1391,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             Options.instance(context).put("-classpath",cp);
             if (Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE) 
                 Log.instance(context).getWriter(WriterKind.NOTICE).println("Classpath: " + Options.instance(context).get("-classpath"));
-        } else {
+        } else if (!Main.instance(context).initializingOptions){
             Log.instance(context).warning("jml.no.internal.runtime");
         }
     }

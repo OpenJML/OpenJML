@@ -63,5 +63,6 @@ public interface IVisitor {
         public void visitModifiers(JCModifiers that)         ;
         public void visitErroneous(JCErroneous that)         ;
         public void visitLetExpr(LetExpr that)               ;
-
+        public void visitReference(JCMemberReference that)   ;
+        public void visitLambda(JCLambda that)               ;
 }

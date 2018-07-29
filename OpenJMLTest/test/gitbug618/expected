@@ -1,0 +1,53 @@
+Proving methods in Opt1
+Starting proof of Opt1.Opt1(java.lang.Object) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Opt1.Opt1(java.lang.Object) with prover !!!! - no warnings
+Starting proof of Opt1.nn() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Opt1.nn() with prover !!!! - no warnings
+Completed proving methods in Opt1
+Proving methods in Opt2
+Starting proof of Opt2.Opt2(java.lang.Object) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Opt2.Opt2(java.lang.Object) with prover !!!! - no warnings
+Starting proof of Opt2.nn() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Opt2.nn() with prover !!!! - no warnings
+Completed proving methods in Opt2
+Proving methods in Opt3
+Starting proof of Opt3.Opt3(Test) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Opt3.Opt3(Test) with prover !!!! - no warnings
+Starting proof of Opt3.nn() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Opt3.nn() with prover !!!! - no warnings
+Completed proving methods in Opt3
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Completed proving methods in Test
+Proving methods in Test2
+Starting proof of Test2.Test2() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Test2.Test2() with prover !!!! - no warnings
+Starting proof of Test2.t1((@org.jmlspecs.annotation.NonNull :: Opt1)) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - after explicit assume statement : OK
+Feasibility check #3 - before explicit assert statement : OK
+Feasibility check #4 - at program exit : OK
+Completed proof of Test2.t1((@org.jmlspecs.annotation.NonNull :: Opt1)) with prover !!!! - no warnings
+Starting proof of Test2.c1((@org.jmlspecs.annotation.NonNull :: Opt1)) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - before explicit assert statement : OK
+Feasibility check #3 - at program exit : OK
+Completed proof of Test2.c1((@org.jmlspecs.annotation.NonNull :: Opt1)) with prover !!!! - no warnings
+Completed proving methods in Test2

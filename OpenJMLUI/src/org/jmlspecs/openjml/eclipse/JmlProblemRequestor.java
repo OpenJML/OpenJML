@@ -123,6 +123,7 @@ public class JmlProblemRequestor implements IProblemRequestor {
 				f = project != null ? project : root;
 			}
 			
+			// If this is a parsing problem, there will be no symbol
 			Symbol sym = ((JmlEclipseProblem)p).sourceSymbol;
 			
 			// Use the following if you want problems printed to the console
@@ -139,9 +140,9 @@ public class JmlProblemRequestor implements IProblemRequestor {
 			// and lineStart are 1-based which would make this computation off by one
 			final int finalOffset = p.getSourceStart() + jmlproblem.lineStart;
 			final int finalEnd = p.getSourceEnd() + 1 + jmlproblem.lineStart;
-			String source = null;
-			if (sym != null) source = sym.owner.toString() + "." + sym.toString();
-			final String finalErrorMessage = source + ": " + Strings.eol + Strings.eol + p.getMessage();
+			String source = "";
+			if (sym != null) source = sym.owner.toString() + "." + sym.toString() + ": " + Strings.eol;
+			final String finalErrorMessage = source + p.getMessage();
 			int severity = jmlproblem.severity;
 			
 			if (jmlproblem.lineStart < 0) {

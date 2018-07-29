@@ -153,35 +153,41 @@ public class api extends JmlTestCase {
     String prettyprint =
             eol + 
             "public class A {" + eol +
-            "  @Ghost " + eol +
+            "  /*@ ghost */ " + eol +
             "  int i = 0;" + eol +
-            "}" + eol +
-            "// Specifications: test/testNoErrors/A.java" + eol +
-            "// Specification file: test/testNoErrors/A.java" + eol +
-            "" + eol +
-            "public class A {" + eol +
-            "  @Ghost " + eol +
-            "  int i = 0;" + eol +
-            "}" + eol;
+            "}"
+//            + eol 
+//            +
+//            "// Specifications: test/testNoErrors/A.java" + eol +
+//            "// Specification file: test/testNoErrors/A.java" + eol +
+//            "" + eol +
+//            "public class A {" + eol +
+//            "  @Ghost " + eol +
+//            "  int i = 0;" + eol +
+//            "}" + eol
+            ;
         
     String prettyprint2a =
             eol + 
             "public class A {" + eol +
-            "  @Ghost " + eol +
+            "  /*@ ghost */ " + eol +
             "  int i = 0;" + eol +
-            "}" + eol +
-            "// Specifications: /A.java" + eol +
-            "// Specification file: /A.java" + eol +
-            "" + eol +
-            "public class A {" + eol +
-            "  @Ghost " + eol +
-            "  int i = 0;" + eol +
-            "}" + eol;
+            "}"
+//            + eol 
+//            +
+//            "// Specifications: /A.java" + eol +
+//            "// Specification file: /A.java" + eol +
+//            "" + eol +
+//            "public class A {" + eol +
+//            "  @Ghost " + eol +
+//            "  int i = 0;" + eol +
+//            "}" + eol
+            ;
         
     String prettyprint2 =
             eol + 
             "public class A {" + eol +
-            "  @Ghost " + eol +
+            "  /*@ ghost */ " + eol +
             "  int i = 0;" + eol +
             "}";
 
@@ -190,23 +196,30 @@ public class api extends JmlTestCase {
             "package a.b;" + eol +
             eol +
             "public class A {" + eol +
-            "  @Ghost " + eol +
+            "  /*@ ghost */ " + eol +
             "  int i = 0;" + eol +
-            "}" + eol + 
-            "// Specifications: /a/b/A.java" + eol +
-            "// Specification file: /a/b/A.java" + eol +
-            "package a.b;" + eol +
-            eol +
-            "public class A {" + eol +
-            "  @Ghost " + eol +
-            "  int i = 0;" + eol +
-            "}"  + eol; 
+            "}"
+//            + eol
+//            + 
+//            "// Specifications: /a/b/A.java" + eol +
+//            "// Specification file: /a/b/A.java" + eol +
+//            "package a.b;" + eol +
+//            eol +
+//            "public class A {" + eol +
+//            "  @Ghost " + eol +
+//            "  int i = 0;" + eol +
+//            "}"  + eol
+            ; 
 
     
-    String prettyprint4 = prettyprint +
-    		"NEXT AST" + eol +
-    		"// Specifications: test/testNoErrors/B.java" + eol +
-    		"// Specification file: test/testNoErrors/B.java" + eol + eol;
+    String prettyprint4 = prettyprint
+    		+
+    		"NEXT AST"
+//    		+ eol
+//    		+
+//    		"// Specifications: test/testNoErrors/B.java" + eol +
+//    		"// Specification file: test/testNoErrors/B.java" + eol + eol
+    		;
         
     String parseAndPrettyPrintFromJavaFileObject() throws Exception {
         java.io.File f = new java.io.File("test/testNoErrors/A.java");
@@ -452,7 +465,6 @@ public class api extends JmlTestCase {
         }
     }
 
-
     String parseAndPrettyPrintString() throws Exception {
         String prog = "public class A { //@ ghost int i=0;\n }";
         IAPI m = Factory.makeAPI();
@@ -463,6 +475,16 @@ public class api extends JmlTestCase {
         String prog = "package a.b; public class A { //@ ghost int i=0;\n }";
         IAPI m = Factory.makeAPI();
         return m.prettyPrint(m.parseString("a/b/A.java",prog));
+    }
+    
+    String parseAndPrettyPrintString3(String prog) throws Exception {
+        IAPI m = Factory.makeAPI();
+        return m.prettyPrint(m.parseString("A.java",prog));
+    }
+    
+    String parseString(String prog) throws Exception {
+        IAPI m = Factory.makeAPI("-jml","-strictJML");
+        return m.parseString("A.java",prog).toString();
     }
     
     /** Tests that a String parses and pretty prints */
@@ -492,6 +514,24 @@ public class api extends JmlTestCase {
             check("","");
             s = s.replace('\\','/');
             compareStrings(prettyprint3,s);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+    
+    @Test
+    public void testParseAndPrettyPrint8() {
+        start(true);
+        try {
+            String prog = "\npublic class A {//@ ensures \\forall int i; i > 0; i < 0;\n void m(){}}";
+            String result = "\npublic class A {\n    /*@\n      ensures \\forall int i; i > 0; i < 0; \n   */\n\n  void m() {\n  }\n}";
+            String s = parseAndPrettyPrintString3(prog);
+            check("","");
+            compareStrings(result,s);
+            String ss = parseString(prog).toString();
+            compareStrings(result,ss);
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace(System.out);
@@ -679,10 +719,7 @@ public class api extends JmlTestCase {
     @Test
     public void testAPI3() {
       String out =
-          "/A.java:1: error: incompatible types: boolean cannot be converted to int"+eol+
-          "-------------"+eol+
-          "^"+eol+
-          "/A.java:1: error: duplicate class: org.test.A"+eol+
+          "/A.java:1: error: duplicate class: A"+eol+
           "-------------"+eol+
           "^"+eol;
       String err = "";
@@ -698,7 +735,7 @@ public class api extends JmlTestCase {
           JCModifiers mods2 = f.Modifiers(Flags.PROTECTED);
           Name field = f.Name("field");
           JCExpression ty = f.TypeIdent(TypeTag.INT);
-          JCExpression init = f.Literal(true);   // Intentional error
+          JCExpression init = f.Literal(5);
           JCVariableDecl vdecl = f.VarDef(mods2,field,ty,init);
           
           // The class declaration
@@ -722,6 +759,7 @@ public class api extends JmlTestCase {
                               packageid,List.<JCTree>of(imp,imp2,cldef));
           jcu.mode = JmlCompilationUnit.JAVA_SOURCE_FULL;
           jcu.sourcefile = api.makeJFOfromString("A.java","-------------");
+          jcu.specsCompilationUnit = jcu;
           // TODO: docCOmments, endPositions, flags, lineMap, mode, namedImportSCope,
           // parsedTopLevelModelTypes, starImportScope
           // refinesClause, specsTopLevelModelTypes, specsSequence
@@ -736,13 +774,13 @@ public class api extends JmlTestCase {
           Collection<JmlCompilationUnit> coll = new LinkedList<JmlCompilationUnit>();
           coll.add(jcu);
           int errs = api.typecheck(coll);
-          assertEquals(1,errs);
+          assertEquals(0,errs);
           
           java.util.List<JmlCompilationUnit> list = new LinkedList<JmlCompilationUnit>();
           list.add(jcu);
           errs += api.typecheck(list);  // Complains about duplicate class
           check(err,out);   //FIXME - i thought the default was  to send diags to System.out
-          assertEquals(2,errs);
+          assertEquals(1,errs);
           
       } catch (Exception e) {
           check(null,null);
@@ -886,7 +924,7 @@ public class api extends JmlTestCase {
     
     @Test
     public void testAPI5() {
-        start(false);
+        start(true); // Collect but ignore the verbose output
         try {
             IAPI m = Factory.makeAPI("-verbose","-noInternalSpecs");
             int exitcode = m.execute(null,"-cp","test/api","test/api/A.java");
@@ -901,13 +939,14 @@ public class api extends JmlTestCase {
             e.printStackTrace(System.out);
             assertTrue(false);
         } finally {
-            check("","");
+            //check("","");
+            endCapture();
         }
     }
     
     @Test
     public void testAPI7() {
-        start(false);
+        start(true); // Collect but ignore the verbose output
         try {
             IAPI m = Factory.makeAPI("-verbose","-noInternalSpecs");
             int exitcode = m.execute(null,"-cp","test/api2","test/api2/p1/A.java");
@@ -924,7 +963,8 @@ public class api extends JmlTestCase {
             e.printStackTrace(System.out);
             assertTrue(false);
         } finally {
-            check("","");
+            //check("","");
+            endCapture();
         }
     }
     
@@ -1002,6 +1042,8 @@ public class api extends JmlTestCase {
     
     @Test
     public void testOptions() {
+        String err = "openjml: invalid flag: -x" + eol + "Usage: openjml <options> <source files>" + eol + "use -help for a list of possible options" + eol;
+        start(true);
         try {
             IAPI m = Factory.makeAPI();
             String s = m.getOption("-x");
@@ -1024,6 +1066,8 @@ public class api extends JmlTestCase {
             assertEquals(null,s);
         } catch (Exception e) {
             fail();
+        } finally {
+            check(err,"");
         }
     }
     
@@ -1424,13 +1468,12 @@ public class api extends JmlTestCase {
             endCapture();
             //res = m.getProofResult(mmsym);
             assertTrue(res != null);
-            assertEquals(2,dlist.size());
+            assertEquals(3,dlist.size());
             assertTrue(res.result() == IProverResult.POSSIBLY_SAT || res.result() == IProverResult.SAT);
             
-            //m.addOptions("-show");
             m.doESC(csym);
             check("","");
-            assertEquals(4,dlist.size());
+            assertEquals(6,dlist.size());
         } catch(AssertionError e) {
             throw e;
         } catch (Exception e) {

@@ -89,12 +89,12 @@ test\escTraceLoops\trace.java:168:  	requires a != null;
 test\escTraceLoops\trace.java:169:  	int j = 0
 			VALUE: 0	 === 0
 			VALUE: j	 === 0
-test\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+test\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \count && \count <= a.length;
 			VALUE: j	 === ???
 			VALUE: 0	 === ???
 			VALUE: j == 0	 === ???
-			VALUE: j == 0 && 0 <= \index	 === ???
-			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === ???
+			VALUE: j == 0 && 0 <= \count	 === ???
+			VALUE: j == 0 && 0 <= \count && \count <= a.length	 === ???
 test\escTraceLoops\trace.java:170:  	UndefinedNullDeReference assertion: !(true && (j == 0 && 0 <= index_3815_98) && a != null) || a != null
 			VALUE: true	 === ???
 			VALUE: true && (j == 0 && 0 <= index_3815_98)	 === true
@@ -123,19 +123,19 @@ test\escTraceLoops\trace.java:170:  	LoopInvariantBeforeLoop assertion: j == 0 &
  	//while...
  	//1
 test\escTraceLoops\trace.java:171:  	Begin loop check
-test\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+test\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \count && \count <= a.length;
 			VALUE: j	 === 0
 			VALUE: 0	 === 0
 			VALUE: j == 0	 === true
 			VALUE: 0	 === 0
-			VALUE: \index	 === 450
-			VALUE: 0 <= \index	 === true
-			VALUE: j == 0 && 0 <= \index	 === true
-			VALUE: \index	 === 450
+			VALUE: \count	 === 450
+			VALUE: 0 <= \count	 === true
+			VALUE: j == 0 && 0 <= \count	 === true
+			VALUE: \count	 === 450
 			VALUE: a	 === REF!val!12
 			VALUE: a.length	 === 450
-			VALUE: \index <= a.length	 === true
-			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === true
+			VALUE: \count <= a.length	 === true
+			VALUE: j == 0 && 0 <= \count && \count <= a.length	 === true
 test\escTraceLoops\trace.java:170:  	UndefinedNullDeReference assertion: !(true && (j == 0 && 0 <= index_3815_98) && a != null) || a != null
 			VALUE: true	 === ???
 			VALUE: true && (j_3728_3844___7 == 0 && 0 <= index_3815_98_3815_3830___8)	 === true
@@ -149,9 +149,9 @@ test\escTraceLoops\trace.java:170:  	UndefinedNullDeReference assertion: !(true 
 			VALUE: a_3711 != null	 === true
 			VALUE: !(true && (j_3728_3844___7 == 0 && 0 <= index_3815_98_3815_3830___8) && a_3711 != null) || a_3711 != null	 === true
 test\escTraceLoops\trace.java:171:  	Loop test
-			VALUE: \index	 === 450
+			VALUE: \count	 === 450
 			VALUE: _JML__tmp99	 === 450
-			VALUE: \index < _JML__tmp99	 === false
+			VALUE: \count < _JML__tmp99	 === false
  	//if...
 test\escTraceLoops\trace.java:174:  	assert Assert j == a.length;
 			VALUE: j	 === 0
@@ -170,7 +170,7 @@ test\escTraceLoops\trace.java:174:  	UndefinedNullDeReference assertion: !(a != 
 test\escTraceLoops\trace.java:174:  Invalid assertion (Assert)
 
 test\escTraceLoops\trace.java:170: warning: The prover cannot establish an assertion (LoopInvariant) in method mforeach1
-        //@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+        //@ loop_invariant j == 0 && 0 <= \count && \count <= a.length;
             ^
 
 TRACE of trace.mforeach1(int[])
@@ -243,12 +243,12 @@ test\escTraceLoops\trace.java:168:  	requires a != null;
 test\escTraceLoops\trace.java:169:  	int j = 0
 			VALUE: 0	 === 0
 			VALUE: j	 === 0
-test\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+test\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \count && \count <= a.length;
 			VALUE: j	 === ???
 			VALUE: 0	 === ???
 			VALUE: j == 0	 === ???
-			VALUE: j == 0 && 0 <= \index	 === ???
-			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === ???
+			VALUE: j == 0 && 0 <= \count	 === ???
+			VALUE: j == 0 && 0 <= \count && \count <= a.length	 === ???
 test\escTraceLoops\trace.java:170:  	UndefinedNullDeReference assertion: !(true && (j == 0 && 0 <= index_3815_98) && a != null) || a != null
 			VALUE: true	 === ???
 			VALUE: true && (j == 0 && 0 <= index_3815_98)	 === true
@@ -277,19 +277,19 @@ test\escTraceLoops\trace.java:170:  	LoopInvariantBeforeLoop assertion: j == 0 &
  	//while...
  	//1
 test\escTraceLoops\trace.java:171:  	Begin loop check
-test\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+test\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \count && \count <= a.length;
 			VALUE: j	 === 0
 			VALUE: 0	 === 0
 			VALUE: j == 0	 === true
 			VALUE: 0	 === 0
-			VALUE: \index	 === 8098
-			VALUE: 0 <= \index	 === true
-			VALUE: j == 0 && 0 <= \index	 === true
-			VALUE: \index	 === 8098
+			VALUE: \count	 === 8098
+			VALUE: 0 <= \count	 === true
+			VALUE: j == 0 && 0 <= \count	 === true
+			VALUE: \count	 === 8098
 			VALUE: a	 === REF!val!12
 			VALUE: a.length	 === 8099
-			VALUE: \index <= a.length	 === true
-			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === true
+			VALUE: \count <= a.length	 === true
+			VALUE: j == 0 && 0 <= \count && \count <= a.length	 === true
 test\escTraceLoops\trace.java:170:  	UndefinedNullDeReference assertion: !(true && (j == 0 && 0 <= index_3815_98) && a != null) || a != null
 			VALUE: true	 === ???
 			VALUE: true && (j_3728_3844___7 == 0 && 0 <= index_3815_98_3815_3830___8)	 === true
@@ -303,20 +303,20 @@ test\escTraceLoops\trace.java:170:  	UndefinedNullDeReference assertion: !(true 
 			VALUE: a_3711 != null	 === true
 			VALUE: !(true && (j_3728_3844___7 == 0 && 0 <= index_3815_98_3815_3830___8) && a_3711 != null) || a_3711 != null	 === true
 test\escTraceLoops\trace.java:171:  	Loop test
-			VALUE: \index	 === 8098
+			VALUE: \count	 === 8098
 			VALUE: _JML__tmp99	 === 8099
-			VALUE: \index < _JML__tmp99	 === true
+			VALUE: \count < _JML__tmp99	 === true
  	//if...
 test\escTraceLoops\trace.java:171:  	Begin loop body
 test\escTraceLoops\trace.java:172:  	j += 1
 			VALUE: 1	 === 1
 			VALUE: j += 1	 === 1
-test\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+test\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \count && \count <= a.length;
 			VALUE: j	 === ???
 			VALUE: 0	 === ???
 			VALUE: j == 0	 === ???
-			VALUE: j == 0 && 0 <= \index	 === ???
-			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === ???
+			VALUE: j == 0 && 0 <= \count	 === ???
+			VALUE: j == 0 && 0 <= \count && \count <= a.length	 === ???
 test\escTraceLoops\trace.java:170:  	UndefinedNullDeReference assertion: !(true && (j == 0 && 0 <= index_3815_98) && a != null) || a != null
 			VALUE: true	 === ???
 			VALUE: true && (j == 0 && 0 <= index_3815_98)	 === false

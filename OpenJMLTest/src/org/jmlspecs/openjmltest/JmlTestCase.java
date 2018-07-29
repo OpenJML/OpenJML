@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.URI;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -56,7 +57,8 @@ import com.sun.tools.javac.util.Options;
  */
 public abstract class JmlTestCase {
 
-    public final static String specsdir = System.getenv("SPECSDIR");
+    // This value is for running tests, so we can presume the current directory is .../OpenJML/OpenJMLTest
+    public final static String specsdir = System.getenv("SPECSDIR") != null ? System.getenv("SPECSDIR") : Paths.get("../../Specs").toAbsolutePath().toString();
 
     static protected boolean isWindows = System.getProperty("os.name").contains("Wind");
 
@@ -65,6 +67,8 @@ public abstract class JmlTestCase {
     static protected String root = new File(".").getAbsoluteFile().getParentFile().getParentFile().getParent();
     
     protected boolean ignoreNotes = false;
+    
+    public OutputCompare outputCompare = new OutputCompare();
 
     /** This is here so we can get the name of a test, using name.getMethodName() */
     @Rule public TestName name = new TestName();
@@ -212,14 +216,14 @@ public abstract class JmlTestCase {
      */
     @Before
     public void setUp() throws Exception {
-        main = new Main("",new PrintWriter(System.out, true),!noCollectDiagnostics?collector:null,null);
+        main = new Main("",new PrintWriter(System.out, true),!noCollectDiagnostics?collector:null, null,
+        		"-properties", "../OpenJML/openjml.properties");
         context = main.context();
         options = Options.instance(context);
         if (jmldebug) {  // FIXME - this is not the right way to set debugging
             Utils.instance(context).jmlverbose = Utils.JMLDEBUG; 
             main.addOptions("-jmlverbose", "4");
         }
-        main.addOptions("-properties", "../OpenJML/openjml.properties");
         print = false;
         mockFiles = new LinkedList<JavaFileObject>();
         Log.instance(context).multipleErrors = true;
@@ -244,7 +248,7 @@ public abstract class JmlTestCase {
      * @param dd the diagnostic
      * @return
      */
-    protected String noSource(Diagnostic<? extends JavaFileObject> dd) {
+    static protected String noSource(Diagnostic<? extends JavaFileObject> dd) {
         return dd instanceof JCDiagnostic ? noSource((JCDiagnostic)dd) : dd.toString();
     }
 
@@ -325,6 +329,10 @@ public abstract class JmlTestCase {
     protected String actualErr;
     protected String actualOut;
 
+    /** Manages the capturing of output to System.out and System.err; call with argument=true to start
+     * capturing; all with the argument=false to stop capturing, at which point with Strings actualOut 
+     * and actualErr will contain the collected output (access them through output() and errorOutput() ).
+     */
     public void collectOutput(boolean collect) {
         if (collect) {
             actualOut = null;
@@ -345,7 +353,9 @@ public abstract class JmlTestCase {
         }
     }
     
+    /** Returns the standard-out output; valid once collectOutput(false) has been called. */
     public String output() { return actualOut; }
+    /** Returns the standard-err output; valid once collectOutput(false) has been called. */
     public String errorOutput() { return actualErr; }
 
 
@@ -366,13 +376,15 @@ public abstract class JmlTestCase {
      */
     protected void addMockJavaFile(String filename, /*@ non_null */String content) {
         try {
-            addMockJavaFile(filename,new TestJavaFileObject(new URI("file:///" + filename),content));
+            addMockFile(filename,new TestJavaFileObject(new URI("file:///" + filename),content));
         } catch (Exception e) {
             fail("Exception in creating a URI: " + e);
         }
     }
-
-    /** Used to add a pseudo file to the command-line.
+    
+    /** Used to add a pseudo file to the file system. Note that for testing, a 
+     * typical filename given here might be #B/A.java, where #B denotes a 
+     * mock directory on the specification path
      * @param filename the name of the file, including leading directory components 
      * @param file the JavaFileObject to be associated with this name
      */
@@ -382,171 +394,11 @@ public abstract class JmlTestCase {
 
     
     /** Returns the diagnostic message without source location information */
-    String noSource(JCDiagnostic dd) {
+    static String noSource(JCDiagnostic dd) {
         return dd.noSource();
     }
 
 
-    /** Compares two files, returning null if the same; returning a String of
-     * explanation if they are different.
-     */
-    public String compareFiles(String expected, String actual) {
-        BufferedReader exp = null,act = null;
-        String diff = "";
-        try {
-            exp = new BufferedReader(new FileReader(expected));
-            act = new BufferedReader(new FileReader(actual));
-            
-            boolean same = true;
-            int line = 0;
-            while (true) {
-                line++;
-                String sexp = exp.readLine();
-                if (sexp != null) sexp = sexp.replace("\r\n", "\n");
-                String sact = act.readLine();
-                if (sact != null) sact = sact.replace("\r\n", "\n");
-                while (ignoreNotes && sact != null && sact.startsWith("Note: ")) {
-                	sact = act.readLine();
-                }
-                if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
-            	while (ignoreNotes && sexp != null && sexp.startsWith("Note: ")) {
-            		sexp = exp.readLine();
-                    if (sexp != null) sexp = sexp.replace("\r\n", "\n");
-            	}
-                if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
-                if (sexp != null && sact == null) {
-                	if (sexp == null) {
-                		return diff.isEmpty() ? null : diff;
-                	} else {
-                		diff += ("Less actual input than expected" + eol);
-                		return diff;
-                	}
-                }
-                if (sexp == null && sact != null) {
-                    diff += ("More actual input than expected" + eol);
-                    return diff;
-                }
-                sexp = sexp.replace("$ROOT",root);
-                String env = System.getenv("SPECSDIR");
-                if (env == null) System.out.println("The SPECSDIR environment variable is required to be set for testing");
-                else sexp = sexp.replace("$SPECS", env);
-                if (!sexp.equals(sact) && !sexp.replace('\\','/').equals(sact.replace('\\','/'))) {
-                    diff += ("Lines differ at " + line + eol)
-                            + ("EXP: " + sexp + eol)
-                            + ("ACT: " + sact + eol);
-                }
-            }
-        } catch (FileNotFoundException e) {
-            diff += ("No expected file found: " + expected + eol);
-        } catch (Exception e) {
-            diff += ("Exception on file comparison" + eol);
-        } finally {
-            try {
-                if (exp != null) exp.close();
-                if (act != null) act.close();
-            } catch (Exception e) {}
-        }
-        return diff.isEmpty() ? null : diff;
-    }
-    
-    public void compareFileToMultipleFiles(String actualFile, String dir, String root) {
-        String diffs = "";
-        for (String f: new File(dir).list()) {
-            if (!f.contains(root)) continue;
-            diffs = compareFiles(dir + "/" + f, actualFile);
-            if (diffs == null) break;
-        }
-        if (diffs != null) {
-            if (diffs.isEmpty()) {
-                fail("No expected output file");
-            } else {
-                System.out.println(diffs);
-                fail("Unexpected output: " + diffs);
-            }
-        } else {
-            new File(actualFile).delete();
-        }
-    }
-
-    public void compareTextToMultipleFiles(String output, String dir, String root, String actualLocation) {
-        String diffs = "";
-        for (String f: new File(dir).list()) {
-            if (!f.contains(root)) continue;
-            diffs = compareText(dir + "/" + f,output);
-            if (diffs == null) break;
-        }
-        if (diffs != null) {
-            try (BufferedWriter b = new BufferedWriter(new FileWriter(actualLocation));) {
-                b.write(output);
-            } catch (IOException e) {
-                fail("Failure writing output");
-            }
-            if (diffs.isEmpty()) {
-                fail("No expected output file");
-            } else {
-                System.out.println(diffs);
-                fail("Unexpected output: " + diffs);
-            }
-        } else {
-            new File(actualLocation).delete();
-        }
-    }
-
-    /** Compares a file to an actual String (ignoring difference kinds of 
-     * line separators); returns null if they are the same, returns the
-     * explanation string if they are different.
-     */
-    public String compareText(String expectedFile, String actual) {
-        String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
-        BufferedReader exp = null;
-        String[] lines = actual.split(term,-1); // -1 so we do not discard empty lines
-        String diff = "";
-        try {
-            exp = new BufferedReader(new FileReader(expectedFile));
-            
-            boolean same = true;
-            int line = 0;
-            while (true) {
-                line++;
-                String sexp = exp.readLine();
-                if (sexp == null) {
-                    if (line == lines.length) return diff.isEmpty() ? null : diff;
-
-                    else {
-                        diff += ("More actual input than expected" + eol);
-                        return diff;
-                    }
-                }
-                if (line > lines.length) {
-                    diff += ("Less actual input than expected" + eol);
-                    return diff;
-                }
-                sexp = sexp.replace("$ROOT",root);
-                String env = System.getenv("SPECSDIR");
-                if (env == null) System.out.println("The SPECSDIR environment variable is required to be set for testing");
-                else sexp = sexp.replace("$SPECS", env);
-                String sact = lines[line-1];
-                if (sexp.equals(sact)) {
-                    // OK
-                } else if (sexp.replace('\\','/').equals(sact.replace('\\','/'))) {
-                    // OK
-                } else {
-                    diff += ("Lines differ at " + line + eol)
-                            + ("EXP: " + sexp + eol)
-                            + ("ACT: " + sact + eol);
-                }
-            }
-        } catch (FileNotFoundException e) {
-            diff += ("No expected file found: " + expectedFile + eol);
-        } catch (Exception e) {
-            diff += ("Exception on file comparison" + eol);
-        } finally {
-            try {
-                if (exp != null) exp.close();
-            } catch (Exception e) {}
-        }
-        return diff.isEmpty() ? null : diff;
-    }
 }
 
 

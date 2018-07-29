@@ -6,10 +6,10 @@ public class Pair<T> {
       @ ensures first == fst && second == snd; @*/
     public Pair(T fst, T snd) { first = fst; second = snd; }
 
-    /*@ ensures \result == first; @*/
-    public /*@ pure @*/ T getFirst() { return first;
+    /*@ ensures \result == first; pure @*/
+    public T getFirst() { return first;
     }
-    /*@ ensures \result == second; @*/
+    /*@ ensures \result == second; pure @*/
     public T getSecond() { return second;
     }
     /*@ public model_program { 

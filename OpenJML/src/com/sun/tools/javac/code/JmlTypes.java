@@ -1,3 +1,8 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ * Reviewed: 2018-03-13
+ */
 package com.sun.tools.javac.code;
 
 import java.util.HashMap;
@@ -89,6 +94,7 @@ public class JmlTypes extends Types {
         enterBinop("<=", BIGINT, BIGINT, syms.booleanType);
         enterBinop(">=", BIGINT, BIGINT, syms.booleanType);
         
+        enterUnop("+++", BIGINT, BIGINT); // unary plus // These operators are those used also in Symtab
         enterUnop("---", BIGINT, BIGINT); // unary minus
         enterUnop("++", BIGINT, BIGINT);
         enterUnop("--", BIGINT, BIGINT);
@@ -99,7 +105,9 @@ public class JmlTypes extends Types {
         enterBinop("/", BIGINT, BIGINT, BIGINT);
         enterBinop("%", BIGINT, BIGINT, BIGINT);
         
-        // FIXME - shift operators???
+        enterBinop("<<", BIGINT, BIGINT, BIGINT);
+        enterBinop(">>", BIGINT, BIGINT, BIGINT);
+        enterBinop(">>>", BIGINT, BIGINT, BIGINT);
 
         enterBinop("==", REAL, REAL, syms.booleanType);
         enterBinop("!=", REAL, REAL, syms.booleanType);
@@ -108,6 +116,7 @@ public class JmlTypes extends Types {
         enterBinop("<=", REAL, REAL, syms.booleanType);
         enterBinop(">=", REAL, REAL, syms.booleanType);
 
+        enterUnop("+++", REAL, REAL); // unary plus // These operators are those used also in Symtab
         enterUnop("---", REAL, REAL); // unary minus
         enterUnop("++", REAL, REAL);
         enterUnop("--", REAL, REAL);
@@ -127,7 +136,16 @@ public class JmlTypes extends Types {
         return super.isSameType(t, s);
     }
     
+    /** Returns true if t and s are the same type or t is the repType of a JML type s */
+    public boolean isSameTypeOrRep(Type t, Type s) {
+        if (t == s) return true;
+        if (t instanceof JmlType && repSym(((JmlType)t)) == s.tsym) return true;
+        if (t instanceof JmlType || s instanceof JmlType) return false;
+        return super.isSameType(t, s);
+    }
+    
     /** Overrides Types.disjointType with functionality for JML primitive types. */
+    // FIXME - this is not a correct implementation given the comment on the overridden method
     @Override
     public boolean disjointType(Type t, Type s) {
         boolean bt = t instanceof JmlType;
@@ -181,9 +199,11 @@ public class JmlTypes extends Types {
     /** Overrides Types.isSubtypeUnchecked with functionality for JML primitive types. */
     @Override
     public boolean isSubtypeUnchecked(Type t, Type s, Warner warn) {
+        if (t == s) return true;
         if (s instanceof JmlType) {
             if (s == BIGINT) return isIntegral(t);
-            if (s == REAL) return isNumeric(t);
+            else if (s == REAL) return isNumeric(t);
+            else return false;
         }
         return super.isSubtypeUnchecked(t, s, warn);
     }
@@ -211,6 +231,7 @@ public class JmlTypes extends Types {
     @Override
     public boolean isSubtype(Type t, Type s, boolean capture) {
         if (t == s) return true;
+        // FIXME - don't think this is correct, e.g. int is a subtype of \bigint??
         if (t instanceof JmlType || s instanceof JmlType) return false;
         return super.isSubtype(t, s, capture);
     }
@@ -220,6 +241,7 @@ public class JmlTypes extends Types {
     public boolean containsType(Type t, Type s) {
         if (t == s) return true;
         if (t instanceof JmlType || s instanceof JmlType) return false;
+        // FIXME - don't think this is correct, e.g. int is a subtype of \bigint??
         return super.containsType(t, s);
     }
     
@@ -309,20 +331,35 @@ public class JmlTypes extends Types {
         return t.repSym;
     }
     
-    /** Returns true if the given type is a JML primitive type. */
+    /** Returns true if the given type is any JML primitive type. */
     public boolean isJmlType(Type t) {
         return t.getTag() == TypeTag.NONE || t.getTag() == TypeTag.UNKNOWN;  // FIXME - needs review
     }
     
-    /** Returns true if the given type is a JML primitive type. */
+    /** Returns true if the given type is the representation of any JML primitive type. */
     public boolean isJmlRepType(Type t) {
         return t.tsym == BIGINT.repSym || t.tsym == REAL.repSym || t.tsym == TYPE.repSym; // TODO - avoid having to list JML types
+    }
+    
+    /** Returns true if the given type is any JML primitive type or its representation. */
+    public boolean isJmlTypeOrRepType(Type t) {
+        return isJmlType(t) || isJmlRepType(t);
+    }
+    
+    /** Returns true if the given type is equal to target or its representation. */
+    public boolean isJmlTypeOrRep(Type t, JmlType target) {
+        return t == target || t.tsym == repSym(target);
     }
     
     /** Returns true if the given token is the token for a JML primitive type. */
     public boolean isJmlTypeToken(JmlTokenKind t) {
         return jmltypes.get(t) != null;
     }
-
+    
+    /** Returns true iff the type is a JMLDataGroup. A field that is a model field and thereby a data group does not qualify. */
+    public boolean isOnlyDataGroup(Type t) {
+        // Careful: t can be something like (@org.jmlspecs.annotation.NonNull :: org.jmlspecs.lang.JMLDataGroup)
+        return t.toString().contains("JMLDataGroup"); // FIXME - implement a better way
+    }
 
 }

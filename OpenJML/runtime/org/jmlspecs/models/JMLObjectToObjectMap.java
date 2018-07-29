@@ -65,7 +65,7 @@ import java.util.Enumeration;
  * @see JMLValueToValueMap
  * @see JMLObjectToObjectRelation#toFunction()
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/
 // FIXME: adapt this file to non-null-by-default and remove the following modifier.
 /*@ nullable_by_default @*/ 

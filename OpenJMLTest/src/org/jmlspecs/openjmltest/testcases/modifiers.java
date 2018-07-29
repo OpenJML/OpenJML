@@ -1,4 +1,5 @@
 package org.jmlspecs.openjmltest.testcases;
+import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.*;
 
@@ -919,6 +920,7 @@ public class modifiers extends TCBase {
                 "  //@ public also behavior requires true;\n" +
                 "  void m() {} }"
                 ,"/A.java:2: No modifiers are allowed prior to a also token",7
+                ,"/A.java:2: warning: Method m does not override parent class methods and so its specification may not begin with 'also'",19
                 );
     }
      
@@ -927,6 +929,7 @@ public class modifiers extends TCBase {
                 "  //@ pure also behavior requires true;\n" +
                 "  void m() {} }"
                 ,"/A.java:2: No modifiers are allowed prior to a also token",7
+                ,"/A.java:2: warning: Method m does not override parent class methods and so its specification may not begin with 'also'",17
                 );
     }
      
@@ -1158,6 +1161,8 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testAnnotations1() {
+    	JmlPretty.useJmlModifier = false;
+    	JmlPretty.useFullAnnotationTypeName = false;
         addMockFile("$A/A.jml","  public class A {}");
         expectedExit = 0;
         helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +

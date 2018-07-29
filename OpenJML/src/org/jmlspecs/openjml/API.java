@@ -96,8 +96,8 @@ public class API implements IAPI {
     /** The listener for diagnostic messages */
     protected DiagnosticListener<? extends JavaFileObject> diagListener = null;
     
-    /** The listener for proof results */
-    protected IProofResultListener proofResultListener;
+//    /** The listener for proof results */
+//    protected IProofResultListener proofResultListener;
     
 
     /** Creates a new compilation context, initialized with given command-line options;
@@ -152,16 +152,19 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#setProgressReporter(org.jmlspecs.openjml.Main.IProgressReporter)
      */
     @Override
-    public void setProgressListener(@Nullable Main.IProgressListener p) {
-        if (main.progressDelegate != null) {
+    public void setProgressListener(/*@ nullable */ Main.IProgressListener p) {
+        if (main.progressDelegator != null) {
             p.setContext(context());
-            main.progressDelegate.setDelegate(p);
+            Main.progressListener = () -> p;
         }
     }
     
+    IProofResultListener prl;
+    
     @Override 
-    public void setProofResultListener(@Nullable IProofResultListener p) {
-    	proofResultListener = p;
+    public IProofResultListener setProofResultListener(@Nullable IProofResultListener p) {
+    	prl = p;
+    	return context().get(IProofResultListener.class).setListener(p);
     }
     
     /** Returns the string describing the version of OpenJML that is this
@@ -204,12 +207,18 @@ public class API implements IAPI {
         return Options.instance(context()).get(name);
     }
     
+    // Expected to be called in a different thread
+    @Override
+    public void abort() {
+       if (main != null) JmlEsc.instance(main.context()).abort();
+    }
+    
     /* (non-Javadoc)
      * @see org.jmlspecs.openjml.IAPI#execute(Options, String[])
      */
     @Override
     public int execute(@Nullable Options options, @NonNull String ... args) {
-        int ret = main.executeNS(main.out(), diagListener, proofResultListener, options, args);
+        int ret = main.executeNS(main.out(), diagListener, prl, options, args);
         return ret;
     }
     
@@ -218,7 +227,7 @@ public class API implements IAPI {
      */
     @Override
     public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @Nullable Options options, @NonNull String ... args) {
-        int ret = main.executeNS(writer,diagListener, proofResultListener, options,args);
+        int ret = main.executeNS(writer,diagListener, options,args);
         return ret;
     }
     
@@ -242,6 +251,12 @@ public class API implements IAPI {
         if (csym == null) return false;
         return isTypechecked(csym);
     }
+    
+    @Override
+    public void clearTypes(Collection<? extends JCCompilationUnit> trees) {
+        //for (JCCompilationUnit t: trees) new JmlClearTypes(context).scan(t);
+    }
+
 
     /* (non-Javadoc)
      * @see org.jmlspecs.openjml.IAPI#enterAndCheck(org.jmlspecs.openjml.JmlTree.JmlCompilationUnit[])
@@ -310,7 +325,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#parseFiles(java.io.File[])
      */
     @Override
-    public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull File... files) {
+    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(@NonNull File... files) {
         JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context());
         Log log = Log.instance(context());
         c.inSequence = false;
@@ -327,7 +342,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#parseFiles(String[])
      */
     @Override
-    public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull String... filenames) {
+    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(@NonNull String... filenames) {
         File[] files = new File[filenames.length];
         for (int i=0; i<filenames.length; i++) {
             files[i] = new File(filenames[i]);
@@ -339,7 +354,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#parseFiles(javax.tools.JavaFileObject[])
      */
     @Override
-    public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull JavaFileObject... inputs) {
+    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(@NonNull JavaFileObject... inputs) {
         JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context());
         c.inSequence = false;
         ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
@@ -352,7 +367,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#parseFiles(java.util.Collection)
      */
     @Override
-    public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull Collection<? extends JavaFileObject> inputs) {
+    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(@NonNull Collection<? extends JavaFileObject> inputs) {
         JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context());
         c.inSequence = false;
         ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
@@ -789,24 +804,18 @@ public class API implements IAPI {
         	public IProofResultListener chained;
         	public IProverResult result; 
         	public void reportProofResult(MethodSymbol msym, IProverResult result) { 
+                if (result.result() == IProverResult.COMPLETED) return;
+                if (result.result() == IProverResult.RUNNING) return;
         		this.result = result; 
         		if (chained != null) chained.reportProofResult(msym, result);
         	}
         };
-        IProofResultListener p = proofResultListener;
+        
+        IProofResultListener p = setProofResultListener(null);
         L l = new L(p);
         setProofResultListener(l);
-//        L l;
-//        if (!(p instanceof L)) {
-//        	main().proofResultListener = l = new L(p);
-//        	main().context().put(IAPI.IProofResultListener.class, l);
-//        } else {
-//        	l = (L)p;
-//        }
         esc.check(decl);
         setProofResultListener(p);
-//        main().context().put(IAPI.IProofResultListener.class, p);
-//        main().proofResultListener = p;
         return l.result; 
     }
     
@@ -819,7 +828,6 @@ public class API implements IAPI {
 //        mostRecentProofMethod = null;
 //        mostRecentProgram = null;
         JmlClassDecl decl = getClassDecl(csym);
-        main().proofResultListener = proofResultListener;
         JmlEsc.instance(context()).check(decl);
     }
     
@@ -911,7 +919,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#getSpecs(com.sun.tools.javac.code.Symbol.MethodSymbol)
      */
     @Override
-    public @NonNull JmlSpecs.MethodSpecs getSpecs(@NonNull MethodSymbol sym) {
+    public /*@ non_null */ JmlSpecs.MethodSpecs getSpecs(@NonNull MethodSymbol sym) {
         return JmlSpecs.instance(context()).getSpecs(sym);
     }
     
@@ -956,7 +964,7 @@ public class API implements IAPI {
     //@ requires isOpen;
     //@ ensures isOpen;
     @Override
-    public @NonNull JmlTree.Maker nodeFactory() {
+    public /*@ non_null */ JmlTree.Maker nodeFactory() {
         JmlAttr.instance(context());  // Avoids circular tool registration problems
         return JmlTree.Maker.instance(context());
     }
@@ -992,7 +1000,7 @@ public class API implements IAPI {
     //@ requires isOpen;
     //@ ensures isOpen;
     @Override
-    public @NonNull String prettyPrint(@NonNull java.util.List<? extends JCTree> astlist, @NonNull String sep) throws java.io.IOException {
+    public @NonNull String prettyPrint(/*@ non_null */ java.util.List<? extends JCTree> astlist, @NonNull String sep) throws java.io.IOException {
         StringWriter s = new StringWriter();
         boolean isFirst = true;
         for (JCTree ast: astlist) {

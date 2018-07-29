@@ -110,6 +110,7 @@ public class racnew3 extends RacBase {
     
     @Test
     public void testCast() {
+        main.addOptions("-code-math=safe","-spec-math=safe");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -187,7 +188,6 @@ public class racnew3 extends RacBase {
 
     @Test
     public void testCast1() {
-    	//main.addOptions("-show","-method=m0");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -298,7 +298,7 @@ public class racnew3 extends RacBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also assignable TestJava.flag;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
                 +"    }\n"
@@ -332,7 +332,7 @@ public class racnew3 extends RacBase {
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
                 +"       /*@ pure */ public RR(){}\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also assignable TestJava.flag;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 10;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
@@ -366,7 +366,7 @@ public class racnew3 extends RacBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also assignable TestJava.flag;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
@@ -400,13 +400,13 @@ public class racnew3 extends RacBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ public normal_behavior\n"
+                +"       //@ also public normal_behavior\n"
                 +"       //@ assignable TestJava.flag;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
                 +"    }\n"
                 +"    public static class RR2 implements AutoCloseable {\n"
-                +"       //@ public normal_behavior\n"
+                +"       //@ also public normal_behavior\n"
                 +"       //@ assignable TestJava.flag;\n"
                 +"       //@ ensures TestJava.flag == 2;\n"
                 +"       public void close() { TestJava.flag = 2; }\n"
@@ -445,7 +445,7 @@ public class racnew3 extends RacBase {
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
                 +"       /*@ public normal_behavior ensures true; */ public RR() {}\n"
-                +"       //@ public exceptional_behavior\n"
+                +"       //@ also public exceptional_behavior\n"
                 +"       //@ assignable TestJava.flag;\n"
                 +"       //@ signals_only EE1;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 1;\n"
@@ -453,7 +453,7 @@ public class racnew3 extends RacBase {
                 +"    }\n"
                 +"    public static class RR2 implements AutoCloseable {\n"
                 +"       /*@ public normal_behavior ensures true; */ public RR2() {}\n"
-                +"       //@ public exceptional_behavior\n"
+                +"       //@ also public exceptional_behavior\n"
                 +"       //@ assignable TestJava.flag;\n"
                 +"       //@ signals_only EE2;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 2;\n"
@@ -462,10 +462,10 @@ public class racnew3 extends RacBase {
                 
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
-                +"  public static void mmm() {\n"  // Line 26
+                +"  public static void mmm(boolean b) {\n"  // Line 26
                 +"    //@ assert TestJava.flag == 0;\n"
                 +"    try {\n"
-                +"      try (RR rr = new RR()){\n"
+                +"      if (b) try (RR rr = new RR()){\n"
                 +"       flag = 3; \n"
                 +"       //@ assert TestJava.flag == 3;\n"
                 +"       throw new EE3();\n"
@@ -479,7 +479,7 @@ public class racnew3 extends RacBase {
                 +"  }\n"
 
                 +"  public static void main(String ... args) {\n"
-                +"    mmm();\n" 
+                +"    mmm(true);\n" 
                 +"  }\n"
                  
                 +"}"
@@ -499,7 +499,7 @@ public class racnew3 extends RacBase {
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
                 +"       /*@ public normal_behavior ensures true; */ public RR() {}\n"
-                +"       //@ public exceptional_behavior\n"
+                +"       //@ also public exceptional_behavior\n"
                 +"       //@ assignable TestJava.flag;\n"
                 +"       //@ signals_only EE1;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 1;\n"
@@ -507,7 +507,7 @@ public class racnew3 extends RacBase {
                 +"    }\n"
                 +"    public static class RR2 implements AutoCloseable {\n"
                 +"       /*@ public normal_behavior ensures true; */ public RR2() {}\n"
-                +"       //@ public exceptional_behavior\n"
+                +"       //@ also public exceptional_behavior\n"
                 +"       //@ assignable TestJava.flag;\n"
                 +"       //@ signals_only EE2;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 2;\n"
@@ -516,10 +516,10 @@ public class racnew3 extends RacBase {
                 
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
-                +"  public static void mmm() {\n"  // Line 26
+                +"  public static void mmm(boolean b) {\n"  // Line 26
                 +"    //@ assert TestJava.flag == 0;\n"
                 +"    try {\n"
-                +"      try (RR2 r = new RR2(); RR rr = new RR()){\n"
+                +"      if (b) try (RR2 r = new RR2(); RR rr = new RR()){\n"
                 +"       flag = 3; \n"
                 +"       //@ assert TestJava.flag == 3;\n"
                 +"       throw new EE3();\n"
@@ -533,7 +533,7 @@ public class racnew3 extends RacBase {
                 +"  }\n"
 
                 +"  public static void main(String ... args) {\n"
-                +"    mmm();\n" 
+                +"    mmm(true);\n" 
                 +"  }\n"
                  
                 +"}"
@@ -543,7 +543,6 @@ public class racnew3 extends RacBase {
     
     // Checks the class of the resulting exception when close calls throw exceptions, but not the try body
     @Test public void testTryResources2a() {
-    	main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
@@ -552,7 +551,7 @@ public class racnew3 extends RacBase {
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
                 +"       /*@ public normal_behavior ensures true; */ public RR() {}\n"
-                +"       //@ public exceptional_behavior\n"
+                +"       //@ also public exceptional_behavior\n"
                 +"       //@ assignable TestJava.flag;\n"
                 +"       //@ signals_only EE1;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 1;\n"
@@ -560,7 +559,7 @@ public class racnew3 extends RacBase {
                 +"    }\n"
                 +"    public static class RR2 implements AutoCloseable {\n"
                 +"       /*@ public normal_behavior ensures true; */ public RR2() {}\n"
-                +"       //@ public exceptional_behavior\n"
+                +"       //@ also public exceptional_behavior\n"
                 +"       //@ assignable TestJava.flag;\n"
                 +"       //@ signals_only EE2;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 2;\n"
@@ -597,7 +596,7 @@ public class racnew3 extends RacBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ public normal_behavior\n"
+                +"       //@ also public normal_behavior\n"
                 +"       //@ assignable TestJava.flag;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
@@ -630,7 +629,7 @@ public class racnew3 extends RacBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ public normal_behavior\n"
+                +"       //@ also public normal_behavior\n"
                 +"       //@ assignable TestJava.flag;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
@@ -665,7 +664,7 @@ public class racnew3 extends RacBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ public normal_behavior\n"
+                +"       //@ also public normal_behavior\n"
                 +"       //@ assignable TestJava.flag;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
@@ -698,7 +697,7 @@ public class racnew3 extends RacBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also assignable TestJava.flag;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
                 +"    }\n"
@@ -731,7 +730,7 @@ public class racnew3 extends RacBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ public normal_behavior\n"
+                +"       //@ also public normal_behavior\n"
                 +"       //@ assignable TestJava.flag;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
@@ -765,7 +764,7 @@ public class racnew3 extends RacBase {
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
-                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ also assignable TestJava.flag;\n"
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
                 +"    }\n"

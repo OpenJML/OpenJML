@@ -3,7 +3,7 @@ package org.jmlspecs.openjml.utils;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.proverinterface.ProverException;
 
-/** This class interface the Java functionality to spawn external processes, 
+/** This is an interface to the Java functionality to spawn external processes, 
  * reading the external process's output and error
  * streams. There are two ways to use this class.
  * <P>
