@@ -16139,8 +16139,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         java.util.List<Pair<MethodSymbol,Type>> methods = new LinkedList<Pair<MethodSymbol,Type>>();
         if (utils.isJMLStatic(m)) {
             methods.add(pair(m,m.owner.type)); 
-        } else if (m.toString().contains("toString")) {  // FIXME - experimental not inherit
-            methods.add(pair(m,m.owner.type)); 
+//        } else if (m.toString().contains("toString")) {  // FIXME - experimental not inherit
+//            methods.add(pair(m,m.owner.type)); 
         } else {
             for (ClassSymbol csym: utils.parents(classType.tsym, true)) {
                 for (Symbol mem: csym.getEnclosedElements()) {
