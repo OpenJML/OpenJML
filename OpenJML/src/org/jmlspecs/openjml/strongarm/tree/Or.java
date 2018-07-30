@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
 
-import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -84,8 +83,8 @@ public class Or<T extends JCExpression> extends Prop<T> implements Cloneable, IP
         lhs = JDKListUtils.sort(lhs, new ContractComparator());
         rhs = JDKListUtils.sort(rhs, new ContractComparator());
         
-        JmlSpecificationCase case1 = M.JmlSpecificationCase(null, false, null, null, lhs);
-        JmlSpecificationCase case2 = M.JmlSpecificationCase(null, false, null, null, rhs);
+        JmlSpecificationCase case1 = M.JmlSpecificationCase(null, false, null, null, lhs, null);
+        JmlSpecificationCase case2 = M.JmlSpecificationCase(null, false, null, null, rhs, null);
         
         JmlMethodClauseGroup group = M.JmlMethodClauseGroup(List.of(case1, case2));
         

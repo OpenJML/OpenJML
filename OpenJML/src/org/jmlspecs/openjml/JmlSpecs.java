@@ -338,6 +338,7 @@ public class JmlSpecs {
         // differently in development vs. deployed mode
         
         // This option applies for running the IDE in the development environment
+       
         Bundle specs = Platform.getBundle("org.jmlspecs.Specs");
         if (specs != null) {
         	String pp = specs.getLocation();

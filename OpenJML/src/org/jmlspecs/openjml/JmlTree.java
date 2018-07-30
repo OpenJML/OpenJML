@@ -709,7 +709,7 @@ public class JmlTree implements IJmlTree {
         public JmlModelProgramStatement JmlModelProgramStatement(JCTree item) {
             return new JmlModelProgramStatement(pos, item);
         }
-
+        
         @Override
         public JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlTokenKind t, JmlTokenKind also, List<JmlMethodClause> clauses, JCBlock block) {
             JmlSpecificationCase jcase = new JmlSpecificationCase(pos,mods,code,t,also,clauses,block);

@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;

@@ -157,7 +157,8 @@ public class FeasibilityCheckerSMT extends MethodProverSMT {
         // SMT abstractions and forwards all informational and error messages
         // to the OpenJML log mechanism
         smt.smtConfig.log.addListener(new SMTListener(log,smt.smtConfig.defaultPrinter));
-        SMTTranslator smttrans = getTranslator(context, methodDecl.sym.toString()); 
+        SMTTranslator smttrans = getTranslator(context, methodDecl.sym.toString());
+
         
         ISolver solver =null;
         
@@ -182,7 +183,7 @@ public class FeasibilityCheckerSMT extends MethodProverSMT {
     
                 // convert the basic block form to SMT
                 try {
-                    script = smttrans.convert(program,smt);
+                    script = new SMTTranslator(context, methodDecl.sym.toString()).convert(program,smt,true);
                     if (printPrograms) {
                         try {
                             log.getWriter(WriterKind.NOTICE).println(Strings.empty);

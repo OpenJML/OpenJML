@@ -10001,9 +10001,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     checkCompatibleSpecs((JCLambda)rhs,rhs.type);
                 } else {
                     JCExpression e = treeutils.makeNeqObject(that.pos, rhs, treeutils.nullLit);
+                    // FIXME - location of nnonnull declaration?
+                    addAssert(that, Label.POSSIBLY_NULL_ASSIGNMENT, e);
+                }
             }
-            
-            if(!infer){
+            if(!infer) {
                 checkAccess(JmlTokenKind.ASSIGNABLE, that, that.lhs, lhs, currentThisId, currentThisId);
                 checkRW(JmlTokenKind.WRITABLE,id.sym,currentThisExpr,id);
             }
@@ -10028,7 +10030,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (javaChecks) {
                     addAssert(that.lhs, Label.POSSIBLY_NULL_DEREFERENCE, e);
                 }
-                if(!infer){
+                if(!infer) {
                     checkRW(JmlTokenKind.WRITABLE,fa.sym,obj,fa);
                 }
 
@@ -10044,7 +10046,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // If the field is static, substitute the type tree
                 
                 JCExpression obj = treeutils.makeType(fa.getStartPosition(), fa.sym.owner.type);
-                if(!infer){
+                if(!infer) {
                     checkRW(JmlTokenKind.WRITABLE,fa.sym,obj,fa);
                 }
                 newfa = treeutils.makeSelect(that.pos, obj, fa.sym);
@@ -10067,7 +10069,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
 
             // FIXME _ use checkAssignable
-            if(!infer){
+            if(!infer) {
                 checkAccess(JmlTokenKind.ASSIGNABLE, that, fa, newfa, currentThisId, currentThisId); // FIXME - should the second argument be newfa?
             }
 //            for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
@@ -10108,9 +10110,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCArrayAccess newfaa = M.at(that.pos).Indexed(array,index);
             newfaa.setType(that.type);
             // FIXME - test this 
-            if(!infer){
+            if(!infer) {
                 checkAccess(JmlTokenKind.ASSIGNABLE, that, aa, newfaa, currentThisId, currentThisId);
-            }
+            }   
 //            for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
 //                JCExpression check = checkAssignable(aa,c,currentThisId.sym,currentThisId.sym);
 //                if (!treeutils.isTrueLit(check)) {
@@ -10161,8 +10163,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!(that.lhs instanceof JCIdent && ((JCIdent)that.lhs).sym.owner instanceof Symbol.MethodSymbol)) {
             changeState();
         }
-    }
-    
+    }    
     
     // OK
     @Override

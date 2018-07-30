@@ -209,7 +209,7 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
     
                 // convert the basic block form to SMT
                 try {
-                    script = smttrans.convert(program,smt);
+                    script = new SMTTranslator(context, methodDecl.sym.toString()).convert(program,smt,true);
                     if (printPrograms) {
                         try {
                             log.getWriter(WriterKind.NOTICE).println(Strings.empty);

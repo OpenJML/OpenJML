@@ -22,12 +22,6 @@ Export-Package: com.sun.tools.javac.comp,
  org.jmlspecs.utils
 Bundle-ClassPath: bin/,
  bin-runtime/
-<<<<<<< HEAD
-Import-Package: com.sun.tools.javac.parser,
- org.eclipse.core.runtime;version="3.4.0",
- org.jmlspecs.openjml,
- org.jmlspecs.openjml.strongarm.tree,
-=======
 Import-Package: com.sun.tools.javac.comp,
  com.sun.tools.javac.parser,
  org.eclipse.core.runtime;version="3.5.0",
