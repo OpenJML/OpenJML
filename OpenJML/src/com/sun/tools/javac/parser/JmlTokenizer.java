@@ -383,6 +383,8 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             if (jmlTokenKind == JmlTokenKind.NOWARN) {
                 scanNowarn(reader.bp);  // FIXME - I doubt this is working after the Java 8 merge
                 continue;
+            } else if (jmlTokenKind == JmlTokenKind.PRIMITIVE_TYPE) {
+                // finish and exit
             } else if (tk == TokenKind.STAR && reader.ch == '/'
                 && jmlcommentstyle == CommentStyle.BLOCK) {
                 // We're in a BLOCK comment and we scanned a * and the next

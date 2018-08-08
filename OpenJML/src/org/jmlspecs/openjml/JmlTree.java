@@ -27,8 +27,8 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.parser.JmlToken;
 import com.sun.tools.javac.parser.Tokens.ITokenKind;
-import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
@@ -115,7 +115,7 @@ public class JmlTree implements IJmlTree {
         JmlMethodInvocation JmlMethodInvocation(JmlTokenKind token, List<JCExpression> args);
         JmlMethodSpecs JmlMethodSpecs(List<JmlSpecificationCase> cases);
         JmlModelProgramStatement JmlModelProgramStatement(JCTree item);
-        JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt);
+        JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt, Name id);
         JmlQuantifiedExpr JmlQuantifiedExpr(JmlTokenKind token, List<JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression predicate);
         JmlSetComprehension JmlSetComprehension(JCTree.JCExpression type, JCTree.JCVariableDecl v, JCTree.JCExpression predicate);
         JmlSingleton JmlSingleton(JmlTokenKind jt);
@@ -387,14 +387,14 @@ public class JmlTree implements IJmlTree {
 
         /** Creates an expression for a JML type (such as \TYPE or \real or \bigint).*/
         @Override
-        public JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt) {
-            return new JmlPrimitiveTypeTree(pos,jt);
+        public JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt, Name id) {
+            return new JmlPrimitiveTypeTree(pos,jt,id);
         }
         
         @Override
         public JCExpression Type(Type t) {
             if (!(t instanceof JmlType)) return super.Type(t);
-            return new JmlPrimitiveTypeTree(pos,((JmlType)t).jmlTypeTag());
+            return new JmlPrimitiveTypeTree(pos,((JmlType)t).jmlTypeTag(), t.tsym.name); // FIXME - not sure this is right primitive types
         }
 
         
@@ -2309,15 +2309,17 @@ public class JmlTree implements IJmlTree {
     static public class JmlPrimitiveTypeTree extends JCTree.JCPrimitiveTypeTree {
         
         public JmlTokenKind token;
+        public Name typeName;
         
         /** The representation of this JML type when used in RAC */
         public JCExpression repType;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlPrimitiveTypeTree(int pos, JmlTokenKind token) {
+        protected JmlPrimitiveTypeTree(int pos, JmlTokenKind token, Name id) {
         	super(TypeTag.NONE);
             this.pos = pos;
             this.token = token;
+            this.typeName = id;
         }
         
         @Override

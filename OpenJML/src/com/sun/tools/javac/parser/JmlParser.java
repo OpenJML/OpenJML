@@ -892,7 +892,7 @@ public class JmlParser extends JavacParser {
     /** Returns true if the token is a JML type token */
     public boolean isJmlTypeToken(JmlTokenKind t) {
         return t == JmlTokenKind.BSTYPEUC || t == JmlTokenKind.BSBIGINT
-                || t == JmlTokenKind.BSREAL;
+                || t == JmlTokenKind.BSREAL || t == JmlTokenKind.PRIMITIVE_TYPE;
     }
 
     /** Parses a choose statement (the choose token is already read) */
@@ -2689,7 +2689,12 @@ public class JmlParser extends JavacParser {
         } else if (jt == JmlTokenKind.BSTYPEUC || jt == JmlTokenKind.BSBIGINT
                 || jt == JmlTokenKind.BSREAL) {
             JCPrimitiveTypeTree t = to(jmlF.at(pos())
-                    .JmlPrimitiveTypeTree(jt));
+                    .JmlPrimitiveTypeTree(jt,null));
+            nextToken();
+            return t;
+        } else if (jt == JmlTokenKind.PRIMITIVE_TYPE) {
+            JCPrimitiveTypeTree t = to(jmlF.at(pos())
+                    .JmlPrimitiveTypeTree(jt,ident()));
             nextToken();
             return t;
         } else {
@@ -2856,13 +2861,13 @@ public class JmlParser extends JavacParser {
         // itself. So if someone does write type arguments for a JML function
         // the code will fall into the super.term3() call and the token will not
         // be recognized - no chance for a nice error message.
-        if (token.kind == CUSTOM) {
+        if (token.kind == CUSTOM || jmlTokenKind() == JmlTokenKind.PRIMITIVE_TYPE) {
             JCExpression t;
             JmlTokenKind jt = jmlTokenKind();
             int p = pos(); // Position of the keyword
 
             if (isJmlTypeToken(jt)) {
-                t = to(jmlF.at(p).JmlPrimitiveTypeTree(jt));
+                t = to(jmlF.at(p).JmlPrimitiveTypeTree(jt,ident()));
                 nextToken();
                 // Could be just a type value
                 if (token.kind == TokenKind.DOT || token.kind == TokenKind.LBRACKET) {

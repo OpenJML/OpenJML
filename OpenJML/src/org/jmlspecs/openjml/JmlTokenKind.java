@@ -210,6 +210,7 @@ public enum JmlTokenKind implements ITokenKind {
     BSTYPEUC("\\TYPE"),
     BSREAL("\\real"),
     BSBIGINT("\\bigint"), // Keep this one the last of the backslash tokens
+    PRIMITIVE_TYPE("\\primitive"),
     
     // These are JML operators (in expressions)
     // Note that the jmloperators set relies on this ordering

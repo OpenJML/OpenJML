@@ -14373,7 +14373,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
-        result = eresult = M.at(that).JmlPrimitiveTypeTree(that.token).setType(that.type);
+        result = eresult = M.at(that).JmlPrimitiveTypeTree(that.token,that.typeName).setType(that.type);
     }
 
     /** Maps symbols declared in quantified and let statements to new symbols - needed because
