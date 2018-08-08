@@ -431,6 +431,7 @@ public class JmlEnter extends Enter {
             }
             if (c == null) {
                 if (!utils.isJML(specsClass.mods)) {
+                //if (!utils.isJML(specsClass.mods) && !specsClass.getSimpleName().toString().equals("Array")) {
                     // We have a Java declaration in the specs file that does not match an actual Java class.
                     // This is an error. We will ignore the declaration.
                     utils.error(specsClass.source(), specsClass.pos,

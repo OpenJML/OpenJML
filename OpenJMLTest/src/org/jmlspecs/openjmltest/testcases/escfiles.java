@@ -264,6 +264,12 @@ public class escfiles extends EscBase {
         helpTF("escArrayCopy");
     }
 
+    @Test
+    public void testArrayClone() {
+        expectedExit = 0;
+        helpTF("escClone");
+    }
+
 // FIXME - there is a problem with instantiating the model field or the getter functions, such that my_dollars differs from dollars()
     @Test  @Ignore
     public void testCashAmount() {
