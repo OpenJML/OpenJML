@@ -2,8 +2,10 @@ package org.jmlspecs.openjmltest.testcases;
 
 import java.util.Collection;
 
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
 import org.junit.runners.ParameterizedWithNames;
@@ -34,7 +36,33 @@ public class escoption extends EscBase {
         //print = true;
     }
  
-    
+    @Test
+    public void testOptionValue() {
+    	Assert.assertEquals(false,JmlOption.isOption(main.context(), JmlOption.STRICT));
+    	Assert.assertEquals("false",JmlOption.value(main.context(), JmlOption.STRICT));
+    	Assert.assertEquals(false,JmlOption.isOption(main.context(), "-strictJML"));
+    	Assert.assertEquals("false",JmlOption.value(main.context(), "-strictJML"));
+    	JmlOption.setOption(main.context(), JmlOption.STRICT, true);
+    	Assert.assertEquals(true,JmlOption.isOption(main.context(), JmlOption.STRICT));
+    	JmlOption.setOption(main.context(), JmlOption.STRICT, false);
+    	Assert.assertEquals(false,JmlOption.isOption(main.context(), JmlOption.STRICT));
+    	main.addOptions("-strictJML");
+    	Assert.assertEquals(true,JmlOption.isOption(main.context(), JmlOption.STRICT));
+    	main.addOptions("-no-strictJML");
+    	Assert.assertEquals(false,JmlOption.isOption(main.context(), JmlOption.STRICT));
+    	JmlOption.putOption(main.context(), JmlOption.STRICT);
+    	Assert.assertEquals(true,JmlOption.isOption(main.context(), JmlOption.STRICT));
+    	JmlOption.setOption(main.context(), JmlOption.STRICT, false);
+    	Assert.assertEquals(false,JmlOption.isOption(main.context(), JmlOption.STRICT));
+    	JmlOption.putOption(main.context(), JmlOption.STRICT, "true");
+    	Assert.assertEquals(true,JmlOption.isOption(main.context(), JmlOption.STRICT));
+    	JmlOption.putOption(main.context(), JmlOption.STRICT, "false");
+    	Assert.assertEquals(false,JmlOption.isOption(main.context(), JmlOption.STRICT));
+    	JmlOption.putOption(main.context(), JmlOption.STRICT, "");
+    	Assert.assertEquals(true,JmlOption.isOption(main.context(), JmlOption.STRICT));
+    	JmlOption.putOption(main.context(), JmlOption.STRICT, null);
+    	Assert.assertEquals(false,JmlOption.isOption(main.context(), JmlOption.STRICT));
+    }
     
     @Test
     public void testOption() {
