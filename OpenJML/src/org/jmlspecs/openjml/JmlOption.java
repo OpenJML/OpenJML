@@ -239,7 +239,11 @@ public enum JmlOption implements IOption {
      */
     public static boolean isOption(Context context, JmlOption option) {
         String val = Options.instance(context).get(option.name);
-        return val != null && !"false".equals(val);
+        return interpretBoolean(val);
+    }
+    
+    private static boolean interpretBoolean(String v) {
+        return v != null && !"false".equals(v);
     }
     
     /** Return whether an option is enabled in the given context
@@ -248,7 +252,8 @@ public enum JmlOption implements IOption {
      * @return true if the option is enabled, false otherwise
      */
     public static boolean isOption(Context context, String option) {
-        return value(context,option) != null;
+        String v = value(context,option);
+        return interpretBoolean(v);
     }
     
     /** This is used for those options that allow a number of suboptions; it tests whether
