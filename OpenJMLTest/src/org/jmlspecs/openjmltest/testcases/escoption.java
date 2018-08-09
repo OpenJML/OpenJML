@@ -37,7 +37,7 @@ public class escoption extends EscBase {
     }
  
     @Test
-    public void testOptionValue() {
+    public void testOptionValueBoolean() {
     	Assert.assertEquals(false,JmlOption.isOption(main.context(), JmlOption.STRICT));
     	Assert.assertEquals("false",JmlOption.value(main.context(), JmlOption.STRICT));
     	Assert.assertEquals(false,JmlOption.isOption(main.context(), "-strictJML"));
@@ -62,6 +62,18 @@ public class escoption extends EscBase {
     	Assert.assertEquals(true,JmlOption.isOption(main.context(), JmlOption.STRICT));
     	JmlOption.putOption(main.context(), JmlOption.STRICT, null);
     	Assert.assertEquals(false,JmlOption.isOption(main.context(), JmlOption.STRICT));
+    }
+    
+    @Test
+    public void testOptionValue() {
+    	Assert.assertEquals("",JmlOption.value(main.context(), JmlOption.METHOD));
+    	Assert.assertEquals("",JmlOption.value(main.context(), "-method"));
+    	JmlOption.putOption(main.context(), JmlOption.METHOD, "xxx");
+    	Assert.assertEquals("xxx",JmlOption.value(main.context(), JmlOption.METHOD));
+    	JmlOption.putOption(main.context(), JmlOption.METHOD, null);
+    	Assert.assertEquals(null,JmlOption.value(main.context(), JmlOption.METHOD));
+    	JmlOption.putOption(main.context(), JmlOption.METHOD, "");
+    	Assert.assertEquals("",JmlOption.value(main.context(), JmlOption.METHOD));
     }
     
     @Test
