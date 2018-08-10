@@ -889,7 +889,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
             implementationAllowed= true;
             super.visitNewClass(tree);
-            if (pureEnvironment) {
+            if (!(tree.type instanceof Type.ErrorType) && pureEnvironment) {
                 Symbol sym = tree.constructor;
                 MethodSymbol msym = null;
                 if (sym instanceof MethodSymbol) msym = (MethodSymbol)sym;
