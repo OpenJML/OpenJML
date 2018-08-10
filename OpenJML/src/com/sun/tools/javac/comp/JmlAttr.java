@@ -5132,6 +5132,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = saved;
     }
     
+//    @Override
+//    public void visitTypeArray(JCArrayTypeTree tree) {
+//        super.visitTypeArray(tree);
+//        if (tree.elemtype.type.isPrimitiveOrVoid()) {
+//            ClassSymbol t = (ClassSymbol)tree.type.tsym;
+//            jmlcompiler.loadSpecsForBinary(env,t);
+////            System.out.println(t.toString());
+//        }
+//    }
+    
     @Override
     public void visitTypeCast(JCTypeCast tree) {
         if (tree.clazz instanceof JmlPrimitiveTypeTree) {
