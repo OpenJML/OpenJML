@@ -3113,6 +3113,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         //result = eresult = id;
                                         JCExpression r = convertExpr(rep.expression);
                                         JCExpression e = treeutils.makeSelect(that.pos, translatedSelector, varsym);
+                                        if (inOldEnv) {
+                                            JmlMethodInvocation ee = treeutils.makeJmlMethodInvocation(that,JmlTokenKind.BSOLD, e.type, e, oldenv);
+                                            ee.labelProperties = labelProperties.get(oldenv.name);
+                                            e = ee;
+                                        }
                                         e = treeutils.makeBinary(that.pos, JCTree.Tag.EQ, e, r);
                                         // FIXME - should not issue this when in a qiuantified expression
                                         // FIXME - whjy is splitEAxpressions false?
@@ -8681,6 +8686,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             if (containsEverything) {
                                             	addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false, currentThisExpr == null);
                                             }
+                                            for (JCExpression hv: newlist) {
+                                                if (hv instanceof JCFieldAccess) havocModelFields((JCFieldAccess)hv);
+                                            }
                                             bl = popBlock(0,cs,checkbl);
                                             if (!bl.stats.isEmpty()) {
                                                 st = M.at(cs.pos+1).If(preXout,bl,null);
@@ -9980,6 +9988,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected boolean translatingLHS = false;
     
+    public void havocModelFields(JCFieldAccess newfa) {
+        if (rac) return;
+        ListBuffer<JCExpression> havocList = new ListBuffer<>();
+        havocModelFields(newfa,havocList);
+        addStat(M.at(newfa.pos).JmlHavocStatement(havocList.toList()));
+    }
+    
+    private void havocModelFields(JCFieldAccess newfa, ListBuffer<JCExpression> havocList) {
+        FieldSpecs fspecs = specs.getSpecs((Symbol.VarSymbol)newfa.sym);
+        for (JmlTypeClause tc: fspecs.list) {
+            if (tc.token == JmlTokenKind.IN) {
+                JmlTypeClauseIn tcin = (JmlTypeClauseIn)tc;
+                for (JmlGroupName g : tcin.list) {
+                    JCFieldAccess fa = treeutils.makeSelect(g.pos, newfa.selected, g.sym);
+                    if (!isDataGroup(fa.type))havocList.add(fa);
+                    havocModelFields(fa);
+                }
+            }
+        }
+    }
+    
     // FIXME - review
     @Override
     public void visitAssign(JCAssign that) {
@@ -10023,6 +10052,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (splitExpressions && !(lhs instanceof JCIdent)) {
                 result = eresult = newTemp(convertCopy(lhs));
             }
+            if (lhs instanceof JCFieldAccess) havocModelFields((JCFieldAccess)lhs);
             saveMappingOverride(that.lhs, eresult);
             saveMappingOverride(that, eresult);
 
@@ -10087,6 +10117,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             lastStat = st.expr;
             saveMapping(that, st.expr);
             result = eresult = newTemp(newfa);
+            havocModelFields(newfa);
             saveMapping(that.lhs, eresult);
                
         } else if (that.lhs instanceof JCArrayAccess) {
@@ -13000,6 +13031,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         int p = pos.getPreferredPosition();
         JmlStatementHavoc st = M.at(p).JmlHavocStatement(newlist.toList());
+        for (JCExpression hv: newlist) {
+            if (hv instanceof JCFieldAccess) havocModelFields((JCFieldAccess)hv);
+        }
         allocCounter++;
         // FIXME - this ought to work to preserve initialized values at the beginning of th e0th iteration, but makes loops infeasbile
 //        JCExpression id = treeutils.makeIdent(indexDecl.pos, indexDecl.sym);
