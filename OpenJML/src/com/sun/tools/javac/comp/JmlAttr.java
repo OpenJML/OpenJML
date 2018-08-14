@@ -1569,7 +1569,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 decl.methodSpecsCombined = jms;
                 specs.putSpecs(decl.sym,jms);
                 methodSpecs = jms.cases;
-                // msp = jms;
+                msp.mods = jms.mods;
+                msp.cases = jms.cases;
                     JCAnnotation tpure = findMod(jms.mods,JmlTokenKind.PURE);
                     if (tpure != null) { 
                         pure = tpure; 

@@ -7504,6 +7504,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             // Collect all the methods overridden by the method being called, including the method itself
             java.util.List<Pair<MethodSymbol,Type>> overridden = parents(calleeMethodSym,receiverType);
+            // The following line is needed for the case of new object expression with an anonymous class without a constructor
+            if (overridden.isEmpty()) overridden.add(pair(calleeMethodSym,calleeMethodSym.owner.type));
             
             /** We can either try to keep subexpressions as subexpressions, or break
              * them out into statements with temporary variables. Java code is
@@ -8048,7 +8050,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (esc) {
                         // Map type variables for this particular method declaration to the corresponding type, already determined by type attribution 
                         if (newclass != null && newclass.clazz instanceof JCTypeApply) {
-                            Iterator<Symbol.TypeVariableSymbol> tpiter = calleeClass.getTypeParameters().iterator(); // calleeSpecs.decl.typarams.iterator();
+                            Iterator<Symbol.TypeVariableSymbol> tpiter;
+                            if (calleeClass.isAnonymous()) {
+                                tpiter = newclass.clazz.type.tsym.getTypeParameters().iterator();
+                            } else {
+                                tpiter = calleeClass.getTypeParameters().iterator(); // calleeSpecs.decl.typarams.iterator();
+                            }
                             for (JCExpression tp: ((JCTypeApply)newclass.clazz).arguments ) {
                                 paramActuals.put(tpiter.next(), tp);
                             }
@@ -8526,7 +8533,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (exceptionSym != null) { // FIXME - what situation has this symbol null?
                         ListBuffer<JCStatement> s = currentStatements;
                         currentStatements = exsuresStatsOuter;
-                        if (specs.isPure(calleeMethodSym)) {
+                        if (translatingJML && specs.isPure(calleeMethodSym)) {
                             addAssume(that, Label.IMPLICIT_ASSUME,treeutils.falseLit);
                         } else {
                             JCIdent exceptionId = treeutils.makeIdent(that.pos,exceptionSym);

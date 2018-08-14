@@ -12,6 +12,7 @@ import org.junit.runners.Parameterized.Parameters;
 
 
 @RunWith(ParameterizedWithNames.class)
+@Ignore
 public class escArithmeticModes2 extends EscBase {
 
     
