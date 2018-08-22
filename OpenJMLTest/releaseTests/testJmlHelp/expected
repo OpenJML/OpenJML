@@ -70,6 +70,7 @@ JML options:
   -quiet                     Only output warnings and errors [-verboseness=0]
   -normal                    Limited output [-verboseness=1]
   -progress                  Shows progress through compilation phases [-verboseness=2]
+  -skipped                   Shows methods whose proofs are skipped
   -jmlverbose                Like -verbose, but only jml information and not as much [-verboseness=3]
   -jmldebug                  When on, the program emits lots of output (includes -progress) [-verboseness=4]
   -showOptions               When enabled, the values of options and properties are printed, for debugging
