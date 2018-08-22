@@ -5966,9 +5966,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            result = addStat(M.at(that).Throw(expr).setType(that.type));
         
         } else if (esc && jmltypes.isSubtype(that.expr.type, syms.assertionErrorType)) {
-            convertExpr(that.getExpression()); // convert but don't use, just in case some error occurs in the argument
-            result = addAssert(true,that,Label.EXPLICIT_ASSERT,treeutils.falseLit,null,null,null);
-
+            JCExpression exceptionExpr = convertExpr(that.getExpression()); // convert and check for null
+            // assert expr != null;
+            JCExpression e = treeutils.makeNeqObject(that.expr.pos, exceptionExpr, treeutils.makeNullLiteral(that.expr.getEndPosition(log.currentSource().getEndPosTable())));
+            if (javaChecks) addAssert(e, Label.POSSIBLY_NULL_VALUE, e);
+            if (that.expr.type.getTag() != TypeTag.BOT) {
+                result = addAssert(true,that,Label.EXPLICIT_ASSERT,treeutils.falseLit,null,null,null);
+            } else {
+                JCThrow thrw = M.at(that).Throw(exceptionExpr);
+                addStat(thrw);
+            }
+            
         } else {
         
             addTraceableComment(that);
