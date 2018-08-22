@@ -71,6 +71,7 @@ public enum JmlOption implements IOption {
     QUIET("-quiet",false,null,"Only output warnings and errors","-verboseness="+Utils.QUIET),
     NORMAL("-normal",false,null,"Limited output","-verboseness="+Utils.NORMAL),
     PROGRESS("-progress",false,null,"Shows progress through compilation phases","-verboseness="+Utils.PROGRESS),
+    SKIPPED("-skipped",false,true,"Shows methods whose proofs are skipped",null),
     JMLVERBOSE("-jmlverbose",false,false,"Like -verbose, but only jml information and not as much","-verboseness="+Utils.JMLVERBOSE),
     JMLDEBUG("-jmldebug",false,false,"When on, the program emits lots of output (includes -progress)","-verboseness="+Utils.JMLDEBUG),
     SHOW_OPTIONS("-showOptions",true, "none","When enabled, the values of options and properties are printed, for debugging",null),

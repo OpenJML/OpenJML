@@ -117,7 +117,7 @@ public class escgeneric extends EscBase {
                 +"    //@ assert \\typeof(i) <: \\type(B);\n" // Line 11
                 +"    //@ assert \\erasure(\\typeof(i)) <: \\erasure(\\type(C));\n" // false
                +"  }\n"
-                +"  /*@ pure */ public TestJava() {}\n"
+                +"  /*@ public normal_behavior ensures true; pure */ public TestJava() {}\n"
                 +"}\n"
                 +"class B {}\n"
                 +"class C extends TestJava<B> {}\n"
@@ -135,7 +135,7 @@ public class escgeneric extends EscBase {
                 +"    //@ assert i instanceof Object;\n"
                 +"    //@ assert \\typeof(i) <: \\type(C);\n" // false
                 +"  }\n"
-                +"  /*@ pure */ public TestJava() {}\n"
+                +"  /*@ public normal_behavior ensures true; pure */ public TestJava() {}\n"
                 +"}\n"
                 +"class B {}\n"
                 +"class C extends TestJava<B> {}\n"
