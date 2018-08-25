@@ -552,14 +552,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.loopbodyLabelName = names.fromString(Strings.loopbodyLabelBuiltin);
 
         initialize();
-       
-        
     }
-        
     
     public JmlAssertionAdder(Context context, boolean esc, boolean rac) {
         this(context, esc, rac, false);
-     }
+    }
     
     /** (Public API) Reinitializes the object to start a new class or compilation unit or method */
     public void initialize() {
@@ -2052,8 +2049,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             @Nullable JCExpression info,
             Object ... args) {
         JCStatement stt = null;
-        if(esc || infer) {
-            if (translatedExpr.toString().equals("e.cause != null")) Utils.stop();
+        if (esc || infer) {
             if (label != Label.ASSUME_CHECK && currentStatements != null 
                     && Strings.feasibilityContains(Strings.feas_debug,context)) { 
                 addAssumeCheck(translatedExpr,currentStatements,"Extra-Assume");  
@@ -2231,7 +2227,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCVariableDecl d = treeutils.makeVarDef(
                 type, 
                 n, 
-                esc|| infer ? null : methodDecl != null ? methodDecl.sym : classDecl.sym, // FIXME - actually sholdn't stuff at the class level be put in an initializer block?
+                (esc || infer) ? null : methodDecl != null ? methodDecl.sym : classDecl.sym, // FIXME - actually sholdn't stuff at the class level be put in an initializer block?
                 treeutils.makeZeroEquivalentLit(pos.getPreferredPosition(),type)); 
         d.sym.pos = Position.NOPOS;
         // We mark all temporaries as final, as an indication that they will
@@ -3856,7 +3852,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (msym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
             JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(msym);
             
-            if(denestedSpecs==null){
+            if (denestedSpecs==null) { // FIXME - added by inference branch - why?
                 continue;
             }
             // Set up the map from parameter symbol of the overridden method to 
@@ -4005,13 +4001,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         paramActuals = null;
         clearInvariants();
         
-        // This empty block with a null label marks the end of the pre-state
-        if (esc || infer) {
-            addStat(comment(methodDecl,"End of pre-state",null));
-            JCBlock bl = M.Block(0L, List.<JCStatement>nil());
-            JCStatement st = M.JmlLabeledStatement(null, null, bl);
-            addStat(initialStats,st);
-        }
+//        // This empty block with a null label marks the end of the pre-state
+//        if (esc || infer) {
+//            addStat(comment(methodDecl,"End of pre-state",null));
+//            JCBlock bl = M.Block(0L, List.<JCStatement>nil());
+//            JCStatement st = M.JmlLabeledStatement(null, null, bl);
+//            addStat(initialStats,st);
+//        }
         heapCount = savedheapcount;
         currentStatements = savedCurrentStatements;
     }
@@ -4420,7 +4416,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // corresponding parameter of the target method.
             // We need this even if names have not changed, because the parameters 
             // will have been attributed with different symbols.
-            if(denestedSpecs==null){
+            if (denestedSpecs==null) { // FIXME - added by the inference branch - why?
                 continue;
             }
             
@@ -9269,7 +9265,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addStat(ensuresBlock);
                 }
                 addStat( popBlock(0,methodDecl,check1) ); // Final outer block
-            }else if(infer){
+            } else if (infer) {
                 addStat(ensuresBlock);
                 addStat( popBlock(0,methodDecl,check1) );
             }
@@ -10113,7 +10109,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addAssert(that, Label.POSSIBLY_NULL_ASSIGNMENT, e);
                 }
             }
-            if(!infer) {
+            if (!infer) {
                 checkAccess(JmlTokenKind.ASSIGNABLE, that, that.lhs, lhs, currentThisId, currentThisId);
                 checkRW(JmlTokenKind.WRITABLE,id.sym,currentThisExpr,id);
             }
@@ -10139,7 +10135,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (javaChecks) {
                     addAssert(that.lhs, Label.POSSIBLY_NULL_DEREFERENCE, e);
                 }
-                if(!infer) {
+                if (!infer) {
                     checkRW(JmlTokenKind.WRITABLE,fa.sym,obj,fa);
                 }
 
@@ -10155,7 +10151,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // If the field is static, substitute the type tree
                 
                 JCExpression obj = treeutils.makeType(fa.getStartPosition(), fa.sym.owner.type);
-                if(!infer) {
+                if (!infer) {
                     checkRW(JmlTokenKind.WRITABLE,fa.sym,obj,fa);
                 }
                 newfa = treeutils.makeSelect(that.pos, obj, fa.sym);
@@ -10178,7 +10174,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
 
             // FIXME _ use checkAssignable
-            if(!infer) {
+            if (!infer) {
                 checkAccess(JmlTokenKind.ASSIGNABLE, that, fa, newfa, currentThisId, currentThisId); // FIXME - should the second argument be newfa?
             }
 //            for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
@@ -10220,7 +10216,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCArrayAccess newfaa = M.at(that.pos).Indexed(array,index);
             newfaa.setType(that.type);
             // FIXME - test this 
-            if(!infer) {
+            if (!infer) {
                 checkAccess(JmlTokenKind.ASSIGNABLE, that, aa, newfaa, currentThisId, currentThisId);
             }   
 //            for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
@@ -10280,7 +10276,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else {
             changeState();
         }
-    }    
+    }
     
     // OK
     @Override
@@ -12362,7 +12358,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - review this
     public JCIdent makeThisId(int pos, Symbol sym)  {
         VarSymbol THISSym = treeutils.makeVarSymbol(Flags.STATIC,names.fromString(Strings.thisName),sym.type, Position.NOPOS);
-        THISSym.owner = infer || esc ? null : sym; 
+        THISSym.owner = (esc || infer) ? null : sym; 
             // In esc, the owner is null (instead of sym) to indicate
             // that this new symbol is a synthetic variable that will not ever
             // be assigned to.
@@ -14922,7 +14918,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlSetComprehension(JmlSetComprehension that) {
-        if (pureCopy || esc ||infer) {
+        if (pureCopy || esc || infer) {
             result = eresult = M.at(that).
                     JmlSetComprehension(convert(that.newtype),convert(that.variable),convertExpr(that.predicate)).setType(that.type);
             return;
