@@ -27,6 +27,7 @@ public class escbitvector extends EscBase {
         //print = true;
     }
     
+    // auto BV, with precondition
     @Test 
     public void testBV2() {
         main.addOptions("-escBV=auto","-logic=ALL");
@@ -47,6 +48,7 @@ public class escbitvector extends EscBase {
                 );
     }
     
+    // BV true, with precondition
     @Test 
     public void testBV2a() {
         main.addOptions("-escBV=true","-logic=ALL");
@@ -67,6 +69,7 @@ public class escbitvector extends EscBase {
                 );
     }
     
+    // BV true, with precondition and modulo operation
     @Test 
     public void testBV2b() {
         main.addOptions("-escBV=true","-logic=ALL");
@@ -87,6 +90,7 @@ public class escbitvector extends EscBase {
                 );
     }
     
+    // default BV, no precondition
     @Test 
     public void testBV1() {
         main.addOptions("-logic=ALL");  // Should use BV
@@ -108,27 +112,7 @@ public class escbitvector extends EscBase {
                 );
     }
     
-    @Test 
-    public void testBV1a() {
-        main.addOptions("-logic=ALL");  // Default is auto BV
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  //@ ensures n <= \\result;\n"
-                +"  //@ ensures \\result <= n+15;\n"
-                +"  //@ ensures (\\result&15) == 0;\n"
-                +"  //@ pure\n"
-                +"//@ code_java_math spec_java_math\n"
-                +"  public int m1(int n) {\n"
-                +"    return n + ((-n) & 0x0f);\n"
-                +"  }\n"
-                                
-                +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method m1",5
-                ,"/tt/TestJava.java:3: warning: Associated declaration",7
-                );
-    }
-    
+    // BV off
     @Test 
     public void testBV1b() {
         expectedExit = 1;
@@ -151,6 +135,7 @@ public class escbitvector extends EscBase {
                 );
     }
     
+    // incorrect escBV option
     @Test 
     public void testBVe1() {
         main.addOptions("-escBV","-logic=ALL"); // Testing incorrect use of -escBV
@@ -168,6 +153,7 @@ public class escbitvector extends EscBase {
           );
     }
     
+    // incorrect escBV option
     @Test 
     public void testBVe2() {
         main.addOptions("-escBV=xx","-logic=ALL");  // This should cause an error
@@ -185,6 +171,7 @@ public class escbitvector extends EscBase {
          );
     }
     
+    // OK option, with precondition
     @Test 
     public void testBVe3() {
         main.addOptions("-escBV=","-logic=ALL");  // Should revert to auto
@@ -205,6 +192,7 @@ public class escbitvector extends EscBase {
           );
     }
     
+    // another incorrect use of escBV option
     @Test 
     public void testBVe4() {
         expectedExit = 0;
@@ -227,9 +215,10 @@ public class escbitvector extends EscBase {
           );
     }
     
+    // Simple use of explicit BV auto
     @Test
     public void testBVauto() {
-        // This test first tries SMT translation without BV, which fails, and then it tries with, and succeeeds.
+        // This test first tries SMT translation without BV, which fails, and then it tries with, and succeeds.
         expectedExit = 0;
         main.addOptions("-escBV=auto","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
@@ -247,6 +236,7 @@ public class escbitvector extends EscBase {
           );
     }
     
+    // Simple use of explicit BV false
     @Test
     public void testBVauto2() {
         // This test, the same code as above, only tries SMT translation without BV, which fails.
@@ -269,6 +259,7 @@ public class escbitvector extends EscBase {
           );
     }
     
+    // Simple use of explicit BV true
     @Test
     public void testBVauto3() {
         // This test, the same code as above, only tries SMT translation with BV the first time.
