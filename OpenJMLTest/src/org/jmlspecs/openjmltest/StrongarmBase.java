@@ -144,7 +144,7 @@ public class StrongarmBase extends EscBase {
 
 	    // if we care about the compile output, do the comparison
 	    if (new File(expectedCompile).exists()) {
-		String diffs = compareFiles(expectedCompile, actCompile);
+		String diffs = outputCompare.compareFiles(expectedCompile, actCompile);
 		
 		if (diffs != null) {
 		    
@@ -158,7 +158,7 @@ public class StrongarmBase extends EscBase {
 
 	    if (new File(expectedSpec).exists()) {
 
-		String diffs = compareFiles(expectedSpec, actSpec);
+		String diffs = outputCompare.compareFiles(expectedSpec, actSpec);
 		
 		if (diffs != null) {
 
