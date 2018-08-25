@@ -142,6 +142,9 @@ public class SMTTranslator extends JmlTreeScanner {
     /** Cached instance of the JmlTreeUtils tool for the context. */
     final protected JmlTreeUtils treeutils;
     
+    /** Cached instance of the org.jmlspecs.openjml.Utils tool for the context. */
+    final protected Utils utils;
+    
     /** The factory for creating SMTLIB expressions */
     final protected Factory F;
     
@@ -243,6 +246,7 @@ public class SMTTranslator extends JmlTreeScanner {
         names = Names.instance(context);
         types = JavacTypes.instance(context);
         treeutils = JmlTreeUtils.instance(context);
+        utils = org.jmlspecs.openjml.Utils.instance(context);
         jmltypes = JmlTypes.instance(context);
         
         // SMT factory and commonly used objects
@@ -510,10 +514,16 @@ public class SMTTranslator extends JmlTreeScanner {
                         emptyList,
                         jmlTypeSort));
             }
+            if (utils.isPrimitiveType(ti)) {
+                tcommands.add(new C_declare_sort(
+                        (ISymbol)jmlTypeSymbol(ti),
+                        F.numeral(0)));
+            }
         }
         for (Type ti: javaTypes) {
             if (ti.getTag() == TypeTag.WILDCARD) continue;  // Did these already, so they are done before they are used
             if (ti.getTag() == TypeTag.TYPEVAR) continue; // Did these already, so they are done before they are used
+            if (utils.isPrimitiveType(ti)) continue;
             // (declare-fun tjava () JavaTypeSort)
             // (declare-fun tjml () JMLTypeSort)
             // (assert (= (erasure tjml) tjava))
@@ -538,6 +548,7 @@ public class SMTTranslator extends JmlTreeScanner {
         for (Type ti: javaTypes) {
             if (ti.getTag() == TypeTag.WILDCARD) continue;  // Did these already, so they are done before they are used
             if (ti.getTag() == TypeTag.TYPEVAR) continue; // Did these already, so they are done before they are used
+            if (utils.isPrimitiveType(ti)) continue;
             // (declare-fun tjava () JavaTypeSort)
             // (declare-fun tjml () JMLTypeSort)
             // (assert (= (erasure tjml) tjava))
@@ -589,6 +600,7 @@ public class SMTTranslator extends JmlTreeScanner {
         tcommands.add(new C_assert(F.fcn(F.symbol("distinct"),jmltypesymbols)));
         
         for (Type ti: javaTypes) {
+            if (utils.isPrimitiveType(ti)) continue;
             if (ti instanceof ArrayType) tcommands.add(new C_assert(F.fcn(
                     F.symbol(JAVASUBTYPE), javaTypeSymbol(ti), F.symbol("T_java_lang_Object"))));
         }
@@ -596,11 +608,13 @@ public class SMTTranslator extends JmlTreeScanner {
         for (Type ti: javaTypes) {
             if (ti.getTag() == TypeTag.TYPEVAR) continue; 
             if (ti.getTag() == TypeTag.WILDCARD) continue; 
+            if (utils.isPrimitiveType(ti)) continue;
             counti++;
             int countj = 0;
             for (Type tj: javaTypes) {
                 if (tj.getTag() == TypeTag.TYPEVAR) continue; 
                 if (tj.getTag() == TypeTag.WILDCARD) continue; 
+                if (utils.isPrimitiveType(tj)) continue;
                 countj++;
                 // (assert (javaSubType t1 t2)) - or assert the negation
                 // (assert (jmlSubType t1jml t2jml)) - or assert the negation
@@ -701,6 +715,7 @@ public class SMTTranslator extends JmlTreeScanner {
         
         List<IExpr> javatypelist = new LinkedList<IExpr>();
         for (Type t: javaTypes) {
+            if (utils.isPrimitiveType(t)) continue;
             if (t.getTag() != TypeTag.TYPEVAR && t.getTag() != TypeTag.WILDCARD) {
                 javatypelist.add(javaTypeSymbol(t));
             }
@@ -1083,6 +1098,9 @@ public class SMTTranslator extends JmlTreeScanner {
     /** Returns an SMT IExpr representing the given JML type */
     public IExpr jmlTypeSymbol(Type t) {
         t = t.unannotatedType();
+        if (utils.isPrimitiveType(t)) {
+            return F.symbol(t.tsym.getSimpleName().toString());
+        }
         if (t.getTag() == TypeTag.BOT) t = syms.objectType;
         if (t.getTag() == TypeTag.ARRAY) {
             Type comptype = ((Type.ArrayType)t).getComponentType();
@@ -1174,6 +1192,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     // This is an unparameterized use of a should-be-parameterized class symbol
 //                    javaParameterizedTypes.put(t.toString(),jmlTypeSymbol(t)); // FIXME - should we make an implicit argument?
                 }
+            } else if (utils.isPrimitiveType(t)) {
             } else if (t.getTag() != TypeTag.TYPEVAR && t.getTag() != TypeTag.WILDCARD) {
                 IExpr tt = F.fcn(F.symbol("_JMLT_0"),javaTypeSymbol(t));
                 javaParameterizedTypes.put(tt.toString(),tt);  // FIXME - only when fully a constant?
@@ -1586,6 +1605,9 @@ public class SMTTranslator extends JmlTreeScanner {
         if ( t == null) {
             log.error("jml.internal", "No type translation implemented when converting a BasicProgram to SMTLIB: " + t);
             throw new RuntimeException();
+        } else if (utils.isPrimitiveType(t)) {
+            addType(t);
+            return F.createSortExpression((ISymbol)jmlTypeSymbol(t));
         } else {
             TypeTag tag = t.getTag();
             if (tag == TypeTag.BOOLEAN) {
@@ -2373,7 +2395,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public void visitLiteral(JCLiteral tree) {
         Object v = tree.getValue();
         if (tree.typetag == TypeTag.BOOLEAN) {
-           result = F.symbol(((Boolean)v) ?"true":"false"); 
+           result = F.symbol((Boolean)v ?"true":"false"); 
         } else if (tree.typetag == TypeTag.INT || tree.typetag == TypeTag.LONG || tree.typetag == TypeTag.SHORT || tree.typetag == TypeTag.BYTE) {
         	long k = Long.parseLong(v.toString());
             if (useBV) {

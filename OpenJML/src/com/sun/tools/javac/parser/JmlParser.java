@@ -2894,7 +2894,8 @@ public class JmlParser extends JavacParser {
             int p = pos(); // Position of the keyword
 
             if (isJmlTypeToken(jt)) {
-                t = to(jmlF.at(p).JmlPrimitiveTypeTree(jt,ident()));
+                String n = jt.internedName();
+                t = to(jmlF.at(p).JmlPrimitiveTypeTree(jt,names.fromString(n)));
                 nextToken();
                 // Could be just a type value
                 if (token.kind == TokenKind.DOT || token.kind == TokenKind.LBRACKET) {

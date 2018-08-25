@@ -2650,6 +2650,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             boolean assume, boolean contextIsStatic, Type ctype,
             ClassSymbol csym) {
         if (isDataGroup(basetype) || isDataGroup(ctype)) return;
+        if (utils.isPrimitiveType(basetype)) return;
         for (Symbol s : csym.getEnclosedElements()) {
             if (s instanceof VarSymbol) {
                 if (!utils.visible(classDecl.sym, csym, s.flags()/*, methodDecl.mods.flags*/)) continue;
@@ -3203,6 +3204,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Returns true iff the declaration is explicitly or implicitly non_null */
     protected boolean addNullnessAllocationTypeConditionId(JCExpression id, DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed, boolean allocCheck) {
         if (isDataGroup(sym.type)) return false;
+        if (utils.isPrimitiveType(sym.type)) return false;
         if (pos == null) pos = id;
         int p = pos.getPreferredPosition();
         boolean nnull = true;
@@ -7444,6 +7446,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                     if (translatingJML && (fa.selected instanceof JCIdent && localVariables.containsKey(((JCIdent)fa.selected).sym))) {
                         // Local variables are presumed non-null
+                    } else if (utils.isPrimitiveType(fa.selected.type)) {
+                        // JML primitive types are not null
                     } else {
                         if (javaChecks && !(convertedReceiver instanceof JCLambda)) {
                             // Check that receiver is not null
@@ -11649,7 +11653,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         && (!methodDecl.sym.isConstructor() || utils.isJMLStatic(that.sym))) {
                     if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
                         // continue
-                    } else {
+                    } else if (!utils.isPrimitiveType(selected.type)) {
                         JCFieldAccess e = M.at(that).Select(selected,that.name);
                         e.sym = s;
                         e.type = that.type;
@@ -11686,7 +11690,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         treeutils.copyEndPosition(result, that);
-        if (translatingJML && !pureCopy && s instanceof VarSymbol && specs.isNonNull(s) ) {
+        if (translatingJML && !pureCopy && s instanceof VarSymbol && specs.isNonNull(s) && !utils.isPrimitiveType(that.selected.type)) {
             JCExpression nn = treeutils.makeNeqObject(that.pos,eee,treeutils.nullLit);
             addToCondition(that.pos, nn);
         } else if (esc && splitExpressions && s.name == names._class) {
@@ -15711,7 +15715,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     stat = M.at(that).VarDef(that.sym,init);
                     stat.ident = newident;
                     JCExpression nn = null;
-                    if (init != null && !init.type.isPrimitive() && specs.isNonNull(that.sym,that.sym.enclClass())) {
+                    if (init != null && !init.type.isPrimitive() && !utils.isPrimitiveType(init.type) && specs.isNonNull(that.sym,that.sym.enclClass())) {
                         nn = treeutils.makeNeqObject(init.pos, init, treeutils.nullLit);
                         if (init instanceof JCLiteral) {
                             // FIXME - potential optimizations, but they need testing, particularly the second one
@@ -15722,7 +15726,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                     if (inClassDecl) methodDecl = (JmlMethodDecl)M.MethodDef(attr.makeInitializerMethodSymbol(that.mods.flags, JmlEnter.instance(context).getEnv(classDecl.sym)), null);
                     if (nn != null) addAssert(that,Label.POSSIBLY_NULL_INITIALIZATION,nn,that.name);
-                    if (esc && !that.type.isPrimitive()) {
+                    if (esc && !that.type.isPrimitive() && !utils.isPrimitiveType(init.type)) {
                         addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(that, 
                                 treeutils.makeIdent(that.pos, that.sym), 
                                 that.type));
@@ -16312,6 +16316,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean isFunction = attr.isFunction(msym);
         if (!inOldEnv && !addAxioms(heapCount,msym)) { return M.at(Position.NOPOS).Block(0L, List.<JCStatement>nil()); }
         boolean isStatic = utils.isJMLStatic(msym);
+        boolean isPrimitiveType = utils.isPrimitiveType(msym.owner.type);
         
         JCExpression savedResultExpr = resultExpr;
         JCIdent savedCurrentThisId = currentThisId;
@@ -16417,6 +16422,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // Construct axioms for the type of the result
             if (msym.getReturnType().isPrimitiveOrVoid()) {
                 // FIXME - add any range restrictions for primtiive types
+            } else if (utils.isPrimitiveType(msym.getReturnType())) {
+                // These are user-defined prinitive types - do nothing
             } else {
                 JCExpression fcn = treeutils.makeIdent(Position.NOPOS,newsym);
                 JCMethodInvocation call = M.at(Position.NOPOS).Apply(
@@ -16489,7 +16496,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // FIXME - will need to add OLD and FORALL clauses in here
                     
                     JCExpression pre = qthisnn != null ? qthisnn : treeutils.trueLit;
-                    if (qthisid != null && classType != syms.objectType) {
+                    if (isPrimitiveType) {
+                        pre = treeutils.trueLit;
+                    } else if (qthisid != null && classType != syms.objectType) {
                         // FIXME - not sure this is needed and it makes valid assertions harder to prove
                         pre = treeutils.makeInstanceOf(cs.pos,qthisid,classType);
                         pre = convertCopy(pre);
