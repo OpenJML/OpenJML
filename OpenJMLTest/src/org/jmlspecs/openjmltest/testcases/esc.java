@@ -2812,7 +2812,7 @@ public class esc extends EscBase {
 				+ "  abstract public int m(int ii);\n" 
 				+ "}\n"
 				+ "/*@ code_bigint_math*/ public class TestJava extends TestJavaB { \n" 
-				+ "  //@ also\n"
+				+ "  //@ also public normal_behavior\n"
 				+ "  //@ ensures \\result == i+1;\n" 
 				+ "  //@ pure\n" 
 				+ "  public int m(int i) { return i+1; }\n"

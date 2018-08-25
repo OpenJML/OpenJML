@@ -116,19 +116,49 @@ public class escgeneric extends EscBase {
                 +"    //@ assert \\erasure(\\typeof(i)) <: \\erasure(\\type(B));\n"
                 +"    //@ assert \\typeof(i) <: \\type(B);\n" // Line 11
                 +"    //@ assert \\erasure(\\typeof(i)) <: \\erasure(\\type(C));\n" // false
-                +"    //@ assert \\typeof(i) <: \\type(C);\n" // false
-                +"    //@ assert \\type(T) <: \\type(B);\n" // true
-                +"    //@ assert \\type(T) <: \\type(C);\n" // false
-                +"  }\n"
-                +"  /*@ pure */ public TestJava() {}\n"
+               +"  }\n"
+                +"  /*@ public normal_behavior ensures true; pure */ public TestJava() {}\n"
                 +"}\n"
                 +"class B {}\n"
                 +"class C extends TestJava<B> {}\n"
-                ,anyorder(
-                        seq("/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method m",9)
-                        ,seq("/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m",9)
-                        ,seq("/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m",9)
-                        )
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method m",9
+        );
+    }
+    
+    @Test
+    public void testGenericType2a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T extends B> { \n"
+                
+                +"  public void m(T i) {\n"
+                +"    //@ assume i != null;\n"
+                +"    //@ assert i instanceof Object;\n"
+                +"    //@ assert \\typeof(i) <: \\type(C);\n" // false
+                +"  }\n"
+                +"  /*@ public normal_behavior ensures true; pure */ public TestJava() {}\n"
+                +"}\n"
+                +"class B {}\n"
+                +"class C extends TestJava<B> {}\n"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m",9
+        );
+    }
+    
+    @Test
+    public void testGenericType2b() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T extends B> { \n"
+                
+                +"  public void m(T i) {\n"
+                +"    //@ assume i != null;\n"
+                +"    //@ assert i instanceof Object;\n"
+                +"    //@ assert \\type(T) <: \\type(B);\n" // true
+                +"    //@ assert \\type(T) <: \\type(C);\n" // false
+                +"  }\n"
+                +"  /*@ public normal_behavior ensures true; pure */ public TestJava() {}\n"
+                +"}\n"
+                +"class B {}\n"
+                +"class C extends TestJava<B> {}\n"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",9
         );
     }
     

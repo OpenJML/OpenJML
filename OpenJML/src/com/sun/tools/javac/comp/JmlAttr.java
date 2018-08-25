@@ -889,7 +889,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
             implementationAllowed= true;
             super.visitNewClass(tree);
-            if (pureEnvironment) {
+            if (!(tree.type instanceof Type.ErrorType) && pureEnvironment) {
                 Symbol sym = tree.constructor;
                 MethodSymbol msym = null;
                 if (sym instanceof MethodSymbol) msym = (MethodSymbol)sym;
@@ -1569,7 +1569,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 decl.methodSpecsCombined = jms;
                 specs.putSpecs(decl.sym,jms);
                 methodSpecs = jms.cases;
-                // msp = jms;
+                msp.mods = jms.mods;
+                msp.cases = jms.cases;
                     JCAnnotation tpure = findMod(jms.mods,JmlTokenKind.PURE);
                     if (tpure != null) { 
                         pure = tpure; 
@@ -5131,6 +5132,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        if (tree.sym instanceof ClassSymbol) ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(env,(ClassSymbol)tree.sym);
         result = saved;
     }
+    
+//    @Override
+//    public void visitTypeArray(JCArrayTypeTree tree) {
+//        super.visitTypeArray(tree);
+//        if (tree.elemtype.type.isPrimitiveOrVoid()) {
+//            ClassSymbol t = (ClassSymbol)tree.type.tsym;
+//            jmlcompiler.loadSpecsForBinary(env,t);
+////            System.out.println(t.toString());
+//        }
+//    }
     
     @Override
     public void visitTypeCast(JCTypeCast tree) {

@@ -592,12 +592,16 @@ public class SMTTranslator extends JmlTreeScanner {
             if (ti instanceof ArrayType) tcommands.add(new C_assert(F.fcn(
                     F.symbol(JAVASUBTYPE), javaTypeSymbol(ti), F.symbol("T_java_lang_Object"))));
         }
+        int counti = 0;
         for (Type ti: javaTypes) {
             if (ti.getTag() == TypeTag.TYPEVAR) continue; 
             if (ti.getTag() == TypeTag.WILDCARD) continue; 
+            counti++;
+            int countj = 0;
             for (Type tj: javaTypes) {
                 if (tj.getTag() == TypeTag.TYPEVAR) continue; 
                 if (tj.getTag() == TypeTag.WILDCARD) continue; 
+                countj++;
                 // (assert (javaSubType t1 t2)) - or assert the negation
                 // (assert (jmlSubType t1jml t2jml)) - or assert the negation
                 
@@ -622,6 +626,23 @@ public class SMTTranslator extends JmlTreeScanner {
                     comp = F.fcn(F.symbol(JMLSUBTYPE), F.fcn(F.symbol("_makeJMLArrayType"),jmlTypeSymbol(ti)), F.fcn(F.symbol("_makeJMLArrayType"),jmlTypeSymbol(tj)));
                     if (!b) comp = F.fcn(F.symbol("not"),comp);
                     tcommands.add(new C_assert(comp));
+                }
+                if (countj > counti && !ti.tsym.type.isParameterized() && !tj.tsym.type.isParameterized()) {
+                    boolean bb;
+                    if (ti.isPrimitive() && tj.isPrimitive()) bb = !types.isSameType(ti, tj);
+                    else bb = types.isSubtype(types.erasure(tj),types.erasure(ti));
+                    String sti = "T_" + typeString(ti);
+                    String stj = "T_" + typeString(tj);
+                    if (b) {
+                        // forall Exception e; e instanceof ti ==> e instanceof tj
+                        addCommand(smt,"(assert (forall ((e REF)) (=> (javaSubType (javaTypeOf e) "+sti+") (javaSubType (javaTypeOf e) "+stj+")) )))");
+                    } else if (bb) {
+                        // forall Exception e; e instanceof tj ==> e instanceof ti
+                        addCommand(smt,"(assert (forall ((e REF)) (=> (javaSubType (javaTypeOf e) "+stj+") (javaSubType (javaTypeOf e) "+sti+")) )))");
+                    } else if (!ti.isInterface() && !tj.isInterface()) {
+                        // forall Exception e; !(e instanceof ti) || !(e instanceof tj)
+                        addCommand(smt,"(assert (forall ((e REF)) (or (not (javaSubType (javaTypeOf e) "+sti+")) (not (javaSubType (javaTypeOf e) "+stj+")) )))");
+                    }
                 }
             }
         }
@@ -2254,11 +2275,23 @@ public class SMTTranslator extends JmlTreeScanner {
         IExpr e = convertExpr(tree.expr);
         // instanceof is always false if the argument is null
         // and javaTypeOf is not defined for null arguments
-        IExpr r1 = F.fcn(distinctSym, e, nullSym);
-        IExpr r2 = F.fcn(F.symbol(JAVASUBTYPE),
-                F.fcn(F.symbol("javaTypeOf"), e),
-                javaTypeSymbol(tree.clazz.type));
+        IExpr r1 = makeNotNull(e);
+        IExpr r2 = makeInstanceof(e, tree.clazz.type);
         result = F.fcn(F.symbol("and"), r1, r2);
+    }
+    
+    public IExpr makeNot(IExpr e) {
+        return F.fcn(F.symbol("not"),e);
+    }
+    
+    public IExpr makeNotNull(IExpr e) {
+        return F.fcn(distinctSym, e, nullSym);
+    }
+    
+    public IExpr makeInstanceof(IExpr e, Type t) {
+        return F.fcn(F.symbol(JAVASUBTYPE),
+                F.fcn(F.symbol("javaTypeOf"), e),
+                javaTypeSymbol(t));
     }
 
     @Override

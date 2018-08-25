@@ -954,6 +954,11 @@ public class JmlParser extends JavacParser {
     protected @Nullable JmlMethodSpecs currentMethodSpecs = null;
     protected @Nullable JmlVariableDecl currentVariableDecl = null;
     
+    protected boolean startOfMethodSpecs(JmlTokenKind jt) {
+        return (methodClauseTokens.contains(jt)
+                || specCaseTokens.contains(jt) 
+                || jt == SPEC_GROUP_START);
+    }
 
     /**
      * Overridden in order to parse JML declarations and clauses within the body
@@ -991,6 +996,10 @@ public class JmlParser extends JavacParser {
 //                    break loop;
 //                }
 //            }
+            if (jt != null && !isJmlTypeToken(jt) && currentMethodSpecs != null && !startOfMethodSpecs(jt) && jt != INITIALIZER && jt != STATIC_INITIALIZER) {
+                log.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + jt.internedName() + " clause (ignored)");
+                currentMethodSpecs = null;
+            }
             if (jt == null || isJmlTypeToken(jt)) {
                 pushBackModifiers = mods; // This is used to pass the modifiers
                 // into super.classOrInterfaceBodyDeclaration
@@ -1005,6 +1014,10 @@ public class JmlParser extends JavacParser {
                         inJmlDeclaration = false;
                         startsInJml = false;
                     }
+                    if (token.kind == TokenKind.SEMI && currentMethodSpecs != null) {
+                        log.error(token.pos, "jml.message", "Method specs preceding an empty declaration are ignored");
+                        currentMethodSpecs = null;
+                    }
                     t = super.classOrInterfaceBodyDeclaration(
                             className, isInterface);
                     if (isInterface && t.head instanceof JmlMethodDecl) {
@@ -1017,6 +1030,10 @@ public class JmlParser extends JavacParser {
                     inJmlDeclaration = prevInJmlDeclaration;
                 } else {
 
+                    if (token.kind == TokenKind.SEMI && currentMethodSpecs != null) {
+                        log.error(token.pos, "jml.message", "Method specs preceding an empty declaration are ignored");
+                        currentMethodSpecs = null;
+                    }
                     // no longer in JML
                     // FIXME - attach doc comment?
                     t = super.classOrInterfaceBodyDeclaration(
@@ -1026,6 +1043,10 @@ public class JmlParser extends JavacParser {
                     for (JCTree tr : t) {
                         JCTree ttr = tr;
                         if (tr instanceof JmlClassDecl) {
+                            if (currentMethodSpecs != null) {
+                                log.error(tr.pos, "jml.message", "Method specs may not precede a class declaration");
+                                currentMethodSpecs = null;
+                            }
                             JmlClassDecl d = (JmlClassDecl) tr;
                             if (startsInJml) utils.setJML(d.mods);
                             //d.toplevel.sourcefile = log.currentSourceFile();
@@ -1054,6 +1075,10 @@ public class JmlParser extends JavacParser {
                             }
 
                         } else if (tr instanceof JmlVariableDecl) {
+                            if (currentMethodSpecs != null) {
+                                log.error(tr.pos, "jml.message", "Method specs may not precede a variable declaration");
+                                currentMethodSpecs = null;
+                            }
                             JmlVariableDecl d = (JmlVariableDecl) tr;
                             if (replacementType != null) {
                                 insertReplacementType(d,replacementType);
@@ -1065,6 +1090,10 @@ public class JmlParser extends JavacParser {
                             attach(d, dc);
                             currentVariableDecl = d;
                         } else {
+                            if (currentMethodSpecs != null) {
+                                log.error(tr.pos, "jml.message", "Method specs that do not precede a method declaration are ignored");
+                                currentMethodSpecs = null;
+                            }
                             ttr = null;
                         }
                         //                            if (tr != null && utils.findMod(tmods, JmlTokenKind.MODEL) == null && utils.findMod(tmods, JmlTokenKind.GHOST) == null) {
@@ -1117,9 +1146,7 @@ public class JmlParser extends JavacParser {
                 appendIfNotNull(list,parseConstraint(mods));
             } else if (jt == REPRESENTS) {
                 appendIfNotNull(list,parseRepresents(mods));
-            } else if (methodClauseTokens.contains(jt)
-                    || specCaseTokens.contains(jt) 
-                    || jt == SPEC_GROUP_START) {
+            } else if (startOfMethodSpecs(jt)) {
                 currentMethodSpecs = parseMethodSpecs(mods);
                 //list.append(parseMethodSpecs(mods));
                 // FIXME - attach doc comment?

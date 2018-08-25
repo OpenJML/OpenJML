@@ -156,8 +156,12 @@ public abstract class EscBase extends JmlTestCase {
     protected static String z = java.io.File.pathSeparator;
     protected static String testspecpath1 = "$A"+z+"$B";
     protected static String testspecpath;
+    
+    // Set this field to the expected exit value. 
+    // 0: only static checking errors, not parsing or type errors
+    // 1: parsing or type errors
+    // -1: don't check the exit value
     protected int expectedExit = 0;
-    protected int expectedErrors = 0;
     protected boolean noAssociatedDeclaration;
     protected String[] args;
 //    protected String openJmlPropertiesDir = "../OpenJML"; 
@@ -178,7 +182,6 @@ public abstract class EscBase extends JmlTestCase {
         if (solver != null) main.addOptions(JmlOption.PROVER.optionName(),solver);
         specs = JmlSpecs.instance(context);
         expectedExit = 0;
-        expectedErrors = 0;
         noAssociatedDeclaration = false;
         ignoreNotes = false;
         print = false;

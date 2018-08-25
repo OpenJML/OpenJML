@@ -1648,6 +1648,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         bimap.putf(that, result);
         copyEndPosition(result,that);
     }
+    
+    public void newIncarnations(JCIdent id) {
+        
+        
+    }
 //    
     // FIXME - embedded assignments to array elements are not implemented; no warning either
     // FIXME - is all implicit casting handled
@@ -1688,6 +1693,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             if (utils.isJMLStatic(sym)) {
                 JCIdent id = newIdentUse(sym,sp);
                 JCIdent newid = newIdentIncarnation(id,sp);
+                newIncarnations(id);
                 // currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
                 JCBinary expr = treeutils.makeEquality(pos,newid,right);
                 //copyEndPosition(expr,right);
@@ -1701,6 +1707,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     addDeclaration(oldfield);
                 }
                 JCIdent newfield = newIdentIncarnation(oldfield,sp);
+                newIncarnations(oldfield);
                 if (isDefined.add(newfield.name)) {
                     addDeclaration(newfield);
                 }
