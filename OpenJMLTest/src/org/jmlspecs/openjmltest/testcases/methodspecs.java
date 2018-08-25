@@ -36,6 +36,7 @@ public class methodspecs extends TCBase {
                 +"int m() { return 0; }\n"
                 +"}"
                 ,"/TEST.java:4: ';' expected",18
+                ,"/TEST.java:4: Method specs may not precede a variable declaration",7
                 ,"/TEST.java:4: <identifier> expected",28
                 ,"/TEST.java:4: cannot find symbol\n  symbol:   class s\n  location: class A",5
 //                ,"/TEST.java:4: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: s",5

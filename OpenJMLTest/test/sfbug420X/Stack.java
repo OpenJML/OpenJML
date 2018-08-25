@@ -18,7 +18,7 @@ public interface Stack{
 	int itemAt (int i);
 
 	//@ ensures \result==(count()==0);
-	//@ pure;
+	//@ pure
 	boolean isEmpty ( );
 
 	//-RAC@ assignable count;
