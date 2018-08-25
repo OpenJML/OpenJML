@@ -217,7 +217,16 @@ public class JmlCompiler extends JavaCompiler {
         String typeName = typeSymbol.flatName().toString();
         JavaFileObject f = JmlSpecs.instance(context).findAnySpecFile(typeName);
         /*@Nullable*/ JmlCompilationUnit speccu = parseSingleFile(f);
-        if (speccu != null) speccu.packge = (Symbol.PackageSymbol)typeSymbol.outermostClass().getEnclosingElement();
+        if (speccu != null) {
+            Symbol.PackageSymbol p = typeSymbol.packge();
+            speccu.packge = p;
+            if (true || !typeSymbol.toString().equals("Array")) {
+                speccu.packge = (Symbol.PackageSymbol)typeSymbol.outermostClass().getEnclosingElement();
+                if (p != speccu.packge) {
+                    log.warning("jml.message","Unexpected change in package");
+                }
+            }
+        }
         return speccu;
     }
     

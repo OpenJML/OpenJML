@@ -889,7 +889,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
             implementationAllowed= true;
             super.visitNewClass(tree);
-            if (pureEnvironment) {
+            if (!(tree.type instanceof Type.ErrorType) && pureEnvironment) {
                 Symbol sym = tree.constructor;
                 MethodSymbol msym = null;
                 if (sym instanceof MethodSymbol) msym = (MethodSymbol)sym;
@@ -1569,7 +1569,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 decl.methodSpecsCombined = jms;
                 specs.putSpecs(decl.sym,jms);
                 methodSpecs = jms.cases;
-                // msp = jms;
+                msp.mods = jms.mods;
+                msp.cases = jms.cases;
                     JCAnnotation tpure = findMod(jms.mods,JmlTokenKind.PURE);
                     if (tpure != null) { 
                         pure = tpure; 
@@ -3208,8 +3209,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 Name savedLabel = currentEnvLabel;
                 n = tree.args.size();
                 if (!(n == 1 || (token != JmlTokenKind.BSPRE && n == 2))) {
-                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),
-                            token == BSPRE ? "1" : "1 or 2",n);
+                    if (token != JmlTokenKind.BSPRE) log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),
+                            "1 or 2",n);
+                    else log.error(tree.pos(),"jml.one.arg",token.internedName(),
+                            n);
                 }
                 if (token == BSPRE) {
                     // pre
@@ -3233,12 +3236,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     }
                 }
                 Name label = null;
+                JCExpression labelarg = null;
                 if (n == 2) {
-                    JCTree tr = tree.args.get(1);
-                    if (tr.getTag() != JCTree.Tag.IDENT) {
-                        log.error(tr.pos(),"jml.bad.label");
-                    } else {
-                        label = ((JCTree.JCIdent)tr).getName();
+                    labelarg = tree.args.get(1);
+                    label = checkLabel(labelarg);
+                    if (label == null) {
+                        t = syms.errType;
                     }
                 }
                 
@@ -3255,22 +3258,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     t = tree.args.get(0).type;
                 } else {
                     // in a method clause
-                    Env<AttrContext> oldenv = savedMethodClauseOutputEnv;
-                    if (oldenv == null) oldenv = enclosingMethodEnv;
-                    if (label != null) {
-                        Env<AttrContext> labelenv = labelEnvs.get(label);
-                        if (labelenv == null) {
-                            Log.instance(context).error(tree.args.get(1).pos(),"jml.unknown.label",label);
-                        } else {
-                            oldenv = labelenv;
-                        }
-                    }
-                    if (enclosingMethodEnv == null) {
-                        // Just a precaution
-                        Log.instance(context).error("jml.internal","Unsupported context for pre-state reference (anonymous class? initializer block?).  Please report the program.");
-                        oldenv = env;
-                        //
-                    }
+                    Env<AttrContext> oldenv = envForLabel(labelarg, label, savedMethodClauseOutputEnv);
                     
                     Env<AttrContext> qOldEnv = oldenv;
                     for (JmlQuantifiedExpr qexpr: quantifiedExprs) {
@@ -3307,7 +3295,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
-                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                    log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
                 }
                 if (n == 0) t = syms.errType;
                 else {
@@ -3326,7 +3314,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
-                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                    log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
                 }
                 t = jmltypes.TYPE;
                 result = check(tree, t, VAL, resultInfo);
@@ -3353,7 +3341,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             {
                 n = tree.args.size();
                 if (n != 1 && jmlstrict) {
-                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                    log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
                 }
 
                 for (JCExpression arg: tree.args) {
@@ -3376,7 +3364,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             {
                 n = tree.args.size();
                 if (n != 1) {
-                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                    log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
                 }
                 for (JCExpression arg: tree.args) {
                     Type argtype = attribExpr(arg, localEnv);
@@ -3394,7 +3382,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
-                    log.error(tree,"jml.wrong.number.args",token.internedName(),1,n);
+                    log.error(tree,"jml.one.arg",token.internedName(),n);
                 }
                 if (n > 0) {
                     JCExpression arg = tree.args.get(0);
@@ -3458,20 +3446,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
 
             case BSFRESH :
-                // The arguments can be JML spec-expressions
-                // The arguments can be any reference type; the result is boolean
-                attribArgs(VAL, tree.args, localEnv, argtypesBuf); 
-                //attribTypes(tree.typeargs, localEnv);
-                for (int i=0; i<tree.args.size(); i++) {
-                    JCExpression arg = tree.args.get(i);
-                    if (arg.type.isPrimitive()) {
+                // The first argument is a JML spec-expressions of any reference type; the result is boolean
+                // The second argument (optionsl) is a label
+                n = tree.args.size();
+                if (n != 1 && n != 2) {
+                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),"1 or 2",n);
+                }
+                if (n > 0) {
+                    if (n > 1) checkLabel(tree.args.get(1));
+                    JCExpression arg = tree.args.get(0);
+                    Type tt = attribExpr(arg, localEnv);
+                    if (tt.isPrimitive()) {
                         log.error(arg.pos(),"jml.ref.arg.required",token.internedName());
                     }
-                }
-                if (!freshClauses.contains(currentClauseType)) {
-                    // The +1 is to fool the error reporting mechanism into 
-                    // allowing other error reports about the same token
-                    log.error(tree.pos+1, "jml.misplaced.token", token.internedName(), currentClauseType == null ? "jml declaration" : currentClauseType.internedName());
+                    if (!freshClauses.contains(currentClauseType)) {
+                        // The +1 is to fool the error reporting mechanism into 
+                        // allowing other error reports about the same token
+                        log.error(tree.pos+1, "jml.misplaced.token", token.internedName(), currentClauseType == null ? "jml declaration" : currentClauseType.internedName());
+                    }
                 }
                 result = check(tree, syms.booleanType, VAL, resultInfo);
                 break;
@@ -3483,7 +3475,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
-                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                    log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
                 } else {
                     JCExpression arg = tree.args.get(0);
                     if (arg.type.isPrimitive()) {
@@ -3499,7 +3491,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             	
                 n = tree.args.size();
                 if (n != 1 && jmlstrict) {
-                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                    log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
                 }
 
                 for (JCExpression arg: tree.args) {
@@ -3526,7 +3518,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
-                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                    log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
                 }
                 result = check(tree, syms.longType, VAL, resultInfo);
                 break;
@@ -3538,7 +3530,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
-                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                    log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
                 }
                 // FIXME - there is no check that the argument is of reference type - can't this apply to primitives as well?
                 result = check(tree, syms.longType, VAL, resultInfo);
@@ -3558,7 +3550,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
-                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                    log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
                 }
                 if (n == 0) {
                     t = syms.errType;
@@ -3588,6 +3580,25 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
             }
         }
+    }
+    
+    public Env<AttrContext> envForLabel(DiagnosticPosition pos, Name label, Env<AttrContext> oldenv) {
+        if (oldenv == null) oldenv = enclosingMethodEnv;
+        if (label != null) {
+            Env<AttrContext> labelenv = labelEnvs.get(label);
+            if (labelenv == null) {
+                Log.instance(context).error(pos,"jml.unknown.label",label);
+            } else {
+                oldenv = labelenv;
+            }
+        }
+        if (enclosingMethodEnv == null) {
+            // Just a precaution
+            Log.instance(context).error(pos,"jml.internal","Unsupported context for pre-state reference (anonymous class? initializer block?).  Please report the program.");
+            oldenv = env;
+            //
+        }
+        return oldenv;
     }
     
     protected void checkForWildcards(JCExpression e, JCExpression arg) {
@@ -3935,6 +3946,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        result = that.type = Type.noType;
 //    }
     
+    public Name checkLabel(JCTree tr) {
+        if (tr.getTag() != JCTree.Tag.IDENT) {
+            log.error(tr.pos(),"jml.bad.label");
+            return null;
+        } else {
+            Name label = ((JCTree.JCIdent)tr).getName();
+            return label;
+        }
+
+    }
 
     public void visitJmlImport(JmlImport that) {
         visitImport(that);
@@ -5115,6 +5136,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = saved;
     }
     
+//    @Override
+//    public void visitTypeArray(JCArrayTypeTree tree) {
+//        super.visitTypeArray(tree);
+//        if (tree.elemtype.type.isPrimitiveOrVoid()) {
+//            ClassSymbol t = (ClassSymbol)tree.type.tsym;
+//            jmlcompiler.loadSpecsForBinary(env,t);
+////            System.out.println(t.toString());
+//        }
+//    }
+    
     @Override
     public void visitTypeCast(JCTypeCast tree) {
         if (tree.clazz instanceof JmlPrimitiveTypeTree) {
@@ -5903,8 +5934,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             env.dup(env.tree, env.info.dup(env.info.scope.dup()));
         savedSpecOK = true;
         attribStats(tree.init, loopEnv);
+        Env<AttrContext> labelenvi = env.dup(tree,env.info.dupUnshared());
+        labelEnvs.put(names.fromString("LoopInit"),labelenvi);
+
         if (tree.cond != null) attribExpr(tree.cond, loopEnv, syms.booleanType);
         loopEnv.tree = tree; // before, we were not in loop!
+
+        Env<AttrContext> labelenv = env.dup(tree,env.info.dupUnshared());
+        labelEnvs.put(names.fromString("LoopBodyBegin"),labelenv);
+
 
         attribLoopSpecs(tree.loopSpecs, loopEnv);
         // FIXME - should this be before or after the preceding statement

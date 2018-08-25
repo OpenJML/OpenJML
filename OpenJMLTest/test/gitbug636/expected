@@ -1,0 +1,14 @@
+test/gitbug636/Test.java:4: error: no suitable constructor found for String(String,StandardCharsets)
+    //@   requires new String(s, cs) != null;
+                   ^
+    constructor String.String(byte[],int) is not applicable
+      (argument mismatch; String cannot be converted to byte[])
+    constructor String.String(byte[],String) is not applicable
+      (argument mismatch; String cannot be converted to byte[])
+    constructor String.String(byte[],Charset) is not applicable
+      (argument mismatch; String cannot be converted to byte[])
+    constructor String.String(char[],boolean) is not applicable
+      (argument mismatch; String cannot be converted to char[])
+Operation not performed because of parse or type errors
+Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+1 error

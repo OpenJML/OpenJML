@@ -99,6 +99,7 @@ public enum JmlOption implements IOption {
     QUIET("-quiet",false,null,"Only output warnings and errors","-verboseness="+Utils.QUIET),
     NORMAL("-normal",false,null,"Limited output","-verboseness="+Utils.NORMAL),
     PROGRESS("-progress",false,null,"Shows progress through compilation phases","-verboseness="+Utils.PROGRESS),
+    SKIPPED("-skipped",false,true,"Shows methods whose proofs are skipped",null),
     JMLVERBOSE("-jmlverbose",false,false,"Like -verbose, but only jml information and not as much","-verboseness="+Utils.JMLVERBOSE),
     JMLDEBUG("-jmldebug",false,false,"When on, the program emits lots of output (includes -progress)","-verboseness="+Utils.JMLDEBUG),
     SHOW_OPTIONS("-showOptions",true, "none","When enabled, the values of options and properties are printed, for debugging",null),
@@ -267,7 +268,11 @@ public enum JmlOption implements IOption {
      */
     public static boolean isOption(Context context, JmlOption option) {
         String val = Options.instance(context).get(option.name);
-        return val != null && !"false".equals(val) && !"".equals(val);
+        return interpretBoolean(val);
+    }
+    
+    private static boolean interpretBoolean(String v) {
+        return v != null && !"false".equals(v);
     }
     
     /** Return whether an option is enabled in the given context
@@ -276,7 +281,8 @@ public enum JmlOption implements IOption {
      * @return true if the option is enabled, false otherwise
      */
     public static boolean isOption(Context context, String option) {
-        return value(context,option) != null;
+        String v = value(context,option);
+        return interpretBoolean(v);
     }
     
     /** This is used for those options that allow a number of suboptions; it tests whether

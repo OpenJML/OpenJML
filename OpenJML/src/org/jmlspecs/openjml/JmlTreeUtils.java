@@ -1080,7 +1080,6 @@ public class JmlTreeUtils {
     }
 
     public JCVariableDecl makeVarDefWithSym(VarSymbol v, @NonNull JCExpression init) {
-        v.pos = init.getStartPosition();
         JCVariableDecl d = factory.VarDef(v,init);
         d.pos = v.pos;
         return d;
@@ -1116,20 +1115,6 @@ public class JmlTreeUtils {
         return d;
     }
     
-    /** Makes an \old expression */
-    public JCMethodInvocation makeOld(int pos, JCExpression arg, JCIdent label) {
-        JCMethodInvocation m;
-        if (label == null || label.toString().isEmpty()) {
-            m = factory.at(pos).JmlMethodInvocation(JmlTokenKind.BSOLD, List.<JCExpression>of(arg));
-        } else {
-            JCIdent id = factory.at(pos).Ident(label.name);
-            id.type = null; // Should never refer to the label's type
-            id.sym = null; // Should never refer to the label's symbol
-            m = factory.at(pos).JmlMethodInvocation(JmlTokenKind.BSOLD, List.<JCExpression>of(arg, id));
-        }
-        m.type = arg.type;
-        return m;
-    }
    
     /** Makes an \old expression */
     public JCMethodInvocation makeOld(DiagnosticPosition pos, JCExpression arg) {

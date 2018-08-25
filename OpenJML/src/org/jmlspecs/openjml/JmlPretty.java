@@ -188,7 +188,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlLabeledStatement(JmlLabeledStatement that) {
         try {
-//            printStats(that.extraStatements.toList());
+            printStats(that.extraStatements.toList());
             print(that.label + ":");
             printStat(that.body);
         } catch (IOException e) {

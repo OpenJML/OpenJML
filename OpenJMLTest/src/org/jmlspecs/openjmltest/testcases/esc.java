@@ -78,8 +78,7 @@ public class esc extends EscBase {
 
 	@Test
 	public void testCollectB() {
-		main.addOptions("-nonnullByDefault", "-timeout=300"); //, "-show","-method=m","-checkFeasibility=debug");
-        //main.addOptions("-show","-method=m","-checkFeasibility=debug:250","-progress");
+		main.addOptions("-nonnullByDefault", "-timeout=300");
 		helpTCX("tt.TestJava",
 				"package tt; \n"
 						+ "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
@@ -87,15 +86,16 @@ public class esc extends EscBase {
 						+ "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
 						+ "    boolean bb = b instanceof Double;\n" 
 						+ "    Object oo = v.getClass();\n"
-						+ "    v.add(0,i);\n" 
+						+ "    v.add(0,i);\n"
 						+ "    bb = v.elements().hasMoreElements();\n" 
 						+ "    return null; \n" // FAILS
-						+ "  }\n" + "}\n",
+						+ "  }\n" 
+						+ "}\n",
 				"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method m", 5,
 				"/tt/TestJava.java:3: warning: Associated declaration", 17);
 	}
 
-	@Test @Ignore // FIXME - ignore until testCollectB is fixed
+	@Test
 	public void testCollectC() {
 		main.addOptions("-nonnullByDefault", "-timeout=300");
 		helpTCX("tt.TestJava",
@@ -2812,7 +2812,7 @@ public class esc extends EscBase {
 				+ "  abstract public int m(int ii);\n" 
 				+ "}\n"
 				+ "/*@ code_bigint_math*/ public class TestJava extends TestJavaB { \n" 
-				+ "  //@ also\n"
+				+ "  //@ also public normal_behavior\n"
 				+ "  //@ ensures \\result == i+1;\n" 
 				+ "  //@ pure\n" 
 				+ "  public int m(int i) { return i+1; }\n"
@@ -4215,7 +4215,6 @@ public class esc extends EscBase {
                         + "}\n"
                         ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under -strictJML",10
                         ,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -strictJML",37
-                        ,"$SPECS/specs/java/nio/ByteBuffer.jml:298: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",29
                   ); 
     }
 

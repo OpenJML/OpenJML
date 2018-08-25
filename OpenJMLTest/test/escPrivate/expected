@@ -43,8 +43,8 @@ test/escPrivate/Test.java:44: warning: The prover cannot establish an assertion 
         return 2;
         ^
 test/escPrivate/Test.java:26: warning: Associated declaration
-    //@ ensures \result == 1;
-        ^
+    //@ public normal_behavior ensures \result == 1;
+                               ^
 Completed proof of B.mi() with prover !!!! - with warnings
 Completed proving methods in B
 Proving methods in C

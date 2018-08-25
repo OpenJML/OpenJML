@@ -250,6 +250,13 @@ public class Strings {
     // Must match corresponding string in Utils.
     public final static String racCompiled = "__JML_racCompiled";
     
+    public final static String preLabelBuiltin = "\\Pre";
+    public final static String oldLabelBuiltin = "\\Old";
+    public final static String hereLabelBuiltin = "\\Here";
+    public final static String loopinitLabelBuiltin = "\\LoopInit";
+    public final static String loopbodyLabelBuiltin = "LoopBodyBegin";
+    
+    
     /** Text used to describe the program position at the end of the preconditions */
     static final public String preconditionAssumeCheckDescription = "end of preconditions";
     /** Text used to describe the program position at the end of the program, before the postcondition checks */ // FIXME - check this

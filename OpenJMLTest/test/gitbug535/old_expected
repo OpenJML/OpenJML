@@ -1,0 +1,18 @@
+Proving methods in AError
+Starting proof of AError.AError() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of AError.AError() with prover !!!! - no warnings
+Starting proof of AError.m() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of AError.m() with prover !!!! - no warnings
+Starting proof of AError.mm() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of AError.mm() with prover !!!! - no warnings
+Starting proof of AError.mmm() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of AError.mmm() with prover !!!! - no warnings
+Completed proving methods in AError
