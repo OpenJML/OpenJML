@@ -5,6 +5,9 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.io.BufferedInputStream;
 
 // FIXME - should these be combined with Commands.
@@ -13,16 +16,23 @@ import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.text.ITextSelection;
+
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
@@ -146,6 +156,26 @@ abstract public class MenuActions extends AbstractHandler {
     		utils.checkSelection(selection,window,shell);
     	}
     }
+    
+    
+    public static class JMLInfer extends MenuActions {
+    	@Override
+    	public Object execute(ExecutionEvent event) {
+    		try {
+    			if (Options.uiverboseness) {
+    				Log.log("INFER action initiated"); //$NON-NLS-1$
+    			}
+        		getInfo(event);
+                utils.inferSelection(selection,window,shell);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"MenuActions.JMLInfer",e); //$NON-NLS-1$
+    		}
+    		return null;
+    	}
+    }
+
+    
+    
 
     /** This class implements the action for doing ESC on the selected objects -
      * which may be any folder, java file, working set or class or method.

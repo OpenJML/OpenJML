@@ -1,0 +1,30 @@
+
+import org.jmlspecs.annotation.*;
+
+public class A17 {
+  
+  public A17();
+  public int FIELD;
+    /*@
+      requires true; 
+      ensures this.FIELD == 3; 
+      ensures \result == a + b; 
+      assignable this.FIELD; 
+   */
+
+  public int add(int a, int b);
+    /*@
+    public normal_behavior
+      requires true; 
+      {|
+        requires (a + b > 100); 
+        ensures \result == (a + b) * 100; 
+      also
+        requires !(a + b > 100); 
+        ensures \result == (a + b) * 50; 
+      |}
+   */
+
+  @Pure 
+  public int localTest3(int a, int b);
+}

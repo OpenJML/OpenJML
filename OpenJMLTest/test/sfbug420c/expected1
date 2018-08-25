@@ -17,7 +17,7 @@ test/sfbug420c/Stack.java:18: warning: Associated declaration
 	    ^
 test/sfbug420c/Stack.java:16: warning: Precondition conjunct is false: i <= count()
 	//@ requires i>=1 && i<=count();
-	                     ^
+	                      ^
 test/sfbug420c/StackImpl.java:56: warning: The prover cannot establish an assertion (Precondition) in method main
 		System.out.println(s.itemAt(3));
 		                           ^

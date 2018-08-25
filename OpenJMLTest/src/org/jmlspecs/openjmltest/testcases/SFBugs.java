@@ -774,6 +774,54 @@ public class SFBugs extends EscBase {
     }
     
     @Test
+    public void gitbug623() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug626() {
+    	expectedExit = 0;
+        helpTCG("-subexpressions");//,"-show","-method=findFirstSetLoop"); // -subexpressions is part of the test
+    }
+    
+    @Test
+    public void gitbug627() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug630() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug630a() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug634() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug635() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug636() {
+    	expectedExit = 1;
+        helpTCG();
+    }
+    
+    @Test
     public void gitbug666() {
     	expectedExit = 0;
         helpTCG("-show=all","-method=pow");

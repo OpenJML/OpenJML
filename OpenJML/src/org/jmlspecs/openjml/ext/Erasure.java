@@ -53,7 +53,7 @@ public class Erasure extends ExpressionExtension {
         // The argument expression may contain JML constructs
         int n = tree.args.size();
         if (n != 1) {
-            error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+            error(tree.pos(),"jml.one.arg",token.internedName(),n);
         } else {
             JCExpression e = tree.args.get(0);
             if (e instanceof JmlMethodInvocation && ((JmlMethodInvocation)e).token == JmlTokenKind.BSTYPELC) {

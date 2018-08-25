@@ -264,6 +264,12 @@ public class escfiles extends EscBase {
         helpTF("escArrayCopy");
     }
 
+    @Test
+    public void testArrayClone() {
+        expectedExit = 0;
+        helpTF("escClone");
+    }
+
 // FIXME - there is a problem with instantiating the model field or the getter functions, such that my_dollars differs from dollars()
     @Test  @Ignore
     public void testCashAmount() {
@@ -625,7 +631,7 @@ public class escfiles extends EscBase {
     
     @Test
     public void testRmLoop() {
-        helpTF("escrmloop","-method=doLRS","-timeout=10"); // SHort timeout because this does not yet work properly
+        helpTF("escrmloop","-method=doLRS","-timeout=10"); // FIXME SHort timeout because this does not yet work properly
     }
     
     @Test

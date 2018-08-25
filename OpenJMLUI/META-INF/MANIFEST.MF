@@ -5,7 +5,9 @@ Bundle-SymbolicName: org.jmlspecs.OpenJMLUI;singleton:=true
 Bundle-Version: 0.8.39
 Bundle-ClassPath: bin/,
  jmlruntime.jar,
- jSMTLIB.jar
+ jSMTLIB.jar,
+ jpaul-2.5.1.jar,
+ gson-2.8.1.jar
 Bundle-Activator: org.jmlspecs.openjml.eclipse.Activator
 Bundle-Vendor: David R. Cok
 Export-Package: org.jmlspecs.genericmodels;uses:="org.jmlspecs.lang",

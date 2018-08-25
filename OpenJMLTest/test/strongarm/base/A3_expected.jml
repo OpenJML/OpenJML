@@ -1,0 +1,32 @@
+
+import org.jmlspecs.annotation.*;
+
+public class A3 {
+  
+  public A3();
+  int THE_FIELD;
+  
+  class A3c {
+    
+    A3c();
+    public int ANOTHER_FIELD;
+  }
+    /*@
+    public normal_behavior
+      requires true; 
+        ensures this.THE_FIELD == 999; 
+        assignable this.THE_FIELD; 
+        {|
+          requires (a > -1); 
+          ensures \result == 0; 
+        also
+          requires !(a > -1); 
+          ensures \result == -1; 
+          ensures otherClazz.ANOTHER_FIELD == this.THE_FIELD * 10; 
+          assignable otherClazz.ANOTHER_FIELD; 
+        |}
+   */
+
+  public int localTest(int a, int b, @NonNull 
+  A3c otherClazz);
+}

@@ -10,8 +10,8 @@ import java.util.Map;
 
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
-import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.Log.WriterKind;
+import com.sun.tools.javac.util.Options;
 
 /**
  * This is an Enum that contains information about command-line options for JML
@@ -50,6 +50,34 @@ public enum JmlOption implements IOption {
     PROVEREXEC("-exec",true,null,"The prover executable to use",null),
     LOGIC("-logic",true,"ALL","The SMT logic to use (default ALL)",null),
     
+    
+    // Options Related to Specification Inference
+    INFER("-infer",true,"POSTCONDITIONS","Infer missing contracts (postconditions (default), preconditions)","-command=infer"),
+    INFER_DEBUG("-infer-debug", false, null, "Enable debugging of contract inference", null),    
+    INFER_TAG("-infer-tag", true, true, "If true, inferred specifications are tagged with the key INFERRED", null),        
+    INFER_PRECONDITIONS("-infer-preconditions", true, true, "If not specified, the precondition of methods lacking preconditions will be set to true (otherwise inference is skipped).", null),
+    INFER_NO_EXIT("-noexit",true,null,"Infer contracts (suppress exiting)","-command=infer-no-exit"),
+    INFER_MINIMIZE_EXPRS("-infer-minimize-expressions", false, null, "Minimize expressions where possible.", null),
+    INFER_DUMP_GRAPHS("-infer-dump-graphs", false, null, "Dump any specification that would have been inferred to a file for offline analysis", null),    
+    
+    //
+    // Inference decides to write specs based on the following conditions
+    // 1) If -infer-persist-path is specified, specs are written to that directory (base)
+    // 2) Else, if -specspath is specified, specs are written to that directory (base)
+    // 3) Otherwise, we write the specs to the same directory were the java class source exists
+    //
+    INFER_PERSIST("-infer-persist", true, "jml", "Persist inferred specs. If \"java\" specs are written to the source files. If \"jml\" (default) they are written to seperate .jml files (defaults to location of class source and can be overridden with -infer-persist-path and -specspath)", null),
+    INFER_PERSIST_PATH("-infer-persist-path", true, null, "Specify output directory of specifications (overrides -specspath)", null),
+    INFER_MAX_DEPTH("-infer-max-depth", true, 300, "The largest CFG we will agree to process", null),
+    INFER_TIMEOUT("-infer-timeout", true, 300, "Give up inference after this many seconds. A value of -1 will wait indefinitely", null),
+    INFER_DEV_MODE("-infer-dev-mode", false, null, "Special features for developers.", null),    
+    DISABLE_VISIBILITY_CHECKING("-all-public", false, null, "Do not check visibility of fields used in specifications", null),
+    
+    //
+    // Options for turning on and off various inference techniques 
+    //
+    INFER_ANALYSIS_TYPES("-infer-analysis-types", true, "ALL", "Enables specific analysis types. Takes a comma seperated list of analysis types. Support kinds are: REDUNDANT, UNSAT, TAUTOLOGIES, FRAMES, PURITY, and VISIBILITY", null),
+    
     NONNULLBYDEFAULT("-nonnullByDefault",false,false,"Makes references non_null by default","-nullableByDefault=false"),
     NULLABLEBYDEFAULT("-nullableByDefault",false,false,"Makes references nullable by default",null),
     CODE_MATH("-code-math",true,"safe","Arithmetic mode for Java code",null),
@@ -71,6 +99,7 @@ public enum JmlOption implements IOption {
     QUIET("-quiet",false,null,"Only output warnings and errors","-verboseness="+Utils.QUIET),
     NORMAL("-normal",false,null,"Limited output","-verboseness="+Utils.NORMAL),
     PROGRESS("-progress",false,null,"Shows progress through compilation phases","-verboseness="+Utils.PROGRESS),
+    SKIPPED("-skipped",false,true,"Shows methods whose proofs are skipped",null),
     JMLVERBOSE("-jmlverbose",false,false,"Like -verbose, but only jml information and not as much","-verboseness="+Utils.JMLVERBOSE),
     JMLDEBUG("-jmldebug",false,false,"When on, the program emits lots of output (includes -progress)","-verboseness="+Utils.JMLDEBUG),
     SHOW_OPTIONS("-showOptions",true, "none","When enabled, the values of options and properties are printed, for debugging",null),
@@ -239,7 +268,11 @@ public enum JmlOption implements IOption {
      */
     public static boolean isOption(Context context, JmlOption option) {
         String val = Options.instance(context).get(option.name);
-        return val != null && !"false".equals(val);
+        return interpretBoolean(val);
+    }
+    
+    private static boolean interpretBoolean(String v) {
+        return v != null && !"false".equals(v);
     }
     
     /** Return whether an option is enabled in the given context
@@ -248,7 +281,8 @@ public enum JmlOption implements IOption {
      * @return true if the option is enabled, false otherwise
      */
     public static boolean isOption(Context context, String option) {
-        return value(context,option) != null;
+        String v = value(context,option);
+        return interpretBoolean(v);
     }
     
     /** This is used for those options that allow a number of suboptions; it tests whether

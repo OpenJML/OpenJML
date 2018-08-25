@@ -75,6 +75,7 @@ NAME=openjml-${VERSION}.zip
 	cp -r ${ROOT}/OpenJML/bin-runtime/* temp
 	cp -r ${ANNOTATIONS}/bin/* temp
 	cp jSMTLIB.jar temp
+	cp otherlibs/jpaul-2.5.1.jar temp
 	mkdir -p temp/specs; chmod -R u+rwx,a+rx temp
 	cp -r ${SPECS}/specs/* temp/specs
 	echo "   " Creating jmlspecs.jar

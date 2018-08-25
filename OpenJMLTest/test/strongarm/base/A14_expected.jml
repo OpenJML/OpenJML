@@ -1,0 +1,31 @@
+
+import org.jmlspecs.annotation.*;
+
+public class A14 {
+  
+  public A14();
+  int THE_FIELD;
+    /*@
+    public normal_behavior
+      requires true; 
+      {|
+        requires (a > -1); 
+        ensures this.THE_FIELD == 999; 
+        assignable this.THE_FIELD; 
+        {|
+          requires (a == 1); 
+          ensures \result == 1; 
+        also
+          requires !(a == 1); 
+          ensures \result == 0; 
+        |}
+      also
+        requires !(a > -1); 
+        ensures this.THE_FIELD == 999; 
+        ensures \result == -1; 
+        assignable this.THE_FIELD; 
+      |}
+   */
+
+  public int localTest(int a, int b);
+}
