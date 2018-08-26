@@ -15726,7 +15726,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                     if (inClassDecl) methodDecl = (JmlMethodDecl)M.MethodDef(attr.makeInitializerMethodSymbol(that.mods.flags, JmlEnter.instance(context).getEnv(classDecl.sym)), null);
                     if (nn != null) addAssert(that,Label.POSSIBLY_NULL_INITIALIZATION,nn,that.name);
-                    if (esc && !that.type.isPrimitive() && !utils.isPrimitiveType(init.type)) {
+                    if (esc && !that.type.isPrimitive() && !utils.isPrimitiveType(that.type)) {
                         addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(that, 
                                 treeutils.makeIdent(that.pos, that.sym), 
                                 that.type));
