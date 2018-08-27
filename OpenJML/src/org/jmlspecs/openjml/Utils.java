@@ -98,6 +98,12 @@ public class Utils {
     }
     
     public Type interfaceForPrimitiveTypes;
+    public Type interfaceForPrimitiveTypes() {
+    	if (interfaceForPrimitiveTypes == null) {
+            interfaceForPrimitiveTypes = ClassReader.instance(context).enterClass(Names.instance(context).fromString("org.jmlspecs.lang.IJmlPrimitiveType")).type;
+    	}
+    	return interfaceForPrimitiveTypes;
+    }
 
     /** The key to use to retrieve the instance of this class from the Context object. */
     //@ non_null
@@ -124,7 +130,6 @@ public class Utils {
     protected Utils(Context context) {
         this.context = context;
         context.put(utilsKey, this);
-        interfaceForPrimitiveTypes = ClassReader.instance(context).enterClass(Names.instance(context).fromString("org.jmlspecs.lang.IJmlPrimitiveType")).type;
     }
 
     /** The error and warning log. It is crucial that the log be obtained
@@ -682,7 +687,7 @@ public class Utils {
     }
 
     public boolean isPrimitiveType(Type ct) {
-        return jmltypes().isSubtype(ct, interfaceForPrimitiveTypes);
+        return jmltypes().isSubtype(ct, interfaceForPrimitiveTypes());
     }
 
     // Includes self
