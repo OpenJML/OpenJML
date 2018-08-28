@@ -804,6 +804,12 @@ public class SFBugs extends EscBase {
     }
     
     @Test
+    public void gitbug631() {
+    	expectedExit = 0;
+        helpTCG("-show","-method=msa");
+    }
+    
+    @Test
     public void gitbug634() {
     	expectedExit = 0;
         helpTCG();
@@ -824,6 +830,30 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug643() {
     	expectedExit = 1;
+        helpTCG();
+    }
+    
+    @Test @Ignore // Z3 hangs kin some matching loop
+    public void gitbug644() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug644a() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug644b() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug644c() {
+    	expectedExit = 0;
         helpTCG();
     }
     
