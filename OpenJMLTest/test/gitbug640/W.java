@@ -10,6 +10,8 @@ public class W {
         Object rr = r;
         Object ss = s;
         assert rr != ss;  // OpenJML warns about this
+        assert !(rr instanceof S);
+        assert !(ss instanceof R);
     }
 
     //@ public normal_behavior
