@@ -7218,7 +7218,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression savedCondition = condition; // This is the logical context in which this method is called - only used for JML expressions
         /*@ nullable */ VarSymbol savedResultSym = resultSym; // This is the symbol of the JCIdent representing the result of the method call, null if the method is void
         /*@ nullable */ JCExpression savedResultExpr = resultExpr;
-        /*@ nullable */ Symbol savedExceptionSym = exceptionSym; // The symbol that holds the actifve exception (or null) // FIXME - doesnot get changed so why save it?
+        /*@ nullable */ Symbol savedExceptionSym = exceptionSym; // The symbol that holds the active exception (or null) // FIXME - doesnot get changed so why save it?
         /*@ nullable */ JCIdent savedThisId = currentThisId; // The JCIdent holding what 'this' means in the current context (already translated)
         /*@ nullable */ JCExpression savedThisExpr = currentThisExpr; // The JCIdent holding what 'this' means in the current context (already translated)
         /*@ nullable */ JCTree savedNestedCallLocation = nestedCallLocation;
@@ -8033,6 +8033,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 int preconditionDetailLocal = preconditionDetail;
                 int preconditionDetail2 = 0;
                 addStat(comment(that, "Checking preconditions of callee " + calleeMethodSym + " by the caller",null));
+                boolean anyVisibleSpecCases = false;
                 for (Pair<MethodSymbol,Type> pair: overridden) {
                     MethodSymbol mpsym = pair.first;
                     Type classType = pair.second;
@@ -8113,6 +8114,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue; // exceptional behavior clauses are not used for pure functions within JML expressions
                         if (mpsym != calleeMethodSym && cs.code) continue;
                         if (cs.block != null) hasAModelProgram = true;
+                        anyVisibleSpecCases = true;
                         JCIdent preId = null;
                         ListBuffer<JCStatement> oldStatements = currentStatements;
                         if (rac) {
@@ -8213,6 +8215,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         combinedPrecondition = treeutils.makeOrSimp(pre.pos, combinedPrecondition, pre);
                     }
                     
+                }
+                if (!anyVisibleSpecCases) {
+                    log.error(that.pos, "jml.message","No visible specifications for this call site: " + utils.qualifiedMethodSig(calleeMethodSym) + " called from " + utils.qualifiedMethodSig(methodDecl.sym));
                 }
                 // Issue the overall precondition check (which is an OR of all the preconditions for each spec case, acrsoss all overriding methods).
                 // clauseToReference is null if the precondition is just a true literal  // FIXME - this is confusing if there is more than one clause in one spec case
