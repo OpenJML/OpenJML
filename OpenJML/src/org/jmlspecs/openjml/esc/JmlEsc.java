@@ -253,7 +253,7 @@ public class JmlEsc extends JmlTreeScanner {
         String proverToUse = JmlOption.value(context,JmlOption.PROVER);
         if (proverToUse == null || proverToUse.isEmpty()) proverToUse = Options.instance(context).get(Strings.defaultProverProperty);
         if (proverToUse == null || proverToUse.isEmpty() || proverToUse.equals("z3")) {
-            proverToUse = "z3_4_3";
+            proverToUse = "z3_4_7";
         }
         return proverToUse;
     }
