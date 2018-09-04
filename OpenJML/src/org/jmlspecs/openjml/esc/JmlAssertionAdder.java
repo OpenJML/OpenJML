@@ -10021,7 +10021,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     private void havocModelFields(JCFieldAccess newfa, ListBuffer<JCExpression> havocList) {
         FieldSpecs fspecs = specs.getSpecs((Symbol.VarSymbol)newfa.sym);
-        for (JmlTypeClause tc: fspecs.list) {
+        if (fspecs != null) for (JmlTypeClause tc: fspecs.list) {
             if (tc.token == JmlTokenKind.IN) {
                 JmlTypeClauseIn tcin = (JmlTypeClauseIn)tc;
                 for (JmlGroupName g : tcin.list) {
