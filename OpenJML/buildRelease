@@ -34,6 +34,8 @@ fi
 
 TEMPJAR=tempjars
 RB=releaseBuilds
+RBCI="${RB}-CI"
+CIBRANCH=CI
 
 DATE=`date +%Y%m%d`
 BRANCH=`git rev-parse --abbrev-ref HEAD`
@@ -106,6 +108,7 @@ NAME=openjml-${VERSION}.zip
 	echo "Main-Class: org.jmlspecs.openjml.Main" >> temp2/manifest
 	(cd temp; jar -cfm ../${TEMPJAR}/openjml.jar ../temp2/manifest . ) || exit 1
 	##cp ${TEMPJAR}/openjml.jar ../OpenJMLUI
+	if [ "${BRANCH}" == "${CIBRANCH}" ]; then cp ${TEMPJAR}/openjml.jar ${RBCI} ; fi
 	echo "   " jmlspecs.jar openjml.jar created
 	
     rm -rf temp temp2
@@ -114,8 +117,8 @@ NAME=openjml-${VERSION}.zip
     cp -r ../../Solvers/Solvers-* ${TEMPJAR}
         
 ##### Collect other files for the zip file
-    cp legal/* ${TEMPJAR}
-#        ##(echo Building user manual; cd documentation/OpenJMLUserGuide; rm -f *.pdf; make all > build.log )
+    cp legal/* ${TEMPJAR}        
+    ##(echo Building user manual; cd documentation/OpenJMLUserGuide; rm -f *.pdf; make all > build.log )
     DOC=/Users/davidcok/cok/texstuff/papers/JMLBook
     if [ -e $DOC/OpenJMLUserGuide.pdf ]; then
         cp $DOC/OpenJMLUserGuide.pdf ${TEMPJAR} && echo "   " UserGuide copied
