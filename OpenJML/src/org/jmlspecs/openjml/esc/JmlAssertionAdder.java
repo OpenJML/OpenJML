@@ -1930,7 +1930,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Then for normal checking of the method, we assert assumeCheckVar == 0
         // so all the introduced asserts are trivially true.
         // But later we can pop the assumeCheckVar == 0 and add 
-        // assumeCHeckVar == k, to check feasibility at point k.
+        // assumeCheckVar == k, to check feasibility at point k.
         
         ++assumeCheckCount;
         java.util.List<JmlStatementExpr> descs = assumeChecks.get(methodDecl);
@@ -12001,7 +12001,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // known to satisfy the invariants about Strings
             addInvariants(id,id.type,id,currentStatements,false,false,false,false,false,true,Label.INVARIANT_ENTRANCE,utils.qualifiedMethodSig(methodDecl.sym));
 
-            result = eresult = id;
+            // Use the literal instead of the temp in order to make optimizations
+            // and constant folding, for some types. Keep the temp above for tracing.
+            if (that.type == syms.booleanType || that.type.isNumeric()) {
+                result = eresult = that; // FIXME - what about bigint, real, null
+            } else {
+                result = eresult = id;
+            }
         }
         
     }
@@ -15155,7 +15161,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     opt = convertJML(opt);
                 } 
                 result = addAssume(that,Label.EXPLICIT_ASSUME,ee,null,null,opt);
-                addAssumeCheck(that,currentStatements,Strings.afterAssumeAssumeCheckDescription);
+                if (!treeutils.isFalseLit(ee)) {
+                    addAssumeCheck(that,currentStatements,Strings.afterAssumeAssumeCheckDescription);
+                }
                 break;
             case COMMENT:
                 JCExpression expr = fullTranslation ? convertJML(that.expression) : that.expression;

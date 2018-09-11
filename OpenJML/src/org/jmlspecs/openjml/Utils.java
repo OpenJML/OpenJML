@@ -822,11 +822,13 @@ public class Utils {
     }
 
     public Symbol topLevelEnclosingType(Symbol item) {
-        while (true) {
-            Symbol sym = item.getEnclosingElement();
-            if (!(sym instanceof ClassSymbol)) break;
+        // Enclosing elements can be either methods or classes/interfaces
+        // The top level type will be enclosed by a package
+        Symbol sym = item;
+        do {
             item = sym;
-        }
+            sym = item.getEnclosingElement();
+        } while (!(sym instanceof Symbol.PackageSymbol));
         return item;
     }
 
@@ -875,7 +877,8 @@ public class Utils {
         Symbol gp = parent;
         while (gp instanceof ClassSymbol) {
             if (!locallyJMLVisible(base,gp,gp.flags())) return false;
-            gp = gp.getEnclosingElement();
+            do { gp = gp.getEnclosingElement(); }
+            while (gp instanceof MethodSymbol);
         }
         return locallyJMLVisible(base, parent, flags);
     }
@@ -898,9 +901,12 @@ public class Utils {
     public boolean jmlvisible(/*@ nullable */ Symbol s, Symbol base, Symbol parent, long flags, long methodFlags) {
         // Make sure enclosing classes are visible
         if (jmlvisible(base,parent,flags)) return true;
+        Symbol p = parent.getEnclosingElement();
+        while (p instanceof MethodSymbol) p = p.getEnclosingElement();
+        
         // Recheck this FIXME
-        if (parent.getEnclosingElement() instanceof TypeSymbol) {
-            if (!jmlvisible(null,base,parent.getEnclosingElement(),parent.flags(),methodFlags)) return false;
+        if (!(p instanceof Symbol.PackageSymbol)) {
+            if (!jmlvisible(null,base,p,parent.flags(),methodFlags)) return false;
         }
         
         // In JML the clause must be at least as visible to clients as the method
