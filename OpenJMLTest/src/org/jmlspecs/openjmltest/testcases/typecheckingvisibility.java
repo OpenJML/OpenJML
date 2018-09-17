@@ -47,5 +47,4 @@ public class typecheckingvisibility extends TCBase {
         );
     }
 
-    
 }

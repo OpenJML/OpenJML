@@ -1690,13 +1690,13 @@ public class esc extends EscBase {
 		main.addOptions("-checkFeasibility=all");
 		helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  //@ requires bb;\n"
 				+ "  //@ ensures true;\n"
-				+ "  public static void bassumeBADASSUMP(boolean bb) { /*@assume false;*/  /*@ assert false; */ }\n" // Should succeed despite the false assert
+				+ "  public static void bassumeBADASSUMP(boolean bb) { /*@assume 0==1 ;*/  /*@ assert false; */ }\n" // Should succeed despite the false assert
 				+ "  //@ requires bbb;\n"
 				+ "  public static void bifOK(boolean bb,boolean b, boolean bbb) { /*@assume true;*/ if (bb) { /*@assume !b;*/ /*@ assert !bb; */ }  }\n"
 				+ "  //@ requires b;\n"
 				+ "  public static void bifBAD(boolean bb,boolean b) { /*@assume true;*/ if (bb) { /*@assume !b;*/ /*@ assert !bb; */ }  }\n"
 				+ "  //@ requires bb;\n" + "  //@ ensures true;\n"
-				+ "  public static void bassumeBADASSUMP2(boolean bb) { /*@assume false;*/  /*@ assert true; */ }\n" // Should succeed despite the false assert
+				+ "  public static void bassumeBADASSUMP2(boolean bb) { /*@assume 0==1 ;*/  /*@ assert true; */ }\n" // Should succeed despite the false assert
 				+ "  public static void bassumeCHAIN1(boolean bb, boolean b) { if (bb) { /*@ assume !bb; assume bb;*/ b = true;  /* @ assert false; */ } }\n"
 				+ "  public static void bassumeCHAIN2(boolean bb, boolean b) { if (bb) { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */ } }\n"
 				+ "  public static void bassumeMULT(boolean bb, boolean b) { if (bb) { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */ } else { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */} }\n"

@@ -68,7 +68,7 @@ public class PriorityScheduler extends javax.realtime.PriorityScheduler {
 	 * @return The priority scheduler.
 	 */
 	/*@ 
-	  behaviour
+	  public behaviour
 	    requires true;
 	    assignable \nothing;
 	    ensures \result != null ; 

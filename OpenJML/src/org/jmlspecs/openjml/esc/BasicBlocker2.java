@@ -1541,7 +1541,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
             if (localVars.contains(vsym)) {
                 // no change to local vars (e.g. quantifier and let decls)
-            } else {
+            } else if (currentMap != null) { // FIXME - why would currentMap ever be null?
                 that.name = currentMap.getCurrentName(vsym);
                 if (isDefined.add(that.name)) {
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Added " + vsym + " " + that.name);

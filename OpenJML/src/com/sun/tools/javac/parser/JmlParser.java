@@ -1933,10 +1933,10 @@ public class JmlParser extends JavacParser {
         }
 
         if (clauses.size() == 0 && stat == null) {
-            if (jt != null) {
+            if (jt != null && JmlOption.isOption(context, JmlOption.STRICT)) {
                 jmlerror(pos, "jml.empty.specification.case");
             }
-            if (also == null && !code) return null;
+            if (jt == null && also == null && !code) return null;
         }
         if (jt == null && code) code = false; // Already warned about this
         JmlSpecificationCase j = jmlF.at(pos).JmlSpecificationCase(mods, code,
