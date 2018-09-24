@@ -662,7 +662,7 @@ public class escfiles extends EscBase {
     @Test
     public void testPrimitiveTypes() {
         expectedExit = 0;
-        helpTF("primitives");
+        helpTF("primitives","-show","-method=Test");
     }
 
     @Test

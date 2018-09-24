@@ -1588,7 +1588,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Add a precondition for each nonnull parameter
             for (JCVariableDecl p : decl.params) {
                 if (p.type == null && p.sym != null) p.type = p.sym.type; // FIXME - A hack - why is p.type null - has the corresponding class not been Attributed?
-                if (!p.type.isPrimitive()) {
+                if (!utils.isPrimitiveType(p.type)) {
                     JmlVariableDecl jp = (JmlVariableDecl)p;
                     boolean isNonnull = specs.isNonNull(jp); 
                     JCAnnotation nonnull = jp.specsDecl == null ? null : findMod(jp.specsDecl.mods,JmlTokenKind.NONNULL); // FIXME - this is not necessarily the correct position - could be in a .jml file
@@ -1614,7 +1614,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             int annotationPos = (nonnullAnnotation != null) ? nonnullAnnotation.getPreferredPosition() : decl.getPreferredPosition();
             int annotationEnd = (nonnullAnnotation != null) ? nonnullAnnotation.getEndPosition(endPosTable) : decl.getPreferredPosition()+1;
             // restype is null for constructors, possibly void for methods
-            if (decl.restype != null && decl.restype.type.getTag() != TypeTag.VOID && !decl.restype.type.isPrimitive()) {
+            if (decl.restype != null && decl.restype.type.getTag() != TypeTag.VOID && !utils.isPrimitiveType(decl.restype.type)) {
                 boolean isNonnull = specs.isNonNull(decl.sym,decl.sym.enclClass());
                 if (isNonnull) {
                     JCExpression id = jmlMaker.JmlSingleton(JmlTokenKind.BSRESULT);

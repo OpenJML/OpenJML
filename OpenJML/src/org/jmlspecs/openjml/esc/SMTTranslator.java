@@ -514,10 +514,10 @@ public class SMTTranslator extends JmlTreeScanner {
                         emptyList,
                         jmlTypeSort));
             }
-            if (utils.isPrimitiveType(ti)) {
+            if (utils.isPrimitiveType(ti) && ti.toString().charAt(0) != '\\') {
                 tcommands.add(new C_declare_sort(
                         (ISymbol)jmlTypeSymbol(ti),
-                        F.numeral(0)));
+                        F.numeral(0))); //ti.tsym.type.getTypeArguments().size())));
             }
         }
         for (Type ti: javaTypes) {
@@ -792,9 +792,9 @@ public class SMTTranslator extends JmlTreeScanner {
         // define NULL as a REF: (declare-fun NULL () REF)
         c = new C_declare_fun(nullSym,emptyList, refSort);
         startCommands.add(c);
-        // define THIS as a REF: (declare-fun THIS () REF)
-        c = new C_declare_fun(thisSym,emptyList, refSort);
-        startCommands.add(c);
+//        // define THIS as a REF: (declare-fun THIS () REF)
+//        c = new C_declare_fun(thisSym,emptyList, convertSort());
+//        startCommands.add(c);
         // define stringConcat: (declare-fun stringConcat (REF,REF) REF)
         c = new C_declare_fun(F.symbol(concat),Arrays.asList(refSort,refSort), refSort);
         startCommands.add(c);
@@ -804,8 +804,8 @@ public class SMTTranslator extends JmlTreeScanner {
         	startCommands.add(c);
         }
         // THIS != NULL: (assert (distinct THIS NULL))
-        c = new C_assert(F.fcn(distinctSym, thisSym, nullSym)); // SMT defined name
-        commands.add(c);
+        //c = new C_assert(F.fcn(distinctSym, thisSym, nullSym)); // SMT defined name
+        //commands.add(c);
         // (assert __JMLlength () (Array REF Int))
         {
         	c = new C_declare_fun(lengthSym,
@@ -1018,7 +1018,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 // FIXME - I don't think 'this' should ever get this far
                 if (id.sym != null && id.sym.owner instanceof Symbol.ClassSymbol && !Utils.instance(context).isJMLStatic(id.sym) && !id.sym.name.toString().equals("this")) {
                     // The name is a non-static field of a class, so the sort is an SMT Array
-                    sort = F.createSortExpression(arraySym,refSort,sort);
+                    sort = F.createSortExpression(arraySym,convertSort(id.sym.owner.type),sort);
                 } else if (nm.startsWith(arrays_)) {
                     // FIXME - review modeling of arrays
                     sort = convertSort(((Type.ArrayType)id.type).getComponentType());
@@ -1099,7 +1099,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public IExpr jmlTypeSymbol(Type t) {
         t = t.unannotatedType();
         if (utils.isPrimitiveType(t)) {
-            return F.symbol(t.tsym.getSimpleName().toString());
+            return t.isPrimitive() ? javaTypeSymbol(t) : F.symbol(t.tsym.getSimpleName().toString());
         }
         if (t.getTag() == TypeTag.BOT) t = syms.objectType;
         if (t.getTag() == TypeTag.ARRAY) {
@@ -1201,6 +1201,14 @@ public class SMTTranslator extends JmlTreeScanner {
 //        if (t.getTag() == TypeTag.TYPEVAR && !(t instanceof Type.WildcardType)) {
 //            addType( ((Type.TypeVar)t).getUpperBound() );
 //        }
+    }
+    
+    Map<String,Integer> typeFamilies = new HashMap<>();
+    public void addTypeFamily(Type t, int n) {
+        String name = t.tsym.toString();
+        if (!typeFamilies.keySet().contains(name)) {
+            typeFamilies.put(name,n);
+        }
     }
     
     /** Converts a BasicBlock into SMTLIB, adding commands into the
@@ -1605,11 +1613,35 @@ public class SMTTranslator extends JmlTreeScanner {
         if ( t == null) {
             log.error("jml.internal", "No type translation implemented when converting a BasicProgram to SMTLIB: " + t);
             throw new RuntimeException();
-        } else if (utils.isPrimitiveType(t)) {
-            addType(t);
-            return F.createSortExpression((ISymbol)jmlTypeSymbol(t));
+        }
+        TypeTag tag = t.getTag();
+        if (tag == TypeTag.NONE || tag == TypeTag.UNKNOWN){ // Do these first because they are also primitive types
+            if (t instanceof JmlType) {
+                JmlType jt = (JmlType)t;
+                if (jt.jmlTypeTag() == JmlTokenKind.BSBIGINT) return intSort; 
+                if (jt.jmlTypeTag() == JmlTokenKind.BSREAL) return realSort; 
+                if (jt.jmlTypeTag() == JmlTokenKind.BSTYPEUC) return jmlTypeSort;
+            }
+            // FIXME - errors
+            return refSort; // FIXME - just something
+        } else if (tag == TypeTag.CLASS && utils.isPrimitiveType(t)) {
+            if (false && t.isParameterized()) {
+                List<Type> targs = t.tsym.type.getTypeArguments();
+                Iterator<Type> iter = targs.iterator();
+                List<ISort> sorts = new LinkedList<>();
+                while (iter.hasNext()) {
+                    Type tt = iter.next();
+                    ISort s = convertSort(tt);
+                    sorts.add(s);
+                }
+                addTypeFamily(t,targs.size());
+                String name = t.tsym.toString();
+                return F.createSortExpression( F.symbol(name), sorts);
+            } else {
+                addType(t);
+                return F.createSortExpression((ISymbol)jmlTypeSymbol(t));
+            }
         } else {
-            TypeTag tag = t.getTag();
             if (tag == TypeTag.BOOLEAN) {
                 return F.Bool();
             } else if (tag == TypeTag.INT) { 
@@ -1636,15 +1668,6 @@ public class SMTTranslator extends JmlTreeScanner {
 //                return F.createSortExpression(F.symbol("Array"),refSort,F.createSortExpression(F.symbol("Array"),refSort,convertSort(at.elemtype)));
             } else if (tag == TypeTag.BOT) {
                 return refSort;
-            } else if (tag == TypeTag.NONE || tag == TypeTag.UNKNOWN){
-                if (t instanceof JmlType) {
-                    JmlType jt = (JmlType)t;
-                    if (jt.jmlTypeTag() == JmlTokenKind.BSBIGINT) return intSort; 
-                    if (jt.jmlTypeTag() == JmlTokenKind.BSREAL) return realSort; 
-                    if (jt.jmlTypeTag() == JmlTokenKind.BSTYPEUC) return jmlTypeSort;
-                }
-                // FIXME - errors
-                return refSort; // FIXME - just something
             } else if (t instanceof Type.TypeVar) {
                 return refSort;
             } else {
@@ -2358,7 +2381,7 @@ public class SMTTranslator extends JmlTreeScanner {
             if (field != syms.lengthVar) {
                 IExpr.ISymbol name = F.symbol(tree.name.toString());
                 if (defined.add(tree.name)) {
-                    ISort arrsort = F.createSortExpression(arraySym,refSort,convertSort(field.type));
+                    ISort arrsort = F.createSortExpression(arraySym,convertSort(object.type),convertSort(field.type));
                     ICommand c = new C_declare_fun(name,emptyList,arrsort);
                     commands.add(c);
                 }
