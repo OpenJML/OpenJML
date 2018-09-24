@@ -5726,7 +5726,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else {
 
                 Name resultname = names.fromString(Strings.conditionalResult + (++count));
-                JCVariableDecl vdecl = treeutils.makeVarDef(that.type, resultname, esc? null : methodDecl.sym, that.pos);
+                JCVariableDecl vdecl = treeutils.makeVarDef(that.type, resultname, /*esc? null :*/ methodDecl.sym, that.pos);
                 addStat(vdecl);
 
                 ListBuffer<JCStatement> checkA = pushBlock();
