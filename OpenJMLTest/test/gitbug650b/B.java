@@ -1,6 +1,7 @@
-// This is the original #6750b problem
+// This version of issue #650 has the axiom in the class and first
 interface A {
     /*@ immutable pure public static model class Content {
+      @     axiom (\forall Content c; (\forall Object o; c.P(o)));
       @     public normal_behavior
       @       ensures true;
       @     function
@@ -8,7 +9,6 @@ interface A {
 
       @ }
       @
-      @ axiom (\forall Content c; (\forall Object o; c.P(o)));
       @*/
     
     //@ public model instance non_null Content content;

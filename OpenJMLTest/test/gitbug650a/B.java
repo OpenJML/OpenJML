@@ -1,4 +1,4 @@
-// This is the original #6750b problem
+// This version of issue #650 has the axiom within the Content class - it doesn't parse correctly
 interface A {
     /*@ immutable pure public static model class Content {
       @     public normal_behavior
@@ -6,9 +6,10 @@ interface A {
       @     function
       @     public boolean P(nullable Object key);
 
+      @ axiom (\forall Content c; (\forall Object o; c.P(o)));
+
       @ }
       @
-      @ axiom (\forall Content c; (\forall Object o; c.P(o)));
       @*/
     
     //@ public model instance non_null Content content;

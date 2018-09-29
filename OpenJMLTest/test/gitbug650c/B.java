@@ -1,14 +1,15 @@
-// This is the original #6750b problem
+// This version has the axiom not in the class, but first
 interface A {
+    //@ axiom (\forall Content c; (\forall Object o; c.P(o)));
+
     /*@ immutable pure public static model class Content {
       @     public normal_behavior
       @       ensures true;
-      @     function
+      @     function helper
       @     public boolean P(nullable Object key);
 
       @ }
       @
-      @ axiom (\forall Content c; (\forall Object o; c.P(o)));
       @*/
     
     //@ public model instance non_null Content content;
