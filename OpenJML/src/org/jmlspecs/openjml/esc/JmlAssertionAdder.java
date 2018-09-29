@@ -14471,7 +14471,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 ListBuffer<JCStatement>  prev = nonignoredStatements;
                 try {
                     if (translatingJML) {
-                        nonignoredStatements = currentStatements;
+                        nonignoredStatements = new ListBuffer<JCStatement>();
                         pushBlock(); // A // FIXME - we have not implemented guarding conditions for expressions inside quantifiers
                     }
                     List<JCVariableDecl> dd = convertCopy(that.decls);
@@ -14494,7 +14494,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } finally {
                     if (translatingJML) {
                         popBlock();  // A
-                        nonignoredStatements = prev;
+                        if (prev == null) {
+                            currentStatements.addAll(nonignoredStatements);
+                            nonignoredStatements = prev;
+                        } else {
+                            prev.addAll(nonignoredStatements);
+                            nonignoredStatements = prev;
+                        }
                     }
                 }
                 if (splitExpressions) {
@@ -16337,8 +16343,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         splitExpressions = false;
         ListBuffer<JCStatement> check = pushBlock();
-        ListBuffer<JCStatement> saved = currentStatements;
-        if (depth == 0) savedForAxioms = saved;
+//        ListBuffer<JCStatement> saved = currentStatements;
+        if (depth == 0) savedForAxioms = currentStatements;
         depth++;
 
         JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(msym);
@@ -16452,8 +16458,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         e);
                     e.type = syms.booleanType;
                 }
-                currentStatements = savedForAxioms;
-                addAssume(dpos,Label.IMPLICIT_ASSUME,e,dpos,clauseSource);
+                ListBuffer<JCStatement> ch = pushBlock();
+                addAssume( dpos,Label.IMPLICIT_ASSUME,e,dpos,clauseSource);
+                savedForAxioms.add(popBlock(0L,callLocation,ch));
 
             }
 
@@ -16635,7 +16642,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             currentThisExpr = savedCurrentThisExpr;
             paramActuals = savedParamActuals;
             splitExpressions = savedSplitExpressions;
-            currentStatements = saved;
+//            currentStatements = saved;
             depth--;
             if (depth == 0) savedForAxioms = null;
         }

@@ -969,7 +969,7 @@ public class JmlParser extends JavacParser {
             boolean isInterface) {
 
         ListBuffer<JCTree> list = new ListBuffer<JCTree>();
-        loop: while (true) {
+        loop: while (token.ikind != TokenKind.RBRACE) {
             JmlVariableDecl mostRecentVarDecl = currentVariableDecl;
             currentVariableDecl = null;
             
