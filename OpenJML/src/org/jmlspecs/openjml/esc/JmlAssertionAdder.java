@@ -11650,8 +11650,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 var = true;
             }
             if (s.owner instanceof ClassSymbol) {
-                if (specs.isNonNull(s,classDecl.sym) && s instanceof VarSymbol && !localVariables.containsKey(s)
-                        && (!methodDecl.sym.isConstructor() || utils.isJMLStatic(that.sym))) {
+                if (specs.isNonNull(s,classDecl.sym) && s instanceof VarSymbol && !localVariables.containsKey(s)) {
                     if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
                         // continue
                     } else {
@@ -11665,6 +11664,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCExpression nl = treeutils.makeNullLiteral(that.pos);
                         treeutils.copyEndPosition(nl,ee);
                         JCExpression nonnull = treeutils.makeNeqObject(that.pos, ee, nl);
+                        if (methodDecl.sym.isConstructor() && !utils.isJMLStatic(that.sym) && (s.owner == methodDecl.sym.owner) ) {
+                            JCExpression ne = treeutils.makeNeqObject(that.pos,currentThisExpr, ee);
+                            nonnull = treeutils.makeImplies(nonnull.pos, ne, nonnull);
+                        }
                         addAssume(nonnull,Label.NULL_FIELD,nonnull);
                     }
                 }

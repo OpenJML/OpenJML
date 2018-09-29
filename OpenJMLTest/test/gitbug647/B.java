@@ -1,28 +1,70 @@
 //@ non_null_by_default
 class A {
     //@ spec_public
-    private String s;
+    private String ssss;
     
     //@ private normal_behavior
     //@   requires true;
     //@ pure
     public A() {
-        s = "hello";
+        ssss = "hello";
     }
 }
 //@ non_null_by_default
 public class B {
+    //@ non_null
+    B b;
+    
     //@ public normal_behavior
     //@   requires true;
     //@ pure
-    public B(A a) {
-        //@ assert a.s != null;  // OpenJML reports error
+    public B(A aaaa) {
+        //@ assert aaaa.ssss != null;  // OpenJML reports error
+        b = this;
+    }
+    
+    //@ requires bbbb != this;
+    public B(B bbbb) {
+        //@ assert bbbb.b != null; // should be true
+        b = this;
     }
     
     //@ public normal_behavior
     //@   requires true;
     //@ pure
-    public void testMethod(A a) {
-        //@ assert a.s != null;  // fine
+    public void testMethod(A aaaa) {
+        //@ assert aaaa.ssss != null;  // fine
+    }
+    
+}
+
+class C  {
+    //@ non_null
+    public C cccc;
+    
+//    //@ public normal_behavior
+//    //@   requires true;
+//    //@ pure
+//    public C(C aaaa) {
+//        super(this);
+//        cccc = aaaa.cccc;
+//        //@ assert cccc != null;
+//    }    
+    
+    //@ public normal_behavior
+    //@   requires true;
+    //@ pure
+    public C() {
+        init(this);
+        //@ assert cccc != null;
+    }
+    
+    //@ public normal_behavior
+    //@ assignable cccc;
+    //@ ensures this.cccc == c.cccc;
+    public void init(C c) {
+        //@ assert c.cccc != null; // Not true when called in a constructor with c == this
+        cccc = c.cccc;
+        //@ assert this.cccc != null;
     }
 }
