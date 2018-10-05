@@ -14,7 +14,7 @@ public class Test {
 		//@ assert b;
 	}
 
-	//@ requires k <= Integer.MAX_VALUE/2 && k >= Integer.MIN_VALUE/2;
+	//@ requires k <= Integer.MAX_VALUE/2 && k >= -1; // The -1 just so the counterexample is always the same
 	public void m(int k) {
 		//@ show k;
 		k = 2*k;

@@ -687,7 +687,12 @@ public class Utils {
     }
 
     public boolean isPrimitiveType(Type ct) {
-        return ct.isPrimitive() || jmltypes().isJmlType(ct) || jmltypes().isSubtype(ct, interfaceForPrimitiveTypes());
+        return ct.isPrimitive() || jmltypes().isJmlType(ct) || isExtensionValueType(ct);
+    }
+
+    public boolean isExtensionValueType(Type ct) {
+        if (ct instanceof Type.MethodType) return false;
+        return jmltypes().isSubtype(ct, interfaceForPrimitiveTypes());
     }
 
     // Includes self
