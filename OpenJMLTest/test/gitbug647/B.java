@@ -3,11 +3,14 @@ class A {
     //@ spec_public
     private String ssss;
     
+    public String pppp;
+    
     //@ private normal_behavior
     //@   requires true;
     //@ pure
     public A() {
         ssss = "hello";
+        pppp = "hello";
     }
 }
 //@ non_null_by_default
@@ -19,6 +22,7 @@ public class B {
     //@   requires true;
     //@ pure
     public B(A aaaa) {
+        //@ assert aaaa.pppp != null;  // OpenJML is OK
         //@ assert aaaa.ssss != null;  // OpenJML reports error
         b = this;
     }
