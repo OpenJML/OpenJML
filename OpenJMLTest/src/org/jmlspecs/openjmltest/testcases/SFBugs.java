@@ -904,6 +904,11 @@ public class SFBugs extends EscBase {
         expectedExit = 0;
         helpTCG();
     }
+
+    public void gitbug653() {
+        expectedExit = 0;
+        helpTCG("-specspath=test/gitbug653");
+    }
     
     @Test
     public void gitbug666() {

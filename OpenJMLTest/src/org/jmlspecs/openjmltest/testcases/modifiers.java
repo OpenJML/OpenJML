@@ -1209,31 +1209,31 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testHelper1() {
-        helpTCF("A.java","public class A{ /*@ helper */ void m(){} }"
-                ,"/A.java:1: A helper method must be private or pure: m",21
+        helpTCF("A.java","public class A{ /*@ helper */ void mzzz(){} }"
+                ,"/A.java:1: A helper method must be private or pure: mzzz",21
                 );
     }
      
     @Test public void testHelper2() {
-        helpTCF("A.java","public class A{ /*@ helper protected */ void m(){} }"
-                ,"/A.java:1: A helper method must be private or pure: m",21
+        helpTCF("A.java","public class A{ /*@ helper protected */ void mzzz(){} }"
+                ,"/A.java:1: A helper method must be private or pure: mzzz",21
                 );
     }
      
     @Test public void testHelper3() {
-        helpTCF("A.java","public class A{ /*@ helper public */ void m(){} }"
-                ,"/A.java:1: A helper method must be private or pure: m",21
+        helpTCF("A.java","public class A{ /*@ helper public */ void mzzz(){} }"
+                ,"/A.java:1: A helper method must be private or pure: mzzz",21
                 );
     }
      
     @Test public void testHelper4() {
-        helpTCF("A.java","public class A{ /*@ helper private */ void m(){} }"
+        helpTCF("A.java","public class A{ /*@ helper private */ void mzzz(){} }"
                 );
     }
      
     @Test public void testHelper5() {
-        helpTCF("A.java","public class A{ /*@ helper private spec_protected*/ void m(){} }"
-                ,"/A.java:1: A helper method must be private or pure: m",21
+        helpTCF("A.java","public class A{ /*@ helper private spec_protected*/ void mzzz(){} }"
+                ,"/A.java:1: A helper method must be private or pure: mzzz",21
                 );
     }
      

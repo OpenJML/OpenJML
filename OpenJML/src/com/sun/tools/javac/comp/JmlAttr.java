@@ -3740,7 +3740,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             currentClauseType = tree.token;
             if (tree.token == JmlTokenKind.LOOP_INVARIANT) {
                 attribExpr(((JmlStatementLoopExpr)tree).expression,loopEnv,syms.booleanType);
-            } else if (tree.token == JmlTokenKind.DECREASES){
+            } else if (tree.token == JmlTokenKind.LOOP_DECREASES){
                 attribExpr(((JmlStatementLoopExpr)tree).expression,loopEnv,syms.longType);  // FIXME - what type to use
             } else if (tree.token == JmlTokenKind.LOOP_MODIFIES) {
                 for (JCExpression stref: ((JmlStatementLoopModifies)tree).storerefs) {
