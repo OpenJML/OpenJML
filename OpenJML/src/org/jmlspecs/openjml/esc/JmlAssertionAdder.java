@@ -11665,7 +11665,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         treeutils.copyEndPosition(nl,ee);
                         JCExpression nonnull = treeutils.makeNeqObject(that.pos, ee, nl);
                         if (methodDecl.sym.isConstructor() && !utils.isJMLStatic(that.sym) && (s.owner == methodDecl.sym.owner) ) {
-                            JCExpression ne = treeutils.makeNeqObject(that.pos,currentThisExpr, ee);
+                            JCExpression ne = treeutils.makeNeqObject(that.pos,currentThisExpr, selected);
                             nonnull = treeutils.makeImplies(nonnull.pos, ne, nonnull);
                         }
                         addAssume(nonnull,Label.NULL_FIELD,nonnull);
