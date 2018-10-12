@@ -267,6 +267,7 @@ public class escArithmeticModes extends EscBase {
               );
     }
 
+    //+NOARITH@ skipesc
     @Test
     public void testDivJava() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -279,6 +280,7 @@ public class escArithmeticModes extends EscBase {
               );
     }
 
+    //+NOARITH@ skipesc
     @Test
     public void testDivSafe() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -293,6 +295,7 @@ public class escArithmeticModes extends EscBase {
               );
     }
 
+    //+NOARITH@ skipesc
     @Test
     public void testDivMath() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode

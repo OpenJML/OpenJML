@@ -39,7 +39,8 @@ public class escArithmeticModes2 extends EscBase {
     }
  
     // Checks the value and sign of int division and mod
-    @Test
+    //+NOARITH@ skipesc
+    @Test 
     public void testModJava() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeJavaMath @SpecSafeMath public class TestJava { \n"
@@ -71,6 +72,7 @@ public class escArithmeticModes2 extends EscBase {
     }
 
     // Checks the value and sign of int division and mod
+    //+NOARITH@ skipesc
     @Test
     public void testModJavaZ() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -103,6 +105,7 @@ public class escArithmeticModes2 extends EscBase {
     }
 
     // Checks the value and sign of int division and mod
+    //+NOARITH@ skipesc
     @Test
     public void testModJava3() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
@@ -123,6 +126,7 @@ public class escArithmeticModes2 extends EscBase {
     }
 
     @Test @Ignore // FIXME - very long
+    //+NOARITH@ skipesc
     public void testModJavaB() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Very long - skip for now
         main.addOptions("-method=ma","-show","-subexpressions");
@@ -322,6 +326,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
+    //+NOARITH@ skipesc
     @Test
     public void testModEqual() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
@@ -345,6 +350,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
+    //+NOARITH@ skipesc
     @Test
     public void testModEqualB() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
@@ -362,6 +368,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
+    //+NOARITH@ skipesc
     @Test
     public void testModEqualLong() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
@@ -385,6 +392,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
+    //+NOARITH@ skipesc
     @Test
     public void testModEqualLongB() {
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode

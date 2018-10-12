@@ -1010,6 +1010,7 @@ public class JmlSpecs {
                 mods = M.at(pos).Modifiers(decl.mods.flags);
                 mods.annotations = mods.annotations.appendList(decl.mods.annotations);
             }
+            mspecs.mods = mods;
         }
 
         // FIXME - check the case of a binary generated constructor with a declaration in JML
