@@ -864,6 +864,12 @@ public class SFBugs extends EscBase {
     }
     
     @Test
+    public void gitbug647() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
     public void gitbug648() {
         expectedExit = 0;
         helpTCG();
@@ -873,6 +879,35 @@ public class SFBugs extends EscBase {
     public void gitbug648a() {
         expectedExit = 0;
         helpTCG();
+    }
+    
+    @Test
+    public void gitbug650() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug650a() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug650b() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug650c() {
+        expectedExit = 0;
+        helpTCG();
+    }
+
+    public void gitbug653() {
+        expectedExit = 0;
+        helpTCG("-specspath=test/gitbug653");
     }
     
     @Test

@@ -601,7 +601,7 @@ public class JmlParser extends JavacParser {
                                     t));
                     ste.source = log.currentSourceFile();
                     st = ste;
-                } else if (jtoken == DECREASES || jtoken == LOOP_INVARIANT) {
+                } else if (jtoken == LOOP_DECREASES || jtoken == LOOP_INVARIANT) {
                     S.setJmlKeyword(false);
                     nextToken();
                     JCExpression t = parseExpression();
@@ -969,7 +969,7 @@ public class JmlParser extends JavacParser {
             boolean isInterface) {
 
         ListBuffer<JCTree> list = new ListBuffer<JCTree>();
-        loop: while (true) {
+        loop: while (token.ikind != TokenKind.RBRACE) {
             JmlVariableDecl mostRecentVarDecl = currentVariableDecl;
             currentVariableDecl = null;
             
