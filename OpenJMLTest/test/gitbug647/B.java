@@ -45,16 +45,7 @@ public class B {
 class C  {
     //@ non_null
     public C cccc;
-    
-//    //@ public normal_behavior
-//    //@   requires true;
-//    //@ pure
-//    public C(C aaaa) {
-//        super(this);
-//        cccc = aaaa.cccc;
-//        //@ assert cccc != null;
-//    }    
-    
+        
     //@ public normal_behavior
     //@   requires true;
     //@ pure
