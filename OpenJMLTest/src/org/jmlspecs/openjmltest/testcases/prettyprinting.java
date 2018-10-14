@@ -183,7 +183,7 @@ public class prettyprinting extends ParseBase {
                 "    }" + eol +
                 "    while (true) {" + eol +
                 "      do {" + eol +
-                "      }       while (true);" + eol + // FIXME - excess space
+                "      } while (true);" + eol +
                 "    }" + eol +
                 "  }" + eol +
                 "}"
