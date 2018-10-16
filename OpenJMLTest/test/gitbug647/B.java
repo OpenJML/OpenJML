@@ -27,9 +27,10 @@ public class B {
         b = this;
     }
     
-    //@ requires bbbb != this;
+    
     public B(B bbbb) {
         //@ assert bbbb.b != null; // should be true
+        //@ assert bbbb != this;
         b = this;
     }
     

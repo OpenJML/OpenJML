@@ -4760,6 +4760,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             currentClauseType = prevClauseType;
         }
         
+        if (currentClauseType == JmlTokenKind.REQUIRES 
+                && tree.sym instanceof VarSymbol
+                && enclosingMethodEnv.enclMethod.sym.isConstructor() 
+                && !utils.isJMLStatic(tree.sym) 
+                && tree.sym.owner == enclosingClassEnv.enclClass.sym
+                ) {
+            if (tree.sym.name != names._this)
+                jmlerror(tree,"jml.message","Implicit references to 'this' are not permitted in constructor preconditions");
+            else
+                jmlerror(tree,"jml.message","References to 'this' are not permitted in constructor preconditions");
+        }
+
+        
         // The above call erroneously does not set tree.type for method identifiers
         // if the method failed to result, even though a symbol with an error
         // type is set, so we patch that here.  See also the comment at visitSelect.

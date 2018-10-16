@@ -25,11 +25,11 @@ private /*@ spec_public */ String longOpt;
     /*@
     private normal_behavior
       {|
-        requires this.argName != null; 
-        requires this.description != null; 
-        requires this.longOpt != null; 
-        requires this.opt != null; 
-        requires this.values != null; 
+//        requires this.argName != null; 
+//        requires this.description != null; 
+//        requires this.longOpt != null; 
+//        requires this.opt != null; 
+//        requires this.values != null; 
         ensures this.argName == null; 
         ensures this.description == null; 
         ensures this.longOpt == null; 
@@ -52,11 +52,11 @@ private /*@ spec_public */ String longOpt;
         assignable this.valuesep; 
         
       also
-        requires !(this.values != null); 
-        requires this.argName != null; 
-        requires this.description != null; 
-        requires this.longOpt != null; 
-        requires this.opt != null; 
+//        requires !(this.values != null); 
+//        requires this.argName != null; 
+//        requires this.description != null; 
+//        requires this.longOpt != null; 
+//        requires this.opt != null; 
         ensures this.argName == null; 
         ensures this.description == null; 
         ensures this.longOpt == null; 
@@ -79,11 +79,11 @@ private /*@ spec_public */ String longOpt;
         assignable this.valuesep; 
         
       also
-        requires !(this.description != null); 
-        requires this.argName != null; 
-        requires this.longOpt != null; 
-        requires this.opt != null; 
-        requires this.values != null; 
+//        requires !(this.description != null); 
+//        requires this.argName != null; 
+//        requires this.longOpt != null; 
+//        requires this.opt != null; 
+//        requires this.values != null; 
         ensures this.argName == null; 
         ensures this.description == null; 
         ensures this.longOpt == null; 
@@ -106,11 +106,11 @@ private /*@ spec_public */ String longOpt;
         assignable this.valuesep; 
         
       also
-        requires !(this.argName != null); 
-        requires this.description != null; 
-        requires this.longOpt != null; 
-        requires this.opt != null; 
-        requires this.values != null; 
+//        requires !(this.argName != null); 
+//        requires this.description != null; 
+//        requires this.longOpt != null; 
+//        requires this.opt != null; 
+//        requires this.values != null; 
         ensures this.argName == null; 
         ensures this.description == null; 
         ensures this.longOpt == null; 
@@ -133,11 +133,11 @@ private /*@ spec_public */ String longOpt;
         assignable this.valuesep; 
         
       also
-        requires !(this.longOpt != null); 
-        requires this.argName != null; 
-        requires this.description != null; 
-        requires this.opt != null; 
-        requires this.values != null; 
+//        requires !(this.longOpt != null); 
+//        requires this.argName != null; 
+//        requires this.description != null; 
+//        requires this.opt != null; 
+//        requires this.values != null; 
         ensures this.argName == null; 
         ensures this.description == null; 
         ensures this.longOpt == null; 
@@ -1879,9 +1879,9 @@ private /*@ spec_public */ String longOpt;
         /*@
       private normal_behavior
         {|
-          requires this.description != null; 
-          requires this.longOpt != null; 
-          requires this.opt != null; 
+//          requires this.description != null; 
+//          requires this.longOpt != null; 
+//          requires this.opt != null; 
           ensures this.argName == null; 
           ensures this.description == null; 
           ensures this.longOpt == null; 
@@ -1900,14 +1900,14 @@ private /*@ spec_public */ String longOpt;
           assignable this.required; 
           assignable this.type; 
           assignable this.valuesep; 
-          {|
-            requires this.argName != null; 
-          also
-            requires !(this.argName != null); 
-          |}
+//          {|
+//            requires this.argName != null; 
+//          also
+//            requires !(this.argName != null); 
+//          |}
         also
-          requires this.argName != null; 
-          requires this.opt != null; 
+//          requires this.argName != null; 
+//          requires this.opt != null; 
           ensures this.argName == null; 
           ensures this.description == null; 
           ensures this.longOpt == null; 
@@ -1926,13 +1926,13 @@ private /*@ spec_public */ String longOpt;
           assignable this.required; 
           assignable this.type; 
           assignable this.valuesep; 
-          {|
-            requires !(this.longOpt != null); 
-            requires this.description != null; 
-          also
-            requires !(this.description != null); 
-            requires this.longOpt != null; 
-          |}
+//          {|
+//            requires !(this.longOpt != null); 
+//            requires this.description != null; 
+//          also
+//            requires !(this.description != null); 
+//            requires this.longOpt != null; 
+//          |}
         |}
      */
 

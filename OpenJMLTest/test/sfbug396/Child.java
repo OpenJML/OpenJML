@@ -11,9 +11,9 @@ public class Child extends Person {
       @*/
 
     /*@ 
-      @ requires !this.equals(father);
-      @ requires !this.equals(mother);
-      @ requires !father.equals(mother);
+      @ requires !fath.equals(moth);
+      @ ensures !this.equals(fath);
+      @ ensures !this.equals(moth);
       @*/
     Child(String name, String prename, int age, int weight, int gender, Person fath, Person moth) {
         super(name, prename, age, weight, gender);
