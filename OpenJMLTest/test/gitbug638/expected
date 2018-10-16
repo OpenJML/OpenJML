@@ -1,10 +1,10 @@
-test/gitbug638/Test.java:9: error: Implicit references to 'this' are not permitted in constructor preconditions
+test/gitbug638/Test.java:9: error: Implicit references to 'this' are not permitted in constructor preconditions: x
     //@ requires x >= 0;
                  ^
-test/gitbug638/Test.java:12: error: References to 'this' are not permitted in constructor preconditions
+test/gitbug638/Test.java:12: error: References to 'this' are not permitted in constructor preconditions: this
     //@ requires this.x >= 0;
                  ^
-test/gitbug638/Test.java:24: error: References to 'this' are not permitted in constructor preconditions
+test/gitbug638/Test.java:24: error: References to 'this' are not permitted in constructor preconditions: this
     //@ requires t != this;
                       ^
 test/gitbug638/Test.java:28: error: cannot reference this before supertype constructor has been called

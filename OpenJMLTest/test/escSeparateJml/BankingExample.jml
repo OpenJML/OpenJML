@@ -10,8 +10,8 @@ public class BankingExample {
 	
 	 //@ public invariant balance >= 0 && balance <= MAX_BALANCE;
 
-	 //@ assignable balance;
 	 //@ ensures balance == 0;
+	//@ pure
 	public BankingExample();
 	
 	//@ requires 0 < amount && amount + balance < MAX_BALANCE;
