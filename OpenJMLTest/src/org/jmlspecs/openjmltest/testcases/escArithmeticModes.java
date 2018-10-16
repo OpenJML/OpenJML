@@ -126,18 +126,37 @@ public class escArithmeticModes extends EscBase {
     }
 
     @Test
-    public void testSumSafe() {
+    public void testSumSafe1() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeSafeMath public class TestJava { \n"
                 +"  public int m(int i) {\n"
                 +"    int k = i + i;\n"   // ERROR
                 +"    return k; \n"
                 +"  }\n"
+                +"}\n"
+                ,anyorder(seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m:  underflow in int sum",15)
+                         ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m:  overflow in int sum",15))
+              );
+    }
+
+    @Test
+    public void testSumSafe2() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeSafeMath public class TestJava { \n"
                 +"  public int ma(int i) {\n"
                 +"    //@ assume i <= 0x3FFFFFFF;\n"
                 +"    int k = i + i;\n"   // ERROR
                 +"    return k; \n"
                 +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma:  underflow in int sum",15
+              );
+    }
+
+    @Test
+    public void testSumSafe3() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeSafeMath public class TestJava { \n"
                 +"  public int mb(int i) {\n"
                 +"    //@ assume i >= (int)(0xC0000000);\n"
                 +"    int k = i + i;\n"    // ERROR
@@ -155,10 +174,7 @@ public class escArithmeticModes extends EscBase {
                 +"    return k; \n"
                 +"  }\n"
                 +"}\n"
-                ,anyorder(seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m:  underflow in int sum",15)
-                         ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m:  overflow in int sum",15))
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma:  underflow in int sum",15
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method mb:  overflow in int sum",15
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method mb:  overflow in int sum",15
               );
     }
 
