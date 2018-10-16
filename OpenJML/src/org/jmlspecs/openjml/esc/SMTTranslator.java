@@ -1142,6 +1142,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     /** Records a type as defined. */
     public void addType(Type t) {
+        t = t.unannotatedType();
         // FIXME - what if t is the type of an explicit null?
         if (t instanceof ArrayType) {
             t = ((ArrayType)t).getComponentType();
@@ -1166,7 +1167,9 @@ public class SMTTranslator extends JmlTreeScanner {
                         if (ti.getTag() == TypeTag.WILDCARD) ok = false; 
                         addType(ti);
                     }
-                    if (ok) javaParameterizedTypes.put(t.toString(),jmlTypeSymbol(t));  // FIXME - only when fully a constant and fully parameterized?
+                    if (ok) {
+                        javaParameterizedTypes.put(t.toString(),jmlTypeSymbol(t));  // FIXME - only when fully a constant and fully parameterized?
+                    }
                 } else {
                     if (javaTypeSymbols.add(t.tsym.toString())) {
                         javaTypes.add(t);
