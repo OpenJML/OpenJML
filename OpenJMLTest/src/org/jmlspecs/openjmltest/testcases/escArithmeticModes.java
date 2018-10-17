@@ -162,6 +162,15 @@ public class escArithmeticModes extends EscBase {
                 +"    int k = i + i;\n"    // ERROR
                 +"    return k; \n"
                 +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method mb:  overflow in int sum",15
+              );
+    }
+
+    @Test
+    public void testSumSafe4() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeSafeMath public class TestJava { \n"
                 +"  public int mc(int i) {\n"
                 +"    //@ assume i <= 0x3FFFFFFF;\n"
                 +"    //@ assume i >= (int)(0xC0000000);\n"
@@ -174,7 +183,6 @@ public class escArithmeticModes extends EscBase {
                 +"    return k; \n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method mb:  overflow in int sum",15
               );
     }
 

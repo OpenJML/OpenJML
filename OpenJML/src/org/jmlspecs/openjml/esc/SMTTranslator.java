@@ -192,6 +192,8 @@ public class SMTTranslator extends JmlTreeScanner {
     /** A convenience declaration, to avoid calling the constructor for every empty list */
     public static final List<ISort> emptyList = new LinkedList<ISort>();
     
+    public static final List<IDeclaration> emptyDeclList = new LinkedList<IDeclaration>();
+    
     /** SMTLIB subexpressions - the result of each visit call */
     protected IExpr result;
     
@@ -1995,26 +1997,36 @@ public class SMTTranslator extends JmlTreeScanner {
                 else if (useBV)
                     // bvsdiv truncates towards zero
                 	result = F.fcn(F.symbol("bvsdiv"), args);
-                else
+                else {
                     // div truncates towards minus infinity, java / truncates towards 0
                     // lhs / rhs ===  lhs >= 0 ? lhs div rhs : (-lhs) div (-rhs)
                     result = F.fcn(F.symbol("ite"), 
-                            F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
+                            F.fcn(F.symbol(">="),  args.get(0), zero), 
                             F.fcn(F.symbol("div"), args),
                             F.fcn(F.symbol("div"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1)))
                             );
+                }
                 break;
             case MOD:
                 // bvsrem from the BitBVector theory is what matches Java behavior
                 // mod in the Ints theory does not - it produces modulo (always positive) not remainders
+                // There is no mod in the Reals theory, so we have to do the round toward 0 by hand
+                TypeTag tag = tree.type.getTag();
                 if (useBV)
                     result = F.fcn(F.symbol("bvsrem"), args);
-                else  // lhs % rhs === lhs >= 0 ? lhs mod rhs : - ( (-lhs) mod rhs )
+                else if (tag == TypeTag.DOUBLE || tag == TypeTag.FLOAT) {
                     result = F.fcn(F.symbol("ite"), 
-                            F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
+                            F.fcn(F.symbol("="), F.fcn(F.symbol(">="),  args.get(0), F.decimal("0.0")), F.fcn(F.symbol(">="),  args.get(1), F.decimal("0.0"))), 
+                            F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("to_real"), F.fcn(F.symbol("to_int"), F.fcn(F.symbol("/"), args))))),
+                            F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("-"), F.fcn(F.symbol("to_real"), F.fcn(F.symbol("to_int"), F.fcn(F.symbol("-"), F.fcn(F.symbol("/"), args)))))))
+                            );
+                } else {  // lhs % rhs === lhs >= 0 ? lhs mod rhs : - ( (-lhs) mod rhs )
+                    result = F.fcn(F.symbol("ite"), 
+                            F.fcn(F.symbol(">="),  args.get(0), zero), 
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("div"), args))),
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("div"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1)))))
                             );
+                }
 //                result = F.fcn(F.symbol("ite"), 
 //                        F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
 //                        F.fcn(F.symbol("mod"), args),
@@ -2436,6 +2448,15 @@ public class SMTTranslator extends JmlTreeScanner {
             ISymbol sym = F.symbol(id);
             addReal();
             ICommand c = new C_declare_fun(sym,emptyList,realSort); // use definefun and a constant FIXME
+            String s = v.toString();
+            c = new C_define_fun(sym,emptyDeclList,realSort,F.decimal(s));
+
+//            for (int m = 1; m <= 1000000; m *= 10) {
+//                if (v*m == (int)(v*m)) {
+//                    c = new C_define_fun(sym,emptyDeclList,realSort,F.fcn(F.symbol("/"), F.numeral((int)(v*m)), F.numeral(m)));
+//                    break;
+//                }
+//            }
             commands.add(c);
             return sym;
         } else {
