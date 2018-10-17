@@ -2090,10 +2090,21 @@ public class SMTTranslator extends JmlTreeScanner {
 
     @Override
     public void visitTypeCast(JCTypeCast tree) {
+        TypeTag tagr = tree.type.getTag();
+        TypeTag tage = tree.expr.type.getTag();
         result = convertExpr(tree.expr);
+        Number value = null;
+        if (tree.expr instanceof JCLiteral) {
+            JCLiteral lit = (JCLiteral)tree.expr;
+            if (lit.getValue() instanceof Number) {
+                if (tagr == TypeTag.DOUBLE || tagr == TypeTag.FLOAT || ((tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) && ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL)) {
+                    double d = ((Number)lit.getValue()).doubleValue();
+                    result = makeRealValue(d);
+                    return;
+                }
+            }
+        }
         if (result instanceof Numeral) {
-            TypeTag tagr = tree.type.getTag();
-            TypeTag tage = tree.expr.type.getTag();
             if ((tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) && ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
                 if ((tage == TypeTag.NONE || tage == TypeTag.UNKNOWN) && ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) return;
                 java.math.BigInteger b = ((Numeral)result).value();
@@ -2103,8 +2114,6 @@ public class SMTTranslator extends JmlTreeScanner {
             }
         }
         if (tree.type.isPrimitive() == tree.expr.type.isPrimitive()) {
-            TypeTag tagr = tree.type.getTag();
-            TypeTag tage = tree.expr.type.getTag();
             if (tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) { 
                 if (tage == TypeTag.NONE || tage == TypeTag.UNKNOWN) { 
                     if (((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
@@ -2447,9 +2456,17 @@ public class SMTTranslator extends JmlTreeScanner {
             reals.put(v, id);
             ISymbol sym = F.symbol(id);
             addReal();
-            ICommand c = new C_declare_fun(sym,emptyList,realSort); // use definefun and a constant FIXME
-            String s = v.toString();
-            c = new C_define_fun(sym,emptyDeclList,realSort,F.decimal(s));
+            ICommand c;
+            double vv = v;
+            if (vv < 0) vv = -vv;
+            // FIXME - need a more robust way to convert constants; would like to convert directly from original text
+            try (java.util.Formatter formatter = new java.util.Formatter()) {
+                String s = formatter.format("%f",vv).toString();
+                c = new C_define_fun(sym,emptyDeclList,realSort,v >= 0 ? F.decimal(s) : F.fcn(F.symbol("-"), F.decimal(s)));
+            } catch (NumberFormatException e) {
+                log.warning("jml.message", "Exception when converting " + vv);
+                c = new C_declare_fun(sym,emptyList,realSort);
+            }
 
 //            for (int m = 1; m <= 1000000; m *= 10) {
 //                if (v*m == (int)(v*m)) {

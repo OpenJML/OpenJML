@@ -53,7 +53,7 @@ public class SFBugs extends EscBase {
         String dir = "test/" + getMethodName(1);
         List<String> a = new LinkedList<>();
         a.add(0,"-cp"); 
-        a.add(1,dir);
+        a.add(1,dir + ":" + "../OpenJML/runtime");
         a.add("-code-math=bigint");
         a.add("-spec-math=bigint");
         a.addAll(Arrays.asList(opts));
