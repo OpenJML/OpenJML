@@ -174,23 +174,23 @@ abstract public class Arithmetic extends ExpressionExtension {
         JCTree.Tag optag = that.getTag();
         TypeTag typetag = that.type.getTag();
         JCExpression eresult = null;
-        if (arg instanceof JCLiteral) {
-            // NEG, POS, COMPL
-            Number n = (Number)((JCLiteral)arg).getValue();
-            if (typetag == TypeTag.INT) {
-                int v = n.intValue();
-                if (v != Integer.MIN_VALUE || optag != JCTree.Tag.NEG) {
-                    v = optag == JCTree.Tag.NEG ? -v : optag == JCTree.Tag.COMPL ? -1-v : v;
-                    return rewriter.treeutils.makeIntLiteral(that.pos,v);
-                }
-            } else if (typetag == TypeTag.LONG) {
-                long v = n.longValue();
-                if (v != Long.MIN_VALUE || optag != JCTree.Tag.NEG) {
-                    v = optag == JCTree.Tag.NEG ? -v : optag == JCTree.Tag.COMPL ? -1-v : v;
-                    return rewriter.treeutils.makeLongLiteral(that.pos,v);
-                }
-            }
-        }
+//        if (arg instanceof JCLiteral) {
+//            // NEG, POS, COMPL
+//            Number n = (Number)((JCLiteral)arg).getValue();
+//            if (typetag == TypeTag.INT) {
+//                int v = n.intValue();
+//                if (v != Integer.MIN_VALUE || optag != JCTree.Tag.NEG) {
+//                    v = optag == JCTree.Tag.NEG ? -v : optag == JCTree.Tag.COMPL ? -1-v : v;
+//                    return rewriter.treeutils.makeIntLiteral(that.pos,v);
+//                }
+//            } else if (typetag == TypeTag.LONG) {
+//                long v = n.longValue();
+//                if (v != Long.MIN_VALUE || optag != JCTree.Tag.NEG) {
+//                    v = optag == JCTree.Tag.NEG ? -v : optag == JCTree.Tag.COMPL ? -1-v : v;
+//                    return rewriter.treeutils.makeLongLiteral(that.pos,v);
+//                }
+//            }
+//        }
         if (implementOverflow && !(arg instanceof JCLiteral)) {
             if (typetag == TypeTag.INT) {
                 JCExpression maxlit = rewriter.treeutils.makeIntLiteral(arg, Integer.MAX_VALUE);
