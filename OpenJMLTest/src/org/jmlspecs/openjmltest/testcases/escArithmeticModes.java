@@ -14,7 +14,13 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(ParameterizedWithNames.class)
 public class escArithmeticModes extends EscBase {
 
-    
+    static boolean runLongArithmetic = runLongTests || System.getProperty("RUNLONGARITH") != null;
+
+    static {
+        if (runLongTests && !runLongArithmetic) System.out.println("Skipping long tests in escArithmeticModes");
+    }
+
+
     @Parameters
     static public Collection<String[]> parameters() {
         String[] options = {"-escBV=true,-minQuant","-escBV=true,-no-minQuant","-escBV=false,-minQuant","-escBV=false,-no-minQuant"};
@@ -291,9 +297,9 @@ public class escArithmeticModes extends EscBase {
               );
     }
 
-    //+NOARITH@ skipesc
     @Test
     public void testDivJava() {
+        Assume.assumeTrue(runLongArithmetic);
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeJavaMath public class TestJava { //@ requires j !=0 ; \n"
                 +"  public int m(int i, int j) {\n"
@@ -304,9 +310,9 @@ public class escArithmeticModes extends EscBase {
               );
     }
 
-    //+NOARITH@ skipesc
     @Test
     public void testDivSafe() {
+        Assume.assumeTrue(runLongArithmetic);
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeSafeMath public class TestJava { \n"
                 +"  //@ requires j !=0;\n"
@@ -319,9 +325,9 @@ public class escArithmeticModes extends EscBase {
               );
     }
 
-    //+NOARITH@ skipesc
     @Test
     public void testDivMath() {
+        Assume.assumeTrue(runLongArithmetic);
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeBigintMath public class TestJava { \n "
