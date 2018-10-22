@@ -32,8 +32,12 @@ public abstract class EscBase extends JmlTestCase {
     @Rule public TestName testname = new TestName();
     @Rule public Timeout timeout = new Timeout(15, TimeUnit.MINUTES); // limit on entire test, not on each proof attempt
     
-    protected static boolean runLongTests = false;
-    
+    protected static boolean runLongTests = System.getProperty("SKIPLONGTESTS") == null;
+
+    static {
+        if (!runLongTests) System.out.println("Skipping long-running tests");
+    }
+
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
             "z3_4_3", 
  //           "z3_4_5", 
@@ -174,6 +178,7 @@ public abstract class EscBase extends JmlTestCase {
         super.setUp();
         main.addOptions("-specspath",   testspecpath);
         main.addOptions("-command","esc");
+        main.addOptions("-keys","NOARITH");
         main.addOptions("-escExitInfo","-no-purityCheck");
 //        main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");

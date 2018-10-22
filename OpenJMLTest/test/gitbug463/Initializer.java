@@ -2,7 +2,7 @@ public class Initializer {
     public int a;
 
     /*@ public normal_behavior
-      @   assignable this.a;
+      @   assignable \nothing;
       @   ensures this.a == a;
       @*/
     public Initializer(int a) {

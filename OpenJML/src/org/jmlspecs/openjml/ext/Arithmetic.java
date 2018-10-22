@@ -173,6 +173,24 @@ abstract public class Arithmetic extends ExpressionExtension {
         arg = rewriter.addImplicitConversion(arg,newtype,arg);
         JCTree.Tag optag = that.getTag();
         TypeTag typetag = that.type.getTag();
+        JCExpression eresult = null;
+        if (arg instanceof JCLiteral) {
+            // NEG, POS, COMPL
+            Number n = (Number)((JCLiteral)arg).getValue();
+            if (typetag == TypeTag.INT) {
+                int v = n.intValue();
+                if (v != Integer.MIN_VALUE || optag != JCTree.Tag.NEG) {
+                    v = optag == JCTree.Tag.NEG ? -v : optag == JCTree.Tag.COMPL ? -1-v : v;
+                    return rewriter.treeutils.makeIntLiteral(that.pos,v);
+                }
+            } else if (typetag == TypeTag.LONG) {
+                long v = n.longValue();
+                if (v != Long.MIN_VALUE || optag != JCTree.Tag.NEG) {
+                    v = optag == JCTree.Tag.NEG ? -v : optag == JCTree.Tag.COMPL ? -1-v : v;
+                    return rewriter.treeutils.makeLongLiteral(that.pos,v);
+                }
+            }
+        }
         if (implementOverflow && !(arg instanceof JCLiteral)) {
             if (typetag == TypeTag.INT) {
                 JCExpression maxlit = rewriter.treeutils.makeIntLiteral(arg, Integer.MAX_VALUE);
@@ -188,7 +206,6 @@ abstract public class Arithmetic extends ExpressionExtension {
                 rewriter.addAssume(that, Label.IMPLICIT_ASSUME, rewriter.treeutils.makeAnd(that,a,b));
             }
         }
-        JCExpression eresult = null;
         if (warnOverflow && optag == JCTree.Tag.NEG && rewriter.jmltypes.isSameType(that.type,that.getExpression().type)) {
             if (typetag == TypeTag.INT) {
                 JCExpression e = rewriter.treeutils.makeNot(arg.pos,rewriter.treeutils.makeEquality(arg.pos, rewriter.convertCopy(arg), rewriter.treeutils.makeIntLiteral(arg.pos, Integer.MIN_VALUE)));
@@ -211,7 +228,7 @@ abstract public class Arithmetic extends ExpressionExtension {
             } else if (optag == JCTree.Tag.POS) {
                 eresult = arg;
             } else if (optag == JCTree.Tag.COMPL) {
-                // Assumed to be a bigint (not real) operation - equivalent to -x-1
+                // Assumed to be a bigint (not real) operation - equivalent to -1-x
                 JCExpression e = rewriter.treeutils.makeUtilsMethodCall(that.pos,"bigint_neg",rewriter.convertCopy(arg));
                 e = rewriter.treeutils.makeUtilsMethodCall(that.pos,"bigint_sub1",e);
                 eresult = e;

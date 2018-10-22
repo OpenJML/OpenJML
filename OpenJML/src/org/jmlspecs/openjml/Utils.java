@@ -942,6 +942,7 @@ public class Utils {
         
         // If target is public, then it is jml-visible, since everyone can see it
         if (flags == Flags.PUBLIC) return true;
+        if (flags == 0 && parent.isInterface()) return true;
         if (hasSpecPublic(s)) return true;
 
         // Otherwise a public method sees nothing

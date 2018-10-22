@@ -12,7 +12,7 @@ private /*@ spec_public @*/ int next;
 
 /*@ public normal_behavior
 @ ensures next == 0 && this.indices == indices;
-@ assignable next, this.indices;
+@ assignable \nothing;
 @*/
 public C(int[] indices) {
 	this.indices = indices;

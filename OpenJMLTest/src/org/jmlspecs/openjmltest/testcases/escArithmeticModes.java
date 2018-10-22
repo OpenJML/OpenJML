@@ -14,7 +14,13 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(ParameterizedWithNames.class)
 public class escArithmeticModes extends EscBase {
 
-    
+    static boolean runLongArithmetic = runLongTests || System.getProperty("RUNLONGARITH") != null;
+
+    static {
+        if (runLongTests && !runLongArithmetic) System.out.println("Skipping long tests in escArithmeticModes");
+    }
+
+
     @Parameters
     static public Collection<String[]> parameters() {
         String[] options = {"-escBV=true,-minQuant","-escBV=true,-no-minQuant","-escBV=false,-minQuant","-escBV=false,-no-minQuant"};
@@ -126,23 +132,51 @@ public class escArithmeticModes extends EscBase {
     }
 
     @Test
-    public void testSumSafe() {
+    public void testSumSafe1() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeSafeMath public class TestJava { \n"
                 +"  public int m(int i) {\n"
                 +"    int k = i + i;\n"   // ERROR
                 +"    return k; \n"
                 +"  }\n"
+                +"}\n"
+                ,anyorder(seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m:  underflow in int sum",15)
+                         ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m:  overflow in int sum",15))
+              );
+    }
+
+    @Test
+    public void testSumSafe2() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeSafeMath public class TestJava { \n"
                 +"  public int ma(int i) {\n"
                 +"    //@ assume i <= 0x3FFFFFFF;\n"
                 +"    int k = i + i;\n"   // ERROR
                 +"    return k; \n"
                 +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma:  underflow in int sum",15
+              );
+    }
+
+    @Test
+    public void testSumSafe3() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeSafeMath public class TestJava { \n"
                 +"  public int mb(int i) {\n"
                 +"    //@ assume i >= (int)(0xC0000000);\n"
                 +"    int k = i + i;\n"    // ERROR
                 +"    return k; \n"
                 +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method mb:  overflow in int sum",15
+              );
+    }
+
+    @Test
+    public void testSumSafe4() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"@CodeSafeMath public class TestJava { \n"
                 +"  public int mc(int i) {\n"
                 +"    //@ assume i <= 0x3FFFFFFF;\n"
                 +"    //@ assume i >= (int)(0xC0000000);\n"
@@ -155,10 +189,6 @@ public class escArithmeticModes extends EscBase {
                 +"    return k; \n"
                 +"  }\n"
                 +"}\n"
-                ,anyorder(seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m:  underflow in int sum",15)
-                         ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m:  overflow in int sum",15))
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma:  underflow in int sum",15
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method mb:  overflow in int sum",15
               );
     }
 
@@ -269,6 +299,7 @@ public class escArithmeticModes extends EscBase {
 
     @Test
     public void testDivJava() {
+        Assume.assumeTrue(runLongArithmetic);
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeJavaMath public class TestJava { //@ requires j !=0 ; \n"
                 +"  public int m(int i, int j) {\n"
@@ -281,6 +312,7 @@ public class escArithmeticModes extends EscBase {
 
     @Test
     public void testDivSafe() {
+        Assume.assumeTrue(runLongArithmetic);
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeSafeMath public class TestJava { \n"
                 +"  //@ requires j !=0;\n"
@@ -295,6 +327,7 @@ public class escArithmeticModes extends EscBase {
 
     @Test
     public void testDivMath() {
+        Assume.assumeTrue(runLongArithmetic);
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeBigintMath public class TestJava { \n "

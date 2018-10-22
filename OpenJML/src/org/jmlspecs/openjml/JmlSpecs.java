@@ -949,6 +949,8 @@ public class JmlSpecs {
         MethodSpecs s = getSpecs(m);
         if (s == null) {
             // This can happen when -no-internalSpecs is used, probably for a binary class, but it probably shouldn't - specs should be created when the class is laoded - FIXME
+            // This can also happen for a method that has no JML declaration or specification in its static class,
+            // but does inherit a method (and spec) from a parent class.
             s = defaultSpecs(null,m,1);  // FIXME - what position should be used
             putSpecs(m,s);
             s.cases.deSugared = s.cases;
@@ -975,6 +977,31 @@ public class JmlSpecs {
         JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
         JmlMethodSpecs ms = M.at(pos).JmlMethodSpecs(com.sun.tools.javac.util.List.<JmlSpecificationCase>nil());
         JCTree.JCModifiers mods = M.at(pos).Modifiers(sym.flags() & Flags.AccessFlags);
+        MethodSpecs mspecs = new MethodSpecs(mods,ms); // FIXME - empty instead of null modifiers?
+        ms.pos = pos;
+        ms.decl = decl;
+        ms.deSugared = null; // FIXME- was ms?
+        
+        List<MethodSymbol> parents = utils.parents(sym);
+        
+        if (decl == null) {
+            if (parents.size() > 1) {
+                // This is the case (at least) of a binary class B with method m, that is not 
+                // declared and has no specs in a JML file, but does override a method in a 
+                // parent class P. B.m then adds no specification cases.
+                java.util.ListIterator<MethodSymbol> iter = parents.listIterator(parents.size()-1);
+                JmlMethodSpecs parentSpecs = getDenestedSpecs(iter.previous());
+                ms.decl = decl = parentSpecs.decl;
+                mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>nil();
+                mspecs.cases.deSugared = mspecs.cases;
+                return mspecs;
+            } else {
+                // This is a binary method that has no JML declaration and does not override
+                // anything. There is no declaration to co-opt. The method gets a standard
+                // default specification.
+            }
+        }
+
         if (decl != null) {
             if (decl.methodSpecsCombined != null) {
                 mods = M.at(pos).Modifiers(decl.methodSpecsCombined.mods.flags);
@@ -983,17 +1010,9 @@ public class JmlSpecs {
                 mods = M.at(pos).Modifiers(decl.mods.flags);
                 mods.annotations = mods.annotations.appendList(decl.mods.annotations);
             }
-        } else {
-//            for (Attribute.Compound a: sym.getAnnotationMirrors()) {
-//                JCAnnotation at = M.at(Position.NOPOS).Annotation(a);
-//                mods.annotations = mods.annotations.append(at);
-//            }
+            mspecs.mods = mods;
         }
-        MethodSpecs mspecs = new MethodSpecs(mods,ms); // FIXME - empty instead of null modifiers?
-        ms.pos = pos;
-        ms.decl = decl;
-        ms.deSugared = null; // FIXME- was ms?
-        
+
         // FIXME - check the case of a binary generated constructor with a declaration in JML
         if (((sym.flags() & Flags.GENERATEDCONSTR) != 0) || ( sym.owner == syms.objectType.tsym && sym.isConstructor()) || sym.owner == Symtab.instance(context).enumSym ) {
             JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,

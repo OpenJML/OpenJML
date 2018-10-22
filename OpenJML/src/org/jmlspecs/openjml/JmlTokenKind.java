@@ -36,6 +36,7 @@ public enum JmlTokenKind implements ITokenKind {
     SHOW("show"),
     USE("use"),
     DECREASES("decreases"),
+    LOOP_DECREASES("loop_decreases"),
     INLINED_LOOP("inlined_loop"),
     LOOP_INVARIANT("loop_invariant"),
     LOOP_MODIFIES("loop_modifies"),
@@ -325,7 +326,8 @@ public enum JmlTokenKind implements ITokenKind {
         allTokens.put("exceptional_behaviour".intern(),EXCEPTIONAL_BEHAVIOR);
         allTokens.put("normal_behaviour".intern(),NORMAL_BEHAVIOR);
         allTokens.put("abrupt_behaviour".intern(),ABRUPT_BEHAVIOR);
-        allTokens.put("decreasing".intern(),DECREASES);
+        allTokens.put("decreasing".intern(),LOOP_DECREASES);
+        allTokens.put("decreases".intern(),LOOP_DECREASES);
         allTokens.put("maintaining".intern(),LOOP_INVARIANT);
     }
 }

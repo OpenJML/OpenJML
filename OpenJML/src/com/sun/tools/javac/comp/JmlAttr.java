@@ -3740,7 +3740,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             currentClauseType = tree.token;
             if (tree.token == JmlTokenKind.LOOP_INVARIANT) {
                 attribExpr(((JmlStatementLoopExpr)tree).expression,loopEnv,syms.booleanType);
-            } else if (tree.token == JmlTokenKind.DECREASES){
+            } else if (tree.token == JmlTokenKind.LOOP_DECREASES){
                 attribExpr(((JmlStatementLoopExpr)tree).expression,loopEnv,syms.longType);  // FIXME - what type to use
             } else if (tree.token == JmlTokenKind.LOOP_MODIFIES) {
                 for (JCExpression stref: ((JmlStatementLoopModifies)tree).storerefs) {
@@ -4759,6 +4759,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             jmlVisibility = prevVisibility;
             currentClauseType = prevClauseType;
         }
+        
+        if (tree.sym instanceof VarSymbol
+                && enclosingMethodEnv != null
+                && enclosingMethodEnv.enclMethod.sym.isConstructor() 
+                && !utils.isJMLStatic(tree.sym) 
+                && tree.sym.owner == enclosingClassEnv.enclClass.sym
+                && interpretInPreState(tree,currentClauseType)
+                ) {
+            String k = (currentClauseType == JmlTokenKind.REQUIRES) ? "preconditions: " :
+                (currentClauseType.internedName() + " clauses: ");
+            k += tree.toString();
+            if (tree.sym.name != names._this)
+                jmlerror(tree,"jml.message","Implicit references to 'this' are not permitted in constructor " + k);
+            else
+                jmlerror(tree,"jml.message","References to 'this' are not permitted in constructor "+ k);
+        }
+
         
         // The above call erroneously does not set tree.type for method identifiers
         // if the method failed to result, even though a symbol with an error
@@ -6275,8 +6292,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         log.error(new JmlTokenizer.DiagnosticPositionSE(begin,end-1),key,convertErrorArgs(args));
     }
 
-    public void jmlerror(JCTree tree, String key, Object... args) {
-        log.error(new JmlTokenizer.DiagnosticPositionSE(tree.pos,tree.getEndPosition(log.currentSource().getEndPosTable())),key,convertErrorArgs(args));
+    public void jmlerror(DiagnosticPosition tree, String key, Object... args) {
+        log.error(new JmlTokenizer.DiagnosticPositionSE(tree.getPreferredPosition(),tree.getEndPosition(log.currentSource().getEndPosTable())),key,convertErrorArgs(args));
     }
     
     public Object[] convertErrorArgs(Object[] args) {
@@ -6484,5 +6501,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return msym;
     }
     
-
+    public boolean interpretInPreState(DiagnosticPosition pos, JmlTokenKind kind) {
+        if (kind == JmlTokenKind.ENSURES ||
+                kind == JmlTokenKind.SIGNALS ||
+                kind == JmlTokenKind.SIGNALS_ONLY) return false;
+        if (methodClauseTokens.contains(kind)) return true;
+        return false;
+    }
 }

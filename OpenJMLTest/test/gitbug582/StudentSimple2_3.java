@@ -24,7 +24,7 @@ public class StudentSimple2_3 {
     @*/
      
   /*@
-    @   assignable enrolments;
+    @   assignable \nothing;
     @   ensures
     @     enrolments != null && enrolments.isEmpty();  
     @*/

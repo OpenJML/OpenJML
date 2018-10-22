@@ -60,7 +60,7 @@ public class DoublyLinkedList<T>
    * @param a_value Value to be stored in this node.
    * @param a_next Doubly linked list that comes after this one.
    */
-  //@ requires a_prev != this && a_next != this && (a_next != null ==> a_next != a_prev);
+  //@ requires (a_next != null ==> a_next != a_prev);
   public DoublyLinkedList(final DoublyLinkedList<T> a_prev, final T a_value,
                           final DoublyLinkedList<T> a_next)
   {

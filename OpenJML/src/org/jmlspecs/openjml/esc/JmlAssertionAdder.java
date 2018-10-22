@@ -5741,7 +5741,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else {
 
                 Name resultname = names.fromString(Strings.conditionalResult + (++count));
-                JCVariableDecl vdecl = treeutils.makeVarDef(that.type, resultname, esc? null : methodDecl.sym, that.pos);
+                JCVariableDecl vdecl = treeutils.makeVarDef(that.type, resultname, /*esc? null :*/ methodDecl.sym, that.pos);
                 addStat(vdecl);
 
                 ListBuffer<JCStatement> checkA = pushBlock();
@@ -11668,8 +11668,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 var = true;
             }
             if (s.owner instanceof ClassSymbol) {
-                if (specs.isNonNull(s,classDecl.sym) && s instanceof VarSymbol && !localVariables.containsKey(s)
-                        && (!methodDecl.sym.isConstructor() || utils.isJMLStatic(that.sym))) {
+                if (specs.isNonNull(s,classDecl.sym) && s instanceof VarSymbol && !localVariables.containsKey(s)) {
                     if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
                         // continue
                     } else if (!utils.isPrimitiveType(selected.type)) {
@@ -11683,6 +11682,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCExpression nl = treeutils.makeNullLiteral(that.pos);
                         treeutils.copyEndPosition(nl,ee);
                         JCExpression nonnull = treeutils.makeNeqObject(that.pos, ee, nl);
+                        if (methodDecl.sym.isConstructor() && !utils.isJMLStatic(that.sym) && (s.owner == methodDecl.sym.owner) ) {
+                            JCExpression ne = treeutils.makeNeqObject(that.pos,currentThisExpr, selected);
+                            nonnull = treeutils.makeImplies(nonnull.pos, ne, nonnull);
+                        }
                         addAssume(nonnull,Label.NULL_FIELD,nonnull);
                     }
                 }
@@ -13198,7 +13201,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Compute and remember the variants
         if (loopSpecs != null) {
             for (JmlStatementLoop loop: loopSpecs) {
-                if (loop.token == JmlTokenKind.DECREASES) {
+                if (loop.token == JmlTokenKind.LOOP_DECREASES) {
                     JmlStatementLoopExpr inv = (JmlStatementLoopExpr)loop;
                     try {
                         JCExpression copy = convertCopy(inv.expression);
@@ -13250,7 +13253,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             Iterator<JCIdent> iter = decreasesIDs.iterator();
             for (JmlStatementLoop loop: loopSpecs) {
-                if (loop.token == JmlTokenKind.DECREASES) {
+                if (loop.token == JmlTokenKind.LOOP_DECREASES) {
                     JmlStatementLoopExpr inv = (JmlStatementLoopExpr)loop;
                     try {
                         JCExpression copy = convertCopy(inv.expression);
@@ -14490,7 +14493,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 ListBuffer<JCStatement>  prev = nonignoredStatements;
                 try {
                     if (translatingJML) {
-                        nonignoredStatements = currentStatements;
+                        nonignoredStatements = new ListBuffer<JCStatement>();
                         pushBlock(); // A // FIXME - we have not implemented guarding conditions for expressions inside quantifiers
                     }
                     List<JCVariableDecl> dd = convertCopy(that.decls);
@@ -14513,7 +14516,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } finally {
                     if (translatingJML) {
                         popBlock();  // A
-                        nonignoredStatements = prev;
+                        if (prev == null) {
+                            currentStatements.addAll(nonignoredStatements);
+                            nonignoredStatements = prev;
+                        } else {
+                            prev.addAll(nonignoredStatements);
+                            nonignoredStatements = prev;
+                        }
                     }
                 }
                 if (splitExpressions) {
@@ -16361,8 +16370,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         splitExpressions = false;
         ListBuffer<JCStatement> check = pushBlock();
-        ListBuffer<JCStatement> saved = currentStatements;
-        if (depth == 0) savedForAxioms = saved;
+//        ListBuffer<JCStatement> saved = currentStatements;
+        if (depth == 0) savedForAxioms = currentStatements;
         depth++;
 
         JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(msym);
@@ -16478,8 +16487,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         e);
                     e.type = syms.booleanType;
                 }
-                currentStatements = savedForAxioms;
-                addAssume(dpos,Label.IMPLICIT_ASSUME,e,dpos,clauseSource);
+                ListBuffer<JCStatement> ch = pushBlock();
+                addAssume( dpos,Label.IMPLICIT_ASSUME,e,dpos,clauseSource);
+                savedForAxioms.add(popBlock(0L,callLocation,ch));
 
             }
 
@@ -16663,7 +16673,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             currentThisExpr = savedCurrentThisExpr;
             paramActuals = savedParamActuals;
             splitExpressions = savedSplitExpressions;
-            currentStatements = saved;
+//            currentStatements = saved;
             depth--;
             if (depth == 0) savedForAxioms = null;
         }
