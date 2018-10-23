@@ -630,9 +630,12 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     }
     
     // OPENJML - added to allow overriding some functionality
-    protected void visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, Scope enclScope) {
+    protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, Scope enclScope) {
         if (chk.checkUnique(tree.pos(), m, enclScope)) {
             enclScope.enter(m);
+            return true;
+        } else {
+            return false;
         }
     }
 

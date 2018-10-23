@@ -2,14 +2,14 @@ import java.util.ArrayList;
 public class Pair<T> {
     protected /*@ spec_public @*/ T first, second;
 
-    /*@ assignable first, second;
-      @ ensures first == fst && second == snd; @*/
+    /*@ ensures first == fst && second == snd; 
+      @ pure @*/
     public Pair(T fst, T snd) { first = fst; second = snd; }
 
-    /*@ ensures \result == first; @*/
-    public /*@ pure @*/ T getFirst() { return first;
+    /*@ ensures \result == first; pure @*/
+    public T getFirst() { return first;
     }
-    /*@ ensures \result == second; @*/
+    /*@ ensures \result == second; pure @*/
     public T getSecond() { return second;
     }
     /*@ public model_program { 

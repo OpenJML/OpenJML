@@ -22,12 +22,13 @@ public interface IJmlVisitor extends IVisitor {
     public void visitJmlChoose(JmlChoose that)                     ;
     public void visitJmlClassDecl(JmlClassDecl that)               ;
     public void visitJmlCompilationUnit(JmlCompilationUnit that)   ;
-    public void visitJmlMethodSig(JmlMethodSig that);
+    public void visitJmlMethodSig(JmlMethodSig that)               ;
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that)           ;
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that)   ;
     public void visitJmlForLoop(JmlForLoop that)                   ;
     public void visitJmlGroupName(JmlGroupName that)               ;
     public void visitJmlImport(JmlImport that)                     ;
+    public void visitJmlInlinedLoop(JmlInlinedLoop that)           ;
     public void visitJmlLabeledStatement(JmlLabeledStatement that) ;
     public void visitJmlLblExpression(JmlLblExpression that)       ;
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) ;
@@ -48,10 +49,12 @@ public interface IJmlVisitor extends IVisitor {
     public void visitJmlSingleton(JmlSingleton that)               ;
     public void visitJmlSpecificationCase(JmlSpecificationCase that);
     public void visitJmlStatement(JmlStatement that)               ;
+    public void visitJmlStatementShow(JmlStatementShow that)       ;
     public void visitJmlStatementDecls(JmlStatementDecls that)     ;
     public void visitJmlStatementExpr(JmlStatementExpr that)       ;
     public void visitJmlStatementHavoc(JmlStatementHavoc that)       ;
-    public void visitJmlStatementLoop(JmlStatementLoop that)       ;
+    public void visitJmlStatementLoopExpr(JmlStatementLoopExpr that)       ;
+    public void visitJmlStatementLoopModifies(JmlStatementLoopModifies that)       ;
     public void visitJmlStatementSpec(JmlStatementSpec that)       ;
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that);
     public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that)   ;

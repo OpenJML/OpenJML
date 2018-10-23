@@ -24,6 +24,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type.ClassType;
+import com.sun.tools.javac.code.Type.IntersectionClassType;
 import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.comp.AttrContext;
@@ -52,6 +53,7 @@ import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree.JCWildcard;
+import com.sun.tools.javac.tree.JCTree.Tag;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
@@ -127,7 +129,7 @@ public class JmlTreeUtils {
 //    @NonNull protected Env<AttrContext> attrEnv;
         
     /** The factory used to create AST nodes, initialized in the constructor */
-    @NonNull final public JmlTree.Maker factory;
+    final public /*@ non_null */ JmlTree.Maker factory;
 
     // Cached values of all of these symbols
     final public ClassSymbol utilsClass;
@@ -144,6 +146,7 @@ public class JmlTreeUtils {
     final public Symbol boolneSymbol;
     final public Symbol intminusSymbol;
     final public Symbol intplusSymbol;
+    final public Symbol intdivideSymbol;
     final public Symbol inteqSymbol;
     final public Symbol intneqSymbol;
     final public Symbol intgtSymbol;
@@ -154,9 +157,11 @@ public class JmlTreeUtils {
     final public Symbol longltSymbol;
     final public Symbol longminusSymbol;
     final public Symbol longplusSymbol;
+    final public Symbol longdivideSymbol;
     final public JCLiteral trueLit;
     final public JCLiteral falseLit;
     final public JCLiteral zero;
+    final public JCLiteral longzero;
     final public JCLiteral one;
     final public JCLiteral longone;
     final public JCLiteral nullLit;
@@ -201,9 +206,10 @@ public class JmlTreeUtils {
         objecteqSymbol = findOpSymbol(JCTree.Tag.EQ,syms.objectType);
         objectneSymbol = findOpSymbol(JCTree.Tag.NE,syms.objectType);
         booleqSymbol = findOpSymbol(JCTree.Tag.EQ,syms.booleanType);
-        boolneSymbol = findOpSymbol(JCTree.Tag.NE,syms.booleanType);
-        intminusSymbol = findOpSymbol(JCTree.Tag.MINUS,syms.intType);
-        intplusSymbol = findOpSymbol(JCTree.Tag.PLUS,syms.intType);
+        boolneSymbol = findOpSymbol(JCTree.Tag.NE,syms.booleanType); 
+        intminusSymbol = findOpSymbol(JCTree.Tag.MINUS,syms.intType); // subtract
+        intplusSymbol = findOpSymbol(JCTree.Tag.PLUS,syms.intType); // binary add
+        intdivideSymbol = findOpSymbol(JCTree.Tag.DIV,syms.intType);
         inteqSymbol = findOpSymbol(JCTree.Tag.EQ,syms.intType);
         intneqSymbol = findOpSymbol(JCTree.Tag.NE,syms.intType);
         intgtSymbol = findOpSymbol(JCTree.Tag.GT,syms.intType);
@@ -214,10 +220,12 @@ public class JmlTreeUtils {
         longeqSymbol = findOpSymbol(JCTree.Tag.EQ,syms.longType);
         longminusSymbol = findOpSymbol(JCTree.Tag.MINUS,syms.longType);
         longplusSymbol = findOpSymbol(JCTree.Tag.PLUS,syms.longType);
+        longdivideSymbol = findOpSymbol(JCTree.Tag.DIV,syms.longType);
         trueLit = makeLit(0,syms.booleanType,1);
         falseLit = makeLit(0,syms.booleanType,0);
         zero = makeLit(0,syms.intType,0);
         one = makeLit(0,syms.intType,1);
+        longzero = makeLit(0,syms.longType,Long.valueOf(0L));
         longone = makeLit(0,syms.longType,Long.valueOf(1L));
         nullLit = makeLit(0,syms.botType, null);
         maxIntLit = makeLit(0,syms.intType,Integer.MAX_VALUE);
@@ -234,9 +242,13 @@ public class JmlTreeUtils {
      * the nodes are assumed to reference the same source file. */
     public void copyEndPosition(JCTree newnode, JCTree srcnode) {
         EndPosTable z = log.currentSource().getEndPosTable();
+        try {
         if (z != null) {
         	int end = srcnode.getEndPosition(z);
         	z.storeEnd(newnode, end);
+        }
+        } catch (StackOverflowError e) {
+            System.out.println();
         }
     }
 
@@ -329,23 +341,47 @@ public class JmlTreeUtils {
     public JCExpression makeType(int pos, Type type) {
         // factory.Type does produce an attributed tree - after all we start knowing the type
         JCExpression tree = factory.at(pos).Type(type);
+//        // Need to replace any <?> with a new type variable
+//        replaceQuestionMarks(tree);
         return tree;
     }
     
-    /** Make an attributed tree representing a literal - NOT FOR BOOLEAN or NULL or CHARACTER values.
+//    public void replaceQuestionMarks(JCExpression tree) {
+//        if (!(tree instanceof JCTypeApply)) return;
+//        List<JCExpression> args = ((JCTypeApply)tree).arguments;
+//        while (args != null) {
+//            if (args.head instanceof JCTypeApply) replaceQuestionMarks(args.head);
+//            if (args.head instanceof JCWildcard) {
+//                if (args.head.toString().equals("?")) {
+//                    args.head = factory.TypeVar
+//                }
+//            }
+//            args = args.tail;
+//        }
+//    }
+    
+    /** Make an attributed tree representing a literal - NOT FOR BOOLEAN or CHARACTER values.
      *  @param pos        The node position
-     *  @param type       The literal's type.
+     *  @param type       The literal's type. (syms.botType for null)
      *  @param value      The literal's value; use 0 or 1 for Boolean; use an int for char literals.
      */
     public JCLiteral makeLit(int pos, Type type, Object value) {
         return factory.at(pos).Literal(type.getTag(), value).setType(type.constType(value));
     }
-
+    
+    /** Returns true if the argument is a boolean Literal with value true */
+    public boolean isNullLit(JCTree tree) {
+        if (tree == nullLit) return true;
+        if (!(tree instanceof JCLiteral)) return false;
+        if (((JCLiteral)tree).typetag != TypeTag.BOT) return false;
+        return true;
+    }
+    
     /** Returns true if the argument is a boolean Literal with value true */
     public boolean isTrueLit(JCTree tree) {
         if (tree == trueLit) return true;
         if (!(tree instanceof JCLiteral)) return false;
-        if (tree.type.getTag() != TypeTag.BOOLEAN) return false;
+        if (((JCLiteral)tree).typetag != TypeTag.BOOLEAN) return false;
         return (Boolean)((JCLiteral)tree).getValue();
     }
     
@@ -353,7 +389,7 @@ public class JmlTreeUtils {
     public boolean isFalseLit(JCTree tree) {
         if (tree == falseLit) return true;
         if (!(tree instanceof JCLiteral)) return false;
-        if (tree.type.getTag() != TypeTag.BOOLEAN) return false;
+        if (((JCLiteral)tree).typetag != TypeTag.BOOLEAN) return false;
         return !(Boolean)((JCLiteral)tree).getValue();
     }
     
@@ -361,12 +397,20 @@ public class JmlTreeUtils {
      * but with the new position. */
     public JCLiteral makeDuplicateLiteral(DiagnosticPosition pos, JCLiteral lit) {
         // Note that lit.typetag can be different from lit.type.tag - e.g for null values
-        return factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
+        JCLiteral r = factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
+        if (r.getValue() == null && r.type != syms.botType) { // This check is just because null sometimes has a Object type, and that causes problems in RAC
+            r.type = syms.botType;  // FIXME - ti seems a bug that this should ever be needed
+        }
+        return r;
     }
     
     public JCLiteral makeDuplicateLiteral(int pos, JCLiteral lit) {
         // Note that lit.typetag can be different from lit.type.tag - e.g for null values
-        return factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
+        JCLiteral r = factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
+        if (r.getValue() == null && r.type != syms.botType) { // This check is just because null sometimes has a Object type, and that causes problems in RAC
+            r.type = syms.botType;  // FIXME - ti seems a bug that this should ever be needed
+        }
+        return r;
     }
     
     /** Make an attributed tree representing an integer literal. */
@@ -411,6 +455,13 @@ public class JmlTreeUtils {
         return r;
     }
 
+    public JCLiteral makeBooleanLiteral(DiagnosticPosition pos, boolean value) {
+        int v = value?1:0;
+        JCLiteral r = factory.at(pos).Literal(TypeTag.BOOLEAN,v);
+        r.type = syms.booleanType.constType(v);
+        return r;
+    }
+
     /** Makes a constant String literal AST node.
      * @param pos the position to use for the node
      * @param value the String value of the constant node
@@ -427,28 +478,26 @@ public class JmlTreeUtils {
      * @return the AST node
      */ 
     public JCLiteral makeZeroEquivalentLit(int pos, Type type) {
-//        if (type == types.BIGINT) {
-//            return makeLit(pos,type,0);
-//           
-//        } else if (type == types.REAL) {
-//            return makeLit(pos,type,0.0);
-//            
-//        } else if (type == types.TYPE) {
-//            // FIXME - ???
-//            return makeNullLiteral(pos);
-//            
-//        } else {
+        if (type == types.BIGINT) {
+            return makeLit(pos,syms.intType,0);
+           
+        } else if (type == types.REAL) {
+            return makeLit(pos,syms.doubleType,0.0);
+            
+        } else if (type == types.TYPE) {
+            log.error(pos, "jml.message","old clause is not implemented for \\TYPE variables");
+            // FIXME - ???
+            return null;//makeTypelc(null);  // FIXME _ should have a pos argument
+            
+        } else {
         switch (type.getTag()) {
             case CHAR:
                 return makeLit(pos,type,0); // Character literal requires an int value
             case LONG:
                 return makeLit(pos,type,(long)0);
             case INT:
-                return makeLit(pos,type,0);
             case SHORT:
-                return makeLit(pos,type,(short)0);
             case BYTE:
-                return makeLit(pos,type,(byte)0);
             case BOOLEAN:
                 return makeLit(pos,type,0); // Boolean literal requires an int value
             case FLOAT:
@@ -460,7 +509,7 @@ public class JmlTreeUtils {
             default:
                 return makeNullLiteral(pos);
         }
-//        }
+        }
     }
 
     // FIXME - the following method appears to be misnamed
@@ -501,9 +550,9 @@ public class JmlTreeUtils {
      * @param sym the symbol for which to make an identifier
      * @return the AST
      */ 
-    public JCIdent makeIdent(DiagnosticPosition pos, Symbol sym) {
+    public JCIdent makeIdent(/*@ nullable */ DiagnosticPosition pos, Symbol sym) {
         JCIdent id = factory.Ident(sym);
-        id.pos = pos.getPreferredPosition();
+        id.pos = pos == null ? Position.NOPOS: pos.getPreferredPosition();
         // id.type is set in Ident
         return id;
     }
@@ -592,12 +641,39 @@ public class JmlTreeUtils {
         return e;
     }
 
-    /** Returns the 'larger' of the two types as numeric types are compared;
-     * not appropriate for Boolean types; floats test larger than long */
+    /** Returns the larger type of two numeric types;
+     * not appropriate for Boolean types */
     public Type maxType(Type lhs, Type rhs) {
-        Type t = lhs.getTag().ordinal() >= rhs.getTag().ordinal() || rhs.getTag() == TypeTag.BOT ? lhs : rhs;
-        if (TypeTag.INT.ordinal() > t.getTag().ordinal()) t = syms.intType;
-        return t;
+        // Note: getTag().ordinal() is not relaible
+        TypeTag ltag = lhs.getTag();
+        TypeTag rtag = rhs.getTag();
+        if (ltag == TypeTag.NONE && lhs == types.REAL) return lhs;
+        if (rtag == TypeTag.NONE && rhs == types.REAL) return rhs;
+        if (ltag == TypeTag.NONE && lhs == types.BIGINT) {
+            if (rtag == TypeTag.DOUBLE || rtag == TypeTag.FLOAT) return types.REAL;
+            return lhs;
+        }
+        if (rtag == TypeTag.NONE && rhs == types.BIGINT) {
+            if (ltag == TypeTag.DOUBLE || ltag == TypeTag.FLOAT) return types.REAL;
+            return rhs;
+        }
+        if (ltag == TypeTag.DOUBLE) return lhs;
+        if (rtag == TypeTag.DOUBLE) return rhs;
+        if (ltag == TypeTag.FLOAT && rtag == TypeTag.LONG) return syms.doubleType;
+        if (ltag == TypeTag.LONG && rtag == TypeTag.FLOAT) return syms.doubleType;
+        if (ltag == TypeTag.FLOAT) return lhs;
+        if (rtag == TypeTag.FLOAT) return rhs;
+        if (ltag == TypeTag.LONG) return lhs;
+        if (rtag == TypeTag.LONG) return rhs;
+        if (ltag == TypeTag.INT) return lhs;
+        if (rtag == TypeTag.INT) return rhs;
+        if (ltag == TypeTag.SHORT) return lhs;
+        if (rtag == TypeTag.SHORT) return rhs;
+        if (ltag == TypeTag.CHAR) return lhs;
+        if (rtag == TypeTag.CHAR) return rhs;
+        if (ltag == TypeTag.BYTE) return lhs;
+        if (rtag == TypeTag.BYTE) return rhs;
+        return lhs; // Only if non-numeric types, such as boolean
     }
     
     public boolean isIntegral(TypeTag tag) {
@@ -610,9 +686,9 @@ public class JmlTreeUtils {
         Type rhsu = unboxedType(rhs);
         if (lhsu.getTag() == TypeTag.BOOLEAN) return syms.booleanType;
         if (!lhsu.isPrimitive() || !rhsu.isPrimitive()) return syms.stringType;
-        if (lhs == types.REAL || rhs == types.REAL) return types.REAL;
-        if (lhs == types.BIGINT || rhs == types.BIGINT) return types.BIGINT;
-        if (lhs == types.TYPE || rhs == types.TYPE) return types.TYPE;
+        if (lhsu == types.REAL || rhsu == types.REAL) return types.REAL;
+        if (lhsu == types.BIGINT || rhsu == types.BIGINT) return types.BIGINT;
+        if (lhsu == types.TYPE || rhsu == types.TYPE) return types.TYPE;
         TypeTag ltag = lhsu.getTag();
         TypeTag rtag = rhsu.getTag();
         
@@ -658,6 +734,7 @@ public class JmlTreeUtils {
         JCUnary e = factory.at(pos).Unary(optag,expr);
         e.operator = opsymbol;
         e.type = e.operator.type.getReturnType();
+        if (expr.type.getTag() == TypeTag.NONE) e.type = expr.type; // For \bigint and \real operations
         copyEndPosition(e,expr);
         return e;
     }
@@ -671,6 +748,16 @@ public class JmlTreeUtils {
     }
     public JCExpression makeNot(int pos, JCExpression arg) {
         return makeUnary(pos,JCTree.Tag.NOT,arg);
+    }
+    public JCExpression makeNotSimp(DiagnosticPosition pos, JCExpression arg) {
+        if (isTrueLit(arg)) return makeBooleanLiteral(pos,false);
+        else if (isFalseLit(arg)) return makeBooleanLiteral(pos,true);
+        else return makeUnary(pos,JCTree.Tag.NOT,arg);
+    }
+    public JCExpression makeNotSimp(int pos, JCExpression arg) {
+        if (isTrueLit(arg)) return makeBooleanLiteral(pos,false);
+        else if (isFalseLit(arg)) return makeBooleanLiteral(pos,true);
+        else return makeUnary(pos,JCTree.Tag.NOT,arg);
     }
 
     /** Make an attributed binary expression.
@@ -687,6 +774,7 @@ public class JmlTreeUtils {
         //copyEndPosition(tree,rhs);
         return tree;
     }
+    
     public JCBinary makeBinary(int pos, JCTree.Tag optag, Symbol opSymbol, JCExpression lhs, JCExpression rhs) {
         JCBinary tree = factory.at(pos).Binary(optag, lhs, rhs);
         tree.operator = opSymbol;
@@ -694,6 +782,19 @@ public class JmlTreeUtils {
         //copyEndPosition(tree,rhs);
         return tree;
     }
+    
+    public JCExpression makeBinarySimp(DiagnosticPosition pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
+        if (optag == JCTree.Tag.OR) return makeOrSimp(pos.getStartPosition(), lhs, rhs);
+        if (optag == JCTree.Tag.AND) return makeAndSimp(pos.getStartPosition(), lhs, rhs);
+        return makeBinary(pos, optag,  lhs, rhs);
+    }
+
+    public JCExpression makeBinarySimp(int pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
+        if (optag == JCTree.Tag.OR) return makeOrSimp(pos, lhs, rhs);
+        if (optag == JCTree.Tag.AND) return makeAndSimp(pos, lhs, rhs);
+        return makeBinary(pos, optag,  lhs, rhs);
+    }
+
 
     /** Makes an attributed Java binary operator node (with boolean result)
      * @param pos the pseudo source code location of the node
@@ -708,6 +809,26 @@ public class JmlTreeUtils {
     public JCBinary makeBinary(int pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
         return makeBinary(pos,optag,findOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
     }
+    
+    public /*@ nullable */ String opname(Type t, JCTree.Tag tag) {
+        JmlTypes jmltypes = JmlTypes.instance(context);
+        String prefix = jmltypes.isJmlTypeOrRep(t, jmltypes.BIGINT) ? "bigint_" : jmltypes.isJmlTypeOrRep(t, jmltypes.REAL) ? "real_" : null;
+        String suffix = null;
+        switch (tag) {
+            case LE: suffix = "le"; break;
+            case LT: suffix = "lt"; break;
+            case GE: suffix = "ge"; break;
+            case GT: suffix = "gt"; break;
+            case EQ: suffix = "eq"; break;
+            case NE: suffix = "ne"; break;
+        }
+        if (prefix == null || suffix == null) {
+            return null;
+        } else {
+            return prefix + suffix;
+        }
+    }
+
 
     /** Produces an Equality AST node; presumes that the lhs and rhs have the 
      * same type.
@@ -719,7 +840,7 @@ public class JmlTreeUtils {
     public JCBinary makeEquality(int pos, JCExpression lhs, JCExpression rhs) {
         JCBinary tree = factory.at(pos).Binary(JCTree.Tag.EQ, lhs, rhs);
         Type t = lhs.type;
-        if (t.isPrimitive() && TypeTag.INT.ordinal() > t.getTag().ordinal()) t = syms.intType;
+        if (t.isPrimitive() && TypeTag.SHORT.ordinal() >= t.getTag().ordinal()) t = syms.intType;   // Perhaps should just presume the types are the same
         tree.operator = findOpSymbol(JCTree.Tag.EQ, t);
         tree.type = syms.booleanType;
         return tree;
@@ -772,6 +893,11 @@ public class JmlTreeUtils {
         return makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,rhs);
     }
 
+    /** Makes an attributed AST for a short-circuit boolean OR expression */
+    public JCExpression makeOr(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
+        return makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,rhs);
+    }
+
     /** Makes an attributed AST for a short-circuit boolean OR expression, simplifying literal true or false */
     public JCExpression makeOrSimp(int pos, JCExpression lhs, JCExpression rhs) {
         if (isFalseLit(rhs) || isTrueLit(lhs)) return lhs;
@@ -786,6 +912,15 @@ public class JmlTreeUtils {
 
     /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
     public JCExpression makeImplies(int pos, JCExpression lhs, JCExpression rhs) {
+        return makeBinary(pos,JCTree.Tag.OR,orSymbol,
+                makeNot(pos,lhs), rhs);
+    }
+
+    /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
+    public JCExpression makeImpliesSimp(int pos, JCExpression lhs, JCExpression rhs) {
+        if (isTrueLit(lhs) || isTrueLit(rhs)) return rhs;
+        else if (isFalseLit(lhs)) return makeBooleanLiteral(pos,true);
+        else if (isTrueLit(rhs)) return makeNot(pos,lhs);
         return makeBinary(pos,JCTree.Tag.OR,orSymbol,
                 makeNot(pos,lhs), rhs);
     }
@@ -944,6 +1079,12 @@ public class JmlTreeUtils {
         return d;
     }
 
+    public JCVariableDecl makeVarDefWithSym(VarSymbol v, @NonNull JCExpression init) {
+        JCVariableDecl d = factory.VarDef(v,init);
+        d.pos = v.pos;
+        return d;
+    }
+
     public JCVariableDecl makeStaticVarDef(Type type, Name name, Symbol owner, @NonNull JCExpression init) {
         int modifierFlags = Flags.STATIC;
         // We use type.baseType() here to remove any constType in case the 
@@ -974,20 +1115,6 @@ public class JmlTreeUtils {
         return d;
     }
     
-    /** Makes an \old expression */
-    public JCMethodInvocation makeOld(int pos, JCExpression arg, JCIdent label) {
-        JCMethodInvocation m;
-        if (label == null || label.toString().isEmpty()) {
-            m = factory.at(pos).JmlMethodInvocation(JmlTokenKind.BSOLD, List.<JCExpression>of(arg));
-        } else {
-            JCIdent id = factory.at(pos).Ident(label.name);
-            id.type = null; // Should never refer to the label's type
-            id.sym = null; // Should never refer to the label's symbol
-            m = factory.at(pos).JmlMethodInvocation(JmlTokenKind.BSOLD, List.<JCExpression>of(arg, id));
-        }
-        m.type = arg.type;
-        return m;
-    }
    
     /** Makes an \old expression */
     public JCMethodInvocation makeOld(DiagnosticPosition pos, JCExpression arg) {
@@ -996,6 +1123,11 @@ public class JmlTreeUtils {
         m.type = arg.type;
         return m;
     }
+    
+    public JCMethodInvocation makeOld(JCExpression arg) {
+        return makeOld(arg,arg);
+    }
+
    
     /** Makes a \past expression */
     public JCMethodInvocation makePast(int pos, JCExpression arg, JCIdent label) {
@@ -1023,13 +1155,20 @@ public class JmlTreeUtils {
         return condd;
     }
    
+    /** This makes an expressions stating that the Java throws predicate is adhered to; that is,
+     * the exceptionId is an instance of RuntimeException or one of the listed exception types.
+     * @param pos
+     * @param exceptionId
+     * @param sym
+     * @return
+     */
     public JCExpression makeThrownPredicate(DiagnosticPosition pos, JCIdent exceptionId, MethodSymbol sym) {
         int p = pos.getPreferredPosition();
         JCExpression rex = makeType(p,syms.runtimeExceptionType);
-        JCExpression ex = makeType(p,syms.exceptionType);
+//        JCExpression ex = makeType(p,syms.exceptionType);
         JCExpression condd = factory.at(pos).TypeTest(exceptionId, rex).setType(syms.booleanType);
-        JCExpression conde = factory.at(pos).TypeTest(exceptionId, ex).setType(syms.booleanType);
-        condd = makeAnd(p,condd,conde); // FIXME - why this redundancy?
+//        JCExpression conde = factory.at(pos).TypeTest(exceptionId, ex).setType(syms.booleanType);
+//        condd = makeAnd(p,condd,conde); // FIXME - why this redundancy?
         for (Type t: sym.getThrownTypes()) {
             JCExpression tc = factory.at(pos).TypeTest(exceptionId, makeType(p,t)).setType(syms.booleanType);
             condd = makeOr(p, condd, tc);
@@ -1113,6 +1252,10 @@ public class JmlTreeUtils {
 
     }
     
+    public JCExpression makeTypeCast(DiagnosticPosition pos, Type type, JCExpression expr) {
+        return factory.at(pos).TypeCast(type, expr);
+    }
+    
     public JCTree.JCInstanceOf makeInstanceOf(int pos, JCExpression expr, JCExpression clazz) {
         if (clazz.toString().equals("\\bigint")) Utils.stop();
         JCTree.JCInstanceOf t = factory.at(pos).TypeTest(expr, clazz);
@@ -1161,6 +1304,10 @@ public class JmlTreeUtils {
     /** Returns the AST for ( \typeof(id) == \type(type) && id instanceof 'erasure of type') */
     public JCExpression makeDynamicTypeEquality(DiagnosticPosition pos, JCExpression id, Type type) {
         int p = pos.getPreferredPosition();
+        // FIXME - this does not handle intersection types
+        if (type instanceof IntersectionClassType) {
+//            log.warning(pos,  "jml.message", "Intersection type not handled: " + type.toString());
+        }
         
         JCExpression lhs = makeTypeof(id);
         JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(JmlTokenKind.BSTYPELC,makeType(p,type));
@@ -1180,6 +1327,7 @@ public class JmlTreeUtils {
             JmlMethodInvocation ct = factory.at(p).JmlMethodInvocation(JmlTokenKind.BSTYPELC,makeType(p,compType));
             JCExpression e = makeTypeof(id);
             e = factory.at(p).JmlMethodInvocation(JmlTokenKind.BSELEMTYPE,e);
+            e.type = ct.type = types.TYPE;
             e = makeEqObject(p, e, ct);
             expr = makeAnd(p,expr,e);
         }
@@ -1195,7 +1343,7 @@ public class JmlTreeUtils {
     // requires id to have a reference type
     /** Returns the AST for id == null || ( \typeof(id) <: \type(type) && id instanceof 'erasure of type') */
     public JCExpression makeDynamicTypeInEquality(DiagnosticPosition pos, JCExpression id, Type type) {
-        int p = pos.getPreferredPosition();
+        int p = pos == null ? Position.NOPOS: pos.getPreferredPosition();
         JCExpression nn = makeEqObject(p,id,nullLit);
         
         return makeOr(p,nn,makeNonNullDynamicTypeInEquality(pos, id, type));
@@ -1203,6 +1351,17 @@ public class JmlTreeUtils {
     
     /** Returns the AST for \typeof(id) <: \type(type) && id instanceof 'erasure of type' */
     public JCExpression makeNonNullDynamicTypeInEquality(DiagnosticPosition pos, JCExpression id, Type type) {
+        if (type instanceof IntersectionClassType) {
+            IntersectionClassType itype = (IntersectionClassType)type;
+            List<Type> ecomp = itype.getExplicitComponents();
+            //List<Type> comp = itype.getComponents();// FIXME - not sure how this is different than the above
+            JCExpression ee = trueLit;
+            for (Type ictype: ecomp) {
+                JCExpression e = makeNonNullDynamicTypeInEquality(pos, id, ictype);
+                ee = makeAndSimp(pos.getPreferredPosition(), ee,e);
+            }
+            return ee;
+        }
         int p = pos.getPreferredPosition();
         if (type.getKind().isPrimitive()) return trueLit;
         JCExpression lhs = makeTypeof(id); // FIXME - copy?
@@ -1317,6 +1476,20 @@ public class JmlTreeUtils {
         return result;
     }
 
+    public JCFieldAccess makeArrayLength(int pos, JCExpression array) {
+        JCFieldAccess fa = (JCFieldAccess)factory.Select(array, syms.lengthVar);
+        fa.pos = pos;
+        fa.type = syms.intType;
+        return fa;
+    }
+    
+    public JCExpression makeArrayElement(int pos, JCExpression array, JCExpression index) {
+        JCExpression e = factory.Indexed(array,  index);
+        e.pos = pos;
+        e.type = ((Type.ArrayType)array.type).elemtype;
+        return e;
+    }
+    
     // FIXME - review & document - translates a type into ESC logic
     public JCExpression trType(int pos, Type type) {
         JCTree tree = factory.at(pos).Type(type);
@@ -1403,5 +1576,74 @@ public class JmlTreeUtils {
         e.type = syms.stringType;
         return e;
     }
+    
+    public Map<Symbol.TypeSymbol,Type> accumulateTypeInstantiations(List<Type> formals, List<JCExpression> exprs) {
+        Map<Symbol.TypeSymbol,Type> map = new java.util.HashMap<>();
+        while (formals.head != null && exprs.head != null) {
+            accumulateTypeInstantiations(formals.head, exprs.head.type, map);
+            formals = formals.tail;
+            exprs = exprs.tail;
+        }
+        if (formals.head != null || exprs.head != null) {
+            log.error("jml.internal","Mismatch in number of arguments in accumulateTypeInstantiations");
+        }
+        return map;
+    }
+    
+    public void accumulateTypeInstantiations(Type formal, Type targetType, Map<Symbol.TypeSymbol,Type> map) {
+        if (formal instanceof TypeVar) {
+            map.put(((TypeVar)formal).tsym, targetType);
+            return;
+        }
+        if (formal instanceof Type.WildcardType) {
+            map.put(((Type.WildcardType)formal).tsym, targetType);
+            return;
+        }
+        if (targetType.tsym.isSubClass(formal.tsym, types)) {
+            accumulateTypeInstantiations(formal.allparams(), targetType.allparams(), map);
+        }
+        // FIXME - iterate to deepser levels as well.
+    }
+
+    public void accumulateTypeInstantiations(List<Type> formals, List<Type> targetTypes, Map<Symbol.TypeSymbol,Type> map) {
+        while (formals.head != null && targetTypes.head != null) {
+            accumulateTypeInstantiations(formals.head, targetTypes.head, map);
+            formals = formals.tail;
+            targetTypes = targetTypes.tail;
+        }
+        if (formals.head != null || targetTypes.head != null) {
+            log.error("jml.internal","Mismatch in number of arguments in accumulateTypeInstantiations");
+        }
+    }
+    
+    // FIXME _ use a type visitor
+    
+    public Type mapTypeVars(Type t, Map<Symbol.TypeSymbol,Type> map) {
+        if (t instanceof TypeVar) {
+            Type r = map.get(t.tsym);
+            if (r == null) r = t;
+            return r;
+        } else {
+            List<Type> args = t.allparams();
+            List<Type> newargs = mapTypeVars(args, map);
+            if (newargs == args) return t;
+            return new Type.ClassType(Type.noType, newargs, t.tsym);
+        }
+    }
+    
+    public List<Type> mapTypeVars(List<Type> tlist, Map<Symbol.TypeSymbol,Type> map) {
+        ListBuffer<Type> buf = new ListBuffer<>();
+        boolean changed = false;
+        for (Type t: tlist) {
+            Type tt = mapTypeVars(t,map);
+            buf.add(tt);
+            changed = changed || t != tt;
+        }
+        if (changed) return buf.toList();
+        buf.clear();
+        return tlist;
+    }
+
+
     
 }

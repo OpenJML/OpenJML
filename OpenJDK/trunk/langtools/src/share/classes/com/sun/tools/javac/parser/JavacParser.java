@@ -1153,6 +1153,7 @@ public class JavacParser implements Parser {
                            t = toP(F.at(pos1).TypeIntersection(targets.reverse()));
                        }
                        accept(RPAREN);
+                       acceptEndOfJMLOptional();
                        mode = EXPR;
                        JCExpression t1 = term3();
                        return F.at(pos).TypeCast(t, t1);
@@ -1290,12 +1291,11 @@ public class JavacParser implements Parser {
         return primaryTrailers(t, typeArgs); // OPENJML - to allow overriding
     }
     
-    // DRC - added to insert a hook
-    protected JCExpression potentialCast() {
-        return null;
+    // OPENJML - added to insert a hook
+    public void acceptEndOfJMLOptional() {
     }
-
-    // DRC - extracted this method from term3() so that it can be used in overriding methods
+    
+    // OPENJML - extracted this method from term3() so that it can be used in overriding methods
     protected JCExpression primaryTrailers(JCExpression t,
             List<JCExpression> typeArgs) {
         return term3Rest(t, typeArgs);
@@ -3421,9 +3421,6 @@ public class JavacParser implements Parser {
         int pos = token.pos;
         accept(INTERFACE);
         Name name = ident();
-        if (name.toString().equals("List")) {
-            System.out.println();
-        }
 
         List<JCTypeParameter> typarams = typeParametersOpt();
 

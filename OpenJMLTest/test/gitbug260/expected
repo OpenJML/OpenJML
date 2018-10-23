@@ -12,5 +12,3 @@ Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of JMLArrayListExample.main(java.lang.String[]) with prover !!!! - no warnings
 Completed proving methods in JMLArrayListExample
-Note: test\gitbug260\JMLArrayListExample.java uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.

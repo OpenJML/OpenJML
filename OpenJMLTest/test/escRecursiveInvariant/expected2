@@ -1,0 +1,33 @@
+Proving methods in RecursiveInvariant
+Starting proof of RecursiveInvariant.RecursiveInvariant() with prover !!!!
+test/escRecursiveInvariant/RecursiveInvariant.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method RecursiveInvariant
+public class RecursiveInvariant {
+       ^
+test/escRecursiveInvariant/RecursiveInvariant.java:4: warning: Associated declaration
+    //@ public invariant m();
+               ^
+test/escRecursiveInvariant/RecursiveInvariant.java:4: warning: The prover cannot establish an assertion (InvariantEntrance) in method RecursiveInvariant:  (Caller: RecursiveInvariant.RecursiveInvariant(), Callee: RecursiveInvariant.m())
+    //@ public invariant m();
+                          ^
+test/escRecursiveInvariant/RecursiveInvariant.java:4: warning: Associated declaration
+    //@ public invariant m();
+               ^
+Completed proof of RecursiveInvariant.RecursiveInvariant() with prover !!!! - with warnings
+Starting proof of RecursiveInvariant.m() with prover !!!!
+test/escRecursiveInvariant/RecursiveInvariant.java:4: warning: The prover cannot establish an assertion (InvariantEntrance) in method m:  (Caller: RecursiveInvariant.m(), Callee: RecursiveInvariant.m())
+    //@ public invariant m();
+                          ^
+test/escRecursiveInvariant/RecursiveInvariant.java:4: warning: Associated declaration
+    //@ public invariant m();
+               ^
+Completed proof of RecursiveInvariant.m() with prover !!!! - with warnings
+Starting proof of RecursiveInvariant.t() with prover !!!!
+test/escRecursiveInvariant/RecursiveInvariant.java:4: warning: The prover cannot establish an assertion (InvariantEntrance) in method t:  (Caller: RecursiveInvariant.t(), Callee: RecursiveInvariant.m())
+    //@ public invariant m();
+                          ^
+test/escRecursiveInvariant/RecursiveInvariant.java:4: warning: Associated declaration
+    //@ public invariant m();
+               ^
+Completed proof of RecursiveInvariant.t() with prover !!!! - with warnings
+Completed proving methods in RecursiveInvariant
+8 warnings

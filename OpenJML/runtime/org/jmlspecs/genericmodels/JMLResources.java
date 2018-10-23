@@ -29,7 +29,7 @@ import org.jmlspecs.annotation.*;
  * @see JMLInfiniteInteger
  * @see Runtime
  */
-//-@ immutable
+//+OPENJML@ immutable
 public @Pure class JMLResources {
 
     /** The number of JVM cycles used since beginning execution.

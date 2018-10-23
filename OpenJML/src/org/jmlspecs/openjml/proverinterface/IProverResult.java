@@ -87,27 +87,33 @@ public interface IProverResult {
     
     /** The time to compute this result, in seconds */
     public double duration();
+    
+    public int episodes();
 
     /** The time at which the computation of the result began */
     public Date timestamp();
 
-    /** The time at which the computation of the result began */
+    /** The method for which this result was obtained */
     public Symbol.MethodSymbol methodSymbol();
 
     /** The satisfying assignment produced by the prover.
      * @return The satisfying assignment produced by the prover
      */
     //@ ensures result() != UNSAT ==> \result == null;
+    //@ nullable
     public ICounterexample counterexample();
 
+    //@ nullable pure
     public Object otherInfo();
 
-    public void setOtherInfo(Object s);
+    //@ ensures \result == this;
+    public IProverResult setOtherInfo(Object s);
 
     /** Returns the set of core ids, or null if no such information is available 
      * @return an item holding the core id information
      */
     //@ ensures result() != SAT ==> \result == null;
+    //@ nullable
     public ICoreIds coreIds();
 
     /** A marker interface for additional details produced by the prover -

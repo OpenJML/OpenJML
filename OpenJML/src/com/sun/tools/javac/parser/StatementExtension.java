@@ -39,6 +39,7 @@ abstract public class StatementExtension {
     /** The scanner in use, set when derived classes are instantiated */
     protected /*@ non_null */ JmlScanner scanner;
     
+    /** The node factory in use, set when derived classes are instantiated */
     protected /*@ non_null */ JmlTree.Maker jmlF;
 
     /** The symbol table, set when the context is set */
@@ -57,7 +58,7 @@ abstract public class StatementExtension {
         this.context = context;
         this.syms = Symtab.instance(context);
         this.utils = Utils.instance(context);
-   }
+    }
     
     /** Writes an error message to the log, using the given DiagnosticPosition
      * (typically gotten from tree.pos()), 
@@ -100,7 +101,7 @@ abstract public class StatementExtension {
         return parser.toP(tree);
     }
     
-    /** Called by JmlParser when it sees the token for this extension.
+    /** Called by JmlParser when it sees the initial token for this extension.
      * The derived class implementation is responsible to scan tokens using
      * the scanner (JmlParser.getScanner()) and return a JCExpression parse
      * tree.  When called, the current scanner token is the JmlToken itself;

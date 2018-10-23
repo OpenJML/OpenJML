@@ -1,0 +1,4 @@
+$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \count construct is an OpenJML extension to JML and not allowed under -strictJML
+            //@ loop_invariant i == \count && 0 <= i && i <= _length;
+                                    ^
+1 warning

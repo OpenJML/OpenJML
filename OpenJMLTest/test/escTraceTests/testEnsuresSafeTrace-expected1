@@ -1,0 +1,15 @@
+
+TRACE of tt.TestJava.m1(int)
+/tt/TestJava.java:4:  	requires i == Integer.MAX_VALUE; 
+			VALUE: i	 === 2147483647
+			VALUE: Integer.MAX_VALUE	 === 2147483647
+			VALUE: i == Integer.MAX_VALUE	 === true
+/tt/TestJava.java:7:  	k = 5 + i
+			VALUE: 5	 === 5
+			VALUE: i	 === 2147483647
+			VALUE: 5 + i	 === ( - 2147483644 )
+			VALUE: k = 5 + i	 === 0
+/tt/TestJava.java:7:  	ArithmeticOperationRange assertion: !(0 < 5 && 0 < i) || 5 <= 2147483647 - i
+			VALUE: !(0 < 5 && 0 < i_160_160___13) || 5 <= 2147483647 - i_160_160___13	 === false
+/tt/TestJava.java:7:  Invalid assertion (ArithmeticOperationRange)
+

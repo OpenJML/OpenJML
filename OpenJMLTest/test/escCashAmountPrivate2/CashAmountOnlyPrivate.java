@@ -15,7 +15,7 @@
  * @author Daniel M. Zimmerman
  * @version 2013-10-17
  */
-/*@ code_java_math */ public class CashAmountOnlyPrivate {
+/*@ code_bigint_math */ public class CashAmountOnlyPrivate {
   
   // invariants for sane amounts of dollars and cents
   //@ public invariant -CENTS_IN_DOLLAR < my_cents && my_cents < CENTS_IN_DOLLAR;

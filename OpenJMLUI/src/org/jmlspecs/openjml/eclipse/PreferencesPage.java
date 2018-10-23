@@ -4,6 +4,7 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -12,6 +13,7 @@ import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
@@ -68,10 +70,68 @@ IWorkbenchPreferencePage {
 	
     public void init(IWorkbench workbench) {
         setPreferenceStore(Activator.getDefault().getPreferenceStore());
+        initializeFieldEditorsAndPreferencesFromProperties();
+    }
+    
+    // Sets all OpenJML store elements to defaults (which actually removes them)
+    public void setStoreAndFieldsToDefaults() {
+    	IPreferenceStore store = getPreferenceStore();
+    	for (Field f: Options.class.getDeclaredFields()) {
+    		String fieldName = f.getName();
+    		if (fieldName.contains("Key")) {
+    			try {
+    				String key = f.get(null).toString(); // value of the field in class Options
+    				store.setToDefault(key);
+    				FieldEditor field = fieldMap.get(key);
+    				if (field != null) {
+    					field.load();
+    				}
+    			} catch (IllegalAccessException e) {
+    				// Should never happen
+    			}
+    		}
+    	}
+    }
+    
+    public void initializeFieldEditorsAndPreferencesFromProperties() {
+    	setStoreAndFieldsToDefaults(); // Need this for UI only fields that are not in the OpenML options
+		Properties properties = Utils.getProperties();
+		for (Map.Entry<Object,Object> entry : properties.entrySet()) {
+			Object keyobj = entry.getKey();
+			if (!(keyobj instanceof String)) continue;
+			String key = (String)keyobj;
+			if (!(entry.getValue() instanceof String)) continue;
+			String value = (String)entry.getValue();
+			if (key.contains(Env.OPENJML)) {
+				if (Options.uiverboseness) {
+					Log.log("Reading property: " + key + " = " + value); //$NON-NLS-1$ //$NON-NLS-2$
+				}
+				FieldEditor field = fieldMap.get(key);
+				if (field != null) {
+					if (field instanceof BooleanFieldEditor) {
+						getPreferenceStore().setValue(key,Boolean.parseBoolean(value));
+					} else if (field instanceof StringFieldEditor) {
+						getPreferenceStore().setValue(key,value);
+					} else if (field instanceof ComboFieldEditor) {
+						getPreferenceStore().setValue(key,value); // FIXME - how do we know it is a valid value
+					} else {
+						Log.errorKey("openjml.ui.unknown.field.editor",null,field.getClass(),key,value);  //$NON-NLS-1$
+						continue;
+					}
+					field.load();
+				} else {
+					// Assume anything else has a String value
+					getPreferenceStore().setValue(key,value);
+				}
+			} else {
+				// There are lots of these - mostly Java or Eclipse related
+				//Log.log("Ignoring property " + key + "=" + value);
+			}
+		}
     }
     
     /** A mapping of option keys to field names */
-    protected Map<String,FieldEditor> fieldMap = new HashMap<String,FieldEditor>();
+    static protected Map<String,FieldEditor> fieldMap = new HashMap<String,FieldEditor>();
 
     /** Overridden to add the field to the fieldMap */
     @Override
@@ -103,39 +163,7 @@ IWorkbenchPreferencePage {
     	MouseListener listener = new MouseAdapter() {
     		@Override
 			public void mouseUp(MouseEvent e) {
-				Properties properties = Utils.getProperties();
-				for (Map.Entry<Object,Object> entry : properties.entrySet()) {
-					Object keyobj = entry.getKey();
-					if (!(keyobj instanceof String)) continue;
-					String key = (String)keyobj;
-					if (!(entry.getValue() instanceof String)) continue;
-					String value = (String)entry.getValue();
-					if (key.contains(Env.OPENJML)) {
-						if (Options.uiverboseness) {
-							Log.log("Reading property: " + key + " = " + value); //$NON-NLS-1$ //$NON-NLS-2$
-						}
-						FieldEditor field = fieldMap.get(key);
-						if (field != null) {
-							if (field instanceof BooleanFieldEditor) {
-								getPreferenceStore().setValue(key,!value.isEmpty());
-							} else if (field instanceof StringFieldEditor) {
-								getPreferenceStore().setValue(key,value);
-							} else if (field instanceof ComboFieldEditor) {
-								getPreferenceStore().setValue(key,value); // FIXME - how do we know it is a valid value
-							} else {
-								Log.errorKey("openjml.ui.unknown.field.editor",null,field.getClass(),key,value);  //$NON-NLS-1$
-							}
-						} else {
-							// Assume anything else has a String value
-							getPreferenceStore().setValue(key,value);
-						}
-					} else {
-						// There are lots of these - mostly Java or Eclipse related
-						//Log.log("Ignoring property " + key + "=" + value);
-					}
-				}
-				Options.cache();
-				initialize();
+    			initializeFieldEditorsAndPreferencesFromProperties();
 			}
 		};
 		
@@ -144,6 +172,9 @@ IWorkbenchPreferencePage {
 				listener,
 				getFieldEditorParent())
 		);
+
+        addField(new BooleanFieldEditor(Options.initializeOnStartupKey, Messages.OpenJMLUI_PreferencesPage_InitializeOnStartup,
+                getFieldEditorParent()));
 
 		addField(new LabelFieldEditor("zzzzz.JML","",SWT.NONE, //$NON-NLS-1$ //$NON-NLS-2$
 				getFieldEditorParent()));
@@ -154,13 +185,13 @@ IWorkbenchPreferencePage {
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.strictKey, Messages.OpenJMLUI_PreferencesPage_strictCheck,
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.noCheckPurityKey, Messages.OpenJMLUI_PreferencesPage_SkipPurityCheck,
+        addField(new BooleanFieldEditor(Options.purityCheckKey, Messages.OpenJMLUI_PreferencesPage_PurityCheck,
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.showNotImplementedKey, Messages.OpenJMLUI_PreferencesPage_WarnAboutNonImplementedConstructs,
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.checkSpecsPathKey, Messages.OpenJMLUI_PreferencesPage_CheckSpecificationPath,
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.noInternalSpecsKey, Messages.OpenJMLUI_PreferencesPage_UseExternalSystemSpecs,
+        addField(new BooleanFieldEditor(Options.useInternalSpecsKey, Messages.OpenJMLUI_PreferencesPage_UseInternalSystemSpecs,
                 getFieldEditorParent()));
         addField(new StringFieldEditor(Options.optionalKeysKey, Messages.OpenJMLUI_PreferencesPage_OptionalAnnotationKeys,
                 getFieldEditorParent()));
@@ -218,7 +249,7 @@ IWorkbenchPreferencePage {
 
         addField(new BooleanFieldEditor(Options.enableRacKey, Messages.OpenJMLUI_PreferencesPage_EnableAutoRuntimeAssertionChecking,
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.noInternalRuntimeKey, Messages.OpenJMLUI_PreferencesPage_UseExternalRuntimeLibrary,
+        addField(new BooleanFieldEditor(Options.useInternalRuntimeKey, Messages.OpenJMLUI_PreferencesPage_UseInternalRuntimeLibrary,
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.compileToJavaAssert, Messages.OpenJMLUI_PreferencesPage_CompileToJavaAssert,
                 getFieldEditorParent()));
@@ -228,7 +259,7 @@ IWorkbenchPreferencePage {
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.racPreconditionEntry, Messages.OpenJMLUI_PreferencesPage_racPreconditionEntry,
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.racNoShowSource, Messages.OpenJMLUI_PreferencesPage_racNoShowSource,
+        addField(new BooleanFieldEditor(Options.racShowSource, Messages.OpenJMLUI_PreferencesPage_racNoShowSource,
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.showNotExecutableKey, Messages.OpenJMLUI_PreferencesPage_WarnAboutNonExecutableConstructs,
                 getFieldEditorParent()));

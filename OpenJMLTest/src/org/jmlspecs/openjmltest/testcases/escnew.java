@@ -121,7 +121,7 @@ public class escnew extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method m1a",15
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
-                ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.m1b(int)",-15
+                ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.m1b(int)",15
                 );
     }
     
@@ -312,6 +312,40 @@ public class escnew extends EscBase {
     // Tests use of \old token in called methods
     @Test
     public void testPostcondition5() {
+    	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
+//    	main.addOptions("-show","-method=m1");
+    	helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public static int iii;\n"
+                
+                +"  //@ public normal_behavior ensures iii == \\old(iii) + 3;\n"
+                +"  public void m1() {\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"  }\n"
+                
+                +"  //@ public normal_behavior ensures iii == \\old(iii) + 3;\n"
+                +"  public void m1bad() {\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"  }\n"
+                
+                
+                +"  //@ public normal_behavior assignable iii; ensures iii == \\old(iii) + 1;\n"
+                +"  public void inc()  {\n"
+                +"         ++iii;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",15
+                ,"/tt/TestJava.java:10: warning: Associated declaration",30
+                );
+    }
+    // Tests use of \old token in called methods
+    @Test
+    public void testPostcondition5a() {
+    	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int i;\n"
@@ -329,8 +363,8 @@ public class escnew extends EscBase {
                 +"         inc();\n"
                 +"  }\n"
                 
-                
-                +"  //@ public normal_behavior assignable i; ensures i == \\old(i) + 1;\n"
+                // Default is assignable \everything
+                +"  //@ public normal_behavior ensures i == \\old(i) + 1;\n"
                 +"  public void inc()  {\n"
                 +"         ++i;\n"
                 +"  }\n"
@@ -340,9 +374,44 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:10: warning: Associated declaration",30
                 );
     }
+    
     // Tests use of \old token in called methods
     @Test
-    public void testPostcondition5a() {
+    public void testPostcondition5x() {
+    	main.addOptions("-code-math=bigint","-spec-math=bigint"); // Just to avoid overflow warnings
+//    	main.addOptions("-show","-method=m1");
+    	helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public static int iii;\n"
+                
+                +"  //@ public normal_behavior ensures iii == \\old(iii) + 3;\n"
+                +"  public void m1() {\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"  }\n"
+                
+                +"  //@ public normal_behavior ensures iii == \\old(iii) + 3;\n"
+                +"  public void m1bad() {\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"  }\n"
+                
+                
+                +"  //@ public normal_behavior assignable iii; ensures iii == \\old(iii) + 1;\n"
+                +"  public void inc()  {\n"
+                +"         ++iii;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",15
+                ,"/tt/TestJava.java:10: warning: Associated declaration",30
+                );
+    }
+    // Tests use of \old token in called methods
+    @Test
+    public void testPostcondition5ax() {
+    	main.addOptions("-code-math=bigint","-spec-math=bigint"); // Just to avoid overflow warnings
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int i;\n"
@@ -469,7 +538,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testSwitch() {
-        main.addOptions("-code-math=java");
+        main.addOptions("-code-math=math"); // To avoid warnings because of overflow
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -501,7 +570,6 @@ public class escnew extends EscBase {
     
     @Test
     public void testTry() {
-    	//main.addOptions("-show","-method=m2good","-checkFeasibility=debug","-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -808,8 +876,12 @@ public class escnew extends EscBase {
 
                 +"}"
                 ,anyorder(
-                        seq("/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",16)
-                        ,seq("/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1bad",16)
+                        seq("/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",16
+                        	,"/tt/TestJava.java:5: warning: Associated method exit",4
+                        	)
+                        ,seq("/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1bad",16
+                        		,"/tt/TestJava.java:5: warning: Associated method exit",4
+                        		)
                         ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",15
                                 ,"/tt/TestJava.java:3: warning: Associated declaration",7)
                                 )
@@ -886,6 +958,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testIncDec() {
+    	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { static public int i; \n"
                 
@@ -992,9 +1065,67 @@ public class escnew extends EscBase {
     }
 
     @Test
+    public void testConditional2() {
+        main.addOptions("-escMaxWarnings=1");
+        main.addOptions("-code-math=safe");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires i < 100000;\n"
+                +"  //@ ensures \\result == i;\n"
+                +"  public int m1bad(boolean b, int i) {\n"
+                +"    return (b && (i == 1)) ? i : i + 1 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i < 100000;\n"
+                +"  //@ ensures \\result >= i;\n"
+                +"  public int m1ok(boolean b, int i) {\n"
+                +"    return (b && (i == 1)) ? i : i + 1 ;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                );
+    }
+
+    @Test
     public void testConditional() {
         main.addOptions("-escMaxWarnings=1");
         main.addOptions("-code-math=java");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires true;\n"
+                +"  //@ ensures \\result == i;\n"
+                +"  public int m1bad(boolean b, int i) {\n"
+                +"    return (b && (i == 1)) ? i : i + 1 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i < 100000;\n"
+                +"  //@ ensures \\result >= i;\n"
+                +"  public int m1ok(boolean b, int i) {\n"
+                +"    return (b && (i == 1)) ? i : i + 1 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires true;\n"
+                +"  //@ ensures \\result >= i;\n"
+                +"  public int m2bad(boolean b, int i) {\n"
+                +"    return (b && (i == 1)) ? i : i + 1 ;\n"  // Error: silent overflow - result may be less than i
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
+                ,"/tt/TestJava.java:14: warning: Associated declaration",7
+                );
+    }
+
+    @Test
+    public void testConditional3() {
+        main.addOptions("-escMaxWarnings=1");
+        main.addOptions("-code-math=math");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1436,6 +1567,250 @@ public class escnew extends EscBase {
                 );
     }
 
+    // This tests a bug in which static invariants were not part of the VC. 
+    // The problem is that helper methods do not inherit invariants, even ones that are fixed, such as those that define the values of fields
+    @Test
+    public void testInvariantInheritance2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava  { \n"
+                
+                +"  public static int CHILD = 3;\n"
+                +"  //@ static public invariant CHILD == 3;\n"
+
+                
+                +"  //@ helper pure \n"
+                +"  public static void m1() {\n"
+                +"    //@ assert CHILD == 3 ;\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m1",9
+                );
+    }
+
+    @Test // Allow final on invariant to mean assume regardless of helper status
+    public void testInvariantInheritance() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava  { \n"
+                
+                +"  public final static int CHILD; static { CHILD = 3; }\n"
+                +"  //@ static final public invariant CHILD == 3;\n"
+
+                +"  //@ public normal_behavior ensures true; static_initializer\n"
+                +"  //@ helper pure \n"
+                +"  public static void m1() {\n"
+                +"    //@ assert CHILD == 3 ;\n"
+                +"  }\n"
+                +"}\n"
+                );
+        }
+    @Test
+    public void testInvariantInheritance3() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava  { \n"
+                
+                +"  public /*@ final */ static int CHILD = 3;\n"
+
+                
+                +"  //@ helper pure \n"
+                +"  public static void m1() {\n"
+                +"    //@ assert CHILD == 3 ;\n"
+                +"  }\n"
+                +"}\n"
+                );
+        }
+    
+    @Test
+    public void testInvariantInheritanceArray() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava  { \n"
+                
+                +"  public /*@ final */ static int[] FIELD = new int[]{1,2,3,4,5};\n"
+                +"  public /*@ final */ static int[] FIELD2 = {1,2,3,4,5,6};\n"
+
+                +"  //@ public normal_behavior ensures true; static_initializer\n"
+                
+                +"  //@  pure \n"
+                +"  public static void m1() {\n"
+                +"    //@ assert H.ZZZZ == 79 ;\n"
+                +"    //@ assert FIELD.length == 5 ;\n"
+                +"    //@ assert FIELD2.length == 6 ;\n"
+                +"    //@ assert H.CHILD.length == 5 ;\n"
+                +"    //@ assert H.CHILD2.length == 6 ;\n"
+                +"  }\n"
+                +"}\n"
+                +" class H  { \n"
+                +"  public /*@ final */ static int ZZZZ = 79;\n"
+                +"  public /*@ final */ static int[] CHILD = new int[]{1,2,3,4,5};\n"
+                +"  public /*@ final */ static int[] CHILD2 = {1,2,3,4,5,6};\n"
+
+                +"  //@ public normal_behavior ensures true; static_initializer\n"
+                +"}\n"
+                );
+        
+        }
+    
+    @Test 
+    public void testDeterminism() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> { \n"
+                
+                +"  //@ ensures true;\n"
+                +"  //@ model pure public int mm(int i);\n"
+                
+                +"  //@ ensures true; pure\n"
+                +"  public int mmr(int i) { return 0; };\n"
+                
+                +"  //@ ensures !\\fresh(\\result); pure\n"
+                +"  //@ model public <TT> TT mt(int i);\n"
+                
+                +"  //@ ensures !\\fresh(\\result); pure\n"
+                +"  public /*@ nullable */ <TT> TT mtr(int i) { return null; };\n"
+                
+                +"  //@ ensures true; pure\n"
+                +"  //@ model function public static int mf(int i);\n"
+                
+                +"  //@ ensures true; pure\n"
+                +"  //@ function \n"
+                +"  public static int mfr(int i) { return 0; }\n"
+                
+                +"  //@ ensures mm(i) == mm(i);\n"
+                +"  public void m1(int i) {\n"
+                +"  }\n"
+                
+                +"  //@ ensures mmr(i) == \\result;\n"
+                +"  public int m1x(int i) {\n"   // Line 20
+                +"      return mmr(i);\n"
+                +"  }\n"
+                
+                +"  //@ ensures mt(i) == mt(i);\n"
+                +"  public void m3(int i) {\n"
+                +"  }\n"
+                
+                +"  //@ ensures mtr(i) == \\result;\n"
+                +"  public /*@ nullable */ <T> T m3x(int i) {\n"
+                +"    return mtr(i); }\n"   // Line 28
+                
+                +"  //@ ensures mf(i) == mf(i);\n"
+                +"  public void m2(int i) {\n"
+                +"  }\n"
+                
+                +"  //@ ensures mfr(i) == \\result;\n"
+                +"  public int m2x(int i) {\n"
+                +"      return mfr(i);\n"
+                +"  }\n"
+                
+               
+                +"}"
+                );
+    }
+
+    @Test 
+    public void testDeterminismFresh() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> { \n"
+        		+"  public /*@ nullable */ Object o;\n"
+                
+                +"  //@ ensures \\fresh(\\result); pure\n"
+                +"  public Object mm(int i) { return new Object(); }\n"
+                
+   //             +"  //@ ensures \\result == null || !\\fresh(\\result); pure\n" // FIXME - should this work -= does not prevent the result from being fresh for m2 while not for mm2 
+                +"  //@ ensures \\result == o; pure\n" 
+                +"  public /*@ nullable */ Object mm2(int i) { return o; }\n" // Line 7
+                
+                +"  //@ ensures true; pure\n"
+                +"  public Object mm3(int i) { return new Object(); }\n"
+                
+                 
+                +"  //@ ensures \\fresh(\\result);\n"  // Line 10 
+                +"  //@ ensures mm(i) == \\result;\n" // ERROR - not necessarily the case
+                +"  public Object m1(int i) {\n" 
+                +"      return mm(i);\n"   // Line 13
+                +"  }\n"
+                
+                +"  //@ ensures \\result == null || !\\fresh(\\result);\n"
+                +"  //@ ensures mm2(i) == \\result;\n" 
+                +"  public /*@ nullable */ Object m2(int i) {\n" 
+                +"      return mm2(i);\n"
+                +"  }\n"
+                
+                +"  //@ ensures mm3(i) == \\result;\n" // Line 20 // ERROR - not necessarily the case
+                +"  public Object m3(int i) {\n" 
+                +"      return mm3(i);\n"
+                +"  }\n"
+                
+               
+                +"}"
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method m1",7
+                ,"/tt/TestJava.java:11: warning: Associated declaration",7
+                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Postcondition) in method m3",7
+                ,"/tt/TestJava.java:20: warning: Associated declaration",7
+                );
+    }
+    
+    @Test
+    public void testMethodMatching() {
+        main.addOptions("-method=mm"); // Part of test
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> { \n"
+                +"   int k;\n"
+                +"  //@ ensures true; pure \n"
+                +"  public int mpure(int i) { return i+17; }\n"
+                
+                +"  public void mm(int i) { \n"
+                +"     int j = 0; \n"
+                +"     if (i == 1) j = mpure(i); \n"
+                +"     else if (i == 2) { j = mpure(i);  } \n"
+                +"     else  j = 29; \n"
+                +"     //@ assert i==1 ==> j == mpure(1); \n"
+                +"     //@ assert i==2 ==> j == mpure(2); \n"
+                +"     //@ assert i==3 ==> j == mpure(1); \n" // CAN'T PROVE
+                +"     //@ assert i==3 ==> j != mpure(1); \n" // CAN'T PROVE
+                
+                +"  }\n"
+                
+                
+               
+                +"}"
+                ,anyorder(
+                 seq("/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method mm",10)
+                ,seq("/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assert) in method mm",10)
+                )
+                );
+    }
+
+    @Test
+    public void testMethodMatching1() {
+        main.addOptions("-method=mm"); // Part of test
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> { \n"
+                +"   int k;\n"
+                +"  //@ ensures true; pure \n"
+                +"  public int mpure(int i) { return i+17; }\n"
+                
+                +"  public void mm(int i) { \n"
+                +"     int j = 0; \n"
+                +"     if (i == 1) j = mpure(i); \n"
+                +"     else if (i == 2) { j = mpure(i); k = 0; } \n"
+                +"     else  j = 29; \n"
+                +"     //@ assert i==1 ==> j == mpure(1); \n" // CAN'T PROVE
+                +"     //@ assert i==2 ==> j == mpure(2); \n" // CAN'T PROVE
+                +"     //@ assert i==3 ==> j == mpure(1); \n" // CAN'T PROVE
+                +"     //@ assert i==3 ==> j != mpure(1); \n" // CAN'T PROVE
+                
+                +"  }\n"
+                
+                
+               
+                +"}"
+                ,anyorder(
+                 seq("/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method mm",10)
+                ,seq("/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method mm",10)
+                ,seq("/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method mm",10)
+                ,seq("/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assert) in method mm",10)
+                )
+                );
+    }
+
     @Test
     public void testExplicitAssert() {
         main.addOptions("-escMaxWarnings=1");
@@ -1619,6 +1994,193 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (Unreachable) in method m4bad",9
                 );
         }
+
+    @Test 
+    public void testConstantFolding() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> { \n"
+
+                // FIXME - lots more tests needed
+                +"  public void mm(int i) {\n" 
+                +"      boolean b = true && false;\n" 
+                +"      //@ assert !b;\n" 
+                +"      b = true || false;\n" 
+                +"      //@ assert b;\n" 
+                
+                +"      b = true == false;\n" 
+                +"      //@ assert !b;\n" 
+                +"      b = true != false;\n" 
+                +"      //@ assert b;\n" 
+                +"      b = 3L != 2;\n" 
+                +"      //@ assert b;\n" 
+                +"      b = (short)3 == (short)3;\n" 
+                +"      //@ assert b;\n" 
+                +"      b = \"\" == \"\";\n" 
+                +"      //@ assert b;\n" 
+                +"      b = ' ' == ' ';\n" 
+                +"      //@ assert b;\n" 
+                
+                +"      int a = 2 + 3;\n" 
+                +"      //@ assert a == 5;\n" 
+                +"      a = (short)2 + (short)3;\n" 
+                +"      //@ assert a == 5;\n" 
+                +"      long g = 2L + 3;\n" 
+                +"      //@ assert g == 5;\n" 
+                +"      g = (short)2 + (short)3;\n" 
+                +"      //@ assert g == 5;\n" 
+                
+                +"      a = (short)3 / (short)2;\n" 
+                +"      //@ assert a == 1;\n" 
+                +"      g = 3L / 2;\n" 
+                +"      //@ assert g == 1;\n" 
+                +"      g = (short)3 / (short)2;\n" 
+                +"      //@ assert g == 1;\n" 
+                
+//                +"      String s = \"x\" + \"y\";\n" 
+//                +"      //@ assert s = \"xy\";\n" 
+//                +"      s = \"x\" + 1;\n" 
+//                +"      //@ assert s = \"x1\";\n" 
+//                +"      s = \"x\" + true;\n" 
+//                +"      //@ assert s = \"xtrue\";\n" 
+//                +"      s = false + \"x\";\n" 
+//                +"      //@ assert s = \"falsex\";\n" 
+//                +"      s = \"x\" + null;\n" 
+//                +"      //@ assert s = \"xnull\";\n" 
+
+                +"  }\n"
+                
+               
+                +"}"
+                );
+    }
+
+    @Test 
+    public void testConstantFolding2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> { \n"
+
+                // FIXME - lots more tests needed
+                +"  public void mm(int i) {\n" 
+                +"      int a = 2 / 0;\n" 
+                +"      a = 2 / (1-1);\n" 
+                +"      long g = 3L / 0;\n" 
+                +"  }\n"
+                
+               
+                +"}"
+                );
+    }
+
+    @Test 
+    public void testPreconditionInfo() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> { \n"
+
+                +"  //@ requires i == 4;\n" 
+                +"  //@ ensures \\result == 5;\n" 
+                +"  //@ also\n" 
+                +"  //@ requires i == 5;\n" 
+                +"  //@ ensures \\result == 6;\n" 
+                +"  /*@ pure */ public int m(int i) {\n" 
+                +"     return i + 1;\n"
+                +"  }\n"
+                
+                +"  public void mm(int i) {\n" 
+                +"  //@ assert 0<m(3);\n" 
+
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method mm",17
+                ,"/tt/TestJava.java:8: warning: Associated declaration",26
+                ,optional(  // -no-minQuant does not expand out the precondition conjunctions
+                "/tt/TestJava.java:3: warning: Precondition conjunct is false: i == 4",18
+                ,"/tt/TestJava.java:6: warning: Precondition conjunct is false: i == 5",18
+                )
+                
+               
+                );
+    }
+
+    @Test 
+    public void testOldInAssign() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+
+                +" public int f;\n" 
+                +" public int[] a = new int[10];\n" 
+
+                +"  //@ old int j = i+2;\n" 
+                +"  //@ requires 0 <= j && j < 10;\n" 
+                +"  //@ requires a != null && a.length == 10;\n" 
+                +"  //@ assignable a[j];\n" 
+                +"  //@ ensures a[j] == 42;\n" 
+                +"  public void m(int i) {\n" 
+                +"     a[i+2] = 42;\n"
+                +"  }\n"
+                
+                +"  //@ requires 0 <= i && i < 8;\n" 
+                +"  //@ requires a != null && a.length == 10;\n" 
+                +"  //@ assignable a[i];\n" 
+                +"  public void m1bad(int i) {\n" 
+                +"     i += 2; a[i] = 42;\n"
+                +"  }\n"
+                
+                +"  //@ requires 0 <= i && i < 8;\n" 
+                +"  //@ requires a != null && a.length == 10;\n" 
+                +"  //@ assignable a[i+2];\n" 
+                +"  public void m2(int i) {\n" 
+                +"     i += 2; a[i] = 42;\n"
+                +"  }\n"
+                
+                +"  //@ old int j = i+1;\n" 
+                +"  //@ requires 0 <= j && j < 9;\n" 
+                +"  //@ requires a != null && a.length == 10;\n" 
+                +"  //@ assignable a[j];\n" 
+                +"  public void mbad(int i) {\n" 
+                +"     a[i+2] = 42;\n"
+                +"  }\n"
+                
+
+                +"}"
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assignable) in method m1bad:  a[i]",19
+                ,"/tt/TestJava.java:15: warning: Associated declaration",7
+                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (Assignable) in method mbad:  a[i + 2]",13
+                ,"/tt/TestJava.java:28: warning: Associated declaration",7
+                
+               
+                );
+    }
+
+    @Test 
+    public void testOldInCall() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+
+                +" public int f;\n" 
+                +" public int[] a = new int[100];\n" 
+
+                +"  //@ old int j = i+off;\n" 
+                +"  //@ requires a != null && a.length == 100;\n" 
+                +"  //@ requires 0 <= i && i < 50 && 0 <= off && off < 30;\n" 
+                +"  //@ assignable a[j];\n" 
+                +"  public void mmm(int i, int off) {\n" 
+                +"     a[i+off] = 42;\n"
+                +"  }\n"
+                
+                +"  //@ requires 0 <= i && i < 50;\n" 
+                +"  //@ requires a != null && a.length == 100;\n" 
+                +"  //@ assignable a[i],a[i+10],a[i+25];\n" 
+                +"  public void m(int i) {\n" 
+                +"     mmm(i,0);\n"
+                +"     mmm(i,10);\n"
+                +"     mmm(i,25);\n"
+                +"  }\n"
+                
+
+
+                +"}"
+                );
+    }
 
 
 }

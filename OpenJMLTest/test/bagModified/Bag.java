@@ -8,7 +8,7 @@ package sv_esc;
 // NOTE: no specification yet that the elements of the Bag.contents array are
 // what they are supposed tdo be (e.g. only slightly changed by add, remove,
 // properly initalized by initializers).
-/*@ code_java_math */
+/*@ code_bigint_math */
 class Bag {
 
   int[] contents; //@ invariant contents != null;

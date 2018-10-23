@@ -7,11 +7,14 @@ public class DemoProgress {
 
     public static class ProgressListener extends IAPI.AbstractProgressListener {
         @Override
-        public boolean report(int ticks, int level, String message) {
+        public boolean report(int level, String message) {
             //if (level <= 1 || (context != null && JmlOption.isOption(context,JmlOption.JMLVERBOSE))) 
-                System.out.println(ticks + " " + level + ") " + message);
+                System.out.println(level + ") " + message);
             return false;
         }
+        
+        @Override
+        public void worked(int ticks) {}
     }
     
     public static void main(String[] argv) {

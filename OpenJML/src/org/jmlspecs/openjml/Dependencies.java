@@ -28,7 +28,7 @@ public class Dependencies {
     // 
 
     /** The key to use to retrieve the instance of this class from the Context object. */
-    @NonNull
+    /*@ non_null */
     public static final Context.Key<Dependencies> dependenciesKey =
         new Context.Key<Dependencies>();
 

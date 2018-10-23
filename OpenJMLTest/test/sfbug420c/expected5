@@ -1,0 +1,41 @@
+Proving methods in stack.Stack
+Completed proving methods in stack.Stack
+Proving methods in stack.StackImpl
+Skipping proof of stack.StackImpl.StackImpl() (excluded by -method)
+Skipping proof of stack.StackImpl.count() (excluded by -method)
+Skipping proof of stack.StackImpl.itemAt(int) (excluded by -method)
+Skipping proof of stack.StackImpl.isEmpty() (excluded by -method)
+Skipping proof of stack.StackImpl.push(int) (excluded by -method)
+Skipping proof of stack.StackImpl.top() (excluded by -method)
+Skipping proof of stack.StackImpl.remove() (excluded by -method)
+Starting proof of stack.StackImpl.main(java.lang.String[]) with prover !!!!
+test/sfbug420c/StackImpl.java:56: warning: The prover cannot establish an assertion (Precondition) in method main
+		System.out.println(s.itemAt(3));
+		                           ^
+test/sfbug420c/Stack.java:18: warning: Associated declaration
+	int itemAt (int i);
+	    ^
+test/sfbug420c/Stack.java:16: warning: Precondition conjunct is false: i <= count()
+	//@ requires i>=1 && i<=count();
+	                      ^
+test/sfbug420c/StackImpl.java:55: warning: The prover cannot establish an assertion (Precondition) in method main
+		System.out.println(s.itemAt(2));
+		                           ^
+test/sfbug420c/Stack.java:18: warning: Associated declaration
+	int itemAt (int i);
+	    ^
+test/sfbug420c/Stack.java:16: warning: Precondition conjunct is false: i <= count()
+	//@ requires i>=1 && i<=count();
+	                      ^
+test/sfbug420c/StackImpl.java:54: warning: The prover cannot establish an assertion (Precondition) in method main
+		System.out.println(s.itemAt(1));
+		                           ^
+test/sfbug420c/Stack.java:18: warning: Associated declaration
+	int itemAt (int i);
+	    ^
+test/sfbug420c/Stack.java:16: warning: Precondition conjunct is false: i <= count()
+	//@ requires i>=1 && i<=count();
+	                      ^
+Completed proof of stack.StackImpl.main(java.lang.String[]) with prover !!!! - with warnings
+Completed proving methods in stack.StackImpl
+9 warnings

@@ -2012,6 +2012,7 @@ public class Attr extends JCTree.Visitor {
                 log.error(tree.pos(), "enum.cant.be.instantiated");
             // Check that class is not abstract
             if (cdef == null &&
+            		okAsEnum(clazztype) && // OPENJML - added - may not be the best implementation (because of using TimeUnit)
                 (clazztype.tsym.flags() & (ABSTRACT | INTERFACE)) != 0) {
                 log.error(tree.pos(), "abstract.cant.be.instantiated",
                           clazztype.tsym);
@@ -2212,6 +2213,8 @@ public class Attr extends JCTree.Visitor {
                 ta.arguments = prevTypeargs;
             }
         }
+        
+        protected boolean okAsEnum(Type c) { return true; } // OPENJML _ added to allow overwriting
 
             private void checkLambdaCandidate(JCNewClass tree, ClassSymbol csym, Type clazztype) {
                 if (allowLambda &&
@@ -2672,7 +2675,7 @@ public class Attr extends JCTree.Visitor {
 
     @Override
     public void visitReference(final JCMemberReference that) {
-        if (pt().isErroneous() || (pt().hasTag(NONE) && pt() != Type.recoveryType)) {
+        if (pt().isErroneous() || ((pt().hasTag(NONE) && pt() != Type.recoveryType) && !visitReferenceInJML())) {   // OPENJML - added OpenJML callback
             if (pt().hasTag(NONE)) {
                 //method reference only allowed in assignment or method invocation/cast context
                 log.error(that.pos(), "unexpected.mref");
@@ -2716,6 +2719,8 @@ public class Attr extends JCTree.Visitor {
             if (that.typeargs != null) {
                 typeargtypes = attribTypes(that.typeargs, localEnv);
             }
+            
+            if (pt().hasTag(NONE) && visitReferenceInJML()) return; // OPENJML - added to allow method references in JML expressions
 
             Type desc;
             Type currentTarget = pt();
@@ -2892,6 +2897,7 @@ public class Attr extends JCTree.Visitor {
             return new ResultInfo(tree.getMode() == ReferenceMode.INVOKE ? VAL | TYP : TYP, Type.noType);
         }
 
+    protected boolean visitReferenceInJML() { return false; }   // OPENJML - added OpenJML callback
 
     @SuppressWarnings("fallthrough")
     void checkReferenceCompatible(JCMemberReference tree, Type descriptor, Type refType, CheckContext checkContext, boolean speculativeAttr) {
@@ -3055,6 +3061,9 @@ public class Attr extends JCTree.Visitor {
 
     public void visitBinary(JCBinary tree) {
         // Attribute arguments.
+        if (tree.toString().contains("sum")) {
+            Object t = tree;
+        }
         Type left = chk.checkNonVoid(tree.lhs.pos(), attribExpr(tree.lhs, env));
         Type right = chk.checkNonVoid(tree.lhs.pos(), attribExpr(tree.rhs, env));
 
@@ -3711,6 +3720,7 @@ public class Attr extends JCTree.Visitor {
                     case METHODDEF:
                     case CLASSDEF:
                     case TOPLEVEL:
+                    case NO_TAG:  // OPENJML - for quantifiers in invariants
                         return null;
                 }
                 Assert.checkNonNull(env.next);

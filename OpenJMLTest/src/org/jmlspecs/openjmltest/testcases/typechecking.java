@@ -51,6 +51,58 @@ public class typechecking extends TCBase {
                 );
     }
 
+    @Test public void testAlso0() {
+        helpTC(" class B { void m() {} } class A extends B { /*@ also requires true; */ void m() {}  /*@ requires true; */ void n() {}}"
+                );
+    }
+
+    @Test public void testAlso1() {
+    	expectedExit = 0;
+        helpTC(" class B { void m() {} } class A extends B { /*@ requires true; */ void m() {} /*@ also requires true; */ void n() {}}"
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also'",50
+                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",89
+                );
+    }
+
+    @Test public void testAlso0I() {
+        helpTC(" interface B { void m(); } class A implements B { /*@ also requires true; */ public void m() {}  /*@ requires true; */ void n() {}}"
+                );
+    }
+
+    @Test public void testAlso1I() {
+    	expectedExit = 0;
+        helpTC(" interface B { void m(); } class A implements B { /*@ public normal_behavior requires true; */ public void m() {} /*@ also requires true; */ void n() {}}"
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also'",62
+                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",124
+                );
+    }
+
+    @Test public void testAlso0II() {
+        helpTC(" interface B { void m(); } interface A extends B { /*@ also requires true; */ public void m();  /*@ requires true; */ void n();}"
+                );
+    }
+
+    @Test public void testAlso1II() {
+    	expectedExit = 0;
+        helpTC(" interface B { void m(); } interface A extends B { /*@ requires true; */ void m(); /*@ also requires true; */ void n();}"
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also'",56
+                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",93
+                );
+    }
+
+    @Test public void testAlsoObject() {
+    	expectedExit = 0;
+        helpTC("  interface A { /*@ also public normal_behavior requires true; */ String toString();}"
+                );
+    }
+
+    @Test public void testAlsoObjectBad() {
+    	expectedExit = 0;
+        helpTC("  interface A { /*@ public normal_behavior requires true; */ String toString();}"
+                ,"/TEST.java:1: warning: Method toString overrides parent class methods and so its specification should begin with 'also'",28
+                );
+    }
+
     @Test public void testOld1() {
         helpTC(" class A { int k; boolean b; void m() { \n//@ assert \\old;\n}}",
                 "/TEST.java:2: A \\old expression must have an argument list",12);
@@ -58,7 +110,7 @@ public class typechecking extends TCBase {
 
     @Test public void testOld2() {
         helpTC(" class A { int k; boolean b; void m() { \n//@ assert \\old();\n}}",
-                "/TEST.java:2: A \\old expression expects just 1 or 2 argument, not 0",16);
+                "/TEST.java:2: A \\old expression expects just 1 or 2 arguments, not 0",16);
     }
 
     @Test public void testOld2a() {
@@ -112,6 +164,13 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testOld12() {
+        helpTCF("A.java"," class A { boolean b; void m() { \n k: {};\n boolean bb = false; //@ assert \\old(bb) && \\old(bb,k);\n}}"
+                ,"/A.java:3: cannot find symbol\n  symbol:   variable bb\n  location: class A",38
+                ,"/A.java:3: cannot find symbol\n  symbol:   variable bb\n  location: class A",50
+                );
+    }
+
+    @Test public void testOld13() {
         helpTCF("A.java"," class A { boolean b; void m() { \n k: {};\n //@ assert \\old(b,k);\n}}"
                 );
     }
@@ -175,6 +234,7 @@ public class typechecking extends TCBase {
     @Test public void testInvariantFor6() {
     	main.addOptions("-strictJML");
         helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for(Integer,k);\n}}"
+        		,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -strictJML",37
         		,"/A.java:2: A \\invariant_for expression expects just 1 argument, not 2", 26
         		,"/A.java:2: The argument of \\invariant_for must be of reference type", 27
         		,"/A.java:2: The argument of \\invariant_for must be of reference type", 35
@@ -190,6 +250,7 @@ public class typechecking extends TCBase {
     @Test public void testInvariantFor7() {
     	main.addOptions("-strictJML");
         helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for();\n}}"
+        		,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -strictJML",37
         		,"/A.java:2: A \\invariant_for expression expects just 1 argument, not 0", 26
         		);
     }
@@ -791,6 +852,7 @@ public class typechecking extends TCBase {
     
     @Test public void testFresh3() {
         helpTCF("A.java","public class A { Object o,oo; //@ ensures \\fresh(); \n void m() {}  \n }"
+                ,"/A.java:1: A \\fresh expression expects just 1 or 2 arguments, not 0",49
                 );
     }
     
@@ -844,8 +906,8 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testId() {
-        helpTCF("A.java","public class A {\n //@ public model int duration;  \n }"
-                ,"/A.java:2: Expected an identifier, found a JML keyword instead: duration",23
+        helpTCF("A.java","public class A {\n //@ public model int duration;  \n void m() { //@ set duration = 0;\n } \n }"
+//                ,"/A.java:2: Expected an identifier, found a JML keyword instead: duration",23
         );
     }
 
@@ -898,7 +960,7 @@ public class typechecking extends TCBase {
     
     @Test public void testBadModelImport3() { // FIXME - could be a better error message
         helpTCF("A.java","/*@ model import */ java.util.List;\n public class A {\n  \n }"
-                ,"/A.java:1: Expected an identifier, found a JML keyword instead: <JMLEND>",18
+                ,"/A.java:1: Expected an identifier, found end of JML comment instead",18
                 ,"/A.java:1: '.' expected",20
                 ,"/A.java:1: package <error>.java.util does not exist",30
                 ,"/A.java:1: package <error>.java.util does not exist",30
@@ -1007,6 +1069,7 @@ public class typechecking extends TCBase {
     
     // Bug: 3388690
     @Test public void testBug6() {
+    	expectedExit = 0;
         helpTCF("Test.java","public class Test {\n"
                 +"private final int my_height; /*@ in height; @*/\n"
   
@@ -1022,6 +1085,8 @@ public class typechecking extends TCBase {
                 +"    my_height = 1;\n"
                 +"  }\n"
                 +"}\n"
+                ,"/Test.java:4: warning: Do not include a datagroup in itself: height",22
+                ,"/Test.java:4: warning: Do not include a datagroup in itself: height",22
         );
         
     }
@@ -1042,9 +1107,9 @@ public class typechecking extends TCBase {
                 +"    my_height = 1;\n"
                 +"  }\n"
                 +"}\n"
-                ,"/Test.java:2: This field participates in a circular datagroup inclusion chain: my_height",19
-                ,"/Test.java:3: This field participates in a circular datagroup inclusion chain: height",24
-                ,"/Test.java:6: This field participates in a circular datagroup inclusion chain: height2",24
+                ,"/Test.java:2: This field participates in a circular datagroup inclusion chain: my_height -> height -> height2 -> height",19
+                ,"/Test.java:3: This field participates in a circular datagroup inclusion chain: height -> height2 -> height",24
+                ,"/Test.java:6: This field participates in a circular datagroup inclusion chain: height2 -> height -> height2",24
         );
         
     }
@@ -1066,6 +1131,12 @@ public class typechecking extends TCBase {
                 );
     }
 
+    @Test public void testQuantifiedExpression() {
+        helpTCF("A.java"," class A { /*@ public invariant (\\sum Integer i; 0<=i && i < 6; new Object()); */ }"
+        		,"/A.java:1: The value expression of a sum or product expression must be a numeric type, not java.lang.Object",65
+                );
+    }
+
     // FIXME - does not appear to be working yet
 //    @Test public void testDiamondGenerics() {
 //        helpTCF("A.java","public class A { java.util.List<Integer> list = new java.util.LinkedList<>(); } }"
@@ -1083,6 +1154,14 @@ public class typechecking extends TCBase {
                 );
     }
 
+    @Test public void testErrorGitBug609() {
+    	addMockFile("$A/B.java","package p; public class B{}");
+        helpTCF("A.java","package p; public class A implements Cloneable { private B b; A() { b = new B(); }}"
+                ,"/A.java:1: cannot find symbol\n  symbol:   class B\n  location: class p.A",58
+				,"/A.java:1: cannot find symbol\n  symbol:   class B\n  location: class p.A",77
+        		);
+    }
+
     @Test public void testJmlLabelExpression() {
         helpTCF("TestJava.java","package tt; \n"
                 +"public class TestJava { \n"
@@ -1096,6 +1175,16 @@ public class typechecking extends TCBase {
 
                 +"}"
                 ,"/TestJava.java:5: A JML label expression may not be within a quantified or set-comprehension expression",63
+                );
+    }
+
+    @Test public void testKeywords() {
+        helpTCF("TestJava.java","package tt; \n"
+                +"public class TestJava { \n"
+
+                +"  //@ model public void m1bad(java.util.function.Function<Integer,Integer> f) ;\n"                
+
+                +"}"
                 );
     }
 

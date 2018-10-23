@@ -90,6 +90,12 @@
             name="%openjml.ui.PreferencePage">
       </page>
       <page
+            class="org.jmlspecs.openjml.eclipse.JobControlPage"
+            id="org.jmlspecs.openjml.eclipse.JobControlPage"
+            category="org.jmlspecs.openjml.eclipse.SettingsPage"
+            name="%openjml.ui.PreferencePage.JobControl">
+      </page>
+      <page
             class="org.jmlspecs.openjml.eclipse.SolversPage"
             id="org.jmlspecs.openjml.eclipse.SolversPage"
             category="org.jmlspecs.openjml.eclipse.SettingsPage"
@@ -472,25 +478,90 @@
       <menuContribution
             locationURI="menu:org.openjml.proofview"
             allPopups="true">
+            <!--
+            <menu id="org.openjml.proofview.autoopen"
+                label="Auto Open"
+                >
+		    <command
+	            commandId="org.openjml.proofview.RadioAutoOpen"
+	            id="org.openjml.proofview.On"
+	            label="Auto"
+	            style="radio">
+		        <parameter
+ 	                name="org.eclipse.ui.commands.radioStateParameter"
+	                value="Auto">
+	        	</parameter>
+		    </command>
+ 		    <command
+	            commandId="org.openjml.proofview.RadioAutoOpen"
+	            id="org.openjml.proofview.Error"
+	            label="On Error"
+	            style="radio">
+		        <parameter
+ 	                name="org.eclipse.ui.commands.radioStateParameter"
+	                value="Error">
+	        	</parameter>
+		    </command>
+		    <command
+	            commandId="org.openjml.proofview.RadioAutoOpen"
+	            id="org.openjml.proofview.Off"
+	            label="Off"
+	            style="radio">
+		        <parameter
+ 	                name="org.eclipse.ui.commands.radioStateParameter"
+	                value="Off">
+	        	</parameter>
+		    </command>
+         </menu>
+         -->
+         <command 
+      			id="org.openjml.proofview.ToggleAutoOpen" 
+                commandId="org.openjml.commands.ToggleAutoOpen"
+      			label="Auto Open"
+      			style="toggle"
+      			> 
+         </command> 
+		 <separator
+	            name="org.openjml.proofview.separator"
+	            visible="true">
+		 </separator>
          <command
                label="%command.label.0"
                id="org.openjml.proofview.RerunStaticCheck"
                commandId="org.openjml.commands.RerunStaticCheck"
                > 
          </command>
+
          <command
+               label="Export Results"
+               id="org.openjml.proofview.ExportProofResults"
+               commandId="org.openjml.commands.ExportProofResults"
+               > 
+         </command>
+         <command
+               label="Import Results"
+               id="org.openjml.proofview.ImportProofResults"
+               commandId="org.openjml.commands.ImportProofResults"
+               > 
+         </command>
+         
+          <command
                label="%command.label.1"
                id="org.openjml.proofview.ClearAllProofResults"
                commandId="org.openjml.commands.ClearAllProofResults"
                > 
          </command>
-         <command
+
+
+          <command
                label="%command.label.2"
                id="org.openjml.proofview.ClearSelectedProofResults"
                commandId="org.openjml.commands.ClearSelectedProofResults"
                > 
          </command>
-      </menuContribution>
+
+
+	</menuContribution>
       <!-- This popup on our custom view does not work -->
       <menuContribution
             locationURI="popup:org.openjml.proofview"
@@ -593,6 +664,11 @@
                tooltip="%command.tooltip.5"
                id="org.jmlspecs.openjml.eclipse.MenuActions.JmlDoc"
                commandId="org.jmlspecs.eclipse.commands.JmlDoc">
+             </command>
+             <command
+               label="%openjml.ui.command.createJML"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.CreateJML"
+               commandId="org.jmlspecs.eclipse.commands.CreateJML">
              </command>
              
              <separator name="org.jmlspecs.openjml.paths" visible="true"/>
@@ -1108,6 +1184,14 @@
             >
       </command>
       <command
+            name="%openjml.ui.command.createJML"
+            description="%openjml.ui.command.createJML.description"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.CreateJmlTemplate"
+            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActionsCreateJmlTemplate"
+            >
+      </command>
+      <command
             name="%openjml.ui.command.ESC"
             description="%openjml.ui.command.ESC.description"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
@@ -1295,6 +1379,51 @@
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.openjml.commands.ClearAllProofResults"
             defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ClearAllProofResults"
+            >
+      </command>
+      <command
+            name="Toggle Auto Open"
+            description="Toggles the Auto Open setting in the OpenJML results view"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.ToggleAutoOpen"
+            defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ToggleAutoOpen"
+            >
+   				<state 
+         			class="org.eclipse.ui.handlers.RegistryToggleState:true" 
+         			id="org.eclipse.ui.commands.toggleState"> 
+   				</state> 
+      </command>
+      <command
+            name="Radio Auto Open"
+            description="Sets the Auto Open setting in the OpenJML results view"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.RadioAutoOpen"
+            defaultHandler="org.jmlspecs.openjml.eclipse.Commands$RadioAutoOpen"
+            >
+	  	<commandParameter
+ 	        id="org.eclipse.ui.commands.radioStateParameter"
+ 	        name="State"
+ 	        optional="false">
+	   	</commandParameter>
+	   	<state
+	         class="org.eclipse.ui.handlers.RadioState:Auto"
+	         id="org.eclipse.ui.commands.radioState">
+	   	</state>
+      </command>
+      <command
+            name="Export Proof Results"
+            description="Exports proof results to a file"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.ExportProofResults"
+            defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ExportProofResults"
+            >
+      </command>
+      <command
+            name="Import Proof Results"
+            description="Imports proof results from a file"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.ImportProofResults"
+            defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ImportProofResults"
             >
       </command>
       <command

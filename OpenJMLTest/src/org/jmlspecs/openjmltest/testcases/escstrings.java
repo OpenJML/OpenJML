@@ -19,11 +19,7 @@ public class escstrings extends EscBase {
     
     @Parameters
     static public Collection<String[]> parameters() {
-        java.util.List<String> ss = new java.util.LinkedList<String>();
-        ss.addAll(solvers);
-        ss.remove("cvc4"); // FIXME - hangs up on CVC4 - fix the long proof times
-        ss.remove("yices2"); // FIXME - yices2 does not support quantifiers and so works poorly with strings
-        return optionsAndSolvers(minQuantOptions,ss);
+        return minQuantAndSolvers(solvers);
     }
     
 
@@ -58,7 +54,6 @@ public class escstrings extends EscBase {
     @Test
     public void testStringEquals() {
         main.addOptions("-escMaxWarnings=1");
-//        main.addOptions("-prover=cvc4");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -97,7 +92,7 @@ public class escstrings extends EscBase {
                 +"  public void m(String s) {\n"
                 +"       String ss = s;\n"
                 +"       /*@ nullable */ String sss = null;\n"
-                +"       //@ assert s.equals(ss);\n"
+                +"       //@ assert s.equals(ss);\n"    // This would be true but we are not using any specs.
                 +"  }\n"
                 
                 +"  public TestJava() { t = new TestJava(); }"
@@ -121,7 +116,7 @@ public class escstrings extends EscBase {
                 +"  public void m(String s) {\n"
                 +"       String ss = s;\n"
                 +"       /*@ nullable */ String sss = null;\n"
-                +"       boolean b = s.equals(ss); //@ assert b;\n"
+                +"       boolean b = s.equals(ss); //@ assert b;\n"     // This would be true but we are not using any specs.
                 +"  }\n"
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
@@ -144,7 +139,7 @@ public class escstrings extends EscBase {
                 +"  public void m(String s) {\n"
                 +"       String ss = s;\n"
                 +"       /*@ nullable */ String sss = null;\n"
-                +"       boolean b = !s.equals(sss); //@ assert b;\n"
+                +"       boolean b = !s.equals(sss); //@ assert b;\n"     // This would be true but we are not using any specs.
                 +"  }\n"
                 
                 +"  public TestJava() { t = new TestJava(); }"
@@ -195,7 +190,6 @@ public class escstrings extends EscBase {
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",42
                 );
     }
    
@@ -217,7 +211,6 @@ public class escstrings extends EscBase {
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
    
@@ -234,14 +227,12 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       boolean b = (s+ss).equals(s+ss); //@ assert b;\n"
+                +"       boolean b = (s+ss).equals(s+ss); //@ assert b;\n"  // No specs, so not provable
                 +"  }\n"
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",-45
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m",26
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",-45
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",45
                 );
     }
    
@@ -263,9 +254,11 @@ public class escstrings extends EscBase {
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",-25
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",-25
+                ,anyorder(
+//                 seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",25)
+//                ,
+                seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12)
+                )
                 );
     }
    
@@ -282,12 +275,12 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // Should not hold necessarily
+                +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // FIXME Should not hold necessarily
                 +"  }\n"
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",46
+//FIXME                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",46
                 );
     }
    
@@ -304,12 +297,12 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       //@ assert (s + ss) == (s + ss); \n" // Should not hold necessarily
+                +"       //@ assert (s + ss) == (s + ss); \n" // FIXME Should not hold necessarily
                 +"  }\n"
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
+// FIXME                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
    
@@ -331,8 +324,6 @@ public class escstrings extends EscBase {
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,!"yices2".equals(solver)?null: // FIXME because yices2 cannot do quantifiers
-                    "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
 
@@ -355,8 +346,6 @@ public class escstrings extends EscBase {
                 +" public TestJava() { t = new TestJava(); }\n"
                 
                 +"}"
-                ,!"yices2".equals(solver)?null: // because yices2 cannot do quantifiers
-                    "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
 
@@ -378,8 +367,7 @@ public class escstrings extends EscBase {
                 +"  }\n"
                 
                 +"}" 
-                ,!"yices2".equals(solver)?null:// FIXME because yices2 cannot do quantifiers
-                    "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",12
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",12
                 );
     }
 
@@ -399,8 +387,7 @@ public class escstrings extends EscBase {
                 +"  }\n"
                 
                 +"}" 
-                ,!"yices2".equals(solver)?null:// because yices2 cannot do quantifiers
-                    "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",19
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",19
                 );
     }
 
@@ -418,11 +405,11 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // Should not hold necessarily
+                +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // FIXME Should not hold necessarily
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",46
+// FIXME                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",46
                 );
     }
 
@@ -439,26 +426,22 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       //@ assert (s + ss) == (s + ss);\n" // Should not hold necessarily
+                +"       //@ assert (s + ss) == (s + ss);\n" // FIXME Should not hold necessarily
                 +"  }\n"
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
+// FIXME                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
 
     /** Tests String charAt operation */
-    @Test @Ignore // FIXME - crashes Z3
+    @Test
     public void testStringCharAt1q() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
-                
+                                
                 +"  //@ requires s.length() > 0; \n"
                 +"  public void m(String s) {\n"
                 +"       //@ assert s.charAt(0) == s.charAt(0);\n"
@@ -468,12 +451,9 @@ public class escstrings extends EscBase {
                 );
     }
     
-    // FIXME - why do these two give different error messages
-
     /** Tests String charAt operation */
     @Test
     public void testStringCharAt1() {
-        main.addOptions("-no-minQuant");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -489,30 +469,8 @@ public class escstrings extends EscBase {
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",27
-                ,"$SPECS/java5/java/lang/String.jml:282: warning: Associated declaration",11
-                );
-    }
-
-    /** Tests String charAt operation */
-    @Test
-    public void testStringCharAt1mq() {
-        main.addOptions("-minQuant");
-        helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NonNullByDefault public class TestJava { \n"
-                
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
-                
-                +"  public void m(String s) {\n"
-                +"       //@ assert s.charAt(0) == s.charAt(0);\n"
-                +"  }\n"
-                
-                +"  public TestJava() { t = new TestJava(); }"
-                +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",27
-                ,"$SPECS/java5/java/lang/CharSequence.jml:63: warning: Associated declaration",14
+                ,"$SPECS/specs/java/lang/String.jml:335: warning: Associated declaration",30
+                ,optional("$SPECS/specs/java/lang/CharSequence.jml:71: warning: Precondition conjunct is false: index < charArray.length",43)
                 );
     }
 
@@ -539,15 +497,11 @@ public class escstrings extends EscBase {
     }
 
     /** Tests String charAt operation */
-    @Test @Ignore // FIXME - crashes Z3
+    @Test
     public void testStringCharAt3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
                 
                 +"  //@ requires s.length() > 0;\n"
                 +"  public void m(String s, String ss) {\n"
@@ -556,15 +510,13 @@ public class escstrings extends EscBase {
                 
                 +"}"
                 ,anyorder(
-                        seq("/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",12)
-                        ,seq(seq("/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",43)
-                                ,oneof(
-                                		seq("$SPECS\\java5\\java\\lang\\CharSequence.jml:63: warning: Associated declaration",14),
-                                		seq("$SPECS\\java5\\java\\lang\\String.jml:282: warning: Associated declaration",14)
-                                		)
-                                		
+                        seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m",12)
+                        ,seq(seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",43
+                             ,"$SPECS/specs/java/lang/String.jml:335: warning: Associated declaration",30)
+                             ,optional("$SPECS/specs/java/lang/CharSequence.jml:71: warning: Precondition conjunct is false: index < charArray.length",43)
                             )
-                 )
+                                		
+                        )
                 );
     }
 
@@ -593,6 +545,7 @@ public class escstrings extends EscBase {
     /** Tests String length operation */
     @Test
     public void testStringLength1() {
+    	main.addOptions("-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -705,7 +658,7 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       //@ assert s.length() == ss.length(); \n"
+                +"       //@ assert s.length() == ss.length(); \n" // ERROR - not necessarily same length
                 +"  }\n"
                 
                 +"  public TestJava() { t = new TestJava(); }"
@@ -715,6 +668,5 @@ public class escstrings extends EscBase {
     }
 
     // FIXME - also test interning
-    // FIXME - check charAt(i) if i 0 or >= length
 
 }

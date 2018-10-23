@@ -8,6 +8,8 @@ test\sfbug408\RegularBankAccount.java:3: warning: Associated declaration
                         ^
 Completed proof of BankAccount.BankAccount() with prover !!!! - with warnings
 Completed proving methods in BankAccount
+Proving methods in BankAccount2
+Completed proving methods in BankAccount2
 Proving methods in RegularBankAccount
 Starting proof of RegularBankAccount.RegularBankAccount() with prover !!!!
 Feasibility check #1 - end of preconditions : OK

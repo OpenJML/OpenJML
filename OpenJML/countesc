@@ -1,6 +1,0 @@
-#! /bin/bash
-##cd C:/home/projects/JML4/ESCTools
-sp="C:/home/projects/JML4/ESCTools/Utils;C:/home/projects/JML4/ESCTools/Javafe/java;C:/home/projects/JML4/ESCTools/Escjava/java;C:/home/projects/JML4/ESCTools/Escjava/mochalib/java"
-java -jar "C:/home/projects/OpenJML/trunk/OpenJML/openjml.jar" -noPurityCheck -specs "$sp" -classpath "./Utils;./Utils/junit.jar;./Utils/ant.jar;./Utils/BCEL/bcel-5.2/bcel-5.2.jar;./Escjava/xmlrpc-1.2-b1-modified.jar;./Javafe/java;./Escjava/java;./Escjava/mochalib/java" ./Utils/junitutils/*.java 
-##./Javafe/java/javafe/*.java ./Javafe/java/javafe/*/*.java ./Escjava/java/escjava/*.java ./Escjava/java/escjava/*/*.java -jmlverbose -esc
-

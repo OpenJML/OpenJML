@@ -47,7 +47,7 @@ public class MethodProverBoogie extends MethodProverSMT {
             return null;
         }
 
-        utils.progress(1,2,"Starting proof of " + utils.qualifiedMethodSig(decl.sym)+ " with prover " + jmlesc.proverToUse);
+        utils.progress(0,2,"Starting proof of " + utils.qualifiedMethodSig(decl.sym)+ " with prover ??? " );
 
         if (print) {
             noticeWriter.println(Strings.empty);

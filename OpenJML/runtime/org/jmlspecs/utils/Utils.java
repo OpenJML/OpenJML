@@ -450,7 +450,11 @@ public class Utils {
         return t.erasure().isArray();
     }
     
-    public static IJMLTYPE getComponentType(IJMLTYPE t) {
+    public static Class<?> getJavaComponentType(Class<?> t) {
+        return (t.getComponentType());
+    }
+    
+    public static IJMLTYPE getJMLComponentType(IJMLTYPE t) {
         return makeTYPE0(t.erasure().getComponentType());
     }
     
@@ -564,6 +568,12 @@ public class Utils {
         public boolean isSubtypeOf(IJMLTYPE t) {
             return t.erasure().isAssignableFrom(this.base);
         }
+        
+        @Override  // FIXME - does not work for arrays of JML types with type arguments.
+        public IJMLTYPE getComponentType() {
+            if (!base.isArray()) return null;
+            return Utils.getJMLComponentType(this);
+        }
 
     }
     
@@ -623,8 +633,8 @@ public class Utils {
         return a.divide(b);
     }
 
-    public static BigInteger bigint_mod(BigInteger a, BigInteger b) {
-        return a.mod(b);
+    public static BigInteger bigint_remainder(BigInteger a, BigInteger b) {
+        return a.remainder(b);
     }
 
     public static BigInteger bigint_neg(BigInteger a) {
@@ -675,6 +685,10 @@ public class Utils {
         return a.intValue();
     }
 
+    public static char bigint_tochar(BigInteger a) {
+        return (char)a.shortValue();
+    }
+
     public static short bigint_toshort(BigInteger a) {
         return a.shortValue();
     }
@@ -688,7 +702,11 @@ public class Utils {
     }
 
     public static BigInteger bigint_valueOf(long i) {
-        return new BigInteger(Long.toString(i));
+        return BigInteger.valueOf(i);
+    }
+
+    public static BigInteger bigint_valueOfNumber(Number i) {
+        return BigInteger.valueOf(i.longValue());
     }
 
     public static Real real_add(Real a, Real b) {
@@ -830,6 +848,17 @@ public class Utils {
     
     public static String toStringChar(char b) {
         return Character.toString(b);
+    }
+    
+    static public class NoModelMethodImplementationException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+        public NoModelMethodImplementationException(String name) {
+            super("No model method implementation found for " + name);
+        }
+    }
+    
+    public static void noModelMethodImplementation(String name) {
+        throw new NoModelMethodImplementationException(name);
     }
     
     /** Used just for debugging - a breakpoint is kept set within the method */

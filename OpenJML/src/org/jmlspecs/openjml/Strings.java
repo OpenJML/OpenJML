@@ -73,6 +73,9 @@ public class Strings {
     /** The fully-qualified name of the Pure annotation */
     static public final String pureAnnotation = jmlAnnotationPackage + ".Pure"; //$NON-NLS-1$
     
+    /** The fully-qualified name of the Query annotation */
+    static public final String queryAnnotation = jmlAnnotationPackage + ".Query"; //$NON-NLS-1$
+    
     /** The fully-qualified name of the Function annotation */
     static public final String functionAnnotation = jmlAnnotationPackage + ".Function"; //$NON-NLS-1$
     
@@ -246,6 +249,13 @@ public class Strings {
     /** Name of a field put into every rac-compiled class, to signal that it is rac-compiled */
     // Must match corresponding string in Utils.
     public final static String racCompiled = "__JML_racCompiled";
+    
+    public final static String preLabelBuiltin = "\\Pre";
+    public final static String oldLabelBuiltin = "\\Old";
+    public final static String hereLabelBuiltin = "\\Here";
+    public final static String loopinitLabelBuiltin = "\\LoopInit";
+    public final static String loopbodyLabelBuiltin = "LoopBodyBegin";
+    
     
     /** Text used to describe the program position at the end of the preconditions */
     static final public String preconditionAssumeCheckDescription = "end of preconditions";

@@ -1,0 +1,12 @@
+OUT:
+Checking 3
+Checking 11
+Checking 35
+test/gitbug599/Prime.java:31: JML postcondition is false
+public static /*@ pure helper @*/ boolean is_prime(int n){
+                                          ^
+test/gitbug599/Prime.java:28: Associated declaration: test/gitbug599/Prime.java:31: 
+/*@ ensures \result == true <==>
+    ^
+
+ERR:

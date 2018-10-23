@@ -12,6 +12,6 @@ public interface IArithmeticMode {
     public Mode mode();
  
     public JCExpression rewriteUnary(JmlAssertionAdder rewriter, JCUnary that);
-    public JCExpression rewriteBinary(JmlAssertionAdder rewriter, JCBinary that);
+    public JCExpression rewriteBinary(JmlAssertionAdder rewriter, JCBinary that, boolean alreadyConverted);
 
 }

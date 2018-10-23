@@ -33,7 +33,7 @@ import java.lang.Math; // FIXME - Necessary to avoid a warning that the link to 
  * <!--see JMLBigint-->
  * <!--see JMLReal-->
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ final strictfp class JMLMath {
 
     /**

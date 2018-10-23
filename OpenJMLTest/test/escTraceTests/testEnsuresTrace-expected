@@ -1,0 +1,24 @@
+
+TRACE of tt.TestJava.m1(int)
+/tt/TestJava.java:4:  	requires i == 1; 
+			VALUE: i	 === 1
+			VALUE: 1	 === 1
+			VALUE: i == 1	 === true
+/tt/TestJava.java:7:  	k = 5 + i
+			VALUE: 5	 === 5
+			VALUE: i	 === 1
+			VALUE: 5 + i	 === 6
+			VALUE: k = 5 + i	 === 6
+/tt/TestJava.java:8:  	return k * 2;
+			VALUE: k	 === 6
+			VALUE: 2	 === 2
+			VALUE: k * 2	 === 12
+/tt/TestJava.java:5:  	ensures \result < i - i; 
+			VALUE: \result	 === 12
+			VALUE: i	 === 1
+			VALUE: i	 === 1
+			VALUE: i - i	 === 0
+			VALUE: \result < i - i	 === false
+/tt/TestJava.java:8:  Invalid assertion (Postcondition)
+ Associated location
+

@@ -4,6 +4,7 @@
  */
 package org.jmlspecs.openjml;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 import org.jmlspecs.openjml.JmlTree.*;
@@ -11,6 +12,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import com.sun.source.tree.LabeledStatementTree;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeScanner;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 
@@ -237,6 +239,14 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(tree.statement);
     }
     
+    /** inlined_loop statement */
+    public void visitJmlInlinedLoop(JmlInlinedLoop that) {
+    }
+
+    public void visitJmlStatementShow(JmlStatementShow tree) {
+        for (JCExpression e: tree.expressions) scan(e);
+    }
+    
     public void visitJmlStatementDecls(JmlStatementDecls tree) {
         for (JCTree.JCStatement s : tree.list) {
             scan(s);
@@ -252,12 +262,17 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(tree.storerefs);
     }
 
-    public void visitJmlStatementLoop(JmlStatementLoop tree) {
+    public void visitJmlStatementLoopExpr(JmlStatementLoopExpr tree) {
         scan(tree.expression);
+    }
+    
+    public void visitJmlStatementLoopModifies(JmlStatementLoopModifies tree) {
+        scan(tree.storerefs);
     }
     
     public void visitJmlStatementSpec(JmlStatementSpec tree) {
         scan(tree.statementSpecs);
+        scan(tree.statements);
     }
     
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {

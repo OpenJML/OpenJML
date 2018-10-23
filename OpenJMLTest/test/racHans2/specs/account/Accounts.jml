@@ -23,6 +23,7 @@ public class Accounts {
     @*/
   public Accounts (Object[] frames) throws IllegalArgumentException; 
 
+  //@ pure
   public Object[] getFrames(); 
  
 }

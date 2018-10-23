@@ -1,6 +1,6 @@
 // This example had a problem with crashing, because of the lack of helper
 // on the functions used in the invariant.
-/*@ code_java_math */ public class Add
+public class Add
 {
   //@ public invariant x() + y() > 0;
   

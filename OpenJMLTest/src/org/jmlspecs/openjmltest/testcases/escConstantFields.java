@@ -88,7 +88,7 @@ public class escConstantFields extends EscBase {
                 +"  //@ ensures J == 2;\n"
                 +"  public void m() {\n"
                 +"     //@ assert I == 1 && J == 2;\n"
-                +"     n();\n" // reestablished the static invariant
+                +"     n();\n" // reestablishes the static invariant
                 +"     //@ assert I == 1 && J == 2;\n"
                 +"  }\n"
                 
@@ -100,6 +100,7 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testFieldsNotConstant() {
+        main.addOptions("-no-staticInitWarning");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final static int I = z();\n"  // FIXME - static initialization check should fail
@@ -108,13 +109,13 @@ public class escConstantFields extends EscBase {
 
                 +"  public TestJava() { \n"
                 +"     //@ assert I == 10 && J == 11;\n"
-                +"     n();\n" // reestablished the static invariant
+                +"     n();\n" // final variables not subject to \everything
                 +"     //@ assert I == 10 && J == 11;\n"
                 +"  }\n"
 
                 +"  public void m() {\n"
                 +"     //@ assert I == 10 && J == 11;\n"
-                +"     n();\n" // reestablished the static invariant
+                +"     n();\n" // final variables not subject to \everything
                 +"     //@ assert I == 10 && J == 11;\n"
                 +"  }\n"
                 
@@ -126,22 +127,49 @@ public class escConstantFields extends EscBase {
     }
 
     @Test
-    public void testFieldsNotConstantWithHelper() {
+    public void testFieldsNotConstantNoInvariant() {
+        main.addOptions("-no-staticInitWarning");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  public final static int I = z();\n"  // FIXME - static initialization check should fail
+                +"  public final static int I = z();\n"  
+                +"  //@ ghost public final static int J = 1 + z();\n"
+
+                +"  public TestJava() { \n"
+                +"     //@ assert I == 10 && J == 11;\n" // Fails since we don't have a static invariant
+                +"  }\n"
+
+                +"  public void m() {\n"
+                +"     //@ assert I == 10 && J == 11;\n" // Fails since we don't have a static invariant
+                +"  }\n"
+                
+                +"  //@ assignable \\everything;\n"
+                +"  static public void n() {}\n"
+                +"  //@ ensures \\result == 10;\n"
+                +"  static public int z() { return 10; }\n"
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method TestJava",10
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",10
+                );
+    }
+
+    @Test
+    public void testFieldsNotConstantWithHelper() {
+        main.addOptions("-no-staticInitWarning");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public final static int I = z();\n"
                 +"  //@ ghost public final static int J = 1 + I;\n"
                 +"  //@ public static invariant I == 10 && J == 11;\n"
 
                 +"  public TestJava() { \n"
                 +"     //@ assert I == 10 && J == 11;\n"
-                +"     n();\n" // reestablished the static invariant
+                +"     n();\n" // OK - fields are final
                 +"     //@ assert I == 10 && J == 11;\n"
                 +"  }\n"
 
                 +"  public void m() {\n"
                 +"     //@ assert I == 10 && J == 11;\n"
-                +"     n();\n" // reestablished the static invariant
+                +"     n();\n" // OK - fields are final
                 +"     //@ assert I == 10 && J == 11;\n"
                 +"  }\n"
                 
@@ -161,13 +189,13 @@ public class escConstantFields extends EscBase {
                 
                 +"  public TestJava() { \n"
                 +"     //@ assert I == 1 && J == 2;\n"
-                +"     n();\n"
+                +"     n();\n"  // OK - fields are final
                 +"     //@ assert I == 1 && J == 2;\n"
                 +"  }\n"
 
                 +"  public void m() {\n"
                 +"     //@ assert I == 1 && J == 2;\n"
-                +"     n();\n"
+                +"     n();\n" // OK - fields are final
                 +"     //@ assert I == 1 && J == 2;\n"
                 +"  }\n"
                 
@@ -179,6 +207,7 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testIFieldsS() {
+    	//main.addOptions("-show","-method=TestJava","-checkFeasibility=debug","-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final int I = 1;\n"
@@ -223,7 +252,7 @@ public class escConstantFields extends EscBase {
                 +"     //@ assert I == 1 && J == 2;\n" // Should be OK because of invariant on n()
                 +"  }\n"
                 
-                +"  //@ assignable \\everything;\n"
+                +"  //@ assignable \\everything;\n"   // FIXME _ why does this reestablish invariant?
                 +"  public void n() {}\n"
                 +"}"
                 );
@@ -250,7 +279,7 @@ public class escConstantFields extends EscBase {
                 +"  }\n"
                 
                 +"  //@ public normal_behavior assignable \\everything;\n"
-                +"  static public void n() {}\n"
+                +"  static public void n() {}\n"   // FIXME _ why does this proove?
                 +"}"
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method TestJava",10
                 );
@@ -264,7 +293,7 @@ public class escConstantFields extends EscBase {
                 +"  //@ ghost public final int J = 1 + I;\n"
                 +"  //@ public invariant I == 10 && J == 11;\n" // FIXME - check that this is required
 
-                +"  public TestJava() { \n"
+                +"  public TestJava() { \n"  // Default is assignable \everything, when not pure
                 +"     //@ assert I == 10 && J == 11;\n" // OK because of invariant
                 +"     n();\n"
                 +"     //@ assert I == 10 && J == 11;\n" // Should be OK because of invariant on n()
@@ -277,7 +306,7 @@ public class escConstantFields extends EscBase {
                 +"  }\n"
                 
                 +"  //@ assignable \\everything;\n"
-                +"  public void n() {}\n"
+                +"  public void n() {}\n"   
                 
                 +"  //@ public normal_behavior ensures \\result == 10;\n"
                 +"  static public int z() { return 10; }\n"
@@ -322,7 +351,7 @@ public class escConstantFields extends EscBase {
                 +"  //@ ghost public final int J = 1 + I;\n"
                 +"  //@ public invariant I == 10 && J == 11;\n"
 
-                +"  public TestJava() { \n"
+                +"  public TestJava() { \n"   // Default is assignable everything, when not pure
                 +"     //@ assert I == 10 && J == 11;\n"
                 +"     n();\n"
                 +"     //@ assert I == 10 && J == 11;\n"
@@ -339,6 +368,50 @@ public class escConstantFields extends EscBase {
                 
                 +"  //@ private normal_behavior ensures \\result == 10;\n"
                 +"  /*@ helper */ static private int z() { return 10; }\n"
+                +"}"
+                );
+    }
+
+    @Test // initialized static final in another class, no invariants
+    public void testConstants() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" class H { \n"
+                +"   final public static int CON1 = 50;\n"
+                +"   final public static int CON2 = 1 + CON1;\n"
+                +"   final public static int CON3 = Integer.MAX_VALUE;\n"
+                +" }\n"
+                +"public class TestJava { \n"
+
+                +"  public TestJava() {\n"
+                +"    //@ assert H.CON1 == 50 ;\n"
+                +"    //@ assert H.CON2 == 51 ;\n"
+                +"    //@ assert H.CON2 == H.CON1 + 1 ;\n"
+                +"    //@ assert H.CON3 == 0x7fffffff ;\n"
+                +"    meverything();\n"
+                +"    //@ assert H.CON1 == 50 ;\n"
+                +"    //@ assert H.CON2 == 51 ;\n"
+                +"    //@ assert H.CON2 == H.CON1 + 1 ;\n"
+                +"    //@ assert H.CON3 == 0x7fffffff ;\n"
+                +"  }\n"
+
+                +"  \n"
+                +"  public void m1() {\n"
+                +"    //@ assert H.CON1 == 50 ;\n"
+                +"    //@ assert H.CON2 == 51 ;\n"
+                +"    //@ assert H.CON2 == H.CON1 + 1 ;\n"
+                +"    //@ assert H.CON3 == 0x7fffffff ;\n"
+                +"    meverything();\n"
+                +"    //@ assert H.CON1 == 50 ;\n"
+                +"    //@ assert H.CON2 == 51 ;\n"
+                +"    //@ assert H.CON2 == H.CON1 + 1 ;\n"
+                +"    //@ assert H.CON3 == 0x7fffffff ;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything;\n"
+                +"  public void meverything() {\n"
+                +"  }\n"
+                
+               
                 +"}"
                 );
     }

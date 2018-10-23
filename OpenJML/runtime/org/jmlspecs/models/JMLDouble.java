@@ -30,7 +30,7 @@ package org.jmlspecs.models;
  * @see java.lang.Double
  * @see JMLDouble
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
 
     /** The double that is the abstract value of this object.
@@ -46,7 +46,7 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
     /** Initialize this object to contain zero.
      */
     /*@ public normal_behavior
-      @   assignable theDouble,owner;
+      @   assignable \nothing;
       @   ensures theDouble == 0.0d;
       @*/
     public JMLDouble ( ) {
@@ -58,12 +58,12 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
      */
     /*@   public normal_behavior
       @     requires !Double.isNaN(inDouble);
-      @     assignable theDouble,owner;
+      @     assignable \nothing;
       @     ensures theDouble == inDouble;
       @ also
       @   public normal_behavior
       @     requires Double.isNaN(inDouble);
-      @     assignable theDouble,owner;
+      @     assignable \nothing;
       @     ensures Double.isNaN(theDouble);
       @*/ 
     public JMLDouble (double inDouble) {
@@ -75,7 +75,7 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
      * given integer.
      */
     /*@ public normal_behavior
-      @   assignable theDouble,owner;
+      @   assignable \nothing;
       @   ensures theDouble == (double)inInt;
       @*/
     public JMLDouble (int inInt) {
@@ -88,12 +88,12 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
      */
     /*@   public normal_behavior
       @     requires inDouble != null && !inDouble.isNaN();
-      @     assignable theDouble,owner;
+      @     assignable \nothing;
       @     ensures theDouble == inDouble.doubleValue();
       @ also
       @   public normal_behavior
       @     requires inDouble != null && inDouble.isNaN();
-      @     assignable theDouble;
+      @     assignable \nothing;
       @     ensures Double.isNaN(theDouble);
       @*/
     public JMLDouble(/*@ non_null */ Double inDouble) {
@@ -106,7 +106,7 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
      */
     /*@ public behavior
       @     requires s != null;
-      @     assignable theDouble,owner;
+      @     assignable \nothing;
       @     ensures (* s is a parseable string that has the format
       @                of a double precision floating point literal *)
       @         && theDouble == Double.valueOf(s).doubleValue();
@@ -470,7 +470,7 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
     /*@ public normal_behavior
       @    assignable \nothing;
       @    ensures \result <==>
-      @         StrictMath.abs(\nowarn(d1 - d2)) <= epsilon;
+      @         StrictMath.abs((d1 - d2)) <= epsilon;
       @*/
     public static /*@ pure @*/ boolean withinEpsilonOf(double d1, double d2,
                                                          double epsilon)
@@ -485,7 +485,7 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
       @    assignable \nothing;
       @    ensures \result <==>
       @      d1 == d2
-      @      || StrictMath.abs(\nowarn(d1 - d2))
+      @      || StrictMath.abs((d1 - d2))
       @            <= StrictMath.max(StrictMath.abs(d1),
       @                              StrictMath.abs(d2))
       @               * epsilon;

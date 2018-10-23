@@ -1,7 +1,7 @@
 /*
  * This file is part of the OpenJML project. 
  * Author: David R. Cok
- * Reviewed: 2016-12-12
+ * Reviewed: 2018-03-17
  */
 package com.sun.tools.javac.comp;
 
@@ -39,7 +39,6 @@ public class JmlCheck extends Check {
      */
     protected JmlCheck(@NonNull Context context) {
         super(context);
-        this.context = context;
     }
     
     /** Registers a singleton factory for JmlCheck against the checkKey, so that there is
@@ -61,8 +60,8 @@ public class JmlCheck extends Check {
      */
     public static JmlCheck instance(Context context) {
         Check instance = context.get(checkKey); 
-        if (instance == null)
-            instance = new JmlCheck(context); // Registers itself in the super constructor
+        if (instance == null) throw new IllegalStateException("No Factory registered for JmlCheck");
+//            instance = new JmlCheck(context); // Registers itself in the super constructor
         return (JmlCheck)instance; // If the registered instance is only a Check, something is catastrophically wrong
     }
     
@@ -79,27 +78,19 @@ public class JmlCheck extends Check {
         return b;
     }
     
-//    /** A warning object that issues no warnings.*/
-//    public static class NoWarningsAtAll extends Warner {
-//        public void warnUnchecked() {
-//        }
-//        public void silentUnchecked() {
+//    // FIXME - the overriding method seems to do the same thing as the super method
+//    /** Overridden to avoid generic cast warnings in JML.
+//     */
+//    @Override
+//    protected Type checkCastable(DiagnosticPosition pos, Type found, Type req) {
+//        if (!isInJml) return super.checkCastable(pos,found,req);
+//        if (types.isCastable(found, req, castWarner(pos, found, req))) {
+//            return req;
+//        } else {
+//            basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
+//            return types.createErrorType(found);
 //        }
 //    }
-
-    // FIXME - the overriding method seems to do the same thing as the super method
-    /** Overridden to avoid generic cast warnings in JML.
-     */
-    @Override
-    protected Type checkCastable(DiagnosticPosition pos, Type found, Type req) {
-        if (!isInJml) return super.checkCastable(pos,found,req);
-        if (types.isCastable(found, req, castWarner(pos, found, req))) {
-            return req;
-        } else {
-            basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
-            return types.createErrorType(found);
-        }
-    }
     
     /** Overridden to avoid errors about static-ness of old variables in 
      * method specifications and to remove static from instance declarations.
@@ -143,7 +134,7 @@ public class JmlCheck extends Check {
     }
     
     boolean noDuplicateWarn = false;
-    DiagnosticPosition duplicateErrorPosition = null;
+    
     void duplicateError(DiagnosticPosition pos, Symbol sym) {
         if (noDuplicateWarn) return;
         super.duplicateError(pos, sym);
@@ -154,20 +145,4 @@ public class JmlCheck extends Check {
     void varargsDuplicateError(DiagnosticPosition pos, Symbol sym1, Symbol sym2) {
         if (!noDuplicateWarn) super.varargsDuplicateError(pos, sym1, sym2);
     }
-    
-//    Symbol findClassName(DiagnosticPosition pos, Name name, Scope s) {
-//        for (Scope.Entry e = s.lookup(name); e.scope == s; e = e.next()) {
-//            if (e.sym.kind == TYP && e.sym.name != names.error) {
-//                return e.sym;
-//            }
-//        }
-//        for (Symbol sym = s.owner; sym != null; sym = sym.owner) {
-//            if (sym.kind == TYP && sym.name == name && sym.name != names.error) {
-//                return sym;
-//            }
-//        }
-//        return null;
-//    }
-
-
 }

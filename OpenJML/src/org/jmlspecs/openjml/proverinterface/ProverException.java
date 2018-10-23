@@ -1,6 +1,7 @@
 /*
  * This file is part of the OpenJML project. 
  * Author: David R. Cok
+ * Reviewed: 2018-03-20
  */
 package org.jmlspecs.openjml.proverinterface;
 
@@ -41,7 +42,7 @@ public class ProverException extends Exception {
      * @param reason what went wrong
      * @param rootReason what is the cause of the reason (sic!)
      */
-    public ProverException(String reason, Throwable rootReason) {
+    public ProverException(String reason, /*@ non_null */ Throwable rootReason) {
         super(reason, rootReason);
     }
 

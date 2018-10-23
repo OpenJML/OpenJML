@@ -4,8 +4,8 @@ Starting proof of openjml.clock.TickTockClock1.TickTockClock1() with prover !!!!
 	public /*@ pure @*/ TickTockClock1() {
 	                    ^
 ..\..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:14: warning: Associated declaration
-	//@ assignable _time_state; ensures getHour() == 12 && getMinute() == 0 && getSecond() == 0;
-	                            ^
+	//@ ensures getHour() == 12 && getMinute() == 0 && getSecond() == 0;
+	    ^
 Completed proof of openjml.clock.TickTockClock1.TickTockClock1() with prover !!!! - with warnings
 Starting proof of openjml.clock.TickTockClock1.getHour() with prover !!!!
 Feasibility check #1 - end of preconditions : OK

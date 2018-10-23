@@ -66,7 +66,7 @@ public class Vector {
   public final synchronized void add(final Object the_object) {
     if (my_element_count >= my_element_data.length) {
       // create a new array
-      final Object[] new_data = new Object[my_element_count + my_capacity_increment]; // ERROR - could be negative
+      final Object[] new_data = new Object[my_element_count + my_capacity_increment]; // ERROR - could be negative under Java math
       //@ ghost Object[] nd = new_data;
       //@ loop_invariant 0 <= i && i <= my_element_count && new_data == nd;
       //@ decreases my_element_count - i;
@@ -90,7 +90,7 @@ public class Vector {
     //@ loop_invariant 0 <= i && i <= my_element_count;
     //@ decreases i;
     while (i-- > 0) {
-      the_array[i] = my_element_data[i];
+      the_array[i] = my_element_data[i]; // ERROR _ don't know size of the_array - i might be too big; ERROR - don't know the runtime type of the_array
     }
   }
    
@@ -105,13 +105,13 @@ public class Vector {
    *         vector at position <code>index</code> or later in the vector;
    *         returns <code>-1</code> if the object is not found.
    * @see java.lang.Object#equals(java.lang.Object)
-   * @since JDK1.0
+   * @since JDK1.0   
    */
   public final synchronized int indexOf(final Object the_elem, final int the_index) {
     //@ loop_invariant the_index == i || (the_index <= i && i <= my_element_count);
     //@ decreases my_element_count - i;
     for (int i = the_index; i < my_element_count; i++) {
-      if (the_elem.equals(my_element_data[i])) {
+      if (the_elem.equals(my_element_data[i])) {   // the_index might be negative
         return i;
       }
     }
@@ -125,7 +125,7 @@ public class Vector {
    * @return the component at the specified index.
    * @exception ArrayIndexOutOfBoundsException if an invalid index was given.
    * @since JDK1.0
-   */
+   */  //@ requires the_index >= 0;
   public final synchronized Object elementAt(final int the_index) 
     throws ArrayIndexOutOfBoundsException {
     if (the_index >= my_element_count) {

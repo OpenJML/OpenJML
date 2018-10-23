@@ -15,6 +15,7 @@ import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree;
 
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -190,6 +191,17 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
         BasicBlock(/*@ non_null*/JCIdent id) { 
             super(id);
         }
+        
+        public static class MethodInfo {
+            JCExpression meth;
+            JCExpression path;
+            public MethodInfo(JCExpression meth, JCExpression path) {
+                this.meth = meth;
+                this.path = path;
+            }
+        }
+        
+        /*@ nullable */ Map<MethodSymbol,List<MethodInfo>> methodInfoMap = null;
         
        
         /** Writes out the basic block to the given Writer

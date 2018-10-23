@@ -58,7 +58,7 @@ public class ArrayFieldVector<T extends FieldElement<T>> implements FieldVector<
      *
      * @param field field to which the elements belong
      */
-    //@ assignable this.field, this.data;
+    //@ assignable \nothing;
     //@ ensures this.field == field && this.data != null;
     public ArrayFieldVector(final Field<T> field) {
         this(field, 0);

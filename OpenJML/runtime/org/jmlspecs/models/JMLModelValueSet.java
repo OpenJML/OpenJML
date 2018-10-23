@@ -32,7 +32,7 @@ package org.jmlspecs.models;
  * @author Gary T. Leavens
  * @see JMLValueSet
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ class JMLModelValueSet {
 
     /** This class has no instances.

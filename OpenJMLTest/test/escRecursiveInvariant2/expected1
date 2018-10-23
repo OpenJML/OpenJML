@@ -1,0 +1,27 @@
+Proving methods in RecursiveInvariant2
+Starting proof of RecursiveInvariant2.RecursiveInvariant2() with prover !!!!
+test/escRecursiveInvariant2/RecursiveInvariant2.java:4: warning: The prover cannot establish an assertion (InvariantEntrance) in method RecursiveInvariant2:  (Caller: RecursiveInvariant2.RecursiveInvariant2(), Callee: RecursiveInvariant2.m())
+    //@ public invariant m();
+                          ^
+test/escRecursiveInvariant2/RecursiveInvariant2.java:4: warning: Associated declaration
+    //@ public invariant m();
+               ^
+Completed proof of RecursiveInvariant2.RecursiveInvariant2() with prover !!!! - with warnings
+Starting proof of RecursiveInvariant2.m() with prover !!!!
+test/escRecursiveInvariant2/RecursiveInvariant2.java:4: warning: The prover cannot establish an assertion (InvariantEntrance) in method m:  (Caller: RecursiveInvariant2.m(), Callee: RecursiveInvariant2.m())
+    //@ public invariant m();
+                          ^
+test/escRecursiveInvariant2/RecursiveInvariant2.java:4: warning: Associated declaration
+    //@ public invariant m();
+               ^
+Completed proof of RecursiveInvariant2.m() with prover !!!! - with warnings
+Starting proof of RecursiveInvariant2.t() with prover !!!!
+test/escRecursiveInvariant2/RecursiveInvariant2.java:4: warning: The prover cannot establish an assertion (InvariantEntrance) in method t:  (Caller: RecursiveInvariant2.t(), Callee: RecursiveInvariant2.m())
+    //@ public invariant m();
+                          ^
+test/escRecursiveInvariant2/RecursiveInvariant2.java:4: warning: Associated declaration
+    //@ public invariant m();
+               ^
+Completed proof of RecursiveInvariant2.t() with prover !!!! - with warnings
+Completed proving methods in RecursiveInvariant2
+6 warnings

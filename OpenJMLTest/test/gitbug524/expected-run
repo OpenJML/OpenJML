@@ -1,0 +1,13 @@
+OUT:
+read: 5
+read: 2x
+Invalid Number: java.lang.NumberFormatException: For input string: "2x"
+read: 30
+read: r
+First is 5
+read: r
+First is 30
+read: r
+Queue is empty!
+
+ERR:

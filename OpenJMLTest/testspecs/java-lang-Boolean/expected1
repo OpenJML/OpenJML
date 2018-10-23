@@ -1,0 +1,13 @@
+Proving methods in TestBoolean
+Skipping proof of TestBoolean.TestBoolean() (excluded by -method)
+Skipping proof of TestBoolean.main(java.lang.String...) (excluded by skipesc)
+Starting proof of TestBoolean.esc(boolean,boolean) with prover !!!!
+testspecs/java-lang-Boolean/TestBoolean.java:13: warning: The prover cannot establish an assertion (Assert) in method esc
+		//@ assert q ==> f == Boolean.FALSE;   // ERROR - not necessarily true
+		    ^
+testspecs/java-lang-Boolean/TestBoolean.java:12: warning: The prover cannot establish an assertion (Assert) in method esc
+		//@ assert p ==> t == Boolean.TRUE;   // ERROR - not necessarily true
+		    ^
+Completed proof of TestBoolean.esc(boolean,boolean) with prover !!!! - with warnings
+Completed proving methods in TestBoolean
+2 warnings

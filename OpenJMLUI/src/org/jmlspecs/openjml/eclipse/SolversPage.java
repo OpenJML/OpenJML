@@ -14,6 +14,7 @@ import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.RadioGroupFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -48,6 +49,7 @@ public class SolversPage extends FieldEditorPreferencePage implements
 IWorkbenchPreferencePage {
 
     final static public String execKeyPrefix = Strings.proverPropertyPrefix;
+    final static public String execLocKeyPrefix = "openjml.exec.loc.";
 
 	protected String[] solvers;
 	
@@ -65,7 +67,7 @@ IWorkbenchPreferencePage {
         
         String ss = getValue();
         //if (ss == null || ss.isEmpty()) {
-    		setValue("cvc4,simplify,yices2,z3_4_3,z3_4_4"); // FIXME - temporary default
+    		setValue("z3_4_3,cvc4,simplify,yices2"); // FIXME - temporary default
     		ss = getValue();
         //}
         solvers = ss.split(Utils.comma);
@@ -115,8 +117,15 @@ IWorkbenchPreferencePage {
 				listener,
 				getFieldEditorParent())
 		);
+		
+        final String[][] locchoices = new String[][]{{"internal","internal"},{"external","external"}};
 
     	for (String solver: solvers) {
+    		addField(new RadioGroupFieldEditor(execLocKeyPrefix + solver,
+        			solver,
+        			2, // number of columns
+        				locchoices,
+        				getFieldEditorParent()));
 	        addField(new FileFieldEditor(execKeyPrefix + solver, solver + ": ", //$NON-NLS-1$
 	                getFieldEditorParent()));
     	}
@@ -189,10 +198,10 @@ IWorkbenchPreferencePage {
 
 
 enum Solvers {
-	simplify,
 	z3_4_3,
-	z3_4_4,
-	yices2
+	cvc4,
+	simplify,
+	yices2,
 }
 
 // TODO: Unify this with the PathEditor ListEditor and perhaps with the ListFieldEditor

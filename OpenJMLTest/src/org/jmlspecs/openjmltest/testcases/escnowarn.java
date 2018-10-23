@@ -38,7 +38,8 @@ public class escnowarn extends EscBase {
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Precondition) in method m",7
-                ,"/tt/TestJava.java:3: warning: Associated declaration",9
+                ,"/tt/TestJava.java:4: warning: Associated declaration",15
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: b",18
                 );
     }
     

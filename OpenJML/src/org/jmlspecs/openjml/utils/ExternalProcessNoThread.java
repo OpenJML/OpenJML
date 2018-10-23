@@ -66,6 +66,7 @@ public class ExternalProcessNoThread implements IExternalProcess {
     public void start() throws ProverException {
         String[] app = app();
         if (app == null) {
+            // FIXME - fix this error message
             throw new ProverException("No path to the executable found; specify it using -Dopenjml.prover.cvc3");
         } else {
             java.io.File f = new java.io.File(app[0]);

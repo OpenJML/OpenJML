@@ -32,7 +32,7 @@ import org.jmlspecs.annotation.*;
  * @author Gary T. Leavens, David R. Cok
  * @see java.math.BigInteger
  */
-//-@ immutable
+//+OPENJML@ immutable
 public @Pure interface JMLInfiniteInteger
     extends JMLComparable<JMLInfiniteInteger>
 {

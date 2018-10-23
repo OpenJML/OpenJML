@@ -6,6 +6,9 @@
 ## It is intended to be run with the OpenJML project directory as its 
 ## current working directory, but does its work in a temporary subdirectory
 
+## Name of folder holding releaseBuilds (within OpenJML)
+D=releaseBuilds
+
 ## Execute any local setup
 if [[ -n "${LOCAL_SETUP}" ]]; then
     echo Executing local setup ${LOCAL_SETUP}
@@ -20,18 +23,18 @@ if [[ "$COMSPEC" != "" ]] ; then
 Z=';'
 fi
 
-
+pushd $D
 REL=$1
-if [[ "$REL" == "" ]] ; then REL=`ls -t *gz | head -1` ; fi
+if [[ "$REL" == "" ]] ; then REL=`ls -t *zip | head -1` ; fi
 echo Testing $REL in `pwd`
+popd
 
 cd ../OpenJMLTest
 
 rm -rf temp-release
 mkdir temp-release
-cp ../OpenJML/$REL temp-release
+cp ../OpenJML/$D/$REL temp-release
 cd temp-release
-cp ../../OpenJML/openjml.properties .
 
 TESTLOC=../releaseTests
 
@@ -39,13 +42,13 @@ export RTH=../releaseTests/releaseTestHelper
 RES=0
 
 ## Checks the contents of the release tar file
-${RTH} testTar "tar ztf *gz" || RES=$(($RES+1))
+##${RTH} testTar "tar ztf *gz" || RES=$(($RES+1))
 
-## Expand the tar file (quietly)
-tar zxf *gz
+## Expand the zip file (quietly)
+unzip *zip
 
 ## Checks the version
-echo Visually check that the version matches the tar file being tested
+echo Visually check that the version matches the zip file being tested
 java -jar openjml.jar -version
 ${RTH} testJmlVersion "java -jar openjml.jar -version" || RES=$(($RES+1))
 
@@ -190,11 +193,11 @@ export SWITCHSLASH=YES
 ${RTH} testCheck1 "java -jar openjml.jar -jmltesting -noPurityCheck -specspath . A.java" || RES=$(($RES+1))
 export SWITCHSLASH=
 
-if [[ "${COMSPEC}" == "" ]]; then
-    if [[ ${RES} -eq 0 ]]; then echo "All tests performed succeeded"; else echo ${RES} tests failed  ; fi
-    echo Exiting tests early because the OS is not Windows
-    exit ${RES}
-fi
+##if [[ "${COMSPEC}" == "" ]]; then
+##    if [[ ${RES} -eq 0 ]]; then echo "All tests performed succeeded"; else echo ${RES} tests failed  ; fi
+##    echo Exiting tests early because the OS is not Windows
+##    exit ${RES}
+##fi
 
 ## FIXME
 if [[ "SKIP" == "" ]]; then

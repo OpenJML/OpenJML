@@ -51,9 +51,116 @@ public class escenums extends EscBase {
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m() {\n"
+                +"       Z ee = Z.AA; \n"
+                +"       //@ assert Z.AA == ee; \n"
+                +"       m();\n" // to put in a havoc everything
+                +"       //@ assert Z.AA == ee && ee != Z.BB; \n"
+                +"    }\n"
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testUseEnum2a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" enum Z { AA, BB, CC } \n"
+                +" public class TestJava {\n"
+                +"    public void m() {\n"
                 +"       //@ assert Z.AA == Z.AA; \n"
                 +"    }\n"
                 +"}"
+                );
+    }
+    
+    @Test
+    public void testUseEnum2b() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" enum Z { AA, BB, CC } \n"
+                +" public class TestJava {\n"
+                +"    public void m() {\n"
+                +"       //@ assert Z.AA != null; \n"
+                +"    }\n"
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testUseEnum2c() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" enum Z { AA, BB, CC } \n"
+                +" public class TestJava {\n"
+                +"    public void m() {\n"
+                +"       //@ assert Z.AA instanceof Z; \n"
+                +"    }\n"
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testUseEnum2d() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" enum Z { AA, BB, CC } \n"
+                +" public class TestJava {\n"
+                +"    public void m() {\n"
+                +"       //@ assert Z.AA != Z.BB; \n"
+                +"    }\n"
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testUseEnum2e() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" enum Z { AA, BB, CC } \n"
+                +" public class TestJava {\n"
+                +"    public void m(/* nullable */ Z ee) {\n"
+                +"       //@ assert ee == null || ee == Z.AA || ee == Z.BB || ee == Z.CC; \n"
+                +"    }\n"
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testUseEnum2f() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" enum Z { AA, BB, CC } \n"
+                +" public class TestJava {\n"
+                +"    public void m(/* non_null */ Z ee) {\n"
+                +"       //@ assume ee != Z.AA ; \n"
+                +"       //@ assume ee != Z.CC ; \n"
+                +"       //@ assert ee == Z.BB ; \n"
+                +"    }\n"
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testUseEnum2g() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" enum Z { AA, BB, CC } \n"
+                +" public class TestJava {\n"
+                +"    public void m(/* non_null */ Z ee) {\n"
+                +"       //@ assume ee != Z.AA ; \n"
+                +"       //@ assume ee != Z.CC ; \n"
+                +"       //@ assert ee != Z.BB ; \n" // ERROR
+                +"    }\n"
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",12
+                );
+    }
+    
+    @Test
+    public void testUseEnum2h() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" enum Z { AA, BB, CC } \n"
+                +" public class TestJava {\n"
+                +"    public void m(/* non_null */ Z ee) {\n"
+                +"       Object o = ee;\n"
+                +"       //@ assert o instanceof Z ; \n" 
+                +"       //@ assert o instanceof Integer ; \n" // ERROR
+                +"    }\n"
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
     

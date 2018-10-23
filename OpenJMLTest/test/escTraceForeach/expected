@@ -10,21 +10,21 @@ test\escTraceLoops\trace.java:159:  	requires a != null;
 test\escTraceLoops\trace.java:160:  	int j = 0
 			VALUE: 0	 === 0
 			VALUE: j	 === 0
-test\escTraceLoops\trace.java:161:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+test\escTraceLoops\trace.java:161:  	//@ loop_invariant j == \count && 0 <= \count && \count <= a.length;
 			VALUE: j	 === 0
-			VALUE: \index	 === 0
-			VALUE: j == \index	 === true
+			VALUE: \count	 === 0
+			VALUE: j == \count	 === true
 			VALUE: 0	 === 0
-			VALUE: \index	 === 0
-			VALUE: 0 <= \index	 === true
-			VALUE: j == \index && 0 <= \index	 === true
-			VALUE: \index	 === 0
+			VALUE: \count	 === 0
+			VALUE: 0 <= \count	 === true
+			VALUE: j == \count && 0 <= \count	 === true
+			VALUE: \count	 === 0
 			VALUE: a	 === const!83
 			VALUE: a.length	 === -1
-			VALUE: \index <= a.length	 === false
-			VALUE: j == \index && 0 <= \index && \index <= a.length	 === false
+			VALUE: \count <= a.length	 === false
+			VALUE: j == \count && 0 <= \count && \count <= a.length	 === false
 test\escTraceLoops\trace.java:161: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method mforeach
-        //@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+        //@ loop_invariant j == \count && 0 <= \count && \count <= a.length;
             ^
 Completed proof of trace.mforeach(int[]) with prover yices2 - with warnings
 Completed proving methods in trace

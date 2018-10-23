@@ -30,7 +30,7 @@ import java.math.BigInteger;
  * @author Gary T. Leavens
  * @see java.math.BigInteger
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ class JMLFiniteInteger extends JMLInfiniteIntegerClass {
 
     protected final /*@ non_null */ BigInteger val;

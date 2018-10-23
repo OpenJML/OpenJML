@@ -39,7 +39,7 @@ import org.jmlspecs.annotation.*;
  * @see JMLEnumeration
  * @see JMLIterator
  */
-//-@ immutable
+//+OPENJML@ immutable
 @Pure
 public interface JMLCollection<E> extends JMLType, JMLIterable<E> {
 

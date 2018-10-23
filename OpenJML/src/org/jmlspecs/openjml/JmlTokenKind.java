@@ -31,9 +31,15 @@ public enum JmlTokenKind implements ITokenKind {
     COMMENT("comment"), // For comments in BasicBlock programs
     HAVOC("havoc"), // Just used in ESC
     DEBUG("debug"),
+    END("end"),
     SET("set"),
+    SHOW("show"),
+    USE("use"),
     DECREASES("decreases"),
+    LOOP_DECREASES("loop_decreases"),
+    INLINED_LOOP("inlined_loop"),
     LOOP_INVARIANT("loop_invariant"),
+    LOOP_MODIFIES("loop_modifies"),
     HENCE_BY("hence_by"),
     REFINING("refining"),
     REACHABLE("reachable"),
@@ -68,8 +74,10 @@ public enum JmlTokenKind implements ITokenKind {
     SPEC_PUBLIC("spec_public",org.jmlspecs.annotation.SpecPublic.class),
     SPEC_PROTECTED("spec_protected",org.jmlspecs.annotation.SpecProtected.class),
     CODE_BIGINT_MATH("code_bigint_math",org.jmlspecs.annotation.CodeBigintMath.class), // Keep this one the last of the standard modifiers (see the modifiers Map below)
+        // Anything between CODE_BIGINT_MATH and LAST is automatically considered an OpenJML extension
     QUERY("query",org.jmlspecs.annotation.Query.class),  // FIXME - this is an extension - comment
     SECRET("secret",org.jmlspecs.annotation.Secret.class),  // FIXME - this is an extension - comment
+    INLINE("inline",org.jmlspecs.annotation.Inline.class), // FIXME - This is an extension
     LAST("_",null), // This is a fake entry that is the end of the standard+extension modifiers list
     
     // These are class/interface clause types
@@ -137,12 +145,14 @@ public enum JmlTokenKind implements ITokenKind {
     BSRESULT("\\result"), // Keep this one the first of the backslash tokens
     BSEVERYTHING("\\everything"),
     BSLOCKSET("\\lockset"),
-    BSINDEX("\\index"),
+    BSCOUNT("\\count"), // New version of \index
+    BSINDEX("\\index"), // Obsolete in favor of \count
     BSVALUES("\\values"),
     BSNOTHING("\\nothing"),
     BSSAME("\\same"),
     BSNOTSPECIFIED("\\not_specified"),
 
+    BSCONCAT("\\concat"),
     BSDISTINCT("\\distinct"),
     BSDURATION("\\duration"),
     BSELEMTYPE("\\elemtype"),
@@ -165,7 +175,9 @@ public enum JmlTokenKind implements ITokenKind {
     BSONLYCALLED("\\only_called"),
     BSONLYCAPTURED("\\only_captured"),
     BSPAST("\\past"),
-    BSPRE("\\pre"),
+    BSPRE("\\pre"), // overloaded both \post-like and \old-like
+    BSPOST("\\post"),
+    BSASSIGNS("\\assigns"),
     BSREACH("\\reach"),
     BSSPACE("\\space"),
     BSTYPEOF("\\typeof"),
@@ -214,7 +226,7 @@ public enum JmlTokenKind implements ITokenKind {
     // Other special character combinations
     DOT_DOT(".."),
     LEFT_ARROW("<-"),
-    RIGHT_ARROW("->"),
+//    RIGHT_ARROW("->"),
     INFORMAL_COMMENT("(*...*)"),
     SPEC_GROUP_START("{|"),
     SPEC_GROUP_END("|}"),
@@ -227,6 +239,8 @@ public enum JmlTokenKind implements ITokenKind {
     /** The annotation class associated with this token (for modifiers only), if any */
     //@ nullable
     public Class<?> annotationType = null;
+    
+    public boolean isRedundant;
     
     /** A human readable form of the token, and how it appears in text
      * @return the canonical, printable form of the token (not the internal toString() form)
@@ -311,7 +325,8 @@ public enum JmlTokenKind implements ITokenKind {
         allTokens.put("exceptional_behaviour".intern(),EXCEPTIONAL_BEHAVIOR);
         allTokens.put("normal_behaviour".intern(),NORMAL_BEHAVIOR);
         allTokens.put("abrupt_behaviour".intern(),ABRUPT_BEHAVIOR);
-        allTokens.put("decreasing".intern(),DECREASES);
+        allTokens.put("decreasing".intern(),LOOP_DECREASES);
+        allTokens.put("decreases".intern(),LOOP_DECREASES);
         allTokens.put("maintaining".intern(),LOOP_INVARIANT);
     }
 }

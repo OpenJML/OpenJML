@@ -31,6 +31,7 @@ import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignals;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
@@ -41,14 +42,18 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.osgi.framework.Bundle;
 
+import com.sun.tools.classfile.Annotation;
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.comp.Annotate;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Enter;
 import com.sun.tools.javac.comp.Env;
@@ -60,7 +65,9 @@ import com.sun.tools.javac.file.ZipArchive;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
@@ -68,6 +75,7 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
+import com.sun.tools.javac.util.Position;
 
 /** This class manages the specifications of various Java entities
  * during a compilation.  There should be just one instance of JmlSpecs
@@ -247,127 +255,113 @@ public class JmlSpecs {
     public void initializeSpecsPath() {
         Options options = Options.instance(context);
         String s = JmlOption.value(context,JmlOption.SPECS);
-        if (s == null) s = options.get(Strings.specsPathEnvironmentPropertyName);
-        if (s == null) s = options.get(Strings.sourcepathOptionName);
-        if (s == null) s = options.get(Strings.classpathOptionName);
-        if (s == null) s = System.getProperty("java.class.path");
-        if (s == null) s = "";
+        if (s == null || s.isEmpty()) s = System.getProperty(Strings.specsPathEnvironmentPropertyName);
+        if (s == null || s.isEmpty()) s = options.get(Strings.sourcepathOptionName);
+        if (s == null || s.isEmpty()) s = options.get(Strings.classpathOptionName);
+        if (s == null || s.isEmpty()) s = System.getProperty("java.class.path");
+        if (s == null) s = Strings.empty;
         setSpecsPath(s);
     }
     
     /** This method looks for the internal specification directories and, if
      * found, appends them to the argument. 
      * @param dirs the list to which to append the internal spec directories
-     * @return true if found, false if not
+     * @return true if any found, false if not
      */
     public boolean appendInternalSpecs(boolean verbose, java.util.List<Dir> dirs) {
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
-        String versionString = System.getProperty("java.version");
-        int version;
-        if (versionString.startsWith("1.6")) version = 6;
-        else if (versionString.startsWith("1.5")) version = 5;
-        else if (versionString.startsWith("1.4")) version = 4;
-        else if (versionString.startsWith("1.7")) version = 7;
-        else if (versionString.startsWith("1.")) version = versionString.charAt(2) - '0';
-        else {
-            noticeWriter.println("Unrecognized version: " + versionString);
-            version = 8; // default, if the version string is in an unexpected format
-        }
-        if (verbose) noticeWriter.println("Java version " + version);
        
-        // Look for a openjml.jar or jmlspecs.jar file on the classpath
-        // If present, use it (and use the first one found).  
+        // Look for jmlspecs.jar file on the classpath
+        // If present, use it.
+        // Otherwise look for openjml.jar
         // This happens in command-line mode.
         
         String sp = System.getProperty("java.class.path");
         String[] ss = sp.split(java.io.File.pathSeparator);
         Dir d;
         
-        String libToUse = prefix+version;
-        
-        for (String s: ss) {
-            if (s.endsWith(Strings.releaseJar)) {
-                d = new JarDir(s,libToUse);
-                if (d.exists()) {
-                    if (verbose) noticeWriter.println("Using internal specs " + d);
-                    dirs.add(d);
-                    return true;
-                }
-            }
-        }
+        // Look for jmlspecs.jar -- specs are at the top-level in this jar file
         for (String s: ss) {
             if (s.endsWith(Strings.specsJar)) {
                 d = new JarDir(s,"");
                 if (d.exists()) {
-                    if (verbose) noticeWriter.println("Using internal specs " + d);
+                    if (verbose) noticeWriter.println("Using internal specs A: " + d);
                     dirs.add(d);
                     return true;
                 }
             }
         }
         
-        // Next see if there is jar file on the classpath that contains
-        // specs16 or similar directories
+        // Next see if there is any jar file on the classpath that contains
+        // specs files at the top-level
         
+        for (String s: ss) {
+            if (s.endsWith(".jar")) {
+                d = new JarDir(s,"");
+                if (d.exists() && d.findFile("java/lang/Object.jml") != null) {
+                    if (verbose) noticeWriter.println("Using internal specs B: " + d);
+                    dirs.add(d);
+                    return true;
+                }
+            }
+        }
+        
+        // Next look for openjml.jar - this option applies to typical installed use
+        String libToUse = "specs"; // The top-level subdirectory within openjml.jar
+        for (String s: ss) {
+            if (s.endsWith(Strings.releaseJar)) {
+                d = new JarDir(s,libToUse);
+                if (d.exists()) {
+                    if (verbose) noticeWriter.println("Using internal specs C:" + d);
+                    dirs.add(d);
+                    return true;
+                }
+            }
+        }
+        
+        // Or an equivalent
+        // This alternative applies when openjml.jar has been renamed within a command-line installation
         for (String s: ss) {
             if (s.endsWith(".jar")) {
                 d = new JarDir(s,libToUse);
                 if (d.exists()) {
-                    if (verbose) noticeWriter.println("Using internal specs " + d);
-                    dirs.add(d);
-                    return true;
-                }
-                d = new JarDir(s,prefix + (version-1));
-                if (d.exists()) {
-                    if (verbose) noticeWriter.println("Using internal specs " + d);
+                    if (verbose) noticeWriter.println("Using internal specs D:" + d);
                     dirs.add(d);
                     return true;
                 }
             }
         }
+        
         
         // FIXME - clean this all up and try to get rid of the dependency on eclipseSpecsProjectLocation
         // (which is used in tests) - be careful though, the UI can be tricky and operates
         // differently in development vs. deployed mode
         
-        // Finally, for working in the Eclipse environment, see if there
-        // is an environment variable that is set.
+        // This option applies for running the IDE in the development environment
+        Bundle specs = Platform.getBundle("org.jmlspecs.Specs");
+        if (specs != null) {
+        	String pp = specs.getLocation();
+        	if (verbose) noticeWriter.println("Specs location: " + pp);
+        	int k = pp.lastIndexOf(":");
+        	if (k >= 0) pp = pp.substring(k+1);
+        	Dir dd = make(pp + "/" + libToUse);
+            if (dd.exists()) {
+                if (verbose) noticeWriter.println("Using internal specs F:" + dd);
+                dirs.add(dd);
+                return true;
+            }
+        }
         
-//        Bundle specs = Platform.getBundle("org.jmlspecs.Specs");
-//        if (specs != null) {
-//        	Enumeration<String> en = specs.getEntryPaths("java" + version);
-//        	String p = en.nextElement();
-//        		System.out.println(p);
-//        		String pp = specs.getLocation();
-//        		System.out.println(pp);
-//        		java.net.URL ppp = specs.getEntry("");
-//        		System.out.println(ppp);
-//        }
-        
+        // This option is needed for running command-line tests in the development environment.
+        // sy should be the trunk directory of the Specs project
         String sy = Options.instance(context).get(Strings.eclipseSpecsProjectLocation);
-//        if (sy == null) {
-//            Bundle specs = Platform.getBundle("org.jmlspecs.Specs");
-//            if (specs != null) {
-//            		String pp = specs.getLocation();
-//            		System.out.println(pp);
-//            		int k = pp.indexOf("file:/") + "file:/".length();
-//            		sy = pp.substring(k);
-//            }
-//        }
-        // These are used in testing - sy should be the trunk directory of the Specs project
         if (sy != null) {
-            
             boolean found = false;
             Dir dd;
-            for (int v = version; v >= 4; --v) {
-                dd = make(sy+"/java"+v);
-                if (dd.exists()) { 
-                    dirs.add(dd);
-                    found = true;
-                } else {
-                    // We found some directories - the others ought to exist
-                    if (found) log.error("jml.internal.specs.dir.not.exist",dd);
-                }
+            dd = make(sy + "/" + libToUse);
+            if (dd.exists()) {
+                dirs.add(dd);
+                found = true;
             }
             if (!found) log.error("jml.internal.specs.dir.not.exist",sy);
             return true;
@@ -377,6 +371,7 @@ public class JmlSpecs {
         return false;
     }
     
+   
     /** Returns the current list of specification directories in use.
      * @return The current list of specification directories, in order.
      */
@@ -431,7 +426,7 @@ public class JmlSpecs {
         }
         String dir;
         boolean checkDirectories = JmlOption.isOption(context,JmlOption.CHECKSPECSPATH);
-        if (JmlOption.isOption(context,JmlOption.INTERNALSPECS)) {
+        if (JmlOption.isOption(context,JmlOption.INTERNALSPECS) && !Main.instance(context).initializingOptions) {
             todo.add("$SY");
         }
 
@@ -902,13 +897,16 @@ public class JmlSpecs {
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
+    public void removeSpecs(ClassSymbol type) {
+        specsmap.remove(type);
+    }
+    
     /** Adds the specs for a given method to the database, overwriting anything
      * already there.  There must already be a specs entry for the owning class
      * @param m the MethodSymbol of the method whose specs are provided
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec) {
-        if (m.toString().equals("JMLValueSequence()")) Utils.stop();
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("            Saving method specs for " + m.enclClass() + " " + m);
         getSpecs(m.enclClass()).methods.put(m,spec);
     }
@@ -949,7 +947,15 @@ public class JmlSpecs {
     // TODO - document
     public JmlMethodSpecs getDenestedSpecs(MethodSymbol m) {
         MethodSpecs s = getSpecs(m);
-        if (s == null) return null;
+        if (s == null) {
+            // This can happen when -no-internalSpecs is used, probably for a binary class, but it probably shouldn't - specs should be created when the class is laoded - FIXME
+            // This can also happen for a method that has no JML declaration or specification in its static class,
+            // but does inherit a method (and spec) from a parent class.
+            s = defaultSpecs(null,m,1);  // FIXME - what position should be used
+            putSpecs(m,s);
+            s.cases.deSugared = s.cases;
+            return s.cases;    // FIXME - this is not actually fully desugared, but we don't have a decl to call deSugarMethodSpecs
+        }
         if (s.cases.deSugared == null) {
             attr.deSugarMethodSpecs(s.cases.decl,s);
         }
@@ -959,38 +965,123 @@ public class JmlSpecs {
     // TODO - document
     // FIXME - this needs to be made consistent with the below
     public MethodSpecs defaultSpecs(JmlMethodDecl m) {
-        // FIXME - should use a factory
-        JmlTree.Maker M = JmlTree.Maker.instance(context);
-        JmlMethodSpecs ms = new JmlMethodSpecs();
-        MethodSpecs mspecs = new MethodSpecs(null,ms); // FIXME - empty instead of null modifiers?
-        ms.pos =  m.pos;
-        ms.decl = m;
-        ms.deSugared = null; // FIXME- was ms?
-
-        ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
-        // sym can be null if the method call is in a field initializer (and not in the body of a method)
-        // Not sure when sym.type is null - but possibly when an initializer block is created to hold translated
-        // material from a field initializer
-        for (JCExpression t: m.thrown) {
-            list.add(t);
-        }
-        list.add(JmlTreeUtils.instance(context).makeType(m.pos, Symtab.instance(context).runtimeExceptionType));
-        JmlMethodClauseSignalsOnly cl = new JmlMethodClauseSignalsOnly(m.pos,JmlTokenKind.SIGNALS_ONLY, list.toList());
-        JmlSpecificationCase cs = new JmlSpecificationCase(m.pos, M.Modifiers(0), false,null,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(cl));
-        mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
-        return mspecs;
+        return defaultSpecs(m, m.sym, m.pos);
     }
 
     // TODO - document
-    public static MethodSpecs defaultSpecs(Context context, MethodSymbol sym, int pos) {
+    public MethodSpecs defaultSpecs(/*@ nullable */ JmlMethodDecl decl, MethodSymbol sym, int pos) {
+        // decl can be null in the case of Enum.values(), and others
         // FIXME - should use a factory
         JmlTree.Maker M = JmlTree.Maker.instance(context);
-        JmlMethodSpecs ms = new JmlMethodSpecs();
-        MethodSpecs mspecs = new MethodSpecs(null,ms); // FIXME - empty instead of null modifiers?
+        Symtab syms = Symtab.instance(context);
+        JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
+        JmlMethodSpecs ms = M.at(pos).JmlMethodSpecs(com.sun.tools.javac.util.List.<JmlSpecificationCase>nil());
+        JCTree.JCModifiers mods = M.at(pos).Modifiers(sym.flags() & Flags.AccessFlags);
+        MethodSpecs mspecs = new MethodSpecs(mods,ms); // FIXME - empty instead of null modifiers?
         ms.pos = pos;
-        ms.decl = null; // FIXME - this needs filling in?
+        ms.decl = decl;
         ms.deSugared = null; // FIXME- was ms?
+        
+        List<MethodSymbol> parents = utils.parents(sym);
+        
+        if (decl == null) {
+            if (parents.size() > 1) {
+                // This is the case (at least) of a binary class B with method m, that is not 
+                // declared and has no specs in a JML file, but does override a method in a 
+                // parent class P. B.m then adds no specification cases.
+                java.util.ListIterator<MethodSymbol> iter = parents.listIterator(parents.size()-1);
+                JmlMethodSpecs parentSpecs = getDenestedSpecs(iter.previous());
+                ms.decl = decl = parentSpecs.decl;
+                mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>nil();
+                mspecs.cases.deSugared = mspecs.cases;
+                return mspecs;
+            } else {
+                // This is a binary method that has no JML declaration and does not override
+                // anything. There is no declaration to co-opt. The method gets a standard
+                // default specification.
+            }
+        }
 
+        if (decl != null) {
+            if (decl.methodSpecsCombined != null) {
+                mods = M.at(pos).Modifiers(decl.methodSpecsCombined.mods.flags);
+                mods.annotations = mods.annotations.appendList(decl.methodSpecsCombined.mods.annotations);
+            } else {
+                mods = M.at(pos).Modifiers(decl.mods.flags);
+                mods.annotations = mods.annotations.appendList(decl.mods.annotations);
+            }
+            mspecs.mods = mods;
+        }
+
+        // FIXME - check the case of a binary generated constructor with a declaration in JML
+        if (((sym.flags() & Flags.GENERATEDCONSTR) != 0) || ( sym.owner == syms.objectType.tsym && sym.isConstructor()) || sym.owner == Symtab.instance(context).enumSym ) {
+            JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
+                    com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSNOTHING)));
+            if (sym.isConstructor()) {
+                JCAnnotation annotation = org.jmlspecs.openjml.Utils.instance(context).tokenToAnnotationAST(JmlTokenKind.PURE, pos, pos);
+                JCFieldAccess fa = (JCTree.JCFieldAccess)annotation.annotationType;
+                fa.sym = JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlTokenKind.PURE);
+                annotation.type = fa.type = fa.sym.type;
+                
+                mods.annotations = mods.annotations.append(annotation);
+            }
+
+            JmlMethodClauseSignals sig = M.at(pos).JmlMethodClauseSignals(JmlTokenKind.SIGNALS, null, JmlTreeUtils.instance(context).falseLit);
+            JCModifiers csm = M.at(pos).Modifiers(mods.flags & Flags.AccessFlags);
+            JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false,JmlTokenKind.BEHAVIOR,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig),null);
+            mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
+            return mspecs;
+            // FIXME - this case should happen only if parent constructors are pure and have no signals clause
+        } else if ((sym.owner.flags() & Flags.ENUM) != 0) {
+            if (sym.name.equals(names.values)) {
+                // Default specs for the values() method of an Enum
+                // public behavior
+                //    [requires true;]
+                //    assignable \nothing;
+                //    accessible \nothing;
+                //    signals() false;
+                //    ensures \result != null;
+                //    ensures \result.length == <number of elements in enum>
+                //    for the ith enum item    ensures \result.get(i) == item
+                
+                JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
+                        com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSNOTHING)));
+                JmlMethodClause clpa = new JmlTree.JmlMethodClauseStoreRef(pos,JmlTokenKind.ACCESSIBLE,
+                        com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSNOTHING)));
+                JmlMethodClauseSignals sig = M.at(pos).JmlMethodClauseSignals(JmlTokenKind.SIGNALS, null, JmlTreeUtils.instance(context).falseLit);
+                JCExpression res = M.at(pos).JmlSingleton(JmlTokenKind.BSRESULT);
+                res.setType(((Type.MethodType)sym.type).restype);
+                Type elemtype = ((Type.ArrayType)res.type).elemtype;
+                List<Symbol> elems = elemtype.tsym.getEnclosedElements();
+                JCBinary nn = M.at(pos).Binary(JCTree.Tag.NE, res, treeutils.nullLit);
+                nn.operator = treeutils.objectneSymbol;
+                nn.setType(syms.booleanType);
+                JmlMethodClause en = new JmlTree.JmlMethodClauseExpr(pos,JmlTokenKind.ENSURES,nn);
+                JCModifiers csm = M.at(pos).Modifiers(mods.flags & Flags.AccessFlags);
+                com.sun.tools.javac.util.List<JmlMethodClause> clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,clp,sig,clpa);
+                int count = 0;
+                for (Symbol s: elems) if ((s.flags() & Flags.ENUM) != 0 && s instanceof VarSymbol) {
+                    count++;
+                }
+                JCExpression fa = treeutils.makeArrayLength(pos, res);
+                JCBinary len = M.at(pos).Binary(JCTree.Tag.EQ, fa, treeutils.makeIntLiteral(pos,count).setType(syms.intType));
+                len.operator = treeutils.inteqSymbol;
+                len.setType(syms.booleanType);
+                en = new JmlTree.JmlMethodClauseExpr(pos,JmlTokenKind.ENSURES,len);
+                clauses = clauses.append(en);
+                JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false,JmlTokenKind.BEHAVIOR,null,clauses,null);
+                mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
+                return mspecs;
+            }
+            
+        }
+
+        // Non-special case. Default specs are
+        //   <same access as method> behavior
+        //        assignable \everything;
+        //        accessible \everything;
+        //        signals_only RuntimeException, <list of declared exceptions>;
+        
         ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
         // sym can be null if the method call is in a field initializer (and not in the body of a method)
         // Not sure when sym.type is null - but possibly when an initializer block is created to hold translated
@@ -999,10 +1090,20 @@ public class JmlSpecs {
             JCExpression e = JmlTreeUtils.instance(context).makeType(pos, t);
             list.add(e);
         }
+        JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
+                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSEVERYTHING)));
+        JmlMethodClause clpa = new JmlTree.JmlMethodClauseStoreRef(pos,JmlTokenKind.ACCESSIBLE,
+                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSEVERYTHING)));
+
         list.add(JmlTreeUtils.instance(context).makeType(pos, Symtab.instance(context).runtimeExceptionType));
-        JmlMethodClauseSignalsOnly cl = new JmlMethodClauseSignalsOnly(pos,JmlTokenKind.SIGNALS_ONLY, list.toList());
-        JmlSpecificationCase cs = new JmlSpecificationCase(pos, M.Modifiers(0), false,null,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(cl));
+        JmlMethodClauseSignalsOnly cl = M.at(pos).JmlMethodClauseSignalsOnly(JmlTokenKind.SIGNALS_ONLY, list.toList());
+        com.sun.tools.javac.util.List<JmlMethodClause> clauses;
+        if (decl == null) clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,clpa,cl);
+        else clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(cl);
+        JCModifiers csm = M.at(pos).Modifiers(mods.flags & Flags.AccessFlags);
+        JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase(csm, false, JmlTokenKind.BEHAVIOR,null,clauses,null);
         mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
+        if (decl == null) mspecs.cases.deSugared = mspecs.cases;
         return mspecs;
     }
 
@@ -1320,6 +1421,7 @@ public class JmlSpecs {
             if (utils.findMod(decl.mods, nonnullbydefaultAnnotationSymbol) != null) return true;
         }
         Symbol parent = decl.sym.owner;
+        while (parent instanceof MethodSymbol) parent = parent.owner;
         if (!(parent instanceof Symbol.ClassSymbol)) return defaultNullity(null) == JmlTokenKind.NONNULL;  // FIXME - is this OK for interfaces
         if (Enter.instance(context).getEnv((Symbol.TypeSymbol)parent) == null) return defaultNullity(null) == JmlTokenKind.NONNULL;
         JmlClassDecl encl = (JmlClassDecl)Enter.instance(context).getEnv((Symbol.TypeSymbol)parent).tree;
@@ -1343,6 +1445,8 @@ public class JmlSpecs {
     
     public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
         if (symbol.type.isPrimitive()) return false;
+        if (JmlTypes.instance(context).isOnlyDataGroup(symbol.type)) return false;
+        
         // TODO - perhaps cache these when the JmlSpecs class is created? (watch for circular tool creation)
         makeAnnotationSymbols();
         Attribute.Compound attr;
@@ -1389,22 +1493,48 @@ public class JmlSpecs {
     
     /** Caches the symbol for a Pure annotation, which is computed on demand. */
     private ClassSymbol pureAnnotationSymbol = null;
+    private ClassSymbol queryAnnotationSymbol = null;
     private ClassSymbol functionAnnotationSymbol = null;
 
-    /** Returns true if the given method symbol is annotated as Pure */
-    public boolean isPure(MethodSymbol symbol) {
+    protected ClassSymbol pureAnnotationSymbol() {
         if (pureAnnotationSymbol == null) {
             pureAnnotationSymbol = utils.createClassSymbol(Strings.pureAnnotation);
         }
+        return pureAnnotationSymbol;
+    }
+    
+    protected ClassSymbol functionAnnotationSymbol() {
         if (functionAnnotationSymbol == null) {
             functionAnnotationSymbol = utils.createClassSymbol(Strings.functionAnnotation);
         }
-        MethodSpecs mspecs = getSpecs((Symbol.MethodSymbol)symbol);
-        if (mspecs != null && utils.findMod(mspecs.mods,pureAnnotationSymbol) != null) return true;
-        if (mspecs != null && utils.findMod(mspecs.mods,functionAnnotationSymbol) != null) return true;
-        TypeSpecs tspecs = getSpecs((Symbol.ClassSymbol)symbol.owner);
+        return functionAnnotationSymbol;
+    }
+    
+    /** Returns true if the given method symbol is annotated as Pure */
+    public boolean isPure(MethodSymbol symbol) {
+        MethodSpecs mspecs = getSpecs(symbol);
+        if (mspecs != null && utils.findMod(mspecs.mods,pureAnnotationSymbol()) != null) return true;
+        if (mspecs != null && utils.findMod(mspecs.mods,functionAnnotationSymbol()) != null) return true;
+        return isPure((Symbol.ClassSymbol)symbol.owner);
+    }
+    
+    public boolean isPure(ClassSymbol symbol) {
+        TypeSpecs tspecs = getSpecs(symbol);
         // FIXME - the following will not find a pure annotation on the class in a .jml file.
-        if (tspecs != null && utils.findMod(tspecs.modifiers,pureAnnotationSymbol) != null) return true;
+        if (tspecs != null && utils.findMod(tspecs.modifiers,pureAnnotationSymbol()) != null) return true;
+        return false;
+    }
+    
+    /** Returns true if the given method symbol is annotated as Pure */
+    public boolean isQuery(MethodSymbol symbol) {
+        if (queryAnnotationSymbol == null) {
+            queryAnnotationSymbol = utils.createClassSymbol(Strings.queryAnnotation);
+        }
+        MethodSpecs mspecs = getSpecs(symbol);
+        if (mspecs != null && utils.findMod(mspecs.mods,queryAnnotationSymbol) != null) return true;
+        TypeSpecs tspecs = getSpecs((Symbol.ClassSymbol)symbol.owner);
+        // FIXME - the following will not find a query annotation on the class in a .jml file.
+        if (tspecs != null && utils.findMod(tspecs.modifiers,queryAnnotationSymbol) != null) return true;
         return false;
     }
     
@@ -1506,6 +1636,16 @@ public class JmlSpecs {
         return tspecs;
     }
     
+    public static MethodSpecs copy(MethodSpecs m, Void p, JmlTreeCopier copier) {
+        if (m == null) return null;
+        MethodSpecs mr = new MethodSpecs(m.cases.decl);
+        mr.cases = copier.copy(m.cases,p);
+        mr.queryDatagroup = m.queryDatagroup;
+        mr.secretDatagroup = m.secretDatagroup;
+        mr.mods = copier.copy(m.mods,p);
+        return mr;
+    }
+    
     /** An ADT to hold the specs for a method or block */
     public static class MethodSpecs {
         
@@ -1516,13 +1656,23 @@ public class JmlSpecs {
         
         public MethodSpecs(JmlMethodDecl m) { 
             this.mods = m.mods;
-            cases = m.cases != null ? m.cases : new JmlMethodSpecs(); 
+            if (m.cases == null) {
+                cases = new JmlMethodSpecs();
+                cases.pos = m.pos;
+            } else {
+                cases = m.cases;
+            }
             cases.decl = m;
         }
         
         public MethodSpecs(JCTree.JCModifiers mods, JmlMethodSpecs m) { 
             this.mods = mods;
-            cases = m != null ? m : new JmlMethodSpecs(); 
+            if (m.cases == null) {
+                cases = new JmlMethodSpecs();
+                cases.pos = m.pos;
+            } else {
+                cases = m;
+            }
         }
         
         public String toString() {
@@ -1596,8 +1746,8 @@ public class JmlSpecs {
         if (specs) {
             f = JmlSpecs.instance(context).findAnySpecFile(pack == null ? rootname : (pack + "." + rootname));
         } else {
-            rootname = rootname + Strings.javaSuffix;
-            f = JmlSpecs.instance(context).findSpecificSourceFile(pack == null ? rootname : (pack + "." + rootname));
+            String path = (pack == null ? rootname : (pack + "." + rootname)).replace('.', '/') + Strings.javaSuffix;
+            f = JmlSpecs.instance(context).findSpecificSourceFile(path);
         }
         return f;
     }

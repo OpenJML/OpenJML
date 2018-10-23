@@ -5,11 +5,16 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.Arrays;
 
 import org.eclipse.core.commands.AbstractHandler;
+import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.commands.State;
 import org.eclipse.core.resources.IResourceRuleFactory;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -23,7 +28,11 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.handlers.HandlerUtil;
+import org.eclipse.ui.handlers.RadioState;
+import org.eclipse.ui.handlers.RegistryToggleState;
+import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.Main.Cmd;
 
@@ -44,6 +53,9 @@ abstract public class Commands extends AbstractHandler {
 
     /** The current selection. */
     protected ISelection selection;
+    
+    //** The Command that is being responded to */
+    protected Command command;
 
     /** Cached value of the utility object */
     protected Utils utils = Activator.utils();
@@ -51,10 +63,14 @@ abstract public class Commands extends AbstractHandler {
     /** Populates the class fields with data about the event, for use in the
      * derived classes.
      */
-    protected void getInfo(ExecutionEvent event) throws ExecutionException {
+    protected void initInfo(ExecutionEvent event) throws ExecutionException {
+        if (Options.uiverboseness) {
+            Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
+        }
     	window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
     	shell = window.getShell();
     	selection = window.getSelectionService().getSelection();
+        command = event.getCommand(); 
     }
 
     /**
@@ -73,23 +89,85 @@ abstract public class Commands extends AbstractHandler {
     @Override
     abstract public Object execute(ExecutionEvent event);
 
-    /**
-	 * This action enables the JML nature on the selected projects,
-	 * so that checking happens as part of compilation.
-	 * 
-	 * @author David Cok
-	 *
-	 */
-	static public class ClearAllProofResults extends Commands {
+    static public class ToggleAutoOpen extends Commands {
+        // This is all done in the UI thread with no progress monitor
+        @Override
+        public Object execute(ExecutionEvent event) {
+            try {
+                initInfo(event);
+                boolean oldValue = HandlerUtil.toggleCommandState(command);
+//                State state = command.getState(RegistryToggleState.STATE_ID);
+//                state.setValue(!oldValue);
+                utils.findView().toggleAutoOpen(!oldValue);
+            } catch (Exception e) {
+                utils.topLevelException(shell,this.getClass().getSimpleName(),e);
+            }
+            return null;
+        }
+    }
+
+    static public class RadioAutoOpen extends Commands {
+        // This is all done in the UI thread with no progress monitor
+        @Override
+        public Object execute(ExecutionEvent event) {
+            try {
+                initInfo(event);
+                if(HandlerUtil.matchesRadioState(event)) {
+                    return null; // we are already in the updated state - do nothing
+                }
+                
+                String currentState = event.getParameter(RadioState.PARAMETER_ID);
+             
+                // do whatever having "currentState" implies
+             
+                // and finally update the current state
+                HandlerUtil.updateRadioState(event.getCommand(), currentState);
+
+//                ICommandService service = (ICommandService) HandlerUtil
+//                                        .getActiveWorkbenchWindowChecked(event).getService(
+//                                            ICommandService.class);
+//                service.refreshElements(event.getCommand().getId(), null);
+            } catch (Exception e) {
+                utils.topLevelException(shell,this.getClass().getSimpleName(),e);
+            }
+            return null;
+        }
+    }
+
+    static public class ClearAllProofResults extends Commands {
+        // This is all done in the UI thread with no progress monitor
+        @Override
+        public Object execute(ExecutionEvent event) {
+            try {
+                initInfo(event);
+                utils.findView().clearProofResults();
+            } catch (Exception e) {
+                utils.topLevelException(shell,this.getClass().getSimpleName(),e);
+            }
+            return null;
+        }
+    }
+
+	static public class ClearSelectedProofResults extends Commands {
 	    // This is all done in the UI thread with no progress monitor
 	    @Override
 		public Object execute(ExecutionEvent event) {
 			try {
-				if (Options.uiverboseness) {
-					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
-				}
-	    		getInfo(event);
-	            utils.findView().clearProofResults();
+	    		initInfo(event);
+	            utils.findView().clearSelectedProofResults();
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);
+			}
+			return null;
+		}
+	}
+	
+	static public class ExportProofResults extends Commands {
+	    @Override
+		public Object execute(ExecutionEvent event) {
+			try (FileWriter fw = new FileWriter(new File(System.getProperty("user.home") + "/resultsOutput"))) {
+	    		initInfo(event);
+		    	OpenJMLView.exportProofResults(fw);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);
 			}
@@ -97,16 +175,12 @@ abstract public class Commands extends AbstractHandler {
 		}
 	}
 
-	static public class ClearSelectedProofResults extends Commands {
-	    // This is all done in the UI thread with no progress monitor
+	static public class ImportProofResults extends Commands {
 	    @Override
 		public Object execute(ExecutionEvent event) {
-			try {
-				if (Options.uiverboseness) {
-					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
-				}
-	    		getInfo(event);
-	            utils.findView().clearSelectedProofResults();
+			try (FileReader fw = new FileReader(new File(System.getProperty("user.home") + "/resultsOutput"))) {
+	    		initInfo(event);
+		    	OpenJMLView.importProofResults(fw);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);
 			}
@@ -119,48 +193,34 @@ abstract public class Commands extends AbstractHandler {
 	    @Override
 		public Object execute(ExecutionEvent event) {
 			try {
-				if (Options.uiverboseness) {
-					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
-				}
-	    		getInfo(event);
-	    		if (!utils.checkForDirtyEditors()) return null;
-	    		final OpenJMLView view = utils.findView();
-	    		TreeItem ti = view.selected;
-	    		OpenJMLView.Info info = (OpenJMLView.Info)ti.getData();
-	    		utils.findView().clearSelectedProofResults();
-	    		if (info == null) return null;
-	    		final String key = info.key;
-	    		final IJavaElement je = info.javaElement;
-	    		if (je == null) return null; // FIXME - this can happen if a default constuctor is selected - but we should still run on the file
-	    		final IJavaProject jp = je.getJavaProject();
-	    		final String filepath = je.getResource().getLocation().toOSString();
-	    		final OpenJMLInterface iface = utils.getInterface(utils.findView().currentProject);
-				utils.showView(); // Must be called from a UI thread
-	    		Job j = new Job("Rerunning compilation unit " + je.getResource().getName()) {
-	    			public IStatus run(IProgressMonitor monitor) {
-	    				monitor.beginTask("Static checking of " + jp.getElementName(), 1);
-	    				boolean c = false;
-	    				try {
-	    					java.util.List<String> args = iface.getOptions(iface.jproject,Cmd.ESC);
-	    					args.add("-esc");
-	    					args.add(filepath);
-	    					iface.api.execute(null,args.toArray(new String[args.size()]));
-	    					utils.setTraceView(key,jp);
-	    				} catch (Exception e) {
-	    					// FIXME - this will block, preventing progress on the rest of the projects
-	    					Log.errorlog("Exception during Static Checking - " + je.getElementName(), e);
-	    					utils.showExceptionInUI(null, "Exception during Static Checking - " + jp.getElementName(), e);
-	    					c = true;
-	    				}
-	    				return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
-	    			}
-	    		};
-//	            IResourceRuleFactory ruleFactory = 
-//	                    ResourcesPlugin.getWorkspace().getRuleFactory();
-	    		j.setRule(jp.getProject());
-	    		j.setUser(true); // true since the job has been initiated by an end-user
-	    		j.schedule();
-	    			// FIXME - update trace and highlighting also?
+	    		initInfo(event);
+	    		
+                if (!utils.checkForDirtyEditors()) return null;
+
+                final OpenJMLView view = utils.findView();
+                if (view == null || view.selectedList.isEmpty()) return null;
+                
+                utils.showView(); // Must be called from a UI thread
+                final OpenJMLInterface iface = utils.getInterface(utils.findView().currentProject);
+                final IJavaProject jp = iface.jproject;
+                
+                
+                final java.util.List<Object> elements = new java.util.LinkedList<>();
+
+                for (TreeItem ti : view.selectedList) {
+                    OpenJMLView.Info info = (OpenJMLView.Info)ti.getData();
+                    if (info == null) continue;
+                    String key = info.key;
+                    IJavaElement je = info.javaElement;
+                    if (je == null) continue; // FIXME - this can happen if a default constructor is selected - but we should still run on the file
+                    elements.add(je);
+                }
+                String reason = "Rerunning selected items from project " + jp.getResource().getName();
+	    		
+                // The following call launches the actual work in a computational thread
+                utils.checkESCProject(jp, elements, shell, reason, null);
+
+	    		
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);
 			}
@@ -173,10 +233,8 @@ abstract public class Commands extends AbstractHandler {
 	    @Override
 		public Object execute(ExecutionEvent event) {
 			try {
-				if (true || Options.uiverboseness) {
-					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
-				}
-	    		getInfo(event);
+	    		initInfo(event);
+	    		// FIXME - iomplement
 	    		utils.showMessageInUI(shell, "OpenJML", "This operation is not yet implemented");
 	            //utils.changeJmlNatureSelection(true,selection,window,shell);
 	        } catch (Exception e) {

@@ -100,4 +100,5 @@ test\visibilityB\org\apache\commons\cli\Option.jml:2352: error: An identifier wi
 test\visibilityB\org\apache\commons\cli\Option.jml:2353: error: An identifier with private visibility may not be used in a assignable clause with public visibility
           assignable this.numberOfArgs; 
                          ^
+Operation not performed because of parse or type errors
 34 errors

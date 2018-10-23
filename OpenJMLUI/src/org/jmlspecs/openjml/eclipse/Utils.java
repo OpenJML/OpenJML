@@ -11,14 +11,21 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.IJobChangeListener;
+import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+import org.eclipse.core.runtime.jobs.JobGroup;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.ErrorDialog;
@@ -28,16 +35,30 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.*;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.annotation.Query;
 import org.jmlspecs.openjml.Main.Cmd;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.eclipse.PathItem.ProjectPath;
 import org.jmlspecs.openjml.esc.MethodProverSMT.Counterexample;
@@ -45,8 +66,10 @@ import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 import org.osgi.framework.Bundle;
 
-import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.util.PropagatedException;
+
+import sun.net.www.content.image.jpeg;
 
 // FIXME - review UI Utils class
 
@@ -122,19 +145,20 @@ public class Utils {
 
 	protected String getInternalSystemSpecs() {
 		String filesep = "/"; // Not File.separator I think //$NON-NLS-1$
+		String specsDir = "specs";
 		StringBuilder ss = new StringBuilder();
 		try {
 			boolean somethingPresent = false;
-			String versionString = System.getProperty("java.version"); //$NON-NLS-1$
-			int version = 7; // the current default
-			if (versionString.startsWith("1.") && versionString.length() > 3 //$NON-NLS-1$
-					&& (version = (versionString.charAt(2) - '0')) >= 4 && version <= 9) {
-				// found OK version number
-			} else {
-				Log.log("Unrecognized version: " + versionString); //$NON-NLS-1$
-				version = 7; // default, if the version string is in an
-								// unexpected format
-			}
+//			String versionString = System.getProperty("java.version"); //$NON-NLS-1$
+//			int version = 7; // the current default
+//			if (versionString.startsWith("1.") && versionString.length() > 3 //$NON-NLS-1$
+//					&& (version = (versionString.charAt(2) - '0')) >= 4 && version <= 9) {
+//				// found OK version number
+//			} else {
+//				Log.log("Unrecognized version: " + versionString); //$NON-NLS-1$
+//				version = 7; // default, if the version string is in an
+//								// unexpected format
+//			}
 
 			String[] defspecs = new String[8]; // null entries OK
 
@@ -154,26 +178,19 @@ public class Utils {
 				if (root.isFile()) {
 					// Presume it is a jar or zip file
 					JarFile j = new JarFile(root);
-					int i = 0;
-					for (int v = version; v >= 4; --v) {
-						JarEntry f = j.getJarEntry("java" + v); //$NON-NLS-1$
-						if (f != null)
-							defspecs[i++] = loc + "!java" + v; //$NON-NLS-1$
-					}
+					JarEntry f = j.getJarEntry(specsDir);
+					if (f != null)
+						defspecs[0] = loc + "!" + specsDir; //$NON-NLS-1$
 					j.close();
 				} else if (root.isDirectory()) {
 					// Normal file system directory
-					int i = 0;
-					for (int v = version; v >= 4; --v) {
-						File f = new File(root, "java" + v); //$NON-NLS-1$
-						if (f.exists())
-							defspecs[i++] = root.getAbsolutePath().replace(
-									'\\', '/')
-									+ filesep + "java" + v; //$NON-NLS-1$
-					}
+					File f = new File(root, specsDir); //$NON-NLS-1$
+					if (f.exists())
+						defspecs[0] = f.getAbsolutePath().replace(
+								'\\', '/'); //$NON-NLS-1$
 				} else {
 					if (Options.uiverboseness)
-						Log.log("Expected contents (javaN subdirectories) not found in specs bundle at "
+						Log.log("Expected contents (specs subdirectory) not found in " + Env.SPECS_PLUGIN_ID + " bundle at "
 								+ root);
 				}
 				for (String z : defspecs) {
@@ -199,21 +216,15 @@ public class Utils {
 									+ root.exists());
 						int i = 0;
 						if (root.isDirectory()) {
-							for (int v = version; v >= 4; --v) {
-								File f = new File(root, ".." + filesep //$NON-NLS-1$
-										+ "specs" + filesep + "java" + v);  //$NON-NLS-1$//$NON-NLS-2$
-								if (f.exists())
-									defspecs[i++] = f.toString();
-							}
+							File f = new File(root, ".." + filesep //$NON-NLS-1$
+									+ specsDir);  //$NON-NLS-1$//$NON-NLS-2$
+							if (f.exists())
+								defspecs[i++] = f.toString();
 						} else {
 							JarFile j = new JarFile(root);
-							for (int v = version; v >= 4; --v) {
-								JarEntry f = j.getJarEntry("specs" + filesep
-										+ "java" + v);
-								if (f != null)
-									defspecs[i++] = root + "!specs" + filesep
-											+ "java" + v;
-							}
+							JarEntry f = j.getJarEntry(specsDir);
+							if (f != null)
+								defspecs[i++] = root + "!" + specsDir;
 							j.close();
 						}
 						if (i > 0)
@@ -229,7 +240,7 @@ public class Utils {
 					ss.append(File.pathSeparator);
 				}
 			if (ss.length() > 0)
-				ss.setLength(ss.length() - File.pathSeparator.length());
+				ss.setLength(ss.length() - File.pathSeparator.length()); // Remove the extraneous last path separator
 		} catch (Exception e) {
 			Log.log("Failure finding internal specs: " + e); //$NON-NLS-1$
 		}
@@ -291,14 +302,15 @@ public class Utils {
 				return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
 			}
 		};
-        IResourceRuleFactory ruleFactory = 
-                ResourcesPlugin.getWorkspace().getRuleFactory();
-// FIXME        ISchedulingRule rule = ruleFactory.markerRule(r);
-		if (sorted.keySet().size() == 1) {
-			j.setRule(sorted.keySet().iterator().next().getProject());
-		} else {
-			j.setRule(ResourcesPlugin.getWorkspace().getRoot());
-		}
+//        IResourceRuleFactory ruleFactory = 
+//                ResourcesPlugin.getWorkspace().getRuleFactory();
+//// FIXME        ISchedulingRule rule = ruleFactory.markerRule(r);
+//		if (sorted.keySet().size() == 1) {
+//			j.setRule(sorted.keySet().iterator().next().getProject());
+//		} else {
+//			j.setRule(ResourcesPlugin.getWorkspace().getRoot());
+//		}
+		j.setRule(null);
 		j.setUser(true); // true since the job has been initiated by an end-user
 		j.schedule();
 	}
@@ -363,41 +375,136 @@ public class Utils {
 		}
 		final Map<IJavaProject, List<Object>> sorted = sortByProject(res);
 		deleteMarkers(res, shell); // FIXME - does this trigger a rebuild?
-		for (final IJavaProject jp : sorted.keySet()) {
-			checkESCProject(jp,sorted.get(jp),shell,"Static Checks - Manual");
+        JobControl.JobParameters jobParameters = JobControl.launchJobControlDialog(selection,window,shell);
+        if (jobParameters == null) return;
+        if (jobParameters.alwaysSave) jobParameters.save();
+        
+    	for (final IJavaProject jp : sorted.keySet()) {
+			checkESCProject(jp,sorted.get(jp),shell,"Static Checks - Manual",jobParameters);
 		}
 	}
 	
-	public void checkESCProject(final IJavaProject jp, final List<?> ores, /*@ nullable */Shell shell, String reason) {
-		Job j = new Job(reason) {
-			public IStatus run(IProgressMonitor monitor) {
-				monitor.beginTask("Static checking of " + jp.getElementName(), 1);
-				boolean c = false;
-				try {
-					if (ores == null) {
-						LinkedList<Object> list = new LinkedList<Object>();
-						list.add(jp);
-						final List<Object> res = list;
-						getInterface(jp).executeESCCommand(Cmd.ESC, res,
-								monitor);
-					} else if (ores.size() != 0){
-						getInterface(jp).executeESCCommand(Cmd.ESC, ores,
-								monitor);
+
+    JobControl data = new JobControl();
+
+
+    /** Creates and schedules a Job to do the desired computation.
+     */
+	public void checkESCProject(final IJavaProject jp, /*@ nullable */ final List<Object> ores, /*@ nullable */Shell shell, String reason, JobControl.JobParameters jobParameters) {
+		try {
+			OpenJMLInterface iface = getInterface(jp);
+			JobControl.JobStrategy strategy1 = new JobControl.SelectedItemStrategy(jp,ores,2,reason);
+			if (jobParameters != null) strategy1 = jobParameters.strategy.getConstructor(IJavaProject.class,List.class,int.class,String.class).newInstance(jp,ores,2,reason);
+			final JobControl.JobStrategy strategy = strategy1;
+			int qs = strategy.queues();
+			int work = strategy.totalWork();
+			
+			Job job = new Job("Master ESC Job") {
+				public IStatus run(IProgressMonitor m) {
+					SubMonitor parentSubMonitor = SubMonitor.convert(m);
+					parentSubMonitor.beginTask("Static checking project " + jp.getElementName(), work+1);
+					//parentSubMonitor = null;
+					final Job jjob = this;
+					if (qs == 1) {
+						while (true) {
+							Job j = strategy.nextJob(iface,0,parentSubMonitor);
+		                    iface.setMonitor(parentSubMonitor);
+							if (j == null) break;
+							j.setRule(null);
+							j.setUser(false); // false so we do not get progress monitors for sub-jobs
+							try { 
+	                            j.schedule();
+	                            // join will throw OperationCanceledException if the monitor is canceled
+	                            // Use a timeout here so we can frequently poll for cancelation requests
+	                            // Timeout amount is somewhat arbitrary
+	                            while (!j.join(500,parentSubMonitor)) {} // spin until finished or canceled 
+								// Check for cancelation request after the job completed
+								if (j.getResult() == Status.CANCEL_STATUS) {
+	                                jjob.cancel(); // TODO - do we need this?
+	                                Log.log("Cancelled without completing all proof tasks - A");
+								    return Status.CANCEL_STATUS;
+								}
+								Log.log.equals("Completed a job " + j.getResult());
+							} catch (InterruptedException e) { 
+								break; // TODO - What is the correct action here?
+							} catch (OperationCanceledException e) {
+								// Cancelation request during join()
+								j.cancel();
+                                jjob.cancel(); // TODO - do we need this? or call done()
+                                iface.api.abort();
+                                Log.log("Cancelled without completing all proof tasks");
+								return Status.CANCEL_STATUS;
+							}
+						}
+						return Status.OK_STATUS;
+					} else {
+						JobGroup jobGroup = new JobGroup("",qs,qs);
+						Job[] jobs = new Job[qs];
+						OpenJMLInterface ifaces[] = new OpenJMLInterface[qs];
+						for (int i=0; i<ifaces.length; ++i) ifaces[i] = new OpenJMLInterface(jp);
+						AtomicInteger aq = new AtomicInteger();
+						while (true) {
+							while (aq.get()<qs) {
+								int q = 0;
+								for (;q < qs; q++) if (jobs[q] == null) break;
+								Job j = strategy.nextJob(ifaces[q],q,parentSubMonitor);
+								jobs[q] = j;
+								if (j == null) break;
+								aq.incrementAndGet();
+								j.addJobChangeListener(new JobChangeAdapter() { public void done(IJobChangeEvent e) {
+									for (int i=0; i<qs; i++) if (e.getJob() == jobs[i]) { 
+										jobs[i] = null; 
+										break; 
+									}
+									int qq = aq.decrementAndGet();
+									Log.log("Job completed " + qq);
+									Job.getJobManager().wakeUp(jjob);
+								} });
+								j.setJobGroup(jobGroup);
+								j.setRule(null);
+								j.setUser(false); // false, to suppress the progress monitor dialog for subtasks
+								j.schedule();
+								Log.log.equals("Scheduled a job " + q + " " + aq.get());
+							}
+							if (aq.get() == qs) {
+								while (aq.get() == qs) {
+									// Could have a race: if check test above; job completes; decrements aq; wakes this job; then this job sleeps 
+									//Log.log("Going to sleep " + aq.get());
+									jjob.sleep(); // sleep until some job terminates and calls wakeUp()
+									//Log.log("Awake " + aq.get());
+								}
+							} else {
+								break;
+							}
+						}
+						Log.log("Going to join " + aq.get());
+						try { jobGroup.join(0,null); }  catch (InterruptedException e) {}
+						Log.log("All done " + aq.get());
+						return Status.OK_STATUS;
 					}
+				};
+			};
+			IFile f = jp.getProject().getFile(".joblock");
+			if (!f.exists()) {
+				try {
+					f.create(new ByteArrayInputStream(new byte[0]), IResource.NONE, null);
+				} catch (ResourceException e) {
+					// Already exists? - we get here despite the f.exists test.
 				} catch (Exception e) {
-					// FIXME - this will block, preventing progress on the rest of the projects
-					Log.errorlog("Exception during Static Checking - " + jp.getElementName(), e);
-					showExceptionInUI(null, "Exception during Static Checking - " + jp.getElementName(), e);
-					c = true;
+					Log.log("Failed to lock " + e.getMessage());
 				}
-				return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
 			}
-		};
-        IResourceRuleFactory ruleFactory = 
-                ResourcesPlugin.getWorkspace().getRuleFactory();
-		j.setRule(jp.getProject());
-		j.setUser(true); // true since the job has been initiated by an end-user
-		j.schedule();
+			job.setRule(f);
+			//job.belongsTo(job);
+			job.setUser(true);  // true to show the composite progress monitor
+			job.schedule();
+//			job.join();
+//			if (job.getResult() == Status.CANCEL_STATUS) {
+//			    Log.log("Job queue canceled");
+//			}
+		} catch (Exception e) {
+			// FIXME Failure
+		}
 	}
 	
 	
@@ -435,6 +542,7 @@ public class Utils {
 	    j.setUser(true); // true since the job has been initiated by an end-user
 	    j.schedule();
 	}
+
 
 	static public java.util.Properties getProperties() {
 		return org.jmlspecs.openjml.Utils.findProperties(null);
@@ -516,8 +624,10 @@ public class Utils {
 			return;
 		}
 		
+		
 		final @NonNull Map<IJavaProject, List<IResource>> sorted = sortByProject(res);
 		for (final IJavaProject jp : sorted.keySet()) {
+			checkForJmlEnabled(shell,jp);
 			Job j = new Job("Compiling Runtime Assertions on selected resources") {
 				public IStatus run(IProgressMonitor monitor) {
 					boolean c = false;
@@ -539,6 +649,34 @@ public class Utils {
 			j.setUser(true); // true since the job has been initiated by an
 								// end-user
 			j.schedule();
+		}
+	}
+	
+	public void checkForJmlEnabled(Shell shell, IJavaProject project) {
+		try {
+			if (JMLNature.isJMLNature(project.getProject())) return;
+		} catch (CoreException e) {
+			// Log an error but proceed
+			Log.errorlog("Core Exception encountered on trying to check for a JML nature on project " + project.getElementName() + ": ",e);
+		}
+		List<String> cpes = getClasspath(project);
+		for (String s: cpes) {
+			if (s.contains("jmlruntime")) return;
+		}
+		
+		String msg = "You are compiling classes with RAC in a project that is not" +
+				" enabled for JML. The compiled executable will require the JML" +
+				" runtime library on its path to run successfully. You can either\n" +
+				"\n" +
+				"1) Enable JML for the project by selecting the project and then the menu action 'Enable JML'. " +
+				"This will add the internal instance of jmlruntime.jar to the project classpath.\n" +
+				"\n    or   \n\n" +
+				"2) You can manually add an instance of jmlruntime.jar as an 'External Jar' in the Project Properties/Java Build Path/Libraries dialog." +
+				" An instance of jmlruntime.jar is available, for example, in the download of the OpenJML command-line tools." +
+				"\n\nShall I Enable JML on the " + project.getElementName() + " project for you now?";
+		boolean ok = showConfirmInUI(shell,"OpenJML classpath warning",msg);
+		if (ok) {
+			JMLNature.enableJMLNature(project.getProject());
 		}
 	}
 
@@ -568,7 +706,9 @@ public class Utils {
 			showMessage(shell, "JML RAC Marked", "No projects selected");
 			return;
 		}
+		
 		for (final IJavaProject jp : projects) {
+			checkForJmlEnabled(shell,jp);
 			racMarked(jp);
 		}
 	}
@@ -2079,6 +2219,7 @@ public class Utils {
 				try {
 					IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(OpenJMLView.ID);
 					((OpenJMLView)view).refresh();
+					((OpenJMLView)view).start();
 				} catch (PartInitException e) {
 					// FIXME - report error?
 				}
@@ -2086,13 +2227,13 @@ public class Utils {
 		});
 	}
 	
-	public void refreshView(final String symname) {
+	public void refreshView(IJavaProject jproject, final String symname) {
 		Display d = Display.getDefault();
 		d.asyncExec(new Runnable() {
 			public void run() {
 				try {
 					IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(OpenJMLView.ID);
-					((OpenJMLView)view).refresh(symname);
+					((OpenJMLView)view).refresh(jproject,symname);
 				} catch (PartInitException e) {
 					// FIXME - report error?
 				} catch (RuntimeException e) {
@@ -2103,13 +2244,26 @@ public class Utils {
 	}
 	
 	/** Returns the ProofView, if it exists, null otherwise */
-	public OpenJMLView findView() {
-		IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(OpenJMLView.ID);
-		return ((OpenJMLView)view);
+	static public OpenJMLView findView() {
+		IWorkbench wb = PlatformUI.getWorkbench();
+		IWorkbenchWindow w = wb.getActiveWorkbenchWindow();
+		if (w != null) {
+			IWorkbenchPage ap = w.getActivePage();
+			IViewPart view = ap.findView(OpenJMLView.ID);
+			return ((OpenJMLView)view);
+		}
+
+		for (IWorkbenchWindow ww: wb.getWorkbenchWindows()) {
+			for (IWorkbenchPage pg: ww.getPages()) {
+				IViewPart view = pg.findView(OpenJMLView.ID);
+				return ((OpenJMLView)view);
+			}
+		}
+		return null;
 	}
 	
 	/** Creates (if needed) and returns the Proof View */
-	public OpenJMLView showView() {
+	static public OpenJMLView showView() {
 		try {
 			IWorkbench w = PlatformUI.getWorkbench();
 			IWorkbenchWindow ww = w.getActiveWorkbenchWindow();
@@ -2127,23 +2281,37 @@ public class Utils {
 		Display d = Display.getDefault();
 		d.asyncExec(new Runnable() {
 			public void run() {
-				setTraceViewUI(null, methodName,text);
+				setTraceViewUI(null, methodName,text,true);
 			}
 		});
 	}
 	
 	/** Creates (if needed) and returns the trace view, setting the given data; MUST be called from the UI thread */
-	public void setTraceViewUI(/*@ nullable*/ TraceView tview, final String methodName, final String text) {
+	public void setTraceViewUI(/*@ nullable*/ TraceView tview, final String methodName, final String text, boolean show) {
 		try {
 			if (tview == null) {
-				IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TraceView.ID);
-				if (!(view instanceof TraceView)) return; // FIXME - this would be an internal error
+			    IViewPart view;
+			    if (show) {
+			        view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TraceView.ID);
+			    } else {
+	                view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(TraceView.ID);
+			    }
+                if (!(view instanceof TraceView)) return; // FIXME - this would be an internal error
 				tview = (TraceView)view;
 			}
 			tview.setText(methodName, text);
 		} catch (PartInitException e) {
 			// FIXME - report error?
 		}
+	}
+	
+	public String currentTraceViewUISignature(/*@ nullable*/ TraceView tview) {
+	    if (tview == null) {
+	        IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(TraceView.ID);
+	        if (!(view instanceof TraceView)) return null; // FIXME - this would be an internal error
+	        tview = (TraceView)view;
+	    }
+	    return tview.signature;
 	}
 	
 	/** Creates (if needed) and returns the trace view, setting it to data for the most recent selection in the Proof View. */
@@ -2156,7 +2324,7 @@ public class Utils {
         String methodName = ti.getText();
         ICounterexample ce = res == null ? null : res.counterexample();
         String text = ce instanceof Counterexample ? ((Counterexample)ce).traceText : null;
-        setTraceViewUI(tview, methodName, text);
+        setTraceViewUI(tview, methodName, text, true);
 	}
 	
 	public void setTraceView(final IJavaProject currentProject) {
@@ -2710,6 +2878,10 @@ public class Utils {
 				jp = JavaCore.create(((IResource) o).getProject());
 			} else if (o instanceof IJavaElement) {
 				jp = ((IJavaElement) o).getJavaProject();
+			} else if (o instanceof IEditorInput) {
+				// This option happens if the file is not in a Java project
+				showMessageInUI(null,"OpenJML Error","To apply OpenJML tools, source files must be in Java projects, with a build environment set: " + ((IEditorInput)o).getName());
+				continue;
 			} else {
 				Log.errorlog(
 						"INTERNAL ERROR: Unexpected content for a selection List - "
@@ -2753,7 +2925,7 @@ public class Utils {
 	 * @param msg
 	 *            The message to display in the dialog
 	 */
-	public void showMessageInUI(@Nullable Shell shell,
+	public static void showMessageInUI(@Nullable Shell shell,
 			@NonNull final String title, @NonNull final String msg) {
 		final Shell fshell = shell;
 		Display d = fshell == null ? Display.getDefault() : fshell.getDisplay();
@@ -2764,10 +2936,23 @@ public class Utils {
 		});
 	}
 
+	// Must already be in the UI thread
+	public static boolean showConfirmInUI(@Nullable Shell shell,
+			@NonNull final String title, @NonNull final String msg) {
+		final Shell fshell = shell;
+		Display d = fshell == null ? Display.getDefault() : fshell.getDisplay();
+//		d.asyncExec(new Runnable() {
+//			public void run() {
+//				MessageDialog.openConfirm(fshell, title, msg);
+//			}
+//		});
+		return MessageDialog.openConfirm(fshell, title, msg);
+	}
+
 	/** Pops up a dialog showing the given message and thte stack trace of the
 	 * given exception; may be called from the computational thread.
 	 */
-	public void showExceptionInUI(@Nullable Shell shell, String message,
+	public static void showExceptionInUI(@Nullable Shell shell, String message,
 			Throwable e) {
 		
 		String emsg = e == null ? null : e.getMessage();
@@ -2982,6 +3167,41 @@ public class Utils {
 		}
 		return count;
 	}
+	public int countMethods(List<?> elements) {
+	    int count = 0;
+        for (Object r: elements) {
+            try {
+                if (r instanceof IPackageFragment) {
+                    count += countMethods((IPackageFragment)r);
+                } else if (r instanceof IJavaProject) {
+                    count += countMethods((IJavaProject)r);
+                } else if (r instanceof IProject) {
+                    count += countMethods((IProject)r);
+                } else if (r instanceof IPackageFragmentRoot) {
+                    count += countMethods((IPackageFragmentRoot)r);
+                } else if (r instanceof ICompilationUnit) {
+                    count += countMethods((ICompilationUnit)r);
+                } else if (r instanceof IType) {
+                    count += countMethods((IType)r);
+                } else if (r instanceof IMethod) {
+                    count += 1;
+                } else if (r instanceof IFile || r instanceof IFolder) {
+                    // If a file is not part of a source folder, then we
+                    // don't have Java elements and it is not a ICompilationUnit
+                    // So we can't really count the methods in it.
+                    // The number used here is arbitrary, and will result in
+                    // a bad estimate of the work to be done. 
+                    // TODO - count the methods using the OpenJML AST.
+                    count += 1;
+                } else {
+                    Log.log("Can't count methods in a " + r.getClass());
+                }
+            } catch (Exception e) {
+                // FIXME - record exception
+            }
+        }
+        return count;
+	}
 	
 	public int countMethods(IPackageFragment pf) throws Exception {
 		int count = 0;
@@ -2993,12 +3213,29 @@ public class Utils {
 		}
 		return count;
 	}
+	
 	public int countMethods(ICompilationUnit cu) throws Exception {
-		int count = 1; // For the file
-		for (IType t: cu.getTypes()) {
-			count += countMethods(t);
-		}
+	    int count = 0;
+	    for (IType t: cu.getTypes()) {
+	        count += countMethods(t);
+	    }
 		return count;
+	}
+	
+	public static class Counter extends JmlTreeScanner {
+
+	    int count = 0;
+	    
+	    public void visitJmlMethodDecl(JmlMethodDecl m) {
+	        count++;
+	        super.visitJmlMethodDecl(m);
+	    }
+	    
+	    public static int count(JCTree t) {
+	        Counter c = new Counter();
+	        t.accept(c);
+	        return c.count;
+	    }
 	}
 
 	public int countMethods(IResource f) throws Exception {
@@ -3017,7 +3254,7 @@ public class Utils {
 	}
 
 	public int countMethods(IType t) throws Exception {
-		// FIXME - this does not count methods in anonymous or local types
+		// FIXME - this does not count anonymous or local types or their methods
 		int count = 0;
 		IType[] types = t.getTypes();
 		for (IType tt: types) {
@@ -3032,7 +3269,8 @@ public class Utils {
 		return methods.length + count;  
 	}
 
-	public int countMethods(IMethod m) throws Exception {
+	public int countMethods(IMethod m) throws Exception { 
+	    // Does not find local or anonymous classes
 		return 1;
 	}
 

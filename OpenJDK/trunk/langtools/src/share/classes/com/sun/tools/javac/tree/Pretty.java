@@ -212,7 +212,7 @@ public class Pretty extends JCTree.Visitor {
      *************************************************************************/
 
     /** Exception to propogate IOException through visitXXX methods */
-    protected static class UncheckedIOException extends Error { // DRC - changed from private to protected
+    public static class UncheckedIOException extends Error { // DRC - changed from private to public
         static final long serialVersionUID = -4032692679158424751L;
         public UncheckedIOException(IOException e) { // DRC - changed from package to public
             super(e.getMessage(), e);

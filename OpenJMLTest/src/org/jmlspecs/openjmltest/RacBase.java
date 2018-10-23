@@ -210,7 +210,7 @@ public abstract class RacBase extends JmlTestCase {
             if (data.length() > 0) {
                 String[] lines = data.split(term);
                 for (String line: lines) {
-                	if (isMac && !line.equals(list[i]) && line.startsWith(macstring)) line = line.substring(macstring.length());
+                	if (isMac && line.startsWith(macstring) && i < list.length && !line.equals(list[i])) line = line.substring(macstring.length());
                     if (i < list.length) assertEquals("Output line " + i, list[i], line);
                     i++;
                 }
@@ -299,6 +299,7 @@ public abstract class RacBase extends JmlTestCase {
             args.add("-rac");
             args.add("-no-purityCheck");
             args.add("-code-math=java");
+            args.add("-spec-math=bigint");
             if (new File(dirname).isDirectory()) args.add("-dir");
             args.add(dirname);
             args.addAll(Arrays.asList(opts));
@@ -309,14 +310,14 @@ public abstract class RacBase extends JmlTestCase {
             
             String compdiffs = "";
             if (new File(outputdir + "/" + expected_compile).exists()) {
-            	compdiffs = compareFiles(outputdir + "/" + expected_compile, actCompile);
+            	compdiffs = outputCompare.compareFiles(outputdir + "/" + expected_compile, actCompile);
         		if (compdiffs == null) {
         			new File(actCompile).delete();
         		} 
         	} else {
             	for (String file: new File(outputdir).list()) {
             		if (!file.contains("expected-compile")) continue;
-            		compdiffs = compareFiles(outputdir + "/" + file, actCompile);
+            		compdiffs = outputCompare.compareFiles(outputdir + "/" + file, actCompile);
             		if (compdiffs == null) {
             			new File(actCompile).delete();
             			break;
@@ -325,7 +326,8 @@ public abstract class RacBase extends JmlTestCase {
             }
             if (compdiffs != null) {
                 if (compdiffs.isEmpty()) {
-                    fail("No expected output file for compiler output");
+                    compdiffs = ("No expected output file for compiler output");
+                    System.out.println(compdiffs);
                 } else {
                     System.out.println(compdiffs);
                     //  fail("Files differ: " + compdiffs);
@@ -352,7 +354,7 @@ public abstract class RacBase extends JmlTestCase {
                 String diffs = "";
                 for (String file: new File(outputdir).list()) {
                     if (!file.contains("expected-run")) continue;
-                    diffs = compareText(outputdir + "/" + file,output);
+                    diffs = outputCompare.compareText(outputdir + "/" + file,output);
                     if (diffs == null) break;
                 }
                 if (diffs != null) {

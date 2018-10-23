@@ -71,7 +71,6 @@ public class escfunction extends EscBase {
                 +"  //@ assert !(\\forall int k; 3<k && k <11; m(k));\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method mm",7
                 );
     }
 

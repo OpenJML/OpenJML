@@ -1,10 +1,11 @@
-..\..\OpenJMLDemo\src\openjml\clock\TickTockClockA.java:27: error: An identifier with protected visibility may not be used in a ensures clause with public visibility
+..\..\OpenJMLDemo\src\openjml\clock\TickTockClockA.java:26: error: An identifier with protected visibility may not be used in a ensures clause with public visibility
 	//@ ensures \result == hour;
 	                       ^
-..\..\OpenJMLDemo\src\openjml\clock\TickTockClockA.java:32: error: An identifier with protected visibility may not be used in a ensures clause with public visibility
+..\..\OpenJMLDemo\src\openjml\clock\TickTockClockA.java:31: error: An identifier with protected visibility may not be used in a ensures clause with public visibility
 	//@ ensures \result == minute;
 	                       ^
-..\..\OpenJMLDemo\src\openjml\clock\TickTockClockA.java:38: error: An identifier with protected visibility may not be used in a ensures clause with public visibility
+..\..\OpenJMLDemo\src\openjml\clock\TickTockClockA.java:37: error: An identifier with protected visibility may not be used in a ensures clause with public visibility
 	//@ ensures \result == second;
 	                       ^
+Operation not performed because of parse or type errors
 3 errors

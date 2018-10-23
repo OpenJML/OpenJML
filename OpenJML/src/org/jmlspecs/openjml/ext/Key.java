@@ -15,6 +15,7 @@ import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.ListBuffer;
 
 public class Key extends ExpressionExtension {
     
@@ -32,7 +33,12 @@ public class Key extends ExpressionExtension {
     
     @Override
     public Type typecheck(JmlAttr attr, JCExpression expr,
-            Env<AttrContext> env) {
+            Env<AttrContext> localEnv) {
+        JmlMethodInvocation tree = (JmlMethodInvocation)expr;
+        JmlTokenKind token = tree.token;
+        ListBuffer<Type> argtypesBuf = new ListBuffer<>();
+        attr.attribArgs(tree.args, localEnv, argtypesBuf);
+        // FIXME - check that argumentw are strings
         return syms.booleanType;
     }
     

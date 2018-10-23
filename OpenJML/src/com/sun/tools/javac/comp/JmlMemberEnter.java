@@ -22,6 +22,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.JavaFileObject.Kind;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -253,6 +254,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         if (remove == null) remove = new ListBuffer<>();
                         remove.add(t);
                     }
+                    if (t instanceof JCMethodDecl && ((JCMethodDecl)t).sym == null) {
+                        if (remove == null) remove = new ListBuffer<>();
+                        remove.add(t);
+                    }
                 }
                 if (remove != null) {
                     for (JCTree t: remove) {
@@ -410,6 +415,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     MethodSpecs ms;
                     if (m.specsDecl == null) {
                         ms = specs.defaultSpecs(m);
+                        annotateLater(tree.mods.annotations, methodEnv((JmlMethodDecl)t, env), m.sym, tree.pos());
                     } else {
                         ms = new MethodSpecs(m.specsDecl);
                     }
@@ -440,8 +446,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     
     protected boolean noEntering = false;
     
-    
-    protected void visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, Scope enclScope) {
+    /** Returns true if there is a duplicate, whether or not it was warned about */
+    protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, Scope enclScope) {
+        boolean was = ((JmlCheck)chk).noDuplicateWarn;
+        if (m.isConstructor() && (m.flags() & Utils.JMLBIT) != 0 && m.params().isEmpty()) {
+            ((JmlCheck)chk).noDuplicateWarn = true;
+        }
         if (chk.checkUnique(tree.pos(), m, enclScope)) {
             if (!noEntering) {
                 if (tree.body == null && m.owner.isInterface() && utils.isJML(m.flags())) {
@@ -450,6 +460,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 }
                 enclScope.enter(m);
             }
+            ((JmlCheck)chk).noDuplicateWarn = was;
+            return true;
+        } else {
+            if (!((JmlCheck)chk).noDuplicateWarn) tree.sym = null;  // FIXME - this needs some testing
+            ((JmlCheck)chk).noDuplicateWarn = was;
+            return false;
         }
     }
 
@@ -528,6 +544,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             }
         } else {
             matchSym = specsVarDecl.sym;
+        }
+        if (specsVarDecl.sym == null && matchSym != null && matchSym.pos == Position.NOPOS) {
+            matchSym.pos = specsVarDecl.pos;
         }
         
         // matchsym == null ==> no match; otherwise matchSym is the matching symbol
@@ -638,6 +657,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // Note that if the class is binary, javaDecl will be null, but csym will not
 
         MethodSymbol matchSym = false ? specsMethodDecl.sym : matchMethod(specsMethodDecl,csym,env,false);
+        if (matchSym != null && matchSym.owner != csym) {
+            log.warning("jml.message", "Unexpected location (ASD): " + csym);
+            matchSym = specsMethodDecl.sym;
+        }
         
         // matchsym == null ==> no match or duplicate; otherwise matchSym is the matching symbol
         
@@ -671,6 +694,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
         // The matches map holds any previous matches found - all to specification declarations
         JCTree prevMatch = matchesSoFar.get(matchSym);
+        if ((matchSym.flags() & Flags.GENERATEDCONSTR) != 0 && prevMatch instanceof JmlMethodDecl && utils.findMod(((JmlMethodDecl)prevMatch).mods, JmlTokenKind.MODEL) == null)  prevMatch = null;
         if (prevMatch != null) {
             // DO extra checking since we are discarding this declaration because it is already matched
             if (!utils.isJML(specsMethodDecl.mods)) {
@@ -813,12 +837,28 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         newdefs.add(ms);
                 
         // We can't use the annotations on the symbol because the annotations are not 
-        // necessarily completed. We could force it, but in the interst of least disruption
+        // necessarily completed. We could force it, but in the interest of least disruption
         // of the OpenJDK processing, we just use the AST instead.
         JmlAttr attr = JmlAttr.instance(context);
         Map<Name,JmlVariableDecl> modelMethodNames = new HashMap<>();
         Symbol modelSym = attr.tokenToAnnotationSymbol.get(JmlTokenKind.MODEL);
-        for (JCTree decl: specstree.defs) {
+        if (specstree != null) for (JCTree decl: specstree.defs) {  // FIXME - should specstree ever be null
+            if (decl instanceof JmlMethodDecl) {
+                if (!utils.rac) continue;
+                JmlMethodDecl md = (JmlMethodDecl)decl;
+                if (!md.isJML() || md.body != null) continue;
+                boolean isModel = utils.findMod(md.mods,JmlTokenKind.MODEL)!= null;
+                if (!isModel) continue;
+                if ((md.mods.flags & Flags.DEFAULT) != 0 || (md.mods.flags & Flags.ABSTRACT) == 0) {
+                    JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
+                    JCExpression expr = treeutils.makeUtilsMethodCall(md.pos, "noModelMethodImplementation",
+                            treeutils.makeStringLiteral(md.pos, md.name.toString()));
+                    JCStatement stat = jmlF.Exec(expr);
+                    JCStatement stat2 = jmlF.Return(treeutils.makeZeroEquivalentLit(decl.pos,md.sym.getReturnType()));
+                    md.body = jmlF.Block(0L, List.<JCStatement>of(stat,stat2));
+                } 
+                continue;
+            }
             if (!(decl instanceof JmlVariableDecl)) continue;
             JmlVariableDecl vdecl = (JmlVariableDecl)decl;
             JCAnnotation annotation = utils.findMod(vdecl.mods, modelSym);
@@ -873,7 +913,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         mr.mods.flags |= Utils.JMLADDED;   // FIXME - why?
         mr.pos = modelVarDecl.pos;
         utils.setJML(mr.mods);
-        mr.mods.annotations = List.<JCAnnotation>of(utils.tokenToAnnotationAST(JmlTokenKind.MODEL,modelVarDecl.pos,modelVarDecl.getEndPosition(log.getSource(modelVarDecl.sourcefile).getEndPosTable())));
+        int endpos = modelVarDecl.getEndPosition(log.getSource(modelVarDecl.sourcefile).getEndPosTable());
+        mr.mods.annotations = List.<JCAnnotation>of(utils.tokenToAnnotationAST(JmlTokenKind.MODEL,modelVarDecl.pos,endpos),
+                                                    utils.tokenToAnnotationAST(JmlTokenKind.PURE,modelVarDecl.pos,endpos)
+                );
         JmlSpecs.FieldSpecs fspecs = specs.getSpecs(modelVarDecl.sym);
         JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);
         tcd.pos = mr.pos;
@@ -900,6 +943,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     protected void checkSameAnnotations(Symbol sym, JCModifiers specsmods, JavaFileObject javaSource) {
         // FIXME - check for null in annotations?
         if (sym.isAnonymous()) return;
+        boolean saved1 = JmlPretty.useFullAnnotationTypeName, saved2 = JmlPretty.useJmlModifier;
+        JmlPretty.useFullAnnotationTypeName = JmlPretty.useJmlModifier = false;
         PackageSymbol p = ((JmlAttr)attr).annotationPackageSymbol;
         for (Compound a  : sym.getAnnotationMirrors()) {
             if (a.type.tsym.owner.equals(p)) {
@@ -914,12 +959,15 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 }
             }
         }
+        JmlPretty.useFullAnnotationTypeName = saved1; JmlPretty.useJmlModifier = saved2;
     }
 
     /** Checks that the jml annotations are a superset of the Java annotations (for annotations in org.jmlspecs.annotation) */
     // MUST HAVE log.useSource set to specs file!
     protected void checkSameAnnotations(JCModifiers javaMods, JCModifiers specsmods, JavaFileObject javaSource) { // FIXME - don't need last argument
         PackageSymbol p = ((JmlAttr)attr).annotationPackageSymbol;
+        boolean saved1 = JmlPretty.useFullAnnotationTypeName, saved2 = JmlPretty.useJmlModifier;
+        JmlPretty.useFullAnnotationTypeName = JmlPretty.useJmlModifier = false;
         for (JCAnnotation a: javaMods.getAnnotations()) {
             if (a.type.tsym.owner.equals(p)) {
                 if (utils.findMod(specsmods,a.type.tsym) == null) {
@@ -933,6 +981,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 }
             }
         }
+        JmlPretty.useFullAnnotationTypeName = saved1; JmlPretty.useJmlModifier = saved2;
     }
 
     public void checkFieldMatch(JmlVariableDecl javaField, VarSymbol javaSym, JmlVariableDecl specField) {
@@ -1128,12 +1177,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JmlResolve jmlResolve = JmlResolve.instance(context);
         boolean prevSilentErrors = jmlResolve.silentErrors;
         jmlResolve.silentErrors = true;
-        jmlResolve.errorOccurred = false;
+//        jmlResolve.errorOccurred = false;
         try {
             s = jmlResolve.resolveMethod(tree.pos(), localEnv, tree.name, paramTypes.toList(),typaramTypes.toList());
         } finally {
             jmlResolve.silentErrors = prevSilentErrors;
-            if (jmlResolve.errorOccurred) s = null;
+//            if (jmlResolve.errorOccurred) s = null;
         }
 //        Symbol s = JmlResolve.instance(context).findMethod(env,csym.asType(),
 //                tree.name,paramTypes.toList(),typaramTypes.toList(),
@@ -1877,7 +1926,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             if (isInstance && !wasStatic) tree.mods.flags &= ~Flags.STATIC;
         }
         boolean prev = resolve.allowJML();
-        if (utils.isJML(tree.mods)) resolve.setAllowJML(true);
+        boolean isReplacementType = ((JmlVariableDecl)tree).jmltype;
+        
+        if (utils.isJML(tree.mods) || isReplacementType) resolve.setAllowJML(true);
         
 //        boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
 //        ((JmlCheck)chk).noDuplicateWarn = false;

@@ -17,7 +17,7 @@ public class Container {
         return c;
     }
 
-    /*@ public normal_behavior
+    /*@ also public normal_behavior
       @   assignable \nothing;
       @   ensures \result <==> (obj instanceof Container) && ((Container) obj).a == a;
       @*/
@@ -29,7 +29,7 @@ public class Container {
         private /*@ spec_public non_null @*/ Container c;
 
         /*@ private normal_behavior
-          @   assignable c;
+          @   assignable \nothing;
           @   ensures true;
           @*/
         private /*@ helper @*/ ContainerUser() { c = new Container(); }

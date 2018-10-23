@@ -13,10 +13,10 @@ public class User {
       @   assignable age;
       @   ensures age == newAge;
       @   ensures \result == this;
-      @ also
-      @ public exceptional_behavior
-      @   requires newAge < 0 || newAge >= 150;
-      @   signals_only Exception;
+//      @ also
+//      @ public exceptional_behavior
+//      @   requires newAge < 0 || newAge >= 150;
+//      @   signals_only Exception;
       @*/
     public User setAge(int newAge) throws Exception {
         if (newAge < 0 || newAge >= 150) {

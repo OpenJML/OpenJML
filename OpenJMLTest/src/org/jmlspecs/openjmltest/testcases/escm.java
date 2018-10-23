@@ -17,7 +17,7 @@ public class escm extends EscBase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        main.addOptions("-code-math=java");
+        main.addOptions("-code-math=bigint");  // To avoid overflow reports and semantics
     }
     
     /** This test checks that nested, local and anonymous classes are handled */
@@ -69,7 +69,7 @@ public class escm extends EscBase {
                 +"       class C { /*@ ensures false; */ void mc() {  }};\n"
                 +"       C x;\n"
                 +"       class D { void md() {  }};\n" // Line 10
-                +"       D y = new D() { /*@ ensures false; */ void md() {}};\n"
+                +"       D y = new D() { /*@ also ensures false; */ void md() {}};\n"
                 +"       class E { /*@ ensures false; */void me() {  }};\n"
                 +"       E z = new E() {  void me() {}};\n"
                 +"  }\n"
@@ -85,8 +85,8 @@ public class escm extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method mc",45
                 ,"/tt/TestJava.java:8: warning: Associated declaration",22
-                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method md",51
-                ,"/tt/TestJava.java:11: warning: Associated declaration",28
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method md",56
+                ,"/tt/TestJava.java:11: warning: Associated declaration",33
                 ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Postcondition) in method me",44
                 ,"/tt/TestJava.java:12: warning: Associated declaration",22
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method me",30
@@ -99,7 +99,7 @@ public class escm extends EscBase {
     /** This test checks that the specs of nested, local and anonymous classes are used */
     @Test
     public void testNestedClassSpecs() {
-        main.addOptions("-checkFeasibility=precondition");
+        main.addOptions("-checkFeasibility=precondition,exit");
         //main.addOptions("-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -132,11 +132,9 @@ public class escm extends EscBase {
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (InvariantExit) in method C",8  // C.<init>
                 ,"/tt/TestJava.java:9: warning: Associated declaration",23
                 ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method C.m()",17  // The false invariant is triggered as a constructor postcondition
-                ,anyorder(
-                        seq("/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantExit) in method tt.TestJava$1$",22 // Constructor of anonymous D // FIXME - need name for anonymous constructor
-                                ,"/tt/TestJava.java:13: warning: Associated declaration",35)
-                       ,seq("/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantExceptionExit) in method tt.TestJava$1$",22 // Constructor of anonymous D
-                                ,"/tt/TestJava.java:13: warning: Associated declaration",35))
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantExit) in method tt.TestJava$1$",22 // Constructor of anonymous D // FIXME - need name for anonymous constructor
+                ,"/tt/TestJava.java:13: warning: Associated declaration",35
+                      
                 ,"/tt/TestJava.java:13: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.1.m()",59 // m() of anonymous D
                 ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (InvariantExit) in method E",8  // E.<init>
                 ,"/tt/TestJava.java:14: warning: Associated declaration",29
@@ -222,7 +220,6 @@ public class escm extends EscBase {
 
     @Test
     public void testAnon() {
-    	//main.addOptions("-show","-method=tt.TestJava.1.","-subexpressions");//,"-method=m2");
         main.addOptions("-checkFeasibility=none");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -308,7 +305,9 @@ public class escm extends EscBase {
                     ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",8
                     ,"/tt/TestJava.java:14: warning: Associated declaration",7
                     ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m4bad",28
-                    ,"/tt/TestJava.java:28: warning: Associated declaration",9
+                    ,"/tt/TestJava.java:31: warning: Associated declaration",14
+                    ,"/tt/TestJava.java:36: warning: Associated method exit",8
+                    ,optional("/tt/TestJava.java:28: warning: Precondition conjunct is false: b",18)
                 );
     }
 
@@ -376,14 +375,15 @@ public class escm extends EscBase {
                     ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",8
                     ,"/tt/TestJava.java:14: warning: Associated declaration",7
                     ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m4bad",28
-                    ,"/tt/TestJava.java:28: warning: Associated declaration",9
+                    ,"/tt/TestJava.java:31: warning: Associated declaration",21
+                    ,"/tt/TestJava.java:36: warning: Associated method exit",8
+                    ,optional("/tt/TestJava.java:28: warning: Precondition conjunct is false: b",18)
                 );
     }
 
     @Test
     public void testMethodsInSpecs2() {
         //main.addOptions("-no-minQuant");
-        //main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { static public boolean b; \n"
@@ -414,7 +414,6 @@ public class escm extends EscBase {
 
     @Test
     public void testMethodsInSpecs3() {
-        main.addOptions("-show","-method=m1","-subexpressions");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { static public boolean b; \n"

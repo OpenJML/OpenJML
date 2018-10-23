@@ -1343,7 +1343,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         return false;
     }
 
-    private static <T extends JCTree> List<T> cleanTrees(List<T> nodes) {
+    public static <T extends JCTree> List<T> cleanTrees(List<T> nodes) {  // OPENJML - private to public
         for (T node : nodes)
             treeCleaner.scan(node);
         return nodes;

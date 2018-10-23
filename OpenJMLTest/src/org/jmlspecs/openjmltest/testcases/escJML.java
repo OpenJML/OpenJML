@@ -53,7 +53,6 @@ public class escJML extends EscBase {
 
     @Test
     public void testLBLint() {
-        //main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(int i) { \n"

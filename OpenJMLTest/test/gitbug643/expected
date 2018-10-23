@@ -1,0 +1,33 @@
+test/gitbug643/Test.java:3: error: Method specs preceding an empty declaration are ignored
+	//@ requires i > 0;;
+	                   ^
+test/gitbug643/Test.java:10: error: Method specs may not precede a variable declaration
+	public int k;
+	           ^
+test/gitbug643/Test.java:13: error: Method specs may not precede a variable declaration
+	//@ model public int kk;
+	                     ^
+test/gitbug643/Test.java:16: error: Method specs may not precede a class declaration
+	public static class C{}
+	              ^
+test/gitbug643/Test.java:19: error: Method specs may not precede a class declaration
+	//@ model public static class CC{}
+	                        ^
+test/gitbug643/Test.java:24: error: Method specs preceding an empty declaration are ignored
+	;
+	^
+test/gitbug643/Test.java:26: error: Misplaced method specifications preceding a invariant clause (ignored)
+	//@ requires true;
+	    ^
+test/gitbug643/Test.java:29: error: Misplaced method specifications preceding a constraint clause (ignored)
+	//@ requires true;
+	    ^
+test/gitbug643/Test.java:32: error: Misplaced method specifications preceding a axiom clause (ignored)
+	//@ requires true;
+	    ^
+test/gitbug643/Test.java:35: error: Misplaced method specifications preceding a initially clause (ignored)
+	//@ requires true;
+	    ^
+Continuing bravely despite parsing errors
+Operation not performed because of parse or type errors
+10 errors

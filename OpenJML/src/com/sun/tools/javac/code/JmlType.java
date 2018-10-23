@@ -1,3 +1,8 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ * Reviewed: 2018-03-13
+ */
 package com.sun.tools.javac.code;
 
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -21,11 +26,12 @@ public class JmlType extends Type {
     /** The Class used to represent this type in RAC - do not use this
      * value directly since it is lazily initialized in JmlTypes.
      */
-    protected Symbol.ClassSymbol repSym;
+    public Symbol.ClassSymbol repSym;
     
     /** Creates a new primitive type with the given token - should be a 
      * singleton for each new JML type */
-    public JmlType(JmlTokenKind token, String fullyQualifiedClassName) {
+    // package visibility
+    JmlType(JmlTokenKind token, String fullyQualifiedClassName) {
         super(null);
         jmlTypeTag = token;
         fqName = fullyQualifiedClassName;
@@ -52,7 +58,7 @@ public class JmlType extends Type {
     }
 
 
-
+    /** The return type is a JDK type, so it is TypeTag.NONE for any JML types. */
     @Override
     public TypeTag getTag() {
         return TypeTag.NONE;

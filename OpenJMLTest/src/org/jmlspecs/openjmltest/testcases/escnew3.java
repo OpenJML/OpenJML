@@ -237,7 +237,7 @@ public class escnew3 extends EscBase {
                 +"  //@ modifies \\everything;\n"
                 +"  public void m1b() {\n"
                 +"    t = new TestJava();\n"
-                +"    //@ assert \\not_modified(t.i) ? true: true;\n"  // BAD
+                +"    //@ assert \\not_modified(t.i) ? true: true;\n"  // OK
                 +"  }\n"
                 
                 +"  //@ modifies \\everything;\n"
@@ -248,13 +248,13 @@ public class escnew3 extends EscBase {
                  
                 +"}"
                 ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1a",31
-                ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1b",31
                 ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1c",31
                 );
     }
     
     @Test
     public void testCast() {
+        main.addOptions("-code-math=safe","-spec-math=safe");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -452,7 +452,7 @@ public class escnew3 extends EscBase {
                 +"public class TestJava { \n"
                 +"  private int i;\n"
                 +"  //@ assignable i;\n"
-                +"  public TestJava() { i = 0; }\n"
+                +"  public void mm() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
@@ -510,7 +510,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  private int i;\n"
-                +"  //@ requires true; assignable this.*; \n" // default assignable
+                +"  //@ requires true; pure \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -525,7 +525,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  private int i;\n"
-                +"  //@ assignable this.*; \n" // default assignable
+                +"  //@ pure \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -553,7 +553,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
-                +"  //@ assignable this.*; \n" // default assignable
+                +"  //@ pure \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -579,7 +579,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
-                +"  //@ requires true; assignable this.*; \n" // default assignable
+                +"  //@ requires true; pure \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -593,7 +593,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
-                +"  //@ assignable state; \n"
+                +"  //@ pure \n"
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -606,7 +606,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
-                +"  //@ assignable this.state; \n"
+                +"  //@ pure \n"
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -645,7 +645,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava {\n"
                 +"  /*@ spec_public */ private int i;\n"
-                +"  //@ assignable this.*; \n" // default assignable
+                +"  //@ pure \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -658,7 +658,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava {\n"
                 +"  /*@ spec_public */ private int i;\n"
-                +"  //@ requires true; assignable this.*; \n" // default assignable
+                +"  //@ requires true; pure \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -671,7 +671,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  /*@ spec_public */ private int i; \n"
-                +"  //@ assignable i; \n"
+                +"  //@ pure \n"
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -684,7 +684,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  /*@ spec_public */ private int i; \n"
-                +"  //@ assignable this.i; \n"
+                +"  //@ pure \n"
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -785,6 +785,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testBits() {
+    	//main.addOptions("-show","-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m() {\n"
@@ -803,43 +804,42 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testLabels() {
-    	main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { \n"
-                + "  //@ requires i == 10;\n"
-                + "  public void m(int i) {\n"
+                + "  //@ requires iii == 10;\n"
+                + "  public void m(int iii) {\n"
                 + "     a:{};\n"
-                + "     i = 12;\n"
+                + "     iii = 12;\n"
                 + "     b:{};\n"
-                + "     i = 14;\n"
-                + "     //@ assert \\old(i) == 10;\n"
-                + "     //@ assert \\old(i,a) == 10;\n"
-                + "     //@ assert \\old(i,b) == 12;\n"
-                + "     //@ assert i == 14;\n"
+                + "     iii = 14;\n"
+                + "     //@ assert \\old(iii) == 10;\n"
+                + "     //@ assert \\old(iii,a) == 10;\n"
+                + "     //@ assert \\old(iii,b) == 12;\n"
+                + "     //@ assert iii == 14;\n"
                 + "    }\n"
                 + "}"
                  );
         
     }
 
-    @Test
+     @Test
     public void testLabels2() {
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { \n"
                 + "  public int k;\n"
-                + "  /*@ ensures \\result == k; */ public int mm() { return k; }\n"
+                + "  /*@ ensures \\result == k; pure */ public int mm() { return k; }\n"
                 + "  //@ requires k == 10;\n"
                 + "  public void m() {\n"
                 + "     a:{}\n"
                 + "     k = 12;\n"
                 + "     b:{}\n"
-                + "     k = 14;\n"
+                + "     k = 14;\n"    // Line 10
                 + "     //@ assert \\old(mm()) == 10;\n"
                 + "     //@ assert \\old(mm(),a) == 10;\n"
                 + "     //@ assert \\old(mm(),b) == 12;\n"
-                + "     //@ assert mm() == 14;\n"
+//                + "     //@ assert mm() == 14;\n"
                 + "    }\n"
                 + "}"
                  );
@@ -848,7 +848,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testOldClause() {
-    	main.addOptions("-escMaxWarnings=1","-subexpressions","-show","-method=m");
+    	main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { \n"
@@ -976,6 +976,20 @@ public class escnew3 extends EscBase {
                 + "     int[] result1 = new int[]{1};\n"
                 + "     int[] result2 = result1.clone();\n"
                 + "     return result2;\n"
+                + "  }\n"
+                + "}"
+                 );
+        
+    }
+    
+    @Test
+    public void testInvariants() {
+        helpTCX("tt.TestJava",
+                  "package tt; \n"
+                + "public class TestJava {\n"
+                + "  //@ ensures \\result == (\\lbl BYTES Integer.BYTES);\n"
+                + "  public int foo() {\n"
+                + "     return 4;\n"
                 + "  }\n"
                 + "}"
                  );

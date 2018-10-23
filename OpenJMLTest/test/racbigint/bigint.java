@@ -48,7 +48,8 @@ public class bigint {
         //@ set bbb++;
         //@ assert (\lbl BBB bbb) == -417;
         BigInteger bxx = new BigInteger("123456789012345678901234567890");
-        //@ assert (\lbl TRUE bx != bxx);
+        System.out.println((bx!=bxx));
+        //@ assert (\lbl TRUE bx != bxx);   // This is an object comparison
         //@ ghost \bigint bix = bx;
         //@ assert (\lbl TRUE bix == bxx);
         //@ assert (\lbl TRUE ((\bigint)bx) == bxx);

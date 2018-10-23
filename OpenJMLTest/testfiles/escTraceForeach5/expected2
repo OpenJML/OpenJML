@@ -10,41 +10,41 @@ testfiles\escTraceLoops\trace.java:205:  	requires a != null;
 testfiles\escTraceLoops\trace.java:206:  	int j = 0
 			VALUE: 0	 === 0
 			VALUE: j	 === 0
-testfiles\escTraceLoops\trace.java:207:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+testfiles\escTraceLoops\trace.java:207:  	//@ loop_invariant j == \count && 0 <= \count && \count <= a.length;
 			VALUE: j	 === 0
-			VALUE: \index	 === 0
-			VALUE: j == \index	 === true
+			VALUE: \count	 === 0
+			VALUE: j == \count	 === true
 			VALUE: 0	 === 0
-			VALUE: \index	 === 0
-			VALUE: 0 <= \index	 === true
-			VALUE: j == \index && 0 <= \index	 === true
-			VALUE: \index	 === 0
+			VALUE: \count	 === 0
+			VALUE: 0 <= \count	 === true
+			VALUE: j == \count && 0 <= \count	 === true
+			VALUE: \count	 === 0
 			VALUE: a	 === @uc_REF_2
 			VALUE: a.length	 === 2
-			VALUE: \index <= a.length	 === true
-			VALUE: j == \index && 0 <= \index && \index <= a.length	 === true
+			VALUE: \count <= a.length	 === true
+			VALUE: j == \count && 0 <= \count && \count <= a.length	 === true
 testfiles\escTraceLoops\trace.java:209:  	Begin loop check
-testfiles\escTraceLoops\trace.java:207:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+testfiles\escTraceLoops\trace.java:207:  	//@ loop_invariant j == \count && 0 <= \count && \count <= a.length;
 			VALUE: j	 === 1
-			VALUE: \index	 === 1
-			VALUE: j == \index	 === true
+			VALUE: \count	 === 1
+			VALUE: j == \count	 === true
 			VALUE: 0	 === 0
-			VALUE: \index	 === 1
-			VALUE: 0 <= \index	 === true
-			VALUE: j == \index && 0 <= \index	 === true
-			VALUE: \index	 === 1
+			VALUE: \count	 === 1
+			VALUE: 0 <= \count	 === true
+			VALUE: j == \count && 0 <= \count	 === true
+			VALUE: \count	 === 1
 			VALUE: a	 === @uc_REF_2
 			VALUE: a.length	 === 2
-			VALUE: \index <= a.length	 === true
-			VALUE: j == \index && 0 <= \index && \index <= a.length	 === true
+			VALUE: \count <= a.length	 === true
+			VALUE: j == \count && 0 <= \count && \count <= a.length	 === true
 testfiles\escTraceLoops\trace.java:208:  	//@ decreases -j;
 			VALUE: j	 === 1
 			VALUE: -j	 === ( - 1 )
 				Initial Value of Loop Decreases Expression = ( - 1 )
 testfiles\escTraceLoops\trace.java:209:  	Loop test
-			VALUE: \index	 === 1
+			VALUE: \count	 === 1
 			VALUE: _JML__tmp111	 === 2
-			VALUE: \index < _JML__tmp111	 === true
+			VALUE: \count < _JML__tmp111	 === true
 testfiles\escTraceLoops\trace.java:208: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method mforeach5
         //@ decreases -j;
             ^

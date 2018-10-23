@@ -25,7 +25,7 @@ package sv_rac;
  * addition and subtraction and rounded for the multiplication. The
  * division is not implemented because it is the terminal that it does
  * this action */
-public class Decimal extends Object{
+@org.jmlspecs.annotation.CodeSafeMath public class Decimal extends Object{
     ////////////////      ATTRIBUTES       ////////////////
     
     /**

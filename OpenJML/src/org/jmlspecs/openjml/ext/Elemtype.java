@@ -40,8 +40,9 @@ public class Elemtype extends ExpressionExtension {
     }
     
     static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
-            JmlTokenKind.BSELEMTYPE,JmlTokenKind.BSTYPEOF,
-            JmlTokenKind.BSOLD,JmlTokenKind.BSPAST,JmlTokenKind.BSPRE,JmlTokenKind.BSNOWARN, JmlTokenKind.BSNOWARNOP,
+            JmlTokenKind.BSELEMTYPE, JmlTokenKind.BSTYPEOF,
+            JmlTokenKind.BSOLD, JmlTokenKind.BSPAST, JmlTokenKind.BSPRE, JmlTokenKind.BSNOWARN, JmlTokenKind.BSNOWARNOP,
+            JmlTokenKind.BSPOST, JmlTokenKind.BSASSIGNS,
             JmlTokenKind.BSWARN, JmlTokenKind.BSWARNOP}; }
     
     @Override
@@ -53,28 +54,37 @@ public class Elemtype extends ExpressionExtension {
         JmlMethodInvocation tree = (JmlMethodInvocation)expr;
         JmlTokenKind token = tree.token;
         
-        // Expect one argument of any array type, result type is \TYPE
-        // The argument expression may contain JML constructs
-        ListBuffer<Type> argtypesBuf = new ListBuffer<>();
-        attr.attribArgs(tree.args, localEnv, argtypesBuf);
-        //attr.attribTypes(tree.typeargs, localEnv);
-        int n = tree.args.size();
-        if (n != 1) {  // FIXME _ incorrect for BSOLD
-            error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+        switch (token) {
+            case BSELEMTYPE:
+                // Expect one argument of any array type, result type is \TYPE
+                // The argument expression may contain JML constructs
+                ListBuffer<Type> argtypesBuf = new ListBuffer<>();
+                attr.attribArgs(tree.args, localEnv, argtypesBuf);
+                //attr.attribTypes(tree.typeargs, localEnv);
+                int n = tree.args.size();
+                if (n != 1) {  // FIXME _ incorrect for BSOLD
+                    error(tree.pos(),"jml.one.arg",token.internedName(),n);
+                }
+                Type t = syms.errType;
+                if (n > 0) {
+                    Type tt = tree.args.get(0).type;
+                    if (tt == jmltypes.TYPE) {
+                        t = jmltypes.TYPE;
+                    } else if (tree.args.get(0).type.tsym == syms.classType.tsym) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
+                        t = syms.classType;
+                    } else {
+                        error(tree.args.get(0).pos(),"jml.elemtype.expects.classtype",tree.args.get(0).type.toString());
+                        t = jmltypes.TYPE;
+                    }
+                }
+                return t;
+            case BSPOST:
+                // FIXME - need to check types
+                return syms.booleanType;
+            default:
+                error(tree.pos(), "jml.error", "Unimplemented backslash token type in ElemType.typecheck: " + token);
+                return null;
         }
-        Type t = syms.errType;
-        if (n > 0) {
-            Type tt = tree.args.get(0).type;
-            if (tt == jmltypes.TYPE) {
-                t = jmltypes.TYPE;
-            } else if (tree.args.get(0).type.tsym == syms.classType.tsym) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
-                t = syms.classType;
-            } else {
-                error(tree.args.get(0).pos(),"jml.elemtype.expects.classtype",tree.args.get(0).type.toString());
-                t = jmltypes.TYPE;
-            }
-        }
-        return t;
     }
 
 }

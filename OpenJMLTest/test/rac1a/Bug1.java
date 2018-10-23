@@ -1,19 +1,13 @@
 import java.util.LinkedList;
 import java.util.List;
 
+// Simplified version of test rac1
 // Still need to sort out whether \elemtype can return null
 public class Bug1 {
 
     public static void main(String... args) {
         LinkedList<?>[] a = new LinkedList<?>[1];
         a[0] = new LinkedList<Boolean>();
-        //int k = 0; Object o = new Object();
-        // @ ghost \TYPE t = \elemtype(\typeof(a));
-        // @ assert (\lbl TY t) == \type(LinkedList<Object>);
-        // @ assert (\lbl TY2 \typeof(k)) == \type(int);
-        // @ set  t = (\lbl TY3 \elemtype(\typeof(k)));
-        // @ set  t = (\lbl TY4 \elemtype(\typeof(o)));
-
         System.out.println("END");
     }
 }

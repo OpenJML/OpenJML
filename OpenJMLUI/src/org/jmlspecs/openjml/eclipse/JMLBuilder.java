@@ -181,7 +181,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		// compilation context.
 		// Make a copy of the list because the list is used on a separate thread and 
 		// might be cleared before it is finished processing.
-		List<IResource> list = new LinkedList<IResource>();
+		List<Object> list = new LinkedList<>();
 		list.addAll(resourcesToBuild);
 		boolean done = false;
 		if (Options.isOption(Options.enableRacKey)) {
@@ -190,7 +190,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		} 
 		if (Options.isOption(Options.enableESCKey)) {
 			// FIXME - use monitor, be incremental?
-			Activator.utils().checkESCProject(jproject,list,null,"Static Checks - Auto"); //$NON-NLS-1$
+			Activator.utils().checkESCProject(jproject,list,null,"Static Checks - Auto", null); //$NON-NLS-1$
 			done = true;
 		} 
 		if (!done) {

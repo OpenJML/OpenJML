@@ -10,12 +10,15 @@ import org.jmlspecs.openjmltest.TestJavaFileObject;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.JmlToken;
+import com.sun.tools.javac.parser.ParserFactory;
 import com.sun.tools.javac.parser.Scanner;
 import com.sun.tools.javac.parser.ScannerFactory;
 import com.sun.tools.javac.parser.Tokens;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Options;
 
 import static org.junit.Assert.*;
 
@@ -114,7 +117,6 @@ public class scanner extends JmlTestCase {
             fail("Exception thrown while processing test: " + e);
         }
     }
-
     ////////////////////////////////////////////////////////////////////////
     
     /** Test scanning something very simple */
@@ -257,9 +259,9 @@ public class scanner extends JmlTestCase {
     
     /** Tests JML operators */
     @Test public void testOperators() {
-        helpScanner("/*@ ==> <== <: <==> <=!=> -> <- */",
-                new ITokenKind[]{IMPLIES,REVERSE_IMPLIES,SUBTYPE_OF,EQUIVALENCE,INEQUIVALENCE,RIGHT_ARROW,LEFT_ARROW,EJML},
-                new int[]{4,7, 8,11, 12,14, 15,19, 20,25, 26,28, 29,31, 32,34});
+        helpScanner("/*@ ==> <== <: <==> <=!=> <- */",
+                new ITokenKind[]{IMPLIES,REVERSE_IMPLIES,SUBTYPE_OF,EQUIVALENCE,INEQUIVALENCE,LEFT_ARROW,EJML},
+                new int[]{4,7, 8,11, 12,14, 15,19, 20,25, 26,28, 29,31});
     }
     
     /** Tests the Java operators related to JML operators */
@@ -286,6 +288,18 @@ public class scanner extends JmlTestCase {
         helpScanner("/*@ <=!= + */",
                 new ITokenKind[]{LTEQ,BANGEQ,PLUS,EJML},
                 new int[]{4,6,6,8,9,10,11,13});
+    }
+
+    @Test public void testArrow() {  // Now a Java operator, but in JML context
+        helpScanner("/*@ -> */",
+                new ITokenKind[]{ARROW,EJML},
+                new int[]{4,6,7,9});
+    }
+
+    @Test public void testArrow2() {  // Now a Java operator, in Java context
+        helpScanner("    ->   ",
+                new ITokenKind[]{ARROW},
+                new int[]{4,6});
     }
 
     // NOTE:  In the test strings, backslash characters must be escaped.  So
@@ -838,15 +852,35 @@ public class scanner extends JmlTestCase {
     }
 
     @Test public void testConditionalKey9() {
+    	Options.instance(context).put("-Xlint:deprecation","true");
         helpScanner("//+@ requires\n  /*+@ requires */",
                 new ITokenKind[]{REQUIRES,EJML,REQUIRES,EJML,EOF},
-                null);
+                null,2);
+        checkMessages("/TEST.java:1: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",3
+        		,"/TEST.java:2: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",5);
     }
 
     @Test public void testConditionalKey10() {
+    	Options.instance(context).put("-Xlint:deprecation","true");
         helpScanner("//-@ requires\n  /*-@ requires */",
                 new ITokenKind[]{EOF},
-                null);
+                null,
+                2);
+        checkMessages("/TEST.java:1: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",3
+        		,"/TEST.java:2: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",5);
+    }
+
+    @Test public void testConditionalKey9d() {
+        helpScanner("//+@ requires\n  /*+@ requires */",
+                new ITokenKind[]{REQUIRES,EJML,REQUIRES,EJML,EOF},
+                null,0);
+    }
+
+    @Test public void testConditionalKey10d() {
+        helpScanner("//-@ requires\n  /*-@ requires */",
+                new ITokenKind[]{EOF},
+                null,
+                0);
     }
 
 

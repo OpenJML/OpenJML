@@ -59,6 +59,9 @@ public class Label {
     /** Used for implicit, miscellaneous JML assume statements */
     /*@ non_null*/ public final static Label METHOD_DEFINITION = new Label("MethodDefinition");
     
+    /** Used for implicit, miscellaneous JML assume statements */
+    /*@ non_null*/ public final static Label METHOD_ASSUME = new Label("MethodAssume");
+    
     /** Used for basic assume statements generated from assignments */
     /*@ non_null*/ public final static Label ASSIGNMENT = new Label("Assignment");
     
@@ -139,6 +142,9 @@ public class Label {
 
     /** Used for assume statements generated to adjust DSA variables */
     /*@ non_null*/ public final static Label DSA = new Label("DSA");
+
+    /** Used for assume statements generated to adjust DSA variables */
+    /*@ non_null*/ public final static Label SOURCEBLOCK = new Label("SOURCEBLOCK");
 
     /** Used for explicit, user-specified assert statements */
     /*@ non_null*/ public final static Label EXPLICIT_ASSERT = new Label("Assert");
@@ -233,6 +239,9 @@ public class Label {
     /** Used to designate an undefined pure expression because of a failed precondition in a called method */
     /*@ non_null*/ public final static Label UNDEFINED_PRECONDITION = new Label("UndefinedCalledMethodPrecondition");
     
+    /** Used to designate an undefined pure expression because of a failed precondition for a lemma */
+    /*@ non_null*/ public final static Label UNDEFINED_LEMMA = new Label("UndefinedLemmaPrecondition");
+    
     /** Used for assert statements generated from non-null checks when unboxing */
     /*@ non_null*/ public final static Label UNDEFINED_NULL_UNBOX = new Label("UndefinedNullUnbox");
     
@@ -280,6 +289,9 @@ public class Label {
     
     /** Used to designate a possible ArrayStoreException because of an array assignment */
     /*@ non_null*/ public final static Label POSSIBLY_BAD_ARRAY_ASSIGNMENT = new Label("PossiblyBadArrayAssignment");
+
+    /** Used flor checks of compatible specifications for functional interfaces */
+    /*@ non_null*/ public final static Label POSSIBLY_INCOMPATIBLE_FUNCTIONAL_SPECS = new Label("PossiblyIncompatibleFunctionalSpecs");
 
 
 

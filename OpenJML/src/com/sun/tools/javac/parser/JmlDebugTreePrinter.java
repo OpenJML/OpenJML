@@ -1,6 +1,7 @@
 /*
  * This file is part of the OpenJML project. 
  * Author: David R. Cok
+ * Reviewed 2018-03-19
  */
 package com.sun.tools.javac.parser;
 
@@ -30,6 +31,8 @@ public class JmlDebugTreePrinter extends JmlTreeScanner {
     
     /** The end position map */
     @Nullable AbstractEndPosTable endPositions;
+    
+    // FIXME - should get endPositions from the log or source for the current tree node, since that can  change
     
     /** A constructor for the tree
      * @param out where to write the output information

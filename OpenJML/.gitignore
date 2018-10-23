@@ -5,8 +5,9 @@
 openjml.properties
 /log
 openjml-master-*
-openjml-*
+openjml-*.zip
 kernel*.json
 /strongarm-error.log
 /temp/
 /releases/
+.DS_Store

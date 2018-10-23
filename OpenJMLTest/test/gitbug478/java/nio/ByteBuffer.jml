@@ -281,8 +281,11 @@ public abstract class ByteBuffer
     // reduce the number of virtual method invocations needed to access these
     // values, which is especially costly when coding small buffers.
 
+    //@ spec_public
     final byte[] hb;                  // Non-null only for heap buffers
+    //@ spec_public
     final int offset;
+    //@ spec_public
     boolean isReadOnly;                 // Valid only for heap buffers
 
     // useful model definitions

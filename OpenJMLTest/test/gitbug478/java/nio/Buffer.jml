@@ -196,7 +196,7 @@ public abstract class Buffer {
     // after checking invariants.
     //
     /*@ normal_behavior
-      @   assignable this.mark, position, limit, capacity;
+      @   assignable \nothing;
       @   requires mark <= pos && pos <= lim && lim <= cap;
       @   requires cap >= 0;
       @   ensures this.capacity == cap

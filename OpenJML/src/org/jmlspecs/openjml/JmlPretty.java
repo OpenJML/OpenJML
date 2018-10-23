@@ -4,8 +4,7 @@
  */
 package org.jmlspecs.openjml;
 
-import static com.sun.tools.javac.code.Flags.ENUM;
-import static com.sun.tools.javac.code.Flags.INTERFACE;
+import static com.sun.tools.javac.tree.JCTree.Tag.PARENS;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -13,71 +12,14 @@ import java.io.Writer;
 import java.util.Iterator;
 
 import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.openjml.JmlTree.JmlBinary;
-import org.jmlspecs.openjml.JmlTree.JmlBlock;
-import org.jmlspecs.openjml.JmlTree.JmlChoose;
-import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
-import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
-import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
-import org.jmlspecs.openjml.JmlTree.JmlForLoop;
-import org.jmlspecs.openjml.JmlTree.JmlGroupName;
-import org.jmlspecs.openjml.JmlTree.JmlImport;
-import org.jmlspecs.openjml.JmlTree.JmlLabeledStatement;
-import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignals;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
-import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlModelProgramStatement;
-import org.jmlspecs.openjml.JmlTree.JmlPrimitiveTypeTree;
-import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
-import org.jmlspecs.openjml.JmlTree.JmlSetComprehension;
-import org.jmlspecs.openjml.JmlTree.JmlSingleton;
-import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
-import org.jmlspecs.openjml.JmlTree.JmlStatement;
-import org.jmlspecs.openjml.JmlTree.JmlStatementDecls;
-import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
-import org.jmlspecs.openjml.JmlTree.JmlStatementHavoc;
-import org.jmlspecs.openjml.JmlTree.JmlStatementLoop;
-import org.jmlspecs.openjml.JmlTree.JmlStatementSpec;
-import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
-import org.jmlspecs.openjml.JmlTree.JmlStoreRefKeyword;
-import org.jmlspecs.openjml.JmlTree.JmlStoreRefListExpression;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConditional;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConstraint;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseIn;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMaps;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
-import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
+
+import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.*;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCBlock;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCImport;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.tree.Pretty.UncheckedIOException;
 //import com.sun.tools.javac.tree.Pretty.UncheckedIOException;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
@@ -203,11 +145,19 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     
     public void visitJmlBinary(JmlBinary that) {
         try {
-            that.lhs.accept(this);
-            print(" ");
+            int ownprec = JmlParser.jmlPrecedence(that.op); // FIXME - This needs a bit more testing
+            int p = ownprec;
+            if (ownprec == -2) {
+                if (that.op == JmlTokenKind.EQUIVALENCE || that.op == JmlTokenKind.INEQUIVALENCE) p = TreeInfo.orPrec - 2;
+                else p = TreeInfo.orPrec - 1;
+            }
+            open(prec, p);
+            printExpr(that.lhs, p);
+            print(Strings.space);
             print(that.op.internedName());
-            print(" ");
-            that.rhs.accept(this);
+            print(Strings.space);
+            printExpr(that.rhs, p + 1);
+            close(prec, p);
         } catch (IOException e) { perr(that,e); }
     }
     
@@ -238,7 +188,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlLabeledStatement(JmlLabeledStatement that) {
         try {
-//            printStats(that.extraStatements.toList());
+            printStats(that.extraStatements.toList());
             print(that.label + ":");
             printStat(that.body);
         } catch (IOException e) {
@@ -255,7 +205,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             print(" ");
             print(that.label.toString());
             print(" ");
-            that.expression.accept(this);
+            printExpr(that.expression);
         } catch (IOException e) { perr(that,e); }
     }
     
@@ -314,7 +264,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try { 
             print(that.token.internedName());
             print(" ");
-            that.expression.accept(this);
+            printExpr(that.expression);  // noPrec
             print("; ");
         } catch (IOException e) { perr(that,e); }
     }
@@ -330,7 +280,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 iter.next().accept(this);
                 while (iter.hasNext()) {
                     print(", ");
-                    iter.next().accept(this);
+                    iter.next().accept(this);// FIXME printExpr?
                 }
             }
             print("; ");
@@ -344,7 +294,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             that.expression.accept(this);
             if (that.predicate != null) {
                 print(" if ");
-                that.predicate.accept(this);
+                printExpr(that.predicate);
+;
             }
             print("; ");
         } catch (IOException e) { perr(that,e); }
@@ -395,7 +346,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 }
             }
             print(") ");
-            that.expression.accept(this);
+            printExpr(that.expression);
             print("; ");
         } catch (IOException e) { perr(that,e); }
     }
@@ -424,35 +375,42 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+        int savedPrec = prec;
+        prec = TreeInfo.noPrec;
         try { 
             // FIXME - it appears that the enclosing parentheses are parsed as a Parens
             // expression - is this really right?
             print(that.op.internedName());
-            print(" ");
+            print(" "); //$NON-NLS-1$
             boolean first = true;
             for (JCTree.JCVariableDecl n: that.decls) {
-                if (!first) print(", ");
+                if (!first) print(", "); //$NON-NLS-1$
                 else first = false;
                 n.accept(this);
             }
-            print("; ");
-            if (that.range != null) that.range.accept(this);
-            print("; ");
-            if (that.value != null) that.value.accept(this);
-            else print("????:");
-        } catch (IOException e) { perr(that,e); }
+            print("; "); //$NON-NLS-1$
+            if (that.range != null) printExpr(that.range);
+
+            print("; "); //$NON-NLS-1$
+            if (that.value != null) printExpr(that.value);
+            else print("????:"); //$NON-NLS-1$
+        } catch (IOException e) { 
+        	perr(that,e); 
+        } finally {
+        	prec = savedPrec;
+        }
     }
 
     public void visitJmlSetComprehension(JmlSetComprehension that) {
         int oldprec = prec;
         prec = 0;
         try { 
-                print("new ");
+                print("new "); //$NON-NLS-1$
                 that.newtype.accept(this);
                 print(" { ");
                 that.variable.accept(this);
                 print(" | ");
-                that.predicate.accept(this);
+                printExpr(that.predicate);
                 print(" }");
         } 
         catch (IOException e) { perr(that,e); }
@@ -508,35 +466,98 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                         c.accept(this);
                     }
                 }
+                if (that.block != null) {
+                    println();
+                    align();
+                    that.block.accept(this);
+                }
             } finally {
                 undent();
             }
         } catch (IOException e) { perr(that,e); }
     }
 
-    /** debug and set statements */
+    /** debug and set and end statements */
     public void visitJmlStatement(JmlStatement that) {
         try { 
             if (useJMLComments) print ("/*@ ");
             print(that.token.internedName());
             print(" ");
-            that.statement.accept(this);
+            if (that.token == JmlTokenKind.END) print(": ");
+            else that.statement.accept(this);
             if (useJMLComments) print("*/");
         } catch (IOException e) { perr(that,e); }
     }
 
-    public void visitJmlStatementLoop(JmlStatementLoop that) {
+    /** inlined_loop statement */
+    public void visitJmlInlinedLoop(JmlInlinedLoop that) {
+        try {
+            if (that.loopSpecs != null) {
+                for (JmlStatementLoop s: that.loopSpecs) {
+                    s.accept(this);
+                    println();
+                    align();
+                }
+            }
+            if (useJMLComments) print ("/*@ ");
+            print(JmlTokenKind.INLINED_LOOP.internedName());
+            //print(that.token.internedName());
+            print(";");
+            if (useJMLComments) print("*/");
+        } catch (IOException e) { perr(that,e); }
+    }
+
+    /** show statement */
+    public void visitJmlStatementShow(JmlStatementShow that) {
+        try { 
+            if (useJMLComments) print ("/*@ ");
+            print(that.token.internedName());
+            boolean first = true;
+            for (JCExpression e: that.expressions) {
+                if (!first) print(",");
+                else first = false;
+                print(" ");
+                e.accept(this);
+            }
+            print(";");
+            if (useJMLComments) print("*/");
+        } catch (IOException e) { perr(that,e); }
+    }
+
+    public void visitJmlStatementLoopExpr(JmlStatementLoopExpr that) {
         try { 
             if (useJMLComments) print("//@ ");
             print(that.token.internedName());
             print(" ");
-            that.expression.accept(this);
+            printExpr(that.expression); // noPrecÍP
+            print(";");
+        } catch (IOException e) { perr(that,e); }
+    }
+
+    public void visitJmlStatementLoopModifies(JmlStatementLoopModifies that) {
+        try { 
+            if (useJMLComments) print ("//@ ");
+            print(that.token.internedName());
+
+            print(" ");
+            boolean first = true;
+            for (JCTree item: that.storerefs) {
+                if (first) first = false; else print(", ");
+                item.accept(this); // FISXME - printExpr?
+            }
             print(";");
         } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlStatementSpec(JmlStatementSpec that) {
         that.statementSpecs.accept(this);
+        if (that.statements != null) {
+            try {
+                printStats(that.statements);
+            } catch (IOException e) {
+                perr(that,e); 
+            }
+        }
     }
 
     public void visitJmlStatementExpr(JmlStatementExpr that) {
@@ -577,7 +598,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             boolean first = true;
             for (JCTree item: that.storerefs) {
                 if (first) first = false; else print(", ");
-                item.accept(this);
+                item.accept(this); // FISXME - printExpr?
             }
             print("; ");
         } catch (IOException e) { perr(that,e); }
@@ -596,7 +617,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (that.modifiers != null) that.modifiers.accept(this);  // includes trailing space if non-empty
             print(that.token.internedName());
             print(" ");
-            printExpr(that.expression);
+            printExpr(that.expression); // TreeInfo.noPrec
             print("; ");
         } catch (IOException e) { perr(that,e); }
     }
@@ -667,7 +688,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (that.modifiers != null) that.modifiers.accept(this);  // includes trailing space if non-empty
             print(that.token.internedName());
             print(" ");
-            that.expression.accept(this);
+            printExpr(that.expression);
             if (that.sigs != null && !that.sigs.isEmpty()) {
                 print(" for ");
                 if (that.notlist) print("! "); 
@@ -692,7 +713,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             print(" ");
             that.ident.accept(this);
             print(" = ");
-            that.expression.accept(this);
+            printExpr(that.expression);
             print("; ");
         } catch (IOException e) { perr(that,e); }
     }
@@ -706,7 +727,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             that.identifier.accept(this);
             if (that.expression != null) {
                 print(" if ");
-                that.expression.accept(this);
+                printExpr(that.expression);
             }
             print("; ");
         } catch (IOException e) { perr(that,e); }
@@ -723,7 +744,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             boolean first = true;
             for (JCExpression item: that.list) {
                 if (first) first = false; else print(", ");
-                item.accept(this);
+                printExpr(item);
             }
             print("; ");
         } catch (IOException e) { perr(that,e); }
@@ -737,19 +758,19 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
         try {
-            that.expression.accept(this);
+            printExpr(that.expression);
             print('[');
             if (that.lo == null) {
                 print('*');
             } else if (that.hi == that.lo) {
-                that.lo.accept(this);
+                printExpr(that.lo);   // FIXME - what is the precedence of ..
             } else if (that.hi == null) {
-                that.lo.accept(this);
+                printExpr(that.lo);
                 print(" .. *");
             } else {
-                that.lo.accept(this);
+            	printExpr(that.lo);
                 print(" .. ");
-                that.hi.accept(this);
+                printExpr(that.hi);
             }
             print(']');
         } catch (IOException e) { perr(that,e); }
@@ -768,7 +789,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             boolean first = true;
             for (JCTree expr : that.list) {
                 if (first) first = false; else print(',');
-                expr.accept(this);
+                printExpr(expr);
             }
             print(')');
         } catch (IOException e) { perr(that,e); }
@@ -779,6 +800,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
      * in order to conserve space. [FIXME - this will actually create illegal
      * source if there is no import statement for the annotations. ]
      */
+    static public boolean useFullAnnotationTypeName = true;
+    static public boolean useJmlModifier = true;
+    
     @Override
     public void visitAnnotation(JCAnnotation tree) {
         try {
@@ -789,10 +813,19 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             // tree.type is null.
             String s = (tree.type != null) ? tree.type.toString() :
                 tree.annotationType.toString();
-            if (s.startsWith(Strings.jmlAnnotationPackage)) {
-                s = s.substring(Strings.jmlAnnotationPackage.length()+1); // +1 for the extra period
-                print("@");
-                print(s);
+            boolean isJml = s.startsWith(Strings.jmlAnnotationPackage);
+            if (useJmlModifier && isJml) {
+                for (JmlTokenKind t: JmlTokenKind.values()) {
+                    if (t.annotationType != null && t.annotationType.toString().substring("interface ".length()).equals(s)) {
+                        print("/*@ " + t.internedName() + " */");
+                        return;
+                    }
+                }
+                super.visitAnnotation(tree);
+            } else if (!useFullAnnotationTypeName && isJml) {
+                    s = s.substring(Strings.jmlAnnotationPackage.length()+1); // +1 for the extra period
+                    print("@");
+                    print(s);
             } else {
                 super.visitAnnotation(tree);
             }
@@ -810,20 +843,51 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             align();
         }
     }
+    
+    public void printStatementSpecs(List<JmlStatementLoop> loopspecs) throws IOException {
+        if (loopspecs != null) {
+            for (List<? extends JCTree> l = loopspecs; l.nonEmpty(); l = l.tail) {
+                printStat(l.head);
+                println();
+                align();
+            }
+        }
+    }
+
+    // Fixes some formatting problems in super.visitDoLoop
+    @Override
+    public void visitDoLoop(JCDoWhileLoop tree) {
+        try {
+            print("do ");
+            printStat(tree.body);
+            //align();
+            print(" while ");
+            if (tree.cond.hasTag(PARENS)) {
+                printExpr(tree.cond);
+            } else {
+                print("(");
+                printExpr(tree.cond);
+                print(")");
+            }
+            print(";");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
-        if (that.loopSpecs != null) for (JmlStatementLoop s: that.loopSpecs) {
-            s.accept(this);
-        }
-        super.visitDoLoop(that);
+        try {
+            if (that.loopSpecs != null) {
+                printStatementSpecs(that.loopSpecs);
+            }
+            visitDoLoop(that);
+        } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
         try {
-            if (that.loopSpecs != null) for (JmlStatementLoop s: that.loopSpecs) {
-                s.accept(this);
-                println();
-                align();
+            if (that.loopSpecs != null) {
+                printStatementSpecs(that.loopSpecs);
             }
             super.visitForeachLoop(that);
         } catch (IOException e) { perr(that,e); }
@@ -832,11 +896,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlForLoop(JmlForLoop that) {
         try {
             if (that.loopSpecs != null) {
-                for (JmlStatementLoop s: that.loopSpecs) {
-                    s.accept(this);
-                    println();
-                    align();
-                }
+                printStatementSpecs(that.loopSpecs);
             }
             super.visitForLoop(that);
         } catch (IOException e) { perr(that,e); }
@@ -845,11 +905,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlWhileLoop(JmlWhileLoop that) {
         try {
             if (that.loopSpecs != null) {
-                for (JmlStatementLoop s: that.loopSpecs) {
-                    s.accept(this);
-                    println();
-                    align();
-                }
+                printStatementSpecs(that.loopSpecs);
             }
             super.visitWhileLoop(that);
         } catch (IOException e) { perr(that,e); }
@@ -944,7 +1000,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                     printStat(l.head);
                 }
             }
-            if (!inSequence && tree.specsCompilationUnit != null) {
+            if (!inSequence && tree.specsCompilationUnit != null && !useJMLComments) {
                 boolean prevInSequence = inSequence; // should always be false, since we don't call this more than one level deep
                 inSequence = true;
                 try {
@@ -1120,15 +1176,17 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public static JmlPrettyFormatter racFormatter;
     
     interface JmlPrettyFormatter {
-        public String formatLine(String file, int lineNumber, String line);
+        default public String formatLine(String file, int lineNumber, String line) {
+            return line;
+        }
     }
     
     static {
         racFormatter = new JmlPrettyFormatter() {
-            @Override
-            public String formatLine(String file, int lineNumber, String line) {
-                return String.format("[jmlrac:%s:%d]    %s", file, lineNumber, line);
-            }
+//            @Override
+//            public String formatLine(String file, int lineNumber, String line) {
+//                return String.format("[jmlrac:%s:%d]    %s", file, lineNumber, line);
+//            }
         };
 
     }

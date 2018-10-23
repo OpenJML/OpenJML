@@ -7,4 +7,5 @@
 ..\..\OpenJMLDemo\src\openjml\clock\TickTockClock.java:31: error: An identifier with protected visibility may not be used in a assignable clause with public visibility
       @  assignable hour, minute, second; // ERROR - these fields are not public
                                   ^
+Operation not performed because of parse or type errors
 3 errors

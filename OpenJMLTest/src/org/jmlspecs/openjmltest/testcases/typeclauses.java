@@ -597,9 +597,15 @@ public class typeclauses extends TCBase {
     
     @Test
     public void testIn2() {
-        helpTCF("A.java","public class A extends B{\n /*@ spec_public */ protected int k; \n int n; //@ in k, this.k, super.kk; \n} class B { //@ model int kk; \n}"
+        helpTCF("A.java","public class A extends B{\n protected int k; \n int n; //@ in k, this.k, super.kk; \n} class B { //@ model int kk; \n}"
                 ,"/A.java:3: Datagroups in \"in\" and \"maps\" clauses must be model variables",16
                 ,"/A.java:3: Datagroups in \"in\" and \"maps\" clauses must be model variables",19
+                );
+    }
+    
+    @Test
+    public void testIn2a() {
+        helpTCF("A.java","public class A extends B{\n /*@ spec_public */ protected int k; \n int n; //@ in k, this.k, super.kk; \n} class B { //@ model int kk; \n}"
                 );
     }
     

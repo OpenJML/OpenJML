@@ -1,0 +1,23 @@
+test/escRecursiveInvariant/RecursiveInvariant.java:4: error: Recursive attempt to assert or assume invariants - use pure helper methods: RecursiveInvariant
+    //@ public invariant m();
+                          ^
+Proving methods in RecursiveInvariant
+Starting proof of RecursiveInvariant.RecursiveInvariant() with prover !!!!
+test/escRecursiveInvariant/RecursiveInvariant.java:4: warning: The prover cannot establish an assertion (InvariantEntrance) in method RecursiveInvariant:  (Caller: RecursiveInvariant.RecursiveInvariant(), Callee: RecursiveInvariant.m())
+    //@ public invariant m();
+                          ^
+test/escRecursiveInvariant/RecursiveInvariant.java:4: warning: Associated declaration
+    //@ public invariant m();
+               ^
+Completed proof of RecursiveInvariant.RecursiveInvariant() with prover !!!! - with warnings
+Starting proof of RecursiveInvariant.m() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of RecursiveInvariant.m() with prover !!!! - no warnings
+Starting proof of RecursiveInvariant.t() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of RecursiveInvariant.t() with prover !!!! - no warnings
+Completed proving methods in RecursiveInvariant
+1 error
+2 warnings

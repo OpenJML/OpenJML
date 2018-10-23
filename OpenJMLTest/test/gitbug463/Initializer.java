@@ -2,7 +2,7 @@ public class Initializer {
     public int a;
 
     /*@ public normal_behavior
-      @   assignable this.a;
+      @   assignable \nothing;
       @   ensures this.a == a;
       @*/
     public Initializer(int a) {
@@ -21,7 +21,7 @@ public class Initializer {
         return other;
     }
 
-    /*@ public normal_behavior
+    /*@ also public normal_behavior
       @   assignable \nothing;
       @   ensures \result <==> obj instanceof Initializer && ((Initializer) obj).a == a;
       @*/

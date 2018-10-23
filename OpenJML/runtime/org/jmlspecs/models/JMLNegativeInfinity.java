@@ -30,7 +30,7 @@ import java.math.BigInteger;
  * @author Gary T. Leavens
  * @see JMLPositiveInfinity
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ class JMLNegativeInfinity extends JMLInfiniteIntegerClass {
 
     //@ public represents is_infinite <- true;

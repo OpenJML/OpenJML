@@ -37,7 +37,7 @@ package org.jmlspecs.models;
  * @see JMLString
  * @see JMLType
  */
-//-@ immutable
+//+OPENJML@ immutable
 public /*@ pure @*/ class JMLChar implements JMLComparable {
 
     /** The character that is the abstract value of this object.

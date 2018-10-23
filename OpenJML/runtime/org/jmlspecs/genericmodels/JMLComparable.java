@@ -26,7 +26,7 @@ import org.jmlspecs.annotation.*;
  * @author Gary T. Leavens, generics by DRCok
  * @see java.lang.Comparable
  */
-//-@ immutable
+//+OPENJML@ immutable
 public @Pure interface JMLComparable<T>
     extends JMLType, Comparable<T> {
 

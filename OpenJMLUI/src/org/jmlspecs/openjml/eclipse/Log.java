@@ -8,6 +8,8 @@ package org.jmlspecs.openjml.eclipse;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.ResourceBundle;
 
 import org.eclipse.osgi.util.NLS;
@@ -42,6 +44,7 @@ public class Log {
 	 * @param message the message to write; a new line will be added
 	 */
 	static public void log(/*@ non_null*/String message) { 
+		log.collected.add(message);
 		if (log.listener != null) log.listener.log(message);
 		else System.out.println(message); 
 	}
@@ -61,6 +64,7 @@ public class Log {
 			e.printStackTrace(pw);
 			message = message + Env.eol + sw.toString(); 
 		}
+		log.collected.add(message);
 		if (log.listener != null) log.listener.log(message);
 		else System.out.println(message); 
 	}
@@ -101,6 +105,14 @@ public class Log {
 	/** Call this to set the current listener */
 	public void setListener(/*@ nullable */IListener l) {
 		listener = l;
+	}
+	
+	private java.util.List<String> collected = new LinkedList<String>();
+	
+	public static java.util.List<String> collect(boolean clear) {
+		java.util.List<String> result = new ArrayList<String>(log.collected);
+		if (clear) log.collected.clear();
+		return result;
 	}
 
 }

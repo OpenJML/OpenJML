@@ -43,6 +43,7 @@ import com.sun.tools.javac.util.Options;
  I'm not sure the behavior of unicode with multiple backslashes is correct
  */
 
+// FIXME - check the discussion above now that the Tokenizer has been refactored out?
 // FIXME - turn off jml when an exception happens?
 /**
  * This class is an extension of the JDK scanner that scans JML constructs as
@@ -115,6 +116,7 @@ public class JmlScanner extends Scanner {
          * EOI character; if you control the size of the input array, make it at
          * least one character larger than necessary, 
          * to avoid reallocating and copying the array.
+         * keepDocComments is ignored (it is effectively always true)
          */
         @Override
         public JmlScanner newScanner(char[] input, int inputLength, boolean keepDocComments) {
@@ -123,7 +125,8 @@ public class JmlScanner extends Scanner {
             return j;
         }
 
-        /** Creates a new scanner that scans the given input */
+        /** Creates a new scanner that scans the given input;
+         * keepDocComments is ignored - it is effectively always true */
         @Override
         public JmlScanner newScanner(CharSequence input, boolean keepDocComments) {
             JmlScanner j = new JmlScanner(this, CharBuffer.wrap(input));
@@ -155,14 +158,6 @@ public class JmlScanner extends Scanner {
      */
     protected boolean       noJML      = false;
 
-//    /** Set to true internally while the scanner is within a JML comment */
-//    protected boolean       jml        = false;
-
-    /** Set to true internally while the scanner is within a JML comment */
-    protected boolean       jml() {
-        return jmltokenizer.jml;
-    }
-    
     /** The set of keys for identifying optional comments */
     /*@NonNull*/ protected Set<String>     keys;
     
@@ -179,17 +174,32 @@ public class JmlScanner extends Scanner {
      */
     protected boolean       jmlkeyword = true;
 
+    /** Set to true internally while the scanner is within a JML comment */
+    protected boolean       jml() {
+        return jmltokenizer.jml;
+    }
+    
     /**
-     * Set by the scanner to the style of comment, either CommentStyle.LINE or
-     * CommentStyle.BLOCK, prior to the scanner calling processComment()
+     * Sets the jml mode - used for testing to be able to test constructs that
+     * are within a JML comment.
+     * 
+     * @param j set the jml mode to this boolean value
      */
-    protected CommentStyle  jmlcommentstyle;
+    public void setJml(boolean j) {
+        jmltokenizer.setJml(j);
+    }
 
-//    /** Valid after nextToken() and contains the next token if it is a JML token
-//     * and null if the next token is a Java token */
-//    //@ nullable
-//    protected JmlToken      jmlToken;
-
+    /**
+     * Sets the keyword mode
+     * 
+     * @param j
+     *            the new value of the keyword mode
+     */
+    public void setJmlKeyword(boolean j) {
+        if (!savedTokens.isEmpty()) Log.instance(context).getWriter(WriterKind.NOTICE).println("JmlKeyword mode changed while token buffer has lookahead");
+        jmltokenizer.setJmlKeyword(j);
+        jmlkeyword = j;
+    }
     /**
      * Creates a new scanner, but you should use JmlFactory.newScanner() to get
      * one, not this constructor.<P>
@@ -224,27 +234,6 @@ public class JmlScanner extends Scanner {
         jmltokenizer = (JmlTokenizer)tokenizer;
     }
 
-    /**
-     * Sets the jml mode - used for testing to be able to test constructs that
-     * are within a JML comment.
-     * 
-     * @param j set the jml mode to this boolean value
-     */
-    public void setJml(boolean j) {
-        jmltokenizer.setJml(j);
-    }
-
-    /**
-     * Sets the keyword mode
-     * 
-     * @param j
-     *            the new value of the keyword mode
-     */
-    public void setJmlKeyword(boolean j) {
-        if (!savedTokens.isEmpty()) Log.instance(context).getWriter(WriterKind.NOTICE).println("JmlKeyword mode changed while token buffer has lookahead");
-        jmltokenizer.setJmlKeyword(j);
-        jmlkeyword = j;
-    }
     
     /** The current set of conditional keys used by the scanner.
      */
@@ -261,10 +250,10 @@ public class JmlScanner extends Scanner {
     //@ pure nullable
     public JmlToken jmlToken() {
         Token t = token();
-        return t instanceof JmlToken ? (JmlToken)t : DUMMY;
+        return t instanceof JmlToken ? (JmlToken)t : null;
     }
     
-    JmlToken DUMMY = new JmlToken(null,TokenKind.ERROR,0,0);
+//    JmlToken DUMMY = new JmlToken(null,TokenKind.ERROR,0,0);
     
     public Token rescan() {
         if (!jml()) return token;

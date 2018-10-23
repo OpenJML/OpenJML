@@ -39,6 +39,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
  *
  * @author David Cok, based on previous work by rgrig 
  */
+// FIXME - appears not used
 public interface IProver {
 
     /** Returns an identifying name for the prover */

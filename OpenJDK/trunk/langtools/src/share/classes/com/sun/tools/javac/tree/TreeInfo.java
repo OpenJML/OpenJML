@@ -109,7 +109,6 @@ public class TreeInfo {
     }
 
     public static List<JCExpression> args(JCTree t) {
-        if (t.getTag() == null) return null; // DRC - added to accommodate OpenJML
         switch (t.getTag()) {
             case APPLY:
                 return ((JCMethodInvocation)t).args;
@@ -149,7 +148,7 @@ public class TreeInfo {
      */
     public static boolean hasConstructors(List<JCTree> trees) {
         for (List<JCTree> l = trees; l.nonEmpty(); l = l.tail)
-            if (isConstructor(l.head)) return true;
+            if (isConstructor(l.head) && l.head instanceof JCMethodDecl && (((JCMethodDecl)l.head).mods.flags & (1L << 60)) == 0) return true; // OPENJML - added check for JML bit
         return false;
     }
 
@@ -254,7 +253,6 @@ public class TreeInfo {
     }
 
     public static boolean isEnumInit(JCTree tree) {
-        if (tree.getTag() == null) return false; // DRC - added
         switch (tree.getTag()) {
             case VARDEF:
                 return (((JCVariableDecl)tree).mods.flags & ENUM) != 0;
@@ -415,7 +413,7 @@ public class TreeInfo {
     public static int getStartPos(JCTree tree) {
         if (tree == null)
             return Position.NOPOS;
-        if (tree.getTag() == null) {
+        if (tree.getTag() == Tag.NO_TAG) {
             return tree.getStartPosition(); // DRC - added
         }
         switch(tree.getTag()) {
@@ -523,7 +521,6 @@ public class TreeInfo {
         if (mapPos != Position.NOPOS)
             return mapPos;
 
-        if (tree.getTag() == null) return Position.NOPOS; // OPENJML - FIXME: DO better at setting positions
         switch(tree.getTag()) {
             case BITOR_ASG: case BITXOR_ASG: case BITAND_ASG:
             case SL_ASG: case SR_ASG: case USR_ASG:
@@ -591,6 +588,7 @@ public class TreeInfo {
                 return getEndPos(((JCWhileLoop) tree).body, endPosTable);
             case ANNOTATED_TYPE:
                 return getEndPos(((JCAnnotatedType) tree).underlyingType, endPosTable);
+            case NO_TAG: return tree.getEndPosition(endPosTable); // OPENJML
             case ERRONEOUS: {
                 JCErroneous node = (JCErroneous)tree;
                 if (node.errs != null && node.errs.nonEmpty())
@@ -849,7 +847,6 @@ public class TreeInfo {
      */
     public static Symbol symbol(JCTree tree) {
         tree = skipParens(tree);
-        if (tree.getTag() == null) return null; // DRC - added to accommodate extensions
         switch (tree.getTag()) {
         case IDENT:
             return ((JCIdent) tree).sym;

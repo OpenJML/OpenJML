@@ -122,10 +122,8 @@ public class JmlEnter extends Enter {
      */
     public static void preRegister(final Context context) {
         context.put(enterKey, new Context.Factory<Enter>() {
-            Enter instance = null;
             public Enter make(Context context) {
-                return instance != null ? instance 
-                        : (instance = new JmlEnter(context));
+                return new JmlEnter(context);
             }
         });
     }
@@ -171,6 +169,9 @@ public class JmlEnter extends Enter {
      * class declarations and top-level model declarations.
      */
     public void visitTopLevel(JCCompilationUnit tree) {
+        JavaFileObject prevSource = log.useSource(tree.sourcefile);
+        try {
+            
         // Already set: toplevel, sourcefile, specsCompilationUnit, 
         // Need to set: topLevelEnv
         if (!(tree instanceof JmlCompilationUnit)) {
@@ -180,7 +181,7 @@ public class JmlEnter extends Enter {
         }
         JmlCompilationUnit jmltree = (JmlCompilationUnit)tree;
 
-        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(0,2,"entering " + jmltree.sourcefile.getName());
+        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"entering " + jmltree.sourcefile.getName());
         
         // FIXME - a problem here is that the specs and the model fields/classes/methods will be attributed using the set of imports from the Java source file
 
@@ -237,7 +238,11 @@ public class JmlEnter extends Enter {
             }
 //            specscu.packge = jmltree.packge;
         }
-        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(0,2,"  completed entering " + jmltree.sourcefile.getName());
+        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"  completed entering " + jmltree.sourcefile.getName());
+
+        } finally {
+            log.useSource(prevSource);
+        }
     }
 
 
@@ -426,6 +431,7 @@ public class JmlEnter extends Enter {
             }
             if (c == null) {
                 if (!utils.isJML(specsClass.mods)) {
+                //if (!utils.isJML(specsClass.mods) && !specsClass.getSimpleName().toString().equals("Array")) {
                     // We have a Java declaration in the specs file that does not match an actual Java class.
                     // This is an error. We will ignore the declaration.
                     utils.error(specsClass.source(), specsClass.pos,
@@ -578,7 +584,8 @@ public class JmlEnter extends Enter {
             // Matching classes has to come before visitClassDef because we need to filter out any non-Java class declarations
             // but we cannot add JML classes here because we don't have a class symbol yet
             if (!isSpecForBinary) {
-                that.defs = matchClasses(that.defs, specstree.defs, thattree.source().toString());
+                JavaFileObject source = thattree.source();
+                that.defs = matchClasses(that.defs, specstree.defs, source == null ? null : source.toString());
             } else {
                 specstree.defs = matchClassesForBinary(null, flatname, specstree.defs, unmatched, thattree.source().toString());
             }

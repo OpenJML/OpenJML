@@ -83,7 +83,8 @@ public class escCounterexamples extends EscBase {
                 +"  public void c1(int k, boolean b) {};\n"
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Precondition) in method m1",7
-                ,"/tt/TestJava.java:9: warning: Associated declaration",7
+                ,"/tt/TestJava.java:10: warning: Associated declaration",15
+                ,"/tt/TestJava.java:9: warning: Precondition conjunct is false: k == 0",18
                 );
     }
     
@@ -339,6 +340,7 @@ public class escCounterexamples extends EscBase {
     /** Tests method calls in expressions */
     @Test
     public void testCE11() {
+        main.addOptions("-code-math=math");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

@@ -12,7 +12,7 @@ public interface Seq<E extends Object> {
       @ ensures 1 <= \result;
       @ ensures \result <= length();
       @*/
-    /*@ non_null @*/ Integer pos();
+    /*@ non_null pure @*/ Integer pos();
 
     /*@
       @ requires !pastEnd();
@@ -22,7 +22,7 @@ public interface Seq<E extends Object> {
     /*@
       @ ensures 0 <= \result;
       @*/
-    /*@ non_null @*/ Integer length();
+    /*@ non_null pure @*/ Integer length();
 
-    /*@ non_null @*/ Boolean pastEnd();
+    /*@ non_null pure @*/ Boolean pastEnd();
 }

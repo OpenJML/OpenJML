@@ -1,4 +1,0 @@
-test\racMainActivity\MainActivity.java:77: warning: Refining specifications (pre- and post-conditions on method statements) are not yet implemented and are ignored            						
-		//@ ensures \result > 0;
-		    ^
-1 warning

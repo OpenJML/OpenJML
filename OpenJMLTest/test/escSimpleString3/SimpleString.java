@@ -13,6 +13,7 @@ package esc;
  * @author YOUR NAME HERE
  * @version 2013-11-04
  */
+@org.jmlspecs.annotation.CodeBigintMath @org.jmlspecs.annotation.SpecBigintMath
 public class SimpleString {
   /*
    * The class should have a history constraint about the fact

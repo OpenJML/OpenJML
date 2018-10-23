@@ -94,7 +94,8 @@ public abstract class TCBase extends JmlTestCase {
             Object p1,p2,p3,p4;
             for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
                 if (k >= list.length) break;
-                assertEquals("Message " + i + " mismatch",list[k++],noSource(dd));
+                String expected = ((String)list[k++]).replace("$SPECS",specsdir);
+                assertEquals("Message " + i + " mismatch",expected,noSource(dd));
                 p1 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
                 p2 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
                 p3 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;

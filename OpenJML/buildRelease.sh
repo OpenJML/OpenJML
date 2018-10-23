@@ -29,9 +29,11 @@ fi
     ROOT=..
     ANNOTATIONS=../../JMLAnnotations
     SPECS=../../Specs
+    SOLVERS=../../Solvers
     UI=../OpenJMLUI
 
 TEMPJAR=tempjars
+RB=releaseBuilds
 
 DATE=`date +%Y%m%d`
 BRANCH=`git rev-parse --abbrev-ref HEAD`
@@ -39,15 +41,25 @@ BRANCH=`git rev-parse --abbrev-ref HEAD`
 echo Branch = ${BRANCH}, Date = ${DATE}
 if [ "${BRANCH}" = "master" ]; then VERSION=$DATE ; else VERSION=${BRANCH}-${DATE}; fi
 
-NAME=openjml-${VERSION}.tar.gz
-NAMEZ=openjml-${VERSION}.zip
+NAME=openjml-${VERSION}.zip
 
 	echo Building ${NAME}, version ${VERSION} in `pwd`
 
-##### Build jmlruntime.jar
+##### Make temp files, cleanup
 	mkdir -p temp2; chmod -R u+rwx,a+rx temp2
 	mkdir -p ${TEMPJAR}; chmod -R u+rwx,a+rx ${TEMPJAR}
 	rm -f ${TEMPJAR}/jmlruntime.jar
+
+##### Record versions
+	rm -f ${TEMPJAR}/VERSION_INFO
+	touch ${TEMPJAR}/VERSION_INFO
+	echo "OpenJML " `git rev-parse --abbrev-ref HEAD` `git rev-parse HEAD` >> ${TEMPJAR}/VERSION_INFO
+	(cd ${ANNOTATIONS}; echo "JMLAnnotations " `git rev-parse --abbrev-ref HEAD` `git rev-parse HEAD` )  >> ${TEMPJAR}/VERSION_INFO
+	(cd ${SPECS};       echo "Specs " `git rev-parse --abbrev-ref HEAD` `git rev-parse HEAD` )  >> ${TEMPJAR}/VERSION_INFO
+	(cd ${SOLVERS};     echo "Solvers " `git rev-parse --abbrev-ref HEAD` `git rev-parse HEAD` ) >> ${TEMPJAR}/VERSION_INFO
+	cat ${TEMPJAR}/VERSION_INFO
+	
+##### Build jmlruntime.jar
 	cp -r bin-runtime/* temp2
 	cp -r ${ANNOTATIONS}/bin/* temp2
 	touch temp2/JMLRUNTIME_MARKER
@@ -74,29 +86,17 @@ NAMEZ=openjml-${VERSION}.zip
 	cp -r ${ROOT}/OpenJML/bin/* temp
 	cp -r ${ROOT}/OpenJML/bin-runtime/* temp
 	cp -r ${ANNOTATIONS}/bin/* temp
+	cp ${TEMPJAR}/VERSION_INFO temp
 	cp jSMTLIB.jar temp
-	cp otherlibs/jpaul-2.5.1.jar temp
-	mkdir -p temp/specs14 temp/specs15 temp/specs16 temp/specs17 temp/specs18; chmod -R u+rwx,a+rx temp
-	cp -r ${SPECS}/java4/* temp/specs14
-    ( cd temp; /usr/bin/find specs14 -name '.svn' -exec rm -rf {} + )
-	cp -r temp/specs14/* temp/specs15
-	cp -r ${SPECS}/java5/* temp/specs15
-    ( cd temp; /usr/bin/find specs15 -name '.svn' -exec rm -rf {} + )
-    cp -r temp/specs15/* temp/specs16
-    cp -r ${SPECS}/java6/* temp/specs16
-    ( cd temp; /usr/bin/find specs16 -name '.svn' -exec rm -rf {} + )
-    cp -r temp/specs16/* temp/specs17
-    cp -r ${SPECS}/java7/* temp/specs17
-    ( cd temp; /usr/bin/find specs17 -name '.svn' -exec rm -rf {} + )
-    cp -r temp/specs17/* temp/specs18
-    cp -r ${SPECS}/java8/* temp/specs18
-    ( cd temp; /usr/bin/find specs18 -name '.svn' -exec rm -rf {} + )
+	cp otherlibs/*.jar temp
+	mkdir -p temp/specs; chmod -R u+rwx,a+rx temp
+	cp -r ${SPECS}/specs/* temp/specs
 	echo "   " Creating jmlspecs.jar
 	## The jmlspecs.jar contains the composite Java 1.8 specs files
 	## The openjml.jar file contains the OpenJDK and OpenJML class files, and the specs directories, combined for each Java version
-	(cd temp/specs18; jar -cf ../../${TEMPJAR}/jmlspecs.jar . ) || exit 1
+	(cd temp/specs; jar -cf ../../${TEMPJAR}/jmlspecs.jar . ) || exit 1
 	
-	(cd temp; jar xf ../jsmtlib.jar ) || exit 1
+	(cd temp; jar xf ../jSMTLIB.jar ) || exit 1
 	cp -r bin-runtime/* temp
     cp -r ${ANNOTATIONS}/bin/* temp
     touch temp/JMLRUNTIME_MARKER
@@ -110,22 +110,35 @@ NAMEZ=openjml-${VERSION}.zip
 	echo "   " jmlspecs.jar openjml.jar created
 	
     rm -rf temp temp2
-    
-##### Collect other files for the tar file
+
+##### Copy solvers to the zip file location
+    cp -r ../../Solvers/Solvers-* ${TEMPJAR}
+        
+##### Collect other files for the zip file
     cp legal/* ${TEMPJAR}
-        ##(echo Building user manual; cd documentation/OpenJMLUserGuide; rm -f *.pdf; make all > build.log )
-    if [ -e documentation/OpenJMLUserGuide/OpenJMLUserGuide.pdf ]; then
-        cp documentation/OpenJMLUserGuide/OpenJMLUserGuide.pdf ${TEMPJAR} && echo Manual built and copied
+#        ##(echo Building user manual; cd documentation/OpenJMLUserGuide; rm -f *.pdf; make all > build.log )
+    DOC=/Users/davidcok/cok/texstuff/papers/JMLBook
+    if [ -e $DOC/OpenJMLUserGuide.pdf ]; then
+        cp $DOC/OpenJMLUserGuide.pdf ${TEMPJAR} && echo "   " UserGuide copied
+        if ! cmp -s ${TEMPJAR}/OpenJMLUserGuide.pdf ../OpenJMLUI/html/OpenJMLUserGuide.pdf; then
+		    cp ${TEMPJAR}/OpenJMLUserGuide.pdf ../OpenJMLUI/html
+		    echo "        " Changed
+		fi
+		cp $DOC/jml-reference-manual.pdf ${TEMPJAR} && echo "   " RefMan copied
+        if ! cmp -s ${TEMPJAR}/jml-reference-manual.pdf ../OpenJMLUI/html/JMLReferenceManual.pdf; then
+		    cp ${TEMPJAR}/jml-reference-manual.pdf ../OpenJMLUI/html/JMLReferenceManual.pdf
+		    echo "        " Changed
+		fi
     else
         echo No User Guide file is found
     fi
     
-##### Build the tar file
+##### Build the zip file
 	(cd ${TEMPJAR}; \
     cp ../openjml-template.properties . ;\
-	tar -zcf ../${NAME} * ; zip -q ../${NAMEZ} *)
+	zip -qr ../${RB}/${NAME} *)
 	##rm -rf ${TEMPJAR}  ## We don't delete them because some tests use them
-	echo "   " tar created
+	echo "   " zip created ${RB}/${NAME}
 	    
 ##### End	
-	echo Release complete
+	echo Release complete ${NAME}
