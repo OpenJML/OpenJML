@@ -373,7 +373,7 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         .stream()
         .map(v -> processChild(it, v, contract,  treeutils,  M, minimizeExpressions))
         .filter(clauses -> clauses!=null && clauses.size() > 0)
-        .map(v -> M.JmlSpecificationCase(null, false, null, null, v))
+        .map(v -> M.JmlSpecificationCase(null, false, null, null, v, null))
         .collect(Collectors.toList());
         
         // make sure we don't encounter the same cases twice.

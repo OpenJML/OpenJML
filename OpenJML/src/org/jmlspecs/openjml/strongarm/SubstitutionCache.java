@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
