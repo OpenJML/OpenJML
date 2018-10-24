@@ -130,8 +130,9 @@ public class escArithmeticModes2 extends EscBase {
 
     @Test
     public void testModJavaB() {
-        Assume.assumeTrue(runLongArithmetic || !options.contains("-escBV=true"));
-        main.addOptions("-method=ma","-show","-subexpressions");
+        Assume.assumeTrue(runLongArithmetic);
+        Assume.assumeTrue(!options.contains("-escBV=true"));
+        //main.addOptions("-method=ma","-show","-subexpressions");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeJavaMath @SpecJavaMath public class TestJava { \n"
                 +"  //@ requires j != 0;\n"
@@ -181,6 +182,7 @@ public class escArithmeticModes2 extends EscBase {
 
     @Test
     public void testModSafeZ() {
+        Assume.assumeTrue(runLongArithmetic || !(options.contains("-escBV=true")||options.contains("-escBV=auto")));
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeSafeMath @SpecSafeMath public class TestJava { \n"
                 +"  public void m() {\n"
@@ -254,6 +256,7 @@ public class escArithmeticModes2 extends EscBase {
 
     @Test
     public void testModMath() {
+        Assume.assumeTrue(runLongArithmetic);
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeBigintMath @SpecBigintMath public class TestJava { \n"
@@ -285,6 +288,7 @@ public class escArithmeticModes2 extends EscBase {
     
     @Test
     public void testModMathZ() {
+        Assume.assumeTrue(runLongArithmetic);
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeBigintMath @SpecBigintMath public class TestJava { \n"

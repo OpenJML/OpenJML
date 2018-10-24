@@ -19,7 +19,7 @@ public class Test {
 		//@ show k;
 		k = 2*k;
 		//@ use lemma((k+1));
-		boolean b = ((k+1)&1) == 1;
+		boolean b = ((k+1)&1) == 1; // Error expect4ed when k is -1
 		//@ assert b;
 	}
 
