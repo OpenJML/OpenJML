@@ -1274,7 +1274,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
          */
         //@ ensures not_assigned(this.*);
         @Override
-        public boolean report(final int ticks, final int level, final String message) {
+        public boolean report(final int level, final String message) {
             Display d = shell == null ? Display.getDefault() : shell.getDisplay();
             String summary = OpenJMLView.exportProofResults(null);
             final String message2 = summary == null ? message : (summary + Strings.eol + message);
@@ -1282,8 +1282,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             d.syncExec(new Runnable() {
                 public void run() {
                     if (monitor != null) {
-                    	if (level <= 1) monitor.subTask(message);
-                    	monitor.worked(ticks);
+                    	if (level <= 1) monitor.subTask(message2);
                     }
                     Log.log(message);
                 }

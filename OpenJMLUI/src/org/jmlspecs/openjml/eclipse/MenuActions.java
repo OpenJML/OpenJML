@@ -149,19 +149,18 @@ abstract public class MenuActions extends AbstractHandler {
     
     
     public static class JMLInfer extends MenuActions {
-    	@Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("INFER action initiated"); //$NON-NLS-1$
-    			}
-        		getInfo(event);
-                utils.inferSelection(selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.JMLInfer",e); //$NON-NLS-1$
-    		}
-    		return null;
-    	}
+    	
+	@Override
+	public void action() {
+	    try {
+		if (Options.uiverboseness) {
+		    Log.log("INFER action initiated"); 
+		}
+		utils.inferSelection(selection, window, shell);
+	    } catch (Exception e) {
+		utils.topLevelException(shell, "MenuActions.JMLInfer", e); 
+	    }
+	}
     }
 
     
