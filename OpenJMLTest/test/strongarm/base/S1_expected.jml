@@ -2,9 +2,14 @@
 import org.jmlspecs.annotation.*;
 
 public class S1 {
-  
+    /*+INFERRED@
+    public behavior
+      assignable \nothing; 
+      signals () false; 
+   */
+
   public S1();
-    /*@
+    /*+INFERRED@
     public normal_behavior
       requires true; 
       {|
@@ -48,6 +53,6 @@ public class S1 {
       |}
    */
 
-  @Pure 
+  /*@ pure */ 
   public static String switchTest(int month);
 }

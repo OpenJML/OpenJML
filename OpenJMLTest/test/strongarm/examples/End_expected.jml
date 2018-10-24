@@ -3,23 +3,28 @@ import java.io.Reader;
 import org.jmlspecs.annotation.*;
 
 public class End {
-  
+    /*+INFERRED@
+    public behavior
+      assignable \nothing; 
+      signals () false; 
+   */
+
   public End();
-  @SpecPublic 
+  /*@ spec_public */ /*@ spec_public */ 
   private long character;
-  @SpecPublic 
+  /*@ spec_public */ /*@ spec_public */ 
   private boolean eof;
-  @SpecPublic 
+  /*@ spec_public */ /*@ spec_public */ 
   private long index;
-  @SpecPublic 
+  /*@ spec_public */ /*@ spec_public */ 
   private long line;
-  @SpecPublic 
+  /*@ spec_public */ /*@ spec_public */ 
   private char previous;
-  @SpecPublic @NonNull 
+  /*@ spec_public */ /*@ non_null */ /*@ spec_public */ 
   private Reader reader;
-  @SpecPublic 
+  /*@ spec_public */ /*@ spec_public */ 
   private boolean usePrevious;
-    /*@
+    /*+INFERRED@
     public normal_behavior
       requires true; 
       {|
@@ -31,6 +36,6 @@ public class End {
       |}
    */
 
-  @Pure 
+  /*@ pure */ 
   public boolean end();
 }

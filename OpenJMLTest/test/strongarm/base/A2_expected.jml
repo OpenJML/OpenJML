@@ -2,9 +2,14 @@
 import org.jmlspecs.annotation.*;
 
 public class A2 {
-  
+    /*+INFERRED@
+    public behavior
+      assignable \nothing; 
+      signals () false; 
+   */
+
   public A2();
-    /*@
+    /*+INFERRED@
     public normal_behavior
       requires true; 
       {|
@@ -22,6 +27,6 @@ public class A2 {
       |}
    */
 
-  @Pure 
+  /*@ pure */ 
   public int cmp(int a, int b);
 }

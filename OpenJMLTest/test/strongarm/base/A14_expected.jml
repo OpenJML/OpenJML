@@ -2,10 +2,15 @@
 import org.jmlspecs.annotation.*;
 
 public class A14 {
-  
+    /*+INFERRED@
+    public behavior
+      assignable \nothing; 
+      signals () false; 
+   */
+
   public A14();
   int THE_FIELD;
-    /*@
+    /*+INFERRED@
     public normal_behavior
       requires true; 
       {|

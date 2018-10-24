@@ -2,10 +2,15 @@
 import org.jmlspecs.annotation.*;
 
 public class A12 {
-  
+    /*+INFERRED@
+    public behavior
+      assignable \nothing; 
+      signals () false; 
+   */
+
   public A12();
   int THE_FIELD;
-    /*@
+    /*+INFERRED@
     public normal_behavior
       requires a > 100; 
         ensures aa.THE_FIELD == 0; 
@@ -21,6 +26,6 @@ public class A12 {
         |}
    */
 
-  public int localTest(int a, int b, @NonNull 
+  public int localTest(int a, int b, /*@ non_null */ 
   A12 aa);
 }

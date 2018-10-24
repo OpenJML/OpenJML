@@ -2,16 +2,26 @@
 import org.jmlspecs.annotation.*;
 
 public class A3 {
-  
+    /*+INFERRED@
+    public behavior
+      assignable \nothing; 
+      signals () false; 
+   */
+
   public A3();
   int THE_FIELD;
   
   class A3c {
-    
+        /*+INFERRED@
+      normal_behavior
+        
+     */
+
+    /*@ pure */ 
     A3c();
     public int ANOTHER_FIELD;
   }
-    /*@
+    /*+INFERRED@
     public normal_behavior
       requires true; 
         ensures this.THE_FIELD == 999; 
@@ -27,6 +37,6 @@ public class A3 {
         |}
    */
 
-  public int localTest(int a, int b, @NonNull 
+  public int localTest(int a, int b, /*@ non_null */ 
   A3c otherClazz);
 }

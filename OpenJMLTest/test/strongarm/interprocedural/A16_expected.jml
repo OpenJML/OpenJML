@@ -2,10 +2,15 @@
 import org.jmlspecs.annotation.*;
 
 public class A16 {
-  
+    /*+INFERRED@
+    public behavior
+      assignable \nothing; 
+      signals () false; 
+   */
+
   public A16();
   public int FIELD;
-    /*@
+    /*+INFERRED@
       requires true; 
       ensures this.FIELD == 3; 
       ensures \result == a + b; 
@@ -13,12 +18,11 @@ public class A16 {
    */
 
   public int add(int a, int b);
-    /*@
+    /*+INFERRED@
     public normal_behavior
       requires true; 
-        ensures \result == (a + b) * 100; 
    */
 
-  @Pure 
+  /*@ pure */ 
   public int localTest(int a, int b);
 }

@@ -2,11 +2,16 @@
 import org.jmlspecs.annotation.*;
 
 public class A11 {
-  
+    /*+INFERRED@
+    public behavior
+      assignable \nothing; 
+      signals () false; 
+   */
+
   public A11();
-  @SpecPublic 
+  /*@ spec_public */ 
   int THE_FIELD;
-    /*@
+    /*+INFERRED@
     public normal_behavior
       requires true; 
         ensures this.THE_FIELD == 999; 

@@ -2,9 +2,14 @@
 import org.jmlspecs.annotation.*;
 
 public class A10 {
-  
+    /*+INFERRED@
+    public behavior
+      assignable \nothing; 
+      signals () false; 
+   */
+
   public A10();
-    /*@
+    /*+INFERRED@
     public normal_behavior
       requires true; 
         ensures \result == -1; 
@@ -15,6 +20,6 @@ public class A10 {
         |}
    */
 
-  @Pure 
+  /*@ pure */ 
   public int localTest1();
 }

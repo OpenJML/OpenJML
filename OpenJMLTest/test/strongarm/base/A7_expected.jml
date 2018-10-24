@@ -2,10 +2,15 @@
 import org.jmlspecs.annotation.*;
 
 public class A7 {
-  
+    /*+INFERRED@
+    public behavior
+      assignable \nothing; 
+      signals () false; 
+   */
+
   public A7();
   int THE_FIELD;
-    /*@
+    /*+INFERRED@
     public normal_behavior
       requires true; 
         ensures this.THE_FIELD == 999; 

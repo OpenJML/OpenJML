@@ -2,12 +2,17 @@
 import org.jmlspecs.annotation.*;
 
 public class A13 {
-  
+    /*+INFERRED@
+    public behavior
+      assignable \nothing; 
+      signals () false; 
+   */
+
   public A13();
   int THE_FIELD;
-  @NonNull 
+  /*@ non_null */ 
   public A13 tricky;
-    /*@
+    /*+INFERRED@
     public normal_behavior
       requires true; 
         ensures this.THE_FIELD == 0; 
@@ -17,6 +22,6 @@ public class A13 {
         ensures \result == -1; 
    */
 
-  public int localTest(int a, int b, @NonNull 
+  public int localTest(int a, int b, /*@ non_null */ 
   A13 aa);
 }
