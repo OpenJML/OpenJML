@@ -53,12 +53,12 @@ public enum JmlOption implements IOption {
     
     // Options Related to Specification Inference
     INFER("-infer",true,"POSTCONDITIONS","Infer missing contracts (postconditions (default), preconditions)","-command=infer"),
-    INFER_DEBUG("-infer-debug", false, null, "Enable debugging of contract inference", null),    
+    INFER_DEBUG("-infer-debug", false, false, "Enable debugging of contract inference", null),    
     INFER_TAG("-infer-tag", true, true, "If true, inferred specifications are tagged with the key INFERRED", null),        
     INFER_PRECONDITIONS("-infer-preconditions", true, true, "If not specified, the precondition of methods lacking preconditions will be set to true (otherwise inference is skipped).", null),
-    INFER_NO_EXIT("-noexit",true,null,"Infer contracts (suppress exiting)","-command=infer-no-exit"),
-    INFER_MINIMIZE_EXPRS("-infer-minimize-expressions", false, null, "Minimize expressions where possible.", null),
-    INFER_DUMP_GRAPHS("-infer-dump-graphs", false, null, "Dump any specification that would have been inferred to a file for offline analysis", null),    
+    INFER_NO_EXIT("-noexit",true,false,"Infer contracts (suppress exiting)","-command=infer-no-exit"),
+    INFER_MINIMIZE_EXPRS("-infer-minimize-expressions", false, false, "Minimize expressions where possible.", null),
+    INFER_DUMP_GRAPHS("-infer-dump-graphs", false, false, "Dump any specification that would have been inferred to a file for offline analysis", null),    
     
     //
     // Inference decides to write specs based on the following conditions
@@ -70,8 +70,7 @@ public enum JmlOption implements IOption {
     INFER_PERSIST_PATH("-infer-persist-path", true, null, "Specify output directory of specifications (overrides -specspath)", null),
     INFER_MAX_DEPTH("-infer-max-depth", true, 300, "The largest CFG we will agree to process", null),
     INFER_TIMEOUT("-infer-timeout", true, 300, "Give up inference after this many seconds. A value of -1 will wait indefinitely", null),
-    INFER_DEV_MODE("-infer-dev-mode", false, null, "Special features for developers.", null),    
-    DISABLE_VISIBILITY_CHECKING("-all-public", false, null, "Do not check visibility of fields used in specifications", null),
+    INFER_DEV_MODE("-infer-dev-mode", false, false, "Special features for developers.", null),    
     
     //
     // Options for turning on and off various inference techniques 
