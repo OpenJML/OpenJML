@@ -2,7 +2,6 @@ package org.jmlspecs.openjml.strongarm.transforms;
 
 import java.util.Set;
 
-import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;

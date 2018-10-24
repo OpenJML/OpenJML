@@ -282,7 +282,7 @@ public class Strongarm
         //
         // put it all together as a specification case we can pass to our cleanup pipeline
         //
-        JmlSpecificationCase cases = M.JmlSpecificationCase(null, false, null, null, JDKList.of(precondition).appendList(contract));
+        JmlSpecificationCase cases = M.JmlSpecificationCase(null, false, null, null, JDKList.of(precondition).appendList(contract), null);
 
         methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
         methodDecl.cases.decl = methodDecl;
@@ -643,7 +643,7 @@ public class Strongarm
         com.sun.tools.javac.util.List<JmlMethodClause> newContract = reader.postcondition.getClauses(null, treeutils, M);
         
         
-        JmlSpecificationCase cases = M.JmlSpecificationCase(null, false, null, null, JDKList.of(precondition).appendList(newContract));
+        JmlSpecificationCase cases = M.JmlSpecificationCase(null, false, null, null, JDKList.of(precondition).appendList(newContract), null);
 
         methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
         methodDecl.cases.decl = methodDecl;
@@ -1071,7 +1071,7 @@ public class Strongarm
             newContract = ToReductionGraph.toContract(methodDecl, contract, G, treeutils, M, JmlOption.isOption(context, JmlOption.INFER_MINIMIZE_EXPRS));
             
             if(newContract!=null){
-                cases = M.JmlSpecificationCase(null, false, null, null, newContract);
+                cases = M.JmlSpecificationCase(null, false, null, null, newContract, null);
         
                 methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
                 methodDecl.cases.decl = methodDecl;

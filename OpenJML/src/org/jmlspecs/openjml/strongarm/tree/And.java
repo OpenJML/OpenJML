@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Stack;
 
-import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.strongarm.InferenceAbortedException;
