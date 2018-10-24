@@ -699,7 +699,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             String fullyQualifiedSig = utils.qualifiedMethodSig(methodDecl.sym);
 
             String methodsToDo = JmlOption.value(context,JmlOption.METHOD);
-            if (methodsToDo != null) {
+            if (methodsToDo != null && !methodsToDo.isEmpty()) {
                 match: {
                     if (fullyQualifiedSig.equals(methodsToDo)) break match; // A hack to allow at least one signature-containing item in the methods list
                     for (String methodToDo: methodsToDo.split(",")) { //$NON-NLS-1$  //FIXME - this does not work when the methods list contains signatures containing commas
