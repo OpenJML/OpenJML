@@ -176,6 +176,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** True if we are translating for RAC */
     public boolean rac ;
     
+    /** True if we are translating for inference */
+    public boolean infer ;
+    
+
     /** If true, we are making a pure copy (!esc && !rac)*/
     public boolean pureCopy;
     
@@ -517,10 +521,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * @param esc true if the resulting AST is to be used for ESC, otherwise false
      * @param fac true if the resulting AST is to be used for RAC, otherwise false
      */
-    public JmlAssertionAdder(Context context, boolean esc, boolean rac) {
+    public JmlAssertionAdder(Context context, boolean esc, boolean rac, boolean infer) {
+
         this.context = context;
         this.esc = esc;
         this.rac = rac;
+        this.infer = infer;
         this.log = Log.instance(context);
         this.M = JmlTree.Maker.instance(context);
         this.names = Names.instance(context);
@@ -546,7 +552,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.loopbodyLabelName = names.fromString(Strings.loopbodyLabelBuiltin);
 
         initialize();
+       
+        
     }
+        
+    
+    public JmlAssertionAdder(Context context, boolean esc, boolean rac) {
+        this(context, esc, rac, false);
+     }
     
     /** (Public API) Reinitializes the object to start a new class or compilation unit or method */
     public void initialize() {
@@ -559,7 +572,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.preparams.clear();
         this.preconditions.clear();
         //this.labels.clear();
-        this.pureCopy = !(esc||rac);
+        this.pureCopy = !(infer||esc||rac);
         this.treeMap.clear();
         this.oldenv = null;
         this.heapCount = this.topHeapCount = 0;
@@ -828,7 +841,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // resultSym and resultExpr (a JCIdent) are no defined
             
             // Declare the heap counter
-            if (esc && heapSym == null) {
+            if ((infer || esc) && heapSym == null) {
                 JCVariableDecl d = treeutils.makeStaticVarDef(syms.intType,heapVarName,classDecl.sym,
                     treeutils.makeIntLiteral(0, 0));
                 heapSym = d.sym;
@@ -843,7 +856,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 isAllocSym.owner = classDecl.sym;
 
                 // FIXME - why is the following code inside the if (allocSym == null) block
-                if (esc) {
+                if ((infer || esc)) {
                     // THIS is an id that is a proxy for the this object on which a method is called;
                     // we need to distinguish it from uses of 'this' in the text
                     // FIXME - should make this NonNull
@@ -857,7 +870,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
             
-            if (esc && (isConstructor || !utils.isJMLStatic(methodDecl.sym))) {
+            if ((infer || esc) && (isConstructor || !utils.isJMLStatic(methodDecl.sym))) {
                 currentStatements = initialStatements;  // FIXME - an unnecessary assignment I think
                 
                 // assume 'this' is non-null and assume its type
@@ -994,10 +1007,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (methodDecl.body != null) {
                 if (callingThis || callingSuper) {
                     convert(iter.next());
-                } else if (isConstructor && esc) {
+                } else if (isConstructor && (esc || infer)) {
                     // FIXME - need assumptions from default super constructor
                 }
-                if (isConstructor && esc && !callingThis) {
+                if (isConstructor && (infer || esc) && !callingThis) {
                     boolean pv = checkAccessEnabled;
                     checkAccessEnabled = false;
                     try {
@@ -1045,7 +1058,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             JCTry outerTryStatement = M.at(methodDecl).Try(
                             newMainBody,
-                            esc ? List.<JCCatch>nil() : List.<JCCatch>of(c),
+                            (infer || esc) ? List.<JCCatch>nil() : List.<JCCatch>of(c),
                             M.Block(0, outerFinalizeStats.toList()));
             
             
@@ -1816,7 +1829,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? (classDecl == null ? null : classDecl.sym) : methodDecl.sym,translatedExpr);
         assertDecl.mods.flags |= Flags.FINAL;
         assertDecl.sym.flags_field |= Flags.FINAL;
-        if (esc) {
+        if (esc || infer) {
 
             String extra = Strings.empty;
             for (Object o: args) {
@@ -2039,7 +2052,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             @Nullable JCExpression info,
             Object ... args) {
         JCStatement stt = null;
-        if (esc) {
+        if ((infer || esc)) {
             if (label != Label.ASSUME_CHECK && currentStatements != null 
                     && Strings.feasibilityContains(Strings.feas_debug,context)) { 
                 addAssumeCheck(translatedExpr,currentStatements,"Extra-Assume");  
@@ -2186,7 +2199,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JmlVariableDecl d = (JmlVariableDecl)treeutils.makeVarDef(
                 type.getTag() == TypeTag.BOT ? syms.objectType : type, 
                 n, 
-                esc ? null : methodDecl != null ? methodDecl.sym : classDecl.sym, 
+                (infer || esc) ? null : methodDecl != null ? methodDecl.sym : classDecl.sym, 
                 expr);
         d.init = expr;
 //        d.init = simplifyAndSave(d,expr);
@@ -2217,7 +2230,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCVariableDecl d = treeutils.makeVarDef(
                 type, 
                 n, 
-                esc ? null : methodDecl != null ? methodDecl.sym : classDecl.sym, // FIXME - actually sholdn't stuff at the class level be put in an initializer block?
+                esc|| infer ? null : methodDecl != null ? methodDecl.sym : classDecl.sym, // FIXME - actually sholdn't stuff at the class level be put in an initializer block?
                 treeutils.makeZeroEquivalentLit(pos.getPreferredPosition(),type)); 
         d.sym.pos = Position.NOPOS;
         // We mark all temporaries as final, as an indication that they will
@@ -2599,7 +2612,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     } finally {
                         currentStatements = instanceStats;
                         JCBlock bl = popBlock(0,pos,check);
-                        if (!onlyComments(bl.stats)) {
+                        if (!onlyComments(bl.stats) && !infer) {
                             if (contextIsStatic) {
                                 staticStats.add(bl);
                             } else {
@@ -2986,7 +2999,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 // any axioms for the classes of the parameters and return values
                                 if (rac) {
                                     notImplemented(clause, "axiom clause", clause.source());
-                                } else if (esc) {
+                                } else if (esc || infer) {
                                     addStat(comment(clause));
                                     JmlTypeClauseExpr t = (JmlTypeClauseExpr)clause;
                                     JCExpression e = convertJML(t.expression);
@@ -3702,7 +3715,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         
         // Assume all axioms of classes mentioned in the target method
-        if (esc) {
+        if (esc || infer) {
             addStat(comment(methodDecl,"Assume axioms",null));
             addForClasses(collector.classes, axiomAdder);
             if (isHelper(methodDecl.sym)) {
@@ -3723,7 +3736,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 
         // FIXME - include for rac also?
-        if (esc) {
+        if ((infer || esc)) {
             if (methodDecl.sym.isConstructor() || utils.isJMLStatic(methodDecl.sym)) {
                 addStat(comment(methodDecl,"Assuming static initial state",null));
                 assumeStaticInitialState(classDecl.sym);
@@ -3820,6 +3833,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         for (MethodSymbol msym: utils.parents(methodDecl.sym)) {
             if (msym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
             JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(msym);
+            
+            if(denestedSpecs==null){
+                continue;
+            }
             // Set up the map from parameter symbol of the overridden method to 
             // corresponding parameter of the target method.
             // We need this even if names have not changed, because the parameters 
@@ -4374,6 +4391,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // corresponding parameter of the target method.
             // We need this even if names have not changed, because the parameters 
             // will have been attributed with different symbols.
+            if(denestedSpecs==null){
+                continue;
+            }
+            
             if (denestedSpecs.decl != null) {
                 Iterator<JCVariableDecl> iter = denestedSpecs.decl.params.iterator();
                 paramActuals = new HashMap<Object,JCExpression>();
@@ -7062,7 +7083,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression t = treeutils.makeType(p,currentArgType);
             JCExpression e = M.at(p).NewArray(t, dims, out.toList());
             e.type = argtypes.last();
-            if (esc) e = convertExpr(e);
+            if (esc || infer) e = convertExpr(e);
             newout.add(newTemp(e)); // FIXME - see comment above about newTemp
             out = newout;
         }
@@ -7105,7 +7126,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected void changeState() {
-        if (esc) {
+        if ((infer || esc)) {
             heapCount = nextHeapCount();
             int p = methodDecl.pos; // FIXME - better position?
             JCStatement assign = treeutils.makeAssignStat(p, treeutils.makeIdent(p,heapSym),
@@ -8757,7 +8778,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // Assume non_null fields, since they might have been havoced 
                 // FIXME - not enabled for rc; they are just assumptions (which could
                 // usefully be checked), but they sappear to include model fields.
-                if (!rac) {
+                if (!rac && !infer) {
                     addNonNullChecks(true, that, calleeClass.type, newThisExpr, 
                             calleeMethodSym.isConstructor());
                 }
@@ -9224,6 +9245,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addStat(ensuresBlock);
                 }
                 addStat( popBlock(0,methodDecl,check1) ); // Final outer block
+            }else if(infer){
+                addStat(ensuresBlock);
+                addStat( popBlock(0,methodDecl,check1) );
             }
 
             if (resultExpr != null) result = eresult = treeutils.makeIdent(resultExpr.pos, resultSym);
@@ -10052,7 +10076,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             Symbol.VarSymbol vsym = (Symbol.VarSymbol)id.sym;
 //            specs.getSpecs(vsym).  // FIXME - need to call isNonNull with the declaration for id
-            if (specs.isNonNull(vsym)) { // && !(rac && vsym.type.tsym.toString().equals("org.jmlspecs.utils.IJMLTYPE"))) {
+            if (!infer && specs.isNonNull(vsym)) { // && !(rac && vsym.type.tsym.toString().equals("org.jmlspecs.utils.IJMLTYPE"))) {
                 if (rhs instanceof JCTree.JCMemberReference) {
                     // Need to check that the spec of the reference is subsumed in the spec of the type (that.type) inferred by type checking
                     checkCompatibleSpecs((JCTree.JCMemberReference)rhs,rhs.type);
@@ -10089,7 +10113,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (javaChecks) {
                     addAssert(that.lhs, Label.POSSIBLY_NULL_DEREFERENCE, e);
                 }
-                checkRW(JmlTokenKind.WRITABLE,fa.sym,obj,fa);
+                if(!infer){
+                    checkRW(JmlTokenKind.WRITABLE,fa.sym,obj,fa);
+                }
 
                 newfa = treeutils.makeSelect(that.pos, convertCopy(obj), fa.sym);
                 //Map<JCTree,Integer> table = log.currentSource().getEndPosTable();
@@ -10103,7 +10129,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // If the field is static, substitute the type tree
                 
                 JCExpression obj = treeutils.makeType(fa.getStartPosition(), fa.sym.owner.type);
-                checkRW(JmlTokenKind.WRITABLE,fa.sym,obj,fa);
+                if(!infer){
+                    checkRW(JmlTokenKind.WRITABLE,fa.sym,obj,fa);
+                }
                 newfa = treeutils.makeSelect(that.pos, obj, fa.sym);
                 
             }
@@ -10164,7 +10192,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCArrayAccess newfaa = M.at(that.pos).Indexed(array,index);
             newfaa.setType(that.type);
             // FIXME - test this 
-            checkAccess(JmlTokenKind.ASSIGNABLE, that, aa, newfaa, currentThisId, currentThisId);
+            if(!infer){
+                checkAccess(JmlTokenKind.ASSIGNABLE, that, aa, newfaa, currentThisId, currentThisId);
+            }
 //            for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
 //                JCExpression check = checkAssignable(aa,c,currentThisId.sym,currentThisId.sym);
 //                if (!treeutils.isTrueLit(check)) {
@@ -10705,7 +10735,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression rhs = convertExpr(that.getRightOperand());
             result = eresult = treeutils.makeBinary(that.pos,optag,that.getOperator(),lhs,rhs);
         } else if (optag == JCTree.Tag.PLUS && that.type.equals(syms.stringType)) {
-            if (esc) {
+            if ((infer || esc)) {
                 Symbol s = utils.findMember(syms.stringType.tsym,"concat");
                 if (s == null) log.error(that,"jml.internal","Could not find the concat method");
                 else {
@@ -11555,7 +11585,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!convertingAssignable && checkAccessEnabled) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, newfa, currentThisExpr, currentThisExpr);
         if (localVariables.containsKey(s)) {
             eee = newfa;
-        } else if (esc && s != null && s.name == names._class) {
+        } else if ((infer || esc) && s != null && s.name == names._class) {
             eee = treeutils.makeJavaTypelc(that.selected);
         } else if (translatingJML && s == null) {
             // This can happen while scanning a store-ref x.* 
@@ -11597,7 +11627,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // This is a type name, so the tree should be copied, but without inserting temporary assignments
             // makeType creates a fully-qualified name
             eee = treeutils.makeType(that.pos,that.type);
-        } else if (translatingJML && esc && !localVariables.isEmpty()) {
+        } else if (translatingJML && (infer || esc) && !localVariables.isEmpty()) {
             selected = trexpr;
             JCFieldAccess fa = treeutils.makeSelect(that.pos,selected,s);
             eee = fa;
@@ -12314,7 +12344,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - review this
     public JCIdent makeThisId(int pos, Symbol sym)  {
         VarSymbol THISSym = treeutils.makeVarSymbol(Flags.STATIC,names.fromString(Strings.thisName),sym.type, Position.NOPOS);
-        THISSym.owner = esc ? null : sym; 
+        THISSym.owner = infer || esc ? null : sym; 
             // In esc, the owner is null (instead of sym) to indicate
             // that this new symbol is a synthetic variable that will not ever
             // be assigned to.
@@ -12389,7 +12419,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             this.classDecl = that;
             this.methodDecl = null;
             this.currentArithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(classDecl.sym,false);
-            if (esc) {
+            if (esc || infer) {
                 this.currentThisId = makeThisId(classDecl.pos,classDecl.sym);
                 this.currentThisExpr = currentThisId;
             } else { // rac
@@ -12400,7 +12430,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             this.classDefs = new ListBuffer<JCTree>();
             this.currentStatements = null;
 
-            if (esc) {
+            if (esc || infer) {
                 JCVariableDecl d = treeutils.makeStaticVarDef(syms.intType,heapVarName,classDecl.sym,
                     treeutils.makeIntLiteral(0, 0));
                 heapSym = d.sym;
@@ -13468,7 +13498,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         id.pos = that.pos;
         result = eresult = id;
         
-        if (esc) ((VarSymbol)id.sym).pos = Position.NOPOS; // TODO: Why?
+        if (esc || infer) ((VarSymbol)id.sym).pos = Position.NOPOS; // TODO: Why?
         if (rac) {
             JCExpression lit = treeutils.makeLit(that.getPreferredPosition(),syms.stringType,that.label.toString());
             // In rac math mode, eresult might have been converted to BigInteger or Real
@@ -14085,7 +14115,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (rac) {
                         translateTypeOf(that);
                     }
-                    if (esc) {
+                    if (esc || infer) {
                         JCExpression arg = convertExpr(that.args.get(0));
                         JmlMethodInvocation meth = M.at(that).JmlMethodInvocation(that.token,arg);
                         meth.startpos = that.startpos;
@@ -14112,7 +14142,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                     // FIXME - used to be something like result = eresult = treeutils.trType(that.pos, type); ???
                 }
-                if (esc) {
+                if (esc || infer)  {
                     JCExpression t = translateType(that.args.get(0));
                     JmlMethodInvocation e = treeutils.makeJmlMethodInvocation(that, that.token, that.type, t);
                     e.javaType = that.javaType;
@@ -14140,7 +14170,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             case BSELEMTYPE:
                 if (rac) translateElemtype(that);
-                if (esc) {
+                if (esc || infer) {
                     JCExpression arg = that.args.get(0);
                     if (arg.type == jmltypes.TYPE) {
                         JCExpression t = translateType(that.args.get(0));
@@ -14880,7 +14910,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlSetComprehension(JmlSetComprehension that) {
-        if (pureCopy || esc) {
+        if (pureCopy || esc ||infer) {
             result = eresult = M.at(that).
                     JmlSetComprehension(convert(that.newtype),convert(that.variable),convertExpr(that.predicate)).setType(that.type);
             return;
@@ -15653,7 +15683,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         
         JCIdent newident = null;
-        if (esc) {
+        if (esc || infer) {
             that.ident = treeutils.makeIdent(that.pos,that.sym);
             // We don't use convertExpr, because that might chang the JCIdent to a JCFieldAccess
             newident = treeutils.makeIdent(that.pos, that.sym);

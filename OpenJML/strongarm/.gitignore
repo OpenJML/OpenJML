@@ -1,0 +1,13 @@
+kernel*.json
+/strongarm-pipeline-steps.csv
+/strongarm-summary.csv
+*.out
+*.out.compact
+/run.out.commons-csv
+/run.out.compact.json-java
+run.out*
+*.csv
+/runs/
+/__pycache__/
+/.ipynb_checkpoints/
+/bin/
