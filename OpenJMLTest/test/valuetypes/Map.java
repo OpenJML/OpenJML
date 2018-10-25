@@ -1,10 +1,9 @@
-import org.jmlspecs.lang.map;
 
 public class Map<K,V> {
-//    
-//    //@ ensures map.<K,V>empty().isEmpty();
-//    //@ ensures map.<K,V>empty().size() == 0;
-//    //@ public void newMapIsEmpty();
+    
+    //@ ensures map.<K,V>empty().isEmpty();
+    //@ ensures map.<K,V>empty().size() == 0;
+    //@ model public static <K,V> void newMapIsEmpty();
     
     //@ ensures !s.containsKey(k) ==> s.put(k,v).size() == 1 + s.size();
     //@ model public static <K,V> void putBumpsSize(map<K,V> s, K k, V v) {}
@@ -14,12 +13,22 @@ public class Map<K,V> {
     
     //@ public normal_behavior
     //@   requires !s.containsKey(k);
+    //@   requires k != kk;
     //@   ensures !s.put(k,v).remove(k).containsKey(k);
     //@   ensures s.size() == s.put(k,v).remove(k).size();
-    //@   ensures (\forall K kk; k != kk ; s.containsKey(kk) == s.put(k,v).remove(k).containsKey(kk));
+    //@   ensures s.put(k,v).remove(k).containsKey(kk) == s.containsKey(kk);
+    //@   ensures map.equals(s, s.put(k,v).remove(k));
+    //@ pure
+    //@ model public static <K,V> void putRemove(map<K,V> s, K k, V v, K kk) {}
+    
+    //@ public normal_behavior
+    //@   requires !s.containsKey(k);
+    //@   ensures !s.put(k,v).remove(k).containsKey(k);
+    //@   ensures s.size() == s.put(k,v).remove(k).size();
+    //@   ensures (\forall K kk; k != kk ; s.put(k,v).remove(k).containsKey(kk) == s.containsKey(kk));
     // @   ensures map.equals(s, s.put(k,v).remove(k));
     //@ pure
-    //@ model public static <K,V> void putRemove(map<K,V> s, K k, V v) {}
+    //@ model public static <K,V> void putRemoveA(map<K,V> s, K k, V v) {}
 //    
 //    //@ ensures s.keySet().contains(k) == s.containsKey(k);
 //    //@ model public static <K,V> void keyset(map<K,V> s, K k) {}
