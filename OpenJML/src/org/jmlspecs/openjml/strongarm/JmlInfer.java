@@ -215,9 +215,9 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             if (node.sym.isInterface()) return;  
        
             // The super class takes care of visiting all the methods
-            utils.progress(1,1,"Infering contracts for methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
+            utils.progress(1,1,"Inferring contracts for methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
             super.visitClassDef(node);
-            utils.progress(1,1,"Completed infering contracts for methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
+            utils.progress(1,1,"Completed inferring contracts for methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
             
             lastClass = node;
         }
