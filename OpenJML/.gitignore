@@ -11,3 +11,4 @@ kernel*.json
 /temp/
 /releases/
 .DS_Store
+/strongarm/
