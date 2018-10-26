@@ -458,7 +458,7 @@ public class Strongarm
                 log.getWriter(WriterKind.NOTICE).println(Strings.empty);
                 log.getWriter(WriterKind.NOTICE).println(separator);
                 log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-                log.getWriter(WriterKind.NOTICE).println("[STRONGARM] Skipping inference for "
+                log.getWriter(WriterKind.NOTICE).println("[INFER] Skipping inference for "
                         + utils.qualifiedMethodSig(methodDecl.sym) + " because postconditions are already present.");
             }
             
@@ -625,7 +625,7 @@ public class Strongarm
             // alternate approach -- here we iterate over the ENTIRE contract
             
 //            for(BasicBlock exitBlock : reader.getExitBlocks()){
-//                log.getWriter(WriterKind.NOTICE).println("[STRONGARM] found exit block: "+ exitBlock.id().toString());
+//                log.getWriter(WriterKind.NOTICE).println("[INFER] found exit block: "+ exitBlock.id().toString());
 //
 //            }
 //            

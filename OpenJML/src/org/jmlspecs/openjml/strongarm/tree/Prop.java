@@ -105,13 +105,13 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
     
     public void log(String msg){
         if(verbose){
-            log.getWriter(WriterKind.NOTICE).println(String.format("[STRONGARM] [%s] %s", Strongarm.Current, msg));
+            log.getWriter(WriterKind.NOTICE).println(String.format("[INFER] [%s] %s", Strongarm.Current, msg));
         }
     }
     
     public void logl(String msg){
         if(verbose){
-            log.getWriter(WriterKind.NOTICE).println(String.format("[STRONGARM] [%s] %s", Strongarm.Current, msg));
+            log.getWriter(WriterKind.NOTICE).println(String.format("[INFER] [%s] %s", Strongarm.Current, msg));
         }
     }
     

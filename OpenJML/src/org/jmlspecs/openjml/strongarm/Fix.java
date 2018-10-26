@@ -23,7 +23,7 @@ public class Fix {
     public final String[] debugArgs = new String[]{"-minQuant", "-noexit", "-infer", "-infer-persist", "-progress", "-verbose"};
     public final String[] args;
     
-    private static final String persistLine = "[STRONGARM] Persisting specs to:";
+    private static final String persistLine = "[INFER] Persisting specs to:";
     
     final protected SimpleLog              log;
     public final boolean                   debug; 

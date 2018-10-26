@@ -349,7 +349,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             for(JCMethodDecl m : inferredSpecs){
                 if(m instanceof JmlMethodDecl){
                     
-                    utils.progress(1,1,"[STRONGARM] Weaving Specs for: " + m.sym.toString()); 
+                    utils.progress(1,1,"[INFER] Weaving Specs for: " + m.sym.toString()); 
                     int pos = m.pos;
                     
                     if(m.mods != null && m.mods.pos != -1){
@@ -409,10 +409,10 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             com.sun.tools.javac.util.List JDKList;
 
             if(lastClass==null){ return; }
-            utils.progress(1,1,"[STRONGARM] Persisting contracts for methods in " + utils.classQualifiedName(lastClass.sym) ); 
+            utils.progress(1,1,"[INFER] Persisting contracts for methods in " + utils.classQualifiedName(lastClass.sym) ); 
 
             if((node.mods.flags & Flags.ENUM) !=0){
-                utils.progress(1,1,"[STRONGARM] Won't wrote enum class methods in " + utils.classQualifiedName(lastClass.sym) ); 
+                utils.progress(1,1,"[INFER] Won't wrote enum class methods in " + utils.classQualifiedName(lastClass.sym) ); 
                 return;
             }
             
@@ -422,7 +422,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             // make the path
             writeTo.toFile().getParentFile().mkdirs();
             
-            utils.progress(1,1,"[STRONGARM] Persisting specs to: " + writeTo.toString()); 
+            utils.progress(1,1,"[INFER] Persisting specs to: " + writeTo.toString()); 
 
             try {
                 

@@ -15,7 +15,7 @@ public class SimpleLog {
     }
 
     public void write(String msg, Object...args){
-        System.out.println("[STRONGARM] " + String.format(msg, args));
+        System.out.println("[INFER] " + String.format(msg, args));
     }
     
     public void error(String msg, Object... args){
