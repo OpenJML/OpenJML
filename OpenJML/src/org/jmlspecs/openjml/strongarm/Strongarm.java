@@ -382,55 +382,50 @@ public class Strongarm
         }  
                
         
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); //$NON-NLS-1$
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            
-            
-            if(JDKListUtils.countLOC(methodDecl.cases) ==  initialContractLength){
-                // we didn't contribute anything.
-                log.getWriter(WriterKind.NOTICE).println("FINISHED INFERENCE OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl,0)); //$NON-NLS-1$
+        utils.progress(1,1,Strings.empty);
+        utils.progress(1,1,"--------------------------------------"); //$NON-NLS-1$
+        utils.progress(1,1,Strings.empty);
+        
+        
+        if(JDKListUtils.countLOC(methodDecl.cases) ==  initialContractLength){
+            // we didn't contribute anything.
+            utils.progress(1,1,"FINISHED INFERENCE OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl,0)); //$NON-NLS-1$
 
-            }else{
-                log.getWriter(WriterKind.NOTICE).println("FINISHED INFERENCE OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl)); //$NON-NLS-1$
-            }
+        }else{
+            utils.progress(1,1,"FINISHED INFERENCE OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl)); //$NON-NLS-1$
+        }
+        
+        if(JDKListUtils.countLOC(methodDecl.cases)==0){
+            methodDecl.cases = null;
+            methodDecl.methodSpecsCombined = null;
             
-            if(JDKListUtils.countLOC(methodDecl.cases)==0){
+            
+            utils.progress(1,1,Strings.empty);
+            utils.progress(1,1,"--------------------------------------"); //$NON-NLS-1$
+            utils.progress(1,1,Strings.empty);
+            utils.progress(1,1,"DID NOT INFER POSTCONDITION " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
+            utils.progress(1,1,"(hint: enable -infer-default-preconditions to assume a precondition)");
+
+
+        }else {
+        
+            // make sure we have some clauses
+            if(PropsInSubtree.any(methodDecl.cases)==false) {
+                
                 methodDecl.cases = null;
                 methodDecl.methodSpecsCombined = null;
-                
-                
-                if (verbose) {
-                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-                    log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); //$NON-NLS-1$
-                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-                    log.getWriter(WriterKind.NOTICE).println("DID NOT INFER POSTCONDITION " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
-                    log.getWriter(WriterKind.NOTICE).println("(hint: enable -infer-default-preconditions to assume a precondition)");
-                }
 
-
-            }else {
-            
-                // make sure we have some clauses
-                if(PropsInSubtree.any(methodDecl.cases)==false) {
-                    
-                    methodDecl.cases = null;
-                    methodDecl.methodSpecsCombined = null;
-
-                    if (verbose) {
-                        log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-                        log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); //$NON-NLS-1$
-                        log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-                        log.getWriter(WriterKind.NOTICE).println("DID NOT INFER POSTCONDITION " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
-                        log.getWriter(WriterKind.NOTICE).println("(hint: enable -infer-default-preconditions to assume a precondition)");
-                    }                    
-                }
-            
+                utils.progress(1,1,Strings.empty);
+                utils.progress(1,1,"--------------------------------------"); //$NON-NLS-1$
+                utils.progress(1,1,Strings.empty);
+                utils.progress(1,1,"DID NOT INFER POSTCONDITION " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
+                utils.progress(1,1,"(hint: enable -infer-default-preconditions to assume a precondition)");
             }
-            
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(methodDecl));
+        
         }
+        
+        utils.progress(1,1,JmlPretty.write(methodDecl));
+    
         
         infer.didInfer = true;
     }
@@ -458,13 +453,11 @@ public class Strongarm
             
             
             
-            if (verbose) {
-                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-                log.getWriter(WriterKind.NOTICE).println(separator);
-                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-                log.getWriter(WriterKind.NOTICE).println("[INFER] Skipping inference for "
+           utils.progress(1,1,Strings.empty);
+           utils.progress(1,1,separator);
+           utils.progress(1,1,Strings.empty);
+           utils.progress(1,1,"[INFER] Skipping inference for "
                         + utils.qualifiedMethodSig(methodDecl.sym) + " because postconditions are already present.");
-            }
             
             return null;
         }
@@ -506,13 +499,11 @@ public class Strongarm
         //
         if(reader.postcondition==null){
             
-            if (verbose) {
-                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); //$NON-NLS-1$
-                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-                log.getWriter(WriterKind.NOTICE).println("DID NOT INFER POSTCONDITION " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
-                log.getWriter(WriterKind.NOTICE).println("(hint: enable -infer-default-preconditions to assume a precondition)");
-            }
+            utils.progress(1,1,Strings.empty);
+            utils.progress(1,1,"--------------------------------------"); //$NON-NLS-1$
+            utils.progress(1,1,Strings.empty);
+            utils.progress(1,1,"DID NOT INFER POSTCONDITION " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
+            utils.progress(1,1,"(hint: enable -infer-default-preconditions to assume a precondition)");
             
                             
             return null; // no spec 
