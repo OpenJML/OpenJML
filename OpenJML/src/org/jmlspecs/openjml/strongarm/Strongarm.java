@@ -368,12 +368,16 @@ public class Strongarm
         
         if (printContracts) {
             if(contract!=null){
-                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-                log.getWriter(WriterKind.NOTICE).println("INFERRED POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
-                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(methodDecl.cases));
+                if(verbose){
+                    log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                    log.getWriter(WriterKind.NOTICE).println("INFERRED POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+                    log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(methodDecl.cases));
+                }
             }else{
-                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-                log.getWriter(WriterKind.NOTICE).println("FAILED TO INFER THE POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+                if(verbose){
+                    log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                    log.getWriter(WriterKind.NOTICE).println("FAILED TO INFER THE POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+                }
             }
         }  
                

@@ -540,9 +540,9 @@ public class BlockReader {
                             );
                     depth--;
                     
-                    
-                    log.getWriter(WriterKind.NOTICE).println("[INFER] Cannot find an LCA for BasicBlocks " + left.id() + " and " + right.id());
-    
+                    if(verbose){
+                        log.getWriter(WriterKind.NOTICE).println("[INFER] Cannot find an LCA for BasicBlocks " + left.id() + " and " + right.id());
+                    }
                     return e;
     
                 }
