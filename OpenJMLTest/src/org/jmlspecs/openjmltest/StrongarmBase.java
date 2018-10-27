@@ -27,12 +27,13 @@ public class StrongarmBase extends EscBase {
     public java.util.List<String> setupForFiles(String sourceDirname, String outDir, String... opts) {
 	new File(outDir).mkdirs();
 	java.util.List<String> args = new LinkedList<String>();
-	args.add("-infer");
+	//args.add("-infer");
 	//args.add("-infer-debug");
 	
-	args.add("-infer-persist");
-	args.add("-verbose");
-	args.add("-progress");
+	args.add("-infer-persist=jml");
+	args.add("-infer");
+	//args.add("-verbose");
+	//args.add("-progress");
 	if (new File(sourceDirname).isDirectory())
 	    args.add("-dir");
 	args.add(sourceDirname);
