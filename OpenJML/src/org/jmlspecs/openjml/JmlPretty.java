@@ -23,6 +23,7 @@ import com.sun.tools.javac.tree.Pretty.UncheckedIOException;
 //import com.sun.tools.javac.tree.Pretty.UncheckedIOException;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.Name;
 
 /** This class does pretty-printing of JML ASTs. */
 public class JmlPretty extends Pretty implements IJmlVisitor {
@@ -47,6 +48,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     /** If true, then wrap JML statements in JML comments */
     public boolean useJMLComments;
+    
+    /** If true, special rules for things that will only appear in specs **/
+    public boolean specOnly = false;
     
     /** Instantiates a pretty-printer for Jml nodes with default indentation
      * @param out the Write to which output is to be put
@@ -79,7 +83,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         StringWriter sw = new StringWriter();
         JmlPretty p = new JmlPretty(sw,source);
         p.width = 2;
-        tree.accept(p);
+        if(tree!=null)
+            tree.accept(p);
         return sw.toString();
     }
     
@@ -157,6 +162,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
     
     public void visitJmlBlock(JmlBlock that) {
+        
+        if(that.type==null && specOnly){
+            return;
+        }
+        
         visitBlock(that);
     }
     
@@ -214,6 +224,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) {
         // Presumes already aligned; does not call println at end
         try {
+            if(that.cases==null){
+                return;
+            }
             if (that.cases.size() == 1) {
                 that.cases.get(0).accept(this);
             } else {
@@ -447,9 +460,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 // Note - the output is already aligned, so we have to bump up the alignment
                 indentAndRealign();
                 boolean first = true;
-                for (JmlMethodClause c: that.clauses) {
-                    if (first) first = false; else { println(); align(); }
-                    c.accept(this);
+                if(that.clauses!=null){
+                    for (JmlMethodClause c: that.clauses) {
+                        if (first) first = false; else { println(); align(); }
+                        c.accept(this);
+                    }
                 }
                 if (that.block != null) {
                     println();
@@ -926,6 +941,16 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         }
         visitClassDef(that);
     }
+    
+    @Override
+    public void printEnumBody(List<JCTree> stats) throws IOException {
+        if(specOnly){
+            print("{}");
+            return;
+        }
+    }
+    
+   
     
     public void printStats(List<? extends JCTree> stats) throws IOException {
         JmlSpecs.TypeSpecs toPrint = specsToPrint;

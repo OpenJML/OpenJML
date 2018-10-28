@@ -36,6 +36,7 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.*;
@@ -371,6 +372,196 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         }
         return 3;
     }
+    
+    
+    public void executeInferCommand(Main.Cmd command, List<?> things, IProgressMonitor monitor) {
+        try {
+            if (things.isEmpty()) {
+                Log.log("Nothing applicable to process");
+                Activator.utils().showMessageInUI(null,"JML","Nothing applicable to process");
+                return;
+            }
+            setMonitor(monitor);
+           
+            List<String> args = getOptions(jproject,Main.Cmd.INFER);
+            api.initOptions(null,  args.toArray(new String[args.size()]));
+            
+            List<IJavaElement> elements = new LinkedList<IJavaElement>();
+            
+            IResource rr;
+            int count = 0;
+    		utils.refreshView(); // Sets up the view - then each result is added incrementally
+            for (Object r: things) {
+            	try {
+            		if (r instanceof IPackageFragment) {
+            			count += utils.countMethods((IPackageFragment)r);
+            		} else if (r instanceof IJavaProject) {
+            			count += utils.countMethods((IJavaProject)r);
+            		} else if (r instanceof IProject) {
+            			count += utils.countMethods((IProject)r);
+            		} else if (r instanceof IPackageFragmentRoot) {
+            			count += utils.countMethods((IPackageFragmentRoot)r);
+            		} else if (r instanceof ICompilationUnit) {
+            			count += utils.countMethods((ICompilationUnit)r);
+            		} else if (r instanceof IType) {
+            			count += utils.countMethods((IType)r);
+                    } else if (r instanceof IMethod) {
+                        count += 1;
+                    } else if (r instanceof IFile || r instanceof IFolder) {
+                        // If a file is not part of a source folder, then we
+                        // don't have Java elements and it is not a ICompilationUnit
+                        // So we can't really count the methods in it.
+                        // The number used here is arbitrary, and will result in
+                        // a bad estimate of the work to be done. 
+                        // TODO - count the methods using the OpenJML AST.
+                        count += 2;
+            		} else {
+            			Log.log("Can't count methods in a " + r.getClass());
+            		}
+            	} catch (Exception e) {
+            		// FIXME - record exception
+            	}
+            }
+            
+            final int oldArgsSize = args.size();
+            
+            for (Object r: things) { 
+            	// an IType is adaptable to an IResource (the containing file), but we want it left as an IType
+                if (!(r instanceof IType) && r instanceof IAdaptable 
+                		&& (rr=(IResource)((IAdaptable)r).getAdapter(IResource.class)) != null) {
+                	r = rr;
+                }
+                if (r instanceof IFolder) {
+                	if (hasAtLeastOneSourceFile((IFolder) r)) {
+                		// we don't process empty folders
+                		args.add(JmlOption.DIR.optionName());
+                		args.add(((IResource)r).getLocation().toString());
+                	}
+                } else if (r instanceof IProject) {
+                	// we only want to add source folders, and only if they actually have source in them
+                	addSourceFoldersToCommandLine((IProject) r, args);
+                } else if (r instanceof IResource) {
+                    args.add(((IResource)r).getLocation().toString());
+                } else if (r instanceof IType) {  // Here we want types and methods, but a JavaProject is also an IJavaElement
+                    elements.add((IJavaElement)r);
+                } else if (r instanceof IMethod) {  // Here we want types and methods, but a JavaProject is also an IJavaElement
+                    elements.add((IJavaElement)r);
+                } else if (r instanceof IJavaElement) {  // Here we want types and methods, but a JavaProject is also an IJavaElement
+                    elements.add((IJavaElement)r);
+                } else Log.log("Ignoring " + r.getClass() + Strings.space + r.toString()); //$NON-NLS-1$
+            }
+            if (args.size() == oldArgsSize && elements.isEmpty()) {
+                Log.log("No files or elements to process");
+                Activator.utils().showMessageInUI(null,"JML","No files or elements to process");
+                return;
+            }
+            
+            if (monitor != null) {
+            	monitor.beginTask("Doing inference in project " + jproject.getElementName(),  4*count); // 4 ticks per method being checked
+            	monitor.subTask("Starting Inference on " + jproject.getElementName());
+            }
+
+            Timer.timer.markTime();
+            
+            if (!args.isEmpty()) {
+            	if (Options.uiverboseness) {
+            		Log.log(Timer.timer.getTimeString() + " Executing Inference");
+            	}
+                try {
+                    int ret = api.execute(null,args.toArray(new String[args.size()]));
+                    //utils.refreshView(); 
+
+                    if (ret == Main.Result.OK.exitCode) Log.log(Timer.timer.getTimeString() + " Completed");
+                    else if (ret == Main.Result.ERROR.exitCode) Log.log(Timer.timer.getTimeString() + " Completed with errors");
+                    else if (ret >= Main.Result.CMDERR.exitCode) {
+                        StringBuilder ss = new StringBuilder();
+                        for (String c: args) {
+                            ss.append(c);
+                            ss.append(" ");
+                        }
+                        Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
+                        Activator.utils().showMessageInUI(null,"Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss); // FIXME - fix line ending
+                    } else if (ret == Main.EXIT_CANCELED) {
+                    	// Cancelled
+                    	throw new Main.JmlCanceledException("Inference Canceled");
+                    }
+                } catch (Main.JmlCanceledException e) {
+                    throw e;
+                } catch (Throwable e) {
+                    StringBuilder ss = new StringBuilder();
+                    for (String c: args) {
+                        ss.append(c);
+                        ss.append(" ");
+                    }
+                    Log.errorlog("Failure to execute openjml: "+ss,e); 
+                    Activator.utils().showMessageInUI(null,"JML Execution Failure","Failure to execute openjml: " + e + " " + ss);
+                }
+            }
+            
+            for(IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()){
+        	    try {
+			project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+		    } catch (CoreException e) {
+			e.printStackTrace();
+		    }
+            }
+            // Now do individual methods
+            // Delete all markers first, so that subsequent proofs do not delete
+            // the markers from earlier proofs
+            /*if (!elements.isEmpty()) {
+            	for (IJavaElement je: elements) {
+            		utils.deleteMarkers(je.getResource(),null); // FIXME - would prefer to delete markers and highlighting on just the method.
+            	}
+            	for (IJavaElement je: elements) {
+            		if (je instanceof IMethod) {
+            			MethodSymbol msym = convertMethod((IMethod)je);
+            			if (msym == null) {
+            				IResource r = je.getResource();
+            				String filename = null;
+            				try {
+            					filename = r.getLocation().toString();
+            					int errors = api.typecheck(api.parseFiles(filename));
+            					if (errors == 0) {
+            						msym = convertMethod((IMethod)je);
+            					} else {
+            						utils.showMessageInUI(null,"JML Error","Inference could not be performed because of JML typechecking errors");
+            						msym = null;
+            					}
+            				} catch (java.io.IOException e) {
+            					// FIXME - record or show exception?
+        						utils.showMessageInUI(null,"JML Error","Inference could not be performed because of JML typechecking errors");
+            					msym = null;
+            				}
+            			}
+            			if (msym != null) {
+            				Timer t = new Timer();
+            				if (Options.uiverboseness)
+            					Log.log("Beginning Inference on " + msym);
+            				if (monitor != null) monitor.subTask("Infer " + msym);
+            				IProverResult res = api.doESC(msym);
+            				highlightCounterexamplePath((IMethod)je,res,null);
+            			}
+            			else {} // ERROR - FIXME
+            		} else if (je instanceof IType) {
+            			ClassSymbol csym = convertType((IType)je);
+            			if (csym != null) api.doESC(csym);
+            			else {} // ERROR - FIXME
+            		}
+            	}
+                if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Completed Inference operation on individual methods");
+            }
+            */
+            if (monitor != null) {
+                monitor.subTask("Completed Inference operation");                
+            }
+        } catch (Main.JmlCanceledException e) {
+        	if (monitor != null) {
+                monitor.subTask("Canceled Inference operation");
+            }
+            if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Canceled Inference operation");
+        }
+    }
+
 
     /** Executes the JML ESC (static checking) operation
      * on the given set of resources; launches computational threads.
@@ -1263,6 +1454,37 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             // FIXME - add an actual option
             opts.add("-code-math=safe");
             opts.add("-spec-math=bigint");
+        }
+        
+        if (cmd == Main.Cmd.INFER) {
+            String prover = Options.value(Options.defaultProverKey);
+            opts.add(JmlOption.PROVER.optionName() +eq+ prover);
+            opts.add(JmlOption.PROVEREXEC.optionName() +eq+ Options.value(Options.proverPrefix + prover));
+
+            //TODO -- make these options
+            if(StrongarmPage.getDefaultBoolean(Options.inferDebug).equalsIgnoreCase("true")){
+        	opts.add(JmlOption.INFER_DEBUG.optionName());
+            }
+            opts.add(JmlOption.INFER_TIMEOUT.optionName() +eq+ StrongarmPage.getDefaultInt(Options.inferTimeout));
+            
+            opts.add(JmlOption.INFER_MAX_DEPTH.optionName() +eq+ StrongarmPage.getDefaultInt(Options.inferMaxDepth));
+            
+
+            if(StrongarmPage.getDefaultBoolean(Options.inferDevTools).equalsIgnoreCase("true")){
+        	opts.add(JmlOption.INFER_DEV_MODE.optionName());
+            }
+            
+            if(StrongarmPage.getDefaultBoolean(Options.inferDefaultPrecondition).equalsIgnoreCase("true")){
+        	opts.add(JmlOption.INFER_PRECONDITIONS.optionName() +eq+ StrongarmPage.getDefaultBoolean(Options.inferDefaultPrecondition));
+            }
+
+            
+            if(StrongarmPage.getDefaultString(Options.inferPersistSpecsTo).equalsIgnoreCase(StrongarmPage.WEAVE_SEPERATE)){
+        	opts.add(JmlOption.INFER_PERSIST.optionName() + eq+ "jml");
+            }else{
+                opts.add(JmlOption.INFER_PERSIST.optionName() + eq+ "java");
+            }
+            
         }
         
         if (cmd == Main.Cmd.RAC || cmd == null) {

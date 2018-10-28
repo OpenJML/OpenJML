@@ -4,7 +4,10 @@
 /openjml-2015*
 openjml.properties
 /log
+openjml-master-*
 openjml-*.zip
+kernel*.json
+/strongarm-error.log
 /temp/
 /releases/
 .DS_Store

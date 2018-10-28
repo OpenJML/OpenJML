@@ -49,10 +49,18 @@
             <env key="PATH" value="${openjml.env.path}"/>
 			<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
 		</exec>
+		<exec executable="/bin/bash" 
+			failonerror="true"
+			osfamily="mac">
+			<arg value="${basedir}/buildRelease.sh"/>
+            <env key="JAVA_HOME" value="${openjml.jdk}"/>
+            <env key="PATH" value="${openjml.env.path}"/>
+			<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
+		</exec>
 		<exec executable="bash" 
 			failonerror="true"
 			osfamily="unix">
-			<arg value="${basedir}/buildRelease"/>
+			<arg value="${basedir}/buildRelease.sh"/>
             <env key="JAVA_HOME" value="${openjml.jdk}"/>
             <env key="PATH" value="${openjml.env.path}"/>
 			<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
