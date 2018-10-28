@@ -30,9 +30,9 @@ public enum JmlTokenKind implements ITokenKind {
     ASSERT("assert"),
     COMMENT("comment"), // For comments in BasicBlock programs
     HAVOC("havoc"), // Just used in ESC
-    DEBUG("debug"),
+//    DEBUG("debug"),
     END("end"),
-    SET("set"),
+//    SET("set"),
     SHOW("show"),
     USE("use"),
     DECREASES("decreases"),

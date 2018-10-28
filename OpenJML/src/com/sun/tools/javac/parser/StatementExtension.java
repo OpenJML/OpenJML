@@ -123,7 +123,7 @@ abstract public class StatementExtension {
      * @param typeArgs any type arguments already seen (may be null)
      * @return the AST for the expression
      */
-    abstract public JCStatement parse(JmlParser parser);
+    abstract public JCStatement parse(String keyword, JmlParser parser);
     
     protected void init(JmlParser parser) {
         this.parser = parser;

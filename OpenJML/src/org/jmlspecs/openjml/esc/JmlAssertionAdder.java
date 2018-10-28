@@ -30,6 +30,7 @@ import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.Utils.JmlNotImplementedException;
 import org.jmlspecs.openjml.ext.Arithmetic;
+import org.jmlspecs.openjml.ext.SetStatement;
 
 import com.sun.source.tree.*;
 import com.sun.tools.javac.code.*;
@@ -15028,28 +15029,55 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlStatement(JmlStatement that) {
         result = null;
-        switch (that.token) {
-            case DEBUG:
-                // FIXME - resolve what sort of constructs are actually allowed in a debug and set statement
-                Set<String> keys = utils.commentKeys;
-                if (!keys.contains("DEBUG")) return;
-                //$FALL-THROUGH$
-            case SET:
-                try {
-                    if (!pureCopy) addTraceableComment(that); // after the check on the key
-                    JCExpressionStatement st = that.statement;
-                    // (almost) Duplicated from visitExec
-                    JCExpression arg = convertJML(st.getExpression());
-                    if (arg instanceof JCMethodInvocation || arg instanceof JCAssign || arg instanceof JCAssignOp || arg instanceof JCUnary) {
-                        result = addStat( M.at(that).Exec(arg).setType(that.type) );
+        if (that.token == null) {
+            switch(that.id) {
+                case SetStatement.debugID:
+                    Set<String> keys = utils.commentKeys;
+                    if (!keys.contains("DEBUG")) return;
+                    //$FALL-THROUGH$
+                case SetStatement.setID:
+                    try {
+                        if (!pureCopy) addTraceableComment(that); // after the check on the key
+                        JCExpressionStatement st = that.statement;
+                        // (almost) Duplicated from visitExec
+                        JCExpression arg = convertJML(st.getExpression());
+                        if (arg instanceof JCMethodInvocation || arg instanceof JCAssign || arg instanceof JCAssignOp || arg instanceof JCUnary) {
+                            result = addStat( M.at(that).Exec(arg).setType(that.type) );
+                        }
+                    } catch (NoModelMethod e) {
+                        // Ignore - don't add a statement
+                    } catch (JmlNotImplementedException e) {
+                        notImplemented(that.id + " statement containing ",e);
+                        result = null;
                     }
-                } catch (NoModelMethod e) {
-                    // Ignore - don't add a statement
-                } catch (JmlNotImplementedException e) {
-                    notImplemented(that.token.internedName() + " statement containing ",e);
-                    result = null;
-                }
-                break;
+                    break;
+                default:
+                    String msg = "Unknown token in JmlAssertionAdder.visitJmlStatement: " + that.id;
+                    error(that, msg);
+            }
+        }
+        else switch (that.token) {
+//            case DEBUG:
+//                // FIXME - resolve what sort of constructs are actually allowed in a debug and set statement
+//                Set<String> keys = utils.commentKeys;
+//                if (!keys.contains("DEBUG")) return;
+//                //$FALL-THROUGH$
+////            case SET:
+//                try {
+//                    if (!pureCopy) addTraceableComment(that); // after the check on the key
+//                    JCExpressionStatement st = that.statement;
+//                    // (almost) Duplicated from visitExec
+//                    JCExpression arg = convertJML(st.getExpression());
+//                    if (arg instanceof JCMethodInvocation || arg instanceof JCAssign || arg instanceof JCAssignOp || arg instanceof JCUnary) {
+//                        result = addStat( M.at(that).Exec(arg).setType(that.type) );
+//                    }
+//                } catch (NoModelMethod e) {
+//                    // Ignore - don't add a statement
+//                } catch (JmlNotImplementedException e) {
+//                    notImplemented(that.token.internedName() + " statement containing ",e);
+//                    result = null;
+//                }
+//                break;
             case END:
                 // do nothing -- this should be part of a JmlStatementSpec
                 break;

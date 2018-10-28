@@ -122,6 +122,7 @@ public class JmlTree implements IJmlTree {
         JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlTokenKind t, JmlTokenKind also, List<JmlMethodClause> clauses, JCBlock block);
         JmlSpecificationCase JmlSpecificationCase(JmlSpecificationCase sc, List<JmlMethodClause> clauses);
         JmlStatement JmlStatement(JmlTokenKind t, JCTree.JCExpressionStatement e);
+        JmlStatement JmlStatement(String t, JCTree.JCExpressionStatement e);
         JmlStatementShow JmlStatementShow(JmlTokenKind t, List<JCExpression> expressions);
         JmlStatementDecls JmlStatementDecls(List<JCTree.JCStatement> list);
         JmlStatementLoopExpr JmlStatementLoopExpr(JmlTokenKind t, JCTree.JCExpression e);
@@ -579,6 +580,12 @@ public class JmlTree implements IJmlTree {
         /** Creates JML statements such as set and debug */
         @Override
         public JmlStatement JmlStatement(JmlTokenKind t, JCTree.JCExpressionStatement e) {
+            return new JmlStatement(pos,t.internedName(),e);
+        }
+
+        /** Creates JML statements such as set and debug */
+        @Override
+        public JmlStatement JmlStatement(String t, JCTree.JCExpressionStatement e) {
             return new JmlStatement(pos,t,e);
         }
 
@@ -2566,12 +2573,21 @@ public class JmlTree implements IJmlTree {
      */
     public static class JmlStatement extends JmlAbstractStatement {
         public JmlTokenKind token;
+        public String id;
         public JCTree.JCExpressionStatement statement;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlStatement(int pos, JmlTokenKind token, JCTree.JCExpressionStatement statement) {
             this.pos = pos;
             this.token = token;
+            this.id = token.internedName();
+            this.statement = statement;
+        }
+    
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        protected JmlStatement(int pos, String token, JCTree.JCExpressionStatement statement) {
+            this.pos = pos;
+            this.id = token.intern();
             this.statement = statement;
         }
     
