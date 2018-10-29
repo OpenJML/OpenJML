@@ -806,7 +806,7 @@ public class SFBugs extends EscBase {
     }
     
     @Test
-    public void gitbug630a() {
+    public void gitbug630a() { // FIXME - SMT encpoding problem
         expectedExit = 0;
         helpTCG();
     }
@@ -892,7 +892,7 @@ public class SFBugs extends EscBase {
     }
     
     @Test
-    public void gitbug645() {
+    public void gitbug645() { // FIXME - needs to be RAC ad to be fixed
         expectedExit = 0;
         helpTCG();
     }
@@ -940,7 +940,7 @@ public class SFBugs extends EscBase {
     }
 
     @Test
-    public void gitbug653() {
+    public void gitbug653() { // FIXME - needs fix to SMT encoding
         expectedExit = 0;
         helpTCG("-specspath=test/gitbug653");
     }
