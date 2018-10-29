@@ -344,6 +344,7 @@ public class escArithmeticModes extends EscBase {
 
     @Test
     public void testMultSafe() {
+        Assume.assumeTrue(runLongArithmetic || !options.contains("-escBV=true"));
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeSafeMath @SpecSafeMath public class TestJava { \n"
                 +"  public int m(int i) {\n"
