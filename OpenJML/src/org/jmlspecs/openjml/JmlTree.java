@@ -580,7 +580,7 @@ public class JmlTree implements IJmlTree {
         /** Creates JML statements such as set and debug */
         @Override
         public JmlStatement JmlStatement(JmlTokenKind t, JCTree.JCExpressionStatement e) {
-            return new JmlStatement(pos,t.internedName(),e);
+            return new JmlStatement(pos,t,e);
         }
 
         /** Creates JML statements such as set and debug */

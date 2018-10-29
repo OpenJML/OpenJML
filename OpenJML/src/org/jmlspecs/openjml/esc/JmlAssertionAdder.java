@@ -875,24 +875,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
             
-            if ((infer || esc) && (isConstructor || !utils.isJMLStatic(methodDecl.sym))) {
-                currentStatements = initialStatements;  // FIXME - an unnecessary assignment I think
-                
-                // assume 'this' is non-null and assume its type
-                JCExpression e = treeutils.makeNeqObject(methodDecl.pos,currentThisExpr,treeutils.nullLit);
-                addAssume(methodDecl,Label.IMPLICIT_ASSUME,e);
-                addAssume(classDecl,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(classDecl,currentThisExpr,classDecl.type));
-
-                // Assume when the 'this' object was allocated. 
-                // Anything already allocated has a alloc value <= 0
-                // If this is a constructor, then the alloc value of 'this' is set > 0; otherwise the alloc value of 'this' is 0
-                JCExpression fa = M.at(methodDecl.pos).Select(currentThisExpr, allocSym);
-                fa = treeutils.makeBinary(methodDecl,JCTree.Tag.EQ, fa, 
-                        treeutils.makeIntLiteral(methodDecl, enclosingClass.isEnum() ? 0 : isConstructor ? ++allocCounter : 0));
-                addStat(treeutils.makeAssume(methodDecl, Label.IMPLICIT_ASSUME, fa ));
-                // FIXME - the above setting for enums very likely has to be fixed.
-            }
-            
+//            if ((infer || esc) && (isConstructor || !utils.isJMLStatic(methodDecl.sym))) {
+//                currentStatements = initialStatements;  // FIXME - an unnecessary assignment I think
+//                
+//                // assume 'this' is non-null and assume its type
+//                JCExpression e = treeutils.makeNeqObject(methodDecl.pos,currentThisExpr,treeutils.nullLit);
+//                addAssume(methodDecl,Label.IMPLICIT_ASSUME,e);
+//                addAssume(classDecl,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(classDecl,currentThisExpr,classDecl.type));
+//
+//                // Assume when the 'this' object was allocated. 
+//                // Anything already allocated has a alloc value <= 0
+//                // If this is a constructor, then the alloc value of 'this' is set > 0; otherwise the alloc value of 'this' is 0
+//                JCExpression fa = M.at(methodDecl.pos).Select(currentThisExpr, allocSym);
+//                fa = treeutils.makeBinary(methodDecl,JCTree.Tag.EQ, fa, 
+//                        treeutils.makeIntLiteral(methodDecl, enclosingClass.isEnum() ? 0 : isConstructor ? ++allocCounter : 0));
+//                addStat(treeutils.makeAssume(methodDecl, Label.IMPLICIT_ASSUME, fa ));
+//                // FIXME - the above setting for enums very likely has to be fixed.
+//            }
+//            
             boolean callingSuper = false;
             boolean callingThis = false;
             Iterator<JCStatement> iter = null;
@@ -912,7 +912,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
 
-            if (esc && (isConstructor || !utils.isJMLStatic(methodDecl.sym))) {
+            if ((infer || esc) && (isConstructor || !utils.isJMLStatic(methodDecl.sym))) {
                 addStat(comment(methodDecl,"Declaration of THIS",null));
                 currentStatements = initialStatements;  // FIXME - an unnecessary assignment I think
                 
@@ -3868,7 +3868,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (msym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
             JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(msym);
             
-            if(denestedSpecs==null){
+            if(denestedSpecs==null){ // CHECK - added for innference
                 continue;
             }
             // Set up the map from parameter symbol of the overridden method to 
@@ -4425,7 +4425,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // corresponding parameter of the target method.
             // We need this even if names have not changed, because the parameters 
             // will have been attributed with different symbols.
-            if(denestedSpecs==null){
+            if(denestedSpecs==null){  // CHECK - added for inference
                 continue;
             }
             

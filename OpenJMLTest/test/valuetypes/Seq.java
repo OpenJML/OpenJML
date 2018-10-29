@@ -1,5 +1,6 @@
 //import org.jmlspecs.lang.seq;
 
+//@ pure
 public class Seq<T> {
     
     //@ ensures seq.<T>empty().isEmpty();
@@ -20,7 +21,6 @@ public class Seq<T> {
     //@ public normal_behavior
     //@   requires i >= 0 && i <= s.size();
     //@   ensures seq.equals(s.add(i,t).remove(i), s);
-    //@ pure
     //@ model public static <T> void addRemove(seq<T> s, T t, \bigint i) {}
     
     
