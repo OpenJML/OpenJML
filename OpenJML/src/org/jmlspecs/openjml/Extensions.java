@@ -21,9 +21,11 @@ import org.eclipse.core.runtime.Platform;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.ext.Elemtype;
 import org.jmlspecs.openjml.ext.Erasure;
+import org.jmlspecs.openjml.ext.SetStatement;
 import org.osgi.framework.Bundle;
 
 import com.sun.tools.javac.parser.ExpressionExtension;
+import com.sun.tools.javac.parser.StatementExtension;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 
@@ -92,12 +94,36 @@ public class Extensions {
         return e;
     }
     
+    public @Nullable StatementExtension findStatement(int pos, String token, boolean complain) {
+        StatementExtension e = statementInstances.get(token);
+        if (e == null) {
+            Class<? extends StatementExtension> c = statementClasses.get(token);
+            if (c == null) {
+                if (complain) Log.instance(context).error(pos,"jml.failure.to.create.ExpressionExtension",token);
+                return null;
+            }
+            try {
+                Constructor<? extends StatementExtension> constructor = c.getDeclaredConstructor(Context.class);
+                StatementExtension instance = constructor.newInstance(context);
+                statementInstances.put(token,instance);
+                e = instance;
+            } catch (Exception ee) {
+                if (complain) Log.instance(context).error(pos,"jml.failure.to.create.ExpressionExtension",token);
+                return null;
+            }
+        }
+        return e;
+    }
+    
     /** The list of classes that add extensions to the Parser */
-    static Class<?>[] extensions = { Elemtype.class, Erasure.class };
+    static Class<?>[] extensions = { Elemtype.class, Erasure.class, SetStatement.class };
 
     /** A map from token type to the extension class that implements the token */
-    static protected Map<JmlTokenKind,Class<? extends ExpressionExtension>> extensionClasses = new HashMap<JmlTokenKind,Class<? extends ExpressionExtension>>();
-    protected Map<JmlTokenKind,ExpressionExtension> extensionInstances = new HashMap<JmlTokenKind,ExpressionExtension>();
+    static protected Map<JmlTokenKind,Class<? extends ExpressionExtension>> extensionClasses = new HashMap<>();
+    protected Map<JmlTokenKind,ExpressionExtension> extensionInstances = new HashMap<>();
+
+    static protected Map<String,Class<? extends StatementExtension>> statementClasses = new HashMap<>();
+    protected Map<String,StatementExtension> statementInstances = new HashMap<>();
     
     // This static block runs through all the extension classes and adds
     // appropriate information to the HashMap above, so extensions can be 
@@ -144,20 +170,37 @@ public class Extensions {
     }
     
     public static boolean registerClass(Class<?> cc) {
-        if (!ExpressionExtension.class.isAssignableFrom(cc)) return false;
-        @SuppressWarnings("unchecked")
-        Class<? extends ExpressionExtension> c = (Class<? extends ExpressionExtension>)cc;
-        JmlTokenKind[] tokens;
-        try {
-            Method m = c.getMethod("tokens");
-            tokens = (JmlTokenKind[])m.invoke(null);
-            for (JmlTokenKind t: tokens) {
-                extensionClasses.put(t, c);
+        if (ExpressionExtension.class.isAssignableFrom(cc)) {
+            @SuppressWarnings("unchecked")
+            Class<? extends ExpressionExtension> c = (Class<? extends ExpressionExtension>)cc;
+            JmlTokenKind[] tokens;
+            try {
+                Method m = c.getMethod("tokens");
+                tokens = (JmlTokenKind[])m.invoke(null);
+                for (JmlTokenKind t: tokens) {
+                    extensionClasses.put(t, c);
+                }
+            } catch (Exception e) {
+                return false;
             }
-        } catch (Exception e) {
+            return true;
+        } else if (StatementExtension.class.isAssignableFrom(cc)) {
+            @SuppressWarnings("unchecked")
+            Class<? extends StatementExtension> c = (Class<? extends StatementExtension>)cc;
+            JmlTokenKind[] tokens;
+            try {
+                Method m = c.getMethod("ids");
+                String[] ids = (String[])m.invoke(null);
+                for (String t: ids) {
+                    statementClasses.put(t, c);
+                }
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        } else {
             return false;
         }
-        return true;
     }
     
     // This method finds all the classes in a given package that are OpenJML

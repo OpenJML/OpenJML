@@ -746,7 +746,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 javaMatch.methodSpecsCombined = specsMethodDecl.methodSpecsCombined;
                 javaMatch.methodSpecsCombined.cases.decl = javaMatch; // FIXME - is this needed?
                 
-            } else {
+            } else if (javaMatch != specsMethodDecl) {
                 javaMatch = null;
                 log.error("jml.internal", "Unexpected duplicate Java method declaration, without a matching symbol: " + matchSym);
             }

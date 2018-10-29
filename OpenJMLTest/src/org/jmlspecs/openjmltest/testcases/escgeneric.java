@@ -337,7 +337,7 @@ public class escgeneric extends EscBase {
  
     @Test
     public void testUnboxing() {
-        main.addOptions("-method=m");
+        main.addOptions("-method=m");  // Just test method m
         helpTCX("tt.TestJava"," class A { void m(/*@non_null*/ Integer ooo) { \n "
                 +"int sum = 0; \n"
                 +"{ /*@ assume ooo >= 0; */ sum += ooo; }  \n"
@@ -403,7 +403,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testGenericThrow() {
-        main.addOptions("-method=rt");
+        main.addOptions("-method=rt"); // Just test method rt
         helpTCX("tt.TestJava",
         		 "public class TestJava { \n"
         	    +" //@ public exceptional_behavior \n"

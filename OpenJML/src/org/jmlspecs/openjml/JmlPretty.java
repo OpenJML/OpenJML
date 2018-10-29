@@ -481,7 +481,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlStatement(JmlStatement that) {
         try { 
             if (useJMLComments) print ("/*@ ");
-            print(that.token.internedName());
+            print(that.id);
             print(" ");
             if (that.token == JmlTokenKind.END) print(": ");
             else that.statement.accept(this);

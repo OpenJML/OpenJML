@@ -431,18 +431,25 @@ public class esc extends EscBase {
     @Test
     public void testForEachBad() {
         expectedExit = 1;
-        helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
+        helpTCX("tt.TestJava", 
+                  "package tt; \n" 
+                + "public class TestJava { \n"
 
-                + "  public void m1a() {\n" + "    long[] a = { 1,2,3,4};\n" + "    for (long k: a) {\n" + "    }\n"
+                + "  public void m1a() {\n" 
+                + "    long[] a = { 1,2,3,4};\n" 
+                + "    for (long k: a) {\n" 
+                + "    }\n"
                 + "    //@ ghost int i = \\count;\n" // Out of scope
                 + "  }\n"
 
-                + "  public void m2() {\n" + "    long[] a = { 1,2,3,4};\n" + "    //@ ghost int i = \\count;\n" // Out
-                                                                                                                    // of
-                                                                                                                    // scope
+                + "  public void m2() {\n" 
+                + "    long[] a = { 1,2,3,4};\n" 
+                + "    //@ ghost int i = \\count;\n" // Out of scope
                 + "  }\n"
 
-                + "  public void m4() {\n" + "    long[] a = { 1,2,3,4};\n" + "    for (long k: a) {\n"
+                + "  public void m4() {\n" 
+                + "    long[] a = { 1,2,3,4};\n" 
+                + "    for (long k: a) {\n"
                 + "      //@ set \\count = 6;\n" // Syntax error
                 + "    }\n" + "  }\n"
 

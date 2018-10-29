@@ -97,6 +97,14 @@ public class Utils {
         if (jmltypes == null) jmltypes = JmlTypes.instance(context);
         return jmltypes;
     }
+    
+    public Type interfaceForPrimitiveTypes;
+    public Type interfaceForPrimitiveTypes() {
+    	if (interfaceForPrimitiveTypes == null) {
+            interfaceForPrimitiveTypes = ClassReader.instance(context).enterClass(Names.instance(context).fromString("org.jmlspecs.lang.IJmlPrimitiveType")).type;
+    	}
+    	return interfaceForPrimitiveTypes;
+    }
 
     /** The key to use to retrieve the instance of this class from the Context object. */
     //@ non_null
@@ -677,10 +685,27 @@ public class Utils {
             return false;
         }
     }
+    
+    public boolean isPrimitiveType(TypeSymbol ct) {
+        return isPrimitiveType(ct.type);
+    }
+
+    public boolean isPrimitiveType(Type ct) {
+        return ct.isPrimitive() || jmltypes().isJmlType(ct) || isExtensionValueType(ct);
+    }
+
+    public boolean isExtensionValueType(Type ct) {
+        if (ct instanceof Type.MethodType) return false;
+        return jmltypes().isSubtype(ct, interfaceForPrimitiveTypes());
+    }
 
     // Includes self
     public java.util.List<ClassSymbol> parents(TypeSymbol ct, boolean includeEnclosingClasses) {
         ArrayList<ClassSymbol> interfaces = new ArrayList<ClassSymbol>(20);
+        if (isPrimitiveType(ct)) {
+            interfaces.add((ClassSymbol)ct);
+            return interfaces;
+        }
         if (ct instanceof Symbol.TypeVariableSymbol) {
             ct = ct.type.getUpperBound().tsym;
             // FIXME - what if bound is also a type variable?

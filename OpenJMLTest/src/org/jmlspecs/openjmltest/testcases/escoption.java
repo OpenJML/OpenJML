@@ -36,7 +36,6 @@ public class escoption extends EscBase {
         //print = true;
     }
  
-    @Test
     public void testOptionValueBoolean() {
     	Assert.assertEquals(false,JmlOption.isOption(main.context(), JmlOption.STRICT));
     	Assert.assertEquals("false",JmlOption.value(main.context(), JmlOption.STRICT));

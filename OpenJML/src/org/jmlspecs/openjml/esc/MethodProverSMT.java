@@ -228,6 +228,7 @@ public class MethodProverSMT {
         boolean verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
         this.showSubexpressions = verbose || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS);
+        boolean methodIsStatic = utils.isJMLStatic(methodDecl.sym);
         boolean showTrace = this.showSubexpressions || JmlOption.isOption(context,JmlOption.TRACE);
         boolean showCounterexample = JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE);
         this.showBBTrace = escdebug;
@@ -609,7 +610,7 @@ public class MethodProverSMT {
                     {
                         tracer.appendln(JmlTree.eol + "TRACE of " + utils.qualifiedMethodSig(methodDecl.sym));
                         if (utils.jmlverbose  >= Utils.JMLVERBOSE) tracer.appendln("Constants");
-                        populateConstantMap(smt, solver, cemap, smttrans);
+                        populateConstantMap(smt, solver, cemap, smttrans, methodIsStatic);
                     }
                     path = new ArrayList<IProverResult.Span>();
                     JCExpression pathCondition = reportInvalidAssertion(
@@ -683,9 +684,9 @@ public class MethodProverSMT {
 
 
     public void populateConstantMap(SMT smt, ISolver solver, Map<JCTree,String> cemap,
-            SMTTranslator smttrans) {
+            SMTTranslator smttrans, boolean methodIsStatic) {
         addToConstantMap(smttrans.NULL,smt,solver,cemap);
-        addToConstantMap(smttrans.thisSym.toString(),smt,solver,cemap);
+        if (!methodIsStatic) addToConstantMap(smttrans.thisSym.toString(),smt,solver,cemap);
 //        for (Type t : smttrans.javaTypes) {
 //            String s = smttrans.javaTypeSymbol(t).toString(); // FIXME - need official printer
 //            addToConstantMap(s,smt,solver,cemap);

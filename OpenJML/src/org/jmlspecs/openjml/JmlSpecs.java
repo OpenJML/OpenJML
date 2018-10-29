@@ -1444,7 +1444,7 @@ public class JmlSpecs {
     }
     
     public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
-        if (symbol.type.isPrimitive()) return false;
+        if (!(symbol instanceof MethodSymbol) && utils.isPrimitiveType(symbol.type)) return false;
         if (JmlTypes.instance(context).isOnlyDataGroup(symbol.type)) return false;
         
         // TODO - perhaps cache these when the JmlSpecs class is created? (watch for circular tool creation)

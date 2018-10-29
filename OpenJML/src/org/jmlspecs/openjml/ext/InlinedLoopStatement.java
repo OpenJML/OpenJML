@@ -51,7 +51,7 @@ public class InlinedLoopStatement extends StatementExtension implements IJmlLoop
     //   reachable <expr> ;
     //   reachable <expr> : <expr> ; // The first <epxr> is a String literal, used as a message or identifier
     // FIXME - string literal is not used
-    public JCStatement parse(JmlParser parser) {
+    public JCStatement parse(String id, JmlParser parser) {
         init(parser);
         int pp = parser.pos();
         int pe = parser.endPos();

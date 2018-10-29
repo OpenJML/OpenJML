@@ -482,6 +482,13 @@ public class JmlParser extends JavacParser {
     @Override
     protected List<JCStatement> blockStatement() {
         while (true) {
+            if (S.jmlKeywordMode() && token.kind == TokenKind.IDENTIFIER) {
+                String id = token.name().toString();
+                if (Extensions.instance(context).findStatement(0,id,false) != null) {
+                    JCStatement s = parseStatement();
+                    return List.<JCStatement>of(s);
+                }
+            }
             if (!(token instanceof JmlToken)) {
                 JCExpression replacementType = null;
                 if (token.kind == TokenKind.BANG) {
@@ -538,6 +545,39 @@ public class JmlParser extends JavacParser {
         JCStatement st;
         String reason = null;
         JmlTokenKind jtoken = jmlTokenKind();
+        String id = null;
+        if (token.kind == TokenKind.IDENTIFIER && S.jml() && S.jmlKeywordMode()) {
+            boolean needSemi = true;
+            id = token.name().toString().intern();
+            StatementExtension ext =  Extensions.instance(context).findStatement(pos(),id,false);
+            if (ext != null) {
+                st = ext.parse(id,this);
+                needSemi = false; // OK for set // FIXME - not sure this is needed
+                S.setJmlKeyword(true);
+                if (!needSemi) {
+                    // If we do not need a semicolon yet (e.g. because we already
+                    // parsed it or because the statement does not end with one,
+                    // then the scanner has already scanned the next symbol,
+                    // with setJmlKeyword having been (potentially) false.
+                    // So we need to do the following conversion.
+                    if (token.kind == IDENTIFIER && S.jml()) {
+                        JmlTokenKind tt = JmlTokenKind.allTokens.get(S.chars());
+                        if (tt != null) {
+                            S.setToken(new JmlToken(tt, null, pos(), endPos()));
+                        }
+                    }
+                } else if (token.ikind == ENDJMLCOMMENT) {
+                    log.warning(pos()-2, "jml.missing.semi", jtoken);
+                } else if (token.kind != SEMI) {
+                    jmlerror(pos(), endPos(), "jml.bad.construct", reason);
+                    skipThroughSemi();
+                } else {
+                    nextToken(); // skip the semi
+                }
+                if (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) nextToken();
+                return st;
+            }
+        }
         if (token.kind == CUSTOM) {
             boolean needSemi = true;
             if (jtoken != JmlTokenKind.ENDJMLCOMMENT) {
@@ -641,26 +681,27 @@ public class JmlParser extends JavacParser {
                     S.setJmlKeyword(true); // This comes a token too late.
                     rescan();
                     needSemi = false;
-                } else if (jtoken == JmlTokenKind.SET || jtoken == JmlTokenKind.DEBUG) {
-                    S.setJmlKeyword(false);
-                    nextToken();
-                    // Only StatementExpressions are allowed - 
-                    // assignment statements and stand-alone method calls -
-                    // but JML constructs are allowed.
-                    boolean prev = inJmlDeclaration;
-                    inJmlDeclaration = true;
-                    JCStatement t = super.parseStatement();
-                    inJmlDeclaration = prev;
-                    if (!(t instanceof JCExpressionStatement)) {
-                        jmlerror(t.getStartPosition(),
-                                getEndPos(t),
-                                "jml.bad.statement.in.set.debug");
-                        t = null;
-                    }
-                    st = toP(jmlF.at(pos).JmlStatement(jtoken, (JCExpressionStatement)t));
-                    S.setJmlKeyword(true); // This comes a token too late.
-                    rescan();
-                    needSemi = false;
+//                } else if (id == "set".intern() || id == "debug".intern()) {
+//                //} else if (jtoken == JmlTokenKind.SET || jtoken == JmlTokenKind.DEBUG) {
+//                    S.setJmlKeyword(false);
+//                    nextToken();
+//                    // Only StatementExpressions are allowed - 
+//                    // assignment statements and stand-alone method calls -
+//                    // but JML constructs are allowed.
+//                    boolean prev = inJmlDeclaration;
+//                    inJmlDeclaration = true;
+//                    JCStatement t = super.parseStatement();
+//                    inJmlDeclaration = prev;
+//                    if (!(t instanceof JCExpressionStatement)) {
+//                        jmlerror(t.getStartPosition(),
+//                                getEndPos(t),
+//                                "jml.bad.statement.in.set.debug");
+//                        t = null;
+//                    }
+//                    st = toP(jmlF.at(pos).JmlStatement(jtoken, (JCExpressionStatement)t));
+//                    S.setJmlKeyword(true); // This comes a token too late.
+//                    rescan();
+//                    needSemi = false;
 
                 } else if (jtoken == JmlTokenKind.END) {
                     S.setJmlKeyword(true);
@@ -892,7 +933,7 @@ public class JmlParser extends JavacParser {
     /** Returns true if the token is a JML type token */
     public boolean isJmlTypeToken(JmlTokenKind t) {
         return t == JmlTokenKind.BSTYPEUC || t == JmlTokenKind.BSBIGINT
-                || t == JmlTokenKind.BSREAL;
+                || t == JmlTokenKind.BSREAL || t == JmlTokenKind.PRIMITIVE_TYPE;
     }
 
     /** Parses a choose statement (the choose token is already read) */
@@ -951,6 +992,13 @@ public class JmlParser extends JavacParser {
      * declarations even though they may be within a JML comment.
      */
     protected boolean inJmlDeclaration = false;
+    
+    public boolean setInJmlDeclaration(boolean newValue) {
+        boolean b = inJmlDeclaration;
+        inJmlDeclaration = newValue;
+        return b;
+    }
+    
     protected @Nullable JmlMethodSpecs currentMethodSpecs = null;
     protected @Nullable JmlVariableDecl currentVariableDecl = null;
     
@@ -2716,7 +2764,12 @@ public class JmlParser extends JavacParser {
         } else if (jt == JmlTokenKind.BSTYPEUC || jt == JmlTokenKind.BSBIGINT
                 || jt == JmlTokenKind.BSREAL) {
             JCPrimitiveTypeTree t = to(jmlF.at(pos())
-                    .JmlPrimitiveTypeTree(jt));
+                    .JmlPrimitiveTypeTree(jt,null));
+            nextToken();
+            return t;
+        } else if (jt == JmlTokenKind.PRIMITIVE_TYPE) {
+            JCPrimitiveTypeTree t = to(jmlF.at(pos())
+                    .JmlPrimitiveTypeTree(jt,ident()));
             nextToken();
             return t;
         } else {
@@ -2883,13 +2936,14 @@ public class JmlParser extends JavacParser {
         // itself. So if someone does write type arguments for a JML function
         // the code will fall into the super.term3() call and the token will not
         // be recognized - no chance for a nice error message.
-        if (token.kind == CUSTOM) {
+        if (token.kind == CUSTOM || jmlTokenKind() == JmlTokenKind.PRIMITIVE_TYPE) {
             JCExpression t;
             JmlTokenKind jt = jmlTokenKind();
             int p = pos(); // Position of the keyword
 
             if (isJmlTypeToken(jt)) {
-                t = to(jmlF.at(p).JmlPrimitiveTypeTree(jt));
+                String n = jt.internedName();
+                t = to(jmlF.at(p).JmlPrimitiveTypeTree(jt,names.fromString(n)));
                 nextToken();
                 // Could be just a type value
                 if (token.kind == TokenKind.DOT || token.kind == TokenKind.LBRACKET) {
