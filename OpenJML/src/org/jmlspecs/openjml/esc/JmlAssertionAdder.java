@@ -8905,9 +8905,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                     currentStatements.add(comment(that, "Assuming caller invariants upon reentering the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
                     addInvariants(that,savedEnclosingClass.type,
-                            savedEnclosingMethod == null || utils.isJMLStatic(savedEnclosingMethod)  ? null : savedThisExpr,
+                            utils.isJMLStatic(methodDecl.sym)  ? null : savedThisExpr,
                             currentStatements,
-                            true,savedEnclosingMethod != null && savedEnclosingMethod.isConstructor(),isSuperCall,isHelper(methodDecl.sym),false,true,Label.INVARIANT_REENTER_CALLER, "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
+                            true,
+                            methodDecl.sym.isConstructor(),
+                            isSuperCall,
+                            isHelper(methodDecl.sym),false,true,Label.INVARIANT_REENTER_CALLER, 
+                            "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
+//                    addInvariants(that,savedEnclosingClass.type,
+//                            savedEnclosingMethod == null || utils.isJMLStatic(savedEnclosingMethod)  ? null : savedThisExpr,
+//                            currentStatements,
+//                            true,savedEnclosingMethod != null && savedEnclosingMethod.isConstructor(),isSuperCall,isHelper(methodDecl.sym),false,true,Label.INVARIANT_REENTER_CALLER, "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
 
                     // Note that methodDecl.params will be null for initializer blocks
                     if (methodDecl.params != null) for (JCVariableDecl v: methodDecl.params) {

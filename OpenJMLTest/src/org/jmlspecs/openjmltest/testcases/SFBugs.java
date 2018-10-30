@@ -940,7 +940,7 @@ public class SFBugs extends EscBase {
     }
 
     @Test
-    public void gitbug653() { // FIXME - needs fix to SMT encoding
+    public void gitbug653() {
         expectedExit = 0;
         helpTCG("-specspath=test/gitbug653");
     }

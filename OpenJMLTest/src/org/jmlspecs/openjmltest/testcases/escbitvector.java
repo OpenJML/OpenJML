@@ -73,6 +73,7 @@ public class escbitvector extends EscBase {
     // BV true, with precondition and modulo operation
     @Test 
     public void testBV2b() {
+        Assume.assumeTrue(runLongTests);
         main.addOptions("-escBV=true","-logic=ALL");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

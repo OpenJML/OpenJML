@@ -175,6 +175,7 @@ public class escArithmeticModes extends EscBase {
 
     @Test
     public void testSumSafe4() {
+        Assume.assumeTrue(runLongArithmetic || !options.contains("-escBV=true"));
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeSafeMath public class TestJava { \n"
                 +"  public int mc(int i) {\n"

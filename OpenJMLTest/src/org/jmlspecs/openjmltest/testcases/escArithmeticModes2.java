@@ -78,7 +78,7 @@ public class escArithmeticModes2 extends EscBase {
     // Checks the value and sign of int division and mod
     @Test
     public void testModJavaZ() {
-        Assume.assumeTrue(runLongArithmetic || !options.contains("-escBV=true"));
+        Assume.assumeTrue(runLongArithmetic);
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeJavaMath @SpecSafeMath public class TestJava { \n"
                 +"  public long m() {\n"
