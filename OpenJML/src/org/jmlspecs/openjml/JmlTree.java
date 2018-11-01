@@ -13,6 +13,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.esc.Label;
+import org.jmlspecs.openjml.ext.*;
 
 import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.TreeVisitor;
@@ -96,6 +97,7 @@ public class JmlTree implements IJmlTree {
         JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlEnhancedForLoop JmlEnhancedForLoop(JCEnhancedForLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlStatementExpr JmlExpressionStatement(JmlTokenKind t, Label label, JCTree.JCExpression e);
+        JmlStatementExpr JmlExpressionStatement(IJmlClauseType t, Label label, JCTree.JCExpression e);
         JmlStatementHavoc JmlHavocStatement(List<JCTree.JCExpression> e);
         JmlForLoop JmlForLoop(JCForLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlGroupName JmlGroupName(JCExpression selection);
@@ -122,6 +124,7 @@ public class JmlTree implements IJmlTree {
         JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlTokenKind t, JmlTokenKind also, List<JmlMethodClause> clauses, JCBlock block);
         JmlSpecificationCase JmlSpecificationCase(JmlSpecificationCase sc, List<JmlMethodClause> clauses);
         JmlStatement JmlStatement(JmlTokenKind t, JCTree.JCExpressionStatement e);
+        JmlStatement JmlStatement(IJmlClauseType t, JCTree.JCExpressionStatement e);
         JmlStatement JmlStatement(String t, JCTree.JCExpressionStatement e);
         JmlStatementShow JmlStatementShow(JmlTokenKind t, List<JCExpression> expressions);
         JmlStatementDecls JmlStatementDecls(List<JCTree.JCStatement> list);
@@ -487,6 +490,12 @@ public class JmlTree implements IJmlTree {
             return new JmlStatementExpr(pos,t,label,e);
         }
         
+        /** Creates a JML expression statement (e.g. assert) */
+        @Override
+        public JmlStatementExpr JmlExpressionStatement(IJmlClauseType t, Label label, JCTree.JCExpression e) {
+            return new JmlStatementExpr(pos,t,label,e);
+        }
+        
         /** Creates a JML havoc statement */
         @Override
         public JmlStatementHavoc JmlHavocStatement(List<JCTree.JCExpression> e) {
@@ -580,6 +589,12 @@ public class JmlTree implements IJmlTree {
         /** Creates JML statements such as set and debug */
         @Override
         public JmlStatement JmlStatement(JmlTokenKind t, JCTree.JCExpressionStatement e) {
+            return new JmlStatement(pos,t,e);
+        }
+
+        /** Creates JML statements such as set and debug */
+        @Override
+        public JmlStatement JmlStatement(IJmlClauseType t, JCTree.JCExpressionStatement e) {
             return new JmlStatement(pos,t,e);
         }
 
@@ -2574,6 +2589,9 @@ public class JmlTree implements IJmlTree {
     public static class JmlStatement extends JmlAbstractStatement {
         public JmlTokenKind token;
         public String id;
+        public IJmlClauseType clauseType;
+        
+        //@ nullable
         public JCTree.JCExpressionStatement statement;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
@@ -2581,6 +2599,17 @@ public class JmlTree implements IJmlTree {
             this.pos = pos;
             this.token = token;
             this.id = token.internedName();
+            if (this.id.equals("set")) this.clauseType = SetStatement.setClause;
+            else if (this.id.equals("debug")) this.clauseType = SetStatement.debugClause;
+            else if (this.id.equals("end")) this.clauseType = EndStatement.endClause;
+            this.statement = statement;
+        }
+    
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        protected JmlStatement(int pos, IJmlClauseType token, JCTree.JCExpressionStatement statement) {
+            this.pos = pos;
+            this.clauseType = token;
+            this.id = token.name();
             this.statement = statement;
         }
     
@@ -2588,6 +2617,8 @@ public class JmlTree implements IJmlTree {
         protected JmlStatement(int pos, String token, JCTree.JCExpressionStatement statement) {
             this.pos = pos;
             this.id = token.intern();
+            if (this.id.equals("set")) this.clauseType = SetStatement.setClause;
+            else if (this.id.equals("debug")) this.clauseType = SetStatement.debugClause;
             this.statement = statement;
         }
     
@@ -2698,6 +2729,7 @@ public class JmlTree implements IJmlTree {
     public static class JmlStatementExpr extends JmlAbstractStatement implements JmlSource {
         /** The kind of statement - e.g. ASSERT, ASSUME, COMMENT, ... */
         public JmlTokenKind token;
+        public IJmlClauseType clauseType;
         
         /** The associated expression (e.g. the asserted condition) */
         public JCTree.JCExpression expression;
@@ -2738,6 +2770,15 @@ public class JmlTree implements IJmlTree {
         protected JmlStatementExpr(int pos, JmlTokenKind token, Label label, JCTree.JCExpression expression) {
             this.pos = pos;
             this.token = token;
+            this.expression = expression;
+            this.label = label;
+            this.associatedPos = pos;
+        }
+    
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        protected JmlStatementExpr(int pos, IJmlClauseType token, Label label, JCTree.JCExpression expression) {
+            this.pos = pos;
+            this.clauseType = token;
             this.expression = expression;
             this.label = label;
             this.associatedPos = pos;

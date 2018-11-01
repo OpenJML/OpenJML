@@ -21,11 +21,11 @@ import org.eclipse.core.runtime.Platform;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.ext.Elemtype;
 import org.jmlspecs.openjml.ext.Erasure;
+import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.ext.SetStatement;
+import org.jmlspecs.openjml.ext.StatementExtension;
 import org.osgi.framework.Bundle;
 
-import com.sun.tools.javac.parser.ExpressionExtension;
-import com.sun.tools.javac.parser.StatementExtension;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 
@@ -125,6 +125,8 @@ public class Extensions {
     static protected Map<String,Class<? extends StatementExtension>> statementClasses = new HashMap<>();
     protected Map<String,StatementExtension> statementInstances = new HashMap<>();
     
+    static protected Map<String,IJmlClauseType> clauseTypes = new HashMap<>();
+    
     // This static block runs through all the extension classes and adds
     // appropriate information to the HashMap above, so extensions can be 
     // looked up at runtime.
@@ -186,13 +188,13 @@ public class Extensions {
             return true;
         } else if (StatementExtension.class.isAssignableFrom(cc)) {
             @SuppressWarnings("unchecked")
-            Class<? extends StatementExtension> c = (Class<? extends StatementExtension>)cc;
-            JmlTokenKind[] tokens;
+            Class<? extends JmlExtension> c = (Class<? extends JmlExtension>)cc;
             try {
-                Method m = c.getMethod("ids");
-                String[] ids = (String[])m.invoke(null);
-                for (String t: ids) {
-                    statementClasses.put(t, c);
+                Method m = c.getMethod("clauseTypes");
+                IJmlClauseType[] ct = (IJmlClauseType[])m.invoke(null);
+                for (IJmlClauseType t: ct) {
+                    clauseTypes.put(t.name(), t);
+                    statementClasses.put(t.name(), (Class<? extends StatementExtension>)c);
                 }
             } catch (Exception e) {
                 return false;

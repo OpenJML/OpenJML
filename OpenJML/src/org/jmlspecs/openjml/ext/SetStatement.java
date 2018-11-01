@@ -6,6 +6,7 @@ package org.jmlspecs.openjml.ext;
 
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
+import org.jmlspecs.openjml.IJmlClauseType;
 import org.jmlspecs.openjml.JmlTokenKind;
 
 import com.sun.tools.javac.code.Type;
@@ -14,7 +15,6 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.StatementExtension;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
@@ -45,8 +45,20 @@ public class SetStatement extends StatementExtension {
     public static final String setID = "set";
     public static final String debugID = "debug";
     
-    static public String[] ids() { return new String[]{
-            setID, debugID }; }
+    public static final IJmlClauseType setClause = new IJmlClauseType() {
+        public String name() { return setID; }
+        public boolean oldNoLabelAllowed() { return true; }
+        public boolean preOrOldWithLabelAllowed() { return true; }
+    };
+    
+    public static final IJmlClauseType debugClause = new IJmlClauseType() {
+        public String name() { return debugID; }
+        public boolean oldNoLabelAllowed() { return true; }
+        public boolean preOrOldWithLabelAllowed() { return true; }
+    };
+    
+    public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
+            setClause, debugClause }; }
     
     public JCStatement parse(String keyword, JmlParser parser) {
         init(parser);

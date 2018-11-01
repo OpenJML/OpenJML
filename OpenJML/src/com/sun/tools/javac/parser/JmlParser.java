@@ -16,7 +16,9 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
+import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.ext.InlinedLoopStatement;
+import org.jmlspecs.openjml.ext.StatementExtension;
 
 import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Flags;
@@ -57,7 +59,7 @@ public class JmlParser extends JavacParser {
 
     /** The node factory to use */
     // @ non_null
-    protected JmlTree.Maker jmlF;
+    public JmlTree.Maker jmlF;
 
     /** The table of identifiers */
     // @ non_null
@@ -3608,7 +3610,7 @@ public class JmlParser extends JavacParser {
      * Skips up to and including a semicolon, though not including any EOF or
      * ENDJMLCOMMENT
      */
-    protected void skipThroughSemi() {
+    public void skipThroughSemi() {
         while (token.kind != TokenKind.SEMI && token.kind != TokenKind.EOF
                 && jmlTokenKind() != JmlTokenKind.ENDJMLCOMMENT)
             nextToken();
@@ -3616,7 +3618,7 @@ public class JmlParser extends JavacParser {
     }
 
     /** Skips up to but not including a semicolon or EOF or ENDJMLCOMMENT */
-    protected void skipToSemi() {
+    public void skipToSemi() {
         while (token.kind != SEMI && token.kind != EOF
                 && jmlTokenKind() != JmlTokenKind.ENDJMLCOMMENT)
             nextToken();
@@ -3626,7 +3628,7 @@ public class JmlParser extends JavacParser {
      * Skips up to but not including a semicolon or comma or EOF or
      * ENDJMLCOMMENT
      */
-    protected void skipToCommaOrSemi() {
+    public void skipToCommaOrSemi() {
         while (token.kind != SEMI && token.kind != COMMA
                 && token.kind != EOF
                 && jmlTokenKind() != JmlTokenKind.ENDJMLCOMMENT)
@@ -3637,7 +3639,7 @@ public class JmlParser extends JavacParser {
      * Skips up to but not including a right-parenthesis or comma or EOF or
      * ENDJMLCOMMENT
      */
-    protected void skipToCommaOrParenOrSemi() {
+    public void skipToCommaOrParenOrSemi() {
         while (token.kind != RPAREN && token.kind != COMMA
                 && token.kind != SEMI && token.kind != EOF
                 && jmlTokenKind() != JmlTokenKind.ENDJMLCOMMENT)

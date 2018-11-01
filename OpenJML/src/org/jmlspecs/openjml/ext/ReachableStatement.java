@@ -6,6 +6,7 @@ package org.jmlspecs.openjml.ext;
 
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
+import org.jmlspecs.openjml.IJmlClauseType;
 import org.jmlspecs.openjml.JmlTokenKind;
 
 import com.sun.tools.javac.code.Type;
@@ -14,7 +15,6 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.StatementExtension;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
@@ -40,7 +40,26 @@ public class ReachableStatement extends StatementExtension {
     
     static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
             JmlTokenKind.REACHABLE}; }
+
+    public static final String reachableID = "reachable";
+    public static final String unreachableID = "unreachable";
     
+    public static final IJmlClauseType reachableClause = new IJmlClauseType() {
+        public String name() { return reachableID; }
+        public boolean oldNoLabelAllowed() { return true; }
+        public boolean preOrOldWithLabelAllowed() { return true; }
+    };
+
+    public static final IJmlClauseType unreachableClause = new IJmlClauseType() {
+        public String name() { return unreachableID; }
+        public boolean oldNoLabelAllowed() { return true; }
+        public boolean preOrOldWithLabelAllowed() { return true; }
+    };
+
+    public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
+            reachableClause, unreachableClause }; }
+    
+
     // allowed forms:
     //   reachable ;
     //   reachable <expr> ;
