@@ -21,6 +21,8 @@ import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
+import org.jmlspecs.openjml.ext.EndStatement;
 
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
@@ -598,7 +600,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @param statement
      */
     protected void addAssert(Label label, JCExpression trExpr, int declpos, List<JCStatement> statements, int usepos, JavaFileObject source, JCTree statement) {
-        JmlTree.JmlStatementExpr st = factory.at(statement.pos()).JmlExpressionStatement(JmlTokenKind.ASSERT,label,trExpr);
+        JmlTree.JmlStatementExpr st = factory.at(statement.pos()).JmlExpressionStatement(assertID, assertClause,label,trExpr);
         st.optionalExpression = null;
         st.source = source; // source file in which st.pos resides
         //st.line = -1; 
@@ -1285,12 +1287,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // OK
     @Override
     public void visitJmlStatementExpr(JmlStatementExpr that) { 
-        if (that.token == JmlTokenKind.COMMENT) {
+        if (that.clauseType == commentClause) {
             // Comments are included in the BB program without rewriting
             // This is essential to how counterexample path construction works
             currentBlock.statements.add(that);
-        } else if (that.token == JmlTokenKind.ASSUME || that.token == JmlTokenKind.ASSERT) {
-            JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.token,that.label,convertExpr(that.expression));
+        } else if (that.clauseType == assumeClause || that.clauseType == assertClause) {
+            JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.clauseType.name(),that.clauseType,that.label,convertExpr(that.expression));
             st.id = that.id;
             st.optionalExpression = convertExpr(that.optionalExpression);
             st.associatedPos = that.associatedPos;
@@ -1300,7 +1302,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             st.type = that.type;
             st.associatedClause = that.associatedClause;
             copyEndPosition(st,that);
-            if (that.token == JmlTokenKind.ASSUME && that.label == Label.METHOD_ASSUME) {
+            if (that.clauseType == assertClause && that.label == Label.METHOD_ASSUME) {
                 JCExpression expr = that.expression;
                 JCMethodInvocation call = (JCMethodInvocation)((JCBinary)expr).rhs;
                 Symbol sym = treeutils.getSym(call.meth);
@@ -1311,12 +1313,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             currentBlock.statements.add(st);
 
         } else {
-            log.error(that.pos,"esc.internal.error","Unknown token in BasicBlocker2.visitJmlStatementExpr: " + that.token.internedName());
+            log.error(that.pos,"esc.internal.error","Unknown token in BasicBlocker2.visitJmlStatementExpr: " + that.clauseType.name());
         }
     }
     
     public void visitJmlStatement(JmlStatement that) {
-        if (that.token == JmlTokenKind.END) {
+        if (that.clauseType == EndStatement.endClause) {
             // Modeled after vistReturn
             if (!remainingStatements.isEmpty()) {
                 JCStatement stat = remainingStatements.get(0);
@@ -1378,7 +1380,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                         eq.type = call.type;
                         eq = treeutils.makeEquality(Position.NOPOS, call, eq);
                         ex = treeutils.makeImplies(Position.NOPOS, ex, eq);
-                        JmlStatementExpr st = M.at(Position.NOPOS).JmlExpressionStatement(JmlTokenKind.ASSUME,Label.DSA,ex);
+                        JmlStatementExpr st = M.at(Position.NOPOS).JmlExpressionStatement(assumeID, assumeClause,Label.DSA,ex);
                         currentBlock.statements.add(st);
                         return ;
                     }
@@ -1424,7 +1426,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             eq.type = call.type;
             eq = treeutils.makeEquality(Position.NOPOS, call, eq);
             JCExpression ex = treeutils.makeImplies(Position.NOPOS, info.path, eq);
-            JmlStatementExpr st = M.at(Position.NOPOS).JmlExpressionStatement(JmlTokenKind.ASSUME,Label.DSA,ex);
+            JmlStatementExpr st = M.at(Position.NOPOS).JmlExpressionStatement(assumeID, assumeClause,Label.DSA,ex);
             currentBlock.statements.add(st);
         }
     }

@@ -8,6 +8,8 @@ import java.lang.reflect.Constructor;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlExpression;
@@ -33,7 +35,7 @@ import com.sun.tools.javac.util.Log.WriterKind;
 /* FIXME - do more to implement extensions */
 
 /* TODO - needs documentation */
-abstract public class ExpressionExtension {
+abstract public class ExpressionExtension implements JmlExtension {
     protected static final Context.Key<ExpressionExtension> exprExtensionsKey =
             new Context.Key<ExpressionExtension>();
 
@@ -57,10 +59,11 @@ abstract public class ExpressionExtension {
      * instantiated directly by users.
      */
     protected ExpressionExtension(Context context) {
-        this.context = context;
         this.syms = Symtab.instance(context);
         this.utils = Utils.instance(context);
-   }
+    }
+    
+    public JCExpression parse(String keyword, IJmlClauseType clauseType, JmlParser parser) { return null; }
     
     /** Writes an error message to the log, using the given DiagnosticPosition
      * (typically gotten from tree.pos()), 

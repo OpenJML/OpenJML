@@ -14,6 +14,11 @@ import java.util.Iterator;
 import org.jmlspecs.annotation.NonNull;
 
 import org.jmlspecs.openjml.JmlTree.*;
+import static org.jmlspecs.openjml.ext.EndStatement.*;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
+import static org.jmlspecs.openjml.ext.TypeInClauseExtension.*;
+import static org.jmlspecs.openjml.ext.TypeMapsClauseExtension.*;
+import static org.jmlspecs.openjml.ext.InlinedLoopStatement.*;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.parser.JmlParser;
@@ -252,7 +257,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
         try {
             for (JCTree.JCVariableDecl s: that.decls) {
-                print(that.token.internedName());
+                print(useCanonicalName ? that.clauseType.name() : that.keyword);
                 print(" ");
                 s.accept(this);
                 print("; ");
@@ -262,7 +267,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
         try { 
-            print(that.token.internedName());
+            print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" ");
             printExpr(that.expression);  // noPrec
             print("; ");
@@ -271,7 +276,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
         try { 
-            print(JmlTokenKind.CALLABLE.internedName());
+            print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" ");
             if (that.keyword != null) {
                 that.keyword.accept(this);
@@ -289,7 +294,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
         try { 
-            print(that.token.internedName());
+            print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" ");
             that.expression.accept(this);
             if (that.predicate != null) {
@@ -303,7 +308,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
         try { 
-            print(that.token.internedName());
+            print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" ");
             if (that.list.isEmpty()) {
                 print("\\nothing");
@@ -320,7 +325,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
         try { 
-            print(that.token.internedName());
+            print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" ");
             boolean first = true;
             for (JCTree item: that.list) {
@@ -333,7 +338,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
         try { 
-            print(that.token.internedName());
+            print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" (");
             if (that.vardef != null) {
                 that.vardef.vartype.accept(this);
@@ -481,9 +486,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlStatement(JmlStatement that) {
         try { 
             if (useJMLComments) print ("/*@ ");
-            print(that.id);
+            print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" ");
-            if (that.token == JmlTokenKind.END) print(": ");
+            if (that.clauseType == endClause) print(": ");
             else that.statement.accept(this);
             if (useJMLComments) print("*/");
         } catch (IOException e) { perr(that,e); }
@@ -500,8 +505,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 }
             }
             if (useJMLComments) print ("/*@ ");
-            print(JmlTokenKind.INLINED_LOOP.internedName());
-            //print(that.token.internedName());
+            print(inlinedloopClause.name());
+            //print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(";");
             if (useJMLComments) print("*/");
         } catch (IOException e) { perr(that,e); }
@@ -511,7 +516,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlStatementShow(JmlStatementShow that) {
         try { 
             if (useJMLComments) print ("/*@ ");
-            print(that.token.internedName());
+            print(that.clauseType.name());
             boolean first = true;
             for (JCExpression e: that.expressions) {
                 if (!first) print(",");
@@ -527,7 +532,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlStatementLoopExpr(JmlStatementLoopExpr that) {
         try { 
             if (useJMLComments) print("//@ ");
-            print(that.token.internedName());
+            print(that.clauseType.name());
             print(" ");
             printExpr(that.expression); // noPrecÍP
             print(";");
@@ -537,7 +542,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlStatementLoopModifies(JmlStatementLoopModifies that) {
         try { 
             if (useJMLComments) print ("//@ ");
-            print(that.token.internedName());
+            print(that.clauseType.name());
 
             print(" ");
             boolean first = true;
@@ -562,7 +567,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlStatementExpr(JmlStatementExpr that) {
         try { 
-            if (that.token == JmlTokenKind.COMMENT) {
+            if (that.clauseType == commentClause) {
                 print("// ");
                 if (that.expression != null) print(((JCLiteral)that.expression).value); // FIXME - can the comment span more than one line?
                 else {
@@ -570,7 +575,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 }
             } else {
                 if (useJMLComments) print ("/*@ ");  // FIXME - this is needed in lots more places
-                print(that.token.internedName());
+                print(useCanonicalName ? that.clauseType.name() : that.keyword);
                 print(" ");
                 if (that.label != null && !sourceOutput) {
                     print(that.label);
@@ -592,7 +597,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlStatementHavoc(JmlStatementHavoc that) {
         try { 
             if (useJMLComments) print ("//@ ");
-            print(that.token.internedName());
+            print(that.clauseType.name());
 
             print(" ");
             boolean first = true;
@@ -615,7 +620,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try { 
             if (useJMLComments) print("//@ ");
             if (that.modifiers != null) that.modifiers.accept(this);  // includes trailing space if non-empty
-            print(that.token.internedName());
+            print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" ");
             printExpr(that.expression); // TreeInfo.noPrec
             print("; ");
@@ -625,11 +630,14 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
         that.decl.accept(this); // FIXME - //@?
     }
-
+    
+    public boolean useCanonicalName = true;
+    
+    
     public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
         try {
             if (useJMLComments) print("//@ ");
-            print(that.token.internedName());
+            print(useCanonicalName ? that.clauseType.name() : that.keyword);
             Iterator<JmlGroupName> g = that.list.iterator();
             print(" ");
             g.next().accept(this);
@@ -644,7 +652,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
         try {
             if (useJMLComments) print("//@ ");
-            print(that.token.internedName());
+            print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" ");
             print(that.expression);
             print(" \\into");
@@ -676,7 +684,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (that.specs != null) that.specs.accept(this);
             align();
             if (that.modifiers != null) that.modifiers.accept(this);
-            print(that.token.internedName());
+            print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" {}");
             println();
         } catch (IOException e) { perr(that,e); }
@@ -686,7 +694,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try {
             if (useJMLComments) print("//@ ");
             if (that.modifiers != null) that.modifiers.accept(this);  // includes trailing space if non-empty
-            print(that.token.internedName());
+            print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" ");
             printExpr(that.expression);
             if (that.sigs != null && !that.sigs.isEmpty()) {
@@ -709,7 +717,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try { 
             if (useJMLComments) print("//@ ");
             if (that.modifiers != null) that.modifiers.accept(this);  // trailing space if non-empty
-            print(that.token.internedName());
+            print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" ");
             that.ident.accept(this);
             print(" = ");
@@ -722,7 +730,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try {
             if (useJMLComments) print("//@ ");
             if (that.modifiers != null) that.modifiers.accept(this);  // trailing space if non-empty
-            print(that.token.internedName());
+            print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" ");
             that.identifier.accept(this);
             if (that.expression != null) {
@@ -737,7 +745,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try {
             if (useJMLComments) print("//@ ");
             if (that.modifiers != null) that.modifiers.accept(this);  // trailing space if non-empty
-            print(that.token.internedName());
+            print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" ");
             that.identifier.accept(this);
             print(" = ");
@@ -1063,7 +1071,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         indent();
         for (JmlTypeClause t: fspecs.list) {
             try {
-                if (t.token == JmlTokenKind.IN || t.token == JmlTokenKind.MAPS) {
+                if (t.clauseType == inClause|| t.clauseType == mapsClause) {
                     align(); t.accept(this); println();
                 }
             } catch (IOException e) {
@@ -1072,7 +1080,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         }
         for (JmlTypeClause t: fspecs.list) {
             try{
-                if (t.token == JmlTokenKind.IN || t.token == JmlTokenKind.MAPS) continue;
+                if (t.clauseType == inClause || t.clauseType == mapsClause) continue;
                 align(); t.accept(this); println(); // FIXME - what might theses be?
             } catch (IOException e) {
                 perr(t,e);

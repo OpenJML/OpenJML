@@ -1208,6 +1208,10 @@ public class Utils {
         }
     }
     
+    public static <T> java.util.Collection<T> asSet(T ... args) {
+        return java.util.Arrays.asList(args);
+    }
+    
     /** Reports progress to the registered IProgressListener; also checks if
      * the progress listener has received a user-cancellation, in which case
      * this method throws an exception to terminate processing

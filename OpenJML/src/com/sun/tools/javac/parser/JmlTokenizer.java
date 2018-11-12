@@ -623,8 +623,10 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     @Override
     protected void scanIdent() {
         super.scanIdent(); // Sets tk and name
-        if (!jml || !jmlkeyword)  // FIXME _ in this case jmlTokenKind should be set to null?
+        jmlTokenKind = null;
+        if (!jml || !jmlkeyword) {
             return;
+        }
         if (tk == TokenKind.IDENTIFIER) {
             String s = reader.chars();
             // TODO - we are just ignoring the redundantly suffixes
@@ -636,9 +638,8 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 jmlTokenKind = tt;
                 return; 
             }
-            // FIXME - can we count on jmlTokenKind to be null?
         } else if (tk == TokenKind.ASSERT) {
-            jmlTokenKind = JmlTokenKind.ASSERT;
+            //jmlTokenKind = JmlTokenKind.ASSERT;
         }
     }
 

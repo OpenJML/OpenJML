@@ -11,6 +11,9 @@ import org.jmlspecs.openjml.IJmlClauseType;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.IJmlLoop;
+import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
+import org.jmlspecs.openjml.JmlTree.JmlStatement;
 import org.jmlspecs.openjml.JmlTree.JmlStatementLoop;
 import org.jmlspecs.openjml.esc.Label;
 
@@ -22,6 +25,7 @@ import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
@@ -37,63 +41,36 @@ import com.sun.tools.javac.util.Log;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class AssertAssumeStatement extends StatementExtension implements IJmlLoop {
-
-    public AssertAssumeStatement(Context context) {
-        super(context);
+public class StatementExprType extends IJmlClauseType.Statement {
+    
+    public StatementExprType(String keyword) {
+        this.keyword = keyword;
     }
-    
-    public static void register(Context context) {}
-    
-    static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
-            JmlTokenKind.ASSERT, JmlTokenKind.ASSUME}; }
-    
-    public static final String assertID = "assert";
-    public static final String assumeID = "assume";
-    public static final String useID = "use";
-    
-    public static final IJmlClauseType assertClause = new IJmlClauseType() {
-        public String name() { return assertID; }
-    };
-    
-    public static final IJmlClauseType assumeClause = new IJmlClauseType() {
-        public String name() { return assumeID; }
-    };
-    
-    public static final IJmlClauseType useClause = new IJmlClauseType() {
-        public String name() { return useID; }
-    };
-    
-    
-    public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
-            assertClause, assumeClause, useClause }; }
-    
-    public JCStatement parse(String id, JmlParser parser) {
+
+    @Override
+    public JmlAbstractStatement parse(JCModifiers mods, String id, IJmlClauseType clauseType, JmlParser parser) {
         init(parser);
         int pp = parser.pos();
         int pe = parser.endPos();
-        JmlTokenKind jt = parser.jmlTokenKind();
-        int p = scanner.currentPos();
+
         parser.nextToken();
         Token tk = parser.token();
 
-        JCExpression t = null;
-        t = parser.parseExpression();
+        JCExpression t = parser.parseExpression();
+        String nm = clauseType.name();
         JmlTree.JmlStatementExpr ste = jmlF
-                .at(p)
+                .at(pp)
                 .JmlExpressionStatement(
-                        jt,
-                          jt == JmlTokenKind.ASSUME ? Label.EXPLICIT_ASSUME :
-                          jt == JmlTokenKind.ASSERT ? Label.EXPLICIT_ASSERT :
-                        null,
+                        nm,
+                        clauseType,
+                          nm.equals("assume") ? Label.EXPLICIT_ASSUME :
+                                                Label.EXPLICIT_ASSERT,  // FIXME?
                             t);
         if (tk.kind == COLON) {
             parser.nextToken();
             ste.optionalExpression = parser.parseExpression();
         }
-        toP(ste);
-        ste.source = Log.instance(context).currentSourceFile();
-        //ste.line = log.currentSource().getLineNumber(pos);
+        wrapup(ste,clauseType,true);
         return ste;
     }
     
@@ -102,12 +79,13 @@ public class AssertAssumeStatement extends StatementExtension implements IJmlLoo
         return null;
     }
 
-    @Override
-    public List<JmlStatementLoop> loopSpecs() {
-        return null;
-    }
-
-    @Override
-    public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) {
-    }
+    // FIXME
+//    @Override
+//    public List<JmlStatementLoop> loopSpecs() {
+//        return null;
+//    }
+//
+//    @Override
+//    public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) {
+//    }
 }

@@ -13,6 +13,9 @@ import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
+import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
+import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
+
 
 import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Symbol;
@@ -97,7 +100,7 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
 
             JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr) clause;
 
-            if (mExpr.token == JmlTokenKind.ENSURES
+            if (mExpr.clauseType == ensuresClause
                     && mExpr.expression instanceof JCBinary) {
                 JCBinary b = (JCBinary) mExpr.expression;
 
@@ -118,28 +121,28 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
         if (clause instanceof JmlMethodClauseStoreRef) {
             JmlMethodClauseStoreRef mExpr = (JmlMethodClauseStoreRef) clause;
 
-            if (mExpr.token == JmlTokenKind.ASSIGNABLE
+            if (mExpr.clauseType == assignableClause
                     && mExpr.toString().startsWith("assignable \\result.")) {
                 return true;
             }
 
-            if (mExpr.token == JmlTokenKind.ASSIGNABLE
+            if (mExpr.clauseType == assignableClause
                     && mExpr.toString().startsWith("assignable \\result")) {
                 return true;
             }
             if (AnalysisTypes.enabled(context, AnalysisType.TAUTOLOGIES)) {
-                if (mExpr.token == JmlTokenKind.ASSIGNABLE
+                if (mExpr.clauseType == assignableClause
                         && mExpr.toString().startsWith("assignable true")) {
                     return true;
                 }
             }
 
-            if (mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString()
+            if (mExpr.clauseType == assignableClause && mExpr.toString()
                     .startsWith("assignable " + Strings.newArrayVarString)) {
                 return true;
             }
 
-            if (mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString()
+            if (mExpr.clauseType == assignableClause && mExpr.toString()
                     .startsWith("assignable " + Strings.newObjectVarString)) {
                 return true;
             }
@@ -340,21 +343,21 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
             }
 
             if (clause instanceof JmlMethodClauseExpr
-                    && clause.token == JmlTokenKind.REQUIRES
+                    && clause.clauseType == requiresClause
                     && (((JmlMethodClauseExpr) clause).expression.toString()
                             .contains("\\result"))) {
                 return true;
             }
 
             if (clause instanceof JmlMethodClauseExpr
-                    && clause.token == JmlTokenKind.ENSURES
+                    && clause.clauseType == ensuresClause
                     && (((JmlMethodClauseExpr) clause).expression.toString()
                             .contains("this.overallStart == time"))) {
                 return true;
             }
 
             if (clause instanceof JmlMethodClauseExpr
-                    && clause.token == JmlTokenKind.ENSURES
+                    && clause.clauseType == ensuresClause
                     && (((JmlMethodClauseExpr) clause).expression.toString()
                             .contains("colSize == children.content.theSize"))) {
                 return true;

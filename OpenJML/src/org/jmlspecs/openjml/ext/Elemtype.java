@@ -4,6 +4,7 @@
  */
 package org.jmlspecs.openjml.ext;
 
+import org.jmlspecs.openjml.IJmlClauseType;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 
@@ -44,6 +45,12 @@ public class Elemtype extends ExpressionExtension {
             JmlTokenKind.BSPOST, JmlTokenKind.BSASSIGNS,
             JmlTokenKind.BSWARN, JmlTokenKind.BSWARNOP}; }
     
+    @Override
+    public IJmlClauseType[] clauseTypes() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     @Override
     public void checkParse(JmlParser parser, JmlMethodInvocation e) {
 //        checkOneArg(parser,e);

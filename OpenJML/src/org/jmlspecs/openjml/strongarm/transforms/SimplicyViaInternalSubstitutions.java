@@ -13,6 +13,7 @@ import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
@@ -196,7 +197,7 @@ public class SimplicyViaInternalSubstitutions extends JmlTreeScanner {
                 
                 // make sure this is an ENSURES clause
                 if(pre.equals(post)==false){
-                    clauses.head.token = JmlTokenKind.ENSURES;
+                    clauses.head.clauseType = MethodExprClauseExtensions.ensuresClause;
                 }
                 
             }

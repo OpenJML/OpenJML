@@ -7,8 +7,10 @@ package org.jmlspecs.openjml.ext;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.IJmlLoop;
+import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.JmlTree.JmlStatementLoop;
 
 import com.sun.tools.javac.code.Type;
@@ -19,6 +21,7 @@ import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
@@ -33,59 +36,14 @@ import com.sun.tools.javac.util.List;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class InlinedLoopStatement extends StatementExtension implements IJmlLoop {
+public class InlinedLoopStatement implements JmlExtension.Statement, IJmlLoop {
 
-    public InlinedLoopStatement(Context context) {
-        super(context);
-    }
-    
-    public static void register(Context context) {}
-    
-    static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
-            JmlTokenKind.INLINED_LOOP}; }
-    
     public static final String inlinedloopID = "inlined_loop";
-    
-    public static final IJmlClauseType inlinedloopClause = new IJmlClauseType() {
-        public String name() { return inlinedloopID; }
-    };
-    
     
     public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
             inlinedloopClause }; }
     
     public List<JmlStatementLoop> loopSpecs;
-    
-    // allowed forms:
-    //   reachable ;
-    //   reachable <expr> ;
-    //   reachable <expr> : <expr> ; // The first <epxr> is a String literal, used as a message or identifier
-    // FIXME - string literal is not used
-    public JCStatement parse(String id, JmlParser parser) {
-        init(parser);
-        int pp = parser.pos();
-        int pe = parser.endPos();
-        JmlTokenKind jt = parser.jmlTokenKind();
-        int p = scanner.currentPos();
-        parser.nextToken();
-        if (parser.token().kind == TokenKind.SEMI) {
-            return jmlF.at(p).JmlExpressionStatement(jt,null,null);
-        } else {
-            
-            if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
-                parser.jmlwarning(p-2, "jml.missing.semi", jt);
-            } else if (parser.token().kind != TokenKind.SEMI) {
-                parser.jmlerror(p, "jml.missing.semi", jt);
-            }
-            return jmlF.at(p).JmlExpressionStatement(jt,null,null);
-        }
-
-    }
-    
-    @Override
-    public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env) {
-        return null;
-    }
 
     @Override
     public List<JmlStatementLoop> loopSpecs() {
@@ -96,5 +54,33 @@ public class InlinedLoopStatement extends StatementExtension implements IJmlLoop
     public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) {
         this.loopSpecs = loopSpecs;
     }
-    
+
+    public static final IJmlClauseType inlinedloopClause = new IJmlClauseType.Statement() {
+        public String name() { return inlinedloopID; }
+        public JmlStatementExpr parse(JCModifiers mods, String id, IJmlClauseType clauseType, JmlParser parser) {
+            init(parser);
+            int pp = parser.pos();
+            int pe = parser.endPos();
+            parser.nextToken();
+            JmlStatementExpr st = jmlF.at(pp).JmlExpressionStatement(id,clauseType,null,null);
+            wrapup(st,clauseType,true);
+//            if (parser.token().kind == TokenKind.SEMI) {
+//                return jmlF.at(pp).JmlExpressionStatement(id,clauseType,null,null);
+//            } else {
+//                
+//                if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
+//                    parser.jmlwarning(pp-2, "jml.missing.semi", id);
+//                } else if (parser.token().kind != TokenKind.SEMI) {
+//                    parser.jmlerror(pp, "jml.missing.semi", id);
+//                }
+//                return jmlF.at(pp).JmlExpressionStatement(id,clauseType,null,null);
+//            }
+            return st;
+        }
+        
+        @Override
+        public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env) {
+            return null;
+        }
+    };
 }

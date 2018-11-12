@@ -175,7 +175,7 @@ public class JmlScanner extends Scanner {
     protected boolean       jmlkeyword = true;
 
     /** Set to true internally while the scanner is within a JML comment */
-    protected boolean       jml() {
+    public boolean       jml() {
         return jmltokenizer.jml;
     }
     

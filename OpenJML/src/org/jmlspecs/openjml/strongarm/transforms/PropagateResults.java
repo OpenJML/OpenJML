@@ -2,13 +2,10 @@ package org.jmlspecs.openjml.strongarm.transforms;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
-import javax.lang.model.type.TypeKind;
 
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -16,8 +13,8 @@ import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
-import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
+import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
@@ -27,7 +24,6 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
-import com.sun.tools.javac.util.Name;
 
 public class PropagateResults extends JmlTreeScanner {
     
@@ -63,7 +59,7 @@ public class PropagateResults extends JmlTreeScanner {
         if(clause instanceof JmlMethodClauseExpr){
             JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
             
-            if(mExpr.token == JmlTokenKind.ENSURES && mExpr.expression instanceof JCBinary ){
+            if(mExpr.clauseType == ensuresClause && mExpr.expression instanceof JCBinary ){
                 JCBinary expr = (JCBinary)mExpr.expression;
 
                 if(expr == null || expr.lhs == null || expr.rhs==null){
@@ -95,7 +91,7 @@ public class PropagateResults extends JmlTreeScanner {
         if(clause instanceof JmlMethodClauseExpr){
             JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
             
-            if(mExpr.token == JmlTokenKind.ENSURES && mExpr.expression instanceof JCBinary ){
+            if(mExpr.clauseType == ensuresClause && mExpr.expression instanceof JCBinary ){
                 JCBinary expr = (JCBinary)mExpr.expression;
                 
                 if(expr == null || expr.lhs == null || expr.rhs==null){

@@ -19,6 +19,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.openjml.IJmlClauseType;
 import org.jmlspecs.openjml.JmlInternalError;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
@@ -34,6 +35,11 @@ import org.jmlspecs.openjml.esc.BasicBlocker2.VarMap;
 import org.jmlspecs.openjml.esc.BasicProgramParent.BlockParent;
 import org.jmlspecs.openjml.esc.BoogieProgram;
 import org.jmlspecs.openjml.esc.BoogieProgram.BoogieBlock;
+import org.jmlspecs.openjml.ext.StatementExprExtensions;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
+import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
+import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.*;
+import static org.jmlspecs.openjml.ext.TypeRepresentsClauseExtension.*;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Scope;
@@ -526,7 +532,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //            newdefs.add(stat);
 //            that = id;
 //        }
-        JmlTree.JmlStatementExpr st = M.at(statement.pos).JmlExpressionStatement(JmlTokenKind.ASSERT,label,that);
+        JmlTree.JmlStatementExpr st = M.at(statement.pos).JmlExpressionStatement(StatementExprExtensions.assertID, StatementExprExtensions.assertClause, label,that);
         st.optionalExpression = null;
         st.source = source;
         st.associatedPos = declpos;
@@ -546,7 +552,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
      * it is presumed the statement will be translated later */
     protected void addUntranslatedAssert(Label label, JCExpression that, int declpos, List<JCStatement> statements, int usepos, /*@Nullable*/JavaFileObject source) {
         JmlStatementExpr st;
-        st = M.at(usepos).JmlExpressionStatement(JmlTokenKind.ASSERT,label,that);
+        st = M.at(usepos).JmlExpressionStatement(StatementExprExtensions.assertID, StatementExprExtensions.assertClause,label,that);
         st.optionalExpression = null;
         st.source = source;
         st.associatedPos = declpos;
@@ -559,7 +565,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     /** Adds an assertion to the given statement list; the expression is presumed translated */
     protected void addAssertNoTrack(Label label, JCExpression that, List<JCStatement> statements, int usepos, /*@Nullable*/JavaFileObject source) {
         JmlStatementExpr st;
-        st = M.at(usepos).JmlExpressionStatement(JmlTokenKind.ASSERT,label,that);
+        st = M.at(usepos).JmlExpressionStatement(StatementExprExtensions.assertID, StatementExprExtensions.assertClause,label,that);
         st.optionalExpression = null;
         st.type = null; // no type for a statement
         st.source = source;
@@ -598,7 +604,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //            newdefs.add(new BasicProgram.Definition(that.pos,id,that)); // FIXME- end position?
 //            st = M.JmlExpressionStatement(JmlToken.ASSUME,label,id);
 //        } else {
-            st = M.JmlExpressionStatement(JmlTokenKind.ASSUME,label,that);
+            st = M.JmlExpressionStatement(StatementExprExtensions.assumeID, StatementExprExtensions.assumeClause,label,that);
 //        }
 //        copyEndPosition(st,that);
         st.type = null; // statements do not have a type
@@ -618,7 +624,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //            newdefs.add(new BasicProgram.Definition(that.pos,id,that)); // FIXME- start, end position?
 //            st = M.JmlExpressionStatement(JmlToken.ASSUME,label,id);
 //        } else {
-            st = M.JmlExpressionStatement(JmlTokenKind.ASSUME,label,that);
+            st = M.JmlExpressionStatement(StatementExprExtensions.assumeID, StatementExprExtensions.assumeClause,label,that);
 //        }
 //        copyEndPosition(st,endpos);
         st.type = null; // statements do not have a type
@@ -715,7 +721,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
      * given String.
      */
     public JmlStatementExpr comment(int pos, String s) {
-        return M.at(pos).JmlExpressionStatement(JmlTokenKind.COMMENT,null,M.Literal(s));
+        return M.at(pos).JmlExpressionStatement(StatementExprExtensions.commentID, StatementExprExtensions.commentClause,null,M.Literal(s));
     }
     
     /** This generates a comment statement (not in any statement list) whose content is the
@@ -1362,13 +1368,13 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     // OK
     @Override
     public void visitJmlStatementExpr(JmlStatementExpr that) { 
-        if (that.token == JmlTokenKind.COMMENT) {
+        if (that.clauseType == StatementExprExtensions.commentClause) {
             currentBlock.statements.add(that);
-        } else if (that.token == JmlTokenKind.ASSUME || that.token == JmlTokenKind.ASSERT) {
+        } else if (that.clauseType == StatementExprExtensions.assertClause || that.clauseType == StatementExprExtensions.assumeClause) {
             scan(that.expression);
             currentBlock.statements.add(that);
         } else {
-            log.error(that.pos,"esc.internal.error","Unknown token in BoogieBlocker2.visitJmlStatementExpr: " + that.token.internedName());
+            log.error(that.pos,"esc.internal.error","Unknown token in BoogieBlocker2.visitJmlStatementExpr: " + that.keyword);
         }
     }
     
@@ -2212,26 +2218,26 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
                     //newlist.append(tt);
                 }
             } else {
-                JmlTokenKind token = c.token;
-                if (token == JmlTokenKind.INVARIANT) {
+                IJmlClauseType token = c.clauseType;
+                if (token == invariantClause) {
                     JmlTypeClauseExpr copy = (JmlTypeClauseExpr)c.clone();
                     //copy.expression = treetrans.translate(copy.expression);
                     if (isStatic) classInfo.staticinvariants.add(copy);
                     else          classInfo.invariants.add(copy);
-                } else if (token == JmlTokenKind.REPRESENTS) {
+                } else if (token == representsClause) {
                     JmlTypeClauseRepresents r = (JmlTypeClauseRepresents)c;
                     represents.append(r);
-                } else if (token == JmlTokenKind.CONSTRAINT) {
+                } else if (token == constraintClause) {
                     if (isStatic) classInfo.staticconstraints.add((JmlTypeClauseConstraint)c);
                     else          classInfo.constraints.add((JmlTypeClauseConstraint)c);
-                } else if (token == JmlTokenKind.INITIALLY) {
+                } else if (token == initiallyClause) {
                     classInfo.initiallys.add((JmlTypeClauseExpr)c);
-                } else if (token == JmlTokenKind.AXIOM) {
+                } else if (token == axiomClause) {
                     JmlTypeClauseExpr copy = (JmlTypeClauseExpr)c.clone();
                     //copy.expression = treetrans.translate(copy.expression);
                     classInfo.axioms.add(copy);
                 } else {
-                    log.warning("esc.not.implemented","JmlEsc does not yet implement (and ignores) " + token.internedName());
+                    log.warning("esc.not.implemented","JmlEsc does not yet implement (and ignores) " + token.name());
                     // FIXME - readable if, writable if, monitors for, in, maps, initializer, static_initializer, (model/ghost declaration?)
                 }
             }

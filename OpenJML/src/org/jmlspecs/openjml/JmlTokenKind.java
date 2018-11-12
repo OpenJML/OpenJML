@@ -6,10 +6,17 @@ package org.jmlspecs.openjml;
 
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.sun.tools.javac.parser.Tokens.ITokenKind;
 import com.sun.tools.javac.tree.JCTree;
+import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
+import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
+import static org.jmlspecs.openjml.ext.SignalsClauseExtension.*;
+import static org.jmlspecs.openjml.ext.StatementLocationsExtension.*;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 
 /**
  * This class defines the scanner tokens that represent JML syntax.
@@ -26,24 +33,24 @@ public enum JmlTokenKind implements ITokenKind {
     ENDJMLCOMMENT("<JMLEND>"),
     
     // These are statement types
-    ASSUME("assume"),  // Keep this one first of the method statement tokens
-    ASSERT("assert"),
-    COMMENT("comment"), // For comments in BasicBlock programs
-    HAVOC("havoc"), // Just used in ESC
+//    ASSUME("assume"),  // Keep this one first of the method statement tokens
+//    ASSERT("assert"),
+//    COMMENT("comment"), // For comments in BasicBlock programs
+//    HAVOC("havoc"), // Just used in ESC
 //    DEBUG("debug"),
-    END("end"),
+//    END("end"),
 //    SET("set"),
-    SHOW("show"),
-    USE("use"),
-    DECREASES("decreases"),
-    LOOP_DECREASES("loop_decreases"),
-    INLINED_LOOP("inlined_loop"),
-    LOOP_INVARIANT("loop_invariant"),
-    LOOP_MODIFIES("loop_modifies"),
-    HENCE_BY("hence_by"),
+//    SHOW("show"),
+//    USE("use"),
+//    DECREASES("decreases"),
+//    LOOP_DECREASES("loop_decreases"),
+//    INLINED_LOOP("inlined_loop"),
+//    LOOP_INVARIANT("loop_invariant"),
+//    LOOP_MODIFIES("loop_modifies"),
+//    HENCE_BY("hence_by"),
     REFINING("refining"),
-    REACHABLE("reachable"),
-    UNREACHABLE("unreachable"), // Keep this one last of the method statement tokens
+//    REACHABLE("reachable"),
+//    UNREACHABLE("unreachable"), // Keep this one last of the method statement tokens
 
     // These are modifiers
     PURE("pure",org.jmlspecs.annotation.Pure.class), // Keep this one the first of the modifiers (see the modifiers Map below)
@@ -81,19 +88,19 @@ public enum JmlTokenKind implements ITokenKind {
     LAST("_",null), // This is a fake entry that is the end of the standard+extension modifiers list
     
     // These are class/interface clause types
-    INVARIANT("invariant"),
-    INITIALLY("initially"),
-    CONSTRAINT("constraint"),
-    AXIOM("axiom"),
-    REPRESENTS("represents"),
-    JMLDECL("jml declaration"), // not a scannable token
-    IN("in"),
-    MAPS("maps"),
-    INITIALIZER("initializer"),
-    STATIC_INITIALIZER("static_initializer"),
-    MONITORS_FOR("monitors_for"),
-    READABLE("readable"),
-    WRITABLE("writable"),
+//    INVARIANT("invariant"),
+//    INITIALLY("initially"),
+//    CONSTRAINT("constraint"),
+//    AXIOM("axiom"),
+//    REPRESENTS("represents"),
+//    JMLDECL("jml declaration"), // not a scannable token
+//    IN("in"),
+//    MAPS("maps"),
+//    INITIALIZER("initializer"),
+//    STATIC_INITIALIZER("static_initializer"),
+//    MONITORS_FOR("monitors_for"),
+//    READABLE("readable"),
+//    WRITABLE("writable"),
     
     // These are related to specification cases
     ALSO("also"),  // Keep this one first
@@ -110,29 +117,29 @@ public enum JmlTokenKind implements ITokenKind {
     CODE("code"),  // Keep this one last
     
     // These are the method clause types
-    REQUIRES("requires"),   // Keep this one first
-    ENSURES("ensures"),
-    SIGNALS("signals"),
-    SIGNALS_ONLY("signals_only"),
-    DIVERGES("diverges"),
-    WHEN("when"),
-    DURATION("duration"),
-    WORKING_SPACE("working_space"),
-    FORALL("forall"),
-    OLD("old"),
-    ASSIGNABLE("assignable"),
-    ACCESSIBLE("accessible"),
-    MEASURED_BY("measured_by"),
-    CALLABLE("callable"),
-    CAPTURES("captures"),  // Keep this one last
+//    REQUIRES("requires"),   // Keep this one first
+//    ENSURES("ensures"),
+//    SIGNALS("signals"),
+//    SIGNALS_ONLY("signals_only"),
+//    DIVERGES("diverges"),
+//    WHEN("when"),
+//    DURATION("duration"),
+//    WORKING_SPACE("working_space"),
+//    FORALL("forall"),
+//    OLD("old"),
+//    ASSIGNABLE("assignable"),
+//    ACCESSIBLE("accessible"),
+//    MEASURED_BY("measured_by"),
+//    CALLABLE("callable"),
+//    CAPTURES("captures"),  // Keep this one last
     
     // These are only in model programs
     CHOOSE("choose"),
     CHOOSE_IF("choose_if"),
-    BREAKS("breaks"),
-    CONTINUES("continues"),
+//    BREAKS("breaks"),
+//    CONTINUES("continues"),
     OR("or"),
-    RETURNS("returns"),
+//    RETURNS("returns"),
     
     // Other misc
     CONSTRUCTOR("constructor"),
@@ -272,7 +279,9 @@ public enum JmlTokenKind implements ITokenKind {
     public final static Map<String,JmlTokenKind> backslashTokens = new HashMap<String,JmlTokenKind>();
     
     /** This is a map from string to token for all of the tokens, and includes defined synonyms. */
-    public final static Map<String,JmlTokenKind> allTokens = new HashMap<String,JmlTokenKind>();
+    public final static Map<String,JmlTokenKind> allTokens = new HashMap<>();
+    public final static Map<String,IJmlClauseType> allClauseTypes = new HashMap<>();
+    public final static Map<String,String> synonyms = new HashMap<>();
     
     /** This is a set of all the modifier tokens, defined so that it is quick
      * and easy to test if a token is a modifier.
@@ -293,41 +302,61 @@ public enum JmlTokenKind implements ITokenKind {
     /** This is a set of all of the tokens that begin method specification clauses,
      * defined so that it is quick and easy to test for a given token.
      */
-    public final static EnumSet<JmlTokenKind> methodClauseTokens = EnumSet.range(REQUIRES,CAPTURES);
+    public final static Set<IJmlClauseType> methodClauseTokens = new HashSet<>();
+    static {
+        for (IJmlClauseType ct: Extensions.clauseTypes.values()) {
+            if (ct instanceof IJmlClauseType.MethodClause) methodClauseTokens.add(ct);
+        }
+    }
     
     /** This is a set of all of the tokens that begin JML statements in the body of a method,
      * defined so that it is quick and easy to test for a given token.
      */
-    public final static EnumSet<JmlTokenKind> methodStatementTokens = EnumSet.range(ASSUME,UNREACHABLE);
+    public final static Set<IJmlClauseType> methodStatementTokens = new HashSet<>();
+    static {
+        for (IJmlClauseType ct: Extensions.clauseTypes.values()) {
+            if (ct instanceof IJmlClauseType.Statement) methodStatementTokens.add(ct);
+        }
+    }
     
     /** This is the set of tokens that can occur at the beginning of a specification case */
     public final static EnumSet<JmlTokenKind> specCaseTokens = EnumSet.range(ALSO,CODE);
     
     static {
+        
+        // Synonyms
+        
+        synonyms.put("modifies",assignableID);
+        synonyms.put("modifiable",assignableID);
+        synonyms.put("pre",requiresID);
+        synonyms.put("post",ensuresID);
+        synonyms.put("exsures",signalsID);
+        synonyms.put("behaviour","behavior");
+        synonyms.put("exceptional_behaviour","exceptionnal_behavior");
+        synonyms.put("normal_behaviour","normal_behavior");
+        synonyms.put("abrupt_behaviour","abrupt_behavior");
+        synonyms.put("decreasing",loopdecreasesID);
+        synonyms.put("decreases",loopdecreasesID);
+        synonyms.put("maintaining",loopinvariantID);
+
         for (JmlTokenKind t: EnumSet.range(BSEXCEPTION,BSBIGINT)) {
             backslashTokens.put(t.internedName(),t);
         }
         for (JmlTokenKind t: JmlTokenKind.values()) {
             allTokens.put(t.internedName(),t);
         }
+        for (IJmlClauseType t: Extensions.clauseTypes.values()) {
+            allClauseTypes.put(t.name(),t);
+        }
+        for (String s: synonyms.keySet()) {
+            String ss = synonyms.get(s);
+            IJmlClauseType ct = allClauseTypes.get(ss);
+            if (ct != null) allClauseTypes.put(ss, ct);
+            // else FIXME - error
+        }
         //allTokens.remove(BSEXCEPTION.internedName());
         modifiers.add(BSREADONLY);
         // the LAST token is fake and doesn't really need to be in the modifiers set
         modifiers.remove(LAST);
-        
-        // Synonyms
-        
-        allTokens.put("modifies".intern(),ASSIGNABLE);
-        allTokens.put("modifiable".intern(),ASSIGNABLE);
-        allTokens.put("pre".intern(),REQUIRES);
-        allTokens.put("post".intern(),ENSURES);
-        allTokens.put("exsures".intern(),SIGNALS);
-        allTokens.put("behaviour".intern(),BEHAVIOR);
-        allTokens.put("exceptional_behaviour".intern(),EXCEPTIONAL_BEHAVIOR);
-        allTokens.put("normal_behaviour".intern(),NORMAL_BEHAVIOR);
-        allTokens.put("abrupt_behaviour".intern(),ABRUPT_BEHAVIOR);
-        allTokens.put("decreasing".intern(),LOOP_DECREASES);
-        allTokens.put("decreases".intern(),LOOP_DECREASES);
-        allTokens.put("maintaining".intern(),LOOP_INVARIANT);
-    }
+}
 }

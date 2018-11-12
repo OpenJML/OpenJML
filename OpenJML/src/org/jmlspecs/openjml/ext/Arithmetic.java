@@ -2,6 +2,7 @@ package org.jmlspecs.openjml.ext;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.IArithmeticMode;
+import org.jmlspecs.openjml.IJmlClauseType;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
@@ -57,6 +58,12 @@ abstract public class Arithmetic extends ExpressionExtension {
     static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
             JmlTokenKind.BSBIGINT_MATH, JmlTokenKind.BSJAVAMATH, JmlTokenKind.BSSAFEMATH}; }
     
+    @Override
+    public IJmlClauseType[] clauseTypes() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     Symbol codeBigintMath = null;
     Symbol codeSafeMath = null;
     Symbol codeJavaMath = null;

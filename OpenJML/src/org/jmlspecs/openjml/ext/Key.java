@@ -1,5 +1,6 @@
 package org.jmlspecs.openjml.ext;
 
+import org.jmlspecs.openjml.IJmlClauseType;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlExpression;
@@ -24,6 +25,13 @@ public class Key extends ExpressionExtension {
     
     static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
             JmlTokenKind.BSKEY}; }
+    
+    @Override
+    public IJmlClauseType[] clauseTypes() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
     
     @Override
     public void checkParse(JmlParser parser, JmlMethodInvocation e) {
@@ -53,5 +61,6 @@ public class Key extends ExpressionExtension {
         }
         return adder.treeutils.makeBooleanLiteral(that.pos,value);
     }
+
     
 }

@@ -32,6 +32,9 @@ import org.jmlspecs.openjml.esc.BasicBlocker2.VarMap;
 import org.jmlspecs.openjml.esc.BasicBlockerParent;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.esc.Label;
+import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
+import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import org.jmlspecs.openjml.strongarm.tree.And;
 import org.jmlspecs.openjml.strongarm.tree.Or;
 import org.jmlspecs.openjml.strongarm.tree.Prop;
@@ -129,7 +132,7 @@ public class BlockReader {
                     
                     JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
 
-                    if(jmlStmt.token == JmlTokenKind.COMMENT && jmlStmt.toString().contains("Precondition")){
+                    if(jmlStmt.clauseType == commentClause && jmlStmt.toString().contains("Precondition")){
                         
                         // precondition?
                         String[] parts = jmlStmt.toString().split(":");
@@ -675,7 +678,7 @@ public class BlockReader {
                 if(stmt instanceof JmlStatementExpr){                    
                     JmlStatementExpr stmtExpr = (JmlStatementExpr)stmt;                    
                     
-                    if(stmtExpr.token == JmlTokenKind.COMMENT && (stmt.toString().contains("UndefinedNullDeReference") || stmt.toString().contains("PossiblyNullDeReference"))){
+                    if(stmtExpr.clauseType == commentClause && (stmt.toString().contains("UndefinedNullDeReference") || stmt.toString().contains("PossiblyNullDeReference"))){
                         nextUNDR = stmt.toString().replace("PossiblyNullDeReference assertion:", "").trim();
                         nextUNDR = nextUNDR.toString().replace("UndefinedNullDeReference assertion:", "").trim();
                         nextUNDR = nextUNDR.replace("//", "").trim();
@@ -698,7 +701,7 @@ public class BlockReader {
                     if(stmtExpr.expression instanceof JCBinary){
                         JCBinary jcBinary = (JCBinary)stmtExpr.expression;
                     
-                        if(stmtExpr.token == JmlTokenKind.ASSUME && jcBinary.rhs.toString().contains(nextUNDR)){
+                        if(stmtExpr.clauseType == assumeClause && jcBinary.rhs.toString().contains(nextUNDR)){
                             UNDRs.add(nextUNDR);
                             nextUNDR = null;
                         }
@@ -752,7 +755,7 @@ public class BlockReader {
                 debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
             }
             
-            if(jmlStmt.expression instanceof JCBinary && jmlStmt.token==JmlTokenKind.ASSUME && jmlStmt.label == Label.IMPLICIT_ASSUME){
+            if(jmlStmt.expression instanceof JCBinary && jmlStmt.clauseType==assumeClause && jmlStmt.label == Label.IMPLICIT_ASSUME){
                 if(jmlStmt.toString().contains(Strings.newArrayVarString)){
 
                     JCBinary binExpr = (JCBinary)jmlStmt.expression;
@@ -1112,14 +1115,14 @@ public class BlockReader {
     boolean initialPreconditionFound = false;
     
     private boolean isAdmissableImplicitAssumption(JmlStatementExpr expr){
-        if(expr.token==JmlTokenKind.ASSUME && expr.label == Label.IMPLICIT_ASSUME && expr.toString().contains("Array_length")){
+        if(expr.clauseType==assumeClause && expr.label == Label.IMPLICIT_ASSUME && expr.toString().contains("Array_length")){
             return true;
         }
         return false;
     }
     
     private boolean isLoopInvariant(JmlStatementExpr expr){
-        if(expr.token==JmlTokenKind.ASSUME &&  expr.label == Label.LOOP_INVARIANT_ASSUMPTION){
+        if(expr.clauseType==assumeClause &&  expr.label == Label.LOOP_INVARIANT_ASSUMPTION){
             return true;
         }
         return false;

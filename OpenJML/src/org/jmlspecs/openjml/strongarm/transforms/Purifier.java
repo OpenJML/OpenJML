@@ -1,28 +1,19 @@
 package org.jmlspecs.openjml.strongarm.transforms;
 
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-
-import java.util.HashSet;
-import java.util.Set;
+import static org.jmlspecs.openjml.ext.AssignableClauseExtension.assignableClause;
 
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
-import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
-import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
-import org.jmlspecs.openjml.strongarm.translators.FeasibilityCheckerSMT;
-import org.jmlspecs.openjml.strongarm.translators.SubstitutionEQProverSMT;
 
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
@@ -78,7 +69,7 @@ public class Purifier extends JmlTreeScanner {
    
     @Override
     public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree){
-        if(tree.token==JmlTokenKind.ASSIGNABLE){
+        if(tree.clauseType==assignableClause){
             assignables++;
         }
         

@@ -17,6 +17,7 @@ import org.jmlspecs.openjml.JmlTree.JmlBinary;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.esc.Label;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
@@ -627,7 +628,7 @@ public class JmlTreeUtils {
 
     /** Makes a JML assume statement */
     public JmlStatementExpr makeAssume(DiagnosticPosition pos, Label label, JCExpression expr) {
-        JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(JmlTokenKind.ASSUME, label, expr);
+        JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(assumeID, assumeClause, label, expr);
         e.associatedPos = Position.NOPOS;
         e.associatedSource = null;
         return e;
@@ -635,7 +636,7 @@ public class JmlTreeUtils {
 
     /** Makes a JML assert statement */
     public JmlStatementExpr makeAssert(DiagnosticPosition pos, Label label, JCExpression expr) {
-        JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(JmlTokenKind.ASSERT, label, expr);
+        JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(assertID, assertClause, label, expr);
         e.associatedPos = Position.NOPOS;
         e.associatedSource = null;
         return e;

@@ -16,6 +16,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
+import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -132,7 +133,7 @@ public class SpecBlockVertex  {
             // there are two ways to do it
             
             if(isAllowAnyOrder()==false){
-                if(c.token == JmlTokenKind.REQUIRES && v.contains(c)){
+                if(c.clauseType == MethodExprClauseExtensions.requiresClause && v.contains(c)){
                     theIntersection.add(c);
                 }
             }else{    

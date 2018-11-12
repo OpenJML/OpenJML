@@ -4,6 +4,7 @@
  */
 package org.jmlspecs.openjml.ext;
 
+import org.jmlspecs.openjml.IJmlClauseType;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 
@@ -39,6 +40,12 @@ public class Erasure extends ExpressionExtension {
     
     static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{JmlTokenKind.BSERASURE}; }
     
+    @Override
+    public IJmlClauseType[] clauseTypes() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     @Override
     public void checkParse(JmlParser parser, JmlMethodInvocation e) {
         checkOneArg(parser,e);

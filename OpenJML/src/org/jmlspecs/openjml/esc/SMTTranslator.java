@@ -8,6 +8,7 @@ import java.util.*;
 
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import org.smtlib.ICommand;
 import org.smtlib.ICommand.IScript;
 import org.smtlib.IExpr;
@@ -1337,7 +1338,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     continue;
                 } else if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
-                    if (s.token == JmlTokenKind.ASSUME) {
+                    if (s.clauseType == assumeClause) {
                         if (s.label == Label.METHOD_DEFINITION) {
                             JCExpression ex = s.expression;
                             ex = ((JmlQuantifiedExpr)ex).value;
@@ -1350,10 +1351,10 @@ public class SMTTranslator extends JmlTreeScanner {
                             IExpr exx = convertExpr(s.expression);
                             stack.push(exx);
                         }
-                    } else if (s.token == JmlTokenKind.ASSERT) {
+                    } else if (s.clauseType == assertClause) {
                         IExpr exx = convertExpr(s.expression);
                         stack.push(exx);
-                    } else if (s.token == JmlTokenKind.COMMENT) {
+                    } else if (s.clauseType == commentClause) {
                         if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                         int k = s.id.indexOf(" ");
                         k = Integer.valueOf(s.id.substring(k+1));
@@ -1362,7 +1363,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         IExpr exx = convertExpr(treeutils.falseLit);
                         stack.push(exx);
                     } else {
-                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
+                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.clauseType.name());
                         break;
                     }
                 } else {
@@ -1382,21 +1383,21 @@ public class SMTTranslator extends JmlTreeScanner {
                     continue;
                 } else if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
-                    if (s.token == JmlTokenKind.ASSUME) {
+                    if (s.clauseType == assumeClause) {
                         if (s.label == Label.METHOD_DEFINITION) {
                             // skip
                         } else {
                             IExpr exx = stack.pop();
                             tail = F.fcn(impliesSym, exx, tail);
                         }
-                    } else if (s.token == JmlTokenKind.ASSERT) {
+                    } else if (s.clauseType == assertClause) {
                         IExpr exx = stack.pop();
                         // The first return is the classic translation; the second
                         // effectively inserts an assume after an assert. I'm not
                         // sure it makes any difference. TODO - evaluate this sometime.
                         //return F.fcn(F.symbol("and"), exx, tail);
                         tail = F.fcn(F.symbol("and"), exx, F.fcn(impliesSym, exx, tail));
-                    } else if (s.token == JmlTokenKind.COMMENT) {
+                    } else if (s.clauseType == commentClause) {
                         if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                         int k = s.id.indexOf(" ");
                         k = Integer.valueOf(s.id.substring(k+1));
@@ -1404,7 +1405,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         IExpr exx = stack.pop();
                         tail = exx;
                     } else {
-                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
+                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.keyword);
                         break;
                     }
                 } else {
@@ -1479,7 +1480,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     continue;
                 } else if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
-                    if (s.token == JmlTokenKind.ASSUME) {
+                    if (s.clauseType == assumeClause) {
                         if (s.label == Label.METHOD_DEFINITION) {
                             JCExpression ex = s.expression;
                             ex = ((JmlQuantifiedExpr)ex).value;
@@ -1494,10 +1495,10 @@ public class SMTTranslator extends JmlTreeScanner {
                             commands.add(new C_define_fun(newsym,new LinkedList<IDeclaration>(),boolSort,exx));
                             stack.push(newsym);
                         }
-                    } else if (s.token == JmlTokenKind.ASSERT) {
+                    } else if (s.clauseType == assertClause) {
                         IExpr exx = convertExpr(s.expression);
                         stack.push(exx);
-                    } else if (s.token == JmlTokenKind.COMMENT) {
+                    } else if (s.clauseType == commentClause) {
                         if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                         int k = s.id.indexOf(" ");
                         k = Integer.valueOf(s.id.substring(k+1));
@@ -1506,7 +1507,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         IExpr exx = convertExpr(treeutils.falseLit);
                         stack.push(exx);
                     } else {
-                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
+                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.clauseType.name());
                         break;
                     }
                 } else {
@@ -1529,7 +1530,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     continue;
                 } else if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
-                    if (s.token == JmlTokenKind.ASSUME) {
+                    if (s.clauseType == assumeClause) {
                         if (s.label == Label.METHOD_DEFINITION) {
                             // skip
                         } else {
@@ -1537,7 +1538,7 @@ public class SMTTranslator extends JmlTreeScanner {
                             tail = F.fcn(impliesSym, exx, tail);
                             ++n;
                         }
-                    } else if (s.token == JmlTokenKind.ASSERT) {
+                    } else if (s.clauseType == assertClause) {
                         IExpr exx = stack.pop();
                         // The first return is the classic translation; the second
                         // effectively inserts an assume after an assert. I'm not
@@ -1545,7 +1546,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         //return F.fcn(F.symbol("and"), exx, tail);
                         tail = F.fcn(F.symbol("and"), exx, F.fcn(impliesSym, exx, tail));
                         ++n;
-                    } else if (s.token == JmlTokenKind.COMMENT) {
+                    } else if (s.clauseType == commentClause) {
                         if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                         int k = s.id.indexOf(" ");
                         k = Integer.valueOf(s.id.substring(k+1));
@@ -1553,7 +1554,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         IExpr exx = stack.pop();
                         tail = exx;
                     } else {
-                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
+                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.keyword);
                         break;
                     }
                     if (n > 250) { // 250 is chosen just to make sure there is not a stack overflow if there is a huge basic block
@@ -1587,22 +1588,22 @@ public class SMTTranslator extends JmlTreeScanner {
                  return tail;
             } else if (stat instanceof JmlStatementExpr) {
                 JmlStatementExpr s = (JmlStatementExpr)stat;
-                if (s.token == JmlTokenKind.ASSUME) {
+                if (s.clauseType == assumeClause) {
                     IExpr exx = convertExpr(s.expression);
                     LinkedList<IExpr> args = new LinkedList<IExpr>();
                     args.add(exx);
                     args.add(tail);
                     return F.fcn(impliesSym, args);
-                } else if (s.token == JmlTokenKind.ASSERT) {
+                } else if (s.clauseType == assertClause) {
                     IExpr exx = convertExpr(s.expression);
                     LinkedList<IExpr> args = new LinkedList<IExpr>();
                     args.add(exx);
                     args.add(tail);
                     return F.fcn(F.symbol("and"), args);
-                } else if (s.token == JmlTokenKind.COMMENT) {
+                } else if (s.clauseType == commentClause) {
                     return tail;
                 } else {
-                    log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
+                    log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.keyword);
                 }
             } else {
                 log.error("jml.internal", "Incorrect kind of statement encountered when converting a BasicProgram to SMTLIB: " + stat.getClass());

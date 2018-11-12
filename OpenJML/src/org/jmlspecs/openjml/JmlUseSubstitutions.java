@@ -7,6 +7,8 @@ import java.util.Map;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.walkers.JmlTreeMatch;
+import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symtab;
@@ -77,7 +79,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
 
     @Override
     public void visitJmlStatementExpr(JmlStatementExpr that) {
-        if (that.token == JmlTokenKind.USE) {
+        if (that.clauseType == useClause) {
             JCExpression expr = that.expression;
             if (expr instanceof JmlBinary && ((JmlBinary)expr).op == JmlTokenKind.IMPLIES) {
                 JmlBinary imp = (JmlBinary)expr;
@@ -133,8 +135,8 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                 exprPrecondition = exprHead = null;
                 JmlSpecificationCase cs = lemmaspecs.cases.cases.head;
                 for (JmlMethodClause cl: cs.clauses) {
-                    switch (cl.token) {
-                        case REQUIRES:
+                    IJmlClauseType ct = cl.clauseType;
+                    if (ct == requiresClause) {
                             expr = ((JmlMethodClauseExpr)cl).expression;
                             if (exprPrecondition != null) {
                                 log.error(cl,"jml.internal","Use lemmas currently implement only one requires clause");
@@ -143,8 +145,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                                 subst.replacements = replacements;
                                 exprPrecondition = subst.copy(expr);
                             }
-                            break;
-                        case ENSURES:
+                    } else if (ct == ensuresClause) {
                             expr = ((JmlMethodClauseExpr)cl).expression;
                             if (exprHead != null) {
                                 log.error(cl,"jml.internal","Use lemmas currently implement only one ensures clause");
@@ -163,12 +164,11 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                                 log.error(cl,"jml.internal","Use lemma ensures clause must hold a == or ==> expression");
                                 return;
                             }
-                            break;
-                        default:
-                            log.error(cl,"jml.internal","Use lemmas currently implement only requires and ensures clauses: " + cl.token.internedName());
+                    } else {
+                            log.error(cl,"jml.internal","Use lemmas currently implement only requires and ensures clauses: " + cl.keyword);
                             return;
                     }
-                    currentUse = M.at(that).JmlExpressionStatement(JmlTokenKind.ASSERT,Label.UNDEFINED_LEMMA,treeutils.trueLit);
+                    currentUse = M.at(that).JmlExpressionStatement(assertID, assertClause,Label.UNDEFINED_LEMMA,treeutils.trueLit);
                     result = currentUse;
                 }
             } else {

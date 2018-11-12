@@ -3,9 +3,11 @@ package org.jmlspecs.openjml.strongarm.tree.analysis;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jmlspecs.openjml.IJmlClauseType;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
 import org.jmlspecs.openjml.strongarm.Strongarm;
 import org.jmlspecs.openjml.strongarm.tree.PropTreeScanner;
 
@@ -17,12 +19,12 @@ import com.sun.tools.javac.util.Log.WriterKind;
 public class CollectExpressionsAnalysis extends JmlTreeAnalysis {
 
     private Set<JCTree> exprs = new HashSet<JCTree>();
-    private final JmlTokenKind kind;
+    private final IJmlClauseType clauseType;
     
-    public CollectExpressionsAnalysis(Context context, JmlTokenKind kind) {
+    public CollectExpressionsAnalysis(Context context, IJmlClauseType clauseType) {
         super(context);
         
-        this.kind = kind;
+        this.clauseType = clauseType;
     }
     
     @Override
@@ -34,7 +36,7 @@ public class CollectExpressionsAnalysis extends JmlTreeAnalysis {
     @Override
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
         
-        if(tree.token == kind){
+        if(tree.clauseType == clauseType){
             exprs.add(tree);
         }
         
@@ -44,7 +46,7 @@ public class CollectExpressionsAnalysis extends JmlTreeAnalysis {
     
     public static Set<JCTree> analyze(JCTree tree){
         
-        CollectExpressionsAnalysis analysis = new CollectExpressionsAnalysis(Strongarm._context, JmlTokenKind.REQUIRES);
+        CollectExpressionsAnalysis analysis = new CollectExpressionsAnalysis(Strongarm._context, MethodExprClauseExtensions.requiresClause);
         
         
         analysis.scan(tree);
@@ -54,9 +56,9 @@ public class CollectExpressionsAnalysis extends JmlTreeAnalysis {
     }
 
 
-    public static Set<JCTree> analyze(JCTree tree, Context ctx, JmlTokenKind kind){
+    public static Set<JCTree> analyze(JCTree tree, Context ctx, IJmlClauseType clauseType){
         
-        CollectExpressionsAnalysis analysis = new CollectExpressionsAnalysis(ctx, kind);
+        CollectExpressionsAnalysis analysis = new CollectExpressionsAnalysis(ctx, clauseType);
         
         
         analysis.scan(tree);

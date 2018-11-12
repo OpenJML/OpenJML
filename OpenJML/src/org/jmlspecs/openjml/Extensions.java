@@ -19,11 +19,7 @@ import java.util.jar.JarFile;
 
 import org.eclipse.core.runtime.Platform;
 import org.jmlspecs.annotation.Nullable;
-import org.jmlspecs.openjml.ext.Elemtype;
-import org.jmlspecs.openjml.ext.Erasure;
-import org.jmlspecs.openjml.ext.ExpressionExtension;
-import org.jmlspecs.openjml.ext.SetStatement;
-import org.jmlspecs.openjml.ext.StatementExtension;
+import org.jmlspecs.openjml.ext.*;
 import org.osgi.framework.Bundle;
 
 import com.sun.tools.javac.util.Context;
@@ -73,58 +69,76 @@ public class Extensions {
      * @param complain if true and failed to create an Extension instance, an error is issued
      * @return an instance of a ExpressionExtension object, or null if unrecoverable error
      */
-    public @Nullable ExpressionExtension find(int pos, JmlTokenKind token, boolean complain) {
-        ExpressionExtension e = extensionInstances.get(token);
+    public @Nullable JmlExtension findE(int pos, String token, boolean complain) {
+        JmlExtension e = extensionInstances.get(token);
         if (e == null) {
-            Class<? extends ExpressionExtension> c = extensionClasses.get(token);
+            Class<? extends JmlExtension> c = extensionClasses.get(token);
             if (c == null) {
-                if (complain) Log.instance(context).error(pos,"jml.failure.to.create.ExpressionExtension",token.internedName());
+                if (complain) Log.instance(context).error(pos,"jml.failure.to.create.JmlExtension",token);
                 return null;
             }
             try {
-                Constructor<? extends ExpressionExtension> constructor = c.getDeclaredConstructor(Context.class);
-                ExpressionExtension instance = constructor.newInstance(context);
+                Constructor<? extends JmlExtension> constructor = c.getDeclaredConstructor(Context.class);
+                JmlExtension instance = constructor.newInstance(context);
                 extensionInstances.put(token,instance);
                 e = instance;
             } catch (Exception ee) {
-                if (complain) Log.instance(context).error(pos,"jml.failure.to.create.ExpressionExtension",token.internedName());
+                if (complain) Log.instance(context).error(pos,"jml.failure.to.create.ExpressionExtension",token);
                 return null;
             }
         }
         return e;
     }
     
-    public @Nullable StatementExtension findStatement(int pos, String token, boolean complain) {
-        StatementExtension e = statementInstances.get(token);
+    public @Nullable IJmlClauseType findT(int pos, String token, boolean complain) {
+        IJmlClauseType e = clauseTypes.get(token);
         if (e == null) {
-            Class<? extends StatementExtension> c = statementClasses.get(token);
-            if (c == null) {
-                if (complain) Log.instance(context).error(pos,"jml.failure.to.create.ExpressionExtension",token);
-                return null;
-            }
-            try {
-                Constructor<? extends StatementExtension> constructor = c.getDeclaredConstructor(Context.class);
-                StatementExtension instance = constructor.newInstance(context);
-                statementInstances.put(token,instance);
-                e = instance;
-            } catch (Exception ee) {
-                if (complain) Log.instance(context).error(pos,"jml.failure.to.create.ExpressionExtension",token);
-                return null;
-            }
+            // ERROR needed
         }
         return e;
     }
     
-    /** The list of classes that add extensions to the Parser */
-    static Class<?>[] extensions = { Elemtype.class, Erasure.class, SetStatement.class };
-
-    /** A map from token type to the extension class that implements the token */
-    static protected Map<JmlTokenKind,Class<? extends ExpressionExtension>> extensionClasses = new HashMap<>();
-    protected Map<JmlTokenKind,ExpressionExtension> extensionInstances = new HashMap<>();
-
-    static protected Map<String,Class<? extends StatementExtension>> statementClasses = new HashMap<>();
-    protected Map<String,StatementExtension> statementInstances = new HashMap<>();
     
+    /** Last resort list of classes that add extensions to the Parser */
+    static Class<?>[] extensions = { Elemtype.class, 
+            // Expressions
+            Arithmetic.class, 
+            Elemtype.class, 
+            Erasure.class, 
+            Key.class, 
+            ProgramLocation.class, 
+            
+            // Modifiers
+            PureModifier.class,
+            
+            // Method clauses
+            AssignableClauseExtension.class, 
+            CallableClauseExtension.class, 
+            MethodExprClauseExtensions.class, 
+            MethodDeclClauseExtension.class, 
+            SignalsClauseExtension.class, 
+            SignalsOnlyClauseExtension.class, 
+            
+            // Statements
+            EndStatement.class, 
+            InlinedLoopStatement.class, 
+            ReachableStatement.class, 
+            SetStatement.class, 
+            StatementExprExtensions.class, 
+            
+            // Type Clauses
+            TypeExprClauseExtension.class, 
+            TypeInClauseExtension.class, 
+            TypeMapsClauseExtension.class, 
+            TypeMonitorsForClauseExtension.class, 
+            TypeRepresentsClauseExtension.class, 
+            TypeRWClauseExtension.class, 
+            };
+
+    /** A map from token name to the extension class that implements the token */
+    static protected Map<String,Class<? extends JmlExtension>> extensionClasses = new HashMap<>();
+    protected Map<String,JmlExtension> extensionInstances = new HashMap<>();
+
     static protected Map<String,IJmlClauseType> clauseTypes = new HashMap<>();
     
     // This static block runs through all the extension classes and adds
@@ -174,27 +188,14 @@ public class Extensions {
     public static boolean registerClass(Class<?> cc) {
         if (ExpressionExtension.class.isAssignableFrom(cc)) {
             @SuppressWarnings("unchecked")
-            Class<? extends ExpressionExtension> c = (Class<? extends ExpressionExtension>)cc;
-            JmlTokenKind[] tokens;
-            try {
-                Method m = c.getMethod("tokens");
-                tokens = (JmlTokenKind[])m.invoke(null);
-                for (JmlTokenKind t: tokens) {
-                    extensionClasses.put(t, c);
-                }
-            } catch (Exception e) {
-                return false;
-            }
-            return true;
-        } else if (StatementExtension.class.isAssignableFrom(cc)) {
-            @SuppressWarnings("unchecked")
             Class<? extends JmlExtension> c = (Class<? extends JmlExtension>)cc;
+            IJmlClauseType[] tokens;
             try {
                 Method m = c.getMethod("clauseTypes");
-                IJmlClauseType[] ct = (IJmlClauseType[])m.invoke(null);
-                for (IJmlClauseType t: ct) {
+                tokens = (IJmlClauseType[])m.invoke(null);
+                for (IJmlClauseType t: tokens) {
+                    extensionClasses.put(t.name(), c);
                     clauseTypes.put(t.name(), t);
-                    statementClasses.put(t.name(), (Class<? extends StatementExtension>)c);
                 }
             } catch (Exception e) {
                 return false;
@@ -228,101 +229,106 @@ public class Extensions {
         while (resources.hasMoreElements()) {
             URL resource = resources.nextElement();
             
-        	JarFile jar = null;
-        	try {
-        		String n = resource.toString().replace('\\', '/');
-        		String prefix = "jar:file:";
-        		if (n.startsWith(prefix)) {
-        			int k = n.indexOf("!");
-        			if (k < 0) continue;
-        			jar = new JarFile(n.substring(prefix.length(),k));
-        			Enumeration<JarEntry> entries = jar.entries();
-//        			JarEntry je = jar.getJarEntry(path);
-//        			System.out.println("JE: " + je.getName());
-        			// Really would like to iterate over the directory named
-        			// by 'path', instead of over every entry in the jar file
-        			while (entries.hasMoreElements()) {
-        				JarEntry entry = entries.nextElement();
-        				String name = entry.getName();
-        				if (name.startsWith(path)) {
-        					name = name.substring(path.length()+1);
-        					k = name.indexOf('.');
-        					if (k < 0) continue;
-        					name = name.substring(0,k);
-        					//System.out.println("FOUND1 " + name);
-        					foundClassNames.add(name);
-        					methodThatWorked = 1;
-        				}
-        			}
-        		} else {
+            JarFile jar = null;
+            try {
+                String n = resource.toString().replace('\\', '/');
+                String prefix = "jar:file:";
+                if (n.startsWith(prefix)) {
+                    int k = n.indexOf("!");
+                    if (k < 0) continue;
+                    jar = new JarFile(n.substring(prefix.length(),k));
+                    Enumeration<JarEntry> entries = jar.entries();
+//                    JarEntry je = jar.getJarEntry(path);
+//                    System.out.println("JE: " + je.getName());
+                    // Really would like to iterate over the directory named
+                    // by 'path', instead of over every entry in the jar file
+                    while (entries.hasMoreElements()) {
+                        JarEntry entry = entries.nextElement();
+                        String name = entry.getName();
+                        if (name.startsWith(path)) {
+                            name = name.substring(path.length()+1);
+                            k = name.indexOf('.');
+                            if (k < 0) continue;
+                            name = name.substring(0,k);
+                            //System.out.println("FOUND1 " + name);
+                            foundClassNames.add(name);
+                            methodThatWorked = 1;
+                        }
+                    }
+                } else {
 
-        			File dir = new File(resource.getFile());
-        			File[] files = dir.listFiles();
-        			if (files == null) continue;
-        			for (File f: files) {
-        				if (f.isDirectory()) continue;
-        				String name = f.getName();
-        				int k = name.indexOf('.');
-        				if (k < 0) continue;
-        				name = name.substring(0,k);
-    					//System.out.println("FOUND2 " + name);
-        				foundClassNames.add(name);
-        				methodThatWorked = 2;
-        			}
-        		}
-        	} catch (Exception e) {
-        		// Just continue - this method does not work
-        	} finally {
-        		if (jar != null) jar.close();
-        	}
+                    File dir = new File(resource.getFile());
+                    File[] files = dir.listFiles();
+                    if (files == null) continue;
+                    for (File f: files) {
+                        if (f.isDirectory()) continue;
+                        String name = f.getName();
+                        int k = name.indexOf('.');
+                        if (k < 0) continue;
+                        name = name.substring(0,k);
+                        //System.out.println("FOUND2 " + name);
+                        foundClassNames.add(name);
+                        methodThatWorked = 2;
+                    }
+                }
+            } catch (Exception e) {
+                // Just continue - this method does not work
+            } finally {
+                if (jar != null) jar.close();
+            }
         }
 
         bl: {
-        	// This approach works when running the plug-in in development mode
-        	try {
-        		Bundle b = Platform.getBundle("org.jmlspecs.OpenJMLUI");
-        		if (b == null) break bl;
-        		Enumeration<String> paths = b.getEntryPaths("/bin/" + path);
-        		while (paths.hasMoreElements()) {
-        			String pn = paths.nextElement();
-        			int k = pn.lastIndexOf('/');
-        			if (k > 0) pn = pn.substring(k+1);
-        			k = pn.lastIndexOf('.');
-        			if (k > 0) pn = pn.substring(0,k);
-					//System.out.println("FOUND3 " + pn);
-        			foundClassNames.add(pn);
-        			methodThatWorked = 3;
-        		}
-        	} catch (Throwable e) {
-        		// This will happen if we are not in a plug-in
-        	}
+            // This approach works when running the plug-in in development mode
+            try {
+                Bundle b = Platform.getBundle("org.jmlspecs.OpenJMLUI");
+                if (b == null) break bl;
+                Enumeration<String> paths = b.getEntryPaths("/bin/" + path);
+                while (paths.hasMoreElements()) {
+                    String pn = paths.nextElement();
+                    int k = pn.lastIndexOf('/');
+                    if (k > 0) pn = pn.substring(k+1);
+                    k = pn.lastIndexOf('.');
+                    if (k > 0) pn = pn.substring(0,k);
+                    //System.out.println("FOUND3 " + pn);
+                    foundClassNames.add(pn);
+                    methodThatWorked = 3;
+                }
+            } catch (Throwable e) {
+                // This will happen if we are not in a plug-in
+            }
         }
+        ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
         if (foundClassNames.isEmpty()) {
             //System.out.println("LAST RESORT EXTENSION");
-        	// Last resort
-        	Log.instance(context).warning("jml.internal.notsobad","Last resort loading of extensions");
-        	String[] cn = { "Elemtype", "Erasure", "PureModifier", "ReachableStatement", "Arithmetic", "Key" };
-        	foundClassNames.addAll(Arrays.asList(cn));
-        }
+            // Last resort
+            Log.instance(context).warning("jml.internal.notsobad","Last resort loading of extensions");
+            for (Class<?> cl : extensions) {
+                try {
+                    registerClass(cl);
+                    if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).getWriter(Log.WriterKind.NOTICE).println("Registered extensions using technique " + methodThatWorked);
+                    classes.add(cl);
+                } catch (Exception e) {
+                    if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).getWriter(Log.WriterKind.NOTICE).println("Failed to register " + cl.getName());
+                }
+            }
+        } else {
         
-        ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
-        for (String name: foundClassNames) {
-        	String fullname = packageName + "." + name;
-        	try {
-        		Class<?> c = Class.forName(fullname);
-        		if (Modifier.isAbstract(c.getModifiers())) continue;
-        		Method m = c.getMethod("register",Context.class);
-        		m.invoke(null,context); // Purposely fails if there is no static register method
-        		classes.add(c);
-        	} catch (Exception e) {
-        		// Just skip if there is any exception, such as a
-        		// Class or Method not found.
-        		if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).getWriter(Log.WriterKind.NOTICE).println("Failed to register " + fullname);
-        		continue;
-        	}
-            if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).getWriter(Log.WriterKind.NOTICE).println("Registered extensions using technique " + methodThatWorked);
+            for (String name: foundClassNames) {
+                String fullname = packageName + "." + name;
+                try {
+                    Class<?> c = Class.forName(fullname);
+                    if (Modifier.isAbstract(c.getModifiers())) continue;
+                    registerClass(c);
+                    if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).getWriter(Log.WriterKind.NOTICE).println("Registered extensions using technique " + methodThatWorked);
+                    classes.add(c);
+                } catch (Exception e) {
+                    // Just skip if there is any exception, such as a
+                    // Class or Method not found.
+                    if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).getWriter(Log.WriterKind.NOTICE).println("Failed to register " + fullname);
+                }
+            }
         }
-        
         return classes;
     }
     

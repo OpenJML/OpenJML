@@ -14,6 +14,8 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
+import org.jmlspecs.openjml.ext.AssignableClauseExtension;
+import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
 import org.jmlspecs.openjml.strongarm.translators.FeasibilityCheckerSMT;
 import org.jmlspecs.openjml.strongarm.translators.SubstitutionEQProverSMT;
 
@@ -68,11 +70,11 @@ public class RemoveUselessPostconditions extends JmlTreeScanner {
         
         for(JmlMethodClause c : clauses){
             
-            if(c.token==JmlTokenKind.ENSURES){
+            if(c.clauseType==MethodExprClauseExtensions.ensuresClause){
                 ensures++;
             }
             
-            if(c.token==JmlTokenKind.ASSIGNABLE){
+            if(c.clauseType==AssignableClauseExtension.assignableClause){
                 assignable++;
             }
         }

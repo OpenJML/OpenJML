@@ -631,7 +631,7 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //
     public void visitJmlStatementExpr(JmlStatementExpr tree) {
         JmlStatementExpr t = (JmlStatementExpr)top;
-        if (t.token != tree.token) nomatch(); 
+        if (t.clauseType != tree.clauseType) nomatch(); 
         top = t.expression;
         scan(tree.expression);
         top = t.optionalExpression;

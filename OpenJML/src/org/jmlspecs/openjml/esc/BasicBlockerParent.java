@@ -15,6 +15,7 @@ import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.BasicProgramParent.BlockParent;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
@@ -621,7 +622,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * @param statements the list to add the new assume statement to
      */
     protected JmlStatementExpr addAssume(int pos, Label label, JCExpression that, List<JCStatement> statements) {
-        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(JmlTokenKind.ASSUME,label,that);
+        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(assumeID, assumeClause, label,that);
         copyEndPosition(st,that);
         st.type = null; // statements do not have a type
         statements.add(st);
@@ -646,7 +647,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      */
     protected JmlStatementExpr addAssume(int startpos, JCTree endpos, Label label, JCExpression that, List<JCStatement> statements) {
         if (startpos < 0) startpos = that.pos;
-        JmlStatementExpr st = M.at(startpos).JmlExpressionStatement(JmlTokenKind.ASSUME,label,that);
+        JmlStatementExpr st = M.at(startpos).JmlExpressionStatement(assumeID, assumeClause,label,that);
         copyEndPosition(st,endpos);
         st.type = null; // statements do not have a type
         statements.add(st);
@@ -657,7 +658,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * given String.
      */
     public JmlStatementExpr comment(DiagnosticPosition pos, String s) {
-        return M.at(pos).JmlExpressionStatement(JmlTokenKind.COMMENT,null,M.Literal(s));
+        return M.at(pos).JmlExpressionStatement(commentID, commentClause,null,M.Literal(s));
     }
     
     /** This generates a comment statement (not in any statement list) whose content is the

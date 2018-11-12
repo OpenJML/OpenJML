@@ -16,6 +16,8 @@ import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.esc.Label;
+import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
+import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
@@ -502,7 +504,8 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
         if(p.toString().contains(Strings.resultVarString) || !isBranchStmt()){
             clause = M.JmlMethodClauseExpr
             (
-                    JmlTokenKind.ENSURES,  
+                    MethodExprClauseExtensions.ensuresID,  
+                    MethodExprClauseExtensions.ensuresClause,  
                     p
             );
 
@@ -521,7 +524,7 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
                     
                     return List.of(
                             clause,
-                            M.JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE, List.of(jmlBinary.lhs))
+                            M.JmlMethodClauseStoreRef(assignableID, assignableClause, List.of(jmlBinary.lhs))
                             );
                 }
                 
@@ -530,7 +533,8 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
         }else{
             clause = M.JmlMethodClauseExpr
             (
-                    JmlTokenKind.REQUIRES,  
+                    MethodExprClauseExtensions.requiresID,  
+                    MethodExprClauseExtensions.requiresClause,  
                     p
             );
 

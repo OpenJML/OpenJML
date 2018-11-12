@@ -19,6 +19,11 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import org.jmlspecs.openjml.ext.StatementExprType;
+import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
+import org.jmlspecs.openjml.ext.SignalsClauseExtension;
+import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.Span;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
@@ -840,7 +845,7 @@ public class MethodProverSMT {
                         int spanType = Span.NORMAL;
                         JCTree toTrace = null;
                         String val = null;
-                        if (origStat instanceof JmlStatementExpr && ((JmlStatementExpr)origStat).token == JmlTokenKind.ASSUME) {
+                        if (origStat instanceof JmlStatementExpr && ((JmlStatementExpr)origStat).clauseType == assumeClause) {
                             //toTrace = ((JmlStatementExpr)stat).expression;
                             break ifstat;
                         } else if (origStat instanceof JCIf) {
@@ -934,7 +939,7 @@ public class MethodProverSMT {
                         log.getWriter(WriterKind.NOTICE).println("DECL: " + n + " === " + getValue(n.toString(),info.smt,info.solver));
                     }
                 }
-                if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.COMMENT) {
+                if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).clauseType == commentClause) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
                     if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                     if (s.optionalExpression != null) {
@@ -942,7 +947,7 @@ public class MethodProverSMT {
                         return pathCondition;
                     }
                 }
-                if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.ASSERT) {
+                if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).clauseType == assertClause) {
                     JmlStatementExpr assertStat = (JmlStatementExpr)stat;
                     JCExpression e = assertStat.expression;
                     Label label = assertStat.label;
@@ -1011,8 +1016,8 @@ public class MethodProverSMT {
                             if (assertStat.associatedSource != null) log.useSource(prev);
                         }
                         if (assertStat.associatedClause != null && JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
-                            JmlTokenKind tkind = assertStat.associatedClause.token;
-                            if (tkind == JmlTokenKind.ENSURES || tkind == JmlTokenKind.SIGNALS || tkind == JmlTokenKind.SIGNALS_ONLY) {  // FIXME - actually - any postcondition check
+                            IJmlClauseType tkind = assertStat.associatedClause.clauseType;
+                            if (tkind == MethodExprClauseExtensions.ensuresClause || tkind == SignalsClauseExtension.signalsClause || tkind == SignalsOnlyClauseExtension.signalsOnlyClause) {  // FIXME - actually - any postcondition check
                                 int p = terminationPos;
                                 if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
                                     if (terminationPos == info.decl.pos) p = info.decl.getEndPosition(log.getSource(mainSource).getEndPosTable());
@@ -1193,7 +1198,7 @@ public class MethodProverSMT {
                     int spanType = Span.NORMAL;
                     JCTree toTrace = null;
                     String val = null;
-                    if (origStat instanceof JmlStatementExpr && ((JmlStatementExpr)origStat).token == JmlTokenKind.ASSUME) {
+                    if (origStat instanceof JmlStatementExpr && ((JmlStatementExpr)origStat).clauseType == assumeClause) {
                         //toTrace = ((JmlStatementExpr)stat).expression;
                         break ifstat;
                     } else if (origStat instanceof JCIf) {
@@ -1287,7 +1292,7 @@ public class MethodProverSMT {
                     log.getWriter(WriterKind.NOTICE).println("DECL: " + n + " === " + getValue(n.toString(),info.smt,info.solver));
                 }
             }
-            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.COMMENT) {
+            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).clauseType == commentClause) {
                 JmlStatementExpr s = (JmlStatementExpr)stat;
                 if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                 if (s.optionalExpression != null) {
@@ -1295,7 +1300,7 @@ public class MethodProverSMT {
                     return pathCondition;
                 }
             }
-            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.ASSERT) {
+            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).clauseType == assertClause) {
                 JmlStatementExpr assertStat = (JmlStatementExpr)stat;
                 JCExpression e = assertStat.expression;
                 Label label = assertStat.label;
@@ -1364,8 +1369,8 @@ public class MethodProverSMT {
                         if (assertStat.associatedSource != null) log.useSource(prev);
                     }
                     if (assertStat.associatedClause != null && JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
-                        JmlTokenKind tkind = assertStat.associatedClause.token;
-                        if (tkind == JmlTokenKind.ENSURES || tkind == JmlTokenKind.SIGNALS || tkind == JmlTokenKind.SIGNALS_ONLY) {  // FIXME - actually - any postcondition check
+                        IJmlClauseType tkind = assertStat.associatedClause.clauseType;
+                        if (tkind == MethodExprClauseExtensions.ensuresClause || tkind == SignalsClauseExtension.signalsClause || tkind == SignalsOnlyClauseExtension.signalsOnlyClause) {  // FIXME - actually - any postcondition check
                             int p = terminationPos;
                             if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
                                 if (terminationPos == info.decl.pos) p = info.decl.getEndPosition(log.getSource(mainSource).getEndPosTable());
