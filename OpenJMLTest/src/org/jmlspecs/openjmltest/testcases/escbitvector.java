@@ -1,6 +1,7 @@
 package org.jmlspecs.openjmltest.testcases;
 
 import org.jmlspecs.openjmltest.EscBase;
+import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -72,6 +73,7 @@ public class escbitvector extends EscBase {
     // BV true, with precondition and modulo operation
     @Test 
     public void testBV2b() {
+        Assume.assumeTrue(runLongTests);
         main.addOptions("-escBV=true","-logic=ALL");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -93,6 +95,7 @@ public class escbitvector extends EscBase {
     // default BV, no precondition
     @Test 
     public void testBV1() {
+        Assume.assumeTrue(runLongTests);
         main.addOptions("-logic=ALL");  // Should use BV
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

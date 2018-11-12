@@ -452,7 +452,7 @@ public class escnew3 extends EscBase {
                 +"public class TestJava { \n"
                 +"  private int i;\n"
                 +"  //@ assignable i;\n"
-                +"  public TestJava() { i = 0; }\n"
+                +"  public void mm() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
@@ -510,7 +510,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  private int i;\n"
-                +"  //@ requires true; assignable this.*; \n" // default assignable
+                +"  //@ requires true; pure \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -525,7 +525,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  private int i;\n"
-                +"  //@ assignable this.*; \n" // default assignable
+                +"  //@ pure \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -553,7 +553,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
-                +"  //@ assignable this.*; \n" // default assignable
+                +"  //@ pure \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -579,7 +579,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
-                +"  //@ requires true; assignable this.*; \n" // default assignable
+                +"  //@ requires true; pure \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -593,7 +593,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
-                +"  //@ assignable state; \n"
+                +"  //@ pure \n"
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -606,7 +606,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
-                +"  //@ assignable this.state; \n"
+                +"  //@ pure \n"
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -645,7 +645,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava {\n"
                 +"  /*@ spec_public */ private int i;\n"
-                +"  //@ assignable this.*; \n" // default assignable
+                +"  //@ pure \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -658,7 +658,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava {\n"
                 +"  /*@ spec_public */ private int i;\n"
-                +"  //@ requires true; assignable this.*; \n" // default assignable
+                +"  //@ requires true; pure \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -671,7 +671,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  /*@ spec_public */ private int i; \n"
-                +"  //@ assignable i; \n"
+                +"  //@ pure \n"
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
@@ -684,7 +684,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  /*@ spec_public */ private int i; \n"
-                +"  //@ assignable this.i; \n"
+                +"  //@ pure \n"
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"

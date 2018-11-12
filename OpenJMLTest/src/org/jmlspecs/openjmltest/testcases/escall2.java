@@ -378,7 +378,6 @@ public class escall2 extends EscBase {
     @Test
     public void testNNAssign2() {
 //        Assume.assumeTrue(runLongTests);
-
         main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -528,7 +527,7 @@ public class escall2 extends EscBase {
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
-                +"  public static class A { /*@ assignable this.*, A.*; */ public A() { q = qq = new String(); r = rr = new String(); }\n" 
+                +"  public static class A { /*@ assignable A.*; */ public A() { q = qq = new String(); r = rr = new String(); }\n" 
                 +"      public String q; @NonNull public String qq; @Nullable public String qqq; \n"
                 +"      static public String r; static @NonNull public String rr; static @Nullable public String rrr; \n"
                 +"   }\n"
@@ -574,7 +573,7 @@ public class escall2 extends EscBase {
                 +"@NonNullByDefault public class TestJava { \n"
                 
                 +"  public static class A {" // Tests whether this gets the enclosing class's annotation; global option is nullable
-                +"      /*@ assignable this.*, A.*; */ public A() { q = qq = new String(); r = rr = new String(); }\n"
+                +"      /*@ assignable A.*; */ public A() { q = qq = new String(); r = rr = new String(); }\n"
                 +"      public String q; @NonNull public String qq; @Nullable public String qqq; \n"
                 +"      static public String r; static @NonNull public String rr; static @Nullable public String rrr; \n"
                 +"   }\n"
@@ -621,7 +620,7 @@ public class escall2 extends EscBase {
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"
                 
-                +"  public static class A { /*@ assignable this.*, A.*; */ public A() { q = qq = new String(); r = rr = new String(); }\n" 
+                +"  public static class A { /*@ assignable A.*; */ public A() { q = qq = new String(); r = rr = new String(); }\n" 
                 +"      public String q; @NonNull public String qq; @Nullable public String qqq; \n"
                 +"      static public String r; static @NonNull public String rr; static @Nullable public String rrr; \n"
                 +"   }\n"

@@ -27,7 +27,7 @@
         //@ ensures this.value == value;
         //@ ensures this.value != null;
         //@ requires value != null;
-        //@ assignable this.value;
+        //@ assignable \nothing;
         public ReadableValue(T value){
     	this.value = value;
         }

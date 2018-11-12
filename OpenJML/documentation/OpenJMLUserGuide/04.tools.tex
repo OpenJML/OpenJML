@@ -125,6 +125,36 @@ one of \texttt{none}, \texttt{all}, \texttt{exit} [TBD, finish list, give defaul
 (rather than RAC warning messages)[TBD - should this turn on -racCheckAssumptions?] 
 \end{itemize}
 
+\section{Inferring Specifications}
+\label{sec:inferring-specifications}
+
+OpenJML is able to infer specifications for many methods. Fundamentally, OpenJML does this statically, by using the strongest postcondition predicate transformer semantics (sp). Unfortunately, although the specifications produced by sp are precise, they are often exponential with respect to the code they describe. One innovation of our tool is that we apply a principled technique for making these specifications more concise. The documentation contained in this section details the options for utilizing these features within OpenJML. 
+
+The technical details pertaining to the specification inference technique of OpenJML may be found in the following technical report: \url{http://www.cs.ucf.edu/~leavens/tech-reports/UCF/CS-TR-18-01/TR.pdf}
+
+
+\subsection{Options specific to specification inference}
+
+\begin{itemize}[noitemsep,nolistsep]
+    \item \textbf{-infer}: Instructs OpenJML to attempt to infer specifications. 
+    \item \textbf{-infer-preconditions}: If no preconditions are specified, by default OpenJML will use the precondition of \texttt{\textbf{true}}. Setting this to false disables this behavior. 
+    \item \textbf{-infer-tag}: By default, inferred specifications are given the specification key \texttt{INFERRED}. Setting this option to \texttt{\textbf{false}} disables this behavior. 
+    \item \textbf{-infer-persist}: Specifications may be persisted in two ways: either to an independent \texttt{.jml} file or \textit{woven} into the file containing the method being inferred. If the option is specified as \texttt{-infer-persist=java} the specifications will be woven. By default (or if \texttt{jml} is specified) the specs will be written to a separate \texttt{.jml} file.
+
+    \item \textbf{-infer-persist-path}: When writing specs to \texttt{.jml} files, this option controls the location the files are written to. If nothing is specified, the spec will be written to the directory containing the file containing the methods being inferred. If a path is specified, the specs will be written out to their package, using the supplied path as a base. If \texttt{-specspath} is specified (and \texttt{-infer-persist-path} is not), the base path will be the one given by \texttt{-specspath}.
+
+    \item \textbf{-infer-max-depth}: The size of the control flow graph (CFG) of a program influences how long specification inference will take. By default, OpenJML will refuse to infer methods with a CFG larger than 300 nodes. You can specify an integer value here to override this behavior.
+
+    \item \textbf{-infer-timeout}: By default, OpenJML will skip methods that take longer than 300 seconds to infer. To change this behavior, specify an integer value for this parameter. 
+    
+    \item \textbf{-infer-debug}: Enables several GUI tools for debugging specification inference. Intended only for developers. 
+
+\textit{Note:} Specification inference supports the \texttt{-method} options supported by other tools (such as ESC) for selecting the methods to be inferred. 
+
+
+\end{itemize}
+
+
 \section{Generating Documentation}
 \textit{This section will be added later.} %% TBD
 

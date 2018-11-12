@@ -1,0 +1,20 @@
+====STRONGARM FATAL ERROR====
+Method: test.A1.doIt(int)
+Date 2017-04-25 15:26:22.098
+java.lang.NumberFormatException: For input string: ""
+	at java.lang.NumberFormatException.forInputString(NumberFormatException.java:65)
+	at java.lang.Integer.parseInt(Integer.java:592)
+	at java.lang.Integer.parseInt(Integer.java:615)
+	at org.jmlspecs.openjml.strongarm.Strongarm.<init>(Strongarm.java:119)
+	at org.jmlspecs.openjml.strongarm.JmlInferPostConditions$1.run(JmlInferPostConditions.java:92)
+	at java.lang.Thread.run(Thread.java:745)
+====STRONGARM FATAL ERROR====
+Method: test.A1.doIt(int)
+Date 2017-04-25 15:26:42.662
+java.lang.NumberFormatException: For input string: ""
+	at java.lang.NumberFormatException.forInputString(NumberFormatException.java:65)
+	at java.lang.Integer.parseInt(Integer.java:592)
+	at java.lang.Integer.parseInt(Integer.java:615)
+	at org.jmlspecs.openjml.strongarm.Strongarm.<init>(Strongarm.java:119)
+	at org.jmlspecs.openjml.strongarm.JmlInferPostConditions$1.run(JmlInferPostConditions.java:92)
+	at java.lang.Thread.run(Thread.java:745)

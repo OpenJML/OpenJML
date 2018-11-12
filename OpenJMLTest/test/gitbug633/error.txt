@@ -1,0 +1,43 @@
+java -version
+java -cp `cygpath -w /usr/local/openjml/openjml.jar` org.jmlspecs.openjml.Main -exec `cygpath -w /usr/local/z3/bin/z3.exe` -version
+openjml OpenJML-0.8.39-20180701
+java -cp `cygpath -w /usr/local/openjml/openjml.jar` org.jmlspecs.openjml.Main -exec `cygpath -w /usr/local/z3/bin/z3.exe` -esc Complex.java ComplexOps.java Polar.java Rectangular.java
+error: An error while executing a proof script for positiveRemainder: (error "line 416 column 113: invalid function application for >=, sort mismatch on argument at position 2, expected Real but given Int")
+  >>>(define-fun BL_4686bodyBegin_2__A8 () Bool (forall ((d Real) (dd Real) ) (=> (> dd REALLIT1) (and (> (ite (>= d 0) (- d (* dd (div d dd))) (- d (* dd (div (- d) (- dd))))) (- dd)) (< (ite (>= d 0) (- d (* dd (div d dd))) (- d (* dd (div (- d) (- dd))))) dd)))))
+error: An error while executing a proof script for similarAngle: (error "line 518 column 114: invalid function application for >=, sort mismatch on argument at position 2, expected Real but given Int")
+  >>>(define-fun BL_4071bodyBegin_2__A10 () Bool (forall ((d Real) (dd Real) ) (=> (> dd REALLIT1) (and (> (ite (>= d 0) (- d (* dd (div d dd))) (- d (* dd (div (- d) (- dd))))) (- dd)) (< (ite (>= d 0) (- d (* dd (div d dd))) (- d (* dd (div (- d) (- dd))))) dd)))))
+error: A catastrophic JML internal error occurred.  Please report the bug with as much information as you can.
+  Reason: MISMATCHED BLOCKS
+error: An error while executing a proof script for <init>: (error "line 369 column 113: invalid function application for >=, sort mismatch on argument at position 2, expected Real but given Int")
+  >>>(define-fun BL_1200bodyBegin_2__A8 () Bool (forall ((d Real) (dd Real) ) (=> (> dd REALLIT2) (and (> (ite (>= d 0) (- d (* dd (div d dd))) (- d (* dd (div (- d) (- dd))))) (- dd)) (< (ite (>= d 0) (- d (* dd (div d dd))) (- d (* dd (div (- d) (- dd))))) dd)))))
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: add
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: div
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: equals
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: hashCode
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: mul
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: sub
+error: A catastrophic JML internal error occurred.  Please report the bug with as much information as you can.
+  Reason: MISMATCHED BLOCKS
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: <init>
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: angle
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: imaginaryPart
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: magnitude
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: realPart
+error: An error while executing a proof script for standardizeAngle: (error "line 1778 column 113: invalid function application for >=, sort mismatch on argument at position 2, expected Real but given Int")
+  >>>(define-fun BL_3222bodyBegin_2__A9 () Bool (forall ((d Real) (dd Real) ) (=> (> dd REALLIT1) (and (> (ite (>= d 0) (- d (* dd (div d dd))) (- d (* dd (div (- d) (- dd))))) (- dd)) (< (ite (>= d 0) (- d (* dd (div d dd))) (- d (* dd (div (- d) (- dd))))) dd)))))
+error: An error while executing a proof script for toString: (error "line 4652 column 114: invalid function application for >=, sort mismatch on argument at position 2, expected Real but given Int")
+  >>>(define-fun BL_4122bodyBegin_2__A16 () Bool (forall ((d Real) (dd Real) ) (=> (> dd REALLIT4) (and (> (ite (>= d 0) (- d (* dd (div d dd))) (- d (* dd (div (- d) (- dd))))) (- dd)) (< (ite (>= d 0) (- d (* dd (div d dd))) (- d (* dd (div (- d) (- dd))))) dd)))))
+error: A catastrophic JML internal error occurred.  Please report the bug with as much information as you can.
+  Reason: java.lang.StackOverflowError
+error: A catastrophic JML internal error occurred.  Please report the bug with as much information as you can.
+  Reason: MISMATCHED BLOCKS
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: <init>
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: <init>
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: <init>
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: angle
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: imaginaryPart
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: magnitude
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: realPart
+error: An error while executing a proof script for toString: (error "line 4640 column 114: invalid function application for >=, sort mismatch on argument at position 2, expected Real but given Int")
+  >>>(define-fun BL_2674bodyBegin_2__A16 () Bool (forall ((d Real) (dd Real) ) (=> (> dd REALLIT4) (and (> (ite (>= d 0) (- d (* dd (div d dd))) (- d (* dd (div (- d) (- dd))))) (- dd)) (< (ite (>= d 0) (- d (* dd (div d dd))) (- d (* dd (div (- d) (- dd))))) dd)))))
+28 errors

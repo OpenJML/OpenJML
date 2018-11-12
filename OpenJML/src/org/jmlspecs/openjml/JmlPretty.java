@@ -4,6 +4,8 @@
  */
 package org.jmlspecs.openjml;
 
+import static com.sun.tools.javac.tree.JCTree.Tag.PARENS;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -17,9 +19,11 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.tree.Pretty.UncheckedIOException;
 //import com.sun.tools.javac.tree.Pretty.UncheckedIOException;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.Name;
 
 /** This class does pretty-printing of JML ASTs. */
 public class JmlPretty extends Pretty implements IJmlVisitor {
@@ -44,6 +48,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     /** If true, then wrap JML statements in JML comments */
     public boolean useJMLComments;
+    
+    /** If true, special rules for things that will only appear in specs **/
+    public boolean specOnly = false;
     
     /** Instantiates a pretty-printer for Jml nodes with default indentation
      * @param out the Write to which output is to be put
@@ -76,7 +83,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         StringWriter sw = new StringWriter();
         JmlPretty p = new JmlPretty(sw,source);
         p.width = 2;
-        tree.accept(p);
+        if(tree!=null)
+            tree.accept(p);
         return sw.toString();
     }
     
@@ -154,6 +162,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
     
     public void visitJmlBlock(JmlBlock that) {
+        
+        if(that.type==null && specOnly){
+            return;
+        }
+        
         visitBlock(that);
     }
     
@@ -211,6 +224,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) {
         // Presumes already aligned; does not call println at end
         try {
+            if(that.cases==null){
+                return;
+            }
             if (that.cases.size() == 1) {
                 that.cases.get(0).accept(this);
             } else {
@@ -444,9 +460,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 // Note - the output is already aligned, so we have to bump up the alignment
                 indentAndRealign();
                 boolean first = true;
-                for (JmlMethodClause c: that.clauses) {
-                    if (first) first = false; else { println(); align(); }
-                    c.accept(this);
+                if(that.clauses!=null){
+                    for (JmlMethodClause c: that.clauses) {
+                        if (first) first = false; else { println(); align(); }
+                        c.accept(this);
+                    }
                 }
                 if (that.block != null) {
                     println();
@@ -463,7 +481,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlStatement(JmlStatement that) {
         try { 
             if (useJMLComments) print ("/*@ ");
-            print(that.token.internedName());
+            print(that.id);
             print(" ");
             if (that.token == JmlTokenKind.END) print(": ");
             else that.statement.accept(this);
@@ -527,7 +545,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 if (first) first = false; else print(", ");
                 item.accept(this); // FISXME - printExpr?
             }
-            print("; ");
+            print(";");
         } catch (IOException e) { perr(that,e); }
     }
 
@@ -825,20 +843,51 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             align();
         }
     }
+    
+    public void printStatementSpecs(List<JmlStatementLoop> loopspecs) throws IOException {
+        if (loopspecs != null) {
+            for (List<? extends JCTree> l = loopspecs; l.nonEmpty(); l = l.tail) {
+                printStat(l.head);
+                println();
+                align();
+            }
+        }
+    }
+
+    // Fixes some formatting problems in super.visitDoLoop
+    @Override
+    public void visitDoLoop(JCDoWhileLoop tree) {
+        try {
+            print("do ");
+            printStat(tree.body);
+            //align();
+            print(" while ");
+            if (tree.cond.hasTag(PARENS)) {
+                printExpr(tree.cond);
+            } else {
+                print("(");
+                printExpr(tree.cond);
+                print(")");
+            }
+            print(";");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
-        if (that.loopSpecs != null) for (JmlStatementLoop s: that.loopSpecs) {
-            s.accept(this);
-        }
-        super.visitDoLoop(that);
+        try {
+            if (that.loopSpecs != null) {
+                printStatementSpecs(that.loopSpecs);
+            }
+            visitDoLoop(that);
+        } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
         try {
-            if (that.loopSpecs != null) for (JmlStatementLoop s: that.loopSpecs) {
-                s.accept(this);
-                println();
-                align();
+            if (that.loopSpecs != null) {
+                printStatementSpecs(that.loopSpecs);
             }
             super.visitForeachLoop(that);
         } catch (IOException e) { perr(that,e); }
@@ -847,11 +896,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlForLoop(JmlForLoop that) {
         try {
             if (that.loopSpecs != null) {
-                for (JmlStatementLoop s: that.loopSpecs) {
-                    s.accept(this);
-                    println();
-                    align();
-                }
+                printStatementSpecs(that.loopSpecs);
             }
             super.visitForLoop(that);
         } catch (IOException e) { perr(that,e); }
@@ -860,11 +905,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlWhileLoop(JmlWhileLoop that) {
         try {
             if (that.loopSpecs != null) {
-                for (JmlStatementLoop s: that.loopSpecs) {
-                    s.accept(this);
-                    println();
-                    align();
-                }
+                printStatementSpecs(that.loopSpecs);
             }
             super.visitWhileLoop(that);
         } catch (IOException e) { perr(that,e); }
@@ -900,6 +941,16 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         }
         visitClassDef(that);
     }
+    
+    @Override
+    public void printEnumBody(List<JCTree> stats) throws IOException {
+        if(specOnly){
+            print("{}");
+            return;
+        }
+    }
+    
+   
     
     public void printStats(List<? extends JCTree> stats) throws IOException {
         JmlSpecs.TypeSpecs toPrint = specsToPrint;

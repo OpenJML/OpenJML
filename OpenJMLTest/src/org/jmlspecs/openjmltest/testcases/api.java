@@ -8,6 +8,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -233,6 +236,12 @@ public class api extends JmlTestCase {
         return m.prettyPrint(m.parseFiles(f).get(0));
     }
     
+    String parseAndPrettyPrintFromFile(String filepath) throws Exception {
+        java.io.File f = new java.io.File(filepath);
+        IAPI m = Factory.makeAPI();
+        return m.prettyPrint(m.parseFiles(f).get(0));
+    }
+    
     String parseAndPrettyPrintFromMultipleFiles() throws Exception {
         java.io.File fa = new java.io.File("test/testNoErrors/A.java");
         java.io.File fb = new java.io.File("test/testNoErrors/B.java");
@@ -278,6 +287,23 @@ public class api extends JmlTestCase {
             check("","");
             s = s.replace('\\','/');
             compareStrings(prettyprint,s);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+    
+    @Test
+    public void testParseAndPrettyPrintEverything() {
+        start(true);
+        try {
+            String s = parseAndPrettyPrintFromFile("test/testPP/A.java");
+            check("","");
+            s = s.replace('\\','/');
+            Path path = FileSystems.getDefault().getPath("test/testPP/A.java");
+            String expect = new String(Files.readAllBytes(path));
+            compareStrings(expect,s);
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace(System.out);

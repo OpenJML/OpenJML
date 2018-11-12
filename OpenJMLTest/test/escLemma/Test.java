@@ -14,12 +14,12 @@ public class Test {
 		//@ assert b;
 	}
 
-	//@ requires k <= Integer.MAX_VALUE/2 && k >= Integer.MIN_VALUE/2;
+	//@ requires k <= Integer.MAX_VALUE/2 && k >= -1; // The -1 just so the counterexample is always the same
 	public void m(int k) {
 		//@ show k;
 		k = 2*k;
 		//@ use lemma((k+1));
-		boolean b = ((k+1)&1) == 1;
+		boolean b = ((k+1)&1) == 1; // Error expect4ed when k is -1
 		//@ assert b;
 	}
 

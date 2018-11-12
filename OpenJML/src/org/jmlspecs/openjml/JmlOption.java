@@ -10,8 +10,8 @@ import java.util.Map;
 
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
-import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.Log.WriterKind;
+import com.sun.tools.javac.util.Options;
 
 /**
  * This is an Enum that contains information about command-line options for JML
@@ -113,6 +113,33 @@ public enum JmlOption implements IOption {
 
     OSNAME("-osname",true,null,"Name of OS to use in selecting solver executable",null),
 
+    
+    // Options Related to Specification Inference
+    INFER("-infer",true,"POSTCONDITIONS","Infer missing contracts (postconditions (default), preconditions)","-command=infer"),
+    INFER_DEBUG("-infer-debug", false, false, "Enable debugging of contract inference", null),    
+    INFER_TAG("-infer-tag", true, true, "If true, inferred specifications are tagged with the key INFERRED", null),        
+    INFER_PRECONDITIONS("-infer-preconditions", true, true, "If not specified, the precondition of methods lacking preconditions will be set to true (otherwise inference is skipped).", null),
+    INFER_NO_EXIT("-noexit",true,false,"Infer contracts (suppress exiting)","-command=infer-no-exit"),
+    INFER_MINIMIZE_EXPRS("-infer-minimize-expressions", false, false, "Minimize expressions where possible.", null),
+    INFER_DUMP_GRAPHS("-infer-dump-graphs", false, false, "Dump any specification that would have been inferred to a file for offline analysis", null),    
+    
+    //
+    // Inference decides to write specs based on the following conditions
+    // 1) If -infer-persist-path is specified, specs are written to that directory (base)
+    // 2) Else, if -specspath is specified, specs are written to that directory (base)
+    // 3) Otherwise, we write the specs to the same directory were the java class source exists
+    //
+    INFER_PERSIST("-infer-persist", true, "jml", "Persist inferred specs. If \"java\" specs are written to the source files. If \"jml\" (default) they are written to seperate .jml files (defaults to location of class source and can be overridden with -infer-persist-path and -specspath)", null),
+    INFER_PERSIST_PATH("-infer-persist-path", true, null, "Specify output directory of specifications (overrides -specspath)", null),
+    INFER_MAX_DEPTH("-infer-max-depth", true, 300, "The largest CFG we will agree to process", null),
+    INFER_TIMEOUT("-infer-timeout", true, 300, "Give up inference after this many seconds. A value of -1 will wait indefinitely", null),
+    INFER_DEV_MODE("-infer-dev-mode", false, false, "Special features for developers.", null),    
+    
+    //
+    // Options for turning on and off various inference techniques 
+    //
+    INFER_ANALYSIS_TYPES("-infer-analysis-types", true, "ALL", "Enables specific analysis types. Takes a comma seperated list of analysis types. Support kinds are: REDUNDANT, UNSAT, TAUTOLOGIES, FRAMES, PURITY, and VISIBILITY", null),
+    
     // Obsolete
     NOCHECKSPECSPATHX("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false",true),
     NOPURITYCHECKX("-noPurityCheck",false,false,"When on, no warnings for use of impure methods are issued","-purityCheck=false",true),

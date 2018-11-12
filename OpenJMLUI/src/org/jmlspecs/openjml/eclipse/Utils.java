@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.core.runtime.jobs.JobGroup;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.ITextSelection;
@@ -314,6 +315,37 @@ public class Utils {
 		j.schedule();
 	}
 	
+	
+	public void showMessage(final String title, String message) {
+	        
+	        Display.getDefault().asyncExec(new Runnable() {
+	            @Override
+	            public void run() {
+	                ErrorDialog.openError(Display.getDefault().getActiveShell(),
+	                        title, message, null, IStatus.INFO);
+	            }
+	        });
+	    }
+	
+        public void inferSelection(ISelection selection, @Nullable IWorkbenchWindow window, @Nullable final Shell shell) {
+        	if (!checkForDirtyEditors())
+        	    return;
+        	if (selection == null) {
+        	    showMessage(shell, "Infer JML Contracts", "Nothing selected to infer");
+        	    return;
+        	}
+        	final List<Object> res = getSelectedElements(selection, window, shell);
+        	if (res.size() == 0) {
+        	    showMessage(shell, "Infer JML Contracts", "Nothing selected or applicable to infer");
+        	    return;
+        	}
+        	final Map<IJavaProject, List<Object>> sorted = sortByProject(res);
+        	deleteMarkers(res, shell); 
+        	for (final IJavaProject jp : sorted.keySet()) {
+        	    inferProject(jp, sorted.get(jp), shell, "Infer JML Contracts");
+        	}
+        }
+	
 	/**
 	 * This routine initiates (as a Job) executing ESC on all the Java files in
 	 * the selection; if any containers are selected, the operation applies the
@@ -473,6 +505,42 @@ public class Utils {
 		} catch (Exception e) {
 			// FIXME Failure
 		}
+	}
+	
+	
+	public void inferProject(final IJavaProject jp, final List<?> ores, /*@ nullable */Shell shell, String reason) {
+	    
+	    Job j = Job.create(reason, monitor -> {
+	        monitor.beginTask("Inferring specification of " + jp.getElementName(), 1);
+		boolean c = false;
+		try {
+			if (ores == null) {
+				LinkedList<Object> list = new LinkedList<Object>();
+				list.add(jp);
+				final List<Object> res = list;
+				getInterface(jp).executeInferCommand(Cmd.INFER, res,
+						monitor);
+			} else if (ores.size() != 0){
+				getInterface(jp).executeInferCommand(Cmd.INFER, ores,
+						monitor);
+			}
+		} catch (Exception e) {
+			// FIXME - this will block, preventing progress on the rest of the projects
+			Log.errorlog("Exception during Inference - " + jp.getElementName(), e);
+			showExceptionInUI(null, "Exception during Inference - " + jp.getElementName(), e);
+			c = true;
+		}
+
+	        // no return value needed when using an ICoreRunnable (since Neon)
+	    });
+	    
+	    
+	    
+	    IResourceRuleFactory ruleFactory = 
+            ResourcesPlugin.getWorkspace().getRuleFactory();
+	    j.setRule(jp.getProject());
+	    j.setUser(true); // true since the job has been initiated by an end-user
+	    j.schedule();
 	}
 
 

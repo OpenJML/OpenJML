@@ -33,6 +33,7 @@ import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.IInJML;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.strongarm.JDKListUtils;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.JmlTypes;
@@ -96,6 +97,14 @@ public class Utils {
         if (jmltypes == null) jmltypes = JmlTypes.instance(context);
         return jmltypes;
     }
+    
+    public Type interfaceForPrimitiveTypes;
+    public Type interfaceForPrimitiveTypes() {
+    	if (interfaceForPrimitiveTypes == null) {
+            interfaceForPrimitiveTypes = ClassReader.instance(context).enterClass(Names.instance(context).fromString("org.jmlspecs.lang.IJmlPrimitiveType")).type;
+    	}
+    	return interfaceForPrimitiveTypes;
+    }
 
     /** The key to use to retrieve the instance of this class from the Context object. */
     //@ non_null
@@ -152,6 +161,9 @@ public class Utils {
     /** Do Java compilation - set by Main.setupOptions */
     public boolean compile = false;
 
+    /** Do Contract Inference **/
+    public boolean infer = false;
+    
     /** Do Jmldoc  */
     public boolean doc = false;
     
@@ -673,10 +685,27 @@ public class Utils {
             return false;
         }
     }
+    
+    public boolean isPrimitiveType(TypeSymbol ct) {
+        return isPrimitiveType(ct.type);
+    }
+
+    public boolean isPrimitiveType(Type ct) {
+        return ct.isPrimitive() || jmltypes().isJmlType(ct) || isExtensionValueType(ct);
+    }
+
+    public boolean isExtensionValueType(Type ct) {
+        if (ct instanceof Type.MethodType) return false;
+        return jmltypes().isSubtype(ct, interfaceForPrimitiveTypes());
+    }
 
     // Includes self
     public java.util.List<ClassSymbol> parents(TypeSymbol ct, boolean includeEnclosingClasses) {
         ArrayList<ClassSymbol> interfaces = new ArrayList<ClassSymbol>(20);
+        if (isPrimitiveType(ct)) {
+            interfaces.add((ClassSymbol)ct);
+            return interfaces;
+        }
         if (ct instanceof Symbol.TypeVariableSymbol) {
             ct = ct.type.getUpperBound().tsym;
             // FIXME - what if bound is also a type variable?
@@ -822,11 +851,13 @@ public class Utils {
     }
 
     public Symbol topLevelEnclosingType(Symbol item) {
-        while (true) {
-            Symbol sym = item.getEnclosingElement();
-            if (!(sym instanceof ClassSymbol)) break;
+        // Enclosing elements can be either methods or classes/interfaces
+        // The top level type will be enclosed by a package
+        Symbol sym = item;
+        do {
             item = sym;
-        }
+            sym = item.getEnclosingElement();
+        } while (!(sym instanceof Symbol.PackageSymbol));
         return item;
     }
 
@@ -875,7 +906,8 @@ public class Utils {
         Symbol gp = parent;
         while (gp instanceof ClassSymbol) {
             if (!locallyJMLVisible(base,gp,gp.flags())) return false;
-            gp = gp.getEnclosingElement();
+            do { gp = gp.getEnclosingElement(); }
+            while (gp instanceof MethodSymbol);
         }
         return locallyJMLVisible(base, parent, flags);
     }
@@ -898,9 +930,12 @@ public class Utils {
     public boolean jmlvisible(/*@ nullable */ Symbol s, Symbol base, Symbol parent, long flags, long methodFlags) {
         // Make sure enclosing classes are visible
         if (jmlvisible(base,parent,flags)) return true;
+        Symbol p = parent.getEnclosingElement();
+        while (p instanceof MethodSymbol) p = p.getEnclosingElement();
+        
         // Recheck this FIXME
-        if (parent.getEnclosingElement() instanceof TypeSymbol) {
-            if (!jmlvisible(null,base,parent.getEnclosingElement(),parent.flags(),methodFlags)) return false;
+        if (!(p instanceof Symbol.PackageSymbol)) {
+            if (!jmlvisible(null,base,p,parent.flags(),methodFlags)) return false;
         }
         
         // In JML the clause must be at least as visible to clients as the method
@@ -911,6 +946,7 @@ public class Utils {
         
         // If target is public, then it is jml-visible, since everyone can see it
         if (flags == Flags.PUBLIC) return true;
+        if (flags == 0 && parent.isInterface()) return true;
         if (hasSpecPublic(s)) return true;
 
         // Otherwise a public method sees nothing
@@ -971,6 +1007,33 @@ public class Utils {
     public JmlClassDecl getOwner(JmlMethodDecl methodDecl) {
         return (JmlClassDecl)JmlEnter.instance(context).getEnv((ClassSymbol)methodDecl.sym.owner).tree;
     }
+    
+    public String qualifiedMethodSigWithContractLOC(JmlMethodDecl methodDecl) {
+        
+        
+        StringBuffer sb = new StringBuffer();
+        
+        sb.append(qualifiedMethodSig(methodDecl.sym));
+        sb.append(" (");
+        sb.append(JDKListUtils.countLOC(methodDecl.cases));
+        sb.append(" LOC)");
+
+        return sb.toString();
+    }
+    
+    public String qualifiedMethodSigWithContractLOC(JmlMethodDecl methodDecl, int loc) {
+        
+        
+        StringBuffer sb = new StringBuffer();
+        
+        sb.append(qualifiedMethodSig(methodDecl.sym));
+        sb.append(" (");
+        sb.append(loc);
+        sb.append(" LOC)");
+
+        return sb.toString();
+    }
+
     
     /** Returns a method signature with a fully-qualified method name */
     public String qualifiedMethodSig(MethodSymbol sym) {

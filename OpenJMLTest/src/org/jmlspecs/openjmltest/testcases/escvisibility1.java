@@ -419,7 +419,7 @@ public class escvisibility1 extends EscBase {
     public void testThisStar0() {
         helpTCX("tt.A","package tt; public class A {\n" +
                 "int i; \n" +
-                "//@ assignable this.*;\n" +
+                "//@ pure\n" +
                 "public A() { i = 0; } \n}"
 //                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
 //                ,"/tt/A.java:3: warning: Associated declaration",5
@@ -429,7 +429,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testThisStar1() {
         helpTCX("tt.A","package tt; public class A {\n public int i; \n" +
-                "//@ assignable this.*;\n" +
+                "//@ pure\n" +
                 "public A() { i = 0; } \n}"
                 );
     }
@@ -437,7 +437,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testThisStar2() {
         helpTCX("tt.A","package tt; public class A {\n private int i; \n" +
-                "//@ assignable this.*;\n" +
+                "//@ pure\n" +
                 "public A() { i = 0; } \n}"
 //                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
 //                ,"/tt/A.java:3: warning: Associated declaration",5
@@ -447,7 +447,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testThisStar3() {
         helpTCX("tt.A","package tt; public class A {\n protected int i; \n" +
-                "//@ assignable this.*;\n" +
+                "//@ pure\n" +
                 "public A() { i = 0; } \n}"
 //                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
 //                ,"/tt/A.java:3: warning: Associated declaration",5
@@ -457,7 +457,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testThisStar4() {
         helpTCX("tt.A","package tt; public class A {\n public int i; \n" +
-                "//@ assignable this.*;\n" +
+                "//@ pure\n" +
                 "private A() { i = 0; } \n}"
                 );
     }
@@ -465,7 +465,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testThisStar5() {
         helpTCX("tt.A","package tt; public class A {\n private int i; \n" +
-                "//@ assignable this.*;\n" +
+                "//@ pure\n" +
                 "private A() { i = 0; } \n}"
                 );
     }
@@ -473,7 +473,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testThisStar6() {
         helpTCX("tt.A","package tt; public class A {\n protected int i; \n" +
-                "//@ assignable this.*;\n" +
+                "//@ pure\n" +
                 "private A() { i = 0; } \n}"
                 );
     }
@@ -481,7 +481,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testThisStar7() {
         helpTCX("tt.A","package tt; public class A {\n  int i; \n" +
-                "//@ assignable this.*;\n" +
+                "//@ pure\n" +
                 "private A() { i = 0; } \n}"
                 );
     }
@@ -490,7 +490,7 @@ public class escvisibility1 extends EscBase {
     public void testThisStar8() {
         helpTCX2("tx.B","package tx; public class B {\n protected int i;\n}",
                 "tt.A","package tt; public class A extends tx.B {\n \n" +
-                "//@ assignable this.*;\n" +
+                "//@ pure\n" +
                 " A() { i = 0; } \n}"
 //                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",10
 //                ,"/tt/A.java:3: warning: Associated declaration",5
@@ -501,7 +501,7 @@ public class escvisibility1 extends EscBase {
     public void testThisStar9() {
         helpTCX2("tx.B","package tx; public class B {\n protected int i;\n}",
                 "tt.A","package tt; public class A extends tx.B {\n \n" +
-                "//@ assignable this.*;\n" +
+                "//@ pure\n" +
                 "protected A() { i = 0; } \n}"
                 );
     }
