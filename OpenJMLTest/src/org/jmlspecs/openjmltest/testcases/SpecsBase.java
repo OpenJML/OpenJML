@@ -163,7 +163,7 @@ public class SpecsBase extends TCBase {
             if (filename != null) addMockFile("#B/" + filename,f);
             Log.instance(context).useSource(f);
             List<JavaFileObject> files = List.of(f);
-            int ex = main.compile(new String[]{}, null, context, files, null).exitCode;
+            int ex = main.compile(new String[]{"-cp","/Users/davidcok/.p2/pool/plugins/org.junit_4.12.0.v201504281640/junit.jar:libs/hamcrest-junit-2.0.0.0.jar:libs/java-hamcrest-2.0.0.0.jar"}, null, context, files, null).exitCode;
             if (print) JmlSpecs.instance(context).printDatabase();
             int expected = expectedExit;
             if (expected == -1) expected = collector.getDiagnostics().size() == 0 ? 0 : 1;

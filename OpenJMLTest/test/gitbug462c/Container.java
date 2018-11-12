@@ -16,7 +16,7 @@ public class Container {
         public /*@ non_null @*/ Container c;
 
         /*@ private normal_behavior
-          @   assignable c;
+          @   assignable \nothing;
           @*/
         private /*@ helper @*/ ContainerUser() { c = new Container(); }
 

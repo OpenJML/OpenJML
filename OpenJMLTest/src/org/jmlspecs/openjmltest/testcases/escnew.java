@@ -313,6 +313,39 @@ public class escnew extends EscBase {
     @Test
     public void testPostcondition5() {
     	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
+//    	main.addOptions("-show","-method=m1");
+    	helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public static int iii;\n"
+                
+                +"  //@ public normal_behavior ensures iii == \\old(iii) + 3;\n"
+                +"  public void m1() {\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"  }\n"
+                
+                +"  //@ public normal_behavior ensures iii == \\old(iii) + 3;\n"
+                +"  public void m1bad() {\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"  }\n"
+                
+                
+                +"  //@ public normal_behavior assignable iii; ensures iii == \\old(iii) + 1;\n"
+                +"  public void inc()  {\n"
+                +"         ++iii;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",15
+                ,"/tt/TestJava.java:10: warning: Associated declaration",30
+                );
+    }
+    // Tests use of \old token in called methods
+    @Test
+    public void testPostcondition5a() {
+    	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int i;\n"
@@ -330,8 +363,8 @@ public class escnew extends EscBase {
                 +"         inc();\n"
                 +"  }\n"
                 
-                
-                +"  //@ public normal_behavior assignable i; ensures i == \\old(i) + 1;\n"
+                // Default is assignable \everything
+                +"  //@ public normal_behavior ensures i == \\old(i) + 1;\n"
                 +"  public void inc()  {\n"
                 +"         ++i;\n"
                 +"  }\n"
@@ -341,10 +374,44 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:10: warning: Associated declaration",30
                 );
     }
+    
     // Tests use of \old token in called methods
     @Test
-    public void testPostcondition5a() {
-    	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
+    public void testPostcondition5x() {
+    	main.addOptions("-code-math=bigint","-spec-math=bigint"); // Just to avoid overflow warnings
+//    	main.addOptions("-show","-method=m1");
+    	helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public static int iii;\n"
+                
+                +"  //@ public normal_behavior ensures iii == \\old(iii) + 3;\n"
+                +"  public void m1() {\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"  }\n"
+                
+                +"  //@ public normal_behavior ensures iii == \\old(iii) + 3;\n"
+                +"  public void m1bad() {\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"  }\n"
+                
+                
+                +"  //@ public normal_behavior assignable iii; ensures iii == \\old(iii) + 1;\n"
+                +"  public void inc()  {\n"
+                +"         ++iii;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",15
+                ,"/tt/TestJava.java:10: warning: Associated declaration",30
+                );
+    }
+    // Tests use of \old token in called methods
+    @Test
+    public void testPostcondition5ax() {
+    	main.addOptions("-code-math=bigint","-spec-math=bigint"); // Just to avoid overflow warnings
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int i;\n"

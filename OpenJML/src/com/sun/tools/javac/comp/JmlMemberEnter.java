@@ -657,6 +657,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // Note that if the class is binary, javaDecl will be null, but csym will not
 
         MethodSymbol matchSym = false ? specsMethodDecl.sym : matchMethod(specsMethodDecl,csym,env,false);
+        if (matchSym != null && matchSym.owner != csym) {
+            log.warning("jml.message", "Unexpected location (ASD): " + csym);
+            matchSym = specsMethodDecl.sym;
+        }
         
         // matchsym == null ==> no match or duplicate; otherwise matchSym is the matching symbol
         
@@ -742,7 +746,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 javaMatch.methodSpecsCombined = specsMethodDecl.methodSpecsCombined;
                 javaMatch.methodSpecsCombined.cases.decl = javaMatch; // FIXME - is this needed?
                 
-            } else {
+            } else if (javaMatch != specsMethodDecl) {
                 javaMatch = null;
                 log.error("jml.internal", "Unexpected duplicate Java method declaration, without a matching symbol: " + matchSym);
             }

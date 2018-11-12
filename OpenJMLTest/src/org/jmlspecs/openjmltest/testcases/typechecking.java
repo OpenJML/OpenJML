@@ -110,7 +110,7 @@ public class typechecking extends TCBase {
 
     @Test public void testOld2() {
         helpTC(" class A { int k; boolean b; void m() { \n//@ assert \\old();\n}}",
-                "/TEST.java:2: A \\old expression expects just 1 or 2 argument, not 0",16);
+                "/TEST.java:2: A \\old expression expects just 1 or 2 arguments, not 0",16);
     }
 
     @Test public void testOld2a() {
@@ -164,6 +164,13 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testOld12() {
+        helpTCF("A.java"," class A { boolean b; void m() { \n k: {};\n boolean bb = false; //@ assert \\old(bb) && \\old(bb,k);\n}}"
+                ,"/A.java:3: cannot find symbol\n  symbol:   variable bb\n  location: class A",38
+                ,"/A.java:3: cannot find symbol\n  symbol:   variable bb\n  location: class A",50
+                );
+    }
+
+    @Test public void testOld13() {
         helpTCF("A.java"," class A { boolean b; void m() { \n k: {};\n //@ assert \\old(b,k);\n}}"
                 );
     }
@@ -231,7 +238,6 @@ public class typechecking extends TCBase {
         		,"/A.java:2: A \\invariant_for expression expects just 1 argument, not 2", 26
         		,"/A.java:2: The argument of \\invariant_for must be of reference type", 27
         		,"/A.java:2: The argument of \\invariant_for must be of reference type", 35
-        		,"$SPECS/specs/java/nio/ByteBuffer.jml:298: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",29
         		);
     }
 
@@ -246,7 +252,6 @@ public class typechecking extends TCBase {
         helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for();\n}}"
         		,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -strictJML",37
         		,"/A.java:2: A \\invariant_for expression expects just 1 argument, not 0", 26
-                ,"$SPECS/specs/java/nio/ByteBuffer.jml:298: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",29
         		);
     }
 
@@ -847,6 +852,7 @@ public class typechecking extends TCBase {
     
     @Test public void testFresh3() {
         helpTCF("A.java","public class A { Object o,oo; //@ ensures \\fresh(); \n void m() {}  \n }"
+                ,"/A.java:1: A \\fresh expression expects just 1 or 2 arguments, not 0",49
                 );
     }
     

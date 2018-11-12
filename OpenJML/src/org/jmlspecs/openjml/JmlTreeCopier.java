@@ -338,7 +338,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 that.token,
                 copy(that.args,p));
         copy.startpos = that.startpos;
-        copy.label = that.label;
+        copy.labelProperties = that.labelProperties;
         copy.type = that.type;
         copy.meth = copy(that.meth,p);
         copy.typeargs = copy(that.typeargs,p);
@@ -364,7 +364,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that, Void p) {
-        return M.at(that.pos).JmlPrimitiveTypeTree(that.token).setType(that.type);
+        return M.at(that.pos).JmlPrimitiveTypeTree(that.token,that.typeName).setType(that.type);
     }
 
     @Override

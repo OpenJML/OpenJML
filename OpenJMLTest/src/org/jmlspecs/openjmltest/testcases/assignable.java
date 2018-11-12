@@ -240,9 +240,9 @@ public class assignable extends TCBase {
     @Test
     public void testAssignableConstructor1() {
         helpTCF("A.java","public class A { \n"
-                +"  private int i;\n"
-                +"  //@ assignable i;\n"
-                +"  public A() { i = 0; }\n"
+                +"  private int i; static private int j;\n"
+                +"  //@ assignable j;\n"
+                +"  public A() { j = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new A(); }\n"
                 +"}"

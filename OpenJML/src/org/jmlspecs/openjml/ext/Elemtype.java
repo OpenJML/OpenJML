@@ -63,7 +63,7 @@ public class Elemtype extends ExpressionExtension {
                 //attr.attribTypes(tree.typeargs, localEnv);
                 int n = tree.args.size();
                 if (n != 1) {  // FIXME _ incorrect for BSOLD
-                    error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                    error(tree.pos(),"jml.one.arg",token.internedName(),n);
                 }
                 Type t = syms.errType;
                 if (n > 0) {

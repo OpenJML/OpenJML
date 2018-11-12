@@ -148,7 +148,7 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-//            scan(that.extraStatements.toList()); // TODO - check about this
+            scan(that.extraStatements.toList());
             scan(that.body);
         }
 
@@ -510,7 +510,7 @@ public class JmlFlow extends Flow  {
         }
 
         public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-//            scan(that.extraStatements.toList()); // TODO _ review this
+            scan(that.extraStatements.toList());
             scan(that.body);
         }
         
@@ -864,7 +864,7 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-//            scan(that.extraStatements.toList()); // FIXME - REVIEW THIS
+            scan(that.extraStatements.toList());
             scan(that.body);
         }
 

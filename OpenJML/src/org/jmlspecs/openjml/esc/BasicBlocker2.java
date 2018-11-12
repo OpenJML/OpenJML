@@ -223,7 +223,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     /** A mapping from BasicBlock to the sym->incarnation map giving the map that
      * corresponds to the state at the exit of the BasicBlock.
      */
-    @NonNull final protected Map<BasicBlock,VarMap> blockmaps = new HashMap<BasicBlock,VarMap>();
+    @NonNull final public Map<BasicBlock,VarMap> blockmaps = new HashMap<BasicBlock,VarMap>();
     
     /** A mapping from labels to the sym->incarnation map operative at the position
      * of the label.
@@ -237,7 +237,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // (so they do not need initialization)
     
     /** The map from symbol to incarnation number in current use */
-    @NonNull protected VarMap currentMap;
+    @NonNull public VarMap currentMap;
     
     /** The map immediately after declaration of method parameters; this is
         the mapping of variables to incarnations to use when in the scope of 
@@ -874,7 +874,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override
     public void visitJmlLabeledStatement(JmlLabeledStatement that) {
         VarMap map = currentMap.copy();
-        if (that.label == null) premap = map;
+        if (that.label.toString().equals(Strings.preLabelBuiltin)) premap = map;
         labelmaps.put(that.label,map); // if that.label is null, this is the premap
         super.visitJmlLabeledStatement(that);
     }
@@ -978,12 +978,14 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         if (that.token == JmlTokenKind.BSOLD || that.token == JmlTokenKind.BSPRE || that.token == JmlTokenKind.BSPAST) {
             VarMap savedMap = currentMap;
             try {
-                if (that.args.size() == 1) {
-                    currentMap = premap;
-                    that.args.get(0).accept(this);
-                } else {
-                    JCIdent label = (JCIdent)that.args.get(1);
-                    currentMap = labelmaps.get(label.name);
+//                if (that.args.size() == 1) {
+//                    currentMap = premap;
+//                    that.args.get(0).accept(this);
+//                } else 
+                {
+                    Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).labeledStatement.label;
+                    //JCIdent label = (JCIdent)that.args.get(1);
+                    currentMap = labelmaps.get(label);
                     if (currentMap == null) {
                         // When method axioms are inserted they can appear before the label,
                         // in which case control flow comes here. SO we are counting on proper
@@ -1539,7 +1541,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
             if (localVars.contains(vsym)) {
                 // no change to local vars (e.g. quantifier and let decls)
-            } else {
+            } else if (currentMap != null) { // FIXME - why would currentMap ever be null?
                 that.name = currentMap.getCurrentName(vsym);
                 if (isDefined.add(that.name)) {
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Added " + vsym + " " + that.name);
@@ -1646,6 +1648,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         bimap.putf(that, result);
         copyEndPosition(result,that);
     }
+    
+    public void newIncarnations(JCIdent id) {
+        
+        
+    }
 //    
     // FIXME - embedded assignments to array elements are not implemented; no warning either
     // FIXME - is all implicit casting handled
@@ -1686,6 +1693,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             if (utils.isJMLStatic(sym)) {
                 JCIdent id = newIdentUse(sym,sp);
                 JCIdent newid = newIdentIncarnation(id,sp);
+                newIncarnations(id);
                 // currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
                 JCBinary expr = treeutils.makeEquality(pos,newid,right);
                 //copyEndPosition(expr,right);
@@ -1699,6 +1707,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     addDeclaration(oldfield);
                 }
                 JCIdent newfield = newIdentIncarnation(oldfield,sp);
+                newIncarnations(oldfield);
                 if (isDefined.add(newfield.name)) {
                     addDeclaration(newfield);
                 }

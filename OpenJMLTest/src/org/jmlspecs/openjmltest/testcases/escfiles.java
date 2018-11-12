@@ -242,6 +242,11 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testValueTypes() {
+        helpTF("valuetypes","-classpath","../OpenJML/runtime");
+    }
+
+    @Test
     public void testException() {
         helpTF("escException");
     }
@@ -262,6 +267,12 @@ public class escfiles extends EscBase {
     public void testArrayCopy() {
         expectedExit = 0;
         helpTF("escArrayCopy");
+    }
+
+    @Test
+    public void testArrayClone() {
+        expectedExit = 0;
+        helpTF("escClone");
     }
 
 // FIXME - there is a problem with instantiating the model field or the getter functions, such that my_dollars differs from dollars()
@@ -625,7 +636,7 @@ public class escfiles extends EscBase {
     
     @Test
     public void testRmLoop() {
-        helpTF("escrmloop","-method=doLRS","-timeout=10"); // SHort timeout because this does not yet work properly
+        helpTF("escrmloop","-method=doLRS","-timeout=10"); // FIXME SHort timeout because this does not yet work properly
     }
     
     @Test
@@ -654,6 +665,12 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testPrimitiveTypes() {
+        expectedExit = 0;
+        helpTF("primitives");
+    }
+
+    @Test
     public void testEscVisibilitySimple() {
         expectedExit = 1;
         helpTF("visibilitySimple");
@@ -661,7 +678,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testVisibilityB() {
-    	expectedExit = 1;
+        expectedExit = 1;
         helpTCF("test/visibilityB/org/apache/commons/cli/Option.java","test/visibilityB","-classpath","test/visibilityB");
     }
 

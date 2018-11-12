@@ -50,7 +50,7 @@ public class escconstructor extends EscBase {
 						+ "public class TestJava { \n"
 						+ "  public int a;\n"
 						+ "  static public int b;\n"
-						+ "  //@ assignable a; \n"
+						+ "  //@ assignable \\nothing; \n"
 						+ "  public TestJava() {\n"
 						+ "    a = 10; \n"
 						+ "    b = 10; \n" // Not allowed

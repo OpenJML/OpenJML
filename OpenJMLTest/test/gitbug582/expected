@@ -1,4 +1,4 @@
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/util/Optional.jml:81: warning: A non-pure method is being called where it is not permitted: java.util.function.Function.apply(T)
+$SPECS/specs/java/util/Optional.jml:84: warning: A non-pure method is being called where it is not permitted: java.util.function.Function.apply(T)
   //@   ensures value != null ==> \result.value == f.apply(value);
                                                           ^
 test/gitbug582/StudentSimple2_3.java:38: warning: A non-pure method is being called where it is not permitted: java.util.List.add(E)

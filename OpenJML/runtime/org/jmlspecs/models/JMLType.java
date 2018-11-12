@@ -34,7 +34,7 @@ package org.jmlspecs.models;
 public interface JMLType extends Cloneable, java.io.Serializable {
 
     /** Return a clone of this object. */
-    /*@ also
+    /*@ 
       @   public normal_behavior
       @     ensures \result != null;
       @     ensures \result instanceof JMLType;

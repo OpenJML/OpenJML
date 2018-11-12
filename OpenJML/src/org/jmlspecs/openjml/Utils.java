@@ -33,6 +33,7 @@ import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.IInJML;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.strongarm.JDKListUtils;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.JmlTypes;
@@ -96,6 +97,14 @@ public class Utils {
         if (jmltypes == null) jmltypes = JmlTypes.instance(context);
         return jmltypes;
     }
+    
+    public Type interfaceForPrimitiveTypes;
+    public Type interfaceForPrimitiveTypes() {
+    	if (interfaceForPrimitiveTypes == null) {
+            interfaceForPrimitiveTypes = ClassReader.instance(context).enterClass(Names.instance(context).fromString("org.jmlspecs.lang.IJmlPrimitiveType")).type;
+    	}
+    	return interfaceForPrimitiveTypes;
+    }
 
     /** The key to use to retrieve the instance of this class from the Context object. */
     //@ non_null
@@ -152,6 +161,9 @@ public class Utils {
     /** Do Java compilation - set by Main.setupOptions */
     public boolean compile = false;
 
+    /** Do Contract Inference **/
+    public boolean infer = false;
+    
     /** Do Jmldoc  */
     public boolean doc = false;
     
@@ -673,10 +685,27 @@ public class Utils {
             return false;
         }
     }
+    
+    public boolean isPrimitiveType(TypeSymbol ct) {
+        return isPrimitiveType(ct.type);
+    }
+
+    public boolean isPrimitiveType(Type ct) {
+        return ct.isPrimitive() || jmltypes().isJmlType(ct) || isExtensionValueType(ct);
+    }
+
+    public boolean isExtensionValueType(Type ct) {
+        if (ct instanceof Type.MethodType) return false;
+        return jmltypes().isSubtype(ct, interfaceForPrimitiveTypes());
+    }
 
     // Includes self
     public java.util.List<ClassSymbol> parents(TypeSymbol ct, boolean includeEnclosingClasses) {
         ArrayList<ClassSymbol> interfaces = new ArrayList<ClassSymbol>(20);
+        if (isPrimitiveType(ct)) {
+            interfaces.add((ClassSymbol)ct);
+            return interfaces;
+        }
         if (ct instanceof Symbol.TypeVariableSymbol) {
             ct = ct.type.getUpperBound().tsym;
             // FIXME - what if bound is also a type variable?
@@ -821,6 +850,40 @@ public class Utils {
         }
     }
 
+    public Symbol topLevelEnclosingType(Symbol item) {
+        // Enclosing elements can be either methods or classes/interfaces
+        // The top level type will be enclosed by a package
+        Symbol sym = item;
+        do {
+            item = sym;
+            sym = item.getEnclosingElement();
+        } while (!(sym instanceof Symbol.PackageSymbol));
+        return item;
+    }
+
+    /** Java visibility, ignoring the access of the containing class */
+    public boolean locallyVisible(Symbol base, Symbol parent, long flags) {
+        if (base == parent) return true; // Everything is visible in its own class
+        Symbol topbase = topLevelEnclosingType(base);
+        Symbol parentbase = topLevelEnclosingType(parent);
+        if (topbase == parentbase) return true; // Everything is visible if they share a top-level class
+        if ((flags & Flags.PUBLIC) != 0) return true; // public things are always visible
+        if (parent.isInterface()) return true; // everything in an interface is public and hence visible
+        if ((flags & Flags.PRIVATE) != 0) return false; // Private things are never visible outside their own top-level class
+        if (base.packge().equals(parent.packge())) return true; // Protected and default things are visible if in the same package
+        if ((flags & Flags.PROTECTED) == 0) return false; // Otherwise default things are not visible
+        // Just left with protected things, so is base a subclass of parent
+        while (base instanceof Symbol.TypeVariableSymbol) base = ((Symbol.TypeVariableSymbol)base).type.getUpperBound().tsym;
+        return base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses
+    }
+
+    /** JML visibility, ignoring the access of the containing class */
+    public boolean locallyJMLVisible(Symbol base, Symbol parent, long flags) {
+        if (locallyVisible(base,parent,flags)) return true;
+        if (hasSpecPublic(parent)) return true;
+        return false;
+        // FIXME - needs to check spec protected; needs to check actual symbol
+    }
 
 
     /** Returns true if a declaration with the given flags is visible in the
@@ -828,16 +891,33 @@ public class Utils {
      * Java visibility.
      */
     public boolean visible(Symbol base, Symbol parent, long flags) {
-        if (base == parent) return true; // Everything is visible in its own class
-        if (base.isEnclosedBy((ClassSymbol)parent)) return true; // Everything is visible to inner classes
-        if ((flags & Flags.PUBLIC) != 0) return true; // public things are always visible
-        if (parent.isInterface()) return true; // everything in an interface is public and hence visible
-        if ((flags & Flags.PRIVATE) != 0) return false; // Private things are never visible outside their own class
-        if (base.packge().equals(parent.packge())) return true; // Protected and default things are visible if in the same package
-        if ((flags & Flags.PROTECTED) == 0) return false; // Otherwise default things are not visible
-        // Just left with protected things, so is base a subclass of parent
-        while (base instanceof Symbol.TypeVariableSymbol) base = ((Symbol.TypeVariableSymbol)base).type.getUpperBound().tsym;
-        return base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses
+        Symbol gp = parent;
+        while (gp instanceof ClassSymbol) {
+            if (!locallyVisible(base,gp,gp.flags())) return false;
+            gp = gp.getEnclosingElement();
+        }
+        return locallyVisible(base, parent, flags);
+    }
+    
+    /** Returns true if a declaration with the given flags is visible in the
+     * 'base' class when declared in the 'parent' class. This is JML visibility.
+     */
+    public boolean jmlvisible(Symbol base, Symbol parent, long flags) {
+        Symbol gp = parent;
+        while (gp instanceof ClassSymbol) {
+            if (!locallyJMLVisible(base,gp,gp.flags())) return false;
+            do { gp = gp.getEnclosingElement(); }
+            while (gp instanceof MethodSymbol);
+        }
+        return locallyJMLVisible(base, parent, flags);
+    }
+    
+    public boolean hasSpecPublic(Symbol s) {
+        return s != null && s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PUBLIC)) != null;
+    }
+
+    public boolean hasSpecProtected(Symbol s) {
+        return s != null && s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PROTECTED)) != null;
     }
 
     /** Returns true if a declaration in the 'parent' class with the given flags 
@@ -848,7 +928,15 @@ public class Utils {
      * if checking the visibility, say of a clause.
      */
     public boolean jmlvisible(/*@ nullable */ Symbol s, Symbol base, Symbol parent, long flags, long methodFlags) {
-        if (visible(base,parent,flags)) return true;
+        // Make sure enclosing classes are visible
+        if (jmlvisible(base,parent,flags)) return true;
+        Symbol p = parent.getEnclosingElement();
+        while (p instanceof MethodSymbol) p = p.getEnclosingElement();
+        
+        // Recheck this FIXME
+        if (!(p instanceof Symbol.PackageSymbol)) {
+            if (!jmlvisible(null,base,p,parent.flags(),methodFlags)) return false;
+        }
         
         // In JML the clause must be at least as visible to clients as the method
         flags &= Flags.AccessFlags;
@@ -858,7 +946,8 @@ public class Utils {
         
         // If target is public, then it is jml-visible, since everyone can see it
         if (flags == Flags.PUBLIC) return true;
-        if (s != null && s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PUBLIC)) != null) return true;
+        if (flags == 0 && parent.isInterface()) return true;
+        if (hasSpecPublic(s)) return true;
 
         // Otherwise a public method sees nothing
         if (methodFlags == Flags.PUBLIC) return false;
@@ -870,9 +959,7 @@ public class Utils {
         // By now the method is either protected or package
         // The target is either protected or package or private
         // FIXME - comment more
-        if (flags == Flags.PRIVATE && s != null && 
-                s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PROTECTED)) == null
-                ) return false;
+        if (flags == Flags.PRIVATE && !hasSpecProtected(s)) return false;
         
         if (flags == 0) return methodFlags == 0;
         // By now flags must be PROTECTED
@@ -920,6 +1007,33 @@ public class Utils {
     public JmlClassDecl getOwner(JmlMethodDecl methodDecl) {
         return (JmlClassDecl)JmlEnter.instance(context).getEnv((ClassSymbol)methodDecl.sym.owner).tree;
     }
+    
+    public String qualifiedMethodSigWithContractLOC(JmlMethodDecl methodDecl) {
+        
+        
+        StringBuffer sb = new StringBuffer();
+        
+        sb.append(qualifiedMethodSig(methodDecl.sym));
+        sb.append(" (");
+        sb.append(JDKListUtils.countLOC(methodDecl.cases));
+        sb.append(" LOC)");
+
+        return sb.toString();
+    }
+    
+    public String qualifiedMethodSigWithContractLOC(JmlMethodDecl methodDecl, int loc) {
+        
+        
+        StringBuffer sb = new StringBuffer();
+        
+        sb.append(qualifiedMethodSig(methodDecl.sym));
+        sb.append(" (");
+        sb.append(loc);
+        sb.append(" LOC)");
+
+        return sb.toString();
+    }
+
     
     /** Returns a method signature with a fully-qualified method name */
     public String qualifiedMethodSig(MethodSymbol sym) {

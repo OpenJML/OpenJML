@@ -383,11 +383,15 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * remainingStatements list).
      */
     protected void processCurrentBlock() {
-        while (!remainingStatements.isEmpty()) {
-            JCStatement s = remainingStatements.remove(0);
+        processStats(remainingStatements);
+        completeBlock(currentBlock);
+    }
+    
+    protected void processStats(List<JCStatement> stats) {
+        while (!stats.isEmpty()) {
+            JCStatement s = stats.remove(0);
             if (s != null) s.accept(this);  // A defensive check - statements in the list should not be null
         }
-        completeBlock(currentBlock);
     }
     
 
@@ -1496,6 +1500,9 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     
     @Override 
     public void visitJmlLabeledStatement(JmlLabeledStatement that) {
+        List<JCStatement> copy = new LinkedList<>();
+        copy.addAll(that.extraStatements);
+        processStats(copy);
         T nextBlock = newBlockWithRest(AFTERLABEL,that.pos);
         follows(currentBlock,nextBlock);
         breakBlocks.put(that.label, nextBlock);
