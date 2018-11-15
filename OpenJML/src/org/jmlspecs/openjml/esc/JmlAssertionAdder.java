@@ -5312,7 +5312,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 body = M.Block(0L, List.<JCStatement>of(stat));
             }
         } else if (that.type.getTypeArguments().size() == 0) {
-            returnType = null;
+            // returnType = null;  // FIXME - perhaps needed if returnType is a type variable
         } else {
             List<Type> typeargs = that.type.getTypeArguments();
             returnType = typeargs.get(typeargs.size()-1);  // FIXME M- tyhis is only coprtrectx for Function typoes./
@@ -7313,6 +7313,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         JCExpression convertedReceiver = null;
         MethodSymbol calleeMethodSym = null; // The method symbol of the callee method or constructor
+        boolean labelPushed = false;
         try {
             // Translate the method name, and determine the receiver for the method call
             
@@ -8325,6 +8326,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addStat(stat);
                 LabelProperties lp = recordLabel(calllabel,stat);
                 labelProperties.put(oldLabel.name, lp);
+                labelPushed= true;
 
                 oldStatements = currentStatements;
 
@@ -9312,7 +9314,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             oldStatements = savedOldStatements;
             condition = savedCondition;
             preLabel = savedPreLabel;
-            if (!translatingJML) labelProperties.pop(oldLabel.name);
+            if (labelPushed) labelProperties.pop(oldLabel.name);
             currentFresh = savedFresh;
             enclosingMethod = savedEnclosingMethod;
             enclosingClass = savedEnclosingClass;
@@ -14314,6 +14316,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 break;
             }
             
+            case BSBIGINT_MATH:
+            case BSSAFEMATH:
+            case BSJAVAMATH: {
+                // Exactly one argument
+                IArithmeticMode saved = currentArithmeticMode;
+                try {
+                    if (that.token == JmlTokenKind.BSBIGINT_MATH) currentArithmeticMode = Arithmetic.Math.instance(context);
+                    if (that.token == JmlTokenKind.BSSAFEMATH) currentArithmeticMode = Arithmetic.Safe.instance(context);
+                    if (that.token == JmlTokenKind.BSJAVAMATH) currentArithmeticMode = Arithmetic.Java.instance(context);
+                    JCExpression arg = that.args.get(0);
+                    JCExpression ex = convertExpr(arg);
+                    result = eresult = ex;
+                } finally {
+                    currentArithmeticMode = saved;
+                }
+                break;
+            }
             case BSMAX :
             case BSREACH :
             case BSSPACE :
@@ -14324,9 +14343,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             case BSNOWARNOP:
             case BSWARN:
             case BSWARNOP:
-            case BSBIGINT_MATH:
-            case BSSAFEMATH:
-            case BSJAVAMATH:
             case BSNOTASSIGNED:
             case BSONLYASSIGNED:
             case BSONLYCAPTURED:
@@ -14387,9 +14403,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     JCExpression makeFreshExpression(DiagnosticPosition pos, JCExpression trarg, /*@ nullable */ Name label) {
         int ac;
+        LabelProperties lp = null;
         if (label == null) ac = allocCounter;
         else {
-            LabelProperties lp = labelProperties.get(label);
+            lp = labelProperties.get(label);
             if (lp != null) {
                 ac = lp.allocCounter;
             } else if (label.toString().isEmpty()) {
@@ -14409,7 +14426,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (localVariables.isEmpty()) arg = newTemp(arg); // We make a temp variable so that the (converted) argument is not captured by the \old, except in a quantified expression
         // FIXME _ I don't think this works properly if no temp is allocated
         JCFieldAccess fa = isAllocated(pos,arg);
-        JCExpression n = makeOld(p,fa,oldLabel);
+        JCExpression n = makeOld(p,fa,treeutils.makeIdent(p,label,null));
         JCExpression prev = treeutils.makeNot(p, n);
         fa = isAllocated(pos,convertCopy(arg));
         JCExpression ee = treeutils.makeAnd(p, prev, fa);

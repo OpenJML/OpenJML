@@ -1176,7 +1176,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         new JmlTokenKind[] {
         MODEL, PURE, HELPER, EXTRACT ,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        OPTIONS, PEER, REP, READONLY, INLINE // FIXME - allowing these until the rules are really implemented
+        OPTIONS, SKIP_ESC, PEER, REP, READONLY, INLINE // FIXME - allowing these until the rules are really implemented
 
     };
     
@@ -3070,6 +3070,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
             if (tree.modifiers != null) {
                 attribAnnotationTypes(tree.modifiers.annotations,env);
+                // Specification cases may not have Java annotations. The only
+                // modifiers are visibility modifiers. If Java annotations are allowed
+                // in the future, note that the following code does not attribute 
+                // any arguments of the annotations.
+                // Another semantics could be to connect the Java annotations to the 
+                // owning method. This would then allow the sequence
+                // <Java annotations> <specification case> <method declaration>
+                // Currently one must reorder the above to
+                // <specification case> <Java annotations> <method declaration>
+                for (List<JCAnnotation> al = tree.modifiers.annotations; al.nonEmpty(); al = al.tail) {
+                    JCAnnotation a = al.head;
+                    log.error(a.pos,"jml.message", "A specification case may not have annotations");
+                    // FIXME - perhaps move these to the owning method
+                }
+                tree.modifiers.annotations = List.<JCAnnotation>nil();
                 if (tree.token == null) {
                     if (!utils.hasNone(tree.modifiers)) {
                         log.error(tree.pos(),"jml.no.mods.lightweight");

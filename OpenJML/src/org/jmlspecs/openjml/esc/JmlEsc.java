@@ -29,6 +29,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
@@ -118,11 +119,19 @@ public class JmlEsc extends JmlTreeScanner {
         } catch (Exception e) {
             // No further error messages needed - FIXME - is this true?
             count(IProverResult.ERROR);
-            log.error("jml.internal","Should not be catching an exception in JmlEsc.check: "+ e.toString());
+            String info = "";
+            if (tree instanceof JCClassDecl) info = "class " + ((JCClassDecl)tree).name.toString();
+            if (tree instanceof JCCompilationUnit) info = "compilation unit " + (((JCCompilationUnit)tree).sourcefile.toString());
+            log.error("jml.internal","Should not be catching an exception in JmlEsc.check: "+ e.toString() + " while translating " + info);
+            e.printStackTrace();
         } catch (Throwable e) {
             // No further error messages needed - FIXME - is this true?
             count(IProverResult.ERROR);
-            log.error("jml.internal","Should not be catching a Java error in JmlEsc.check: "+ e.toString());
+            String info = "";
+            if (tree instanceof JCClassDecl) info = "class " + ((JCClassDecl)tree).name.toString();
+            if (tree instanceof JCCompilationUnit) info = "compilation unit " + (((JCCompilationUnit)tree).sourcefile.toString());
+            log.error("jml.internal","Should not be catching a Java error in JmlEsc.check: "+ e.toString() + " while translating " + info);
+            e.printStackTrace();
         }
     }
     
