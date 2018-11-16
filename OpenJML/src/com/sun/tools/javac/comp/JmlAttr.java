@@ -5425,6 +5425,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return findMod(mods,JmlTokenKind.MODEL) != null;
     }
     
+    /** Returns true if the given modifiers includes instance
+     * @param mods the modifiers to check
+     * @return true if the modifier is present, false if not
+     */
+    public boolean isInstance(/*@nullable*/JCModifiers mods) {
+        return findMod(mods,JmlTokenKind.INSTANCE) != null;
+    }
+    
     /** Returns true if the given symbol has a given annotation 
      * @param symbol the symbol to check
      * @return true if the symbol has a given annotation, false otherwise
@@ -6189,6 +6197,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             that.mods = newMods;
             if (utils.isJML(that.mods)) prev = ((JmlResolve)rs).setAllowJML(prev);
 
+            if (((JmlClassDecl)enclosingClassEnv.tree).sym.isInterface()) {
+                if (isModel(that.mods)) {
+                    if (!isStatic(that.mods) && !isInstance(that.mods)) {
+                        log.warning(that,"jml.message","Model fields in an interface should be explicitly declared either static or instance: " + that.name);
+                    }
+                }
+            }
             //        if (that.specsDecl != null) {
             //            that.mods.annotations = that.specsDecl.mods.annotations;
             //        }

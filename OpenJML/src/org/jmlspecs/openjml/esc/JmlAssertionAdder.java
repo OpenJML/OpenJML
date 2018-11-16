@@ -6129,6 +6129,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return false;
     }
     
+    java.util.List<JCFieldAccess> datagroupContents(JCFieldAccess fa, ClassSymbol csym) {
+        java.util.List<JCFieldAccess> list = new LinkedList<>();
+        list.add(fa);
+        TypeSpecs tspecs = JmlSpecs.instance(context).getSpecs(csym);
+        for (JCTree tree: tspecs.decl.defs) {
+            if (tree instanceof JCVariableDecl) {
+                JCVariableDecl vd = (JCVariableDecl)tree;
+                if (isContainedIn(vd.sym,fa.sym)) {
+                    JCFieldAccess nfa = (JCFieldAccess)M.at(fa.pos).Select(fa.selected, vd.sym);
+                    nfa.type = vd.type;
+                    list.add(nfa);
+                }
+            }
+        }
+        return list;
+    }
+    
     /** Check that the given storeref is a subset of the given 
      * pstoreref, returning the condition under which the storeref
      * is allowed.
@@ -6883,6 +6900,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected List<JCExpression> expandStoreRefList(List<JCExpression> list, MethodSymbol base) {
         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
         for (JCExpression item: list) {
+            if (item instanceof JCIdent) {
+                JCIdent id = (JCIdent)item;
+                if (id.sym.owner instanceof Symbol.ClassSymbol) {
+                    item = M.Select(currentThisExpr, id.sym);
+                    item.type = id.type;
+                }
+            }
             if (item instanceof JCFieldAccess && ((JCFieldAccess)item).name == null) {
                 JCFieldAccess fa = (JCFieldAccess)item;
                 java.util.List<VarSymbol> exlist;
@@ -6892,6 +6916,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 for (VarSymbol vsym : exlist) {
                     newlist.add(M.at(item).Select(fa.selected, vsym));
                 }
+            } else if (item instanceof JCFieldAccess) {
+                JCFieldAccess fa = (JCFieldAccess)item;
+                // FIXME - what class declaration to use here?
+                java.util.List<JCFieldAccess> clist = datagroupContents(fa, (ClassSymbol)base.owner);
+                newlist.addAll(clist);
             } else if (item instanceof JmlSingleton && ((JmlSingleton)item).token == JmlTokenKind.BSNOTSPECIFIED) {
                 item = M.at(item).JmlSingleton(JmlTokenKind.BSEVERYTHING);
                 newlist.add(item);
