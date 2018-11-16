@@ -1962,16 +1962,23 @@ public class SMTTranslator extends JmlTreeScanner {
         JCTree.Tag op = tree.getTag();
         IExpr lhs = convertExpr(tree.lhs);
         IExpr rhs = convertExpr(tree.rhs);
+        TypeTag tlhs = tree.lhs.type.getTag();
+        TypeTag trhs = tree.rhs.type.getTag();
+        boolean isReal = false;
+        if (tlhs == TypeTag.DOUBLE || trhs == TypeTag.DOUBLE ||
+                tlhs == TypeTag.FLOAT || trhs == TypeTag.FLOAT) {
+            isReal = true;
+        }
         if (useBV) {
-            if (tree.type.getTag() == TypeTag.BOOLEAN) {
-                TypeTag tlhs = tree.lhs.type.getTag();
-                TypeTag trhs = tree.rhs.type.getTag();
+            if (isReal) {
+                // skip
+            } else if (tree.type.getTag() == TypeTag.BOOLEAN) {
                 TypeTag max = bits(tlhs) > bits(trhs) ? tlhs : trhs;
                 lhs = castBV(max,tree.lhs.type.getTag(),lhs);
                 rhs = castBV(max,tree.rhs.type.getTag(),rhs);
             } else {
-                lhs = castBV(tree.type.getTag(),tree.lhs.type.getTag(),lhs);
-                rhs = castBV(tree.type.getTag(),tree.rhs.type.getTag(),rhs);
+                lhs = castBV(tree.type.getTag(),tlhs,lhs);
+                rhs = castBV(tree.type.getTag(),trhs,rhs);
             }
         }
         LinkedList<IExpr> args = new LinkedList<IExpr>();
@@ -1992,31 +1999,41 @@ public class SMTTranslator extends JmlTreeScanner {
                 result = F.fcn(F.symbol("or"), args);
                 break;
             case LT:
-                if (useBV) 
+                if (isReal) {
+                    result = F.fcn(F.symbol("<"), args);
+                } else if (useBV) 
                     result = F.fcn(F.symbol("bvslt"), args);
                 else
                     result = F.fcn(F.symbol("<"), args);
                 break;
             case LE:
-                if (useBV) 
+                if (isReal) {
+                    result = F.fcn(F.symbol("<="), args);
+                } else if (useBV) 
                     result = F.fcn(F.symbol("bvsle"), args);
                 else
                     result = F.fcn(F.symbol("<="), args);
                 break;
             case GT:
-                if (useBV) 
+                if (isReal) {
+                    result = F.fcn(F.symbol(">"), args);
+                } else if (useBV) 
                     result = F.fcn(F.symbol("bvsgt"), args);
                 else
                     result = F.fcn(F.symbol(">"), args);
                 break;
             case GE:
-                if (useBV) 
+                if (isReal) {
+                    result = F.fcn(F.symbol(">="), args);
+                } else if (useBV) 
                     result = F.fcn(F.symbol("bvsge"), args);
                 else
                     result = F.fcn(F.symbol(">="), args);
                 break;
             case PLUS:
-                if (tree.lhs.type.getTag() == TypeTag.CLASS) {
+                if (isReal) {
+                    result = F.fcn(F.symbol("+"), args);
+                } else if (tree.lhs.type.getTag() == TypeTag.CLASS) {
                     result = F.fcn(F.symbol(concat), args);
                 } else if (useBV) {
                 	result = F.fcn(F.symbol("bvadd"), args);
@@ -2025,22 +2042,24 @@ public class SMTTranslator extends JmlTreeScanner {
                 }
                 break;
             case MINUS:
-            	if (useBV)
+                if (isReal) {
+                    result = F.fcn(F.symbol("-"), args);
+                } else if (useBV)
             		result = F.fcn(F.symbol("bvsub"), args);
             	else
             		result = F.fcn(F.symbol("-"), args);
                 break;
             case MUL:
-            	if (useBV)
+                if (isReal) {
+                    result = F.fcn(F.symbol("*"), args);
+                } else if (useBV)
             		result = F.fcn(F.symbol("bvmul"), args);
             	else
             		result = F.fcn(F.symbol("*"), args);
                 break;
             case DIV:
                 // FIXME - what kinds of primitive types should be expected
-                if (tree.type.getTag() == TypeTag.FLOAT)
-                    result = F.fcn(F.symbol("/"), args);
-                else if (tree.type.getTag() == TypeTag.DOUBLE)
+                if (isReal)
                     result = F.fcn(F.symbol("/"), args);
                 else if (useBV)
                     // bvsdiv truncates towards zero
@@ -2060,9 +2079,9 @@ public class SMTTranslator extends JmlTreeScanner {
                 // mod in the Ints theory does not - it produces modulo (always positive) not remainders
                 // There is no mod in the Reals theory, so we have to do the round toward 0 by hand
                 TypeTag tag = tree.type.getTag();
-                if (useBV)
+                if (useBV && !isReal)
                     result = F.fcn(F.symbol("bvsrem"), args);
-                else if (tag == TypeTag.DOUBLE || tag == TypeTag.FLOAT) {
+                else if (isReal) {
                     result = F.fcn(F.symbol("ite"), 
                             F.fcn(F.symbol("="), F.fcn(F.symbol(">="),  args.get(0), F.decimal("0.0")), F.fcn(F.symbol(">="),  args.get(1), F.decimal("0.0"))), 
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("to_real"), F.fcn(F.symbol("to_int"), F.fcn(F.symbol("/"), args))))),
