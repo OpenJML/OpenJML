@@ -1331,7 +1331,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     JCTree.JCModifiers nmods = maker.Modifiers(Flags.PUBLIC);
                     JCTree.JCAnnotation a = maker.Annotation(maker.Type(tokenToAnnotationSymbol.get(JmlTokenKind.MODEL).type),List.<JCExpression>nil());
                     JCTree.JCAnnotation aa = maker.Annotation(maker.Type(tokenToAnnotationSymbol.get(JmlTokenKind.SECRET).type),List.<JCExpression>nil());
-                    nmods.annotations = List.<JCAnnotation>of(a,aa);
+                    boolean isStatic = utils.isJMLStatic(tree.sym);
+                    if (isStatic) {
+                        nmods.flags |= Flags.STATIC;
+                        nmods.annotations = List.<JCAnnotation>of(a,aa);
+                    } else {
+                        JCTree.JCAnnotation aaa = maker.Annotation(maker.Type(tokenToAnnotationSymbol.get(JmlTokenKind.INSTANCE).type),List.<JCExpression>nil());
+                        nmods.annotations = List.<JCAnnotation>of(a,aa,aaa);
+                    }
                     JCTree.JCExpression type = maker.Type(datagroupClass.type);
                     JCTree.JCVariableDecl vd = maker.VarDef(nmods,datagroup,type,null);
                     JmlMemberEnter.instance(context).memberEnter(vd,enclosingClassEnv);
@@ -3079,12 +3086,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // <Java annotations> <specification case> <method declaration>
                 // Currently one must reorder the above to
                 // <specification case> <Java annotations> <method declaration>
+                ListBuffer<JCAnnotation> newlist = new ListBuffer<>();
                 for (List<JCAnnotation> al = tree.modifiers.annotations; al.nonEmpty(); al = al.tail) {
                     JCAnnotation a = al.head;
-                    log.error(a.pos,"jml.message", "A specification case may not have annotations");
-                    // FIXME - perhaps move these to the owning method
+                    if (!a.annotationType.toString().startsWith(Strings.jmlAnnotationPackage)) {
+                        log.error(a.pos,"jml.message", "A specification case may not have annotations");
+                        // FIXME - perhaps move these to the owning method
+                    } else {
+                        // We keep the JML annotations because these are checked separately
+                        newlist.add(a);
+                    }
                 }
-                tree.modifiers.annotations = List.<JCAnnotation>nil();
+                tree.modifiers.annotations = newlist.toList();
                 if (tree.token == null) {
                     if (!utils.hasNone(tree.modifiers)) {
                         log.error(tree.pos(),"jml.no.mods.lightweight");

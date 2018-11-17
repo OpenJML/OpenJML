@@ -227,21 +227,21 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testInterface1a() {
-        helpTCF("t/A.java","package t; \n interface I { /*@  model  int i; */ } public class A implements I { /*@ represents i = 8; */ }"
-                ,"/t/A.java:2: A represents clause and its associated model field must both be static or both not be static",74
-                ,"/t/A.java:2: A represents clause must be declared in the same class as the static model field it represents",74
+        helpTCF("t/A.java","package t; \n interface I { /*@  model static int i; */ } public class A implements I { /*@ represents i = 8; */ }"
+                ,"/t/A.java:2: A represents clause and its associated model field must both be static or both not be static",80
+                ,"/t/A.java:2: A represents clause must be declared in the same class as the static model field it represents",80
                 );  
     }
     
     @Test public void testInterface1b() {
-        helpTCF("t/A.java","package t; \n interface I { /*@ instance model  int i; */ } public class A implements I { /*@ static represents i = 8; */ }"
-                ,"/t/A.java:2: A represents clause and its associated model field must both be static or both not be static",89
+        helpTCF("t/A.java","package t; \n interface I { /*@ model instance int i; */ } public class A implements I { /*@ static represents i = 8; */ }"
+                ,"/t/A.java:2: A represents clause and its associated model field must both be static or both not be static",88
                 );  
     }
     
     @Test public void testInterface1c() {
-        helpTCF("t/A.java","package t; \n interface I { /*@ model  int i; */ } public class A implements I { /*@ static represents i = 8; */ }"
-                ,"/t/A.java:2: A represents clause must be declared in the same class as the static model field it represents",80
+        helpTCF("t/A.java","package t; \n interface I { /*@ model static int i; */ } public class A implements I { /*@ static represents i = 8; */ }"
+                ,"/t/A.java:2: A represents clause must be declared in the same class as the static model field it represents",86
                 ); 
     }
     
@@ -260,7 +260,7 @@ public class modifiers extends TCBase {
     
     // cannot be model and final
     @Test public void testInterface4() {
-        helpTCF("t/A.java","package t; \n interface I { /*@ final model int i; */ } public class A implements I { /*@ final model int j = 0;*/ }"
+        helpTCF("t/A.java","package t; \n interface I { /*@ final model static int i; */ } public class A implements I { /*@ final model instance int j = 0;*/ }"
 //                ,"/t/A.java:2: A declaration may not be both model and final",26
 //                ,"/t/A.java:2: A declaration may not be both model and final",84
                 );
