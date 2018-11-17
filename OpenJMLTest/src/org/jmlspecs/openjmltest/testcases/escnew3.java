@@ -1021,6 +1021,139 @@ public class escnew3 extends EscBase {
     }
     
     @Test
+    public void testExceptionNegativeIndex() {
+        helpTCX("tt.TestJava",
+                  "package tt; \n"
+                + "public class TestJava {\n"
+                + "  //@ public normal_behavior\n"
+                + "  public void foo(int[] a, int i) { \n"
+                + "     //@ assume a != null;\n"
+                + "     //@ assume i < a.length;\n"
+                + "     int j = a[i];\n"  // Old error
+                + "  }\n"
+                + "  //@ public normal_behavior\n"
+                + "  public void fooA(int[] a, int i) { \n"
+                + "     //@ assume a != null;\n"
+                + "     //@ assume i < a.length;\n"
+                + "     try { int j = a[i]; } catch (ArrayIndexOutOfBoundsException e) {}\n" // No error
+                + "  }\n"
+                + "  //@ public normal_behavior\n"
+                + "  public void fooB(int[] a, int i) { \n"
+                + "     //@ assume a != null;\n"
+                + "     //@ assume 1 < a.length;\n"
+                + "     //@ assume i < a.length;\n"
+                + "     try { int j = a[0]; } catch (ArrayIndexOutOfBoundsException e) {}\n"
+                + "     int j = a[i];\n"  // Old Error
+                + "  }\n"
+                + "  //@ public normal_behavior\n"
+                + "  public void fooC(int[] a, int i) { \n"
+                + "     //@ assume a != null;\n"
+                + "     //@ assume i < a.length;\n"
+                + "     try { int j = a[i]; } catch (IndexOutOfBoundsException e) {}\n" // No error
+                + "  }\n"
+                + "  //@ public normal_behavior\n"
+                + "  public void fooD(int[] a, int i) { \n"
+                + "     //@ assume a != null;\n"
+                + "     //@ assume 1 < a.length;\n"
+                + "     //@ assume i < a.length;\n"
+                + "     try { int j = a[0]; } catch (NullPointerException e) {}\n"
+                + "     int j = a[i];\n" // Old Error
+                + "  }\n"
+                + "  //@ public normal_behavior requires i >= -1;\n"
+                + "  //@ also public exceptional_behavior requires i < -1; signals_only RuntimeException;\n"
+                + "  public void fooE(int[] a, int i) { \n"
+                + "     //@ assume a != null;\n"
+                + "     //@ assume i < a.length;\n"
+                + "     int j = a[i];" // New error
+                + "  }\n"
+                + "  //@ public normal_behavior requires i >= 0;\n"
+                + "  //@ also public exceptional_behavior requires i < 0; signals_only RuntimeException;\n"
+                + "  public void fooF(int[] a, int i) { \n"
+                + "     //@ assume a != null;\n"
+                + "     //@ assume i < a.length;\n"
+                + "     int j = a[i];" // No error
+                + "  }\n"
+                + "}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method foo",15
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooB",15
+                ,"/tt/TestJava.java:35: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooD",15
+                ,"/tt/TestJava.java:42: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooE",15
+                ,"/tt/TestJava.java:37: warning: Associated declaration",14
+                 );
+        
+    }
+    
+    @Test
+    public void testExceptionTooLargeIndex() {
+        helpTCX("tt.TestJava",
+                  "package tt; \n"
+                + "public class TestJava {\n"
+                + "  //@ public normal_behavior\n"
+                + "  public void foo(int[] a, int i) { \n"
+                + "     //@ assume a != null;\n"
+                + "     //@ assume i >= 0;\n"
+                + "     int j = a[i];\n"
+                + "  }\n"
+                + "  //@ public normal_behavior\n"
+                + "  public void fooA(int[] a, int i) { \n"
+                + "     //@ assume a != null;\n"
+                + "     //@ assume i >= 0;\n"
+                + "     try { int j = a[i]; } catch (ArrayIndexOutOfBoundsException e) {}"
+                + "  }\n"
+                + "  //@ public normal_behavior requires 0 <= i && i <= a.length;\n"
+                + "  //@ also public exceptional_behavior requires i > a.length+1; signals_only RuntimeException;\n"
+                + "  public void fooB(int[] a, int i) { \n"
+                + "     int j = a[i];\n"
+                + "  }\n"
+                + "  //@ public normal_behavior requires 0 <= i && i < a.length;\n"
+                + "  //@ also public exceptional_behavior requires i < 0; signals_only RuntimeException;\n"
+                + "  public void fooC(int[] a, int i) { \n"
+                + "     int j = a[i];\n"
+                + "  }\n"
+                + "}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method foo",15
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
+                ,"/tt/TestJava.java:14: warning: Associated declaration",14
+                 );
+        
+    }
+    
+    @Test
+    public void testExceptionArrayNull() {
+        helpTCX("tt.TestJava",
+                  "package tt; \n"
+                + "public class TestJava {\n"
+                + "  //@ public normal_behavior\n"
+                + "  public void foo(/*@ nullable */ int[] a) { \n"
+                + "     //@ assume a != null ==> a.length > 1;\n"
+                + "     int j = a[0];\n"
+                + "  }\n"
+                + "  //@ public normal_behavior\n"
+                + "  public void fooA(/*@ nullable */ int[] a, int i) { \n"
+                + "     //@ assume a != null ==> a.length > 1;\n"
+                + "     try { int j = a[0]; } catch (NullPointerException e) {}"
+                + "  }\n"
+                + "  //@ public normal_behavior requires i>0;\n"
+                + "  //@ also public exceptional_behavior requires false; signals_only NullPointerException;\n"
+                + "  public void fooB(/*@ nullable */ int[] a, int i) { \n"
+                + "     //@ assume a != null ==> a.length > 1;\n"
+                + "     int j = a[0];\n"
+                + "  }\n"
+                + "  //@ public normal_behavior requires a != null;\n"
+                + "  //@ also public exceptional_behavior requires a == null; signals_only NullPointerException;\n"
+                + "  public void fooC(/*@ nullable */ int[] a, int i) { \n"
+                + "     //@ assume a != null ==> a.length > 1;\n"
+                + "     int j = a[0];\n"
+                + "  }\n"
+                + "}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method foo",15
+                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
+                ,"/tt/TestJava.java:12: warning: Associated declaration",14
+                 );
+        
+    }
+    
+    @Test
     public void testInvariants() {
         helpTCX("tt.TestJava",
                   "package tt; \n"

@@ -726,8 +726,31 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected JCBlock discoveredFields;
     protected Set<Symbol> alreadyDiscoveredFields = new HashSet<>();
+    Set<Type> activeExceptions = new HashSet<>();
     
     int freshnessReferenceCount;
+    
+    public void findActiveExceptions(JmlMethodDecl methodDecl) {
+        for (MethodSymbol msym: utils.parents(methodDecl.sym)) { 
+            if (msym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
+            JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(msym);
+            c: for (JmlSpecificationCase cs: denestedSpecs.cases) {
+                for (JmlMethodClause clause: cs.clauses) {
+                    if (clause instanceof JmlMethodClauseSignals) {
+                        JCExpression x = ((JmlMethodClauseSignals)clause).expression;
+                        if (treeutils.isFalseLit(x)) continue c;
+                    }
+                }
+                for (JmlMethodClause clause: cs.clauses) {
+                    if (clause instanceof JmlMethodClauseSignalsOnly) {
+                        for (JCExpression x: ((JmlMethodClauseSignalsOnly)clause).list) {
+                            activeExceptions.add(x.type);
+                        }
+                    }
+                }
+            }
+        }
+    }
     
     /** Internal method to do the method body conversion */
     protected JCBlock convertMethodBodyNoInit(JmlMethodDecl pmethodDecl, JmlClassDecl pclassDecl) {
@@ -760,7 +783,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         int savedAllocCounter = allocCounter;
         JCTree savedNestedCallLocation = nestedCallLocation;
         nestedCallLocation = null;
-        
+        Set<Type> savedActiveExceptions = activeExceptions;
+        activeExceptions = new HashSet<>();
+        findActiveExceptions(pmethodDecl);
+
         allocCounter = 0;
         
         if (pmethodDecl.sym.isDefault()){
@@ -1152,6 +1178,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             this.discoveredFields = savedDiscoveredFields;
             this.allocCounter = savedAllocCounter;
             this.nestedCallLocation = savedNestedCallLocation;
+            this.activeExceptions = savedActiveExceptions;
             Main.instance(context).popOptions();
         }
     }
@@ -5643,6 +5670,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = t;
             return;
         }
+        Set<Type> savedActiveExceptions = activeExceptions;
+        activeExceptions = new HashSet<>();
+        activeExceptions.addAll(savedActiveExceptions);
+        if (that.catchers != null) for (JCCatch catcher: that.catchers) {
+            // FIXME - what about multiple types in one declaration
+            activeExceptions.add(catcher.getParameter().type);
+        }
+
+        try {
+
         if (that.resources != null && !that.resources.isEmpty()) transformTryWithResources(that);
         addStat(comment(that,"try ...",null)); // Don't need to trace the try keyword
         JCBlock body = convertBlock(that.body);
@@ -5708,6 +5745,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         st.setType(that.type);
         result = addStat(st);
         return;
+        } finally {
+            activeExceptions.clear();
+            activeExceptions = savedActiveExceptions;
+        }
     }
 
     // OK
@@ -11538,6 +11579,46 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         result = eresult = (translatingJML || pureCopy) ? e : newTemp(e);
 
     }
+    
+    public void addJavaCheck(DiagnosticPosition p, JCExpression cond,
+            Label javaLabel, Label jmlLabel, String exception) {
+        ClassSymbol csym = attr.createClass(exception);
+        if (translatingJML) {
+            cond = conditionedAssertion(p, cond);
+            addAssert(p, javaLabel, cond);
+        } else {
+            boolean present = false;
+            Type ex = csym.type;
+            for (Type t: activeExceptions) {
+                if (types.isSubtype(ex,t)) {
+                    present = true;
+                    break;
+                }
+            }
+            if (present) {
+                conditionalException(p,cond,csym);
+            } else {
+                addAssert(p,jmlLabel,cond);
+            }
+        }
+    }
+    
+    public void conditionalException(DiagnosticPosition p, JCExpression cond, ClassSymbol csym) {
+        Type ex = csym.type;
+        JCExpression ty = M.at(p).Type(ex).setType(ex);
+        JCNewClass ap = M.at(p).NewClass(null,null,ty, List.<JCExpression>nil(), null);
+        ap.setType(ex);
+        for (Symbol c: csym.getEnclosedElements()) {
+            if (c.isConstructor() && ((MethodSymbol)c).getParameters().size() == 0) {
+                ap.constructor = c;
+                ap.constructorType = c.type;
+                break;
+            }
+        }
+        JCStatement th = M.at(p).Throw(ap);
+        JCStatement iff = M.at(p).If(treeutils.makeNot(p,cond), th, null);
+        iff.accept(this);
+    }
 
     // OK
     @Override
@@ -11551,12 +11632,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (javaChecks && !pureCopy && localVariables.isEmpty()) {
             JCExpression nonnull = treeutils.makeNeqObject(that.indexed.pos, indexed, 
                     treeutils.makeNullLiteral(that.indexed.getEndPosition(log.currentSource().getEndPosTable())));
-            if (translatingJML) {
-                nonnull = conditionedAssertion(that, nonnull);
-                addAssert(that,Label.UNDEFINED_NULL_DEREFERENCE,nonnull);
-            } else {
-                addAssert(that,Label.POSSIBLY_NULL_DEREFERENCE,nonnull);
-            }
+            addJavaCheck(that,nonnull,Label.POSSIBLY_NULL_DEREFERENCE,Label.UNDEFINED_NULL_DEREFERENCE,"java.lang.NullPointerException");
         }
 
         // FIXME _ readable?
@@ -11569,24 +11645,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     treeutils.intleSymbol,
                     treeutils.makeIntLiteral(that.index.pos, 0), 
                     index);
-            if (translatingJML) {
-                compare = conditionedAssertion(that, compare);
-                addAssert(that,Label.UNDEFINED_NEGATIVEINDEX,compare);
-            } else {
-                addAssert(that,Label.POSSIBLY_NEGATIVEINDEX,compare);
-            }
+            addJavaCheck(that,compare,Label.UNDEFINED_NEGATIVEINDEX,Label.POSSIBLY_NEGATIVEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
         }
         
         JCExpression length = treeutils.makeLength(that.indexed,indexed);
         if (javaChecks && !pureCopy && localVariables.isEmpty()) {
             JCExpression compare = treeutils.makeBinary(that.pos, JCTree.Tag.GT, treeutils.intgtSymbol, length, 
                     index); // We use GT to preserve the textual order of the subexpressions
-            if (translatingJML) {
-                compare = conditionedAssertion(that, compare);
-                addAssert(that,Label.UNDEFINED_TOOLARGEINDEX,compare);
-            } else {
-                addAssert(that,Label.POSSIBLY_TOOLARGEINDEX,compare);
-            }
+            addJavaCheck(that,compare,Label.UNDEFINED_TOOLARGEINDEX,Label.POSSIBLY_TOOLARGEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
         }
 
 
