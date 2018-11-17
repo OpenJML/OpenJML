@@ -912,7 +912,7 @@ public class SFBugs extends EscBase {
     @Test // Errors encountered when using runtime on the classpath
     public void gitbug648a() {
         expectedExit = 1;
-        helpTCF("test/gitbug648","test/gitbug648","-cp","test/gitbug648:../OpenJML/runtime");
+        helpTCF("test/gitbug648a","test/gitbug648a","-cp","test/gitbug648:../OpenJML/runtime");
     }
     
     @Test

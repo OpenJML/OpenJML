@@ -6895,16 +6895,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
 
 
-    /** Expands any store-ref wildcard items, since they depend on the base location and visibility */
-    // FIXME - should we expand data groups?
+    /** Expands any store-ref wildcard items and optionally datagroups, since they depend on the base location and visibility */
     protected List<JCExpression> expandStoreRefList(List<JCExpression> list, MethodSymbol base, boolean expandDataGroup) {
         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
         for (JCExpression item: list) {
             if (expandDataGroup) if (item instanceof JCIdent) {
                 JCIdent id = (JCIdent)item;
                 if (id.sym.owner instanceof Symbol.ClassSymbol) {
-                    item = M.Select(currentThisExpr, id.sym);
-                    item.type = id.type;
+                    if (id.sym.isStatic()) {
+                        JCExpression sel = M.at(item.pos).Type(id.sym.owner.type);
+                        item = M.at(item.pos).Select(sel, id.sym);
+                        item.type = id.type;
+                    } else {
+                        item = M.at(item.pos).Select(currentThisExpr, id.sym);
+                        item.type = id.type;
+                    }
                 }
             }
             if (item instanceof JCFieldAccess && ((JCFieldAccess)item).name == null) {

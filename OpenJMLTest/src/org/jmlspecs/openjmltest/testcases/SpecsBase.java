@@ -6,6 +6,8 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -140,6 +142,9 @@ public class SpecsBase extends TCBase {
     public void setUp() throws Exception {
         useSystemSpecs = true;
         super.setUp();
+        java.util.List<String> jars = java.nio.file.Files.list(Paths.get("../OpenJMLTest/libs")).map(Path::toString).collect(java.util.stream.Collectors.toList());
+        jars.add(0,"../OpenJML/bin-runtime"); // prepend
+        main.addOptions("-classpath",String.join(File.pathSeparator,jars));
         // We turn off purity checking because there are too many purity errors in the specs to handle right now. (TODO)
         JmlOption.setOption(context,JmlOption.PURITYCHECK,false);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
