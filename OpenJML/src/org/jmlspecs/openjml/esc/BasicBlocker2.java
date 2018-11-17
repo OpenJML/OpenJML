@@ -1933,6 +1933,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         try {
             that.range = convertExpr(that.range);
             that.value = convertExpr(that.value);
+            scanList(that.triggers);
             result = that;
         } finally {
             for (JCVariableDecl d: that.decls) {

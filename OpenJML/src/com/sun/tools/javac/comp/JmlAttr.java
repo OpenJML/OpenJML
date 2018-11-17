@@ -4214,6 +4214,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         ((JmlMemberEnter)memberEnter).setInJml(b);
         quantifiedExprs.add(that);
         
+        if (that.triggers != null && that.triggers.size() > 0 && that.op != BSFORALL && that.op != BSEXISTS ) {
+            log.warning(that.triggers.get(0),"jml.message","Triggers not in \\forall or \\exists quantified expressions are ignored");
+            that.triggers = null;
+        }
         try {
             
             if (that.range != null) attribExpr(that.range, localEnv, syms.booleanType);
@@ -4224,6 +4228,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 case BSFORALL:
                     attribExpr(that.value, localEnv, syms.booleanType);
                     resultType = syms.booleanType;
+                    if (that.triggers != null) {
+                        ListBuffer<Type> argtypesBuf = new ListBuffer<Type>();
+                        attribArgs(that.triggers, localEnv, argtypesBuf);
+                        // FIXME - need to check well-formedness of triggers
+                    }
                     break;
 
                 case BSNUMOF:

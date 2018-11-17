@@ -155,6 +155,7 @@ public class JmlTreeInline extends JmlTreeCopier {
                     null);
             q.range = copy(that.range,p);
             q.value = copy(that.value,p);
+            q.triggers = copy(that.triggers);
             q.racexpr = copy(that.racexpr);
             q.setType(that.type);
             return q;

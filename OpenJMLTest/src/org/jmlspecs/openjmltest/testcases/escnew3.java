@@ -983,6 +983,44 @@ public class escnew3 extends EscBase {
     }
     
     @Test
+    public void testTriggers() {
+        main.addOptions("-method=foo","-show");
+        helpTCX("tt.TestJava",
+                  "package tt; \n"
+                + "public class TestJava {\n"
+                + "  //@ ensures \\result == i>=0; \n"
+                + "  //@ pure\n"
+                + "  public boolean bb(int i) { return i >= 0; }\n"
+                + "  public void foo() { int j;\n"
+                + "     //@ assert (\\forall int i; 0<=i ; bb(i) : bb(i));\n"
+                + "     //@ assert (\\forall int i; 0<=i ; i>=-1 : i>=0, i<=0);\n"
+                + "  }\n"
+                + "}"
+                 );
+        
+    }
+    
+    @Test
+    public void testTriggersBad() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava",
+                  "package tt; \n"
+                + "public class TestJava {\n"
+                + "  //@ pure\n"
+                + "  public boolean bb(int i) { return i >= 0; }\n"
+                + "  public void foo() { int j;\n"
+                + "     //@ assert (\\forall int i; 0<=i ; bb(i) : );\n"
+                + "     //@ assert (\\forall boolean i;  ; i : bb(i));\n"
+                + "     //@ assert 0 == (\\sum int i; 0<=i ; i : i);\n"
+                + "  }\n"
+                + "}"
+                ,"/tt/TestJava.java:7: incompatible types: boolean cannot be converted to int",47
+                ,"/tt/TestJava.java:8: warning: Triggers not in \\forall or \\exists quantified expressions are ignored",46
+                 );
+        
+    }
+    
+    @Test
     public void testInvariants() {
         helpTCX("tt.TestJava",
                   "package tt; \n"

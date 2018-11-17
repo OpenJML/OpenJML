@@ -374,7 +374,8 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 copy(that.decls,p),
                 copy(that.range,p),
                 copy(that.value,p));
-        q.racexpr = copy(that.racexpr);
+        q.triggers = copy(that.triggers,p);
+        q.racexpr = copy(that.racexpr,p);
         q.setType(that.type);
         return q;
     }

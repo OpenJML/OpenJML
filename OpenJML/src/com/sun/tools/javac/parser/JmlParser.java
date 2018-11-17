@@ -1739,7 +1739,7 @@ public class JmlParser extends JavacParser {
         int p = pos();
         S.setJmlKeyword(false);
         nextToken();
-        ListBuffer<JCExpression> elist = new ListBuffer<JCExpression>();
+        List<JCExpression> elist = List.<JCExpression>nil();
         Name n;
         int identPos = pos();
         ITokenKind tk = token.kind;
@@ -1753,7 +1753,7 @@ public class JmlParser extends JavacParser {
                         "an = or <- token");
             } else {
                 nextToken();
-                elist = expressionList();
+                elist = parseExpressionList();
             }
         }
         JCTree.JCIdent id = to(jmlF.at(identPos).Ident(n));
@@ -1763,7 +1763,7 @@ public class JmlParser extends JavacParser {
         } else {
             nextToken();
         }
-        return toP(jmlF.at(p).JmlTypeClauseMonitorsFor(mods, id, elist.toList()));
+        return toP(jmlF.at(p).JmlTypeClauseMonitorsFor(mods, id, elist));
     }
 
     /**
@@ -1775,7 +1775,7 @@ public class JmlParser extends JavacParser {
      * @return a ListBuffer of expressions, which may be empty or contain
      *         JCErroneous expressions if errors occurred
      */
-    public ListBuffer<JCExpression> expressionList() {
+    public List<JCExpression> parseExpressionList() {
         ListBuffer<JCExpression> args = new ListBuffer<>();
         args.append(parseExpression());
         while (token.kind == COMMA) {
@@ -1783,7 +1783,7 @@ public class JmlParser extends JavacParser {
             JCExpression e = parseExpression();
             args.append(e); // e might be a JCErroneous
         }
-        return args;
+        return args.toList();
     }
 
     public JCExpression parseStoreRefListExpr() {
@@ -3223,7 +3223,7 @@ public class JmlParser extends JavacParser {
                 // type id ; range ; predicate
                 nextToken();
                 pred = parseExpression();
-            } else if (token.kind == RPAREN) {
+            } else if (token.kind == RPAREN || token.kind == COLON) {
                 // type id ; predicate
                 pred = range;
                 range = null;
@@ -3235,8 +3235,17 @@ public class JmlParser extends JavacParser {
                 return toP(jmlF.at(p).Erroneous());
             }
         }
+        List<JCExpression> triggers = null;
+        if (token.kind == COLON) {
+            accept(COLON);
+            // triggers
+            if (token.kind != RPAREN) {
+                triggers = parseExpressionList();
+            }
+        }
         JmlQuantifiedExpr q = toP(jmlF.at(pos).JmlQuantifiedExpr(jt, decls.toList(),
                 range, pred));
+        q.triggers = triggers;
         return q;
     }
 

@@ -11,6 +11,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.smtlib.ICommand;
 import org.smtlib.ICommand.IScript;
 import org.smtlib.IExpr;
+import org.smtlib.IExpr.IAttributedExpr;
 import org.smtlib.IExpr.IBinding;
 import org.smtlib.IExpr.IDeclaration;
 import org.smtlib.IExpr.INumeral;
@@ -786,6 +787,11 @@ public class SMTTranslator extends JmlTreeScanner {
         c = new C_set_logic(F.symbol(s));
         startCommands.add(c);
         
+        if (JmlOption.isOption(context,JmlOption.ESC_TRIGGERS)) {
+            startCommands.add(command(smt,"(set-option :AUTO_CONFIG false)"));
+            startCommands.add(command(smt,"(set-option :smt.MBQI false)"));
+        }
+
         // add background statements
         // declare the sorts we use to model Java+JML
         // (declare-sort REF 0)
@@ -1049,14 +1055,19 @@ public class SMTTranslator extends JmlTreeScanner {
     }
     
     /** Adds a command expressed as a string */
-    protected void addCommand(SMT smt, String command) {
+    protected ICommand command(SMT smt, String command) {
         try {
             Configuration cf = smt.smtConfig;
             ICommand c = cf.smtFactory.createParser(cf,cf.smtFactory.createSource(command,null)).parseCommand();
-            commands.add(c);
+            return c;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+    
+    /** Adds a command expressed as a string */
+    protected void addCommand(SMT smt, String command) {
+        commands.add(command(smt,command));
     }
     
     /** The String that is the encoding of a given Type */
@@ -1693,6 +1704,15 @@ public class SMTTranslator extends JmlTreeScanner {
         return result;
     }
     
+    public List<IExpr> convertExprList(List<JCExpression> list) {
+        List<IExpr> newargs = new LinkedList<IExpr>();
+        for (JCExpression e: list) {
+            scan(e);
+            newargs.add(result);
+        }
+        return newargs;
+    }
+    
     // We need to be able to translate expressions
     
     /** Issues a error message about the AST node not being implemented */
@@ -1866,11 +1886,7 @@ public class SMTTranslator extends JmlTreeScanner {
             result = that.javaType ? javaTypeSymbol(t) : jmlTypeSymbol(t);
             return;
         }
-        List<IExpr> newargs = new LinkedList<IExpr>();
-        for (JCExpression e: that.args) {
-            scan(e);
-            newargs.add(result);
-        }
+        List<IExpr> newargs = convertExprList(that.args);
         if (that.token == JmlTokenKind.SUBTYPE_OF) {
             result = F.fcn(F.symbol(JMLSUBTYPE), newargs);
         } else if (that.token == JmlTokenKind.JSUBTYPE_OF) {
@@ -2629,10 +2645,20 @@ public class SMTTranslator extends JmlTreeScanner {
             IExpr value = result;
             if (that.op == JmlTokenKind.BSFORALL) {
                 if (range != null) value = F.fcn(impliesSym,range,value);
-                result = F.forall(params,value);
+                if (that.triggers != null && !that.triggers.isEmpty()) {
+                    List<IExpr> triggers = convertExprList(that.triggers);
+                    result = F.forall(params,value,triggers);
+                } else {
+                    result = F.forall(params,value);
+                }
             } else if (that.op == JmlTokenKind.BSEXISTS) {
                 if (range != null) value = F.fcn(F.symbol("and"),range,value);
-                result = F.exists(params,value);
+                if (that.triggers != null && !that.triggers.isEmpty()) {
+                    List<IExpr> triggers = convertExprList(that.triggers);
+                    result = F.exists(params,value,triggers);
+                } {
+                    result = F.exists(params,value);
+                }
             } else {
                 notImplWarn(that, "JML Quantified expression using " + that.op.internedName());
                 ISymbol sym = F.symbol(makeBarEnclosedString(that));

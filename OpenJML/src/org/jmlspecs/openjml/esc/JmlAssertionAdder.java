@@ -6902,7 +6902,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (expandDataGroup) if (item instanceof JCIdent) {
                 JCIdent id = (JCIdent)item;
                 if (id.sym.owner instanceof Symbol.ClassSymbol) {
-                    if (id.sym.isStatic()) {
+                    if (utils.isJMLStatic(id.sym)) {
                         JCExpression sel = M.at(item.pos).Type(id.sym.owner.type);
                         item = M.at(item.pos).Select(sel, id.sym);
                         item.type = id.type;
@@ -14584,6 +14584,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JmlQuantifiedExpr q = M.JmlQuantifiedExpr(that.op, convert(that.decls), convert(that.range),convert(that.value));
             q.pos = that.pos;
             treeutils.copyEndPosition(eresult, that);
+            q.triggers = convert(that.triggers);
             q.racexpr = convert(that.racexpr);
             q.type = that.type;
             result = eresult = q;
@@ -14619,6 +14620,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     dd, // convertCopy(that.decls),
                                     range,
                                     value);
+                    {
+                        boolean saved = splitExpressions;
+                        try {
+                            splitExpressions = false;
+                            q.triggers = convertExprList(that.triggers);
+                        } finally {
+                            splitExpressions = saved;
+                        }
+                    }
                     q.setType(that.type);
                     result = eresult = q;
                 } finally {

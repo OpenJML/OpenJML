@@ -2383,6 +2383,10 @@ public class JmlTree implements IJmlTree {
         /** A (partial) expression used in RAC, but constructed here for convenience */
         public JCExpression racexpr;
         
+        /** The user-specified triggers for the quantification */
+        //@ nullable
+        public List<JCExpression> triggers = null;
+        
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlQuantifiedExpr(int pos, JmlTokenKind op,
                 List<JCVariableDecl> decls,
