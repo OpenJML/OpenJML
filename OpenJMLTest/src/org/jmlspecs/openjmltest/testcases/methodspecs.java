@@ -250,7 +250,7 @@ public class methodspecs extends TCBase {
     /** Tests pure assignable*/
     @Test
     public void testPureAssignable4() {
-        helpTC(" interface B { /*@ model instance int bk; model int sbk; */} class A implements B { int k; static int sk; \n"
+        helpTC(" interface B { /*@ model instance int bk; model static int sbk; */} class A implements B { int k; static int sk; \n"
                 +"//@ requires true;\n"
                 +"//@ {|\n"
                 +"//@ signals_only Exception;\n"

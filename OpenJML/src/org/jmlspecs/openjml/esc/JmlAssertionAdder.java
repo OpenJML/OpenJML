@@ -6129,6 +6129,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return false;
     }
     
+    java.util.List<JCFieldAccess> datagroupContents(JCFieldAccess fa, ClassSymbol csym) {
+        java.util.List<JCFieldAccess> list = new LinkedList<>();
+        list.add(fa);
+        TypeSpecs tspecs = JmlSpecs.instance(context).getSpecs(csym);
+        for (JCTree tree: tspecs.decl.defs) {
+            if (tree instanceof JCVariableDecl) {
+                JCVariableDecl vd = (JCVariableDecl)tree;
+                if (isContainedIn(vd.sym,fa.sym)) {
+                    JCFieldAccess nfa = (JCFieldAccess)M.at(fa.pos).Select(fa.selected, vd.sym);
+                    nfa.type = vd.type;
+                    list.add(nfa);
+                }
+            }
+        }
+        return list;
+    }
+    
     /** Check that the given storeref is a subset of the given 
      * pstoreref, returning the condition under which the storeref
      * is allowed.
@@ -6775,7 +6792,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // FIXME - do we have to satisfy each assignable clause individually, or the union?
                 if (mclause.token == token) {
                         // Is storeref allowed by some item in the parent method's list?
-                        List<JCExpression> pstorerefs = expandStoreRefList(((JmlMethodClauseStoreRef)mclause).list, methodDecl.sym);
+                        List<JCExpression> pstorerefs = expandStoreRefList(((JmlMethodClauseStoreRef)mclause).list, methodDecl.sym,false);
                         if (token == JmlTokenKind.ACCESSIBLE) {
                             pstorerefs = expandStoreRefListAll(((JmlMethodClauseStoreRef)mclause).list, methodDecl.sym);
                         }
@@ -6878,11 +6895,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
 
 
-    /** Expands any store-ref wildcard items, since they depend on the base location and visibility */
-    // FIXME - should we expand data groups?
-    protected List<JCExpression> expandStoreRefList(List<JCExpression> list, MethodSymbol base) {
+    /** Expands any store-ref wildcard items and optionally datagroups, since they depend on the base location and visibility */
+    protected List<JCExpression> expandStoreRefList(List<JCExpression> list, MethodSymbol base, boolean expandDataGroup) {
         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
         for (JCExpression item: list) {
+            if (expandDataGroup) if (item instanceof JCIdent) {
+                JCIdent id = (JCIdent)item;
+                if (id.sym.owner instanceof Symbol.ClassSymbol) {
+                    if (id.sym.isStatic()) {
+                        JCExpression sel = M.at(item.pos).Type(id.sym.owner.type);
+                        item = M.at(item.pos).Select(sel, id.sym);
+                        item.type = id.type;
+                    } else {
+                        item = M.at(item.pos).Select(currentThisExpr, id.sym);
+                        item.type = id.type;
+                    }
+                }
+            }
             if (item instanceof JCFieldAccess && ((JCFieldAccess)item).name == null) {
                 JCFieldAccess fa = (JCFieldAccess)item;
                 java.util.List<VarSymbol> exlist;
@@ -6892,6 +6921,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 for (VarSymbol vsym : exlist) {
                     newlist.add(M.at(item).Select(fa.selected, vsym));
                 }
+            } else if (expandDataGroup && item instanceof JCFieldAccess) {
+                JCFieldAccess fa = (JCFieldAccess)item;
+                // FIXME - what class declaration to use here?
+                java.util.List<JCFieldAccess> clist = datagroupContents(fa, (ClassSymbol)base.owner);
+                newlist.addAll(clist);
             } else if (item instanceof JmlSingleton && ((JmlSingleton)item).token == JmlTokenKind.BSNOTSPECIFIED) {
                 item = M.at(item).JmlSingleton(JmlTokenKind.BSEVERYTHING);
                 newlist.add(item);
@@ -8392,7 +8426,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         } else if (clause.token == JmlTokenKind.FORALL) { 
                                             //                                        notImplemented(clause,"forall clause in method specs",clause.source()); // Don't repeat the warning message
                                         } else if (clause.token == JmlTokenKind.ASSIGNABLE) {
-                                            List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym);
+                                            List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym,false);
                                             for (JCExpression item: storerefs) {
                                                 addStat(comment(item,"Is " + item + " assignable? " + utils.locationString(item.pos,clause.source()),clause.source()));
                                                 JCExpression trItem = convertAssignable(item,newThisExpr,true,clause.source());
@@ -8402,7 +8436,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             anyAssignableClauses = true;
                                         } else if (clause.token == JmlTokenKind.ACCESSIBLE) {
                                             if (checkAccessEnabled) {
-                                                List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym);
+                                                List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym,false);
                                                 for (JCExpression item: storerefs) {
                                                     addStat(comment(item,"Is " + item + " accessible?",clause.source()));
                                                     JCExpression trItem = convertAssignable(item, newThisExpr, true, clause.source());
@@ -8679,7 +8713,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         useDefault = false;
                                         addStat(comment(clause));
                                         ListBuffer<JCStatement> elses = new ListBuffer<>();
-                                        List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym);
+                                        List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym,true);
                                         ListBuffer<JCStatement> check4 = null;
                                         for (JCExpression location: storerefs) {
                                             boolean containsEverything = false;

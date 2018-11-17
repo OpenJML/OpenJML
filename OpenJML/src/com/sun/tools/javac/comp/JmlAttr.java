@@ -1331,7 +1331,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     JCTree.JCModifiers nmods = maker.Modifiers(Flags.PUBLIC);
                     JCTree.JCAnnotation a = maker.Annotation(maker.Type(tokenToAnnotationSymbol.get(JmlTokenKind.MODEL).type),List.<JCExpression>nil());
                     JCTree.JCAnnotation aa = maker.Annotation(maker.Type(tokenToAnnotationSymbol.get(JmlTokenKind.SECRET).type),List.<JCExpression>nil());
-                    nmods.annotations = List.<JCAnnotation>of(a,aa);
+                    boolean isStatic = utils.isJMLStatic(tree.sym);
+                    if (isStatic) {
+                        nmods.flags |= Flags.STATIC;
+                        nmods.annotations = List.<JCAnnotation>of(a,aa);
+                    } else {
+                        JCTree.JCAnnotation aaa = maker.Annotation(maker.Type(tokenToAnnotationSymbol.get(JmlTokenKind.INSTANCE).type),List.<JCExpression>nil());
+                        nmods.annotations = List.<JCAnnotation>of(a,aa,aaa);
+                    }
                     JCTree.JCExpression type = maker.Type(datagroupClass.type);
                     JCTree.JCVariableDecl vd = maker.VarDef(nmods,datagroup,type,null);
                     JmlMemberEnter.instance(context).memberEnter(vd,enclosingClassEnv);
@@ -3079,12 +3086,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // <Java annotations> <specification case> <method declaration>
                 // Currently one must reorder the above to
                 // <specification case> <Java annotations> <method declaration>
+                ListBuffer<JCAnnotation> newlist = new ListBuffer<>();
                 for (List<JCAnnotation> al = tree.modifiers.annotations; al.nonEmpty(); al = al.tail) {
                     JCAnnotation a = al.head;
-                    log.error(a.pos,"jml.message", "A specification case may not have annotations");
-                    // FIXME - perhaps move these to the owning method
+                    if (!a.annotationType.toString().startsWith(Strings.jmlAnnotationPackage)) {
+                        log.error(a.pos,"jml.message", "A specification case may not have annotations");
+                        // FIXME - perhaps move these to the owning method
+                    } else {
+                        // We keep the JML annotations because these are checked separately
+                        newlist.add(a);
+                    }
                 }
-                tree.modifiers.annotations = List.<JCAnnotation>nil();
+                tree.modifiers.annotations = newlist.toList();
                 if (tree.token == null) {
                     if (!utils.hasNone(tree.modifiers)) {
                         log.error(tree.pos(),"jml.no.mods.lightweight");
@@ -5425,6 +5438,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return findMod(mods,JmlTokenKind.MODEL) != null;
     }
     
+    /** Returns true if the given modifiers includes instance
+     * @param mods the modifiers to check
+     * @return true if the modifier is present, false if not
+     */
+    public boolean isInstance(/*@nullable*/JCModifiers mods) {
+        return findMod(mods,JmlTokenKind.INSTANCE) != null;
+    }
+    
     /** Returns true if the given symbol has a given annotation 
      * @param symbol the symbol to check
      * @return true if the symbol has a given annotation, false otherwise
@@ -6189,6 +6210,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             that.mods = newMods;
             if (utils.isJML(that.mods)) prev = ((JmlResolve)rs).setAllowJML(prev);
 
+            if (((JmlClassDecl)enclosingClassEnv.tree).sym.isInterface()) {
+                if (isModel(that.mods)) {
+                    if (!isStatic(that.mods) && !isInstance(that.mods)) {
+                        log.warning(that,"jml.message","Model fields in an interface should be explicitly declared either static or instance: " + that.name);
+                    }
+                }
+            }
             //        if (that.specsDecl != null) {
             //            that.mods.annotations = that.specsDecl.mods.annotations;
             //        }
