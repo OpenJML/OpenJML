@@ -1097,6 +1097,7 @@ public class JmlSpecs {
 
         list.add(JmlTreeUtils.instance(context).makeType(pos, Symtab.instance(context).runtimeExceptionType));
         JmlMethodClauseSignalsOnly cl = M.at(pos).JmlMethodClauseSignalsOnly(JmlTokenKind.SIGNALS_ONLY, list.toList());
+        cl.defaultClause = true;
         com.sun.tools.javac.util.List<JmlMethodClause> clauses;
         if (decl == null) clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,clpa,cl);
         else clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(cl);

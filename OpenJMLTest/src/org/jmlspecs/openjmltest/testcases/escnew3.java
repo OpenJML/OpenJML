@@ -785,7 +785,6 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testBits() {
-    	//main.addOptions("-show","-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m() {\n"
@@ -984,7 +983,6 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testTriggers() {
-        main.addOptions("-method=foo","-show");
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
@@ -1146,9 +1144,72 @@ public class escnew3 extends EscBase {
                 + "     int j = a[0];\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method foo",15
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",15
                 ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
                 ,"/tt/TestJava.java:12: warning: Associated declaration",14
+                 );
+        
+    }
+    
+    @Test
+    public void testExceptionDeref() {
+        helpTCX("tt.TestJava",
+                  "package tt; \n"
+                + "public class TestJava {\n"
+                + "  public static class A { public int x; }\n"
+                + "  //@ public normal_behavior\n"
+                + "  public void foo(/*@ nullable */ A a) { \n"
+                + "     int j = a.x;\n"
+                + "  }\n"
+                + "  //@ public normal_behavior\n"
+                + "  public void fooA(/*@ nullable */ A a) { \n"
+                + "     try { int j = a.x; } catch (NullPointerException e) {}"
+                + "  }\n"
+                + "  //@ public normal_behavior requires true;\n"
+                + "  //@ also public exceptional_behavior requires false; signals_only NullPointerException;\n"
+                + "  public void fooB(/*@ nullable */ A a) { \n"
+                + "     int j = a.x;\n"
+                + "  }\n"
+                + "  //@ public normal_behavior requires a != null;\n"
+                + "  //@ also public exceptional_behavior requires a == null; signals_only NullPointerException;\n"
+                + "  public void fooC(/*@ nullable */ A a) { \n"
+                + "     int j = a.x;\n"
+                + "  }\n"
+                + "}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",15
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
+                ,"/tt/TestJava.java:11: warning: Associated declaration",14
+                 );
+        
+    }
+    
+    @Test
+    public void testExceptionNegArraySize() {
+        helpTCX("tt.TestJava",
+                  "package tt; \n"
+                + "public class TestJava {\n"
+                + "  //@ public normal_behavior\n"
+                + "  public void foo(int n) { \n"
+                + "     int[] j = new int[n];\n"
+                + "  }\n"
+                + "  //@ public normal_behavior\n"
+                + "  public void fooA(int n) { \n"
+                + "     try { int[] j = new int[n]; } catch (NegativeArraySizeException e) {}"
+                + "  }\n"
+                + "  //@ public normal_behavior requires true;\n"
+                + "  //@ also public exceptional_behavior requires false; signals_only NegativeArraySizeException;\n"
+                + "  public void fooB(int n) { \n"
+                + "     int[] j = new int[n];\n"
+                + "  }\n"
+                + "  //@ public normal_behavior requires n >= 0;\n"
+                + "  //@ also public exceptional_behavior requires n < 0; signals_only NegativeArraySizeException;\n"
+                + "  public void fooC(int n) { \n"
+                + "     int[] j = new int[n];\n"
+                + "  }\n"
+                + "}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method foo",24
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",24
+                ,"/tt/TestJava.java:10: warning: Associated declaration",14
                  );
         
     }

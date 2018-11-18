@@ -1888,6 +1888,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             list.add(jmlMaker.at(p).Type(syms.runtimeExceptionType));
             JmlMethodClauseSignalsOnly cl = (jmlMaker.at(p).JmlMethodClauseSignalsOnly(JmlTokenKind.SIGNALS_ONLY, list.toList()));
             cl.sourcefile = log.currentSourceFile();
+            cl.defaultClause = true;
             prefix.add(cl);
         }
     }

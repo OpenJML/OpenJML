@@ -312,6 +312,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlMethodClauseSignalsOnly copy = M.at(that.pos).JmlMethodClauseSignalsOnly(
                 that.token,
                 copy(that.list,p));
+        copy.defaultClause = that.defaultClause;
         copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         return copy;

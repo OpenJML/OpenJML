@@ -2160,6 +2160,8 @@ public class JmlTree implements IJmlTree {
     /** This class represents a signals_only clause in a method specification */
     public static class JmlMethodClauseSignalsOnly extends JmlMethodClause {
 
+        public boolean defaultClause;
+        
         /** The list of names of exceptions - either JCIdent or JCFieldAccess */
         // FIXME - why not Names?
         public List<JCTree.JCExpression> list;
@@ -2169,6 +2171,7 @@ public class JmlTree implements IJmlTree {
             this.pos = pos;
             this.token = token;
             this.list = list;
+            this.defaultClause = false;
         }
 
         @Override

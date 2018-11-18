@@ -224,9 +224,6 @@ public class Label {
     /** Used to designate an undefined pure expression because of a potential null dereference */
     /*@ non_null*/ public final static Label UNDEFINED_NULL_DEREFERENCE = new Label("UndefinedNullDeReference");
     
-    /** Used to designate an undefined pure expression because of a potential illegal null value */
-    /*@ non_null*/ public final static Label UNDEFINED_NULL_VALUE = new Label("UndefinedNullValue");
-    
     /** Used to designate an undefined pure expression because of a potential negative size */
     /*@ non_null*/ public final static Label UNDEFINED_NEGATIVESIZE = new Label("UndefinedNegativeSize");
     

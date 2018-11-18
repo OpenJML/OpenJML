@@ -39,27 +39,28 @@ public class racfeatures extends RacBase {
     }
     
     public void helpFeature(String n, String ... options) {
-    	helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/racfeatures/"+n,"features."+n, options);
+        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/racfeatures/"+n,"features."+n, options);
+        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/racfeatures/"+n+"R","features."+n, "-racJavaChecks");
     }
     
     
     @Test
     public void NegativeArraySize() {
-    	expectedRACExit = 1;
-    	helpFeature("NegativeArraySize");
+        expectedRACExit = 1;
+        helpFeature("NegativeArraySize");
     }
 
     @Test
     public void JavaAssertion() {
     	expectedRACExit = 1;
-    	helpFeature("JavaAssertion","-racJavaChecks");
+    	helpFeature("JavaAssertion");
     }
 
-    @Test
-    public void JavaAssertion2() {
-    	expectedRACExit = 1;
-    	helpTCF(OpenJMLDemoPath + "/src/features/JavaAssertion.java","test/racfeatures/JavaAssertion2","features.JavaAssertion");
-    }
+//    @Test
+//    public void JavaAssertion2() {
+//    	expectedRACExit = 1;
+//    	helpTCF(OpenJMLDemoPath + "/src/features/JavaAssertion.java","test/racfeatures/JavaAssertion2","features.JavaAssertion");
+//    }
 
     @Test
     public void ArrayStore() {
