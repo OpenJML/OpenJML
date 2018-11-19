@@ -964,6 +964,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // FIXME - use recordLabel?
             lp.allocCounter = 0;
             lp.heapCount = heapCount;
+            lp.name = preLabel.name;
             labelProperties.put(preLabel.name,lp);
             JmlLabeledStatement mark = M.JmlLabeledStatement(preLabel.name, null, null);
             labelProperties.put(oldLabel.name,lp);
@@ -5206,6 +5207,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         int allocCounter;
         int heapCount;
         JmlLabeledStatement labeledStatement;
+        public Name name;
 //        ListBuffer<JCStatement> oldLists;
 //        ListBuffer<JCStatement> activeOldLists;
     }
@@ -5240,6 +5242,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         LabelProperties lp = new LabelProperties();
         labelProperties.put(labelName, lp);
         lp.labeledStatement = stat;
+        lp.name = labelName;
         lp.heapCount = heapCount;
         lp.allocCounter = allocCounter;
         return lp;
@@ -8419,6 +8422,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else if (convertedReceiver instanceof JCLambda) {
                     addStat(comment(that, "... Not checking assignables when inlining a lambda " + calleeMethodSym,null));
                 } else {
+                    IArithmeticMode savedArithmeticMode = currentArithmeticMode;
                     for (Pair<MethodSymbol,Type> pair: overridden) {
                         MethodSymbol mpsym = pair.first;
                         Type classType = pair.second;
@@ -8437,7 +8441,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (calleeSpecs == null) continue; // FIXME - not sure about this - should get a default?
 
                         paramActuals = mapParamActuals.get(mpsym);
-
+                        currentArithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(mpsym, true);
 
                         for (JmlSpecificationCase cs : calleeSpecs.cases) {
                             if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
@@ -8520,9 +8524,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 if (!bl.stats.isEmpty()) addStat( M.at(cs).If(pre, bl, null) );
                             }
                         }
-
                         paramActuals = null;
                     }
+                    currentArithmeticMode = savedArithmeticMode; // FIXME _ in a finally block?
                 }
                 
                 // Do any inlining
@@ -8709,6 +8713,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 ListBuffer<JCStatement> havocBlockCheck = pushBlock();
                 addStat(comment(that, "... Adding havoc statements for the call of " + calleeMethodSym + " in " + calleeMethodSym.owner.toString(),null));
                 ListBuffer<JCStatement> havocs = new ListBuffer<>();
+                IArithmeticMode savedArithmeticMode = currentArithmeticMode;
                 for (Pair<MethodSymbol,Type> pair: overridden) {
                     MethodSymbol mpsym = pair.first;
                     Type classType = pair.second;
@@ -8717,6 +8722,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // This initial logic must match that above for preconditions
                     JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
                     if (calleeSpecs == null) continue; // FIXME - not sure about this
+                    currentArithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(mpsym, true);
 
                     paramActuals = mapParamActuals.get(mpsym);
 
@@ -8872,6 +8878,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 currentStatements.addAll(havocs);
                 addStat(popBlock(0L,that,havocBlockCheck));
+                currentArithmeticMode = savedArithmeticMode;
             }
             typevarMapping = newTypeVarMapping;
             if (newclass != null || (!specs.isPure(calleeMethodSym) && !calleeMethodSym.isConstructor())) {
@@ -11968,11 +11975,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
                 JCIdent d;
-                if (isPostcondition && preparams != null && (d=preparams.get(sym)) != null) {
-                    result = eresult = treeutils.makeIdent(that.pos,d.sym);
+                if (isPostcondition && sym.owner instanceof MethodSymbol) {
+                    // Variables are owbed by methods if they are locals or formals
+                    // Locals can't be in postcondition, so this must be a formal
+                    // Formals are evaluated in the pre-state
+                    result = eresult = treeutils.makeOld(that,treeutils.makeIdent(that.pos, sym),
+                                labelProperties.get(preLabel.name));
                     treeutils.copyEndPosition(eresult, that);
                     return;
                 }
+//                if (isPostcondition && preparams != null && (d=preparams.get(sym)) != null) {
+//                    result = eresult = treeutils.makeIdent(that.pos,d.sym);
+//                    treeutils.copyEndPosition(eresult, that);
+//                    return;
+//                }
             }
             
             // Check if the id is a model field, and if so:
