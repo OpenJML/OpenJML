@@ -279,13 +279,10 @@ abstract public class Arithmetic extends ExpressionExtension {
 
         // Need to do this operation before any implicit conversions, because those conversions may convert
         // to bigint or real, which complicates this test
-        if (javaChecks) {
-            if (optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD) {
-                @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs);
-                if (nonzero != null) rewriter.addAssert(that,
-                        rewriter.translatingJML ? Label.UNDEFINED_DIV0 : Label.POSSIBLY_DIV0,
-                        condition(rewriter, nonzero));
-            }
+        if (optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD) {
+            @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs);
+            if (nonzero != null) rewriter.addJavaCheck(that,nonzero,
+                    Label.POSSIBLY_DIV0, Label.UNDEFINED_DIV0, "java.lang.ArithmeticException");
         }
         
         

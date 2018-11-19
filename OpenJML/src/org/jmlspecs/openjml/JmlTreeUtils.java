@@ -1295,8 +1295,8 @@ public class JmlTreeUtils {
         return elem;
     }
     
-    public JCExpression makeSubtype(JCExpression e1, JCExpression e2) {
-        JmlMethodInvocation e = factory.at(e1.pos).JmlMethodInvocation(JmlTokenKind.SUBTYPE_OF,e1,e2);
+    public JCExpression makeSubtype(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
+        JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(JmlTokenKind.SUBTYPE_OF,e1,e2);
         e.type = syms.booleanType;
         return e;
     }

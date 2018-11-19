@@ -52,20 +52,14 @@ public class racfeatures extends RacBase {
 
     @Test
     public void JavaAssertion() {
-    	expectedRACExit = 1;
-    	helpFeature("JavaAssertion");
+        expectedRACExit = 1;
+        helpFeature("JavaAssertion");
     }
-
-//    @Test
-//    public void JavaAssertion2() {
-//    	expectedRACExit = 1;
-//    	helpTCF(OpenJMLDemoPath + "/src/features/JavaAssertion.java","test/racfeatures/JavaAssertion2","features.JavaAssertion");
-//    }
 
     @Test
     public void ArrayStore() {
-    	expectedRACExit = 0;
-    	helpFeature("ArrayStore");
+        expectedRACExit = 0;
+        helpFeature("ArrayStore");
     }
 
 

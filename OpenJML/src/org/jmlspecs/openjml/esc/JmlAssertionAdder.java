@@ -6057,10 +6057,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            result = addStat(M.at(that).Throw(expr).setType(that.type));
         
         } else if (esc && jmltypes.isSubtype(that.expr.type, syms.assertionErrorType)) {
+            // The case of throwing an AssertionError - convert it to an assert check
             JCExpression exceptionExpr = convertExpr(that.getExpression()); // convert and check for null
             // assert expr != null;
-            JCExpression e = treeutils.makeNeqObject(that.expr.pos, exceptionExpr, treeutils.makeNullLiteral(that.expr.getEndPosition(log.currentSource().getEndPosTable())));
-            addJavaCheck(that.expr,e,Label.POSSIBLY_NULL_VALUE,Label.POSSIBLY_NULL_VALUE,"java.lang.NullPointerException");
+            if (!(that.expr instanceof JCNewClass)) {
+                JCExpression e = treeutils.makeNeqObject(that.expr.pos, exceptionExpr, treeutils.makeNullLiteral(that.expr.getEndPosition(log.currentSource().getEndPosTable())));
+                addJavaCheck(that.expr,e,Label.POSSIBLY_NULL_VALUE,Label.POSSIBLY_NULL_VALUE,"java.lang.NullPointerException");
+            }
             if (that.expr.type.getTag() != TypeTag.BOT) {
                 result = addAssert(true,that,Label.EXPLICIT_ASSERT,treeutils.falseLit,null,null,null);
             } else {
@@ -6075,9 +6078,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             try {
                 JCExpression exceptionExpr = convertExpr(that.expr);
                 // assert expr != null;
-                JCExpression e = treeutils.makeNeqObject(that.expr.pos, exceptionExpr, treeutils.makeNullLiteral(that.expr.getEndPosition(log.currentSource().getEndPosTable())));
-                if (javaChecks) addAssert(e, Label.POSSIBLY_NULL_VALUE, e);
-
+                if (!(that.expr instanceof JCNewClass)) {
+                    JCExpression e = treeutils.makeNeqObject(that.expr.pos, exceptionExpr, treeutils.makeNullLiteral(that.expr.getEndPosition(log.currentSource().getEndPosTable())));
+                    addJavaCheck(that.expr,e,Label.POSSIBLY_NULL_VALUE,Label.POSSIBLY_NULL_VALUE,"java.lang.NullPointerException");
+                }
+                
                 if (that.expr.type.getTag() != TypeTag.BOT) {
                     // Declare a local variable of the type of the exception expression, initialized to the expression
                     Name local = names.fromString(Strings.exceptionLocalVarString + that.pos);
@@ -9028,7 +9033,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCExpression nn = treeutils.makeEqNull(resultExpr.pos, convertCopy(resultExpr));
                     JCExpression ty = treeutils.makeTypeof(convertCopy(resultExpr));
                     JCExpression typ = treeutils.makeTypelc(treeutils.makeType(resultExpr.pos,resultExpr.type));
-                    JCExpression inst = treeutils.makeSubtype(ty,typ);
+                    JCExpression inst = treeutils.makeSubtype(ty,ty,typ);
                     ListBuffer<JCStatement> s = currentStatements;
                     currentStatements = ensuresStatsOuter;
                     addAssume(resultExpr,Label.IMPLICIT_ASSUME,treeutils.makeOr(resultExpr.pos,nn,inst));
@@ -10316,9 +10321,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCExpression rhstype = treeutils.makeTypeof(rhs);
                     JCExpression lhselemtype = treeutils.makeJmlMethodInvocation(array,JmlTokenKind.BSELEMTYPE,jmltypes.TYPE, 
                             treeutils.makeTypeof(array));
-                    JCExpression sta = treeutils.makeJmlMethodInvocation(array,JmlTokenKind.SUBTYPE_OF,syms.booleanType,rhstype,lhselemtype);
+                    JCExpression sta = treeutils.makeSubtype(array,rhstype,lhselemtype);
                     JCExpression rhsnull = treeutils.makeEqNull(rhs.pos, rhs);
-                    addAssert(that, Label.POSSIBLY_BAD_ARRAY_ASSIGNMENT, treeutils.makeOr(sta.pos,rhsnull,sta));
+                    addJavaCheck(that,treeutils.makeOr(sta.pos,rhsnull,sta),
+                            Label.POSSIBLY_BAD_ARRAY_ASSIGNMENT,Label.POSSIBLY_BAD_ARRAY_ASSIGNMENT,"java.lang.ArrayStoreException");
                 } else if (rac) {
                     // FIXME - I don't think this is checkable
 //                    JCExpression rhstype = treeutils.makeTypeof(rhs);
@@ -11438,7 +11444,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else {
                 // unboxing = FIXME = check type combinations
                 JCExpression e = treeutils.makeNot(that.pos,  eqnull);
-                addJavaCheck(that,e,Label.POSSIBLY_NULL_UNBOX,Label.UNDEFINED_NULL_UNBOX,"java.lang.NullPointerException");
+                addJavaCheck(that.expr,e,Label.POSSIBLY_NULL_UNBOX,Label.UNDEFINED_NULL_UNBOX,"java.lang.NullPointerException");
                 newexpr = rac ? castexpr : createUnboxingExpr(arg);
             }
         } else if (jmltypes.isSameType(clazz.type,jmltypes.BIGINT)) {
@@ -11653,7 +11659,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (esc && !utils.isPrimitiveType(that.type) && localVariables.isEmpty()) { // FIXME - we perhaps need quantified sstatements if we are within a qunatified scope
                 JCExpression e1 = treeutils.makeTypeof(save);
                 JCExpression e2 = treeutils.makeElemtype(treeutils.makeTypeof(indexed));
-                e1 = treeutils.makeSubtype(e1,e2);
+                e1 = treeutils.makeSubtype(e1,e1,e2);
                 addAssume(that,Label.IMPLICIT_ASSUME,e1);
             }
             if (!pureCopy && !translatingJML) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, aa, currentThisExpr, currentThisExpr);
@@ -14332,6 +14338,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 break;
             }
             
+            case SUBTYPE_OF:
+            case JSUBTYPE_OF:
+            {
+                ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+                for (JCExpression arg : that.args) {
+                    JCExpression ex = convertExpr(arg);
+                    newargs.add(ex);
+                }
+                result = eresult = M.at(that.pos).JmlMethodInvocation(that.token, newargs.toList());
+                eresult.type = syms.booleanType;
+                break;
+            }
+                
             case BSDISTINCT:
             {
                 // Any type error should have been reported in JmlAttr

@@ -79,6 +79,7 @@ JML options:
   -show                      Show intermediate programs
   -split                     Split proof into sections
   -escBV                     ESC: If enabled, use bit-vector arithmetic (auto, true, false)
+  -triggers                  ESC: Enable quantifier triggers in SMT encoding (default true)
   -escExitInfo               ESC: Show exit location for postconditions (default true)
   -escMaxWarnings            ESC: Maximum number of warnings to find per method
   -escMaxWarningsPath        ESC: If true, find all counterexample paths to each invalid assert
