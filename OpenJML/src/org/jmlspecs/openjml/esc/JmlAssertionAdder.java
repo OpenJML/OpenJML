@@ -8317,7 +8317,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             if (prex == null) {
                                 pre = treeutils.trueLit;
                             } else {
-                                if (splitExpressions && !rac) pre = splitConjunctions(prex, pre, preconditionDetailLocal, ++preconditionDetail2,cs.sourcefile);
+                                if (splitExpressions && !rac) {
+                                    pre = splitConjunctions(prex, pre, preconditionDetailLocal, ++preconditionDetail2,cs.sourcefile);
+                                }
                                 else pre  = convertJML(prex,pre,false);
                             }
                         } catch (NoModelMethod e) {
@@ -14410,7 +14412,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             {
                 JCExpression res = null;
                 for (JCExpression arg: that.args) {
-                    JCExpression a = treeutils.isATypeTree(arg)? null : convertJML(arg);
+                    JCExpression a = treeutils.isATypeTree(arg)? null : convertJML(arg, condition, this.isPostcondition);
                     JCExpression e = getInvariantAll(that,arg.type,a);
                     res = e == null ? res : res == null ? e : treeutils.makeAnd(that, res, e);
                 }

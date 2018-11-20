@@ -3546,7 +3546,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
 
                 for (JCExpression arg: tree.args) {
-                    attribTree(arg, localEnv, new ResultInfo(TYP|VAR, Infer.anyPoly));
+                    attribTree(arg, localEnv, new ResultInfo(TYP|VAL, Infer.anyPoly));
 
                     if (arg.type.isPrimitive()) {
                         log.error(arg.pos(),"jml.ref.arg.required",token.internedName());
