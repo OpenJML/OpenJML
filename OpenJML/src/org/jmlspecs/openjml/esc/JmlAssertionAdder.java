@@ -11975,8 +11975,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
                 JCIdent d;
-                if (isPostcondition && sym.owner instanceof MethodSymbol) {
-                    // Variables are owbed by methods if they are locals or formals
+                if (esc && isPostcondition && sym.owner == methodDecl.sym && (sym.flags() & Flags.PARAMETER) != 0) {
+                    // Variables are owned by methods if they are locals or formals
                     // Locals can't be in postcondition, so this must be a formal
                     // Formals are evaluated in the pre-state
                     result = eresult = treeutils.makeOld(that,treeutils.makeIdent(that.pos, sym),
@@ -11984,11 +11984,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     treeutils.copyEndPosition(eresult, that);
                     return;
                 }
-//                if (isPostcondition && preparams != null && (d=preparams.get(sym)) != null) {
-//                    result = eresult = treeutils.makeIdent(that.pos,d.sym);
-//                    treeutils.copyEndPosition(eresult, that);
-//                    return;
-//                }
+                if (rac && isPostcondition && preparams != null && (d=preparams.get(sym)) != null) {
+                    result = eresult = treeutils.makeIdent(that.pos,d.sym);
+                    treeutils.copyEndPosition(eresult, that);
+                    return;
+                }
             }
             
             // Check if the id is a model field, and if so:
