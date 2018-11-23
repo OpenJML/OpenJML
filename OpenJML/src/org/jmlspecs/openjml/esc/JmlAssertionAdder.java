@@ -7279,10 +7279,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression e = convertJML(expr, condition, false);
         preconditionDetailClauses.put(nm,source);
         JCIdent id = newTemp(expr.pos, nm, e);
- //       saveMapping(expr,id);
         saveMappingOverride(convertCopy(expr),id);
- //       if (nm.contains("CPRE__4_4")) Utils.stop();
- //       log.note("jml.message", expr.toString() + " >>> " + id.toString());
         index3 = 0;
         splitConjunctions(expr, condition, index, index2, index3, source );
         return id;
@@ -7293,8 +7290,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCBinary bin = (JCBinary)expr;
             if (bin.getTag() == JCTree.Tag.AND) {
                 JCExpression convertedLHS = splitConjunctions(bin.lhs, condition, index, index2, index3, source );
+                JCIdent id = newTemp(bin.rhs, syms.booleanType);
+                ListBuffer<JCStatement> check = pushBlock();
                 JCExpression convertedRHS = splitConjunctions(bin.rhs, treeutils.makeAnd(bin.lhs, condition, convertedLHS), index, index2, index3, source );
-                return treeutils.makeAnd(bin.lhs, convertedLHS, convertedRHS);
+                addStat(treeutils.makeAssignStat(bin.rhs.pos,id,convertedRHS));
+                JCBlock bl = popBlock(0L,bin.rhs,check);
+                JCStatement st = treeutils.makeAssignStat(bin.rhs.pos,convertCopy(id),treeutils.falseLit);
+                addStat(M.at(bin.rhs).If(convertedLHS,bl,st));
+                return treeutils.makeAnd(bin.lhs, convertedLHS, convertCopy(id));
             }
         } 
         
@@ -7304,9 +7307,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression e = convertJML(expr, condition, false);
             preconditionDetailClauses.put(nm,source);
             JCIdent id = newTemp(expr.pos, nm, e);
- //           saveMapping(expr,id);
             saveMappingOverride(convertCopy(expr),id);
- //           log.note("jml.message", expr.toString() + " >>> " + id.toString());
             index3 = localIndex3;
         return id;
     }
