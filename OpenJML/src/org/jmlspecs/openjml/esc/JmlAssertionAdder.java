@@ -16708,12 +16708,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (newDeclsList.isEmpty()) {
                     // e is just e;
                 } else {
-                    e = M.at(dpos).JmlQuantifiedExpr(
+                    JmlQuantifiedExpr qe = M.at(dpos).JmlQuantifiedExpr(
                         JmlTokenKind.BSFORALL,
                         newDeclsList, // FIXME - is it OK that we use the same copy of this array (and so the same symbols) for each postcondition expression
                         // FIXME - if not, we have to conjoin all the ensures 
                         treeutils.trueLit,
                         e);
+                    qe.triggers = List.<JCExpression>of(call);
+                    e = qe;
                     e.type = syms.booleanType;
                 }
                 ListBuffer<JCStatement> ch = pushBlock();
@@ -16744,13 +16746,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 
                 // Create an instance of a call of the new method, to be used in place of \result in translating the method specs
-                {
-                    JCExpression fcn = treeutils.makeIdent(Position.NOPOS,newsym);
-                    JCMethodInvocation call = M.at(Position.NOPOS).Apply(
-                            List.<JCExpression>nil(), fcn, newParamsWithHeap);
-                    call.type = newsym.getReturnType();
-                    resultExpr = call;
-                }
+                JCExpression fcn = treeutils.makeIdent(Position.NOPOS,newsym);
+                JCMethodInvocation call = M.at(Position.NOPOS).Apply(
+                        List.<JCExpression>nil(), fcn, newParamsWithHeap);
+                call.type = newsym.getReturnType();
+                resultExpr = call;
                 
                 ListBuffer<JCStatement> ignore = currentStatements = new ListBuffer<JCStatement>();
                 // We capture and ignore the assertions that come out of 
@@ -16828,12 +16828,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 if (newDeclsList.isEmpty()) {
                                     e = treeutils.makeImplies(e.pos, convertCopy(pre), e);
                                 } else {
-                                    e = M.at(dpos).JmlQuantifiedExpr(
+                                    JmlQuantifiedExpr qe = M.at(dpos).JmlQuantifiedExpr(
                                         JmlTokenKind.BSFORALL,
                                         newDeclsList, // FIXME - is it OK that we use the same copy of this array (and so the same symbols) for each postcondition expression
                                         // FIXME - if not, we have to conjoin all the ensures 
                                         convertCopy(pre),
                                         e);
+                                    qe.triggers = List.<JCExpression>of(call);
+                                    e = qe;
                                     e.type = syms.booleanType;
                                 }
                                 currentStatements = savedForAxioms;
@@ -16885,11 +16887,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                        ei = treeutils.makeInstanceOf(qthisid.pos,convertCopy(qthisid),qthisid.sym.type);
 //                    }
 
-                    JCExpression e = M.at(calleeDeclPos).JmlQuantifiedExpr(
+                    JmlQuantifiedExpr e = M.at(calleeDeclPos).JmlQuantifiedExpr(
                             JmlTokenKind.BSFORALL,
                             newDeclsList,
                             ei,
                             treeutils.makeEquality(calleeDeclPos, wellDefinedCall, combinedPre));
+                    e.triggers = List.<JCExpression>of(wellDefinedCall);
                     e.type = syms.booleanType;
                     addAssume(clauseToReference,useNamesForHeap ? Label.METHOD_DEFINITION : Label.IMPLICIT_ASSUME,e);
                 }
