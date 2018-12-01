@@ -11,5 +11,8 @@
 	<classpathentry exported="true" kind="lib" path="jSMTLIB.jar" sourcepath="/Users/davidcok/cok/projects/jSMTLIB/SMT/src"/>
 	<classpathentry exported="true" kind="lib" path="/JMLAnnotations/bin"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="otherlibs/jpaul-2.5.1.jar"/>
+	<classpathentry kind="lib" path="otherlibs/javax.mail.jar"/>
+	<classpathentry exported="true" kind="lib" path="otherlibs/gson-2.8.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

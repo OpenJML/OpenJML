@@ -242,6 +242,11 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testValueTypes() {
+        helpTF("valuetypes","-classpath","../OpenJML/runtime");
+    }
+
+    @Test
     public void testException() {
         helpTF("escException");
     }
@@ -660,6 +665,12 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testPrimitiveTypes() {
+        expectedExit = 0;
+        helpTF("primitives");
+    }
+
+    @Test
     public void testEscVisibilitySimple() {
         expectedExit = 1;
         helpTF("visibilitySimple");
@@ -667,7 +678,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testVisibilityB() {
-    	expectedExit = 1;
+        expectedExit = 1;
         helpTCF("test/visibilityB/org/apache/commons/cli/Option.java","test/visibilityB","-classpath","test/visibilityB");
     }
 

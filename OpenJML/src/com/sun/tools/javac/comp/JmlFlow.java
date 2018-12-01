@@ -579,6 +579,7 @@ public class JmlFlow extends Flow  {
             } else {
                 scanExpr(that.range);
                 scanExpr(that.value);
+                scan(that.triggers);
             }
             quantDeclStack.remove(0);
         }

@@ -39,7 +39,7 @@ public class SimpleString {
    * @param the_chars The array of characters.
    */
   //@ ensures (\forall int i; 0 <= i && i < chars.length; chars[i] == the_chars[i]);
-  //@ assignable chars;
+  //@ 
   public SimpleString(final char[] the_chars) {
     my_chars = new char[the_chars.length];
     //@ maintaining (\forall int j; 0 <= j && j < i; my_chars[j] == the_chars[j]);

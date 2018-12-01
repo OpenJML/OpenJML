@@ -36,6 +36,7 @@ public class methodspecs extends TCBase {
                 +"int m() { return 0; }\n"
                 +"}"
                 ,"/TEST.java:4: ';' expected",18
+                ,"/TEST.java:4: Method specs may not precede a variable declaration",7
                 ,"/TEST.java:4: <identifier> expected",28
                 ,"/TEST.java:4: cannot find symbol\n  symbol:   class s\n  location: class A",5
 //                ,"/TEST.java:4: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: s",5
@@ -234,36 +235,33 @@ public class methodspecs extends TCBase {
                 +"//@ {|\n"
                 +"//@ signals_only Exception;\n"
                 +"//@ also\n"
-                +"//@ assignable k, sk, this.k, A.sk, this.sk, bk, sbk, super.bk, super.sbk, this.*, super.*, A.*;\n"
+                +"//@ assignable sk, A.sk, sbk, B.sbk;\n"
                 +"//@ |}\n"
                 +"//@ pure\n"
                 +"A() { }\n"
                 +"}"
-                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: sk",19
-                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: A.sk",32
-                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: this.sk",41
-                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: sbk",50
-                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: super.sbk",70
-                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: A.*",94
+                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: sk",16
+                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: A.sk",21
+                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: sbk",26
+                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: B.sbk",32
         );
     }
     
     /** Tests pure assignable*/
     @Test
     public void testPureAssignable4() {
-        helpTC(" interface B { /*@ model instance int bk; model int sbk; */} class A implements B { int k; static int sk; \n"
+        helpTC(" interface B { /*@ model instance int bk; model static int sbk; */} class A implements B { int k; static int sk; \n"
                 +"//@ requires true;\n"
                 +"//@ {|\n"
                 +"//@ signals_only Exception;\n"
                 +"//@ also\n"
-                +"//@ assignable bk, sbk, A.sbk, this.bk, this.sbk;\n"
+                +"//@ assignable     sbk, A.sbk;\n"
                 +"//@ |}\n"
                 +"//@ pure\n"
                 +"A() { }\n"
                 +"}"
                 ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: sbk",20
                 ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: A.sbk",26
-                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: this.sbk",45
         );
     }
     

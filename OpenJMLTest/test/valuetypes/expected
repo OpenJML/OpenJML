@@ -1,0 +1,165 @@
+Proving methods in Map
+Starting proof of Map.Map() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Map.Map() with prover !!!! - no warnings
+Starting proof of Map.<K,V>newMapIsEmpty() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Map.<K,V>newMapIsEmpty() with prover !!!! - no warnings
+Starting proof of Map.<K,V>putBumpsSize(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Map.<K,V>putBumpsSize(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!! - no warnings
+Starting proof of Map.<K,V>putDoesNotChangeSize(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Map.<K,V>putDoesNotChangeSize(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!! - no warnings
+Starting proof of Map.<K,V>putRemove(org.jmlspecs.lang.map<K,V>,K,V,K) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Map.<K,V>putRemove(org.jmlspecs.lang.map<K,V>,K,V,K) with prover !!!! - no warnings
+Starting proof of Map.<K,V>putRemoveA(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Map.<K,V>putRemoveA(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!! - no warnings
+Starting proof of Map.<K,V>keyset(org.jmlspecs.lang.map<K,V>,K) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Map.<K,V>keyset(org.jmlspecs.lang.map<K,V>,K) with prover !!!! - no warnings
+Starting proof of Map.<K,V>putNoChange(org.jmlspecs.lang.map<K,V>,K) with prover !!!!
+test/valuetypes/Map.java:37: warning: The prover cannot establish an assertion (Postcondition) in method <K,V>putNoChange
+    //@ model public static <K,V> void putNoChange(map<K,V> s, K k) {}
+                                       ^
+test/valuetypes/Map.java:36: warning: Associated declaration
+    //@ ensures s.containsKey(k) ==> map.equals(s, s.put(k,s.get(k)));
+        ^
+Completed proof of Map.<K,V>putNoChange(org.jmlspecs.lang.map<K,V>,K) with prover !!!! - with warnings
+Starting proof of Map.<K,V>addRemove(org.jmlspecs.lang.map<K,V>,K) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Map.<K,V>addRemove(org.jmlspecs.lang.map<K,V>,K) with prover !!!! - no warnings
+Starting proof of Map.<K,V>addRemoveB(org.jmlspecs.lang.map<K,V>,K) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Map.<K,V>addRemoveB(org.jmlspecs.lang.map<K,V>,K) with prover !!!! - no warnings
+Completed proving methods in Map
+Proving methods in Seq
+Starting proof of Seq.Seq() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Seq.Seq() with prover !!!! - no warnings
+Starting proof of Seq.<T>newSeqIsEmpty() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Seq.<T>newSeqIsEmpty() with prover !!!! - no warnings
+Starting proof of Seq.<T>addBumpsSize(org.jmlspecs.lang.seq<T>,T) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Seq.<T>addBumpsSize(org.jmlspecs.lang.seq<T>,T) with prover !!!! - no warnings
+Starting proof of Seq.<T>addBumpsSize(org.jmlspecs.lang.seq<T>,T,\bigint) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Seq.<T>addBumpsSize(org.jmlspecs.lang.seq<T>,T,\bigint) with prover !!!! - no warnings
+Starting proof of Seq.<T>removeLowersSize(org.jmlspecs.lang.seq<T>,int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Seq.<T>removeLowersSize(org.jmlspecs.lang.seq<T>,int) with prover !!!! - no warnings
+Starting proof of Seq.<T>addRemove(org.jmlspecs.lang.seq<T>,T,\bigint) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Seq.<T>addRemove(org.jmlspecs.lang.seq<T>,T,\bigint) with prover !!!! - no warnings
+Completed proving methods in Seq
+Proving methods in Set
+Starting proof of Set.Set() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Set.Set() with prover !!!! - no warnings
+Starting proof of Set.<T>newSetIsEmpty() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Set.<T>newSetIsEmpty() with prover !!!! - no warnings
+Starting proof of Set.<T>singleton(T) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Set.<T>singleton(T) with prover !!!! - no warnings
+Starting proof of Set.<T>addBumpsSize(org.jmlspecs.lang.set<T>,T) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Set.<T>addBumpsSize(org.jmlspecs.lang.set<T>,T) with prover !!!! - no warnings
+Starting proof of Set.<T>addDoesNotChangeSize(org.jmlspecs.lang.set<T>,T) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Set.<T>addDoesNotChangeSize(org.jmlspecs.lang.set<T>,T) with prover !!!! - no warnings
+Starting proof of Set.<T>addRemove(org.jmlspecs.lang.set<T>,T) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Set.<T>addRemove(org.jmlspecs.lang.set<T>,T) with prover !!!! - no warnings
+Starting proof of Set.<T>addNoChange(org.jmlspecs.lang.set<T>,T) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Set.<T>addNoChange(org.jmlspecs.lang.set<T>,T) with prover !!!! - no warnings
+Starting proof of Set.<T>addRemoveA(org.jmlspecs.lang.set<T>,T) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Set.<T>addRemoveA(org.jmlspecs.lang.set<T>,T) with prover !!!! - no warnings
+Starting proof of Set.<T>addRemoveB(org.jmlspecs.lang.set<T>,T) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Set.<T>addRemoveB(org.jmlspecs.lang.set<T>,T) with prover !!!! - no warnings
+Completed proving methods in Set
+Proving methods in String
+Starting proof of String.String() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of String.String() with prover !!!! - no warnings
+Starting proof of String.newStringIsEmpty() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of String.newStringIsEmpty() with prover !!!! - no warnings
+Starting proof of String.newStringFromString() with prover !!!!
+test/valuetypes/String.java:11: warning: The prover cannot establish an assertion (Postcondition) in method newStringFromString
+    //@ model public static void newStringFromString() {}
+                                 ^
+test/valuetypes/String.java:10: warning: Associated declaration
+   //@ ensures string.string("abc").size() == 3;
+       ^
+Completed proof of String.newStringFromString() with prover !!!! - with warnings
+Starting proof of String.addBumpsSize(org.jmlspecs.lang.string) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of String.addBumpsSize(org.jmlspecs.lang.string) with prover !!!! - no warnings
+Starting proof of String.addBumpsSize(org.jmlspecs.lang.string,\bigint) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of String.addBumpsSize(org.jmlspecs.lang.string,\bigint) with prover !!!! - no warnings
+Starting proof of String.<T>removeLowersSize(org.jmlspecs.lang.string,int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of String.<T>removeLowersSize(org.jmlspecs.lang.string,int) with prover !!!! - no warnings
+Starting proof of String.addRemove(org.jmlspecs.lang.string,\bigint) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of String.addRemove(org.jmlspecs.lang.string,\bigint) with prover !!!! - no warnings
+Starting proof of String.addGet1(org.jmlspecs.lang.string,\bigint,\bigint) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of String.addGet1(org.jmlspecs.lang.string,\bigint,\bigint) with prover !!!! - no warnings
+Starting proof of String.addGet2(org.jmlspecs.lang.string,\bigint,\bigint) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of String.addGet2(org.jmlspecs.lang.string,\bigint,\bigint) with prover !!!! - no warnings
+Starting proof of String.addGet(org.jmlspecs.lang.string,\bigint,char) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of String.addGet(org.jmlspecs.lang.string,\bigint,char) with prover !!!! - no warnings
+Starting proof of String.character() with prover !!!!
+test/valuetypes/String.java:50: warning: The prover cannot establish an assertion (Postcondition) in method character
+    //@ model public static void character() {}
+                                 ^
+test/valuetypes/String.java:49: warning: Associated declaration
+    //@ ensures string.string("abc").get(1) == 'b';
+        ^
+Completed proof of String.character() with prover !!!! - with warnings
+Completed proving methods in String
+6 warnings

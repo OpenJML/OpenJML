@@ -36,7 +36,6 @@ public class escoption extends EscBase {
         //print = true;
     }
  
-    @Test
     public void testOptionValueBoolean() {
     	Assert.assertEquals(false,JmlOption.isOption(main.context(), JmlOption.STRICT));
     	Assert.assertEquals("false",JmlOption.value(main.context(), JmlOption.STRICT));
@@ -172,6 +171,105 @@ public class escoption extends EscBase {
                 "Completed proof of tt.TestJava.bassert(boolean,boolean) with prover !!!! - with warnings" + eol +
                 "Starting proof of tt.TestJava.bassert3(boolean,boolean) with prover !!!!" + eol + 
                 "Completed proof of tt.TestJava.bassert3(boolean,boolean) with prover !!!! - with warnings" + eol +
+                "Completed proving methods in tt.TestJava" + eol 
+              ) ;
+
+    }
+    
+    @Test
+    public void testSkipped() {
+    	main.addOptions("-progress","-skipped","-method=bassert","-exclude=tt.TestJava.bassert(boolean,boolean)","-checkFeasibility=none");
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                +"  //@ requires bb;\n"
+                +"  //@ ensures true;\n"
+                +"  public static void bassert(boolean bb, boolean b) {   }\n"
+                +"  //@ requires true;\n"
+                +"  //@ ensures true;\n"
+                +"  public static void bassert() {   }\n"
+                +"  //@ requires bb;\n"
+                +"  //@ ensures true;\n"
+                +"  public static void bassert2(boolean bb, boolean b) {    }\n"
+                +"  //@ requires bb;\n"
+                +"  //@ ensures true;\n"
+                +"  //@ skipesc \n"
+                +"  public static void bassert3(boolean bb, boolean b) {  }\n" 
+                +"}\n"
+        );
+        String out = output();
+        org.junit.Assert.assertEquals(out,
+                "Proving methods in tt.TestJava" + eol +
+        		"Skipping proof of tt.TestJava.TestJava() (excluded by -method)" + eol +
+                "Skipping proof of tt.TestJava.bassert(boolean,boolean) (excluded by -method)" + eol + 
+                "Starting proof of tt.TestJava.bassert() with prover !!!!" + eol + 
+                "Completed proof of tt.TestJava.bassert() with prover !!!! - no warnings" + eol +
+                "Skipping proof of tt.TestJava.bassert2(boolean,boolean) (excluded by -method)" + eol + 
+                "Skipping proof of tt.TestJava.bassert3(boolean,boolean) (excluded by skipesc)" + eol + 
+                "Completed proving methods in tt.TestJava" + eol 
+              ) ;
+
+    }
+    
+    @Test
+    public void testNoSkipped() {
+    	main.addOptions("-progress","-no-skipped","-method=bassert","-exclude=tt.TestJava.bassert(boolean,boolean)","-checkFeasibility=none");
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                +"  //@ requires bb;\n"
+                +"  //@ ensures true;\n"
+                +"  public static void bassert(boolean bb, boolean b) {   }\n"
+                +"  //@ requires true;\n"
+                +"  //@ ensures true;\n"
+                +"  public static void bassert() {   }\n"
+                +"  //@ requires bb;\n"
+                +"  //@ ensures true;\n"
+                +"  public static void bassert2(boolean bb, boolean b) {    }\n"
+                +"  //@ requires bb;\n"
+                +"  //@ ensures true;\n"
+                +"  //@ skipesc \n"
+                +"  public static void bassert3(boolean bb, boolean b) {  }\n" 
+                +"}\n"
+        );
+        String out = output();
+        org.junit.Assert.assertEquals(out,
+                "Proving methods in tt.TestJava" + eol +
+                "Starting proof of tt.TestJava.bassert() with prover !!!!" + eol + 
+                "Completed proof of tt.TestJava.bassert() with prover !!!! - no warnings" + eol +
+                "Completed proving methods in tt.TestJava" + eol 
+              ) ;
+
+    }
+    
+    
+    @Test
+    public void testSkippedDefault() {
+    	main.addOptions("-progress","-method=bassert","-exclude=tt.TestJava.bassert(boolean,boolean)","-checkFeasibility=none");
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                +"  //@ requires bb;\n"
+                +"  //@ ensures true;\n"
+                +"  public static void bassert(boolean bb, boolean b) {   }\n"
+                +"  //@ requires true;\n"
+                +"  //@ ensures true;\n"
+                +"  public static void bassert() {   }\n"
+                +"  //@ requires bb;\n"
+                +"  //@ ensures true;\n"
+                +"  public static void bassert2(boolean bb, boolean b) {    }\n"
+                +"  //@ requires bb;\n"
+                +"  //@ ensures true;\n"
+                +"  //@ skipesc \n"
+                +"  public static void bassert3(boolean bb, boolean b) {  }\n" 
+                +"}\n"
+        );
+        String out = output();
+        org.junit.Assert.assertEquals(out,
+                "Proving methods in tt.TestJava" + eol +
+        		"Skipping proof of tt.TestJava.TestJava() (excluded by -method)" + eol +
+                "Skipping proof of tt.TestJava.bassert(boolean,boolean) (excluded by -method)" + eol + 
+                "Starting proof of tt.TestJava.bassert() with prover !!!!" + eol + 
+                "Completed proof of tt.TestJava.bassert() with prover !!!! - no warnings" + eol +
+                "Skipping proof of tt.TestJava.bassert2(boolean,boolean) (excluded by -method)" + eol + 
+                "Skipping proof of tt.TestJava.bassert3(boolean,boolean) (excluded by skipesc)" + eol + 
                 "Completed proving methods in tt.TestJava" + eol 
               ) ;
 

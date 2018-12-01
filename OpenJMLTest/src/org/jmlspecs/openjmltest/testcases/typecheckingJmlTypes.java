@@ -32,6 +32,14 @@ public class typecheckingJmlTypes extends TCBase {
         helpTC(" class A { void m() { //@ ghost \\bigint b = 0; ghost \\bigint bb = b + b; set bb = b-b; set bb = b*b; set bb = b/b; \n}}");
     }
 
+    @Test public void testMapType() {
+        helpTC(" class A { //@ ghost map<string,string> b ; \n}");
+    }
+
+    public void testMap2Type() {
+        helpTC(" class A { //@ ghost map<Object,Object> b ; \n}");
+    }
+
     
     
 }

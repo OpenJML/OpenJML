@@ -162,6 +162,9 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     }
 
     public void visitJmlMethodClauseGroup(JmlMethodClauseGroup tree) {
+        if(tree.cases==null){
+            return;
+        }
         for (JCTree t: tree.cases) {
             scan(t);
         }
@@ -214,6 +217,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(that.range);
         scan(that.value);
         scan(that.racexpr);
+        scan(that.triggers);
     }
 
     public void visitJmlSetComprehension(JmlSetComprehension that) {

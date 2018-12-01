@@ -47,7 +47,7 @@ public class escaccessible extends EscBase {
     public void testConstructor2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  //@ accessible this.*;\n"
+                +"  //@ accessible \\nothing;\n"
                 +"  public TestJava() { i = 1; }\n"
                 +"  public int i;\n"
                 +"}"

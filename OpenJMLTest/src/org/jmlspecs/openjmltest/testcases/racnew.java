@@ -1377,7 +1377,7 @@ public class racnew extends RacBase {
                 +"//@ public initially j == 1; \n "
                 +"//@ public invariant i == j; \n "
                 +" public void m(); \n"
-                +"/*@ assignable i,j; */\n "
+                +"/*@ assignable j; */\n "
                 +"public A();  \n"
                 +"}"
                 );

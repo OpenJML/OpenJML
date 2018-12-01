@@ -223,7 +223,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     /** A mapping from BasicBlock to the sym->incarnation map giving the map that
      * corresponds to the state at the exit of the BasicBlock.
      */
-    @NonNull final protected Map<BasicBlock,VarMap> blockmaps = new HashMap<BasicBlock,VarMap>();
+    @NonNull final public Map<BasicBlock,VarMap> blockmaps = new HashMap<BasicBlock,VarMap>();
     
     /** A mapping from labels to the sym->incarnation map operative at the position
      * of the label.
@@ -237,7 +237,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // (so they do not need initialization)
     
     /** The map from symbol to incarnation number in current use */
-    @NonNull protected VarMap currentMap;
+    @NonNull public VarMap currentMap;
     
     /** The map immediately after declaration of method parameters; this is
         the mapping of variables to incarnations to use when in the scope of 
@@ -983,7 +983,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //                    that.args.get(0).accept(this);
 //                } else 
                 {
-                    Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).labeledStatement.label;
+                    Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).name;
                     //JCIdent label = (JCIdent)that.args.get(1);
                     currentMap = labelmaps.get(label);
                     if (currentMap == null) {
@@ -1541,7 +1541,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
             if (localVars.contains(vsym)) {
                 // no change to local vars (e.g. quantifier and let decls)
-            } else {
+            } else if (currentMap != null) { // FIXME - why would currentMap ever be null?
                 that.name = currentMap.getCurrentName(vsym);
                 if (isDefined.add(that.name)) {
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Added " + vsym + " " + that.name);
@@ -1933,6 +1933,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         try {
             that.range = convertExpr(that.range);
             that.value = convertExpr(that.value);
+            scanList(that.triggers);
             result = that;
         } finally {
             for (JCVariableDecl d: that.decls) {

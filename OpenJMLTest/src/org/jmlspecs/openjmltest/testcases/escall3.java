@@ -428,6 +428,35 @@ public class escall3 extends EscBase {
     }
     
     @Test
+    public void testAssertionError() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m1(int i) {\n"
+                +"     if (i < 0) assert false;\n"
+                +"  }\n"
+                
+                +"  //@ requires i >= 0;\n"
+                +"  public void m1ok(int i) {\n"
+                +"     if (i < 0) assert false;\n"
+                +"  }\n"
+                
+                +"  public void m2(int i) {\n"
+                +"     if (i < 0) throw new AssertionError();\n"
+                +"  }\n"
+                
+                +"  //@ requires i >= 0;\n"
+                +"  public void m2ok(int i) {\n"
+                +"     if (i < 0) throw new AssertionError();\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m1",17
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method m2",17
+                );
+    }
+    
+    @Test
     public void testLet2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

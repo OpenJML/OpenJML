@@ -128,6 +128,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
             q.range = copy(that.range,p);
             q.value = copy(that.value,p);
             q.racexpr = copy(that.racexpr);
+            q.triggers = copy(that.triggers);
             q.setType(that.type);
             return q;
         } finally {

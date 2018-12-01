@@ -5,20 +5,11 @@ public enum TableMovieKeys {
         NAME("movie_keys");
          private /*@ spec_public @*/ String value;
 
- 
-
      //@ requires str!=null;
-
      //@ ensures value == str; // should this be value.equals(str)?
-
-     //@ assignable value;
-
       TableMovieKeys(String str){
-
             this.value = str;
-
       }
- 
 
      //@ensures \result == value; // likewise, should this be .equals?
      public /*@ pure @*/ String get(){return value;} // <<< this is the line that generates the error.

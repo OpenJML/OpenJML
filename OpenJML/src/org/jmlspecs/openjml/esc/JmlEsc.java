@@ -25,10 +25,12 @@ import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
 
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
@@ -118,17 +120,27 @@ public class JmlEsc extends JmlTreeScanner {
         } catch (Exception e) {
             // No further error messages needed - FIXME - is this true?
             count(IProverResult.ERROR);
-            log.error("jml.internal","Should not be catching an exception in JmlEsc.check: "+ e.toString());
+            String info = "";
+            if (tree instanceof JCClassDecl) info = "class " + ((JCClassDecl)tree).name.toString();
+            if (tree instanceof JCCompilationUnit) info = "compilation unit " + (((JCCompilationUnit)tree).sourcefile.toString());
+            log.error("jml.internal","Should not be catching an exception in JmlEsc.check: "+ e.toString() + " while translating " + info);
+            e.printStackTrace();
         } catch (Throwable e) {
             // No further error messages needed - FIXME - is this true?
             count(IProverResult.ERROR);
-            log.error("jml.internal","Should not be catching a Java error in JmlEsc.check: "+ e.toString());
+            String info = "";
+            if (tree instanceof JCClassDecl) info = "class " + ((JCClassDecl)tree).name.toString();
+            if (tree instanceof JCCompilationUnit) info = "compilation unit " + (((JCCompilationUnit)tree).sourcefile.toString());
+            log.error("jml.internal","Should not be catching a Java error in JmlEsc.check: "+ e.toString() + " while translating " + info);
+            e.printStackTrace();
         }
     }
     
     /** Visit a class definition */
     @Override
     public void visitClassDef(JCClassDecl node) {
+        boolean savedMethodsOK = allMethodsOK;
+        allMethodsOK = true;
         Main.instance(context).pushOptions(node.mods);
 
         // The super class takes care of visiting all the methods
@@ -155,6 +167,9 @@ public class JmlEsc extends JmlTreeScanner {
         long classDuration = System.currentTimeMillis() - classStart;
         utils.progress(0,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) +  //$NON-NLS-1$
                 (Utils.testingMode ? "" : String.format(" [%4.2f secs]", (classDuration/1000.0)))); //$NON-NLS-1$
+        classes++;
+        if (allMethodsOK) classesOK++;
+        allMethodsOK = savedMethodsOK;
         Main.instance(context).popOptions();
     }
     
@@ -225,7 +240,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     public IProverResult markMethodSkipped(JmlMethodDecl methodDecl, String reason) {
-        utils.progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$ //$NON-NLS-2$
+        if (JmlOption.isOption(context, JmlOption.SKIPPED)) utils.progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$ //$NON-NLS-2$
         
         // FIXME - this is all a duplicate from MethodProverSMT
         IProverResult.IFactory factory = new IProverResult.IFactory() {
@@ -443,16 +458,21 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     public Map<IProverResult.Kind,Integer> counts = new HashMap<>();
+    public int classes;
+    public int classesOK;
+    public boolean allMethodsOK;
     
     private long startTime;
     
     public void initCounts() {
+        classes = classesOK = 0;
         counts = new HashMap<>();
         startTime = System.currentTimeMillis();
     }
     
     public void count(IProverResult.Kind r) {
         counts.put(r,  value(r) + 1);
+        if (r != IProverResult.UNSAT) allMethodsOK = false;
     }
     
     public int value(IProverResult.Kind r) {
@@ -464,19 +484,20 @@ public class JmlEsc extends JmlTreeScanner {
         StringBuilder s = new StringBuilder();
         int t = 0; int tt;
         s.append("Summary:" + Strings.eol);
-        s.append("  Valid:      " + (tt=value(IProverResult.UNSAT)) + Strings.eol);
+        s.append("  Valid:        " + (tt=value(IProverResult.UNSAT)) + Strings.eol);
         t += tt;
-        s.append("  Invalid:    " + (tt=value(IProverResult.SAT)+value(IProverResult.POSSIBLY_SAT)+value(IProverResult.UNKNOWN)) + Strings.eol);
+        s.append("  Invalid:      " + (tt=value(IProverResult.SAT)+value(IProverResult.POSSIBLY_SAT)+value(IProverResult.UNKNOWN)) + Strings.eol);
         t += tt;
-        s.append("  Infeasible: " + (tt=value(IProverResult.INFEASIBLE)) + Strings.eol);
+        s.append("  Infeasible:   " + (tt=value(IProverResult.INFEASIBLE)) + Strings.eol);
         t += tt;
-        s.append("  Timeout:    " + (tt=value(IProverResult.TIMEOUT)) + Strings.eol);
+        s.append("  Timeout:      " + (tt=value(IProverResult.TIMEOUT)) + Strings.eol);
         t += tt;
-        s.append("  Error:      " + (tt=value(IProverResult.ERROR)) + Strings.eol);
+        s.append("  Error:        " + (tt=value(IProverResult.ERROR)) + Strings.eol);
         t += tt;
-        s.append("  Skipped:    " + (tt=value(IProverResult.SKIPPED)) + Strings.eol);
+        s.append("  Skipped:      " + (tt=value(IProverResult.SKIPPED)) + Strings.eol);
         t += tt;
-        s.append(" TOTAL:       " + t + Strings.eol);
+        s.append(" TOTAL METHODS: " + t + Strings.eol);
+        s.append(" Classes:       " + classesOK + " proved of " + classes + Strings.eol);
         long duration = System.currentTimeMillis() - startTime;
         s.append(" DURATION: " + String.format("%12.1f",(duration/1000.0)) + " secs" + Strings.eol);
         return s.toString();

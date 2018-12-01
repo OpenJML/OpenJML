@@ -288,6 +288,7 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
         JmlMethodClauseSignalsOnly copy = M.at(that.pos).JmlMethodClauseSignalsOnly(
                 that.token,
                 copy(that.list,p));
+        copy.defaultClause = that.defaultClause;
         copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         return copy;
@@ -339,7 +340,7 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
 
     @Override
     public JCTree visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that, Void p) {
-        return M.at(that.pos).JmlPrimitiveTypeTree(that.token);
+        return M.at(that.pos).JmlPrimitiveTypeTree(that.token,that.typeName);
     }
 
     @Override
@@ -349,7 +350,8 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
                 copy(that.decls,p),
                 copy(that.range,p),
                 copy(that.value,p));
-        q.racexpr = copy(that.racexpr);
+        q.triggers = copy(that.triggers,p);
+        q.racexpr = copy(that.racexpr,p);
         return q;
     }
 
