@@ -671,6 +671,26 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testEnums() {
+        expectedExit = 0;
+        helpTF("enums");
+        //helpTF("enums","-show","-method=m5c","-subexpressions");
+    }
+
+    @Test
+    public void testEnums1() {
+        expectedExit = 0;
+        helpTF("enums1");
+        //helpTF("enums","-show","-method=m5c","-subexpressions");
+    }
+
+    @Test
+    public void testEnums2() {
+        expectedExit = 0;
+        helpTF("enums2");
+    }
+
+    @Test
     public void testEscVisibilitySimple() {
         expectedExit = 1;
         helpTF("visibilitySimple");

@@ -2300,7 +2300,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     /** Returns true if the given symbol is specified as Helper or Function annotation */
     public boolean isHelper(MethodSymbol symbol) {
-        return attr.isHelper(symbol);
+        return attr.isHelper(symbol) || (symbol.owner.isEnum() && (symbol.name == names.values || symbol.name == names.ordinal || symbol.name == names._name)); // FIXME - could declare the methods helper
     }
     
     /** Returns true if the given symbol has a annotation */
@@ -3510,30 +3510,42 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean prevAddingAxioms = addingAxioms;
         addingAxioms = true;
         try {
-        JmlSpecs.TypeSpecs tspecs = specs.get(csym);
-        if (tspecs == null) return; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
-        for (JmlTypeClause clause : tspecs.clauses) {
-            DiagnosticPosition cpos = clause;
-            try {
-                // Note: axioms have no modifiers but nonetheless must always be effectively static
-                if (clause.token == JmlTokenKind.AXIOM) {
-                    if (!classDecl.sym.isEnum() || !methodDecl.sym.isConstructor() || (clause.modifiers.flags & Flags.ENUM) == 0) { 
-                        addStat(comment(clause));
-                        JmlTypeClauseExpr t = (JmlTypeClauseExpr)clause;
-                        JCExpression e = convertJML(t.expression);
-                        addAssume(cpos,Label.AXIOM,
-                                e,
-                                cpos,clause.source);
+            JmlSpecs.TypeSpecs tspecs = specs.get(csym);
+            if (tspecs == null) return; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
+            for (JmlTypeClause clause : tspecs.clauses) {
+                DiagnosticPosition cpos = clause;
+                try {
+                    // Note: axioms have no modifiers but nonetheless must always be effectively static
+                    if (clause.token == JmlTokenKind.AXIOM) {
+                        if (!classDecl.sym.isEnum() || !methodDecl.sym.isConstructor() || (clause.modifiers.flags & Flags.ENUM) == 0) { 
+                            addStat(comment(clause));
+                            JmlTypeClauseExpr t = (JmlTypeClauseExpr)clause;
+                            JCExpression e = convertJML(t.expression);
+                            addAssume(cpos,Label.AXIOM,
+                                    e,
+                                    cpos,clause.source);
+                        }
+                    }
+                } catch (NoModelMethod e) {
+                    // FIXME - what to do.
+                } catch (JmlNotImplementedException e) {
+                    notImplemented(clause.token.internedName() + " clause containing ", e, clause.source());
+                } catch (Exception e) {
+                    // FIXME - what to do - 
+                }
+            }
+            int pos = 0;
+            if (csym.isEnum()) {
+                for (Symbol s : csym.getEnclosedElements()) {
+                    if (s instanceof VarSymbol && s.isEnum()) {
+                        JCIdent id = treeutils.makeIdent(pos, csym);
+                        JCFieldAccess fa = treeutils.makeSelect(pos, id, s);
+                        fa = treeutils.makeSelect(pos, fa, allocSym);
+                        JCExpression bin = treeutils.makeBinary(pos, JCTree.Tag.LE, fa, treeutils.zero);
+                        addAssume(tspecs.decl,Label.AXIOM,bin,null,null);
                     }
                 }
-            } catch (NoModelMethod e) {
-                // FIXME - what to do.
-            } catch (JmlNotImplementedException e) {
-                notImplemented(clause.token.internedName() + " clause containing ", e, clause.source());
-            } catch (Exception e) {
-                Utils.stop(); // FIXME - what to do - 
             }
-        }
         } finally {
             addingAxioms = prevAddingAxioms;
         }
@@ -14341,7 +14353,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (that.args.size() > 1) {
                     JCExpression lb = that.args.get(1);
                     if (lb instanceof JCLiteral) {
-                    	// FIXME - I don't think a string is allowed by type-checking
+                        // FIXME - I don't think a string is allowed by type-checking
                         String s = ((JCLiteral)lb).value.toString();
                         label = names.fromString(s);
                         if (labelProperties.get(label) == null) label = oldLabel.name;
@@ -14522,6 +14534,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     JCExpression makeFreshExpression(DiagnosticPosition pos, JCExpression trarg, /*@ nullable */ Name label) {
         int ac;
         LabelProperties lp = null;
+        if (trarg.type.tsym.isEnum()) {
+            // Enums are not fresh
+            // FIXME - what about enums classes declared as statement declarations.
+            return treeutils.falseLit;
+        }
         if (label == null) ac = allocCounter;
         else {
             lp = labelProperties.get(label);
@@ -15943,7 +15960,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addTraceableComment(that,that,that.toString(),null);
         }
        
-        if (( that.type.tsym.flags_field & Flags.ENUM)!= 0) { // FIXME - should check the initializer expressions of enums
+        if (( that.type.tsym.flags_field & Flags.ENUM)!= 0 && that.sym.owner instanceof ClassSymbol) { // FIXME - should check the initializer expressions of enums
             JmlVariableDecl stat = M.at(that).VarDef(that.sym,that.init);
             stat.ident = newident;
 
@@ -16584,6 +16601,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected JCBlock addMethodAxioms(DiagnosticPosition callLocation, MethodSymbol msym, 
             java.util.List<Pair<MethodSymbol,Type>> overridden, Type receiverType, Type returnType) {
         boolean isFunction = attr.isFunction(msym);
+        if (msym.owner.isEnum() && 
+                (msym.name == names.values || msym.name == names.valueOf || msym.name == names.ordinal)) isFunction = true;  // FIXME - make these modifiers at the point of declaration
         if (!inOldEnv && !addAxioms(heapCount,msym)) { return M.at(Position.NOPOS).Block(0L, List.<JCStatement>nil()); }
         boolean isStatic = utils.isJMLStatic(msym);
         boolean isPrimitiveType = utils.isPrimitiveType(msym.owner.type);
@@ -16733,14 +16752,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // This initial logic must match that above for preconditions
                 calleeSpecs = specs.getDenestedSpecs(mpsym);
                 if (calleeSpecs == null) continue; // FIXME - not sure about this
-                if (calleeSpecs.decl == null) continue;
+                if (calleeSpecs.decl == null && !mpsym.owner.isEnum() && !isStatic && 
+                                        (mpsym.name != names.values)) continue; // FIXME - only values?
                 
                 // Now map the formals as used in the overridden method to 
                 // identifiers used in the axioms being constructed
                 paramActuals = new HashMap<Object,JCExpression>();
                 Iterator<JCVariableDecl> iter = newDeclsList.iterator();
                 currentThisExpr = currentThisId = isStatic ? null : M.at(calleeSpecs.decl).Ident(iter.next().sym);
-                for (JCVariableDecl d : calleeSpecs.decl.params) {
+                // FIXME - calleeSpecs.decl is null for implicitly generated methods (like those from Enum)
+                // FIXME - but the following seems correct only for non-heap-dependent functions that have no parameters
+                if (calleeSpecs.decl != null) for (JCVariableDecl d : calleeSpecs.decl.params) {
                     JCIdent id = treeutils.makeIdent(d,iter.next().sym);
                     paramActuals.put(d.sym, id);
                 }
@@ -16822,7 +16844,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 JCExpression e = convertNoSplit(((JmlMethodClauseExpr)clause).expression, condition, false);
                                 if (treeutils.isFalseLit(e)) {
                                     JCExpression not = treeutils.makeNot(pre.pos, convertCopy(pre));
-                                    falses = falses == null ? not : treeutils.makeAnd(falses.pos, falses, not);
+                                    falses = falses == null ? not : treeutils.makeAndSimp(falses.pos, falses, not);
                                     continue;
                                 }
                                 if (newDeclsList.isEmpty()) {
