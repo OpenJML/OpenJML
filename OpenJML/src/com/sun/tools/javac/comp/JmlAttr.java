@@ -923,7 +923,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean libraryMethod = name.startsWith("java") 
                 || name.startsWith("org.jmlspecs.models") // FIXME - the models should be annotated and shjoiuld work
                 || name.startsWith("org.jmlspecs.lang.JML");  // FIXME - these should work but don't
-        if (!libraryMethod || JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
+        if ((!libraryMethod // FIXME && !msym.owner.isEnum())
+                || JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
             log.warning(pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
         }
 
@@ -1218,6 +1219,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                             break;
                         }
                     }
+//                } else if (inJML && !model && javaMethodTree.sym.owner.isEnum()) {
+//                    // OK
                 } else if (abst) {
                     // OK
                 } else if (!anon) {

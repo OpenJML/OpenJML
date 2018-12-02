@@ -452,6 +452,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (m.isConstructor() && (m.flags() & Utils.JMLBIT) != 0 && m.params().isEmpty()) {
             ((JmlCheck)chk).noDuplicateWarn = true;
         }
+//        if (m.owner.isEnum() && m.toString().equals("valueOf(java.lang.String)")) {
+//            ((JmlCheck)chk).noDuplicateWarn = true;
+//        }  // FIXME
         if (chk.checkUnique(tree.pos(), m, enclScope)) {
             if (!noEntering) {
                 if (tree.body == null && m.owner.isInterface() && utils.isJML(m.flags())) {
