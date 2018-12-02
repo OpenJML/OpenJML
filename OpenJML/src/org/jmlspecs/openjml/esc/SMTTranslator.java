@@ -2539,17 +2539,21 @@ public class SMTTranslator extends JmlTreeScanner {
             reals.put(v, id);
             ISymbol sym = F.symbol(id);
             addReal();
-            ICommand c;
-            double vv = v;
-            if (vv < 0) vv = -vv;
-            // FIXME - need a more robust way to convert constants; would like to convert directly from original text
-            try (java.util.Formatter formatter = new java.util.Formatter()) {
-                String s = formatter.format("%f",vv).toString();
-                c = new C_define_fun(sym,emptyDeclList,realSort,v >= 0 ? F.decimal(s) : F.fcn(F.symbol("-"), F.decimal(s)));
-            } catch (NumberFormatException e) {
-                log.warning("jml.message", "Exception when converting " + vv);
-                c = new C_declare_fun(sym,emptyList,realSort);
-            }
+            ICommand c = new C_declare_fun(sym,emptyList,realSort); // use definefun and a constant FIXME
+            String s = v.toString();
+            c = new C_define_fun(sym,emptyDeclList,realSort,F.decimal(s));
+
+//            ICommand c;
+//            double vv = v;
+//            if (vv < 0) vv = -vv;
+//            // FIXME - need a more robust way to convert constants; would like to convert directly from original text
+//            try (java.util.Formatter formatter = new java.util.Formatter()) {
+//                String s = formatter.format("%f",vv).toString();
+//                c = new C_define_fun(sym,emptyDeclList,realSort,v >= 0 ? F.decimal(s) : F.fcn(F.symbol("-"), F.decimal(s)));
+//            } catch (NumberFormatException e) {
+//                log.warning("jml.message", "Exception when converting " + vv);
+//                c = new C_declare_fun(sym,emptyList,realSort);
+//            }
 
 //            for (int m = 1; m <= 1000000; m *= 10) {
 //                if (v*m == (int)(v*m)) {

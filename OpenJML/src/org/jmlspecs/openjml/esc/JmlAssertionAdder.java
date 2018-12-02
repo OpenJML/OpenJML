@@ -4056,6 +4056,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         currentStatements = savedCurrentStatements;
     }
     
+    /** This just tests wither the type is explicitly a JMLDataGroup */
     public boolean isDataGroup(Type type) {
         return type.toString().contains("JMLDataGroup");  // FIXME - something better than string comparison?
     }
@@ -6973,7 +6974,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 java.util.List<VarSymbol> exlist;
                 TypeSymbol csym = fa.selected.type.tsym;
                 exlist = utils.listJmlVisibleFields(csym, (TypeSymbol)base.owner,  base.flags() & Flags.AccessFlags, treeutils.isATypeTree(((JCFieldAccess)item).selected),true);
-//              exlist = utils.listJmlVisibleFields((TypeSymbol)base.owner, base.flags() & Flags.AccessFlags, treeutils.isATypeTree(((JCFieldAccess)item).selected));
                 for (VarSymbol vsym : exlist) {
                     newlist.add(M.at(item).Select(fa.selected, vsym));
                 }
@@ -7008,6 +7008,37 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         return newlist.toList();
+    }
+    
+    protected List<JCExpression> expandModelFields(List<JCExpression> list, Type refClass) {
+        ListBuffer<JCExpression> out = new ListBuffer<>();
+        for (JCExpression e: list) {
+            out.add(e);
+            if (!(e instanceof JCFieldAccess) || isDataGroup(e.type)) {
+                // do nothing more
+            } else {
+                expandModelField((JCFieldAccess)e,out,refClass);
+            }
+        }
+        return out.toList();
+    }
+    
+    // Add all fields that from the vantage point of refClass are "in" (perhaps recursively) the model field e.
+    // FIXME - this only finds datagroup members that are in parent types of refClass abd subtypes of e.selected.type  
+    protected void expandModelField(JCFieldAccess e, ListBuffer<JCExpression> out, Type refClass) {
+        for (Type t: parents(refClass,false)) {
+            if (jmltypes.isSubtype(t,e.selected.type)) {
+                for (Symbol s: t.tsym.getEnclosedElements()) {
+                    if (s instanceof VarSymbol && isContainedIn(s,e.sym)) {
+                        JCFieldAccess fa = M.Select(e.selected, s.name);
+                        fa.sym = s;
+                        fa.type = s.type;
+                        fa.pos = e.pos;
+                        out.add(fa);
+                    }
+                }
+            }
+        }
     }
 
     /** Returns the list of store-ref items corresponding to this.*  */
@@ -7617,7 +7648,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             } else if (newclass != null) {
                 
-                // FIXME - this does not handle quantified constructors of inner classes
+                // FIXME - this does not handle qualified constructors of inner classes
                 
                 calleeMethodSym = (MethodSymbol)newclass.constructor;
                 enclosingMethod = calleeMethodSym;
@@ -8791,12 +8822,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                         addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, recXout, treeutils.nullLit));
                                                     });
                                                     JCFieldAccess newloc = treeutils.makeSelect(loc.pos,recXout,loc.sym);
-                                                    newlist.add(newloc); 
-
+                                                    newlist.add(newloc);
+                                                    expandModelField(newloc,newlist,receiverType);
                                                 } else {
                                                     check4 = pushBlock();
                                                     JCFieldAccess newloc = treeutils.makeSelect(loc.pos,loc.selected,loc.sym);
                                                     newlist.add(newloc); 
+                                                    expandModelField(newloc,newlist,receiverType);
                                                 }
                                             } else if (trlocation instanceof JmlBBArrayAccess) { 
                                                 //Just an array access
