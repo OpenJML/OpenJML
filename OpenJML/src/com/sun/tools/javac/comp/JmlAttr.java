@@ -44,6 +44,7 @@ import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.ext.FieldExtension;
 
 import com.sun.source.tree.IdentifierTree;
 import com.sun.tools.javac.code.*;
@@ -116,7 +117,7 @@ import com.sun.tools.javac.util.Position;
 public class JmlAttr extends Attr implements IJmlVisitor {
 
     /** This is the compilation context for which this is the unique instance */
-    @NonNull final protected Context context;
+    @NonNull final public Context context;
     
     /** The Name version of resultVarString in the current context */
     @NonNull final public Name resultName;
@@ -148,22 +149,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @NonNull final public JmlTypes jmltypes;
 
     /** The Names table from the compilation context, initialized in the constructor */
-    @NonNull final protected Names names;
+    @NonNull
+    public final Names names;
     
     /** The tool used to read binary classes */
-    @NonNull final protected ClassReader classReader;
+    @NonNull final public ClassReader classReader;
     
     /** The factory used to create AST nodes, initialized in the constructor */
-    @NonNull final protected JmlTree.Maker jmlMaker;
+    @NonNull final public JmlTree.Maker jmlMaker;
     
     /** A JmlCompiler instance */
     @NonNull final protected JmlCompiler jmlcompiler;
     
     /** A JmlResolve instance */
-    @NonNull final protected JmlResolve jmlresolve;
+    @NonNull final public JmlResolve jmlresolve;
     
     /** An instance of the tree utility class */
-    @NonNull final protected JmlTreeUtils treeutils;
+    @NonNull final public JmlTreeUtils treeutils;
 
     /** A Literal for a boolean true */
     @NonNull final protected JCLiteral trueLit;
@@ -5205,17 +5207,35 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitSelect(JCFieldAccess tree) {
-        if (tree.name != null) {
-            super.visitSelect(tree);
-            // The super call does not always call check... (which assigns the
-            // determined type to tree.type, particularly if an error occurs,
-            // so we fill it in
-            if (tree.type == null) tree.type = result;
-        } else {
+        if (tree.name == null) {
             // This is a store-ref with a wild-card field
             // FIXME - the following needs some review
             attribTree(tree.selected, env, new ResultInfo(TYP|VAR, Infer.anyPoly));
             result = tree.type = Type.noType;
+        } else {
+            FieldExtension fext = Extensions.instance(context).findField(tree.pos, tree.name.toString(), false);
+            if (fext != null) {
+                attribExpr(tree.selected, env, Type.noType); // Any type is allowed
+                Type atype = tree.selected.type;
+                Type t;
+                if (atype instanceof Type.ArrayType) { 
+                    Type elemtype = ((Type.ArrayType)atype).elemtype;
+                    Type at = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.array")).type;
+                    t = new ClassType(Type.noType,List.<Type>of(elemtype),at.tsym);
+                } else if (atype.isErroneous()) {
+                    t = atype;
+                } else {
+                    log.error(tree,"jml.message","The .array suffix is permitted only for array expressions: " );
+                    t = types.createErrorType(atype);
+                }
+                result = tree.type = check(tree, t, VAL, resultInfo);
+            } else {
+                super.visitSelect(tree);
+                // The super call does not always call check... (which assigns the
+                // determined type to tree.type, particularly if an error occurs,
+                // so we fill it in
+                if (tree.type == null) tree.type = result;
+            }
         }
         Type saved = result;
         
@@ -6616,4 +6636,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (methodClauseTokens.contains(kind)) return true;
         return false;
     }
+    
+    public Type check(final JCTree tree, final Type found, final int ownkind, final ResultInfo resultInfo) {
+        return super.check(tree, found, ownkind, resultInfo);
+    }         
 }
