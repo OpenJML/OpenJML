@@ -252,6 +252,11 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testOld() {
+        helpTF("oldproblem","-classpath","../OpenJML/runtime");
+    }
+
+    @Test
     public void testException() {
         helpTF("escException");
     }
