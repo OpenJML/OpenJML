@@ -135,11 +135,35 @@ public class Extensions {
             TypeRWClauseExtension.class, 
             };
 
+    public @Nullable FieldExtension findField(int pos, String token, boolean complain) {
+        FieldExtension e = fieldInstances.get(token);
+        if (e == null) {
+            Class<? extends FieldExtension> c = fieldClasses.get(token);
+            if (c == null) {
+                if (complain) Log.instance(context).error(pos,"jml.message","Failed to create a field extension object for " + token);
+                return null;
+            }
+            try {
+                Constructor<? extends FieldExtension> constructor = c.getDeclaredConstructor();
+                FieldExtension instance = constructor.newInstance();
+                fieldInstances.put(token,instance);
+                e = instance;
+            } catch (Exception ee) {
+                if (complain) Log.instance(context).error(pos,"jml.message","Failed to create a field extension object for " + token);
+                return null;
+            }
+        }
+        return e;
+    }
+    
     /** A map from token name to the extension class that implements the token */
     static protected Map<String,Class<? extends JmlExtension>> extensionClasses = new HashMap<>();
     protected Map<String,JmlExtension> extensionInstances = new HashMap<>();
 
     static protected Map<String,IJmlClauseType> clauseTypes = new HashMap<>();
+    
+    static protected Map<String,Class<? extends FieldExtension>> fieldClasses = new HashMap<>();
+    protected Map<String,FieldExtension> fieldInstances = new HashMap<>();
     
     // This static block runs through all the extension classes and adds
     // appropriate information to the HashMap above, so extensions can be 
@@ -196,6 +220,19 @@ public class Extensions {
                 for (IJmlClauseType t: tokens) {
                     extensionClasses.put(t.name(), c);
                     clauseTypes.put(t.name(), t);
+                }
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        } else if (FieldExtension.class.isAssignableFrom(cc)) {
+            @SuppressWarnings("unchecked")
+            Class<? extends FieldExtension> c = (Class<? extends FieldExtension>)cc;
+            try {
+                Method m = c.getMethod("ids");
+                String[] ids = (String[])m.invoke(null);
+                for (String t: ids) {
+                    fieldClasses.put(t, c);
                 }
             } catch (Exception e) {
                 return false;

@@ -16,6 +16,7 @@ import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.Label;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 
@@ -1125,6 +1126,15 @@ public class JmlTreeUtils {
         return m;
     }
     
+    public JCMethodInvocation makeOld(DiagnosticPosition pos, JCExpression arg, JmlAssertionAdder.LabelProperties labelprop) {
+        JmlMethodInvocation m;
+        JCIdent id = makeIdent(pos.getStartPosition(), labelprop.name,null);
+        m = factory.at(pos).JmlMethodInvocation(JmlTokenKind.BSOLD, List.<JCExpression>of(arg,id));
+        m.labelProperties = labelprop;
+        m.type = arg.type;
+        return m;
+    }
+    
     public JCMethodInvocation makeOld(JCExpression arg) {
         return makeOld(arg,arg);
     }
@@ -1296,8 +1306,8 @@ public class JmlTreeUtils {
         return elem;
     }
     
-    public JCExpression makeSubtype(JCExpression e1, JCExpression e2) {
-        JmlMethodInvocation e = factory.at(e1.pos).JmlMethodInvocation(JmlTokenKind.SUBTYPE_OF,e1,e2);
+    public JCExpression makeSubtype(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
+        JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(JmlTokenKind.SUBTYPE_OF,e1,e2);
         e.type = syms.booleanType;
         return e;
     }

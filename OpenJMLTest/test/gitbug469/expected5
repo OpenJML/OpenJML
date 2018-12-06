@@ -30,7 +30,7 @@ $SPECS/specs/java/io/InputStream.jml:165: warning: Precondition conjunct is fals
                                       ^
 test/gitbug469/Repro.java:36: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method getSeed2
         byte[] result = new byte[length];
-                        ^
+                                 ^
 Completed proof of Repro.Bar.getSeed2(int) with prover !!!! - with warnings
 Completed proving methods in Repro.Bar
 Completed proving methods in Repro

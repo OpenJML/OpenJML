@@ -315,11 +315,6 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
-    @Test public void gitbug498a() {
-        expectedExit = 0;
-        helpTCG();
-    }
-
     @Test public void gitbug499() {
         expectedExit = 1;
         helpTCG();
@@ -850,8 +845,20 @@ public class SFBugs extends EscBase {
     }
     
     @Test
+    public void gitbug637() {
+        expectedExit = 0;
+        helpTCG();
+    }
+
+    @Test
     public void gitbug638() {
         expectedExit = 1;
+        helpTCG();
+    }
+    
+     @Test
+    public void gitbug639() {
+        expectedExit = 0;
         helpTCG();
     }
     
@@ -912,7 +919,7 @@ public class SFBugs extends EscBase {
     @Test // Errors encountered when using runtime on the classpath
     public void gitbug648a() {
         expectedExit = 1;
-        helpTCF("test/gitbug648","test/gitbug648","-cp","test/gitbug648:../OpenJML/runtime");
+        helpTCF("test/gitbug648a","test/gitbug648a","-cp","test/gitbug648:../OpenJML/runtime");
     }
     
     @Test
@@ -939,6 +946,17 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
+    public void gitbug651() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug651a() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
     @Test
     public void gitbug653() {
         expectedExit = 0;

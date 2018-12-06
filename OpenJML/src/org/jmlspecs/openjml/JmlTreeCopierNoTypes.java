@@ -294,6 +294,7 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
                 that.keyword,
                 that.clauseType,
                 copy(that.list,p));
+        copy.defaultClause = that.defaultClause;
         copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         return copy;
@@ -356,7 +357,8 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
                 copy(that.decls,p),
                 copy(that.range,p),
                 copy(that.value,p));
-        q.racexpr = copy(that.racexpr);
+        q.triggers = copy(that.triggers,p);
+        q.racexpr = copy(that.racexpr,p);
         return q;
     }
 

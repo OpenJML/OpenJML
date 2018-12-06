@@ -30,7 +30,7 @@ public abstract class EscBase extends JmlTestCase {
 	public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
 	
     @Rule public TestName testname = new TestName();
-    @Rule public Timeout timeout = new Timeout(15, TimeUnit.MINUTES); // limit on entire test, not on each proof attempt
+    @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // limit on entire test, not on each proof attempt
     
     protected static boolean runLongTests = System.getProperty("SKIPLONGTESTS") == null;
 
@@ -40,6 +40,7 @@ public abstract class EscBase extends JmlTestCase {
 
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
             "z3_4_3", 
+//            "z3_4_7", 
  //           "z3_4_5", 
  //           "z3_4_6", 
  //           "z3_4_3_2", 
@@ -182,7 +183,7 @@ public abstract class EscBase extends JmlTestCase {
         main.addOptions("-escExitInfo","-no-purityCheck");
 //        main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");
-        main.addUncheckedOption("openjml.defaultProver=z3_4_3");
+        main.addUncheckedOption("openjml.defaultProver=z3_4_7");
         addOptions(options);
         if (solver != null) main.addOptions(JmlOption.PROVER.optionName(),solver);
         specs = JmlSpecs.instance(context);

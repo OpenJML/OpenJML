@@ -399,6 +399,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             print("; "); //$NON-NLS-1$
             if (that.value != null) printExpr(that.value);
             else print("????:"); //$NON-NLS-1$
+            
+            if (that.triggers != null) {
+                print( " : ");
+                printExprs(that.triggers);
+            }
         } catch (IOException e) { 
         	perr(that,e); 
         } finally {
