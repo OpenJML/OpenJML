@@ -1077,7 +1077,7 @@ public class JmlSpecs {
                 // FIXME - might throw an exception?
                 res = M.at(pos).JmlSingleton(JmlTokenKind.BSRESULT);
                 resnn = treeutils.makeNotNull(pos,res);
-                Type npeType = ClassReader.instance(context).enterClass(names.fromString("NullPointerException")).type;
+                Type npeType = ClassReader.instance(context).enterClass(names.fromString("java.lang.NullPointerException")).type;
                 JCVariableDecl vd = treeutils.makeVarDef(npeType, null, sym, pos);
                 sig = M.at(pos).JmlMethodClauseSignals(JmlTokenKind.SIGNALS, vd, resnn);
                 JmlMethodClauseSignalsOnly sigo = M.at(pos).JmlMethodClauseSignalsOnly(JmlTokenKind.SIGNALS_ONLY, com.sun.tools.javac.util.List.<JCExpression>of(M.Type(npeType),M.Type(syms.illegalArgumentExceptionType)));
