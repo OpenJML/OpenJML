@@ -3061,7 +3061,7 @@ public class JmlParser extends JavacParser {
                             e = to(F.at(pos()).TypeIdent(TypeTag.VOID));
                             nextToken();
                         } else {
-                            e = parseType();
+                            e = parseType(); // FIXME - does not parseType() parse a void?
                         }
                         if (token.kind != RPAREN) {
                             if (!(e instanceof JCErroneous))
@@ -3232,6 +3232,14 @@ public class JmlParser extends JavacParser {
 //                    return toP(jmlF.at(p).Erroneous());
                 }
             }
+        }
+        if (S.jml() && token.kind == TokenKind.LBRACE) {
+            accept(LBRACE);
+            Name id = ident();
+            accept(RBRACE);
+            skipThroughEndOfJML();
+            JCExpression e = toP(super.term3());
+            return e;
         }
         return toP(super.term3());
     }

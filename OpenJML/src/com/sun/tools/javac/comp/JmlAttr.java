@@ -1066,6 +1066,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     }
                 }
             }
+            
+            if (m.body == null) {
+                JmlAnnotation annot = findMod(m.mods, JmlTokenKind.INLINE);
+                if (annot != null) {
+                    log.error(annot, "jml.message", "Cannot inline a method that does not have a body");
+                }
+            }
 
         } finally {
             currentSecretContext = previousSecretContext;
