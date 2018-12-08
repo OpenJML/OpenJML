@@ -26,6 +26,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
@@ -48,7 +49,7 @@ public class TypeMonitorsForClauseExtension implements JmlExtension.TypeClause {
             init(parser);
             scanner.setJmlKeyword(false);
             parser.nextToken();
-            ListBuffer<JCExpression> elist = new ListBuffer<JCExpression>();
+            List<JCExpression> elist = List.<JCExpression>nil();
             Name n;
             int identPos = parser.pos();
             ITokenKind tk = parser.token().kind;
@@ -62,7 +63,7 @@ public class TypeMonitorsForClauseExtension implements JmlExtension.TypeClause {
                             "an = or <- token");
                 } else {
                     parser.nextToken();
-                    elist = parser.expressionList();
+                    elist = parser.parseExpressionList();
                 }
             }
             JCTree.JCIdent id = parser.to(jmlF.at(identPos).Ident(n));
@@ -72,7 +73,7 @@ public class TypeMonitorsForClauseExtension implements JmlExtension.TypeClause {
             } else {
                 parser.nextToken();
             }
-            return toP(jmlF.at(pp).JmlTypeClauseMonitorsFor(mods, id, elist.toList()));
+            return toP(jmlF.at(pp).JmlTypeClauseMonitorsFor(mods, id, elist));
         }
         
         public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env) {

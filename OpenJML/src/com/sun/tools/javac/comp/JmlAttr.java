@@ -3893,7 +3893,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** This set holds method clause types in which the these tokens may appear:
      *  \not_assigned \only_assigned \only_captured \only_accessible \not_modified */
     public Collection<IJmlClauseType> postClauses = Utils.asSet(ensuresClause,signalsClause,durationClause,workingspaceClause,assertClause,assumeClause);
-    public Collection<IJmlClauseType> freshClauses = Utils.asSet(loopinvariantClause,assertClause,assumeClause); { freshClauses.addAll(postClauses); }
+    public Collection<IJmlClauseType> freshClauses = new LinkedList<>();
+    { freshClauses.addAll(Utils.asSet(loopinvariantClause,assertClause,assumeClause));  freshClauses.addAll(postClauses); }
 
     /** This handles expression constructs with no argument list such as \\result */
     public void visitJmlSingleton(JmlSingleton that) {

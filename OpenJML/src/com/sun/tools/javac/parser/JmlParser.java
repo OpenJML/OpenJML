@@ -2072,6 +2072,10 @@ public class JmlParser extends JavacParser {
         JmlMethodClause e;
         JCBlock stat = null;
         while (true) {
+//            if (token.kind == TokenKind.IDENTIFIER) {
+//                String id = ident().toString();
+//                extensions.find
+//            } else 
             if (token.kind == CUSTOM && (e = getClause()) != null) {
                 clauses.append(e);
             } else if (S.jml() && token.kind == TokenKind.LBRACE) {
