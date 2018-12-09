@@ -3609,18 +3609,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // Expects one expression argument of any type; result is of the same type
                 // FIXME - does this allow any JML spec-expression?
                 // FIXME - the JMLb rules will require some numeric type promotions
-                attribArgs(VAL, tree.args, localEnv, argtypesBuf);
                 //attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
                     log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
-                }
-                if (n == 0) {
-                    t = syms.errType;
+                    result = tree.type = syms.errType;
                 } else {
+                    attribTree(tree.args.get(0), localEnv, resultInfo);
                     t = tree.args.get(0).type;
+                    result = check(tree, t, VAL, resultInfo);
                 }
-                result = check(tree, t, VAL, resultInfo);
                 break;
                  
             default:

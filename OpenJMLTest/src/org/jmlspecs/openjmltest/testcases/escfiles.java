@@ -544,6 +544,11 @@ public class escfiles extends EscBase {
     }
     
     @Test
+    public void testEnsuresInfeasible() {
+        helpTF("escEnsuresInfeasible");
+    }
+
+    @Test
     public void testEscMultipleModel() {
         helpTF("escMultipleModel");
     }

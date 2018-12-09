@@ -3567,7 +3567,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         VarSymbol vsym = ((VarSymbol)convertedfa.sym);
         Object value = vsym.getConstValue();
 
-        discoveredFields.stats.appendList(
+        //
+        if (discoveredFields != null) discoveredFields.stats.appendList(
             collectStats( () -> {addNullnessAllocationTypeCondition(convertedfa,vsym,false);})
             );
         
@@ -12680,6 +12681,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
  
             // FIXME - need to fixup RAC and ESC check of static initialization
             if (!pureCopy) {
+                if (discoveredFields == null) {
+                    pushBlock();
+                    discoveredFields = popBlock(0L,that);
+                }
                 JCBlock bl = checkStaticInitialization();
                 if (bl != null) this.classDefs.add(bl);
             }

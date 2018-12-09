@@ -66,8 +66,8 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
     public JCTree translate(JCTree tree) {
         if (exprHead != null && tree != null && matcher.matches(tree,exprHead)) {
             // log.note(tree.pos, "jml.message", "Substituting here: " + exprHead.toString() + " with " + exprTail.toString() + " and precondition " + exprPrecondition.toString());
-            currentUse.expression = exprPrecondition;
             currentUse = null;
+            exprPrecondition = null;
             exprHead = null;
             return exprTail;
         } else {
@@ -168,7 +168,9 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                             log.error(cl,"jml.internal","Use lemmas currently implement only requires and ensures clauses: " + cl.token.internedName());
                             return;
                     }
-                    currentUse = M.at(that).JmlExpressionStatement(JmlTokenKind.ASSERT,Label.UNDEFINED_LEMMA,treeutils.trueLit);
+                    currentUse = that;
+                    if (exprPrecondition == null) exprPrecondition = treeutils.trueLit;
+                    result = M.at(that).JmlExpressionStatement(JmlTokenKind.ASSERT,Label.UNDEFINED_LEMMA,treeutils.trueLit);
                     result = currentUse;
                 }
             } else {
