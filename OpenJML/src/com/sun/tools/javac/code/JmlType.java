@@ -5,6 +5,7 @@
  */
 package com.sun.tools.javac.code;
 
+import org.jmlspecs.openjml.DefaultJmlTokenKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 
 import com.sun.tools.javac.code.Type;
@@ -46,7 +47,7 @@ public class JmlType extends Type {
     // package visibility
     JmlType(JmlTokenKind token, Name id, String fullyQualifiedClassName) {
         super(null);
-        jmlTypeTag = JmlTokenKind.PRIMITIVE_TYPE;
+        jmlTypeTag = DefaultJmlTokenKind.PRIMITIVE_TYPE;
         fqName = fullyQualifiedClassName;
         this.id = id;
     }

@@ -5,12 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTreeScanner;
-import org.jmlspecs.openjml.JmlTreeUtils;
-import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
@@ -119,7 +114,7 @@ public class RemoveDuplicatePreconditions extends JmlTreeScanner {
         
         for(List<JmlMethodClause> clauses = block.clauses; clauses.nonEmpty(); clauses = clauses.tail){
                         
-            if(clauses.head.token != JmlTokenKind.REQUIRES || filterSet.contains(clauses.head.toString())==false){
+            if(clauses.head.token != DefaultJmlTokenKind.REQUIRES || filterSet.contains(clauses.head.toString())==false){
                 if(replacedClauses == null){
                     replacedClauses = List.of(clauses.head);
                 }else{
@@ -161,7 +156,7 @@ public class RemoveDuplicatePreconditions extends JmlTreeScanner {
                 JmlMethodClauseExpr clauseExpr = (JmlMethodClauseExpr)clauses.head;
                 
                 // we want to filter out all requires clauses. 
-                if(clauseExpr.token == JmlTokenKind.REQUIRES){
+                if(clauseExpr.token == DefaultJmlTokenKind.REQUIRES){
                     addFilterAtBlock(tree, clauseExpr);
                 }
             }

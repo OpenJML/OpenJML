@@ -10,14 +10,9 @@ import java.util.Collection;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.Main;
-import org.jmlspecs.openjml.Strings;
-import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
@@ -352,7 +347,7 @@ public class JmlEnter extends Enter {
                             "jml.orphan.jml.class.decl",
                             specClassDecl.name,javasource);
                     utils.setJML(specClassDecl.mods);
-                    JCAnnotation x = utils.tokenToAnnotationAST(JmlTokenKind.MODEL, specClassDecl.pos, specClassDecl.pos);
+                    JCAnnotation x = utils.tokenToAnnotationAST(DefaultJmlTokenKind.MODEL, specClassDecl.pos, specClassDecl.pos);
                     boolean has = false;
                     for (JCAnnotation a: specClassDecl.getModifiers().getAnnotations()) {
                         // FIXME - this is an inadequate comparison

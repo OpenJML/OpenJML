@@ -1348,7 +1348,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     continue;
                 } else if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
-                    if (s.token == JmlTokenKind.ASSUME) {
+                    if (s.token == DefaultJmlTokenKind.ASSUME) {
                         if (s.label == Label.METHOD_DEFINITION) {
                             JCExpression ex = s.expression;
                             ex = ((JmlQuantifiedExpr)ex).value;
@@ -1361,10 +1361,10 @@ public class SMTTranslator extends JmlTreeScanner {
                             IExpr exx = convertExpr(s.expression);
                             stack.push(exx);
                         }
-                    } else if (s.token == JmlTokenKind.ASSERT) {
+                    } else if (s.token == DefaultJmlTokenKind.ASSERT) {
                         IExpr exx = convertExpr(s.expression);
                         stack.push(exx);
-                    } else if (s.token == JmlTokenKind.COMMENT) {
+                    } else if (s.token == DefaultJmlTokenKind.COMMENT) {
                         if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                         int k = s.id.indexOf(" ");
                         k = Integer.valueOf(s.id.substring(k+1));
@@ -1393,21 +1393,21 @@ public class SMTTranslator extends JmlTreeScanner {
                     continue;
                 } else if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
-                    if (s.token == JmlTokenKind.ASSUME) {
+                    if (s.token == DefaultJmlTokenKind.ASSUME) {
                         if (s.label == Label.METHOD_DEFINITION) {
                             // skip
                         } else {
                             IExpr exx = stack.pop();
                             tail = F.fcn(impliesSym, exx, tail);
                         }
-                    } else if (s.token == JmlTokenKind.ASSERT) {
+                    } else if (s.token == DefaultJmlTokenKind.ASSERT) {
                         IExpr exx = stack.pop();
                         // The first return is the classic translation; the second
                         // effectively inserts an assume after an assert. I'm not
                         // sure it makes any difference. TODO - evaluate this sometime.
                         //return F.fcn(F.symbol("and"), exx, tail);
                         tail = F.fcn(F.symbol("and"), exx, F.fcn(impliesSym, exx, tail));
-                    } else if (s.token == JmlTokenKind.COMMENT) {
+                    } else if (s.token == DefaultJmlTokenKind.COMMENT) {
                         if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                         int k = s.id.indexOf(" ");
                         k = Integer.valueOf(s.id.substring(k+1));
@@ -1490,7 +1490,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     continue;
                 } else if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
-                    if (s.token == JmlTokenKind.ASSUME) {
+                    if (s.token == DefaultJmlTokenKind.ASSUME) {
                         if (s.label == Label.METHOD_DEFINITION) {
                             JCExpression ex = s.expression;
                             ex = ((JmlQuantifiedExpr)ex).value;
@@ -1505,10 +1505,10 @@ public class SMTTranslator extends JmlTreeScanner {
                             commands.add(new C_define_fun(newsym,new LinkedList<IDeclaration>(),boolSort,exx));
                             stack.push(newsym);
                         }
-                    } else if (s.token == JmlTokenKind.ASSERT) {
+                    } else if (s.token == DefaultJmlTokenKind.ASSERT) {
                         IExpr exx = convertExpr(s.expression);
                         stack.push(exx);
-                    } else if (s.token == JmlTokenKind.COMMENT) {
+                    } else if (s.token == DefaultJmlTokenKind.COMMENT) {
                         if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                         int k = s.id.indexOf(" ");
                         k = Integer.valueOf(s.id.substring(k+1));
@@ -1540,7 +1540,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     continue;
                 } else if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
-                    if (s.token == JmlTokenKind.ASSUME) {
+                    if (s.token == DefaultJmlTokenKind.ASSUME) {
                         if (s.label == Label.METHOD_DEFINITION) {
                             // skip
                         } else {
@@ -1548,7 +1548,7 @@ public class SMTTranslator extends JmlTreeScanner {
                             tail = F.fcn(impliesSym, exx, tail);
                             ++n;
                         }
-                    } else if (s.token == JmlTokenKind.ASSERT) {
+                    } else if (s.token == DefaultJmlTokenKind.ASSERT) {
                         IExpr exx = stack.pop();
                         // The first return is the classic translation; the second
                         // effectively inserts an assume after an assert. I'm not
@@ -1556,7 +1556,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         //return F.fcn(F.symbol("and"), exx, tail);
                         tail = F.fcn(F.symbol("and"), exx, F.fcn(impliesSym, exx, tail));
                         ++n;
-                    } else if (s.token == JmlTokenKind.COMMENT) {
+                    } else if (s.token == DefaultJmlTokenKind.COMMENT) {
                         if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                         int k = s.id.indexOf(" ");
                         k = Integer.valueOf(s.id.substring(k+1));
@@ -1598,19 +1598,19 @@ public class SMTTranslator extends JmlTreeScanner {
                  return tail;
             } else if (stat instanceof JmlStatementExpr) {
                 JmlStatementExpr s = (JmlStatementExpr)stat;
-                if (s.token == JmlTokenKind.ASSUME) {
+                if (s.token == DefaultJmlTokenKind.ASSUME) {
                     IExpr exx = convertExpr(s.expression);
                     LinkedList<IExpr> args = new LinkedList<IExpr>();
                     args.add(exx);
                     args.add(tail);
                     return F.fcn(impliesSym, args);
-                } else if (s.token == JmlTokenKind.ASSERT) {
+                } else if (s.token == DefaultJmlTokenKind.ASSERT) {
                     IExpr exx = convertExpr(s.expression);
                     LinkedList<IExpr> args = new LinkedList<IExpr>();
                     args.add(exx);
                     args.add(tail);
                     return F.fcn(F.symbol("and"), args);
-                } else if (s.token == JmlTokenKind.COMMENT) {
+                } else if (s.token == DefaultJmlTokenKind.COMMENT) {
                     return tail;
                 } else {
                     log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
@@ -1637,9 +1637,9 @@ public class SMTTranslator extends JmlTreeScanner {
         if (tag == TypeTag.NONE || tag == TypeTag.UNKNOWN){ // Do these first because they are also primitive types
             if (t instanceof JmlType) {
                 JmlType jt = (JmlType)t;
-                if (jt.jmlTypeTag() == JmlTokenKind.BSBIGINT) return intSort; 
-                if (jt.jmlTypeTag() == JmlTokenKind.BSREAL) return realSort; 
-                if (jt.jmlTypeTag() == JmlTokenKind.BSTYPEUC) return jmlTypeSort;
+                if (jt.jmlTypeTag() == DefaultJmlTokenKind.BSBIGINT) return intSort;
+                if (jt.jmlTypeTag() == DefaultJmlTokenKind.BSREAL) return realSort;
+                if (jt.jmlTypeTag() == DefaultJmlTokenKind.BSTYPEUC) return jmlTypeSort;
             }
             // FIXME - errors
             return refSort; // FIXME - just something
@@ -1880,27 +1880,27 @@ public class SMTTranslator extends JmlTreeScanner {
      */
     @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
-        if (that.token == JmlTokenKind.BSTYPELC) {
+        if (that.token == DefaultJmlTokenKind.BSTYPELC) {
             Type t = that.args.get(0).type;
             addType(t);
             result = that.javaType ? javaTypeSymbol(t) : jmlTypeSymbol(t);
             return;
         }
         List<IExpr> newargs = convertExprList(that.args);
-        if (that.token == JmlTokenKind.SUBTYPE_OF) {
+        if (that.token == DefaultJmlTokenKind.SUBTYPE_OF) {
             result = F.fcn(F.symbol(JMLSUBTYPE), newargs);
-        } else if (that.token == JmlTokenKind.JSUBTYPE_OF) {
+        } else if (that.token == DefaultJmlTokenKind.JSUBTYPE_OF) {
             result = F.fcn(F.symbol(JAVASUBTYPE), newargs);
-        } else if (that.token == JmlTokenKind.BSTYPEOF) {
+        } else if (that.token == DefaultJmlTokenKind.BSTYPEOF) {
             ISymbol s = that.javaType ? F.symbol("javaTypeOf") : F.symbol("jmlTypeOf");
             result = F.fcn(s, newargs);
-        } else if (that.token == JmlTokenKind.BSNONNULLELEMENTS) {
+        } else if (that.token == DefaultJmlTokenKind.BSNONNULLELEMENTS) {
             result = F.fcn(F.symbol(nonnullelements), newargs);
-        } else if (that.token == JmlTokenKind.BSELEMTYPE) {
+        } else if (that.token == DefaultJmlTokenKind.BSELEMTYPE) {
             result = F.fcn(F.symbol(arrayElemType), newargs);
-        } else if (that.token == JmlTokenKind.BSERASURE) {
+        } else if (that.token == DefaultJmlTokenKind.BSERASURE) {
             result = F.fcn(F.symbol("erasure"), newargs);
-        } else if (that.token == JmlTokenKind.BSDISTINCT) {
+        } else if (that.token == DefaultJmlTokenKind.BSDISTINCT) {
             result = F.fcn(distinctSym, newargs);
         } else if (that.meth != null) {
             // Built-in methods
@@ -2180,7 +2180,7 @@ public class SMTTranslator extends JmlTreeScanner {
         if (tree.expr instanceof JCLiteral) {
             JCLiteral lit = (JCLiteral)tree.expr;
             if (lit.getValue() instanceof Number) {
-                if (tagr == TypeTag.DOUBLE || tagr == TypeTag.FLOAT || ((tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) && ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL)) {
+                if (tagr == TypeTag.DOUBLE || tagr == TypeTag.FLOAT || ((tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) && ((JmlType)tree.type).jmlTypeTag() == DefaultJmlTokenKind.BSREAL)) {
                     double d = ((Number)lit.getValue()).doubleValue();
                     result = makeRealValue(d);
                     return;
@@ -2188,8 +2188,8 @@ public class SMTTranslator extends JmlTreeScanner {
             }
         }
         if (result instanceof Numeral) {
-            if ((tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) && ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
-                if ((tage == TypeTag.NONE || tage == TypeTag.UNKNOWN) && ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) return;
+            if ((tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) && ((JmlType)tree.type).jmlTypeTag() == DefaultJmlTokenKind.BSREAL) {
+                if ((tage == TypeTag.NONE || tage == TypeTag.UNKNOWN) && ((JmlType)tree.expr.type).jmlTypeTag() == DefaultJmlTokenKind.BSREAL) return;
                 java.math.BigInteger b = ((Numeral)result).value();
                 double d = b.doubleValue(); // FIXME - this may not be in range
                 result = makeRealValue(d);
@@ -2199,20 +2199,20 @@ public class SMTTranslator extends JmlTreeScanner {
         if (tree.type.isPrimitive() == tree.expr.type.isPrimitive()) {
             if (tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) { 
                 if (tage == TypeTag.NONE || tage == TypeTag.UNKNOWN) { 
-                    if (((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
-                        if (((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                    if (((JmlType)tree.type).jmlTypeTag() == DefaultJmlTokenKind.BSBIGINT) {
+                        if (((JmlType)tree.expr.type).jmlTypeTag() == DefaultJmlTokenKind.BSBIGINT) {
                             // \bigint to \bigint -- OK
-                        } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                        } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == DefaultJmlTokenKind.BSREAL) {
                             // \real to \bigint
                             result = F.fcn(F.symbol("to_int"), result);
                         } else {
                             // FIXME - error
                         }
-                    } else if ( ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
-                        if (((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                    } else if ( ((JmlType)tree.type).jmlTypeTag() == DefaultJmlTokenKind.BSREAL) {
+                        if (((JmlType)tree.expr.type).jmlTypeTag() == DefaultJmlTokenKind.BSBIGINT) {
                             // \bigint to \real
                             result = F.fcn(F.symbol("to_real"), result);
-                        } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                        } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == DefaultJmlTokenKind.BSREAL) {
                             // \real to \real -- OK
                         } else {
                             // FIXME - error
@@ -2222,19 +2222,19 @@ public class SMTTranslator extends JmlTreeScanner {
                     }
                     
                 } else if (treeutils.isIntegral(tage)) {
-                    if (((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                    if (((JmlType)tree.type).jmlTypeTag() == DefaultJmlTokenKind.BSBIGINT) {
                         // int to \bigint -- OK
-                    } else if ( ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                    } else if ( ((JmlType)tree.type).jmlTypeTag() == DefaultJmlTokenKind.BSREAL) {
                         // int to \real
                         result = F.fcn(F.symbol("to_real"), result);
                     } else {
                         // FIXME - error
                     }
                 } else {
-                    if (((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                    if (((JmlType)tree.type).jmlTypeTag() == DefaultJmlTokenKind.BSBIGINT) {
                         // float/double to \bigint
                         result = F.fcn(F.symbol("to_int"), result);
-                    } else if ( ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                    } else if ( ((JmlType)tree.type).jmlTypeTag() == DefaultJmlTokenKind.BSREAL) {
                         // float/double to \real -- OK
                     } else {
                         // FIXME - error
@@ -2242,19 +2242,19 @@ public class SMTTranslator extends JmlTreeScanner {
                 }
             } else if (tage == TypeTag.NONE || tage == TypeTag.UNKNOWN) { 
                 if (treeutils.isIntegral(tagr)) {
-                    if (((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                    if (((JmlType)tree.expr.type).jmlTypeTag() == DefaultJmlTokenKind.BSBIGINT) {
                         // \bigint to int -- OK
-                    } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                    } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == DefaultJmlTokenKind.BSREAL) {
                         // \real to int -- FIXME
                         result = F.fcn(F.symbol("to_int"), result);
                     } else {
                         // FIXME - error
                     }
                 } else {
-                    if (((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                    if (((JmlType)tree.expr.type).jmlTypeTag() == DefaultJmlTokenKind.BSBIGINT) {
                         // \bigint to float/double -- FIXME
                         result = F.fcn(F.symbol("to_real"), result);
-                    } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                    } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == DefaultJmlTokenKind.BSREAL) {
                         // \real to float/double -- OK
                     } else {
                         // FIXME - error
@@ -2647,7 +2647,7 @@ public class SMTTranslator extends JmlTreeScanner {
             IExpr range = result;
             scan(that.value);
             IExpr value = result;
-            if (that.op == JmlTokenKind.BSFORALL) {
+            if (that.op == DefaultJmlTokenKind.BSFORALL) {
                 if (range != null) value = F.fcn(impliesSym,range,value);
                 if (that.triggers != null && !that.triggers.isEmpty()) {
                     List<IExpr> triggers = convertExprList(that.triggers);
@@ -2655,7 +2655,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else {
                     result = F.forall(params,value);
                 }
-            } else if (that.op == JmlTokenKind.BSEXISTS) {
+            } else if (that.op == DefaultJmlTokenKind.BSEXISTS) {
                 if (range != null) value = F.fcn(F.symbol("and"),range,value);
                 if (that.triggers != null && !that.triggers.isEmpty()) {
                     List<IExpr> triggers = convertExprList(that.triggers);

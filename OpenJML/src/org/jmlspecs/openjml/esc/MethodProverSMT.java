@@ -840,7 +840,7 @@ public class MethodProverSMT {
                         int spanType = Span.NORMAL;
                         JCTree toTrace = null;
                         String val = null;
-                        if (origStat instanceof JmlStatementExpr && ((JmlStatementExpr)origStat).token == JmlTokenKind.ASSUME) {
+                        if (origStat instanceof JmlStatementExpr && ((JmlStatementExpr)origStat).token == DefaultJmlTokenKind.ASSUME) {
                             //toTrace = ((JmlStatementExpr)stat).expression;
                             break ifstat;
                         } else if (origStat instanceof JCIf) {
@@ -883,7 +883,7 @@ public class MethodProverSMT {
                             if (toTrace != null && showSubexpressions) tracer.trace(s.init);
                             if (toTrace != null && showSubexpressions) tracer.trace(s.ident);
                             break ifstat;
-//                        } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.COMMENT && ((JmlStatementExpr)stat).expression.toString().contains("ImplicitAssume")) {
+//                        } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == DefaultJmlTokenKind.COMMENT && ((JmlStatementExpr)stat).expression.toString().contains("ImplicitAssume")) {
 //                            break ifstat;
                         } else {
                             toTrace = origStat;
@@ -934,7 +934,7 @@ public class MethodProverSMT {
                         log.getWriter(WriterKind.NOTICE).println("DECL: " + n + " === " + getValue(n.toString(),info.smt,info.solver));
                     }
                 }
-                if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.COMMENT) {
+                if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == DefaultJmlTokenKind.COMMENT) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
                     if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                     if (s.optionalExpression != null) {
@@ -942,7 +942,7 @@ public class MethodProverSMT {
                         return pathCondition;
                     }
                 }
-                if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.ASSERT) {
+                if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == DefaultJmlTokenKind.ASSERT) {
                     JmlStatementExpr assertStat = (JmlStatementExpr)stat;
                     JCExpression e = assertStat.expression;
                     Label label = assertStat.label;
@@ -1012,7 +1012,7 @@ public class MethodProverSMT {
                         }
                         if (assertStat.associatedClause != null && JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
                             JmlTokenKind tkind = assertStat.associatedClause.token;
-                            if (tkind == JmlTokenKind.ENSURES || tkind == JmlTokenKind.SIGNALS || tkind == JmlTokenKind.SIGNALS_ONLY) {  // FIXME - actually - any postcondition check
+                            if (tkind == DefaultJmlTokenKind.ENSURES || tkind == DefaultJmlTokenKind.SIGNALS || tkind == DefaultJmlTokenKind.SIGNALS_ONLY) {  // FIXME - actually - any postcondition check
                                 int p = terminationPos;
                                 if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
                                     if (terminationPos == info.decl.pos) p = info.decl.getEndPosition(log.getSource(mainSource).getEndPosTable());
@@ -1086,9 +1086,9 @@ public class MethodProverSMT {
     }
     
     // These strings must mirror the strings used in JmlAsssertionAdder.visitJmlLblExpression
-    private final static String prefix_lblpos = Strings.labelVarString + JmlTokenKind.BSLBLPOS.internedName().substring(1) + "_";
-    private final static String prefix_lblneg = Strings.labelVarString + JmlTokenKind.BSLBLNEG.internedName().substring(1) + "_";
-    private final static String prefix_lbl = Strings.labelVarString + JmlTokenKind.BSLBLANY.internedName().substring(1) + "_";
+    private final static String prefix_lblpos = Strings.labelVarString + DefaultJmlTokenKind.BSLBLPOS.internedName().substring(1) + "_";
+    private final static String prefix_lblneg = Strings.labelVarString + DefaultJmlTokenKind.BSLBLNEG.internedName().substring(1) + "_";
+    private final static String prefix_lbl = Strings.labelVarString + DefaultJmlTokenKind.BSLBLANY.internedName().substring(1) + "_";
 
     public int checkTerminationPosition(String id, int terminationPos) {
         // The BasicBlocker2 implementation creates special RETURN and 
@@ -1193,7 +1193,7 @@ public class MethodProverSMT {
                     int spanType = Span.NORMAL;
                     JCTree toTrace = null;
                     String val = null;
-                    if (origStat instanceof JmlStatementExpr && ((JmlStatementExpr)origStat).token == JmlTokenKind.ASSUME) {
+                    if (origStat instanceof JmlStatementExpr && ((JmlStatementExpr)origStat).token == DefaultJmlTokenKind.ASSUME) {
                         //toTrace = ((JmlStatementExpr)stat).expression;
                         break ifstat;
                     } else if (origStat instanceof JCIf) {
@@ -1236,7 +1236,7 @@ public class MethodProverSMT {
                         if (toTrace != null && showSubexpressions) tracer.trace(s.init);
                         if (toTrace != null && showSubexpressions) tracer.trace(s.ident);
                         break ifstat;
-//                    } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.COMMENT && ((JmlStatementExpr)stat).expression.toString().contains("ImplicitAssume")) {
+//                    } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == DefaultJmlTokenKind.COMMENT && ((JmlStatementExpr)stat).expression.toString().contains("ImplicitAssume")) {
 //                        break ifstat;
                     } else {
                         toTrace = origStat;
@@ -1287,7 +1287,7 @@ public class MethodProverSMT {
                     log.getWriter(WriterKind.NOTICE).println("DECL: " + n + " === " + getValue(n.toString(),info.smt,info.solver));
                 }
             }
-            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.COMMENT) {
+            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == DefaultJmlTokenKind.COMMENT) {
                 JmlStatementExpr s = (JmlStatementExpr)stat;
                 if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                 if (s.optionalExpression != null) {
@@ -1295,7 +1295,7 @@ public class MethodProverSMT {
                     return pathCondition;
                 }
             }
-            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.ASSERT) {
+            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == DefaultJmlTokenKind.ASSERT) {
                 JmlStatementExpr assertStat = (JmlStatementExpr)stat;
                 JCExpression e = assertStat.expression;
                 Label label = assertStat.label;
@@ -1365,7 +1365,7 @@ public class MethodProverSMT {
                     }
                     if (assertStat.associatedClause != null && JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
                         JmlTokenKind tkind = assertStat.associatedClause.token;
-                        if (tkind == JmlTokenKind.ENSURES || tkind == JmlTokenKind.SIGNALS || tkind == JmlTokenKind.SIGNALS_ONLY) {  // FIXME - actually - any postcondition check
+                        if (tkind == DefaultJmlTokenKind.ENSURES || tkind == DefaultJmlTokenKind.SIGNALS || tkind == DefaultJmlTokenKind.SIGNALS_ONLY) {  // FIXME - actually - any postcondition check
                             int p = terminationPos;
                             if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
                                 if (terminationPos == info.decl.pos) p = info.decl.getEndPosition(log.getSource(mainSource).getEndPosTable());
@@ -1713,11 +1713,11 @@ public class MethodProverSMT {
         @Override
         public void visitJmlBinary(JmlBinary tree) {
             // Special handling of short-circuit cases
-            if (tree.op == JmlTokenKind.IMPLIES) {
+            if (tree.op == DefaultJmlTokenKind.IMPLIES) {
                 scan(tree.lhs);
                 String v = cemap.get(tree.lhs);
                 if ("true".equals(v)) scan(tree.rhs);
-            } else if (tree.op == JmlTokenKind.REVERSE_IMPLIES) {
+            } else if (tree.op == DefaultJmlTokenKind.REVERSE_IMPLIES) {
                 scan(tree.lhs);
                 String v = cemap.get(tree.lhs);
                 if ("false".equals(v)) scan(tree.rhs);
@@ -1780,7 +1780,7 @@ public class MethodProverSMT {
 
         @Override
         public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
-            if (tree.token != JmlTokenKind.BSTYPELC) {
+            if (tree.token != DefaultJmlTokenKind.BSTYPELC) {
                 for (JCExpression a: tree.args) {
                     scan(a);
                 }

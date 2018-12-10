@@ -3,13 +3,7 @@ package org.jmlspecs.openjml.strongarm.transforms;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTreeScanner;
-import org.jmlspecs.openjml.JmlTreeUtils;
-import org.jmlspecs.openjml.Strings;
-import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
@@ -71,7 +65,7 @@ public class RemoveSpecPublic extends JmlTreeScanner {
         if(tree.lhs instanceof JCFieldAccess){
             JCFieldAccess fa = (JCFieldAccess)tree.lhs;
         
-            if(clause.token==JmlTokenKind.REQUIRES && fa.toString().contains("null")){
+            if(clause.token== DefaultJmlTokenKind.REQUIRES && fa.toString().contains("null")){
                 return true;
             }
         }

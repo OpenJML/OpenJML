@@ -579,7 +579,7 @@ public class JmlCompiler extends JavaCompiler {
             JmlTree.Maker M = JmlTree.Maker.instance(context);
             JCClassDecl that = (JCClassDecl)tree;
             
-            if (((JmlAttr)attr).hasAnnotation(that.sym,JmlTokenKind.SKIP_RAC)) {
+            if (((JmlAttr)attr).hasAnnotation(that.sym,DefaultJmlTokenKind.SKIP_RAC)) {
                 utils.progress(1,1,"Skipping RAC of " + that.name.toString() + " (SkipRac annotation)");
                 return env;
             }

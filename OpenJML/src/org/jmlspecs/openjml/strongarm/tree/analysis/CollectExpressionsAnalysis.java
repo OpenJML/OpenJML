@@ -3,6 +3,7 @@ package org.jmlspecs.openjml.strongarm.tree.analysis;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jmlspecs.openjml.DefaultJmlTokenKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
@@ -44,7 +45,7 @@ public class CollectExpressionsAnalysis extends JmlTreeAnalysis {
     
     public static Set<JCTree> analyze(JCTree tree){
         
-        CollectExpressionsAnalysis analysis = new CollectExpressionsAnalysis(Strongarm._context, JmlTokenKind.REQUIRES);
+        CollectExpressionsAnalysis analysis = new CollectExpressionsAnalysis(Strongarm._context, DefaultJmlTokenKind.REQUIRES);
         
         
         analysis.scan(tree);

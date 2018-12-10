@@ -77,9 +77,9 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
 
     @Override
     public void visitJmlStatementExpr(JmlStatementExpr that) {
-        if (that.token == JmlTokenKind.USE) {
+        if (that.token == DefaultJmlTokenKind.USE) {
             JCExpression expr = that.expression;
-            if (expr instanceof JmlBinary && ((JmlBinary)expr).op == JmlTokenKind.IMPLIES) {
+            if (expr instanceof JmlBinary && ((JmlBinary)expr).op == DefaultJmlTokenKind.IMPLIES) {
                 JmlBinary imp = (JmlBinary)expr;
                 if (!(imp.rhs instanceof JCBinary && ((JCBinary)imp.rhs).getTag() == JCTree.Tag.EQ)) {
                     log.error(expr, "jml.message", "Invalid kind of expression for a use statement; should be a lemma call, implication, or equality");
@@ -133,7 +133,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                 exprPrecondition = exprHead = null;
                 JmlSpecificationCase cs = lemmaspecs.cases.cases.head;
                 for (JmlMethodClause cl: cs.clauses) {
-                    switch (cl.token) {
+                    switch ((DefaultJmlTokenKind) cl.token) {
                         case REQUIRES:
                             expr = ((JmlMethodClauseExpr)cl).expression;
                             if (exprPrecondition != null) {
@@ -154,7 +154,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                                 subst.replacements = replacements;
                                 exprHead = subst.copy(bin.lhs);
                                 exprTail = subst.copy(bin.rhs);
-                            } else if (expr instanceof JmlBinary && ((JmlBinary)expr).op == JmlTokenKind.IMPLIES) {
+                            } else if (expr instanceof JmlBinary && ((JmlBinary)expr).op == DefaultJmlTokenKind.IMPLIES) {
                                 JmlBinary bin = (JmlBinary)expr;
                                 subst.replacements = replacements;
                                 exprHead = subst.copy(bin.lhs);
@@ -170,7 +170,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                     }
                     currentUse = that;
                     if (exprPrecondition == null) exprPrecondition = treeutils.trueLit;
-                    result = M.at(that).JmlExpressionStatement(JmlTokenKind.ASSERT,Label.UNDEFINED_LEMMA,treeutils.trueLit);
+                    result = M.at(that).JmlExpressionStatement(DefaultJmlTokenKind.ASSERT,Label.UNDEFINED_LEMMA,treeutils.trueLit);
                     result = currentUse;
                 }
             } else {

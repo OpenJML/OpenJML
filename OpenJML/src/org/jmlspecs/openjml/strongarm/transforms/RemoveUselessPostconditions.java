@@ -3,12 +3,7 @@ package org.jmlspecs.openjml.strongarm.transforms;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTreeScanner;
-import org.jmlspecs.openjml.JmlTreeUtils;
-import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
@@ -68,11 +63,11 @@ public class RemoveUselessPostconditions extends JmlTreeScanner {
         
         for(JmlMethodClause c : clauses){
             
-            if(c.token==JmlTokenKind.ENSURES){
+            if(c.token== DefaultJmlTokenKind.ENSURES){
                 ensures++;
             }
             
-            if(c.token==JmlTokenKind.ASSIGNABLE){
+            if(c.token==DefaultJmlTokenKind.ASSIGNABLE){
                 assignable++;
             }
         }

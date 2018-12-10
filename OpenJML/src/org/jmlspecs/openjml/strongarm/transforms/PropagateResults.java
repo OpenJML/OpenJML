@@ -7,13 +7,7 @@ import java.util.Set;
 
 import javax.lang.model.type.TypeKind;
 
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTreeScanner;
-import org.jmlspecs.openjml.JmlTreeUtils;
-import org.jmlspecs.openjml.Strings;
-import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
@@ -63,7 +57,7 @@ public class PropagateResults extends JmlTreeScanner {
         if(clause instanceof JmlMethodClauseExpr){
             JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
             
-            if(mExpr.token == JmlTokenKind.ENSURES && mExpr.expression instanceof JCBinary ){
+            if(mExpr.token == DefaultJmlTokenKind.ENSURES && mExpr.expression instanceof JCBinary ){
                 JCBinary expr = (JCBinary)mExpr.expression;
 
                 if(expr == null || expr.lhs == null || expr.rhs==null){
@@ -95,7 +89,7 @@ public class PropagateResults extends JmlTreeScanner {
         if(clause instanceof JmlMethodClauseExpr){
             JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
             
-            if(mExpr.token == JmlTokenKind.ENSURES && mExpr.expression instanceof JCBinary ){
+            if(mExpr.token == DefaultJmlTokenKind.ENSURES && mExpr.expression instanceof JCBinary ){
                 JCBinary expr = (JCBinary)mExpr.expression;
                 
                 if(expr == null || expr.lhs == null || expr.rhs==null){

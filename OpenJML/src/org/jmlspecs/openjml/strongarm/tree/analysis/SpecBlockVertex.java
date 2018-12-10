@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.jmlspecs.openjml.DefaultJmlTokenKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
@@ -132,7 +133,7 @@ public class SpecBlockVertex  {
             // there are two ways to do it
             
             if(isAllowAnyOrder()==false){
-                if(c.token == JmlTokenKind.REQUIRES && v.contains(c)){
+                if(c.token == DefaultJmlTokenKind.REQUIRES && v.contains(c)){
                     theIntersection.add(c);
                 }
             }else{    

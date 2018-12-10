@@ -8,6 +8,7 @@ package com.sun.tools.javac.comp;
 import static com.sun.tools.javac.tree.JCTree.Tag.APPLY;
 
 import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.openjml.DefaultJmlTokenKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 
 import com.sun.tools.javac.code.Flags;
@@ -103,7 +104,7 @@ public class JmlCheck extends Check {
         if (staticOldEnv) { k |= Flags.STATIC; }
         if (tree instanceof JCTree.JCVariableDecl) {
             JCTree.JCVariableDecl d =(JCTree.JCVariableDecl) tree;
-            boolean isInstance = JmlAttr.instance(context).findMod(d.mods,JmlTokenKind.INSTANCE) != null;
+            boolean isInstance = JmlAttr.instance(context).findMod(d.mods, DefaultJmlTokenKind.INSTANCE) != null;
             if (isInstance) k &= ~Flags.STATIC;
         }
         return k;
