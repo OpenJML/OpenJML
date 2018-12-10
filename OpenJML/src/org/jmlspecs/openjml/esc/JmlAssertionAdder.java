@@ -6686,8 +6686,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // mspecs can be null if we are translating a initializer block
         if (mspecs != null) for (JmlSpecificationCase c: mspecs.cases) {
             // FIXME - visibility?
-          JavaFileObject prev = log.useSource(c.source());
           JCExpression pre = preconditions.get(c);
+          if (pre == null) continue;
+          JavaFileObject prev = log.useSource(c.source());
           pushBlock();
           try {
             noSpecCases = false;
@@ -6742,12 +6743,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JmlMethodSpecs mspecs = specs.getDenestedSpecs(methodDecl.sym); // FIXME - does this contain all inherited specs? it should
         if (mspecs == null) return; // FIXME - why would this happen?
         {
-            if (trItem instanceof JCFieldAccess && !utils.isJMLStatic(((JCFieldAccess)trItem).sym)) {
-                JCExpression obj = ((JCFieldAccess)trItem).getExpression();
+            JCExpression obj = null;
+            if (trItem instanceof JCFieldAccess) {
+                if (!utils.isJMLStatic(((JCFieldAccess)trItem).sym)) obj = ((JCFieldAccess)trItem).getExpression();
+            } else if (trItem instanceof JCArrayAccess) {
+                obj = ((JCArrayAccess)trItem).getExpression();
+            } else if (trItem instanceof JmlBBArrayAccess) {
+                obj = ((JCArrayAccess)trItem).getExpression();
+            }
+            if (obj != null) {
                 JCExpression fresh = isFreshlyAllocated(scannedItem,obj);
                 JCExpression notfresh = treeutils.makeNot(scannedItem, fresh);
-                //if (scannedItem.type.isPrimitive() || jmltypes.isJmlType(scannedItem.type)) fresh = treeutils.falseLit;
-
                 if (treeutils.isFalseLit(fresh)) { 
                     // no change to precondition
                 } else if (!treeutils.isTrueLit(fresh)) {
@@ -6755,12 +6761,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else {
                     return; // Definitely fresh - so no checks to be done
                 }
-           
             }
         }
         for (JmlSpecificationCase c : mspecs.cases) {
-            JavaFileObject prev = log.useSource(c.source());
             JCExpression pre = preconditions.get(c);
+            if (pre == null) continue;
+            JavaFileObject prev = log.useSource(c.source());
             pushBlock();
             // FIXME - visibility?
             try {
@@ -6808,8 +6814,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         JCExpression composite = treeutils.trueLit;
         for (JmlSpecificationCase c : mspecs.cases) {
-            // FIXME _ visibility>
-            JCExpression pre = preExpressions.get(c);
+            // FIXME _ visibility> // if visibility is wrong, pre may be null
+            JCExpression pre = preconditions.get(c);
+            if (pre == null) continue;
             JCIdent id = newTemp(c,syms.booleanType);
             pushBlock();
             JCExpression condition = checkAccess(token,callPosition, location, trLocation, c, baseThisId, targetThisId, true);
