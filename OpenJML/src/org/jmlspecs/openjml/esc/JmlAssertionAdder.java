@@ -6686,7 +6686,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // mspecs can be null if we are translating a initializer block
         if (mspecs != null) for (JmlSpecificationCase c: mspecs.cases) {
             // FIXME - visibility?
-          JCExpression pre = preconditions.get(c);
+          JCExpression pre = preconditions.get(c);  // FIXME - distinguish callee and caller specs?
+          if (pre == null) pre = calleePreconditions.get(c);
           if (pre == null) continue;
           JavaFileObject prev = log.useSource(c.source());
           pushBlock();
@@ -6737,7 +6738,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     protected void checkAgainstCallerSpecs(JmlTokenKind token, DiagnosticPosition callPosition, JCExpression scannedItem, JCExpression trItem, JCExpression precondition,
             JCIdent baseThisId, /*@nullable*/ JCIdent targetThisId, JavaFileObject itemSource) {
-        precondition = treeutils.trueLit;
         if (rac) return; // FIXME - turn off checking assignable until we figure out how to handle fresh allocations
         if (token == JmlTokenKind.ACCESSIBLE && !checkAccessEnabled) return;
         JmlMethodSpecs mspecs = specs.getDenestedSpecs(methodDecl.sym); // FIXME - does this contain all inherited specs? it should
@@ -6815,7 +6815,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression composite = treeutils.trueLit;
         for (JmlSpecificationCase c : mspecs.cases) {
             // FIXME _ visibility> // if visibility is wrong, pre may be null
-            JCExpression pre = preconditions.get(c);
+            JCExpression pre = calleePreconditions.get(c);
             if (pre == null) continue;
             JCIdent id = newTemp(c,syms.booleanType);
             pushBlock();
@@ -6854,7 +6854,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 isLocal = treeutils.makeEqObject(fa.pos, convertJML(fa.selected), makeThisId(classDecl.pos,classDecl.sym));
             }
         }
-        JCIdent speccasePrecondition = callee ? preExpressions.get(specCase) : preconditions.get(specCase);
+        JCIdent speccasePrecondition = callee ? calleePreconditions.get(specCase) : preconditions.get(specCase);
         speccasePrecondition = speccasePrecondition == null ? null : treeutils.makeIdent(speccasePrecondition.pos, speccasePrecondition.sym); // a new id for the same symbol
         boolean anyAccessClauses = false;
         JmlMethodClause anyAssignableClause = null;
@@ -7145,6 +7145,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         applyHelper(that);
     }
     
+    public boolean checkCodeModifier(MethodSymbol calleeMethodSym, MethodSymbol mpsym, JmlSpecificationCase cs) {
+        return !(mpsym != calleeMethodSym && cs.code);
+    }
+    
     // sym == null means \everything must be callable
     protected void checkThatMethodIsCallable(DiagnosticPosition pos, Symbol sym) {
         // Method might be called in an initializer??? FIXME - what do we do then?
@@ -7154,7 +7158,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // If there are no specification cases, then the default is that 
         // everything is callable
         for (JmlSpecificationCase specCase: specs.getDenestedSpecs(methodDecl.sym).cases) {
-            // FI(XME - visibility?
+            // FIXME - visibility?
             JCIdent pre = preconditions.get(specCase);
             pre = pre == null ? null : treeutils.makeIdent(pre.pos, pre.sym); // a new id for the same symbol
             for (JmlMethodClause mclause : specCase.clauses) {
@@ -7413,7 +7417,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return M.at(pos).Block(0L, stats);
     }
     
-    Map<JmlSpecificationCase,JCIdent> preExpressions;
+    Map<JmlSpecificationCase,JCIdent> calleePreconditions;
 
     
     /** Helper method to do the work of visitApply and visitNewObject */
@@ -7464,9 +7468,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // A map to hold the preconditions for the callee, indexed by specification case
         // Since we might have a recursive call, we need to distinguish these from the caller preconditions
-        Map<JmlSpecificationCase,JCIdent> preExpressions = new HashMap<JmlSpecificationCase,JCIdent>();
-        Map<JmlSpecificationCase,JCIdent> savedPreexpressions = this.preExpressions;
-        this.preExpressions = preExpressions;
+        Map<JmlSpecificationCase,JCIdent> calleePreconditions = new HashMap<JmlSpecificationCase,JCIdent>();
+        Map<JmlSpecificationCase,JCIdent> savedPreexpressions = this.calleePreconditions;
+        this.calleePreconditions = calleePreconditions;
         
         JCExpression convertedReceiver = null;
         MethodSymbol calleeMethodSym = null; // The method symbol of the callee method or constructor
@@ -7861,7 +7865,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 resultSym = null;
                 resultExpr = convertedResult;
                 JCExpression res = insertAllModelProgramInlines(that, mapParamActuals,
-                        preExpressions, calleeMethodSym, typeargs, meth,
+                        calleePreconditions, calleeMethodSym, typeargs, meth,
                         inliningCall, overridden);
                 if (res != null) {
                     addAssumeEqual(that, Label.IMPLICIT_ASSUME, res, convertedResult);
@@ -8423,7 +8427,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     "JML undefined precondition - exception thrown",
                                     null));
                         }
-                        preExpressions.put(cs,preId); // Add to the list of spec cases, in order of declaration
+                        calleePreconditions.put(cs,preId); // Add to the list of spec cases, in order of declaration
                    //     preconditions.put(cs,preId); // Add to the list of spec cases, in order of declaration
                         pre = preId;
                         combinedPrecondition = treeutils.makeOrSimp(pre.pos, combinedPrecondition, pre);
@@ -8530,7 +8534,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                           if (mpsym != calleeMethodSym && cs.code) continue;
                           JavaFileObject prev = log.useSource(cs.source());
                           pushBlock();
-                          JCExpression pre = preExpressions.get(cs);
+                          JCExpression pre = calleePreconditions.get(cs);
                           try {
                             if ((!translatingJML || rac) && methodDecl != null && methodDecl.sym != null && cs.block == null) {  // FIXME - not quite sure of this guard // FIXME - what should we check for field initializers
                                 // Handle assignable & accessible clauses
@@ -8564,9 +8568,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             if (checkAccessEnabled) {
                                                 List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym,false);
                                                 for (JCExpression item: storerefs) {
-                                                    addStat(comment(item,"Is " + item + " accessible?",clause.source()));
+                                                    addStat(comment(item,"Is " + item + " accessible?" + utils.locationString(item.pos,clause.source()),clause.source()));
                                                     JCExpression trItem = convertAssignable(item, newThisExpr, true, clause.source());
-                                                    checkAgainstCallerSpecs(clause.token, that, item, trItem ,pre, savedThisId, newThisId, clause.source());
+                                                    JCExpression allowed = checkAgainstAllCalleeSpecs(calleeMethodSym,clause.token, that, item, trItem ,pre, newThisId, newThisId, clause.source(), true);
+                                                    checkAgainstCallerSpecs(clause.token, that, item, trItem , allowed, savedThisId, newThisId, clause.source());
                                                 }
                                                 anyAccessibleClauses = true;
                                             }
@@ -8621,7 +8626,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // Do any inlining
                 VarSymbol savedSym = resultSym;
                 JCExpression res = insertAllModelProgramInlines(that, mapParamActuals,
-                        preExpressions, calleeMethodSym, typeargs, meth,
+                        calleePreconditions, calleeMethodSym, typeargs, meth,
                         inliningCall, overridden);
                 resultSym = savedSym;
                 if (res != null && resultSym != null && resultSym.type.getTag() != TypeTag.VOID) {
@@ -8821,7 +8826,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                       if (mpsym != calleeMethodSym && cs.code) continue;
                       if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
                       if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
-                      JCExpression pre = convertCopy(preExpressions.get(cs));
+                      JCExpression pre = convertCopy(calleePreconditions.get(cs));
                       JavaFileObject prev = log.useSource(cs.source());
                       pushBlock();
                       try {
@@ -9189,7 +9194,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (mpsym != calleeMethodSym && cs.code) continue;
                         ListBuffer<JCStatement> ensuresStats = new ListBuffer<JCStatement>();
                         ListBuffer<JCStatement> exsuresStats = new ListBuffer<JCStatement>();
-                        JCExpression pre = convertCopy(preExpressions.get(cs));
+                        JCExpression pre = convertCopy(calleePreconditions.get(cs));
                         if (pre == treeutils.falseLit) continue; // Don't bother with postconditions if corresponding precondition is explicitly false 
                         condition = pre; // FIXME - is this right? what about the havoc statement?
 
@@ -9424,7 +9429,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             // FIXME - the source must be handled properly
 
-            preExpressions.clear();
+            calleePreconditions.clear();
             
             // Get rid of references - this may not really be needed, but it does not hurt
             {
@@ -9516,7 +9521,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             typevarMapping = savedTypeVarMapping;
             nestedCallLocation = savedNestedCallLocation;
             applyNesting--;
-            this.preExpressions = savedPreexpressions;
+            this.calleePreconditions = savedPreexpressions;
             if (rac) {
                 outerDeclarations.addAll(currentStatements);
                 currentStatements = outerDeclarations;
@@ -10749,11 +10754,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         if (op == JCTree.Tag.SL || op == JCTree.Tag.SR || op == JCTree.Tag.USR) {
             int mask =  (lhs.type.getTag() == TypeTag.LONG) ? 63 : 31;
-            JCExpression expr = treeutils.makeBinary(that.pos,  JCTree.Tag.BITAND, 
-                    mask == 31 ? treeutils.intbitandSymbol : treeutils.longbitandSymbol,
-                    rhs, treeutils.makeIntLiteral(that.pos,  mask));
-            expr = treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rhs, expr);
-            addAssert(that,Label.POSSIBLY_LARGESHIFT,expr);
+            JCTree.JCBinary bin = (JCBinary)that;
+            if (bin.rhs instanceof JCLiteral) {
+                long bits = ((Number)((JCLiteral)bin.rhs).getValue()).longValue();
+                if (currentArithmeticMode instanceof Arithmetic.Safe) {
+                    if (bits < 0 || bits > mask) {
+                        addAssert(that,Label.POSSIBLY_LARGESHIFT,treeutils.trueLit);
+                    }
+                }
+                if (!(currentArithmeticMode instanceof Arithmetic.Math)) bits &= mask;
+            } else {
+                JCExpression expr = treeutils.makeBinary(that.pos,  JCTree.Tag.BITAND, 
+                        mask == 31 ? treeutils.intbitandSymbol : treeutils.longbitandSymbol,
+                                rhs, treeutils.makeIntLiteral(that.pos,  mask));
+                expr = treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rhs, expr);
+                addAssert(that,Label.POSSIBLY_LARGESHIFT,expr);
+            }
+            // FIXME - need to export the adjusted rhs
         }
         // FIXME - add a command-line switch to enable the above?
         // FIXME - add checks for numeric overflow

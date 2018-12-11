@@ -124,7 +124,9 @@ class ClassCollector extends JmlTreeScanner {
         if (tree.type.getTag() != TypeTag.BOOLEAN) {
             if (op == JCTree.Tag.BITAND || op == JCTree.Tag.BITAND_ASG || op == JCTree.Tag.BITOR || op == JCTree.Tag.BITOR_ASG || op == JCTree.Tag.BITXOR || op == JCTree.Tag.BITXOR_ASG) useBV = true;
         }
-        if (op == JCTree.Tag.SL || op == JCTree.Tag.SL_ASG || op == JCTree.Tag.SR || op == JCTree.Tag.SR_ASG || op == JCTree.Tag.USR || op == JCTree.Tag.USR_ASG    ) useBV = true;
+        if (op == JCTree.Tag.SL || op == JCTree.Tag.SL_ASG || op == JCTree.Tag.SR || op == JCTree.Tag.SR_ASG || op == JCTree.Tag.USR || op == JCTree.Tag.USR_ASG    ) {
+            if (true || !(tree.rhs instanceof JCLiteral)) useBV = true;
+        }
         super.visitBinary(tree);
     }
     
