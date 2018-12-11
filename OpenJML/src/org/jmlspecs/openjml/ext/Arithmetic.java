@@ -1,9 +1,7 @@
 package org.jmlspecs.openjml.ext;
 
 import org.eclipse.jdt.annotation.Nullable;
-import org.jmlspecs.openjml.IArithmeticMode;
-import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.Strings;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.Label;
@@ -32,8 +30,6 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Names;
 
-import org.jmlspecs.openjml.JmlOption;
-
 abstract public class Arithmetic extends ExpressionExtension {
     
     
@@ -56,7 +52,7 @@ abstract public class Arithmetic extends ExpressionExtension {
     }
     
     static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
-            JmlTokenKind.BSBIGINT_MATH, JmlTokenKind.BSJAVAMATH, JmlTokenKind.BSSAFEMATH}; }
+            DefaultJmlTokenKind.BSBIGINT_MATH, DefaultJmlTokenKind.BSJAVAMATH, DefaultJmlTokenKind.BSSAFEMATH}; }
     
     Symbol codeBigintMath = null;
     Symbol codeSafeMath = null;

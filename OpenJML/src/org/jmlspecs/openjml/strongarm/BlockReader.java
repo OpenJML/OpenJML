@@ -15,18 +15,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAccess;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
-import org.jmlspecs.openjml.JmlTreeUtils;
-import org.jmlspecs.openjml.Strings;
-import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicBlocker2.VarMap;
 import org.jmlspecs.openjml.esc.BasicBlockerParent;
@@ -129,7 +124,7 @@ public class BlockReader {
                     
                     JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
 
-                    if(jmlStmt.token == JmlTokenKind.COMMENT && jmlStmt.toString().contains("Precondition")){
+                    if(jmlStmt.token == DefaultJmlTokenKind.COMMENT && jmlStmt.toString().contains("Precondition")){
                         
                         // precondition?
                         String[] parts = jmlStmt.toString().split(":");
@@ -675,7 +670,7 @@ public class BlockReader {
                 if(stmt instanceof JmlStatementExpr){                    
                     JmlStatementExpr stmtExpr = (JmlStatementExpr)stmt;                    
                     
-                    if(stmtExpr.token == JmlTokenKind.COMMENT && (stmt.toString().contains("UndefinedNullDeReference") || stmt.toString().contains("PossiblyNullDeReference"))){
+                    if(stmtExpr.token == DefaultJmlTokenKind.COMMENT && (stmt.toString().contains("UndefinedNullDeReference") || stmt.toString().contains("PossiblyNullDeReference"))){
                         nextUNDR = stmt.toString().replace("PossiblyNullDeReference assertion:", "").trim();
                         nextUNDR = nextUNDR.toString().replace("UndefinedNullDeReference assertion:", "").trim();
                         nextUNDR = nextUNDR.replace("//", "").trim();
@@ -698,7 +693,7 @@ public class BlockReader {
                     if(stmtExpr.expression instanceof JCBinary){
                         JCBinary jcBinary = (JCBinary)stmtExpr.expression;
                     
-                        if(stmtExpr.token == JmlTokenKind.ASSUME && jcBinary.rhs.toString().contains(nextUNDR)){
+                        if(stmtExpr.token == DefaultJmlTokenKind.ASSUME && jcBinary.rhs.toString().contains(nextUNDR)){
                             UNDRs.add(nextUNDR);
                             nextUNDR = null;
                         }
@@ -752,7 +747,7 @@ public class BlockReader {
                 debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
             }
             
-            if(jmlStmt.expression instanceof JCBinary && jmlStmt.token==JmlTokenKind.ASSUME && jmlStmt.label == Label.IMPLICIT_ASSUME){
+            if(jmlStmt.expression instanceof JCBinary && jmlStmt.token==DefaultJmlTokenKind.ASSUME && jmlStmt.label == Label.IMPLICIT_ASSUME){
                 if(jmlStmt.toString().contains(Strings.newArrayVarString)){
 
                     JCBinary binExpr = (JCBinary)jmlStmt.expression;
@@ -1112,14 +1107,14 @@ public class BlockReader {
     boolean initialPreconditionFound = false;
     
     private boolean isAdmissableImplicitAssumption(JmlStatementExpr expr){
-        if(expr.token==JmlTokenKind.ASSUME && expr.label == Label.IMPLICIT_ASSUME && expr.toString().contains("Array_length")){
+        if(expr.token==DefaultJmlTokenKind.ASSUME && expr.label == Label.IMPLICIT_ASSUME && expr.toString().contains("Array_length")){
             return true;
         }
         return false;
     }
     
     private boolean isLoopInvariant(JmlStatementExpr expr){
-        if(expr.token==JmlTokenKind.ASSUME &&  expr.label == Label.LOOP_INVARIANT_ASSUMPTION){
+        if(expr.token==DefaultJmlTokenKind.ASSUME &&  expr.label == Label.LOOP_INVARIANT_ASSUMPTION){
             return true;
         }
         return false;

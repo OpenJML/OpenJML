@@ -2,6 +2,7 @@ package org.jmlspecs.openjml.strongarm.tree;
 
 import java.util.Comparator;
 
+import org.jmlspecs.openjml.DefaultJmlTokenKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 
@@ -15,11 +16,11 @@ public class ContractComparator implements Comparator<JmlMethodClause> {
             return o1.toString().compareTo(o2.toString());
         }
         
-        if(o1.token == JmlTokenKind.REQUIRES && o2.token == JmlTokenKind.ENSURES){
+        if(o1.token == DefaultJmlTokenKind.REQUIRES && o2.token == DefaultJmlTokenKind.ENSURES){
             return -1;
         }
         
-        if(o2.token == JmlTokenKind.REQUIRES && o1.token == JmlTokenKind.ENSURES){
+        if(o2.token == DefaultJmlTokenKind.REQUIRES && o1.token == DefaultJmlTokenKind.ENSURES){
             return 1;
         }
         

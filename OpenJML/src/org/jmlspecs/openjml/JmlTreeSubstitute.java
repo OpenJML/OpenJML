@@ -95,12 +95,12 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
     @Override
     public JCTree visitJmlSingleton(JmlSingleton that, Void p) {
         // for substitution \result
-        if (that.token == JmlTokenKind.BSRESULT) {
+        if (that.token == DefaultJmlTokenKind.BSRESULT) {
             @Nullable JCExpression newexpr = replacements.get(that.token);
             if (newexpr != null) return copy(newexpr);
             else return super.visitJmlSingleton(that,  p);
-        } else if (that.token == JmlTokenKind.BSINDEX || that.token == JmlTokenKind.BSCOUNT) {
-            @Nullable JCExpression newexpr = replacements.get(JmlTokenKind.BSCOUNT);
+        } else if (that.token == DefaultJmlTokenKind.BSINDEX || that.token == DefaultJmlTokenKind.BSCOUNT) {
+            @Nullable JCExpression newexpr = replacements.get(DefaultJmlTokenKind.BSCOUNT);
             if (newexpr != null) return copy(newexpr);
             else return super.visitJmlSingleton(that,  p);
         } else {

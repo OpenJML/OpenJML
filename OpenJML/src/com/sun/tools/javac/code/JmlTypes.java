@@ -8,6 +8,7 @@ package com.sun.tools.javac.code;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jmlspecs.openjml.DefaultJmlTokenKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Strings;
@@ -36,21 +37,21 @@ public class JmlTypes extends Types {
     final protected Map<JmlTokenKind,JmlType> jmltypes = new HashMap<JmlTokenKind,JmlType>();
 
     /** The singleton instance for the \TYPE JML type */
-    final public JmlType TYPE = new JmlType(JmlTokenKind.BSTYPEUC,"org.jmlspecs.utils.IJMLTYPE");
+    final public JmlType TYPE = new JmlType(DefaultJmlTokenKind.BSTYPEUC,"org.jmlspecs.utils.IJMLTYPE");
     {
-        jmltypes.put(JmlTokenKind.BSTYPEUC, TYPE);
+        jmltypes.put(DefaultJmlTokenKind.BSTYPEUC, TYPE);
     }
 
     /** The singleton instance for the \real JML type */
-    final public JmlType REAL = new JmlType(JmlTokenKind.BSREAL,Strings.jmlSpecsPackage + ".Real");
+    final public JmlType REAL = new JmlType(DefaultJmlTokenKind.BSREAL,Strings.jmlSpecsPackage + ".Real");
     {
-        jmltypes.put(JmlTokenKind.BSREAL, REAL);
+        jmltypes.put(DefaultJmlTokenKind.BSREAL, REAL);
     }
     
     /** The singleton instance for the \bigint JML type */
-    final public JmlType BIGINT = new JmlType(JmlTokenKind.BSBIGINT,"java.math.BigInteger");
+    final public JmlType BIGINT = new JmlType(DefaultJmlTokenKind.BSBIGINT,"java.math.BigInteger");
     {
-        jmltypes.put(JmlTokenKind.BSBIGINT, BIGINT);
+        jmltypes.put(DefaultJmlTokenKind.BSBIGINT, BIGINT);
     }
 
     /** Returns the singleton instance of JmlTypes for this compilation context. */

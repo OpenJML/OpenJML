@@ -8,20 +8,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlPretty;
-import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
-import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
-import org.jmlspecs.openjml.JmlTreeUtils;
-import org.jmlspecs.openjml.Strings;
-import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.strongarm.AnalysisTypes.AnalysisType;
@@ -274,7 +267,7 @@ public class Strongarm
         //
         JmlMethodClause precondition = M.JmlMethodClauseExpr
                 (
-                        JmlTokenKind.REQUIRES,
+                        DefaultJmlTokenKind.REQUIRES,
                         reader.precondition.p
                 );
             
@@ -289,7 +282,7 @@ public class Strongarm
         methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
         
     	
-    	methodDecl.cases.cases.head.token = JmlTokenKind.NORMAL_BEHAVIOR;
+    	methodDecl.cases.cases.head.token = DefaultJmlTokenKind.NORMAL_BEHAVIOR;
         
 
     	if (verbose) {
@@ -645,7 +638,7 @@ public class Strongarm
         methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
         
         methodDecl.cases.cases.head.modifiers = treeutils.factory.Modifiers(Flags.PUBLIC);
-        methodDecl.cases.cases.head.token = JmlTokenKind.NORMAL_BEHAVIOR;
+        methodDecl.cases.cases.head.token = DefaultJmlTokenKind.NORMAL_BEHAVIOR;
         
         if (verbose) {
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
@@ -1073,7 +1066,7 @@ public class Strongarm
                 methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
                 
                 methodDecl.cases.cases.head.modifiers = treeutils.factory.Modifiers(Flags.PUBLIC);
-                methodDecl.cases.cases.head.token = JmlTokenKind.NORMAL_BEHAVIOR;
+                methodDecl.cases.cases.head.token = DefaultJmlTokenKind.NORMAL_BEHAVIOR;
                 
                 // SWAP
                 contract = cases;

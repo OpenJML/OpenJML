@@ -4,12 +4,7 @@
  */
 package org.jmlspecs.openjml.ext;
 
-import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
-
-import org.jmlspecs.openjml.JmlTokenKind;
-
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -20,6 +15,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
+import org.jmlspecs.openjml.JmlTokenKind;
 
 /** This class handles expression extensions that take an argument list of JCExpressions.
  * Even if there are constraints on the number of arguments, it
@@ -93,7 +89,7 @@ public class SetStatement extends StatementExtension {
 //                opt = parser.parseExpression();
 //            }
 //            
-//            if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
+//            if (parser.token().ikind == DefaultJmlTokenKind.ENDJMLCOMMENT) {
 //                parser.jmlwarning(p-2, "jml.missing.semi", jt);
 //            } else if (parser.token().kind != TokenKind.SEMI) {
 //                parser.jmlerror(p, "jml.missing.semi", jt);

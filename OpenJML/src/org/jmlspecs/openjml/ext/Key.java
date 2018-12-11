@@ -1,5 +1,6 @@
 package org.jmlspecs.openjml.ext;
 
+import org.jmlspecs.openjml.DefaultJmlTokenKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlExpression;
@@ -24,7 +25,7 @@ public class Key extends ExpressionExtension {
     }
     
     static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
-            JmlTokenKind.BSKEY}; }
+            DefaultJmlTokenKind.BSKEY}; }
     
     @Override
     public void checkParse(JmlParser parser, JmlMethodInvocation e) {

@@ -598,7 +598,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @param statement
      */
     protected void addAssert(Label label, JCExpression trExpr, int declpos, List<JCStatement> statements, int usepos, JavaFileObject source, JCTree statement) {
-        JmlTree.JmlStatementExpr st = factory.at(statement.pos()).JmlExpressionStatement(JmlTokenKind.ASSERT,label,trExpr);
+        JmlTree.JmlStatementExpr st = factory.at(statement.pos()).JmlExpressionStatement(DefaultJmlTokenKind.ASSERT,label,trExpr);
         st.optionalExpression = null;
         st.source = source; // source file in which st.pos resides
         //st.line = -1; 
@@ -851,14 +851,14 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     protected JCExpression makeNNInstanceof(JCExpression e, int epos, Type type, int typepos) {
         JCExpression e1 = treeutils.makeTypeof(e);
         JCExpression e2 = makeTypeLiteral(type,typepos);
-        JCExpression ee = treeutils.makeJmlBinary(epos,JmlTokenKind.SUBTYPE_OF,e1,e2);
+        JCExpression ee = treeutils.makeJmlBinary(epos,DefaultJmlTokenKind.SUBTYPE_OF,e1,e2);
         return ee;
     }
     
     // FIXME - review and document
     protected JCExpression makeSignalsOnly(JmlMethodClauseSignalsOnly clause) {
         JCExpression e = treeutils.makeBooleanLiteral(clause.pos,false);
-        JCExpression id = factory.at(0).JmlSingleton(JmlTokenKind.BSEXCEPTION);
+        JCExpression id = factory.at(0).JmlSingleton(DefaultJmlTokenKind.BSEXCEPTION);
         for (JCExpression typetree: clause.list) {
             int pos = typetree.getStartPosition();
             e = treeutils.makeBinary(pos, 
@@ -975,7 +975,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - review this
     //boolean extraEnv = false;
     public void visitJmlMethodInvocation(JmlMethodInvocation that) { 
-        if (that.token == JmlTokenKind.BSOLD || that.token == JmlTokenKind.BSPRE || that.token == JmlTokenKind.BSPAST) {
+        if (that.token == DefaultJmlTokenKind.BSOLD || that.token == DefaultJmlTokenKind.BSPRE || that.token == DefaultJmlTokenKind.BSPAST) {
             VarMap savedMap = currentMap;
             try {
 //                if (that.args.size() == 1) {
@@ -998,41 +998,41 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     that.args.get(0).accept(this);
                     that.args = com.sun.tools.javac.util.List.<JCExpression>of(that.args.get(0));
                 }
-                that.token = JmlTokenKind.BSSAME; // A no-op // TODO - Review this
+                that.token = DefaultJmlTokenKind.BSSAME; // A no-op // TODO - Review this
             } finally {
                 currentMap = savedMap;
             }
-        } else if (that.token == JmlTokenKind.SUBTYPE_OF || that.token == JmlTokenKind.JSUBTYPE_OF) {
+        } else if (that.token == DefaultJmlTokenKind.SUBTYPE_OF || that.token == DefaultJmlTokenKind.JSUBTYPE_OF) {
             scan(that.args.get(0));
             JCExpression lhs = result;
             scan(that.args.get(1));
             JCExpression rhs = result;
             that.args = com.sun.tools.javac.util.List.<JCExpression>of(lhs,rhs);
             result = that;
-        } else if (that.token == JmlTokenKind.BSNONNULLELEMENTS) {
+        } else if (that.token == DefaultJmlTokenKind.BSNONNULLELEMENTS) {
             scan(that.args.get(0));
             JCExpression arg = result;
             JCExpression argarrays = getArrayIdent(syms.objectType,that.pos);
             that.args = com.sun.tools.javac.util.List.<JCExpression>of(arg,argarrays);
             result = that;
-        } else if (that.token == null || that.token == JmlTokenKind.BSTYPELC || that.token == JmlTokenKind.BSTYPEOF || that.token == JmlTokenKind.BSDISTINCT) {
+        } else if (that.token == null || that.token == DefaultJmlTokenKind.BSTYPELC || that.token == DefaultJmlTokenKind.BSTYPEOF || that.token == DefaultJmlTokenKind.BSDISTINCT) {
             //super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
             scan(that.typeargs);
             scan(that.meth);
             if (that.meth != null) that.meth = result;
             scanList(that.args);
             result = that;
-        } else if (that.token == JmlTokenKind.BSELEMTYPE || that.token == JmlTokenKind.BSERASURE) {
+        } else if (that.token == DefaultJmlTokenKind.BSELEMTYPE || that.token == DefaultJmlTokenKind.BSERASURE) {
             scan(that.typeargs);
             scan(that.meth);
             if (that.meth != null) that.meth = result;
             scanList(that.args);
             result = that;
-        } else if (that.token == JmlTokenKind.BSCONCAT) {
+        } else if (that.token == DefaultJmlTokenKind.BSCONCAT) {
             scan(that.typeargs);
             scanList(that.args);
             result = that;
-        } else if (that.token == JmlTokenKind.BSSAME) {
+        } else if (that.token == DefaultJmlTokenKind.BSSAME) {
             // In this context, BSSAME is a noop
             scanList(that.args);
             result = that;
@@ -1099,7 +1099,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             }
         } else if (storeref instanceof JmlStoreRefKeyword) {
             JmlTokenKind t = ((JmlStoreRefKeyword)storeref).token;
-            if (t == JmlTokenKind.BSEVERYTHING || t == JmlTokenKind.BSNOTSPECIFIED) {
+            if (t == DefaultJmlTokenKind.BSEVERYTHING || t == DefaultJmlTokenKind.BSNOTSPECIFIED) {
                 for (VarSymbol vsym: currentMap.keySet()) {
                     // Local variables are not affected by havoc \everything
                     // The owner of a local symbol is a MethodSymbol
@@ -1213,7 +1213,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 }
                 
                 // FIXME - set line and source
-                expr = factory.at(p).JmlQuantifiedExpr(JmlTokenKind.BSFORALL,com.sun.tools.javac.util.List.<JCVariableDecl>of(decl),comp,eq);
+                expr = factory.at(p).JmlQuantifiedExpr(DefaultJmlTokenKind.BSFORALL,com.sun.tools.javac.util.List.<JCVariableDecl>of(decl),comp,eq);
                 expr.setType(syms.booleanType);
                 addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
                 //log.warning(storeref.pos,"jml.internal","Ignoring unknown kind of storeref in havoc: " + storeref);
@@ -1285,11 +1285,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // OK
     @Override
     public void visitJmlStatementExpr(JmlStatementExpr that) { 
-        if (that.token == JmlTokenKind.COMMENT) {
+        if (that.token == DefaultJmlTokenKind.COMMENT) {
             // Comments are included in the BB program without rewriting
             // This is essential to how counterexample path construction works
             currentBlock.statements.add(that);
-        } else if (that.token == JmlTokenKind.ASSUME || that.token == JmlTokenKind.ASSERT) {
+        } else if (that.token == DefaultJmlTokenKind.ASSUME || that.token == DefaultJmlTokenKind.ASSERT) {
             JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.token,that.label,convertExpr(that.expression));
             st.id = that.id;
             st.optionalExpression = convertExpr(that.optionalExpression);
@@ -1300,7 +1300,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             st.type = that.type;
             st.associatedClause = that.associatedClause;
             copyEndPosition(st,that);
-            if (that.token == JmlTokenKind.ASSUME && that.label == Label.METHOD_ASSUME) {
+            if (that.token == DefaultJmlTokenKind.ASSUME && that.label == Label.METHOD_ASSUME) {
                 JCExpression expr = that.expression;
                 JCMethodInvocation call = (JCMethodInvocation)((JCBinary)expr).rhs;
                 Symbol sym = treeutils.getSym(call.meth);
@@ -1316,7 +1316,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     }
     
     public void visitJmlStatement(JmlStatement that) {
-        if (that.token == JmlTokenKind.END) {
+        if (that.token == DefaultJmlTokenKind.END) {
             // Modeled after vistReturn
             if (!remainingStatements.isEmpty()) {
                 JCStatement stat = remainingStatements.get(0);
@@ -1378,7 +1378,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                         eq.type = call.type;
                         eq = treeutils.makeEquality(Position.NOPOS, call, eq);
                         ex = treeutils.makeImplies(Position.NOPOS, ex, eq);
-                        JmlStatementExpr st = M.at(Position.NOPOS).JmlExpressionStatement(JmlTokenKind.ASSUME,Label.DSA,ex);
+                        JmlStatementExpr st = M.at(Position.NOPOS).JmlExpressionStatement(DefaultJmlTokenKind.ASSUME,Label.DSA,ex);
                         currentBlock.statements.add(st);
                         return ;
                     }
@@ -1424,7 +1424,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             eq.type = call.type;
             eq = treeutils.makeEquality(Position.NOPOS, call, eq);
             JCExpression ex = treeutils.makeImplies(Position.NOPOS, info.path, eq);
-            JmlStatementExpr st = M.at(Position.NOPOS).JmlExpressionStatement(JmlTokenKind.ASSUME,Label.DSA,ex);
+            JmlStatementExpr st = M.at(Position.NOPOS).JmlExpressionStatement(DefaultJmlTokenKind.ASSUME,Label.DSA,ex);
             currentBlock.statements.add(st);
         }
     }

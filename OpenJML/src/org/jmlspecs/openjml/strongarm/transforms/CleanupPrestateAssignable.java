@@ -1,18 +1,12 @@
 package org.jmlspecs.openjml.strongarm.transforms;
 
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.strongarm.AnalysisTypes;
 import org.jmlspecs.openjml.strongarm.AnalysisTypes.AnalysisType;
-import org.jmlspecs.openjml.JmlTreeScanner;
-import org.jmlspecs.openjml.JmlTreeUtils;
-import org.jmlspecs.openjml.Strings;
-import org.jmlspecs.openjml.Utils;
 
 import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Symbol;
@@ -97,7 +91,7 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
 
             JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr) clause;
 
-            if (mExpr.token == JmlTokenKind.ENSURES
+            if (mExpr.token == DefaultJmlTokenKind.ENSURES
                     && mExpr.expression instanceof JCBinary) {
                 JCBinary b = (JCBinary) mExpr.expression;
 
@@ -107,7 +101,7 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
                 }
             }
             
-//            if (mExpr.token == JmlTokenKind.REQUIRES) {
+//            if (mExpr.token == DefaultJmlTokenKind.REQUIRES) {
 //                if (mExpr.toString().contains("\\old")) {
 //                    return true;
 //                }
@@ -118,28 +112,28 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
         if (clause instanceof JmlMethodClauseStoreRef) {
             JmlMethodClauseStoreRef mExpr = (JmlMethodClauseStoreRef) clause;
 
-            if (mExpr.token == JmlTokenKind.ASSIGNABLE
+            if (mExpr.token == DefaultJmlTokenKind.ASSIGNABLE
                     && mExpr.toString().startsWith("assignable \\result.")) {
                 return true;
             }
 
-            if (mExpr.token == JmlTokenKind.ASSIGNABLE
+            if (mExpr.token == DefaultJmlTokenKind.ASSIGNABLE
                     && mExpr.toString().startsWith("assignable \\result")) {
                 return true;
             }
             if (AnalysisTypes.enabled(context, AnalysisType.TAUTOLOGIES)) {
-                if (mExpr.token == JmlTokenKind.ASSIGNABLE
+                if (mExpr.token == DefaultJmlTokenKind.ASSIGNABLE
                         && mExpr.toString().startsWith("assignable true")) {
                     return true;
                 }
             }
 
-            if (mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString()
+            if (mExpr.token == DefaultJmlTokenKind.ASSIGNABLE && mExpr.toString()
                     .startsWith("assignable " + Strings.newArrayVarString)) {
                 return true;
             }
 
-            if (mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString()
+            if (mExpr.token == DefaultJmlTokenKind.ASSIGNABLE && mExpr.toString()
                     .startsWith("assignable " + Strings.newObjectVarString)) {
                 return true;
             }
@@ -340,21 +334,21 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
             }
 
             if (clause instanceof JmlMethodClauseExpr
-                    && clause.token == JmlTokenKind.REQUIRES
+                    && clause.token == DefaultJmlTokenKind.REQUIRES
                     && (((JmlMethodClauseExpr) clause).expression.toString()
                             .contains("\\result"))) {
                 return true;
             }
 
             if (clause instanceof JmlMethodClauseExpr
-                    && clause.token == JmlTokenKind.ENSURES
+                    && clause.token == DefaultJmlTokenKind.ENSURES
                     && (((JmlMethodClauseExpr) clause).expression.toString()
                             .contains("this.overallStart == time"))) {
                 return true;
             }
 
             if (clause instanceof JmlMethodClauseExpr
-                    && clause.token == JmlTokenKind.ENSURES
+                    && clause.token == DefaultJmlTokenKind.ENSURES
                     && (((JmlMethodClauseExpr) clause).expression.toString()
                             .contains("colSize == children.content.theSize"))) {
                 return true;

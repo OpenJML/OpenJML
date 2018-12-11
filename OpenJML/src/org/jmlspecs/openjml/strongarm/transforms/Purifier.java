@@ -6,12 +6,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTreeScanner;
-import org.jmlspecs.openjml.JmlTreeUtils;
-import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
@@ -78,7 +73,7 @@ public class Purifier extends JmlTreeScanner {
    
     @Override
     public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree){
-        if(tree.token==JmlTokenKind.ASSIGNABLE){
+        if(tree.token== DefaultJmlTokenKind.ASSIGNABLE){
             assignables++;
         }
         

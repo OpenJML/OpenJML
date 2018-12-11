@@ -367,9 +367,9 @@ public class Utils {
             Symbol csym = sym.owner;
             if (csym != null && (csym.flags() & Flags.INTERFACE) != 0) {
                 // TODO - should cleanup this reference to JmlAttr from Utils
-                if (JmlAttr.instance(context).hasAnnotation(sym,JmlTokenKind.INSTANCE)) return false;
+                if (JmlAttr.instance(context).hasAnnotation(sym,DefaultJmlTokenKind.INSTANCE)) return false;
             } 
-        } else if (JmlAttr.instance(context).hasAnnotation(sym,JmlTokenKind.INSTANCE)) return false;
+        } else if (JmlAttr.instance(context).hasAnnotation(sym,DefaultJmlTokenKind.INSTANCE)) return false;
         return true;
     }
 
@@ -380,7 +380,7 @@ public class Utils {
         // JML field marked as instance.
         if ((csym.flags() & Flags.INTERFACE) != 0) {
             // TODO - should cleanup this reference to JmlAttr from Utils
-            if (JmlAttr.instance(context).findMod(mods,JmlTokenKind.INSTANCE) != null) return false;
+            if (JmlAttr.instance(context).findMod(mods,DefaultJmlTokenKind.INSTANCE) != null) return false;
             if ((mods.flags & STATIC) == 0 || (mods.flags & Utils.JMLINSTANCE) != 0) return false;
         } 
         return ((mods.flags & Flags.STATIC) != 0);
@@ -916,11 +916,11 @@ public class Utils {
     }
     
     public boolean hasSpecPublic(Symbol s) {
-        return s != null && s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PUBLIC)) != null;
+        return s != null && s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(DefaultJmlTokenKind.SPEC_PUBLIC)) != null;
     }
 
     public boolean hasSpecProtected(Symbol s) {
-        return s != null && s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PROTECTED)) != null;
+        return s != null && s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(DefaultJmlTokenKind.SPEC_PROTECTED)) != null;
     }
 
     /** Returns true if a declaration in the 'parent' class with the given flags 
@@ -945,7 +945,7 @@ public class Utils {
         flags &= Flags.AccessFlags;
         methodFlags &= Flags.AccessFlags;
         
-        //boolean isPublic = null != JmlSpecs.instance(context).fieldSpecHasAnnotation((Symbol.VarSymbol)s,JmlTokenKind.SPEC_PUBLIC);
+        //boolean isPublic = null != JmlSpecs.instance(context).fieldSpecHasAnnotation((Symbol.VarSymbol)s,DefaultJmlTokenKind.SPEC_PUBLIC);
         
         // If target is public, then it is jml-visible, since everyone can see it
         if (flags == Flags.PUBLIC) return true;
@@ -1114,7 +1114,7 @@ public class Utils {
     
     public/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlTokenKind jt,
             int position, int endpos) {
-        Class<?> c = jt.annotationType;
+        Class<?> c = jt.getAnnotationType();
         if (c == null) return null;
         JmlTree.Maker F = JmlTree.Maker.instance(context);
         Names names = Names.instance(context);

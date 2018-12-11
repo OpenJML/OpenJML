@@ -148,7 +148,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             int ownprec = JmlParser.jmlPrecedence(that.op); // FIXME - This needs a bit more testing
             int p = ownprec;
             if (ownprec == -2) {
-                if (that.op == JmlTokenKind.EQUIVALENCE || that.op == JmlTokenKind.INEQUIVALENCE) p = TreeInfo.orPrec - 2;
+                if (that.op == DefaultJmlTokenKind.EQUIVALENCE || that.op == DefaultJmlTokenKind.INEQUIVALENCE) p = TreeInfo.orPrec - 2;
                 else p = TreeInfo.orPrec - 1;
             }
             open(prec, p);
@@ -177,7 +177,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             } else {
                 print(that.token.internedName());
                 if (that.javaType && 
-                        (that.token == JmlTokenKind.BSTYPELC || that.token == JmlTokenKind.BSTYPEOF)
+                        (that.token == DefaultJmlTokenKind.BSTYPELC || that.token == DefaultJmlTokenKind.BSTYPEOF)
                         ) print("j");
                 print("(");
                 printExprs(that.args);
@@ -271,7 +271,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
         try { 
-            print(JmlTokenKind.CALLABLE.internedName());
+            print(DefaultJmlTokenKind.CALLABLE.internedName());
             print(" ");
             if (that.keyword != null) {
                 that.keyword.accept(this);
@@ -426,7 +426,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlSingleton(JmlSingleton that) {
         try {
-            if (that.token == JmlTokenKind.INFORMAL_COMMENT) {
+            if (that.token == DefaultJmlTokenKind.INFORMAL_COMMENT) {
                 print("(*");
                 print(that.info);
                 print("*)");
@@ -445,10 +445,10 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 that.modifiers.accept(this); // presumes that this call adds a trailing space
             }
             if (that.code) {
-                print(JmlTokenKind.CODE.internedName());
+                print(DefaultJmlTokenKind.CODE.internedName());
                 print(" ");
             }
-            if (that.token == JmlTokenKind.MODEL_PROGRAM) {
+            if (that.token == DefaultJmlTokenKind.MODEL_PROGRAM) {
                 print(that.token.internedName());
                 print(" ");
                 that.block.accept(this);
@@ -488,7 +488,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (useJMLComments) print ("/*@ ");
             print(that.id);
             print(" ");
-            if (that.token == JmlTokenKind.END) print(": ");
+            if (that.token == DefaultJmlTokenKind.END) print(": ");
             else that.statement.accept(this);
             if (useJMLComments) print("*/");
         } catch (IOException e) { perr(that,e); }
@@ -505,7 +505,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 }
             }
             if (useJMLComments) print ("/*@ ");
-            print(JmlTokenKind.INLINED_LOOP.internedName());
+            print(DefaultJmlTokenKind.INLINED_LOOP.internedName());
             //print(that.token.internedName());
             print(";");
             if (useJMLComments) print("*/");
@@ -567,7 +567,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlStatementExpr(JmlStatementExpr that) {
         try { 
-            if (that.token == JmlTokenKind.COMMENT) {
+            if (that.token == DefaultJmlTokenKind.COMMENT) {
                 print("// ");
                 if (that.expression != null) print(((JCLiteral)that.expression).value); // FIXME - can the comment span more than one line?
                 else {
@@ -820,8 +820,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 tree.annotationType.toString();
             boolean isJml = s.startsWith(Strings.jmlAnnotationPackage);
             if (useJmlModifier && isJml) {
-                for (JmlTokenKind t: JmlTokenKind.values()) {
-                    if (t.annotationType != null && t.annotationType.toString().substring("interface ".length()).equals(s)) {
+                for (JmlTokenKind t: DefaultJmlTokenKind.values()) {
+                    if (t.getAnnotationType() != null && t.getAnnotationType().toString().substring("interface ".length()).equals(s)) {
                         print("/*@ " + t.internedName() + " */");
                         return;
                     }
@@ -919,7 +919,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlChoose(JmlChoose that) {
         try { // FIXME - this needs testing
             align();
-            print(JmlTokenKind.CHOOSE.internedName());
+            print(DefaultJmlTokenKind.CHOOSE.internedName());
             println();
             indent();
             Iterator<JCBlock> iter = that.orBlocks.iterator();
@@ -927,7 +927,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             iter.next().accept(this);
             while (iter.hasNext()) {
                 align();
-                print(JmlTokenKind.CHOOSE.internedName());
+                print(DefaultJmlTokenKind.CHOOSE.internedName());
                 println();
                 align();
                 iter.next().accept(this);
@@ -1068,7 +1068,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         indent();
         for (JmlTypeClause t: fspecs.list) {
             try {
-                if (t.token == JmlTokenKind.IN || t.token == JmlTokenKind.MAPS) {
+                if (t.token == DefaultJmlTokenKind.IN || t.token == DefaultJmlTokenKind.MAPS) {
                     align(); t.accept(this); println();
                 }
             } catch (IOException e) {
@@ -1077,7 +1077,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         }
         for (JmlTypeClause t: fspecs.list) {
             try{
-                if (t.token == JmlTokenKind.IN || t.token == JmlTokenKind.MAPS) continue;
+                if (t.token == DefaultJmlTokenKind.IN || t.token == DefaultJmlTokenKind.MAPS) continue;
                 align(); t.accept(this); println(); // FIXME - what might theses be?
             } catch (IOException e) {
                 perr(t,e);

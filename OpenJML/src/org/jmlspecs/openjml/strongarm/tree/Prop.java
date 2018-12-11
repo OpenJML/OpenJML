@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml.strongarm.tree;
 
 
+import org.jmlspecs.openjml.*;
 import sun.misc.Unsafe;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,18 +9,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTreeUtils;
-import org.jmlspecs.openjml.Strings;
-import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
-import org.jmlspecs.openjml.JmlTreeCopier;
 import org.jmlspecs.openjml.strongarm.AnalysisTypes;
 import org.jmlspecs.openjml.strongarm.AnalysisTypes.AnalysisType;
 import org.jmlspecs.openjml.strongarm.BlockReader;
@@ -502,7 +496,7 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
         if(p.toString().contains(Strings.resultVarString) || !isBranchStmt()){
             clause = M.JmlMethodClauseExpr
             (
-                    JmlTokenKind.ENSURES,  
+                    DefaultJmlTokenKind.ENSURES,
                     p
             );
 
@@ -521,7 +515,7 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
                     
                     return List.of(
                             clause,
-                            M.JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE, List.of(jmlBinary.lhs))
+                            M.JmlMethodClauseStoreRef(DefaultJmlTokenKind.ASSIGNABLE, List.of(jmlBinary.lhs))
                             );
                 }
                 
@@ -530,7 +524,7 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
         }else{
             clause = M.JmlMethodClauseExpr
             (
-                    JmlTokenKind.REQUIRES,  
+                    DefaultJmlTokenKind.REQUIRES,
                     p
             );
 

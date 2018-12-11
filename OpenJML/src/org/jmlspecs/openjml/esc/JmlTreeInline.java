@@ -127,7 +127,7 @@ public class JmlTreeInline extends JmlTreeCopier {
     @Override
     public JCTree visitJmlSingleton(JmlSingleton that, Void p) {
         // for substitution \result
-        if (that.token == JmlTokenKind.BSRESULT) {
+        if (that.token == DefaultJmlTokenKind.BSRESULT) {
             @Nullable JCExpression newexpr = replacements.get(that.token);
             if (newexpr != null) return copy(newexpr);
             else return super.visitJmlSingleton(that,  p);

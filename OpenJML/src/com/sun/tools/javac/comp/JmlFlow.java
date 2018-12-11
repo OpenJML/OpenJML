@@ -7,11 +7,8 @@ package com.sun.tools.javac.comp;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.IJmlVisitor;
-import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlTokenKind;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
@@ -431,7 +428,7 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitApply(JCMethodInvocation tree) {
             if (tree.meth == null) {
-                if (((JmlMethodInvocation)tree).token == JmlTokenKind.BSOLD) {
+                if (((JmlMethodInvocation)tree).token == DefaultJmlTokenKind.BSOLD) {
                     scanExpr(tree.args.get(0)); // A second argument is just a label, and not a regular identifier
                     // FIXME - where do we check that the label is in scope
                 } else {

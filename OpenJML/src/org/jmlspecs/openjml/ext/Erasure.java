@@ -4,6 +4,7 @@
  */
 package org.jmlspecs.openjml.ext;
 
+import org.jmlspecs.openjml.DefaultJmlTokenKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 
@@ -38,7 +39,7 @@ public class Erasure extends ExpressionExtension {
         
     }
     
-    static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{JmlTokenKind.BSERASURE}; }
+    static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{DefaultJmlTokenKind.BSERASURE}; }
     
     @Override
     public void checkParse(JmlParser parser, JmlMethodInvocation e) {
@@ -56,7 +57,7 @@ public class Erasure extends ExpressionExtension {
             error(tree.pos(),"jml.one.arg",token.internedName(),n);
         } else {
             JCExpression e = tree.args.get(0);
-            if (e instanceof JmlMethodInvocation && ((JmlMethodInvocation)e).token == JmlTokenKind.BSTYPELC) {
+            if (e instanceof JmlMethodInvocation && ((JmlMethodInvocation)e).token == DefaultJmlTokenKind.BSTYPELC) {
                 ((JmlMethodInvocation)e).javaType = true;
             }
         }

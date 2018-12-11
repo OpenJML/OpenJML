@@ -4,8 +4,8 @@
  */
 package org.jmlspecs.openjml.ext;
 
-import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
+import org.jmlspecs.openjml.DefaultJmlTokenKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.IJmlLoop;
 import org.jmlspecs.openjml.JmlTree.JmlStatementLoop;
@@ -42,7 +42,7 @@ public class InlinedLoopStatement extends StatementExtension implements IJmlLoop
     public static void register(Context context) {}
     
     static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
-            JmlTokenKind.INLINED_LOOP}; }
+            DefaultJmlTokenKind.INLINED_LOOP}; }
     
     public List<JmlStatementLoop> loopSpecs;
     
@@ -62,7 +62,7 @@ public class InlinedLoopStatement extends StatementExtension implements IJmlLoop
             return jmlF.at(p).JmlExpressionStatement(jt,null,null);
         } else {
             
-            if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
+            if (parser.token().ikind == DefaultJmlTokenKind.ENDJMLCOMMENT) {
                 parser.jmlwarning(p-2, "jml.missing.semi", jt);
             } else if (parser.token().kind != TokenKind.SEMI) {
                 parser.jmlerror(p, "jml.missing.semi", jt);

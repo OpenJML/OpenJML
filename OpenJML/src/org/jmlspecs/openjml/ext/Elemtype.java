@@ -4,6 +4,7 @@
  */
 package org.jmlspecs.openjml.ext;
 
+import org.jmlspecs.openjml.DefaultJmlTokenKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 
@@ -40,10 +41,10 @@ public class Elemtype extends ExpressionExtension {
     }
     
     static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
-            JmlTokenKind.BSELEMTYPE, JmlTokenKind.BSTYPEOF,
-            JmlTokenKind.BSOLD, JmlTokenKind.BSPAST, JmlTokenKind.BSPRE, JmlTokenKind.BSNOWARN, JmlTokenKind.BSNOWARNOP,
-            JmlTokenKind.BSPOST, JmlTokenKind.BSASSIGNS,
-            JmlTokenKind.BSWARN, JmlTokenKind.BSWARNOP}; }
+            DefaultJmlTokenKind.BSELEMTYPE, DefaultJmlTokenKind.BSTYPEOF,
+            DefaultJmlTokenKind.BSOLD, DefaultJmlTokenKind.BSPAST, DefaultJmlTokenKind.BSPRE, DefaultJmlTokenKind.BSNOWARN, DefaultJmlTokenKind.BSNOWARNOP,
+            DefaultJmlTokenKind.BSPOST, DefaultJmlTokenKind.BSASSIGNS,
+            DefaultJmlTokenKind.BSWARN, DefaultJmlTokenKind.BSWARNOP}; }
     
     @Override
     public void checkParse(JmlParser parser, JmlMethodInvocation e) {
@@ -54,7 +55,7 @@ public class Elemtype extends ExpressionExtension {
         JmlMethodInvocation tree = (JmlMethodInvocation)expr;
         JmlTokenKind token = tree.token;
         
-        switch (token) {
+        switch ((DefaultJmlTokenKind) token) {
             case BSELEMTYPE:
                 // Expect one argument of any array type, result type is \TYPE
                 // The argument expression may contain JML constructs
