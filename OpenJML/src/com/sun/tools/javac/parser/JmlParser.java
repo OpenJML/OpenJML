@@ -272,35 +272,7 @@ public class JmlParser extends JavacParser {
                 //nextToken();
             }
             if (s instanceof JCClassDecl && (((JCClassDecl)s).mods.flags & Flags.ENUM) != 0) {
-                ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
-                JCClassDecl cd = (JCClassDecl)s;
-                Name n = jmlF.Name(Strings.enumVar);
-                JCExpression disj = null;
-                for (JCTree d: cd.defs) {
-                    if (!(d instanceof JCVariableDecl)) continue;
-                    JCVariableDecl decl = (JCVariableDecl)d;
-                    long flags = decl.mods.flags;
-                    long expected = Flags.PUBLIC | Flags.STATIC | Flags.FINAL;
-                    if ((flags & expected) != expected || decl.init == null) continue;
-                    if (!(decl.vartype instanceof JCIdent && ((JCIdent)decl.vartype).name.equals(cd.name))) continue;
-                    JCExpression id = jmlF.at(d.pos).Ident(decl.getName());
-                    args.add(id);
-                    id = jmlF.at(d.pos).Ident(decl.getName());
-                    JCExpression ide = jmlF.at(d.pos).Ident(n);
-                    JCExpression ex = jmlF.at(id.pos).Binary(JCTree.Tag.EQ, ide, id);
-                    disj = disj == null ? ex : jmlF.at(ex.pos).Binary(JCTree.Tag.OR,disj,ex);
-                }
-                if (disj != null) { // Must be at least one value
-                    args.add(F.Literal(TypeTag.BOT,null));
-                    JCExpression ex = jmlF.at(s.pos).JmlMethodInvocation(JmlTokenKind.BSDISTINCT,args.toList());
-                    JmlTypeClauseExpr axiom = jmlF.at(s.pos).JmlTypeClauseExpr(jmlF.Modifiers(0),JmlTokenKind.AXIOM,ex);
-                    cd.defs = cd.defs.append(axiom);
-                    JCVariableDecl decl = jmlF.at(cd.pos).VarDef(jmlF.Modifiers(0),n,jmlF.Ident(jmlF.Name("Object")),null);
-                    ex = jmlF.JmlQuantifiedExpr(JmlTokenKind.BSFORALL,List.<JCVariableDecl>of(decl), null,
-                            jmlF.JmlBinary(JmlTokenKind.EQUIVALENCE, jmlF.TypeTest(jmlF.Ident(n), jmlF.Ident(cd.getSimpleName())),disj));
-                    axiom = jmlF.at(s.pos).JmlTypeClauseExpr(jmlF.Modifiers(Flags.ENUM),JmlTokenKind.AXIOM,ex);
-                    cd.defs = cd.defs.append(axiom);
-                }
+                addImplicitEnumAxioms((JCClassDecl)s);
             }
             // Can also be a JCErroneous
 //            if (s instanceof JmlClassDecl) {
@@ -313,6 +285,91 @@ public class JmlParser extends JavacParser {
             inJmlDeclaration = prevInJmlDeclaration;
         }
         return s;
+    }
+    
+    void addImplicitEnumAxioms(JCClassDecl cd) {
+        if (utils.rac) return;
+        ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
+        ListBuffer<JCExpression> argsn = new ListBuffer<JCExpression>();
+        Name n = jmlF.Name(Strings.enumVar);
+        JCExpression disj = null;
+        int num = 0;
+        java.util.List<JCExpression> axiomExpressions = new java.util.LinkedList<>();
+        for (JCTree d: cd.defs) {
+            if (!(d instanceof JCVariableDecl)) continue;
+            JCVariableDecl decl = (JCVariableDecl)d;
+            long flags = decl.mods.flags;
+            long expected = Flags.PUBLIC | Flags.STATIC | Flags.FINAL;
+            if ((flags & expected) != expected || decl.init == null) continue;
+            if (!(decl.vartype instanceof JCIdent && ((JCIdent)decl.vartype).name.equals(cd.name))) continue;
+            JCExpression id = jmlF.at(d.pos).Ident(decl.getName());
+            args.add(id);
+            id = jmlF.at(d.pos).Ident(decl.getName());
+            JCExpression ide = jmlF.at(d.pos).Ident(n);
+            jmlF.at(id);
+            JCExpression ex = jmlF.Binary(JCTree.Tag.EQ, ide, id);
+            disj = disj == null ? ex : jmlF.Binary(JCTree.Tag.OR,disj,ex);
+            ex = jmlF.Select(id, names.ordinal);
+            ex = jmlF.Binary(JCTree.Tag.EQ,ex,jmlF.Literal(num));
+            axiomExpressions.add(ex);
+            ex = jmlF.Indexed(jmlF.Ident("_JMLvalues"), jmlF.Literal(num));
+            ex = jmlF.Binary(JCTree.Tag.EQ,ex,id);
+            axiomExpressions.add(ex);
+            ex = jmlF.Select(id, names._name);
+            ex = jmlF.Binary(JCTree.Tag.EQ,ex,jmlF.Literal(decl.getName().toString())); 
+            axiomExpressions.add(ex);
+            argsn.add(jmlF.Select(jmlF.Ident(decl.getName()), names._name));
+            num++;
+        }
+        if (disj != null) { // Must be at least one value
+            args.add(F.Literal(TypeTag.BOT,null));
+            argsn.add(F.Literal(TypeTag.BOT,null));
+            jmlF.at(cd.pos);
+            ListBuffer<JCTree> newdefs = new ListBuffer<>();
+            JCVariableDecl vd = jmlF.VarDef(jmlF.Modifiers(Flags.PUBLIC|Flags.STATIC),names.fromString("_JMLvalues"),jmlF.TypeArray(jmlF.Ident(cd.name)),null);
+            utils.setJML(vd.mods);
+            JCAnnotation a = tokenToAnnotationAST(JmlTokenKind.MODEL, cd.pos, cd.pos);  // FIXME -is position correct?
+            vd.mods.annotations =  vd.mods.annotations.append(a);
+            newdefs.add(vd);
+            JCExpression ex = jmlF.Binary(Tag.NE, jmlF.Ident(vd.name), F.Literal(TypeTag.BOT,null));
+            // values() is not null
+            JmlTypeClauseExpr axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0),JmlTokenKind.AXIOM,ex);
+            newdefs.add(axiom);
+            ex = jmlF.JmlMethodInvocation(JmlTokenKind.BSDISTINCT,args.toList());
+            // The enum constants are all distinct and distinct from NULL.
+            axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0),JmlTokenKind.AXIOM,ex);
+            newdefs.add(axiom);
+            ex = jmlF.JmlMethodInvocation(JmlTokenKind.BSDISTINCT,argsn.toList());
+            // The enum names are all distinct and distinct from NULL.
+            axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0),JmlTokenKind.AXIOM,ex);
+            newdefs.add(axiom);
+            // Any non-null enum is one of the declared values
+            JCVariableDecl decl = jmlF.VarDef(jmlF.Modifiers(0),n,jmlF.Ident(jmlF.Name("Object")),null);
+            ex = jmlF.JmlQuantifiedExpr(JmlTokenKind.BSFORALL,List.<JCVariableDecl>of(decl), null,
+                    jmlF.JmlBinary(JmlTokenKind.EQUIVALENCE, jmlF.TypeTest(jmlF.Ident(n), jmlF.Ident(cd.getSimpleName())),disj));
+            axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(Flags.ENUM),JmlTokenKind.AXIOM,ex);
+            newdefs.add(axiom);
+            decl = jmlF.VarDef(jmlF.Modifiers(0),n,jmlF.Ident(cd.name),null);
+            JCVariableDecl decl2 = jmlF.VarDef(jmlF.Modifiers(0),jmlF.Name("i"),jmlF.TypeIdent(TypeTag.INT),null);
+            JCExpression le = jmlF.Binary(JCTree.Tag.LE, jmlF.Literal(0), jmlF.Ident("i"));
+            JCExpression lt = jmlF.Binary(JCTree.Tag.LT, jmlF.Ident("i"), jmlF.Select(jmlF.Ident("_JMLvalues"),names.length));
+            ex = jmlF.Binary(JCTree.Tag.AND, le, lt);
+            JCExpression exists = jmlF.JmlQuantifiedExpr(JmlTokenKind.BSEXISTS, List.<JCVariableDecl>of(decl2), ex,
+                    jmlF.Binary(JCTree.Tag.EQ, jmlF.Indexed(jmlF.Ident("_JMLvalues"), jmlF.Ident("i")), jmlF.Ident(n))  );
+            ex = jmlF.JmlQuantifiedExpr(JmlTokenKind.BSFORALL,List.<JCVariableDecl>of(decl), null,
+                    jmlF.JmlBinary(JmlTokenKind.IMPLIES, jmlF.Binary(JCTree.Tag.NE, jmlF.Ident(n), jmlF.Literal(TypeTag.BOT,null)),exists));
+            axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(Flags.ENUM),JmlTokenKind.AXIOM,ex);
+            newdefs.add(axiom);
+            ex = jmlF.Select(jmlF.Ident("_JMLvalues"), names.length);
+            ex = jmlF.Binary(JCTree.Tag.EQ, ex, jmlF.Literal(num));
+            axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(Flags.ENUM),JmlTokenKind.AXIOM,ex);
+            newdefs.add(axiom);
+            for (JCExpression expr: axiomExpressions) {
+                axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(Flags.ENUM),JmlTokenKind.AXIOM,expr);
+                newdefs.add(axiom);
+            }
+            cd.defs = cd.defs.appendList(newdefs);
+        }
     }
     
     /**
@@ -3004,7 +3061,7 @@ public class JmlParser extends JavacParser {
                             e = to(F.at(pos()).TypeIdent(TypeTag.VOID));
                             nextToken();
                         } else {
-                            e = parseType();
+                            e = parseType(); // FIXME - does not parseType() parse a void?
                         }
                         if (token.kind != RPAREN) {
                             if (!(e instanceof JCErroneous))
@@ -3175,6 +3232,14 @@ public class JmlParser extends JavacParser {
 //                    return toP(jmlF.at(p).Erroneous());
                 }
             }
+        }
+        if (S.jml() && token.kind == TokenKind.LBRACE) {
+            accept(LBRACE);
+            Name id = ident();
+            accept(RBRACE);
+            skipThroughEndOfJML();
+            JCExpression e = toP(super.term3());
+            return e;
         }
         return toP(super.term3());
     }

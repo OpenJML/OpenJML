@@ -19,8 +19,10 @@ import java.util.jar.JarFile;
 
 import org.eclipse.core.runtime.Platform;
 import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.openjml.ext.Array;
 import org.jmlspecs.openjml.ext.Elemtype;
 import org.jmlspecs.openjml.ext.Erasure;
+import org.jmlspecs.openjml.ext.FieldExtension;
 import org.jmlspecs.openjml.ext.SetStatement;
 import org.osgi.framework.Bundle;
 
@@ -115,8 +117,29 @@ public class Extensions {
         return e;
     }
     
-    /** The list of classes that add extensions to the Parser */
-    static Class<?>[] extensions = { Elemtype.class, Erasure.class, SetStatement.class };
+    public @Nullable FieldExtension findField(int pos, String token, boolean complain) {
+        FieldExtension e = fieldInstances.get(token);
+        if (e == null) {
+            Class<? extends FieldExtension> c = fieldClasses.get(token);
+            if (c == null) {
+                if (complain) Log.instance(context).error(pos,"jml.message","Failed to create a field extension object for " + token);
+                return null;
+            }
+            try {
+                Constructor<? extends FieldExtension> constructor = c.getDeclaredConstructor();
+                FieldExtension instance = constructor.newInstance();
+                fieldInstances.put(token,instance);
+                e = instance;
+            } catch (Exception ee) {
+                if (complain) Log.instance(context).error(pos,"jml.message","Failed to create a field extension object for " + token);
+                return null;
+            }
+        }
+        return e;
+    }
+    
+    /** The list of classes that add extensions to JML */
+    static Class<?>[] extensions = { Elemtype.class, Erasure.class, SetStatement.class, Array.class };
 
     /** A map from token type to the extension class that implements the token */
     static protected Map<JmlTokenKind,Class<? extends ExpressionExtension>> extensionClasses = new HashMap<>();
@@ -124,6 +147,9 @@ public class Extensions {
 
     static protected Map<String,Class<? extends StatementExtension>> statementClasses = new HashMap<>();
     protected Map<String,StatementExtension> statementInstances = new HashMap<>();
+    
+    static protected Map<String,Class<? extends FieldExtension>> fieldClasses = new HashMap<>();
+    protected Map<String,FieldExtension> fieldInstances = new HashMap<>();
     
     // This static block runs through all the extension classes and adds
     // appropriate information to the HashMap above, so extensions can be 
@@ -193,6 +219,19 @@ public class Extensions {
                 String[] ids = (String[])m.invoke(null);
                 for (String t: ids) {
                     statementClasses.put(t, c);
+                }
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        } else if (FieldExtension.class.isAssignableFrom(cc)) {
+            @SuppressWarnings("unchecked")
+            Class<? extends FieldExtension> c = (Class<? extends FieldExtension>)cc;
+            try {
+                Method m = c.getMethod("ids");
+                String[] ids = (String[])m.invoke(null);
+                for (String t: ids) {
+                    fieldClasses.put(t, c);
                 }
             } catch (Exception e) {
                 return false;

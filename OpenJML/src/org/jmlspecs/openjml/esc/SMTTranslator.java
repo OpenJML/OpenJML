@@ -298,6 +298,11 @@ public class SMTTranslator extends JmlTreeScanner {
     protected int addTypeModel(SMT smt) {
         List<ISort> args = Arrays.asList(refSort); // List of one element 
         ICommand c;
+        // div truncates towards minus infinity, C & java / truncates towards 0
+        // lhs / rhs ===  lhs >= 0 ? lhs div rhs : (-lhs) div (-rhs)
+        addCommand(smt,"(define-fun cdiv ((a Int) (b Int)) Int (ite (>= a 0) (div a b) (div (- a) (- b))))");
+        addCommand(smt,"(define-fun cmod ((a Int) (b Int)) Int (- a (* (cdiv a b) b)))");
+
         // (declare-sort JavaTypeSort 0)
         if (JAVATYPESORT != REF) {
             c = new C_declare_sort(F.symbol(JAVATYPESORT),zero);
@@ -1078,7 +1083,7 @@ public class SMTTranslator extends JmlTreeScanner {
         if (t.getTag() == TypeTag.ARRAY){
             return typeString(((ArrayType)t).elemtype) + "_A_";
         }
-        return t.tsym.toString().replace(".", "_");
+        return t.tsym.toString().replace('.', '_');
     }
     
 //    public String arrayOf(Type t) {
@@ -2147,23 +2152,67 @@ public class SMTTranslator extends JmlTreeScanner {
             case SL:
             	if (useBV) {
             		result = F.fcn(F.symbol("bvshl"), args);
+            	} else if (tree.rhs instanceof JCLiteral) {
+            	    long i = ((Number)((JCLiteral)tree.rhs).getValue()).longValue();
+                    args = new LinkedList<IExpr>();
+                    args.add(lhs);
+                    int mx;
+                    if (tree.lhs.type == syms.intType) {
+                        mx = 32;
+                    } else if (tree.lhs.type == syms.longType) {
+                        mx = 64;
+                    } else {
+                        // ERROR
+                    }
+                    args.add(F.numeral(1<<i));
+                    result = F.fcn(F.symbol("*"), args);
             	} else {
             		notImplBV(tree, "Bit-operation " + op);
             	}
                 break;
             case SR:
-            	if (useBV) {
-            		result = F.fcn(F.symbol("bvashr"), args);
-            	} else {
-            		notImplBV(tree, "Bit-operation " + op);
-            	}
+                if (useBV) {
+                    result = F.fcn(F.symbol("bvashr"), args);
+                } else if (tree.rhs instanceof JCLiteral) {
+                    long i = ((Number)((JCLiteral)tree.rhs).getValue()).longValue();
+                    args = new LinkedList<IExpr>();
+                    args.add(lhs);
+                    int mx;
+                    if (tree.lhs.type == syms.intType) {
+                        mx = 32;
+                    } else if (tree.lhs.type == syms.longType) {
+                        mx = 64;
+                    } else {
+                        // ERROR
+                    }
+                    args.add(F.numeral(1<<i));
+                    result = F.fcn(F.symbol("div"), args);
+                } else {
+                    notImplBV(tree, "Bit-operation " + op);
+                }
                 break;
             case USR:
-            	if (useBV) {
-            		result = F.fcn(F.symbol("bvlshr"), args);
-            	} else {
-            		notImplBV(tree, "Bit-operation " + op);
-            	}
+                if (useBV) {
+                    result = F.fcn(F.symbol("bvlshr"), args);
+                } else if (tree.rhs instanceof JCLiteral) {
+                    long i = ((Number)((JCLiteral)tree.rhs).getValue()).longValue();
+                    args = new LinkedList<IExpr>();
+                    args.add(lhs);
+                    int mx = 0;
+                    if (tree.lhs.type == syms.intType) {
+                        mx = 32;
+                    } else if (tree.lhs.type == syms.longType) {
+                        mx = 64;
+                    } else {
+                        // ERROR
+                    }
+                    args.add(F.numeral(1<<i));
+                    result = F.fcn(F.symbol("div"), args);
+                    result = F.fcn(F.symbol("+"), result,
+                            F.fcn(F.symbol("ite"),F.fcn(F.symbol(">="), lhs, F.numeral(0)), F.numeral(0), F.numeral(1<<(mx-i))));
+                } else {
+                    notImplBV(tree, "Bit-operation " + op);
+                }
                 break;
             default:
                 log.error("jml.internal","Don't know how to translate expression to SMTLIB: " + JmlPretty.write(tree));
@@ -2539,17 +2588,21 @@ public class SMTTranslator extends JmlTreeScanner {
             reals.put(v, id);
             ISymbol sym = F.symbol(id);
             addReal();
-            ICommand c;
-            double vv = v;
-            if (vv < 0) vv = -vv;
-            // FIXME - need a more robust way to convert constants; would like to convert directly from original text
-            try (java.util.Formatter formatter = new java.util.Formatter()) {
-                String s = formatter.format("%f",vv).toString();
-                c = new C_define_fun(sym,emptyDeclList,realSort,v >= 0 ? F.decimal(s) : F.fcn(F.symbol("-"), F.decimal(s)));
-            } catch (NumberFormatException e) {
-                log.warning("jml.message", "Exception when converting " + vv);
-                c = new C_declare_fun(sym,emptyList,realSort);
-            }
+            ICommand c = new C_declare_fun(sym,emptyList,realSort); // use definefun and a constant FIXME
+            String s = v.toString();
+            c = new C_define_fun(sym,emptyDeclList,realSort,F.decimal(s));
+
+//            ICommand c;
+//            double vv = v;
+//            if (vv < 0) vv = -vv;
+//            // FIXME - need a more robust way to convert constants; would like to convert directly from original text
+//            try (java.util.Formatter formatter = new java.util.Formatter()) {
+//                String s = formatter.format("%f",vv).toString();
+//                c = new C_define_fun(sym,emptyDeclList,realSort,v >= 0 ? F.decimal(s) : F.fcn(F.symbol("-"), F.decimal(s)));
+//            } catch (NumberFormatException e) {
+//                log.warning("jml.message", "Exception when converting " + vv);
+//                c = new C_declare_fun(sym,emptyList,realSort);
+//            }
 
 //            for (int m = 1; m <= 1000000; m *= 10) {
 //                if (v*m == (int)(v*m)) {

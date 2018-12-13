@@ -8,7 +8,7 @@ public class String {
     
     //@ public normal_behavior
    //@ ensures string.string("abc").size() == 3;
-    //@ model public static void newStringFromString() {}
+    //@ model public static void newStringFromString() {}  // FIXME - does not yet work
     
     //@ public normal_behavior
     //@ ensures s.add('c').size() == 1 + s.size();
@@ -47,7 +47,7 @@ public class String {
     //@ model public static void addGet(string s, \bigint i, char c) {}
     
     //@ ensures string.string("abc").get(1) == 'b';
-    //@ model public static void character() {}
+    //@ model public static void character() {}  // FIXME - does not yet work
 
     
 }
