@@ -3939,6 +3939,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     for (JmlMethodClause clause : scase.clauses) {
                         switch (clause.token) {
                             case OLD:
+                            case FORALL:
                                 for (JCVariableDecl decl : ((JmlMethodClauseDecl)clause).decls) {
                                     addTraceableComment(decl,clause.toString());
                                     //                             Name name = names.fromString(decl.name.toString() + "__OLD_" + decl.pos);
@@ -3948,6 +3949,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     if (rac) {
                                         newdecl.init = treeutils.makeZeroEquivalentLit(decl.init.pos, decl.type);
                                         initialStatements.add(newdecl);
+                                        // FIXME - no FORALLs in rac
                                         JCExpression newinit = addImplicitConversion(decl.init, decl.type, decl.init);
                                         newinit = convertJML(treeutils.isTrueLit(preexpr) ? newinit : treeutils.makeConditional(pos, preexpr, newinit, treeutils.makeZeroEquivalentLit(pos, decl.type)));
 
@@ -3958,10 +3960,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         preparams.put(decl.sym,id);
                                         saveMapping(id, convertExpr(id));
                                     } else {
-                                        JCExpression newinit = addImplicitConversion(decl.init, decl.type, decl.init);
-                                        JCExpression init =
-                                                convertJML(treeutils.isTrueLit(preexpr) ? newinit : treeutils.makeConditional(pos, preexpr, newinit, treeutils.makeZeroEquivalentLit(pos, decl.init.type)));
-                                        newdecl.init = init;
+                                        if (decl.init != null) {
+                                            JCExpression newinit = addImplicitConversion(decl.init, decl.type, decl.init);
+                                            JCExpression init =
+                                                    convertJML(treeutils.isTrueLit(preexpr) ? newinit : treeutils.makeConditional(pos, preexpr, newinit, treeutils.makeZeroEquivalentLit(pos, decl.init.type)));
+                                            newdecl.init = init;
+                                        }
 
                                         addStat(newdecl);
                                         JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
@@ -8348,6 +8352,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             JmlMethodClauseExpr mcc = null; // Remember the first clause in the specification case
                             for (JmlMethodClause clause : cs.clauses) {
                                 switch (clause.token) {
+                                    case FORALL: 
                                     case OLD: { 
                                         // FIXME - needs to be in a block, but don't like to have assignments to compute the preconditions
                                         for (JCVariableDecl decl : ((JmlMethodClauseDecl)clause).decls) {
@@ -8370,9 +8375,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                     preparams.put(decl.sym,id);
                                                     saveMapping(id, convertExpr(id));
                                                 } else {
-                                                    JCExpression init = 
+                                                    if (decl.init != null) {
+                                                        JCExpression init = 
                                                             convertJML(treeutils.isTrueLit(prex) ? decl.init : treeutils.makeConditional(decl.pos, prex, decl.init, treeutils.makeZeroEquivalentLit(decl.pos, decl.init.type)));
-                                                    ndecl.init = init;
+                                                        ndecl.init = init;
+                                                    }
                                                     mapSymbols.put(decl.sym, ndecl.sym);
                                                     addStat(ndecl);
                                                     JCIdent id = treeutils.makeIdent(clause.pos, ndecl.sym);
@@ -8383,9 +8390,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         }
                                         break;
                                     }
-                                    case FORALL: 
-                                        notImplemented(clause,"forall clause in method specs",clause.source());
-                                        break;
                                     case REQUIRES:  // FIXME - need to include the requires expression in the condition for the sake of old expressions - also below
                                         JmlMethodClauseExpr mce = (JmlMethodClauseExpr)clause;
 //                                        JCExpression e = convertJML(mce.expression,pre,false); // Might throw an exception
@@ -8548,13 +8552,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     // that assigning to it (under the appropriate preconditions)
                                     // is allowed by each of the specification cases of the callee and caller specs.
                                     try {
-                                        if (clause.token == JmlTokenKind.OLD) { // FIXME - these need to be conditioned on the requires clauses
+                                        if (clause.token == JmlTokenKind.OLD ||
+                                                clause.token == JmlTokenKind.FORALL
+                                                ) { // FIXME - these need to be conditioned on the requires clauses
                                             // FIXME - ignore if after all requires?
                                             // FIXME - needs to be in a block, but don't like to have assignments to compute the preconditions
                                             insertDeclarationsForOld(null, (JmlMethodClauseDecl)clause);
 
-                                        } else if (clause.token == JmlTokenKind.FORALL) { 
-                                            //                                        notImplemented(clause,"forall clause in method specs",clause.source()); // Don't repeat the warning message
                                         } else if (clause.token == JmlTokenKind.ASSIGNABLE) {
                                             List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym,false);
                                             for (JCExpression item: storerefs) {
@@ -8838,15 +8842,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             try {
                                 JmlTokenKind token = clause.token;
                                 switch (token) {
+                                    case FORALL: 
                                     case OLD: { 
                                         // FIXME - ignore if after all requires?
                                         // FIXME - needs to be in a block, but don't like to have assignments to compute the preconditions
                                         insertDeclarationsForOld(pre,(JmlMethodClauseDecl)clause);
                                         break;
                                     }
-                                    case FORALL: 
-                                        notImplemented(clause,"forall clause in method specs",clause.source());
-                                        break;
 
                                     case ASSIGNABLE:
                                         // Don't translate assignable if we are in a pure method or constructor
@@ -9204,6 +9206,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             JavaFileObject prevSource = null;
                             try {
                                 switch (clause.token) {
+                                    case FORALL: 
                                     case OLD:
                                     { 
                                         JmlMethodClauseDecl olddecl = (JmlMethodClauseDecl)clause;
@@ -9217,9 +9220,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                                        scan(olddecl);
                                         break;
                                     }
-                                    case FORALL: 
-                                        notImplemented(clause,"forall clause in method specs",clause.source());
-                                        break;
                                     default:
                                         break;
                                 }
@@ -9294,6 +9294,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             try {
                                 switch (clause.token) {
                                     case OLD:
+                                    case FORALL:
                                     { 
                                         JmlMethodClauseDecl olddecl = (JmlMethodClauseDecl)clause;
                                         // FIXME - ignore if after all requires?
@@ -9301,8 +9302,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         insertDeclarationsForOld(null,olddecl);
                                         break;
                                     }
-                                    case FORALL:
-                                        break;
                                     default:
                                         break;
                                 }
@@ -12863,6 +12862,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JmlMethodDecl md = methodSymForInitBlock(classDecl, Flags.STATIC, classDecl);
 
         pushBlock();
+        if (esc) {
+            Name name = names.fromString(assumeCheckVar);
+            JCVariableDecl d = treeutils.makeVarDef(syms.intType, name, methodDecl.sym, Position.NOPOS); // NOPOS so the name is not mangled
+            assumeCheckSym = d.sym;
+            d.sym.owner = null;
+            currentStatements.add(d);
+        }
         for (Symbol s: classDecl.sym.getEnclosedElements()) {
             if (utils.isJMLStatic(s) && s instanceof VarSymbol && !utils.isPrimitiveType(s.type)) {
                 VarSymbol v = (VarSymbol)s;

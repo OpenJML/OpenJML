@@ -1083,7 +1083,7 @@ public class SMTTranslator extends JmlTreeScanner {
         if (t.getTag() == TypeTag.ARRAY){
             return typeString(((ArrayType)t).elemtype) + "_A_";
         }
-        return t.tsym.toString().replace(".", "_");
+        return t.tsym.toString().replace('.', '_');
     }
     
 //    public String arrayOf(Type t) {
