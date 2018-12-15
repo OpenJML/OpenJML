@@ -983,7 +983,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //                    that.args.get(0).accept(this);
 //                } else 
                 {
-                    Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).labeledStatement.label;
+                    Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).name;
                     //JCIdent label = (JCIdent)that.args.get(1);
                     currentMap = labelmaps.get(label);
                     if (currentMap == null) {
@@ -1933,6 +1933,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         try {
             that.range = convertExpr(that.range);
             that.value = convertExpr(that.value);
+            scanList(that.triggers);
             result = that;
         } finally {
             for (JCVariableDecl d: that.decls) {

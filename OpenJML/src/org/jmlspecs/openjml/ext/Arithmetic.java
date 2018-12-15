@@ -174,23 +174,23 @@ abstract public class Arithmetic extends ExpressionExtension {
         JCTree.Tag optag = that.getTag();
         TypeTag typetag = that.type.getTag();
         JCExpression eresult = null;
-        if (arg instanceof JCLiteral) {
-            // NEG, POS, COMPL
-            Number n = (Number)((JCLiteral)arg).getValue();
-            if (typetag == TypeTag.INT) {
-                int v = n.intValue();
-                if (v != Integer.MIN_VALUE || optag != JCTree.Tag.NEG) {
-                    v = optag == JCTree.Tag.NEG ? -v : optag == JCTree.Tag.COMPL ? -1-v : v;
-                    return rewriter.treeutils.makeIntLiteral(that.pos,v);
-                }
-            } else if (typetag == TypeTag.LONG) {
-                long v = n.longValue();
-                if (v != Long.MIN_VALUE || optag != JCTree.Tag.NEG) {
-                    v = optag == JCTree.Tag.NEG ? -v : optag == JCTree.Tag.COMPL ? -1-v : v;
-                    return rewriter.treeutils.makeLongLiteral(that.pos,v);
-                }
-            }
-        }
+//        if (arg instanceof JCLiteral) {
+//            // NEG, POS, COMPL
+//            Number n = (Number)((JCLiteral)arg).getValue();
+//            if (typetag == TypeTag.INT) {
+//                int v = n.intValue();
+//                if (v != Integer.MIN_VALUE || optag != JCTree.Tag.NEG) {
+//                    v = optag == JCTree.Tag.NEG ? -v : optag == JCTree.Tag.COMPL ? -1-v : v;
+//                    return rewriter.treeutils.makeIntLiteral(that.pos,v);
+//                }
+//            } else if (typetag == TypeTag.LONG) {
+//                long v = n.longValue();
+//                if (v != Long.MIN_VALUE || optag != JCTree.Tag.NEG) {
+//                    v = optag == JCTree.Tag.NEG ? -v : optag == JCTree.Tag.COMPL ? -1-v : v;
+//                    return rewriter.treeutils.makeLongLiteral(that.pos,v);
+//                }
+//            }
+//        }
         if (implementOverflow && !(arg instanceof JCLiteral)) {
             if (typetag == TypeTag.INT) {
                 JCExpression maxlit = rewriter.treeutils.makeIntLiteral(arg, Integer.MAX_VALUE);
@@ -279,13 +279,10 @@ abstract public class Arithmetic extends ExpressionExtension {
 
         // Need to do this operation before any implicit conversions, because those conversions may convert
         // to bigint or real, which complicates this test
-        if (javaChecks) {
-            if (optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD) {
-                @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs);
-                if (nonzero != null) rewriter.addAssert(that,
-                        rewriter.translatingJML ? Label.UNDEFINED_DIV0 : Label.POSSIBLY_DIV0,
-                        condition(rewriter, nonzero));
-            }
+        if (optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD) {
+            @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs);
+            if (nonzero != null) rewriter.addJavaCheck(that,nonzero,
+                    Label.POSSIBLY_DIV0, Label.UNDEFINED_DIV0, "java.lang.ArithmeticException");
         }
         
         

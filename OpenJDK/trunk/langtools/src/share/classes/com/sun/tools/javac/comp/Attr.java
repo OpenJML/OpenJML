@@ -463,7 +463,7 @@ public class Attr extends JCTree.Visitor {
         }
     }
 
-    class ResultInfo {
+    public class ResultInfo {  // OPENJML: Changed to public visibility
         final int pkind;
         final Type pt;
         final CheckContext checkContext;

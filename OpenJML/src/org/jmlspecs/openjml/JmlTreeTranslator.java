@@ -289,6 +289,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         r.range = translate(that.range);
         r.value = translate(that.value);
         r.racexpr = translate(that.racexpr);
+        r.triggers = translate(that.triggers);
         result = r;
         // Not translating: op
     }

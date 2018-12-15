@@ -1,0 +1,10 @@
+OUT:
+BEFORE
+..\..\OpenJMLDemo\src\features\JavaAssertion.java:11: JML assertion is false
+		assert i >= 0;
+		^
+
+ERR:
+Exception in thread "main" java.lang.AssertionError
+	at features.JavaAssertion.test(JavaAssertion.java:11)
+	at features.JavaAssertion.main(JavaAssertion.java:6)

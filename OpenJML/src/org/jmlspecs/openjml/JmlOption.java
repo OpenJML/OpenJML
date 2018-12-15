@@ -81,6 +81,7 @@ public enum JmlOption implements IOption {
     SHOW("-show",true,"","Show intermediate programs",null,false,"all"),
     SPLIT("-split",true,"","Split proof into sections",null),
     ESC_BV("-escBV",true,"auto","ESC: If enabled, use bit-vector arithmetic (auto, true, false)",null),
+    ESC_TRIGGERS("-triggers",false,true,"ESC: Enable quantifier triggers in SMT encoding (default true)",null),
     ESC_EXIT_INFO("-escExitInfo",false,true,"ESC: Show exit location for postconditions (default true)",null),
     ESC_MAX_WARNINGS("-escMaxWarnings",true,"all","ESC: Maximum number of warnings to find per method",null),
     MAXWARNINGSPATH("-escMaxWarningsPath",false,false,"ESC: If true, find all counterexample paths to each invalid assert",null),

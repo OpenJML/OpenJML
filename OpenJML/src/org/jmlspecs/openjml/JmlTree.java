@@ -2160,6 +2160,8 @@ public class JmlTree implements IJmlTree {
     /** This class represents a signals_only clause in a method specification */
     public static class JmlMethodClauseSignalsOnly extends JmlMethodClause {
 
+        public boolean defaultClause;
+        
         /** The list of names of exceptions - either JCIdent or JCFieldAccess */
         // FIXME - why not Names?
         public List<JCTree.JCExpression> list;
@@ -2169,6 +2171,7 @@ public class JmlTree implements IJmlTree {
             this.pos = pos;
             this.token = token;
             this.list = list;
+            this.defaultClause = false;
         }
 
         @Override
@@ -2382,6 +2385,10 @@ public class JmlTree implements IJmlTree {
         
         /** A (partial) expression used in RAC, but constructed here for convenience */
         public JCExpression racexpr;
+        
+        /** The user-specified triggers for the quantification */
+        //@ nullable
+        public List<JCExpression> triggers = null;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlQuantifiedExpr(int pos, JmlTokenKind op,

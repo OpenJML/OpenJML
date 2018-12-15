@@ -1,0 +1,9 @@
+OUT:
+..\..\OpenJMLDemo\src\features\NegativeArraySize.java:12: JML attempt to create an array with negative size
+		int[] a = new int[size];
+		                  ^
+
+ERR:
+Exception in thread "main" java.lang.NegativeArraySizeException
+	at features.NegativeArraySize.test(NegativeArraySize.java:12)
+	at features.NegativeArraySize.main(NegativeArraySize.java:8)

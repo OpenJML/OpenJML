@@ -1311,61 +1311,74 @@ public class esc extends EscBase {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava",
-                "package tt; \n" + "public class TestJava { \n" + "  public int k;\n" + "  public static int sk;\n"
+                          "package tt; \n" 
+                        + "public class TestJava { \n" 
+                        + "  public int k;\n" 
+                        + "  public static int sk;\n"
 
                         + "  public static int[] a; public int[] b;\n"
 
-                        + "  //@ requires b != null && b.length == 5;\n" + "  //@ modifies b[0];\n"
-                        + "  public void m5() {\n" + "    //@ assume b[0] == 0 && b[1] == 1;\n" + "    c4(0);\n"
-                        + "    //@ assert b[1] == 1;\n" + "  }\n"
+                        + "  //@ requires b != null && b.length == 5;\n" 
+                        + "  //@ modifies b[0];\n"
+                        + "  public void m5() {\n" 
+                        + "    //@ assume b[0] == 0 && b[1] == 1;\n" 
+                        + "    c4(0);\n"
+                        + "    //@ assert b[1] == 1;\n" 
+                        + "  }\n"
 
-                        + "  //@ requires b != null && b.length == 5;\n" + "  //@ modifies b[0];\n"
-                        + "  public void m5a() {\n" + "    //@ assume b[0] == 0 && b[1] == 1;\n" + "    c4(0);\n"
+                        + "  //@ requires b != null && b.length == 5;\n" 
+                        + "  //@ modifies b[0];\n"
+                        + "  public void m5a() {\n" 
+                        + "    //@ assume b[0] == 0 && b[1] == 1;\n" 
+                        + "    c4(0);\n"
                         + "    //@ assert b[0] == 0;\n" // FAILS
                         + "  }\n"
 
-                        + "  //@ requires b != null && b.length == 5;\n" + "  //@ modifies b[0];\n"
-                        + "  public void m6a() {\n" + "    //@ assume b[0] == 0 && b[1] == 1;\n" + "    c3(0);\n" // changes
-                                                                                                                    // a
-                                                                                                                    // -
-                                                                                                                    // get
-                                                                                                                    // a
-                                                                                                                    // null
-                                                                                                                    // deference
-                                                                                                                    // warning
+                        + "  //@ requires b != null && b.length == 5;\n" 
+                        + "  //@ modifies b[0];\n"
+                        + "  public void m6a() {\n" 
+                        + "    //@ assume b[0] == 0 && b[1] == 1;\n" 
+                        + "    c3(0);\n" // changes a - get a null deference warning
                         + "  }\n"
 
                         + "  //@ requires a != null && b != null && b.length == 5  && a.length ==5;\n"
-                        + "  //@ modifies a[0],b[0];\n" + "  public void m6() {\n"
-                        + "    //@ assume b[0] == 0 && b[1] == 1;\n" + "    c3(0);\n" // changes
-                                                                                        // a
-                                                                                        // -
-                                                                                        // now
-                                                                                        // ok
-                        + "    //@ assert b[1] == 1;\n" + "  }\n"
+                        + "  //@ modifies a[0],b[0];\n" 
+                        + "  public void m6() {\n"
+                        + "    //@ assume b[0] == 0 && b[1] == 1;\n" 
+                        + "    c3(0);\n"  // changes a - now ok
+                        + "    //@ assert b[1] == 1;\n" 
+                        + "  }\n"
 
-                        + "  //@ requires i == 0;\n" + "  //@ modifies k;\n" + "  //@ also requires i > 0;\n"
-                        + "  //@ modifies sk;\n" + "  public void c1(int i) { } \n"
+                        + "  //@ requires i == 0;\n" 
+                        + "  //@ modifies k;\n" 
+                        + "  //@ also requires i > 0;\n"
+                        + "  //@ modifies sk;\n" 
+                        + "  public void c1(int i) { } \n"
 
-                        + "  //@ requires i == 10;\n" + "  //@ modifies t.k;\n" + "  //@ also requires i == 0;\n"
-                        + "  //@ modifies \\nothing;\n" + "  public void c2(int i, TestJava t) {}\n"
+                        + "  //@ requires i == 10;\n" 
+                        + "  //@ modifies t.k;\n" 
+                        + "  //@ also requires i == 0;\n"
+                        + "  //@ modifies \\nothing;\n" 
+                        + "  public void c2(int i, TestJava t) {}\n"
 
-                        + "  //@ requires a!=null && 0<=i && i<a.length;\n" + "  //@ modifies a[i];\n"
-                        + "  public void c3(int i) {}\n" + "  //@ requires b!=null && 0<=i && i<b.length;\n"
-                        + "  //@ modifies b[i];\n" + "  public void c4(int i) {}\n" + "}",
+                        + "  //@ requires a!=null && 0<=i && i<a.length;\n" 
+                        + "  //@ modifies a[i];\n"
+                        + "  public void c3(int i) {}\n" 
+                        + "  //@ requires b!=null && 0<=i && i<b.length;\n"
+                        + "  //@ modifies b[i];\n" 
+                        + "  public void c4(int i) {}\n" + "}",
                 seq("/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method m5a", 9,
-                        anyorder(
-                                seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m6a:  a[i]",7
-                                        , "/tt/TestJava.java:20: warning: Associated declaration", 7
-                                        ),
-                                seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m6a",7
-                                        , "/tt/TestJava.java:45: warning: Associated declaration", 15
-                                        ,
-                                        oneof(
-                                        seq("/tt/TestJava.java:43: warning: Precondition conjunct is false: a != null",17)
-                                        ,seq("/tt/TestJava.java:43: warning: Precondition conjunct is false: i < a.length",17)
-                                        )
-                                        ))));
+                  anyorder(
+                    seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m6a:  a[i]",7
+                      , "/tt/TestJava.java:20: warning: Associated declaration", 7
+                      ),
+                    seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m6a",7
+                      , "/tt/TestJava.java:45: warning: Associated declaration", 15
+                      , oneof(
+                         seq("/tt/TestJava.java:43: warning: Precondition conjunct is false: a != null",17)
+                        ,seq("/tt/TestJava.java:43: warning: Precondition conjunct is false: i < a.length",36)
+                        )
+                 ))));
     }
 
     @Test
