@@ -8765,7 +8765,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             JCStatement havoc = M.at(clause.pos).JmlHavocStatement(newlist.toList());
                                             addStat(havoc);
                                             if (containsEverything) {
-                                            	addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false, currentThisExpr == null);
+                                                addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false, currentThisExpr == null);
                                             }
                                             for (JCExpression hv: newlist) {
                                                 if (hv instanceof JCFieldAccess) havocModelFields((JCFieldAccess)hv);
@@ -10357,11 +10357,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addBinaryChecks(that, op, lhsc, rhs, maxJmlType);
 
   //          if (jmltypes.isJmlType(maxJmlType)) {
-            	rhs = makeBin(that, op, that.getOperator(), lhsc , rhs, maxJmlType);
+                rhs = makeBin(that, op, that.getOperator(), lhsc , rhs, maxJmlType);
   //          } else {
-  //          	rhs = treeutils.makeBinary(that.pos,op,lhsc,rhs);
+  //            rhs = treeutils.makeBinary(that.pos,op,lhsc,rhs);
   //          }
             treeutils.copyEndPosition(rhs, that);
+            
+            if (arith) {
+                // FIXME - this is going to call checkRW again, already called during convertExpr(rhs) above
+                rhs = currentArithmeticMode.rewriteBinary(this, (JCBinary)rhs, true);
+            }
+
 
             checkAccess(JmlTokenKind.ASSIGNABLE, that, lhs, lhs, currentThisId, currentThisId);
             checkRW(JmlTokenKind.WRITABLE,((JCIdent)lhs).sym,currentThisExpr,lhs);
@@ -11896,8 +11902,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             if (attr.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable && !reps.contains(sym)) {
 
-            	// currentThisExpr is null if the symbol is static
-            	TypeSymbol tsym = currentThisExpr != null ? currentThisExpr.type.tsym : (TypeSymbol)sym.owner; // FIXME - perhaps can always be sym.owner
+                // currentThisExpr is null if the symbol is static
+                TypeSymbol tsym = currentThisExpr != null ? currentThisExpr.type.tsym : (TypeSymbol)sym.owner; // FIXME - perhaps can always be sym.owner
                 addRepresentsAxioms(tsym, sym, that, currentThisExpr);
                 //         if (checkAccessEnabled) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
                 // FIXME - should we check accessibility for model fields
@@ -14234,7 +14240,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (that.args.size() > 1) {
                     JCExpression lb = that.args.get(1);
                     if (lb instanceof JCLiteral) {
-                    	// FIXME - I don't think a string is allowed by type-checking
+                        // FIXME - I don't think a string is allowed by type-checking
                         String s = ((JCLiteral)lb).value.toString();
                         label = names.fromString(s);
                         if (labelProperties.get(label) == null) label = oldLabel.name;
@@ -16191,12 +16197,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     public java.util.List<Type> parents(Type ct, boolean includeEnclosing) { // FIXME - not implemented for includeEnclosing = true // FIXME - unify this with the methods in Utils.
 
-    	java.util.List<Type> classes = new LinkedList<Type>();
+        java.util.List<Type> classes = new LinkedList<Type>();
         Type cc = ct.unannotatedType();
-    	if (utils.isExtensionValueType(cc)) {
-    	    classes.add(cc);
-    	    return classes;
-    	}
+        if (utils.isExtensionValueType(cc)) {
+            classes.add(cc);
+            return classes;
+        }
         while (cc != null && cc.getTag() != TypeTag.NONE) {
             classes.add(0,cc);
             if (cc instanceof Type.ClassType) {

@@ -3568,7 +3568,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // Expects one expression argument of any type; result is of the same type
                 // FIXME - does this allow any JML spec-expression?
                 // FIXME - the JMLb rules will require some numeric type promotions
-                attribArgs(VAL, tree.args, localEnv, argtypesBuf);
                 //attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
@@ -3577,7 +3576,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (n == 0) {
                     t = syms.errType;
                 } else {
-                    t = tree.args.get(0).type;
+                    JCExpression arg = tree.args.get(0);
+                    attribTree(arg, localEnv, resultInfo);
+                    t = arg.type;
                 }
                 result = check(tree, t, VAL, resultInfo);
                 break;
