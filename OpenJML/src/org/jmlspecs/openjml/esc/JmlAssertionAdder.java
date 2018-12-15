@@ -2619,6 +2619,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     {
                                         if (contextIsStatic && !clauseIsStatic) break;
                                         if (clauseIsFinal && !assume) break;
+                                        if (clauseIsFinal && !contextIsStatic && clauseIsStatic) break;
                                         if (isHelper && (!clauseIsFinal || !assume)) break;
                                         if (isSuper && !isPost) break;
                                         boolean doit = false;
@@ -9019,8 +9020,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // FIXME - not enabled for rc; they are just assumptions (which could
                 // usefully be checked), but they sappear to include model fields.
                 if (!rac && !infer) {
-                    addNonNullChecks(true, that, calleeClass.type, newThisExpr, 
-                            calleeMethodSym.isConstructor());
+                    if (!isHelper(calleeMethodSym)) {
+                        addNonNullChecks(true, that, calleeClass.type, newThisExpr, 
+                                calleeMethodSym.isConstructor());
+                    }
                 }
 
                 if (esc && !methodDecl.sym.isConstructor()) {
