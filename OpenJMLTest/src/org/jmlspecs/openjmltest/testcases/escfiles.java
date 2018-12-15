@@ -262,6 +262,11 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testINF() {
+        helpTF("escINF");
+    }
+
+    @Test
     public void testAdd() {
         expectedExit = 1;
         helpTF("escAdd");
