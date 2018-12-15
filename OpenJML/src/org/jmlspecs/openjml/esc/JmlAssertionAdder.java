@@ -9016,11 +9016,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 String msg = utils.qualifiedMethodSig(calleeMethodSym) + ", returning to " + utils.qualifiedMethodSig(methodDecl.sym);
                 currentStatements.add(comment(that, "Assuming callee invariants by the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
                 // Assume non_null fields, since they might have been havoced 
-                // FIXME - not enabled for rc; they are just assumptions (which could
-                // usefully be checked), but they sappear to include model fields.
+                // FIXME - not enabled for rac; they are just assumptions (which could
+                // usefully be checked), but they appear to include model fields.
                 if (!rac && !infer) {
-                    addNonNullChecks(true, that, calleeClass.type, newThisExpr, 
-                            calleeMethodSym.isConstructor());
+                    // After a call, we assume invariants, which includes assuming that
+                    // non-null fields are null. However, we do not do make these assumptions if
+                    // (a) the callee is helper or (b) the caller and callee are the same object
+                    // and the caller is a constructor
+                    
+                    if (!isHelper(calleeMethodSym)) {
+                        addNonNullChecks(true, that, calleeClass.type, newThisExpr, 
+                                calleeMethodSym.isConstructor());
+                    }
                 }
 
                 if (esc && !methodDecl.sym.isConstructor()) {
