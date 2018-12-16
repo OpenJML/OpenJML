@@ -8936,22 +8936,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 }
                                             }
                                             JCBlock bl = popBlock(0,cs,check4);
-                                            JCStatement st = M.at(cs.pos+1).If(pre,bl,null);
-                                            currentStatements.add( wrapRuntimeException(cs, st, "JML undefined precondition while checking postconditions - exception thrown", null));
-                                            ListBuffer<JCStatement> checkbl = pushBlock();
-                                            JCStatement havoc = M.at(clause.pos).JmlHavocStatement(newlist.toList());
-                                            addStat(havoc);
-                                            if (containsEverything) {
-                                                addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false, currentThisExpr == null);
-                                            }
-                                            for (JCExpression hv: newlist) {
-                                                if (hv instanceof JCFieldAccess) havocModelFields((JCFieldAccess)hv);
-                                            }
-                                            bl = popBlock(0,cs,checkbl);
+//                                            JCStatement st = M.at(cs.pos+1).If(pre,bl,null);
+//                                            currentStatements.add( wrapRuntimeException(cs, st, "JML undefined precondition while checking postconditions - exception thrown", null));
+//                                            ListBuffer<JCStatement> checkbl = pushBlock();
+//                                            JCStatement havoc = M.at(clause.pos).JmlHavocStatement(newlist.toList());
+//                                            addStat(havoc);
+//                                            if (containsEverything) {
+//                                                addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false, currentThisExpr == null);
+//                                            }
+//                                            for (JCExpression hv: newlist) {
+//                                                if (hv instanceof JCFieldAccess) havocModelFields((JCFieldAccess)hv);
+//                                            }
+//                                            bl = popBlock(0,cs,checkbl);
                                             if (!bl.stats.isEmpty()) {
-                                                JCStatement stt = M.at(cs.pos+1).If(prex,bl,null);
-                                                if (rac) st = wrapRuntimeException(cs, stt, "JML undefined precondition while checking postconditions - exception thrown", null); // FIXME - this needs to be checked
-                                                addStat(stt);
+                                                JCStatement st = M.at(cs.pos+1).If(prex,bl,null);
+                                                if (rac) st = wrapRuntimeException(cs, st, "JML undefined precondition while checking postconditions - exception thrown", null); // FIXME - this needs to be checked
+                                                addStat(st);
                                                 anyHavocs = true;
                                             }
                                             
@@ -10552,11 +10552,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             addBinaryChecks(that, op, lhsc, rhs, maxJmlType);
 
-  //          if (jmltypes.isJmlType(maxJmlType)) {
-                rhs = makeBin(that, op, that.getOperator(), lhsc , rhs, maxJmlType);
-  //          } else {
-  //            rhs = treeutils.makeBinary(that.pos,op,lhsc,rhs);
-  //          }
+            rhs = makeBin(that, op, that.getOperator(), lhsc , rhs, maxJmlType);
             treeutils.copyEndPosition(rhs, that);
             
             if (arith) {

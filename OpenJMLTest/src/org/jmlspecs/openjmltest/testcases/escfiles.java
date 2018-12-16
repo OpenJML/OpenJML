@@ -688,8 +688,8 @@ public class escfiles extends EscBase {
     @Test
     public void testEnums() {
         expectedExit = 0;
-        helpTF("enums");
-        //helpTF("enums","-show","-method=m5c","-subexpressions");
+        //helpTF("enums");
+        helpTF("enums","-show","-method=m6a","-subexpressions");
     }
 
     @Test
