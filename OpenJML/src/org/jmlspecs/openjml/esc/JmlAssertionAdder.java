@@ -8274,12 +8274,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     
                     if (calleeSpecs.decl != null) {
                         // Map the formals for this particular method to the correaponding trnasklated actual argument
+                        // Not sure we need this first alternative
                         Iterator<JCVariableDecl> iter = calleeSpecs.decl.params.iterator();
-                        JCVariableDecl currentDecl = null;
                         for (JCExpression arg: trArgs) {
-                            if (iter.hasNext()) currentDecl = iter.next();
-                            paramActuals.put(currentDecl.sym, arg);
+                            if (iter.hasNext()) paramActuals.put(iter.next().sym, arg);
+                            else {
+                                // FIXME - mismatch in number of arguments; what about varargs?
+                            }
                         }
+                    } else {
+                        Iterator<VarSymbol> iter = mpsym.params.iterator();
+                        for (JCExpression arg: trArgs) {
+                            if (iter.hasNext()) paramActuals.put(iter.next(), arg);
+                            else {
+                                // FIXME - mismatch in number of arguments; what about varargs?
+                            }
+                        }
+                        
                     }
                     if (esc) {
                         // Map type variables for this particular method declaration to the corresponding type, already determined by type attribution 
