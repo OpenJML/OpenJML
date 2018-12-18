@@ -3509,8 +3509,8 @@ public class JmlTree implements IJmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return v.visitLambdaExpression(this, d);
             } else {
-                System.out.println("A JmlTypeClauseRepresents expects an JmlTreeVisitor, not a " + v.getClass());
-                return null; //return super.accept(v,d);
+                //System.out.println("A JmlLambda expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
             }
         }
 
