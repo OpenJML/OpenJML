@@ -85,13 +85,13 @@ public class Test {
     }
     
     //@ pure
-    public void m6a(/*@ nullable */ String s) {
-        try {
-            EEE e = EEE.valueOf(s); // might throw exception
-            //@ assert e != null && s != null;
+    public void m6a(/*@ nullable */ String ssss) {
+        try { EEE e = EEE.valueOf(ssss); // might throw exception
+            //@ assert e != null;
+            //@ assert ssss != null;
             //@ assert e == EEE.AA || e == EEE.BB || e == EEE.CC || e == EEE.DD;
         } catch (NullPointerException ex) {
-            //@ assert s == null;
+            //@ assert ssss == null;
         } catch (IllegalArgumentException ex) {
             // FIXME - s is not any one of the possibilities
         }

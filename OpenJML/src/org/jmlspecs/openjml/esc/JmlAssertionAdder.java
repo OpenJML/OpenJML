@@ -8274,12 +8274,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     
                     if (calleeSpecs.decl != null) {
                         // Map the formals for this particular method to the correaponding trnasklated actual argument
+                        // Not sure we need this first alternative
                         Iterator<JCVariableDecl> iter = calleeSpecs.decl.params.iterator();
-                        JCVariableDecl currentDecl = null;
                         for (JCExpression arg: trArgs) {
-                            if (iter.hasNext()) currentDecl = iter.next();
-                            paramActuals.put(currentDecl.sym, arg);
+                            if (iter.hasNext()) paramActuals.put(iter.next().sym, arg);
+                            else {
+                                // FIXME - mismatch in number of arguments; what about varargs?
+                            }
                         }
+                    } else if (mpsym.params != null) {
+                        Iterator<VarSymbol> iter = mpsym.params.iterator();
+                        for (JCExpression arg: trArgs) {
+                            if (iter.hasNext()) paramActuals.put(iter.next(), arg);
+                            else {
+                                // FIXME - mismatch in number of arguments; what about varargs?
+                            }
+                        }
+                        
                     }
                     if (esc) {
                         // Map type variables for this particular method declaration to the corresponding type, already determined by type attribution 
@@ -8893,11 +8904,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, arrayXout, loc.indexed));
                                                 addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, loc.index));
 
-//                                                addToStats(elses, () -> {
-//                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, arrayXout, treeutils.nullLit));
-//                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, treeutils.zero));
-//                                                });
-
                                                 JmlBBArrayAccess newloc = new JmlBBArrayAccess(null,arrayXout,loXout); // FIXME - switch to factory
                                                 newloc.pos = loc.pos;
                                                 newloc.setType(loc.type);
@@ -8913,12 +8919,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, arrayXout, loc.expression));
                                                 if (loc.lo != null) addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, loc.lo));
                                                 if (loc.hi != null) addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, hiXout, loc.hi));
-
-//                                                addToStats(elses, () -> {
-//                                                    addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, arrayXout, treeutils.nullLit));
-//                                                    if (loc.lo != null) addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, treeutils.zero));
-//                                                    if (loc.hi != null) addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, hiXout, treeutils.zero));
-//                                                });
 
                                                 JmlStoreRefArrayRange newloc = M.at(loc.pos).JmlStoreRefArrayRange(arrayXout,loXout,hiXout); // FIXME - switch to factory
                                                 newloc.pos = loc.pos;
@@ -8947,6 +8947,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 }
                                             }
                                             JCBlock bl = popBlock(0,cs,check4);
+//                                            JCStatement st = M.at(cs.pos+1).If(pre,bl,null);
+//                                            currentStatements.add( wrapRuntimeException(cs, st, "JML undefined precondition while checking postconditions - exception thrown", null));
+//                                            ListBuffer<JCStatement> checkbl = pushBlock();
+//                                            JCStatement havoc = M.at(clause.pos).JmlHavocStatement(newlist.toList());
+//                                            addStat(havoc);
+//                                            if (containsEverything) {
+//                                                addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false, currentThisExpr == null);
+//                                            }
+//                                            for (JCExpression hv: newlist) {
+//                                                if (hv instanceof JCFieldAccess) havocModelFields((JCFieldAccess)hv);
+//                                            }
+//                                            bl = popBlock(0,cs,checkbl);
                                             if (!bl.stats.isEmpty()) {
                                                 JCStatement st = M.at(cs.pos+1).If(prex,bl,null);
                                                 if (rac) st = wrapRuntimeException(cs, st, "JML undefined precondition while checking postconditions - exception thrown", null); // FIXME - this needs to be checked
@@ -10553,12 +10565,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             addBinaryChecks(that, op, lhsc, rhs, maxJmlType);
 
-  //          if (jmltypes.isJmlType(maxJmlType)) {
-            	rhs = makeBin(that, op, that.getOperator(), lhsc , rhs, maxJmlType);
-  //          } else {
-  //          	rhs = treeutils.makeBinary(that.pos,op,lhsc,rhs);
-  //          }
+            rhs = makeBin(that, op, that.getOperator(), lhsc , rhs, maxJmlType);
             treeutils.copyEndPosition(rhs, that);
+            
+            if (arith) {
+                // FIXME - this is going to call checkRW again, already called during convertExpr(rhs) above
+                rhs = currentArithmeticMode.rewriteBinary(this, (JCBinary)rhs, true);
+            }
+
 
             checkAccess(JmlTokenKind.ASSIGNABLE, that, lhs, lhs, currentThisId, currentThisId);
             checkRW(JmlTokenKind.WRITABLE,((JCIdent)lhs).sym,currentThisExpr,lhs);
@@ -12136,8 +12150,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             if (attr.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable && !reps.contains(sym)) {
 
-            	// currentThisExpr is null if the symbol is static
-            	TypeSymbol tsym = currentThisExpr != null ? currentThisExpr.type.tsym : (TypeSymbol)sym.owner; // FIXME - perhaps can always be sym.owner
+                // currentThisExpr is null if the symbol is static
+                TypeSymbol tsym = currentThisExpr != null ? currentThisExpr.type.tsym : (TypeSymbol)sym.owner; // FIXME - perhaps can always be sym.owner
                 addRepresentsAxioms(tsym, sym, that, currentThisExpr);
                 //         if (checkAccessEnabled) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
                 // FIXME - should we check accessibility for model fields
@@ -16487,12 +16501,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     public java.util.List<Type> parents(Type ct, boolean includeEnclosing) { // FIXME - not implemented for includeEnclosing = true // FIXME - unify this with the methods in Utils.
 
-    	java.util.List<Type> classes = new LinkedList<Type>();
+        java.util.List<Type> classes = new LinkedList<Type>();
         Type cc = ct.unannotatedType();
-    	if (utils.isExtensionValueType(cc)) {
-    	    classes.add(cc);
-    	    return classes;
-    	}
+        if (utils.isExtensionValueType(cc)) {
+            classes.add(cc);
+            return classes;
+        }
         while (cc != null && cc.getTag() != TypeTag.NONE) {
             classes.add(0,cc);
             if (cc instanceof Type.ClassType) {

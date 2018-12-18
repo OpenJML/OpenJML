@@ -7,3 +7,4 @@
 *.bpl
 **/*actual*
 **/*.class
+/strongarm-error.log

@@ -8,10 +8,10 @@ Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of CashAmountOnlyPrivate.negate() with prover !!!! - no warnings
 Starting proof of CashAmountOnlyPrivate.increase(CashAmountOnlyPrivate) with prover !!!!
-../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:92: warning: The prover cannot establish an assertion (Precondition) in method increase
+../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:93: warning: The prover cannot establish an assertion (Precondition) in method increase
     return new CashAmountOnlyPrivate(new_dollars, new_cents);
            ^
-../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:50: warning: Associated declaration
+../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:51: warning: Associated declaration
   /*@ pure */ public CashAmountOnlyPrivate(final int the_dollars, final int the_cents) {
                      ^
 ../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:40: warning: Precondition conjunct is false: the_cents < 100

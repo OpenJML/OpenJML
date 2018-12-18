@@ -3616,9 +3616,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
                     result = tree.type = syms.errType;
                 } else {
-                    attribTree(tree.args.get(0), localEnv, resultInfo);
-                    t = tree.args.get(0).type;
-                    result = check(tree, t, VAL, resultInfo);
+                    JCExpression arg = tree.args.get(0);
+                    attribTree(arg, localEnv, resultInfo);
+                    result = check(tree, arg.type, VAL, resultInfo);
                 }
                 break;
                  
