@@ -222,6 +222,18 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.type = that.type;
         return copy;
     }
+    
+    public JCTree visitLambda(JCLambda that, Void p) {
+        JmlLambda copy = M.at(that.pos).JmlLambda(copy(that.params), (JCExpression)copy(that.body), copy(((JmlLambda)that).jmlType));
+        copy.type = that.type;
+        copy.canCompleteNormally = that.canCompleteNormally;
+        copy.paramKind = that.paramKind;
+        copy.polyKind = that.polyKind;
+        copy.targets = that.targets; // FIXME - should make new copies?
+        return copy;
+    }
+
+
 
     @Override
     public JCTree visitJmlLabeledStatement(JmlLabeledStatement that, Void p) {
@@ -734,7 +746,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     public JCTree visitImport(ImportTree node, Void p) {
         return super.visitImport(node,p).setType(((JCTree)node).type);
     }
-
+    
     public JCTree visitArrayAccess(ArrayAccessTree node, Void p) {
         if (node instanceof JmlBBArrayAccess) {
             JmlBBArrayAccess n = (JmlBBArrayAccess)node;
