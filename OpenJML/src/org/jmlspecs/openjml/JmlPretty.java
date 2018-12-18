@@ -185,6 +185,22 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             }
         } catch (IOException e) { perr(that,e); }
     }
+    
+    public void visitLambda(JCLambda that) {
+        try {
+            if (that instanceof JmlLambda) {
+                JmlLambda jthat = (JmlLambda)that;
+                if (jthat.jmlType != null) {
+                    print("/*@{ ");
+                    (jthat.jmlType).accept(this);
+                    print(" }@*/");
+                }
+            }
+            super.visitLambda(that);
+        } catch (IOException e) {
+            perr(that,e);
+        }
+    }
 
     public void visitJmlLabeledStatement(JmlLabeledStatement that) {
         try {

@@ -3235,10 +3235,17 @@ public class JmlParser extends JavacParser {
         }
         if (S.jml() && token.kind == TokenKind.LBRACE) {
             accept(LBRACE);
-            Name id = ident();
+            JCExpression jmltype = parseType();
             accept(RBRACE);
             skipThroughEndOfJML();
             JCExpression e = toP(super.term3());
+            JCExpression ee = e;
+            while (ee instanceof JCParens) ee = ((JCParens)ee).expr;
+            if (ee instanceof JmlLambda) {
+                ((JmlLambda)ee).jmlType = jmltype;
+            } else {
+                log.warning(jmltype,"jml.message", "Ignoring JML type cast before a non-lambda expression (" + ee.getClass().toString() + ")");
+            }
             return e;
         }
         return toP(super.term3());

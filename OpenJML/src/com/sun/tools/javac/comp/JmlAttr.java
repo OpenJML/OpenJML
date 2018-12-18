@@ -6270,6 +6270,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitLambda(final JCLambda that) {
+
         boolean saved = skipDefaultNullity;
         try {
             skipDefaultNullity = true;
@@ -6277,7 +6278,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } finally {
             skipDefaultNullity = saved;
         }
+        Type savedResult = result;
+        if (that instanceof JmlLambda) {
+            JmlLambda jmlthat = (JmlLambda) that;
+            if (jmlthat.jmlType != null) {
+                if (that.type.isErroneous()) {
+                    attribTree(jmlthat.jmlType, env, new ResultInfo(TYP, syms.objectType));
+                } else {
+                    // Issues an error if the type of jmlType is not a subtype of 
+                    // that.type - which is precisely the check that we want,
+                    // so we don't need to retest.
+                    Type t = attribTree(jmlthat.jmlType, env, new ResultInfo(TYP, that.type));
+                    if (!t.isErroneous()) {
+                        that.type = t;
+                    }
+                }
+            }
+        } else {
+            // FIXME _ ERROR
+        }
+        result = savedResult;
     }
+
 
     
     // These are here mostly to make them visible to extensions
