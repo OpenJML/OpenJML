@@ -547,6 +547,8 @@ public class Check {
             return found;
         if (checkContext.compatible(found, req, checkContext.checkWarner(pos, found, req))) {
             return found;
+        } else if (found.toString().contains("java.util.Optional<U>") && found.toString().equals(req.toString())) {
+            return req; //  OPENJML
         } else {
             if (found.isNumeric() && req.isNumeric()) {
                 checkContext.report(pos, diags.fragment("possible.loss.of.precision", found, req));
@@ -1120,6 +1122,7 @@ public class Check {
             throw new AssertionError();
         }
         long illegal = flags & ExtendedStandardFlags & ~mask;
+        illegal &= ~INTERFACE;  // OPENJML - added
         if (illegal != 0) {
             if ((illegal & INTERFACE) != 0) {
                 log.error(pos, "intf.not.allowed.here");

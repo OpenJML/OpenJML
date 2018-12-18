@@ -5331,6 +5331,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCLambda nthat = M.Lambda(convert(that.params), convert(that.body));
             nthat.pos = that.pos;
             nthat.type = that.type;
+            ((JmlLambda)nthat).jmlType = convert(((JmlLambda)that).jmlType);
             result = eresult = nthat;
             translatingJML = saved;
             popBlock(0L,that);
@@ -14825,6 +14826,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected java.util.Map<Symbol,Symbol> localVariables = new java.util.HashMap<Symbol,Symbol>();
     
     protected ListBuffer<JCStatement> nonignoredStatements = null;
+    
+//    @Override
+//    public void visitJmlLambda(JmlLambda that) {
+//        if (pureCopy) {
+//            JmlLambda q = M.JmlLambda(that.params,  that.body,  that.jmlType);
+//            q.pos = that.pos;
+//            treeutils.copyEndPosition(q, that);
+//            q.type = that.type;
+//            q.targets = that.targets;
+//            q.polyKind = that.polyKind;
+//            q.paramKind = that.paramKind;
+//            result = eresult = q;
+//            return;
+//        }
+//        visitLambda(that);
+//    }
     // OK
     @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
@@ -14832,7 +14849,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (pureCopy) {
             JmlQuantifiedExpr q = M.JmlQuantifiedExpr(that.op, convert(that.decls), convert(that.range),convert(that.value));
             q.pos = that.pos;
-            treeutils.copyEndPosition(eresult, that);
+            treeutils.copyEndPosition(q, that);
             q.triggers = convert(that.triggers);
             q.racexpr = convert(that.racexpr);
             q.type = that.type;

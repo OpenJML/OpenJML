@@ -14,6 +14,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
+import com.sun.tools.javac.tree.JCTree.JCLambda;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 
 /**
@@ -290,6 +291,12 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         for (JCTree t: that.list) {
             scan(t);
         }
+    }
+    
+    @Override
+    public void visitLambda(JCLambda that) {
+        super.visitLambda(that);
+        scan(((JmlLambda)that).jmlType);
     }
 
     public void visitJmlTypeClauseConditional(JmlTypeClauseConditional tree) {
