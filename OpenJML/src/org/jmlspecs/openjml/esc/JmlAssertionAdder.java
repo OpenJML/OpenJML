@@ -8282,7 +8282,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 // FIXME - mismatch in number of arguments; what about varargs?
                             }
                         }
-                    } else {
+                    } else if (mpsym.params != null) {
                         Iterator<VarSymbol> iter = mpsym.params.iterator();
                         for (JCExpression arg: trArgs) {
                             if (iter.hasNext()) paramActuals.put(iter.next(), arg);
