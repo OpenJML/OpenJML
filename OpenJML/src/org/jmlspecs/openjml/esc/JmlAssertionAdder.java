@@ -10569,7 +10569,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             rhs = makeBin(that, op, that.getOperator(), lhsc , rhs, maxJmlType);
             treeutils.copyEndPosition(rhs, that);
             
-            if (arith) {
+            if (arith && rhs instanceof JCBinary) {
                 // FIXME - this is going to call checkRW again, already called during convertExpr(rhs) above
                 rhs = currentArithmeticMode.rewriteBinary(this, (JCBinary)rhs, true);
             }

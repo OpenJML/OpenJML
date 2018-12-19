@@ -1713,20 +1713,25 @@ public class esc extends EscBase {
 
     @Test
     public void testAssume() {
+        org.junit.Assert.fail("Times out - needs fixing"); // TImes out on CHAIN1
         main.addOptions("-checkFeasibility=all");
-        helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  //@ requires bb;\n"
+        helpTCX("tt.TestJava", "package tt; \n" 
+                + "public class TestJava { \n" 
+                + "  //@ requires bb;\n"
                 + "  //@ ensures true;\n"
                 + "  public static void bassumeBADASSUMP(boolean bb) { /*@assume 0==1 ;*/  /*@ assert false; */ }\n" // Should succeed despite the false assert
                 + "  //@ requires bbb;\n"
                 + "  public static void bifOK(boolean bb,boolean b, boolean bbb) { /*@assume true;*/ if (bb) { /*@assume !b;*/ /*@ assert !bb; */ }  }\n"
                 + "  //@ requires b;\n"
                 + "  public static void bifBAD(boolean bb,boolean b) { /*@assume true;*/ if (bb) { /*@assume !b;*/ /*@ assert !bb; */ }  }\n"
-                + "  //@ requires bb;\n" + "  //@ ensures true;\n"
+                + "  //@ requires bb;\n"
+                + "  //@ ensures true;\n"
                 + "  public static void bassumeBADASSUMP2(boolean bb) { /*@assume 0==1 ;*/  /*@ assert true; */ }\n" // Should succeed despite the false assert
                 + "  public static void bassumeCHAIN1(boolean bb, boolean b) { if (bb) { /*@ assume !bb; assume bb;*/ b = true;  /* @ assert false; */ } }\n"
                 + "  public static void bassumeCHAIN2(boolean bb, boolean b) { if (bb) { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */ } }\n"
                 + "  public static void bassumeMULT(boolean bb, boolean b) { if (bb) { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */ } else { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */} }\n"
-                + "  public TestJava() {}\n" + "}"
+                + "  public TestJava() {}\n" 
+                + "}"
                 ,"/tt/TestJava.java:5: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeBADASSUMP(boolean)",56
                 ,"/tt/TestJava.java:5: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.bassumeBADASSUMP(boolean)",77
                 ,"/tt/TestJava.java:5: warning: There is no feasible path to program point at program exit in method tt.TestJava.bassumeBADASSUMP(boolean)",22
@@ -4006,7 +4011,23 @@ public class esc extends EscBase {
                         ,"/tt/TestJava.java:4: -> expected",40
                         ,"/tt/TestJava.java:4: illegal start of expression",41
                         ,"/tt/TestJava.java:4: Incorrectly formed or terminated assert statement near here",44
-                        ,"/tt/TestJava.java:4: lambda expression not expected here",35
+                );
+    }
+
+    @Test
+    public void testNewLblSytax() {
+        expectedExit = 1;
+        main.addOptions("-nonnullByDefault");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public abstract class TestJava  { \n" 
+                        + "  public void m0(int i, int j) {\n"
+                        + "      //@ assert (\\lbl I i) + \\lbl(J,j) == 0; \n" 
+                        + "  }\n" 
+                        + "}"
+                        ,"/tt/TestJava.java:4: warning: Label I has value 0",24
+                        ,"/tt/TestJava.java:4: warning: Label J has value ( - 1 )",36
+                        ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m0",11
                 );
     }
 

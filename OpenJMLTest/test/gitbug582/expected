@@ -1,6 +1,3 @@
-$SPECS/specs/java/util/Optional.jml:84: warning: A non-pure method is being called where it is not permitted: java.util.function.Function.apply(T)
-  //@   ensures value != null ==> \result.value == f.apply(value);
-                                                          ^
 test/gitbug582/StudentSimple2_3.java:38: warning: A non-pure method is being called where it is not permitted: java.util.List.add(E)
     @            enrolments.equals(\old(enrolments).add(e));
                                                        ^
@@ -69,4 +66,4 @@ Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of courseman.baderrs.StudentSimple2_3.removeEnrolmentGood(java.lang.Object) with prover !!!! - no warnings
 Completed proving methods in courseman.baderrs.StudentSimple2_3
-2 warnings
+1 warning
