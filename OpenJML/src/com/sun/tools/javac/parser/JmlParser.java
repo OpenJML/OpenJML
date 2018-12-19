@@ -592,7 +592,7 @@ public class JmlParser extends JavacParser {
                 continue;
             }
             JCStatement s = parseStatement();
-            return List.<JCStatement>of(s);
+            return s == null ? List.<JCStatement>nil() : List.<JCStatement>of(s);
         }
     }
     
@@ -890,6 +890,7 @@ public class JmlParser extends JavacParser {
             } else if (token.kind != SEMI) {
                 jmlerror(pos(), endPos(), "jml.bad.construct", reason);
                 skipThroughSemi();
+                st = null;
             } else {
                 nextToken(); // skip the semi
             }
@@ -3235,10 +3236,17 @@ public class JmlParser extends JavacParser {
         }
         if (S.jml() && token.kind == TokenKind.LBRACE) {
             accept(LBRACE);
-            Name id = ident();
+            JCExpression jmltype = parseType();
             accept(RBRACE);
             skipThroughEndOfJML();
             JCExpression e = toP(super.term3());
+            JCExpression ee = e;
+            while (ee instanceof JCParens) ee = ((JCParens)ee).expr;
+            if (ee instanceof JmlLambda) {
+                ((JmlLambda)ee).jmlType = jmltype;
+            } else {
+                log.warning(jmltype,"jml.message", "Ignoring JML type cast before a non-lambda expression (" + ee.getClass().toString() + ")");
+            }
             return e;
         }
         return toP(super.term3());
@@ -3449,13 +3457,34 @@ public class JmlParser extends JavacParser {
         // The JML token is already scanned
         // pos is the position of the \lbl token
         int labelPos = pos();
-        Name n = ident();
-        JCExpression e = parseExpression();
-        if (jmlToken == JmlTokenKind.BSLBLANY && JmlOption.isOption(context,JmlOption.STRICT)) {
-            log.warning(pos,"jml.not.strict","\\lbl");
+        if (token.kind == TokenKind.LPAREN) {
+            if (JmlOption.isOption(context,JmlOption.STRICT)) {
+                log.warning(pos,"jml.not.strict","functional form of lbl expression");
+            }
+            nextToken();
+            List<JCExpression> args = parseExpressionList();
+            if (token.kind != TokenKind.RPAREN) {
+                log.error(pos(),"jml.message", "Expected a right parenthesis here");
+            } else if (args.length() != 2) {
+                log.error(labelPos, "jml.message", "Expected two arguments to a lbl experession");
+            } else if (!(args.get(0) instanceof JCIdent)) {
+                log.error(args.get(0).pos, "jml.message", "The first argument of a lbl expression must be an identifier");
+            } else {
+                nextToken(); // skip the RPAREN
+                Name id = ((JCIdent)args.get(0)).name;
+                return toP(jmlF.at(pos).JmlLblExpression(args.get(0).pos,jmlToken, id, args.get(1)));
+            }
+            // FIXME _ skip to semi or end?
+            return toP(jmlF.at(labelPos).Erroneous());
+        } else {
+            Name n = ident();
+            JCExpression e = parseExpression();
+            if (jmlToken == JmlTokenKind.BSLBLANY && JmlOption.isOption(context,JmlOption.STRICT)) {
+                log.warning(pos,"jml.not.strict","\\lbl");
+            }
+            return toP(jmlF.at(pos).JmlLblExpression(labelPos,jmlToken, n, e));
         }
-        return toP(jmlF.at(pos).JmlLblExpression(labelPos,jmlToken, n, e));
-    }
+        }
     
     public JCExpression parseLet(int pos) {
         ListBuffer<JCVariableDecl> vdefs = new ListBuffer<JCVariableDecl>();

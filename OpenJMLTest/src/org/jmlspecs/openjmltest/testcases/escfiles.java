@@ -262,6 +262,11 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testINF() {
+        helpTF("escINF");
+    }
+
+    @Test
     public void testAdd() {
         expectedExit = 1;
         helpTF("escAdd");
@@ -688,8 +693,8 @@ public class escfiles extends EscBase {
     @Test
     public void testEnums() {
         expectedExit = 0;
+        //helpTF("enums");
         helpTF("enums");
-        //helpTF("enums","-show","-method=m5c","-subexpressions");
     }
 
     @Test

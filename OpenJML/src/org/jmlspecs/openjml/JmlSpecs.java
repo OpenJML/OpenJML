@@ -1070,17 +1070,24 @@ public class JmlSpecs {
                 valf.type = res.type;
                 JCExpression val = treeutils.makeEqObject(pos, res, valf);
                 // ensures \result == <Enum>._JMLvalues;
-                JmlMethodClause cval = new JmlTree.JmlMethodClauseExpr(pos,JmlTokenKind.ENSURES,val);
+                JmlMethodClause cval = M.at(pos).JmlMethodClauseExpr(JmlTokenKind.ENSURES,val);
                 clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig,clpa,cval);
             } else if (sym.name.equals(names.valueOf)) {
                 // FIXME - add a disjunction of all possibilities?
                 // FIXME - might throw an exception?
-                res = M.at(pos).JmlSingleton(JmlTokenKind.BSRESULT);
-                res.setType(((Type.MethodType)sym.type).restype);
-                resnn = treeutils.makeNotNull(pos,res);
+                // ensures arg != null && \result != null;
+                // assignable \nothing;
+                // accessible \nothing;
+                // signals (NullPointerException) arg == null;
+                // signals_only NullPointerException, IllegalArgumentException;
+                VarSymbol arg = sym.params().get(0); 
+                JCExpression argnn = treeutils.makeNotNull(pos,treeutils.makeIdent(pos, arg));
+                argnn = treeutils.makeAnd(pos, argnn, resnn);
+                en = M.at(pos).JmlMethodClauseExpr(JmlTokenKind.ENSURES,argnn);
+                JCExpression argnull = treeutils.makeEqNull(pos,treeutils.makeIdent(pos, arg));
                 Type npeType = ClassReader.instance(context).enterClass(names.fromString("java.lang.NullPointerException")).type;
                 JCVariableDecl vd = treeutils.makeVarDef(npeType, null, sym, pos);
-                sig = M.at(pos).JmlMethodClauseSignals(JmlTokenKind.SIGNALS, vd, resnn);
+                sig = M.at(pos).JmlMethodClauseSignals(JmlTokenKind.SIGNALS, vd, argnull);
                 JmlMethodClauseSignalsOnly sigo = M.at(pos).JmlMethodClauseSignalsOnly(JmlTokenKind.SIGNALS_ONLY, com.sun.tools.javac.util.List.<JCExpression>of(M.Type(npeType),M.Type(syms.illegalArgumentExceptionType)));
                 clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,clp,clpa,sig,sigo);
             } else if (sym.name.equals(names.ordinal)) {
@@ -1088,7 +1095,7 @@ public class JmlSpecs {
                 JCBinary lo = treeutils.makeBinary(pos, JCTree.Tag.LE, treeutils.zero, res);
                 JCBinary hi = treeutils.makeBinary(pos, JCTree.Tag.LE, res, treeutils. makeIntLiteral(pos,count) );
                 JCBinary pred = treeutils.makeBinary(pos, JCTree.Tag.AND, lo, hi);
-                JmlMethodClause enn = new JmlTree.JmlMethodClauseExpr(pos,JmlTokenKind.ENSURES,pred);
+                JmlMethodClause enn = M.at(pos).JmlMethodClauseExpr(JmlTokenKind.ENSURES,pred);
                 clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig,clpa,enn);
             } else if (sym.name.equals(names._name)) {
                 // FIXME - add a disjunction of all possibilities?

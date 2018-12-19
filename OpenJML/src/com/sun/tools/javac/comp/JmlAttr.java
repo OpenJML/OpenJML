@@ -1272,6 +1272,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Check rules about helper
             if ( (a=utils.findMod(mods,tokenToAnnotationSymbol.get(HELPER))) != null  &&
                     !isPureMethod(javaMethodTree.sym)  && 
+                    (javaMethodTree.mods.flags & Flags.FINAL) == 0  && 
                     (    (mods.flags & Flags.PRIVATE) == 0 
                     || utils.findMod(mods,tokenToAnnotationSymbol.get(SPEC_PUBLIC)) != null
                     || utils.findMod(mods,tokenToAnnotationSymbol.get(SPEC_PROTECTED)) != null
@@ -3615,9 +3616,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
                     result = tree.type = syms.errType;
                 } else {
-                    attribTree(tree.args.get(0), localEnv, resultInfo);
-                    t = tree.args.get(0).type;
-                    result = check(tree, t, VAL, resultInfo);
+                    JCExpression arg = tree.args.get(0);
+                    attribTree(arg, localEnv, resultInfo);
+                    result = check(tree, arg.type, VAL, resultInfo);
                 }
                 break;
                  
@@ -6269,6 +6270,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitLambda(final JCLambda that) {
+
         boolean saved = skipDefaultNullity;
         try {
             skipDefaultNullity = true;
@@ -6276,7 +6278,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } finally {
             skipDefaultNullity = saved;
         }
+        Type savedResult = result;
+        if (that instanceof JmlLambda) {
+            JmlLambda jmlthat = (JmlLambda) that;
+            if (jmlthat.jmlType != null) {
+                if (that.type.isErroneous()) {
+                    attribTree(jmlthat.jmlType, env, new ResultInfo(TYP, syms.objectType));
+                } else {
+                    // Issues an error if the type of jmlType is not a subtype of 
+                    // that.type - which is precisely the check that we want,
+                    // so we don't need to retest.
+                    Type t = attribTree(jmlthat.jmlType, env, new ResultInfo(TYP, that.type));
+                    if (!t.isErroneous()) {
+                        that.type = t;
+                    }
+                }
+            }
+        } else {
+            // FIXME _ ERROR
+        }
+        result = savedResult;
     }
+
 
     
     // These are here mostly to make them visible to extensions

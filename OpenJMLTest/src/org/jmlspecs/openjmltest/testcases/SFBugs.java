@@ -677,7 +677,7 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug601() {
         expectedExit = 0;
-        helpTCG();  // FIXME Unimplemented floating point 
+        helpTCG();  // FIXME Unimplemented floating point (infinity)
     }
     
     @Test
@@ -783,7 +783,7 @@ public class SFBugs extends EscBase {
     }
     
     @Test
-    public void gitbug626() {
+    public void gitbug626() { // Varying test output
         expectedExit = 0;
         helpTCG("-subexpressions");//,"-show","-method=findFirstSetLoop"); // -subexpressions is part of the test
     }
@@ -857,7 +857,7 @@ public class SFBugs extends EscBase {
     }
     
      @Test
-    public void gitbug639() {
+    public void gitbug639() { // FIXME - to be fixed
         expectedExit = 0;
         helpTCG();
     }
@@ -970,7 +970,19 @@ public class SFBugs extends EscBase {
     }
     
     @Test
-    public void gitbug666() {
+    public void gitbug667() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug669() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug666() {  // FIXME - npnt yet fixed
         expectedExit = 0;
         helpTCG("-show=all","-method=pow");
     }

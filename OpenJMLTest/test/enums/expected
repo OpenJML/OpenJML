@@ -51,7 +51,7 @@ Feasibility check #5 - at program exit : OK
 Completed proof of Test.m6((@org.jmlspecs.annotation.Nullable :: java.lang.String)) with prover !!!! - no warnings
 Starting proof of Test.m6a((@org.jmlspecs.annotation.Nullable :: java.lang.String)) with prover !!!!
 Feasibility check #1 - end of preconditions : OK
-Feasibility check #3 - at program exit : OK
+Feasibility check #6 - at program exit : OK
 Completed proof of Test.m6a((@org.jmlspecs.annotation.Nullable :: java.lang.String)) with prover !!!! - no warnings
 Starting proof of Test.m7(EEE) with prover !!!!
 Feasibility check #1 - end of preconditions : OK

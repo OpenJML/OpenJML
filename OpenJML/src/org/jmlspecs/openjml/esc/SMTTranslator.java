@@ -993,7 +993,7 @@ public class SMTTranslator extends JmlTreeScanner {
             commands.add(cc);
         }
         
-        {
+        if (!functionSymbols.isEmpty()){
             List<IExpr> dargs = new LinkedList<IExpr>();
             dargs.addAll(functionSymbols);
             dargs.add(nullSym);

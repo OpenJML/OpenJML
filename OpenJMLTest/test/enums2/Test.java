@@ -5,8 +5,9 @@ enum EEE {
     //@ spec_public
     private int code;
     
-    //@ public invariant BB.code == 8;
-    //@ public invariant CC.code == 7;
+    //@ public final static invariant AA.code == 4;
+    //@ public final static invariant BB.code == 8;
+    //@ public final static invariant CC.code == 7;
     
     //@ private normal_behavior
     //@   ensures code == c;
@@ -14,16 +15,17 @@ enum EEE {
     private EEE(int c) { code = c; }
 }
 
-public Test {
+public class Test {
     
     public void m0() {
-        //@ assert AA.code == 4;
-        //@ assert BB.code == 8;
-        //@ assert CC.code == 7;
+        //@ show EEE.AA.code, EEE.BB.code;
+        //@ assert EEE.AA.code == 4;
+        //@ assert EEE.BB.code == 8;
+        //@ assert EEE.CC.code == 7;
     }
     
     public void m1() {
-        AA.code = 9;
+        //@ assert EEE.AA.code == 9; // Expected failure
     }
     
 }

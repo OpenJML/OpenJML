@@ -140,7 +140,7 @@ public class JmlFlow extends Flow  {
         public void visitJmlImport(JmlImport that) {
             visitImport(that);
         }
-
+        
         @Override
         public void visitJmlSingleton(JmlSingleton that) {
             // nothing to do
