@@ -3464,7 +3464,7 @@ public class JmlParser extends JavacParser {
             nextToken();
             List<JCExpression> args = parseExpressionList();
             if (token.kind != TokenKind.RPAREN) {
-                log.error(pos(),"jml.message", "Expected a right parenthesis here");
+                log.error(pos(),"jml.message", "Expected a comma or right parenthesis here");
             } else if (args.length() != 2) {
                 log.error(labelPos, "jml.message", "Expected two arguments to a lbl experession");
             } else if (!(args.get(0) instanceof JCIdent)) {
@@ -3474,7 +3474,6 @@ public class JmlParser extends JavacParser {
                 Name id = ((JCIdent)args.get(0)).name;
                 return toP(jmlF.at(pos).JmlLblExpression(args.get(0).pos,jmlToken, id, args.get(1)));
             }
-            // FIXME _ skip to semi or end?
             return toP(jmlF.at(labelPos).Erroneous());
         } else {
             Name n = ident();
