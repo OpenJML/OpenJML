@@ -11814,12 +11814,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             aa.arraysId = that instanceof JmlBBArrayAccess ? ((JmlBBArrayAccess)that).arraysId : null;
             JCExpression save = (translatingJML || pureCopy || convertingAssignable) ? aa : newTemp(aa);
             
-            // assume \typeof(eresult) <: \elemtype(\typeof(indexed));
-            if (esc && !utils.isPrimitiveType(that.type) && localVariables.isEmpty()) { // FIXME - we perhaps need quantified sstatements if we are within a qunatified scope
-                JCExpression e1 = treeutils.makeTypeof(save);
-                JCExpression e2 = treeutils.makeElemtype(treeutils.makeTypeof(indexed));
-                e1 = treeutils.makeSubtype(e1,e1,e2);
-                addAssume(that,Label.IMPLICIT_ASSUME,e1);
+            if (esc && localVariables.isEmpty()) {
+                if (utils.isPrimitiveType(that.type)) {
+                    if (that.type == syms.byteType) {
+                        JCExpression e1 = treeutils.makeBinary(that.pos,JCTree.Tag.LE,treeutils.intleSymbol,treeutils.makeIntLiteral(save,-128),save);
+                        JCExpression e2 = treeutils.makeBinary(that.pos,JCTree.Tag.LE,treeutils.intleSymbol,save,treeutils.makeIntLiteral(save,127));
+                        addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeAnd(that,e1,e2));
+                    }  // FIXME - other types, share this code with elsewhere?
+                } else { // FIXME - we perhaps need quantified sstatements if we are within a qunatified scope
+                    // assume \typeof(eresult) <: \elemtype(\typeof(indexed));
+                    JCExpression e1 = treeutils.makeTypeof(save);
+                    JCExpression e2 = treeutils.makeElemtype(treeutils.makeTypeof(indexed));
+                    e1 = treeutils.makeSubtype(e1,e1,e2);
+                    addAssume(that,Label.IMPLICIT_ASSUME,e1);
+                }
             }
             if (!pureCopy && !translatingJML) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, aa, currentThisExpr, currentThisExpr);
             result = eresult = save;
