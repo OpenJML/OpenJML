@@ -7696,12 +7696,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // FIXME - this does not handle qualified constructors of inner classes
                 
                 calleeMethodSym = (MethodSymbol)newclass.constructor;
-                enclosingMethod = calleeMethodSym;
-                enclosingClass = calleeMethodSym.owner;
                 
                 convertedReceiver = convertExpr(newclass.encl);
                 receiverType = newclass.clazz.type;
-                newTypeVarMapping = typevarMapping = typemapping(newclass.clazz.type, null, null);
 
                 if (convertedReceiver != null && !treeutils.isATypeTree(convertedReceiver)) {
                     // Check that receiver is not null
@@ -7723,6 +7720,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 expr.varargsElement =  null; // We have combined the arargs elements into an array
                 expr.setType(that.type);
                 trExpr = expr;
+                enclosingMethod = calleeMethodSym;
+                enclosingClass = calleeMethodSym.owner;
+                newTypeVarMapping = typevarMapping = typemapping(newclass.clazz.type, null, null);
                 
                 // newThisId, newThisExpr are assigned the resultId later - can only be used in post-conditions
             } else {

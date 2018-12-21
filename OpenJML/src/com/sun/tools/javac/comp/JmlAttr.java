@@ -4851,7 +4851,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             currentClauseName = prevClauseName;
         }
         
-        if (tree.sym instanceof VarSymbol
+        if ((tree.sym instanceof VarSymbol || tree.sym instanceof MethodSymbol)
                 && enclosingMethodEnv != null
                 && enclosingMethodEnv.enclMethod.sym.isConstructor() 
                 && !utils.isJMLStatic(tree.sym) 

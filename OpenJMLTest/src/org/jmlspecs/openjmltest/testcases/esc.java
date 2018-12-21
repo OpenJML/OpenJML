@@ -4007,16 +4007,14 @@ public class esc extends EscBase {
                         + "      //@ assert (\\lbl I i) + \\lbl(J j) == 0; \n" 
                         + "  }\n" 
                         + "}"
-                        ,"/tt/TestJava.java:4: <identifier> expected",35
-                        ,"/tt/TestJava.java:4: -> expected",40
-                        ,"/tt/TestJava.java:4: illegal start of expression",41
-                        ,"/tt/TestJava.java:4: Incorrectly formed or terminated assert statement near here",44
+                        ,"/tt/TestJava.java:4: Expected a comma or right parenthesis here",38
+                        ,"/tt/TestJava.java:4: Incorrectly formed or terminated assert statement near here",38
                 );
     }
 
     @Test
     public void testNewLblSytax() {
-        expectedExit = 1;
+        expectedExit = 0;
         main.addOptions("-nonnullByDefault");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
