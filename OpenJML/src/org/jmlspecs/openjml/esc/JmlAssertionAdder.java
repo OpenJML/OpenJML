@@ -854,8 +854,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // The compiler complains that the result variable might not be
                 // initialized on every path, even in programs in which it appears
                 // obvious that it is. So we initialize it here to a null-like value.
-                JCVariableDecl d = treeutils.makeVarDef(methodDecl.restype.type,resultName,methodDecl.sym,
-                        treeutils.makeZeroEquivalentLit(methodDecl.pos,methodDecl.restype.type));
+                JCVariableDecl d;
+                if (rac) {
+                    d = treeutils.makeVarDef(methodDecl.restype.type,resultName,methodDecl.sym,
+                            treeutils.makeZeroEquivalentLit(methodDecl.pos,methodDecl.restype.type));
+                } else {
+                    d = treeutils.makeVarDef(methodDecl.restype.type,resultName,methodDecl.sym,methodDecl.pos);
+                }
                 resultSym = d.sym;
                 initialStatements.add(d);
             } else {

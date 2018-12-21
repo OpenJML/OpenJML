@@ -550,7 +550,12 @@ public class escfiles extends EscBase {
     
     @Test
     public void testEnsuresInfeasible() {
-        helpTF("escEnsuresInfeasible");
+        helpTF("escEnsuresInfeasible","-method=fromSecondsBuggy","-show","-subexpressions");
+    }
+
+    @Test
+    public void testEnsuresInfeasible2() {
+        helpTF("escEnsuresInfeasible2");
     }
 
     @Test
