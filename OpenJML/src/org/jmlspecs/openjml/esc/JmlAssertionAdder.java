@@ -13817,6 +13817,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = eresult = M.at(that).JmlLblExpression(that.labelPosition, that.token, that.label, expr).setType(that.type);
             return;
         }
+        
+        if (depth > 0) {
+            result = eresult = expr;
+            return;
+        }
         // The format of this string is important in interpreting it in JmlEsc
         String nm = Strings.labelVarString + that.token.internedName().substring(1) + "_" + that.label + "_" + (++lblUnique);
         JCIdent id = newTemp(that.getLabelPosition(),nm,expr);

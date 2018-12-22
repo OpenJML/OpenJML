@@ -158,6 +158,9 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected ISort boolSort;
           protected ISort realSort;
     final protected IExpr.ISymbol distinctSym;
+    final protected IExpr.ISymbol andSym;
+    final protected IExpr.ISymbol orSym;
+    final protected IExpr.ISymbol notSym;
     final protected IExpr.ISymbol arraySym;
     final protected IExpr.ISymbol eqSym;
     final protected IExpr.ISymbol impliesSym;
@@ -269,6 +272,9 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         arraySym = F.symbol("Array"); // From SMT Array theory
         eqSym = F.symbol("="); // Name determined by SMT Core theory
+        andSym = F.symbol("and"); // Name determined by SMT Core theory
+        orSym = F.symbol("or"); // Name determined by SMT Core theory
+        notSym = F.symbol("not"); // Name determined by SMT Core theory
         distinctSym = F.symbol("distinct"); // Name determined by SMT Core theory
         impliesSym = F.symbol("=>"); // Name determined by SMT Core theory
         selectSym = F.symbol("select"); // Name determined by SMT Array Theory
@@ -399,7 +405,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     boolSort,
                     F.forall(Arrays.asList(new IDeclaration[]{F.declaration(F.symbol("i"),intSort)}),
                             F.fcn(impliesSym,
-                                    F.fcn(F.symbol("and"),
+                                    F.fcn(andSym,
                                             F.fcn(F.symbol("<="),F.numeral("0"),F.symbol("i")),
                                             F.fcn(F.symbol("<"), F.symbol("i"), F.fcn(selectSym,lengthSym,F.symbol("a")))
                                             ),
@@ -433,7 +439,7 @@ public class SMTTranslator extends JmlTreeScanner {
                                     F.fcn(F.symbol(nonnullelements), F.symbol("a"), F.symbol("arrays")),
                                     F.forall(Arrays.asList(F.declaration(F.symbol("i"),useBV ? bv32Sort : intSort)),
                                             F.fcn(impliesSym,
-                                                    F.fcn(F.symbol("and"),
+                                                    F.fcn(andSym,
                                                             F.fcn(useBV ? F.symbol("bvsle"): F.symbol("<="),useBV ? F.hex("00000000") : F.numeral("0"),F.symbol("i")),
                                                             F.fcn(useBV ? F.symbol("bvslt"): F.symbol("<"), F.symbol("i"), F.fcn(selectSym,lengthSym,F.symbol("a")))
                                                             ),
@@ -561,7 +567,7 @@ public class SMTTranslator extends JmlTreeScanner {
             // (declare-fun tjml () JMLTypeSort)
             // (assert (= (erasure tjml) tjava))
             ISymbol tisym = (ISymbol)javaTypeSymbol(ti);
-            tcommands.add(new C_assert(F.fcn(F.symbol("not"),F.fcn(F.symbol("_isArrayType"), javaTypeSymbol(ti))) ));
+            tcommands.add(new C_assert(F.fcn(notSym,F.fcn(F.symbol("_isArrayType"), javaTypeSymbol(ti))) ));
             if ((ti.tsym.flags() & Flags.FINAL) != 0) {
             	if (quantOK) addCommand(smt,"(assert (forall ((t "+JAVATYPESORT+")) (=> ("+JAVASUBTYPE+" t "+tisym.toString()+")  (= t "+tisym.toString()+"))))");
             }
@@ -570,7 +576,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 // ti.tsym.type.isParameterized() is true if the declaration has parameters
                 // e.g.  java.util.Set is false on the first, but true on the second
             	ISymbol tjsym = (ISymbol)jmlTypeSymbol(ti);
-                tcommands.add(new C_assert(F.fcn(F.symbol("not"),F.fcn(F.symbol("_isJMLArrayType"), tjsym)) ));
+                tcommands.add(new C_assert(F.fcn(notSym,F.fcn(F.symbol("_isJMLArrayType"), tjsym)) ));
                 tcommands.add(new C_assert(F.fcn(
                         eqSym, 
                         F.fcn(F.symbol("_JMLT_0"),tisym),
@@ -593,7 +599,7 @@ public class SMTTranslator extends JmlTreeScanner {
                             emptyList,
                             jmlTypeSort));
                 }
-                tcommands.add(new C_assert(F.fcn(F.symbol("not"),F.fcn(F.symbol("_isJMLArrayType"), tjsym)) ));
+                tcommands.add(new C_assert(F.fcn(notSym,F.fcn(F.symbol("_isJMLArrayType"), tjsym)) ));
                 tcommands.add(new C_assert(F.fcn(
                         eqSym, 
                         F.fcn(F.symbol("erasure"),tjsym),
@@ -632,10 +638,10 @@ public class SMTTranslator extends JmlTreeScanner {
                 else b = types.isSubtype(types.erasure(ti),types.erasure(tj));
                 
                 IExpr comp = F.fcn(F.symbol(JAVASUBTYPE), javaTypeSymbol(ti), javaTypeSymbol(tj));
-                if (!b) comp = F.fcn(F.symbol("not"),comp);
+                if (!b) comp = F.fcn(notSym,comp);
                 tcommands.add(new C_assert(comp));
                 comp = F.fcn(F.symbol(JAVASUBTYPE), F.fcn(F.symbol("_makeArrayType"),javaTypeSymbol(ti)), F.fcn(F.symbol("_makeArrayType"),javaTypeSymbol(tj)));
-                if (!b) comp = F.fcn(F.symbol("not"),comp);
+                if (!b) comp = F.fcn(notSym,comp);
                 tcommands.add(new C_assert(comp));
                 
                 if (!ti.tsym.type.isParameterized() && !tj.tsym.type.isParameterized() ) {
@@ -643,10 +649,10 @@ public class SMTTranslator extends JmlTreeScanner {
                     else b = types.isSubtype(ti,tj);
 
                     comp = F.fcn(F.symbol(JMLSUBTYPE), jmlTypeSymbol(ti), jmlTypeSymbol(tj));
-                    if (!b) comp = F.fcn(F.symbol("not"),comp);
+                    if (!b) comp = F.fcn(notSym,comp);
                     tcommands.add(new C_assert(comp));
                     comp = F.fcn(F.symbol(JMLSUBTYPE), F.fcn(F.symbol("_makeJMLArrayType"),jmlTypeSymbol(ti)), F.fcn(F.symbol("_makeJMLArrayType"),jmlTypeSymbol(tj)));
-                    if (!b) comp = F.fcn(F.symbol("not"),comp);
+                    if (!b) comp = F.fcn(notSym,comp);
                     tcommands.add(new C_assert(comp));
                 }
                 if (countj > counti && !ti.tsym.type.isParameterized() && !tj.tsym.type.isParameterized()) {
@@ -686,7 +692,7 @@ public class SMTTranslator extends JmlTreeScanner {
             params.add(F.declaration(F.symbol("t3"),javaTypeSort));
             IExpr e = F.forall(params, 
                     F.fcn(F.symbol("=>"), 
-                          F.fcn(F.symbol("and"), 
+                          F.fcn(andSym, 
                                   F.fcn(F.symbol(JAVASUBTYPE),F.symbol("t1"),F.symbol("t2")),
                                   F.fcn(F.symbol(JAVASUBTYPE),F.symbol("t2"),F.symbol("t3"))
                                   ),
@@ -712,7 +718,7 @@ public class SMTTranslator extends JmlTreeScanner {
             params.add(F.declaration(F.symbol("t3"),jmlTypeSort));
             IExpr e = F.forall(params, 
                     F.fcn(F.symbol("=>"), 
-                          F.fcn(F.symbol("and"), 
+                          F.fcn(andSym, 
                                   F.fcn(F.symbol(JMLSUBTYPE),F.symbol("t1"),F.symbol("t2")),
                                   F.fcn(F.symbol(JMLSUBTYPE),F.symbol("t2"),F.symbol("t3"))
                                   ),
@@ -867,7 +873,12 @@ public class SMTTranslator extends JmlTreeScanner {
             addCommand(smt,"(define-fun |#max64BV#| () |#BV64#| #x7fffffffffffffff)");
             addCommand(smt,"(define-fun |#min64BV#| () |#BV64#| #x8000000000000000)");
             addCommand(smt,"(define-fun |#zero64BV#| () |#BV64#| #x0000000000000000)");
-       } else {
+        } else {
+            addCommand(smt,"(define-fun |#is_byte#| ((x Int)) Bool (and (<= (- " + -Byte.MIN_VALUE + ") x) (<= x " + Byte.MAX_VALUE + ")) )");
+            addCommand(smt,"(define-fun |#is_short#| ((x Int)) Bool (and (<= (- " + -Short.MIN_VALUE + ") x) (<= x " + Short.MAX_VALUE + ")) )");
+            addCommand(smt,"(define-fun |#is_char#| ((x Int)) Bool (and (<= 0 x) (<= x " + Short.toUnsignedInt((short)Character.MAX_VALUE) + ")) )");
+            addCommand(smt,"(define-fun |#is_int#| ((x Int)) Bool (and (<= (- " + -(long)Integer.MIN_VALUE + ") x) (<= x " + Integer.MAX_VALUE + ")) )");
+            addCommand(smt,"(define-fun |#is_long#| ((x Int)) Bool (and (<= (- " + Long.toString(Long.MIN_VALUE).substring(1) + ") x) (<= x " + Long.MAX_VALUE + ")) )");
             addCommand(smt,"(define-fun |#big32#| () Int 4294967296)");
             addCommand(smt,"(define-fun |#big64#| () Int (* 4294967296 4294967296))");
             addCommand(smt,"(define-fun |#max32#| () Int 2147483647)");
@@ -988,7 +999,7 @@ public class SMTTranslator extends JmlTreeScanner {
             // Add an assertion that negates the start block id
             LinkedList<IExpr> argss = new LinkedList<IExpr>();
             argss.add(F.symbol(program.startId().name.toString()));
-            IExpr negStartID = F.fcn(F.symbol("not"), argss);
+            IExpr negStartID = F.fcn(notSym, argss);
             ICommand cc = new C_assert(negStartID);
             commands.add(cc);
         }
@@ -1250,7 +1261,7 @@ public class SMTTranslator extends JmlTreeScanner {
             for (BasicProgram.BasicBlock bb: block.followers) {
                 args.add(F.symbol(bb.id.name.toString()));
             }
-            tail = F.fcn(F.symbol("and"),args);
+            tail = F.fcn(andSym,args);
         }
         
         // First add all declarations
@@ -1410,8 +1421,8 @@ public class SMTTranslator extends JmlTreeScanner {
                         // The first return is the classic translation; the second
                         // effectively inserts an assume after an assert. I'm not
                         // sure it makes any difference. TODO - evaluate this sometime.
-                        //return F.fcn(F.symbol("and"), exx, tail);
-                        tail = F.fcn(F.symbol("and"), exx, F.fcn(impliesSym, exx, tail));
+                        //return F.fcn(andSym, exx, tail);
+                        tail = F.fcn(andSym, exx, F.fcn(impliesSym, exx, tail));
                     } else if (s.token == JmlTokenKind.COMMENT) {
                         if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                         int k = s.id.indexOf(" ");
@@ -1455,8 +1466,8 @@ public class SMTTranslator extends JmlTreeScanner {
 //                        // The first return is the classic translation; the second
 //                        // effectively inserts an assume after an assert. I'm not
 //                        // sure it makes any difference. TODO - evaluate this sometime.
-//                        //return F.fcn(F.symbol("and"), exx, tail);
-//                        return F.fcn(F.symbol("and"), exx, F.fcn(impliesSym, exx, tail));
+//                        //return F.fcn(andSym, exx, tail);
+//                        return F.fcn(andSym, exx, F.fcn(impliesSym, exx, tail));
 //                    } else if (s.token == JmlToken.COMMENT) {
 //                        continue;
 //                    } else {
@@ -1558,8 +1569,8 @@ public class SMTTranslator extends JmlTreeScanner {
                         // The first return is the classic translation; the second
                         // effectively inserts an assume after an assert. I'm not
                         // sure it makes any difference. TODO - evaluate this sometime.
-                        //return F.fcn(F.symbol("and"), exx, tail);
-                        tail = F.fcn(F.symbol("and"), exx, F.fcn(impliesSym, exx, tail));
+                        //return F.fcn(andSym, exx, tail);
+                        tail = F.fcn(andSym, exx, F.fcn(impliesSym, exx, tail));
                         ++n;
                     } else if (s.token == JmlTokenKind.COMMENT) {
                         if (s.id == null || !s.id.startsWith("ACHECK")) continue;
@@ -1614,7 +1625,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     LinkedList<IExpr> args = new LinkedList<IExpr>();
                     args.add(exx);
                     args.add(tail);
-                    return F.fcn(F.symbol("and"), args);
+                    return F.fcn(andSym, args);
                 } else if (s.token == JmlTokenKind.COMMENT) {
                     return tail;
                 } else {
@@ -1950,7 +1961,7 @@ public class SMTTranslator extends JmlTreeScanner {
         args.add(arg);
         switch (op) {
             case NOT:
-                result = F.fcn(F.symbol("not"), args);
+                result = F.fcn(notSym, args);
                 break;
             case NEG:
                 if (useBV) 
@@ -2014,10 +2025,10 @@ public class SMTTranslator extends JmlTreeScanner {
                 result = F.fcn(distinctSym, args);
                 break;
             case AND:
-                result = F.fcn(F.symbol("and"), args);
+                result = F.fcn(andSym, args);
                 break;
             case OR:
-                result = F.fcn(F.symbol("or"), args);
+                result = F.fcn(orSym, args);
                 break;
             case LT:
                 if (isReal) {
@@ -2124,7 +2135,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 // FIXME - implement bit operations
             case BITAND:
                 if (tree.type.getTag() == TypeTag.BOOLEAN) {
-                    result = F.fcn(F.symbol("and"), args);
+                    result = F.fcn(andSym, args);
                 } else if (useBV) {
                 	result = F.fcn(F.symbol("bvand"), args);
                 } else {
@@ -2133,7 +2144,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 break;
             case BITOR:
                 if (tree.type.getTag() == TypeTag.BOOLEAN) {
-                    result = F.fcn(F.symbol("or"), args);
+                    result = F.fcn(orSym, args);
                 } else if (useBV) {
                 	result = F.fcn(F.symbol("bvor"), args);
                 } else {
@@ -2433,11 +2444,11 @@ public class SMTTranslator extends JmlTreeScanner {
         // and javaTypeOf is not defined for null arguments
         IExpr r1 = makeNotNull(e);
         IExpr r2 = makeInstanceof(e, tree.clazz.type);
-        result = F.fcn(F.symbol("and"), r1, r2);
+        result = F.fcn(andSym, r1, r2);
     }
     
     public IExpr makeNot(IExpr e) {
-        return F.fcn(F.symbol("not"),e);
+        return F.fcn(notSym,e);
     }
     
     public IExpr makeNotNull(IExpr e) {
@@ -2448,6 +2459,11 @@ public class SMTTranslator extends JmlTreeScanner {
         return F.fcn(F.symbol(JAVASUBTYPE),
                 F.fcn(F.symbol("javaTypeOf"), e),
                 javaTypeSymbol(t));
+    }
+    
+    public IExpr makeTypeConstraint(Type t, IExpr e) {
+        String n = "|#is_" + t.toString() + "#|";
+        return F.fcn(F.symbol(n),e);
     }
 
     @Override
@@ -2685,12 +2701,17 @@ public class SMTTranslator extends JmlTreeScanner {
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
         boolean prev = inQuant;
         try {
+            IExpr typeConstraint = null;
             inQuant = true;
             List<IDeclaration> params = new LinkedList<IDeclaration>();
             for (JCVariableDecl decl: that.decls) {
                 IExpr.ISymbol sym = F.symbol(decl.name.toString());
                 ISort sort = convertSort(decl.type);
                 params.add(F.declaration(sym, sort));
+                if (decl.type.isPrimitive() && sort == intSort && !decl.type.toString().contains("\\")) {
+                    IExpr c = makeTypeConstraint(decl.type, F.symbol(decl.name.toString()));
+                    typeConstraint = typeConstraint == null ? c : F.fcn(andSym, typeConstraint, c);
+                }
             }
             scan(that.range);
             IExpr range = result;
@@ -2698,6 +2719,7 @@ public class SMTTranslator extends JmlTreeScanner {
             IExpr value = result;
             if (that.op == JmlTokenKind.BSFORALL) {
                 if (range != null) value = F.fcn(impliesSym,range,value);
+                if (typeConstraint != null) value = F.fcn(impliesSym, typeConstraint, value);
                 if (that.triggers != null && !that.triggers.isEmpty()) {
                     List<IExpr> triggers = convertExprList(that.triggers);
                     result = F.forall(params,value,triggers);
@@ -2705,7 +2727,8 @@ public class SMTTranslator extends JmlTreeScanner {
                     result = F.forall(params,value);
                 }
             } else if (that.op == JmlTokenKind.BSEXISTS) {
-                if (range != null) value = F.fcn(F.symbol("and"),range,value);
+                if (range != null) value = F.fcn(andSym,range,value);
+                if (typeConstraint != null) value = F.fcn(andSym, typeConstraint, value);
                 if (that.triggers != null && !that.triggers.isEmpty()) {
                     List<IExpr> triggers = convertExprList(that.triggers);
                     result = F.exists(params,value,triggers);

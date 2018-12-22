@@ -1713,23 +1713,24 @@ public class esc extends EscBase {
 
     @Test
     public void testAssume() {
-        org.junit.Assert.fail("Times out - needs fixing"); // TImes out on CHAIN1
-        main.addOptions("-checkFeasibility=all");
+        //print=true;
+        //org.junit.Assert.fail("Times out - needs fixing"); // TImes out on CHAIN1
+        main.addOptions("-show","-method=bassumeCHAIN1");
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { \n" 
-                + "  //@ requires bb;\n"
-                + "  //@ ensures true;\n"
-                + "  public static void bassumeBADASSUMP(boolean bb) { /*@assume 0==1 ;*/  /*@ assert false; */ }\n" // Should succeed despite the false assert
-                + "  //@ requires bbb;\n"
-                + "  public static void bifOK(boolean bb,boolean b, boolean bbb) { /*@assume true;*/ if (bb) { /*@assume !b;*/ /*@ assert !bb; */ }  }\n"
-                + "  //@ requires b;\n"
-                + "  public static void bifBAD(boolean bb,boolean b) { /*@assume true;*/ if (bb) { /*@assume !b;*/ /*@ assert !bb; */ }  }\n"
-                + "  //@ requires bb;\n"
-                + "  //@ ensures true;\n"
-                + "  public static void bassumeBADASSUMP2(boolean bb) { /*@assume 0==1 ;*/  /*@ assert true; */ }\n" // Should succeed despite the false assert
+//                + "  //@ requires bb;\n"
+//                + "  //@ ensures true;\n"
+//                + "  public static void bassumeBADASSUMP(boolean bb) { /*@assume 0==1 ;*/  /*@ assert false; */ }\n" // Should succeed despite the false assert
+//                + "  //@ requires bbb;\n"
+//                + "  public static void bifOK(boolean bb,boolean b, boolean bbb) { /*@assume true;*/ if (bb) { /*@assume !b;*/ /*@ assert !bb; */ }  }\n"
+//                + "  //@ requires b;\n"
+//                + "  public static void bifBAD(boolean bb,boolean b) { /*@assume true;*/ if (bb) { /*@assume !b;*/ /*@ assert !bb; */ }  }\n"
+//                + "  //@ requires bb;\n"
+//                + "  //@ ensures true;\n"
+//                + "  public static void bassumeBADASSUMP2(boolean bb) { /*@assume 0==1 ;*/  /*@ assert true; */ }\n" // Should succeed despite the false assert
                 + "  public static void bassumeCHAIN1(boolean bb, boolean b) { if (bb) { /*@ assume !bb; assume bb;*/ b = true;  /* @ assert false; */ } }\n"
-                + "  public static void bassumeCHAIN2(boolean bb, boolean b) { if (bb) { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */ } }\n"
-                + "  public static void bassumeMULT(boolean bb, boolean b) { if (bb) { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */ } else { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */} }\n"
+//                + "  public static void bassumeCHAIN2(boolean bb, boolean b) { if (bb) { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */ } }\n"
+//                + "  public static void bassumeMULT(boolean bb, boolean b) { if (bb) { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */ } else { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */} }\n"
                 + "  public TestJava() {}\n" 
                 + "}"
                 ,"/tt/TestJava.java:5: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeBADASSUMP(boolean)",56

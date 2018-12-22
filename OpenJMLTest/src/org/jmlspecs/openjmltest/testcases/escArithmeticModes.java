@@ -59,7 +59,7 @@ public class escArithmeticModes extends EscBase {
     }
 
     @Test
-    public void testNegJava() {
+    public void testNegJavaInt() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*;\n"
                 +"public class TestJava { \n"
                 +"  //@ ensures i != 0x80000000 ==> \\safe_math(\\result + i) == 0;\n"                
@@ -68,6 +68,15 @@ public class escArithmeticModes extends EscBase {
                 +"    int k = -i;\n"
                 +"    return k; \n"
                 +"  }\n"
+                +"}\n"
+              );
+    }
+
+    @Test
+    public void testNegJavaLong() {  // Takes about 5 min in BV mode
+        Assume.assumeTrue(runLongArithmetic || !options.contains("-escBV=true"));
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*;\n"
+                +"public class TestJava { \n"
                 +"  //@ ensures i != 0x8000000000000000L ==> \\safe_math(\\result + i) == 0;\n"                
                 +"  //@ ensures i == 0x8000000000000000L ==> \\result == i;\n"                
                 +"  /*@ code_java_math */ public long ml(long i) {\n"
@@ -161,6 +170,7 @@ public class escArithmeticModes extends EscBase {
 
     @Test
     public void testSumSafe3() {
+        Assume.assumeTrue(runLongArithmetic || !options.contains("-escBV=true"));
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeSafeMath public class TestJava { \n"
                 +"  public int mb(int i) {\n"

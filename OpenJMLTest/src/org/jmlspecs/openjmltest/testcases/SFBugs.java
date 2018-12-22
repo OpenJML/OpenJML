@@ -954,7 +954,7 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug651a() {
         expectedExit = 0;
-        helpTCG();
+        helpTCG();  // FIXME - needs work on invariants
     }
     
     @Test
