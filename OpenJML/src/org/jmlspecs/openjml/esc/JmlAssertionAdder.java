@@ -11520,12 +11520,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (origType.isPrimitive()) {
                 // Java primitive to Java primitive - must be a numeric cast
                 // FIXME - should be able to check for overflow in BV modes -- also move all this into th Arithmetic mode classes
-                if (useBV || currentArithmeticMode instanceof Arithmetic.Java) {
+                boolean check = !(currentArithmeticMode instanceof Arithmetic.Java);
+                if (useBV) {
                     // skip
                 } else if (changePrecision == 1) {
                     // change precision == 1 means that a higher precision value is being cast to a lower precision
                     // so we check the range of the argument
-                    switch (origType.getTag()) {
+                    TypeTag otag = origType.getTag();
+                    switch (otag) {
                         case LONG:
                             emax = treeutils.makeBinary(that.pos, JCTree.Tag.LE, arg, 
                                     treeutils.makeLit(that.pos, arg.type, Long.valueOf(maxValue(that.pos,that.type.getTag()))));
@@ -11537,8 +11539,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         case SHORT:
                         case CHAR:
                         case BYTE:
+                            long mx = maxValue(that.pos,that.type.getTag());
                             Integer min = Integer.valueOf((int)minValue(that.pos,that.type.getTag()));
-                            Integer max = Integer.valueOf((int)maxValue(that.pos,that.type.getTag()));
+                            Integer max = Integer.valueOf((int)mx);
                             if (argType.isPrimitive()) {
                                 emax = treeutils.makeBinary(that.pos, JCTree.Tag.LE, arg, 
                                         treeutils.makeLit(that.pos, arg.type, max));
@@ -11560,8 +11563,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             // FIXME - implement
                     }
                     // reducing precision - make assertions about range of input value
-                    addAssert(that, Label.ARITHMETIC_CAST_RANGE, emax);
-                    addAssert(that, Label.ARITHMETIC_CAST_RANGE, emin);
+                    if (check) {
+                        addAssert(that, Label.ARITHMETIC_CAST_RANGE, emax);
+                        addAssert(that, Label.ARITHMETIC_CAST_RANGE, emin);
+                    }
                 } else if (changePrecision == -1) {
                     // In this branch we are casting from a lower precision to a higher precision
                     // So we can assume that the range of the value in the new type is the smaller range appropriate to the original type

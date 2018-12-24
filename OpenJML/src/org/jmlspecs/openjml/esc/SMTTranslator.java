@@ -879,8 +879,14 @@ public class SMTTranslator extends JmlTreeScanner {
             addCommand(smt,"(define-fun |#is_char#| ((x Int)) Bool (and (<= 0 x) (<= x " + Short.toUnsignedInt((short)Character.MAX_VALUE) + ")) )");
             addCommand(smt,"(define-fun |#is_int#| ((x Int)) Bool (and (<= (- " + -(long)Integer.MIN_VALUE + ") x) (<= x " + Integer.MAX_VALUE + ")) )");
             addCommand(smt,"(define-fun |#is_long#| ((x Int)) Bool (and (<= (- " + Long.toString(Long.MIN_VALUE).substring(1) + ") x) (<= x " + Long.MAX_VALUE + ")) )");
+            addCommand(smt,"(define-fun |#big8#| () Int 256)");
+            addCommand(smt,"(define-fun |#big16#| () Int 65536)");
             addCommand(smt,"(define-fun |#big32#| () Int 4294967296)");
             addCommand(smt,"(define-fun |#big64#| () Int (* 4294967296 4294967296))");
+            addCommand(smt,"(define-fun |#max8#| () Int 127)");
+            addCommand(smt,"(define-fun |#min8#| () Int (- 128))");
+            addCommand(smt,"(define-fun |#max16#| () Int 32767)");
+            addCommand(smt,"(define-fun |#min16#| () Int (- 32768))");
             addCommand(smt,"(define-fun |#max32#| () Int 2147483647)");
             addCommand(smt,"(define-fun |#min32#| () Int (- 2147483648))");
             addCommand(smt,"(define-fun |#max64#| () Int (- (* 2147483648 2147483648 2) 1))");
@@ -911,6 +917,9 @@ public class SMTTranslator extends JmlTreeScanner {
             // Int arithmetic operations to do wrap-around operations
             addCommand(smt,"(define-fun |#addWrap32#| ((x Int) (y Int)) Int (let ((sum (+ x y))) (ite (> sum |#max32#|) (- sum |#big32#|) (ite (< sum |#max32#|) (+ sum |#big32#|) sum)))))");
             addCommand(smt,"(define-fun |#addWrap64#| ((x Int) (y Int)) Int (let ((sum (+ x y))) (ite (> sum |#max64#|) (- sum |#big64#|) (ite (< sum |#max64#|) (+ sum |#big64#|) sum)))))");
+            addCommand(smt,"(define-fun |#trunc32s#| ((x Int)) Int (let ((m (mod x |#big32#|))) (ite (<= m |#max32#|) m (- m |#big32#|) )))");
+            addCommand(smt,"(define-fun |#trunc16s#| ((x Int)) Int (let ((m (mod x |#big16#|))) (ite (<= m |#max16#|) m (- m |#big16#|) )))");
+            addCommand(smt,"(define-fun |#trunc8s#| ((x Int)) Int (let ((m (mod x |#big8#|))) (ite (<= m |#max8#|) m (- m |#big8#|) )))");
         }
         
         
@@ -2361,20 +2370,29 @@ public class SMTTranslator extends JmlTreeScanner {
                     // real to int
                     result = F.fcn(F.symbol("to_int"), result);
                 } else if (argIsInt && resultIsInt) {
-                	if (useBV && tage != tagr) {
-                		int be = bits(tage);
-                	    int br = bits(tagr);
-                	    if (be > br) {
-                	    	List<INumeral> args = new LinkedList<>();
-                	    	args.add(F.numeral(br-1));
-                	    	args.add(F.numeral(0));
-                	    	result = F.fcn(F.id(F.symbol("extract"),args),result);
-                	    } else if (br > be) {
-                	    	List<INumeral> args = new LinkedList<>();
-                	    	args.add(F.numeral(br-be));
-                	    	result = F.fcn(F.id(F.symbol("sign_extend"),args),result);
-                	    }
-                	}
+                    if (tage != tagr) {
+                        int be = bits(tage);
+                        int br = bits(tagr);
+                        if (useBV) {
+                            if (be > br) {
+                                List<INumeral> args = new LinkedList<>();
+                                args.add(F.numeral(br-1));
+                                args.add(F.numeral(0));
+                                result = F.fcn(F.id(F.symbol("extract"),args),result);
+                            } else if (br > be) {
+                                List<INumeral> args = new LinkedList<>();
+                                args.add(F.numeral(br-be));
+                                result = F.fcn(F.id(F.symbol("sign_extend"),args),result);
+                            }
+                        } else {
+                            if (be > br) {
+                                if (br == 32) result = F.fcn(F.symbol("|#trunc32s#|"), result);
+                                if (br == 16) result = F.fcn(F.symbol("|#trunc16s#|"), result);
+                                if (br == 8) result = F.fcn(F.symbol("|#trunc8s#|"), result);
+                            }
+
+                        }
+                    }
 
                 } else {
                     // no change in result
