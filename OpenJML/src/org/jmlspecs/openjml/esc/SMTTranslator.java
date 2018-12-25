@@ -163,6 +163,7 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected IExpr.ISymbol notSym;
     final protected IExpr.ISymbol arraySym;
     final protected IExpr.ISymbol eqSym;
+    final protected IExpr.ISymbol leSym;
     final protected IExpr.ISymbol impliesSym;
     final protected IExpr.ISymbol selectSym;
     final protected IExpr.INumeral zero;
@@ -272,6 +273,7 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         arraySym = F.symbol("Array"); // From SMT Array theory
         eqSym = F.symbol("="); // Name determined by SMT Core theory
+        leSym = F.symbol("<="); // Name determined by SMT Ints theory
         andSym = F.symbol("and"); // Name determined by SMT Core theory
         orSym = F.symbol("or"); // Name determined by SMT Core theory
         notSym = F.symbol("not"); // Name determined by SMT Core theory
@@ -2480,9 +2482,36 @@ public class SMTTranslator extends JmlTreeScanner {
     }
     
     public IExpr makeTypeConstraint(Type t, IExpr e) {
-        String n = "|#is_" + t.toString() + "#|";
-        return F.fcn(F.symbol(n),e);
-    }
+//      String n = "|#is_" + t.toString() + "#|";
+//      return F.fcn(F.symbol(n),e);
+      long min, max;
+      switch (t.getTag()) {
+          case BYTE:
+              min = Byte.MIN_VALUE;
+              max = Byte.MAX_VALUE;
+              break;
+          case SHORT:
+              min = Short.MIN_VALUE;
+              max = Short.MAX_VALUE;
+              break;
+          case CHAR:
+              min = Character.MIN_VALUE;
+              max = Character.MAX_VALUE;
+              break;
+          case INT:
+              min = Integer.MIN_VALUE;
+              max = Integer.MAX_VALUE;
+              break;
+          case LONG:
+              min = Long.MIN_VALUE;
+              max = Long.MAX_VALUE;
+              break;
+          default:
+              return null;
+      }
+      return F.fcn(andSym, F.fcn(leSym, F.fcn(F.symbol("-"), F.numeral(-min)), e),
+              F.fcn(leSym, e, F.numeral(max)));
+  }
 
     @Override
     public void visitIndexed(JCArrayAccess tree) {
@@ -2737,7 +2766,7 @@ public class SMTTranslator extends JmlTreeScanner {
             IExpr value = result;
             if (that.op == JmlTokenKind.BSFORALL) {
                 if (range != null) value = F.fcn(impliesSym,range,value);
-                if (typeConstraint != null) value = F.fcn(impliesSym, typeConstraint, value);
+                if (typeConstraint != null && (that.range == null || treeutils.isTrueLit(that.range))) value = F.fcn(impliesSym, typeConstraint, value);
                 if (that.triggers != null && !that.triggers.isEmpty()) {
                     List<IExpr> triggers = convertExprList(that.triggers);
                     result = F.forall(params,value,triggers);
@@ -2746,7 +2775,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 }
             } else if (that.op == JmlTokenKind.BSEXISTS) {
                 if (range != null) value = F.fcn(andSym,range,value);
-                if (typeConstraint != null) value = F.fcn(andSym, typeConstraint, value);
+                if (typeConstraint != null && (that.range == null || treeutils.isTrueLit(that.range))) value = F.fcn(andSym, typeConstraint, value);
                 if (that.triggers != null && !that.triggers.isEmpty()) {
                     List<IExpr> triggers = convertExprList(that.triggers);
                     result = F.exists(params,value,triggers);
