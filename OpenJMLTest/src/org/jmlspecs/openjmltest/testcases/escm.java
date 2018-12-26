@@ -245,8 +245,9 @@ public class escm extends EscBase {
 
     @Test
     public void testMethodsInSpecs() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX("tt.TestJava","package tt; "
                 +" import org.jmlspecs.annotation.*; \n"
+                +" //@ code_java_math spec_java_math \n"
                 +"@NonNullByDefault public class TestJava { static public boolean b; \n"
 
                     +"  //@ public normal_behavior\n"
@@ -315,7 +316,7 @@ public class escm extends EscBase {
     public void testFunctionsInSpecs() {
         //main.addOptions("-no-minQuant");
         helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
+                +" import org.jmlspecs.annotation.*; //@ code_java_math spec_java_math \n"
                 +"@NonNullByDefault public class TestJava { static public boolean b; \n"
 
                     +"  //@ public normal_behavior\n"
@@ -390,19 +391,20 @@ public class escm extends EscBase {
 
                     +"  //@ public normal_behavior\n"
                     +"  //@   ensures mm(\\result) + 1 == mm(k);\n"
-                    +"  //@ pure\n"
+                    +"  //@ pure spec_java_math code_java_math \n"
                     +"  public int m(int k) {\n"
                     +"       return k-1;\n"
                     +"  }\n"
 
                     +"  //@ public normal_behavior\n"
                     +"  //@   ensures \\result == k+1;\n"
-                    +"  //@ pure\n"
+                    +"  //@ pure spec_java_math code_java_math \n"
                     +"  public int mm(int k) {\n"
                     +"       return k+1;\n"
                     +"  }\n"
 
                     +"  //@ ensures \\result == 2 + m(j+1) - 1; \n"
+                    +"  //@ pure spec_java_math code_java_math \n"
                     +"  public int m1(int j) {\n"
                     +"       return j+1;\n"
                     +"  }\n"
@@ -414,8 +416,9 @@ public class escm extends EscBase {
 
     @Test
     public void testMethodsInSpecs3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX("tt.TestJava","package tt;\n"
                 +" import org.jmlspecs.annotation.*; \n"
+                +" //@ code_java_math spec_java_math \n"
                 +"@NonNullByDefault public class TestJava { static public boolean b; \n"
 
                     +"  //@ ensures \\result == 2 + m(j+1) - 1; \n"

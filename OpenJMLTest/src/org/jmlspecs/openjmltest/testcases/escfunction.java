@@ -41,6 +41,7 @@ public class escfunction extends EscBase {
     @Test // FIXME - for reasons unknown, this test appears to be non-deterministic - sometimes succeeding sometimes failing
     public void testMethodAxioms() {
         helpTCX("tt.TestJava","package tt; \n"
+                +" //@ code_java_math spec_java_math \n"
                 +"public class TestJava  { \n"
                 +"  //@ normal_behavior \n"
                 +"  //@ ensures \\result == (i > 0 && i < 10);\n"
@@ -60,6 +61,7 @@ public class escfunction extends EscBase {
     @Test
     public void testMethodAxioms2() { 
         helpTCX("tt.TestJava","package tt; \n"
+                +" //@ code_java_math spec_java_math \n"
                 +"public class TestJava  { \n"
                 +"  //@ normal_behavior \n"
                 +"  //@ ensures \\result == (i > 0 && i < 10);\n"
