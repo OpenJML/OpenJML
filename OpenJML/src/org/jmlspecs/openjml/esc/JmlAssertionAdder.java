@@ -11966,8 +11966,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     eee = treeutils.makeSelect(that.pos, currentThisExpr, vsym);
                 }
             } else if (!utils.isJMLStatic(s) && that.selected instanceof JCIdent && !localVariables.containsKey(((JCIdent)that.selected).sym)) {
+                JCIdent id = (JCIdent)that.selected;
                 if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
                     // continue
+                } else if (id.sym.isEnum() && id.sym.isStatic() && ((id.sym.flags() & Flags.FINAL) != 0)) {
+                    // Optimization: Enum constants are always non-null 
+                    // addStat(comment(that.selected,"Skipping non-null check of " + that.selected.toString(), log.currentSourceFile()));
                 } else {
                     JCExpression nonnull = treeutils.trueLit;
                     if (!utils.isPrimitiveType(selected.type)) nonnull = treeutils.makeNotNull(that.pos, selected); 
