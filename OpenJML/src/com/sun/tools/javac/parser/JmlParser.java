@@ -553,7 +553,10 @@ public class JmlParser extends JavacParser {
                 }
                 boolean inJml = S.jml();
                 List<JCStatement> stats = super.blockStatement();
-                if (replacementType != null) for (JCStatement s: stats)  insertReplacementType(s,replacementType);
+                if (replacementType != null) {
+                    for (JCStatement s: stats)  insertReplacementType(s,replacementType);
+                    replacementType = null;
+                }
                 if (inJml) {
                     for (JCStatement s: stats) {
                         if (s instanceof JCVariableDecl) {
@@ -1188,6 +1191,7 @@ public class JmlParser extends JavacParser {
                             JmlVariableDecl d = (JmlVariableDecl) tr;
                             if (replacementType != null) {
                                 insertReplacementType(d,replacementType);
+                                replacementType = null;
                             } else {
                                 if (startsInJml) utils.setJML(d.mods);  // FIXME - should this be executed even when there is a replacement type?
                             }

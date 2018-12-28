@@ -417,8 +417,7 @@ public class MethodProverSMT {
             if (solverResponse.equals(unsatResponse)) {
                 // FIXME - get rid of the next line some time when we can change the test results
                 String msg = loc + " Method assertions are validated";
-                if (!utils.testingMode) msg += String.format(" [%4.2f secs]", duration);
-                if (!Utils.testingMode) utils.progress(0,1,loc + " Method assertions are validated");
+                if (!Utils.testingMode) utils.progress(0,1,msg + String.format(" [%4.2f secs]", duration));
 
                 if (verbose) log.getWriter(WriterKind.NOTICE).println("Method checked OK");
                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);

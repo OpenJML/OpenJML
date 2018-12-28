@@ -2150,7 +2150,21 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else if (useBV) {
                 	result = F.fcn(F.symbol("bvand"), args);
                 } else {
-                    notImplBV(tree, "Bit-operation " + op);
+                    Object val;
+                    result = null;
+                    if (tree.lhs instanceof JCLiteral && (val=((JCLiteral)tree.lhs).getValue()) instanceof Number) {
+                        long v = ((Number)val).longValue();
+                        if (v > 0 && Long.bitCount(v+1) == 1) {
+                            result = F.fcn(F.symbol("mod"), rhs, F.numeral(v+1));
+                        }
+                    }
+                    if (tree.rhs instanceof JCLiteral && (val=((JCLiteral)tree.rhs).getValue()) instanceof Number) {
+                        long v = ((Number)val).longValue();
+                        if (v > 0 && Long.bitCount(v+1) == 1) {
+                            result = F.fcn(F.symbol("mod"), lhs, F.numeral(v+1));
+                        }
+                    }
+                    if (result == null) notImplBV(tree, "Bit-operation " + op);
                 }
                 break;
             case BITOR:
