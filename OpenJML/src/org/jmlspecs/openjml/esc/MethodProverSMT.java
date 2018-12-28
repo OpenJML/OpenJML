@@ -299,6 +299,7 @@ public class MethodProverSMT {
         BasicBlocker2 basicBlocker;
         BasicProgram program;
         Date start;
+        double duration = 0;
         ICommand.IScript script;
         boolean usePushPop = true; // FIXME - false is not working yet
         {
@@ -373,6 +374,7 @@ public class MethodProverSMT {
                     if (aborted) {
                     	throw new Main.JmlCanceledException("Aborted by user");
                     }
+                    duration = (System.currentTimeMillis() - start.getTime())/1000.0;
             	}
             }
 
@@ -414,6 +416,8 @@ public class MethodProverSMT {
             if (Utils.testingMode) loc = "";
             if (solverResponse.equals(unsatResponse)) {
                 // FIXME - get rid of the next line some time when we can change the test results
+                String msg = loc + " Method assertions are validated";
+                if (!utils.testingMode) msg += String.format(" [%4.2f secs]", duration);
                 if (!Utils.testingMode) utils.progress(0,1,loc + " Method assertions are validated");
 
                 if (verbose) log.getWriter(WriterKind.NOTICE).println("Method checked OK");
@@ -492,6 +496,7 @@ public class MethodProverSMT {
                            
                         }
                         if (usePushPop) {
+                            duration = System.currentTimeMillis();
                             solver.pop(1); // Pop off previous setting of assumeCheck
                             solver.push(1); // Mark the top
                             JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.Tag.EQ,treeutils.inteqSymbol,
@@ -499,16 +504,17 @@ public class MethodProverSMT {
                                     treeutils.makeIntLiteral(Position.NOPOS, feasibilityCheckNumber));
                             solver.assertExpr(smttrans.convertExpr(bin));
                             solverResponse = solver.check_sat();
+                            duration = (System.currentTimeMillis() - duration)/1000.0;
                         }
                         String description = stat.description; // + " " + stat;
                         String fileLocation = utils.locationString(stat.pos, log.currentSourceFile());
-                        String msg =  (utils.jmlverbose >= Utils.PROGRESS) ? 
+                        String msg2 =  (utils.jmlverbose >= Utils.PROGRESS) ? 
                                 ("Feasibility check #" + feasibilityCheckNumber + " - " + description + " : ")
                                 :("Feasibility check - " + description + " : ");
                         boolean infeasible = solverResponse.equals(unsatResponse);
                         if (Utils.testingMode) fileLocation = loc;
-                        utils.progress(0,1,fileLocation + msg + (infeasible ? "infeasible": "OK"));
                         if (infeasible) {
+                            utils.progress(0,1,fileLocation + msg2 + "infeasible" + (utils.testingMode? "" : String.format(" [%4.2f secs]", duration)));
                             if (Strings.preconditionAssumeCheckDescription.equals(description)) {
                                 log.warning(stat.pos(), "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
                                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
@@ -524,8 +530,34 @@ public class MethodProverSMT {
                             JCDiagnostic d = log.factory().error(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse));
                             log.report(d);
                             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
+                        } else if (solverResponse.equals(smt.smtConfig.responseFactory.unknown())) {
+                            IResponse unknownReason = solver.get_info(smt.smtConfig.exprFactory.keyword(":reason-unknown")); // Not widely supported
+                            if (unknownReason.equals(smt.smtConfig.responseFactory.unsupported())) {
+                                // continue
+                                utils.progress(0,1,fileLocation + msg2 + "unknown reason: unsupported");
+                            } else if (unknownReason instanceof IResponse.IAttributeList) {
+                                IResponse.IAttributeList attrList = (IResponse.IAttributeList)unknownReason;
+                                IAttributeValue value = attrList.attributes().get(0).attrValue();
+                                if (value.toString().contains("incomplete")) { // FIXME - this might be only CVC4
+                                    // continue on - counting this as a SAT response
+                                } else if (value.toString().equals("ok")) { // FIXME - this might be only Z3
+                                    // continue on - counting this as a SAT response
+                                } else {
+                                    String msg3 = "Aborted feasibility check: " + smt.smtConfig.defaultPrinter.toString(value);
+                                    unknownReason = smt.smtConfig.responseFactory.error(msg2);
+                                    boolean timeout = msg3.contains("timeout");
+                                    if (timeout) {
+                                        log.warning(methodDecl,"esc.resourceout.feasibility",": " + msg3);
+                                        return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.TIMEOUT,start);
+                                    }
+                                    utils.progress(0,1,fileLocation + msg + "unknown reason: " + value);
+                                }
+                            } else {
+                                // Unexpected result
+                                log.error("jml.internal.notsobad","Unexpected result when querying SMT solver for reason for an unknown result: " + unknownReason);
+                                return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
+                            }
                         }
-                        // FIXME - what about timeout?
                     }
                 }
             } else b: { // Proof was not UNSAT, so there may be a counterexample

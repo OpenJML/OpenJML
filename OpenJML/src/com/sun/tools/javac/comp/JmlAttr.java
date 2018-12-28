@@ -1288,7 +1288,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             if ( (a=utils.findMod(mods,tokenToAnnotationSymbol.get(INLINE))) != null  &&
                     ((javaMethodTree.sym.enclClass().flags() & Flags.FINAL) == 0)  &&
-                    ((mods.flags & (Flags.FINAL|Flags.STATIC)) == 0)  &&
+                    ((mods.flags & (Flags.FINAL|Flags.STATIC|Flags.PRIVATE)) == 0)  &&
                     !isConstructor
                     ) {
                 log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);

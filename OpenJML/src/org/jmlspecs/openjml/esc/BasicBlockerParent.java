@@ -348,6 +348,12 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * @param block the block to process
      */
     protected void processBlock(@NonNull T block) {
+        processBlock(block,true);
+    }
+
+    List<JCStatement> tailStats = null;
+    
+    protected void processBlock(@NonNull T block, boolean doStats) {
         if (block.preceders().isEmpty()) {
             // Delete any blocks that do not follow anything
             // This can happen for example if the block is an afterIf block
@@ -371,7 +377,11 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         }
         if (!program.blocks.contains(block)) {
             startBlock(block);
-            processCurrentBlock();
+            if (doStats) processCurrentBlock();
+            else {
+                currentBlock = block;
+                tailStats = block.statements;
+            }
         } else {
             log.warning("jml.internal","Basic block " + block.id + " is being re-processed");
         }
@@ -390,7 +400,13 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     protected void processStats(List<JCStatement> stats) {
         while (!stats.isEmpty()) {
             JCStatement s = stats.remove(0);
-            if (s != null) s.accept(this);  // A defensive check - statements in the list should not be null
+            if (s != null) {
+                s.accept(this);  // A defensive check - statements in the list should not be null
+                if (tailStats != null) {
+                    stats = tailStats;
+                    tailStats = null;
+                }
+            }
         }
     }
     

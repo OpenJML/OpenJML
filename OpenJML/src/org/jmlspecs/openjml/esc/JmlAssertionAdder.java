@@ -15538,15 +15538,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlStatementShow(JmlStatementShow that) {
         result = null;
+        boolean saved = translatingJML;
+        boolean savedP = isPostcondition;
         switch (that.token) {
             case SHOW:
                 try {
+                    translatingJML = true;
+                    isPostcondition = false;
                     if (!pureCopy) addTraceableComment(that);
                     for (JCExpression expr: that.expressions) {
                         Name n = names.fromString("JMLSHOW_" + (++jmlShowUnique));
                         // Add the equivalent of \lbl for each expressions
                         JmlLblExpression e = M.at(expr.getStartPosition()).JmlLblExpression(expr.getStartPosition(),JmlTokenKind.BSLBLANY,n,expr);
                         e.type = expr.type;
+                        condition = treeutils.trueLit;
                         visitJmlLblExpression(e);
                         showExpressions.put(n.toString(),expr);
                     }
@@ -15555,6 +15560,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } catch (JmlNotImplementedException e) {
                     notImplemented(that.token.internedName() + " statement containing ",e);
                     result = null;
+                } finally {
+                    translatingJML = saved;
+                    isPostcondition = savedP;
                 }
                 break;
 
