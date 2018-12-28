@@ -9,11 +9,13 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.esc.BasicProgramParent.BlockParent;
 
 import com.sun.tools.javac.code.Symbol;
@@ -336,6 +338,32 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
 
     // GENERAL AND HELPER METHODS FOR PROCESSING BLOCKS
     
+    // This stack of blocks to be processed is used to
+    // avoid recursive calls that become very deeply nested
+    // (of the order of the length of the program, not of the
+    // nesting in the program).
+    Stack<T> todo = new Stack<>();
+    
+    public void processBlocks() {
+        while (!todo.isEmpty()) {
+            processBlock(todo.pop());
+        }
+    }
+    
+    public Stack<T> pushTodo() {
+        Stack<T> savedTodo = new Stack<T>();
+        savedTodo.addAll(todo);
+        todo.clear();
+        return savedTodo;
+    }
+    
+    public Stack<T> popTodo(Stack<T> savedTodo) {
+        todo.addAll(savedTodo);
+        savedTodo.clear();
+        return null;
+    }
+    
+
     /** Does the conversion of a block with Java statements into basic program
      * form. Newly created blocks should be processed by recursive calls
      * to this method. This method operates by calling startBlock to 
@@ -348,12 +376,6 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * @param block the block to process
      */
     protected void processBlock(@NonNull T block) {
-        processBlock(block,true);
-    }
-
-    List<JCStatement> tailStats = null;
-    
-    protected void processBlock(@NonNull T block, boolean doStats) {
         if (block.preceders().isEmpty()) {
             // Delete any blocks that do not follow anything
             // This can happen for example if the block is an afterIf block
@@ -377,11 +399,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         }
         if (!program.blocks.contains(block)) {
             startBlock(block);
-            if (doStats) processCurrentBlock();
-            else {
-                currentBlock = block;
-                tailStats = block.statements;
-            }
+            processCurrentBlock();
         } else {
             log.warning("jml.internal","Basic block " + block.id + " is being re-processed");
         }
@@ -400,13 +418,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     protected void processStats(List<JCStatement> stats) {
         while (!stats.isEmpty()) {
             JCStatement s = stats.remove(0);
-            if (s != null) {
-                s.accept(this);  // A defensive check - statements in the list should not be null
-                if (tailStats != null) {
-                    stats = tailStats;
-                    tailStats = null;
-                }
-            }
+            if (s != null) s.accept(this);  // A defensive check - statements in the list should not be null
         }
     }
     
@@ -580,10 +592,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      */
     protected T newBlockWithRest(@NonNull String key, int pos) {
         T b = newBlock(key,pos,currentBlock);// it gets all the followers of the current block
-        // We do this switch to avoid creating more new lists
-        List<JCStatement> temp = b.statements; // empty
-        b.statements = remainingStatements; // it gets all of the remaining statements
-        remainingStatements = temp; // empty
+        b.statements.addAll(remainingStatements); // it gets all of the remaining statements
+        remainingStatements.clear(); // empty
         return b;
     }
     
@@ -840,17 +850,22 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
                 addAssume(that.pos,Label.CASECONDITION,eq,blockForTest.statements);
             }
             
+            Stack<T> savedTodo = pushTodo();
+            
             processCurrentBlock(); // Complete the current block
+            processBlocks();
             // Now process all of the blocks we created, in order
             for (T b: blocks) {
                 processBlock(b);
+                processBlocks();
             }
+            savedTodo = popTodo(savedTodo);
         } finally {
             breakStack.remove(0);
             breakBlocks.put(names.empty, previousBreakBlock);
         }
         // Should never actually be null, unless some exception happened
-        if (blockAfter != null) processBlock(blockAfter);
+        if (blockAfter != null) todo.push(blockAfter);
     }
     
     // OK
@@ -1007,21 +1022,29 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         // any return or throw during the try statement body
         finallyStack.add(0,targetBlock);
         
+        Stack<T> savedTodo = pushTodo();
+        
         // Finish the processing of the current block; it might
         // refer to the finally block during processing
         processCurrentBlock();
+        processBlocks();
         finallyStack.remove(0); // Remove targetBlock
         // Now the finally block is the destination of any return or throw
         // during catch clauses
         finallyStack.add(0,finallyBlock);
         for (T b: blocks) {
             processBlock(b);
+            processBlocks();
         }
         finallyStack.remove(0);
-        processBlock(finallyBlock);
-        processBlock(finallyNormalBlock);
-        processBlock(finallyExitBlock);
-        processBlock(afterTry);
+
+        savedTodo = popTodo(savedTodo);
+        
+        // Blocks pushed in reverse order
+        todo.push(afterTry);
+        todo.push(finallyExitBlock);
+        todo.push(finallyNormalBlock);
+        todo.push(finallyBlock);
     }
     
     /** Catch statements are handled in visitTry */
@@ -1054,9 +1077,12 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         follows(currentBlock,elseBlock);
         
         processCurrentBlock(); // complete current block
-        processBlock(thenBlock);
-        processBlock(elseBlock);
-        processBlock(afterIf);
+        todo.push(afterIf);
+        todo.push(elseBlock);
+        todo.push(thenBlock);
+//        processBlock(thenBlock);
+//        processBlock(elseBlock);
+//        processBlock(afterIf);
     }
     
     /** This is a stack of loops and switch statements - anything that can 
@@ -1171,7 +1197,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         }
         
         processCurrentBlock();
-        processBlock(afterReturn);
+        todo.push(afterReturn);
     }
     
     // OK - presumes that the program has already been modified to record
@@ -1210,7 +1236,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         }
 
         processCurrentBlock();
-        processBlock(afterThrow);
+        todo.push(afterThrow);
 
     }
     
@@ -1324,15 +1350,22 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         follows(bloopEnd,bloopAfter);
 
         // Now process all the blocks
+        Stack<T> savedTodo = pushTodo();
+        
         processCurrentBlock();
+        processBlocks();
         processBlock(bloopBody);
+        processBlocks();
         processBlock(bloopContinue);
+        processBlocks();
         processBlock(bloopEnd);
+        processBlocks();
         loopStack.remove(0);
         breakStack.remove(0);
         breakBlocks.put(names.empty, previousBreakBlock);
         
-        processBlock(bloopAfter);
+        savedTodo = popTodo(savedTodo);
+        todo.push(bloopAfter);
         
     }
     
@@ -1459,25 +1492,35 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         follows(bloopBreak,bloopAfter);
         T previousBreakBlock = breakBlocks.put(names.empty, bloopBreak);
         
+        Stack<T> savedTodo = pushTodo();
         try {
             // do the loop body
             bloopBody.statements.add(that.body);
 
             processCurrentBlock();
+            processBlocks();
             processBlock(bloopBody);
+            processBlocks();
             scan(that.cond); // TODO - fix for case that has side -effects - not currently used
             JCExpression ntest = result;
             addAssume(that.cond.pos,Label.LOOP,treeutils.makeNot(ntest.pos,ntest),bloopEnd.statements);
             processBlock(bloopContinue);
+            processBlocks();
 
         } finally {
             loopStack.remove(0);
             breakStack.remove(0);
             breakBlocks.put(names.empty,previousBreakBlock);
         }
-        processBlock(bloopEnd);
-        processBlock(bloopBreak);
-        processBlock(bloopAfter);
+        
+        savedTodo = popTodo(savedTodo);
+        todo.push(bloopAfter);
+        todo.push(bloopBreak);
+        todo.push(bloopEnd);
+        
+//        processBlock(bloopEnd);
+//        processBlock(bloopBreak);
+//        processBlock(bloopAfter);
     }
 
 
@@ -1524,13 +1567,16 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         breakBlocks.put(that.label, nextBlock);
         continueMap.put(that.label, stripLabels(that));
         try {
+            Stack<T> savedTodo = pushTodo();
             remainingStatements.add(that.getStatement());
             processCurrentBlock();
+            processBlocks();
+            savedTodo = popTodo(savedTodo);
         } finally {
             breakBlocks.remove(that.label);
             continueMap.remove(that.label);
         }
-        processBlock(nextBlock);
+        todo.push(nextBlock);
     }
 
     @Override public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import javax.tools.JavaFileObject;
 
@@ -575,8 +576,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         // Put all the program statements in the Body Block
         bodyBlock.statements.addAll(block.getStatements());
-        
-        processBlock(bodyBlock); // Iteratively creates and processes following blocks
+        todo.push(bodyBlock);
+        processBlocks(); // Iteratively creates and processes following blocks
         
         // Finished processing all the blocks
         // Complete the BasicProgram
