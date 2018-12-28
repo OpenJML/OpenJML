@@ -512,6 +512,7 @@ public class MethodProverSMT {
                                 :("Feasibility check - " + description + " : ");
                         boolean infeasible = solverResponse.equals(unsatResponse);
                         if (Utils.testingMode) fileLocation = loc;
+                        String msgOK = fileLocation + msg2 + "OK" + (utils.testingMode? "" : String.format(" [%4.2f secs]", duration));
                         if (infeasible) {
                             utils.progress(0,1,fileLocation + msg2 + "infeasible" + (utils.testingMode? "" : String.format(" [%4.2f secs]", duration)));
                             if (Strings.preconditionAssumeCheckDescription.equals(description)) {
@@ -539,8 +540,10 @@ public class MethodProverSMT {
                                 IAttributeValue value = attrList.attributes().get(0).attrValue();
                                 if (value.toString().contains("incomplete")) { // FIXME - this might be only CVC4
                                     // continue on - counting this as a SAT response
+                                    utils.progress(0,1,msgOK);
                                 } else if (value.toString().equals("ok")) { // FIXME - this might be only Z3
                                     // continue on - counting this as a SAT response
+                                    utils.progress(0,1,msgOK);
                                 } else {
                                     String msg3 = "Aborted feasibility check: " + smt.smtConfig.defaultPrinter.toString(value);
                                     unknownReason = smt.smtConfig.responseFactory.error(msg2);
@@ -556,6 +559,8 @@ public class MethodProverSMT {
                                 log.error("jml.internal.notsobad","Unexpected result when querying SMT solver for reason for an unknown result: " + unknownReason);
                                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
                             }
+                        } else { // SAT response
+                            utils.progress(0,1,msgOK);
                         }
                     }
                 }
