@@ -2513,6 +2513,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 F.fcn(leSym, e, F.numeral(max)));
     }
 
+
     @Override
     public void visitIndexed(JCArrayAccess tree) {
         if (tree instanceof JmlBBArrayAccess) {
