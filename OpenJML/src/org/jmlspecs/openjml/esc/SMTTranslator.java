@@ -2151,17 +2151,26 @@ public class SMTTranslator extends JmlTreeScanner {
                 	result = F.fcn(F.symbol("bvand"), args);
                 } else {
                     Object val;
+                    IExpr arg = null;
+                    JCLiteral num = null;
                     result = null;
-                    if (tree.lhs instanceof JCLiteral && (val=((JCLiteral)tree.lhs).getValue()) instanceof Number) {
-                        long v = ((Number)val).longValue();
-                        if (v > 0 && Long.bitCount(v+1) == 1) {
-                            result = F.fcn(F.symbol("mod"), rhs, F.numeral(v+1));
-                        }
+                    if (tree.rhs instanceof JCLiteral) {
+                        arg = lhs;
+                        num = (JCLiteral)tree.rhs;
+                    } else if (tree.rhs instanceof JCTypeCast && ((JCTypeCast)tree.rhs).expr instanceof JCLiteral) {
+                        arg = lhs;
+                        num = (JCLiteral)((JCTypeCast)tree.rhs).expr;
+                    } else if (tree.lhs instanceof JCLiteral) {
+                        arg = rhs;
+                        num = (JCLiteral)tree.lhs;
+                    } else if (tree.lhs instanceof JCTypeCast && ((JCTypeCast)tree.lhs).expr instanceof JCLiteral) {
+                        arg = rhs;
+                        num = (JCLiteral)((JCTypeCast)tree.lhs).expr;
                     }
-                    if (tree.rhs instanceof JCLiteral && (val=((JCLiteral)tree.rhs).getValue()) instanceof Number) {
-                        long v = ((Number)val).longValue();
+                    if (num.getValue() instanceof Number) {
+                        long v = ((Number)num.getValue()).longValue();
                         if (v > 0 && Long.bitCount(v+1) == 1) {
-                            result = F.fcn(F.symbol("mod"), lhs, F.numeral(v+1));
+                            result = F.fcn(F.symbol("mod"), arg, F.numeral(v+1));
                         }
                     }
                     if (result == null) notImplBV(tree, "Bit-operation " + op);
