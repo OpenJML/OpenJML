@@ -167,8 +167,11 @@ public class JmlEsc extends JmlTreeScanner {
         long classDuration = System.currentTimeMillis() - classStart;
         utils.progress(0,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) +  //$NON-NLS-1$
                 (Utils.testingMode ? "" : String.format(" [%4.2f secs]", (classDuration/1000.0)))); //$NON-NLS-1$
-        classes++;
-        if (allMethodsOK) classesOK++;
+        if (utils.isModel(node.sym)) classesModel++; 
+        else {
+            classes++;
+            if (allMethodsOK) classesOK++;
+        }
         allMethodsOK = savedMethodsOK;
         Main.instance(context).popOptions();
     }
@@ -258,7 +261,7 @@ public class JmlEsc extends JmlTreeScanner {
         IProverResult res = factory.makeProverResult(methodDecl.sym,"",IProverResult.SKIPPED,new java.util.Date());
         IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
         if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);
-        count(IProverResult.SKIPPED);
+        count(IProverResult.SKIPPED, methodDecl.sym);
         return res;
     }
     
@@ -339,7 +342,7 @@ public class JmlEsc extends JmlTreeScanner {
                                : res.result().toString())
                     + (Utils.testingMode ? "" : String.format(" [%4.2f secs]", (duration/1000.0)))
                     );
-            count(res.result());
+            count(res.result(), methodDecl.sym);
             
 //            if (log.nerrors != prevErrors) {
 //                res = new ProverResult(proverToUse,IProverResult.ERROR,methodDecl.sym);
@@ -379,18 +382,29 @@ public class JmlEsc extends JmlTreeScanner {
     }
         
     public Map<IProverResult.Kind,Integer> counts = new HashMap<>();
+    public Map<IProverResult.Kind,Integer> modelcounts = new HashMap<>();
     public int classes;
     public int classesOK;
+    public int classesModel;
+    public int methodsModel;
     public boolean allMethodsOK;
     
     private long startTime;
     
     public void initCounts() {
-        classes = classesOK = 0;
-        counts = new HashMap<>();
+        classes = classesOK = classesModel = methodsModel = 0;
+        counts.clear();
+        modelcounts.clear();
         startTime = System.currentTimeMillis();
     }
     
+    public void count(IProverResult.Kind r, MethodSymbol sym) {
+        if (utils.isModel(sym) || utils.isModel(sym.owner)) {
+            modelcounts.put(r, modelvalue(r) + 1);
+        } else {
+            count(r);
+        }
+    }
     public void count(IProverResult.Kind r) {
         counts.put(r,  value(r) + 1);
         if (r != IProverResult.UNSAT) allMethodsOK = false;
@@ -399,6 +413,28 @@ public class JmlEsc extends JmlTreeScanner {
     public int value(IProverResult.Kind r) {
         Integer i = counts.get(r);
         return i == null ? 0 : i;
+    }
+    
+    public int modelvalue(IProverResult.Kind r) {
+        Integer i = modelcounts.get(r);
+        return i == null ? 0 : i;
+    }
+    
+    public int allmodelvalue() {
+        int sum = 0;
+        for (Integer i: modelcounts.values()) {
+            if (i == null) i = 0;
+            sum += i;
+        }
+        return sum;
+    }
+    
+    public int allvalue() {
+        int sum = 0;
+        for (Integer i: counts.values()) {
+            sum += i;
+        }
+        return sum;
     }
     
     public String reportCounts() {
@@ -418,7 +454,10 @@ public class JmlEsc extends JmlTreeScanner {
         s.append("  Skipped:      " + (tt=value(IProverResult.SKIPPED)) + Strings.eol);
         t += tt;
         s.append(" TOTAL METHODS: " + t + Strings.eol);
+        if (t != allvalue()) s.append("  DISCREPANCY " + t + " vs. " + allvalue() + Strings.eol);
         s.append(" Classes:       " + classesOK + " proved of " + classes + Strings.eol);
+        s.append(" Model Classes: " + classesModel + Strings.eol);
+        s.append(" Model methods: " + modelvalue(IProverResult.UNSAT) + " proved of " + allmodelvalue() + Strings.eol);
         long duration = System.currentTimeMillis() - startTime;
         s.append(" DURATION: " + String.format("%12.1f",(duration/1000.0)) + " secs" + Strings.eol);
         return s.toString();
