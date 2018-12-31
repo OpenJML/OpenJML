@@ -287,6 +287,7 @@ public class Utils {
 
     /** A cache for the symbol */
     private ClassSymbol helperAnnotationSymbol = null;
+    private ClassSymbol modelAnnotationSymbol = null;
 
     /** Returns true if the given symbol has a helper annotation
      * 
@@ -298,6 +299,13 @@ public class Utils {
             helperAnnotationSymbol = createClassSymbol(Strings.helperAnnotation);
         }
         return symbol.attribute(helperAnnotationSymbol)!=null;
+    }
+    
+    public boolean isModel(@NonNull Symbol symbol) {
+        if (modelAnnotationSymbol == null) {
+            modelAnnotationSymbol = createClassSymbol(Strings.modelAnnotation);
+        }
+        return symbol.attribute(modelAnnotationSymbol)!=null;
     }
     
     public static String identifyOS(Context context) {

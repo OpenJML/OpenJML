@@ -5582,6 +5582,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @return true if the symbol has a model annotation, false otherwise
      */
     public boolean isHelper(MethodSymbol symbol) {
+        // Remove the following line when we add the helper annotation to the implicit enum specs
+        if (symbol.owner.isEnum() && (symbol.name == names.values || symbol.name == names.ordinal || symbol.name == names._name)) return true;
         MethodSpecs mspecs = specs.getSpecs(symbol);
         if (mspecs == null) {
             // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
