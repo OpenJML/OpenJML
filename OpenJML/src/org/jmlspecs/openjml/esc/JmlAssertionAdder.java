@@ -3853,10 +3853,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             assumeFieldInvariants(this.methodDecl, classDecl); // FIXME - do parent classes also?
         }
         
-//        // Add a block into which we can later insert declarations and assumptions about old variables
-//        JCStatement c = comment(methodDecl,"Assumptions regarding \\old expressions",log.currentSourceFile());
-//        oldBlock = M.Block(0L, List.<JCStatement>of(c));
-//        addStat(oldBlock);
 
         // We collect the precondition evaluation in a separate list so that
         // we can wrap the evaluations in a try-catch block, in case there are
@@ -3864,10 +3860,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ListBuffer<JCStatement> preStats = new ListBuffer<JCStatement>();
         currentStatements = preStats;
         
-        // Construct a condition, to be used later, that the method has not thrown an exception
-        DiagnosticPosition methodPos = methodDecl;
-        JCExpression noException = treeutils.makeEqObject(methodPos.getPreferredPosition(),
-                treeutils.makeIdent(methodPos.getPreferredPosition(), exceptionSym), treeutils.nullLit);
+//        // Construct a condition, to be used later, that the method has not thrown an exception
+//        DiagnosticPosition methodPos = methodDecl;
+//        JCExpression noException = treeutils.makeEqObject(methodPos.getPreferredPosition(),
+//                treeutils.makeIdent(methodPos.getPreferredPosition(), exceptionSym), treeutils.nullLit);
         
         // FIXME - what if the owning class is a TypeSymbol because it is a TypeVar
         TypeSymbol owner = (TypeSymbol)methodDecl.sym.owner;
@@ -3905,28 +3901,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         addStat( comment(methodDecl,"Assume Preconditions",null));
         
         // Iterate over all methods that methodDecl overrides, collecting specs
-        boolean sawSomeSpecs = false;
-        for (MethodSymbol msym: utils.parents(methodDecl.sym)) {
-            if (msym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
-            JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(msym);
+        for (MethodSymbol parentMethodSym: utils.parents(methodDecl.sym)) {
+            if (parentMethodSym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
+            JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(parentMethodSym);
             
-            if(denestedSpecs==null){ // CHECK - added for innference
+            if (denestedSpecs==null) { // CHECK - added for inference
                 continue;
             }
             // Set up the map from parameter symbol of the overridden method to 
             // corresponding parameter of the target method.
             // We need this even if names have not changed, because the parameters 
             // will have been attributed with different symbols.
+            paramActuals = new HashMap<Object,JCExpression>();
             if (denestedSpecs.decl != null) {
                 Iterator<JCVariableDecl> iter = denestedSpecs.decl.params.iterator();
-                paramActuals = new HashMap<Object,JCExpression>();
                 for (JCVariableDecl dp: methodDecl.params) {
                     JCVariableDecl newdecl = iter.next();
                     paramActuals.put(newdecl.sym,treeutils.makeIdent(dp.pos, dp.sym));
                 }
-            } else { // FIXME - why should denestedSpecs ever not have a declaration if there are any specs to use
-                Iterator<VarSymbol> iter = msym.params.iterator();
-                paramActuals = new HashMap<Object,JCExpression>();
+            } else { // denested specs may not have a declaration if the method is automatically generated (e.g. default constructor, Enum.values() etc.)
+                Iterator<VarSymbol> iter = parentMethodSym.params.iterator();
                 for (JCVariableDecl dp: methodDecl.params) {
                     VarSymbol newsym = iter.next();
                     paramActuals.put(newsym,treeutils.makeIdent(dp.pos, dp.sym));
@@ -3934,107 +3928,141 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
 
             heapCount = preheapcount;
+            Map<JmlMethodClause,JCIdent> clauseIds = new HashMap<>();
             for (JmlSpecificationCase scase : denestedSpecs.cases) {
-                sawSomeSpecs = true;
-                if (!utils.jmlvisible(msym,classDecl.sym, msym.owner,  scase.modifiers.flags, methodDecl.mods.flags)) continue;
-                if (msym != methodDecl.sym && scase.code) continue;
+                if (!doSpecificationCase(methodDecl, parentMethodSym, scase)) continue;
                 JavaFileObject prev = log.useSource(scase.source());
                 try {
-                    JCIdent preident = null;
-                    JCExpression preexpr = treeutils.trueLit;
+                    JCIdent preexpr = null;
                     for (JmlMethodClause clause : scase.clauses) {
                         switch (clause.token) {
                             case OLD:
                             case FORALL:
+                                if (clauseIds.containsKey(clause)) break; // Don't reevaluate if we have nested specs
                                 for (JCVariableDecl decl : ((JmlMethodClauseDecl)clause).decls) {
                                     addTraceableComment(decl,clause.toString());
                                     //                             Name name = names.fromString(decl.name.toString() + "__OLD_" + decl.pos);
                                     //JCVariableDecl newdecl = convertCopy(decl);
                                     JCVariableDecl newdecl = treeutils.makeVarDef(decl.type, decl.name, methodDecl.sym, clause.pos);
+                                    addStat(newdecl);
                                     mapSymbols.put(decl.sym, newdecl.sym);
+                                    JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
+                                    pushBlock();
                                     if (rac) {
                                         newdecl.init = treeutils.makeZeroEquivalentLit(decl.init.pos, decl.type);
-                                        initialStatements.add(newdecl);
-                                        // FIXME - no FORALLs in rac
-                                        JCExpression newinit = addImplicitConversion(decl.init, decl.type, decl.init);
-                                        newinit = convertJML(treeutils.isTrueLit(preexpr) ? newinit : treeutils.makeConditional(pos, preexpr, newinit, treeutils.makeZeroEquivalentLit(pos, decl.type)));
-
-                                        JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
-                                        JCExpressionStatement stat = treeutils.makeAssignStat(decl.init.pos,id,newinit);
-                                        addStat(stat);
-                                        paramActuals.put(decl.sym,id);
-                                        preparams.put(decl.sym,id);
-                                        saveMapping(id, convertExpr(id));
                                     } else {
-                                        if (decl.init != null) {
-                                            JCExpression newinit = addImplicitConversion(decl.init, decl.type, decl.init);
-                                            JCExpression init =
-                                                    convertJML(treeutils.isTrueLit(preexpr) ? newinit : treeutils.makeConditional(pos, preexpr, newinit, treeutils.makeZeroEquivalentLit(pos, decl.init.type)));
-                                            newdecl.init = init;
-                                        }
-
-                                        addStat(newdecl);
-                                        JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
-                                        paramActuals.put(decl.sym,id);
-                                        preparams.put(decl.sym,id);
-                                        saveMapping(id, convertExpr(id));
+                                        addNullnessTypeCondition(id,id.sym,false);
                                     }
+                                    alreadyDiscoveredFields.add(id.sym);
+                                    if (decl.init != null) {
+                                        JCExpression convertedInit = convertJML(decl.init);
+                                        convertedInit = addImplicitConversion(decl.init, decl.type, convertedInit);
+                                        if (rac) {
+                                            JCExpressionStatement stat = treeutils.makeAssignStat(decl.init.pos,id,convertedInit);
+                                            addStat(stat);
+                                        } else {
+                                            addAssume(clause,Label.PRECONDITION,treeutils.makeEquality(clause.pos,id,convertedInit));
+                                        }
+                                        JCBlock bl = popBlock(0L,clause);
+                                        if (preexpr == null) {
+                                            addStat(bl);
+                                        } else {
+                                            addStat(M.at(clause).If(preexpr, bl, null));
+                                        }
+                                    }
+                                    //paramActuals.put(decl.sym,id);
+                                    //preparams.put(decl.sym,id);
+                                    saveMapping(decl, id);
+                                    clauseIds.put(clause, id);
                                 }
                                 break;
                             case REQUIRES:
-                                JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
-                                preexpr = treeutils.makeAndSimp(preexpr.pos, preexpr, ex);
-                                addTraceableComment(ex,clause.toString());
+                                if (clauseIds.containsKey(clause)) {
+                                    preexpr = clauseIds.get(clause);
+                                    break; // Don't reevaluate if we have nested specs
+                                }
+                                boolean pv = checkAccessEnabled;
+                                checkAccessEnabled = false;  // FIXME _ review what this is for
+                                ListBuffer<JCStatement> check = null;
+                                try {
+                                    JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
+                                    addTraceableComment(ex,clause.toString());
+                                    JCIdent nextPreExpr;
+                                    if (rac) {
+                                        JCVariableDecl d = newTempDecl(ex,ex.type);
+                                        addStat(d);
+                                        d.init = treeutils.makeZeroEquivalentLit(ex.pos, ex.type);
+                                        check = pushBlock();
+                                        JCExpression convertedEx = convertJML(ex);
+                                        nextPreExpr = treeutils.makeIdent(ex.pos, d.sym);
+                                        JCExpressionStatement stat = treeutils.makeAssignStat(ex.pos,nextPreExpr,convertedEx);
+                                        addStat(stat);
+                                    } else {
+                                        check = pushBlock();
+                                        JCExpression convertedEx = convertJML(ex);
+                                        nextPreExpr = newTemp(ex,ex.type);                                       JCIdent id = convertedEx instanceof JCIdent ? (JCIdent)convertedEx : newTemp(convertedEx);
+                                        addAssume(ex,Label.PRECONDITION,treeutils.makeEquality(ex.pos,nextPreExpr,id));
+                                    }
+                                    JCBlock thenbl = popBlock(0L,ex,check);
+                                    check = null;
+                                    pushBlock();
+                                    addAssume(ex,Label.PRECONDITION,treeutils.makeEquality(ex.pos,nextPreExpr,treeutils.falseLit));
+                                    JCBlock elsebl = popBlock(0L,ex);
+                                    if (preexpr == null) {
+                                        addStat(thenbl);
+                                    } else {
+                                        addStat(M.at(ex.pos).If(preexpr, thenbl, elsebl));
+                                    }
+                                    preexpr = nextPreExpr;
+                                    clauseIds.put(clause, preexpr);
+                                } catch (NoModelMethod e) {
+                                    // FIXME - what to do
+                                } catch (JmlNotImplementedException e) {
+                                    notImplemented("requires clause containing ",e); // FIXME - needs source
+                                } finally {
+                                    if (check != null) popBlock();
+                                    checkAccessEnabled = pv;
+                                }
                                 break;
                             default:
-                        }
-                    }
-                    if (preexpr == null) {
-                        preexpr = treeutils.trueLit;
-                    } else {
-                        boolean pv = checkAccessEnabled;
-                        checkAccessEnabled = false;
-                        try {
-                            preexpr = convertJML(preexpr);
-                        } catch (NoModelMethod e) {
-                            // FIXME - what to do
-                        } catch (JmlNotImplementedException e) {
-                            notImplemented("requires clause containing ",e); // FIXME - needs source
-                            continue;
-                        } finally {
-                            checkAccessEnabled = pv;
+                                // skip
                         }
                     }
                     precount++;
-                    Name prename = names.fromString(Strings.prePrefix + precount);
-                    JCVariableDecl dx = treeutils.makeVarDef(syms.booleanType, prename, methodDecl.sym, treeutils.falseLit);
+                    Name prename = names.fromString(Strings.prePrefix + precount); // Unique name for each specification case
                     if (scase.pos <= 0) {
                         //                    log.warning("jml.internal","Bad Position");
                         scase.pos = 1;
                     }
-                    dx.pos = scase.pos;
-                    preident = treeutils.makeIdent(scase.pos, dx.sym);
-                    addStat(initialStats,dx);
-                    addStat(currentStatements, treeutils.makeAssignStat(scase.pos, preident, preexpr));
-                    preconditions.put(scase, preident);
-                    if (combinedPrecondition == null || preexpr == treeutils.trueLit) {
-                        combinedPrecondition = preident;
-                        combinedPreconditionSource = scase.sourcefile;
+                    JCIdent preident;
+                    if (rac) {
+                        JCVariableDecl dx = treeutils.makeVarDef(syms.booleanType, prename, methodDecl.sym, treeutils.falseLit);
+                        dx.pos = scase.pos;
+                        preident = treeutils.makeIdent(scase.pos, dx.sym);
+                        addStat(initialStats,dx);
+                        addStat(currentStatements, treeutils.makeAssignStat(scase.pos, preident, preexpr == null ? treeutils.trueLit : preexpr));
                     } else {
-                        combinedPrecondition = treeutils.makeOr(scase.pos, combinedPrecondition, preident);
-                        combinedPreconditionSource = scase.sourcefile;
+                        JCVariableDecl dx = treeutils.makeVarDef(syms.booleanType, prename, methodDecl.sym, preexpr == null ? treeutils.trueLit : preexpr);
+                        dx.pos = scase.pos;
+                        addStat(dx);
+                        preident = treeutils.makeIdent(scase.pos, dx.sym);
                     }
+                    preconditions.put(scase, preident);
+                    if (combinedPrecondition == null || preexpr == null) {
+                        combinedPrecondition = preident;
+                    } else {
+                        combinedPrecondition = treeutils.makeBitOr(scase.pos, combinedPrecondition, preident);
+                    }
+                    combinedPreconditionSource = scase.sourcefile;
                 } finally {
                     log.useSource(prev);
                 }
             }
+            clauseIds.clear();
         }
 
-
-        methodPos = methodDecl;
-
         // If combinedPrecondition is null then there were no specs, so the implicit precondition is true and does not
-        // need to be checked
+        // need to be assumed
         if (combinedPrecondition != null) {
             // FIXME - associated location? where?
             JavaFileObject prev = log.useSource(combinedPreconditionSource);
@@ -4043,10 +4071,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         
         if (rac) {
+            // If rac, we wrap all the precondition evaluation in a try block so we catch any
+            // undefined operations
             Name n;
             JCVariableDecl vd;
             JCIdent ex;
-            
+            // We can't use the try block approach in a constructor because a costructor must
+            // start with an implicit or explicit super call
             if (!isConstructor) {
                 n = names.fromString("preEx");
                 vd = treeutils.makeVarDef(syms.runtimeExceptionType, n, methodDecl.sym, methodDecl.pos);
@@ -4060,8 +4091,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 preStats = new ListBuffer<JCStatement>();
                 preStats.add(st);
             }
-            
-            
         }
         initialStats.appendList(preStats);
         paramActuals = null;
@@ -4069,6 +4098,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         heapCount = savedheapcount;
         currentStatements = savedCurrentStatements;
+    }
+
+
+    // methodDecl - base method that is being translated
+    // msym - symbol for the method or overriding method to which specs belong
+    // scase - the particular specification case
+    public boolean doSpecificationCase(JCMethodDecl methodDecl,
+            MethodSymbol msym, JmlSpecificationCase scase) {
+        if (!utils.jmlvisible(msym, methodDecl.sym.owner, msym.owner, scase.modifiers.flags, methodDecl.mods.flags)) return false;
+        if (msym != methodDecl.sym && scase.code) return false;
+        return true;
     }
     
     /** This just tests wither the type is explicitly a JMLDataGroup */
