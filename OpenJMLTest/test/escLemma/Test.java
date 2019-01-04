@@ -7,10 +7,10 @@ public class Test {
 	public void lemma(int p) {}
 	
 	//@ requires k >= 0;
-	//@ requires k <= Integer.MAX_VALUE/2 && k >= Integer.MIN_VALUE/2;
+	//@ requires k <= Integer.MAX_VALUE/16;
 	public void mbit(int k) {
-		k = 2*k;
-		boolean b = ((k+1)&1) == 1;
+		k = 8*k;
+		boolean b = ((k+1)&5) == 1;
 		//@ assert b;
 	}
 
@@ -19,7 +19,7 @@ public class Test {
 		//@ show k;
 		k = 2*k;
 		//@ use lemma((k+1));
-		boolean b = ((k+1)&1) == 1; // Error expect4ed when k is -1
+		boolean b = ((k+1)&1) == 1; // Error expected when k is -1
 		//@ assert b;
 	}
 

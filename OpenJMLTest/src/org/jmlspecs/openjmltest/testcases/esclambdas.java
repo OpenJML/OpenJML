@@ -200,7 +200,6 @@ public class esclambdas extends EscBase {
 
     @Test
     public void testIdentity4() {
-    	//main.addOptions("-show","-method=m1","-subexpressions");
         helpTCX("tt.TestJava","package tt;  import java.util.function.Function;\n"
                                 +"public class TestJava { \n"
                                 

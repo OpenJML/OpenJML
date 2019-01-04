@@ -193,7 +193,7 @@ public class racnew extends RacBase {
                 ,"                    ^"
                 ,"/tt/TestJava.java:5: JML precondition is false"
                 ," /*@ requires true; */ "
-                ,"     ^"
+                ,"              ^"
                 ,"END"
                 );
     }
@@ -3071,7 +3071,6 @@ public class racnew extends RacBase {
     
     @Test
     public void testOldClause() {
-        //main.addOptions("-show");
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { public static void main(String[] args) { m(6); k = 6; m(6); } \n"

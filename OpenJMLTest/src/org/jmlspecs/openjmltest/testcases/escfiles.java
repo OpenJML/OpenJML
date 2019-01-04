@@ -680,6 +680,11 @@ public class escfiles extends EscBase {
         helpTF("escLemma");
     }
     
+    @Test
+    public void escOld() {
+        helpTF("escOld");
+    }
+    
 
     
     @Test @Ignore // FIXME - ignore for now, because it slways times out.

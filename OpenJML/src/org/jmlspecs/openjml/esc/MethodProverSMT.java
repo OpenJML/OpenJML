@@ -1065,26 +1065,26 @@ public class MethodProverSMT {
                             {
                                String nm = assertStat.description;
                                //logPreValue(nm,cemap);
-                               Boolean v = findPreValue(nm,info.cemap);
+                               String v = info.cemap.get(nm);
                                 //log.note("jml.message",nm + " " + v);
-                               if (v != null && !v) {
+                               if (!"true".equals(v)) {
                                     int pdetail2 = 0;
                                     while (true) {
                                         pdetail2++;
                                         String nmm = nm + "_" + pdetail2;
-                                        Boolean vv = findPreValue(nmm,info.cemap);
+                                        String vv = info.cemap.get(nmm);
                                         //log.note("jml.message",nmm + " " + vv);
                                         if (vv == null && pdetail2 > 6) break;
-                                        if (true || !vv) {
+                                        if (!"true".equals(vv)) {
                                             int pdetail3 = 0;
                                             while (true) {
                                                 pdetail3++;
                                                 String nmmm = nmm + "_" + pdetail3;
-                                                Boolean vvv = findPreValue(nmmm,info.cemap);
+                                                Boolean vvv = findPreValue(nmmm,info);
                                                 //log.note("jml.message",nmmm + " " + vvv);
                                                 if (vvv == null) break;
                                                 if (!vvv) {
-                                                    JCTree s = findPreExpr(nmmm,info.cemap);
+                                                    JCTree s = findPreExpr(nmmm);
                                                     JavaFileObject prevv = log.useSource(jmlesc.assertionAdder.preconditionDetailClauses.get(nmmm));
                                                     log.warning(s.pos,"esc.false.precondition.conjunct", s.toString());
                                                     log.useSource(prevv);
@@ -1418,26 +1418,26 @@ public class MethodProverSMT {
                         {
                            String nm = assertStat.description;
                            //logPreValue(nm,cemap);
-                           Boolean v = findPreValue(nm,info.cemap);
+                           String v = info.cemap.get(nm);
                             //log.note("jml.message",nm + " " + v);
-                           if (v != null && !v) {
+                           if (!"true".equals(v)) {
                                 int pdetail2 = 0;
                                 while (true) {
                                     pdetail2++;
                                     String nmm = nm + "_" + pdetail2;
-                                    Boolean vv = findPreValue(nmm,info.cemap);
+                                    String vv = info.cemap.get(nm);
                                     //log.note("jml.message",nmm + " " + vv);
                                     if (vv == null && pdetail2 > 6) break;
-                                    if (true || !vv) {
+                                    if (true ) {
                                         int pdetail3 = 0;
                                         while (true) {
                                             pdetail3++;
                                             String nmmm = nmm + "_" + pdetail3;
-                                            Boolean vvv = findPreValue(nmmm,info.cemap);
+                                            Boolean vvv = findPreValue(nmmm,info);
                                             //log.note("jml.message",nmmm + " " + vvv);
                                             if (vvv == null) break;
                                             if (!vvv) {
-                                                JCTree s = findPreExpr(nmmm,info.cemap);
+                                                JCExpression s = findPreExpr(nmmm);
                                                 JavaFileObject prevv = log.useSource(jmlesc.assertionAdder.preconditionDetailClauses.get(nmmm));
                                                 log.warning(s.pos,"esc.false.precondition.conjunct", s.toString());
                                                 log.useSource(prevv);
@@ -1488,26 +1488,30 @@ public class MethodProverSMT {
         }
     }
 
-    protected Boolean findPreValue(String preid, Map<JCTree,String> cemap) {
+    protected Boolean findPreValue(String preid, Info info) {
         BiMap<JCTree,JCTree> bimap = jmlesc.assertionAdder.exprBiMap;
-        JCTree s = null;
-        for (JCTree t: bimap.reverse.keySet()) { 
-            if (t instanceof JCIdent && ((JCIdent)t).name.toString().equals(preid)) { 
-                s = bimap.getr(t); 
-                break; 
+        for (JCTree t: bimap.forward.keySet()) { 
+            if (t instanceof JmlLblExpression && ((JmlLblExpression)t).label.toString().equals(preid)) { 
+                JCTree s = bimap.getf(t); 
+                String vvv = info.cemap.get(preid);
+                Boolean v;
+                if (vvv == null) {
+                    v = getBoolValue(preid,info.smt,info.solver);
+                } else {
+                    v = "true".equals(vvv);
+                }
+                return v;
             }
         }
-        String vs = s == null ? null : cemap.get(s);
-        Boolean v = vs == null ? null : "true".equals(vs);
-        return v;
+        return null;
     }
 
-    protected JCTree findPreExpr(String preid, Map<JCTree,String> cemap) {
+    protected JCExpression findPreExpr(String preid) {
         BiMap<JCTree,JCTree> bimap = jmlesc.assertionAdder.exprBiMap;
-        JCTree s = null;
-        for (JCTree t: bimap.reverse.keySet()) { 
-            if (t instanceof JCIdent && ((JCIdent)t).name.toString().equals(preid)) { 
-                s = bimap.getr(t); 
+        JCExpression s = null;
+        for (JCTree t: bimap.forward.keySet()) { 
+            if (t instanceof JmlLblExpression && ((JmlLblExpression)t).label.toString().equals(preid)) { 
+                s = ((JmlLblExpression)t).expression; 
                 break; 
             }
         }
