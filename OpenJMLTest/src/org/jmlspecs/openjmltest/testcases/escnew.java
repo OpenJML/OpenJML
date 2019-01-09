@@ -1587,6 +1587,19 @@ public class escnew extends EscBase {
                 );
     }
 
+    @Test
+    public void testAsList() {
+        main.addOptions("-show","-method=m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava  { \n"
+                +"  public enum E { A}; \n"
+                
+                +"  public static void m1() {\n"
+                +"    java.util.List<E> m = java.util.Arrays.asList(new E[]{E.A});\n"
+                +"  }\n"
+                +"}\n"
+                );
+        }
     @Test // Allow final on invariant to mean assume regardless of helper status
     public void testInvariantInheritance() {
         helpTCX("tt.TestJava","package tt; \n"

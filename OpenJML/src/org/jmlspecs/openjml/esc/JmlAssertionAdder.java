@@ -7181,7 +7181,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             int formalLength = msym.type.asMethodType().argtypes.length();  // msym.params can be null if there are varargs
             Type varargType = msym.type.getParameterTypes().last();
             if (actualLength != formalLength ||
-                    !types.isSameType(that.args.last().type, varargType)) {
+                    (!types.isSameType(that.args.last().type, varargType) 
+                            && !(that.args.last().type instanceof Type.ArrayType))) {
                 int p = that.meth.pos;
                 JCExpression len = treeutils.makeIntLiteral(p,actualLength + 1 - formalLength);
                 Type compType = ((Type.ArrayType)varargType).getComponentType();
@@ -7500,12 +7501,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     Map<JmlSpecificationCase,JCIdent> calleePreconditions;
 
-    int cpreindex = 0;
     int cpreindex3 = 0;
     
     /** Helper method to do the work of visitApply and visitNewObject */
     protected void applyHelper(JCExpression that) {
-        cpreindex++;
+        preconditionDetail++;
+        int preconditionDetailLocal = preconditionDetail;
         // We need to save the context of many variables because in the case of
         // new object creation there may be nested methods that are converted
         // before we return to complete the translation of method declaration
@@ -8326,8 +8327,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             int callLabelReferenceCount = allocCounter;  // FIXME _ is this too early?
             { // In quantifications, splitExpressions is set to false
                 boolean combinedNoModel = false;
-                preconditionDetail++;
-                int preconditionDetailLocal = preconditionDetail;
                 addStat(comment(that, "Checking preconditions of callee " + calleeMethodSym + " by the caller",null));
                 boolean anyVisibleSpecCases = false;
                 int preconditionDetail2 = 0;
@@ -8440,7 +8439,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JavaFileObject prev = log.useSource(cs.source());
                         try {
                             JmlMethodClauseExpr mcc = null; // Remember the first clause in the specification case
-                            cpreindex3 = 0;
+                            int preconditionDetailLocal3 = 0;
                             for (JmlMethodClause clause : cs.clauses) {
                                 switch (clause.token) {
                                     case FORALL: 
@@ -8554,7 +8553,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 addStat(stat);
                                             } else {
                                                 nextPreExpr = newTemp(ex,ex.type);
+                                                cpreindex3 = preconditionDetailLocal3;
                                                 JCExpression labeledPrecondition = insertLabelsOnConjunctions(ex,"_$CPRE__" + preconditionDetailLocal + "_" + preconditionDetail2);
+                                                preconditionDetailLocal3 = cpreindex3;
                                                 check = pushBlock();
                                                 JCExpression convertedEx = convertJML(labeledPrecondition);
 //                                                if (!(convertedEx instanceof JCIdent)) {
@@ -8642,7 +8643,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 // Issue the overall precondition check (which is an OR of all the preconditions for each spec case, acrsoss all overriding methods).
                 // clauseToReference is null if the precondition is just a true literal  // FIXME - this is confusing if there is more than one clause in one spec case
-//                if (clauseToReference != null) {
+                if (anyVisibleSpecCases) {
                     ListBuffer<JCStatement> check3 = pushBlock();
                     if (splitExpressions) {
                         String nm = "_$CPRE__" + preconditionDetailLocal;
@@ -8677,7 +8678,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addStat( wrapRuntimeException(that, bl, 
                             "JML undefined precondition - exception thrown",
                             null));
-//                }
+                }
             }
 
             // Add a label that signifies the state before the method call
