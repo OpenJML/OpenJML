@@ -1138,10 +1138,16 @@ public class SMTTranslator extends JmlTreeScanner {
     /** Returns an SMT IExpr representing the given JML type */
     public IExpr jmlTypeSymbol(Type t) {
         t = t.unannotatedType();
-        if (utils.isExtensionValueType(t)) return F.symbol(t.tsym.getSimpleName().toString());
-//        if (utils.isPrimitiveType(t)) {
-//            return t.isPrimitive() ? javaTypeSymbol(t) : F.symbol(t.tsym.getSimpleName().toString());
-//        }
+        if (utils.isExtensionValueType(t)) {
+            if (!t.isParameterized()) return F.symbol(t.tsym.getSimpleName().toString());
+            List<Type> params = t.getTypeArguments();
+            List<IExpr> args = new LinkedList<IExpr>();
+            args.add(javaTypeSymbol(t));
+            for (Type tt: params) {
+                args.add(jmlTypeSymbol(tt));
+            }
+            return F.fcn(F.symbol("_JMLT_"+params.size()), args);
+        }
         if (t.getTag() == TypeTag.BOT) t = syms.objectType;
         if (t.getTag() == TypeTag.ARRAY) {
             Type comptype = ((Type.ArrayType)t).getComponentType();
@@ -1670,7 +1676,7 @@ public class SMTTranslator extends JmlTreeScanner {
             }
             // FIXME - errors
             return refSort; // FIXME - just something
-        } else if (tag == TypeTag.CLASS && utils.isPrimitiveType(t)) {
+        } else if (tag == TypeTag.CLASS && utils.isPrimitiveType(t) && !t.isParameterized()) {
             if (false && t.isParameterized()) {
                 List<Type> targs = t.tsym.type.getTypeArguments();
                 Iterator<Type> iter = targs.iterator();
@@ -1681,12 +1687,12 @@ public class SMTTranslator extends JmlTreeScanner {
                     sorts.add(s);
                 }
                 addTypeFamily(t,targs.size());
-                String name = t.tsym.toString();
-                return F.createSortExpression( F.symbol(name), sorts);
+                ISymbol sss = (ISymbol)jmlTypeSymbol(t);
+                return F.createSortExpression( sss, sorts);
             } else {
                 addType(t);
-                return F.createSortExpression((ISymbol)jmlTypeSymbol(t));
-            }
+//                return F.createSortExpression((ISymbol)jmlTypeSymbol(t));
+                return F.createSortExpression((ISymbol)javaTypeSymbol(t));            }
         } else {
             if (tag == TypeTag.BOOLEAN) {
                 return F.Bool();
