@@ -3958,13 +3958,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         switch (clause.token) {
                             case OLD:
                             case FORALL:
+                                // NOTE: The name of the variable in the old/forall clause is not changed or unique-ified.
+                                // If the same name is used if different behaviors, as in this test, the names will be the same, 
+                                // though the symbol values will be different. The declarations will be in the same scope in a 
+                                // RAC translation, but this does not seem to cause any problem in RAC code-generation.
                                 if (clauseIds.containsKey(clause)) break; // Don't reevaluate if we have nested specs
                                 for (JCVariableDecl decl : ((JmlMethodClauseDecl)clause).decls) {
                                     addTraceableComment(decl,clause.toString());
                                     //                             Name name = names.fromString(decl.name.toString() + "__OLD_" + decl.pos);
                                     //JCVariableDecl newdecl = convertCopy(decl);
                                     JCVariableDecl newdecl = treeutils.makeVarDef(decl.type, decl.name, methodDecl.sym, clause.pos);
-                                    addStat(newdecl);
+                                    addStat(initialStats,newdecl);
                                     mapSymbols.put(decl.sym, newdecl.sym);
                                     JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
                                     pushBlock();
