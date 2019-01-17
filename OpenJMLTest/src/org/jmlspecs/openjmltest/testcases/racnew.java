@@ -3077,6 +3077,23 @@ public class racnew extends RacBase {
                 + "  static public int k = 5;\n"
                 + "  //@ old int kk = k; requires i > kk; assignable k; ensures k == i+1; ensures kk == 5;\n"
                 + "  //@ also\n"
+                + "  //@ old int kkk = k+1; requires i < kkk; assignable k; ensures k == i-1; ensures kkk == 7;\n"
+                + "  static public void m(int i) {\n"
+                + "     if (i>k) k = i+1; else k = i-1;\n"
+                + "  }\n"
+                + "}"
+                 );
+        
+    }
+    
+    @Test
+    public void testOldClause1() {
+        helpTCX("tt.TestJava",
+                  "package tt; \n"
+                + "public class TestJava { public static void main(String[] args) { m(6); k = 6; m(6); } \n"
+                + "  static public int k = 5;\n"
+                + "  //@ old int kk = k; requires i > kk; assignable k; ensures k == i+1; ensures kk == 5;\n"
+                + "  //@ also\n" // Purposely duplicating the name of the old variable
                 + "  //@ old int kk = k+1; requires i < kk; assignable k; ensures k == i-1; ensures kk == 7;\n"
                 + "  static public void m(int i) {\n"
                 + "     if (i>k) k = i+1; else k = i-1;\n"

@@ -271,7 +271,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 print(that.token.internedName());
                 print(" ");
                 s.accept(this);
-                print("; ");
+                // The declaration has its own closing semicolon
             }
         } catch (IOException e) { perr(that,e); }
     }

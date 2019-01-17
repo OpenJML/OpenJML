@@ -550,6 +550,11 @@ public class escfiles extends EscBase {
     }
     
     @Test
+    public void testEscRecursiveOld() {
+        helpTF("escRecursiveOld");
+    }
+    
+    @Test
     public void testEnsuresInfeasible() {
         helpTF("escEnsuresInfeasible","-subexpressions");
     }
