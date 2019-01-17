@@ -4334,4 +4334,19 @@ public class esc extends EscBase {
                         );
     }
 
+
+    @Test  // FIXME - crashes
+    public void testDuplicateGhost() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public void m() {"
+                        + "  //@ ghost int k = 1;"
+                        + "  //@ ghost int k = 2;"
+                        + "  }"
+                        + "}\n"
+                        );
+    }
+
 }
