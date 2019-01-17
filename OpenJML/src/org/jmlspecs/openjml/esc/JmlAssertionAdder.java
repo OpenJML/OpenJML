@@ -8444,7 +8444,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 switch (clause.token) {
                                     case FORALL: 
                                     case OLD: { 
-                                        // FIXME - needs to be in a block, but don't like to have assignments to compute the preconditions
                                         if (clauseIds.containsKey(clause)) break;
                                         clauseIds.put(clause,null);
                                         for (JCVariableDecl decl : ((JmlMethodClauseDecl)clause).decls) {
@@ -8704,9 +8703,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
 
             {
-                // Now for each specification case, we create a block that checks the assignable statements
-                // Unfortunately we have to do the requires and old statements within the block, so we have to compute them over again
-                // FIXME - perhaps that can be optimized
                 if (isPure(calleeMethodSym)) {
                     addStat(comment(that, "... Not checking assignables of pure callee " + calleeMethodSym,null));
                     // FIXME - this will skip the model program blcok as well?
