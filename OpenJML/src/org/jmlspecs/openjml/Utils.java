@@ -46,6 +46,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.AttrContext;
@@ -707,6 +708,7 @@ public class Utils {
 
     public boolean isExtensionValueType(Type ct) {
         if (ct instanceof Type.MethodType) return false;
+        if (ct.getTag() == TypeTag.BOT) return false;
         return jmltypes().isSubtype(ct, interfaceForPrimitiveTypes());
     }
 

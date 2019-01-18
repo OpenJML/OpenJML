@@ -857,7 +857,7 @@ public class SFBugs extends EscBase {
     }
     
      @Test
-    public void gitbug639() { // FIXME - to be fixed
+    public void gitbug639() { // FIXME - to be fixed - statement specs
         expectedExit = 0;
         helpTCG();
     }
@@ -982,7 +982,7 @@ public class SFBugs extends EscBase {
     }
     
     @Test
-    public void gitbug666() {  // FIXME - npnt yet fixed
+    public void gitbug666() {  // FIXME - recursive -- not yet fixed
         expectedExit = 0;
         helpTCG("-show=all","-method=pow");
     }

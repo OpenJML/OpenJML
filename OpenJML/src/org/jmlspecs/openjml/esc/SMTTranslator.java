@@ -217,6 +217,9 @@ public class SMTTranslator extends JmlTreeScanner {
     /** The list of initial commands */
     protected List<ICommand> startCommands;
     
+    /** A collection of all newly defined sorts */
+    final protected Map<Type,Integer> newSorts = new HashMap<>();
+    
     /** A list that accumulates all the Java type constants used */
     final protected Set<Type> javaTypes = new HashSet<Type>();
 
@@ -519,9 +522,15 @@ public class SMTTranslator extends JmlTreeScanner {
         List<ICommand> tcommands = new ArrayList<ICommand>(len*len*2 + 3*len);
         List<IExpr> typesymbols = new ArrayList<IExpr>(len);
         List<IExpr> jmltypesymbols = new ArrayList<IExpr>(len);
-    	List<ICommand> saved = commands;
-    	commands = tcommands;
-        
+        List<ICommand> saved = commands;
+        commands = tcommands;
+
+        for (Type t: newSorts.keySet()) {
+            Integer n = newSorts.get(t);
+            tcommands.add(new C_declare_sort(
+                    sortId(t),
+                    F.numeral(n)));
+        }
         for (Type ti: javaTypes) {
             if (ti.getTag() == TypeTag.TYPEVAR) {
                 if (ti instanceof Type.CapturedType) continue; 
@@ -530,6 +539,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         emptyList,
                         jmlTypeSort));
             }
+            // Remove the following whe we fix parameterized use primitive types
             if (utils.isExtensionValueType(ti)) {
                 tcommands.add(new C_declare_sort(
                         (ISymbol)jmlTypeSymbol(ti),
@@ -1133,6 +1143,16 @@ public class SMTTranslator extends JmlTreeScanner {
     
     private int wildcardCount = 0;
     
+    // Creates an SMT sort symbol for extension types (or maps to a SMT native sort)
+    public ISort sortSymbol(Type t) {
+        return F.createSortExpression(sortId(t));
+    }
+    
+    // Creates an SMT sort id for extension types (or maps to a SMT native sort)
+    public ISymbol sortId(Type t) {
+        return F.symbol("S_" + t.unannotatedType().toString());
+    }
+    
     // FIXME - should really use a TYpe visitor here
     // FIXME - the treatment of wildcards is a hack - need to understand the variety of wildcard types better
     /** Returns an SMT IExpr representing the given JML type */
@@ -1203,6 +1223,15 @@ public class SMTTranslator extends JmlTreeScanner {
             }
             return F.fcn(F.symbol("_JMLT_"+params.size()), args);
         }
+    }
+    
+    /** Records a new sort */
+    public void addSort(Type t) {
+        t = t.unannotatedType();
+        Integer oldValue = newSorts.get(t);
+        if (oldValue != null) return; // already defined
+        int nargs = t.isParameterized() ? t.getTypeArguments().size() : 0;
+        newSorts.put(t, nargs);
     }
     
     /** Records a type as defined. */
@@ -1676,6 +1705,10 @@ public class SMTTranslator extends JmlTreeScanner {
             }
             // FIXME - errors
             return refSort; // FIXME - just something
+        } else if (utils.isExtensionValueType(t) && !t.isParameterized()) {
+            addSort(t);
+            return sortSymbol(t);
+
         } else if (tag == TypeTag.CLASS && utils.isPrimitiveType(t) && !t.isParameterized()) {
             if (false && t.isParameterized()) {
                 List<Type> targs = t.tsym.type.getTypeArguments();
@@ -1764,6 +1797,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public void notImplBV(DiagnosticPosition pos, String msg) {
         if ("auto".equals(JmlOption.value(context, JmlOption.ESC_BV))) throw new JmlBVException();
         log.error(pos, "jml.message","This method uses bit-vector operations and must be run with -escBV=true (or auto) [" + msg + "]");
+        throw new JmlBVException();
     }
     
     /** Issues an error message about something not being implemented */

@@ -322,6 +322,9 @@ public class MethodProverSMT {
                     }
                     script = smttrans.convert(program,smt,methodDecl.usedBitVectors);
                 } catch (SMTTranslator.JmlBVException e) {
+                    if (JmlOption.value(context, JmlOption.ESC_BV).equals("false")) {
+                        return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,new Date());
+                    }
                     if (!Utils.testingMode && utils.jmlverbose >= Utils.PROGRESS) {
                         log.note("jml.message", "Switching to bit-vector arithmetic");
                     }
