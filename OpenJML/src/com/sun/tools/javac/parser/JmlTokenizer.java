@@ -375,6 +375,8 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             if (!jml) {
                 if (jmlTokenKind == JmlTokenKind.ENDJMLCOMMENT) {
                     jmlToken = new JmlToken(jmlTokenKind, t);
+                    // if initialJml == true and now the token is ENDJMLCOMMENT, then we had 
+                    // an empty comment. We don't return a token in that case.
                     if (!returnEndOfCommentTokens || !initialJml) continue; // Go get next token
                     return jmlToken;
                 } else {

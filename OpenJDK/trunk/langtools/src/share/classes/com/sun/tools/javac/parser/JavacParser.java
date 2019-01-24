@@ -77,13 +77,13 @@ public class JavacParser implements Parser {
 
     /** The log to be used for error diagnostics.
      */
-    protected Log log; // DRC - changed from private to protected
+    protected Log log; // OpenJML - changed from private to protected
 
     /** The Source language setting. */
     private Source source;
 
     /** The name table. */
-    private Names names;
+    protected Names names; // OpenJML - changed from private to protected
 
     /** End position mappings container */
     protected final AbstractEndPosTable endPosTable; // DRC - changed from private to protected
@@ -542,19 +542,19 @@ public class JavacParser implements Parser {
 
 /* -------- source positions ------- */
 
-    protected void setErrorEndPos(int errPos) { // DRC - changed from private to protected
+    protected void setErrorEndPos(int errPos) { // OPENJML - changed from private to protected
         endPosTable.setErrorEndPos(errPos);
     }
 
-    public void storeEnd(JCTree tree, int endpos) { // DRC - changed from private to public
+    public void storeEnd(JCTree tree, int endpos) { // OPENJML - changed from private to public
         endPosTable.storeEnd(tree, endpos);
     }
 
-    public <T extends JCTree> T to(T t) { // DRC - changed from private to public
+    public <T extends JCTree> T to(T t) { // OPENJML - changed from private to public
         return endPosTable.to(t);
     }
 
-    public <T extends JCTree> T toP(T t) { // DRC - changed from private to public
+    public <T extends JCTree> T toP(T t) { // OPENJML - changed from private to public
         return endPosTable.toP(t);
     }
 
@@ -576,7 +576,7 @@ public class JavacParser implements Parser {
      * @param tree  The tree node
      */
     public int getEndPos(JCTree tree) {
-        return tree.getEndPosition(endPosTable); // DRC - changed to accommodate JML nodes
+        return tree.getEndPosition(endPosTable); // OpenJML - changed to accommodate JML nodes
     }
 
 

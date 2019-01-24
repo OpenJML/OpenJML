@@ -19,7 +19,7 @@ public class ProposalComputer implements org.eclipse.jdt.ui.text.java.IJavaCompl
 	public void sessionStarted() {
 	}
 	
-	public final static EnumSet<JmlTokenKind> keywords = EnumSet.range(JmlTokenKind.ASSUME,JmlTokenKind.NOWARN);
+	public final static EnumSet<JmlTokenKind> keywords = EnumSet.allOf(JmlTokenKind.class);
 
 	@Override
 	public List<ICompletionProposal> computeCompletionProposals(

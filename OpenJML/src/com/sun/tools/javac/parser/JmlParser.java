@@ -66,11 +66,7 @@ public class JmlParser extends JavacParser {
 
     /** The node factory to use */
     // @ non_null
-    public JmlTree.Maker jmlF;
-
-    /** The table of identifiers */
-    // @ non_null
-    protected Names         names;
+    public JmlTree.Maker    jmlF;
 
     /** True only when we are parsing within a model program */
     protected boolean       inModelProgram = false;
@@ -128,11 +124,12 @@ public class JmlParser extends JavacParser {
         return jmlF;
     }
     
+    /** Backup to the beginning of the current token and rescan */
     public void rescan() {
         token = S.rescan();
     }
     
-    /** Returns true if the -deprecation option is set */
+    /** Returns true if the JDK -deprecation option is set */
     public boolean isDeprecationSet() {
         return Options.instance(context).isSet("-Xlint:deprecation");
     }
@@ -146,8 +143,8 @@ public class JmlParser extends JavacParser {
         JCTree.JCCompilationUnit u = super.parseCompilationUnit();
         if (!(u instanceof JmlCompilationUnit)) {
             log.error(
-                    "jml.internal",
-                    "JmlParser.compilationUnit expects to receive objects of type JmlCompilationUnit, but it found a "
+                "jml.internal",
+                "JmlParser.compilationUnit expects to receive objects of type JmlCompilationUnit, but it found a "
                             + u.getClass()
                             + " instead, for source "
                             + u.getSourceFile().toUri().getPath());
@@ -175,8 +172,8 @@ public class JmlParser extends JavacParser {
      * 
      * @return null or a JCImport node
      */
-    // @ ensures \result == null || \result instanceof JCTree.JCImport;
-    // @ nullable
+    //@ ensures \result == null || \result instanceof JCTree.JCImport;
+    //@ nullable
     @Override
     protected JCTree importDeclaration(JCModifiers mods) {
         int p = pos();
@@ -195,18 +192,25 @@ public class JmlParser extends JavacParser {
         if (modelImport && !importIsInJml) {
             jmlerror(p, t.getEndPosition(endPosTable), "jml.illformed.model.import");
         }
-        if (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) {
+        while (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) {
             nextToken();
         }
         return t;
     }
     
+    /** Annotation              = "@" Qualident [ "(" AnnotationFieldValues ")" ]
+    * Overridden to include the source object containing the annotation
+    * @param pos position of "@" token
+    * @param kind Whether to parse an ANNOTATION or TYPE_ANNOTATION
+    */
     @Override
     JCAnnotation annotation(int pos, JCTree.Tag kind) {
         JCAnnotation a = super.annotation(pos, kind);
         ((JmlTree.JmlAnnotation)a).sourcefile = log.currentSourceFile();
         return a;
     }
+    
+    /** OpenJML overrides in order to parse and insert replacement types for formal parameters */
     @Override
     protected JCVariableDecl formalParameter(boolean lambdaParameter) {
         replacementType = null;
@@ -242,27 +246,7 @@ public class JmlParser extends JavacParser {
                 if (!inJmlDeclaration) utils.setJML(mods);
                 inJmlDeclaration = true;
             }
-            if (token.kind == IMPORT) { // FIXME - I don't think this is used anymore
-                JCAnnotation a = utils
-                        .findMod(
-                                mods,
-                                names.fromString(Strings.modelAnnotation));
-                if (a != null) {
-                    skipToSemi();
-                    int p = mods.annotations.head.pos;
-                    jmlerror(p, endPos(), "jml.illformed.model.import");
-                    s = toP(F.Exec(toP(F.at(p).Erroneous(List.<JCTree> nil()))));
-                    skipThroughSemi();
-                } else {
-                    int p = mods.annotations.head.pos;
-                    s = toP(F.Exec(toP(F.at(p).Erroneous(List.<JCTree> nil()))));
-                    jmlerror(mods.getStartPosition(),
-                            getEndPos(mods),
-                            "jml.no.mods.on.import");
-                }
-                mods.flags = 0;
-                mods.annotations = List.<JCAnnotation> nil();
-            } else if (!inJmlDeclaration || token.kind == CLASS || token.kind == INTERFACE || token.kind == ENUM) {
+            if (!inJmlDeclaration || token.kind == CLASS || token.kind == INTERFACE || token.kind == ENUM) {
                 // The guard above is used because if it is false, we want to produce
                 // a better error message than we otherwise get, for misspelled
                 // JML modifiers. However, the test above replicates tests in
@@ -271,23 +255,19 @@ public class JmlParser extends JavacParser {
 
             } else {
                 int p = pos();
-                jmlerror(pos(),
-                        endPos(),
+                int ep = endPos();
+                jmlerror(p, ep,
                         "jml.unexpected.or.misspelled.jml.token",
                             token == null ? jmlTokenKind().internedName() : S.chars() );
                 
-                setErrorEndPos(pos());
-                s = toP(F.Exec(toP(F.at(p).Erroneous(List.<JCTree> nil()))));
-                //nextToken();
+                setErrorEndPos(ep);
+                s = to(F.Exec(toP(F.at(p).Erroneous(List.<JCTree> nil()))));
+                // TODO: Does this recover well enough?
             }
             if (s instanceof JCClassDecl && (((JCClassDecl)s).mods.flags & Flags.ENUM) != 0) {
                 addImplicitEnumAxioms((JCClassDecl)s);
             }
-            // Can also be a JCErroneous
-//            if (s instanceof JmlClassDecl) {
-//                filterTypeBodyDeclarations((JmlClassDecl) s, context, jmlF);
-//            }
-            if (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) {
+            while (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) {
                 nextToken();
             }
         } finally {
@@ -402,109 +382,18 @@ public class JmlParser extends JavacParser {
         }
 
     }
-
-//    /**
-//     * This parses a sequence of statements that can appear in a block. JML
-//     * overrides it in order to include JML assert, assume, set, debug, ghost
-//     * declarations, unreachable, loop invariants and any other JML specs that
-//     * can appear in the body of a method.
-//     * 
-//     * @return a list of JmlStatement nodes (despite the required type of the
-//     *         method)
-//     */
-//    @Override
-//    public List<JCStatement> blockStatements() {
-//        ListBuffer<JCStatement> list = new ListBuffer<JCStatement>();
-//        int pos = -1;
-//        JCModifiers mods = null;
-//        while (token.kind != RBRACE && token.kind != EOF) {
-//            // If the following equality is true, then the scanner has made no
-//            // progress in the previous loop iteration. Presumably some error
-//            // has occurred; for example no next statement is recognized.
-//            // So we just abort the loop. Since the next token is not a right
-//            // brace, an error will be issued when an attempt is made to read
-//            // the right brace that closes the block.
-//            if (S.currentPos() == pos) break;
-//            pos = S.currentPos();
-//            // Only certain qualifiers can appear here - perhaps limit the 
-//            // parsing of modifiers to just that set. Java explicitly has
-//            // final abstract strictfp; also synchronized but not as a modifier.
-//            // FIXME - this needs more testing
-//            if (token.kind != SYNCHRONIZED) {
-//                mods = modifiersOpt(); // read any additional modifiers (e.g.
-//                                   // JML ones)
-//            }
-//            JmlTokenKind jt = jmlTokenKind();
-//            if (jt != null) {
-//
-//                if (isJmlTypeToken(jt)) {
-//                    JCExpression t = parseType();
-//                    ListBuffer<JCStatement> vdefs = new ListBuffer<JCStatement>();
-//                    variableDeclarators(mods, t, vdefs);
-//                    if (token.kind == SEMI) {
-//                        accept(SEMI);
-//                    } else {
-//                        accept(SEMI); // To get the error message
-//                        skipThroughSemi();
-//                    }
-//                    for (JCStatement vdef : vdefs) {
-//                        JmlVariableDecl jmldef = (JmlVariableDecl) vdef;
-//                        utils.setJML(jmldef.mods);
-//                        list.append(vdef);
-//                    }
-//                } else {
-//                    pushBackModifiers = mods;
-//                    mods = null;
-//                    JCStatement st = parseStatement();
-//                    list.append(st);
-//                }
-//            } else {
-//                pushBackModifiers = mods;
-//                mods = null;
-//                if (S.jml()) {
-//                    boolean prevInJmlDeclaration = inJmlDeclaration;
-//                    inJmlDeclaration = true;
-//                    List<JCTree.JCStatement> dlist = super.blockStatements();
-//                    inJmlDeclaration = prevInJmlDeclaration;
-//                    if (inJmlDeclaration || inLocalOrAnonClass) {
-//                        // In this case we are in the body of a model method.
-//                        // Within the body we don't mark any local variables
-//                        // or classes as ghost or model (with setJML).
-//                        list.appendList(dlist);
-//                    } else {
-//                        for (JCTree.JCStatement t : dlist) {
-//                            if (t instanceof JmlVariableDecl) {
-//                                JmlVariableDecl d = (JmlVariableDecl) t;
-//                                utils.setJML(d.mods);
-//                            } else if (t instanceof JmlClassDecl) {
-//                                JmlClassDecl d = (JmlClassDecl) t;
-//                                utils.setJML(d.mods);
-//                            } else if (t instanceof JCTree.JCSkip) {
-//                                // An empty statement is not really allowed
-//                                // within
-//                                // a JML annotation, but it is common to find
-//                                // one
-//                                // after a local class declaration, so we won't
-//                                // complain.
-//                            } else {
-//                                jmlerror(t.pos, "jml.expected.decl.or.jml");
-//                            }
-//                            list.append(t);
-//                        }
-//                    }
-//                } else {
-//                    list.appendList(super.blockStatements());
-//                }
-//            }
-//        }
-
-//    }
     
+    /** Overridden to do any post-processing of a list of block statements that JML needs,
+     * possibly rewriting the list of statements;
+     * at present that is to collect loop specifications and attach them to the loop statement
+     * that follows them.
+     */
     @Override List<JCStatement> blockStatements() {
         List<JCStatement> stats = super.blockStatements();
         return collectLoopSpecs(stats);
     }
     
+    /** Attach loop specifications to their parent loop statement */
     protected List<JCStatement> collectLoopSpecs(List<JCStatement> stats) {
         ListBuffer<JCStatement> newstats = new ListBuffer<>();
         ListBuffer<JmlStatementLoop> loopspecs = new ListBuffer<>();
@@ -545,19 +434,32 @@ public class JmlParser extends JavacParser {
     }
     
 
-    @Override
+    /** Overridden to parse JML statements as statements in a block. 
+        The parent method returns a list rather than a statement:
+        Usually the list contains just one statement.
+        If there is an ending construct detected (like a right brace) or an error, the list might be empty.
+        In the case of a local declaration, there is a declaration statement for
+        each variable declared.
+        */
+    @Override  // TODO - needs review
     protected List<JCStatement> blockStatement() {
         while (true) {
-            if (S.jmlKeywordMode() && token.kind == TokenKind.IDENTIFIER) {
+            // If we are in a JML comment and this first token is an identifier
+            // registered as marking a JML statement or statement annotation,
+            // then we proceed to parse it as a (JML) statement
+            if (S.jml() && token.kind == TokenKind.IDENTIFIER) {
                 String id = token.name().toString();
                 if (Extensions.instance(context).findSM(0,id,false) != null) {
                     JCStatement s = parseStatement();
                     return List.<JCStatement>of(s);
                 }
+                // If the identifier is not the beginning of a JML statement, then
+                // it might be the type that begins a declaration (or it could be a
+                // misspelled JML key word)
             }
             if (!(token instanceof JmlToken)) {
                 JCExpression replacementType = null;
-                if (token.kind == TokenKind.BANG) {
+                if (token.kind == TokenKind.BANG) {  // TODO - is this still part of extended JML?
                     replacementType = unannotatedType();
                 }
                 boolean inJml = S.jml();
@@ -599,7 +501,8 @@ public class JmlParser extends JavacParser {
                     return stats.toList();
                 }
             } else if (jkind == ENDJMLCOMMENT) {
-                S.setJml(false);
+                if (S.jml()) throw new AssertionError("Thought jml was always false at this point");
+                S.setJml(false); // TOOD _ already false?
                 nextToken();
                 continue;
             }
@@ -609,14 +512,14 @@ public class JmlParser extends JavacParser {
     }
     
     /** Overridden to parse JML statements */
-    @Override
+    @Override  // TODO - needs REVIEW
     public JCStatement parseStatement() {
         int pos = pos();
         JCStatement st;
         String reason = null;
         JmlTokenKind jtoken = jmlTokenKind();
         String id = null;
-        if (S.jml() && S.jmlKeywordMode()) {
+        if (S.jml()) {
             if (token.kind == TokenKind.IDENTIFIER) {
                 boolean needSemi = true;
                 id = token.name().toString();
@@ -625,7 +528,7 @@ public class JmlParser extends JavacParser {
                     st = (JmlAbstractStatement)clauseType.parse(null,id,clauseType,this);
                     needSemi = false; // OK for set // FIXME - not sure this is needed
                     S.setJmlKeyword(true);
-                    if (!needSemi) {
+                    if (!needSemi) { // TODO - when nwe get rid of all keywords, this block can be deleted
                         // If we do not need a semicolon yet (e.g. because we already
                         // parsed it or because the statement does not end with one,
                         // then the scanner has already scanned the next symbol,
@@ -643,9 +546,9 @@ public class JmlParser extends JavacParser {
                         jmlerror(pos(), endPos(), "jml.bad.construct", reason);
                         skipThroughSemi();
                     } else {
-                        nextToken(); // skip the semi
+                        nextToken(); // skip the semicolon
                     }
-                    if (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) nextToken();
+                    while (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) nextToken();
                     return st;
                 } else if (clauseType instanceof IJmlClauseType.MethodClause) {
                     st = parseRefining(pos(),null);
@@ -974,44 +877,24 @@ public class JmlParser extends JavacParser {
         ste.statements = collectLoopSpecs(stats.toList());
         return ste;
     }
+    // TODO - rework how refining statements are handled
     
-    /* Replicated and slightly altered from JavacParser in order to handle the case where the one statement
-     * is a JML statement.
+    /* Replicated and slightly altered from JavacParser in order to handle the case where a JML statement
+     * precedes a single Java statement that should be a block (e.g. one statement in a if statement or loop)
      */
     JCStatement parseStatementAsBlock() {
-        int pos = token.pos;
-        List<JCStatement> stats = blockStatement();
-        JCStatement first = stats.head;
-        while (first instanceof JmlAbstractStatement) {
-            List<JCStatement> nextstats = blockStatement();
-            first = nextstats.head;
-            stats = stats.appendList(nextstats);
+        ListBuffer<JCStatement> stats = new ListBuffer<>();
+        JCStatement stat = super.parseStatementAsBlock();
+        while (stat instanceof JmlAbstractStatement) {
+            stats.add(stat);
+            stat = super.parseStatementAsBlock();
         }
-        if (first == null) {
-            JCErroneous e = F.at(pos).Erroneous();
-            error(e, "illegal.start.of.stmt");
-            return F.at(pos).Exec(e);
-        } else {
-            String error = null;
-            switch (first.getTag()) {
-                case CLASSDEF:
-                    error = "class.not.allowed";
-                    break;
-                case VARDEF:
-                    error = "variable.not.allowed";
-                    break;
-            }
-            if (error != null) {
-                error(first, error);
-                List<JCBlock> blist = List.of(F.at(first.pos).Block(0, stats));
-                return toP(F.at(pos).Exec(F.at(first.pos).Erroneous(blist)));
-            }
-            if (stats.size() > 1) return F.at(first.pos).Block(0, stats);
-            return first;
-        }
+        if (stat != null) stats.add(stat);
+        if (stats.size() > 1) return F.at(stats.first().pos).Block(0, stats.toList());
+        return stats.first();
     }
 
-    
+    // TODO - generalize this and move it out of JmlParser
     /** Returns true if the token is a JML type token */
     public boolean isJmlTypeToken(JmlTokenKind t) {
         return t == JmlTokenKind.BSTYPEUC || t == JmlTokenKind.BSBIGINT
@@ -2016,6 +1899,8 @@ public class JmlParser extends JavacParser {
         return (JmlTypeClause)t;
     }
 
+    // Parses a sequence of specification cases, having already
+    // parsed a sequence of modifiers
     public JmlMethodSpecs parseMethodSpecs(JCModifiers mods) {
         // Method specifications are a sequence of specification cases
         ListBuffer<JmlSpecificationCase> cases = new ListBuffer<JmlSpecificationCase>();

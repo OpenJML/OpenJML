@@ -426,6 +426,11 @@ public class Tokens {
                 return buf.toList();
             }
         }
+        
+        @Override
+        public String toString() { // OPENJML - added for convenience
+            return kind.toString();
+        }
     }
 
     final static class NamedToken extends Token {
@@ -446,6 +451,11 @@ public class Tokens {
         @Override
         public Name name() {
             return name;
+        }
+        
+        @Override
+        public String toString() { // OPENJML - added for convenience
+            return name.toString();
         }
     }
 
@@ -468,6 +478,12 @@ public class Tokens {
         public String stringVal() {
             return stringVal;
         }
+        
+        @Override
+        public String toString() { // OPENJML - added for convenience
+            return stringVal; // OPENJML - TODO - quote this?
+        }
+
     }
 
     final static class NumericToken extends StringToken {
@@ -489,6 +505,12 @@ public class Tokens {
         public int radix() {
             return radix;
         }
+        
+        @Override
+        public String toString() { // OPENJML - added for convenience
+            return stringVal;
+        }
+
     }
 
     public static final Token DUMMY =
