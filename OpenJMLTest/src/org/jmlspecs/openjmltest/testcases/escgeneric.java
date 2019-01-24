@@ -348,7 +348,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testForEach3() {
-        helpTCX("tt.TestJava"," class A { void m(/*@non_null*/ java.util.List<Integer> list) { \n "
+        helpTCX("tt.TestJava"," class A {  /*@ code_bigint_math spec_bigint_math */ void m(/*@non_null*/ java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
                 +"for (Integer o: list) { /*@ assume o != null && o >= 0; */ sum += o; }  \n"
@@ -359,7 +359,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testForEach3a() {
-        helpTCX("tt.TestJava"," class A { void m(/*@non_null*/ java.util.List<Integer> list) { \n "
+        helpTCX("tt.TestJava"," class A { /*@ code_bigint_math spec_bigint_math */ void m(/*@non_null*/ java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
                 +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
@@ -371,16 +371,13 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testForEach3bad() {
-        helpTCX("tt.TestJava"," class A { void m(/*@non_null*/ java.util.List<Integer> list) { \n "
+        helpTCX("tt.TestJava"," class A { /*@ code_bigint_math spec_bigint_math */ void m(/*@non_null*/ java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
                 +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
-                +"//@ assert sum > 0; \n"
+                +"//@ assert sum >= 0; \n"
                 +"}}"
-                ,anyorder(
-                        seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m",5)
-                        ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",13)
-                )
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",13
                 );
     }
 

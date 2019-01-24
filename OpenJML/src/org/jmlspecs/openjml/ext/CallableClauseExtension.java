@@ -25,7 +25,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class CallableClauseExtension implements JmlExtension.MethodClause {
+public class CallableClauseExtension extends JmlExtension.MethodClause {
 
     public static final String callableID = "callable";
     
@@ -43,10 +43,9 @@ public class CallableClauseExtension implements JmlExtension.MethodClause {
 
         @Override
         public JmlMethodClauseCallable parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
-            init(parser);
-            
             int pp = parser.pos();
             int pe = parser.endPos();
+            init(parser);
             
             parser.warnNotImplemented(pp, keyword, "JmlParser");
             scanner.setJmlKeyword(false);

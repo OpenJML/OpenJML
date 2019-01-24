@@ -12,7 +12,7 @@ import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 
-public class TypeMapsClauseExtension implements JmlExtension.TypeClause {
+public class TypeMapsClauseExtension extends JmlExtension.TypeClause {
 
     @Override
     public IJmlClauseType[] clauseTypes() { return new IJmlClauseType[]{
@@ -32,21 +32,8 @@ public class TypeMapsClauseExtension implements JmlExtension.TypeClause {
         JmlTypeClauseMaps parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
             int pp = parser.pos();
             init(parser);
-            return null;
-// FIXME
-            
-//            JmlTypeClauseMaps mapsClause = parseMaps(pp, mods, list);
-//            if (mostRecentVarDecl == null) {
-//                log.error(mapsClause.pos(), "jml.misplaced.var.spec",
-//                        mapsClause.keyword);
-//            } else {
-//                if (mostRecentVarDecl.fieldSpecs == null) {
-//                    mostRecentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(
-//                            mostRecentVarDecl);
-//                }
-//                mostRecentVarDecl.fieldSpecs.list.append(mapsClause);
-//                currentVariableDecl = mostRecentVarDecl;
-//            }
+            JmlTypeClauseMaps mapsClause = parser.parseMaps(pp, mods, null);
+            return mapsClause;
         }
         
         public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env) {

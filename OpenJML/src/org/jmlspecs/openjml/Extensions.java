@@ -19,6 +19,7 @@ import java.util.jar.JarFile;
 
 import org.eclipse.core.runtime.Platform;
 import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.openjml.JmlExtension.MethodClause;
 import org.jmlspecs.openjml.ext.*;
 import org.osgi.framework.Bundle;
 
@@ -90,8 +91,18 @@ public class Extensions {
         return e;
     }
     
-    public @Nullable IJmlClauseType findT(int pos, String token, boolean complain) {
-        IJmlClauseType e = clauseTypes.get(token);
+    // Finds a type or method clause type for the given keyword
+    public @Nullable IJmlClauseType findTM(int pos, String keyword, boolean complain) {
+        IJmlClauseType e = typeMethodClauses.get(keyword);
+        if (e == null) {
+            // ERROR needed
+        }
+        return e;
+    }
+    
+    // Finds a statement or method clause type for the given keyword
+    public @Nullable IJmlClauseType findSM(int pos, String keyword, boolean complain) {
+        IJmlClauseType e = statementMethodClauses.get(keyword);
         if (e == null) {
             // ERROR needed
         }
@@ -160,7 +171,8 @@ public class Extensions {
     static protected Map<String,Class<? extends JmlExtension>> extensionClasses = new HashMap<>();
     protected Map<String,JmlExtension> extensionInstances = new HashMap<>();
 
-    static protected Map<String,IJmlClauseType> clauseTypes = new HashMap<>();
+    static public Map<String,IJmlClauseType> typeMethodClauses = new HashMap<>();
+    static public Map<String,IJmlClauseType> statementMethodClauses = new HashMap<>();
     
     static protected Map<String,Class<? extends FieldExtension>> fieldClasses = new HashMap<>();
     protected Map<String,FieldExtension> fieldInstances = new HashMap<>();
@@ -181,7 +193,7 @@ public class Extensions {
         for (String extname : exts.split(",")) {
             try {
                 Class<?> cl = Class.forName(extname);
-                if (!registerClass(cl)) {
+                if (!registerClass(context,cl)) {
                     Log.instance(context).error("jml.extension.failed", extname, "Improperly formed extension");
                 }
                 continue;
@@ -205,21 +217,21 @@ public class Extensions {
         java.util.List<Class<?>> extensions;
         extensions = findClasses(context,p);
         for (Class<?> cc: extensions) {
-            registerClass(cc);
+            registerClass(context,cc);
         }
     }
     
-    public static boolean registerClass(Class<?> cc) {
+    public static boolean registerClass(Context context, Class<?> cc) {
         if (ExpressionExtension.class.isAssignableFrom(cc)) {
             @SuppressWarnings("unchecked")
-            Class<? extends JmlExtension> c = (Class<? extends JmlExtension>)cc;
-            IJmlClauseType[] tokens;
+            Class<ExpressionExtension> c = (Class<ExpressionExtension>)cc;
+            JmlTokenKind[] tokens;
             try {
-                Method m = c.getMethod("clauseTypes");
-                tokens = (IJmlClauseType[])m.invoke(null);
-                for (IJmlClauseType t: tokens) {
-                    extensionClasses.put(t.name(), c);
-                    clauseTypes.put(t.name(), t);
+                Method m = c.getMethod("tokens");
+                tokens = (JmlTokenKind[])m.invoke(null);
+                for (JmlTokenKind t: tokens) {
+                    extensionClasses.put(t.internedName(), c);
+                    //clauseTypes.put(t.name(), t);
                 }
             } catch (Exception e) {
                 return false;
@@ -234,6 +246,39 @@ public class Extensions {
                 for (String t: ids) {
                     fieldClasses.put(t, c);
                 }
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        } else if (JmlExtension.MethodClause.class.isAssignableFrom(cc)) {
+            @SuppressWarnings("unchecked")
+            Class<JmlExtension.MethodClause> c = (Class<JmlExtension.MethodClause>)cc;
+            try {
+                Constructor<MethodClause> cct = c.getConstructor();
+                MethodClause occ = cct.newInstance();
+                occ.register(context);
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        } else if (JmlExtension.TypeClause.class.isAssignableFrom(cc)) {
+            @SuppressWarnings("unchecked")
+            Class<JmlExtension.TypeClause> c = (Class<JmlExtension.TypeClause>)cc;
+            try {
+                Constructor<JmlExtension.TypeClause> cct = c.getConstructor();
+                JmlExtension.TypeClause occ = cct.newInstance();
+                occ.register(context);
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        } else if (JmlExtension.Statement.class.isAssignableFrom(cc)) {
+            @SuppressWarnings("unchecked")
+            Class<JmlExtension.Statement> c = (Class<JmlExtension.Statement>)cc;
+            try {
+                Constructor<JmlExtension.Statement> cct = c.getConstructor();
+                JmlExtension.Statement occ = cct.newInstance();
+                occ.register(context);
             } catch (Exception e) {
                 return false;
             }
@@ -342,7 +387,7 @@ public class Extensions {
             Log.instance(context).warning("jml.internal.notsobad","Last resort loading of extensions");
             for (Class<?> cl : extensions) {
                 try {
-                    registerClass(cl);
+                    registerClass(context,cl);
                     if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).getWriter(Log.WriterKind.NOTICE).println("Registered extensions using technique " + methodThatWorked);
                     classes.add(cl);
                 } catch (Exception e) {
@@ -356,7 +401,7 @@ public class Extensions {
                 try {
                     Class<?> c = Class.forName(fullname);
                     if (Modifier.isAbstract(c.getModifiers())) continue;
-                    registerClass(c);
+                    registerClass(context,c);
                     if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).getWriter(Log.WriterKind.NOTICE).println("Registered extensions using technique " + methodThatWorked);
                     classes.add(c);
                 } catch (Exception e) {

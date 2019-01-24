@@ -3,6 +3,7 @@ package org.jmlspecs.openjml.ext;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
+import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseType;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
@@ -21,7 +22,7 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class AssignableClauseExtension implements JmlExtension.MethodClause {
+public class AssignableClauseExtension extends JmlExtension.MethodClause {
     
     public static final String assignableID = "assignable";
     public static final String accessibleID = "accessible";
@@ -32,12 +33,24 @@ public class AssignableClauseExtension implements JmlExtension.MethodClause {
     };
     
     public static final IJmlClauseType accessibleClause = new LocationSetClauseType() {
-        public String name() { return assignableID; }
+        public String name() { return accessibleID; }
     };
     
     public static final IJmlClauseType capturesClause = new LocationSetClauseType() {
         public String name() { return capturesID; }
     };
+    
+    public void register() {
+        synonym("modifies",assignableClause);
+        synonym("assigns",assignableClause);
+        synonym("writes",assignableClause);
+        synonym("modifiable",assignableClause);
+    }
+    
+    public void synonym(String s, IJmlClauseType t) {
+        Extensions.typeMethodClauses.put(s,t);
+        Extensions.statementMethodClauses.put(s,t);
+    }
     
     @Override
     public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{

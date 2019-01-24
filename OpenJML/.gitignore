@@ -12,3 +12,4 @@ kernel*.json
 /releases/
 .DS_Store
 /strongarm/
+/launchConfigs/

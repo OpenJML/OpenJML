@@ -280,7 +280,7 @@ public enum JmlTokenKind implements ITokenKind {
     
     /** This is a map from string to token for all of the tokens, and includes defined synonyms. */
     public final static Map<String,JmlTokenKind> allTokens = new HashMap<>();
-    public final static Map<String,IJmlClauseType> allClauseTypes = new HashMap<>();
+    //public final static Map<String,IJmlClauseType> allClauseTypes = new HashMap<>();
     public final static Map<String,String> synonyms = new HashMap<>();
     
     /** This is a set of all the modifier tokens, defined so that it is quick
@@ -304,7 +304,7 @@ public enum JmlTokenKind implements ITokenKind {
      */
     public final static Set<IJmlClauseType> methodClauseTokens = new HashSet<>();
     static {
-        for (IJmlClauseType ct: Extensions.clauseTypes.values()) {
+        for (IJmlClauseType ct: Extensions.typeMethodClauses.values()) {
             if (ct instanceof IJmlClauseType.MethodClause) methodClauseTokens.add(ct);
         }
     }
@@ -314,7 +314,7 @@ public enum JmlTokenKind implements ITokenKind {
      */
     public final static Set<IJmlClauseType> methodStatementTokens = new HashSet<>();
     static {
-        for (IJmlClauseType ct: Extensions.clauseTypes.values()) {
+        for (IJmlClauseType ct: Extensions.statementMethodClauses.values()) {
             if (ct instanceof IJmlClauseType.Statement) methodStatementTokens.add(ct);
         }
     }
@@ -326,18 +326,18 @@ public enum JmlTokenKind implements ITokenKind {
         
         // Synonyms
         
-        synonyms.put("modifies",assignableID);
-        synonyms.put("modifiable",assignableID);
-        synonyms.put("pre",requiresID);
-        synonyms.put("post",ensuresID);
-        synonyms.put("exsures",signalsID);
+//        synonyms.put("modifies",assignableID);
+//        synonyms.put("modifiable",assignableID);
+//        synonyms.put("pre",requiresID);
+//        synonyms.put("post",ensuresID);
+//        synonyms.put("exsures",signalsID);
         synonyms.put("behaviour","behavior");
-        synonyms.put("exceptional_behaviour","exceptionnal_behavior");
+        synonyms.put("exceptional_behaviour","exceptional_behavior");
         synonyms.put("normal_behaviour","normal_behavior");
         synonyms.put("abrupt_behaviour","abrupt_behavior");
-        synonyms.put("decreasing",loopdecreasesID);
-        synonyms.put("decreases",loopdecreasesID);
-        synonyms.put("maintaining",loopinvariantID);
+//        synonyms.put("decreasing",loopdecreasesID);
+//        synonyms.put("decreases",loopdecreasesID);
+//        synonyms.put("maintaining",loopinvariantID);
 
         for (JmlTokenKind t: EnumSet.range(BSEXCEPTION,BSBIGINT)) {
             backslashTokens.put(t.internedName(),t);
@@ -345,15 +345,20 @@ public enum JmlTokenKind implements ITokenKind {
         for (JmlTokenKind t: JmlTokenKind.values()) {
             allTokens.put(t.internedName(),t);
         }
-        for (IJmlClauseType t: Extensions.clauseTypes.values()) {
-            allClauseTypes.put(t.name(),t);
-        }
         for (String s: synonyms.keySet()) {
             String ss = synonyms.get(s);
-            IJmlClauseType ct = allClauseTypes.get(ss);
-            if (ct != null) allClauseTypes.put(ss, ct);
-            // else FIXME - error
+            JmlTokenKind t = allTokens.get(ss);
+            allTokens.put(s, t);
         }
+//        for (IJmlClauseType t: Extensions.statementMethodCalsues.values()) {
+//            allClauseTypes.put(t.name(),t);
+//        }
+//        for (String s: synonyms.keySet()) {
+//            String ss = synonyms.get(s);
+//            IJmlClauseType ct = allClauseTypes.get(ss);
+//            if (ct != null) allClauseTypes.put(ss, ct);
+//            // else FIXME - error
+//        }
         //allTokens.remove(BSEXCEPTION.internedName());
         modifiers.add(BSREADONLY);
         // the LAST token is fake and doesn't really need to be in the modifiers set

@@ -17,7 +17,7 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class MethodSimpleClauseExtensions implements JmlExtension.MethodClause {
+public class MethodSimpleClauseExtensions extends JmlExtension.MethodClause {
     
     public static final String specGroupStartID = "{|";
     public static final String specGroupEndID = "|}";

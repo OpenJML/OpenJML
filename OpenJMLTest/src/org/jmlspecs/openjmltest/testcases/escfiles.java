@@ -248,6 +248,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testValueTypesErr() {
+        expectedExit = 1;
         helpTF("valuetypesErr","-classpath","../OpenJML/runtime");
     }
 
@@ -259,6 +260,11 @@ public class escfiles extends EscBase {
     @Test
     public void testException() {
         helpTF("escException");
+    }
+
+    @Test
+    public void testINF() {
+        helpTF("escINF");
     }
 
     @Test
@@ -544,6 +550,26 @@ public class escfiles extends EscBase {
     }
     
     @Test
+    public void testEscRecursiveOld() {
+        helpTF("escRecursiveOld");
+    }
+    
+    @Test
+    public void testEnsuresInfeasible() {
+        helpTF("escEnsuresInfeasible","-subexpressions");
+    }
+
+    @Test
+    public void testEnsuresInfeasible2() {
+        helpTF("escEnsuresInfeasible2");
+    }
+
+    @Test
+    public void testConstructorInfeasible() {
+        helpTF("escConsInfeasible");
+    }
+
+    @Test
     public void testEscMultipleModel() {
         helpTF("escMultipleModel");
     }
@@ -659,6 +685,11 @@ public class escfiles extends EscBase {
         helpTF("escLemma");
     }
     
+    @Test
+    public void escOld() {
+        helpTF("escOld");
+    }
+    
 
     
     @Test @Ignore // FIXME - ignore for now, because it slways times out.
@@ -684,14 +715,13 @@ public class escfiles extends EscBase {
     public void testEnums() {
         expectedExit = 0;
         helpTF("enums");
-        //helpTF("enums","-show","-method=m5c","-subexpressions");
     }
 
     @Test
     public void testEnums1() {
         expectedExit = 0;
         helpTF("enums1");
-        //helpTF("enums","-show","-method=m5c","-subexpressions");
+        //helpTF("enums1","-show","-method=m5c","-subexpressions");
     }
 
     @Test

@@ -22,6 +22,8 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.DiagnosticSource;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.LayoutCharacters;
+import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
 
 /* NOTE: (FIXME Review this now that Tokenizer has been refactored out) 
@@ -632,6 +634,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             // TODO - we are just ignoring the redundantly suffixes
             if (s.endsWith("_redundantly")) {
                 s = s.substring(0, s.length() - "_redundantly".length());
+                name = Names.instance(context).fromString(s);
             }
             JmlTokenKind tt = JmlTokenKind.allTokens.get(s);
             if (tt != null) {
@@ -639,7 +642,8 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 return; 
             }
         } else if (tk == TokenKind.ASSERT) {
-            //jmlTokenKind = JmlTokenKind.ASSERT;
+            tk = TokenKind.IDENTIFIER;
+            name = Names.instance(context).fromString("assert");
         }
     }
 

@@ -1497,12 +1497,12 @@ public class escnew extends EscBase {
                 +"public class TestJava { \n"
                 
                 +"  public int f;\n"
-                
+                +"  //@ requires i < 100;\n"
                 +"  //@ ensures \\result == i;\n"
                 +"  public int m1bad(int i) {\n"
                 +"    return (i+=1) ;\n"
                 +"  }\n"
-                
+                +"  //@ requires i < 100;\n"
                 +"  //@ ensures \\result == i+1;\n"
                 +"  public int m1good(int i) {\n"
                 +"    return (i+=1) ;\n"
@@ -1510,8 +1510,8 @@ public class escnew extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:5: warning: Associated declaration",7
                 );
     }
 
@@ -1587,6 +1587,19 @@ public class escnew extends EscBase {
                 );
     }
 
+    @Test
+    public void testAsList() {
+        main.addOptions("-show","-method=m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava  { \n"
+                +"  public enum E { A}; \n"
+                
+                +"  public static void m1() {\n"
+                +"    java.util.List<E> m = java.util.Arrays.asList(new E[]{E.A});\n"
+                +"  }\n"
+                +"}\n"
+                );
+        }
     @Test // Allow final on invariant to mean assume regardless of helper status
     public void testInvariantInheritance() {
         helpTCX("tt.TestJava","package tt; \n"

@@ -3,7 +3,7 @@ package org.jmlspecs.openjml.ext;
 import org.jmlspecs.openjml.IJmlClauseType;
 import org.jmlspecs.openjml.JmlExtension;
 
-public class MethodExprClauseExtensions implements JmlExtension.MethodClause {
+public class MethodExprClauseExtensions extends JmlExtension.MethodClause {
     
     public static final String requiresID = "requires";
     public static final String ensuresID = "ensures";
@@ -13,7 +13,9 @@ public class MethodExprClauseExtensions implements JmlExtension.MethodClause {
     public static final String breaksID = "breaks";
     public static final String returnsID = "returns";
     
-    public static final IJmlClauseType requiresClause = new MethodClauseExprType(requiresID);
+    public static final IJmlClauseType requiresClause = new MethodClauseExprType(requiresID) {
+        public boolean isPreconditionClause() { return true; }
+    };
     
     public static final IJmlClauseType ensuresClause = new MethodClauseExprType(ensuresID) {
         public boolean oldNoLabelAllowed() { return true; }

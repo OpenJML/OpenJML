@@ -5,6 +5,7 @@ import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseType;
 import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 
@@ -21,29 +22,29 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class StatementLocationsExtension implements JmlExtension.MethodClause {
+public class StatementLocationsExtension extends JmlExtension.Statement {
     
     public static final String havocID = "havoc";
     public static final String loopmodifiesID = "loop_modifies";
     
-    public static final IJmlClauseType havocClause = new LocationSetClauseType() {
+    public static final IJmlClauseType havocStatement = new LocationSetStatementType() {
         public String name() { return havocID; }
     };
     
-    public static final IJmlClauseType loopmodifiesClause = new LocationSetClauseType() {
+    public static final IJmlClauseType loopmodifiesStatement = new LocationSetStatementType() {
         public String name() { return loopmodifiesID; }
     };
     
     @Override
     public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
-            havocClause, loopmodifiesClause }; }
+            havocStatement, loopmodifiesStatement }; }
     
-    public static class LocationSetClauseType extends IJmlClauseType.MethodClause {
+    public static class LocationSetStatementType extends IJmlClauseType.Statement {
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
         
         @Override
-        public JmlMethodClause parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
             if (mods != null) {
                 error(mods, "jml.message", "A " + keyword + " clause may not have modifiers");
                 return null;
@@ -79,7 +80,8 @@ public class StatementLocationsExtension implements JmlExtension.MethodClause {
                     parser.nextToken();
                 }
             }
-            return toP(jmlF.at(pp).JmlMethodClauseStoreRef(keyword, clauseType, list.toList()));
+            if (keyword.equals(havocID)) return toP(jmlF.at(pp).JmlHavocStatement(list.toList()));
+            return toP(jmlF.at(pp).JmlStatementLoopModifies(clauseType, list.toList()));
         }
         
         @Override

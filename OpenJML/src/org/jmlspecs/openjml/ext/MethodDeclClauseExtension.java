@@ -22,17 +22,19 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class MethodDeclClauseExtension implements JmlExtension.MethodClause  {
+public class MethodDeclClauseExtension extends JmlExtension.MethodClause  {
 
     public static final String oldID = "old";
     public static final String forallID = "forall";
     
     public static final IJmlClauseType oldClause = new MethodClauseDeclType() {
         public String name() { return oldID; }
+        public boolean isPreconditionClause() { return true; }
     };
     
     public static final IJmlClauseType forallClause = new MethodClauseDeclType() {
         public String name() { return forallID; }
+        public boolean isPreconditionClause() { return true; }
     };
     
     @Override
@@ -45,6 +47,8 @@ public class MethodDeclClauseExtension implements JmlExtension.MethodClause  {
         public 
         JmlMethodClauseDecl parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
             init(parser);
+            // TODO: Warning if mods is not null or empty
+            mods = parser.maker().Modifiers(0L);
             
             int pp = parser.pos();
             int pe = parser.endPos();
@@ -54,10 +58,10 @@ public class MethodDeclClauseExtension implements JmlExtension.MethodClause  {
 
             // non_null and nullable and perhaps other type modifiers in the
             // future are allowed
-            //JCModifiers mods = parser.modifiersOpt();
+            JCModifiers mods2 = parser.modifiersOpt();
             JCExpression t = parser.parseType();
             boolean prev = parser.setInJmlDeclaration(true); // allows non-ghost declarations
-            ListBuffer<JCTree.JCVariableDecl> decls = parser.variableDeclarators(mods, t,
+            ListBuffer<JCTree.JCVariableDecl> decls = parser.variableDeclarators(mods2, t,
                     new ListBuffer<JCVariableDecl>());
             parser.setInJmlDeclaration(prev);
             JmlMethodClauseDecl res = parser.to(jmlF.at(pp)

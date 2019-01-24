@@ -20,7 +20,7 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 
-public class TypeDeclClauseExtension implements JmlExtension.TypeClause {
+public class TypeDeclClauseExtension extends JmlExtension.TypeClause {
 
     @Override
     public IJmlClauseType[] clauseTypes() { return new IJmlClauseType[]{

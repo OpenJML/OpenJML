@@ -27,7 +27,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
-public class TypeRWClauseExtension implements JmlExtension.TypeClause {
+public class TypeRWClauseExtension extends JmlExtension.TypeClause {
 
     public static final String readableID = "readable";
     public static final String writableID = "writable";
@@ -52,6 +52,7 @@ public class TypeRWClauseExtension implements JmlExtension.TypeClause {
         public 
         JmlTree.JmlTypeClauseConditional parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
             int pp = parser.pos();
+            init(parser);
             scanner.setJmlKeyword(false);
             parser.nextToken();
             Name n;

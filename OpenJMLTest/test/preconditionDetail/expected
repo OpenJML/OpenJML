@@ -53,21 +53,21 @@ test/preconditionDetail/TestA.java:23: warning: The prover cannot establish an a
 test/preconditionDetail/TestA.java:11: warning: Associated declaration
     public void m(Integer p, int q, Integer r) {
                 ^
-test/preconditionDetail/TestC.java:11: warning: Precondition conjunct is false: r != null
+test/preconditionDetail/TestC.java:11: warning: Precondition conjunct is false: p != null
     public void m(Integer p, int q, Integer r);
-                                            ^
-test/preconditionDetail/TestC.java:11: warning: Precondition conjunct is false: r != null
+                          ^
+test/preconditionDetail/TestC.java:11: warning: Precondition conjunct is false: p != null
     public void m(Integer p, int q, Integer r);
-                                            ^
-test/preconditionDetail/TestB.java:5: warning: Precondition conjunct is false: r != null
+                          ^
+test/preconditionDetail/TestB.java:5: warning: Precondition conjunct is false: p != null
     public void m(Integer p, int q, Integer r) {
-                                            ^
-test/preconditionDetail/TestA.java:11: warning: Precondition conjunct is false: r != null
+                          ^
+test/preconditionDetail/TestA.java:11: warning: Precondition conjunct is false: p != null
     public void m(Integer p, int q, Integer r) {
-                                            ^
-test/preconditionDetail/TestA.java:11: warning: Precondition conjunct is false: r != null
+                          ^
+test/preconditionDetail/TestA.java:11: warning: Precondition conjunct is false: p != null
     public void m(Integer p, int q, Integer r) {
-                                            ^
+                          ^
 Completed proof of TestA.mm(TestAA,int,(@org.jmlspecs.annotation.Nullable :: java.lang.Integer)) with prover !!!! - with warnings
 Completed proving methods in TestA
 14 warnings

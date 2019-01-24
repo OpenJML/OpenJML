@@ -47,6 +47,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCForLoop;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCLambda;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
@@ -109,6 +110,7 @@ public class JmlTree implements IJmlTree {
         JmlImport JmlImport(JCTree qualid, boolean staticImport, boolean isModel);
         JmlInlinedLoop JmlInlinedLoop(List<JmlStatementLoop> loopSpecs);
         JmlLabeledStatement JmlLabeledStatement(Name label, ListBuffer<JCStatement> extra, JCStatement block);
+        JmlLambda JmlLambda(List<JCVariableDecl> params, JCTree body, JCExpression jmlType);
         JmlLblExpression JmlLblExpression(int labelPosition, JmlTokenKind token, Name label, JCTree.JCExpression expr);
         JmlMethodClauseGroup JmlMethodClauseGroup(List<JmlSpecificationCase> cases);
         JmlMethodClauseDecl JmlMethodClauseDecl(String keyword, IJmlClauseType t, List<JCTree.JCVariableDecl> decls);
@@ -468,6 +470,11 @@ public class JmlTree implements IJmlTree {
             JmlInlinedLoop p = new JmlInlinedLoop(pos,loopSpecs);
             return p;
         }
+        
+        @Override
+        public JmlLambda JmlLambda(List<JCVariableDecl> params, JCTree body, JCExpression jmlType) {
+            return new JmlLambda(params,body,jmlType);
+        }
 
         /** Creates a JML labeled statement */
         @Override
@@ -522,6 +529,14 @@ public class JmlTree implements IJmlTree {
         public JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs) {
             return new JmlDoWhileLoop(loop,loopSpecs); // pos set from loop argument
         }
+        
+        public JCLambda Lambda(List<JCVariableDecl> params,
+                JCTree body) {
+            //return super.Lambda(params, body);
+            return JmlLambda(params, body, null);
+        }
+
+
         
         /** Creates a regular for-loop with no specifications */
         @Override
@@ -2004,7 +2019,8 @@ public class JmlTree implements IJmlTree {
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlMethodClauseCallable(int pos, JmlStoreRefKeyword keyword, List<JmlMethodSig> methodSignatures) {
-            super(pos, "callable", null); // FIXME
+            super(pos, CallableClauseExtension.callableID, CallableClauseExtension.callableClause);
+            this.keyword = keyword;
             this.methodSignatures = methodSignatures;
         }
 
@@ -2145,6 +2161,7 @@ public class JmlTree implements IJmlTree {
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlMethodClauseSignals(int pos, String keyword, IJmlClauseType clauseType, JCTree.JCVariableDecl var, JCTree.JCExpression expression) {
             super(pos, keyword, clauseType);
+            this.vardef = var;
             this.expression = expression;
         }
         
@@ -2826,7 +2843,7 @@ public class JmlTree implements IJmlTree {
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlStatementHavoc(int pos, List<JCTree.JCExpression> storerefs) {
             this.pos = pos;
-            this.clauseType = StatementLocationsExtension.havocClause;
+            this.clauseType = StatementLocationsExtension.havocStatement;
             this.storerefs = storerefs;
         }
     
@@ -3506,6 +3523,37 @@ public class JmlTree implements IJmlTree {
                 return null; //return super.accept(v,d);
             }
         }
+    }
+    
+    public static class JmlLambda extends JCLambda {
+        public JCExpression jmlType;
+        
+        public JmlLambda(List<JCVariableDecl> params,
+                JCTree body, JCExpression jmlType) {
+            super(params, body);
+            this.jmlType = jmlType;
+        }
+        
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitLambda(this); 
+            } else {
+                //System.out.println("A JmlTypeClauseRepresents expects an IJmlVisitor, not a " + v.getClass());
+                super.accept(v);
+            }
+        }
+    
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return v.visitLambdaExpression(this, d);
+            } else {
+                //System.out.println("A JmlLambda expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
+            }
+        }
+
     }
 
     // FIXME - the following do not have factory methods - do not set pos, do not have accept, getKind, getTag, toString methods, or documentation

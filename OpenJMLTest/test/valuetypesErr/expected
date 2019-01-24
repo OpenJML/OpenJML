@@ -1,5 +1,5 @@
-test/valuetypes/Arr.java:6: error: incompatible types: array<String> cannot be converted to array<Short>
-//@ ghost array<Short> arx = args.array;
+test/valuetypesErr/Arr.java:6: error: incompatible types: array<String> cannot be converted to array<Short>
+//@ ghost array<Short> arx = args.array; // ERROR
                                  ^
 Operation not performed because of parse or type errors
 1 error

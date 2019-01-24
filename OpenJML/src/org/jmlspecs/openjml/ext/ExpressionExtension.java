@@ -35,7 +35,7 @@ import com.sun.tools.javac.util.Log.WriterKind;
 /* FIXME - do more to implement extensions */
 
 /* TODO - needs documentation */
-abstract public class ExpressionExtension implements JmlExtension {
+abstract public class ExpressionExtension extends JmlExtension {
     protected static final Context.Key<ExpressionExtension> exprExtensionsKey =
             new Context.Key<ExpressionExtension>();
 
@@ -53,12 +53,11 @@ abstract public class ExpressionExtension implements JmlExtension {
     
     //@ public constraint context == \old(context);
 
-    public static void register(Context context) {}
-    
     /** A constructor needed by derived classes; this class should not be
      * instantiated directly by users.
      */
     protected ExpressionExtension(Context context) {
+        this.context = context;
         this.syms = Symtab.instance(context);
         this.utils = Utils.instance(context);
     }
@@ -197,6 +196,7 @@ abstract public class ExpressionExtension implements JmlExtension {
                 throw new RuntimeException(e);
             }
         }
+        ((ExpressionExtension)s).context = context;
         return s;
     }
 

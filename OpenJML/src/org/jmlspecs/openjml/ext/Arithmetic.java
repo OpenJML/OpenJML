@@ -292,8 +292,10 @@ abstract public class Arithmetic extends ExpressionExtension {
         }
         
         
-        lhs = rewriter.addImplicitConversion(lhs,newtype,lhs);
-        rhs = rewriter.addImplicitConversion(rhs,newtype,rhs);
+        if (!(rac && alreadyConverted)) {
+            lhs = rewriter.addImplicitConversion(lhs,newtype,lhs);
+            rhs = rewriter.addImplicitConversion(rhs,newtype,rhs);
+        }
         
         // In MATH mode, the types can be promoted to \bigint or \real, even though the .type field is still smaller
         if (rewriter.jmltypes.isJmlType(lhs.type)) newtype = lhs.type;

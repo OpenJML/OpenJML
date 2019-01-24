@@ -19,61 +19,61 @@ public class statements extends TCBase {
     }
 
     @Test public void testForWithModifies() {
-        helpTCF("A.java"," class A { int k; void m() { \n //@  modifies k; loop_invariant i>=0; decreasing -i;\n for (int i=0; i<10; i++) {}  \n}}"
+        helpTCF("A.java"," class A { int k; void m() { \n //@  loop_modifies k; loop_invariant i>=0; decreasing -i;\n for (int i=0; i<10; i++) {}  \n}}"
                 );
     }
 
     @Test public void testForWithModifies2() {
-        helpTCF("A.java"," class A { void m() { \n //@ modifies x; \n for (int i=0; i<10; i++) {}  \n}}"
-                ,"/A.java:2: cannot find symbol\n  symbol:   variable x\n  location: class A",15
+        helpTCF("A.java"," class A { void m() { \n //@ loop_modifies x; \n for (int i=0; i<10; i++) {}  \n}}"
+                ,"/A.java:2: cannot find symbol\n  symbol:   variable x\n  location: class A",20
                 );
     }
 
     @Test public void testForWithModifies2a() {
-        helpTCF("A.java"," class A { int j; void m() { \n //@ modifies j; \n for (int i=0; i<10; i++) {}  \n}}"
+        helpTCF("A.java"," class A { int j; void m() { \n //@ loop_modifies j; \n for (int i=0; i<10; i++) {}  \n}}"
                 );
     }
 
     @Test public void testForWithModifies3() {
-        helpTCF("A.java"," class A { void m() { \n //@ modifies \\nothing; \n for (int i=0; i<10; i++) {}  \n}}"
+        helpTCF("A.java"," class A { void m() { \n //@ loop_modifies \\nothing; \n for (int i=0; i<10; i++) {}  \n}}"
                 );
     }
 
     @Test public void testForWithModifies4() {
-        helpTCF("A.java"," class A { void m() { \n //@ modifies \\everything; \n for (int i=0; i<10; i++) {}  \n}}"
+        helpTCF("A.java"," class A { void m() { \n //@ loop_modifies \\everything; \n for (int i=0; i<10; i++) {}  \n}}"
                 );
     }
 
     @Test public void testForWithModifies5() {
-        helpTCF("A.java"," class A { void m() { \n //@ modifies ; \n for (int i=0; i<10; i++) {}  \n}}"
-                ,"/A.java:2: Use \\nothing to denote an empty list of locations in an assignable clause",15
+        helpTCF("A.java"," class A { void m() { \n //@ loop_modifies ; \n for (int i=0; i<10; i++) {}  \n}}"
+                ,"/A.java:2: Use \\nothing to denote an empty list of locations in an assignable clause",20
                 );
     }
 
     @Test public void testForWithModifies6() {
-        helpTCF("A.java"," class A { int k; void m() { \n //@ modifies k[; \n for (int i=0; i<10; i++) {}  \n}}"
-                ,"/A.java:2: illegal start of expression",17
-                ,"/A.java:2: An invalid expression or succeeding token near here",17
+        helpTCF("A.java"," class A { int k; void m() { \n //@ loop_modifies k[; \n for (int i=0; i<10; i++) {}  \n}}"
+                ,"/A.java:2: illegal start of expression",22
+                ,"/A.java:2: An invalid expression or succeeding token near here",22
                 );
     }
 
     @Test public void testForWithModifies6a() {
-        helpTCF("A.java"," class A { int k; void m() { \n //@ modifies k.; \n for (int i=0; i<10; i++) {}  \n}}"
-                ,"/A.java:2: Expected an identifier or star after the dot",17
+        helpTCF("A.java"," class A { int k; void m() { \n //@ loop_modifies k.; \n for (int i=0; i<10; i++) {}  \n}}"
+                ,"/A.java:2: Expected an identifier or star after the dot",22
                 );
     }
 
     @Test public void testForWithModifies7() {
-        helpTCF("A.java"," class A { int k; void m() { \n //@ modifies k k k; \n for (int i=0; i<10; i++) {}  \n}}"
-                ,"/A.java:2: Missing comma or otherwise ill-formed type name",17
-                ,"/A.java:2: Missing comma or otherwise ill-formed type name",19
+        helpTCF("A.java"," class A { int k; void m() { \n //@ loop_modifies k k k; \n for (int i=0; i<10; i++) {}  \n}}"
+                ,"/A.java:2: Missing comma or otherwise ill-formed type name",22
+                ,"/A.java:2: Missing comma or otherwise ill-formed type name",24
                 );
     }
 
     @Test public void testForWithModifies8() {
-        helpTCF("A.java"," class A { int k; void m() { \n //@ modifies k,,; \n for (int i=0; i<10; i++) {}  \n}}"
-                ,"/A.java:2: Incorrectly formed or terminated store-reference near here",17
-                ,"/A.java:2: Incorrectly formed or terminated store-reference near here",18
+        helpTCF("A.java"," class A { int k; void m() { \n //@ loop_modifies k,,; \n for (int i=0; i<10; i++) {}  \n}}"
+                ,"/A.java:2: Incorrectly formed or terminated store-reference near here",22
+                ,"/A.java:2: Incorrectly formed or terminated store-reference near here",23
                 );
     }
 
@@ -149,7 +149,7 @@ public class statements extends TCBase {
     @Test public void testUnreachable1() {
     	expectedExit = 0;
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ unreachable \n i = 0; \n}}"
-                ,"/A.java:2: warning: Inserting missing semicolon at the end of a UNREACHABLE statement",16
+                ,"/A.java:2: warning: Inserting missing semicolon at the end of a unreachable statement",16
                 );
     }
 
@@ -159,8 +159,9 @@ public class statements extends TCBase {
     }
 
     @Test public void testSet1() {
+        expectedExit = 0;
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; set j = 1 \n i = 0; \n}}"
-                ,"/A.java:2: ';' expected",28
+                ,"/A.java:2: warning: Inserting missing semicolon at the end of a set statement",27
                 );
     }
     
@@ -181,8 +182,9 @@ public class statements extends TCBase {
     }
 
     @Test public void testDebug1() {
+        expectedExit = 0;
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; debug m() \n i = 0; \n}}"
-                ,"/A.java:2: ';' expected",28
+                ,"/A.java:2: warning: Inserting missing semicolon at the end of a debug statement",27
                 );
     }
 

@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.ParameterizedWithNames;
 import org.junit.runners.Parameterized.Parameters;
 
+@Ignore
 @RunWith(ParameterizedWithNames.class)
 public class strongarm extends StrongarmBase {
 

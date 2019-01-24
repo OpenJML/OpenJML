@@ -190,6 +190,22 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             }
         } catch (IOException e) { perr(that,e); }
     }
+    
+    public void visitLambda(JCLambda that) {
+        try {
+            if (that instanceof JmlLambda) {
+                JmlLambda jthat = (JmlLambda)that;
+                if (jthat.jmlType != null) {
+                    print("/*@{ ");
+                    (jthat.jmlType).accept(this);
+                    print(" }@*/");
+                }
+            }
+            super.visitLambda(that);
+        } catch (IOException e) {
+            perr(that,e);
+        }
+    }
 
     public void visitJmlLabeledStatement(JmlLabeledStatement that) {
         try {
@@ -260,7 +276,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 print(useCanonicalName ? that.clauseType.name() : that.keyword);
                 print(" ");
                 s.accept(this);
-                print("; ");
+                // The declaration has its own closing semicolon
             }
         } catch (IOException e) { perr(that,e); }
     }
@@ -510,7 +526,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 }
             }
             if (useJMLComments) print ("/*@ ");
-            print(inlinedloopClause.name());
+            print(inlinedLoopStatement.name());
             //print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(";");
             if (useJMLComments) print("*/");

@@ -31,7 +31,7 @@ import com.sun.tools.javac.util.Context;
  * @author David Cok
  *
  */
-public class ReachableStatement implements JmlExtension.Statement {
+public class ReachableStatement extends JmlExtension.Statement {
 
     public static final String reachableID = "reachable";
     public static final String unreachableID = "unreachable";
@@ -62,8 +62,11 @@ public class ReachableStatement implements JmlExtension.Statement {
             int pe = parser.endPos();
             int p = scanner.currentPos();
             parser.nextToken();
-            JmlStatementExpr st = jmlF.at(p).JmlExpressionStatement(keyword,clauseType,null,jmlF.Literal(TypeTag.BOOLEAN,1));
+            JmlStatementExpr st = jmlF.at(pp).JmlExpressionStatement(keyword,clauseType,null,jmlF.Literal(TypeTag.BOOLEAN,1));
             if (parser.token().kind == TokenKind.SEMI) {
+                return st;
+            } else if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
+                parser.jmlwarning(p-1, "jml.missing.semi", keyword);
                 return st;
             } else {
                 JCExpression opt = null;
@@ -71,6 +74,10 @@ public class ReachableStatement implements JmlExtension.Statement {
                 if (e == null) return null;
                 if (parser.token().kind == TokenKind.COLON) {
                     opt = parser.parseExpression();
+                    st.optionalExpression = e;
+                    st.expression = opt;
+                } else {
+                    st.expression = e;
                 }
 
                 if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
@@ -78,9 +85,7 @@ public class ReachableStatement implements JmlExtension.Statement {
                 } else if (parser.token().kind != TokenKind.SEMI) {
                     parser.jmlerror(p, "jml.missing.semi", keyword);
                 }
-                st.optionalExpression = e;
                 return st;
-                //return jmlF.at(p).JmlExpressionStatement(keyword,clauseType,null,e);
             }
 
         }

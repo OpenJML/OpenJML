@@ -33,7 +33,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
-public class TypeInitializerClauseExtension implements JmlExtension.TypeClause {
+public class TypeInitializerClauseExtension extends JmlExtension.TypeClause {
 
     public static final String initializerID = "initializer";
     public static final String staticinitializerID = "static_initializer";
@@ -54,8 +54,9 @@ public class TypeInitializerClauseExtension implements JmlExtension.TypeClause {
         
         public 
         JmlTypeClauseInitializer parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
-            init(parser);
             int pp = parser.pos();
+            init(parser);
+            parser.nextToken(); // skip over initializer token
             JmlTypeClauseInitializer initializer = jmlF.at(pp).JmlTypeClauseInitializer(clauseType,mods);
             //@ FIXME - parse failure?
             initializer.specs = parser.currentMethodSpecs;

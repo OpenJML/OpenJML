@@ -908,7 +908,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testInvariant1() {
-    	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
+        main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"

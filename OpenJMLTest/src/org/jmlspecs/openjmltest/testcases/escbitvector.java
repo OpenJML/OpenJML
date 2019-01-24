@@ -118,23 +118,21 @@ public class escbitvector extends EscBase {
     // BV off
     @Test 
     public void testBV1b() {
-        expectedExit = 1;
+        expectedExit = 0;
         main.addOptions("-escBV=false","-logic=ALL");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                
+                +"  //@ requires n <= Integer.MAX_VALUE-15;\n"
                 +"  //@ ensures n <= \\result;\n"
                 +"  //@ ensures \\result <= n+15;\n"
                 +"  //@ ensures (\\result&15) == 0;\n"
                 +"  //@ pure\n"
                 +"//@ code_java_math spec_java_math\n"
                 +"  public int m1(int n) {\n"
-                +"    return n + ((-n) & 0x0f);\n" // ERROR - forcing no BV when there are BV ops
+                +"    return n + ((-n) & 0x0f);\n"
                 +"  }\n"
                                 
                 +"}"
-                ,"/tt/TestJava.java:9: This method uses bit-vector operations and must be run with -escBV=true (or auto) [Bit-operation BITAND]",22
-                ,"/tt/TestJava.java:5: This method uses bit-vector operations and must be run with -escBV=true (or auto) [Bit-operation BITAND]",23
                 );
     }
     
@@ -226,7 +224,7 @@ public class escbitvector extends EscBase {
         main.addOptions("-escBV=auto","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +" class A { \n"
-                +"   //@ requires (i&1) == 1; pure \n"
+                +"   //@ requires (i&5) == 1; pure \n"
                 +"   public static boolean mm(int i) { return true; } \n"
                 +"}\n"
                 
@@ -247,7 +245,7 @@ public class escbitvector extends EscBase {
         main.addOptions("-escBV=false","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +" class A { \n"
-                +"   //@ requires (i&1) == 1; pure \n"
+                +"   //@ requires (i&5) == 1; pure \n"
                 +"   public static boolean mm(int i) { return true; } \n"
                 +"}\n"
                 
@@ -270,7 +268,7 @@ public class escbitvector extends EscBase {
         main.addOptions("-escBV=true","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +" class A { \n"
-                +"   //@ requires (i&1) == 1; pure \n"
+                +"   //@ requires (i&5) == 1; pure \n"
                 +"   public static boolean mm(int i) { return true; } \n"
                 +"}\n"
                 

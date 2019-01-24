@@ -1092,11 +1092,25 @@ public class JmlSpecs {
                 // ensures \result == <Enum>._JMLvalues;
                 JmlMethodClause cval = M.at(pos).JmlMethodClauseExpr(ensuresID, ensuresClause,val);
                 clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig,clpa,cval);
+                // FIXME - need to add a helper annotation
+                
             } else if (sym.name.equals(names.valueOf)) {
                 // FIXME - add a disjunction of all possibilities?
                 // FIXME - might throw an exception?
                 res = M.at(pos).JmlSingleton(JmlTokenKind.BSRESULT);
                 resnn = treeutils.makeNotNull(pos,res);
+//=======
+//                // ensures arg != null && \result != null;
+//                // assignable \nothing;
+//                // accessible \nothing;
+//                // signals (NullPointerException) arg == null;
+//                // signals_only NullPointerException, IllegalArgumentException;
+//                VarSymbol arg = sym.params().get(0); 
+//                JCExpression argnn = treeutils.makeNotNull(pos,treeutils.makeIdent(pos, arg));
+//                argnn = treeutils.makeAnd(pos, argnn, resnn);
+//                en = M.at(pos).JmlMethodClauseExpr(JmlTokenKind.ENSURES,argnn);
+//                JCExpression argnull = treeutils.makeEqNull(pos,treeutils.makeIdent(pos, arg));
+//>>>>>>> refs/heads/development
                 Type npeType = ClassReader.instance(context).enterClass(names.fromString("java.lang.NullPointerException")).type;
                 JCVariableDecl vd = treeutils.makeVarDef(npeType, null, sym, pos);
                 sig = M.at(pos).JmlMethodClauseSignals(signalsID, signalsClause, vd, resnn);
@@ -1157,6 +1171,24 @@ public class JmlSpecs {
         return mspecs;
     }
     
+    protected/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlTokenKind jt,
+            int position, int endpos) {
+        JmlTree.Maker M = JmlTree.Maker.instance(context);
+        Symtab syms = Symtab.instance(context);
+        JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
+        Class<?> c = jt.annotationType;
+        if (c == null) return null;
+        JCExpression t = (M.at(position).Ident(names.fromString("org")));
+        t = (M.at(position).Select(t, names.fromString("jmlspecs")));
+        t = (M.at(position).Select(t, names.fromString("annotation")));
+        t = (M.at(position).Select(t, names.fromString(c.getSimpleName())));
+        JCAnnotation ann = (M.at(position).Annotation(t,
+                com.sun.tools.javac.util.List.<JCExpression> nil()));
+        ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
+        //storeEnd(ann, endpos);
+        return ann;
+    }
+
     public com.sun.tools.javac.util.List<JCAnnotation> addPureAnnotation(int pos, com.sun.tools.javac.util.List<JCAnnotation> annots) {
         JmlTree.Maker F = JmlTree.Maker.instance(context);
         JmlAnnotation pure = makePureAnnotation(pos, F);

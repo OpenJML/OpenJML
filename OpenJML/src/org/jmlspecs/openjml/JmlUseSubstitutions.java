@@ -50,7 +50,6 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
     public JCExpression exprPrecondition  = null;
     public JCExpression exprHead  = null;
     public JCExpression exprTail  = null;
-    public JmlStatementExpr currentUse = null;
 
     public JmlUseSubstitutions(Context context) {
         copy = false;
@@ -67,9 +66,11 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
     @Override
     public JCTree translate(JCTree tree) {
         if (exprHead != null && tree != null && matcher.matches(tree,exprHead)) {
+            // If exprHead is non null and matches the current tree, then we replace it with
+            // exprTail. Then we set exprHead to null, so it is not used again.
+            // That is we only do one substitution, whenever the next substitution is.
             // log.note(tree.pos, "jml.message", "Substituting here: " + exprHead.toString() + " with " + exprTail.toString() + " and precondition " + exprPrecondition.toString());
-            currentUse.expression = exprPrecondition;
-            currentUse = null;
+            exprPrecondition = null;
             exprHead = null;
             return exprTail;
         } else {
@@ -91,14 +92,12 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                     exprPrecondition = imp.lhs;
                     exprHead = eq.lhs;
                     exprTail = eq.rhs;
-                    currentUse = that;
                 }
             } else if (expr instanceof JCBinary && ((JCBinary)expr).getTag() == JCTree.Tag.EQ) {
                 JCBinary eq = (JCBinary)expr;
                 exprPrecondition = treeutils.trueLit;
                 exprHead = eq.lhs;
                 exprTail = eq.rhs;
-                currentUse = that;
             } else if (expr instanceof JCTree.JCMethodInvocation) {
                 JCExpression meth = ((JCMethodInvocation)expr).meth;
                 Symbol msym = treeutils.getSym(meth);
@@ -168,8 +167,14 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                             log.error(cl,"jml.internal","Use lemmas currently implement only requires and ensures clauses: " + cl.keyword);
                             return;
                     }
-                    currentUse = M.at(that).JmlExpressionStatement(assertID, assertClause,Label.UNDEFINED_LEMMA,treeutils.trueLit);
-                    result = currentUse;
+//                    currentUse = M.at(that).JmlExpressionStatement(assertID, assertClause,Label.UNDEFINED_LEMMA,treeutils.trueLit);
+//                    result = currentUse;
+                }
+                if (exprPrecondition != null && !treeutils.isTrueLit(exprPrecondition)) {
+                    // Replace the use statement with the precondition check
+                    result = M.at(that).JmlExpressionStatement(assertID, assertClause,Label.UNDEFINED_LEMMA,exprPrecondition);
+                } else {
+                    result = that;
                 }
             } else {
                 log.error(expr, "jml.message", "Invalid kind of expression for a use statement; should be a lemma call, implication, or equality");

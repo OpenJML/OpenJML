@@ -46,29 +46,42 @@ public class StatementExprType extends IJmlClauseType.Statement {
     public StatementExprType(String keyword) {
         this.keyword = keyword;
     }
-
+    
     @Override
     public JmlAbstractStatement parse(JCModifiers mods, String id, IJmlClauseType clauseType, JmlParser parser) {
         init(parser);
         int pp = parser.pos();
         int pe = parser.endPos();
 
-        parser.nextToken();
-        Token tk = parser.token();
+        parser.nextToken(); // skip over the keyword
 
         JCExpression t = parser.parseExpression();
         String nm = clauseType.name();
-        JmlTree.JmlStatementExpr ste = jmlF
-                .at(pp)
-                .JmlExpressionStatement(
-                        nm,
-                        clauseType,
-                          nm.equals("assume") ? Label.EXPLICIT_ASSUME :
-                                                Label.EXPLICIT_ASSERT,  // FIXME?
-                            t);
-        if (tk.kind == COLON) {
-            parser.nextToken();
-            ste.optionalExpression = parser.parseExpression();
+        JmlAbstractStatement ste;
+        if (clauseType == StatementExprExtensions.loopinvariantClause ||
+                clauseType == StatementExprExtensions.loopdecreasesClause) {
+            JmlTree.JmlStatementLoopExpr st = jmlF
+                    .at(pp)
+                    .JmlStatementLoopExpr(
+                            clauseType,
+                                t);
+            ste = st;
+        } else {
+            JmlTree.JmlStatementExpr st = jmlF
+                    .at(pp)
+                    .JmlExpressionStatement(
+                            nm,
+                            clauseType,
+                            nm.equals("assume") ? Label.EXPLICIT_ASSUME :
+                                Label.EXPLICIT_ASSERT,  // FIXME?
+                                t);
+            st.keyword = id;
+            Token tk = parser.token();
+            if (tk.kind == COLON) {
+                parser.nextToken();
+                st.optionalExpression = parser.parseExpression();
+            }
+            ste = st;
         }
         wrapup(ste,clauseType,true);
         return ste;

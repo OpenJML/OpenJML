@@ -167,8 +167,11 @@ public class JmlEsc extends JmlTreeScanner {
         long classDuration = System.currentTimeMillis() - classStart;
         utils.progress(0,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) +  //$NON-NLS-1$
                 (Utils.testingMode ? "" : String.format(" [%4.2f secs]", (classDuration/1000.0)))); //$NON-NLS-1$
-        classes++;
-        if (allMethodsOK) classesOK++;
+        if (utils.isModel(node.sym)) classesModel++; 
+        else {
+            classes++;
+            if (allMethodsOK) classesOK++;
+        }
         allMethodsOK = savedMethodsOK;
         Main.instance(context).popOptions();
     }
@@ -196,7 +199,7 @@ public class JmlEsc extends JmlTreeScanner {
             return;
         }
 
-        if (!filter(methodDecl)) {
+        if (!utils.filter(methodDecl,true)) {
             markMethodSkipped(methodDecl," (excluded by -method)"); //$NON-NLS-1$ // FIXME excluded by -method or -exclude
             return;
         }
@@ -258,7 +261,7 @@ public class JmlEsc extends JmlTreeScanner {
         IProverResult res = factory.makeProverResult(methodDecl.sym,"",IProverResult.SKIPPED,new java.util.Date());
         IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
         if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);
-        count(IProverResult.SKIPPED);
+        count(IProverResult.SKIPPED, methodDecl.sym);
         return res;
     }
     
@@ -339,7 +342,7 @@ public class JmlEsc extends JmlTreeScanner {
                                : res.result().toString())
                     + (Utils.testingMode ? "" : String.format(" [%4.2f secs]", (duration/1000.0)))
                     );
-            count(res.result());
+            count(res.result(), methodDecl.sym);
             
 //            if (log.nerrors != prevErrors) {
 //                res = new ProverResult(proverToUse,IProverResult.ERROR,methodDecl.sym);
@@ -378,98 +381,30 @@ public class JmlEsc extends JmlTreeScanner {
         return res;
     }
         
-    /** Return true if the method is to be checked, false if it is to be skipped.
-     * A warning that the method is being skipped is issued if it is being skipped
-     * and the verbosity is high enough.
-     * */
-    public boolean filter(JCMethodDecl methodDecl) {
-        String fullyQualifiedName = utils.qualifiedName(methodDecl.sym);
-        String simpleName = methodDecl.name.toString();
-        if (methodDecl.sym.isConstructor()) {
-            String constructorName = methodDecl.sym.owner.name.toString();
-            fullyQualifiedName = fullyQualifiedName.replace("<init>", constructorName);
-            simpleName = simpleName.replace("<init>", constructorName);
-        }
-        String fullyQualifiedSig = utils.qualifiedMethodSig(methodDecl.sym);
-
-        String excludes = JmlOption.value(context,JmlOption.EXCLUDE);
-        if (excludes != null && !excludes.isEmpty()) {
-            String[] splits = excludes.contains("(") || excludes.contains(";") ? excludes.split(";") : excludes.split(",");
-            for (String exclude: splits) { //$NON-NLS-1$
-                if (fullyQualifiedName.equals(exclude) ||
-                        fullyQualifiedSig.equals(exclude) ||
-                        simpleName.equals(exclude)) {
-                    if (utils.jmlverbose > Utils.PROGRESS)
-                        log.getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
-                    return false;
-                }
-                try {
-                    if (Pattern.matches(exclude,fullyQualifiedName)) {
-                        if (utils.jmlverbose > Utils.PROGRESS)
-                            log.getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
-                        return false;
-                    }
-                } catch(PatternSyntaxException e) {
-                    // The methodToDo can be a regular string and does not
-                    // need to be legal Pattern expression
-                    // skip
-                }
-            }
-        }
-
-        String methodsToDo = JmlOption.value(context,JmlOption.METHOD);
-        if (methodsToDo != null && !methodsToDo.isEmpty()) {
-            match: {
-                if (fullyQualifiedSig.equals(methodsToDo)) break match; // A hack to allow at least one signature-containing item in the methods list
-                String[] splits = methodsToDo.contains("(") || methodsToDo.contains(";") ? methodsToDo.split(";") : methodsToDo.split(",");
-                for (String methodToDo: splits) { //$NON-NLS-1$ 
-                	methodToDo = methodToDo.trim();
-                	if (methodToDo.isEmpty()) continue;
-                	// Match if methodToDo
-                	//    is the full FQN
-                	//    is just the name of the method
-                	//    contains a "." character before a "(" and is the same as the FQ signature
-                	//    does not contain a "." character before a "(" and is the tail of the FQ signature
-                    if (fullyQualifiedName.equals(methodToDo) ||
-                            methodToDo.equals(simpleName) ||
-                            ( methodToDo.contains(".") && methodToDo.contains("(") && methodToDo.indexOf(".") > methodToDo.indexOf("(") ? fullyQualifiedSig.equals(methodToDo) : fullyQualifiedSig.endsWith(methodToDo))) {
-                        break match;
-                    }
-                    try {
-                        // Also check whether methodToDo, interpreted as a regular expression
-                        // matches either the signature or the name
-                        if (Pattern.matches(methodToDo,fullyQualifiedSig)) break match;
-                        if (Pattern.matches(methodToDo,fullyQualifiedName)) break match;
-                    } catch(PatternSyntaxException e) {
-                        // The methodToDo can be a regular string and does not
-                        // need to be legal Pattern expression
-                        // skip
-                        int x = 0;
-                    }
-                }
-                if (utils.jmlverbose > Utils.PROGRESS) {
-                    log.getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
-                }
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    
     public Map<IProverResult.Kind,Integer> counts = new HashMap<>();
+    public Map<IProverResult.Kind,Integer> modelcounts = new HashMap<>();
     public int classes;
     public int classesOK;
+    public int classesModel;
+    public int methodsModel;
     public boolean allMethodsOK;
     
     private long startTime;
     
     public void initCounts() {
-        classes = classesOK = 0;
-        counts = new HashMap<>();
+        classes = classesOK = classesModel = methodsModel = 0;
+        counts.clear();
+        modelcounts.clear();
         startTime = System.currentTimeMillis();
     }
     
+    public void count(IProverResult.Kind r, MethodSymbol sym) {
+        if (utils.isModel(sym) || utils.isModel(sym.owner)) {
+            modelcounts.put(r, modelvalue(r) + 1);
+        } else {
+            count(r);
+        }
+    }
     public void count(IProverResult.Kind r) {
         counts.put(r,  value(r) + 1);
         if (r != IProverResult.UNSAT) allMethodsOK = false;
@@ -478,6 +413,28 @@ public class JmlEsc extends JmlTreeScanner {
     public int value(IProverResult.Kind r) {
         Integer i = counts.get(r);
         return i == null ? 0 : i;
+    }
+    
+    public int modelvalue(IProverResult.Kind r) {
+        Integer i = modelcounts.get(r);
+        return i == null ? 0 : i;
+    }
+    
+    public int allmodelvalue() {
+        int sum = 0;
+        for (Integer i: modelcounts.values()) {
+            if (i == null) i = 0;
+            sum += i;
+        }
+        return sum;
+    }
+    
+    public int allvalue() {
+        int sum = 0;
+        for (Integer i: counts.values()) {
+            sum += i;
+        }
+        return sum;
     }
     
     public String reportCounts() {
@@ -497,7 +454,10 @@ public class JmlEsc extends JmlTreeScanner {
         s.append("  Skipped:      " + (tt=value(IProverResult.SKIPPED)) + Strings.eol);
         t += tt;
         s.append(" TOTAL METHODS: " + t + Strings.eol);
+        if (t != allvalue()) s.append("  DISCREPANCY " + t + " vs. " + allvalue() + Strings.eol);
         s.append(" Classes:       " + classesOK + " proved of " + classes + Strings.eol);
+        s.append(" Model Classes: " + classesModel + Strings.eol);
+        s.append(" Model methods: " + modelvalue(IProverResult.UNSAT) + " proved of " + allmodelvalue() + Strings.eol);
         long duration = System.currentTimeMillis() - startTime;
         s.append(" DURATION: " + String.format("%12.1f",(duration/1000.0)) + " secs" + Strings.eol);
         return s.toString();

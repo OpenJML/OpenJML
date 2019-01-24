@@ -940,7 +940,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean libraryMethod = name.startsWith("java") 
                 || name.startsWith("org.jmlspecs.models") // FIXME - the models should be annotated and shjoiuld work
                 || name.startsWith("org.jmlspecs.lang.JML");  // FIXME - these should work but don't
-        if (!libraryMethod || JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
+        if (!libraryMethod // FIXME && !msym.owner.isEnum())
+                || JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
             log.warning(pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
         }
 
@@ -1083,6 +1084,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                             log.warning(spec, "jml.missing.also", jmethod.name.toString());
                         }
                     }
+                }
+            }
+            
+            if (m.body == null) {
+                JmlAnnotation annot = findMod(m.mods, JmlTokenKind.INLINE);
+                if (annot != null) {
+                    log.error(annot, "jml.message", "Cannot inline a method that does not have a body");
                 }
             }
 
@@ -1228,6 +1236,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                             break;
                         }
                     }
+//                } else if (inJML && !model && javaMethodTree.sym.owner.isEnum()) {
+//                    // OK
                 } else if (abst) {
                     // OK
                 } else if (!anon) {
@@ -1279,6 +1289,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Check rules about helper
             if ( (a=utils.findMod(mods,tokenToAnnotationSymbol.get(HELPER))) != null  &&
                     !isPureMethod(javaMethodTree.sym)  && 
+                    (javaMethodTree.mods.flags & Flags.FINAL) == 0  && 
                     (    (mods.flags & Flags.PRIVATE) == 0 
                     || utils.findMod(mods,tokenToAnnotationSymbol.get(SPEC_PUBLIC)) != null
                     || utils.findMod(mods,tokenToAnnotationSymbol.get(SPEC_PROTECTED)) != null
@@ -1294,7 +1305,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             if ( (a=utils.findMod(mods,tokenToAnnotationSymbol.get(INLINE))) != null  &&
                     ((javaMethodTree.sym.enclClass().flags() & Flags.FINAL) == 0)  &&
-                    ((mods.flags & (Flags.FINAL|Flags.STATIC)) == 0)  &&
+                    ((mods.flags & (Flags.FINAL|Flags.STATIC|Flags.PRIVATE)) == 0)  &&
                     !isConstructor
                     ) {
                 log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
@@ -2738,7 +2749,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             if (tree.suchThat) {
                 attribExpr(tree.expression, localEnv, syms.booleanType);
-            } else if (tree.ident.type == null) {
+            } else if (tree.ident == null || tree.ident.type == null) {
                 // skip
             } else if (tree.ident.type.getKind() == TypeKind.ERROR) {
                 // skip
@@ -2880,7 +2891,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     boolean forallOldEnv = false;
     
-    /** Attributes for and old clauses within the specs of a method */
+    /** Attributes forall and old clauses within the specs of a method */
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl tree) {
         IJmlClauseType t = tree.clauseType;
         for (JCTree.JCVariableDecl decl: tree.decls) {
@@ -3272,7 +3283,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
                 if (token == BSPRE) {
                     // pre
-                    if (!preTokens.contains(currentClauseType)) {
+                    if (!preTokens.contains(currentClauseType) && !currentClauseType.preAllowed()) {
                         log.error(tree.pos+1, "jml.misplaced.old", "\\pre token", currentClauseType.name());
                         t = syms.errType;
                     }
@@ -3602,18 +3613,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // Expects one expression argument of any type; result is of the same type
                 // FIXME - does this allow any JML spec-expression?
                 // FIXME - the JMLb rules will require some numeric type promotions
-                attribArgs(VAL, tree.args, localEnv, argtypesBuf);
                 //attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
                     log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
-                }
-                if (n == 0) {
-                    t = syms.errType;
+                    result = tree.type = syms.errType;
                 } else {
-                    t = tree.args.get(0).type;
+                    JCExpression arg = tree.args.get(0);
+                    attribTree(arg, localEnv, resultInfo);
+                    result = check(tree, arg.type, VAL, resultInfo);
                 }
-                result = check(tree, t, VAL, resultInfo);
                 break;
                  
             default:
@@ -3798,7 +3807,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 attribExpr(((JmlStatementLoopExpr)tree).expression,loopEnv,syms.booleanType);
             } else if (tree.clauseType == loopdecreasesClause){
                 attribExpr(((JmlStatementLoopExpr)tree).expression,loopEnv,syms.longType);  // FIXME - what type to use
-            } else if (tree.clauseType == loopmodifiesClause) {
+            } else if (tree.clauseType == loopmodifiesStatement) {
                 for (JCExpression stref: ((JmlStatementLoopModifies)tree).storerefs) {
                     attribExpr(stref,loopEnv,Type.noType);
                 }
@@ -3984,7 +3993,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
                 
             default:
-                IJmlClauseType ext = Extensions.instance(context).findT(that.pos,jt.internedName(),true);
+                IJmlClauseType ext = Extensions.instance(context).findSM(that.pos,jt.internedName(),true);
                 Type ttt = ext.typecheck(this,that,env);
                 result = check(that, ttt, VAL, resultInfo);
                 break;
@@ -4826,7 +4835,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             currentClauseType = prevClauseType;
         }
         
-        if (tree.sym instanceof VarSymbol
+        if ((tree.sym instanceof VarSymbol || tree.sym instanceof MethodSymbol)
                 && enclosingMethodEnv != null
                 && enclosingMethodEnv.enclMethod.sym.isConstructor() 
                 && !utils.isJMLStatic(tree.sym) 
@@ -5558,6 +5567,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @return true if the symbol has a model annotation, false otherwise
      */
     public boolean isHelper(MethodSymbol symbol) {
+        // Remove the following line when we add the helper annotation to the implicit enum specs
+        if (symbol.owner.isEnum() && (symbol.name == names.values || symbol.name == names.ordinal || symbol.name == names._name)) return true;
         MethodSpecs mspecs = specs.getSpecs(symbol);
         if (mspecs == null) {
             // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
@@ -6243,6 +6254,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitLambda(final JCLambda that) {
+
         boolean saved = skipDefaultNullity;
         try {
             skipDefaultNullity = true;
@@ -6250,7 +6262,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } finally {
             skipDefaultNullity = saved;
         }
+        Type savedResult = result;
+        if (that instanceof JmlLambda) {
+            JmlLambda jmlthat = (JmlLambda) that;
+            if (jmlthat.jmlType != null) {
+                if (that.type.isErroneous()) {
+                    attribTree(jmlthat.jmlType, env, new ResultInfo(TYP, syms.objectType));
+                } else {
+                    // Issues an error if the type of jmlType is not a subtype of 
+                    // that.type - which is precisely the check that we want,
+                    // so we don't need to retest.
+                    Type t = attribTree(jmlthat.jmlType, env, new ResultInfo(TYP, that.type));
+                    if (!t.isErroneous()) {
+                        that.type = t;
+                    }
+                }
+            }
+        } else {
+            // FIXME _ ERROR
+        }
+        result = savedResult;
     }
+
 
     
     // These are here mostly to make them visible to extensions
@@ -6608,7 +6641,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (kind == ensuresClause ||
                 kind == signalsClause ||
                 kind == signalsOnlyClause) return false;
-        if (methodClauseTokens.contains(kind)) return true;
+        if (kind instanceof IJmlClauseType.MethodClause) return true;
         return false;
     }
     

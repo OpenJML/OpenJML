@@ -36,11 +36,22 @@ import com.sun.tools.javac.util.Log.WriterKind;
  *
  */
 public abstract class IJmlClauseType {
-    public static abstract class MethodClause extends IJmlClauseType {}
-    public static abstract class Statement extends IJmlClauseType{}
-    public static abstract class TypeClause extends IJmlClauseType {}
-    public static abstract class Expression extends IJmlClauseType {}
-    public static abstract class Modifier extends IJmlClauseType {}
+    
+    public static abstract class MethodClause extends IJmlClauseType {
+        public boolean preAllowed() { return !isPreconditionClause(); }
+        public boolean isPreconditionClause() { return false; }
+    }
+    public static abstract class Statement extends IJmlClauseType{
+        public boolean oldNoLabelAllowed() { return true; }
+        public boolean preOrOldWithLabelAllowed() { return true; }
+        public boolean preAllowed() { return true; }
+    }
+    public static abstract class TypeClause extends IJmlClauseType {
+    }
+    public static abstract class Expression extends IJmlClauseType {
+    }
+    public static abstract class Modifier extends IJmlClauseType {
+    }
 
     // These fields and methods give behavior of JML clauses of the given kind.
 
@@ -57,6 +68,8 @@ public abstract class IJmlClauseType {
      */
     public boolean preOrOldWithLabelAllowed() { return false; }
     
+    public boolean preAllowed() { return false; }
+
     /** If true, is a method clause type in which these tokens may appear:
      *  \not_assigned \only_assigned \only_captured \only_accessible \not_modified */
     public boolean postClauseAllowed() { return false; }
@@ -76,7 +89,7 @@ public abstract class IJmlClauseType {
     // The following fields are initialized on demand when parsing or typechecking
     
     /** The compilation context, set when derived classes are instantiated */
-    protected /*@ non_null */ Context context;
+    static protected /*@ non_null */ Context context;
     //@ public constraint context == \old(context);
 
     /** The parser in use, set when derived classes are instantiated */
@@ -108,7 +121,7 @@ public abstract class IJmlClauseType {
      * @param args (non-null) arguments for the key - there must be at least as many arguments as there are place-holders in the key string
      */
     public void error(DiagnosticPosition pos, String key, Object ... args) {
-        Log.instance(context).error(pos,key,args);
+        log.error(pos,key,args);
     }
     
     /**
@@ -117,7 +130,7 @@ public abstract class IJmlClauseType {
      * the begin position.
      */
     public void error(int begin, int end, String key, Object... args) {
-        Log.instance(context).error(new JmlTokenizer.DiagnosticPositionSE(begin, end - 1), key,
+        log.error(new JmlTokenizer.DiagnosticPositionSE(begin, end - 1), key,
                 args); // TODO - not unicode friendly
     }
 
@@ -129,7 +142,7 @@ public abstract class IJmlClauseType {
      * @param args (non-null) arguments for the key - there must be at least as many arguments as there are place-holders in the key string
      */
     public void warning(DiagnosticPosition pos, String key, Object ... args) {
-        Log.instance(context).warning(pos,key,args);
+        log.warning(pos,key,args);
     }
     
     /**
@@ -138,7 +151,7 @@ public abstract class IJmlClauseType {
      * the begin position.
      */
     public void warning(int begin, int end, String key, Object... args) {
-        Log.instance(context).warning(new JmlTokenizer.DiagnosticPositionSE(begin, end - 1), key,
+        log.warning(new JmlTokenizer.DiagnosticPositionSE(begin, end - 1), key,
                 args); // TODO - not unicode friendly
     }
 
@@ -147,7 +160,7 @@ public abstract class IJmlClauseType {
      * @param msg the String to write
      */
     public void info(@NonNull String msg) {
-        Log.instance(context).getWriter(WriterKind.NOTICE).println(msg);
+        log.getWriter(WriterKind.NOTICE).println(msg);
     }
     
     /** Sets the end position of the given tree node to be the end position of
@@ -233,7 +246,7 @@ public abstract class IJmlClauseType {
             // FIXME - why -2 here
             log.warning(parser.pos()-2, "jml.missing.semi", clauseType.name());
         } else if (parser.token().kind != SEMI) {
-            error(parser.pos(), parser.endPos(), "jml.bad.construct", clauseType.name() + "clause");
+            error(parser.pos(), parser.endPos(), "jml.bad.construct", clauseType.name() + " statement");
             parser.skipThroughSemi();
         } else {
             parser.nextToken(); // advance to the token after the semi

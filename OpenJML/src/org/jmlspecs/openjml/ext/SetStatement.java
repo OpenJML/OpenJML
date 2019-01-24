@@ -34,7 +34,7 @@ import com.sun.tools.javac.util.Context;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class SetStatement implements JmlExtension.Statement {
+public class SetStatement extends JmlExtension.Statement {
 
     public static final String setID = "set";
     public static final String debugID = "debug";

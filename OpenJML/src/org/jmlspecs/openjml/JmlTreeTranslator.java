@@ -14,6 +14,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeTranslator;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCLambda;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
@@ -292,6 +293,16 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         r.triggers = translate(that.triggers);
         result = r;
         // Not translating: op
+    }
+    
+    @Override
+    public void visitLambda(JCLambda jthat) {
+        JmlLambda that = (JmlLambda)jthat;
+        JmlLambda r = that;
+        r.params = translate(that.params);
+        r.body = translate(that.body);
+        r.jmlType = translate(that.jmlType);
+        result = r;
     }
 
     @Override

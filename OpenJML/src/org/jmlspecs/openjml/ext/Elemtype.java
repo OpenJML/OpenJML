@@ -43,7 +43,9 @@ public class Elemtype extends ExpressionExtension {
             JmlTokenKind.BSELEMTYPE, JmlTokenKind.BSTYPEOF,
             JmlTokenKind.BSOLD, JmlTokenKind.BSPAST, JmlTokenKind.BSPRE, JmlTokenKind.BSNOWARN, JmlTokenKind.BSNOWARNOP,
             JmlTokenKind.BSPOST, JmlTokenKind.BSASSIGNS,
-            JmlTokenKind.BSWARN, JmlTokenKind.BSWARNOP}; }
+            JmlTokenKind.BSWARN, JmlTokenKind.BSWARNOP,
+            JmlTokenKind.BSBIGINT_MATH, JmlTokenKind.BSSAFEMATH, JmlTokenKind.BSJAVAMATH
+            }; }
     
     @Override
     public IJmlClauseType[] clauseTypes() {

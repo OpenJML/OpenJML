@@ -32,7 +32,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
-public class TypeRepresentsClauseExtension implements JmlExtension.TypeClause {
+public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
 
     public static final String representsID = "represents";
     
@@ -86,7 +86,7 @@ public class TypeRepresentsClauseExtension implements JmlExtension.TypeClause {
             } else {
                 parser.nextToken();
             }
-            if (id == null) return null;
+//            if (id == null) return null;
             if (mods == null) mods = jmlF.at(pp).Modifiers(0);
             JmlTypeClauseRepresents tcl = parser.to(jmlF.at(pp).JmlTypeClauseRepresents(
                     mods, id, suchThat, e));

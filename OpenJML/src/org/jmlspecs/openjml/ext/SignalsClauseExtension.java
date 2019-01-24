@@ -5,6 +5,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.LPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
+import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseType;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
@@ -26,12 +27,17 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Name;
 
-public class SignalsClauseExtension implements JmlExtension.MethodClause {
+public class SignalsClauseExtension extends JmlExtension.MethodClause {
     
     public static final String signalsID = "signals";
     
     public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
             signalsClause }; }
+    
+    public void register() {
+        Extensions.typeMethodClauses.put("exsures",signalsClause);
+        Extensions.statementMethodClauses.put("exsures",signalsClause);
+    }
     
     public static final IJmlClauseType signalsClause = new IJmlClauseType.MethodClause() {
         @Override
@@ -47,10 +53,10 @@ public class SignalsClauseExtension implements JmlExtension.MethodClause {
                 error(mods, "jml.message", "A " + keyword + " clause may not have modifiers");
                 return null;
             }
-            init(parser);
-            
             int pp = parser.pos();
             int pe = parser.endPos();
+            init(parser);
+            
             
             scanner.setJmlKeyword(false);
             parser.nextToken();

@@ -38,7 +38,7 @@ import com.sun.tools.javac.util.ListBuffer;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class ShowStatement implements JmlExtension.Statement {
+public class ShowStatement extends JmlExtension.Statement {
 
     public static final String showID = "show";
     
@@ -57,17 +57,17 @@ public class ShowStatement implements JmlExtension.Statement {
         public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
             int pp = parser.pos();
             int pe = parser.endPos();
+            init(parser);
             if (JmlOption.isOption(context, JmlOption.STRICT)) {
                 log.warning(pp,"jml.not.strict","show statement");
             }
-            init(parser);
             
             
             scanner.setJmlKeyword(false);
             parser.nextToken();
 
             ListBuffer<JCExpression> expressions = new ListBuffer<>();
-            while (parser.token().kind != TokenKind.SEMI && parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
+            while (parser.token().kind != TokenKind.SEMI && parser.token().ikind != JmlTokenKind.ENDJMLCOMMENT) {
                 // Only expressions are allowed -
                 // but JML constructs are allowed.
                 //inJmlDeclaration = true;
@@ -80,7 +80,7 @@ public class ShowStatement implements JmlExtension.Statement {
                 }
             }
             JmlStatementShow st = toP(jmlF.at(pp).JmlStatementShow(showClause,expressions.toList()));
-            wrapup(st, clauseType, true);
+            wrapup(st, clauseType, false);
 //                scanner.setJmlKeyword(true);
 //                if (parser.token().kind == TokenKind.SEMI) {
 //                    parser.accept(TokenKind.SEMI);

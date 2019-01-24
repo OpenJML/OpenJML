@@ -61,7 +61,7 @@ public class Test {
 		//@ inlined_loop;
 		st.forEachOrdered(v -> putAtI(arr,v));
 
-		//@ show ii, st._length, st.count(); 
+		//@ show ii, st.values.length, st.count(); 
 		//@ assert ii == st.count();
 		
 		//@ assert arr[0] == 1;

@@ -1046,7 +1046,7 @@ public class Attr extends JCTree.Visitor {
         }
 
         VarSymbol v = tree.sym;
-        if (v == null) return; // OPENJML - marked a duplicate
+        if (v == null) return; // OPENJML - a duplicate declaration
         Lint lint = env.info.lint.augment(v);
         Lint prevLint = chk.setLint(lint);
 

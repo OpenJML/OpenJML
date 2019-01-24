@@ -239,7 +239,14 @@ public class JmlTreeMatch extends JmlTreeScanner {
         top = t.meth;
         scan(tree.meth);
         //top = t.args;  // FIXME
-        scan(tree.args);
+        List<? extends JCTree> m = t.args;
+        for (List<? extends JCTree> l = tree.args; l.nonEmpty(); l = l.tail) {
+            if (!m.nonEmpty()) nomatch();
+            top = m.head;
+            scan(l.head);
+            m = m.tail;
+        }
+        top = t;
     }
 
 //    public void visitNewClass(JCNewClass tree) {  FIXME
