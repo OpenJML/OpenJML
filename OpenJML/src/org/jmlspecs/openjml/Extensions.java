@@ -129,6 +129,7 @@ public class Extensions {
             MethodDeclClauseExtension.class, 
             SignalsClauseExtension.class, 
             SignalsOnlyClauseExtension.class, 
+            ChooseClause.class, 
             
             // Statements
             EndStatement.class, 

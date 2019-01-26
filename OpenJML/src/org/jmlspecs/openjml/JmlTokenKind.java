@@ -134,11 +134,11 @@ public enum JmlTokenKind implements ITokenKind {
 //    CAPTURES("captures"),  // Keep this one last
     
     // These are only in model programs
-    CHOOSE("choose"),
-    CHOOSE_IF("choose_if"),
+//    CHOOSE("choose"),
+//    CHOOSE_IF("choose_if"),
 //    BREAKS("breaks"),
 //    CONTINUES("continues"),
-    OR("or"),
+//    OR("or"),
 //    RETURNS("returns"),
     
     // Other misc

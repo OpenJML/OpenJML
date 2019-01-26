@@ -9425,7 +9425,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         if (ex instanceof JmlSingleton) ex = treeutils.trueLit;
                                         JCVariableDecl vdo = ((JmlMethodClauseSignals)clause).vardef;
                                         Type vdtype = syms.exceptionType;
-                                        if (vdo != null && !treeutils.isFalseLit(ex) && exceptionDeclCall != null) {
+                                        if (vdo != null && vdo.name != null && !treeutils.isFalseLit(ex) && exceptionDeclCall != null) {
                                             JCIdent exceptionId = treeutils.makeIdent(clause.pos,exceptionDeclCall.sym);
                                             JCExpression tc = M.at(vdo).TypeCast(vdo.type, exceptionId);
                                             JCVariableDecl vd = treeutils.makeVarDef(vdo.type,vdo.name,vdo.sym.owner, esc ? exceptionId : tc);
@@ -12714,7 +12714,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK // FIXME - needs work
     @Override
     public void visitJmlChoose(JmlChoose that) {
-        result = M.at(that).JmlChoose(that.token,convert(that.orBlocks),convert(that.elseBlock)).setType(that.type);
+        result = M.at(that).JmlChoose(that.keyword,that.clauseType,convert(that.orBlocks),convert(that.elseBlock)).setType(that.type);
     }
     
     // FIXME - review this

@@ -31,6 +31,7 @@ import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignals;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
@@ -1047,9 +1048,9 @@ public class JmlSpecs {
                     com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSNOTHING)));
             JmlMethodClauseSignals sig = M.at(pos).JmlMethodClauseSignals("signals", signalsClause, null, JmlTreeUtils.instance(context).falseLit);
             JCExpression res = M.at(pos).JmlSingleton(JmlTokenKind.BSRESULT);
-            JCBinary resnn = treeutils.makeNotNull(pos,res);
             res.setType(((Type.MethodType)sym.type).restype);
-            JmlMethodClause en = M.at(pos).JmlMethodClauseExpr("ensures", ensuresClause, resnn);
+            JCBinary resnn = treeutils.makeNotNull(pos,res);
+            JmlMethodClauseExpr en = M.at(pos).JmlMethodClauseExpr("ensures", ensuresClause, resnn);
             List<Symbol> elems = sym.owner.getEnclosedElements();
             int count = 0;
             for (Symbol s: elems) if ((s.flags() & Flags.ENUM) != 0 && s instanceof VarSymbol) {
@@ -1067,53 +1068,46 @@ public class JmlSpecs {
                 //    signals() false;
                 //    ensures \result != null;
                 //    ensures \result.length == <number of elements in enum>
-                //    for the ith enum item    ensures \result.get(i) == item
+                //    for the ith enum item    ensures _JMLvalues[i] == item   // TODO
                 
                 Name nv = names.fromString("_JMLvalues");
                 JCFieldAccess valf = treeutils.makeSelect(pos, treeutils.makeIdent(pos, sym.owner), nv);
+                valf.type = res.type;
                 for (Symbol s: sym.owner.getEnclosedElements()) {
                     if (s.name == nv) {
                         valf.sym = s;
                     }
                 }
-//<<<<<<< HEAD
-//                JCExpression fa = treeutils.makeArrayLength(pos, res);
-//                JCBinary len = M.at(pos).Binary(JCTree.Tag.EQ, fa, treeutils.makeIntLiteral(pos,count).setType(syms.intType));
-//                len.operator = treeutils.inteqSymbol;
-//                len.setType(syms.booleanType);
-//                en = new JmlTree.JmlMethodClauseExpr(pos, ensuresID, ensuresClause,len);
-//                clauses = clauses.append(en);
-//                JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false,JmlTokenKind.BEHAVIOR,null,clauses,null);
-//                mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
-//                return mspecs;
-//=======
-                valf.type = res.type;
+                JCExpression fa = treeutils.makeArrayLength(pos, res); // \result.length
+                JCBinary len = M.at(pos).Binary(JCTree.Tag.EQ, fa, treeutils.makeIntLiteral(pos,count).setType(syms.intType));
+                len.operator = treeutils.inteqSymbol;
+                len.setType(syms.booleanType);  // len: // \result.length == [[count]]
+                JmlMethodClauseExpr enn = new JmlTree.JmlMethodClauseExpr(pos, ensuresID, ensuresClause,len); // ensures \result.length == [[count]]
                 JCExpression val = treeutils.makeEqObject(pos, res, valf);
                 // ensures \result == <Enum>._JMLvalues;
                 JmlMethodClause cval = M.at(pos).JmlMethodClauseExpr(ensuresID, ensuresClause,val);
-                clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig,clpa,cval);
-                // FIXME - need to add a helper annotation
+                clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,enn,clp,clpa,sig,cval);
+                // FIXME - need to add a helper, pure annotation
                 
             } else if (sym.name.equals(names.valueOf)) {
                 // FIXME - add a disjunction of all possibilities?
                 // FIXME - might throw an exception?
-                res = M.at(pos).JmlSingleton(JmlTokenKind.BSRESULT);
-                resnn = treeutils.makeNotNull(pos,res);
-//=======
-//                // ensures arg != null && \result != null;
-//                // assignable \nothing;
-//                // accessible \nothing;
-//                // signals (NullPointerException) arg == null;
-//                // signals_only NullPointerException, IllegalArgumentException;
-//                VarSymbol arg = sym.params().get(0); 
-//                JCExpression argnn = treeutils.makeNotNull(pos,treeutils.makeIdent(pos, arg));
-//                argnn = treeutils.makeAnd(pos, argnn, resnn);
-//                en = M.at(pos).JmlMethodClauseExpr(JmlTokenKind.ENSURES,argnn);
-//                JCExpression argnull = treeutils.makeEqNull(pos,treeutils.makeIdent(pos, arg));
-//>>>>>>> refs/heads/development
+                // Default specifications:
+                //   ensures arg != null && \result != null;
+                //   assignable \nothing;
+                //   accessible \nothing;
+                //   signals (NullPointerException) arg == null;
+                //   signals_only NullPointerException, IllegalArgumentException;
+                VarSymbol arg = sym.params().get(0); 
+                JCExpression argnn = treeutils.makeNotNull(pos,treeutils.makeIdent(pos, arg));
+                argnn = treeutils.makeAnd(pos, argnn, resnn);
+                en.expression = argnn;
+                JCExpression argnull = treeutils.makeEqNull(pos,treeutils.makeIdent(pos, arg));
+                sig.expression = argnull;
+                
                 Type npeType = ClassReader.instance(context).enterClass(names.fromString("java.lang.NullPointerException")).type;
                 JCVariableDecl vd = treeutils.makeVarDef(npeType, null, sym, pos);
-                sig = M.at(pos).JmlMethodClauseSignals(signalsID, signalsClause, vd, resnn);
+                sig = M.at(pos).JmlMethodClauseSignals(signalsID, signalsClause, vd, argnull);
                 JmlMethodClauseSignalsOnly sigo = M.at(pos).JmlMethodClauseSignalsOnly(signalsOnlyID, signalsOnlyClause, com.sun.tools.javac.util.List.<JCExpression>of(M.Type(npeType),M.Type(syms.illegalArgumentExceptionType)));
                 clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,clp,clpa,sig,sigo);
             } else if (sym.name.equals(names.ordinal)) {
@@ -1138,6 +1132,7 @@ public class JmlSpecs {
             return mspecs;
             
         }
+        
 
         // Non-special case. Default specs are
         //   <same access as method> behavior

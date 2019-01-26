@@ -84,7 +84,6 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         JmlChoose r = that;
         r.orBlocks = translate(that.orBlocks);
         r.elseBlock = translate(that.elseBlock);
-        // Not translating: token
         result = r;
     }
 

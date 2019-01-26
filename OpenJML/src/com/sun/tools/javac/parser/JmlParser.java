@@ -16,6 +16,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
+import org.jmlspecs.openjml.ext.ChooseClause;
 import org.jmlspecs.openjml.ext.EndStatement;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.ext.InlinedLoopStatement;
@@ -69,7 +70,7 @@ public class JmlParser extends JavacParser {
     public JmlTree.Maker    jmlF;
 
     /** True only when we are parsing within a model program */
-    protected boolean       inModelProgram = false;
+    public boolean       inModelProgram = false;
 
     /**
      * A constructor for a new parser, but you should get new instances of the
@@ -112,6 +113,10 @@ public class JmlParser extends JavacParser {
     
     public JmlTokenKind jmlTokenKind() {
         return token.ikind instanceof JmlTokenKind ? (JmlTokenKind)token.ikind : null;
+    }
+    
+    public boolean tokenIsId(String id) {
+        return token.kind == TokenKind.IDENTIFIER && token.name().toString().equals(id);
     }
 
     /** Returns the scanner being used by the parser */
@@ -284,11 +289,11 @@ public class JmlParser extends JavacParser {
         JCExpression disj = null;
         int num = 0;
         java.util.List<JCExpression> axiomExpressions = new java.util.LinkedList<>();
+        long expected = Flags.PUBLIC | Flags.STATIC | Flags.FINAL;
         for (JCTree d: cd.defs) {
             if (!(d instanceof JCVariableDecl)) continue;
             JCVariableDecl decl = (JCVariableDecl)d;
             long flags = decl.mods.flags;
-            long expected = Flags.PUBLIC | Flags.STATIC | Flags.FINAL;
             if ((flags & expected) != expected || decl.init == null) continue;
             if (!(decl.vartype instanceof JCIdent && ((JCIdent)decl.vartype).name.equals(cd.name))) continue;
             JCExpression id = jmlF.at(d.pos).Ident(decl.getName());
@@ -300,13 +305,13 @@ public class JmlParser extends JavacParser {
             disj = disj == null ? ex : jmlF.Binary(JCTree.Tag.OR,disj,ex);
             ex = jmlF.Select(id, names.ordinal);
             ex = jmlF.Binary(JCTree.Tag.EQ,ex,jmlF.Literal(num));
-            axiomExpressions.add(ex);
+            axiomExpressions.add(ex); // <e>.ordinal == [[num]]
             ex = jmlF.Indexed(jmlF.Ident("_JMLvalues"), jmlF.Literal(num));
             ex = jmlF.Binary(JCTree.Tag.EQ,ex,id);
-            axiomExpressions.add(ex);
+            axiomExpressions.add(ex); // _JMLvalues[ [[num]] ] = <e>
             ex = jmlF.Select(id, names._name);
             ex = jmlF.Binary(JCTree.Tag.EQ,ex,jmlF.Literal(decl.getName().toString())); 
-            axiomExpressions.add(ex);
+            axiomExpressions.add(ex); // <e>.names == <name>
             argsn.add(jmlF.Select(jmlF.Ident(decl.getName()), names._name));
             num++;
         }
@@ -319,11 +324,12 @@ public class JmlParser extends JavacParser {
             utils.setJML(vd.mods);
             JCAnnotation a = tokenToAnnotationAST(JmlTokenKind.MODEL, cd.pos, cd.pos);  // FIXME -is position correct?
             vd.mods.annotations =  vd.mods.annotations.append(a);
+            // declare _JMLvalues as model field
             newdefs.add(vd);
             JCExpression ex = jmlF.Binary(Tag.NE, jmlF.Ident(vd.name), F.Literal(TypeTag.BOT,null));
-            // values() is not null
+            // _JMLvalues is not null
             JmlTypeClauseExpr axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0), axiomID,axiomClause,ex);
-            newdefs.add(axiom);
+            newdefs.add(axiom); 
             ex = jmlF.JmlMethodInvocation(JmlTokenKind.BSDISTINCT,args.toList());
             // The enum constants are all distinct and distinct from NULL.
             axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0),axiomID,axiomClause,ex);
@@ -752,12 +758,12 @@ public class JmlParser extends JavacParser {
                     st = parseRefining(pos,jtoken);
                     needSemi = false;
 
-                } else if (inModelProgram && jtoken == JmlTokenKind.CHOOSE) {
-                    st = parseChoose();
-                    return toP(st); // FIXME - is this the correct end position?
-                } else if (inModelProgram && jtoken == JmlTokenKind.CHOOSE_IF) {
-                    st = parseChooseIf();
-                    return toP(st); // FIXME - is this the correct end position?
+//                } else if (inModelProgram && jtoken == JmlTokenKind.CHOOSE) {
+//                    st = parseChoose();
+//                    return toP(st); // FIXME - is this the correct end position?
+//                } else if (inModelProgram && jtoken == JmlTokenKind.CHOOSE_IF) {
+//                    st = parseChooseIf();
+//                    return toP(st); // FIXME - is this the correct end position?
 //                } else if (inModelProgram && jtoken == JmlTokenKind.INVARIANT) {
 //                    JCTree t = parseInvariantInitiallyAxiom(null);
 //                    st = jmlF.JmlModelProgramStatement(t);
@@ -902,42 +908,24 @@ public class JmlParser extends JavacParser {
     }
 
     /** Parses a choose statement (the choose token is already read) */
-    public JmlChoose parseChoose() {
-        JmlTokenKind jt = jmlTokenKind();
-        nextToken();
-        ListBuffer<JCBlock> orBlocks = new ListBuffer<JCBlock>();
-        orBlocks.append(block()); // FIXME - here and below - what if block()
-                                  // returns null.
-        while (jmlTokenKind() == JmlTokenKind.OR) {
-            nextToken();
-            orBlocks.append(block());
-        }
-        return jmlF.JmlChoose(jt, orBlocks.toList(), null);
-    }
+//    public JmlChoose parseChoose() {
+//        int pp = pos();
+//        nextToken();
+//        ListBuffer<JCBlock> orBlocks = new ListBuffer<JCBlock>();
+//        orBlocks.append(block()); // FIXME - here and below - what if block()
+//                                  // returns null.
+//        while (jmlTokenKind() == JmlTokenKind.OR) {
+//            nextToken();
+//            orBlocks.append(block());
+//        }
+//        JCBlock elseBlock = null;
+//        if (token.kind == ELSE) {
+//            nextToken();
+//            elseBlock = block();
+//        }
+//        return toP(jmlF.at(pp).JmlChoose("choose", ChooseClause.chooseClause, orBlocks.toList(), elseBlock));
+//    }
 
-    /**
-     * Parses a choose_if statement (the choose_if token is already read);
-     * choose_if statements differ from choose statements in that the first
-     * statement of a choose_if must be an assume statement. This is not checked
-     * here. (FIXME - check for the assume?)
-     */
-
-    public JmlChoose parseChooseIf() {
-        JmlTokenKind jt = jmlTokenKind();
-        ListBuffer<JCBlock> orBlocks = new ListBuffer<JCBlock>();
-        JCBlock elseBlock = null;
-        nextToken();
-        orBlocks.append(block());
-        while (jmlTokenKind() == JmlTokenKind.OR) {
-            nextToken();
-            orBlocks.append(block());
-        }
-        if (token.kind == ELSE) {
-            nextToken();
-            elseBlock = block();
-        }
-        return jmlF.JmlChoose(jt, orBlocks.toList(), elseBlock);
-    }
 
     /**
      * Prints an AST using JmlDebugTreePrinter

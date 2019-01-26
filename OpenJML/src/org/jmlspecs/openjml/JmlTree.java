@@ -99,7 +99,7 @@ public class JmlTree implements IJmlTree {
         JmlAnnotation TypeAnnotation(JCTree annotationType, List<JCExpression> args);
         JmlBinary JmlBinary(JmlTokenKind t, JCTree.JCExpression left, JCTree.JCExpression right);
         JmlBlock Block(long flags, List<JCStatement> stats);
-        JmlChoose JmlChoose(JmlTokenKind token, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock);
+        JmlChoose JmlChoose(String keyword, IJmlClauseType clauseType, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock);
         JmlMethodSig JmlConstraintMethodSig(JCExpression expr, List<JCExpression> argtypes);
         JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlEnhancedForLoop JmlEnhancedForLoop(JCEnhancedForLoop loop, List<JmlStatementLoop> loopSpecs);
@@ -652,9 +652,14 @@ public class JmlTree implements IJmlTree {
             return t;
         }
         
+//        @Override
+//        public JmlChoose JmlChoose(JmlTokenKind token, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock) {
+//            return new JmlChoose(pos,token,orBlocks,elseBlock);
+//        }
+        
         @Override
-        public JmlChoose JmlChoose(JmlTokenKind token, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock) {
-            return new JmlChoose(pos,token,orBlocks,elseBlock);
+        public JmlChoose JmlChoose(String keyword, IJmlClauseType clauseType, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock) {
+            return new JmlChoose(pos,keyword,clauseType,orBlocks,elseBlock);
         }
         
         @Override
@@ -988,14 +993,16 @@ public class JmlTree implements IJmlTree {
     /** This class represents model program choose and choose_if statements. */
     public static class JmlChoose extends JmlAbstractStatement {
 
-        public JmlTokenKind token;
+        public String keyword;
+        public IJmlClauseType clauseType;
         public List<JCBlock> orBlocks;
         /*@Nullable*/ public JCBlock elseBlock;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlChoose(int pos, JmlTokenKind token, List<JCBlock> orBlocks, /*@Nullable*/ JCBlock elseBlock) {
+        protected JmlChoose(int pos, String keyword, IJmlClauseType clauseType, List<JCBlock> orBlocks, /*@Nullable*/ JCBlock elseBlock) {
             this.pos = pos;
-            this.token = token;
+            this.keyword = keyword;
+            this.clauseType = clauseType;
             this.orBlocks = orBlocks;
             this.elseBlock = elseBlock;
         }

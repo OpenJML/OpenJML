@@ -80,4 +80,30 @@ public class EndStatement extends JmlExtension.Statement {
         }
     };
     
+//    public static final IJmlClauseType orClause = new IJmlClauseType.Statement() {
+//        public String name() { return orID; }
+//     
+//        @Override
+//        public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+//            init(parser);
+//
+//            int pp = parser.pos();
+//            int pe = parser.endPos();
+//
+//            scanner.setJmlKeyword(false);
+//            parser.nextToken();
+//
+//            JmlStatement st = toP(jmlF.at(pp).JmlStatement(endClause, null));
+//            wrapup(st,clauseType,true);
+//            return st;
+//
+//        }
+//
+//        @Override
+//        public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env) {
+//            // TODO Auto-generated method stub
+//            return null;
+//        }
+//    };
+    
 }

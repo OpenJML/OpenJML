@@ -100,8 +100,8 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
     }
     
     public JCTree visitJmlChoose(JmlChoose that, Void p) {
-        // FIXME - needs implementation
-        return null;
+        JmlChoose copy = M.at(that.pos).JmlChoose(that.keyword, that.clauseType, copy(that.orBlocks), copy(that.elseBlock));
+        return copy;
     }
 
     public JCTree visitJmlClassDecl(JmlClassDecl that, Void p) {

@@ -943,22 +943,32 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlChoose(JmlChoose that) {
         try { // FIXME - this needs testing
             align();
-            print(JmlTokenKind.CHOOSE.internedName());
+            print(that.keyword);
             println();
             indent();
             Iterator<JCBlock> iter = that.orBlocks.iterator();
             align();
             iter.next().accept(this);
             while (iter.hasNext()) {
+                println();
                 align();
-                print(JmlTokenKind.CHOOSE.internedName());
+                print("or");
                 println();
                 align();
                 iter.next().accept(this);
             }
+            println();
+            align();
+            if (that.elseBlock != null) {
+                print("else");
+                println();
+                align();
+                that.elseBlock.accept(this);
+            }
+            println();
+            undent();
         
         } catch (IOException e) { perr(that,e); }
-        // FIXME - fill in
     }
 
     // FIXME - clean this up
