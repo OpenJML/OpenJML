@@ -23,6 +23,7 @@ import static com.sun.tools.javac.tree.JCTree.Tag.ASSIGN;
 import static org.jmlspecs.openjml.JmlTokenKind.*;
 import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
+import static org.jmlspecs.openjml.ext.RequiresClause.*;
 import static org.jmlspecs.openjml.ext.MethodDeclClauseExtension.*;
 import static org.jmlspecs.openjml.ext.MethodConditionalClauseExtension.*;
 import static org.jmlspecs.openjml.ext.CallableClauseExtension.*;
@@ -1642,7 +1643,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         endPosTable.storeEnd(id, endPos);
                         JCExpression e = treeutils.makeBinary(treeForPos,JCTree.Tag.NE,id,nulllit);
                         endPosTable.storeEnd(e, endPos);
-                        JmlMethodClauseExpr clause = jmlMaker.JmlMethodClauseExpr(MethodExprClauseExtensions.requiresID, MethodExprClauseExtensions.requiresClause,e);
+                        JmlMethodClauseExpr clause = jmlMaker.JmlMethodClauseExpr(requiresID, requiresClause,e);
                         clause.pos = e.pos;
                         clause.sourcefile = decl.source(); // FIXME - should be set by where the nonnull annotation is
                         endPosTable.storeEnd(clause,endPos);

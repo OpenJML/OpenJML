@@ -17,6 +17,7 @@ import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
+import static org.jmlspecs.openjml.ext.RequiresClause.*;
 import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
@@ -533,8 +534,8 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
         }else{
             clause = M.JmlMethodClauseExpr
             (
-                    MethodExprClauseExtensions.requiresID,  
-                    MethodExprClauseExtensions.requiresClause,  
+                    requiresID,  
+                    requiresClause,  
                     p
             );
 

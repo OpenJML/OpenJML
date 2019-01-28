@@ -5,17 +5,12 @@ import org.jmlspecs.openjml.JmlExtension;
 
 public class MethodExprClauseExtensions extends JmlExtension.MethodClause {
     
-    public static final String requiresID = "requires";
     public static final String ensuresID = "ensures";
     public static final String divergesID = "diverges";
     public static final String whenID = "when";
     public static final String continuesID = "continues";
     public static final String breaksID = "breaks";
     public static final String returnsID = "returns";
-    
-    public static final IJmlClauseType requiresClause = new MethodClauseExprType(requiresID) {
-        public boolean isPreconditionClause() { return true; }
-    };
     
     public static final IJmlClauseType ensuresClause = new MethodClauseExprType(ensuresID) {
         public boolean oldNoLabelAllowed() { return true; }
@@ -42,7 +37,7 @@ public class MethodExprClauseExtensions extends JmlExtension.MethodClause {
     
     @Override
     public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
-            requiresClause, ensuresClause, divergesClause, whenClause,
+            ensuresClause, divergesClause, whenClause,
             continuesClause, breaksClause, returnsClause}; }
     
 }

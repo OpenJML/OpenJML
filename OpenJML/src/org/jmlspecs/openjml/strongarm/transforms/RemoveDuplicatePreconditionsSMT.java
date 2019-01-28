@@ -8,6 +8,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
+import static org.jmlspecs.openjml.ext.RequiresClause.requiresClause;
 import org.jmlspecs.openjml.strongarm.translators.SubstitutionEQProverSMT;
 
 import com.sun.tools.javac.tree.JCTree;
@@ -51,7 +52,7 @@ public class RemoveDuplicatePreconditionsSMT extends RemoveDuplicatePrecondition
             // will be taken into account. For example, while a > 0 => a == 3 mahy not be generally true, it may be true
             // for the given method. A human would see this and not write it in the preconditions, thus we aim to 
             // filter this sort of thing out. 
-            if(!(clauses.head instanceof JmlMethodClauseExpr) || clauses.head.clauseType != MethodExprClauseExtensions.requiresClause || new SubstitutionEQProverSMT(context).checkImplies(filterSet, (JmlMethodClauseExpr)clauses.head, currentMethod)==false){
+            if(!(clauses.head instanceof JmlMethodClauseExpr) || clauses.head.clauseType != requiresClause || new SubstitutionEQProverSMT(context).checkImplies(filterSet, (JmlMethodClauseExpr)clauses.head, currentMethod)==false){
                 if(replacedClauses == null){
                     replacedClauses = List.of(clauses.head);
                 }else{

@@ -15,6 +15,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
+import static org.jmlspecs.openjml.ext.RequiresClause.requiresClause;
 
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
@@ -120,7 +121,7 @@ public class RemoveDuplicatePreconditions extends JmlTreeScanner {
         
         for(List<JmlMethodClause> clauses = block.clauses; clauses.nonEmpty(); clauses = clauses.tail){
                         
-            if(clauses.head.clauseType != MethodExprClauseExtensions.requiresClause || filterSet.contains(clauses.head.toString())==false){
+            if(clauses.head.clauseType != requiresClause || filterSet.contains(clauses.head.toString())==false){
                 if(replacedClauses == null){
                     replacedClauses = List.of(clauses.head);
                 }else{
@@ -162,7 +163,7 @@ public class RemoveDuplicatePreconditions extends JmlTreeScanner {
                 JmlMethodClauseExpr clauseExpr = (JmlMethodClauseExpr)clauses.head;
                 
                 // we want to filter out all requires clauses. 
-                if(clauseExpr.clauseType == MethodExprClauseExtensions.requiresClause){
+                if(clauseExpr.clauseType == requiresClause){
                     addFilterAtBlock(tree, clauseExpr);
                 }
             }

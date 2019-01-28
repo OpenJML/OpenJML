@@ -30,6 +30,7 @@ import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.Utils.JmlNotImplementedException;
 import org.jmlspecs.openjml.ext.Arithmetic;
+import static org.jmlspecs.openjml.ext.RequiresClause.*;
 import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeRWClauseExtension.*;
 import static org.jmlspecs.openjml.ext.ShowStatement.*;
@@ -4004,7 +4005,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 saveMapping(decl, id);
                                 clauseIds.put(clause, id);
                             }
-                        } else if (ct == MethodExprClauseExtensions.requiresClause) {
+                        } else if (ct == requiresClause) {
                             JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
                             addTraceableComment(ex,clause.toString());
                             JCIdent nextPreExpr;
@@ -4910,7 +4911,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCExpression pre = null;
                         JCExpression post = null;
                         for (JmlMethodClause clause: cs.clauses) {
-                            if (clause.clauseType == MethodExprClauseExtensions.requiresClause) {
+                            if (clause.clauseType == requiresClause) {
                                 JCExpression p = convertJML(((JmlMethodClauseExpr)clause).expression);
                                 pre = pre == null ? p : treeutils.makeAnd(clause.pos, pre, p);
                             } else if (clause.clauseType == MethodExprClauseExtensions.ensuresClause) {
@@ -4963,7 +4964,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCExpression pre = null;
                         JCExpression post = null;
                         for (JmlMethodClause clause: cs.clauses) {
-                            if (clause.clauseType == MethodExprClauseExtensions.requiresClause) {
+                            if (clause.clauseType == requiresClause) {
                                 JCExpression p = convertJML(((JmlMethodClauseExpr)clause).expression);
                                 pre = pre == null ? p : treeutils.makeAnd(clause.pos, pre, p);
                             } else if (clause.clauseType == MethodExprClauseExtensions.ensuresClause) {
@@ -8499,7 +8500,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             clauseIds.put(clause, id);
 
                                         }
-                                } else if (ct == MethodExprClauseExtensions.requiresClause) {
+                                } else if (ct == requiresClause) {
                                     // FIXME - need to include the requires expression in the condition for the sake of old expressions - also below
                                         JmlMethodClauseExpr mce = (JmlMethodClauseExpr)clause;
 //                                        JCExpression e = convertJML(mce.expression,pre,false); // Might throw an exception
@@ -17047,7 +17048,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         currentStatements = ignore;
                         for (JmlMethodClause clause : cs.clauses) {
                             try {
-                                if (clause.clauseType == MethodExprClauseExtensions.requiresClause) {
+                                if (clause.clauseType == requiresClause) {
                                     if (mcc == null) mcc = clause;
                                     JmlMethodClauseExpr mce = (JmlMethodClauseExpr)clause;
                                     // convertJML will use paramActuals

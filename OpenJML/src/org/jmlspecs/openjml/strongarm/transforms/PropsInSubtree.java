@@ -2,7 +2,7 @@ package org.jmlspecs.openjml.strongarm.transforms;
 
 import static org.jmlspecs.openjml.ext.AssignableClauseExtension.assignableClause;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.ensuresClause;
-import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.requiresClause;
+import static org.jmlspecs.openjml.ext.RequiresClause.requiresClause;
 
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTreeScanner;

@@ -15,6 +15,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
+import static org.jmlspecs.openjml.ext.RequiresClause.requiresClause;
 
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
@@ -147,7 +148,7 @@ public class RemoveLocals extends JmlTreeScanner {
                 }
                
                 
-                if(clause.clauseType != MethodExprClauseExtensions.requiresClause && attr.formals.contains(ident.name) &&  ((JCBinary)mExpr.expression).lhs.type!=null && ((JCBinary)mExpr.expression).lhs.type.getKind() instanceof TypeKind){
+                if(clause.clauseType != requiresClause && attr.formals.contains(ident.name) &&  ((JCBinary)mExpr.expression).lhs.type!=null && ((JCBinary)mExpr.expression).lhs.type.getKind() instanceof TypeKind){
                     if(verbose){
                         log.getWriter(WriterKind.NOTICE).println("[RemoveLocals] Will remove clause due to formal+primative variable rules: " + clause.toString());
                     }
