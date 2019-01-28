@@ -64,6 +64,10 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(that.rhs);
     }
     
+    public void visitJmlChained(JmlChained that) {
+        for (JCTree.JCBinary b: that.conjuncts) scan(b);
+    }
+    
     public void visitJmlBlock(JmlBlock that) {
         visitBlock(that);
     }

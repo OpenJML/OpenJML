@@ -39,6 +39,7 @@ import com.sun.tools.javac.parser.Tokens.ITokenKind;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
+import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
 import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
@@ -99,6 +100,7 @@ public class JmlTree implements IJmlTree {
         JmlAnnotation TypeAnnotation(JCTree annotationType, List<JCExpression> args);
         JmlBinary JmlBinary(JmlTokenKind t, JCTree.JCExpression left, JCTree.JCExpression right);
         JmlBlock Block(long flags, List<JCStatement> stats);
+        JmlChained JmlChained(List<JCBinary> conjuncts);
         JmlChoose JmlChoose(String keyword, IJmlClauseType clauseType, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock);
         JmlMethodSig JmlConstraintMethodSig(JCExpression expr, List<JCExpression> argtypes);
         JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs);
@@ -429,6 +431,12 @@ public class JmlTree implements IJmlTree {
         @Override
         public JmlBinary JmlBinary(JmlTokenKind t, JCTree.JCExpression left, JCTree.JCExpression right) {
             return new JmlBinary(pos,t,left,right);
+        }
+        
+        /** Creates a JML chained operation */
+        @Override
+        public JmlChained JmlChained(List<JCBinary> conjuncts) {
+            return new JmlChained(conjuncts);
         }
         
         /** Creates a JML method invocation (e.g. for JmlTokens with arguments, such as \typeof) */
@@ -1479,6 +1487,50 @@ public class JmlTree implements IJmlTree {
     
 
         
+    }
+
+    public static class JmlChained extends JmlExpression {
+        public List<JCBinary> conjuncts;
+                
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        protected JmlChained(List<JCBinary> conjuncts) {
+            this.conjuncts = conjuncts;
+        }
+        
+        /** A shallow copy constructor */
+        protected JmlChained(JmlChained that) {
+            this.conjuncts = that.conjuncts;
+            this.type = that.type;
+        }
+        
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlChained(this); 
+            } else {
+                unexpectedVisitor(this,v);
+            }
+        }
+
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlChained(this, d);
+            } else {
+                unexpectedVisitor(this,v);
+                return null;
+            }
+        }
+        
+        @Override
+        public int getStartPosition() {
+            return conjuncts.head.getStartPosition();
+        }
+    
+        @Override
+        public int getEndPosition(EndPosTable table) {
+            return conjuncts.last().getEndPosition(table);
+        }
     }
 
     /** This class represents the method signatures in the constraint type

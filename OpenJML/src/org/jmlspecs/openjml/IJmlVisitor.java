@@ -19,6 +19,7 @@ public interface IJmlVisitor extends IVisitor {
 
     public void visitJmlBinary(JmlBinary that)                     ;
     public void visitJmlBlock(JmlBlock that)                       ;
+    public void visitJmlChained(JmlChained that)                   ;
     public void visitJmlChoose(JmlChoose that)                     ;
     public void visitJmlClassDecl(JmlClassDecl that)               ;
     public void visitJmlCompilationUnit(JmlCompilationUnit that)   ;

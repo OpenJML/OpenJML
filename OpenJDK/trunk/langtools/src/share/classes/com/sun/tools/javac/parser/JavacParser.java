@@ -956,7 +956,7 @@ public class JavacParser implements Parser {
 
         if (t.hasTag(JCTree.Tag.PLUS)) {
             t = foldStrings(t);
-            if (t != null) {  // DRC - FIXME - why is this if-statement added
+            if (t != null) {
                 t = toP(F.at(startPos).Literal(TypeTag.CLASS, t.toString()));
             }
         }

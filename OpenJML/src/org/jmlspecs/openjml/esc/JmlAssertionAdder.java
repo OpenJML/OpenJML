@@ -11371,6 +11371,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         treeutils.copyEndPosition(eresult, that);
     }
     
+    public void visitJmlChained(JmlChained that) {
+        JCExpression lhs = convertExpr(that.conjuncts.head.lhs);
+        JCExpression ba = null;
+        for (JCBinary b: that.conjuncts) {
+            JCExpression rhs = convertExpr(b.rhs);
+            JCBinary bb = M.at(b.pos).Binary(b.opcode,lhs,rhs);
+            bb.operator = b.operator;
+            bb.type = b.type;
+            JCExpression bbb = convertExpr(bb);
+            ba = ba == null ? bbb : treeutils.makeBitAnd(b.pos, ba, bbb);
+            lhs = rhs;
+        }
+        result = eresult = splitExpressions ? newTemp(ba) : ba;
+    }
+    
     /** Returns the AST for (rhs != 0), for the appropriate type */
     public @Nullable JCExpression nonZeroCheck(JCTree that, JCExpression rhs) {
         JCExpression nonzero;
@@ -17416,6 +17431,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         public /*@ nullable */ java.util.List<JmlStatementExpr> visitJmlBinary(JmlBinary that, Void p) {
             // TODO Auto-generated method stub
             return null;
+        }
+
+        @Override
+        public /*@ nullable */ java.util.List<JmlStatementExpr> visitJmlChained(JmlChained that, Void p) {
+            /*@ nullable */ java.util.List<JmlStatementExpr> elhs = that.conjuncts.head.lhs.accept(this, p);
+            /*@ nullable */ java.util.List<JmlStatementExpr> e = elhs;
+            for (JCBinary b: that.conjuncts) { 
+                /*@ nullable */ java.util.List<JmlStatementExpr> erhs = b.rhs.accept(this, p);
+                e = combine(e, erhs);
+            }
+            return e;
         }
 
         @Override

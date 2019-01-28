@@ -3702,7 +3702,10 @@ public class JmlParser extends JavacParser {
             JmlTokenKind topOpJmlToken = jmlTokenKind();
             nextToken(); // S.jmlToken() changes
             odStack[top] = (topOp.kind == INSTANCEOF) ? parseType() : term3();
-            while (top > 0 && prec(topOp.ikind) >= prec(token.ikind)) {
+            // odStack[top] is the next argument; token is the operator after that, as in [topOp] arg [token]
+            // if the precedence of [topOp] is lower than the precedence of [token] we have to read more before constructing expressions
+            int p;
+            while (top > 0 && (p=prec(topOp.ikind)) >= prec(token.ikind)) {
                 if (topOp.kind == CUSTOM) { // <:
                     JCExpression e = jmlF.at(topOp.pos).JmlBinary(topOpJmlToken, odStack[top - 1],
                             odStack[top]);
@@ -3714,19 +3717,76 @@ public class JmlParser extends JavacParser {
                 }
                 top--;
                 topOp = opStack[top];
+                if (p == TreeInfo.ordPrec && prec(token.ikind) < TreeInfo.ordPrec) {
+                    odStack[top] = chain(odStack[top]);
+                }
             }
         }
+        odStack[top] = chain(odStack[top]);
+        
         Assert.check(top == 0);
         t = odStack[0];
 
         if (t.hasTag(JCTree.Tag.PLUS)) {
             t = foldStrings(t);
+// FIXME: The following code is present in JavacParser.term2Rest. However, it turns noinn-string
+// string expressions into string expressions. Can't be correct.
+//            if (t != null) {
+//                t = toP(F.at(startPos).Literal(TypeTag.CLASS, t.toString()));
+//            }
         }
 
         odStackSupply.add(odStack);
         opStackSupply.add(opStack);
         if (bad) return tt;
         return t;
+    }
+    
+    public JCExpression chain(JCExpression e) {
+        JCExpression fe = e;
+        if (!(fe instanceof JCBinary)) return fe;
+        JCBinary be = (JCBinary)e;
+        if (be.opcode == JCTree.Tag.LT || be.opcode == JCTree.Tag.LE) {
+            ListBuffer<JCBinary> args = new ListBuffer<JCBinary>();
+            while (true) {
+                args.prepend(be);
+                fe = be.lhs;
+                if (!(fe instanceof JCBinary)) break;
+                be = (JCBinary)fe;
+                if (!(be.opcode == JCTree.Tag.LT || be.opcode == JCTree.Tag.LE)) {
+                    if (be.opcode == JCTree.Tag.GT || be.opcode == JCTree.Tag.GE) {
+                        jmlwarning(be.pos,"jml.message","Cannot chain comparisons that are in different directions");
+                    } else {
+                        break;
+                    }
+                }
+                args.first().lhs = be.rhs;
+            }
+            if (args.size() == 1) return e;
+            e = jmlF.at(e.pos).JmlChained(args.toList());
+            return e;
+        } else if (be.opcode == JCTree.Tag.GT || be.opcode == JCTree.Tag.GE) {
+            ListBuffer<JCBinary> args = new ListBuffer<JCBinary>();
+            while (true) {
+                args.prepend(be);
+                fe = be.lhs;
+                if (!(fe instanceof JCBinary)) break;
+                be = (JCBinary)fe;
+                if (!(be.opcode == JCTree.Tag.GT || be.opcode == JCTree.Tag.GE)) {
+                    if (be.opcode == JCTree.Tag.LT || be.opcode == JCTree.Tag.LE) {
+                        jmlwarning(be.pos,"jml.message","Cannot chain comparisons that are in different directions");
+                    } else {
+                        break;
+                    }
+                }
+                args.first().lhs = be.rhs;
+            }
+            if (args.size() == 1) return e;
+            e = jmlF.at(e.pos).JmlChained(args.toList());
+            return e;
+        } else {
+            return e;
+        }
     }
 
     /**

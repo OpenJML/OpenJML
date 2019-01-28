@@ -70,6 +70,18 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: op, opcode, operator
         result = r;
     }
+    
+    @Override
+    public void visitJmlChained(JmlChained that) {
+        JmlChained r = copy ? new JmlChained(that) : that;
+        r.conjuncts.head.lhs = translate(that.conjuncts.head.lhs);
+        int i = 0;
+        for (JCTree.JCBinary b: that.conjuncts) {
+            r.conjuncts.get(i).rhs = translate(b.rhs);
+            i++;
+        }
+        result = that;
+    }
 
     @Override
     public void visitJmlBlock(JmlBlock that) {

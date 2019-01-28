@@ -156,6 +156,21 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
     
     @Override
+    public JCTree visitJmlChained(JmlChained that, Void p) {
+        JCExpression lhs = copy(that.conjuncts.head.lhs,p);
+        ListBuffer<JCBinary> c = new ListBuffer<>();
+        for (JCBinary b: that.conjuncts) {
+            JCExpression rhs = copy(b.rhs);
+            JCBinary r = M.at(b.pos).Binary(b.opcode,lhs,rhs);
+            r.operator = b.operator;
+            r.type = b.type;
+            c.add(r);
+            lhs = rhs;
+        }
+        return M.at(that.pos).JmlChained(c.toList());
+    }
+    
+    @Override
     public JCTree visitJmlBlock(JmlBlock that, Void p) {
         JmlBlock r = M.at(that.pos).Block(that.flags,copy(that.stats));
         return r;

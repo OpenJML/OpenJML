@@ -140,6 +140,7 @@ public class JmlTreeUtils {
     final public Symbol orSymbol;
     final public Symbol intbitandSymbol;
     final public Symbol longbitandSymbol;
+    final public Symbol bitandSymbol;
     final public Symbol bitorSymbol;
     final public Symbol notSymbol;
     final public Symbol objecteqSymbol;
@@ -203,6 +204,7 @@ public class JmlTreeUtils {
         orSymbol = findOpSymbol(JCTree.Tag.OR,syms.booleanType);
         intbitandSymbol = findOpSymbol(JCTree.Tag.BITAND,syms.intType);
         longbitandSymbol = findOpSymbol(JCTree.Tag.BITAND,syms.longType);
+        bitandSymbol = findOpSymbol(JCTree.Tag.BITAND,syms.booleanType);
         bitorSymbol = findOpSymbol(JCTree.Tag.BITOR,syms.booleanType);
         notSymbol = findOpSymbol(JCTree.Tag.NOT,syms.booleanType);
         objecteqSymbol = findOpSymbol(JCTree.Tag.EQ,syms.objectType);
@@ -905,6 +907,11 @@ public class JmlTreeUtils {
         if (isFalseLit(rhs) || isTrueLit(lhs)) return lhs;
         if (isFalseLit(lhs) || isTrueLit(rhs)) return rhs;
         return makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,rhs);
+    }
+
+    /** Makes an attributed attributed AST for a non-short-circuit boolean AND expression */
+    public JCExpression makeBitAnd(int pos, JCExpression lhs, JCExpression rhs) {
+        return makeBinary(pos,JCTree.Tag.BITAND,bitandSymbol,lhs,rhs);
     }
 
     /** Makes an attributed attributed AST for a non-short-circuit boolean OR expression */

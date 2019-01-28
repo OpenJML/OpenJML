@@ -166,6 +166,24 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(that,e); }
     }
     
+    public void visitJmlChained(JmlChained that) {
+        try {
+            JCTree.Tag tag = that.conjuncts.head.getTag();
+            int ownprec = TreeInfo.opPrec(tag);
+
+            printExpr(that.conjuncts.head.lhs, ownprec);
+            for (JCBinary b: that.conjuncts) {
+                String opname = operatorName(b.getTag());
+                open(prec, ownprec);
+                print(Strings.space);
+                print(opname);
+                print(Strings.space);
+                printExpr(b.rhs, ownprec);
+                close(prec, ownprec);
+            }
+        } catch (IOException e) { perr(that,e); }
+    }
+    
     public void visitJmlBlock(JmlBlock that) {
         
         if(that.type==null && specOnly){

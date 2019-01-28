@@ -4341,11 +4341,33 @@ public class esc extends EscBase {
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
-                        + "  public void m() {"
-                        + "  //@ ghost int k = 1;"
-                        + "  //@ ghost int k = 2;"
-                        + "  }"
+                        + "  public void m() {\n"
+                        + "  //@ ghost int k = 1;\n"
+                        + "  //@ ghost int k = 2;\n"
+                        + "  }\n"
                         + "}\n"
+                        );
+    }
+
+    @Test
+    public void testChainedCompare() {
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public void m() {\n"
+                        + "  //@ ghost int i = 2;\n"
+                        + "  //@ assert 0 <= i < 10 < 12;\n"
+                        + "  //@ set i = 10;\n"
+                        + "  //@ assert !(0 <= i < 10);\n"
+                        + "  //@ assert 0 <= i < 11 == 2 <= i <= 12;\n"
+                        + "  //@ assert 11 >= i+1 > 1 == 12 >= i > 2;\n"
+                        + "  //@ assert 11 >= i+1 < 12;\n"
+                        + "  //@ assert 11 >= i+1 < 12 == true;\n"
+                        + "  //@ assert 11 >= i+1 > 1 != 12 <= i <= 22;\n"
+                        + "  }\n"
+                        + "}\n"
+                        ,"/tt/TestJava.java:10: warning: Cannot chain comparisons that are in different directions",17
+                        ,"/tt/TestJava.java:11: warning: Cannot chain comparisons that are in different directions",17
                         );
     }
 

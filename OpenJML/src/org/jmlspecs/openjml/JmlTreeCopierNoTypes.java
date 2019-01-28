@@ -142,6 +142,21 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
         return r;
     }
 
+    @Override
+    public JCTree visitJmlChained(JmlChained that, Void p) {
+        JCExpression lhs = copy(that.conjuncts.head.lhs,p);
+        ListBuffer<JCBinary> c = new ListBuffer<>();
+        for (JCBinary b: that.conjuncts) {
+            JCExpression rhs = copy(b.rhs);
+            JCBinary r = M.at(b.pos).Binary(b.opcode,lhs,rhs);
+            r.operator = b.operator;
+            r.type = null;
+            c.add(r);
+            lhs = rhs;
+        }
+        return M.at(that.pos).JmlChained(c.toList());
+    }
+    
     public JCTree visitJmlBlock(JmlBlock that, Void p) {
         JmlBlock t = M.at(that.pos).Block(that.flags, copy(that.stats, p));
         return t;

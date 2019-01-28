@@ -4113,6 +4113,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = check(that, result, VAL, resultInfo);
     }
     
+    public void visitJmlChained(JmlChained that) {
+        // FIXME - doubly checks interior expressions
+        for (JCTree.JCBinary b: that.conjuncts) {
+            attribExpr(b, env, syms.booleanType);
+        }
+        result = that.type = syms.booleanType;
+    }
+    
     /** 
      */
     public void visitJmlLabeledStatement(JmlLabeledStatement that) {
