@@ -76,7 +76,7 @@ public class TypeMonitorsForClauseExtension extends JmlExtension.TypeClause {
             return toP(jmlF.at(pp).JmlTypeClauseMonitorsFor(mods, id, elist));
         }
         
-        public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env) {
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
             // TODO Auto-generated method stub
             return null;
         }

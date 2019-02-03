@@ -16,6 +16,7 @@ import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
@@ -53,7 +54,7 @@ public class TypeInClauseExtension extends JmlExtension.TypeClause {
             return parser.toP(jmlF.at(pp).JmlTypeClauseIn(list.toList()));
         }
         
-        public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env) {
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
             // TODO Auto-generated method stub
             return null;
         }

@@ -20,6 +20,7 @@ import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
@@ -74,7 +75,7 @@ public class EndStatement extends JmlExtension.Statement {
         }
 
         @Override
-        public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env) {
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
             // TODO Auto-generated method stub
             return null;
         }

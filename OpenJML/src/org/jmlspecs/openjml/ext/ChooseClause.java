@@ -84,7 +84,7 @@ public class ChooseClause extends JmlExtension.Statement {
         }
         
         @Override
-        public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env) {
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
             // TODO Auto-generated method stub
             return null;
         }

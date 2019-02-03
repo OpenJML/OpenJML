@@ -82,7 +82,8 @@ public class TypeRWClauseExtension extends JmlExtension.TypeClause {
             return toP(jmlF.at(pp).JmlTypeClauseConditional(mods, clauseType, id, e));
         }
         
-        public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env) {
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
             // TODO Auto-generated method stub
             return null;
         }

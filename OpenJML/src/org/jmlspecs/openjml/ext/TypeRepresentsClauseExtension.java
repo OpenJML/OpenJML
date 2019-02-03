@@ -94,7 +94,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
             return tcl;
             }
         
-        public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env) {
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
             // TODO Auto-generated method stub
             return null;
         }

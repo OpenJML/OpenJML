@@ -18,6 +18,7 @@ import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.Tokens.ITokenKind;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCErroneous;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
@@ -101,7 +102,7 @@ public class SignalsOnlyClauseExtension extends JmlExtension.MethodClause {
         }
         
         @Override
-        public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env) {
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
             // TODO Auto-generated method stub
             return null;
         }

@@ -110,7 +110,7 @@ public class SignalsClauseExtension extends JmlExtension.MethodClause {
         }
         
         @Override
-        public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env) {
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
             // TODO Auto-generated method stub
             return null;
         }

@@ -255,7 +255,7 @@ public abstract class IJmlClauseType {
     }
     
     // TODO: document
-    abstract public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env);
+    abstract public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env);
     
 
 }

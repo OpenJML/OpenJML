@@ -2946,6 +2946,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         savedMethodClauseOutputEnv = this.env;
         switch (tree.clauseType.name()) {
             case "requires":
+                tree.clauseType.typecheck(this,tree,env);
+                break;
             case "ensures":
             case "diverges":
             case "when":
