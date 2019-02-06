@@ -14,6 +14,8 @@ import java.util.Iterator;
 import org.jmlspecs.annotation.NonNull;
 
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.ext.RequiresClause;
+
 import static org.jmlspecs.openjml.ext.EndStatement.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.TypeInClauseExtension.*;
@@ -304,6 +306,13 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" ");
             printExpr(that.expression);  // noPrec
+            if (that instanceof RequiresClause.Node) {
+                RequiresClause.Node rc = (RequiresClause.Node)that;
+                if (rc.exceptionType != null) {
+                    print(" else ");
+                    printExpr(rc.exceptionType);
+                }
+            }
             print("; ");
         } catch (IOException e) { perr(that,e); }
     }
@@ -479,13 +488,16 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         // Presumes the output is already aligned before the call
         // Presumes the caller does any needed println() afterwards
         try { 
+            boolean modOrCodeOrBehavior = false;
             if (that.modifiers != null &&
-                    (that.modifiers.flags != 0 || that.modifiers.annotations != null)) {
+                    (that.modifiers.flags != 0 || (that.modifiers.annotations != null && !that.modifiers.annotations.isEmpty()))) {
                 that.modifiers.accept(this); // presumes that this call adds a trailing space
+                modOrCodeOrBehavior = true;
             }
             if (that.code) {
                 print(JmlTokenKind.CODE.internedName());
                 print(" ");
+                modOrCodeOrBehavior = true;
             }
             if (that.token == JmlTokenKind.MODEL_PROGRAM) {
                 print(that.token.internedName());
@@ -497,6 +509,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 // lightweight
             } else {
                 print(that.token.internedName());
+                modOrCodeOrBehavior = true;
+            }
+            if (modOrCodeOrBehavior) {
                 println();
                 align();
             }

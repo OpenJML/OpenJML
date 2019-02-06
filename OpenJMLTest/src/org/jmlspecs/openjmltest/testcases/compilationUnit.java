@@ -1,6 +1,7 @@
 package org.jmlspecs.openjmltest.testcases;
 
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.ext.RequiresClause;
 import org.jmlspecs.openjmltest.ParseBase;
 import org.junit.Test;
 
@@ -199,7 +200,7 @@ public class compilationUnit extends ParseBase {
               JmlMethodSpecs.class, 34, 34, 62,
               JmlSpecificationCase.class, 34,34,62,
               JCModifiers.class, -1,-1,-1,
-              JmlMethodClauseExpr.class, 34,34,48,
+              RequiresClause.Node.class, 34,34,48,
               JCLiteral.class, 43,43,47,
               JmlMethodClauseExpr.class, 49,49,62,
               JCLiteral.class, 57,57,61,
@@ -224,7 +225,7 @@ public class compilationUnit extends ParseBase {
               JmlMethodSpecs.class, 34, 34, 62,
               JmlSpecificationCase.class, 34,34,62,
               JCModifiers.class, -1,-1,-1,
-              JmlMethodClauseExpr.class, 34,34,48,
+              RequiresClause.Node.class, 34,34,48,
               JCLiteral.class, 43,43,47,
               JmlMethodClauseExpr.class, 49,49,62,
               JCLiteral.class, 57,57,61,
@@ -246,9 +247,9 @@ public class compilationUnit extends ParseBase {
                 JmlMethodSpecs.class, 14,14,53,
                 JmlSpecificationCase.class, 14,14,53,
                 JCModifiers.class, -1,-1,-1,
-                JmlMethodClauseExpr.class, 14,14,28,
+                RequiresClause.Node.class, 14,14,28,
                 JCLiteral.class, 23,23,27,
-                JmlMethodClauseExpr.class, 29,29,53,
+                RequiresClause.Node.class, 29,29,53,
                 JmlSingleton.class, 38,38,52,
                 
                 JCModifiers.class, -1,-1,-1,

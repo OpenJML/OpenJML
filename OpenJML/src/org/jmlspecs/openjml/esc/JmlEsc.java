@@ -15,6 +15,7 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.IAPI;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
+import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTreeScanner;
@@ -285,8 +286,7 @@ public class JmlEsc extends JmlTreeScanner {
     
     /** Do the actual work of proving the method */
     protected IProverResult doMethod(@NonNull JmlMethodDecl methodDecl) {
-        boolean printPrograms = this.verbose || JmlOption.includes(context, JmlOption.SHOW, "translated");
-        boolean printSMT = this.verbose || JmlOption.includes(context, JmlOption.SHOW, "smt");
+        boolean printPrograms = this.verbose || JmlOption.includes(context, JmlOption.SHOW, "translated") || JmlOption.includes(context, JmlOption.SHOW, "program");
         
         if (skip(methodDecl)) {
             return markMethodSkipped(methodDecl," (because of SkipEsc annotation)");
@@ -321,6 +321,7 @@ public class JmlEsc extends JmlTreeScanner {
             noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
             noticeWriter.println(Strings.empty);
             noticeWriter.println("STARTING PROOF OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            noticeWriter.println(JmlSpecs.instance(context).getDenestedSpecs(methodDecl.sym).toString());
             noticeWriter.println(JmlPretty.write(methodDecl.body));
         }
         

@@ -6,6 +6,7 @@ package org.jmlspecs.openjml;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
@@ -23,6 +24,7 @@ import org.jmlspecs.openjml.JmlExtension.MethodClause;
 import org.jmlspecs.openjml.ext.*;
 import org.osgi.framework.Bundle;
 
+import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 
@@ -222,7 +224,17 @@ public class Extensions {
         }
     }
     
+    private static final int mods = Flags.PUBLIC | Flags.STATIC | Flags.FINAL;
     public static boolean registerClass(Context context, Class<?> cc) {
+        // Options self-register when constructor is called
+//        if (JmlExtension.class.isAssignableFrom(cc)) {
+//            for (Field f: cc.getDeclaredFields()) {
+//                if (JmlOption.class.isAssignableFrom(f.getType())) {
+//                    //if ((f.getModifiers() & mods) == mods)
+//                    
+//                }
+//            }
+//        }
         if (ExpressionExtension.class.isAssignableFrom(cc)) {
             @SuppressWarnings("unchecked")
             Class<ExpressionExtension> c = (Class<ExpressionExtension>)cc;

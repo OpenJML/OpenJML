@@ -89,6 +89,13 @@ public class RequiresClause extends JmlExtension.MethodClause {
             super(pos, requiresID, requiresClause, expression);
             this.exceptionType = exceptionType;
         }
+        
+        public Node copy() {
+            Node n = new Node(pos, expression, exceptionType);
+            n.type = type;
+            n.keyword = keyword;
+            return n;
+        }
 
         @Override
         public void accept(Visitor v) {

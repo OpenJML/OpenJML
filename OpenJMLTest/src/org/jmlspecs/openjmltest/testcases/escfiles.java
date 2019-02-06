@@ -742,6 +742,10 @@ public class escfiles extends EscBase {
         helpTCF("test/visibilityB/org/apache/commons/cli/Option.java","test/visibilityB","-classpath","test/visibilityB");
     }
 
+    @Test
+    public void testRequiresElse() {
+        helpTF("requiresElse","-show=program");
+    }
 
 
 }

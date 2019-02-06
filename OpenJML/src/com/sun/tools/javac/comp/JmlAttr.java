@@ -37,6 +37,7 @@ import static org.jmlspecs.openjml.ext.TypeRepresentsClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeInitializerClauseExtension.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.StatementLocationsExtension.*;
+import org.jmlspecs.openjml.ext.RequiresClause;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -1954,11 +1955,71 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public ListBuffer<JmlSpecificationCase> deNestHelper(ListBuffer<JmlMethodClause> prefix, List<JmlMethodClause> clauses, JmlSpecificationCase parent, JmlMethodDecl decl, JCModifiers mods) {
+        ListBuffer<JmlSpecificationCase> newlist = new ListBuffer<JmlSpecificationCase>();
+        ListBuffer<JmlMethodClause> exlist = null;
+        JmlMethodClauseSignalsOnly clo = null;
+        RequiresClause.Node excRequires = null;
+        java.util.ArrayList<JmlMethodClauseSignals> siglist = new java.util.ArrayList<>();
         for (JmlMethodClause m: clauses) {
+            IJmlClauseType t = m.clauseType;
+            JCExpression excType = null;
+            if (t == requiresClause && (excType=((RequiresClause.Node)m).exceptionType) != null) {
+                boolean first = exlist == null;
+                RequiresClause.Node rc = (RequiresClause.Node)m;
+                rc.exceptionType = null;
+                if (first) {
+                    exlist = copy(prefix);
+                }
+                RequiresClause.Node nn = rc.copy();
+                nn.expression = treeutils.makeNot(nn.pos, nn.expression);
+                if (first) {
+                    excRequires = nn;
+                    exlist.add(excRequires);
+                } else {
+                    excRequires.expression = treeutils.makeBitOr(m.pos,
+                            excRequires.expression, nn.expression);
+                }
+                prefix.append(m);
+                if (first) {
+                    clo = jmlMaker.at(m.pos).JmlMethodClauseSignalsOnly(signalsOnlyID,signalsOnlyClause,List.<JCExpression>of(excType));
+                    exlist.add(clo);
+                    JmlMethodClauseExpr en = jmlMaker.at(m.pos).JmlMethodClauseExpr(ensuresID,ensuresClause,treeutils.falseLit);
+                    exlist.add(en);
+                    exlist.add(jmlMaker.JmlMethodClauseStoreRef(assignableID,assignableClause,
+                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSNOTHING))));
+                }
+                JCExpression compositeExpr = nn.expression;
+                for (JmlMethodClauseSignals prev: siglist) {
+                    if (types.isSameType(excType.type, prev.vardef.type)) {
+                        prev.expression = treeutils.makeBitOr(prev.expression.pos, prev.expression, nn.expression);
+                        compositeExpr = null;
+                    } else if (types.isSubtype(excType.type, prev.vardef.type)) {
+                        prev.expression = treeutils.makeBitOr(prev.expression.pos, prev.expression, nn.expression);
+                    } else if (types.isSubtype(prev.vardef.type, excType.type)) {
+                        compositeExpr =  treeutils.makeBitOr(compositeExpr.pos, compositeExpr, prev.expression);
+                    }
+                    // do nothing if there is no subtype relationship
+                }
+                if (compositeExpr != null) {
+                    if (!first) clo.list = clo.list.append(excType);
+                    JCVariableDecl var = treeutils.makeVarDef(excType.type, null, decl.sym, m.pos);
+                    JmlMethodClauseSignals cl = jmlMaker.at(m.pos).JmlMethodClauseSignals(signalsID,signalsClause,var,compositeExpr);
+                    exlist.add(cl);
+                    siglist.add(cl);
+                }
+                continue;
+            }
+            if (exlist != null) {
+                JmlSpecificationCase scase = jmlMaker.JmlSpecificationCase(decl.mods,false,JmlTokenKind.BEHAVIOR,null,exlist.toList(),null);
+                newlist.append(scase);
+                exlist = null;
+                clo = null;
+                excRequires = null;
+                siglist.clear();
+            }
             if (m instanceof JmlMethodClauseGroup) {
                 return deNest(prefix,((JmlMethodClauseGroup)m).cases, parent,decl, mods);
             }
-            IJmlClauseType t = m.clauseType;
             if (t == ensuresClause) {
                 if (parent.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR || parent.token == JmlTokenKind.EXCEPTIONAL_EXAMPLE) {
                     log.error(m.pos,"jml.misplaced.clause","Ensures","exceptional");
@@ -2034,8 +2095,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             prefix.append(m);
         }
+        if (exlist != null) {
+            JmlSpecificationCase scase = jmlMaker.JmlSpecificationCase(decl.mods,false,JmlTokenKind.BEHAVIOR,null,exlist.toList(),null);
+            newlist.append(scase);
+            exlist = null;
+            clo = null;
+        }
         addDefaultSignalsOnly(prefix,parent,decl);
-        ListBuffer<JmlSpecificationCase> newlist = new ListBuffer<JmlSpecificationCase>();
         JmlSpecificationCase sc = (((JmlTree.Maker)make).JmlSpecificationCase(parent,prefix.toList()));
         sc.modifiers = mods;
         newlist.append(sc);
