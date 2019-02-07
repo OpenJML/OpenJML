@@ -32,10 +32,4 @@ public abstract class OptionsInfer extends JmlExtension {
     //
     public static final JmlOption INFER_ANALYSIS_TYPES = new JmlOption("-infer-analysis-types", true, "ALL", "Enables specific analysis types. Takes a comma seperated list of analysis types. Support kinds are: REDUNDANT, UNSAT, TAUTOLOGIES, FRAMES, PURITY, and VISIBILITY", null);
 
-//    @Override
-//    public IJmlClauseType[] clauseTypes() {
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
-//    
 }
