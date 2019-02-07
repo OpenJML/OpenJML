@@ -8,6 +8,7 @@ import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.OptionsInfer;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
@@ -51,7 +52,7 @@ public class RemoveTautologies extends JmlTreeScanner{
         this.M          = JmlTree.Maker.instance(context);
         this.syms       = Symtab.instance(context);
 
-        this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);           
+        this.inferdebug = JmlOption.isOption(context, OptionsInfer.INFER_DEBUG);           
 
         this.verbose = inferdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
             || utils.jmlverbose >= Utils.JMLVERBOSE;

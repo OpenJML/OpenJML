@@ -12,6 +12,7 @@ import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.OptionsInfer;
 
 import com.sun.source.tree.ExpressionStatementTree;
 import com.sun.tools.javac.code.Symtab;
@@ -52,7 +53,7 @@ public class SubstituteTree extends JmlTreeScanner{
         this.treeutils  = JmlTreeUtils.instance(context);
         this.M          = JmlTree.Maker.instance(context);
         this.syms       = Symtab.instance(context);
-        this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);           
+        this.inferdebug = JmlOption.isOption(context, OptionsInfer.INFER_DEBUG);           
         
         this.verbose = inferdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
             || utils.jmlverbose >= Utils.JMLVERBOSE;

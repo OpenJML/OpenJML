@@ -15,6 +15,7 @@ import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import org.jmlspecs.openjml.ext.OptionsInfer;
 import org.jmlspecs.openjml.strongarm.Strongarm;
 import org.jmlspecs.openjml.strongarm.SubstitutionCache;
 import org.jmlspecs.openjml.JmlTreeScanner;
@@ -62,7 +63,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
         this.treeutils  = JmlTreeUtils.instance(context);
         this.M          = JmlTree.Maker.instance(context);
         this.syms       = Symtab.instance(context);
-        this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);           
+        this.inferdebug = JmlOption.isOption(context, OptionsInfer.INFER_DEBUG);           
         
         this.verbose = inferdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
             || utils.jmlverbose >= Utils.JMLVERBOSE;

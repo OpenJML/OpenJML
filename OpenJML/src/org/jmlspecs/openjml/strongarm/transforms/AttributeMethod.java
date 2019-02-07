@@ -45,7 +45,7 @@ public class AttributeMethod extends TreeScanner {
         this.M          = JmlTree.Maker.instance(context);
         this.syms       = Symtab.instance(context);
         
-        this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);           
+        this.inferdebug = JmlOption.isOption(context, org.jmlspecs.openjml.ext.OptionsInfer.INFER_DEBUG);           
 
         this.verbose = inferdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
             || utils.jmlverbose >= Utils.JMLVERBOSE;

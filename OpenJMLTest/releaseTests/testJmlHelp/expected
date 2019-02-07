@@ -55,8 +55,8 @@ JML options:
   -logic                     The SMT logic to use (default ALL)
   -nonnullByDefault          Makes references non_null by default [-nullableByDefault=false]
   -nullableByDefault         Makes references nullable by default
-  -code-math                 Arithmetic mode for Java code
-  -spec-math                 Arithmetic mode for specifications
+  -code-math                 Arithmetic mode for Java code (code, safe, bigint)
+  -spec-math                 Arithmetic mode for specifications (code, safe, bigint)
   -checkAccessible           When on (the default), JML accessible clauses are checked
   -specspath                 Specifies the directory path to search for specification files
   -checkSpecsPath            When on (the default), warnings for non-existent specification path directories are issued
@@ -88,8 +88,8 @@ JML options:
   -subexpressions            ESC: Enables tracing with subexpressions
   -checkFeasibility          ESC: Check feasibility of assumptions
   -benchmarks                ESC: Collects solver communications
-  -minQuant                  Minimizes using quantifications, in favor of inlining
-  -typeQuants                Introduces quantified assertions for type variables (true, false, or auto)
+  -minQuant                  ESC: Minimizes using quantifications, in favor of inlining
+  -typeQuants                ESC: Introduces quantified assertions for type variables (true, false, or auto)
   -modelFieldNoRep           RAC action when a model field has no represents clause (zero,ignore,warn)
   -racShowSource             RAC: Error messages will include source information
   -racCheckAssumptions       RAC: Enables runtime checking that assumptions hold

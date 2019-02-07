@@ -565,7 +565,7 @@ public class Utils {
     }
     
     public static void setPropertiesFromOptionsDefaults(Properties properties) {
-        for (JmlOption opt: JmlOption.values()) {
+        for (JmlOption opt: JmlOption.map.values()) {
             String key = Strings.optionPropertyPrefix + opt.optionName().substring(1);
             Object defaultValue = opt.defaultValue();
             // Options with synonyms are not true options (they are translated to their synonym)

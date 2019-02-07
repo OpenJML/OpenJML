@@ -23,6 +23,7 @@ import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.MethodProverBoogie;
 import org.jmlspecs.openjml.esc.MethodProverSMT;
+import org.jmlspecs.openjml.ext.OptionsInfer;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
 
@@ -40,7 +41,7 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
     public JmlInferPostConditions(Context context) {
         super(context);
         
-        timeout = Integer.parseInt(JmlOption.value(context,  JmlOption.INFER_TIMEOUT));
+        timeout = Integer.parseInt(JmlOption.value(context,  OptionsInfer.INFER_TIMEOUT));
     }
 
     public static JmlInferPostConditions instance(Context context){

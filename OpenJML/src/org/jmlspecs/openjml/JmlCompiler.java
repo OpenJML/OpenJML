@@ -711,7 +711,7 @@ public class JmlCompiler extends JavaCompiler {
         JmlInfer infer;        
         String currentFile = env.toplevel.sourcefile.getName();
         
-        if(InferenceType.valueOf(JmlOption.value(context, JmlOption.INFER))==InferenceType.POSTCONDITIONS){
+        if(InferenceType.valueOf(JmlOption.value(context, org.jmlspecs.openjml.ext.OptionsInfer.INFER))==InferenceType.POSTCONDITIONS){
             infer = JmlInferPostConditions.instance(context);
         }else{
             // NOT DONE YET!

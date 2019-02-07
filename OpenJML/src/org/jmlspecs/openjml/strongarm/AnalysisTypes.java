@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml.strongarm;
 
 import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.ext.OptionsInfer;
 import org.jmlspecs.openjml.strongarm.AnalysisTypes.AnalysisType;
 
 import com.sun.tools.javac.util.Context;
@@ -23,11 +24,11 @@ public class AnalysisTypes {
     
         AnalysisTypes.context = context;
         
-        if(JmlOption.isOption(context, JmlOption.INFER_ANALYSIS_TYPES)==false){
+        if(JmlOption.isOption(context, OptionsInfer.INFER_ANALYSIS_TYPES)==false){
             return true;
         }
         
-        String types  = JmlOption.value(context, JmlOption.INFER_ANALYSIS_TYPES);
+        String types  = JmlOption.value(context, OptionsInfer.INFER_ANALYSIS_TYPES);
         
         if(types.equalsIgnoreCase(AnalysisType.ALL.toString())){
             return true;

@@ -34,6 +34,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
+import org.jmlspecs.openjml.ext.OptionsInfer;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symtab;
@@ -115,7 +116,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             this.syms = Symtab.instance(context);
             this.log = Log.instance(context);
             this.utils = Utils.instance(context);
-            this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);      
+            this.inferdebug = JmlOption.isOption(context, OptionsInfer.INFER_DEBUG);      
             
             this.treeutils = JmlTreeUtils.instance(context);
             this.M = JmlTree.Maker.instance(context);
@@ -128,16 +129,16 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             // print contracts will print the derived contracts
             this.printContracts = JmlOption.isOption(context, JmlOption.SHOW);
             // we will save contracts
-            this.persistContracts = JmlOption.isOption(context,  JmlOption.INFER_PERSIST);
+            this.persistContracts = JmlOption.isOption(context,  OptionsInfer.INFER_PERSIST);
             
-            this.weaveContracts = JmlOption.value(context,  JmlOption.INFER_PERSIST).equalsIgnoreCase("java");
+            this.weaveContracts = JmlOption.value(context,  OptionsInfer.INFER_PERSIST).equalsIgnoreCase("java");
 
             
             // but to where?
             if(this.persistContracts && this.weaveContracts == false){
                 
-                if(JmlOption.isOption(context, JmlOption.INFER_PERSIST_PATH)){  // -infer-persist-path dominates
-                     persistPath = Paths.get(JmlOption.value(context,  JmlOption.INFER_PERSIST_PATH));
+                if(JmlOption.isOption(context, OptionsInfer.INFER_PERSIST_PATH)){  // -infer-persist-path dominates
+                     persistPath = Paths.get(JmlOption.value(context,  OptionsInfer.INFER_PERSIST_PATH));
                 }else if(JmlOption.isOption(context, JmlOption.SPECS)){         // followed by -specspath
                     persistPath = Paths.get(JmlOption.value(context,  JmlOption.SPECS));                    
                 }else{                                                          // failing those options, we default to wherever the class source is
@@ -150,7 +151,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             }
                 
             
-            this.printKey = Boolean.parseBoolean(JmlOption.value(context, JmlOption.INFER_TAG));
+            this.printKey = Boolean.parseBoolean(JmlOption.value(context, OptionsInfer.INFER_TAG));
             
 
         }

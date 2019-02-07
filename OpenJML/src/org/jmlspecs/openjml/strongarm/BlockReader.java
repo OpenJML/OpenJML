@@ -35,6 +35,7 @@ import org.jmlspecs.openjml.esc.Label;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
+import org.jmlspecs.openjml.ext.OptionsInfer;
 import org.jmlspecs.openjml.strongarm.tree.And;
 import org.jmlspecs.openjml.strongarm.tree.Or;
 import org.jmlspecs.openjml.strongarm.tree.Prop;
@@ -95,7 +96,7 @@ public class BlockReader {
         this.blocks = blocks;
         this.basicBlocker = basicBlocker;
         
-        this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);           
+        this.inferdebug = JmlOption.isOption(context, OptionsInfer.INFER_DEBUG);           
         
         
         _substitutionCache = new SubstitutionCache(basicBlocker.blockmaps, treeutils);
@@ -217,7 +218,7 @@ public class BlockReader {
         
         if(precondition==null){
             
-            if(JmlOption.isOption(context, JmlOption.INFER_PRECONDITIONS)){
+            if(JmlOption.isOption(context, OptionsInfer.INFER_PRECONDITIONS)){
                 if (verbose) {
                     log.getWriter(WriterKind.NOTICE).println("Couldn't locate the precondition in any of the basic blocks. Will assume true for the precondition.");
                 }

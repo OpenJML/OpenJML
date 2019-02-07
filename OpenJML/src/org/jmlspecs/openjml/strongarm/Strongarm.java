@@ -24,9 +24,8 @@ import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicProgram;
-import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.RequiresClause.*;
-
+import org.jmlspecs.openjml.ext.OptionsInfer;
 import org.jmlspecs.openjml.strongarm.AnalysisTypes.AnalysisType;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebugger;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebuggerConfigurationUtil;
@@ -106,7 +105,7 @@ public class Strongarm
         this.treeutils = JmlTreeUtils.instance(context);
         this.M = JmlTree.Maker.instance(context);
         MM = this.M;
-        _DEV_MODE = JmlOption.isOption(context, JmlOption.INFER_DEV_MODE);
+        _DEV_MODE = JmlOption.isOption(context, OptionsInfer.INFER_DEV_MODE);
         AnalysisTypes.context = context;
         //
         // Cache copies of the various tree transformation utilities.
@@ -133,7 +132,7 @@ public class Strongarm
             PruneUselessClauses.cache(context);
 
             
-            maxDepth = Integer.parseInt(JmlOption.value(context,  JmlOption.INFER_MAX_DEPTH));
+            maxDepth = Integer.parseInt(JmlOption.value(context,  OptionsInfer.INFER_MAX_DEPTH));
                         
         }
     }
@@ -1028,7 +1027,7 @@ public class Strongarm
             }
         }
 
-        if(JmlOption.isOption(context, JmlOption.INFER_DUMP_GRAPHS)) {
+        if(JmlOption.isOption(context, OptionsInfer.INFER_DUMP_GRAPHS)) {
 
             Path dotPath = infer.jsonFilenameForSource(methodDecl.sourcefile.getName(), methodDecl);
             try {
@@ -1067,7 +1066,7 @@ public class Strongarm
             
             // swap it out
             
-            newContract = ToReductionGraph.toContract(methodDecl, contract, G, treeutils, M, JmlOption.isOption(context, JmlOption.INFER_MINIMIZE_EXPRS));
+            newContract = ToReductionGraph.toContract(methodDecl, contract, G, treeutils, M, JmlOption.isOption(context, OptionsInfer.INFER_MINIMIZE_EXPRS));
             
             if(newContract!=null){
                 cases = M.JmlSpecificationCase(null, false, null, null, newContract, null);
