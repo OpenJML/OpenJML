@@ -37,30 +37,26 @@ public class escoption extends EscBase {
     }
  
     public void testOptionValueBoolean() {
-    	Assert.assertEquals(false,JmlOption.isOption(main.context(), JmlOption.STRICT));
-    	Assert.assertEquals("false",JmlOption.value(main.context(), JmlOption.STRICT));
-    	Assert.assertEquals(false,JmlOption.isOption(main.context(), "-strictJML"));
-    	Assert.assertEquals("false",JmlOption.value(main.context(), "-strictJML"));
-    	JmlOption.setOption(main.context(), JmlOption.STRICT, true);
-    	Assert.assertEquals(true,JmlOption.isOption(main.context(), JmlOption.STRICT));
-    	JmlOption.setOption(main.context(), JmlOption.STRICT, false);
-    	Assert.assertEquals(false,JmlOption.isOption(main.context(), JmlOption.STRICT));
-    	main.addOptions("-strictJML");
-    	Assert.assertEquals(true,JmlOption.isOption(main.context(), JmlOption.STRICT));
-    	main.addOptions("-no-strictJML");
-    	Assert.assertEquals(false,JmlOption.isOption(main.context(), JmlOption.STRICT));
-    	JmlOption.putOption(main.context(), JmlOption.STRICT);
-    	Assert.assertEquals(true,JmlOption.isOption(main.context(), JmlOption.STRICT));
-    	JmlOption.setOption(main.context(), JmlOption.STRICT, false);
-    	Assert.assertEquals(false,JmlOption.isOption(main.context(), JmlOption.STRICT));
-    	JmlOption.putOption(main.context(), JmlOption.STRICT, "true");
-    	Assert.assertEquals(true,JmlOption.isOption(main.context(), JmlOption.STRICT));
-    	JmlOption.putOption(main.context(), JmlOption.STRICT, "false");
-    	Assert.assertEquals(false,JmlOption.isOption(main.context(), JmlOption.STRICT));
-    	JmlOption.putOption(main.context(), JmlOption.STRICT, "");
-    	Assert.assertEquals(true,JmlOption.isOption(main.context(), JmlOption.STRICT));
-    	JmlOption.putOption(main.context(), JmlOption.STRICT, null);
-    	Assert.assertEquals(false,JmlOption.isOption(main.context(), JmlOption.STRICT));
+    	Assert.assertEquals("jml+",JmlOption.value(main.context(), JmlOption.LANG));
+    	Assert.assertEquals("jml+",JmlOption.value(main.context(), JmlOption.LANG));
+    	Assert.assertEquals("jml+",JmlOption.value(main.context(), "-lang"));
+    	Assert.assertEquals("jml+",JmlOption.value(main.context(), "-lang"));
+    	JmlOption.putOption(main.context(), JmlOption.LANG, "jml");
+    	Assert.assertEquals("jml",JmlOption.value(main.context(), JmlOption.LANG));
+        JmlOption.putOption(main.context(), JmlOption.LANG, "javelyn");
+        Assert.assertEquals("javelyn",JmlOption.value(main.context(), JmlOption.LANG));
+        JmlOption.putOption(main.context(), JmlOption.LANG, "jml+");
+        Assert.assertEquals("jml+",JmlOption.value(main.context(), JmlOption.LANG));
+    	main.addOptions("-lang=jml");
+    	Assert.assertEquals("jml",JmlOption.value(main.context(), JmlOption.LANG));
+        main.addOptions("-lang=javelyn");
+        Assert.assertEquals("javelyn",JmlOption.value(main.context(), JmlOption.LANG));
+        main.addOptions("-lang=jml+");
+        Assert.assertEquals("jml+",JmlOption.value(main.context(), JmlOption.LANG));
+    	JmlOption.putOption(main.context(), JmlOption.LANG, "javelyn");
+    	Assert.assertEquals("javelyn",JmlOption.value(main.context(), JmlOption.LANG));
+    	JmlOption.putOption(main.context(), JmlOption.LANG, "jml+");
+    	Assert.assertEquals("jml+",JmlOption.value(main.context(), JmlOption.LANG));
     }
     
     @Test

@@ -4257,7 +4257,7 @@ public class esc extends EscBase {
     @Test
     public void testShowStatement() {
         expectedExit = 0;
-        main.addOptions("-strictJML");
+        main.addOptions("-lang=jml");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -4268,8 +4268,8 @@ public class esc extends EscBase {
                         + "     //@ show i;\n"
                         + "  }\n"
                         + "}\n"
-                        ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under -strictJML",10
-                        ,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -strictJML",37
+                        ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under -lang=jml",10
+                        ,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -lang=jml",37
                   ); 
     }
 

@@ -840,10 +840,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         Options options = Options.instance(context);
         Utils utils = Utils.instance(context);
         
-//        if (options.get(helpOption) != null) {
-//            return false;
-//        }
-        
         String t = options.get(JmlOption.JMLTESTING.optionName());
         Utils.testingMode =  ( t != null && !t.equals("false"));
         String benchmarkDir = options.get(JmlOption.BENCHMARKS.optionName());
@@ -942,6 +938,16 @@ public class Main extends com.sun.tools.javac.main.Main {
             options.put(JmlOption.ESC_BV.optionName(),(String)JmlOption.ESC_BV.defaultValue());
         }
 
+        val = options.get(JmlOption.LANG.optionName());
+        if (val == null || val.isEmpty()) {
+            options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
+        } else if(JmlOption.langPlus.equals(val) || JmlOption.langJavelyn.equals(val) || JmlOption.langJML.equals(val)) {
+        } else {
+            Log.instance(context).warning("jml.message","Command-line argument error: Expected '" + JmlOption.langPlus + "', '" + JmlOption.langJML + "' or '" + JmlOption.langJavelyn + "' for -lang: " + val);
+            //Log.instance(context).getWriter(WriterKind.NOTICE).println("Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: " + val);
+            options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
+        }
+        
         String keysString = options.get(JmlOption.KEYS.optionName());
         utils.commentKeys = new HashSet<String>();
         if (keysString != null && !keysString.isEmpty()) {
@@ -951,7 +957,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         
         if (utils.esc) utils.commentKeys.add("ESC"); 
         if (utils.rac) utils.commentKeys.add("RAC"); 
-        if (JmlOption.isOption(context,JmlOption.STRICT.optionName())) utils.commentKeys.add("STRICT"); 
+        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) utils.commentKeys.add("STRICT"); 
         utils.commentKeys.add("OPENJML"); 
         JmlSpecs.instance(context).initializeSpecsPath();
 

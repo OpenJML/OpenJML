@@ -45,7 +45,11 @@ public class JmlOption implements IOption {
     public static final JmlOption BOOGIE = new JmlOption("-boogie",false,false,"Enables static checking with boogie",null);
     public static final JmlOption USEJAVACOMPILER = new JmlOption("-java",false,false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null);
     public static final JmlOption JML = new JmlOption("-jml",false,true,"When on, the JML compiler is used and all JML constructs are ignored; use -no-jml to use OpenJML but ignore JML annotations",null);
-    public static final JmlOption STRICT = new JmlOption("-strictJML",false,false,"Disables any JML extensions in OpenJML",null);
+    //public static final JmlOption STRICT = new JmlOption("-strictJML",false,false,"Disables any JML extensions in OpenJML",null);
+    public static final String langJML = "jml";
+    public static final String langJavelyn = "javelyn";
+    public static final String langPlus = "jml+";
+    public static final JmlOption LANG = new JmlOption("-lang",true,"jml+","Set the language variant to use: " + langJML + ", " + langJavelyn + ", or " + langPlus + " (the default)",null);
     public static final JmlOption EXTENSIONS = new JmlOption("-extensions",true,null,"Extension packages and classes (comma-separated qualified names)",null);
 
     public static final JmlOption STOPIFERRORS = new JmlOption("-stopIfParseErrors",false,false,"When enabled, stops after parsing if any files have parsing errors",null);

@@ -1073,14 +1073,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     boolean methodOverrides = utils.parents(jmethod.sym).size() > 1;
                     if (specHasAlso && !methodOverrides) {
                         if (!jmethod.name.toString().equals("compareTo") && !jmethod.name.toString().equals("definedComparison")) {// FIXME
-                            if (JmlOption.isOption(context, JmlOption.STRICT)) {
+                            if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
                                 log.error(spec, "jml.extra.also", jmethod.name.toString() );
                             } else {
                                 log.warning(spec, "jml.extra.also", jmethod.name.toString() );
                             }
                         }
                     } else if (!specHasAlso && methodOverrides) {
-                        if (JmlOption.isOption(context, JmlOption.STRICT)) {
+                        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
                             log.error(spec, "jml.missing.also", jmethod.name.toString());
                         } else {
                             log.warning(spec, "jml.missing.also", jmethod.name.toString());
@@ -3332,7 +3332,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        // these JML methods, so it should not technically be needed.
         Env<AttrContext> localEnv = env;
         ListBuffer<Type> argtypesBuf = new ListBuffer<Type>();
-        boolean jmlstrict = JmlOption.isOption(context, JmlOption.STRICT);
+        boolean jmlstrict = JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
         
         Type t = null;
         int n;

@@ -509,7 +509,7 @@ public class api extends JmlTestCase {
     }
     
     String parseString(String prog) throws Exception {
-        IAPI m = Factory.makeAPI("-jml","-strictJML");
+        IAPI m = Factory.makeAPI("-jml","-lang=jml");
         return m.parseString("A.java",prog).toString();
     }
     

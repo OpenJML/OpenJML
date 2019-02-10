@@ -846,7 +846,7 @@ public class JmlParser extends JavacParser {
                 nextToken();
             }
         } else {
-            if (JmlOption.isOption(context, JmlOption.STRICT)) {
+            if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
                 log.warning(pos(),"jml.refining.required");
             }
         }
@@ -2042,7 +2042,7 @@ public class JmlParser extends JavacParser {
         }
 
         if (clauses.size() == 0 && stat == null) {
-            if (jt != null && JmlOption.isOption(context, JmlOption.STRICT)) {
+            if (jt != null && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
                 jmlerror(pos, "jml.empty.specification.case");
             }
             if (jt == null && also == null && !code) return null;
@@ -2677,7 +2677,7 @@ public class JmlParser extends JavacParser {
                     if (token.kind == STAR) {
                         nextToken();
                     } else if (token.kind == RBRACKET) {
-                        if (JmlOption.isOption(context, JmlOption.STRICT)) {
+                        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
                             log.warning(rbracketPos,"jml.not.strict","storeref with implied end-of-range (a[i..])");
                         }
                         // OK - missing hi end implies end of array
@@ -2813,7 +2813,7 @@ public class JmlParser extends JavacParser {
                 // we just silently ignore that situation
                 // (this is true at the moment for math annotations, but could
                 // also be true for a modifier someone forgot)
-                if (JmlTokenKind.extensions.contains(j) && JmlOption.isOption(context, JmlOption.STRICT)) {
+                if (JmlTokenKind.extensions.contains(j) && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
                     log.warning(pos(),"jml.not.strict",j.internedName());  // FIXME - probably wrong position
                 }
             } else if (j == ENDJMLCOMMENT) {
@@ -3039,7 +3039,7 @@ public class JmlParser extends JavacParser {
                 case BSEXCEPTION:// FIXME - what can follow this?
                 case BSCOUNT:
                 case BSVALUES:// FIXME - what can follow this?
-                    if (JmlOption.isOption(context,JmlOption.STRICT)) {
+                    if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
                         log.warning(p,"jml.not.strict",jt.internedName());
                     }
                     // fall-through
@@ -3481,7 +3481,7 @@ public class JmlParser extends JavacParser {
         // pos is the position of the \lbl token
         int labelPos = pos();
         if (token.kind == TokenKind.LPAREN) {
-            if (JmlOption.isOption(context,JmlOption.STRICT)) {
+            if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
                 log.warning(pos,"jml.not.strict","functional form of lbl expression");
             }
             nextToken();
@@ -3501,7 +3501,7 @@ public class JmlParser extends JavacParser {
         } else {
             Name n = ident();
             JCExpression e = parseExpression();
-            if (jmlToken == JmlTokenKind.BSLBLANY && JmlOption.isOption(context,JmlOption.STRICT)) {
+            if (jmlToken == JmlTokenKind.BSLBLANY && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
                 log.warning(pos,"jml.not.strict","\\lbl");
             }
             return toP(jmlF.at(pos).JmlLblExpression(labelPos,jmlToken, n, e));

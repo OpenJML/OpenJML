@@ -60,7 +60,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
                 parser.nextToken();
                 e = parser.parseExpression();
             } else if (parser.jmlTokenKind() == JmlTokenKind.LEFT_ARROW) {
-                if (parser.isDeprecationSet() || JmlOption.isOption(context, JmlOption.STRICT)) {
+                if (parser.isDeprecationSet() || JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
                     log.warning(parser.pos(), "jml.deprecated.left.arrow.in.represents");
                 }
                 suchThat = false;

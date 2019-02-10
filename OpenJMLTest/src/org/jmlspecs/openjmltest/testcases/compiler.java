@@ -800,11 +800,11 @@ public class compiler {
                 { "-classpath","../OpenJML/runtime",
                   "-sourcepath","test/testNoErrors",
                   "-specspath","../OpenJML/runtime",
-                  "-strictJML",
+                  "-lang=jml",
                   "-extensions=X", // Ignored when strict
                   "test/testNoErrors/A.jml"
                 },0,0
-                ,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The /count construct is an OpenJML extension to JML and not allowed under -strictJML\n"
+                ,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The /count construct is an OpenJML extension to JML and not allowed under -lang=jml\n"
                 +"            //@ loop_invariant i == /count && 0 <= i && i <= values.length;\n"
                 +"                                    ^\n"
                 +"1 warning\n");
