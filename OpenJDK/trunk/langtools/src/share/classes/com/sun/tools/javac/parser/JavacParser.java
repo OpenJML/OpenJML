@@ -1600,7 +1600,7 @@ public class JavacParser implements Parser {
                     if (permitTypeAnnotationsPushBack)
                         typeAnnotationsPushedBack = annos;
                     else
-                        return illegal(annos.head.pos);
+                        return trailingAt(t, annos.head.pos);
                 }
                 break;
             }
@@ -1612,6 +1612,10 @@ public class JavacParser implements Parser {
             nextToken();
         }
         return toP(t);
+    }
+    
+    public JCExpression trailingAt(JCExpression t, int p) {
+        return illegal(p);
     }
 
     /**

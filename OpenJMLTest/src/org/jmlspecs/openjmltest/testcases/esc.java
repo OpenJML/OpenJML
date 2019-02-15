@@ -1874,6 +1874,41 @@ public class esc extends EscBase {
     }
 
     @Test
+    public void testAt() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "/*@ code_java_math spec_java_math*/ public class TestJava { \n" 
+                        + "  static public int i;\n"
+                        + "  //@ modifies i;\n" 
+                        + "  //@ ensures i == \\old(i)+2;\n"
+                        + "  public static void bok() { x: i = i + 1; /*@ assert i == i@x + 1 && i == (i+1)@x; */ i = i + 1;}\n" 
+                        + "  //@ modifies i;\n"
+                        + "  //@ ensures i == \\old(i+1);\n" 
+                        + "  public static void bbad() { i = i - 1; /*@ assert i == i@x + 1; */ }\n" 
+                        + "  //@ modifies i;\n" 
+                        + "  public void bok2() { x: i = i + 1; /*@ assert i == this.i@x + 1; */ i = i + 1;}\n" 
+                        + "  //@ requires a.length > 10 && a[0] >= 0;\n" 
+                        + "  //@ modifies i;\n" 
+                        + "  public static void bok3(int[] a) { x: i = i + 1; /*@ assert a[0]@x > -1; */ i = i + 1;}\n" 
+                        + "}"
+                ,"/tt/TestJava.java:9: There is no label named x", 60
+                );
+    }
+
+    @Test
+    public void testNewCompares() {
+        expectedExit = 1; // FIXME - not yet implemented
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "/*@ code_java_math spec_java_math*/ public class TestJava { \n" 
+                        + "  public static void bok1(int i) { /*@ assert i <<< i || true; */ }\n" 
+                        + "  public static void bok2(int i) { /*@ assert i <<<= i || true; */ }\n" 
+                        + "}"
+                );
+    }
+
+    @Test
     public void testReturn() {
         helpTCX("tt.TestJava",
                 "package tt; \n" + "public class TestJava { \n" + "  //@ requires 0<=ii && ii <=3;\n"
@@ -3414,20 +3449,35 @@ public class esc extends EscBase {
 
     @Test
     public void testTypes() {
-        helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
-                + "  public void m1(/*@non_null*/Object o) {\n" + "    //@ assume \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\typeof(o) == \\typeof(o);\n" + "    //@ assert \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\typeof(o) <: \\type(Object);\n" + "  }\n"
-                + "  public void m1a(/*@non_null*/Object o) {\n" + "    //@ assume \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\typeof(o) != \\type(Object);\n" + "  }\n"
-                + "  public void m2(/*@non_null*/Object o) {\n" + "    //@ assume \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\typeof(o) == \\type(Object);\n" + "  }\n"
-                + "  public void m2a(/*@non_null*/Object o) {\n" + "    //@ assume \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\typeof(o) == \\type(TestJava);\n" + "  }\n"
-                + "  public void m3(/*@non_null*/Object o) {\n" + "    //@ assume \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\type(TestJava) <: \\typeof(o);\n" + "  }\n" + "}",
-                "/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method m1a", 9,
-                "/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m2a", 9);
+        helpTCX("tt.TestJava", "package tt; \n" 
+                + "public class TestJava { \n"
+                + "  public void m1(/*@non_null*/Object o) {\n" 
+                + "    //@ assume \\typeof(o) == \\type(Object);\n"
+                + "    //@ assert \\typeof(o) == \\typeof(o);\n" 
+                + "    //@ assert \\typeof(o) == \\type(Object);\n"
+                + "    //@ assert \\typeof(o) <: \\type(Object);\n" 
+                + "    //@ assert \\typeof(o) <:= \\type(Object);\n" 
+                + "  }\n"
+                + "  public void m1a(/*@non_null*/Object o) {\n" 
+                + "    //@ assume \\typeof(o) == \\type(Object);\n"
+                + "    //@ assert \\typeof(o) != \\type(Object);\n" 
+                + "  }\n"
+                + "  public void m2(/*@non_null*/Object o) {\n" 
+                + "    //@ assume \\typeof(o) == \\type(Object);\n"
+                + "    //@ assert \\typeof(o) == \\type(Object);\n" 
+                + "  }\n"
+                + "  public void m2a(/*@non_null*/Object o) {\n" 
+                + "    //@ assume \\typeof(o) == \\type(Object);\n"
+                + "    //@ assert \\typeof(o) == \\type(TestJava);\n" 
+                + "  }\n"
+                + "  public void m3(/*@non_null*/Object o) {\n" 
+                + "    //@ assume \\typeof(o) == \\type(Object);\n"
+                + "    //@ assert \\type(TestJava) <: \\typeof(o);\n" 
+                + "    //@ assert \\type(TestJava) <:= \\typeof(o);\n" 
+                + "  }\n" 
+                + "}",
+                "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method m1a", 9,
+                "/tt/TestJava.java:20: warning: The prover cannot establish an assertion (Assert) in method m2a", 9);
     }
 
     @Test

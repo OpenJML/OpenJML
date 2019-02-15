@@ -12573,7 +12573,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 result = eresult = t;
                 return;
             }
-            if (that.op != JmlTokenKind.SUBTYPE_OF && that.op != JmlTokenKind.JSUBTYPE_OF) {
+            if (that.op != JmlTokenKind.SUBTYPE_OF && that.op != JmlTokenKind.JSUBTYPE_OF && that.op != JmlTokenKind.SUBTYPE_OF_EQ && that.op != JmlTokenKind.JSUBTYPE_OF_EQ) {
                 lhs = addImplicitConversion(that.lhs,syms.booleanType,lhs);
             }
             JCExpression rhs,t;
@@ -12674,7 +12674,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     eresult = splitExpressions ? newTemp(t) : t;
                     break;
 
+                case LTWF: 
+                case LEWF:
+                    // TODO: Not yet implemented
+                    eresult = treeutils.trueLit;
+                    break;
+                    
                 case SUBTYPE_OF: // JML subtype
+                case SUBTYPE_OF_EQ: // JML subtype
                     rhs = convertExpr(that.rhs);
                     // \TYPE <: \TYPE
                     if (rac) {
@@ -12687,6 +12694,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     break;
                         
                 case JSUBTYPE_OF: // Java subtype
+                case JSUBTYPE_OF_EQ: // Java subtype
                     rhs = convertExpr(that.rhs);
                     // Class <: Class - in case type checking allows it
 
@@ -14616,7 +14624,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             
             case SUBTYPE_OF:
+            case SUBTYPE_OF_EQ:
             case JSUBTYPE_OF:
+            case JSUBTYPE_OF_EQ:
             {
                 ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
                 for (JCExpression arg : that.args) {

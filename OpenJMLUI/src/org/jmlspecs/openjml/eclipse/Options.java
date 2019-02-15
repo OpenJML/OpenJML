@@ -10,6 +10,7 @@ import java.util.Properties;
 
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.jmlspecs.openjml.IOption;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.Strings;
 
@@ -91,7 +92,7 @@ public class Options {
 				if (key.startsWith(Strings.optionPropertyPrefix)) {
 					boolean isBoolean = false;
 					String optname = "-" + key.substring(Strings.optionPropertyPrefix.length());
-					for (JmlOption o: JmlOption.values()) {
+					for (IOption o: JmlOption.list) {
 						if (o.optionName().equals(optname)) {
 							isBoolean = !o.hasArg();
 							break;
@@ -175,8 +176,8 @@ public class Options {
 //	final static public String subexpressionsKey = prefix + "subexpressions"; //$NON-NLS-1$
 	/** The preference store key for the max esc warnings option. */
 	final static public String escMaxWarningsKey = key(JmlOption.ESC_MAX_WARNINGS);
-	/** The preference store key for the strict JML option. */
-	final static public String strictKey = key(JmlOption.STRICT);
+	/** The preference store key for the language variant option. */
+	final static public String strictKey = key(JmlOption.LANG);
 	/** The preference store key for the check purity option. */
 	final static public String purityCheckKey = key(JmlOption.PURITYCHECK);
 	/** The preference store key for the timeout option. */

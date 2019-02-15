@@ -728,6 +728,12 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 jmlTokenKind = JmlTokenKind.SUBTYPE_OF; // <:
                 reader.scanChar();
                 endPos = reader.bp;
+                if (reader.ch == '=') {
+                    tk = TokenKind.CUSTOM;
+                    jmlTokenKind = JmlTokenKind.SUBTYPE_OF_EQ; // <:=
+                    reader.scanChar();
+                    endPos = reader.bp;
+                }
             } else if (reader.ch == '-') {
                 tk = TokenKind.CUSTOM;
                 jmlTokenKind = JmlTokenKind.LEFT_ARROW; // <-
@@ -742,6 +748,19 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                     reader.scanChar();
                 }
                 endPos = reader.bp;
+            }
+        } else if (t == TokenKind.LTLT) {
+            if (reader.ch == '<') {
+                tk = TokenKind.CUSTOM;
+                jmlTokenKind = JmlTokenKind.LTWF; // <<<
+                reader.scanChar();
+                endPos = reader.bp;
+                if (reader.ch == '=') {
+                    tk = TokenKind.CUSTOM;
+                    jmlTokenKind = JmlTokenKind.LEWF; // <<<=
+                    reader.scanChar();
+                    endPos = reader.bp;
+                }
             }
 //        } else if (tk == TokenKind.ARROW) {
 //            // Java 8 has a token called ARROW - which was not present in Java 7

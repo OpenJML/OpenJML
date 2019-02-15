@@ -3272,7 +3272,47 @@ public class JmlParser extends JavacParser {
             }
             return e;
         }
-        return toP(super.term3());
+        JCExpression eee = toP(super.term3());
+        return eee;
+    }
+    
+    public JCExpression primarySuffix(JCExpression t, List<JCExpression> typeArgs) {
+        if (S.jml() && token.kind == MONKEYS_AT) {
+            accept(MONKEYS_AT);
+            int pp = pos();
+            Name label = ident();
+            JCIdent id = this.maker().at(pp).Ident(label);
+            JmlMethodInvocation tt = toP(this.maker().at(t).JmlMethodInvocation(JmlTokenKind.BSOLD, List.<JCExpression>of(t,id)));
+            return tt;
+        }
+        JCExpression e = super.primarySuffix(t,typeArgs);
+        return e;
+    }
+    
+    public JCExpression trailingAt(JCExpression t, int p) {
+        if (S.jml() && token.kind == MONKEYS_AT) {
+            accept(MONKEYS_AT);
+            int pp = pos();
+            Name label = ident();
+            JCIdent id = this.maker().at(pp).Ident(label);
+            JmlMethodInvocation tt = toP(this.maker().at(t).JmlMethodInvocation(JmlTokenKind.BSOLD, List.<JCExpression>of(t,id)));
+            return tt;
+        }
+        return t;
+    }
+
+    
+    JCExpression term3Rest(JCExpression t, List<JCExpression> typeArgs) {
+        t = super.term3Rest(t, typeArgs);
+        if (S.jml() && token.kind == MONKEYS_AT) {
+            accept(MONKEYS_AT);
+            int pp = pos();
+            Name label = ident();
+            JCIdent id = this.maker().at(pp).Ident(label);
+            JmlMethodInvocation tt = toP(this.maker().at(t).JmlMethodInvocation(JmlTokenKind.BSOLD, List.<JCExpression>of(t,id)));
+            return tt;
+        }
+        return t;
     }
     
     protected boolean inCreator = false;
@@ -3655,8 +3695,10 @@ public class JmlParser extends JavacParser {
         if (token instanceof JmlTokenKind) {
             return jmlPrecedence((JmlTokenKind)token);
         }
-        return super.prec(token);
+        return precFactor*super.prec(token);
     }
+    
+    public static final int precFactor = 100;
     
     public static int jmlPrecedence(JmlTokenKind tkind) {
         switch (tkind) {
@@ -3665,21 +3707,15 @@ public class JmlParser extends JavacParser {
                 return -2; // TreeInfo.orPrec;  // Between conditional and or
             case IMPLIES: case REVERSE_IMPLIES:
                 return -2; // TreeInfo.orPrec;  // FBetween conditional and or
-            case SUBTYPE_OF: case JSUBTYPE_OF: case LOCK_LT: case LOCK_LE:
-                return TreeInfo.ordPrec;
+            case SUBTYPE_OF: case JSUBTYPE_OF: case SUBTYPE_OF_EQ: case JSUBTYPE_OF_EQ: case LOCK_LT: case LOCK_LE:
+                return precFactor*TreeInfo.ordPrec;
+            case LTWF: case LEWF:
+                return precFactor*TreeInfo.ordPrec;
             case DOT_DOT: case ENDJMLCOMMENT:
                 return -1000;
             default:
                 return 1000;
         }
-//        if (token != JmlTokenKind.SUBTYPE_OF
-//                && token != JmlTokenKind.JSUBTYPE_OF
-//                && token != JmlTokenKind.LOCK_LT
-//                && token != JmlTokenKind.LOCK_LE) return -1; // For
-//                                                                // inequivalence
-//                                                                // and
-//                                                                // reverse/implies
-//        return TreeInfo.ordPrec; // All the JML operators are comparisons
     }
     
     // MAINTENANCE ISSUE - (Almost) Duplicated from JavacParser.java in order to track
@@ -3695,7 +3731,7 @@ public class JmlParser extends JavacParser {
         odStack[0] = t;
         int startPos = token.pos;
         Token topOp = Tokens.DUMMY;
-        while (prec(S.token().ikind) >= minprec) { // FIXME - lookahead token - presumes scanner is just one token ahead
+        while (prec(S.token().ikind) >= precFactor*minprec) { // FIXME - lookahead token - presumes scanner is just one token ahead
             opStack[top] = topOp;
             top++;
             topOp = S.token();
@@ -3717,7 +3753,7 @@ public class JmlParser extends JavacParser {
                 }
                 top--;
                 topOp = opStack[top];
-                if (p == TreeInfo.ordPrec && prec(token.ikind) < TreeInfo.ordPrec) {
+                if (p == precFactor*TreeInfo.ordPrec && prec(token.ikind) < precFactor*TreeInfo.ordPrec) {
                     odStack[top] = chain(odStack[top]);
                 }
             }

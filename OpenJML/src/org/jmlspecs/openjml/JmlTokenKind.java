@@ -227,9 +227,13 @@ public enum JmlTokenKind implements ITokenKind {
     IMPLIES("==>"),
     REVERSE_IMPLIES("<=="),
     SUBTYPE_OF("<:"), // Operands are \TYPE values
+    SUBTYPE_OF_EQ("<:="), // Operands are \TYPE values
     JSUBTYPE_OF("<::"), // Operands are Class<?> values, used only internally
+    JSUBTYPE_OF_EQ("<::="), // Operands are Class<?> values, used only internally
     LOCK_LT("<#"),
     LOCK_LE("<#="),
+    LTWF("<<<"),
+    LEWF("<<<="),
     
     // Other special character combinations
     DOT_DOT(".."),

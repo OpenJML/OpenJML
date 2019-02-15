@@ -4143,8 +4143,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 result = syms.booleanType;
                 break;
                 
+            case LTWF:
+            case LEWF:
+                attribExpr(that.lhs,env,syms.objectType);
+                attribExpr(that.rhs,env,syms.objectType);
+                result = syms.booleanType;
+                break;
                 
             case SUBTYPE_OF:
+            case SUBTYPE_OF_EQ:
                 // Note: the method of comparing types here ignores any type
                 // arguments.  If we use isSameType, for example, then Class
                 // and Class<Object> are different.  In this case, all we need 

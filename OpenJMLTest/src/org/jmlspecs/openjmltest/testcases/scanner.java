@@ -278,6 +278,11 @@ public class scanner extends JmlTestCase {
                 new int[]{4,6,6,7, 8,10,10,11, 12,13,13,14, 15,17,17,18,18,19, 20,22,22,24,24,25});
     }
     
+    @Test public void testOperators3() {
+        helpScanner("/*@ <<< <<<= <: <:= @ */",
+                new ITokenKind[]{LTWF,LEWF,SUBTYPE_OF,SUBTYPE_OF_EQ, MONKEYS_AT,EJML},
+                new int[]{4,7, 8,12, 13,15, 16,19, 20,21, 22,24});
+    }
     @Test public void testBadOperator() {
         helpScanner("/*@ <=! + */",
                 new ITokenKind[]{LTEQ,BANG,PLUS,EJML},

@@ -57,6 +57,7 @@ import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Main.JmlCanceledException;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.eclipse.Utils.OpenJMLException;
+import org.jmlspecs.openjml.ext.OptionsInfer;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
@@ -1405,7 +1406,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             opts.add(JmlOption.COMMAND.optionName() +eq+ cmd);
         }
         {
-            opts.add(JmlOption.STRICT.optionName() +eq+ Options.isOption(Options.strictKey));
+            opts.add(JmlOption.LANG.optionName() +eq+ "jml+");
             opts.add(JmlOption.PURITYCHECK.optionName() +eq+ Options.isOption(Options.purityCheckKey));
             opts.add(JmlOption.SHOW.optionName() +eq+ Options.isOption(Options.showKey));
         }
@@ -1463,26 +1464,26 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
 
             //TODO -- make these options
             if(StrongarmPage.getDefaultBoolean(Options.inferDebug).equalsIgnoreCase("true")){
-        	opts.add(JmlOption.INFER_DEBUG.optionName());
+        	opts.add(OptionsInfer.INFER_DEBUG.optionName());
             }
-            opts.add(JmlOption.INFER_TIMEOUT.optionName() +eq+ StrongarmPage.getDefaultInt(Options.inferTimeout));
+            opts.add(OptionsInfer.INFER_TIMEOUT.optionName() +eq+ StrongarmPage.getDefaultInt(Options.inferTimeout));
             
-            opts.add(JmlOption.INFER_MAX_DEPTH.optionName() +eq+ StrongarmPage.getDefaultInt(Options.inferMaxDepth));
+            opts.add(OptionsInfer.INFER_MAX_DEPTH.optionName() +eq+ StrongarmPage.getDefaultInt(Options.inferMaxDepth));
             
 
             if(StrongarmPage.getDefaultBoolean(Options.inferDevTools).equalsIgnoreCase("true")){
-        	opts.add(JmlOption.INFER_DEV_MODE.optionName());
+        	opts.add(OptionsInfer.INFER_DEV_MODE.optionName());
             }
             
             if(StrongarmPage.getDefaultBoolean(Options.inferDefaultPrecondition).equalsIgnoreCase("true")){
-        	opts.add(JmlOption.INFER_PRECONDITIONS.optionName() +eq+ StrongarmPage.getDefaultBoolean(Options.inferDefaultPrecondition));
+        	opts.add(OptionsInfer.INFER_PRECONDITIONS.optionName() +eq+ StrongarmPage.getDefaultBoolean(Options.inferDefaultPrecondition));
             }
 
             
             if(StrongarmPage.getDefaultString(Options.inferPersistSpecsTo).equalsIgnoreCase(StrongarmPage.WEAVE_SEPERATE)){
-        	opts.add(JmlOption.INFER_PERSIST.optionName() + eq+ "jml");
+        	opts.add(OptionsInfer.INFER_PERSIST.optionName() + eq+ "jml");
             }else{
-                opts.add(JmlOption.INFER_PERSIST.optionName() + eq+ "java");
+                opts.add(OptionsInfer.INFER_PERSIST.optionName() + eq+ "java");
             }
             
         }

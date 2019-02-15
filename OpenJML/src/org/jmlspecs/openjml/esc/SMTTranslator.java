@@ -1957,7 +1957,11 @@ public class SMTTranslator extends JmlTreeScanner {
         List<IExpr> newargs = convertExprList(that.args);
         if (that.token == JmlTokenKind.SUBTYPE_OF) {
             result = F.fcn(F.symbol(JMLSUBTYPE), newargs);
+        } else if (that.token == JmlTokenKind.SUBTYPE_OF_EQ) {
+            result = F.fcn(F.symbol(JMLSUBTYPE), newargs);
         } else if (that.token == JmlTokenKind.JSUBTYPE_OF) {
+            result = F.fcn(F.symbol(JAVASUBTYPE), newargs);
+        } else if (that.token == JmlTokenKind.JSUBTYPE_OF_EQ) {
             result = F.fcn(F.symbol(JAVASUBTYPE), newargs);
         } else if (that.token == JmlTokenKind.BSTYPEOF) {
             ISymbol s = that.javaType ? F.symbol("javaTypeOf") : F.symbol("jmlTypeOf");
