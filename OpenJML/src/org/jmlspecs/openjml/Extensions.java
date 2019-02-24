@@ -174,11 +174,13 @@ public class Extensions {
     static protected Map<String,Class<? extends JmlExtension>> extensionClasses = new HashMap<>();
     protected Map<String,JmlExtension> extensionInstances = new HashMap<>();
 
+    static public Map<String,JmlExtension.ClassLike> classLike = new HashMap<>();
     static public Map<String,IJmlClauseKind> typeMethodClauses = new HashMap<>();
     static public Map<String,IJmlClauseKind> statementMethodClauses = new HashMap<>();
     static public Map<String,IJmlClauseKind> lineAnnotations = new HashMap<>();
     
     static protected Map<String,Class<? extends FieldExtension>> fieldClasses = new HashMap<>();
+
     protected Map<String,FieldExtension> fieldInstances = new HashMap<>();
     
     // This static block runs through all the extension classes and adds
@@ -303,6 +305,17 @@ public class Extensions {
             try {
                 Constructor<JmlExtension.Statement> cct = c.getConstructor();
                 JmlExtension.Statement occ = cct.newInstance();
+                occ.register(context);
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        } else if (JmlExtension.ClassLike.class.isAssignableFrom(cc)) {
+            @SuppressWarnings("unchecked")
+            Class<JmlExtension.ClassLike> c = (Class<JmlExtension.ClassLike>)cc;
+            try {
+                Constructor<JmlExtension.ClassLike> cct = c.getConstructor();
+                JmlExtension.ClassLike occ = cct.newInstance();
                 occ.register(context);
             } catch (Exception e) {
                 return false;

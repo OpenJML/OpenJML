@@ -6,6 +6,10 @@ package org.jmlspecs.openjml;
 
 import java.lang.reflect.Method;
 
+import com.sun.tools.javac.parser.JmlParser;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 
 /** Any class that contains JML extensions to be registered in the keyword recognizer
@@ -36,6 +40,16 @@ public abstract class JmlExtension {
             }
             //register();
         }
+    }
+    
+    public static abstract class ClassLike extends JmlExtension {
+        public void register(Context context) {
+            super.register(context);
+            Extensions.classLike.put(this.name(), this);
+        }
+        
+        abstract public String name();
+        abstract public JCClassDecl parse(JmlParser parser, JCTree.JCModifiers mods);
     }
     
     

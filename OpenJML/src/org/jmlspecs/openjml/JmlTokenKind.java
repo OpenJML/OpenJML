@@ -156,6 +156,7 @@ public enum JmlTokenKind implements ITokenKind {
     BSVALUES("\\values"),
     BSNOTHING("\\nothing"),
     BSSAME("\\same"),
+    MATCH("match"),
     BSNOTSPECIFIED("\\not_specified"),
 
     BSCONCAT("\\concat"),

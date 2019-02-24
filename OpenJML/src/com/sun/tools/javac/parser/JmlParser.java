@@ -61,7 +61,7 @@ public class JmlParser extends JavacParser {
 
     /** Cached value of the utilities object */
     // @ non_null
-    protected Utils         utils;
+    public Utils            utils;
 
     /** The scanner associated with the parser */
     // @ non_null
@@ -263,6 +263,13 @@ public class JmlParser extends JavacParser {
                 s = super.classOrInterfaceOrEnumDeclaration(mods, dc);
 
             } else {
+                if (inJmlDeclaration && token.kind == IDENTIFIER) {
+                    ClassLike cl = Extensions.classLike.get(token.name().toString());
+                    if (cl != null) {
+                        JCStatement stat = cl.parse(this,mods);
+                        return stat;
+                    }
+                }
                 int p = pos();
                 int ep = endPos();
                 jmlerror(p, ep,
@@ -484,6 +491,10 @@ public class JmlParser extends JavacParser {
                     JCStatement s = (JCStatement)ext.parse(null, id, ext, this);
 //                    JCStatement s = parseStatement();
                     return List.<JCStatement>of(s);
+                }
+                ClassLike cl = Extensions.classLike.get(id);
+                if (cl != null) {
+                    return List.<JCStatement>of(cl.parse(this, null));
                 }
                 // If the identifier is not the beginning of a JML statement, then
                 // it might be the type that begins a declaration (or it could be a
@@ -1013,13 +1024,19 @@ public class JmlParser extends JavacParser {
             return (jt == JmlTokenKind.INITIALIZER || jt == JmlTokenKind.STATIC_INITIALIZER);
         }
     }
+    
+    public JmlExtension.ClassLike isJmlClassLike(Token token) {
+        if (token.kind != TokenKind.IDENTIFIER) return null;
+        String n = ((Tokens.NamedToken)token).name.toString();
+        return Extensions.classLike.get(n);
+    }
 
     /**
      * Overridden in order to parse JML declarations and clauses within the body
      * of a class or interface.
      */
     @Override
-    protected List<JCTree> classOrInterfaceBodyDeclaration(Name className,
+    public List<JCTree> classOrInterfaceBodyDeclaration(Name className,
             boolean isInterface) {
 
         ListBuffer<JCTree> list = new ListBuffer<JCTree>();
@@ -1110,13 +1127,18 @@ public class JmlParser extends JavacParser {
                         log.error(token.pos, "jml.message", "Method specs preceding an empty declaration are ignored");
                         currentMethodSpecs = null;
                     }
-                    t = super.classOrInterfaceBodyDeclaration(
-                            className, isInterface);
-                    if (isInterface && t.head instanceof JmlMethodDecl) {
-                        JmlMethodDecl md = (JmlMethodDecl)t.head;
-                        if (utils.findMod(md.mods,JmlTokenKind.MODEL)!= null
-                                && (md.mods.flags & Flags.STATIC) == 0) {
-                            md.mods.flags |= Flags.DEFAULT;
+                    ClassLike cl =  null;
+                    if ((cl = isJmlClassLike(token)) != null) {
+                        t = List.<JCTree>of(cl.parse(this, mods));
+                    } else {
+                        t = super.classOrInterfaceBodyDeclaration(
+                                className, isInterface);
+                        if (isInterface && t.head instanceof JmlMethodDecl) {
+                            JmlMethodDecl md = (JmlMethodDecl)t.head;
+                            if (utils.findMod(md.mods,JmlTokenKind.MODEL)!= null
+                                    && (md.mods.flags & Flags.STATIC) == 0) {
+                                md.mods.flags |= Flags.DEFAULT;
+                            }
                         }
                     }
                     inJmlDeclaration = prevInJmlDeclaration;
@@ -4048,6 +4070,11 @@ public class JmlParser extends JavacParser {
         log.warning(
                 new JmlTokenizer.DiagnosticPositionSE(begin, preferred, end - 1),
                 key, args);// TODO - not unicode friendly
+    }
+    
+    // Just to make the visibility public
+    public List<JCTypeParameter> typeParametersOpt() {
+        return super.typeParametersOpt();
     }
     
 

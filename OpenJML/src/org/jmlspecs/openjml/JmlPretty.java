@@ -31,6 +31,7 @@ import com.sun.tools.javac.tree.Pretty.UncheckedIOException;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Pair;
 
 /** This class does pretty-printing of JML ASTs. */
 public class JmlPretty extends Pretty implements IJmlVisitor {
@@ -1029,7 +1030,33 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         if (that.typeSpecs != null) {
             specsToPrint = that.typeSpecs;
         }
-        visitClassDef(that);
+        if (that instanceof org.jmlspecs.openjml.ext.DatatypeExt.JmlDatatypeDecl) {
+            org.jmlspecs.openjml.ext.DatatypeExt.JmlDatatypeDecl d = (org.jmlspecs.openjml.ext.DatatypeExt.JmlDatatypeDecl)that;
+            try {
+                print("datatype " + that.name.toString() + " {"); 
+                indent();
+                boolean first = true;
+                for (Pair<Name,List<JCTree.JCVariableDecl>> p: d.constructors) {
+                    if (!first) print(","); else first = false;
+                    println();
+                    align();
+                    print(p.fst.toString());
+                    print("(");
+                    print(p.snd.toString());
+                    print(")");
+                    // FIXME - commas, semicolon, methods
+                }
+                undent();
+                println();
+                align();
+                print("}"); println();
+                visitClassDef(that);
+            } catch (IOException e) {
+                perr(that,e);
+            }
+        } else {
+            visitClassDef(that);
+        }
     }
     
     @Override

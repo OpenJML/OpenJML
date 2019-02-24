@@ -775,6 +775,12 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testDatatypes() {
+        expectedExit = 0;
+        helpTF("datatype");
+    }
+
+    @Test
     public void testEscVisibilitySimple() {
         expectedExit = 1;
         helpTF("visibilitySimple");

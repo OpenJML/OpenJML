@@ -3822,7 +3822,7 @@ public class JavacParser implements Parser {
      *  FormalParameterList = [ FormalParameterListNovarargs , ] LastFormalParameter
      *  FormalParameterListNovarargs = [ FormalParameterListNovarargs , ] FormalParameter
      */
-    List<JCVariableDecl> formalParameters() {
+    public List<JCVariableDecl> formalParameters() { // OPENJML: made public
         return formalParameters(false);
     }
     List<JCVariableDecl> formalParameters(boolean lambdaParameters) {

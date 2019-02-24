@@ -1197,6 +1197,13 @@ public class JmlSpecs {
         return annot;
     }
 
+    public com.sun.tools.javac.util.List<JCAnnotation> addModelAnnotation(int pos, com.sun.tools.javac.util.List<JCAnnotation> annots) {
+        JmlTree.Maker F = JmlTree.Maker.instance(context);
+        JmlAnnotation annot = makeAnnotation(pos, F, JmlTokenKind.MODEL);
+        annot.type = modelAnnotationSymbol().type;
+        return annots.append(annot);
+    }
+
     public JmlAnnotation makeAnnotation(int pos, JmlTree.Maker F, JmlTokenKind jt) {
         Class<?> c = jt.annotationType;
         if (c == null) return null;
@@ -1599,12 +1606,20 @@ public class JmlSpecs {
     private ClassSymbol pureAnnotationSymbol = null;
     private ClassSymbol queryAnnotationSymbol = null;
     private ClassSymbol functionAnnotationSymbol = null;
+    private ClassSymbol modelAnnotationSymbol = null;
 
     protected ClassSymbol pureAnnotationSymbol() {
         if (pureAnnotationSymbol == null) {
             pureAnnotationSymbol = utils.createClassSymbol(Strings.pureAnnotation);
         }
         return pureAnnotationSymbol;
+    }
+    
+    protected ClassSymbol modelAnnotationSymbol() {
+        if (modelAnnotationSymbol == null) {
+            modelAnnotationSymbol = utils.createClassSymbol(Strings.modelAnnotation);
+        }
+        return modelAnnotationSymbol;
     }
     
     protected ClassSymbol functionAnnotationSymbol() {
