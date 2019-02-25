@@ -46,6 +46,7 @@ public class AssignableClauseExtension extends JmlExtension.MethodClause {
         synonym("assigns",assignableClause);
         synonym("writes",assignableClause);
         synonym("modifiable",assignableClause);
+        synonym("reads",accessibleClause);
     }
     
     public void synonym(String s, IJmlClauseType t) {
