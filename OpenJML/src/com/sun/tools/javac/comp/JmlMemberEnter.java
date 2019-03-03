@@ -1941,6 +1941,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        ((JmlCheck)chk).noDuplicateWarn = prevChk;
         if (utils.isJML(tree.mods)) resolve.setAllowJML(prev);
         if (tree.sym == null) {
+            env.enclClass.defs = List.filter(env.enclClass.defs,tree);
             // A duplicate
             return;
         }
@@ -1971,7 +1972,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             chk.checkTransparentVar(tree.pos(), v, enclScope);
             if (!noEntering) enclScope.enter(v);
         } else {
-            tree.sym = null; // An indication that the field is a duplicate and should be removed/ignored
+            tree.sym = v; // It is a duplicate but if we don't set a symbol, we will get a crash later
         }
     }
 

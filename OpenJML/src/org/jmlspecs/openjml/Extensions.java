@@ -94,8 +94,8 @@ public class Extensions {
     }
     
     // Finds a type or method clause type for the given keyword
-    public @Nullable IJmlClauseType findTM(int pos, String keyword, boolean complain) {
-        IJmlClauseType e = typeMethodClauses.get(keyword);
+    public @Nullable IJmlClauseKind findTM(int pos, String keyword, boolean complain) {
+        IJmlClauseKind e = typeMethodClauses.get(keyword);
         if (e == null) {
             // ERROR needed
         }
@@ -103,8 +103,8 @@ public class Extensions {
     }
     
     // Finds a statement or method clause type for the given keyword
-    public @Nullable IJmlClauseType findSM(int pos, String keyword, boolean complain) {
-        IJmlClauseType e = statementMethodClauses.get(keyword);
+    public @Nullable IJmlClauseKind findSM(int pos, String keyword, boolean complain) {
+        IJmlClauseKind e = statementMethodClauses.get(keyword);
         if (e == null) {
             // ERROR needed
         }
@@ -174,8 +174,9 @@ public class Extensions {
     static protected Map<String,Class<? extends JmlExtension>> extensionClasses = new HashMap<>();
     protected Map<String,JmlExtension> extensionInstances = new HashMap<>();
 
-    static public Map<String,IJmlClauseType> typeMethodClauses = new HashMap<>();
-    static public Map<String,IJmlClauseType> statementMethodClauses = new HashMap<>();
+    static public Map<String,IJmlClauseKind> typeMethodClauses = new HashMap<>();
+    static public Map<String,IJmlClauseKind> statementMethodClauses = new HashMap<>();
+    static public Map<String,IJmlClauseKind> lineAnnotations = new HashMap<>();
     
     static protected Map<String,Class<? extends FieldExtension>> fieldClasses = new HashMap<>();
     protected Map<String,FieldExtension> fieldInstances = new HashMap<>();
@@ -280,6 +281,17 @@ public class Extensions {
             try {
                 Constructor<JmlExtension.TypeClause> cct = c.getConstructor();
                 JmlExtension.TypeClause occ = cct.newInstance();
+                occ.register(context);
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        } else if (JmlExtension.LineAnnotation.class.isAssignableFrom(cc)) {
+            @SuppressWarnings("unchecked")
+            Class<JmlExtension.LineAnnotation> c = (Class<JmlExtension.LineAnnotation>)cc;
+            try {
+                Constructor<JmlExtension.LineAnnotation> cct = c.getConstructor();
+                JmlExtension.LineAnnotation occ = cct.newInstance();
                 occ.register(context);
             } catch (Exception e) {
                 return false;

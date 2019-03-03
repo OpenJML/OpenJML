@@ -57,6 +57,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.*;
+import org.jmlspecs.openjml.IJmlClauseKind.LineAnnotationKind;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
@@ -70,6 +71,7 @@ import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
 import org.jmlspecs.openjml.ext.SignalsClauseExtension;
 import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
 import org.jmlspecs.openjml.ext.FieldExtension;
+import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
 
 import com.sun.source.tree.IdentifierTree;
 import com.sun.tools.javac.code.*;
@@ -244,7 +246,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * semantic tests can be performed (e.g. \result can only be used in some
      * types of clauses).
      */
-    protected IJmlClauseType currentClauseType = null;
+    protected IJmlClauseKind currentClauseType = null;
     
     /**
      * Holds the visibility of JML construct that is currently being visited.
@@ -518,6 +520,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             super.attribClassBody(env,c);
             Enter.instance(context).typeEnvs.put(c,env); // TODO _ not sure why this is not already done, but is needed in some cases, e.g. immutable modifier on an enum class
             attribClassBodySpecs(env,c,prevIsInJmlDeclaration);
+            if (cd.lineAnnotations != null) {
+                for (ExceptionLineAnnotation a: cd.lineAnnotations) {
+                    a.typecheck(this, env);
+                }
+            }
         
         } finally {
             relax = oldRelax;
@@ -551,7 +558,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         // This is not recursive within a class, but we can call out to attribute 
         // another class while in the middle of a clause
-        IJmlClauseType prevClauseType = currentClauseType;
+        IJmlClauseKind prevClauseType = currentClauseType;
         
         try {
             if (tspecs != null) {
@@ -1106,7 +1113,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
-    final static Map<IJmlClauseType, int[]> stateTable = new HashMap<>();
+    final static Map<IJmlClauseKind, int[]> stateTable = new HashMap<>();
     {
         // state -1 - error
         // state 0 - start
@@ -1136,7 +1143,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // FIXME - finish this 
     public void checkClauseOrder(int state, List<JmlMethodClause> clauses) {
         for (JmlMethodClause clause: clauses) {
-            IJmlClauseType tk = clause.clauseType;
+            IJmlClauseKind tk = clause.clauseType;
             int[] next = stateTable.get(tk);
             if (next == null) {
                 //                   log.warning(clause, "jml.message", "Unimplemented clause type in order checker: " + tk);
@@ -1668,7 +1675,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     e.pos = annotationPos;
                     endPosTable.storeEnd(e,annotationEnd);
                     endPosTable.storeEnd(id,annotationEnd);
-                    IJmlClauseType prev = currentClauseType;
+                    IJmlClauseKind prev = currentClauseType;
                     currentClauseType = ensuresClause;
                     //attribExpr(e,env);
                     currentClauseType = prev;
@@ -1793,7 +1800,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean hasCallableClause = false;
         boolean hasSignalsOnlyClause = false;
         for (JmlMethodClause clm: cs.clauses) {
-            IJmlClauseType ct = clm.clauseType;
+            IJmlClauseKind ct = clm.clauseType;
             if (ct == assignableClause) { 
                 hasAssignableClause = true; 
             } else if (ct == SignalsOnlyClauseExtension.signalsOnlyClause) { 
@@ -1961,7 +1968,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         RequiresClause.Node excRequires = null;
         java.util.ArrayList<JmlMethodClauseSignals> siglist = new java.util.ArrayList<>();
         for (JmlMethodClause m: clauses) {
-            IJmlClauseType t = m.clauseType;
+            IJmlClauseKind t = m.clauseType;
             JCExpression excType = null;
             if (t == requiresClause && (excType=((RequiresClause.Node)m).exceptionType) != null) {
                 boolean first = exlist == null;
@@ -2383,7 +2390,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Check all datagroups that the field is in
             JmlSpecs.FieldSpecs fspecs = specs.getSpecs(tree.sym);
             long prevVisibility = jmlVisibility;
-            IJmlClauseType prevClauseType = currentClauseType;
+            IJmlClauseKind prevClauseType = currentClauseType;
             if (fspecs != null) try {
                 for (JmlTypeClause tc: fspecs.list) {
                     if (tc.clauseType == inClause) {
@@ -2475,7 +2482,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public void visitJmlTypeClauseIn(JmlTypeClauseIn tree) {
         boolean prevEnv = pureEnvironment;
-        IJmlClauseType prevClauseType = currentClauseType;
+        IJmlClauseKind prevClauseType = currentClauseType;
         JmlVariableDecl prevDecl = inVarDecl;
         long prevVisibility = jmlVisibility;
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
@@ -2506,7 +2513,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps tree) {
         boolean prev = jmlresolve.setAllowJML(true);
         boolean prevEnv = pureEnvironment;
-        IJmlClauseType prevClauseType = currentClauseType;
+        IJmlClauseKind prevClauseType = currentClauseType;
         currentClauseType = tree.clauseType;
         pureEnvironment = true;
         long prevVisibility = jmlVisibility;
@@ -2653,7 +2660,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     JmlTokenKind[] invariantAnnotations = new JmlTokenKind[]{ SECRET, INSTANCE };
     JmlTokenKind[] noAnnotations = new JmlTokenKind[]{  };
 
-    public void checkTypeClauseMods(JCTree tree, JCModifiers mods,String where, IJmlClauseType token) {
+    public void checkTypeClauseMods(JCTree tree, JCModifiers mods,String where, IJmlClauseKind token) {
         long f = 0;
         if (token != axiomClause) f = Flags.AccessFlags | Flags.STATIC | Flags.FINAL;
         long diff = utils.hasOnly(mods,f);
@@ -2960,7 +2967,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** Attributes forall and old clauses within the specs of a method */
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl tree) {
-        IJmlClauseType t = tree.clauseType;
+        IJmlClauseKind t = tree.clauseType;
         for (JCTree.JCVariableDecl decl: tree.decls) {
             if (decl instanceof JmlVariableDecl) {
                 int wasFlags = 0;
@@ -3010,6 +3017,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
         savedMethodClauseOutputEnv = this.env;
+        currentClauseType = tree.clauseType;
         switch (tree.clauseType.name()) {
             case "requires":
                 tree.clauseType.typecheck(this,tree,env);
@@ -3036,6 +3044,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
         }
         savedMethodClauseOutputEnv = null;
+        currentClauseType = null;
     }
     
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
@@ -3160,7 +3169,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JavaFileObject old = log.useSource(tree.sourcefile);
         Env<AttrContext> localEnv = null;
         Env<AttrContext> prevEnv = env;
-        IJmlClauseType prevClauseType = currentClauseType; // Just in case there is recursion
+        IJmlClauseKind prevClauseType = currentClauseType; // Just in case there is recursion
         long prevVisibility = jmlVisibility;
         try {
             if (tree.modifiers != null) {
@@ -3296,12 +3305,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     // These are the annotation types in which \pre and \old with a label can be used (e.g. assert)
-    private Set<IJmlClauseType> preTokens = JmlTokenKind.methodStatementTokens;
+    private Set<IJmlClauseKind> preTokens = JmlTokenKind.methodStatementTokens;
     
     // These are the annotation, method and type spec clause types in which \old without a label can be used
-    private Set<IJmlClauseType> oldNoLabelTokens = JmlTokenKind.methodStatementTokens;
+    private Set<IJmlClauseKind> oldNoLabelTokens = JmlTokenKind.methodStatementTokens;
     {
-        Set<IJmlClauseType> t = new HashSet<>();
+        Set<IJmlClauseKind> t = new HashSet<>();
         t.addAll(oldNoLabelTokens);
         t.addAll(Utils.asSet(ensuresClause,signalsClause,constraintClause,durationClause,workingspaceClause,declClause)); // FIXME - double check JMLDECL
         oldNoLabelTokens = t;
@@ -3797,7 +3806,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         boolean prev = pureEnvironment;
         pureEnvironment = true;
-        IJmlClauseType prevClauseType = currentClauseType;
+        IJmlClauseKind prevClauseType = currentClauseType;
         currentClauseType = tree.clauseType;
         // unreachable statements have a null expression
         if (tree.expression != null) attribExpr(tree.expression,env,isUse ? Type.noType : syms.booleanType);
@@ -3870,7 +3879,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prev = pureEnvironment;
         pureEnvironment = true;
         for (JmlTree.JmlStatementLoop tree: loopSpecs) {
-            IJmlClauseType prevClauseType = currentClauseType;
+            IJmlClauseKind prevClauseType = currentClauseType;
             currentClauseType = tree.clauseType;
             if (tree.clauseType == loopinvariantClause) {
                 attribExpr(((JmlStatementLoopExpr)tree).expression,loopEnv,syms.booleanType);
@@ -3894,7 +3903,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** This handles JML statements that give method-type specs for method body statements. */
     public void visitJmlStatementSpec(JmlTree.JmlStatementSpec tree) {
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
-        IJmlClauseType prevClauseType = currentClauseType;
+        IJmlClauseKind prevClauseType = currentClauseType;
         currentClauseType = null;
         boolean saved = isRefining;
         try {
@@ -3911,7 +3920,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** This handles JML declarations (method and ghost fields, methods, types) */
     public void visitJmlStatementDecls(JmlTree.JmlStatementDecls tree) {
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
-        IJmlClauseType prevClauseType = currentClauseType;
+        IJmlClauseKind prevClauseType = currentClauseType;
         currentClauseType = declClause;
         for (JCTree.JCStatement s : tree.list) {
             attribStat(s,env);
@@ -3923,7 +3932,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** This handles JML statements such as set and debug */
     public void visitJmlStatement(JmlTree.JmlStatement tree) {  // FIXME - need to test appropriately for purity
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
-        IJmlClauseType prevClauseType = currentClauseType;
+        IJmlClauseKind prevClauseType = currentClauseType;
         currentClauseType = tree.clauseType;
         if (tree.statement != null) attribStat(tree.statement,env);
         currentClauseType = prevClauseType;
@@ -3933,7 +3942,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** This handles JML show statement */
     public void visitJmlStatementShow(JmlTree.JmlStatementShow tree) { 
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
-        IJmlClauseType prevClauseType = currentClauseType;
+        IJmlClauseKind prevClauseType = currentClauseType;
         currentClauseType = tree.clauseType;
         if (tree.expressions != null) for (JCExpression e: tree.expressions) attribExpr(e,env);
         currentClauseType = prevClauseType;
@@ -3963,15 +3972,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** This set holds method clause types in which the \result token may appear 
      * (and \not_assigned \only_assigned \only_captured \only_accessible \not_modified) */
-    public Collection<IJmlClauseType> resultClauses = Utils.asSet(ensuresClause,durationClause,workingspaceClause);
+    public Collection<IJmlClauseKind> resultClauses = Utils.asSet(ensuresClause,durationClause,workingspaceClause);
     
     /** This set holds method clause types in which the \exception token may appear  */
-    public Collection<IJmlClauseType> exceptionClauses = Collections.singleton(signalsClause);
+    public Collection<IJmlClauseKind> exceptionClauses = Collections.singleton(signalsClause);
     
     /** This set holds method clause types in which the these tokens may appear:
      *  \not_assigned \only_assigned \only_captured \only_accessible \not_modified */
-    public Collection<IJmlClauseType> postClauses = Utils.asSet(ensuresClause,signalsClause,durationClause,workingspaceClause,assertClause,assumeClause);
-    public Collection<IJmlClauseType> freshClauses = new LinkedList<>();
+    public Collection<IJmlClauseKind> postClauses = Utils.asSet(ensuresClause,signalsClause,durationClause,workingspaceClause,assertClause,assumeClause);
+    public Collection<IJmlClauseKind> freshClauses = new LinkedList<>();
     { freshClauses.addAll(Utils.asSet(loopinvariantClause,assertClause,assumeClause));  freshClauses.addAll(postClauses); }
 
     /** This handles expression constructs with no argument list such as \\result */
@@ -4062,7 +4071,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
                 
             default:
-                IJmlClauseType ext = Extensions.instance(context).findSM(that.pos,jt.internedName(),true);
+                IJmlClauseKind ext = Extensions.instance(context).findSM(that.pos,jt.internedName(),true);
                 Type ttt = ext.typecheck(this,that,env);
                 result = check(that, ttt, VAL, resultInfo);
                 break;
@@ -4898,7 +4907,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitIdent(JCIdent tree) {
 //        if (tree.name.toString().equals("TestJava")) org.jmlspecs.openjml.Utils.stop();
         long prevVisibility = jmlVisibility;
-        IJmlClauseType prevClauseType = currentClauseType; // FIXME _ why do we need to save this?
+        IJmlClauseKind prevClauseType = currentClauseType; // FIXME _ why do we need to save this?
         try {
 //            jmlVisibility = -1;
 //            currentClauseType = null;
@@ -6241,7 +6250,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlVariableDecl(JmlVariableDecl that) {
 
         JavaFileObject prevSource = null;
-        IJmlClauseType savedType = currentClauseType;
+        IJmlClauseKind savedType = currentClauseType;
         try {
             if (that.source() != null) prevSource = log.useSource(that.source());
 
@@ -6714,11 +6723,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return msym;
     }
     
-    public boolean interpretInPreState(DiagnosticPosition pos, IJmlClauseType kind) {
+    public boolean interpretInPreState(DiagnosticPosition pos, IJmlClauseKind kind) {
         if (kind == ensuresClause ||
                 kind == signalsClause ||
                 kind == signalsOnlyClause) return false;
-        if (kind instanceof IJmlClauseType.MethodClause) return true;
+        if (kind instanceof IJmlClauseKind.MethodClause) return true;
         return false;
     }
     

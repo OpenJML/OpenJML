@@ -9,9 +9,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.IJmlLineAnnotation;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.LineAnnotationClauses;
+import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
 
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
 import com.sun.tools.javac.parser.Tokens.Token;
@@ -59,6 +63,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     
     /** A temporary reference to the instance of the nowarn collector for the context. */
     /*@ non_null */ public Nowarns nowarns;
+    public java.util.List<ExceptionLineAnnotation> lineAnnotations = new java.util.LinkedList<>();
 
     /**
      * A flag that, when true, causes all JML constructs to be ignored; it is
@@ -93,7 +98,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
 
     /** Valid after nextToken() and contains the next token if it is a JML token
      * and null if the next token is a Java token */
-    @Nullable protected JmlTokenKind   jmlTokenKind;
+    @Nullable public JmlTokenKind   jmlTokenKind;
 
     
     private JmlToken jmlToken; // FIXME - does this need to be a field?
@@ -147,6 +152,10 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         boolean t = jml;
         jml = j;
         return t;
+    }
+    
+    public boolean jml() {
+        return jml;
     }
 
     /**
@@ -384,12 +393,17 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 }
             }
 
-            if (jmlTokenKind == JmlTokenKind.NOWARN) {
-                scanNowarn(reader.bp);  // FIXME - I doubt this is working after the Java 8 merge
-                continue;
+            if (t.kind == TokenKind.IDENTIFIER && jmlkeyword) {
+                String id = t.name().toString();
+                IJmlClauseKind lak = org.jmlspecs.openjml.Extensions.lineAnnotations.get(id);
+                if (lak!= null) {
+                    scanLineAnnotation(reader.bp, id, lak);
+                    continue;
+                }
+            }
 //            } else if (jmlTokenKind == JmlTokenKind.PRIMITIVE_TYPE) {
 //                // finish and exit
-            } else if (tk == TokenKind.STAR && reader.ch == '/'
+            if (tk == TokenKind.STAR && reader.ch == '/'
                 && jmlcommentstyle == CommentStyle.BLOCK) {
                 // We're in a BLOCK comment and we scanned a * and the next
                 // character is a / so we are at the end of the comment
@@ -509,43 +523,8 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     /** This method presumes the NOWARN token has been read and handles the names
      * within the nowarn, reading through the terminating semicolon or end of JML comment
      */
-    public void scanNowarn(int pos) {
-        boolean prev = jmlkeyword;
-        jmlkeyword = false;
-        try {
-            Token t = readToken();
-            if (t.kind == TokenKind.SEMI || t.ikind == JmlTokenKind.ENDJMLCOMMENT) {
-                // No labels - so this means suppress everything
-                // Indicate this with null
-                handleNowarn(log.currentSource(), pos, null);
-            } else {
-                while (t.kind != TokenKind.SEMI && t.ikind != JmlTokenKind.ENDJMLCOMMENT) {
-                    if (t.kind != TokenKind.IDENTIFIER){
-                        // Bad statement or missing terminating semicolon
-                        jmlError(t.pos, reader.bp, "jml.bad.nowarn");
-                        // expected identifier
-                        skipThroughChar(';');
-                        return;
-                    }
-                    String label = reader.chars();
-                    handleNowarn(log.currentSource(), reader.bp, label);
-                    t = readToken();
-                    if (t.kind == TokenKind.COMMA){
-                        t = readToken();
-                    }
-                }
-            }
-            if (jmlTokenKind == JmlTokenKind.ENDJMLCOMMENT) { 
-                log.warning(t.pos, "jml.nowarn.with.no.semicolon");
-                // Here we are swallowing the end of comment - we normally 
-                // expect that token in the stream. However if there is just a 
-                // nowarn, the Java scanner will not expect a standalone ENDJMLCOMMENT
-                // FIXME - check the case of //@ some JML stuff ; nowarn xx 
-                // or with /*@  -- does this parse OK
-            }
-        } finally {
-            jmlkeyword = prev;
-        }
+    public void scanLineAnnotation(int pos, String id, IJmlClauseKind ckind) {
+        ((IJmlClauseKind.LineAnnotationKind)ckind).scan(pos, id, ckind, this);
     }
 
     /**
@@ -628,6 +607,9 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     protected void scanIdent() {
         super.scanIdent(); // Sets tk and name
         jmlTokenKind = null;
+        if (jml && tk == TokenKind.ASSERT) {
+            tk = TokenKind.IDENTIFIER;
+        }
         if (!jml || !jmlkeyword) {
             return;
         }
@@ -797,7 +779,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     /** Logs an error; the character range of the error is from pos up to 
      * BUT NOT including endpos.
      */
-    protected void jmlError(int pos, int endpos, String key, Object... args) {
+    public void jmlError(int pos, int endpos, String key, Object... args) {
         // FIXME - the endPos -1 is not unicode friendly - and actually we'd like to adjust the
         // positions of pos and endpos to correspond to appropriate unicode boundaries, here and in
         // the other jmlError method
@@ -805,6 +787,14 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         tk = TokenKind.ERROR;
         jmlToken = null;
         errPos(pos);
+    }
+    
+    public String chars() {
+        return reader.chars();
+    }
+    // Index of next character to be read
+    public int pos() {
+        return reader.bp;
     }
     
     /** A derived class of DiagnosticPosition that allows for straightforward setting of the

@@ -6,7 +6,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.Extensions;
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
@@ -31,7 +31,7 @@ public class SignalsClauseExtension extends JmlExtension.MethodClause {
     
     public static final String signalsID = "signals";
     
-    public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             signalsClause }; }
     
     public void register() {
@@ -39,7 +39,7 @@ public class SignalsClauseExtension extends JmlExtension.MethodClause {
         Extensions.statementMethodClauses.put("exsures",signalsClause);
     }
     
-    public static final IJmlClauseType signalsClause = new IJmlClauseType.MethodClause() {
+    public static final IJmlClauseKind signalsClause = new IJmlClauseKind.MethodClause() {
         @Override
         public String name() { return signalsID; }
         @Override
@@ -48,7 +48,7 @@ public class SignalsClauseExtension extends JmlExtension.MethodClause {
         public boolean preOrOldWithLabelAllowed() { return false; }
 
         @Override
-        public JmlMethodClause parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        public JmlMethodClause parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             if (mods != null) {
                 error(mods, "jml.message", "A " + keyword + " clause may not have modifiers");
                 return null;

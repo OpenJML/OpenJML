@@ -135,7 +135,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                 exprPrecondition = exprHead = null;
                 JmlSpecificationCase cs = lemmaspecs.cases.cases.head;
                 for (JmlMethodClause cl: cs.clauses) {
-                    IJmlClauseType ct = cl.clauseType;
+                    IJmlClauseKind ct = cl.clauseType;
                     if (ct == requiresClause) {
                             expr = ((JmlMethodClauseExpr)cl).expression;
                             if (exprPrecondition != null) {

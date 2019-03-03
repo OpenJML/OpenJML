@@ -7,7 +7,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.Extensions;
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
@@ -36,14 +36,14 @@ public class ChooseClause extends JmlExtension.Statement {
     
     public static final String chooseID = "choose";
     
-    public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             chooseClause }; }
     
     public void register() {
         Extensions.statementMethodClauses.put("choose_if",chooseClause);
     }
     
-    public static final IJmlClauseType chooseClause = new IJmlClauseType.Statement() {
+    public static final IJmlClauseKind chooseClause = new IJmlClauseKind.Statement() {
         @Override
         public String name() { return chooseID; }
         @Override
@@ -52,7 +52,7 @@ public class ChooseClause extends JmlExtension.Statement {
         public boolean preOrOldWithLabelAllowed() { return false; }
 
         @Override
-        public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             if (mods != null) {
                 error(mods, "jml.message", "A " + keyword + " clause may not have modifiers");
                 return null;

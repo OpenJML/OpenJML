@@ -3,7 +3,7 @@ package org.jmlspecs.openjml.ext;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.IF;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
 
@@ -22,27 +22,27 @@ public class MethodConditionalClauseExtension extends JmlExtension.MethodClause 
     public static final String workingspaceID = "working_space";
     public static final String measuredbyID = "measured_by";
     
-    public static final IJmlClauseType durationClause = new MethodConditionalClauseType() {
+    public static final IJmlClauseKind durationClause = new MethodConditionalClauseType() {
         public String name() { return durationID; }
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
     };
     
-    public static final IJmlClauseType workingspaceClause = new MethodConditionalClauseType() {
+    public static final IJmlClauseKind workingspaceClause = new MethodConditionalClauseType() {
         public String name() { return workingspaceID; }
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return false; }
     };
     
-    public static final IJmlClauseType measuredbyClause = new MethodConditionalClauseType() {
+    public static final IJmlClauseKind measuredbyClause = new MethodConditionalClauseType() {
         public String name() { return measuredbyID; }
     };
     
     @Override
-    public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             durationClause, measuredbyClause, workingspaceClause}; }
     
-    public static class MethodConditionalClauseType extends IJmlClauseType.MethodClause {
+    public static class MethodConditionalClauseType extends IJmlClauseKind.MethodClause {
  
         @Override
         public boolean oldNoLabelAllowed() { return false; }
@@ -51,7 +51,7 @@ public class MethodConditionalClauseExtension extends JmlExtension.MethodClause 
 
         @Override
         public 
-        JmlMethodClauseConditional parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        JmlMethodClauseConditional parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
 
             int pp = parser.pos();

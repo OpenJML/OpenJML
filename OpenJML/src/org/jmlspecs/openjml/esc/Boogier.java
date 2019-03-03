@@ -19,7 +19,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlInternalError;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
@@ -2218,7 +2218,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
                     //newlist.append(tt);
                 }
             } else {
-                IJmlClauseType token = c.clauseType;
+                IJmlClauseKind token = c.clauseType;
                 if (token == invariantClause) {
                     JmlTypeClauseExpr copy = (JmlTypeClauseExpr)c.clone();
                     //copy.expression = treetrans.translate(copy.expression);

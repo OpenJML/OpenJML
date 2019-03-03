@@ -1055,7 +1055,7 @@ public class MethodProverSMT {
                             if (assertStat.associatedSource != null) log.useSource(prev);
                         }
                         if (assertStat.associatedClause != null && JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
-                            IJmlClauseType tkind = assertStat.associatedClause.clauseType;
+                            IJmlClauseKind tkind = assertStat.associatedClause.clauseType;
                             if (tkind == MethodExprClauseExtensions.ensuresClause || tkind == SignalsClauseExtension.signalsClause || tkind == SignalsOnlyClauseExtension.signalsOnlyClause) {  // FIXME - actually - any postcondition check
                                 int p = terminationPos;
                                 if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
@@ -1408,7 +1408,7 @@ public class MethodProverSMT {
                         if (assertStat.associatedSource != null) log.useSource(prev);
                     }
                     if (assertStat.associatedClause != null && JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
-                        IJmlClauseType tkind = assertStat.associatedClause.clauseType;
+                        IJmlClauseKind tkind = assertStat.associatedClause.clauseType;
                         if (tkind == MethodExprClauseExtensions.ensuresClause || tkind == SignalsClauseExtension.signalsClause || tkind == SignalsOnlyClauseExtension.signalsOnlyClause) {  // FIXME - actually - any postcondition check
                             int p = terminationPos;
                             if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {

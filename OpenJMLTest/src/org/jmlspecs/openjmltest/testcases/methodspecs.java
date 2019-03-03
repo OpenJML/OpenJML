@@ -21,8 +21,11 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:3: This is not a valid keyword in a method specification: r",5
-                ,"/TEST.java:3: warning: Method m does not override parent class methods and so its specification may not begin with 'also'",5
+                ,"/TEST.java:3: ';' expected",14
+                ,"/TEST.java:3: Method specs may not precede a variable declaration",7
+                ,"/TEST.java:3: cannot find symbol\n" + 
+                                        "  symbol:   class r\n" + 
+                                        "  location: class A",5
                 );
     }
 

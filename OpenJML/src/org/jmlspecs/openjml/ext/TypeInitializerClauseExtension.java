@@ -5,7 +5,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.IDENTIFIER;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.IF;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -39,21 +39,21 @@ public class TypeInitializerClauseExtension extends JmlExtension.TypeClause {
     public static final String staticinitializerID = "static_initializer";
 
     @Override
-    public IJmlClauseType[] clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             initializerClause, staticinitializerClause}; }
     
-    public static final IJmlClauseType initializerClause = new InitializerBlock() {
+    public static final IJmlClauseKind initializerClause = new InitializerBlock() {
         public String name() { return initializerID; }
     };
     
-    public static final IJmlClauseType staticinitializerClause = new InitializerBlock() {
+    public static final IJmlClauseKind staticinitializerClause = new InitializerBlock() {
         public String name() { return staticinitializerID; }
     };
     
-    private static class InitializerBlock extends IJmlClauseType.TypeClause {
+    private static class InitializerBlock extends IJmlClauseKind.TypeClause {
         
         public 
-        JmlTypeClauseInitializer parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        JmlTypeClauseInitializer parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             int pp = parser.pos();
             init(parser);
             parser.nextToken(); // skip over initializer token

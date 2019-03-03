@@ -2,7 +2,7 @@ package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
@@ -27,12 +27,12 @@ import com.sun.tools.javac.util.ListBuffer;
 public class TypeInClauseExtension extends JmlExtension.TypeClause {
 
     @Override
-    public IJmlClauseType[] clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             inClause}; }
     
     public static final String inID = "in";
     
-    public static final IJmlClauseType inClause = new IJmlClauseType.TypeClause() {
+    public static final IJmlClauseKind inClause = new IJmlClauseKind.TypeClause() {
         public String name(){
             return inID;
         }
@@ -41,7 +41,7 @@ public class TypeInClauseExtension extends JmlExtension.TypeClause {
         public boolean preOrOldWithLabelAllowed() { return false; }
         
         public 
-        JmlTypeClauseIn parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        JmlTypeClauseIn parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             int pp = parser.pos();
             if (!parser.isNone(mods))
                 error(mods, "jml.no.mods.allowed", inClause.name());

@@ -37,6 +37,8 @@ import static org.jmlspecs.openjml.ext.ShowStatement.*;
 import org.jmlspecs.openjml.ext.CallableClauseExtension;
 import org.jmlspecs.openjml.ext.EndStatement;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
+import org.jmlspecs.openjml.ext.LineAnnotationClauses;
+import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
 import org.jmlspecs.openjml.ext.MethodDeclClauseExtension;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
 import org.jmlspecs.openjml.ext.ReachableStatement;
@@ -1539,7 +1541,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * When isPostcondition is true, then parameter variables are mapped to
      * the pre-state of the method, rather than to the current state.
      */
-    public @Nullable JCExpression convertJML(@Nullable JCExpression that, JCExpression condition, boolean isPostcondition) {
+    public @Nullable JCExpression convertJML(@Nullable JCTree that, JCExpression condition, boolean isPostcondition) {
         if (that == null) return null;
         boolean savedp = this.isPostcondition;
         boolean savedt = this.translatingJML;
@@ -1559,7 +1561,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             this.translatingJML = true;
 //            this.splitExpressions = rac || esc;
             this.checkAccessEnabled = false;
-            return convertExpr(that);
+            if (that instanceof JCExpression) {
+                return convertExpr((JCExpression)that);
+            } else {
+                convert(that);
+                return null;
+            }
         } finally {
             this.isPostcondition = savedp;
             this.translatingJML = savedt;
@@ -3962,7 +3969,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 try {
                     JCIdent preexpr = null;
                     for (JmlMethodClause clause : scase.clauses) {
-                        IJmlClauseType ct = clause.clauseType;
+                        IJmlClauseKind ct = clause.clauseType;
                         if (ct == MethodDeclClauseExtension.oldClause || ct == MethodDeclClauseExtension.forallClause) {
                             // NOTE: The name of the variable in the old/forall clause is not changed or unique-ified.
                             // If the same name is used if different behaviors, as in this test, the names will be the same, 
@@ -4574,7 +4581,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 for (JmlMethodClause clause : scase.clauses) {
                     try {
                         conditionAssociatedClause = clause;
-                        IJmlClauseType ct = clause.clauseType;
+                        IJmlClauseKind ct = clause.clauseType;
                         if (ct == MethodExprClauseExtensions.ensuresClause) { 
                             {
                                 currentStatements = ensuresStats; axiomBlock = ensuresAxiomBlock;
@@ -6744,7 +6751,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * @param baseThisSym
      * @param targetThisSym
      */
-    protected void checkAccess(IJmlClauseType token, DiagnosticPosition assignPosition, JCExpression origlhs, JCExpression lhs,
+    protected void checkAccess(IJmlClauseKind token, DiagnosticPosition assignPosition, JCExpression origlhs, JCExpression lhs,
             JCExpression baseThisExpr, JCExpression targetThisExpr) {
         if (rac) return; // FIXME - turn off checking assignable until we figure out how to handle fresh allocations in rac
         if (recursiveCall) return;
@@ -6807,7 +6814,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * @param baseThisId   the thisId of the caller
      * @param targetThisId the thisId of the callee
      */
-    protected void checkAgainstCallerSpecs(IJmlClauseType token, DiagnosticPosition callPosition, JCExpression scannedItem, JCExpression trItem, JCExpression precondition,
+    protected void checkAgainstCallerSpecs(IJmlClauseKind token, DiagnosticPosition callPosition, JCExpression scannedItem, JCExpression trItem, JCExpression precondition,
             JCIdent baseThisId, /*@nullable*/ JCIdent targetThisId, JavaFileObject itemSource) {
         if (rac) return; // FIXME - turn off checking assignable until we figure out how to handle fresh allocations
         if (token == accessibleClause && !checkAccessEnabled) return;
@@ -6855,7 +6862,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
-    protected /*@ nullable */JCExpression checkAgainstAllCalleeSpecs(MethodSymbol callee, IJmlClauseType token, DiagnosticPosition callPosition, JCExpression location, JCExpression trLocation, JCExpression precondition,
+    protected /*@ nullable */JCExpression checkAgainstAllCalleeSpecs(MethodSymbol callee, IJmlClauseKind token, DiagnosticPosition callPosition, JCExpression location, JCExpression trLocation, JCExpression precondition,
             JCIdent baseThisId, /*@nullable*/ JCIdent targetThisId, JavaFileObject itemSource, boolean considerFreshness) {
         if (rac) return precondition; // FIXME - turn off checking assignable until we figure out how to handle fresh allocations
         if (token == accessibleClause && !checkAccessEnabled) return null;
@@ -6913,7 +6920,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * @param targetThisSym
      */
     protected @Nullable
-    JCExpression checkAccess(IJmlClauseType clauseType, DiagnosticPosition assignPosition, JCExpression orig, JCExpression storeref, JmlSpecificationCase specCase, JCExpression baseThisExpr, JCExpression targetThisExpr, boolean callee) {
+    JCExpression checkAccess(IJmlClauseKind clauseType, DiagnosticPosition assignPosition, JCExpression orig, JCExpression storeref, JmlSpecificationCase specCase, JCExpression baseThisExpr, JCExpression targetThisExpr, boolean callee) {
         // If the storeref is a local identifier, then assignment is allowed
         if ((storeref instanceof JCIdent) && ((JCIdent)storeref).sym.owner instanceof Symbol.MethodSymbol) return treeutils.trueLit; 
         if (currentFresh != null && (storeref instanceof JCFieldAccess) && ((JCFieldAccess)storeref).sym == currentFresh.sym) return treeutils.trueLit; 
@@ -8459,7 +8466,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             JmlMethodClauseExpr mcc = null; // Remember the first clause in the specification case
                             int preconditionDetailLocal3 = 0;
                             for (JmlMethodClause clause : cs.clauses) {
-                                IJmlClauseType ct = clause.clauseType;
+                                IJmlClauseKind ct = clause.clauseType;
                                 if (ct == MethodDeclClauseExtension.oldClause || ct == MethodDeclClauseExtension.forallClause) { 
                                         if (clauseIds.containsKey(clause)) continue; // Don't repeat
                                         clauseIds.put(clause,null);
@@ -9010,7 +9017,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         boolean useDefault = true;
                         for (JmlMethodClause clause : cs.clauses) {
                             try {
-                                IJmlClauseType token = clause.clauseType;
+                                IJmlClauseKind token = clause.clauseType;
                                 if (token == assignableClause) { 
                                         // Don't translate assignable if we are in a pure method or constructor
                                     if (!translatingJML) {
@@ -9368,7 +9375,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             JavaFileObject clauseSource = clause.sourcefile == null ? log.currentSourceFile() : clause.sourcefile;
                             JavaFileObject prevSource = null;
                             try {
-                                IJmlClauseType ct = clause.clauseType;
+                                IJmlClauseKind ct = clause.clauseType;
                                 if (ct == MethodExprClauseExtensions.ensuresClause) {
                                         currentStatements = ensuresStats;
                                         LinkedList<ListBuffer<JCStatement>> temp = markBlock();
@@ -9415,7 +9422,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             JavaFileObject clauseSource = clause.sourcefile == null ? log.currentSourceFile() : clause.sourcefile;
                             JavaFileObject prevSource = null;
                             try {
-                                IJmlClauseType ct = clause.clauseType;
+                                IJmlClauseKind ct = clause.clauseType;
                                 if (ct == SignalsClauseExtension.signalsClause) {
                                     // FIXME - review this
                                     ListBuffer<JCStatement> check8 = pushBlock();
@@ -10332,7 +10339,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - document
     JCTree lastStat;
 
-    protected void checkRW(IJmlClauseType rw, Symbol sym, JCExpression th, DiagnosticPosition p) {
+    protected void checkRW(IJmlClauseKind rw, Symbol sym, JCExpression th, DiagnosticPosition p) {
         if (!translatingJML && methodDecl != null) {
             if (sym instanceof VarSymbol && sym.owner instanceof TypeSymbol) {
                 Label lab = rw == readableClause ? Label.READABLE : Label.WRITABLE;
@@ -11821,21 +11828,54 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else if (rac) {
                 addAssert(p,javaLabel,cond);
             } else {
-                boolean present = false;
-                Type ex = csym.type;
-                for (Type t: activeExceptions) {
-                    if (types.isSubtype(ex,t)) {
-                        present = true;
-                        break;
+                long line = log.factory().error(log.currentSource(),p,"jml.message").getLineNumber();
+                boolean allow = findExplicitLineAnnotation(classDecl.lineAnnotations, LineAnnotationClauses.allowClauseKind, line, exception);
+                boolean forbid = findExplicitLineAnnotation(classDecl.lineAnnotations, LineAnnotationClauses.forbidClauseKind, line, exception);
+                boolean ignore = findExplicitLineAnnotation(classDecl.lineAnnotations, LineAnnotationClauses.ignoreClauseKind, line, exception);
+                boolean useException = false;
+                if (allow && forbid || allow && ignore || forbid && ignore) {
+                    log.warning(p, "jml.message", "It is not permitted to have more than one of allow, forbid, ignore for one line");
+                }
+                if (allow) {
+                    useException = true;
+                } else if (forbid) {
+                    useException = false;
+                }
+                if (!allow && !forbid && !ignore) {
+                    Type ex = csym.type;
+                    for (Type t: activeExceptions) {
+                        if (types.isSubtype(ex,t)) {
+                            useException = true;
+                            break;
+                        }
                     }
                 }
-                if (present) {
+                if (ignore) {
+                    addAssume(p, javaLabel, cond);
+                } else if (useException) {
                     conditionalException(p,cond,csym);
                 } else {
                     addAssert(p,javaLabel,cond);
                 }
             }
         }
+    }
+    
+    public boolean findExplicitLineAnnotation(java.util.List<ExceptionLineAnnotation> list, IJmlClauseKind kind, long line, String exType) {
+        if (list == null) return false;
+        for (ExceptionLineAnnotation a: list) {
+            if (a.line == line && a.clauseKind() == kind) {
+                for (JCExpression e: a.exprs()) {
+                   if (e.type != null) {
+                     if (e.type.toString().equals(exType)) return true;
+                   } else {
+                       // Backstop for bad exceptions 
+                       if (e.toString().equals(exType)) return true;
+                   }
+                }
+            }
+        }
+        return false;
     }
     
     public void conditionalException(DiagnosticPosition p, JCExpression cond, ClassSymbol csym) {
@@ -15516,12 +15556,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (that.clauseType == SetStatement.setClause || that.clauseType == SetStatement.debugClause) {
             try {
                 if (!pureCopy) addTraceableComment(that); // after the check on the key
-                JCExpressionStatement st = that.statement;
-                // (almost) Duplicated from visitExec
-                JCExpression arg = convertJML(st.getExpression());
-                if (arg instanceof JCMethodInvocation || arg instanceof JCAssign || arg instanceof JCAssignOp || arg instanceof JCUnary) {
-                    result = addStat( M.at(that).Exec(arg).setType(that.type) );
-                }
+                JCStatement st = that.statement;
+                convertJML(st, treeutils.trueLit, false);
+//                if (arg instanceof JCMethodInvocation || arg instanceof JCAssign || arg instanceof JCAssignOp || arg instanceof JCUnary) {
+//                    result = addStat( M.at(that).Exec(arg).setType(that.type) );
+//                }
             } catch (NoModelMethod e) {
                 // Ignore - don't add a statement
             } catch (JmlNotImplementedException e) {

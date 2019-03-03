@@ -1,6 +1,6 @@
 package org.jmlspecs.openjml.ext;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMaps;
 
@@ -16,12 +16,12 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 public class TypeMapsClauseExtension extends JmlExtension.TypeClause {
 
     @Override
-    public IJmlClauseType[] clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             mapsClause}; }
     
     public static final String mapsID = "maps";
     
-    public static final IJmlClauseType mapsClause = new IJmlClauseType.TypeClause() {
+    public static final IJmlClauseKind mapsClause = new IJmlClauseKind.TypeClause() {
         public String name(){
             return mapsID;
         }
@@ -30,7 +30,7 @@ public class TypeMapsClauseExtension extends JmlExtension.TypeClause {
         public boolean preOrOldWithLabelAllowed() { return false; }
         
         public 
-        JmlTypeClauseMaps parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        JmlTypeClauseMaps parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             int pp = parser.pos();
             init(parser);
             JmlTypeClauseMaps mapsClause = parser.parseMaps(pp, mods, null);

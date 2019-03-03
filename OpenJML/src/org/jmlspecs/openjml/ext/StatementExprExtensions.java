@@ -1,7 +1,7 @@
 package org.jmlspecs.openjml.ext;
 
 import org.jmlspecs.openjml.Extensions;
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 
 public class StatementExprExtensions extends JmlExtension.MethodClause {
@@ -14,21 +14,21 @@ public class StatementExprExtensions extends JmlExtension.MethodClause {
     public static final String loopinvariantID = "loop_invariant";
     public static final String loopdecreasesID = "loop_decreases";
     
-    public static final IJmlClauseType assertClause = new StatementExprType(assertID);
+    public static final IJmlClauseKind assertClause = new StatementExprType(assertID);
     
-    public static final IJmlClauseType assumeClause = new StatementExprType(assumeID);
+    public static final IJmlClauseKind assumeClause = new StatementExprType(assumeID);
     
-    public static final IJmlClauseType commentClause = new StatementExprType(commentID) ;
+    public static final IJmlClauseKind commentClause = new StatementExprType(commentID) ;
     
-    public static final IJmlClauseType useClause = new StatementExprType(useID);
+    public static final IJmlClauseKind useClause = new StatementExprType(useID);
     
-    public static final IJmlClauseType hencebyClause = new StatementExprType(hencebyID);
+    public static final IJmlClauseKind hencebyClause = new StatementExprType(hencebyID);
     
-    public static final IJmlClauseType loopinvariantClause = new StatementExprType(loopinvariantID);
-    public static final IJmlClauseType loopdecreasesClause = new StatementExprType(loopdecreasesID);
+    public static final IJmlClauseKind loopinvariantClause = new StatementExprType(loopinvariantID);
+    public static final IJmlClauseKind loopdecreasesClause = new StatementExprType(loopdecreasesID);
     
     @Override
-    public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             assertClause, assumeClause, useClause, commentClause, hencebyClause,
             loopinvariantClause, loopdecreasesClause }; }
     

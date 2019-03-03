@@ -14,7 +14,7 @@ package Q1_2017;
 			int left = l;
 			int right = r;
 
-			/*@ assignable a[*];
+			/*@ loop_modifies a[*];
 			  @ decreases right + 1 - left; 
 			  @ loop_invariant l <= k && k <= right;
 			  @ loop_invariant l <= left && left <= right + 1 && right == r;
@@ -29,7 +29,7 @@ package Q1_2017;
 			    }
 		    
 		    /*@ 
-		      @ assignable a[*];
+		      @ loop_modifies a[*];
 		      @ decreases k;
 		      @ loop_invariant l <= k && k < r;
 		      @ loop_invariant (\forall int i; l <= i && i < k-1; a[i] <= a[i + 1]);
@@ -41,7 +41,7 @@ package Q1_2017;
 		    a[++k + 1] = a1;
 		    
 		    /*@ 
-		      @ assignable a[*];
+		      @ loop_modifies a[*];
 		      @ decreases k;
 		      @ loop_invariant l <= k && k < r;
 		      @ loop_invariant (\forall int i; l <= i && i < k-1; a[i] <= a[i + 1]);
@@ -53,7 +53,7 @@ package Q1_2017;
 		}
 		int last = a[right];
 		/*@ 
-		  @ assignable a[*];
+		  @ loop_modifies a[*];
 		  @ decreases right;
 		  @ loop_invariant l <= right && right < r;
 		  @ loop_invariant right <= left + 1;

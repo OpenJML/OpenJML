@@ -4,7 +4,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.IDENTIFIER;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.IF;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
@@ -35,16 +35,16 @@ public class TypeMonitorsForClauseExtension extends JmlExtension.TypeClause {
     public static final String monitorsforID = "monitors_for";
 
     @Override
-    public IJmlClauseType[] clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             monitorsforClause}; }
     
-    public static final IJmlClauseType monitorsforClause = new IJmlClauseType.TypeClause() {
+    public static final IJmlClauseKind monitorsforClause = new IJmlClauseKind.TypeClause() {
         public String name() { return monitorsforID; }
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
         
         public 
-        JmlTree.JmlTypeClauseMonitorsFor parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        JmlTree.JmlTypeClauseMonitorsFor parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             int pp = parser.pos();
             init(parser);
             scanner.setJmlKeyword(false);

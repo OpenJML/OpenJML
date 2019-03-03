@@ -6,7 +6,7 @@ package org.jmlspecs.openjml.ext;
 
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
@@ -41,14 +41,14 @@ public class EndStatement extends JmlExtension.Statement {
 
     public static final String endID = "end";
     
-    public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             endClause }; }
     
-    public static final IJmlClauseType endClause = new IJmlClauseType.Statement() {
+    public static final IJmlClauseKind endClause = new IJmlClauseKind.Statement() {
         public String name() { return endID; }
      
         @Override
-        public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
 
             int pp = parser.pos();
