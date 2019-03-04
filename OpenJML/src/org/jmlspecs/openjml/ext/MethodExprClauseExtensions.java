@@ -12,7 +12,7 @@ public class MethodExprClauseExtensions extends JmlExtension.MethodClause {
     public static final String breaksID = "breaks";
     public static final String returnsID = "returns";
     
-    public static final IJmlClauseKind ensuresClause = new MethodClauseExprType(ensuresID) {
+    public static final IJmlClauseKind ensuresClauseKind = new MethodClauseExprType(ensuresID) {
         public boolean oldNoLabelAllowed() { return true; }
     };
     
@@ -37,7 +37,7 @@ public class MethodExprClauseExtensions extends JmlExtension.MethodClause {
     
     @Override
     public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            ensuresClause, divergesClause, whenClause,
+            ensuresClauseKind, divergesClause, whenClause,
             continuesClause, breaksClause, returnsClause}; }
     
 }

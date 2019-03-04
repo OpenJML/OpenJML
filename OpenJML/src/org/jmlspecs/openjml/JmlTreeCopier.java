@@ -287,7 +287,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     public JCTree visitJmlMethodClauseConditional(JmlMethodClauseConditional that, Void p) {
         JmlMethodClauseConditional copy = M.at(that.pos).JmlMethodClauseConditional(
                 that.keyword,
-                that.clauseType,
+                that.clauseKind,
                 copy(that.expression,p),
                 copy(that.predicate,p));
         copy.sourcefile = that.sourcefile;
@@ -299,7 +299,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     public JCTree visitJmlMethodClauseDecl(JmlMethodClauseDecl that, Void p) {
         JmlMethodClauseDecl copy = M.at(that.pos).JmlMethodClauseDecl(
                 that.keyword,
-                that.clauseType,
+                that.clauseKind,
                 copy(that.decls,p));
         copy.sourcefile = that.sourcefile;
         copy.type = that.type;
@@ -310,7 +310,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     public JCTree visitJmlMethodClauseExpr(JmlMethodClauseExpr that, Void p) {
         JmlMethodClauseExpr copy = M.at(that.pos).JmlMethodClauseExpr(
                 that.keyword,
-                that.clauseType,
+                that.clauseKind,
                 copy(that.expression,p));
         copy.sourcefile = that.sourcefile;
         copy.type = that.type;
@@ -322,7 +322,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlMethodClauseGroup copy = M.at(that.pos).JmlMethodClauseGroup(
                 copy(that.cases,p));
         copy.keyword = that.keyword;
-        copy.clauseType = that.clauseType;
+        copy.clauseKind = that.clauseKind;
         copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         return copy;
@@ -332,7 +332,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     public JCTree visitJmlMethodClauseSignals(JmlMethodClauseSignals that, Void p) {
         JmlMethodClauseSignals copy = M.at(that.pos).JmlMethodClauseSignals(
                 that.keyword,
-                that.clauseType,
+                that.clauseKind,
                 copy(that.vardef,p),
                 copy(that.expression,p));
         copy.sourcefile = that.sourcefile;
@@ -344,7 +344,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     public JCTree visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that, Void p) {
         JmlMethodClauseSignalsOnly copy = M.at(that.pos).JmlMethodClauseSignalsOnly(
                 that.keyword,
-                that.clauseType,
+                that.clauseKind,
                 copy(that.list,p));
         copy.defaultClause = that.defaultClause;
         copy.sourcefile = that.sourcefile;
@@ -356,7 +356,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     public JCTree visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that, Void p) {
         JmlMethodClauseStoreRef r = M.at(that.pos).JmlMethodClauseStoreRef(
                 that.keyword,
-                that.clauseType,
+                that.clauseKind,
                 copy(that.list,p));
         r.sourcefile = that.sourcefile;
         r.setType(that.type);

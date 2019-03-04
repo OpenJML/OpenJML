@@ -1967,14 +1967,14 @@ public class JmlTree implements IJmlTree {
      */
     abstract public static class JmlMethodClause extends JmlAbstractStatement implements JmlSource {
         public String keyword; // May be a synonym of the canonical keyword
-        public IJmlClauseKind clauseType;
+        public IJmlClauseKind clauseKind;
         public JavaFileObject sourcefile;  // FIXME - don't think this belongs here
         public JavaFileObject source() { return sourcefile; }
         public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
-        protected JmlMethodClause(int pos, String keyword, IJmlClauseKind clauseType) {
+        protected JmlMethodClause(int pos, String keyword, IJmlClauseKind clauseKind) {
             this.pos = pos;
             this.keyword = keyword;
-            this.clauseType = clauseType;
+            this.clauseKind = clauseKind;
         }
     }
     
@@ -1987,8 +1987,8 @@ public class JmlTree implements IJmlTree {
         /*@ nullable */ public JCTree.JCExpression predicate;
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlMethodClauseConditional(int pos, String keyword, IJmlClauseKind clauseType, JCTree.JCExpression expression, /*@ nullable*/ JCTree.JCExpression predicate) {
-            super(pos, keyword, clauseType);
+        protected JmlMethodClauseConditional(int pos, String keyword, IJmlClauseKind clauseKind, JCTree.JCExpression expression, /*@ nullable*/ JCTree.JCExpression predicate) {
+            super(pos, keyword, clauseKind);
             this.expression = expression;
             this.predicate = predicate;
         }

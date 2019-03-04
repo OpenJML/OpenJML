@@ -71,11 +71,11 @@ public class RemoveUselessPostconditions extends JmlTreeScanner {
         
         for(JmlMethodClause c : clauses){
             
-            if(c.clauseType==MethodExprClauseExtensions.ensuresClause){
+            if(c.clauseKind==MethodExprClauseExtensions.ensuresClauseKind){
                 ensures++;
             }
             
-            if(c.clauseType==AssignableClauseExtension.assignableClause){
+            if(c.clauseKind==AssignableClauseExtension.assignableClauseKind){
                 assignable++;
             }
         }

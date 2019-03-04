@@ -506,7 +506,7 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
             clause = M.JmlMethodClauseExpr
             (
                     MethodExprClauseExtensions.ensuresID,  
-                    MethodExprClauseExtensions.ensuresClause,  
+                    MethodExprClauseExtensions.ensuresClauseKind,  
                     p
             );
 
@@ -525,7 +525,7 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
                     
                     return List.of(
                             clause,
-                            M.JmlMethodClauseStoreRef(assignableID, assignableClause, List.of(jmlBinary.lhs))
+                            M.JmlMethodClauseStoreRef(assignableID, assignableClauseKind, List.of(jmlBinary.lhs))
                             );
                 }
                 
@@ -535,7 +535,7 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
             clause = M.JmlMethodClauseExpr
             (
                     requiresID,  
-                    requiresClause,  
+                    requiresClauseKind,  
                     p
             );
 

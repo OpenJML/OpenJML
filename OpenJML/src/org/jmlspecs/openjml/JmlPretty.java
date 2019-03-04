@@ -293,7 +293,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
         try {
             for (JCTree.JCVariableDecl s: that.decls) {
-                print(useCanonicalName ? that.clauseType.name() : that.keyword);
+                print(useCanonicalName ? that.clauseKind.name() : that.keyword);
                 print(" ");
                 s.accept(this);
                 // The declaration has its own closing semicolon
@@ -303,7 +303,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
         try { 
-            print(useCanonicalName ? that.clauseType.name() : that.keyword);
+            print(useCanonicalName ? that.clauseKind.name() : that.keyword);
             print(" ");
             printExpr(that.expression);  // noPrec
             if (that instanceof RequiresClause.Node) {
@@ -319,7 +319,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
         try { 
-            print(useCanonicalName ? that.clauseType.name() : that.keyword);
+            print(useCanonicalName ? that.clauseKind.name() : that.keyword);
             print(" ");
             if (that.keyword != null) {
                 that.keyword.accept(this);
@@ -337,7 +337,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
         try { 
-            print(useCanonicalName ? that.clauseType.name() : that.keyword);
+            print(useCanonicalName ? that.clauseKind.name() : that.keyword);
             print(" ");
             that.expression.accept(this);
             if (that.predicate != null) {
@@ -351,7 +351,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
         try { 
-            print(useCanonicalName ? that.clauseType.name() : that.keyword);
+            print(useCanonicalName ? that.clauseKind.name() : that.keyword);
             print(" ");
             if (that.list.isEmpty()) {
                 print("\\nothing");
@@ -368,7 +368,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
         try { 
-            print(useCanonicalName ? that.clauseType.name() : that.keyword);
+            print(useCanonicalName ? that.clauseKind.name() : that.keyword);
             print(" ");
             boolean first = true;
             for (JCTree item: that.list) {
@@ -381,7 +381,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
         try { 
-            print(useCanonicalName ? that.clauseType.name() : that.keyword);
+            print(useCanonicalName ? that.clauseKind.name() : that.keyword);
             print(" (");
             if (that.vardef != null) {
                 that.vardef.vartype.accept(this);

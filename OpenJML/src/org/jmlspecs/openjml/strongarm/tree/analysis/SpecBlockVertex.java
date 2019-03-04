@@ -134,7 +134,7 @@ public class SpecBlockVertex  {
             // there are two ways to do it
             
             if(isAllowAnyOrder()==false){
-                if(c.clauseType == requiresClause && v.contains(c)){
+                if(c.clauseKind == requiresClauseKind && v.contains(c)){
                     theIntersection.add(c);
                 }
             }else{    

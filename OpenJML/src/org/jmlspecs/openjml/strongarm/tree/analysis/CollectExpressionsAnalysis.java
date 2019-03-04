@@ -37,7 +37,7 @@ public class CollectExpressionsAnalysis extends JmlTreeAnalysis {
     @Override
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
         
-        if(tree.clauseType == clauseType){
+        if(tree.clauseKind == clauseType){
             exprs.add(tree);
         }
         
@@ -47,7 +47,7 @@ public class CollectExpressionsAnalysis extends JmlTreeAnalysis {
     
     public static Set<JCTree> analyze(JCTree tree){
         
-        CollectExpressionsAnalysis analysis = new CollectExpressionsAnalysis(Strongarm._context, requiresClause);
+        CollectExpressionsAnalysis analysis = new CollectExpressionsAnalysis(Strongarm._context, requiresClauseKind);
         
         
         analysis.scan(tree);

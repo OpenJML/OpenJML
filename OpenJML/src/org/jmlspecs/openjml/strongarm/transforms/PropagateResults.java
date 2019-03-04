@@ -59,7 +59,7 @@ public class PropagateResults extends JmlTreeScanner {
         if(clause instanceof JmlMethodClauseExpr){
             JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
             
-            if(mExpr.clauseType == ensuresClause && mExpr.expression instanceof JCBinary ){
+            if(mExpr.clauseKind == ensuresClauseKind && mExpr.expression instanceof JCBinary ){
                 JCBinary expr = (JCBinary)mExpr.expression;
 
                 if(expr == null || expr.lhs == null || expr.rhs==null){
@@ -91,7 +91,7 @@ public class PropagateResults extends JmlTreeScanner {
         if(clause instanceof JmlMethodClauseExpr){
             JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
             
-            if(mExpr.clauseType == ensuresClause && mExpr.expression instanceof JCBinary ){
+            if(mExpr.clauseKind == ensuresClauseKind && mExpr.expression instanceof JCBinary ){
                 JCBinary expr = (JCBinary)mExpr.expression;
                 
                 if(expr == null || expr.lhs == null || expr.rhs==null){

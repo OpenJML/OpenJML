@@ -13,19 +13,19 @@ public class ContractComparator implements Comparator<JmlMethodClause> {
     @Override
     public int compare(JmlMethodClause o1, JmlMethodClause o2) {
         
-        if(o1.clauseType == o2.clauseType){
+        if(o1.clauseKind == o2.clauseKind){
             return o1.toString().compareTo(o2.toString());
         }
         
-        if(o1.clauseType == requiresClause && o2.clauseType == ensuresClause){
+        if(o1.clauseKind == requiresClauseKind && o2.clauseKind == ensuresClauseKind){
             return -1;
         }
         
-        if(o2.clauseType == requiresClause && o1.clauseType == ensuresClause){
+        if(o2.clauseKind == requiresClauseKind && o1.clauseKind == ensuresClauseKind){
             return 1;
         }
         
-        return o2.clauseType.name().compareTo(o1.clauseType.name());
+        return o2.clauseKind.name().compareTo(o1.clauseKind.name());
     }
     
 }

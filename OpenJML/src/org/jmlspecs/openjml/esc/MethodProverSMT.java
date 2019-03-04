@@ -1055,8 +1055,8 @@ public class MethodProverSMT {
                             if (assertStat.associatedSource != null) log.useSource(prev);
                         }
                         if (assertStat.associatedClause != null && JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
-                            IJmlClauseKind tkind = assertStat.associatedClause.clauseType;
-                            if (tkind == MethodExprClauseExtensions.ensuresClause || tkind == SignalsClauseExtension.signalsClause || tkind == SignalsOnlyClauseExtension.signalsOnlyClause) {  // FIXME - actually - any postcondition check
+                            IJmlClauseKind tkind = assertStat.associatedClause.clauseKind;
+                            if (tkind == MethodExprClauseExtensions.ensuresClauseKind || tkind == SignalsClauseExtension.signalsClauseKind || tkind == SignalsOnlyClauseExtension.signalsOnlyClauseKind) {  // FIXME - actually - any postcondition check
                                 int p = terminationPos;
                                 if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
                                     if (terminationPos == info.decl.pos) p = info.decl.getEndPosition(log.getSource(mainSource).getEndPosTable());
@@ -1408,8 +1408,8 @@ public class MethodProverSMT {
                         if (assertStat.associatedSource != null) log.useSource(prev);
                     }
                     if (assertStat.associatedClause != null && JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
-                        IJmlClauseKind tkind = assertStat.associatedClause.clauseType;
-                        if (tkind == MethodExprClauseExtensions.ensuresClause || tkind == SignalsClauseExtension.signalsClause || tkind == SignalsOnlyClauseExtension.signalsOnlyClause) {  // FIXME - actually - any postcondition check
+                        IJmlClauseKind tkind = assertStat.associatedClause.clauseKind;
+                        if (tkind == MethodExprClauseExtensions.ensuresClauseKind || tkind == SignalsClauseExtension.signalsClauseKind || tkind == SignalsOnlyClauseExtension.signalsOnlyClauseKind) {  // FIXME - actually - any postcondition check
                             int p = terminationPos;
                             if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
                                 if (terminationPos == info.decl.pos) p = info.decl.getEndPosition(log.getSource(mainSource).getEndPosTable());

@@ -32,14 +32,14 @@ public class SignalsClauseExtension extends JmlExtension.MethodClause {
     public static final String signalsID = "signals";
     
     public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            signalsClause }; }
+            signalsClauseKind }; }
     
     public void register() {
-        Extensions.typeMethodClauses.put("exsures",signalsClause);
-        Extensions.statementMethodClauses.put("exsures",signalsClause);
+        Extensions.typeMethodClauses.put("exsures",signalsClauseKind);
+        Extensions.statementMethodClauses.put("exsures",signalsClauseKind);
     }
     
-    public static final IJmlClauseKind signalsClause = new IJmlClauseKind.MethodClause() {
+    public static final IJmlClauseKind signalsClauseKind = new IJmlClauseKind.MethodClause() {
         @Override
         public String name() { return signalsID; }
         @Override

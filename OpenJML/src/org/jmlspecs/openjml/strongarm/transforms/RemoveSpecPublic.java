@@ -16,7 +16,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
-import static org.jmlspecs.openjml.ext.RequiresClause.requiresClause;
+import static org.jmlspecs.openjml.ext.RequiresClause.requiresClauseKind;
 
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
@@ -74,7 +74,7 @@ public class RemoveSpecPublic extends JmlTreeScanner {
         if(tree.lhs instanceof JCFieldAccess){
             JCFieldAccess fa = (JCFieldAccess)tree.lhs;
         
-            if(clause.clauseType==requiresClause && fa.toString().contains("null")){
+            if(clause.clauseKind==requiresClauseKind && fa.toString().contains("null")){
                 return true;
             }
         }

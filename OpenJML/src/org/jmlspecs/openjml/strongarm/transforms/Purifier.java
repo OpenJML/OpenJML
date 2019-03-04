@@ -1,6 +1,6 @@
 package org.jmlspecs.openjml.strongarm.transforms;
 
-import static org.jmlspecs.openjml.ext.AssignableClauseExtension.assignableClause;
+import static org.jmlspecs.openjml.ext.AssignableClauseExtension.assignableClauseKind;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTree;
@@ -69,7 +69,7 @@ public class Purifier extends JmlTreeScanner {
    
     @Override
     public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree){
-        if(tree.clauseType==assignableClause){
+        if(tree.clauseKind==assignableClauseKind){
             assignables++;
         }
         

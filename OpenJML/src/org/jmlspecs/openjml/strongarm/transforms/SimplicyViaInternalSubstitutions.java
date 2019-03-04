@@ -198,7 +198,7 @@ public class SimplicyViaInternalSubstitutions extends JmlTreeScanner {
                 
                 // make sure this is an ENSURES clause
                 if(pre.equals(post)==false){
-                    clauses.head.clauseType = MethodExprClauseExtensions.ensuresClause;
+                    clauses.head.clauseKind = MethodExprClauseExtensions.ensuresClauseKind;
                 }
                 
             }

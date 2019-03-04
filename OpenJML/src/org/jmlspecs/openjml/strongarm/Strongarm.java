@@ -277,7 +277,7 @@ public class Strongarm
         JmlMethodClause precondition = M.JmlMethodClauseExpr
                 (
                         requiresID,
-                        requiresClause,
+                        requiresClauseKind,
                         reader.precondition.p
                 );
             

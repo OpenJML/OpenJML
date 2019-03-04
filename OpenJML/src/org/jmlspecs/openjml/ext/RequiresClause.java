@@ -24,7 +24,7 @@ public class RequiresClause extends JmlExtension.MethodClause {
     
     public static final String requiresID = "requires";
     
-    public static final IJmlClauseKind requiresClause = new MethodClauseExprType(requiresID) {
+    public static final IJmlClauseKind requiresClauseKind = new MethodClauseExprType(requiresID) {
         
         public boolean isPreconditionClause() { return true; }
         
@@ -78,7 +78,7 @@ public class RequiresClause extends JmlExtension.MethodClause {
     
     @Override
     public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            requiresClause}; }
+            requiresClauseKind}; }
     
     public static class Node extends JmlTree.JmlMethodClauseExpr {
 
@@ -86,7 +86,7 @@ public class RequiresClause extends JmlExtension.MethodClause {
         public JCExpression exceptionType;
 
         protected Node(int pos, JCExpression expression, JCExpression exceptionType) {
-            super(pos, requiresID, requiresClause, expression);
+            super(pos, requiresID, requiresClauseKind, expression);
             this.exceptionType = exceptionType;
         }
         

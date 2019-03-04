@@ -29,7 +29,7 @@ public class AssignableClauseExtension extends JmlExtension.MethodClause {
     public static final String accessibleID = "accessible";
     public static final String capturesID = "captures";
     
-    public static final IJmlClauseKind assignableClause = new LocationSetClauseType() {
+    public static final IJmlClauseKind assignableClauseKind = new LocationSetClauseType() {
         public String name() { return assignableID; }
     };
     
@@ -42,10 +42,10 @@ public class AssignableClauseExtension extends JmlExtension.MethodClause {
     };
     
     public void register() {
-        synonym("modifies",assignableClause);
-        synonym("assigns",assignableClause);
-        synonym("writes",assignableClause);
-        synonym("modifiable",assignableClause);
+        synonym("modifies",assignableClauseKind);
+        synonym("assigns",assignableClauseKind);
+        synonym("writes",assignableClauseKind);
+        synonym("modifiable",assignableClauseKind);
         synonym("reads",accessibleClause);
     }
     
@@ -56,7 +56,7 @@ public class AssignableClauseExtension extends JmlExtension.MethodClause {
     
     @Override
     public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            assignableClause, accessibleClause, capturesClause }; }
+            assignableClauseKind, accessibleClause, capturesClause }; }
     
     public static class LocationSetClauseType extends IJmlClauseKind.MethodClause {
         public boolean oldNoLabelAllowed() { return false; }
