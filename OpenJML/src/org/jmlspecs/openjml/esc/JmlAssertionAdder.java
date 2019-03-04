@@ -5394,6 +5394,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     boolean translatingLambda = false;
     
+    Map<String,JCLambda> lambdaLiterals = new HashMap<>();
+    
     @Override
     public void visitLambda(JCLambda that) {
         if (pureCopy) {
@@ -5416,6 +5418,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (rac) {
             // FIXME - currently there is no rewriting for checking within RAC
             result = eresult = convertCopy(that);
+            return;
+        }
+        
+        boolean b = JmlOption.isOption(context, JmlOption.INLINE_FUNCTION_LITERAL);
+        if (!b) {
+            int n = lambdaLiterals.size();
+            String nm = "$$JML$LAMBDALIT_" + n;
+            lambdaLiterals.put(nm, that);
+            JCVariableDecl d = treeutils.makeVarDef(that.type,names.fromString(nm),methodDecl.sym,that.pos);
+            addStat(d);
+            JCIdent id = treeutils.makeIdent(that.pos, d.sym);
+            addAssume(that,Label.IMPLICIT_ASSUME, treeutils.makeNotNull(that.pos, id));
+            result = eresult = id;
             return;
         }
 
@@ -6038,6 +6053,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (arg instanceof JCMethodInvocation || arg instanceof JCAssign || arg instanceof JCAssignOp || arg instanceof JCUnary) {
             result = addStat( M.at(that).Exec(arg).setType(that.type) );
         }
+    }
+    
+    public boolean isKnownNonNull(JCTree r) {
+        if (!(r instanceof JCIdent)) return false;
+        if (lambdaLiterals.get(((JCIdent)r).getName().toString()) != null) return true;
+        return false;
     }
 
     // OK
@@ -6743,6 +6764,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected boolean checkAccessEnabled;
     
+    public JCExpression toRepresentationForAssignable(JCFieldAccess fa) {
+        TypeSymbol owner = fa.selected.type.tsym;
+        TypeSpecs tspecs = specs.get((ClassSymbol)owner);
+        for (JmlTypeClause t: tspecs.clauses) {
+            if (t.clauseType == representsClause) {
+                JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents)t;
+                if (rep.suchThat) continue; 
+                if (((JCIdent)rep.ident).sym == fa.sym) { // FIXME - why is rep.ident not a JCIdent?
+                    if (rep.expression instanceof JCFieldAccess) return rep.expression;
+                }
+            }
+        }
+        return fa;
+    }
+    
     /** Add assertions that the lhs is allowed to be written to or read from.
      * 
      * @param assignPosition the position of the generation assertion
@@ -6849,6 +6885,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // FIXME - visibility?
             try {
                 JCExpression condition = checkAccess(token,callPosition, scannedItem, trItem, c, baseThisId, targetThisId, false);
+                if (trItem instanceof JCFieldAccess) {
+                    JCExpression e = toRepresentationForAssignable((JCFieldAccess)trItem);
+                    if (e != trItem) {
+                        JCExpression cond = checkAccess(token,callPosition, scannedItem, e, c, baseThisId, targetThisId, false);
+                        condition = treeutils.makeOr(condition.pos, condition, cond);
+                    }
+                }
+                
                 //condition = treeutils.makeImplies(scannedItem.pos, precondition, condition);
                 condition = makeAssertionOptional(condition);
                 String message = scannedItem.toString();
@@ -10201,6 +10245,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             expr = eresult;
             if (types.isSameType(newtype,eresult.type)) return expr;
         } 
+        // Don't do casts to a base type
+        if (!isPrim && !newIsPrim) {
+            Type t = expr.type.unannotatedType();
+            if (!(t instanceof Type.ForAll)) {
+                if (types.isSubtype(t,newtype)) return expr;
+            } else {
+                if (newtype == syms.objectType) return expr; 
+                // FIXME - should do a better job of detecting subtypes for parameterized types
+            }
+        }
+
         if (!newIsPrim && isPrim) {
             // boxing: Integer = int and the like
             JCExpression id = createBoxingStatsAndExpr(expr,newtype);
@@ -10412,7 +10467,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else if (rhs instanceof JCLambda) {
                         // Need to check that the spec of the reference is subsumed in the spec of the type (that.type) inferred by type checking
                     checkCompatibleSpecs((JCLambda)rhs,rhs.type);
-                } else {
+                } else if (!isKnownNonNull(that.rhs)) {
                     JCExpression e = treeutils.makeNeqObject(that.pos, rhs, treeutils.nullLit);
                     // FIXME - location of nnonnull declaration?
                     addAssert(that, Label.POSSIBLY_NULL_ASSIGNMENT, e);
@@ -16280,7 +16335,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     stat = M.at(that).VarDef(that.sym,init);
                     stat.ident = newident;
                     JCExpression nn = null;
-                    if (init != null && !init.type.isPrimitive() && !utils.isPrimitiveType(init.type) && specs.isNonNull(that.sym,that.sym.enclClass())) {
+                    if (init != null && !init.type.isPrimitive() 
+                            && !utils.isPrimitiveType(init.type) 
+                            && !isKnownNonNull(that.init) && !isKnownNonNull(init)
+                            && specs.isNonNull(that.sym,that.sym.enclClass())) {
                         nn = treeutils.makeNeqObject(init.pos, init, treeutils.nullLit);
                         if (init instanceof JCLiteral) {
                             // FIXME - potential optimizations, but they need testing, particularly the second one
@@ -16426,6 +16484,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     methodDecl = null;
                 } else {
                     // Regular method body
+                    if (isKnownNonNull(that.init) || isKnownNonNull(init)) nn = null;
                     JCBlock bl = popBlock(0,that,check);
                     currentStatements.addAll(bl.stats);
                     if (nn != null) addAssert(that,Label.POSSIBLY_NULL_INITIALIZATION,nn,that.name);

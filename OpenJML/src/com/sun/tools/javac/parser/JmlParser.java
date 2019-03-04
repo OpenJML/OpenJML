@@ -3288,7 +3288,8 @@ public class JmlParser extends JavacParser {
             if (ee instanceof JmlLambda) {
                 ((JmlLambda)ee).jmlType = jmltype;
             } else {
-                log.warning(jmltype,"jml.message", "Ignoring JML type cast before a non-lambda expression (" + ee.getClass().toString() + ")");
+                e = jmlF.TypeCast(jmltype, e);
+                //log.warning(jmltype,"jml.message", "Ignoring JML type cast before a non-lambda expression (" + ee.getClass().toString() + ")");
             }
             return e;
         }
