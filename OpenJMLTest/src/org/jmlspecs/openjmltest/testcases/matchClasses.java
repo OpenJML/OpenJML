@@ -237,6 +237,7 @@ public class matchClasses  extends TCBase {
                 "public class A { int jjjj; } "
                 ,"/$A/A.jml:2: variable jjjj is already defined in class A",9
                 ,"/$A/A.jml:2: A declaration within a JML annotation must be either ghost or model",9
+                ,"/$A/A.jml:2: A declaration within a JML annotation must be either ghost or model",9
                 );
     }
     
