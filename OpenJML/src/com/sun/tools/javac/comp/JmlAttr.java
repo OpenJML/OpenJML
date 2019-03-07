@@ -2233,99 +2233,87 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void checkVarMods(JmlVariableDecl tree) {
         if (tree.name == names.error || tree.type.isErroneous()) return;
         JCModifiers mods = tree.mods;
-        String kind = (tree.mods.flags & Flags.PARAMETER) != 0 ? "parameter" : "field";
+        String kind;
+        JavaFileObject prev = log.useSource(tree.source());
+        JCModifiers specmods = mods;
+        JmlVariableDecl treeForMods = tree;
         if (tree.specsDecl != null) {
-            JCModifiers jmlmods = tree.specsDecl.mods;
-            attribAnnotationTypes(jmlmods.annotations,env);
-//            for (JCAnnotation a: tree.mods.annotations) { // Iterating over annotations in .java file
-//                JCAnnotation aa = utils.findMod(jmlmods, a.type.tsym); // CHeck if it is used in .jml file
-//                if (aa == null) { // If not, report that it is ignored
-//                    log.warning(a.pos(), "jml.java.annotation.superseded", kind , tree.name.toString(), a.toString());
-//                }
-//            }
-            mods = tree.specsDecl.mods;
-            log.useSource(tree.specsDecl.source());
+            specmods = tree.specsDecl.mods;
+            treeForMods = tree.specsDecl;
+            prev = log.useSource(tree.specsDecl.source());
+            attribAnnotationTypes(specmods.annotations,env);
         }
-        boolean inJML = utils.isJML(mods);
+        try {
+        // specmods is the mods from the JML declaration, if it exists, otherwise the mods from the Java declaration
+        // This is because mods in JML supersede those in the Java file; there is a check thats the two are consistent
+        boolean specsinJML = utils.isJML(specmods);
+        boolean modsinJML = utils.isJML(mods);
         boolean ownerInJML = utils.isJML(tree.sym.owner.flags());
-        boolean ghost = isGhost(mods);
-        boolean model = isModel(mods);
+        boolean ghost = isGhost(specmods);
+        boolean model = isModel(specmods);
         boolean modelOrGhost = model || ghost;
         if (tree.sym.owner.kind == Kinds.TYP) {  // Field declarations
+            kind = "field";
             if (ghost) {
-                allAllowed(mods.annotations, allowedGhostFieldModifiers, "ghost field declaration");
+                allAllowed(specmods.annotations, allowedGhostFieldModifiers, "ghost field declaration");
             } else if (model) {
-                allAllowed(mods.annotations, allowedModelFieldModifiers, "model field declaration");
+                allAllowed(specmods.annotations, allowedModelFieldModifiers, "model field declaration");
             } else {
-                allAllowed(mods.annotations, allowedFieldModifiers, "field declaration");
+                allAllowed(specmods.annotations, allowedFieldModifiers, "field declaration");
             }
-            if (!inJML && isInJmlDeclaration && modelOrGhost) {
-                if (ghost) utils.error(tree.sourcefile,tree.pos,"jml.no.nested.ghost.type");
-                else       utils.error(tree.sourcefile,tree.pos,"jml.no.nested.model.type");
-            } else if (inJML && !modelOrGhost  && !isInJmlDeclaration) {
-                utils.error(tree.sourcefile,tree,"jml.missing.ghost.model");
-            } else if (!inJML && modelOrGhost) {
-                utils.error(tree.sourcefile,tree.pos,"jml.ghost.model.on.java");
+            // A corner case: the declaration is a Java declaration, but the corresponding declaration in the specs
+            // is in JML. This would have already been reported as a duplicate declaration.
+            if (!specsinJML && isInJmlDeclaration && modelOrGhost) {
+                if (ghost) utils.error(log.currentSourceFile(),treeForMods.pos,"jml.no.nested.ghost.type");
+                else       utils.error(log.currentSourceFile(),treeForMods.pos,"jml.no.nested.model.type");
+            } else if (specsinJML && !modelOrGhost  && !isInJmlDeclaration) {
+                utils.error(log.currentSourceFile(),treeForMods,"jml.missing.ghost.model");
+            } else if (!specsinJML && modelOrGhost) {
+                utils.error(log.currentSourceFile(),treeForMods.pos,"jml.ghost.model.on.java");
             } 
             JmlAnnotation a;
             if (!model) {
-                checkForConflict(mods,SPEC_PUBLIC,SPEC_PROTECTED);
-                checkForRedundantSpecMod(mods);
+                checkForConflict(specmods,SPEC_PUBLIC,SPEC_PROTECTED);
+                checkForRedundantSpecMod(specmods);
             }
-            a = utils.findMod(mods,INSTANCE);
-            if (a != null && isStatic(tree.mods)) {
+            a = utils.findMod(specmods,INSTANCE);
+            if (a != null && isStatic(specmods)) {
                 utils.error(a.sourcefile,a.pos(),"jml.conflicting.modifiers","instance","static");
             }
 //            if (model && ((tree.mods.flags & Flags.FINAL)!=0)) {   // FIXME - WHy would model and final conflict
 //                a = utils.findMod(tree.mods,MODEL);
 //                utils.error(a.sourcefile,a.pos(),"jml.conflicting.modifiers","model","final");
 //            }
-            checkForConflict(mods,NONNULL,NULLABLE);
-            if (tree.specsDecl != null) log.useSource(tree.source());
+            checkForConflict(specmods,NONNULL,NULLABLE);
         } else if ((tree.mods.flags & Flags.PARAMETER) != 0) { // formal parameters
-            JCModifiers pmods = tree.mods;
+            kind = "parameter";
             if (tree.specsDecl != null) {
-                JCModifiers jmlmods = tree.specsDecl.mods;
-                attribAnnotationTypes(jmlmods.annotations,env);
-                // Appropriate use of annotations is checked below.
-//                for (JCAnnotation a: tree.mods.annotations) {
-//                    JmlAnnotation aa = utils.findMod(jmlmods, a.type.tsym);
-//                    if (aa == null) { // FIXME _ check on sourcefile
-//                        JavaFileObject psource = log.useSource(tree.source());
-//                        log.warning(a.pos(), "jml.java.annotation.superseded", "parameter", tree.name.toString(), a.toString());
-//                        log.useSource(psource);
-//                    }
-//                }
-                kind = "parameter";
-                pmods = jmlmods;
+                attribAnnotationTypes(specmods.annotations,env);
             }
-            if (tree.specsDecl != null) log.useSource(tree.specsDecl.source());
-            allAllowed(pmods.annotations, allowedFormalParameterModifiers, "formal parameter");
-            checkForConflict(pmods,NONNULL,NULLABLE);
-            if (tree.specsDecl != null) log.useSource(tree.source());
+            allAllowed(specmods.annotations, allowedFormalParameterModifiers, "formal parameter");
+            checkForConflict(specmods,NONNULL,NULLABLE);
             
-        } else { // local declaration
+        } else { // local declaration - there is no separate spec in this case
             kind = "local variable declaration";
-            allAllowed(tree.mods.annotations, allowedLocalVarModifiers, kind);
-            if (inJML && !ghost  && !isInJmlDeclaration && !ownerInJML) {
+            allAllowed(mods.annotations, allowedLocalVarModifiers, kind);
+            if (modsinJML && !ghost  && !isInJmlDeclaration && !ownerInJML) {
                 utils.error(tree.source(),tree.pos,"jml.missing.ghost");
-            } else if (!inJML && ghost) {
+            } else if (!modsinJML && ghost) {
                 utils.error(tree.source(),tree.pos,"jml.ghost.on.java");
             } 
-            checkForConflict(tree.mods,NONNULL,NULLABLE);
+            checkForConflict(mods,NONNULL,NULLABLE);
+        }
+        } finally {
+        log.useSource(prev);
         }
         
         if (tree.specsDecl != null) {
-            JavaFileObject prev = log.useSource(tree.specsDecl.source());
             checkSameAnnotations(tree.mods,tree.specsDecl.mods,kind,tree.name.toString());
-            log.useSource(prev);
         }
              
         // Check that types match 
         if (tree.specsDecl != null) { // tree.specsDecl can be null if there is a parsing error
-            JavaFileObject prev = log.useSource(tree.specsDecl.source());
             Type specType = attribType(tree.specsDecl.vartype,env);
-            log.useSource(prev);
             if (specType != null) {
                 if (!Types.instance(context).isSameType(tree.sym.type,specType)) {
                     if (specType.hasTag(TypeTag.TYPEVAR) && tree.sym.type.hasTag(TypeTag.TYPEVAR)) {

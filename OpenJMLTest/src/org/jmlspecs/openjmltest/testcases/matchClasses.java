@@ -232,11 +232,11 @@ public class matchClasses  extends TCBase {
     }
     
     @Test public void testJmlSimpleFieldDup3() {
-        addMockFile("$A/A.jml", "public class A { \n/*@ int j; */ }");
+        addMockFile("$A/A.jml", "public class A { \n/*@ int jjjj; */ }");
         helpTCF("$A/A.java",
-                "public class A { int j; } "
-                ,"/$A/A.jml:2: variable j is already defined in class A",9
-                ,"/$A/A.jml:2: A declaration within a JML annotation must be either ghost or model",4
+                "public class A { int jjjj; } "
+                ,"/$A/A.jml:2: variable jjjj is already defined in class A",9
+                ,"/$A/A.jml:2: A declaration within a JML annotation must be either ghost or model",9
                 );
     }
     

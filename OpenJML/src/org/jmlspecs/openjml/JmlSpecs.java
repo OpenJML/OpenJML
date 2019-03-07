@@ -55,6 +55,7 @@ import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
@@ -234,7 +235,7 @@ public class JmlSpecs {
     final protected Utils utils;
     
     /** The map giving the accumulated specifications for a given type */
-    final protected Map<ClassSymbol,TypeSpecs> specsmap = new HashMap<ClassSymbol,TypeSpecs>();
+    final protected Map<TypeSymbol,TypeSpecs> specsmap = new HashMap<>();
     
     /** The specifications path, which is a sequence of directories in which to
      * find specification files; this is created by initializeSpecsPath().
@@ -825,8 +826,8 @@ public class JmlSpecs {
     public void printDatabase() {
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
         try {
-            for (Map.Entry<ClassSymbol,TypeSpecs> e : specsmap.entrySet()) {
-                String n = e.getKey().flatname.toString();
+            for (Map.Entry<TypeSymbol,TypeSpecs> e : specsmap.entrySet()) {
+                String n = e.getKey().flatName().toString();
                 JavaFileObject f = e.getValue().file;
                 noticeWriter.println(n + " " + (f==null?"<NOFILE>":f.getName()));
                 ListBuffer<JmlTree.JmlTypeClause> clauses = e.getValue().clauses;
@@ -869,7 +870,7 @@ public class JmlSpecs {
      * @return the specifications, or null if there are none in the database
      */
     //@ nullable 
-    public TypeSpecs get(ClassSymbol type) {
+    public TypeSpecs get(TypeSymbol type) {
         return specsmap.get(type);
     }
     

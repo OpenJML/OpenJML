@@ -6766,8 +6766,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     public JCExpression toRepresentationForAssignable(JCFieldAccess fa) {
         TypeSymbol owner = fa.selected.type.tsym;
-        TypeSpecs tspecs = specs.get((ClassSymbol)owner);
-        for (JmlTypeClause t: tspecs.clauses) {
+        TypeSpecs tspecs = specs.get(owner);  // FIXME - we get null specs if owner is a TypeVar -- need a type mapping?
+        if (tspecs != null) for (JmlTypeClause t: tspecs.clauses) {
             if (t.clauseType == representsClause) {
                 JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents)t;
                 if (rep.suchThat) continue; 
