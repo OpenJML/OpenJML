@@ -89,14 +89,14 @@ import com.sun.tools.javac.util.PropagatedException;
  * currently does not do that.
  */
 public class OpenJMLInterface implements IAPI.IProofResultListener {
-	
+
     /** The API object corresponding to this Interface class. The api object changes 
      * for each invocation of OpenJML, with a new context, and possibly new input files, etc. 
      * The same API object can be used if all the input files are unchanged and only 
      * new proof attempts are being attempted. */
     @NonNull
     protected IAPI api;
-    
+
     /** The common instance of a UI Utils object that provides various
      * utility methods.  We initialize this when an OpenJMLInterface
      * object is created rather than making it static because the 
@@ -123,222 +123,222 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     protected JmlProblemRequestor preq;
 
     /** The constructor, which initializes all of the fields of the object.
-    *
-    * @param jproject The java project associated with this instance of OpenJMLInterface
-    */
-   public OpenJMLInterface(@NonNull IJavaProject jproject) {
-       this.jproject = jproject;
-	   initialize(null);
-   }
-   
-   /** Initializes new OpenJMLInterface objects */
-   protected void initialize(/*@nullable*/ Main.Cmd cmd) {
-       preq = new JmlProblemRequestor(jproject); 
-       PrintWriter w = Log.log.listener() != null ? 
-    		   new PrintWriter(Log.log.listener().getStream(),true) : null;
-       List<String> opts = getOptions(jproject,cmd);
-       try { 
-    	   api = Factory.makeAPI(w,new EclipseDiagnosticListener(preq), null, opts.toArray(new String[0])); 
-    	   api.setProofResultListener(this);
-       } catch (Exception e) {
-    	   Log.errorlog("Failed to create an interface to OpenJML",e); //$NON-NLS-1$
-       }
-   }
-   
-   /**
-    * A private helper method that checks to see whether a given IFolder contains
-    * at least one source file (that is, a file ending in .jml or .java, constants
-    * declared in OpenJML's Strings class).
-    * 
-    * @param folder The folder to check.
-    * @return true if the folder contains at least one source file, false otherwise.
-    */
-   private boolean hasAtLeastOneSourceFile(final IFolder folder) {
-	   boolean result = false;
-	   
-	   try {
-		   IResource[] members = folder.members();
-		   for (int i = 0; !result && i < members.length; i++) {
-			   if (members[i] instanceof IFolder) {
-				   result |= hasAtLeastOneSourceFile((IFolder) members[i]);
-			   } else if (members[i] instanceof IFile) {
-				   final IFile file = (IFile) members[i];
-				   result |= file.getName().endsWith(Strings.javaSuffix);
-				   result |= file.getName().endsWith(Strings.specsSuffix);
-			   }
-		   }
-	   } catch (final CoreException e) {
-		   // if we couldn't even check for the folder's members, obviously
-		   // something's wrong - we'll return false
-	   }
-	   
-	   return result;
-   }
-   
-   /**
-    * Adds appropriate arguments to a list of OpenJML command line arguments
-    * for all the non-empty source folders in the specified IProject.
-    * 
-    * @param project The project.
-    * @param args The argument list to add to; this is potentially changed by
-    * calling this method.
-    * @return the number of path and file arguments added to the argument list; this
-    * does _not_ include OpenJML "-dir" arguments, which are also added as necessary.
-    * If result == 0, the arguments were unchanged.
-    */
-	private int addSourceFoldersToCommandLine(final IProject project, final List<String> args) {
-		int result = 0;
-		if (JavaProject.hasJavaNature(project)) {
-			// should always be true, we should always be in a Java project
-			// so let's get all the source folders
-			final IJavaProject javaProject = JavaCore.create(project);
-			try {
-				for (IClasspathEntry entry : javaProject
-						.getResolvedClasspath(true)) {
-					// get the classpath for the project
-					if (entry.getContentKind() == IPackageFragmentRoot.K_SOURCE) {
-						// it's a source folder, let's see if it's empty
-						final IFolder folder = 
-								ResourcesPlugin.getWorkspace().getRoot().getFolder(entry.getPath());
+     *
+     * @param jproject The java project associated with this instance of OpenJMLInterface
+     */
+    public OpenJMLInterface(@NonNull IJavaProject jproject) {
+        this.jproject = jproject;
+        initialize(null);
+    }
 
-						if (hasAtLeastOneSourceFile(folder)) {
-							// there are files in the source folder
-							args.add(JmlOption.DIR.optionName());
-							args.add(folder.getLocation().toOSString());
-							result = result + 1;
-						}
-					}
-				}
-			} catch (final JavaModelException e) {
-				// ignore this exception for now
-			}
-		}
-		return result;
-	}
-   
-   /** Executes the JML Check (syntax and typechecking) or the RAC compiler
-    * operations on the given set of resources, creating a new compilation context.
-    * Must be called in a computational thread.
-    * @param command either CHECK or RAC
-    * @param files the set of files (or containers) to check
-    * @param monitor the progress monitor the UI is using
-    */
-   public void executeExternalCommand(Main.Cmd command, Collection<IResource> files, @Nullable IProgressMonitor monitor, boolean auto) {
-	   boolean verboseProgress = utils.openjmlVerbose() >= Utils.NORMAL;
-       try {
-           if (files.isEmpty()) {
-        	   if (!auto) {
-        		   if (verboseProgress) Log.log("Nothing applicable to process"); //$NON-NLS-1$
-        		   Activator.utils().showMessageInUI(null,"JML","Nothing applicable to process"); //$NON-NLS-1$ //$NON-NLS-2$
-        	   }
-        	   return;
-           }
-           IJavaProject jp = JavaCore.create(files.iterator().next().getProject());
-           List<String> args;
-           if (command == Main.Cmd.CHECK) {
-        	   api.close();
-        	   initialize(command);
-        	   args = new ArrayList<String>();
-        	   args = getOptions(jp,command); // FIXME - somehow the options are not propagating through
-           } else {
-        	   args = getOptions(jp,command);
-        	   String racdir = utils.getRacDir();
-        	   if (jp.getProject().findMember(racdir) == null) {
-        		   try {
-        			   // FIXME - is it a problem that this is done in the UI thread; is local=true correct?
-        		       jp.getProject().getFolder(racdir).create(IResource.FORCE,true,null);
-        		   } catch (CoreException e) {
-                       if (verboseProgress) Log.errorlog("Failed to create the RAC output folder",e); //$NON-NLS-1$
-                       Activator.utils().showExceptionInUI(null,"Failed to create the RAC output folder",e); //$NON-NLS-1$
-                       return;
-        		   }
-        	   }
-        	   args.add(Strings.outputOptionName);
-        	   args.add(jp.getProject().getLocation().append(racdir).toString());
-           }
+    /** Initializes new OpenJMLInterface objects */
+    protected void initialize(/*@nullable*/ Main.Cmd cmd) {
+        preq = new JmlProblemRequestor(jproject); 
+        PrintWriter w = Log.log.listener() != null ? 
+                                new PrintWriter(Log.log.listener().getStream(),true) : null;
+                                List<String> opts = getOptions(jproject,cmd);
+                                try { 
+                                    api = Factory.makeAPI(w,new EclipseDiagnosticListener(preq), null, opts.toArray(new String[0])); 
+                                    api.setProofResultListener(this);
+                                } catch (Exception e) {
+                                    Log.errorlog("Failed to create an interface to OpenJML",e); //$NON-NLS-1$
+                                }
+    }
 
-    	   boolean addedSomething = false;
-           for (IResource r : files) {
-        	   if (r instanceof IProject) {
-        		   addedSomething |= addSourceFoldersToCommandLine((IProject) r, args) > 0;
-        	   } else if (r instanceof IFolder) {
-        		   // the user explicitly selected a folder, and we don't allow empty folders
-        		   if (hasAtLeastOneSourceFile((IFolder) r)) {
-        			   args.add(JmlOption.DIR.optionName());
-        			   args.add(r.getLocation().toString());
-        			   addedSomething = true;
-        		   }
-        	   } else {
-        		   // the user explicitly selected a file, so presumably they know what they're doing
-        		   args.add(r.getLocation().toString());
-        		   addedSomething = true;
-        	   }
-           }
-           if (!addedSomething) {
-        	   if (monitor != null) monitor.subTask("OpenJML: No files to check"); //$NON-NLS-1$
-        	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " No files to check"); //$NON-NLS-1$
-        	   return; // we don't call OpenJML with no files
-           }
-           Timer.timer.markTime();
-           if (verboseProgress) {
-        	   String s = files.size() == 1 ? files.iterator().next().getName() : (files.size() + " items"); //$NON-NLS-1$
-        	   Log.log(Timer.timer.getTimeString() + " Executing openjml on " + s); //$NON-NLS-1$
-           }
-           if (monitor != null) {
-               monitor.setTaskName(command == Main.Cmd.RAC ? "JML RAC" : "JML Checking"); //$NON-NLS-1$ //$NON-NLS-2$
-               monitor.subTask("Executing openjml"); //$NON-NLS-1$
-           }
-           try {
-               setMonitor(monitor);
-               int ret = api.execute(null,args.toArray(new String[args.size()]));
-               if (ret == Main.Result.OK.exitCode) {
-            	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed"); //$NON-NLS-1$
-               }
-               else if (ret == Main.EXIT_CANCELED) {
-            	   throw new Main.JmlCanceledException(Utils.emptyString);
-               }
-               else if (ret == Main.Result.ERROR.exitCode) {
-            	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed with errors"); //$NON-NLS-1$
-               }
-               else if (ret == Main.Result.CMDERR.exitCode) {
-                   StringBuilder ss = new StringBuilder();
-                   for (String r: args) {
-                       ss.append(r);
-                       ss.append(Utils.space);
-                   }
-                   Log.errorlog("INVALID COMMAND LINE: return code = " + ret + "   Command: " + ss,null);  // FIXME - the reason for the bad command line is lost (it would be an internal error)  //$NON-NLS-1$//$NON-NLS-2$
-                   Activator.utils().showMessageInUI(null,"Execution Failure","Invalid commandline - return code is " + ret + Strings.eol + ss);  //$NON-NLS-1$//$NON-NLS-2$
-               }
-               else if (ret >= Main.Result.SYSERR.exitCode) {
-                   StringBuilder ss = new StringBuilder();
-                   for (String r: args) {
-                       ss.append(r);
-                       ss.append(Utils.space);
-                   }
-                   Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME - when the error is the result of an exception, we don't see the result //$NON-NLS-1$ //$NON-NLS-2$
-                   Activator.utils().showMessageInUI(null,"OpenJML Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss);   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-               }
-           } catch (JmlCanceledException e) {
-               throw e;
-           } catch (PropagatedException e) {
-               throw e.getCause();
-           } catch (Throwable e) {
-               StringBuilder ss = new StringBuilder();
-               for (String c: args) {
-                   ss.append(c);
-                   ss.append(Utils.space);
-               }
-               Log.errorlog("Failure to execute openjml: "+ss,e);  //$NON-NLS-1$
-               Activator.utils().showExceptionInUI(null,"Failure to execute openjml: " + ss,e); //$NON-NLS-1$
-           }
-           if (monitor != null) monitor.subTask("Completed openjml"); //$NON-NLS-1$
-       } catch (JmlCanceledException e) {
-           if (monitor != null) monitor.subTask("OpenJML Canceled: " + e.getMessage()); //$NON-NLS-1$
-    	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Operation canceled"); //$NON-NLS-1$
-       }
-       if (command == Main.Cmd.ESC) utils.refreshView();
-   }
- 
+    /**
+     * A private helper method that checks to see whether a given IFolder contains
+     * at least one source file (that is, a file ending in .jml or .java, constants
+     * declared in OpenJML's Strings class).
+     * 
+     * @param folder The folder to check.
+     * @return true if the folder contains at least one source file, false otherwise.
+     */
+    private boolean hasAtLeastOneSourceFile(final IFolder folder) {
+        boolean result = false;
+
+        try {
+            IResource[] members = folder.members();
+            for (int i = 0; !result && i < members.length; i++) {
+                if (members[i] instanceof IFolder) {
+                    result |= hasAtLeastOneSourceFile((IFolder) members[i]);
+                } else if (members[i] instanceof IFile) {
+                    final IFile file = (IFile) members[i];
+                    result |= file.getName().endsWith(Strings.javaSuffix);
+                    result |= file.getName().endsWith(Strings.specsSuffix);
+                }
+            }
+        } catch (final CoreException e) {
+            // if we couldn't even check for the folder's members, obviously
+            // something's wrong - we'll return false
+        }
+
+        return result;
+    }
+
+    /**
+     * Adds appropriate arguments to a list of OpenJML command line arguments
+     * for all the non-empty source folders in the specified IProject.
+     * 
+     * @param project The project.
+     * @param args The argument list to add to; this is potentially changed by
+     * calling this method.
+     * @return the number of path and file arguments added to the argument list; this
+     * does _not_ include OpenJML "-dir" arguments, which are also added as necessary.
+     * If result == 0, the arguments were unchanged.
+     */
+    private int addSourceFoldersToCommandLine(final IProject project, final List<String> args) {
+        int result = 0;
+        if (JavaProject.hasJavaNature(project)) {
+            // should always be true, we should always be in a Java project
+            // so let's get all the source folders
+            final IJavaProject javaProject = JavaCore.create(project);
+            try {
+                for (IClasspathEntry entry : javaProject
+                                        .getResolvedClasspath(true)) {
+                    // get the classpath for the project
+                    if (entry.getContentKind() == IPackageFragmentRoot.K_SOURCE) {
+                        // it's a source folder, let's see if it's empty
+                        final IFolder folder = 
+                                                ResourcesPlugin.getWorkspace().getRoot().getFolder(entry.getPath());
+
+                        if (hasAtLeastOneSourceFile(folder)) {
+                            // there are files in the source folder
+                            args.add(JmlOption.DIR.optionName());
+                            args.add(folder.getLocation().toOSString());
+                            result = result + 1;
+                        }
+                    }
+                }
+            } catch (final JavaModelException e) {
+                // ignore this exception for now
+            }
+        }
+        return result;
+    }
+
+    /** Executes the JML Check (syntax and typechecking) or the RAC compiler
+     * operations on the given set of resources, creating a new compilation context.
+     * Must be called in a computational thread.
+     * @param command either CHECK or RAC
+     * @param files the set of files (or containers) to check
+     * @param monitor the progress monitor the UI is using
+     */
+    public void executeExternalCommand(Main.Cmd command, Collection<IResource> files, @Nullable IProgressMonitor monitor, boolean auto) {
+        boolean verboseProgress = utils.openjmlVerbose() >= Utils.NORMAL;
+        try {
+            if (files.isEmpty()) {
+                if (!auto) {
+                    if (verboseProgress) Log.log("Nothing applicable to process"); //$NON-NLS-1$
+                    Activator.utils().showMessageInUI(null,"JML","Nothing applicable to process"); //$NON-NLS-1$ //$NON-NLS-2$
+                }
+                return;
+            }
+            IJavaProject jp = JavaCore.create(files.iterator().next().getProject());
+            List<String> args;
+            if (command == Main.Cmd.CHECK) {
+                api.close();
+                initialize(command);
+                args = new ArrayList<String>();
+                args = getOptions(jp,command); // FIXME - somehow the options are not propagating through
+            } else {
+                args = getOptions(jp,command);
+                String racdir = utils.getRacDir();
+                if (jp.getProject().findMember(racdir) == null) {
+                    try {
+                        // FIXME - is it a problem that this is done in the UI thread; is local=true correct?
+                        jp.getProject().getFolder(racdir).create(IResource.FORCE,true,null);
+                    } catch (CoreException e) {
+                        if (verboseProgress) Log.errorlog("Failed to create the RAC output folder",e); //$NON-NLS-1$
+                        Activator.utils().showExceptionInUI(null,"Failed to create the RAC output folder",e); //$NON-NLS-1$
+                        return;
+                    }
+                }
+                args.add(Strings.outputOptionName);
+                args.add(jp.getProject().getLocation().append(racdir).toString());
+            }
+
+            boolean addedSomething = false;
+            for (IResource r : files) {
+                if (r instanceof IProject) {
+                    addedSomething |= addSourceFoldersToCommandLine((IProject) r, args) > 0;
+                } else if (r instanceof IFolder) {
+                    // the user explicitly selected a folder, and we don't allow empty folders
+                    if (hasAtLeastOneSourceFile((IFolder) r)) {
+                        args.add(JmlOption.DIR.optionName());
+                        args.add(r.getLocation().toString());
+                        addedSomething = true;
+                    }
+                } else {
+                    // the user explicitly selected a file, so presumably they know what they're doing
+                    args.add(r.getLocation().toString());
+                    addedSomething = true;
+                }
+            }
+            if (!addedSomething) {
+                if (monitor != null) monitor.subTask("OpenJML: No files to check"); //$NON-NLS-1$
+                if (verboseProgress) Log.log(Timer.timer.getTimeString() + " No files to check"); //$NON-NLS-1$
+                return; // we don't call OpenJML with no files
+            }
+            Timer.timer.markTime();
+            if (verboseProgress) {
+                String s = files.size() == 1 ? files.iterator().next().getName() : (files.size() + " items"); //$NON-NLS-1$
+                Log.log(Timer.timer.getTimeString() + " Executing openjml on " + s); //$NON-NLS-1$
+            }
+            if (monitor != null) {
+                monitor.setTaskName(command == Main.Cmd.RAC ? "JML RAC" : "JML Checking"); //$NON-NLS-1$ //$NON-NLS-2$
+                monitor.subTask("Executing openjml"); //$NON-NLS-1$
+            }
+            try {
+                setMonitor(monitor);
+                int ret = api.execute(null,args.toArray(new String[args.size()]));
+                if (ret == Main.Result.OK.exitCode) {
+                    if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed"); //$NON-NLS-1$
+                }
+                else if (ret == Main.EXIT_CANCELED) {
+                    throw new Main.JmlCanceledException(Utils.emptyString);
+                }
+                else if (ret == Main.Result.ERROR.exitCode) {
+                    if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed with errors"); //$NON-NLS-1$
+                }
+                else if (ret == Main.Result.CMDERR.exitCode) {
+                    StringBuilder ss = new StringBuilder();
+                    for (String r: args) {
+                        ss.append(r);
+                        ss.append(Utils.space);
+                    }
+                    Log.errorlog("INVALID COMMAND LINE: return code = " + ret + "   Command: " + ss,null);  // FIXME - the reason for the bad command line is lost (it would be an internal error)  //$NON-NLS-1$//$NON-NLS-2$
+                    Activator.utils().showMessageInUI(null,"Execution Failure","Invalid commandline - return code is " + ret + Strings.eol + ss);  //$NON-NLS-1$//$NON-NLS-2$
+                }
+                else if (ret >= Main.Result.SYSERR.exitCode) {
+                    StringBuilder ss = new StringBuilder();
+                    for (String r: args) {
+                        ss.append(r);
+                        ss.append(Utils.space);
+                    }
+                    Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME - when the error is the result of an exception, we don't see the result //$NON-NLS-1$ //$NON-NLS-2$
+                    Activator.utils().showMessageInUI(null,"OpenJML Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss);   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+                }
+            } catch (JmlCanceledException e) {
+                throw e;
+            } catch (PropagatedException e) {
+                throw e.getCause();
+            } catch (Throwable e) {
+                StringBuilder ss = new StringBuilder();
+                for (String c: args) {
+                    ss.append(c);
+                    ss.append(Utils.space);
+                }
+                Log.errorlog("Failure to execute openjml: "+ss,e);  //$NON-NLS-1$
+                Activator.utils().showExceptionInUI(null,"Failure to execute openjml: " + ss,e); //$NON-NLS-1$
+            }
+            if (monitor != null) monitor.subTask("Completed openjml"); //$NON-NLS-1$
+        } catch (JmlCanceledException e) {
+            if (monitor != null) monitor.subTask("OpenJML Canceled: " + e.getMessage()); //$NON-NLS-1$
+            if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Operation canceled"); //$NON-NLS-1$
+        }
+        if (command == Main.Cmd.ESC) utils.refreshView();
+    }
+
     /** Executes the jmldoc tool on the given project, producing output according
      * to the current set of options.
      * @param p the project whose jmldocs are to be produced
@@ -373,8 +373,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         }
         return 3;
     }
-    
-    
+
+
     public void executeInferCommand(Main.Cmd command, List<?> things, IProgressMonitor monitor) {
         try {
             if (things.isEmpty()) {
@@ -383,29 +383,29 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                 return;
             }
             setMonitor(monitor);
-           
+
             List<String> args = getOptions(jproject,Main.Cmd.INFER);
             api.initOptions(null,  args.toArray(new String[args.size()]));
-            
+
             List<IJavaElement> elements = new LinkedList<IJavaElement>();
-            
+
             IResource rr;
             int count = 0;
-    		utils.refreshView(); // Sets up the view - then each result is added incrementally
+            utils.refreshView(); // Sets up the view - then each result is added incrementally
             for (Object r: things) {
-            	try {
-            		if (r instanceof IPackageFragment) {
-            			count += utils.countMethods((IPackageFragment)r);
-            		} else if (r instanceof IJavaProject) {
-            			count += utils.countMethods((IJavaProject)r);
-            		} else if (r instanceof IProject) {
-            			count += utils.countMethods((IProject)r);
-            		} else if (r instanceof IPackageFragmentRoot) {
-            			count += utils.countMethods((IPackageFragmentRoot)r);
-            		} else if (r instanceof ICompilationUnit) {
-            			count += utils.countMethods((ICompilationUnit)r);
-            		} else if (r instanceof IType) {
-            			count += utils.countMethods((IType)r);
+                try {
+                    if (r instanceof IPackageFragment) {
+                        count += utils.countMethods((IPackageFragment)r);
+                    } else if (r instanceof IJavaProject) {
+                        count += utils.countMethods((IJavaProject)r);
+                    } else if (r instanceof IProject) {
+                        count += utils.countMethods((IProject)r);
+                    } else if (r instanceof IPackageFragmentRoot) {
+                        count += utils.countMethods((IPackageFragmentRoot)r);
+                    } else if (r instanceof ICompilationUnit) {
+                        count += utils.countMethods((ICompilationUnit)r);
+                    } else if (r instanceof IType) {
+                        count += utils.countMethods((IType)r);
                     } else if (r instanceof IMethod) {
                         count += 1;
                     } else if (r instanceof IFile || r instanceof IFolder) {
@@ -416,31 +416,31 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                         // a bad estimate of the work to be done. 
                         // TODO - count the methods using the OpenJML AST.
                         count += 2;
-            		} else {
-            			Log.log("Can't count methods in a " + r.getClass());
-            		}
-            	} catch (Exception e) {
-            		// FIXME - record exception
-            	}
+                    } else {
+                        Log.log("Can't count methods in a " + r.getClass());
+                    }
+                } catch (Exception e) {
+                    // FIXME - record exception
+                }
             }
-            
+
             final int oldArgsSize = args.size();
-            
+
             for (Object r: things) { 
-            	// an IType is adaptable to an IResource (the containing file), but we want it left as an IType
+                // an IType is adaptable to an IResource (the containing file), but we want it left as an IType
                 if (!(r instanceof IType) && r instanceof IAdaptable 
-                		&& (rr=(IResource)((IAdaptable)r).getAdapter(IResource.class)) != null) {
-                	r = rr;
+                                        && (rr=(IResource)((IAdaptable)r).getAdapter(IResource.class)) != null) {
+                    r = rr;
                 }
                 if (r instanceof IFolder) {
-                	if (hasAtLeastOneSourceFile((IFolder) r)) {
-                		// we don't process empty folders
-                		args.add(JmlOption.DIR.optionName());
-                		args.add(((IResource)r).getLocation().toString());
-                	}
+                    if (hasAtLeastOneSourceFile((IFolder) r)) {
+                        // we don't process empty folders
+                        args.add(JmlOption.DIR.optionName());
+                        args.add(((IResource)r).getLocation().toString());
+                    }
                 } else if (r instanceof IProject) {
-                	// we only want to add source folders, and only if they actually have source in them
-                	addSourceFoldersToCommandLine((IProject) r, args);
+                    // we only want to add source folders, and only if they actually have source in them
+                    addSourceFoldersToCommandLine((IProject) r, args);
                 } else if (r instanceof IResource) {
                     args.add(((IResource)r).getLocation().toString());
                 } else if (r instanceof IType) {  // Here we want types and methods, but a JavaProject is also an IJavaElement
@@ -456,18 +456,18 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                 Activator.utils().showMessageInUI(null,"JML","No files or elements to process");
                 return;
             }
-            
+
             if (monitor != null) {
-            	monitor.beginTask("Doing inference in project " + jproject.getElementName(),  4*count); // 4 ticks per method being checked
-            	monitor.subTask("Starting Inference on " + jproject.getElementName());
+                monitor.beginTask("Doing inference in project " + jproject.getElementName(),  4*count); // 4 ticks per method being checked
+                monitor.subTask("Starting Inference on " + jproject.getElementName());
             }
 
             Timer.timer.markTime();
-            
+
             if (!args.isEmpty()) {
-            	if (Options.uiverboseness) {
-            		Log.log(Timer.timer.getTimeString() + " Executing Inference");
-            	}
+                if (Options.uiverboseness) {
+                    Log.log(Timer.timer.getTimeString() + " Executing Inference");
+                }
                 try {
                     int ret = api.execute(null,args.toArray(new String[args.size()]));
                     //utils.refreshView(); 
@@ -483,8 +483,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                         Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
                         Activator.utils().showMessageInUI(null,"Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss); // FIXME - fix line ending
                     } else if (ret == Main.EXIT_CANCELED) {
-                    	// Cancelled
-                    	throw new Main.JmlCanceledException("Inference Canceled");
+                        // Cancelled
+                        throw new Main.JmlCanceledException("Inference Canceled");
                     }
                 } catch (Main.JmlCanceledException e) {
                     throw e;
@@ -498,13 +498,13 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                     Activator.utils().showMessageInUI(null,"JML Execution Failure","Failure to execute openjml: " + e + " " + ss);
                 }
             }
-            
+
             for(IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()){
-        	    try {
-			project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
-		    } catch (CoreException e) {
-			e.printStackTrace();
-		    }
+                try {
+                    project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+                } catch (CoreException e) {
+                    e.printStackTrace();
+                }
             }
             // Now do individual methods
             // Delete all markers first, so that subsequent proofs do not delete
@@ -551,12 +551,12 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             	}
                 if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Completed Inference operation on individual methods");
             }
-            */
+             */
             if (monitor != null) {
                 monitor.subTask("Completed Inference operation");                
             }
         } catch (Main.JmlCanceledException e) {
-        	if (monitor != null) {
+            if (monitor != null) {
                 monitor.subTask("Canceled Inference operation");
             }
             if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Canceled Inference operation");
@@ -573,56 +573,56 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     // TODO - Review this
     public void executeESCCommand(Main.Cmd command, List<?> things, IProgressMonitor monitor, String description) {
         try {
-        	Date start = new Date();
+            Date start = new Date();
             if (things.isEmpty()) {
                 Log.log("Nothing applicable to process");
                 Activator.utils().showMessageInUI(null,"JML","Nothing applicable to process");
                 return;
             }
-//            if (api == null) {
-//                // FIXME - presumes the listener is a ConsoleLogger
-//                PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener()).getConsoleStream());
-//                api = new API(w,new EclipseDiagnosticListener(preq));
-//                api.setProgressReporter(new UIProgressReporter(api.context(),monitor,null));
-//            }
-           
+            //            if (api == null) {
+            //                // FIXME - presumes the listener is a ConsoleLogger
+            //                PrintWriter w = new PrintWriter(((ConsoleLogger)Log.log.listener()).getConsoleStream());
+            //                api = new API(w,new EclipseDiagnosticListener(preq));
+            //                api.setProgressReporter(new UIProgressReporter(api.context(),monitor,null));
+            //            }
+
             List<String> args = getOptions(jproject,Main.Cmd.ESC);
             api.initOptions(null,  args.toArray(new String[args.size()]));
-//            args.clear();
-            
+            //            args.clear();
+
             setMonitor(monitor); // Must be set after the options are initialized
             List<IJavaElement> elements = new LinkedList<IJavaElement>();
-            
+
             IResource rr;
             utils.refreshView(); // Sets up the view - then each result is added incrementally
-    		int count = utils.countMethods(things);
+            int count = utils.countMethods(things);
             final int oldArgsSize = args.size();
             for (Object r: things) { 
-            	// an IType is adaptable to an IResource (the containing file), but we want it left as an IType
+                // an IType is adaptable to an IResource (the containing file), but we want it left as an IType
                 if (!(r instanceof IType) && r instanceof IAdaptable 
-                		&& (rr=(IResource)((IAdaptable)r).getAdapter(IResource.class)) != null) {
-                	if (r instanceof IPackageFragment && ((IPackageFragment)r).isDefaultPackage()) {
-                	    // Do not add subdirectories
-                	    try {
-                	    for (IResource rrr: ((IFolder)rr).members(IResource.NONE)) {
-                	        if (rrr instanceof IFile && ((IFile)rrr).getFileExtension().equals("java")) {
-                	            args.add(((IResource)rrr).getLocation().toString());
-                	        }
-                	    }
-                	    } catch (CoreException e) {} // FIXME - log an error
-                	    continue;
-                	}
+                                        && (rr=(IResource)((IAdaptable)r).getAdapter(IResource.class)) != null) {
+                    if (r instanceof IPackageFragment && ((IPackageFragment)r).isDefaultPackage()) {
+                        // Do not add subdirectories
+                        try {
+                            for (IResource rrr: ((IFolder)rr).members(IResource.NONE)) {
+                                if (rrr instanceof IFile && ((IFile)rrr).getFileExtension().equals("java")) {
+                                    args.add(((IResource)rrr).getLocation().toString());
+                                }
+                            }
+                        } catch (CoreException e) {} // FIXME - log an error
+                        continue;
+                    }
                     r = rr;
                 }
                 if (r instanceof IFolder) {
-                	if (hasAtLeastOneSourceFile((IFolder) r)) {
-                		// we don't process empty folders
-                		args.add(JmlOption.DIR.optionName());
-                		args.add(((IResource)r).getLocation().toString());
-                	}
+                    if (hasAtLeastOneSourceFile((IFolder) r)) {
+                        // we don't process empty folders
+                        args.add(JmlOption.DIR.optionName());
+                        args.add(((IResource)r).getLocation().toString());
+                    }
                 } else if (r instanceof IProject) {
-                	// we only want to add source folders, and only if they actually have source in them
-                	addSourceFoldersToCommandLine((IProject) r, args);
+                    // we only want to add source folders, and only if they actually have source in them
+                    addSourceFoldersToCommandLine((IProject) r, args);
                 } else if (r instanceof IResource) {
                     args.add(((IResource)r).getLocation().toString());
                 } else if (r instanceof IType) {  // Here we want types and methods, but a JavaProject is also an IJavaElement
@@ -638,17 +638,17 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                 Activator.utils().showMessageInUI(null,"JML","No files or elements to process");
                 return;
             }
-            
+
             if (monitor != null) {
-            	monitor.beginTask(description,  count); // 1 tick for each completion
-            	monitor.subTask("Starting ESC on " + jproject.getElementName());
+                monitor.beginTask(description,  count); // 1 tick for each completion
+                monitor.subTask("Starting ESC on " + jproject.getElementName());
             }
 
-        	Timer.timer.markTime();
+            Timer.timer.markTime();
             if (args.size() != oldArgsSize) {
-            	if (Options.uiverboseness) {
-            		Log.log(Timer.timer.getTimeString() + " Executing static checks");
-            	}
+                if (Options.uiverboseness) {
+                    Log.log(Timer.timer.getTimeString() + " Executing static checks");
+                }
                 try {
                     int ret = api.execute(null,args.toArray(new String[args.size()]));
                     if (ret == Main.Result.OK.exitCode) Log.log(Timer.timer.getTimeString() + " Completed");
@@ -663,8 +663,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                         Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
                         Activator.utils().showMessageInUI(null,"Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss); // FIXME - fix line ending
                     } else if (ret == Main.EXIT_CANCELED) {
-                    	// Cancelled
-                    	throw new Main.JmlCanceledException("ESC Canceled");
+                        // Cancelled
+                        throw new Main.JmlCanceledException("ESC Canceled");
                     }
                 } catch (Main.JmlCanceledException e) {
                     throw e;
@@ -682,10 +682,10 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             // Delete all markers first, so that subsequent proofs do not delete
             // the markers from earlier proofs
             if (!elements.isEmpty()) {
-            	for (IJavaElement je: elements) {
-            		utils.deleteMarkers(je.getResource(),null); // FIXME - would prefer to delete markers and highlighting on just the method.
-            	}
-            	
+                for (IJavaElement je: elements) {
+                    utils.deleteMarkers(je.getResource(),null); // FIXME - would prefer to delete markers and highlighting on just the method.
+                }
+
                 args = getOptions(jproject,Main.Cmd.CHECK);
                 //api.initOptions(null,  args.toArray(new String[args.size()]));
                 //args.clear();
@@ -739,48 +739,48 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                         }
                     }
                     if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Completed ESC operation on individual methods");
-            	}
+                }
             }
             if (monitor != null) {
                 monitor.subTask("Completed ESC operation");
             }
         } catch (Main.JmlCanceledException e) {
-        	if (monitor != null) {
+            if (monitor != null) {
                 monitor.subTask("Canceled ESC operation");
             }
             if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Canceled ESC operation");
         } finally {
-        	OpenJMLView.stop();
+            OpenJMLView.stop();
         }
     }
-    
-//    public void highlightCounterexamplePath(IMethod je) {
-//		MethodSymbol msym = convertMethod(je);
-//		if (msym != null) highlightCounterexamplePath(je, msym, null);
-//    }
-    
+
+    //    public void highlightCounterexamplePath(IMethod je) {
+    //		MethodSymbol msym = convertMethod(je);
+    //		if (msym != null) highlightCounterexamplePath(je, msym, null);
+    //    }
+
     public void highlightCounterexamplePath(IMethod je, IProverResult res, ICounterexample cce) {
-    	if (res == null) {
-        	utils.deleteHighlights(je.getResource(), null);
-        	return;
-    	}
-//    	Log.log("TIMES " + je.getResource().getLocalTimeStamp() + " " +  res.timestamp().getTime() + " " + (je.getResource().getLocalTimeStamp() > res.timestamp().getTime()));
-    	if (je.getResource().getLocalTimeStamp() > res.timestamp().getTime()) {
-    		utils.showMessageInUI(null, "OpenJML", "The file is newer than the counterexample information - the highlighting may be offset.");
-    	}
-    	utils.deleteHighlights(je.getResource(), null);
-		if (res != null) {
-			IProverResult.ICounterexample ce = cce != null ? cce : res.counterexample();
-			if (ce != null && ce.getPath() != null) {
-				for (IProverResult.Span span: ce.getPath()) {
-					if (span.end > span.start) { // The test is just defensive
-						utils.highlight(je.getResource(), span.start, span.end, span.type);
-					} else {
-    					Log.log("BAD HIGHLIGHT RANGE " + span.start + " " + span.end + " " + span.type);
-					}
-				}
-			}
-		}
+        if (res == null) {
+            utils.deleteHighlights(je.getResource(), null);
+            return;
+        }
+        //    	Log.log("TIMES " + je.getResource().getLocalTimeStamp() + " " +  res.timestamp().getTime() + " " + (je.getResource().getLocalTimeStamp() > res.timestamp().getTime()));
+        if (je.getResource().getLocalTimeStamp() > res.timestamp().getTime()) {
+            utils.showMessageInUI(null, "OpenJML", "The file is newer than the counterexample information - the highlighting may be offset.");
+        }
+        utils.deleteHighlights(je.getResource(), null);
+        if (res != null) {
+            IProverResult.ICounterexample ce = cce != null ? cce : res.counterexample();
+            if (ce != null && ce.getPath() != null) {
+                for (IProverResult.Span span: ce.getPath()) {
+                    if (span.end > span.start) { // The test is just defensive
+                        utils.highlight(je.getResource(), span.start, span.end, span.type);
+                    } else {
+                        Log.log("BAD HIGHLIGHT RANGE " + span.start + " " + span.end + " " + span.type);
+                    }
+                }
+            }
+        }
 
     }
 
@@ -811,24 +811,24 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                     className = pname + Strings.dot + className;
                 }
             } catch (Exception e) {
-            	throw new Utils.OpenJMLException("Could not find a class symbol for " + className,e); //$NON-NLS-1$
+                throw new Utils.OpenJMLException("Could not find a class symbol for " + className,e); //$NON-NLS-1$
             }
         }
         ClassSymbol csym = api.getClassSymbol(className);
         return csym;
     }
-    
-	public IResource getResourceFor(Symbol sym) {
-		if (sym instanceof MethodSymbol) sym = sym.owner;
-		if (sym instanceof ClassSymbol) {
-			IType t = convertType((ClassSymbol)sym);
-			return t.getResource();
-		}
-		return null;
-	}
+
+    public IResource getResourceFor(Symbol sym) {
+        if (sym instanceof MethodSymbol) sym = sym.owner;
+        if (sym instanceof ClassSymbol) {
+            IType t = convertType((ClassSymbol)sym);
+            return t.getResource();
+        }
+        return null;
+    }
 
 
-    
+
     /** Converts Eclipse's representation of a method (an IMethod) to OpenJML's
      * (a MethodSymbol)
      * @param method the Eclipse IMethod for the method
@@ -840,7 +840,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         if (csym == null) return null;
         try {
             com.sun.tools.javac.util.Name name = com.sun.tools.javac.util.Names.instance(api.context()).fromString(
-                    method.isConstructor() ? "<init>" : method.getElementName()); //$NON-NLS-1$
+                                    method.isConstructor() ? "<init>" : method.getElementName()); //$NON-NLS-1$
             Scope.Entry e = csym.members().lookup(name); // FIXME - Need to match types & number
             MethodSymbol firstsym = null;
             outer: while (e != null && e.sym != null) {
@@ -867,35 +867,35 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             throw new Utils.OpenJMLException("Unable to convert method " + method.getElementName() + " of " + method.getDeclaringType().getFullyQualifiedName(),e); 
         }
     }
-    
+
     public IMethod convertMethod(MethodSymbol msym) {
-    	try {
-    		String className = msym.owner.getQualifiedName().toString();
-    		IType eClass = jproject.findType(className); // FIXME - OK for nested classes?
-    		String mname = msym.name.toString();
-    		int nargs = msym.params.size();
-    		// FIXME - finds first match on name, not on tyep signature
-    		if (eClass == null) return null; // FIXME - this can happen if the class is not in a source folder
-    		for (IMethod m: eClass.getMethods()) {
-    			if (nargs == m.getNumberOfParameters() && mname.equals(m.getElementName())) return m;
-    		}
-    		return null;
-    		//eClass.getMethod(msym.name,toString(),)
-    	} catch (Exception e) {
-    		return null;
-    	}
+        try {
+            String className = msym.owner.getQualifiedName().toString();
+            IType eClass = jproject.findType(className); // FIXME - OK for nested classes?
+            String mname = msym.name.toString();
+            int nargs = msym.params.size();
+            // FIXME - finds first match on name, not on tyep signature
+            if (eClass == null) return null; // FIXME - this can happen if the class is not in a source folder
+            for (IMethod m: eClass.getMethods()) {
+                if (nargs == m.getNumberOfParameters() && mname.equals(m.getElementName())) return m;
+            }
+            return null;
+            //eClass.getMethod(msym.name,toString(),)
+        } catch (Exception e) {
+            return null;
+        }
     }
-    
+
     public IType convertType(ClassSymbol sym) {
-    	try {
-    		String className = sym.getQualifiedName().toString();
-    		IType eClass = jproject.findType(className); // FIXME - OK for nested classes?
-    		return eClass;
-    	} catch (Exception e) {
-    		return null;
-    	}
+        try {
+            String className = sym.getQualifiedName().toString();
+            IType eClass = jproject.findType(className); // FIXME - OK for nested classes?
+            return eClass;
+        } catch (Exception e) {
+            return null;
+        }
     }
-    
+
     // FIXME - review and document
     public boolean typeMatches(Type t, String tstring) {
         String vt = t.toString();
@@ -932,16 +932,16 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             }
         }
         if (vt.equals(tstring)) {
-//            Log.log(tstring + " matches " + vt);
+            //            Log.log(tstring + " matches " + vt);
         } else if (vt.endsWith(tstring)) {  // FIXME - trouble with matching type parameters
-//            Log.log(tstring + " ends " + vt);
+            //            Log.log(tstring + " ends " + vt);
         } else {
-//            Log.log(tstring + " does not match " + vt);
+            //            Log.log(tstring + " does not match " + vt);
             return false;
         }
         return true;
     }
-        
+
     /** Return the specs of the given type, including all inherited specs,
      * pretty-printed as a String.  This
      * may be an empty String if there are no specifications.
@@ -951,7 +951,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     public @Nullable String getAllSpecs(@NonNull IType type) {
         ClassSymbol csym = convertType(type);
         if (csym == null) {
-        	return null;
+            return null;
         }
         List<TypeSpecs> typeSpecs = api.getAllSpecs(csym);
         try {
@@ -965,10 +965,10 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             }
             return sb.toString();
         } catch (Exception e) { 
-        	return "<Exception>: " + e; //$NON-NLS-1$
+            return "<Exception>: " + e; //$NON-NLS-1$
         }
     }
-    
+
     /** Return the specs of the given method, including all inherited specs,
      * pretty-printed as a String.  This
      * may be an empty String if there are no specifications.
@@ -991,9 +991,9 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             }
             return sb.toString();
         } catch (Exception e) { 
-        	return "<Exception>: " + e;  //$NON-NLS-1$
+            return "<Exception>: " + e;  //$NON-NLS-1$
         }
-        
+
     }
 
     /** Returns the specs of the given field as a String
@@ -1009,10 +1009,10 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         try { 
             return fspecs.toString();
         } catch (Exception e) { 
-        	return "<Exception>: " + e;  //$NON-NLS-1$
+            return "<Exception>: " + e;  //$NON-NLS-1$
         }
     }
-    
+
     // FIXME - revise this
     /** Show information about the most recent proof of the given method in a 
      * dialog box for the given Shell.  This information states whether the 
@@ -1025,17 +1025,17 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     public void showProofInfo(@NonNull IMethod method, @NonNull Shell shell, boolean showDetails) {
         IProverResult r = getProofResult(method);
         MethodSymbol msym = r.methodSymbol();
-        
+
         utils.setTraceView(keyForSym(msym), method.getJavaProject());
-        
+
         if (!showDetails) return;
-        
+
         utils.showMessage(shell, "OpenJML", "Detailed proof information is not yet implemented");
         // DETAILS
         // FIXME - show altered program, basic block program, SMT program
-        
-//        String s = ((API)api).getBasicBlockProgram(msym);
-//        utils.launchEditor(s,msym.owner.name + Strings.dot + msym.name);
+
+        //        String s = ((API)api).getBasicBlockProgram(msym);
+        //        utils.launchEditor(s,msym.owner.name + Strings.dot + msym.name);
 
         return;
     }
@@ -1047,73 +1047,73 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         if (api == null) return "No proof information available";
         com.sun.tools.javac.comp.Env<AttrContext> env = Enter.instance(api.context()).getEnv(csym);
         if (env == null) return "No proof information available";
-    	JmlCompilationUnit tree = (JmlCompilationUnit)env.toplevel;
+        JmlCompilationUnit tree = (JmlCompilationUnit)env.toplevel;
         if (tree == null) return "No proof information available";
-    	API.Finder finder = api.findMethod(tree,pos,end,text,r.getLocation().toString());
+        API.Finder finder = api.findMethod(tree,pos,end,text,r.getLocation().toString());
         JmlMethodDecl parentMethod = finder.parentMethod;
         JCTree node = finder.found;
         if (parentMethod == null) return  "No containing method found";
-//      if (parentMethod.sym != mostRecentProofMethod) {
-//          return "Selected text is not within the method of the most recent proof (which is " + mostRecentProofMethod + ")";
-//      }
-      String out;
-      if (node instanceof JmlVariableDecl) {
-          // This happens when we have selected a method parameter or the variable within a declaration
-          // continue
-    	  String name = ((JmlVariableDecl)node).name.toString();
-          out = text == null ? null : ("Found declaration: " + name + "\n");
-          //node = ((JmlVariableDecl)node).ident;
-          if (text == null) out = "Declaration " + name + " <B>is</B> ";
-      } else if (!(node instanceof JCTree.JCExpression)) {
-          return text == null ? null : ("Selected text is not an expression (" + node.getClass() + "): " + text);
-      } else {
-          if (text == null) out = node.toString().replace("<", "&lt;") + " <B>is</B> ";
-          else    out = "Found expression node: " + node.toString() + "\n";
-      }
-      
-      IProverResult res = getProofResult(parentMethod.sym);
-      
-      if (res != null) {
-          ICounterexample ce = res.counterexample();
-          if (ce == null) return null;
-          String value = ce.get(node);
-          if (value != null) {
-              if (text == null) out = out + value;
-              else out = out + "Value " + node.type + " : " + value;
-              if (node.type.getTag() == TypeTag.CHAR) {
-                  try {
-                      out = out + " ('" + (char)Integer.parseInt(value) + "')"; 
-                  } catch (NumberFormatException e) {
-                      // ignore
-                  }
-              } else if (value.startsWith("#x")) {
-            	  try {
-            		  value = value.substring(2);
-            		  if (value.length() > 2*Integer.BYTES) {
-            			  long i = Long.parseLong(value,16);
-            			  out = out + " (" + i + ")";
-            		  } else {
-            			  int i = (int)Long.parseLong(value,16);
-            			  if (i == Integer.MIN_VALUE) {
-            				  out = out + " (" + i + " == MININT)";
+        //      if (parentMethod.sym != mostRecentProofMethod) {
+        //          return "Selected text is not within the method of the most recent proof (which is " + mostRecentProofMethod + ")";
+        //      }
+        String out;
+        if (node instanceof JmlVariableDecl) {
+            // This happens when we have selected a method parameter or the variable within a declaration
+            // continue
+            String name = ((JmlVariableDecl)node).name.toString();
+            out = text == null ? null : ("Found declaration: " + name + "\n");
+            //node = ((JmlVariableDecl)node).ident;
+            if (text == null) out = "Declaration " + name + " <B>is</B> ";
+        } else if (!(node instanceof JCTree.JCExpression)) {
+            return text == null ? null : ("Selected text is not an expression (" + node.getClass() + "): " + text);
+        } else {
+            if (text == null) out = node.toString().replace("<", "&lt;") + " <B>is</B> ";
+            else    out = "Found expression node: " + node.toString() + "\n";
+        }
 
-            			  } else if (i == Integer.MAX_VALUE) {
-            				  out = out + " (" + i + " == MAXINT)";
-            			  } else {
-            				  out = out + " (" + i + ")";
-            			  }
-            		  }
-            	  } catch (Exception e) {
-            		  Object o = e;
-            	  }
-              }
-          }
-          else out = text == null ? null : (out + "Value is unknown (type " + node.type + ")");
-          return out;
-      }
-      return null;
-      //return "No counterexample information available";
-      
+        IProverResult res = getProofResult(parentMethod.sym);
+
+        if (res != null) {
+            ICounterexample ce = res.counterexample();
+            if (ce == null) return null;
+            String value = ce.get(node);
+            if (value != null) {
+                if (text == null) out = out + value;
+                else out = out + "Value " + node.type + " : " + value;
+                if (node.type.getTag() == TypeTag.CHAR) {
+                    try {
+                        out = out + " ('" + (char)Integer.parseInt(value) + "')"; 
+                    } catch (NumberFormatException e) {
+                        // ignore
+                    }
+                } else if (value.startsWith("#x")) {
+                    try {
+                        value = value.substring(2);
+                        if (value.length() > 2*Integer.BYTES) {
+                            long i = Long.parseLong(value,16);
+                            out = out + " (" + i + ")";
+                        } else {
+                            int i = (int)Long.parseLong(value,16);
+                            if (i == Integer.MIN_VALUE) {
+                                out = out + " (" + i + " == MININT)";
+
+                            } else if (i == Integer.MAX_VALUE) {
+                                out = out + " (" + i + " == MAXINT)";
+                            } else {
+                                out = out + " (" + i + ")";
+                            }
+                        }
+                    } catch (Exception e) {
+                        Object o = e;
+                    }
+                }
+            }
+            else out = text == null ? null : (out + "Value is unknown (type " + node.type + ")");
+            return out;
+        }
+        return null;
+        //return "No counterexample information available";
+
     }
 
     /** Instances of this class can be registered as OpenJML DiagnosticListeners (that is,
@@ -1143,7 +1143,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         public EclipseDiagnosticListener(@NonNull IProblemRequestor p) {
             preq = p;
         }
-        
+
         /** This is the method that is called whenever a diagnostic is issued;
          * it will convert and pass it on to the problem requestor.  If the 
          * diagnostic cannot be converted to an Eclipse IProblem, then it is
@@ -1154,7 +1154,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         @Override
         @SuppressWarnings("restriction")
         public void report(@NonNull Diagnostic<? extends JavaFileObject> diagnostic) {
-        	JavaFileObject javaFileObject = diagnostic.getSource();
+            JavaFileObject javaFileObject = diagnostic.getSource();
             String message = diagnostic.getMessage(null); // uses default locale
             int id = 0; // TODO - we are not providing numerical ids for problems
             Diagnostic.Kind kind = diagnostic.getKind();
@@ -1172,12 +1172,12 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             // prone.  Also, I think that some compiler options might turn off
             // the NOTE/Ignore markers - check this - TODO
             int severity = 
-                kind == Diagnostic.Kind.ERROR ? ProblemSeverities.Error :
-                    kind == Diagnostic.Kind.WARNING ? ProblemSeverities.Warning :
-                        kind == Diagnostic.Kind.MANDATORY_WARNING ? ProblemSeverities.Error : 
-                            kind == Diagnostic.Kind.NOTE ? ProblemSeverities.Ignore : 
-                                kind == Diagnostic.Kind.OTHER ? ProblemSeverities.SecondaryError : 
-                                    ProblemSeverities.Error; // There should not be anything else, but we'll call it an error just in case.
+                                    kind == Diagnostic.Kind.ERROR ? ProblemSeverities.Error :
+                                        kind == Diagnostic.Kind.WARNING ? ProblemSeverities.Warning :
+                                            kind == Diagnostic.Kind.MANDATORY_WARNING ? ProblemSeverities.Error : 
+                                                kind == Diagnostic.Kind.NOTE ? ProblemSeverities.Ignore : 
+                                                    kind == Diagnostic.Kind.OTHER ? ProblemSeverities.SecondaryError : 
+                                                        ProblemSeverities.Error; // There should not be anything else, but we'll call it an error just in case.
 
             long pos = diagnostic.getPosition();
             long col = diagnostic.getColumnNumber();// 1-based, from beginning of line
@@ -1207,27 +1207,27 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             }
 
             if (resource == null) {
-            	// This can happen when the file to which the diagnostic points
-            	// is not an IResource. For example, the Associated Declaration
-            	// to an error may be in a system specifications file.
-            	// FIXME - we should load a read-only text file, with the markers
-            	// for this case.
-            	if (!diagnostic.toString().contains("Associated declaration")) {
-            		if (severity == ProblemSeverities.Error) Log.errorlog(diagnostic.toString(),null);
-            		else Log.log(diagnostic.toString());
-            	}
+                // This can happen when the file to which the diagnostic points
+                // is not an IResource. For example, the Associated Declaration
+                // to an error may be in a system specifications file.
+                // FIXME - we should load a read-only text file, with the markers
+                // for this case.
+                if (!diagnostic.toString().contains("Associated declaration")) {
+                    if (severity == ProblemSeverities.Error) Log.errorlog(diagnostic.toString(),null);
+                    else Log.log(diagnostic.toString());
+                }
             } else {
-            	String text = null;
-            	// FIXME - the following does not work
-//            	try {
-//            		text = javaFileObject == null ? null : javaFileObject.getCharContent(true).toString();
-//            	} catch (java.io.IOException e) {
-//            		// ignore - just leave text as null;
-//            	}
+                String text = null;
+                // FIXME - the following does not work
+                //            	try {
+                //            		text = javaFileObject == null ? null : javaFileObject.getCharContent(true).toString();
+                //            	} catch (java.io.IOException e) {
+                //            		// ignore - just leave text as null;
+                //            	}
                 JmlEclipseProblem problem = new JmlEclipseProblem(resource, message, id,  severity,
-                        (int)startPosition, (int)endPosition, (int)line, 
-                        text,
-                        (int)lineStart, (int)lineEnd);
+                                        (int)startPosition, (int)endPosition, (int)line, 
+                                        text,
+                                        (int)lineStart, (int)lineEnd);
                 problem.sourceSymbol = currentMethod;
                 preq.acceptProblem(problem);
                 // Log it as well
@@ -1252,7 +1252,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         protected @NonNull Context context;
         /** The UI shell in which to display dialogs */
         protected @Nullable Shell shell = null;
-        
+
         /** Instantiates a listener for progress reports that displays them in
          * the Eclipse UI.
          * @param context the OpenJML compilation context
@@ -1265,7 +1265,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             this.context = context;
             this.shell = shell;
         }
-        
+
         /** This is the method called by OpenJML when a progress message is sent.
          * The implementation here logs the message if the level is <=1 and
          * displays it in the progress monitor if one was supplied in the
@@ -1283,25 +1283,25 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             d.syncExec(new Runnable() {
                 public void run() {
                     if (monitor != null) {
-                    	if (level <= 1) monitor.subTask(message2);
+                        if (level <= 1) monitor.subTask(message2);
                     }
                     Log.log(message);
                 }
             });
             boolean cancel = monitor != null && monitor.isCanceled();
-//            if (cancel) {
-//            	cancel = true;
-//            	//throw new Main.JmlCanceledException("Operation cancelled"); //$NON-NLS-1$
-//            	//throw new PropagatedException(new Main.JmlCanceledException("Operation cancelled")); //$NON-NLS-1$
-//            }
+            //            if (cancel) {
+            //            	cancel = true;
+            //            	//throw new Main.JmlCanceledException("Operation cancelled"); //$NON-NLS-1$
+            //            	//throw new PropagatedException(new Main.JmlCanceledException("Operation cancelled")); //$NON-NLS-1$
+            //            }
             return cancel;
         }
-        
+
         @Override
         public void worked(int ticks) {
             if (monitor != null) monitor.worked(ticks);
         }
-        
+
         /** Sets the OpenJML compilation context associated with this listener. */
         @Override
         //@ assignable this.context;
@@ -1310,68 +1310,70 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             this.context = context; 
         }
     }
-    
+
     Map<String,IProverResult> proofResults = new HashMap<String,IProverResult>();
     Map<IMethod,String> methodResults = new HashMap<IMethod,String>();
-    
+
     protected String keyForSym(Symbol sym) {
-    	if (sym instanceof MethodSymbol) {
-        	return sym.owner.getQualifiedName().toString() + Strings.dot + sym.toString();
-    	} else if (sym.name.isEmpty()) {
-    		return ((ClassSymbol)sym).flatname.toString(); // for anonymous types
-    	} else {
-    		return sym.getQualifiedName().toString();
-    	}
+        if (sym instanceof MethodSymbol) {
+            return sym.owner.getQualifiedName().toString() + Strings.dot + sym.toString();
+        } else if (sym.name.isEmpty()) {
+            return ((ClassSymbol)sym).flatname.toString(); // for anonymous types
+        } else {
+            return sym.getQualifiedName().toString();
+        }
     }
-    
+
     @Override
     public void reportProofResult(MethodSymbol msym, IProverResult result) {
-    	if (result.result() == IProverResult.RUNNING) {
-    		currentMethod = msym;
-    	}
-    	if (result.result() == IProverResult.COMPLETED) {
-    		currentMethod = null;
-    		return;
-    	}
-    	if (result.result() == IProverResult.ERROR) {
-    		if (result.otherInfo() == null) {
-    			List<String> messages = Log.collect(true);
-    			String text = String.join(Strings.eol, messages);
-    			result.setOtherInfo(text);
-    		}
-    	}
-    	String key = keyForSym(msym);
-    	proofResults.put(key,result);
-    	IMethod m = convertMethod(msym);
-    	methodResults.put(m, key);
-    	Runnable runnable = new Runnable() {
-    	    public void run() {
-    	        utils.refreshView(jproject,key);
-    	    }
-    	};
-    	Display.getDefault().asyncExec(runnable);
+        if (result.result() == IProverResult.RUNNING) {
+            currentMethod = msym;
+        }
+        if (result.result() == IProverResult.COMPLETED) {
+            currentMethod = null;
+            return;
+        }
+        if (result.result() == IProverResult.ERROR) {
+            if (result.otherInfo() == null) {
+                List<String> messages = Log.collect(true);
+                String text = String.join(Strings.eol, messages);
+                result.setOtherInfo(text);
+            } else {
+                Log.collect(true);
+            }
+        }
+        String key = keyForSym(msym);
+        proofResults.put(key,result);
+        IMethod m = convertMethod(msym);
+        methodResults.put(m, key);
+        Runnable runnable = new Runnable() {
+            public void run() {
+                utils.refreshView(jproject,key);
+            }
+        };
+        Display.getDefault().asyncExec(runnable);
     }
-    
+
     static MethodSymbol currentMethod;
-    
-    
+
+
     public @Nullable IProverResult getProofResult(MethodSymbol msym) {
-    	return proofResults.get(keyForSym(msym));
+        return proofResults.get(keyForSym(msym));
     }
 
     public @Nullable IProverResult getProofResult(IMethod m) {
-    	String key = methodResults.get(m);
-    	if (key == null) return null;
-    	return proofResults.get(key);
+        String key = methodResults.get(m);
+        if (key == null) return null;
+        return proofResults.get(key);
     }
 
     public @Nullable Map<String,IProverResult> getProofResults() {
-    	return proofResults;
+        return proofResults;
     }
-    
+
     public void clearProofResults(IJavaProject currentProject) {
-    	proofResults.clear();
-    	methodResults.clear();
+        proofResults.clear();
+        methodResults.clear();
     }
 
 
@@ -1396,10 +1398,10 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
      * @return the list of options and arguments
      */
     public @NonNull List<String> getOptions(IJavaProject jproject, /*@nullable*/Main.Cmd cmd) {
-    	
-    	//com.sun.tools.javac.util.Options openjmlOptions = com.sun.tools.javac.util.Options.instance(api.context());
-    	String eq = "="; //$NON-NLS-1$
-    	
+
+        //com.sun.tools.javac.util.Options openjmlOptions = com.sun.tools.javac.util.Options.instance(api.context());
+        String eq = "="; //$NON-NLS-1$
+
         //Options opt = Activator.options;
         List<String> opts = new LinkedList<String>();
         if (cmd != null) {
@@ -1413,38 +1415,38 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         if (cmd == Main.Cmd.ESC || cmd == null) {
             String prover = Options.value(Options.defaultProverKey);
             opts.add(JmlOption.PROVER.optionName() +eq+ prover);
-            
+
             String internal_external = Options.value(SolversPage.execLocKeyPrefix + prover);
-        	String exec = null;
+            String exec = null;
             if ("internal".equals(internal_external)) {
-            	//Log.log("Using internal solver. Default is " + prover);
-        		URL url = null;
-        		try {
-        			String osname = org.jmlspecs.openjml.Utils.identifyOS(null);
-        			Bundle bundle = Platform.getBundle("org.jmlspecs.Solvers");
-        			if (bundle != null) {
-        				String ex = osname.equals("windows") ? "/z3-4.3.2.exe" : "/z3-4.3.1";
-        				url = FileLocator.find(bundle, new Path("Solvers-"+osname+ex), Collections.EMPTY_MAP);
-        				if (url != null) url = FileLocator.toFileURL(url);
+                //Log.log("Using internal solver. Default is " + prover);
+                URL url = null;
+                try {
+                    String osname = org.jmlspecs.openjml.Utils.identifyOS(null);
+                    Bundle bundle = Platform.getBundle("org.jmlspecs.Solvers");
+                    if (bundle != null) {
+                        String ex = osname.equals("windows") ? "/z3-4.3.2.exe" : "/z3-4.3.1";
+                        url = FileLocator.find(bundle, new Path("Solvers-"+osname+ex), Collections.EMPTY_MAP);
+                        if (url != null) url = FileLocator.toFileURL(url);
                         if (url != null) {
-                        	exec = url.getFile();
-                        	Files.setPosixFilePermissions(java.nio.file.Paths.get(url.toURI()), PosixFilePermissions.fromString("rwxr-xr-x"));
+                            exec = url.getFile();
+                            Files.setPosixFilePermissions(java.nio.file.Paths.get(url.toURI()), PosixFilePermissions.fromString("rwxr-xr-x"));
                         }
-        			}
-        		} catch (Exception e) {
-        			exec = null;
-                	Log.log("Internal solver exception " + e.toString());
-        		}
-        		java.nio.file.Path path = FileSystems.getDefault().getPath(exec);
-        		if (exec == null || !Files.exists(path)) {
-        			utils.showMessageInUI(null,"OpenJML error","Internal solver for " + prover + "is not found");
-        		} else if (!Files.isExecutable(path)) {
-        			utils.showMessageInUI(null,"OpenJML error","Internal solver for " + prover + "is not executable");
-        		}
-        	} else {
-        		exec = Options.value(Options.proverPrefix + prover);
-        		Log.log("Using external solver " + exec);
-        	}
+                    }
+                } catch (Exception e) {
+                    exec = null;
+                    Log.log("Internal solver exception " + e.toString());
+                }
+                java.nio.file.Path path = FileSystems.getDefault().getPath(exec);
+                if (exec == null || !Files.exists(path)) {
+                    utils.showMessageInUI(null,"OpenJML error","Internal solver for " + prover + "is not found");
+                } else if (!Files.isExecutable(path)) {
+                    utils.showMessageInUI(null,"OpenJML error","Internal solver for " + prover + "is not executable");
+                }
+            } else {
+                exec = Options.value(Options.proverPrefix + prover);
+                Log.log("Using external solver " + exec);
+            }
             opts.add(JmlOption.PROVEREXEC.optionName() +eq+ exec);
             opts.add(JmlOption.ESC_MAX_WARNINGS.optionName() +eq+ Options.value(Options.escMaxWarningsKey));
             opts.add(JmlOption.TRACE.optionName() +eq+ "true");
@@ -1456,7 +1458,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             opts.add("-code-math=safe");
             opts.add("-spec-math=bigint");
         }
-        
+
         if (cmd == Main.Cmd.INFER) {
             String prover = Options.value(Options.defaultProverKey);
             opts.add(JmlOption.PROVER.optionName() +eq+ prover);
@@ -1464,30 +1466,30 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
 
             //TODO -- make these options
             if(StrongarmPage.getDefaultBoolean(Options.inferDebug).equalsIgnoreCase("true")){
-        	opts.add(OptionsInfer.INFER_DEBUG.optionName());
+                opts.add(OptionsInfer.INFER_DEBUG.optionName());
             }
             opts.add(OptionsInfer.INFER_TIMEOUT.optionName() +eq+ StrongarmPage.getDefaultInt(Options.inferTimeout));
-            
+
             opts.add(OptionsInfer.INFER_MAX_DEPTH.optionName() +eq+ StrongarmPage.getDefaultInt(Options.inferMaxDepth));
-            
+
 
             if(StrongarmPage.getDefaultBoolean(Options.inferDevTools).equalsIgnoreCase("true")){
-        	opts.add(OptionsInfer.INFER_DEV_MODE.optionName());
-            }
-            
-            if(StrongarmPage.getDefaultBoolean(Options.inferDefaultPrecondition).equalsIgnoreCase("true")){
-        	opts.add(OptionsInfer.INFER_PRECONDITIONS.optionName() +eq+ StrongarmPage.getDefaultBoolean(Options.inferDefaultPrecondition));
+                opts.add(OptionsInfer.INFER_DEV_MODE.optionName());
             }
 
-            
+            if(StrongarmPage.getDefaultBoolean(Options.inferDefaultPrecondition).equalsIgnoreCase("true")){
+                opts.add(OptionsInfer.INFER_PRECONDITIONS.optionName() +eq+ StrongarmPage.getDefaultBoolean(Options.inferDefaultPrecondition));
+            }
+
+
             if(StrongarmPage.getDefaultString(Options.inferPersistSpecsTo).equalsIgnoreCase(StrongarmPage.WEAVE_SEPERATE)){
-        	opts.add(OptionsInfer.INFER_PERSIST.optionName() + eq+ "jml");
+                opts.add(OptionsInfer.INFER_PERSIST.optionName() + eq+ "jml");
             }else{
                 opts.add(OptionsInfer.INFER_PERSIST.optionName() + eq+ "java");
             }
-            
+
         }
-        
+
         if (cmd == Main.Cmd.RAC || cmd == null) {
             opts.add(JmlOption.RAC_SHOW_SOURCE.optionName() +eq+ Options.isOption(Options.racShowSource));
             opts.add(JmlOption.RAC_CHECK_ASSUMPTIONS.optionName() +eq+ Options.isOption(Options.racCheckAssumptions));
@@ -1495,29 +1497,29 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             opts.add(JmlOption.RAC_JAVA_CHECKS.optionName() +eq+ Options.isOption(Options.racCheckJavaFeatures));
             opts.add(JmlOption.RAC_COMPILE_TO_JAVA_ASSERT.optionName() +eq+ Options.isOption(Options.compileToJavaAssert));
         }
-        
+
         String v = Options.value(Options.verbosityKey);
         opts.add(JmlOption.VERBOSENESS.optionName()+eq+"2"); // If not at least progress, the monitors will be stuck
-        
+
         if (Options.isOption(Options.javaverboseKey)) {
-        	opts.add(com.sun.tools.javac.main.Option.VERBOSE.getText());
+            opts.add(com.sun.tools.javac.main.Option.VERBOSE.getText());
         }
-        
+
         if (Options.isOption(Options.showNotImplementedKey)) opts.add(JmlOption.SHOW_NOT_IMPLEMENTED.optionName());
         if (Options.isOption(Options.showNotExecutableKey)) opts.add(JmlOption.SHOW_NOT_EXECUTABLE.optionName());
         if (Options.isOption(Options.checkSpecsPathKey)) opts.add(JmlOption.CHECKSPECSPATH.optionName());
         opts.add(JmlOption.NULLABLEBYDEFAULT.optionName()+eq+Options.isOption(Options.nullableByDefaultKey));
-            
+
         String other = Options.value(Options.otherOptionsKey);
         if (other != null) {
-        	other = other.trim();
-        	// Split by whitespace (won't handle quoted strings with whitespace)
-        	if (!other.isEmpty()) for (String o : other.split("\\s")) { //$NON-NLS-1$
-        		opts.add(o);
-        	}
+            other = other.trim();
+            // Split by whitespace (won't handle quoted strings with whitespace)
+            if (!other.isEmpty()) for (String o : other.split("\\s")) { //$NON-NLS-1$
+                opts.add(o);
+            }
         }
-        
-        
+
+
         if (cmd == Main.Cmd.JMLDOC) {
             // jmldoc specific options
             opts.add("-private"); //$NON-NLS-1$
@@ -1532,9 +1534,9 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         opts.add(com.sun.tools.javac.main.Option.SOURCEPATH.getText()); 
         opts.add(PathItem.getAbsolutePath(jproject,Env.sourceKey));
 
-        
+
         // Handle the classpath and internal runtime library if needed
-       
+
         List<String> cpes = utils.getClasspath(jproject);
         boolean first = true;
         StringBuilder ss = new StringBuilder();
@@ -1547,11 +1549,11 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         // here by the plugin, so openjml itself never adds it
         opts.add("-no"+JmlOption.INTERNALRUNTIME.optionName());
         if (Options.isOption(Options.useInternalRuntimeKey)) {
-        	String runtime = utils.fetchRuntimeLibEntry();
-        	if (runtime != null) {
-        		ss.append(File.pathSeparator);
-        		ss.append(runtime);
-        	}
+            String runtime = utils.fetchRuntimeLibEntry();
+            if (runtime != null) {
+                ss.append(File.pathSeparator);
+                ss.append(runtime);
+            }
         }
 
         opts.add(Strings.classpathOptionName);
@@ -1562,15 +1564,15 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         // trace subexpressions counterexample
         // specs, stopiferrors
         // Java options, Jmldoc options
-		if (Options.uiverboseness) {
-			StringBuilder s = new StringBuilder();
-			s.append("Options collected by UI to send to OpenJML: "); //$NON-NLS-1$
-			for (String opt: opts) {
-				s.append(Strings.space);
-				s.append(opt);
-			}
-			Log.log(s.toString());
-		}
+        if (Options.uiverboseness) {
+            StringBuilder s = new StringBuilder();
+            s.append("Options collected by UI to send to OpenJML: "); //$NON-NLS-1$
+            for (String opt: opts) {
+                s.append(Strings.space);
+                s.append(opt);
+            }
+            Log.log(s.toString());
+        }
 
         return opts;
     }
@@ -1578,9 +1580,9 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     /** Adds additional command-line options in the OpenJml object
      */
     public void addOptions(String... args) {
-    	api.addOptions(args);
+        api.addOptions(args);
     }
-    
+
     /** Gets a String representation of the BasicBlock encoding of the method
      * body for the given method.
      * @param msym the method whose body is to be returned
@@ -1590,16 +1592,16 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         return ""; // FIXME: ((API)api).getBasicBlockProgram(msym);
     }
 
-//    /** Converts a name into a flatname with dots between the components; this
-//     * is particularly suited to converting a tree-form of a package name into
-//     * dot-separated name (as a String)
-//     * @param n the input Name
-//     * @return the output dot-separated name as a String
-//     */
-//    static public @NonNull String getPackageDotName(@NonNull Name n) {
-//        if (n instanceof SimpleName) return ((SimpleName)n).getIdentifier();
-//        QualifiedName qn = (QualifiedName)n;
-//        return getPackageDotName(qn.getQualifier()) + "." + qn.getName().getIdentifier();
-//    }
+    //    /** Converts a name into a flatname with dots between the components; this
+    //     * is particularly suited to converting a tree-form of a package name into
+    //     * dot-separated name (as a String)
+    //     * @param n the input Name
+    //     * @return the output dot-separated name as a String
+    //     */
+    //    static public @NonNull String getPackageDotName(@NonNull Name n) {
+    //        if (n instanceof SimpleName) return ((SimpleName)n).getIdentifier();
+    //        QualifiedName qn = (QualifiedName)n;
+    //        return getPackageDotName(qn.getQualifier()) + "." + qn.getName().getIdentifier();
+    //    }
 
 }

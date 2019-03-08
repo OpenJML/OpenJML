@@ -19,18 +19,18 @@ import org.osgi.framework.Bundle;
  */
 public class ClasspathVariableInitializer extends org.eclipse.jdt.core.ClasspathVariableInitializer {
 
-	/** Name of the built-in environment variable defined to hold the location of
-	 * the plug-in in current use. This works for both debug operation and 
-	 * conventional installations. This name must agree with the name used in
-	 * plugin.xml. 
-	 */
+    /** Name of the built-in environment variable defined to hold the location of
+     * the plug-in in current use. This works for both debug operation and 
+     * conventional installations. This name must agree with the name used in
+     * plugin.xml. 
+     */
     public static final String OPENJML_VAR = "OPENJML_PLUGIN";
 
-	/** Name of the built-in environment variable defined to hold the location of
-	 * the runtime library. This works for both debug operation and 
-	 * conventional installations. This name must agree with the name used in
-	 * plugin.xml. 
-	 */
+    /** Name of the built-in environment variable defined to hold the location of
+     * the runtime library. This works for both debug operation and 
+     * conventional installations. This name must agree with the name used in
+     * plugin.xml. 
+     */
     public static final String OPENJML_RUNTIME_LIBRARY = "OPENJML_RUNTIME_LIBRARY";
 
     /** Defines and initializes the OpenJML environment variable. This method
@@ -44,7 +44,7 @@ public class ClasspathVariableInitializer extends org.eclipse.jdt.core.Classpath
                 Log.errorKey("openjml.ui.failed.to.define.classpath.variable", null); //$NON-NLS-1$
                 return;
             }
-        	URL url = bundle.getEntry("/"); // root of plugin  //$NON-NLS-1$
+            URL url = bundle.getEntry("/"); // root of plugin  //$NON-NLS-1$
             URL local = FileLocator.toFileURL(url);
             String fullPath = new File(local.getPath()).getCanonicalPath();
             if (fullPath == null) {
@@ -53,7 +53,7 @@ public class ClasspathVariableInitializer extends org.eclipse.jdt.core.Classpath
             }
             JavaCore.setClasspathVariable(OPENJML_VAR, new Path(fullPath), null);
 
-        	url = bundle.getEntry(Strings.runtimeJarName); // root of plugin 
+            url = bundle.getEntry(Strings.runtimeJarName); // root of plugin 
             local = FileLocator.toFileURL(url);
             fullPath = new File(local.getPath()).getCanonicalPath();
             if (fullPath == null) {
