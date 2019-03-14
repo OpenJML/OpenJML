@@ -5,8 +5,10 @@ import java.util.Scanner;
 class FahrenheitToCelsius {
 	/*@ spec_public */static double Celsius;
      
-    //@ ensures JMLFloat.approximatelyEqualTo(\result, (((temperature - 32)*5)/9), 0.1f) == true;
+    //@ requires Float.isFinite(temperature);
     //@ assignable Celsius;
+    //@ ensures Double.isFinite(Celsius) && Float.isFinite(\result);
+    //@ ensures JMLFloat.approximatelyEqualTo(\result, (((temperature - 32)*5)/9), 0.1f) == true;
 	public static float Temperature(float temperature) {
 	
        
@@ -14,7 +16,7 @@ class FahrenheitToCelsius {
         Celsius = ((temperature - 32)*5)/9;
      
         System.out.println("temperature in Celsius = " + Celsius);
-	    return Celsius;
+	    return (float)Celsius;
     }
      public static void main(String[] args) {
 	     float temperature;

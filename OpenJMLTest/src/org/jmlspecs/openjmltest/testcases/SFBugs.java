@@ -1002,7 +1002,7 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug673() {
         expectedExit = 0;
-        helpTCG();
+        helpTCG("-subexpressions","-method=Temperature2");
     }
     
     @Test
