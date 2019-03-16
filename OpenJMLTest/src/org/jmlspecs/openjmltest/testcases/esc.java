@@ -1383,23 +1383,37 @@ public class esc extends EscBase {
 
     @Test
     public void testAssignables3a() {
+        main.addOptions("-method=m1a");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public static int[] a;  //@ public invariant a != null && a.length == 10;\n"
 
-                + "  /*@ assignable a; */ public TestJava() {\n" + "     a = new int[10];\n" + "  }\n"
-
-                + "  //@ modifies a[*];\n" + "  public void m1() {\n" + "    //@ assume a[0] == 0 && a[2] == 2;\n"
-                + "    c1();\n" + "    //@ assert a[0] == 0;\n" + "  }\n"
-
-                + "  //@ modifies a[*];\n" + "  public void m1a() {\n" + "    //@ assume a[0] == 0 && a[2] == 2;\n"
-                + "    c1();\n" + "    //@ assert a[2] == 3;\n" // FAILS
+                + "  /*@ assignable a; */ public TestJava() {\n" 
+                + "     a = new int[10];\n" 
                 + "  }\n"
 
-                + "  //@ modifies a[2 .. 4];\n" + "  public void c1() { } \n"
+                + "  //@ modifies a[*];\n" 
+                + "  public void m1() {\n" 
+                + "    //@ assume a[0] == 0 && a[2] == 2;\n"
+                + "    c1();\n" 
+                + "    //@ assert a[0] == 0;\n" 
+                + "  }\n"
 
-                + "  //@ modifies a[*];\n" + "  public void c2() {}\n"
+                + "  //@ modifies a[*];\n" 
+                + "  public void m1a() {\n" 
+                + "    //@ assume a[0] == 0 && a[2] == 2;\n"
+                + "    c1();\n" 
+                + "    //@ assert a[2] == 3;\n" // FAILS
+                + "  }\n"
 
-                + "  //@ modifies a[2 .. ];\n" + "  public void c3() {}\n" + "}",
+                + "  //@ modifies a[2 .. 4];\n" 
+                + "  public void c1() { } \n"
+
+                + "  //@ modifies a[*];\n" 
+                + "  public void c2() {}\n"
+
+                + "  //@ modifies a[2 .. ];\n" 
+                + "  public void c3() {}\n" 
+                + "}",
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m1a", 9);
     }
 

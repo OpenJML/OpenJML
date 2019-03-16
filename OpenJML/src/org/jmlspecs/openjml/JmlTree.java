@@ -3620,7 +3620,9 @@ public class JmlTree implements IJmlTree {
     }
 
     // FIXME - the following do not have factory methods - do not set pos, do not have accept, getKind, getTag, toString methods, or documentation
-    
+    // Arrays are represented by a 2 level map, representing all the arrays of a given type
+    // THis object represents   newarrs = oldarrs[ arr := arr[ index := rhs ]]
+    // If index is rhs is null, then this is a havoc; if index is null then all element are havoced
     public static class JmlBBArrayAssignment extends JCMethodInvocation {
         public JmlBBArrayAssignment(JCIdent newarrs, JCIdent oldarrs, JCExpression arr, JCExpression index, JCExpression rhs) {
             super(null,null,null);

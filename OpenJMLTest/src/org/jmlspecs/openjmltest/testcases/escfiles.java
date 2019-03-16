@@ -290,6 +290,18 @@ public class escfiles extends EscBase {
         expectedExit = 0;
         helpTF("escClone");
     }
+    @Test
+    public void test2DArray() {
+        expectedExit = 0;
+        helpTF("esc2DArray");
+    }
+
+    @Test
+    public void test2DTranspose() {
+        expectedExit = 0;
+        helpTF("esc2DTranspose");
+    }
+
 
 // FIXME - there is a problem with instantiating the model field or the getter functions, such that my_dollars differs from dollars()
     @Test  @Ignore

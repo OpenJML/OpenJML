@@ -9805,17 +9805,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return true;
     }
     
+    // assume that 'expr' is not allocated
     protected void newAllocation1(DiagnosticPosition pos, JCExpression expr) {
         int p = pos.getPreferredPosition();
         JCFieldAccess fa = treeutils.makeSelect(p, convertCopy(expr), isAllocSym);
         addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeNot(p, fa));
     }
 
+    // make an assignment that states that 'expr' is now allocated
     protected void newAllocation2(DiagnosticPosition pos, JCExpression resultExpr) {
         int p = pos.getPreferredPosition();
-//        JCFieldAccess fa = treeutils.makeSelect(p, convertCopy(resultId), allocSym);
-//        JCExpressionStatement st = treeutils.makeAssignStat(p, fa, treeutils.makeIntLiteral(p, ++allocCounter));
-//        addStat( st );
         JCFieldAccess fa = treeutils.makeSelect(p, convertCopy(resultExpr), isAllocSym);
         JCStatement st = treeutils.makeAssignStat(p, fa, treeutils.makeBooleanLiteral(p,true));
         addStat( st );
@@ -9838,6 +9837,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        }
     }
 
+    // insert a state change that states that 'resultId" was not allocated but now is
     protected void newAllocation(DiagnosticPosition pos, JCIdent resultId) {
         newAllocation1(pos,convertCopy(resultId));
         newAllocation2(pos,convertCopy(resultId));
@@ -9979,13 +9979,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else {
             // ERROR
         }
+        // array != null
         addAssume(array,Label.NULL_CHECK,treeutils.makeNeqObject(array.pos, array, treeutils.nullLit));
+        newAllocation(array,array);
+        if (size != null) {
+            // Set the size if it is known, either from the dimension or the array of initializer elements
+            // array.length == size
+            addAssume(array,Label.IMPLICIT_ASSUME,treeutils.makeEquality(array.pos,treeutils.makeLength(array,convertCopy(array)),convert(size)));
+        }
         if (elems != null) {
+            // There is an initializer; so initialize all the elements
             Type ctype = ((Type.ArrayType)array.type).getComponentType();
-            newAllocation(array,array);
-            if (size != null) {
-                addAssume(array,Label.IMPLICIT_ASSUME,treeutils.makeEquality(array.pos,treeutils.makeLength(array,convertCopy(array)),convert(size)));
-            }
             int i = 0;
             for (JCExpression e: elems) {
                 JCLiteral index = treeutils.makeIntLiteral(e.pos, i);
@@ -9999,24 +10003,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addAssume(e.pos(),Label.IMPLICIT_ASSUME,b);
                 ++i;
             }
-        } else {
-            if (dims.first() instanceof JCLiteral) {
-//                JCExpression e = createNullInitializedArray(array.type, dims.toList());
-//                JCBinary b = treeutils.makeEquality(e.pos,array,e);
-//                addAssume(array,Label.IMPLICIT_ASSUME,b);
-            } else {
-                newAllocation(array,array);
-                if (size != null) {
-                    addAssume(array,Label.IMPLICIT_ASSUME,treeutils.makeEquality(array.pos,treeutils.makeLength(array,convertCopy(array)),convert(size)));
-                }
-                // FIXME - needs lots more implementation - quantified expressions
-            }
-
-//          addAssume(array,Label.NULL_CHECK,treeutils.makeNeqObject(array.pos, array, treeutils.nullLit));
-//          newAllocation(array,array);
-//          if (size != null) {
-//              addAssume(array,Label.IMPLICIT_ASSUME,treeutils.makeEquality(array.pos,treeutils.makeLength(array,convertCopy(array)),convert(size)));
-//          }
         }
         JCExpression e3 = treeutils.makeDynamicTypeEquality(p,
                     array, 
@@ -10028,35 +10014,126 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression e = allocCounterEQ(p, convertCopy(array), ++allocCounter);
             addAssume(p,Label.IMPLICIT_ASSUME,e);
 
-            if (dims.first() instanceof JCLiteral) {
-                e = createNullInitializedArray(array.type, dims.toList());
-                JCBinary b = treeutils.makeEquality(e.pos,array,e);
-                addAssume(array,Label.IMPLICIT_ASSUME,b);
-            } else {
-                int i = 0;
-                ListBuffer<JCVariableDecl> decls = new ListBuffer<JCVariableDecl>();
-                JCExpression range = null;
-                JCExpression expr = convertCopy(array);
-                Type ct = array.type;
-                for (JCExpression ex: dims) {
-                    JCVariableDecl vd = treeutils.makeIntVarDef(names.fromString("i"+ i), null, null);
-                    decls.add(vd);
-                    JCExpression ee = treeutils.makeBinary(pos, JCTree.Tag.LE, treeutils.intleSymbol,  treeutils.makeIntLiteral(pos,  0), treeutils.makeIdent(pos, vd.sym));
-                    JCExpression eee = treeutils.makeBinary(pos, JCTree.Tag.LT, treeutils.intltSymbol,  treeutils.makeIdent(pos, vd.sym), convertCopy(ex));
-                    ee = treeutils.makeAnd(pos, ee, eee);
-                    range = range == null ? ee : treeutils.makeAnd(pos, range, ee);
-                   // expr = M.at(p).Indexed(expr, treeutils.makeIdent(pos, vd.sym));
-                    JmlBBArrayAccess aa = new JmlBBArrayAccess(null,expr, treeutils.makeIdent(pos, vd.sym)); // FIXME - switch to factory
-                    aa.setPos(p.getPreferredPosition());
-                    ct = ((Type.ArrayType)ct).getComponentType();
-                    aa.setType(ct);
-                    expr = aa;
-                    i++;
+//            if (dims.first() instanceof JCLiteral) {
+//                e = createNullInitializedArray(array.type, dims.toList());
+//                JCBinary b = treeutils.makeEquality(e.pos,array,e);
+//                addAssume(array,Label.IMPLICIT_ASSUME,b);
+//            } else 
+            {
+                // assume the proper lengths of all the sub arrays
+                for (int n = 1; n<dims.length(); n++) {
+                    int i = 0;
+                    ListBuffer<JCVariableDecl> decls = new ListBuffer<JCVariableDecl>();
+                    JCExpression range = null;
+                    JCExpression expr = convertCopy(array);
+                    Type ct = array.type;
+                    int k=n;
+                    Iterator<JCExpression> idims = dims.iterator();
+                    while (--k >= 0) {
+                        JCExpression ex = idims.next();
+                        if (ex == null) break;
+                        JCVariableDecl vd = treeutils.makeIntVarDef(names.fromString("i"+ i), null, null);
+                        decls.add(vd);
+                        JCExpression ee = treeutils.makeBinary(pos, JCTree.Tag.LE, treeutils.intleSymbol,  treeutils.makeIntLiteral(pos,  0), treeutils.makeIdent(pos, vd.sym));
+                        JCExpression eee = treeutils.makeBinary(pos, JCTree.Tag.LT, treeutils.intltSymbol,  treeutils.makeIdent(pos, vd.sym), convertCopy(ex));
+                        ee = treeutils.makeAnd(pos, ee, eee);
+                        range = range == null ? ee : treeutils.makeAnd(pos, range, ee);
+                        JmlBBArrayAccess aa = new JmlBBArrayAccess(null,expr, treeutils.makeIdent(pos, vd.sym)); // FIXME - switch to factory
+                        aa.setPos(p.getPreferredPosition());
+                        ct = ((Type.ArrayType)ct).getComponentType();
+                        aa.setType(ct);
+                        expr = aa;
+                        i++;
+                    }
+                    JCExpression dim = idims.next();
+                    if (dim != null){
+                        JCExpression ex1 = treeutils.makeNotNull(array.pos, expr);
+                        JCExpression ex2 = treeutils.makeEquality(array.pos,treeutils.makeLength(array,expr),dim);
+                        JCExpression q = M.at(p).JmlQuantifiedExpr(JmlTokenKind.BSFORALL, decls.toList(), range, treeutils.makeBitAnd(pos, ex1, ex2));
+                        q.setType(treeutils.falseLit.type);
+                        addAssume(array, Label.IMPLICIT_ASSUME, q);
+                    }
+                    
                 }
-                if (decls.size() > 0) {
-                    JCExpression q = M.at(p).JmlQuantifiedExpr(JmlTokenKind.BSFORALL, decls.toList(), range, treeutils.makeEquality(pos,  expr,  treeutils.makeZeroEquivalentLit(pos, ct)));
-                    q.setType(treeutils.falseLit.type);
-                    addAssume(array, Label.IMPLICIT_ASSUME, q);
+                for (int n = 1; n<dims.length(); n++) {
+                    int i = 0;
+                    ListBuffer<JCVariableDecl> decls = new ListBuffer<JCVariableDecl>();
+                    JCExpression range = null;
+                    JCExpression expr = convertCopy(array);
+                    Type ct = array.type;
+                    int k=n;
+                    Iterator<JCExpression> idims = dims.iterator();
+                    JCExpression ex = null;
+                    while (--k >= 0) {
+                        ex = idims.next();
+                        if (ex == null) break;
+                        JCVariableDecl vd = treeutils.makeIntVarDef(names.fromString("i"+ i), null, null);
+                        decls.add(vd);
+                        JCExpression ee = treeutils.makeBinary(pos, JCTree.Tag.LE, treeutils.intleSymbol,  treeutils.makeIntLiteral(pos,  0), treeutils.makeIdent(pos, vd.sym));
+                        JCExpression eee = treeutils.makeBinary(pos, JCTree.Tag.LT, treeutils.intltSymbol,  treeutils.makeIdent(pos, vd.sym), convertCopy(ex));
+                        ee = treeutils.makeBitAnd(pos, ee, eee);
+                        range = range == null ? ee : treeutils.makeBitAnd(pos, range, ee);
+                        JmlBBArrayAccess aa = new JmlBBArrayAccess(null,expr, treeutils.makeIdent(pos, vd.sym)); // FIXME - switch to factory
+                        aa.setPos(p.getPreferredPosition());
+                        ct = ((Type.ArrayType)ct).getComponentType();
+                        aa.setType(ct);
+                        expr = aa;
+                        i++;
+                    }
+                    JCExpression dim = idims.next();
+                    if (dim != null){
+                        JCExpression ex1 = treeutils.makeNotNull(array.pos, expr);
+                        JCExpression ex2 = treeutils.makeEquality(array.pos,treeutils.makeLength(array,expr),dim);
+                        JCExpression ex3 = allocCounterEQ(p, convertCopy(expr), ++allocCounter);
+                        JCExpression q = M.at(p).JmlQuantifiedExpr(JmlTokenKind.BSFORALL, decls.toList(), range, 
+                                treeutils.makeBitAnd(pos, ex1, ex2, ex3));
+                        q.setType(treeutils.falseLit.type);
+                        addAssume(array, Label.IMPLICIT_ASSUME, q);
+
+                        // anti-aliasing assumption, but FIXME: only for the first dimension
+                        JmlBBArrayAccess aex = (JmlBBArrayAccess)expr;
+                        JCVariableDecl vd = treeutils.makeIntVarDef(names.fromString("i"+ i), null, null);
+                        decls.add(vd);
+                        JCExpression ee = treeutils.makeBinary(pos, JCTree.Tag.LE, treeutils.intleSymbol,  treeutils.makeIntLiteral(pos,  0), treeutils.makeIdent(pos, vd.sym));
+                        JCExpression eee = treeutils.makeBinary(pos, JCTree.Tag.LT, treeutils.intltSymbol,  treeutils.makeIdent(pos, vd.sym), convertCopy(ex));
+                        ee = treeutils.makeBitAnd(pos, ee, eee);
+                        range = range == null ? ee : treeutils.makeBitAnd(pos, range, ee);
+                        JmlBBArrayAccess aa = new JmlBBArrayAccess(null, convertCopy(aex.indexed), treeutils.makeIdent(pos, vd.sym)); // FIXME - switch to factory
+                        aa.setPos(p.getPreferredPosition());
+                        aa.setType(ct);
+                        ex1 = treeutils.makeNot(array.pos, treeutils.makeEquality(array.pos, convertCopy(aex.index), convertCopy(aa.index)));
+                        ex2 = treeutils.makeImplies(array.pos,  ex1, treeutils.makeNot(array.pos, treeutils.makeEquality(array.pos, expr, aa)));
+                        q = M.at(p).JmlQuantifiedExpr(JmlTokenKind.BSFORALL, decls.toList(), range, ex2);
+                        q.setType(syms.booleanType);
+                        addAssume(array, Label.IMPLICIT_ASSUME, q);
+                    }
+                    
+                }
+                { // initialize elements to zero-equivalent value
+                    int i = 0;
+                    ListBuffer<JCVariableDecl> decls = new ListBuffer<JCVariableDecl>();
+                    JCExpression range = null;
+                    JCExpression expr = convertCopy(array);
+                    Type ct = array.type;
+                    for (JCExpression ex: dims) {
+                        JCVariableDecl vd = treeutils.makeIntVarDef(names.fromString("i"+ i), null, null);
+                        decls.add(vd);
+                        JCExpression ee = treeutils.makeBinary(pos, JCTree.Tag.LE, treeutils.intleSymbol,  treeutils.makeIntLiteral(pos,  0), treeutils.makeIdent(pos, vd.sym));
+                        JCExpression eee = treeutils.makeBinary(pos, JCTree.Tag.LT, treeutils.intltSymbol,  treeutils.makeIdent(pos, vd.sym), convertCopy(ex));
+                        ee = treeutils.makeAnd(pos, ee, eee);
+                        range = range == null ? ee : treeutils.makeAnd(pos, range, ee);
+                        JmlBBArrayAccess aa = new JmlBBArrayAccess(null,expr, treeutils.makeIdent(pos, vd.sym)); // FIXME - switch to factory
+                        aa.setPos(p.getPreferredPosition());
+                        ct = ((Type.ArrayType)ct).getComponentType();
+                        aa.setType(ct);
+                        expr = aa;
+                        i++;
+                    }
+                    if (decls.size() > 0) {
+                        JCExpression q = M.at(p).JmlQuantifiedExpr(JmlTokenKind.BSFORALL, decls.toList(), range, treeutils.makeEquality(pos,  expr,  treeutils.makeZeroEquivalentLit(pos, ct)));
+                        q.setType(treeutils.falseLit.type);
+                        addAssume(array, Label.IMPLICIT_ASSUME, q);
+                    }
                 }
             }
 
