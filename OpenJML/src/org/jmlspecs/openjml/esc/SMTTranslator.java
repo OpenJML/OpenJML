@@ -321,9 +321,19 @@ public class SMTTranslator extends JmlTreeScanner {
         ICommand c;
         // div truncates towards minus infinity, C & java / truncates towards 0
         // lhs / rhs ===  lhs >= 0 ? lhs div rhs : (-lhs) div (-rhs)
+        addCommand(smt,"(define-fun INT32_MAX () Int " + Integer.MAX_VALUE + " )");
+        addCommand(smt,"(define-fun INT32_MIN () Int " + numeral(Integer.MIN_VALUE) + " )");
+        addCommand(smt,"(define-fun INT32_BIG () Int (* (- 2) INT32_MIN) )");
+        addCommand(smt,"(define-fun INT64_MAX () Int " + Long.MAX_VALUE + " )");
+        addCommand(smt,"(define-fun INT64_MIN () Int " + numeral(Long.MIN_VALUE) + " )");
+        addCommand(smt,"(define-fun INT64_BIG () Int (- (+ INT64_MIN INT64_MIN)) )");
         addCommand(smt,"(define-fun cdiv ((a Int) (b Int)) Int (ite (>= a 0) (div a b) (div (- a) (- b))))");
         addCommand(smt,"(define-fun cmod ((a Int) (b Int)) Int (- a (* (cdiv a b) b)))");
-
+        addCommand(smt,"(define-fun inRange32 ((a Int)) Bool (and (<= INT32_MIN a) (<= a INT32_MAX)))");
+        addCommand(smt,"(define-fun add32ok ((a Int) (b Int)) Bool (inRange32 (+ a b)) )");
+        addCommand(smt,"(define-fun add32 ((a Int) (b Int)) Int (let ((p (+ a b))) (ite (inRange32 p) p (ite (< INT32_MAX p) (- p INT32_BIG) (+ p INT32_BIG)))))");
+        addCommand(smt,"(define-fun mult32ok ((a Int) (b Int)) Bool (inRange32 (* a b)) )");
+        addCommand(smt,"(define-fun mult32 ((a Int) (b Int)) Int (let ((p (* a b))) (ite (inRange32 p) p (+ (mod (- p INT32_MIN) INT32_BIG) INT32_MIN) )))");
         // (declare-sort JavaTypeSort 0)
         if (JAVATYPESORT != REF) {
             c = new C_declare_sort(F.symbol(JAVATYPESORT),zero);
@@ -1964,7 +1974,9 @@ public class SMTTranslator extends JmlTreeScanner {
             return;
         }
         List<IExpr> newargs = convertExprList(that.args);
-        if (that.token == JmlTokenKind.SUBTYPE_OF) {
+        if (that.token == null) {
+            result = F.fcn(F.symbol(that.name), newargs);
+        } else if (that.token == JmlTokenKind.SUBTYPE_OF) {
             result = F.fcn(F.symbol(JMLSUBTYPE), newargs);
         } else if (that.token == JmlTokenKind.JSUBTYPE_OF) {
             result = F.fcn(F.symbol(JAVASUBTYPE), newargs);

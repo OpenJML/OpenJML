@@ -197,9 +197,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         try {
-            if (that.token == null) {
-                visitApply(that);
-            } else {
+            if (that.token != null) {
                 print(that.token.internedName());
                 if (that.javaType && 
                         (that.token == JmlTokenKind.BSTYPELC || that.token == JmlTokenKind.BSTYPEOF)
@@ -207,6 +205,13 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 print("(");
                 printExprs(that.args);
                 print(")");
+            } else if (that.name != null) {
+                print(that.name);
+                print("(");
+                printExprs(that.args);
+                print(")");
+            } else {
+                visitApply(that);
             }
         } catch (IOException e) { perr(that,e); }
     }

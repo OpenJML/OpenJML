@@ -219,6 +219,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
         JmlMethodInvocation copy = M.at(that.pos).JmlMethodInvocation(
                 that.token,
                 copy(that.args,p));
+        copy.name = that.name;
         copy.startpos = that.startpos;
         copy.labelProperties = that.labelProperties;
         copy.type = that.type;

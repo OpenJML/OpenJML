@@ -1249,6 +1249,17 @@ public class JmlTreeUtils {
         return call;
     }
     
+    public JmlMethodInvocation makeJmlMethodInvocation(DiagnosticPosition pos, String token, Type type, JCExpression ... args) {
+        ListBuffer<JCExpression> a = new ListBuffer<JCExpression>();
+        a.appendArray(args);
+        JmlMethodInvocation call = factory.at(pos).JmlMethodInvocation(token, a.toList());
+        call.type = type;
+        call.meth = null;
+        call.typeargs = null;
+        call.varargsElement = null;
+        return call;
+    }
+    
     
     // FIXME _ document
     public JCMethodDecl makeMethodDefNoArg(JCModifiers mods, Name methodName, Type resultType, ClassSymbol ownerClass) {

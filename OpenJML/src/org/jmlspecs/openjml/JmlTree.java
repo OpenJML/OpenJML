@@ -126,6 +126,7 @@ public class JmlTree implements IJmlTree {
         JmlMethodClauseSignalsOnly JmlMethodClauseSignalsOnly(String keyword, IJmlClauseKind t, List<JCTree.JCExpression> e);
         JmlMethodClause JmlMethodClauseStoreRef(String keyword, IJmlClauseKind t, List<JCExpression> list);
         JmlMethodInvocation JmlMethodInvocation(JmlTokenKind token, List<JCExpression> args);
+        JmlMethodInvocation JmlMethodInvocation(String token, List<JCExpression> args);
         JmlMethodSpecs JmlMethodSpecs(List<JmlSpecificationCase> cases);
         JmlModelProgramStatement JmlModelProgramStatement(JCTree item);
         JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt, Name id);
@@ -444,6 +445,11 @@ public class JmlTree implements IJmlTree {
         /** Creates a JML method invocation (e.g. for JmlTokens with arguments, such as \typeof) */
         @Override
         public JmlMethodInvocation JmlMethodInvocation(JmlTokenKind token, List<JCExpression> args) {
+            return new JmlMethodInvocation(pos,token,args);
+        }
+        
+        @Override
+        public JmlMethodInvocation JmlMethodInvocation(String token, List<JCExpression> args) {
             return new JmlMethodInvocation(pos,token,args);
         }
         
@@ -2019,6 +2025,7 @@ public class JmlTree implements IJmlTree {
     public static class JmlMethodInvocation extends JCMethodInvocation {
         public int startpos;
         public JmlTokenKind token;
+        public String name;
         public Object labelProperties = null; // FIXME - explain this
         public boolean javaType = false; // FIXME - this is a hack
         
@@ -2031,6 +2038,18 @@ public class JmlTree implements IJmlTree {
         {
             super(List.<JCExpression>nil(),null,args);
             this.token = token;
+            this.name = null;
+            this.pos = pos; // preferred position
+            this.startpos = pos;
+        }
+        
+        protected JmlMethodInvocation(int pos,
+                String name,
+                List<JCExpression> args)
+        {
+            super(List.<JCExpression>nil(),null,args);
+            this.token = null;
+            this.name = name;
             this.pos = pos; // preferred position
             this.startpos = pos;
         }
@@ -2042,6 +2061,7 @@ public class JmlTree implements IJmlTree {
         {
             super(List.<JCExpression>nil(),method,args);
             this.token = null;
+            this.name = null;
             this.pos = pos; // preferred position
             this.startpos = pos;
         }

@@ -194,6 +194,7 @@ public class MethodProverSMT {
             if (loc != null && os != null && ex != null) {
                 exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + proverToUse;
                 if (new java.io.File(exec).exists()) return exec;
+                if (proverToUse.equals("cvc4")) ex = ex + "-1";
                 exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + ex + ".";
                 for (int i=9; i>=0; --i) {
                     if (new java.io.File(exec + i).exists()) {

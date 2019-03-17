@@ -14542,6 +14542,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JmlMethodInvocation m;
                 if (that.token != null) {
                     m = M.at(that).JmlMethodInvocation(that.token, convertExprList(that.args));
+                } else if (that.name != null) {
+                    m = M.at(that).JmlMethodInvocation(that.name, convertExprList(that.args));
                 } else {
                     m = M.at(that).JmlMethodInvocation(convertExpr(that.meth), convertExprList(that.args));
                 }

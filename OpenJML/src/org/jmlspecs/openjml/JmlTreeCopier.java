@@ -373,6 +373,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlMethodInvocation copy = M.at(that.pos).JmlMethodInvocation(
                 that.token,
                 copy(that.args,p));
+        copy.name = that.name;
         copy.startpos = that.startpos;
         copy.labelProperties = that.labelProperties;
         copy.type = that.type;

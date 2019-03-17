@@ -1018,6 +1018,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             JCExpression argarrays = getArrayIdent(syms.objectType,that.pos);
             that.args = com.sun.tools.javac.util.List.<JCExpression>of(arg,argarrays);
             result = that;
+        } else if (that.name != null) {
+            scanList(that.args);
+            result = that;
         } else if (that.token == null || that.token == JmlTokenKind.BSTYPELC || that.token == JmlTokenKind.BSTYPEOF || that.token == JmlTokenKind.BSDISTINCT) {
             //super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
             scan(that.typeargs);
