@@ -39,6 +39,7 @@ import org.jmlspecs.openjml.ext.EndStatement;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
+import org.jmlspecs.openjml.ext.MethodConditionalClauseExtension;
 import org.jmlspecs.openjml.ext.MethodDeclClauseExtension;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
 import org.jmlspecs.openjml.ext.ReachableStatement;
@@ -4686,6 +4687,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     try {
                                         addTraceableComment(ex,clause.toString());
                                         ex = convertJML(ex,preident,true);
+                                        ex = treeutils.makeImplies(clause.pos, preident, ex);
+                                        //addAssert(methodDecl,Label.SIGNALS,ex,currentStatements,clause,clause.sourcefile);
+                                    } finally {
+                                        popBlock(0,clause);
+                                    }
+                                    notImplemented(clause,clause.keyword + " clause", clause.source());
+                                }
+                            }
+
+                        } else if (ct == MethodConditionalClauseExtension.workingspaceClause || ct == MethodConditionalClauseExtension.durationClause) {
+                            
+                            {
+                                // FIXME _ implement
+                                JCExpression ex = ((JmlMethodClauseConditional)clause).expression;
+                                JCExpression pred = ((JmlMethodClauseConditional)clause).predicate;
+                                { // Avoid complaints or any implementation if the expression is 'true'
+                                    currentStatements = ensuresStats; 
+                                    axiomBlock = ensuresAxiomBlock;
+                                    pushBlock();
+                                    try {
+                                        //addTraceableComment(ex,clause.toString());
+                                        convertJML(ex,preident,true);
+                                        convertJML(pred,preident,true);
                                         ex = treeutils.makeImplies(clause.pos, preident, ex);
                                         //addAssert(methodDecl,Label.SIGNALS,ex,currentStatements,clause,clause.sourcefile);
                                     } finally {

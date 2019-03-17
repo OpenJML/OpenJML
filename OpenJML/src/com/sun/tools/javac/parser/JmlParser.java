@@ -16,11 +16,13 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
+import org.jmlspecs.openjml.ext.AssignableClauseExtension;
 import org.jmlspecs.openjml.ext.ChooseClause;
 import org.jmlspecs.openjml.ext.EndStatement;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.ext.InlinedLoopStatement;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.MethodClauseType;
+import org.jmlspecs.openjml.ext.StatementLocationsExtension;
 
 import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
@@ -417,6 +419,18 @@ public class JmlParser extends JavacParser {
             if (s instanceof JmlStatementLoop) {
                 loopspecs.add((JmlStatementLoop)s);
                 continue;
+            }
+            // This case allows grandfathering an assignable statement as a loop_modifies statement
+            // if it is not the first loop specification statement
+            if (s instanceof JmlMethodClauseStoreRef && ((JmlMethodClauseStoreRef)s).clauseKind == AssignableClauseExtension.assignableClauseKind) {
+                JmlMethodClauseStoreRef sa = (JmlMethodClauseStoreRef)s;
+                JmlStatementLoop sloop = jmlF.at(sa.pos).JmlStatementLoopModifies(StatementLocationsExtension.loopmodifiesStatement, sa.list);
+                if (!loopspecs.isEmpty()) {
+                    log.warning(s.pos, "jml.message", "Use 'loop_writes' keyword instead of '" + sa.keyword + "' in loop specifications");
+                    loopspecs.add(sloop);
+                    continue;
+                }
+                
             }
             if (!loopspecs.isEmpty()) {
                 if (s instanceof IJmlLoop) {
