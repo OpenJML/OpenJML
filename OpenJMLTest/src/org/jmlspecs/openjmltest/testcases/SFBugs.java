@@ -46,7 +46,7 @@ public class SFBugs extends EscBase {
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
         //Assert.fail(); // FIXME - Java8 - long running
         ArrayList<String> list = new ArrayList<String>();
-        list.add("-code-math=bigint");
+        list.add("-code-math=safe");
         list.add("-spec-math=bigint");
         list.addAll(Arrays.asList(opts));
         escOnFiles(sourceDirname,outDir,list.toArray(opts));
@@ -57,7 +57,7 @@ public class SFBugs extends EscBase {
         List<String> a = new LinkedList<>();
         a.add(0,"-cp"); 
         a.add(1,dir + cpathAddition);
-        a.add("-code-math=bigint");
+        a.add("-code-math=safe");
         a.add("-spec-math=bigint");
         a.addAll(Arrays.asList(opts));
         escOnFiles(dir, dir, a.toArray(new String[a.size()]));
@@ -339,7 +339,7 @@ public class SFBugs extends EscBase {
     }
 
     @Test public void gitbug503() {
-        helpTCG();
+        helpTCG("-code-math=java","-cherckFeasibility=none"); // java math just to avoid overflow error messages
     }
 
     @Test public void gitbug535() {
@@ -677,7 +677,7 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug601() {
         expectedExit = 0;
-        helpTCG();  // FIXME Unimplemented floating point (infinity)
+        helpTCG();
     }
     
     @Test
@@ -1009,6 +1009,12 @@ public class SFBugs extends EscBase {
     public void gitbug676() {
         expectedExit = 0;
         helpTCG();
+    }
+    
+    @Test
+    public void gitbug677() {
+        expectedExit = 0;
+        helpTCG("-code-math=safe");
     }
     
     public void gitbug888() {

@@ -10,7 +10,7 @@ public class Initializer {
     }
 
     /*@ public normal_behavior
-      @   assignable a;
+      @   requires a < 1000000; assignable a; // limit just to avoid overflow warnings
       @   ensures this.a == \old(this.a) + 1;
       @   ensures \fresh(\result);
       @   ensures \result.equals(\old(new Initializer(a)));

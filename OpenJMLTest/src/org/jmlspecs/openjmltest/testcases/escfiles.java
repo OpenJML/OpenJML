@@ -684,7 +684,7 @@ public class escfiles extends EscBase {
     
     @Test
     public void testRmLoop() {
-        helpTF("escrmloop","-method=doLRS","-timeout=10"); // FIXME SHort timeout because this does not yet work properly
+        helpTF("escrmloop","-checkFeasibility=none","-timeout=30"); // FIXME SHort timeout because this does not yet work properly
     }
     
     @Test

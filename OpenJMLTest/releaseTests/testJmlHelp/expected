@@ -104,6 +104,7 @@ JML options:
   -staticInitWarning         Warns about missing static_initializer clauses
   -determinism               Experimental: enables better determinism
   -osname                    Name of OS to use in selecting solver executable
+  -inline-function-literal   Whether to inline function literals
   -infer                     Infer missing contracts (postconditions (default), preconditions) [-command=infer]
   -infer-debug               Enable debugging of contract inference
   -infer-tag                 If true, inferred specifications are tagged with the key INFERRED
