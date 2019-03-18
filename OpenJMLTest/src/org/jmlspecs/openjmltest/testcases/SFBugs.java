@@ -1,9 +1,5 @@
 package org.jmlspecs.openjmltest.testcases;
 
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,14 +8,12 @@ import java.util.List;
 
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjmltest.EscBase;
-import org.jmlspecs.openjmltest.TCBase;
-import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.ParameterizedWithNames;
 import org.junit.runners.Parameterized.Parameters;
+import org.junit.runners.ParameterizedWithNames;
 
 @RunWith(ParameterizedWithNames.class)
 public class SFBugs extends EscBase {
@@ -339,7 +333,7 @@ public class SFBugs extends EscBase {
     }
 
     @Test public void gitbug503() {
-        helpTCG("-code-math=java","-cherckFeasibility=none"); // java math just to avoid overflow error messages
+        helpTCG("-code-math=java"); // java math just to avoid overflow error messages
     }
 
     @Test public void gitbug535() {
@@ -1014,7 +1008,7 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug677() {
         expectedExit = 0;
-        helpTCG("-code-math=safe");
+        helpTCG("-code-math=safe"); // The problem manifests with safe math
     }
     
     public void gitbug888() {

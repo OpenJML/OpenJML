@@ -43,7 +43,7 @@ public abstract class EscBase extends JmlTestCase {
 //            "z3_4_7", 
  //           "z3_4_5", 
  //           "z3_4_6", 
- //           "z3_4_3_2", 
+ //           "z3_4_3_1", 
 //          "z3_4_4", 
 //            "cvc4",
             //"yices2",
@@ -183,7 +183,7 @@ public abstract class EscBase extends JmlTestCase {
         main.addOptions("-escExitInfo","-no-purityCheck");
 //        main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");
-        main.addUncheckedOption("openjml.defaultProver=z3_4_7");
+        main.addUncheckedOption("openjml.defaultProver=z3_4");
         addOptions(options);
         if (solver != null) main.addOptions(JmlOption.PROVER.optionName(),solver);
         specs = JmlSpecs.instance(context);

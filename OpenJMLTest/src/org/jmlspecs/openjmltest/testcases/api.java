@@ -1465,9 +1465,9 @@ public class api extends JmlTestCase {
 //                m.addOptions("openjml.defaultProver","yices");
 //            } else 
             if (option.equals("-boogie")) {
-                m.addOptions("openjml.defaultProver","z3_4_7");
+                m.addOptions("openjml.defaultProver","z3_4");
             } else {
-                m.addOptions("openjml.defaultProver","z3_4_7");
+                m.addOptions("openjml.defaultProver","z3_4");
             }
             JmlCompilationUnit jcu = m.parseString("A.java",program);
             int n = m.typecheck(jcu);

@@ -408,10 +408,10 @@ abstract public class Arithmetic extends ExpressionExtension {
                 } else if (smtPredefined) {
                     if (newtype.getTag() == TypeTag.INT) {
                         assertIt(rewriter, that, "int multiply overflow", 
-                            rewriter.treeutils.makeJmlMethodInvocation(that,"mult32ok", syms.booleanType, lhs, rhs));
+                            rewriter.treeutils.makeJmlMethodInvocation(that,"|#isMul32ok#|", syms.booleanType, lhs, rhs));
                     } else if (newtype.getTag() == TypeTag.LONG) {
                         assertIt(rewriter, that, "long multiply overflow", 
-                                rewriter.treeutils.makeJmlMethodInvocation(that,"mult64ok", syms.booleanType, lhs, rhs));
+                                rewriter.treeutils.makeJmlMethodInvocation(that,"|#isMul64ok#|", syms.booleanType, lhs, rhs));
                     }
                 } else {
                     if (newtype.getTag() == TypeTag.INT) {
@@ -507,9 +507,9 @@ abstract public class Arithmetic extends ExpressionExtension {
                     // result = g = e ? bin : pos ? posvalue : negvalue;
                     if (smtPredefined) {
                         if (newtype.getTag() == TypeTag.INT) {
-                            bin = rewriter.treeutils.makeJmlMethodInvocation(that,"mult32", syms.intType, lhs, rhs);
+                            bin = rewriter.treeutils.makeJmlMethodInvocation(that,"|#mul32#|", syms.intType, lhs, rhs);
                         } else if (newtype.getTag() == TypeTag.LONG) {
-                            bin = rewriter.treeutils.makeJmlMethodInvocation(that,"mult64", syms.longType, lhs, rhs);
+                            bin = rewriter.treeutils.makeJmlMethodInvocation(that,"|#mul64#|", syms.longType, lhs, rhs);
                         }
                     } else if (typetag == TypeTag.INT) {
                         // The MOD here is Java %, which is negative if the dividend is negative

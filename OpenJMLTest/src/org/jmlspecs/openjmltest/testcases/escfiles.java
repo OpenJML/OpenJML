@@ -568,7 +568,7 @@ public class escfiles extends EscBase {
     
     @Test
     public void testEnsuresInfeasible() {
-        helpTF("escEnsuresInfeasible","-subexpressions");
+        helpTF("escEnsuresInfeasible");
     }
 
     @Test

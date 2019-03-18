@@ -321,20 +321,7 @@ public class SMTTranslator extends JmlTreeScanner {
         ICommand c;
         // div truncates towards minus infinity, C & java / truncates towards 0
         // lhs / rhs ===  lhs >= 0 ? lhs div rhs : (-lhs) div (-rhs)
-        addCommand(smt,"(define-fun INT32_MAX () Int " + Integer.MAX_VALUE + " )");
-        addCommand(smt,"(define-fun INT32_MIN () Int " + numeral(Integer.MIN_VALUE) + " )");
-        addCommand(smt,"(define-fun INT32_BIG () Int (* (- 2) INT32_MIN) )");
-        addCommand(smt,"(define-fun INT64_MAX () Int " + Long.MAX_VALUE + " )");
-        addCommand(smt,"(define-fun INT64_MIN () Int " + numeral(Long.MIN_VALUE) + " )");
-        addCommand(smt,"(define-fun INT64_BIG () Int (- (+ INT64_MIN INT64_MIN)) )");
-        addCommand(smt,"(define-fun cdiv ((a Int) (b Int)) Int (ite (>= a 0) (div a b) (div (- a) (- b))))");
-        addCommand(smt,"(define-fun cmod ((a Int) (b Int)) Int (- a (* (cdiv a b) b)))");
-        addCommand(smt,"(define-fun inRange32 ((a Int)) Bool (and (<= INT32_MIN a) (<= a INT32_MAX)))");
-        addCommand(smt,"(define-fun add32ok ((a Int) (b Int)) Bool (inRange32 (+ a b)) )");
-        addCommand(smt,"(define-fun add32 ((a Int) (b Int)) Int (let ((p (+ a b))) (ite (inRange32 p) p (ite (< INT32_MAX p) (- p INT32_BIG) (+ p INT32_BIG)))))");
-        addCommand(smt,"(define-fun mult32ok ((a Int) (b Int)) Bool (inRange32 (* a b)) )");
-        addCommand(smt,"(define-fun mult32 ((a Int) (b Int)) Int (let ((p (* a b))) (ite (inRange32 p) p (+ (mod (- p INT32_MIN) INT32_BIG) INT32_MIN) )))");
-        // (declare-sort JavaTypeSort 0)
+         // (declare-sort JavaTypeSort 0)
         if (JAVATYPESORT != REF) {
             c = new C_declare_sort(F.symbol(JAVATYPESORT),zero);
             commands.add(c);
@@ -946,13 +933,28 @@ public class SMTTranslator extends JmlTreeScanner {
             addCommand(smt,"(define-fun |#isSubUnderflow32#| ((x Int) (y Int)) Bool (< (- x y) |#min32#|))");
             addCommand(smt,"(define-fun |#isSubUnderflow64#| ((x Int) (y Int)) Bool (< (- x y) |#min64#|))");
             addCommand(smt,"(define-fun |#isMulOverflow32#| ((x Int) (y Int)) Bool (let ((prod (* x y))) (or (> prod |#max32#|) (< prod |#min32#|))))");
+            addCommand(smt,"(define-fun |#isMul32ok#| ((x Int) (y Int)) Bool (let ((prod (* x y))) (and (<= |#min32#| prod ) (<= prod |#max32#|) )))");
+            addCommand(smt,"(define-fun |#isMul64ok#| ((x Int) (y Int)) Bool (let ((prod (* x y))) (and (<= |#min64#| prod ) (<= prod |#max64#|) )))");
             // Int arithmetic operations to do wrap-around operations
             addCommand(smt,"(define-fun |#addWrap32#| ((x Int) (y Int)) Int (let ((sum (+ x y))) (ite (> sum |#max32#|) (- sum |#big32#|) (ite (< sum |#max32#|) (+ sum |#big32#|) sum)))))");
             addCommand(smt,"(define-fun |#addWrap64#| ((x Int) (y Int)) Int (let ((sum (+ x y))) (ite (> sum |#max64#|) (- sum |#big64#|) (ite (< sum |#max64#|) (+ sum |#big64#|) sum)))))");
             addCommand(smt,"(define-fun |#trunc32s#| ((x Int)) Int (let ((m (mod x |#big32#|))) (ite (<= m |#max32#|) m (- m |#big32#|) )))");
             addCommand(smt,"(define-fun |#trunc16s#| ((x Int)) Int (let ((m (mod x |#big16#|))) (ite (<= m |#max16#|) m (- m |#big16#|) )))");
             addCommand(smt,"(define-fun |#trunc8s#| ((x Int)) Int (let ((m (mod x |#big8#|))) (ite (<= m |#max8#|) m (- m |#big8#|) )))");
-        }
+
+            addCommand(smt,"(define-fun cdiv ((a Int) (b Int)) Int (ite (>= a 0) (div a b) (div (- a) (- b))))");
+            addCommand(smt,"(define-fun cmod ((a Int) (b Int)) Int (- a (* (cdiv a b) b)))");
+            addCommand(smt,"(define-fun |#inRange32#| ((a Int)) Bool (and (<= |#min32#| a) (<= a |#max32#|)))");
+            addCommand(smt,"(define-fun |#add32ok#| ((a Int) (b Int)) Bool (|#inRange32#| (+ a b)) )");
+            addCommand(smt,"(define-fun |#add32#| ((a Int) (b Int)) Int (let ((p (+ a b))) (ite (|#inRange32#| p) p (ite (< |#max32#| p) (- p |#big32#|) (+ p |#big32#|)))))");
+            addCommand(smt,"(define-fun |#mul32ok#| ((a Int) (b Int)) Bool (|#inRange32#| (* a b)) )");
+            addCommand(smt,"(define-fun |#mul32#| ((a Int) (b Int)) Int (let ((p (* a b))) (ite (|#inRange32#| p) p (+ (mod (- p |#min32#|) |#big32#|) |#min32#|) )))");
+            addCommand(smt,"(define-fun |#inRange64#| ((a Int)) Bool (and (<= |#min64#| a) (<= a |#max64#|)))");
+            addCommand(smt,"(define-fun |#add64ok#| ((a Int) (b Int)) Bool (|#inRange64#| (+ a b)) )");
+            addCommand(smt,"(define-fun |#add64#| ((a Int) (b Int)) Int (let ((p (+ a b))) (ite (|#inRange64#| p) p (ite (< |#max64#| p) (- p |#big64#|) (+ p |#big64#|)))))");
+            addCommand(smt,"(define-fun |#mul64ok#| ((a Int) (b Int)) Bool (|#inRange64#| (* a b)) )");
+            addCommand(smt,"(define-fun |#mul64#| ((a Int) (b Int)) Int (let ((p (* a b))) (ite (|#inRange64#| p) p (+ (mod (- p |#min64#|) |#big64#|) |#min64#|) )))");
+}
         
         addReals(smt);
         
