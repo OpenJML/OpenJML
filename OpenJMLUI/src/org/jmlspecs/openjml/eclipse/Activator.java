@@ -9,8 +9,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.LinkedList;
+import java.util.List;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.smtlib.IPos;
@@ -56,8 +64,45 @@ public class Activator extends AbstractUIPlugin {
 
         // Log.log.log("Starting Activator");
 
-        // TODO: Should we have a helpful introductory page (with a don't show me again selection)
-        // Utils.showMessageInUI(null, "OpenJML Introduction", "Welcome to OpenJML");
+        {
+            String msg = "Welcome to OpenJML\n\n";
+            String javaProjects = "";
+            String jmlProjects = "";
+            try {
+                IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
+                IProject[] projects = workspaceRoot.getProjects();
+                for (int i = 0; i < projects.length; i++) {
+                    IProject project = projects[i];
+                    if (project.isOpen() && project.hasNature(JavaCore.NATURE_ID)) {
+                        if (JMLNature.isJMLNature(project.getProject())) {
+                            jmlProjects += "    " + project.getName() + "\n";
+                        } else {
+                            javaProjects += "    " + project.getName() + "\n";
+                        }
+                    }
+                }
+                if (jmlProjects.isEmpty()) {
+                    if (javaProjects.isEmpty()) {
+                        msg += "There are no java projects.\n";
+                    } else {
+                        msg += "None of the Java projects are enabled for automatic JML type-checking on file save.\n";
+                    }
+                } else {
+                    if (javaProjects.isEmpty()) {
+                        msg += "All of the Java projects are enabled for automatic JML type-checking on file save.\n";
+                    } else {
+                        msg += "These Java projects are enabled for automatic JML type-checking on file save:\n" + jmlProjects;
+                        msg += "These are not enabled:\n" + javaProjects;
+                    }
+                }
+                msg += "\nEnable existing or new projects for auto-JML-checking using the 'Enable JML on this project' menu command.";
+                Utils.showMessageInUI(null, "OpenJML Introduction", msg);
+            }
+            catch (CoreException ce) {
+                Utils.showMessageInUI(null, "OpenJML Introduction", msg + "An error occurred on checking the status of open projects");
+                //ce.printStackTracce();
+            }
+        }
 
         /**
          * The logic file finder for the plug-in looks for a logic file with the given name: (a) if no logic directory path is set, then it looks within the plugin itself for any built-in files (b) if

@@ -411,6 +411,7 @@ public class Utils {
             return;
         }
         final Map<IJavaProject, List<Object>> sorted = sortByProject(res);
+        for (IJavaProject jp: sorted.keySet()) JMLNature.autoJMLEnable(jp.getProject());
         deleteMarkers(res, shell); // FIXME - does this trigger a rebuild?
         JobControl.JobParameters jobParameters = JobControl.launchJobControlDialog(selection,window,shell);
         if (jobParameters == null) return;
@@ -429,6 +430,7 @@ public class Utils {
      */
     public void checkESCProject(final IJavaProject jp, /*@ nullable */ final List<Object> ores, /*@ nullable */Shell shell, String reason, JobControl.JobParameters jobParameters) {
         try {
+            JMLNature.autoJMLEnable(jp.getProject());
             OpenJMLInterface iface = getInterface(jp);
             JobControl.JobStrategy strategy1 = new JobControl.SelectedItemStrategy(jp,ores,2,reason);
             if (jobParameters != null) strategy1 = jobParameters.strategy.getConstructor(IJavaProject.class,List.class,int.class,String.class).newInstance(jp,ores,2,reason);

@@ -1408,7 +1408,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             opts.add(JmlOption.COMMAND.optionName() +eq+ cmd);
         }
         {
-            opts.add(JmlOption.LANG.optionName() +eq+ Options.isOption(Options.strictKey));
+            opts.add(JmlOption.LANG.optionName() +eq+ Options.value(Options.strictKey));
             opts.add(JmlOption.PURITYCHECK.optionName() +eq+ Options.isOption(Options.purityCheckKey));
             opts.add(JmlOption.SHOW.optionName() +eq+ Options.isOption(Options.showKey));
         }
