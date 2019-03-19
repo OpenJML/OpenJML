@@ -5266,10 +5266,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             result = tree.type = Type.noType;
         } else {
             FieldExtension fext = Extensions.instance(context).findField(tree.pos, tree.name.toString(), false);
-            if (fext != null) {
-                attribExpr(tree.selected, env, Type.noType); // Any type is allowed
+            if (fext != null && this.jmlresolve.allowJML()) {
+                Type t = attribExpr(tree.selected, env, Type.noType); // Any type is allowed
                 Type atype = tree.selected.type;
-                Type t;
                 if (atype instanceof Type.ArrayType) { 
                     Type elemtype = ((Type.ArrayType)atype).elemtype;
                     Type at = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.array")).type;
@@ -5277,8 +5276,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 } else if (atype.isErroneous()) {
                     t = atype;
                 } else {
-                    log.error(tree,"jml.message","The .array suffix is permitted only for array expressions: " );
-                    t = types.createErrorType(atype);
+//                    log.error(tree,"jml.message","The .array suffix is permitted only for array expressions: " );
+//                    t = types.createErrorType(atype);
+                    super.visitSelect(tree);
+                    // The super call does not always call check... (which assigns the
+                    // determined type to tree.type, particularly if an error occurs,
+                    // so we fill it in
+                    if (tree.type == null) tree.type = result;
+                    t = tree.type;
                 }
                 result = tree.type = check(tree, t, VAL, resultInfo);
             } else {
