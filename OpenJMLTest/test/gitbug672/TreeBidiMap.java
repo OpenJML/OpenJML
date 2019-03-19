@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//package org.apache.commons.collections4.bidimap;
+package org.apache.commons.collections4.bidimap;
 
 import static org.apache.commons.collections4.bidimap.TreeBidiMap.DataElement.KEY;
 import static org.apache.commons.collections4.bidimap.TreeBidiMap.DataElement.VALUE;

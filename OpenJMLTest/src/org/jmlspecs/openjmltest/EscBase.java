@@ -30,7 +30,7 @@ public abstract class EscBase extends JmlTestCase {
 	public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
 	
     @Rule public TestName testname = new TestName();
-    @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // limit on entire test, not on each proof attempt
+    @Rule public Timeout timeout = new Timeout(60, TimeUnit.MINUTES); // limit on entire test, not on each proof attempt
     
     protected static boolean runLongTests = System.getProperty("SKIPLONGTESTS") == null;
 

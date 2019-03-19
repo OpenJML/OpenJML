@@ -990,7 +990,7 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug672() {
         expectedExit = 0;
-        helpTCG();
+        helpTCF("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/bidimap/TreeBidiMap.java","test/gitbug672","-timeout=1800","-no-staticInitWarning","-cp","test/gitbug672/commons-collections4-4.3-sources");
     }
     
     @Test
