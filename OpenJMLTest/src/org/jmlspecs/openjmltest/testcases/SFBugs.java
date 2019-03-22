@@ -987,10 +987,16 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
-    @Test
+    @Test @Ignore // Complained of inifinte run time
     public void gitbug672() {
         expectedExit = 0;
-        helpTCF("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/bidimap/TreeBidiMap.java","test/gitbug672","-timeout=1800","-no-staticInitWarning","-cp","test/gitbug672/commons-collections4-4.3-sources");
+        helpTCF("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/bidimap/TreeBidiMap.java","test/gitbug672","-timeout=1800","-no-staticInitWarning","-cp","test/gitbug672/commons-collections4-4.3-sources","-escMaxWarnings=1");
+    }
+    
+    @Test @Ignore // Complained of undefined symbols
+    public void gitbug671() {
+        expectedExit = 0;
+        helpTCF("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/set/ListOrderedSet.java","test/gitbug671","-timeout=1800","-no-staticInitWarning","-cp","test/gitbug672/commons-collections4-4.3-sources","-escMaxWarnings=1");
     }
     
     @Test
