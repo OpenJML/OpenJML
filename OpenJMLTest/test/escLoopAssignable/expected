@@ -1,16 +1,17 @@
+test/escLoopAssignable/Test.java:11: warning: Use 'loop_writes' keyword instead of 'assignable' in loop specifications
+        //@ assignable i,a[4..7];
+            ^
+test/escLoopAssignable/Test.java:12: warning: Use 'loop_writes' keyword instead of 'writes' in loop specifications
+        //@ writes i,a[4..7];
+            ^
 Proving methods in Test
 Starting proof of Test.Test() with prover !!!!
 Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
-Starting proof of Test.m(int[]) with prover !!!!
-test/escLoopModifies/Test.java:11: warning: The prover cannot establish an assertion (Assert) in method m
-        //@ assert a[3] == 10;
-            ^
-Completed proof of Test.m(int[]) with prover !!!! - with warnings
 Starting proof of Test.mm(int[]) with prover !!!!
 Feasibility check #1 - end of preconditions : OK
 Feasibility check #3 - at program exit : OK
 Completed proof of Test.mm(int[]) with prover !!!! - no warnings
 Completed proving methods in Test
-1 warning
+2 warnings

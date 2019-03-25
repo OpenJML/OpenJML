@@ -2330,17 +2330,16 @@ public class racnew extends RacBase {
                 +"}\n"
                 +"//@ ghost long z = \\duration(true);\n"
                 +"//@ ghost long[] zz = { \\duration(true) } ;\n"
-                +"/*@ requires \\duration(true) == 0;*/"
+                +"/*@ requires \\duration(true) == 0;*/\n"
                 +"int ma() { return 0; }\n"
                 +"//@ ensures \\duration(true) == 0;\n"
-                +"//@ signals (Exception ex) \\duration(true) == 0;\n" // Line 20
-                +"//@ signals_only RuntimeException;\n"
-                +"//@ diverges \\duration(true) == 0;\n"
+                +"//@ signals (Exception ex) \\duration(true) == 0;\n"
+                +"//@ signals_only RuntimeException;\n" 
+                +"//@ diverges \\duration(true) == 0;\n" // line 23
                 +"//@ duration  \\duration(true);\n"
                 +"//@ working_space \\duration(true);\n"
                 +"int mb() { return 0; }\n"
                 +"}"
-                //,"/tt/A.java:2: Note: Not implemented for runtime assertion checking: axiom clause",5
                 ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",31
                 ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",31
                 ,"/tt/A.java:9: Note: Not implemented for runtime assertion checking: hence_by statement",9
@@ -2353,11 +2352,11 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:17: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",34
                 ,"/tt/A.java:18: Note: Not implemented for runtime assertion checking: requires clause containing \\duration",23
                 ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration",32
-                ,"/tt/A.java:19: Note: Not implemented for runtime assertion checking: ensures clause containing \\duration",22
-                ,"/tt/A.java:20: Note: Not implemented for runtime assertion checking: signals clause containing \\duration",37
-                ,"/tt/A.java:22: Note: Not implemented for runtime assertion checking: diverges clause containing \\duration",23
-                ,"/tt/A.java:23: Note: Not implemented for runtime assertion checking: duration clause containing \\duration",24
-                ,"/tt/A.java:24: Note: Not implemented for runtime assertion checking: working_space clause containing \\duration",28
+                ,"/tt/A.java:20: Note: Not implemented for runtime assertion checking: ensures clause containing \\duration",22
+                ,"/tt/A.java:21: Note: Not implemented for runtime assertion checking: signals clause containing \\duration",37
+                ,"/tt/A.java:23: Note: Not implemented for runtime assertion checking: diverges clause containing \\duration",23
+                ,"/tt/A.java:24: Note: Not implemented for runtime assertion checking: duration clause containing \\duration",24
+                ,"/tt/A.java:25: Note: Not implemented for runtime assertion checking: working_space clause containing \\duration",28
                 ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: represents clause containing \\duration",37
                 ,"/tt/A.java:5: Unrecoverable situation: Unimplemented construct in a method or model method or represents clause",37
                 ,"END"

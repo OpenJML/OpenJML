@@ -82,7 +82,7 @@ public final class SuffixArray {
           @ decreasing data.length - k;         
           @*/
         for(int k = 0; k < data.length; k++) 
-           /* @ assignable data[*];
+           /*@ loop_writes data[*];
               @ maintaining 0 <= l && l <= k;
               @ maintaining (\forall int i; l < i && i <= k;
               @                 compare(data[i],data[i-1]) > 0);

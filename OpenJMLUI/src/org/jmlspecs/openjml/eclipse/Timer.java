@@ -16,7 +16,7 @@ import java.util.Date;
  */
 public class Timer {
 
-	/** A static timer that may be be used when threading is not an issue */
+	/** A static timer that may be used when threading is not an issue */
 	static public final /*@ non_null */ Timer timer = new Timer();
 
 	/** The private value holding the time at the beginning of the timed 

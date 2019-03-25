@@ -5,6 +5,7 @@
 package org.jmlspecs.openjml.esc;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
@@ -306,16 +307,21 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
     
+    protected void addReals(SMT smt) {
+        if (realSort != null) {
+            List<IExpr> a = reals.values().stream().map(s->(IExpr)F.symbol(s)).collect(Collectors.toList());
+            ICommand c = new C_assert(F.fcn(distinctSym, a));
+            commands.add(c);
+        }
+    }
+    
     /** Adds all the definitions and axioms regarding the types used in the program */
     protected int addTypeModel(SMT smt) {
         List<ISort> args = Arrays.asList(refSort); // List of one element 
         ICommand c;
         // div truncates towards minus infinity, C & java / truncates towards 0
         // lhs / rhs ===  lhs >= 0 ? lhs div rhs : (-lhs) div (-rhs)
-        addCommand(smt,"(define-fun cdiv ((a Int) (b Int)) Int (ite (>= a 0) (div a b) (div (- a) (- b))))");
-        addCommand(smt,"(define-fun cmod ((a Int) (b Int)) Int (- a (* (cdiv a b) b)))");
-
-        // (declare-sort JavaTypeSort 0)
+         // (declare-sort JavaTypeSort 0)
         if (JAVATYPESORT != REF) {
             c = new C_declare_sort(F.symbol(JAVATYPESORT),zero);
             commands.add(c);
@@ -927,15 +933,30 @@ public class SMTTranslator extends JmlTreeScanner {
             addCommand(smt,"(define-fun |#isSubUnderflow32#| ((x Int) (y Int)) Bool (< (- x y) |#min32#|))");
             addCommand(smt,"(define-fun |#isSubUnderflow64#| ((x Int) (y Int)) Bool (< (- x y) |#min64#|))");
             addCommand(smt,"(define-fun |#isMulOverflow32#| ((x Int) (y Int)) Bool (let ((prod (* x y))) (or (> prod |#max32#|) (< prod |#min32#|))))");
+            addCommand(smt,"(define-fun |#isMul32ok#| ((x Int) (y Int)) Bool (let ((prod (* x y))) (and (<= |#min32#| prod ) (<= prod |#max32#|) )))");
+            addCommand(smt,"(define-fun |#isMul64ok#| ((x Int) (y Int)) Bool (let ((prod (* x y))) (and (<= |#min64#| prod ) (<= prod |#max64#|) )))");
             // Int arithmetic operations to do wrap-around operations
             addCommand(smt,"(define-fun |#addWrap32#| ((x Int) (y Int)) Int (let ((sum (+ x y))) (ite (> sum |#max32#|) (- sum |#big32#|) (ite (< sum |#max32#|) (+ sum |#big32#|) sum)))))");
             addCommand(smt,"(define-fun |#addWrap64#| ((x Int) (y Int)) Int (let ((sum (+ x y))) (ite (> sum |#max64#|) (- sum |#big64#|) (ite (< sum |#max64#|) (+ sum |#big64#|) sum)))))");
             addCommand(smt,"(define-fun |#trunc32s#| ((x Int)) Int (let ((m (mod x |#big32#|))) (ite (<= m |#max32#|) m (- m |#big32#|) )))");
             addCommand(smt,"(define-fun |#trunc16s#| ((x Int)) Int (let ((m (mod x |#big16#|))) (ite (<= m |#max16#|) m (- m |#big16#|) )))");
             addCommand(smt,"(define-fun |#trunc8s#| ((x Int)) Int (let ((m (mod x |#big8#|))) (ite (<= m |#max8#|) m (- m |#big8#|) )))");
-        }
+
+            addCommand(smt,"(define-fun cdiv ((a Int) (b Int)) Int (ite (>= a 0) (div a b) (div (- a) (- b))))");
+            addCommand(smt,"(define-fun cmod ((a Int) (b Int)) Int (- a (* (cdiv a b) b)))");
+            addCommand(smt,"(define-fun |#inRange32#| ((a Int)) Bool (and (<= |#min32#| a) (<= a |#max32#|)))");
+            addCommand(smt,"(define-fun |#add32ok#| ((a Int) (b Int)) Bool (|#inRange32#| (+ a b)) )");
+            addCommand(smt,"(define-fun |#add32#| ((a Int) (b Int)) Int (let ((p (+ a b))) (ite (|#inRange32#| p) p (ite (< |#max32#| p) (- p |#big32#|) (+ p |#big32#|)))))");
+            addCommand(smt,"(define-fun |#mul32ok#| ((a Int) (b Int)) Bool (|#inRange32#| (* a b)) )");
+            addCommand(smt,"(define-fun |#mul32#| ((a Int) (b Int)) Int (let ((p (* a b))) (ite (|#inRange32#| p) p (+ (mod (- p |#min32#|) |#big32#|) |#min32#|) )))");
+            addCommand(smt,"(define-fun |#inRange64#| ((a Int)) Bool (and (<= |#min64#| a) (<= a |#max64#|)))");
+            addCommand(smt,"(define-fun |#add64ok#| ((a Int) (b Int)) Bool (|#inRange64#| (+ a b)) )");
+            addCommand(smt,"(define-fun |#add64#| ((a Int) (b Int)) Int (let ((p (+ a b))) (ite (|#inRange64#| p) p (ite (< |#max64#| p) (- p |#big64#|) (+ p |#big64#|)))))");
+            addCommand(smt,"(define-fun |#mul64ok#| ((a Int) (b Int)) Bool (|#inRange64#| (* a b)) )");
+            addCommand(smt,"(define-fun |#mul64#| ((a Int) (b Int)) Int (let ((p (* a b))) (ite (|#inRange64#| p) p (+ (mod (- p |#min64#|) |#big64#|) |#min64#|) )))");
+}
         
-        
+        addReals(smt);
         
         int loc = addTypeModel(smt);
         
@@ -1955,7 +1976,9 @@ public class SMTTranslator extends JmlTreeScanner {
             return;
         }
         List<IExpr> newargs = convertExprList(that.args);
-        if (that.token == JmlTokenKind.SUBTYPE_OF) {
+        if (that.token == null) {
+            result = F.fcn(F.symbol(that.name), newargs);
+        } else if (that.token == JmlTokenKind.SUBTYPE_OF) {
             result = F.fcn(F.symbol(JMLSUBTYPE), newargs);
         } else if (that.token == JmlTokenKind.JSUBTYPE_OF) {
             result = F.fcn(F.symbol(JAVASUBTYPE), newargs);
@@ -2283,7 +2306,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else if (tree.rhs instanceof JCLiteral) {
                     long i = ((Number)((JCLiteral)tree.rhs).getValue()).longValue();
                     args = new LinkedList<IExpr>();
-                    args.add(lhs);
+                    List<IExpr> args2 = new LinkedList<IExpr>();
                     int mx = 0;
                     if (tree.lhs.type == syms.intType) {
                         mx = 32;
@@ -2292,10 +2315,13 @@ public class SMTTranslator extends JmlTreeScanner {
                     } else {
                         // ERROR
                     }
+                    args.add(lhs);
                     args.add(F.numeral(1<<i));
-                    result = F.fcn(F.symbol("div"), args);
-                    result = F.fcn(F.symbol("+"), result,
-                            F.fcn(F.symbol("ite"),F.fcn(F.symbol(">="), lhs, F.numeral(0)), F.numeral(0), F.numeral(1<<(mx-i))));
+                    args2.add(F.fcn(F.symbol("+"), lhs, F.fcn(F.symbol("*"), F.numeral(1L<<32)), F.numeral(1L<<32)));
+                    args2.add(F.numeral(1<<i));
+                    result = F.fcn(F.symbol("ite"), F.fcn(F.symbol(">="), lhs, F.numeral(0)), 
+                            F.fcn(F.symbol("div"), args), 
+                            F.fcn(F.symbol("div"), args2));
                 } else {
                     notImplBV(tree, "Bit-operation " + op);
                 }
@@ -2545,6 +2571,11 @@ public class SMTTranslator extends JmlTreeScanner {
                 javaTypeSymbol(t));
     }
     
+    public IExpr numeral(long v) {
+        if (v >= 0) return F.numeral(v);
+        else return F.fcn(F.symbol("-"), F.numeral(Long.toString(v).substring(1)));
+    }
+    
     public IExpr makeTypeConstraint(Type t, IExpr e) {
 //        String n = "|#is_" + t.toString() + "#|";
 //        return F.fcn(F.symbol(n),e);
@@ -2573,7 +2604,8 @@ public class SMTTranslator extends JmlTreeScanner {
             default:
                 return null;
         }
-        return F.fcn(andSym, F.fcn(leSym, F.fcn(F.symbol("-"), F.numeral(-min)), e),
+        return F.fcn(andSym, 
+                F.fcn(leSym, numeral(min), e), 
                 F.fcn(leSym, e, F.numeral(max)));
     }
 
@@ -2675,7 +2707,7 @@ public class SMTTranslator extends JmlTreeScanner {
             	}
             	result = F.hex(s); // The string should not have leading 0x
             } else {
-                result = k >= 0 ? F.numeral(k) : -k >= 0 ? F.fcn(F.symbol("-"), F.numeral(-k)) : F.fcn(F.symbol("-"), F.numeral(v.toString().substring(1)));
+                result = numeral(k);
             }
         } else if (tree.typetag == TypeTag.CHAR) {
             if (useBV) {
@@ -2690,7 +2722,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 result = F.hex(s); // The string should not have leading 0x
             } else {
                 long k = (v instanceof Character) ? (long) ((Character)v).charValue() : Long.parseLong(v.toString());
-                result = F.numeral(k);
+                result = numeral(k);
             }
         } else if (tree.typetag == TypeTag.BOT) {
             result = nullSym;
@@ -2701,7 +2733,7 @@ public class SMTTranslator extends JmlTreeScanner {
             commands.add(c);
             result = sym;
         } else if (tree.typetag == TypeTag.FLOAT || tree.typetag == TypeTag.DOUBLE) {
-            result = makeRealValue((Double)v);
+            result = makeRealValue(((Number)v).doubleValue());
         } else {
             notImpl(tree);
             super.visitLiteral(tree);
@@ -2709,37 +2741,27 @@ public class SMTTranslator extends JmlTreeScanner {
     }
     
     ISymbol makeRealValue(Double v) {
-        // FIXME - we don't remember the value
         String id = reals.get(v);
         if (id == null) {
-            id = "REALLIT"+(++doubleCount);
+            if (Double.isNaN(v)) {
+                id = "REALLIT_NAN";
+            } else if (Double.isInfinite(v)) {
+                if (v > 0) id = "REALLIT_PINF";
+                else id = "REALLIT_NINF";
+            } else {
+                id = "REALLIT"+(++doubleCount);
+            }
             reals.put(v, id);
             ISymbol sym = F.symbol(id);
-            addReal();
+            addReal(); // Makes sure there is a real sort declared
             ICommand c = new C_declare_fun(sym,emptyList,realSort); // use definefun and a constant FIXME
-            String s = v.toString();
-            c = new C_define_fun(sym,emptyDeclList,realSort,F.decimal(s));
-
-//            ICommand c;
-//            double vv = v;
-//            if (vv < 0) vv = -vv;
-//            // FIXME - need a more robust way to convert constants; would like to convert directly from original text
-//            try (java.util.Formatter formatter = new java.util.Formatter()) {
-//                String s = formatter.format("%f",vv).toString();
-//                c = new C_define_fun(sym,emptyDeclList,realSort,v >= 0 ? F.decimal(s) : F.fcn(F.symbol("-"), F.decimal(s)));
-//            } catch (NumberFormatException e) {
-//                log.warning("jml.message", "Exception when converting " + vv);
-//                c = new C_declare_fun(sym,emptyList,realSort);
-//            }
-
-//            for (int m = 1; m <= 1000000; m *= 10) {
-//                if (v*m == (int)(v*m)) {
-//                    c = new C_define_fun(sym,emptyDeclList,realSort,F.fcn(F.symbol("/"), F.numeral((int)(v*m)), F.numeral(m)));
-//                    break;
-//                }
-//            }
+            if (Double.isFinite(v)) {
+                String s = v.toString();
+                c = new C_define_fun(sym,emptyDeclList,realSort,F.decimal(s));
+            }
             commands.add(c);
             return sym;
+            // TODO: Would be best to create constants from the original text
         } else {
             ISymbol sym = F.symbol(id);
             return sym;

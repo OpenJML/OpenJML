@@ -126,6 +126,7 @@ public class JmlTree implements IJmlTree {
         JmlMethodClauseSignalsOnly JmlMethodClauseSignalsOnly(String keyword, IJmlClauseKind t, List<JCTree.JCExpression> e);
         JmlMethodClause JmlMethodClauseStoreRef(String keyword, IJmlClauseKind t, List<JCExpression> list);
         JmlMethodInvocation JmlMethodInvocation(JmlTokenKind token, List<JCExpression> args);
+        JmlMethodInvocation JmlMethodInvocation(String token, List<JCExpression> args);
         JmlMethodSpecs JmlMethodSpecs(List<JmlSpecificationCase> cases);
         JmlModelProgramStatement JmlModelProgramStatement(JCTree item);
         JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt, Name id);
@@ -444,6 +445,11 @@ public class JmlTree implements IJmlTree {
         /** Creates a JML method invocation (e.g. for JmlTokens with arguments, such as \typeof) */
         @Override
         public JmlMethodInvocation JmlMethodInvocation(JmlTokenKind token, List<JCExpression> args) {
+            return new JmlMethodInvocation(pos,token,args);
+        }
+        
+        @Override
+        public JmlMethodInvocation JmlMethodInvocation(String token, List<JCExpression> args) {
             return new JmlMethodInvocation(pos,token,args);
         }
         
@@ -2019,6 +2025,7 @@ public class JmlTree implements IJmlTree {
     public static class JmlMethodInvocation extends JCMethodInvocation {
         public int startpos;
         public JmlTokenKind token;
+        public String name;
         public Object labelProperties = null; // FIXME - explain this
         public boolean javaType = false; // FIXME - this is a hack
         
@@ -2031,6 +2038,18 @@ public class JmlTree implements IJmlTree {
         {
             super(List.<JCExpression>nil(),null,args);
             this.token = token;
+            this.name = null;
+            this.pos = pos; // preferred position
+            this.startpos = pos;
+        }
+        
+        protected JmlMethodInvocation(int pos,
+                String name,
+                List<JCExpression> args)
+        {
+            super(List.<JCExpression>nil(),null,args);
+            this.token = null;
+            this.name = name;
             this.pos = pos; // preferred position
             this.startpos = pos;
         }
@@ -2042,6 +2061,7 @@ public class JmlTree implements IJmlTree {
         {
             super(List.<JCExpression>nil(),method,args);
             this.token = null;
+            this.name = null;
             this.pos = pos; // preferred position
             this.startpos = pos;
         }
@@ -3620,7 +3640,9 @@ public class JmlTree implements IJmlTree {
     }
 
     // FIXME - the following do not have factory methods - do not set pos, do not have accept, getKind, getTag, toString methods, or documentation
-    
+    // Arrays are represented by a 2 level map, representing all the arrays of a given type
+    // THis object represents   newarrs = oldarrs[ arr := arr[ index := rhs ]]
+    // If index is rhs is null, then this is a havoc; if index is null then all element are havoced
     public static class JmlBBArrayAssignment extends JCMethodInvocation {
         public JmlBBArrayAssignment(JCIdent newarrs, JCIdent oldarrs, JCExpression arr, JCExpression index, JCExpression rhs) {
             super(null,null,null);

@@ -6,3 +6,8 @@ public class Test {
     }
     
 }
+
+// Propblem reported is that this is not the externally-invokable main
+// method because it is not void. However, Java allows this.
+// Going to let this be as whether or not to issue a warning is more a
+// Java issue than JML.

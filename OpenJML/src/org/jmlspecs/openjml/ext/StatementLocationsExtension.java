@@ -3,6 +3,7 @@ package org.jmlspecs.openjml.ext;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
+import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
@@ -90,6 +91,14 @@ public class StatementLocationsExtension extends JmlExtension.Statement {
             // TODO Auto-generated method stub
             return null;
         }
+    }
+    public void register() {
+        synonym("loop_writes",loopmodifiesStatement);
+        synonym("loop_assigns",loopmodifiesStatement);
+    }
+    
+    public void synonym(String s, IJmlClauseKind t) {
+        Extensions.statementMethodClauses.put(s,t);
     }
     
 }

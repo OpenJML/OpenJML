@@ -290,6 +290,18 @@ public class escfiles extends EscBase {
         expectedExit = 0;
         helpTF("escClone");
     }
+    @Test
+    public void test2DArray() {
+        expectedExit = 0;
+        helpTF("esc2DArray");
+    }
+
+    @Test
+    public void test2DTranspose() {
+        expectedExit = 0;
+        helpTF("esc2DTranspose");
+    }
+
 
 // FIXME - there is a problem with instantiating the model field or the getter functions, such that my_dollars differs from dollars()
     @Test  @Ignore
@@ -556,7 +568,7 @@ public class escfiles extends EscBase {
     
     @Test
     public void testEnsuresInfeasible() {
-        helpTF("escEnsuresInfeasible","-subexpressions");
+        helpTF("escEnsuresInfeasible");
     }
 
     @Test
@@ -672,7 +684,7 @@ public class escfiles extends EscBase {
     
     @Test
     public void testRmLoop() {
-        helpTF("escrmloop","-method=doLRS","-timeout=10"); // FIXME SHort timeout because this does not yet work properly
+        helpTF("escrmloop","-checkFeasibility=none","-timeout=30"); // FIXME SHort timeout because this does not yet work properly
     }
     
     @Test

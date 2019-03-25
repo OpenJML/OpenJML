@@ -872,17 +872,17 @@ public class JmlTreeUtils {
     }
 
     /** Makes an attributed AST for a short-circuit boolean AND expression */
-    public JCExpression makeAnd(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
-        if (lhs == null) {
-            System.out.println("BAD AND");
+    public JCExpression makeAnd(DiagnosticPosition pos, JCExpression lhs, JCExpression ... rhs) {
+        for (JCExpression r: rhs) {
+            lhs = makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,r);
         }
-        return makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,rhs);
+        return lhs;
     }
-    public JCExpression makeAnd(int pos, JCExpression lhs, JCExpression rhs) {
-        if (lhs == null) {
-            System.out.println("BAD AND");
+    public JCExpression makeAnd(int pos, JCExpression lhs, JCExpression ... rhs) {
+        for (JCExpression r: rhs) {
+            lhs = makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,r);
         }
-        return makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,rhs);
+        return lhs;
     }
 
     /** Makes an attributed AST for a short-circuit boolean AND expression, simplifying literal true or false */
@@ -893,13 +893,19 @@ public class JmlTreeUtils {
     }
 
     /** Makes an attributed AST for a short-circuit boolean OR expression */
-    public JCExpression makeOr(int pos, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,rhs);
+    public JCExpression makeOr(int pos, JCExpression lhs, JCExpression ... rhs) {
+        for (JCExpression r: rhs) {
+            lhs = makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,r);
+        }
+        return lhs;
     }
 
     /** Makes an attributed AST for a short-circuit boolean OR expression */
-    public JCExpression makeOr(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,rhs);
+    public JCExpression makeOr(DiagnosticPosition pos, JCExpression lhs, JCExpression ... rhs) {
+        for (JCExpression r: rhs) {
+            lhs = makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,r);
+        }
+        return lhs;
     }
 
     /** Makes an attributed AST for a short-circuit boolean OR expression, simplifying literal true or false */
@@ -910,13 +916,19 @@ public class JmlTreeUtils {
     }
 
     /** Makes an attributed attributed AST for a non-short-circuit boolean AND expression */
-    public JCExpression makeBitAnd(int pos, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,JCTree.Tag.BITAND,bitandSymbol,lhs,rhs);
+    public JCExpression makeBitAnd(int pos, JCExpression lhs, JCExpression ... rhs) {
+        for (JCExpression r: rhs) {
+            lhs = makeBinary(pos,JCTree.Tag.BITAND,bitandSymbol,lhs,r);
+        }
+        return lhs;
     }
 
     /** Makes an attributed attributed AST for a non-short-circuit boolean OR expression */
-    public JCExpression makeBitOr(int pos, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,JCTree.Tag.BITOR,bitorSymbol,lhs,rhs);
+    public JCExpression makeBitOr(int pos, JCExpression lhs, JCExpression ... rhs) {
+        for (JCExpression r: rhs) {
+            lhs = makeBinary(pos,JCTree.Tag.BITOR,bitorSymbol,lhs,r);
+        }
+        return lhs;
     }
 
     /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
@@ -1227,6 +1239,17 @@ public class JmlTreeUtils {
      * with the given arguments, at the given position; no varargs, no typeargs.
      */
     public JmlMethodInvocation makeJmlMethodInvocation(DiagnosticPosition pos, JmlTokenKind token, Type type, JCExpression ... args) {
+        ListBuffer<JCExpression> a = new ListBuffer<JCExpression>();
+        a.appendArray(args);
+        JmlMethodInvocation call = factory.at(pos).JmlMethodInvocation(token, a.toList());
+        call.type = type;
+        call.meth = null;
+        call.typeargs = null;
+        call.varargsElement = null;
+        return call;
+    }
+    
+    public JmlMethodInvocation makeJmlMethodInvocation(DiagnosticPosition pos, String token, Type type, JCExpression ... args) {
         ListBuffer<JCExpression> a = new ListBuffer<JCExpression>();
         a.appendArray(args);
         JmlMethodInvocation call = factory.at(pos).JmlMethodInvocation(token, a.toList());
