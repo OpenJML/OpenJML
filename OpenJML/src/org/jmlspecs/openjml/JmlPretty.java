@@ -863,6 +863,19 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     }
 
+    public void visitJmlTuple(JmlTuple that) {
+        try { 
+            print('(');
+            boolean first = true;
+            for (JCExpression expr : that.values) {
+                if (first) first = false; else print(',');
+                printExpr(expr);
+            }
+            print(')');
+        } catch (IOException e) { perr(that,e); }
+
+    }
+
     /** This is overridden simply to exclude the package name from JML annotations,
      * in order to conserve space. [FIXME - this will actually create illegal
      * source if there is no import statement for the annotations. ]

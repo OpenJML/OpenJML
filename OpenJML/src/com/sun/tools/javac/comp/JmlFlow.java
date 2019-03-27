@@ -16,6 +16,7 @@ import org.jmlspecs.openjml.Utils;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
@@ -189,6 +190,11 @@ public class JmlFlow extends Flow  {
             scan(that.storerefs);
         }
 
+        public void visitJmlTuple(JmlTuple that) {
+            for (JCExpression e: that.values)
+                scan(e);
+        }
+        
         @Override
         public void visitJmlVariableDecl(JmlVariableDecl that) {
             visitVarDef(that);
@@ -526,6 +532,11 @@ public class JmlFlow extends Flow  {
         public void visitJmlLabeledStatement(JmlLabeledStatement that) {
             scan(that.extraStatements.toList());
             scan(that.body);
+        }
+        
+        public void visitJmlTuple(JmlTuple that) {
+            for (JCExpression e: that.values)
+                scan(e);
         }
         
 
@@ -966,6 +977,11 @@ public class JmlFlow extends Flow  {
             // FIXME: Skipping set comprehension
         }
 
+        public void visitJmlTuple(JmlTuple that) {
+            for (JCExpression e: that.values)
+                scan(e);
+        }
+        
         @Override
         public void visitJmlStatementSpec(JmlStatementSpec that) {
             // No need to scan specs

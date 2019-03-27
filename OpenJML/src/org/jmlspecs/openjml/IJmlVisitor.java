@@ -60,6 +60,7 @@ public interface IJmlVisitor extends IVisitor {
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that);
     public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that)   ;
     public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that);
+    public void visitJmlTuple(JmlTuple that)                       ;
     public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) ;
     public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) ;
     public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that)     ;

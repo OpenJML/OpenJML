@@ -720,6 +720,37 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (tree.lhs instanceof JCIdent && ((JCIdent)tree.lhs).sym.owner.kind == Kinds.MTH) return;
             log.error(tree.pos,"jml.no.assign.in.pure");
         }
+        if (tree.lhs.type instanceof JmlListType) {
+            JmlListType lhst = (JmlListType)tree.lhs.type;
+            if (!(tree.rhs.type instanceof JmlListType)) {
+                Type rt = tree.rhs.type;
+                boolean saved = log.multipleErrors;
+                log.multipleErrors = true; // We want to allow multiple type errors within the tuple
+                for (int i = 0; i<lhst.types.size(); i++) {
+                    Type lt = lhst.types.get(i);
+                    if (!types.isAssignable(rt, lt)) {
+                        log.error(tree.pos,"jml.message","Type " + rt + " cannot be assigned to " + lt + " (position " + (i+1) + ")");
+                    }
+                }
+                log.multipleErrors = saved;
+            } else {
+                JmlListType rhst = (JmlListType)tree.rhs.type;
+                if (lhst.types.size() != rhst.types.size()) {
+                    log.error(tree.pos,"jml.message","Tuples have different sizes: " + lhst.types.size() + " vs. " + rhst.types.size());
+                } else {
+                    boolean saved = log.multipleErrors;
+                    log.multipleErrors = true; // We want to allow multiple type errors within the tuple
+                    for (int i = 0; i<lhst.types.size(); i++) {
+                        Type lt = lhst.types.get(i);
+                        Type rt = rhst.types.get(i);
+                        if (!types.isAssignable(rt, lt)) {
+                            log.error(tree.pos,"jml.message","Type " + rt + " cannot be assigned to " + lt + " (position " + (i+1) + ")");
+                        }
+                    }
+                    log.multipleErrors = saved;
+                }
+            }
+        }
         if (currentSecretContext != null) checkWritable(tree.lhs);
     }
 
@@ -3294,6 +3325,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         t.addAll(Utils.asSet(ensuresClauseKind,signalsClauseKind,constraintClause,durationClause,workingspaceClause,declClause)); // FIXME - double check JMLDECL
         oldNoLabelTokens = t;
     }
+
+    public void visitJmlTuple(JmlTuple tree) {
+        ListBuffer<Type> types = new ListBuffer<>();
+        for (JCExpression e: tree.values) {
+            Type t = attribExpr(e, env, Type.noType);
+            types.append(t);
+        }
+        Type t = new JmlListType(types.toList());
+        tree.type = result = t;
+    }
     
     // FIXME - limit these to a method body
     Map<Name,Env<AttrContext>> labelEnvs = new HashMap<Name,Env<AttrContext>>();
@@ -5271,6 +5312,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // FIXME - the following needs some review
             attribTree(tree.selected, env, new ResultInfo(TYP|VAR, Infer.anyPoly));
             result = tree.type = Type.noType;
+        } else if (tree.name.toString().startsWith("_$T")) {
+            attribTree(tree.selected, env, new ResultInfo(VAR, Infer.anyPoly));
+            int n = Integer.parseInt(tree.name.toString().substring(3));
+            Type t = tree.selected.type;
+            if (t instanceof JmlListType) {
+                List<Type> types = ((JmlListType)t).types;
+                if (n < 1 || n > types.size()) {
+                    log.error(tree.pos, "jml.message", "The tuple selector must be from 1 to " + types.size());
+                    t = syms.errType;
+                } else {
+                    t = types.get(n-1);
+                }
+            } else {
+                log.error(tree.pos, "jml.message", "The tuple selector must be applied to a tuple type, not a "+ t.toString());
+                t = syms.errType;
+            }
+            result = tree.type = check(tree, t, VAL, resultInfo);
         } else {
             FieldExtension fext = Extensions.instance(context).findField(tree.pos, tree.name.toString(), false);
             if (fext != null && this.jmlresolve.allowJML()) {
@@ -5304,7 +5362,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         Type saved = result;
         
         Symbol s = tree.selected.type.tsym;
-        if (!(s instanceof PackageSymbol)) {
+        if (tree.selected.type instanceof JmlListType) {
+        } else if (!(s instanceof PackageSymbol)) {
             ClassSymbol c = null;
             if (s instanceof ClassSymbol) c = (ClassSymbol)s;
             else  c = s.enclClass();
@@ -6723,6 +6782,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public Type check(final JCTree tree, final Type found, final int ownkind, final ResultInfo resultInfo) {
+        if (resultInfo.pt instanceof JmlListType) {
+            return tree.type = found;
+        }
         return super.check(tree, found, ownkind, resultInfo);
     }         
 }

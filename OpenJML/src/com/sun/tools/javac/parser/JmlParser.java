@@ -1863,6 +1863,38 @@ public class JmlParser extends JavacParser {
         return args.toList();
     }
     
+    protected JCExpression term3Rest(JCExpression t,
+            List<JCExpression> typeArgs) {
+        int p = S.token().pos;
+        while (S.jml() && ((token.kind == DOT && S.token(1).kind == INTLITERAL) || 
+                (token.kind == TokenKind.DOUBLELITERAL && token.stringVal().charAt(0) == '.'))) {
+            System.out.println("PB " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + t.pos + " " + t);
+            if (token.kind == DOUBLELITERAL) {
+                t = jmlF.at(p).Select(t, names.fromString("_$T" + token.stringVal().substring(1)));
+                accept(DOUBLELITERAL);
+                toP(t);
+            } else {
+                accept(DOT);
+                String d = token.stringVal();
+                t = jmlF.at(p).Select(t, names.fromString("_$T" + d));
+                accept(INTLITERAL);
+                toP(t);
+                System.out.println("P " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + t.pos + " " + t);
+            }
+            p = S.token().pos;
+        }
+        t = super.term3Rest(t, typeArgs);
+        if (S.jml() && token.kind == MONKEYS_AT) {
+            accept(MONKEYS_AT);
+            int pp = pos();
+            Name label = ident();
+            JCIdent id = this.maker().at(pp).Ident(label);
+            JmlMethodInvocation tt = toP(this.maker().at(t).JmlMethodInvocation(JmlTokenKind.BSOLD, List.<JCExpression>of(t,id)));
+            return tt;
+        }
+        return t;    
+    }
+    
     public JCExpression parseQualifiedIdent(boolean allowAnnos) {
         return qualident(allowAnnos);
     }
@@ -3307,10 +3339,37 @@ public class JmlParser extends JavacParser {
             }
             return e;
         }
+        if (S.jml() && token.kind == LPAREN) {
+            // This code is copied from super.term3 in order to 
+            // parse tuples
+            int pos = token.pos;
+            if ((mode & EXPR) != 0) {
+                ParensResult pres = analyzeParens();
+                if (pres == ParensResult.PARENS) {
+                    accept(LPAREN);
+                    mode = EXPR;
+                    java.util.List<JCExpression> tuple = new java.util.LinkedList<>();
+                    JCExpression t = termRest(term1Rest(term2Rest(term3(), TreeInfo.orPrec)));
+                    tuple.add(t);
+                    while (token.kind == COMMA) {
+                        accept(COMMA);
+                        t = termRest(term1Rest(term2Rest(term3(), TreeInfo.orPrec)));
+                        tuple.add(t);
+                    }
+                    accept(RPAREN);
+                    if (tuple.size() == 1) {
+                        t = toP(F.at(pos).Parens(t));
+                    } else {
+                        t = toP(jmlF.at(pos).JmlTuple(tuple));
+                    }
+                    return primaryTrailers(t, null);
+                }
+            }
+        }
         JCExpression eee = toP(super.term3());
         return eee;
     }
-    
+
     public JCExpression primarySuffix(JCExpression t, List<JCExpression> typeArgs) {
         if (S.jml() && token.kind == MONKEYS_AT) {
             accept(MONKEYS_AT);
@@ -3323,7 +3382,7 @@ public class JmlParser extends JavacParser {
         JCExpression e = super.primarySuffix(t,typeArgs);
         return e;
     }
-    
+
     public JCExpression trailingAt(JCExpression t, int p) {
         if (S.jml() && token.kind == MONKEYS_AT) {
             accept(MONKEYS_AT);
@@ -3336,19 +3395,7 @@ public class JmlParser extends JavacParser {
         return t;
     }
 
-    
-    JCExpression term3Rest(JCExpression t, List<JCExpression> typeArgs) {
-        t = super.term3Rest(t, typeArgs);
-        if (S.jml() && token.kind == MONKEYS_AT) {
-            accept(MONKEYS_AT);
-            int pp = pos();
-            Name label = ident();
-            JCIdent id = this.maker().at(pp).Ident(label);
-            JmlMethodInvocation tt = toP(this.maker().at(t).JmlMethodInvocation(JmlTokenKind.BSOLD, List.<JCExpression>of(t,id)));
-            return tt;
-        }
-        return t;
-    }
+
     
     protected boolean inCreator = false;
 

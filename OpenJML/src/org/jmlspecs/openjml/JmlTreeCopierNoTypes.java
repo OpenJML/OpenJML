@@ -71,6 +71,16 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
     }
 
     /** Deep copy of a list of nodes */
+    public <T extends JCTree> java.util.List<T> copy(/*@ nullable */ java.util.List<T> trees, Void p) {
+        if (trees == null)
+            return null;
+        java.util.List<T> lb = new java.util.LinkedList<T>();
+        for (T tree: trees)
+            lb.add(copy(tree, p));
+        return lb;
+    }
+
+    /** Deep copy of a list of nodes */
     public <T extends JCTree> com.sun.tools.javac.util.List<T> copy(/*@ nullable */ com.sun.tools.javac.util.List<T> trees, Void p) {
         if (trees == null)
             return null;
@@ -525,6 +535,13 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
                 that.token,
                 copy(that.list,p));
         copy.type = that.type;
+        return copy;
+    }
+
+    @Override
+    public JCTree visitJmlTuple(JmlTuple that, Void p) {
+        JmlTuple copy = M.at(that.pos).JmlTuple(
+                copy(that.values,p));
         return copy;
     }
 

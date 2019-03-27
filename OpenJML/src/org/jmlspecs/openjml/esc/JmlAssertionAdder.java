@@ -10542,6 +10542,49 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
+    public JCExpression convertLHS(JCExpression lhs) {
+        if (lhs instanceof JCIdent) {
+            translatingLHS = true;
+            JCExpression tlhs = convertExpr(lhs);
+            translatingLHS = false;
+            return tlhs;
+        } else {
+            log.error(lhs, "jml.message", "Not implemented in convertLHS");
+            return null;
+        }
+    }
+    
+    public void assignIdentHelper(DiagnosticPosition pos, JCIdent id, JCExpression origrhs, JCExpression lhs, JCExpression rhs) {
+        Symbol.VarSymbol vsym = (Symbol.VarSymbol)id.sym;
+//      specs.getSpecs(vsym).  // FIXME - need to call isNonNull with the declaration for id
+      if (!infer && specs.isNonNull(vsym)) { // && !(rac && vsym.type.tsym.toString().equals("org.jmlspecs.utils.IJMLTYPE"))) {
+          if (rhs instanceof JCTree.JCMemberReference) {
+              // Need to check that the spec of the reference is subsumed in the spec of the type (that.type) inferred by type checking
+              checkCompatibleSpecs((JCTree.JCMemberReference)rhs,rhs.type);
+          } else if (rhs instanceof JCLambda) {
+                  // Need to check that the spec of the reference is subsumed in the spec of the type (that.type) inferred by type checking
+              checkCompatibleSpecs((JCLambda)rhs,rhs.type);
+          } else if (!isKnownNonNull(origrhs)) {
+              JCExpression e = treeutils.makeNeqObject(pos.getPreferredPosition(), rhs, treeutils.nullLit);
+              // FIXME - location of nnonnull declaration?
+              addAssert(pos, Label.POSSIBLY_NULL_ASSIGNMENT, e);
+          }
+      }
+      checkAccess(assignableClauseKind, pos, id, lhs, currentThisId, currentThisId);
+      checkRW(writableClause,id.sym,currentThisExpr,id);
+      
+      JCExpressionStatement st = treeutils.makeAssignStat(pos.getPreferredPosition(),  lhs, rhs);
+      addStat( st );
+      lastStat = st.expr;
+      result = eresult = lhs;
+
+      if (splitExpressions && !(lhs instanceof JCIdent)) {
+          result = eresult = newTemp(convertCopy(lhs));
+      }
+      if (lhs instanceof JCFieldAccess) havocModelFields((JCFieldAccess)lhs);
+      saveMappingOverride(id, eresult);
+    }
+    
     // FIXME - review
     @Override
     public void visitAssign(JCAssign that) {
@@ -10551,42 +10594,56 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = eresult = treeutils.makeAssign(that.pos,  lhs, rhs);
             return;
         }
+        if (that.lhs instanceof JmlTuple) {
+            java.util.List<JCExpression> lhss = new ArrayList<>();
+            for (JCExpression lhs: ((JmlTuple)that.lhs).values) {
+                lhss.add(convertLHS(lhs));
+            }
+            if (that.rhs instanceof JmlTuple) {
+                java.util.List<JCExpression> rhss = new ArrayList<>();
+                int i = 0;
+                for (JCExpression rhs: ((JmlTuple)that.rhs).values) {
+                    JCExpression convertedRhs = convertExpr(rhs);
+                    JCExpression convertedLhs = lhss.get(i++);
+                    convertedRhs = addImplicitConversion(convertedLhs, convertedLhs.type, convertedRhs);
+                    rhss.add(convertedRhs);
+                }
+                i = 0;
+                for (JCExpression rhs: ((JmlTuple)that.rhs).values) {
+                    JCExpression convertedRhs = rhss.get(i);
+                    JCExpression convertedLhs = lhss.get(i++);
+                    JCIdent id = (JCIdent)convertedLhs;
+                    assignIdentHelper(that,id,rhs,convertedLhs,convertedRhs);
+                }
+            } else {
+                java.util.List<JCExpression> rhss = new ArrayList<>();
+                int i = 0;
+                JCExpression convertedRhs = convertExpr(that.rhs);
+                for (JCExpression lhs: ((JmlTuple)that.lhs).values) {
+                    JCExpression convertedLhs = lhss.get(i++);
+                    convertedRhs = addImplicitConversion(convertedLhs, convertedLhs.type, convertedRhs);
+                    rhss.add(convertedRhs);
+                }
+                i = 0;
+                for (JCExpression lhs: ((JmlTuple)that.lhs).values) {
+                    convertedRhs = rhss.get(i);
+                    JCExpression convertedLhs = lhss.get(i++);
+                    JCIdent id = (JCIdent)convertedLhs;
+                    assignIdentHelper(that,id,that.rhs,convertedLhs,convertedRhs);
+                }
+                
+            }
+            return;
+        }
         if (that.lhs instanceof JCIdent) {
             JCIdent id = (JCIdent)that.lhs;
             translatingLHS = true;
-            JCExpression lhs = convertExpr(that.lhs);
+            JCExpression convertedLhs = convertExpr(that.lhs);
             translatingLHS = false;
-            JCExpression rhs = convertExpr(that.rhs);
-            rhs = addImplicitConversion(that,lhs.type, rhs);
+            JCExpression convertedRhs = convertExpr(that.rhs);
+            convertedRhs = addImplicitConversion(that,convertedLhs.type, convertedRhs);
 
-            Symbol.VarSymbol vsym = (Symbol.VarSymbol)id.sym;
-//            specs.getSpecs(vsym).  // FIXME - need to call isNonNull with the declaration for id
-            if (!infer && specs.isNonNull(vsym)) { // && !(rac && vsym.type.tsym.toString().equals("org.jmlspecs.utils.IJMLTYPE"))) {
-                if (rhs instanceof JCTree.JCMemberReference) {
-                    // Need to check that the spec of the reference is subsumed in the spec of the type (that.type) inferred by type checking
-                    checkCompatibleSpecs((JCTree.JCMemberReference)rhs,rhs.type);
-                } else if (rhs instanceof JCLambda) {
-                        // Need to check that the spec of the reference is subsumed in the spec of the type (that.type) inferred by type checking
-                    checkCompatibleSpecs((JCLambda)rhs,rhs.type);
-                } else if (!isKnownNonNull(that.rhs)) {
-                    JCExpression e = treeutils.makeNeqObject(that.pos, rhs, treeutils.nullLit);
-                    // FIXME - location of nnonnull declaration?
-                    addAssert(that, Label.POSSIBLY_NULL_ASSIGNMENT, e);
-                }
-            }
-            checkAccess(assignableClauseKind, that, that.lhs, lhs, currentThisId, currentThisId);
-            checkRW(writableClause,id.sym,currentThisExpr,id);
-            
-            JCExpressionStatement st = treeutils.makeAssignStat(that.pos,  lhs, rhs);
-            addStat( st );
-            lastStat = st.expr;
-            result = eresult = lhs;
-
-            if (splitExpressions && !(lhs instanceof JCIdent)) {
-                result = eresult = newTemp(convertCopy(lhs));
-            }
-            if (lhs instanceof JCFieldAccess) havocModelFields((JCFieldAccess)lhs);
-            saveMappingOverride(that.lhs, eresult);
+            assignIdentHelper(that,id,that.rhs,convertedLhs,convertedRhs);
             saveMappingOverride(that, eresult);
 
         } else if (that.lhs instanceof JCFieldAccess) {
@@ -17758,6 +17815,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         @Override
         public /*@ nullable */ java.util.List<JmlStatementExpr> visitJmlSingleton(JmlSingleton that, Void p) {
+            return null;
+        }
+        
+        public java.util.List<JmlStatementExpr> visitJmlTuple(JmlTuple that, Void p) {
+            for (JCExpression e: that.values)
+                e.accept(this,p);
             return null;
         }
         

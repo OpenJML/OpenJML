@@ -788,7 +788,18 @@ public class escfiles extends EscBase {
 
     @Test
     public void testRequiresElse() {
-        helpTF("requiresElse","-show=program");
+        helpTF("requiresElse","-show=program"); // -show=program is part of test results
+    }
+
+    @Test
+    public void testTuple() {
+        helpTF("tuple");
+    }
+
+    @Test
+    public void testTupleBad() {
+        expectedExit = 1;
+        helpTF("tupleBad");
     }
 
 

@@ -1,0 +1,35 @@
+test/tupleBad/Test.java:7: error: Type java.lang.String cannot be assigned to int (position 2)
+        //@ set (t,v) = (2,e);
+                      ^
+test/tupleBad/Test.java:8: error: Type java.lang.String cannot be assigned to int (position 1)
+        //@ set (t,v) = (e,e);
+                      ^
+test/tupleBad/Test.java:8: error: Type java.lang.String cannot be assigned to int (position 2)
+        //@ set (t,v) = (e,e);
+                      ^
+test/tupleBad/Test.java:9: error: Tuples have different sizes: 2 vs. 3
+        //@ set (t,v) = (2,3,4);
+                      ^
+test/tupleBad/Test.java:11: error: incompatible types: String cannot be converted to Integer
+        //@ ghost Integer w = (1,e,4).2;
+                                     ^
+test/tupleBad/Test.java:14: error: Type int cannot be assigned to java.lang.Boolean (position 2)
+        //@ set (t,ss,w,s) = 2;
+                           ^
+test/tupleBad/Test.java:14: error: Type int cannot be assigned to java.lang.String (position 4)
+        //@ set (t,ss,w,s) = 2;
+                           ^
+test/tupleBad/Test.java:15: error: The tuple selector must be from 1 to 3
+        //@ set v = (1,e,4).0;
+                           ^
+test/tupleBad/Test.java:16: error: The tuple selector must be from 1 to 3
+        //@ set v = (1,e,4).4;
+                           ^
+test/tupleBad/Test.java:17: error: tuple<int,java.lang.String,int> cannot be dereferenced
+        //@ set v = (1,e,4).a;
+                           ^
+test/tupleBad/Test.java:18: error: The tuple selector must be applied to a tuple type, not a java.lang.String
+        //@ set v = e.4;
+                     ^
+Operation not performed because of parse or type errors
+11 errors

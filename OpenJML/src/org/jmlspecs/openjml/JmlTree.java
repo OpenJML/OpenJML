@@ -144,6 +144,7 @@ public class JmlTree implements IJmlTree {
         JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi);
         JmlStoreRefKeyword JmlStoreRefKeyword(JmlTokenKind t);
         JmlStoreRefListExpression JmlStoreRefListExpression(JmlTokenKind t, List<JCExpression> list);
+        JmlTuple JmlTuple(java.util.List<JCExpression> list);
         JmlTypeClauseConditional JmlTypeClauseConditional(JCModifiers mods, IJmlClauseKind token, JCTree.JCIdent ident, JCTree.JCExpression p);
         JmlTypeClauseConstraint JmlTypeClauseConstraint(JCModifiers mods, JCExpression e, List<JmlMethodSig> sigs);
         JmlTypeClauseDecl JmlTypeClauseDecl(JCTree decl);
@@ -628,6 +629,11 @@ public class JmlTree implements IJmlTree {
         @Override
         public JmlStoreRefListExpression JmlStoreRefListExpression(JmlTokenKind t, List<JCExpression> list) {
             return new JmlStoreRefListExpression(pos,t,list);
+        }
+
+        @Override
+        public JmlTuple JmlTuple(java.util.List<JCExpression> list) {
+            return new JmlTuple(pos,list);
         }
 
         @Override
@@ -3606,6 +3612,35 @@ public class JmlTree implements IJmlTree {
                 return null; //return super.accept(v,d);
             }
         }
+    }
+    
+    public static class JmlTuple extends JmlExpression {
+        public java.util.List<JCExpression> values;
+        
+        public JmlTuple(int pos, java.util.List<JCExpression> values) {
+            this.pos = pos;
+            this.values = values;
+        }
+
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlTuple(this); 
+            } else {
+                for (JCExpression e: values) e.accept(v);
+            }
+        }
+
+        @Override
+        public <R, D> R accept(TreeVisitor<R, D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlTuple(this, d);
+            } else {
+                for (JCExpression e: values) e.accept(v, d);
+                return null;
+            }
+        }
+        
     }
     
     public static class JmlLambda extends JCLambda {

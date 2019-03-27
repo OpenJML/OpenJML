@@ -298,6 +298,12 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     }
     
     @Override
+    public void visitJmlTuple(JmlTuple that) {
+        for (JCExpression e: that.values) 
+            scan(e);
+    }
+    
+    @Override
     public void visitLambda(JCLambda that) {
         super.visitLambda(that);
         scan(((JmlLambda)that).jmlType);

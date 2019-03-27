@@ -440,6 +440,14 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
+    public void visitJmlTuple(JmlTuple that) {
+        JmlTuple r = that;
+        r.values = translate(that.values);
+        // Not translating pos, token, type
+        result = r;
+    }
+
+    @Override
     public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
         JmlTypeClauseConditional r = that;
         r.modifiers = translate(that.modifiers);
