@@ -267,12 +267,14 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseDecl");
+            // Needed for old clauses
+            for (JCVariableDecl d: that.decls) visitVarDef(d);
+            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseDecl");
         }
 
         @Override
         public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseExpr");
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseExpr");
         }
 
         @Override
@@ -642,12 +644,13 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseDecl");
+            for (JCVariableDecl d: that.decls) visitVarDef(d);
+            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseDecl");
         }
 
         @Override
         public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseExpr");
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseExpr");
         }
 
         @Override
@@ -994,12 +997,13 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseDecl");
+            for (JCVariableDecl d: that.decls) visitVarDef(d);
+            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseDecl");
         }
 
         @Override
         public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseExpr");
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseExpr");
         }
 
         @Override
