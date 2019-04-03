@@ -2711,7 +2711,7 @@ public class SMTTranslator extends JmlTreeScanner {
             }
         } else if (tree.typetag == TypeTag.CHAR) {
             if (useBV) {
-                int k = Character.getNumericValue((Character)v);
+                int k = (Character)v;
                 int bits = 16 ; // A CHAR is 16 bits
                 int digits = bits/4;
                 String format = "%0" + digits + "x";

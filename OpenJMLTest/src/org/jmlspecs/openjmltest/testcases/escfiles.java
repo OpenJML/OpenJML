@@ -258,6 +258,11 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testBuggyCalculator() {
+        helpTF("buggyCalculator");
+    }
+
+    @Test
     public void testException() {
         helpTF("escException");
     }
