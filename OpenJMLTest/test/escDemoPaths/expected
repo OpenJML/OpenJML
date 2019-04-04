@@ -1,11 +1,11 @@
 Proving methods in openjml.demo.Paths
 Starting proof of openjml.demo.Paths.Paths() with prover z3_4_3
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of openjml.demo.Paths.Paths() with prover z3_4_3 - no warnings
 Starting proof of openjml.demo.Paths.clip(int,int,int) with prover z3_4_3
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of openjml.demo.Paths.clip(int,int,int) with prover z3_4_3 - no warnings
 Starting proof of openjml.demo.Paths.multipleErrors(int) with prover z3_4_3
 

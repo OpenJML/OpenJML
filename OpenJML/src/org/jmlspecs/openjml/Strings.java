@@ -265,7 +265,9 @@ public class Strings {
     static final public String beforeAssertAssumeCheckDescription = "before explicit assert statement";
     /** Text used to describe the program position just after an explicit JML assume */
     static final public String afterAssumeAssumeCheckDescription = "after explicit assume statement";
-    /** Text used to descrxibe the program position at an explicit JML reachable statement */
+    /** Text used to describe the program position just after an explicit JML assume */
+    static final public String afterImplicitAssumeAssumeCheckDescription = "after implicit assume statement";
+    /** Text used to describe the program position at an explicit JML reachable statement */
     static final public String atReachableStatementAssumeCheckDescription = "at reachable statement";
     
     // Feasibility options - note that the following words are used in the -checkFeasibility option, by the user.
@@ -308,7 +310,10 @@ public class Strings {
         if (values.equals("debug") || values.equals("all")) return true;
         String[] allowed = values.split(",");
         for (String k: allowed) {
-            if (i.contains(k)) return true;
+            if (i.contains(k)) {
+                if (!k.equals("assume")) return true;
+                else if (i.contains("explicit")) return true;
+            }
         }
         return false;
     }

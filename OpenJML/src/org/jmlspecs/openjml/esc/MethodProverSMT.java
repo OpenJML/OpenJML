@@ -441,12 +441,14 @@ public class MethodProverSMT {
 
                     java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.assumeChecks.get(methodDecl);
                     int feasibilityCheckNumber = 0;
+                    String scriptString = program.toString();
                     if (checks != null) for (JmlStatementExpr stat: checks) {
                         if (aborted) {
                         	throw new Main.JmlCanceledException("Aborted by user");
                         }
                         
                         ++feasibilityCheckNumber;
+                        if (!scriptString.contains("__JML_AssumeCheck_ != " + feasibilityCheckNumber)) continue;
                         if (feasibilityCheckNumber != stat.associatedPos) {
                             log.note("jml.message", "XXX");
                         }
@@ -516,7 +518,7 @@ public class MethodProverSMT {
                         }
                         String description = stat.description; // + " " + stat;
                         String fileLocation = utils.locationString(stat.pos, log.currentSourceFile());
-                        String msg2 =  (utils.jmlverbose >= Utils.PROGRESS) ? 
+                        String msg2 =  (utils.jmlverbose > Utils.PROGRESS || (utils.jmlverbose == Utils.PROGRESS && !Utils.testingMode)) ? 
                                 ("Feasibility check #" + feasibilityCheckNumber + " - " + description + " : ")
                                 :("Feasibility check - " + description + " : ");
                         boolean infeasible = solverResponse.equals(unsatResponse);

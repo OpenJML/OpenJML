@@ -1,28 +1,28 @@
 Proving methods in Test
 Starting proof of Test.Test() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Starting proof of Test.putAtI(int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.putAtI(int) with prover !!!! - no warnings
 Starting proof of Test.mm() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #8 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.mm() with prover !!!! - no warnings
 Completed proving methods in Test
 Proving methods in TestA
 Starting proof of TestA.TestA() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of TestA.TestA() with prover !!!! - no warnings
 Starting proof of TestA.putAtI(int[],int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of TestA.putAtI(int[],int) with prover !!!! - no warnings
 Starting proof of TestA.m() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #7 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of TestA.m() with prover !!!! - no warnings
 Completed proving methods in TestA

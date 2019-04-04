@@ -12626,10 +12626,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (stringType && !pureCopy) {
             JCExpression e = treeutils.makeNeqObject(that.pos,id,treeutils.nullLit);
             addAssume(that,Label.IMPLICIT_ASSUME,e);
+            
+            addNullnessTypeCondition(that,id.sym,false);
 
             // These assumptions are necessary so that String literals are
             // known to satisfy the invariants about Strings
             addInvariants(id,id.type,id,currentStatements,false,false,false,false,false,true,Label.INVARIANT_ENTRANCE,utils.qualifiedMethodSig(methodDecl.sym));
+            
+            if (esc) {
+                TypeSymbol tsym = that.type.tsym;
+                MethodSymbol msym = null;
+                for (Symbol s: tsym.getEnclosedElements()) {
+                    if (s instanceof MethodSymbol && s.name == names.length) { msym = (MethodSymbol)s; break; }
+                }
+                JCExpression m = treeutils.makeMethodInvocation(that,id,msym);
+                m.type = syms.intType;
+                m = treeutils.makeEquality(that.pos, m, treeutils.makeIntLiteral(that.pos, ((String)that.getValue()).length()));
+                JCStatement st = treeutils.makeAssume(that, Label.IMPLICIT_ASSUME, m);
+                st.accept(this);
+            }
+
 
             // Use the literal instead of the temp in order to make optimizations
             // and constant folding, for some types. Keep the temp above for tracing.
@@ -15870,7 +15886,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } 
                 result = addAssume(that,Label.EXPLICIT_ASSUME,ee,null,null,opt);
                 if (!treeutils.isFalseLit(ee)) {
-                    addAssumeCheck(that,currentStatements,Strings.afterAssumeAssumeCheckDescription);
+                    addAssumeCheck(that,currentStatements,
+                            that.label == Label.IMPLICIT_ASSUME ?
+                                    Strings.afterImplicitAssumeAssumeCheckDescription
+                                    : Strings.afterAssumeAssumeCheckDescription);
                 }
 
             } else if (that.clauseType == commentClause) {

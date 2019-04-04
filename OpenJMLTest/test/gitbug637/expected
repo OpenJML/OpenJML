@@ -5,8 +5,8 @@ test/gitbug637/B.java:11: warning: The prover cannot establish an assertion (Ass
           ^
 Completed proof of B.B() with prover !!!! - with warnings
 Starting proof of B.havocX() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of B.havocX() with prover !!!! - no warnings
 Starting proof of B.m() with prover !!!!
 test/gitbug637/B.java:22: warning: The prover cannot establish an assertion (Postcondition) in method m

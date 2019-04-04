@@ -263,6 +263,21 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testBuggyRandomNumbers() {
+        helpTF("buggyRandomNumbers");
+    }
+
+    @Test
+    public void testPrimeNumbers() {
+        helpTF("buggyPrimeNumbers");
+    }
+
+    @Test
+    public void testBuggyPalindrome() {
+        helpTF("buggyPalindrome");
+    }
+
+    @Test
     public void testException() {
         helpTF("escException");
     }

@@ -6,12 +6,12 @@ test/escLoopAssignable/Test.java:12: warning: Use 'loop_writes' keyword instead 
             ^
 Proving methods in Test
 Starting proof of Test.Test() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Starting proof of Test.mm(int[]) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #3 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.mm(int[]) with prover !!!! - no warnings
 Completed proving methods in Test
 2 warnings

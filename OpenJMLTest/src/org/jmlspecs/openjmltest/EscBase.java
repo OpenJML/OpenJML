@@ -245,7 +245,6 @@ public abstract class EscBase extends JmlTestCase {
         args.add("-progress");
         args.add("-timeout=300");
         args.add("-code-math=java");
-        args.add("-checkFeasibility=all");
         if (!new File(sourceDirname).isFile()) args.add("-dir");
         args.add(sourceDirname);
         if (solver != null) args.add("-prover="+solver);

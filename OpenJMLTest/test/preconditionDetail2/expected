@@ -1,29 +1,29 @@
 Proving methods in TestAA
 Starting proof of TestAA.TestAA() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of TestAA.TestAA() with prover !!!! - no warnings
 Starting proof of TestAA.m(int,int,int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of TestAA.m(int,int,int) with prover !!!! - no warnings
 Completed proving methods in TestAA
 Proving methods in TestB
 Starting proof of TestB.TestB() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of TestB.TestB() with prover !!!! - no warnings
 Starting proof of TestB.m(int,int,int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of TestB.m(int,int,int) with prover !!!! - no warnings
 Completed proving methods in TestB
 Proving methods in TestC
 Completed proving methods in TestC
 Proving methods in TestA
 Starting proof of TestA.TestA() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of TestA.TestA() with prover !!!! - no warnings
 Starting proof of TestA.mm(TestAA,int) with prover !!!!
 test/preconditionDetail/TestA.java:23: warning: The prover cannot establish an assertion (Precondition) in method mm

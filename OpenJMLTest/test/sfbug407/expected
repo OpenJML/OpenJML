@@ -1,16 +1,16 @@
 Proving methods in JMLArrayListExample
 Starting proof of JMLArrayListExample.JMLArrayListExample() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of JMLArrayListExample.JMLArrayListExample() with prover !!!! - no warnings
 Starting proof of JMLArrayListExample.add(java.lang.String) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at reachable statement : OK
-Feasibility check #3 - at reachable statement : OK
-Feasibility check #4 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at reachable statement : OK
+Feasibility check - at reachable statement : OK
+Feasibility check - at program exit : OK
 Completed proof of JMLArrayListExample.add(java.lang.String) with prover !!!! - no warnings
 Starting proof of JMLArrayListExample.main(java.lang.String[]) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of JMLArrayListExample.main(java.lang.String[]) with prover !!!! - no warnings
 Completed proving methods in JMLArrayListExample

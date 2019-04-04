@@ -1,7 +1,7 @@
 Proving methods in SpecificationInterfaceDemo
 Starting proof of SpecificationInterfaceDemo.SpecificationInterfaceDemo() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of SpecificationInterfaceDemo.SpecificationInterfaceDemo() with prover !!!! - no warnings
 Proving methods in SpecificationInterfaceDemo.PositivePureFunction
 Completed proving methods in SpecificationInterfaceDemo.PositivePureFunction
@@ -22,8 +22,8 @@ test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:24: warning: Ass
         ^
 Completed proof of SpecificationInterfaceDemo.mbad2(java.util.function.Function<java.lang.Integer,java.lang.Integer>,java.lang.Integer) with prover !!!! - with warnings
 Starting proof of SpecificationInterfaceDemo.mok(SpecificationInterfaceDemo.PositivePureFunction,java.lang.Integer) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of SpecificationInterfaceDemo.mok(SpecificationInterfaceDemo.PositivePureFunction,java.lang.Integer) with prover !!!! - no warnings
 Starting proof of SpecificationInterfaceDemo.mbad3(java.util.function.Function<java.lang.Integer,java.lang.Integer>,java.lang.Integer) with prover !!!!
 test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:42: warning: The prover cannot establish an assertion (Assert) in method mbad3
@@ -34,8 +34,8 @@ test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:41: warning: The
             ^
 Completed proof of SpecificationInterfaceDemo.mbad3(java.util.function.Function<java.lang.Integer,java.lang.Integer>,java.lang.Integer) with prover !!!! - with warnings
 Starting proof of SpecificationInterfaceDemo.mok2(SpecificationInterfaceDemo.PositivePureFunction,java.lang.Integer) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #3 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of SpecificationInterfaceDemo.mok2(SpecificationInterfaceDemo.PositivePureFunction,java.lang.Integer) with prover !!!! - no warnings
 Completed proving methods in SpecificationInterfaceDemo
 6 warnings

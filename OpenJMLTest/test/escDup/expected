@@ -1,10 +1,10 @@
 Proving methods in A
 Starting proof of A.A() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of A.A() with prover !!!! - no warnings
 Starting proof of A.m() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of A.m() with prover !!!! - no warnings
 Completed proving methods in A
