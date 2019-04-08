@@ -319,10 +319,10 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
-//            scan(that.expression);
-//            scan(that.lo);
-//            scan(that.hi);
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
+            scan(that.expression);
+            scan(that.lo);
+            if (that.lo != that.hi) scan(that.hi);
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
         }
 
         @Override
@@ -695,10 +695,10 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
-//            scan(that.expression);
-//            scan(that.lo);
-//            scan(that.hi);
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
+            scan(that.expression);
+            scan(that.lo);
+            if (that.lo != that.hi) scan(that.hi);
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
         }
 
         @Override
@@ -1048,10 +1048,10 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
-//            scan(that.expression);
-//            scan(that.lo);
-//            scan(that.hi);
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
+            scan(that.expression);
+            scan(that.lo);
+            if (that.lo != that.hi) scan(that.hi);
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
         }
 
         @Override

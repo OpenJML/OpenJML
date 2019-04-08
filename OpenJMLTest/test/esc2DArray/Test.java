@@ -36,4 +36,48 @@ public class Test {
         //@ assert \forall int e; 0<=e<m; \forall int k; 0 <= k < n; a[e][k] == e+k;
         return a;
     }
+    
+    public static void mm1(int[][] a) {
+        //@ assume a != null;
+        //@ assume a.length == 5;
+        //@ assume a[1] != null && a[2] != null;
+        //@ assume a[1].length == 6;
+        //@ assume a[2].length == 7;
+        //@ assume a[2][3] ==7;
+        a[1][2] = 13;
+        //@ assert a.length == 5;
+        //@ assert a[1].length == 6;
+        //@ assert a[2].length == 7;
+        //@ assert a[2][3] ==7;
+    }
+    
+    public static void mm2(int[][] a) {
+        //@ assume a != null;
+        //@ assume a.length == 5;
+        //@ assume a[1] != null && a[2] != null;
+        //@ assume a[1].length == 6;
+        //@ assume a[2].length == 7;
+        //@ assume a[2][3] ==7;
+        //@ havoc a[*][*];
+        //@ assert a.length == 5;
+        //@ assert a[1].length == 6;
+        //@ assert a[2].length == 7;
+        //@ assert a[2][3] ==7;
+    }
+    
+    public static void mm3(int[][] a) {
+        //@ assume a != null;
+        //@ assume a.length == 5;
+        //@ assume a[1] != null && a[2] != null;
+        int[] b = a[1];
+        //@ assume a[1].length == 6;
+        //@ assume a[2].length == 7;
+        //@ assume a[2][3] ==7;
+        a[1][2] = 13;
+        //@ assert a.length == 5;
+        //@ assert a[1].length == 6;
+        //@ assert a[2].length == 7;
+        //@ assert a[2][3] ==7;
+        //@ assert b[2] == 13;
+    }
 }
