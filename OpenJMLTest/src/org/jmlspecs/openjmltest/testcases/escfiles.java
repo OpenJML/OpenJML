@@ -322,6 +322,18 @@ public class escfiles extends EscBase {
         helpTF("esc2DTranspose");
     }
 
+    @Test
+    public void testVT20191() {
+        expectedExit = 0;
+        helpTF("verifythis-2019-1","-checkFeasibility=none"); // FIXME - feasibility check times out
+    }
+
+    @Test
+    public void testVT20192() {
+        expectedExit = 0;
+        helpTF("verifythis-2019-2");
+    }
+
 
 // FIXME - there is a problem with instantiating the model field or the getter functions, such that my_dollars differs from dollars()
     @Test  @Ignore
