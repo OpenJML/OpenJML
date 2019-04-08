@@ -2,8 +2,8 @@ Proving methods in CashAmountOnlyPrivate
 Skipping proof of CashAmountOnlyPrivate.CashAmountOnlyPrivate(int,int) (excluded by -method)
 Skipping proof of CashAmountOnlyPrivate.negate() (excluded by -method)
 Starting proof of CashAmountOnlyPrivate.increase(CashAmountOnlyPrivate) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of CashAmountOnlyPrivate.increase(CashAmountOnlyPrivate) with prover !!!! - no warnings
 Skipping proof of CashAmountOnlyPrivate.decrease(CashAmountOnlyPrivate) (excluded by -method)
 Skipping proof of CashAmountOnlyPrivate.dollars() (excluded by -method)

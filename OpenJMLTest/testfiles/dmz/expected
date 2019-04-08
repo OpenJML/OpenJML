@@ -8,62 +8,62 @@ Starting proof of dmz.Cash.Cash(int) with prover !!!!
       ^
 Completed proof of dmz.Cash.Cash(int) with prover !!!! - with warnings
 Starting proof of dmz.Cash.amount() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of dmz.Cash.amount() with prover !!!! - no warnings
 Starting proof of dmz.Cash.loaded() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of dmz.Cash.loaded() with prover !!!! - no warnings
 Starting proof of dmz.Cash.load() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of dmz.Cash.load() with prover !!!! - no warnings
 Completed proving methods in dmz.Cash
 Proving methods in dmz.Clock
 Starting proof of dmz.Clock.Clock(int,int,int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of dmz.Clock.Clock(int,int,int) with prover !!!! - no warnings
 Starting proof of dmz.Clock.hours() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of dmz.Clock.hours() with prover !!!! - no warnings
 Starting proof of dmz.Clock.minutes() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of dmz.Clock.minutes() with prover !!!! - no warnings
 Starting proof of dmz.Clock.seconds() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of dmz.Clock.seconds() with prover !!!! - no warnings
 Starting proof of dmz.Clock.later(dmz.Clock) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of dmz.Clock.later(dmz.Clock) with prover !!!! - no warnings
 Starting proof of dmz.Clock.earlier(dmz.Clock) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of dmz.Clock.earlier(dmz.Clock) with prover !!!! - no warnings
 Starting proof of dmz.Clock.difference(dmz.Clock) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of dmz.Clock.difference(dmz.Clock) with prover !!!! - no warnings
 Starting proof of dmz.Clock.setHours(int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of dmz.Clock.setHours(int) with prover !!!! - no warnings
 Starting proof of dmz.Clock.setMinutes(int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of dmz.Clock.setMinutes(int) with prover !!!! - no warnings
 Starting proof of dmz.Clock.setSeconds(int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of dmz.Clock.setSeconds(int) with prover !!!! - no warnings
 Starting proof of dmz.Clock.tick() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of dmz.Clock.tick() with prover !!!! - no warnings
 Completed proving methods in dmz.Clock
 2 warnings

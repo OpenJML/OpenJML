@@ -258,6 +258,26 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testBuggyCalculator() {
+        helpTF("buggyCalculator");
+    }
+
+    @Test
+    public void testBuggyRandomNumbers() {
+        helpTF("buggyRandomNumbers");
+    }
+
+    @Test
+    public void testPrimeNumbers() {
+        helpTF("buggyPrimeNumbers");
+    }
+
+    @Test
+    public void testBuggyPalindrome() {
+        helpTF("buggyPalindrome");
+    }
+
+    @Test
     public void testException() {
         helpTF("escException");
     }
@@ -290,6 +310,30 @@ public class escfiles extends EscBase {
         expectedExit = 0;
         helpTF("escClone");
     }
+    @Test
+    public void test2DArray() {
+        expectedExit = 0;
+        helpTF("esc2DArray");
+    }
+
+    @Test
+    public void test2DTranspose() {
+        expectedExit = 0;
+        helpTF("esc2DTranspose");
+    }
+
+    @Test
+    public void testVT20191() {
+        expectedExit = 0;
+        helpTF("verifythis-2019-1","-checkFeasibility=none"); // FIXME - feasibility check times out
+    }
+
+    @Test
+    public void testVT20192() {
+        expectedExit = 0;
+        helpTF("verifythis-2019-2");
+    }
+
 
 // FIXME - there is a problem with instantiating the model field or the getter functions, such that my_dollars differs from dollars()
     @Test  @Ignore
@@ -556,7 +600,7 @@ public class escfiles extends EscBase {
     
     @Test
     public void testEnsuresInfeasible() {
-        helpTF("escEnsuresInfeasible","-subexpressions");
+        helpTF("escEnsuresInfeasible");
     }
 
     @Test
@@ -672,7 +716,7 @@ public class escfiles extends EscBase {
     
     @Test
     public void testRmLoop() {
-        helpTF("escrmloop","-method=doLRS","-timeout=10"); // FIXME SHort timeout because this does not yet work properly
+        helpTF("escrmloop","-checkFeasibility=none","-timeout=30"); // FIXME SHort timeout because this does not yet work properly
     }
     
     @Test

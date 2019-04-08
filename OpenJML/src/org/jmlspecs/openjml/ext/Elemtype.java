@@ -4,7 +4,7 @@
  */
 package org.jmlspecs.openjml.ext;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 
@@ -48,7 +48,7 @@ public class Elemtype extends ExpressionExtension {
             }; }
     
     @Override
-    public IJmlClauseType[] clauseTypes() {
+    public IJmlClauseKind[] clauseTypes() {
         // TODO Auto-generated method stub
         return null;
     }

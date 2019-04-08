@@ -1,0 +1,12 @@
+
+orig=/Users/davidcok/cok/projects/OpenJMLA/OpenJML/vendor/OpenJDK/trunk/langtools/src/share/classes/com/sun/tools/javac
+now=/Users/davidcok/cok/projects/OpenJMLA/OpenJML/OpenJDK/trunk/langtools/src/share/classes/com/sun/tools/javac
+
+if [ $# -gt 0 ]; then
+    for f in $@ ; do
+        echo DIFF $f
+        diff $orig/$f $now/$f
+    done
+else
+    diff -r $orig $now
+fi

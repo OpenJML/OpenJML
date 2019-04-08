@@ -1,8 +1,8 @@
 package org.jmlspecs.openjml.strongarm.transforms;
 
-import static org.jmlspecs.openjml.ext.AssignableClauseExtension.assignableClause;
-import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.ensuresClause;
-import static org.jmlspecs.openjml.ext.RequiresClause.requiresClause;
+import static org.jmlspecs.openjml.ext.AssignableClauseExtension.assignableClauseKind;
+import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.ensuresClauseKind;
+import static org.jmlspecs.openjml.ext.RequiresClause.requiresClauseKind;
 
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTreeScanner;
@@ -24,15 +24,15 @@ public class PropsInSubtree extends JmlTreeScanner{
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
         props++;
         
-        if(tree.clauseType==ensuresClause){
+        if(tree.clauseKind==ensuresClauseKind){
             ensures++;
         }
         
-        if(tree.clauseType==assignableClause){
+        if(tree.clauseKind==assignableClauseKind){
             assignable++;
         }
         
-        if(tree.clauseType==requiresClause){
+        if(tree.clauseKind==requiresClauseKind){
             requires++;
         }
 

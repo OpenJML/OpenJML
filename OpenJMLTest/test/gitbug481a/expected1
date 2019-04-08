@@ -1,7 +1,7 @@
 Proving methods in org.apache.commons.math3.linear.ArrayFieldVector
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,int) with prover !!!!
 test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:72: warning: The prover cannot establish an assertion (Assignable) in method ArrayFieldVector:  this.field
@@ -57,20 +57,20 @@ Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVe
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,boolean) with prover !!!!
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,boolean) with prover !!!! - ERROR
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - ERROR
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,T[]) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,T[]) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,T[]) with prover !!!!
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,T[]) with prover !!!! - ERROR
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - ERROR
@@ -79,12 +79,12 @@ Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVe
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,T[],T[]) with prover !!!!
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,T[],T[]) with prover !!!! - ERROR
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.getField() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.getField() with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.copy() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.copy() with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.add(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
 test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:441: warning: The prover cannot establish an assertion (PossiblyBadCast) in method add:  a org.apache.commons.math3.linear.FieldVector<T> cannot be proved to be a org.apache.commons.math3.linear.ArrayFieldVector<T>
@@ -327,12 +327,12 @@ test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:665: warni
                                 ^
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ebeDivide(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - with warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.getData() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.getData() with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.getDataRef() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.getDataRef() with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.dotProduct(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
 test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:691: warning: The prover cannot establish an assertion (PossiblyBadCast) in method dotProduct:  a org.apache.commons.math3.linear.FieldVector<T> cannot be proved to be a org.apache.commons.math3.linear.ArrayFieldVector<T>
@@ -415,14 +415,14 @@ Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.outerProduct
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.getEntry(int) with prover !!!!
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.getEntry(int) with prover !!!! - with warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.getDimension() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.getDimension() with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.append(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.append(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - with warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.append(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.append(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.append(T) with prover !!!!
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.append(T) with prover !!!! - with warnings
@@ -435,64 +435,64 @@ Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.setSubVector
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.set(int,org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!!
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.set(int,org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - with warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.set(T) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.set(T) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.toArray() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.toArray() with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.checkVectorDimensions(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.checkVectorDimensions(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.checkVectorDimensions(int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.checkVectorDimensions(int) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>,int,int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>,int,int) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>,int,int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>,int,int) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>,int,int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>,int,int) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>,int,int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>,int,int) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.equals(java.lang.Object) with prover !!!!
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.equals(java.lang.Object) with prover !!!! - with warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.hashCode() with prover !!!!
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.hashCode() with prover !!!! - with warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.checkIndex(int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.checkIndex(int) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.checkIndices(int,int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.checkIndices(int,int) with prover !!!! - no warnings
 Completed proving methods in org.apache.commons.math3.linear.ArrayFieldVector
 Note: Some input files use or override a deprecated API.

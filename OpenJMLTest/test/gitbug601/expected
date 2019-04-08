@@ -1,0 +1,6 @@
+Proving methods in Prime
+Starting proof of Prime.Prime() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Prime.Prime() with prover !!!! - no warnings
+Starting proof of Prime.is_prime(int) with prover !!!!

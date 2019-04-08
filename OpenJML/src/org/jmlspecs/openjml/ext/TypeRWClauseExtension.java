@@ -3,7 +3,7 @@ package org.jmlspecs.openjml.ext;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.IF;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
@@ -32,25 +32,25 @@ public class TypeRWClauseExtension extends JmlExtension.TypeClause {
     public static final String readableID = "readable";
     public static final String writableID = "writable";
     
-    public static final IJmlClauseType readableClause = new RWClauseType() {
+    public static final IJmlClauseKind readableClause = new RWClauseType() {
         public String name() { return readableID; }
     };
     
-    public static final IJmlClauseType writableClause = new RWClauseType() {
+    public static final IJmlClauseKind writableClause = new RWClauseType() {
         public String name() { return writableID; }
     };
 
     @Override
-    public IJmlClauseType[] clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             readableClause, writableClause}; }
     
 
-    public static class RWClauseType extends IJmlClauseType.TypeClause {
+    public static class RWClauseType extends IJmlClauseKind.TypeClause {
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
         
         public 
-        JmlTree.JmlTypeClauseConditional parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        JmlTree.JmlTypeClauseConditional parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             int pp = parser.pos();
             init(parser);
             scanner.setJmlKeyword(false);

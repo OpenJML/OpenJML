@@ -57,6 +57,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.*;
+import org.jmlspecs.openjml.IJmlClauseKind.LineAnnotationKind;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
@@ -70,6 +71,7 @@ import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
 import org.jmlspecs.openjml.ext.SignalsClauseExtension;
 import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
 import org.jmlspecs.openjml.ext.FieldExtension;
+import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
 
 import com.sun.source.tree.IdentifierTree;
 import com.sun.tools.javac.code.*;
@@ -244,7 +246,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * semantic tests can be performed (e.g. \result can only be used in some
      * types of clauses).
      */
-    protected IJmlClauseType currentClauseType = null;
+    protected IJmlClauseKind currentClauseType = null;
     
     /**
      * Holds the visibility of JML construct that is currently being visited.
@@ -518,6 +520,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             super.attribClassBody(env,c);
             Enter.instance(context).typeEnvs.put(c,env); // TODO _ not sure why this is not already done, but is needed in some cases, e.g. immutable modifier on an enum class
             attribClassBodySpecs(env,c,prevIsInJmlDeclaration);
+            if (cd.lineAnnotations != null) {
+                for (ExceptionLineAnnotation a: cd.lineAnnotations) {
+                    a.typecheck(this, env);
+                }
+            }
         
         } finally {
             relax = oldRelax;
@@ -551,7 +558,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         // This is not recursive within a class, but we can call out to attribute 
         // another class while in the middle of a clause
-        IJmlClauseType prevClauseType = currentClauseType;
+        IJmlClauseKind prevClauseType = currentClauseType;
         
         try {
             if (tspecs != null) {
@@ -1106,19 +1113,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
-    final static Map<IJmlClauseType, int[]> stateTable = new HashMap<>();
+    final static Map<IJmlClauseKind, int[]> stateTable = new HashMap<>();
     {
         // state -1 - error
         // state 0 - start
         // state 1 - postcondition
         // state 2 - start of spec group
-        stateTable.put(requiresClause, new int[]{0,-1,-1});
+        stateTable.put(requiresClauseKind, new int[]{0,-1,-1});
         stateTable.put(oldClause, new int[]{0,-1,-1});
         stateTable.put(forallClause, new int[]{0,-1,-1});
-        stateTable.put(assignableClause, new int[]{1,1,1});
-        stateTable.put(ensuresClause, new int[]{1,1,1});
-        stateTable.put(signalsClause, new int[]{1,1,1});
-        stateTable.put(signalsOnlyClause, new int[]{1,1,1});
+        stateTable.put(assignableClauseKind, new int[]{1,1,1});
+        stateTable.put(ensuresClauseKind, new int[]{1,1,1});
+        stateTable.put(signalsClauseKind, new int[]{1,1,1});
+        stateTable.put(signalsOnlyClauseKind, new int[]{1,1,1});
         stateTable.put(callableClause, new int[]{1,1,1});
         stateTable.put(specGroupStartClause, new int[]{0,1,-1});
 //        stateTable.put(JmlTokenKind.ALSO, new int[]{-1,10,-1});
@@ -1136,7 +1143,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // FIXME - finish this 
     public void checkClauseOrder(int state, List<JmlMethodClause> clauses) {
         for (JmlMethodClause clause: clauses) {
-            IJmlClauseType tk = clause.clauseType;
+            IJmlClauseKind tk = clause.clauseKind;
             int[] next = stateTable.get(tk);
             if (next == null) {
                 //                   log.warning(clause, "jml.message", "Unimplemented clause type in order checker: " + tk);
@@ -1644,7 +1651,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         endPosTable.storeEnd(id, endPos);
                         JCExpression e = treeutils.makeBinary(treeForPos,JCTree.Tag.NE,id,nulllit);
                         endPosTable.storeEnd(e, endPos);
-                        JmlMethodClauseExpr clause = jmlMaker.JmlMethodClauseExpr(requiresID, requiresClause,e);
+                        JmlMethodClauseExpr clause = jmlMaker.JmlMethodClauseExpr(requiresID, requiresClauseKind,e);
                         clause.pos = e.pos;
                         clause.sourcefile = decl.source(); // FIXME - should be set by where the nonnull annotation is
                         endPosTable.storeEnd(clause,endPos);
@@ -1668,11 +1675,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     e.pos = annotationPos;
                     endPosTable.storeEnd(e,annotationEnd);
                     endPosTable.storeEnd(id,annotationEnd);
-                    IJmlClauseType prev = currentClauseType;
-                    currentClauseType = ensuresClause;
+                    IJmlClauseKind prev = currentClauseType;
+                    currentClauseType = ensuresClauseKind;
                     //attribExpr(e,env);
                     currentClauseType = prev;
-                    JmlMethodClauseExpr cl = jmlMaker.at(annotationPos).JmlMethodClauseExpr(ensuresID, ensuresClause,e);
+                    JmlMethodClauseExpr cl = jmlMaker.at(annotationPos).JmlMethodClauseExpr(ensuresID, ensuresClauseKind,e);
                     cl.sourcefile = decl.source();
                     endPosTable.storeEnd(cl,annotationEnd);
                     commonClauses.append(cl);
@@ -1793,10 +1800,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean hasCallableClause = false;
         boolean hasSignalsOnlyClause = false;
         for (JmlMethodClause clm: cs.clauses) {
-            IJmlClauseType ct = clm.clauseType;
-            if (ct == assignableClause) { 
+            IJmlClauseKind ct = clm.clauseKind;
+            if (ct == assignableClauseKind) { 
                 hasAssignableClause = true; 
-            } else if (ct == SignalsOnlyClauseExtension.signalsOnlyClause) { 
+            } else if (ct == SignalsOnlyClauseExtension.signalsOnlyClauseKind) { 
                 hasSignalsOnlyClause = true; 
             } else if (ct == accessibleClause) { 
                 hasAccessibleClause = true; 
@@ -1813,7 +1820,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             } else if (pure != null || (constructorDefault.equals("pure") && decl.sym.isConstructor())) {
                 int pos = pure != null ? pure.pos : cs.pos;
                 JmlStoreRefKeyword kw = jmlMaker.at(pos).JmlStoreRefKeyword(JmlTokenKind.BSNOTHING);
-                defaultClause = jmlMaker.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClause,
+                defaultClause = jmlMaker.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                         List.<JCExpression>of(kw));
 //            } else if (decl.sym.isConstructor()) {
 //                // FIXME - or should this just be \nothing
@@ -1824,7 +1831,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                        List.<JCExpression>of(jmlMaker.at(cs.pos).Select(t,(Name)null)));
             } else {
                 JmlStoreRefKeyword kw = jmlMaker.at(cs.pos).JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING);
-                defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(assignableID, assignableClause,
+                defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                         List.<JCExpression>of(kw));
             }
             if (defaultClause != null) {
@@ -1908,7 +1915,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (parent.block != null) return; // If there is a model_program block, we do not add any default
         boolean anySOClause = false;
         for (JmlMethodClause cl: prefix) {
-            if (cl.clauseType == signalsOnlyClause) anySOClause = true;
+            if (cl.clauseKind == signalsOnlyClauseKind) anySOClause = true;
         }
         if (!anySOClause) {
             DiagnosticPosition p = decl.pos();
@@ -1916,7 +1923,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
             if (decl.thrown != null) list.addAll(decl.thrown);
             list.add(jmlMaker.at(p).Type(syms.runtimeExceptionType));
-            JmlMethodClauseSignalsOnly cl = (jmlMaker.at(p).JmlMethodClauseSignalsOnly(signalsOnlyID, signalsOnlyClause, list.toList()));
+            JmlMethodClauseSignalsOnly cl = (jmlMaker.at(p).JmlMethodClauseSignalsOnly(signalsOnlyID, signalsOnlyClauseKind, list.toList()));
             cl.sourcefile = log.currentSourceFile();
             cl.defaultClause = true;
             prefix.add(cl);
@@ -1942,11 +1949,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JmlTree.Maker jmlF = (JmlTree.Maker)make;
             JmlTokenKind t = cse.token;
             if (t == JmlTokenKind.NORMAL_BEHAVIOR || t == JmlTokenKind.NORMAL_EXAMPLE) {
-                JmlMethodClauseSignals cl = jmlF.at(cse.pos).JmlMethodClauseSignals(signalsID, signalsClause,null,falseLit);
+                JmlMethodClauseSignals cl = jmlF.at(cse.pos).JmlMethodClauseSignals(signalsID, signalsClauseKind,null,falseLit);
                 cl.sourcefile = cse.sourcefile;
                 pr.append(cl);
             } else if (t == JmlTokenKind.EXCEPTIONAL_BEHAVIOR || t == JmlTokenKind.EXCEPTIONAL_EXAMPLE) {
-                JmlMethodClauseExpr cl = jmlF.at(cse.pos).JmlMethodClauseExpr(ensuresID, ensuresClause,falseLit);
+                JmlMethodClauseExpr cl = jmlF.at(cse.pos).JmlMethodClauseExpr(ensuresID, ensuresClauseKind,falseLit);
                 cl.sourcefile = cse.sourcefile;
                 pr.append(cl);
             }
@@ -1957,92 +1964,83 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public ListBuffer<JmlSpecificationCase> deNestHelper(ListBuffer<JmlMethodClause> prefix, List<JmlMethodClause> clauses, JmlSpecificationCase parent, JmlMethodDecl decl, JCModifiers mods) {
         ListBuffer<JmlSpecificationCase> newlist = new ListBuffer<JmlSpecificationCase>();
         ListBuffer<JmlMethodClause> exlist = null;
-        JmlMethodClauseSignalsOnly clo = null;
+        JmlMethodClauseSignalsOnly signalsOnly = null;
         RequiresClause.Node excRequires = null;
-        java.util.ArrayList<JmlMethodClauseSignals> siglist = new java.util.ArrayList<>();
+        JmlMethodClauseSignals signalsClause = null;
         for (JmlMethodClause m: clauses) {
-            IJmlClauseType t = m.clauseType;
+            IJmlClauseKind t = m.clauseKind;
             JCExpression excType = null;
-            if (t == requiresClause && (excType=((RequiresClause.Node)m).exceptionType) != null) {
+            if (t == requiresClauseKind && (excType=((RequiresClause.Node)m).exceptionType) != null) {
+                // Generate these clauses for the exceptional behavior 
+                //     requires disjunction of negation of each requires condition
+                //     assigns \nothing
+                //     signals_only list of exceptions in the else clauses
+                //     signals (Exception) disjunction of (\exception instance of else-exception && negation of requires condition)
+                //     ensures false
                 boolean first = exlist == null;
-                RequiresClause.Node rc = (RequiresClause.Node)m;
-                rc.exceptionType = null;
                 if (first) {
                     exlist = copy(prefix);
                 }
+                RequiresClause.Node rc = (RequiresClause.Node)m;
+                rc.exceptionType = null;
+                prefix.append(rc);
                 RequiresClause.Node nn = rc.copy();
                 nn.expression = treeutils.makeNot(nn.pos, nn.expression);
                 if (first) {
                     excRequires = nn;
                     exlist.add(excRequires);
+                    signalsOnly = jmlMaker.at(m.pos).JmlMethodClauseSignalsOnly(signalsOnlyID,signalsOnlyClauseKind,List.<JCExpression>nil());
+                    exlist.add(signalsOnly);
+                    JCVariableDecl signalClauseVar = treeutils.makeVarDef(syms.exceptionType, null, decl.sym, m.pos);
+                    signalsClause = jmlMaker.at(m.pos).JmlMethodClauseSignals(signalsID,signalsClauseKind,signalClauseVar,treeutils.falseLit);
+                    exlist.add(signalsClause);
+                    exlist.add(jmlMaker.at(m.pos).JmlMethodClauseExpr(ensuresID,ensuresClauseKind,treeutils.falseLit));
+                    exlist.add(jmlMaker.JmlMethodClauseStoreRef(assignableID,assignableClauseKind,
+                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSNOTHING))));
                 } else {
                     excRequires.expression = treeutils.makeBitOr(m.pos,
                             excRequires.expression, nn.expression);
                 }
-                prefix.append(m);
-                if (first) {
-                    clo = jmlMaker.at(m.pos).JmlMethodClauseSignalsOnly(signalsOnlyID,signalsOnlyClause,List.<JCExpression>of(excType));
-                    exlist.add(clo);
-                    JmlMethodClauseExpr en = jmlMaker.at(m.pos).JmlMethodClauseExpr(ensuresID,ensuresClause,treeutils.falseLit);
-                    exlist.add(en);
-                    exlist.add(jmlMaker.JmlMethodClauseStoreRef(assignableID,assignableClause,
-                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSNOTHING))));
-                }
-                JCExpression compositeExpr = nn.expression;
-                for (JmlMethodClauseSignals prev: siglist) {
-                    if (types.isSameType(excType.type, prev.vardef.type)) {
-                        prev.expression = treeutils.makeBitOr(prev.expression.pos, prev.expression, nn.expression);
-                        compositeExpr = null;
-                    } else if (types.isSubtype(excType.type, prev.vardef.type)) {
-                        prev.expression = treeutils.makeBitOr(prev.expression.pos, prev.expression, nn.expression);
-                    } else if (types.isSubtype(prev.vardef.type, excType.type)) {
-                        compositeExpr =  treeutils.makeBitOr(compositeExpr.pos, compositeExpr, prev.expression);
-                    }
-                    // do nothing if there is no subtype relationship
-                }
-                if (compositeExpr != null) {
-                    if (!first) clo.list = clo.list.append(excType);
-                    JCVariableDecl var = treeutils.makeVarDef(excType.type, null, decl.sym, m.pos);
-                    JmlMethodClauseSignals cl = jmlMaker.at(m.pos).JmlMethodClauseSignals(signalsID,signalsClause,var,compositeExpr);
-                    exlist.add(cl);
-                    siglist.add(cl);
-                }
+                signalsOnly.list = signalsOnly.list.append(excType);
+                JCExpression iof = treeutils.makeInstanceOf(m.pos, jmlMaker.at(m.pos).JmlSingleton(JmlTokenKind.BSEXCEPTION), excType);
+                JCExpression disjunct = treeutils.makeAnd(m.pos, iof, nn.expression);
+                signalsClause.expression = treeutils.makeOrSimp(m.pos, signalsClause.expression, disjunct);
                 continue;
             }
             if (exlist != null) {
                 JmlSpecificationCase scase = jmlMaker.JmlSpecificationCase(decl.mods,false,JmlTokenKind.BEHAVIOR,null,exlist.toList(),null);
                 newlist.append(scase);
                 exlist = null;
-                clo = null;
+                signalsOnly = null;
+                signalsClause = null;
                 excRequires = null;
-                siglist.clear();
             }
             if (m instanceof JmlMethodClauseGroup) {
                 return deNest(prefix,((JmlMethodClauseGroup)m).cases, parent,decl, mods);
             }
-            if (t == ensuresClause) {
+            if (t == ensuresClauseKind) {
                 if (parent.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR || parent.token == JmlTokenKind.EXCEPTIONAL_EXAMPLE) {
                     log.error(m.pos,"jml.misplaced.clause","Ensures","exceptional");
                     continue;
                 }
-            } else if (t == signalsClause) {
+            } else if (t == signalsClauseKind) {
                 if (parent.token == JmlTokenKind.NORMAL_BEHAVIOR || parent.token == JmlTokenKind.NORMAL_EXAMPLE) {
                     log.error(m.pos,"jml.misplaced.clause","Signals","normal");
                     continue;
                 }
-            } else if (t == signalsOnlyClause) {
+            } else if (t == signalsOnlyClauseKind) {
                 if (parent.token == JmlTokenKind.NORMAL_BEHAVIOR || parent.token == JmlTokenKind.NORMAL_EXAMPLE) {
                     log.error(m.pos,"jml.misplaced.clause","Signals_only","normal");
                     continue;
                 }
                 int count = 0;
                 for (JmlMethodClause mc: prefix) {
-                    if (mc.clauseType == signalsOnlyClause) count++;
+                    if (mc.clauseKind == signalsOnlyClauseKind) count++;
                 }
                 if (count > 0) {
                     log.error(m.pos,"jml.multiple.signalsonly");
                 }
-            } else if (desugaringPure && t == assignableClause) {
+            } else if (desugaringPure && t == assignableClauseKind) {
                 JmlMethodClauseStoreRef asg = (JmlMethodClauseStoreRef)m;
                 if (decl.sym.isConstructor()) {
                     // A pure constructor allows assigning to class member fields
@@ -2099,7 +2097,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JmlSpecificationCase scase = jmlMaker.JmlSpecificationCase(decl.mods,false,JmlTokenKind.BEHAVIOR,null,exlist.toList(),null);
             newlist.append(scase);
             exlist = null;
-            clo = null;
+            signalsOnly = null;
         }
         addDefaultSignalsOnly(prefix,parent,decl);
         JmlSpecificationCase sc = (((JmlTree.Maker)make).JmlSpecificationCase(parent,prefix.toList()));
@@ -2235,99 +2233,87 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void checkVarMods(JmlVariableDecl tree) {
         if (tree.name == names.error || tree.type.isErroneous()) return;
         JCModifiers mods = tree.mods;
-        String kind = (tree.mods.flags & Flags.PARAMETER) != 0 ? "parameter" : "field";
+        String kind;
+        JavaFileObject prev = log.useSource(tree.source());
+        JCModifiers specmods = mods;
+        JmlVariableDecl treeForMods = tree;
         if (tree.specsDecl != null) {
-            JCModifiers jmlmods = tree.specsDecl.mods;
-            attribAnnotationTypes(jmlmods.annotations,env);
-//            for (JCAnnotation a: tree.mods.annotations) { // Iterating over annotations in .java file
-//                JCAnnotation aa = utils.findMod(jmlmods, a.type.tsym); // CHeck if it is used in .jml file
-//                if (aa == null) { // If not, report that it is ignored
-//                    log.warning(a.pos(), "jml.java.annotation.superseded", kind , tree.name.toString(), a.toString());
-//                }
-//            }
-            mods = tree.specsDecl.mods;
-            log.useSource(tree.specsDecl.source());
+            specmods = tree.specsDecl.mods;
+            treeForMods = tree.specsDecl;
+            prev = log.useSource(tree.specsDecl.source());
+            attribAnnotationTypes(specmods.annotations,env);
         }
-        boolean inJML = utils.isJML(mods);
+        try {
+        // specmods is the mods from the JML declaration, if it exists, otherwise the mods from the Java declaration
+        // This is because mods in JML supersede those in the Java file; there is a check thats the two are consistent
+        boolean specsinJML = utils.isJML(specmods);
+        boolean modsinJML = utils.isJML(mods);
         boolean ownerInJML = utils.isJML(tree.sym.owner.flags());
-        boolean ghost = isGhost(mods);
-        boolean model = isModel(mods);
+        boolean ghost = isGhost(specmods);
+        boolean model = isModel(specmods);
         boolean modelOrGhost = model || ghost;
         if (tree.sym.owner.kind == Kinds.TYP) {  // Field declarations
+            kind = "field";
             if (ghost) {
-                allAllowed(mods.annotations, allowedGhostFieldModifiers, "ghost field declaration");
+                allAllowed(specmods.annotations, allowedGhostFieldModifiers, "ghost field declaration");
             } else if (model) {
-                allAllowed(mods.annotations, allowedModelFieldModifiers, "model field declaration");
+                allAllowed(specmods.annotations, allowedModelFieldModifiers, "model field declaration");
             } else {
-                allAllowed(mods.annotations, allowedFieldModifiers, "field declaration");
+                allAllowed(specmods.annotations, allowedFieldModifiers, "field declaration");
             }
-            if (!inJML && isInJmlDeclaration && modelOrGhost) {
-                if (ghost) utils.error(tree.sourcefile,tree.pos,"jml.no.nested.ghost.type");
-                else       utils.error(tree.sourcefile,tree.pos,"jml.no.nested.model.type");
-            } else if (inJML && !modelOrGhost  && !isInJmlDeclaration) {
-                utils.error(tree.sourcefile,tree,"jml.missing.ghost.model");
-            } else if (!inJML && modelOrGhost) {
-                utils.error(tree.sourcefile,tree.pos,"jml.ghost.model.on.java");
+            // A corner case: the declaration is a Java declaration, but the corresponding declaration in the specs
+            // is in JML. This would have already been reported as a duplicate declaration.
+            if (!specsinJML && isInJmlDeclaration && modelOrGhost) {
+                if (ghost) utils.error(log.currentSourceFile(),treeForMods.pos,"jml.no.nested.ghost.type");
+                else       utils.error(log.currentSourceFile(),treeForMods.pos,"jml.no.nested.model.type");
+            } else if (specsinJML && !modelOrGhost  && !isInJmlDeclaration) {
+                utils.error(log.currentSourceFile(),treeForMods,"jml.missing.ghost.model");
+            } else if (!specsinJML && modelOrGhost) {
+                utils.error(log.currentSourceFile(),treeForMods.pos,"jml.ghost.model.on.java");
             } 
             JmlAnnotation a;
             if (!model) {
-                checkForConflict(mods,SPEC_PUBLIC,SPEC_PROTECTED);
-                checkForRedundantSpecMod(mods);
+                checkForConflict(specmods,SPEC_PUBLIC,SPEC_PROTECTED);
+                checkForRedundantSpecMod(specmods);
             }
-            a = utils.findMod(mods,INSTANCE);
-            if (a != null && isStatic(tree.mods)) {
+            a = utils.findMod(specmods,INSTANCE);
+            if (a != null && isStatic(specmods)) {
                 utils.error(a.sourcefile,a.pos(),"jml.conflicting.modifiers","instance","static");
             }
 //            if (model && ((tree.mods.flags & Flags.FINAL)!=0)) {   // FIXME - WHy would model and final conflict
 //                a = utils.findMod(tree.mods,MODEL);
 //                utils.error(a.sourcefile,a.pos(),"jml.conflicting.modifiers","model","final");
 //            }
-            checkForConflict(mods,NONNULL,NULLABLE);
-            if (tree.specsDecl != null) log.useSource(tree.source());
+            checkForConflict(specmods,NONNULL,NULLABLE);
         } else if ((tree.mods.flags & Flags.PARAMETER) != 0) { // formal parameters
-            JCModifiers pmods = tree.mods;
+            kind = "parameter";
             if (tree.specsDecl != null) {
-                JCModifiers jmlmods = tree.specsDecl.mods;
-                attribAnnotationTypes(jmlmods.annotations,env);
-                // Appropriate use of annotations is checked below.
-//                for (JCAnnotation a: tree.mods.annotations) {
-//                    JmlAnnotation aa = utils.findMod(jmlmods, a.type.tsym);
-//                    if (aa == null) { // FIXME _ check on sourcefile
-//                        JavaFileObject psource = log.useSource(tree.source());
-//                        log.warning(a.pos(), "jml.java.annotation.superseded", "parameter", tree.name.toString(), a.toString());
-//                        log.useSource(psource);
-//                    }
-//                }
-                kind = "parameter";
-                pmods = jmlmods;
+                attribAnnotationTypes(specmods.annotations,env);
             }
-            if (tree.specsDecl != null) log.useSource(tree.specsDecl.source());
-            allAllowed(pmods.annotations, allowedFormalParameterModifiers, "formal parameter");
-            checkForConflict(pmods,NONNULL,NULLABLE);
-            if (tree.specsDecl != null) log.useSource(tree.source());
+            allAllowed(specmods.annotations, allowedFormalParameterModifiers, "formal parameter");
+            checkForConflict(specmods,NONNULL,NULLABLE);
             
-        } else { // local declaration
+        } else { // local declaration - there is no separate spec in this case
             kind = "local variable declaration";
-            allAllowed(tree.mods.annotations, allowedLocalVarModifiers, kind);
-            if (inJML && !ghost  && !isInJmlDeclaration && !ownerInJML) {
+            allAllowed(mods.annotations, allowedLocalVarModifiers, kind);
+            if (modsinJML && !ghost  && !isInJmlDeclaration && !ownerInJML) {
                 utils.error(tree.source(),tree.pos,"jml.missing.ghost");
-            } else if (!inJML && ghost) {
+            } else if (!modsinJML && ghost) {
                 utils.error(tree.source(),tree.pos,"jml.ghost.on.java");
             } 
-            checkForConflict(tree.mods,NONNULL,NULLABLE);
+            checkForConflict(mods,NONNULL,NULLABLE);
+        }
+        } finally {
+        log.useSource(prev);
         }
         
         if (tree.specsDecl != null) {
-            JavaFileObject prev = log.useSource(tree.specsDecl.source());
             checkSameAnnotations(tree.mods,tree.specsDecl.mods,kind,tree.name.toString());
-            log.useSource(prev);
         }
              
         // Check that types match 
         if (tree.specsDecl != null) { // tree.specsDecl can be null if there is a parsing error
-            JavaFileObject prev = log.useSource(tree.specsDecl.source());
             Type specType = attribType(tree.specsDecl.vartype,env);
-            log.useSource(prev);
             if (specType != null) {
                 if (!Types.instance(context).isSameType(tree.sym.type,specType)) {
                     if (specType.hasTag(TypeTag.TYPEVAR) && tree.sym.type.hasTag(TypeTag.TYPEVAR)) {
@@ -2383,7 +2369,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Check all datagroups that the field is in
             JmlSpecs.FieldSpecs fspecs = specs.getSpecs(tree.sym);
             long prevVisibility = jmlVisibility;
-            IJmlClauseType prevClauseType = currentClauseType;
+            IJmlClauseKind prevClauseType = currentClauseType;
             if (fspecs != null) try {
                 for (JmlTypeClause tc: fspecs.list) {
                     if (tc.clauseType == inClause) {
@@ -2475,7 +2461,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public void visitJmlTypeClauseIn(JmlTypeClauseIn tree) {
         boolean prevEnv = pureEnvironment;
-        IJmlClauseType prevClauseType = currentClauseType;
+        IJmlClauseKind prevClauseType = currentClauseType;
         JmlVariableDecl prevDecl = inVarDecl;
         long prevVisibility = jmlVisibility;
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
@@ -2506,7 +2492,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps tree) {
         boolean prev = jmlresolve.setAllowJML(true);
         boolean prevEnv = pureEnvironment;
-        IJmlClauseType prevClauseType = currentClauseType;
+        IJmlClauseKind prevClauseType = currentClauseType;
         currentClauseType = tree.clauseType;
         pureEnvironment = true;
         long prevVisibility = jmlVisibility;
@@ -2653,7 +2639,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     JmlTokenKind[] invariantAnnotations = new JmlTokenKind[]{ SECRET, INSTANCE };
     JmlTokenKind[] noAnnotations = new JmlTokenKind[]{  };
 
-    public void checkTypeClauseMods(JCTree tree, JCModifiers mods,String where, IJmlClauseType token) {
+    public void checkTypeClauseMods(JCTree tree, JCModifiers mods,String where, IJmlClauseKind token) {
         long f = 0;
         if (token != axiomClause) f = Flags.AccessFlags | Flags.STATIC | Flags.FINAL;
         long diff = utils.hasOnly(mods,f);
@@ -2960,7 +2946,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** Attributes forall and old clauses within the specs of a method */
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl tree) {
-        IJmlClauseType t = tree.clauseType;
+        IJmlClauseKind t = tree.clauseKind;
         for (JCTree.JCVariableDecl decl: tree.decls) {
             if (decl instanceof JmlVariableDecl) {
                 int wasFlags = 0;
@@ -3010,9 +2996,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
         savedMethodClauseOutputEnv = this.env;
-        switch (tree.clauseType.name()) {
+        currentClauseType = tree.clauseKind;
+        switch (tree.clauseKind.name()) {
             case "requires":
-                tree.clauseType.typecheck(this,tree,env);
+                tree.clauseKind.typecheck(this,tree,env);
                 break;
             case "ensures":
             case "diverges":
@@ -3036,6 +3023,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
         }
         savedMethodClauseOutputEnv = null;
+        currentClauseType = null;
     }
     
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
@@ -3053,7 +3041,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional tree) {
         if (tree.predicate != null) attribExpr(tree.predicate, env, syms.booleanType);
-        switch (tree.clauseType.name()) {
+        switch (tree.clauseKind.name()) {
             case durationID:
             case workingspaceID:
                 attribExpr(tree.expression, env, syms.longType);
@@ -3160,7 +3148,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JavaFileObject old = log.useSource(tree.sourcefile);
         Env<AttrContext> localEnv = null;
         Env<AttrContext> prevEnv = env;
-        IJmlClauseType prevClauseType = currentClauseType; // Just in case there is recursion
+        IJmlClauseKind prevClauseType = currentClauseType; // Just in case there is recursion
         long prevVisibility = jmlVisibility;
         try {
             if (tree.modifiers != null) {
@@ -3228,7 +3216,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (tree.clauses != null) {
                 toRemove = null;
                 for (JmlMethodClause c: tree.clauses) {
-                    currentClauseType = c.clauseType;
+                    currentClauseType = c.clauseKind;
                     c.accept(this);
                 }
                 if (toRemove != null) {
@@ -3296,14 +3284,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     // These are the annotation types in which \pre and \old with a label can be used (e.g. assert)
-    private Set<IJmlClauseType> preTokens = JmlTokenKind.methodStatementTokens;
+    private Set<IJmlClauseKind> preTokens = JmlTokenKind.methodStatementTokens;
     
     // These are the annotation, method and type spec clause types in which \old without a label can be used
-    private Set<IJmlClauseType> oldNoLabelTokens = JmlTokenKind.methodStatementTokens;
+    private Set<IJmlClauseKind> oldNoLabelTokens = JmlTokenKind.methodStatementTokens;
     {
-        Set<IJmlClauseType> t = new HashSet<>();
+        Set<IJmlClauseKind> t = new HashSet<>();
         t.addAll(oldNoLabelTokens);
-        t.addAll(Utils.asSet(ensuresClause,signalsClause,constraintClause,durationClause,workingspaceClause,declClause)); // FIXME - double check JMLDECL
+        t.addAll(Utils.asSet(ensuresClauseKind,signalsClauseKind,constraintClause,durationClause,workingspaceClause,declClause)); // FIXME - double check JMLDECL
         oldNoLabelTokens = t;
     }
     
@@ -3797,7 +3785,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         boolean prev = pureEnvironment;
         pureEnvironment = true;
-        IJmlClauseType prevClauseType = currentClauseType;
+        IJmlClauseKind prevClauseType = currentClauseType;
         currentClauseType = tree.clauseType;
         // unreachable statements have a null expression
         if (tree.expression != null) attribExpr(tree.expression,env,isUse ? Type.noType : syms.booleanType);
@@ -3870,7 +3858,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prev = pureEnvironment;
         pureEnvironment = true;
         for (JmlTree.JmlStatementLoop tree: loopSpecs) {
-            IJmlClauseType prevClauseType = currentClauseType;
+            IJmlClauseKind prevClauseType = currentClauseType;
             currentClauseType = tree.clauseType;
             if (tree.clauseType == loopinvariantClause) {
                 attribExpr(((JmlStatementLoopExpr)tree).expression,loopEnv,syms.booleanType);
@@ -3894,7 +3882,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** This handles JML statements that give method-type specs for method body statements. */
     public void visitJmlStatementSpec(JmlTree.JmlStatementSpec tree) {
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
-        IJmlClauseType prevClauseType = currentClauseType;
+        IJmlClauseKind prevClauseType = currentClauseType;
         currentClauseType = null;
         boolean saved = isRefining;
         try {
@@ -3911,7 +3899,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** This handles JML declarations (method and ghost fields, methods, types) */
     public void visitJmlStatementDecls(JmlTree.JmlStatementDecls tree) {
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
-        IJmlClauseType prevClauseType = currentClauseType;
+        IJmlClauseKind prevClauseType = currentClauseType;
         currentClauseType = declClause;
         for (JCTree.JCStatement s : tree.list) {
             attribStat(s,env);
@@ -3923,7 +3911,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** This handles JML statements such as set and debug */
     public void visitJmlStatement(JmlTree.JmlStatement tree) {  // FIXME - need to test appropriately for purity
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
-        IJmlClauseType prevClauseType = currentClauseType;
+        IJmlClauseKind prevClauseType = currentClauseType;
         currentClauseType = tree.clauseType;
         if (tree.statement != null) attribStat(tree.statement,env);
         currentClauseType = prevClauseType;
@@ -3933,7 +3921,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** This handles JML show statement */
     public void visitJmlStatementShow(JmlTree.JmlStatementShow tree) { 
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
-        IJmlClauseType prevClauseType = currentClauseType;
+        IJmlClauseKind prevClauseType = currentClauseType;
         currentClauseType = tree.clauseType;
         if (tree.expressions != null) for (JCExpression e: tree.expressions) attribExpr(e,env);
         currentClauseType = prevClauseType;
@@ -3963,15 +3951,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** This set holds method clause types in which the \result token may appear 
      * (and \not_assigned \only_assigned \only_captured \only_accessible \not_modified) */
-    public Collection<IJmlClauseType> resultClauses = Utils.asSet(ensuresClause,durationClause,workingspaceClause);
+    public Collection<IJmlClauseKind> resultClauses = Utils.asSet(ensuresClauseKind,durationClause,workingspaceClause);
     
     /** This set holds method clause types in which the \exception token may appear  */
-    public Collection<IJmlClauseType> exceptionClauses = Collections.singleton(signalsClause);
+    public Collection<IJmlClauseKind> exceptionClauses = Collections.singleton(signalsClauseKind);
     
     /** This set holds method clause types in which the these tokens may appear:
      *  \not_assigned \only_assigned \only_captured \only_accessible \not_modified */
-    public Collection<IJmlClauseType> postClauses = Utils.asSet(ensuresClause,signalsClause,durationClause,workingspaceClause,assertClause,assumeClause);
-    public Collection<IJmlClauseType> freshClauses = new LinkedList<>();
+    public Collection<IJmlClauseKind> postClauses = Utils.asSet(ensuresClauseKind,signalsClauseKind,durationClause,workingspaceClause,assertClause,assumeClause);
+    public Collection<IJmlClauseKind> freshClauses = new LinkedList<>();
     { freshClauses.addAll(Utils.asSet(loopinvariantClause,assertClause,assumeClause));  freshClauses.addAll(postClauses); }
 
     /** This handles expression constructs with no argument list such as \\result */
@@ -4041,7 +4029,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
                 
             case BSSAME:
-                if (currentClauseType != requiresClause) {
+                if (currentClauseType != requiresClauseKind) {
                     log.error(that.pos,"jml.misplaced.same");
                 }
                 t = syms.booleanType;
@@ -4062,7 +4050,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
                 
             default:
-                IJmlClauseType ext = Extensions.instance(context).findSM(that.pos,jt.internedName(),true);
+                IJmlClauseKind ext = Extensions.instance(context).findSM(that.pos,jt.internedName(),true);
                 Type ttt = ext.typecheck(this,that,env);
                 result = check(that, ttt, VAL, resultInfo);
                 break;
@@ -4905,7 +4893,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitIdent(JCIdent tree) {
 //        if (tree.name.toString().equals("TestJava")) org.jmlspecs.openjml.Utils.stop();
         long prevVisibility = jmlVisibility;
-        IJmlClauseType prevClauseType = currentClauseType; // FIXME _ why do we need to save this?
+        IJmlClauseKind prevClauseType = currentClauseType; // FIXME _ why do we need to save this?
         try {
 //            jmlVisibility = -1;
 //            currentClauseType = null;
@@ -4926,7 +4914,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 && tree.sym.owner == enclosingClassEnv.enclClass.sym
                 && interpretInPreState(tree,currentClauseType)
                 ) {
-            String k = (currentClauseType == requiresClause) ? "preconditions: " :
+            String k = (currentClauseType == requiresClauseKind) ? "preconditions: " :
                 (currentClauseType.name() + " clauses: ");
             k += tree.toString();
             if (tree.sym.name != names._this)
@@ -5015,7 +5003,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.name());
                 }
 
-            } else if (currentClauseType == ensuresClause || currentClauseType == signalsClause) {
+            } else if (currentClauseType == ensuresClauseKind || currentClauseType == signalsClauseKind) {
                 // An identifier mentioned in a clause must be at least as visible as the clause itself.
                 if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,sym)) {
                     log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.name());
@@ -5285,10 +5273,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             result = tree.type = Type.noType;
         } else {
             FieldExtension fext = Extensions.instance(context).findField(tree.pos, tree.name.toString(), false);
-            if (fext != null) {
-                attribExpr(tree.selected, env, Type.noType); // Any type is allowed
+            if (fext != null && this.jmlresolve.allowJML()) {
+                Type t = attribExpr(tree.selected, env, Type.noType); // Any type is allowed
                 Type atype = tree.selected.type;
-                Type t;
                 if (atype instanceof Type.ArrayType) { 
                     Type elemtype = ((Type.ArrayType)atype).elemtype;
                     Type at = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.array")).type;
@@ -5296,8 +5283,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 } else if (atype.isErroneous()) {
                     t = atype;
                 } else {
-                    log.error(tree,"jml.message","The .array suffix is permitted only for array expressions: " );
-                    t = types.createErrorType(atype);
+//                    log.error(tree,"jml.message","The .array suffix is permitted only for array expressions: " );
+//                    t = types.createErrorType(atype);
+                    super.visitSelect(tree);
+                    // The super call does not always call check... (which assigns the
+                    // determined type to tree.type, particularly if an error occurs,
+                    // so we fill it in
+                    if (tree.type == null) tree.type = result;
+                    t = tree.type;
                 }
                 result = tree.type = check(tree, t, VAL, resultInfo);
             } else {
@@ -6248,7 +6241,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlVariableDecl(JmlVariableDecl that) {
 
         JavaFileObject prevSource = null;
-        IJmlClauseType savedType = currentClauseType;
+        IJmlClauseKind savedType = currentClauseType;
         try {
             if (that.source() != null) prevSource = log.useSource(that.source());
 
@@ -6721,11 +6714,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return msym;
     }
     
-    public boolean interpretInPreState(DiagnosticPosition pos, IJmlClauseType kind) {
-        if (kind == ensuresClause ||
-                kind == signalsClause ||
-                kind == signalsOnlyClause) return false;
-        if (kind instanceof IJmlClauseType.MethodClause) return true;
+    public boolean interpretInPreState(DiagnosticPosition pos, IJmlClauseKind kind) {
+        if (kind == ensuresClauseKind ||
+                kind == signalsClauseKind ||
+                kind == signalsOnlyClauseKind) return false;
+        if (kind instanceof IJmlClauseKind.MethodClause) return true;
         return false;
     }
     

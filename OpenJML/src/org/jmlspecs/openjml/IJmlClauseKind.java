@@ -31,26 +31,56 @@ import com.sun.tools.javac.util.Log.WriterKind;
 /** Objects of this type represents kinds of JML clauses and statements, for example,
  *  requires clauses or the \old expression. Instances represent kinds of clauses,
  *  not instances of clauses. These objects also contain behavior of the clause kinds,
- *  namely how to parse and typecheck instances of these clauses.
+ *  namely how to parse and typecheck instances of these clauses. Instances of clauses
+ *  are usually instances of derived types of JmlTree.
  * @author davidcok
  *
  */
-public abstract class IJmlClauseType {
+public abstract class IJmlClauseKind {
     
-    public static abstract class MethodClause extends IJmlClauseType {
+    public static abstract class MethodClause extends IJmlClauseKind {
         public boolean preAllowed() { return !isPreconditionClause(); }
         public boolean isPreconditionClause() { return false; }
     }
-    public static abstract class Statement extends IJmlClauseType{
+    public static abstract class Statement extends IJmlClauseKind{
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
         public boolean preAllowed() { return true; }
     }
-    public static abstract class TypeClause extends IJmlClauseType {
+    
+    /** The kind of line annotations */
+    public static abstract class LineAnnotationKind extends IJmlClauseKind {
+
+        @Override
+        public JCTree parse(JCModifiers mods, String keyword,
+                IJmlClauseKind clauseType, JmlParser parser) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
+            throw new UnsupportedOperationException();
+        }
+
+        abstract public void scan(int keywordPos, String keyword, IJmlClauseKind clauseKind, JmlTokenizer tokenizer);
+
+        /** A class that is a record of an instance of a line annotation.
+         * A line annotation is captured by the scanner, not the parser,
+         * and so is a bit of a different animal. */
+        public static abstract class LineAnnotation {
+            public int line;
+            public int keywordPos;
+            public IJmlClauseKind clauseKind;
+            public IJmlClauseKind clauseKind() { return clauseKind; }
+            abstract public java.util.List<JCExpression> exprs();
+            abstract public Type typecheck(JmlAttr attr, Env<AttrContext> env);
+        }
     }
-    public static abstract class Expression extends IJmlClauseType {
+    public static abstract class TypeClause extends IJmlClauseKind {
     }
-    public static abstract class Modifier extends IJmlClauseType {
+    public static abstract class Expression extends IJmlClauseKind {
+    }
+    public static abstract class Modifier extends IJmlClauseKind {
     }
 
     // These fields and methods give behavior of JML clauses of the given kind.
@@ -209,7 +239,7 @@ public abstract class IJmlClauseType {
      * @param typeArgs any type arguments already seen (may be null)
      * @return the AST for the expression
      */
-    abstract public JCTree parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser);
+    abstract public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser);
     
     protected void init(JmlParser parser) {
         Context c = this.context = parser.context;
@@ -223,7 +253,7 @@ public abstract class IJmlClauseType {
         this.scanner.setJmlKeyword(false);
     }
     
-    protected void wrapup(JCTree statement, IJmlClauseType clauseType, boolean parseSemicolon) {
+    protected void wrapup(JCTree statement, IJmlClauseKind clauseType, boolean parseSemicolon) {
         parser.toP(statement);
         if (statement instanceof JmlSource) {
             ((JmlSource)statement).setSource(Log.instance(context).currentSourceFile());

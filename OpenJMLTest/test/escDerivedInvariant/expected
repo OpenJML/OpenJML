@@ -2,11 +2,11 @@ Proving methods in Interface
 Completed proving methods in Interface
 Proving methods in Derived
 Starting proof of Derived.good() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Derived.good() with prover !!!! - no warnings
 Starting proof of Derived.Derived() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Derived.Derived() with prover !!!! - no warnings
 Completed proving methods in Derived

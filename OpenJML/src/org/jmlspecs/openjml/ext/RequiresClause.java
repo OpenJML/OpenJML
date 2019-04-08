@@ -2,7 +2,7 @@ package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.*;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.IJmlVisitor;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree;
@@ -24,13 +24,13 @@ public class RequiresClause extends JmlExtension.MethodClause {
     
     public static final String requiresID = "requires";
     
-    public static final IJmlClauseType requiresClause = new MethodClauseExprType(requiresID) {
+    public static final IJmlClauseKind requiresClauseKind = new MethodClauseExprType(requiresID) {
         
         public boolean isPreconditionClause() { return true; }
         
         @Override
         public 
-        JmlMethodClauseExpr parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        JmlMethodClauseExpr parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             if (mods != null) {
                 error(mods, "jml.message", "A " + keyword + " clause may not have modifiers");
                 return null;
@@ -77,8 +77,8 @@ public class RequiresClause extends JmlExtension.MethodClause {
     };
     
     @Override
-    public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
-            requiresClause}; }
+    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
+            requiresClauseKind}; }
     
     public static class Node extends JmlTree.JmlMethodClauseExpr {
 
@@ -86,7 +86,7 @@ public class RequiresClause extends JmlExtension.MethodClause {
         public JCExpression exceptionType;
 
         protected Node(int pos, JCExpression expression, JCExpression exceptionType) {
-            super(pos, requiresID, requiresClause, expression);
+            super(pos, requiresID, requiresClauseKind, expression);
             this.exceptionType = exceptionType;
         }
         

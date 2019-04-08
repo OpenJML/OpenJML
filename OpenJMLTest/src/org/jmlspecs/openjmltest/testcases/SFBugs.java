@@ -1,9 +1,5 @@
 package org.jmlspecs.openjmltest.testcases;
 
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,14 +8,12 @@ import java.util.List;
 
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjmltest.EscBase;
-import org.jmlspecs.openjmltest.TCBase;
-import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.ParameterizedWithNames;
 import org.junit.runners.Parameterized.Parameters;
+import org.junit.runners.ParameterizedWithNames;
 
 @RunWith(ParameterizedWithNames.class)
 public class SFBugs extends EscBase {
@@ -46,7 +40,7 @@ public class SFBugs extends EscBase {
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
         //Assert.fail(); // FIXME - Java8 - long running
         ArrayList<String> list = new ArrayList<String>();
-        list.add("-code-math=bigint");
+        list.add("-code-math=safe");
         list.add("-spec-math=bigint");
         list.addAll(Arrays.asList(opts));
         escOnFiles(sourceDirname,outDir,list.toArray(opts));
@@ -57,7 +51,7 @@ public class SFBugs extends EscBase {
         List<String> a = new LinkedList<>();
         a.add(0,"-cp"); 
         a.add(1,dir + cpathAddition);
-        a.add("-code-math=bigint");
+        a.add("-code-math=safe");
         a.add("-spec-math=bigint");
         a.addAll(Arrays.asList(opts));
         escOnFiles(dir, dir, a.toArray(new String[a.size()]));
@@ -339,7 +333,7 @@ public class SFBugs extends EscBase {
     }
 
     @Test public void gitbug503() {
-        helpTCG();
+        helpTCG("-code-math=java"); // java math just to avoid overflow error messages
     }
 
     @Test public void gitbug535() {
@@ -677,7 +671,7 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug601() {
         expectedExit = 0;
-        helpTCG();  // FIXME Unimplemented floating point (infinity)
+        helpTCG();
     }
     
     @Test
@@ -985,6 +979,42 @@ public class SFBugs extends EscBase {
     public void gitbug666() {  // FIXME - recursive -- not yet fixed
         expectedExit = 0;
         helpTCG("-show=all","-method=pow");
+    }
+    
+    @Test
+    public void gitbug670() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test @Ignore // Complained of inifinte run time
+    public void gitbug672() {
+        expectedExit = 0;
+        helpTCF("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/bidimap/TreeBidiMap.java","test/gitbug672","-timeout=1800","-no-staticInitWarning","-cp","test/gitbug672/commons-collections4-4.3-sources","-escMaxWarnings=1");
+    }
+    
+    @Test @Ignore // Complained of undefined symbols
+    public void gitbug671() {
+        expectedExit = 0;
+        helpTCF("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/set/ListOrderedSet.java","test/gitbug671","-timeout=1800","-no-staticInitWarning","-cp","test/gitbug672/commons-collections4-4.3-sources","-escMaxWarnings=1");
+    }
+    
+    @Test
+    public void gitbug673() {
+        expectedExit = 0;
+        helpTCG("-subexpressions","-method=Temperature2");
+    }
+    
+    @Test
+    public void gitbug676() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug677() {
+        expectedExit = 0;
+        helpTCG("-code-math=safe"); // The problem manifests with safe math
     }
     
     public void gitbug888() {

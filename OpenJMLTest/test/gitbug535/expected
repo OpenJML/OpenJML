@@ -1,7 +1,7 @@
 Proving methods in AError
 Starting proof of AError.AError() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of AError.AError() with prover !!!! - no warnings
 Starting proof of AError.m() with prover !!!!
 test/gitbug535/AError.java:6: warning: The prover cannot establish an assertion (Assert) in method m

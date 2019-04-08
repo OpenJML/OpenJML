@@ -1,6 +1,6 @@
 package org.jmlspecs.openjml.ext;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlExpression;
@@ -27,7 +27,7 @@ public class Key extends ExpressionExtension {
             JmlTokenKind.BSKEY}; }
     
     @Override
-    public IJmlClauseType[] clauseTypes() {
+    public IJmlClauseKind[] clauseTypes() {
         // TODO Auto-generated method stub
         return null;
     }

@@ -1942,6 +1942,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (utils.isJML(tree.mods)) resolve.setAllowJML(prev);
         if (tree.sym == null) {
             // A duplicate
+            env.enclClass.defs = List.filter(env.enclClass.defs,tree);
             return;
         }
         Symbol sym = tree.sym;
@@ -1971,7 +1972,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             chk.checkTransparentVar(tree.pos(), v, enclScope);
             if (!noEntering) enclScope.enter(v);
         } else {
-            tree.sym = null; // An indication that the field is a duplicate and should be removed/ignored
+            // A duplicate definition. It is not entered into the scope, but we
+            // give it its symbol so later processing does not crash.
+            tree.sym = v;
         }
     }
 

@@ -3,7 +3,7 @@ package org.jmlspecs.openjml.ext;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
@@ -31,10 +31,10 @@ public class CallableClauseExtension extends JmlExtension.MethodClause {
     public static final String callableID = "callable";
     
     @Override
-    public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             callableClause }; }
     
-    public static final IJmlClauseType callableClause = new IJmlClauseType.MethodClause() {
+    public static final IJmlClauseKind callableClause = new IJmlClauseKind.MethodClause() {
         @Override
         public String name() { return callableID; }
         @Override
@@ -43,7 +43,7 @@ public class CallableClauseExtension extends JmlExtension.MethodClause {
         public boolean preOrOldWithLabelAllowed() { return false; }
 
         @Override
-        public JmlMethodClauseCallable parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        public JmlMethodClauseCallable parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             int pp = parser.pos();
             int pe = parser.endPos();
             init(parser);

@@ -72,7 +72,7 @@ public class TreeContains extends JmlTreeScanner {
     
     @Override
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
-        if(tree!=null && tree.clauseType == MethodExprClauseExtensions.ensuresClause){
+        if(tree!=null && tree.clauseKind == MethodExprClauseExtensions.ensuresClauseKind){
             ensuresClauses += 1;
         }
         super.visitJmlMethodClauseExpr(tree);

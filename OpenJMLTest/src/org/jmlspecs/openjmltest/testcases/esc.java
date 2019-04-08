@@ -1383,23 +1383,37 @@ public class esc extends EscBase {
 
     @Test
     public void testAssignables3a() {
+        main.addOptions("-method=m1a");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public static int[] a;  //@ public invariant a != null && a.length == 10;\n"
 
-                + "  /*@ assignable a; */ public TestJava() {\n" + "     a = new int[10];\n" + "  }\n"
-
-                + "  //@ modifies a[*];\n" + "  public void m1() {\n" + "    //@ assume a[0] == 0 && a[2] == 2;\n"
-                + "    c1();\n" + "    //@ assert a[0] == 0;\n" + "  }\n"
-
-                + "  //@ modifies a[*];\n" + "  public void m1a() {\n" + "    //@ assume a[0] == 0 && a[2] == 2;\n"
-                + "    c1();\n" + "    //@ assert a[2] == 3;\n" // FAILS
+                + "  /*@ assignable a; */ public TestJava() {\n" 
+                + "     a = new int[10];\n" 
                 + "  }\n"
 
-                + "  //@ modifies a[2 .. 4];\n" + "  public void c1() { } \n"
+                + "  //@ modifies a[*];\n" 
+                + "  public void m1() {\n" 
+                + "    //@ assume a[0] == 0 && a[2] == 2;\n"
+                + "    c1();\n" 
+                + "    //@ assert a[0] == 0;\n" 
+                + "  }\n"
 
-                + "  //@ modifies a[*];\n" + "  public void c2() {}\n"
+                + "  //@ modifies a[*];\n" 
+                + "  public void m1a() {\n" 
+                + "    //@ assume a[0] == 0 && a[2] == 2;\n"
+                + "    c1();\n" 
+                + "    //@ assert a[2] == 3;\n" // FAILS
+                + "  }\n"
 
-                + "  //@ modifies a[2 .. ];\n" + "  public void c3() {}\n" + "}",
+                + "  //@ modifies a[2 .. 4];\n" 
+                + "  public void c1() { } \n"
+
+                + "  //@ modifies a[*];\n" 
+                + "  public void c2() {}\n"
+
+                + "  //@ modifies a[2 .. ];\n" 
+                + "  public void c3() {}\n" 
+                + "}",
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m1a", 9);
     }
 
@@ -4338,11 +4352,14 @@ public class esc extends EscBase {
                         + "     //@ show i i;\n"
                         + "     //@ show;\n"
                         + "     //@ show i\n"
+                        + "     //@ show %;\n"
                         + "  }\n"
                         + "}\n"
-                        ,"/tt/TestJava.java:8: Expected a semicolon to terminate the expression list",14
+                        ,"/tt/TestJava.java:8: warning: Inserting missing semicolon at the end of a show statement",14
                         ,"/tt/TestJava.java:9: Bad syntax in the expression list in show statement",17
-                        ,"/tt/TestJava.java:11: Expected a semicolon to terminate the expression list",15
+                        ,"/tt/TestJava.java:11: warning: Inserting missing semicolon at the end of a show statement",15
+                        ,"/tt/TestJava.java:12: illegal start of expression",15
+                        ,"/tt/TestJava.java:12: illegal start of expression",16
                         );
     }
 
@@ -4396,6 +4413,7 @@ public class esc extends EscBase {
                         + "  //@ ghost int k = 2;\n"
                         + "  }\n"
                         + "}\n"
+                 ,"/tt/TestJava.java:5: variable k is already defined in method m()",17
                         );
     }
 
@@ -4418,6 +4436,110 @@ public class esc extends EscBase {
                         + "}\n"
                         ,"/tt/TestJava.java:10: warning: Cannot chain comparisons that are in different directions",17
                         ,"/tt/TestJava.java:11: warning: Cannot chain comparisons that are in different directions",17
+                        );
+    }
+
+    @Test
+    public void testAllowForbid2() {
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public int iii;\n"
+                        + "  //@ signals_only \\nothing;\n"
+                        + "  public void m(/*@ nullable */ TestJava t) {\n"
+                        + "    int i = t.iii //@ allow NullPointerException; \n"
+                        + "    ;\n"
+                        + "  }\n"
+                        + "}\n"
+                        ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (ExceptionList) in method m",14
+                        ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                        );
+    }
+
+    @Test
+    public void testAllowForbid3() {
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public int iii;\n"
+                        + "  public void m(/*@ nullable */ TestJava t) {\n"
+                        + "    int i = t.iii //@ forbid NullPointerException; \n"
+                        + "    ;\n"
+                        + "  }\n"
+                        + "}\n"
+                        ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m",14
+                        );
+    }
+
+    @Test
+    public void testAllowForbid5() {
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public int iii;\n"
+                        + "  public void m(/*@ nullable */ TestJava t, /*@ nullable */ TestJava tt) {\n"
+                        + "    int i = t.iii; //@ ignore NullPointerException; \n"
+                        + "    i = t.iii;\n"
+                        + "  }\n"
+                        + "}\n"
+                        );
+    }
+
+    @Test
+    public void testAllowForbid4() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public int iii;\n"
+                        + "  public void m(/*@ nullable */ TestJava t, /*@ nullable */ TestJava tt) {\n"
+                        + "    int i = t.iii; //@ ignore java.lang.XX; \n"
+                        + "    i = t.iii;\n"
+                        + "  }\n"
+                        + "}\n"
+                        ,"/tt/TestJava.java:5: cannot find symbol\n" + 
+                                                "  symbol:   class XX\n" + 
+                                                "  location: package java.lang",41
+                        ,"/tt/TestJava.java:5: cannot find symbol\n" +  // TODO: It is a OpenJDK problem that this error message is repeated
+                                                "  symbol:   class XX\n" + 
+                                                "  location: package java.lang",41
+                        );
+    }
+
+    @Test
+    public void testAllowForbid() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public int iii;\n"
+                        + "  public void m(/*@ nullable */ TestJava t) {\n"
+                        + "  int i = t.iii //@ allow NullPointerException; \n"
+                        + "  ;\n"
+                        + "  int j = t.iii; //@ forbid NullPointerException; \n"
+                        + "  int k = t.iii; //@ forbid X; \n"
+                        + "  k = t.iii; //@ forbid ; \n"
+                        + "  k = t.iii; //@ forbid NullPointerException \n"
+                        + "  k = t.iii; //@ forbid NullPointerException, ArrayIndexOutOfBoundsException; \n"
+                        + "  k = t.iii; //@ forbid NullPointerException ArrayIndexOutOfBoundsException; \n"
+                        + "  k = t.iii; //@ forbid NullPointerException; allow NullPointerException \n"
+                        + "  k = t.iii; //@ ignore NullPointerException; allow NullPointerException \n"
+                        + "  k = t.iii; //@ ignore NullPointerException; forbid NullPointerException \n"
+                        + "  k = t.iii; //@ forbid java.lang.NullPointerException \n"
+                        + "  k = t.iii //@ forbid java.lang. \n"
+                        + "  ;\n"
+                        + "  }\n"
+                        + "}\n"
+                        ,"/tt/TestJava.java:9: warning: Ignoring annotation with no exceptions listed",25
+                        ,"/tt/TestJava.java:10: warning: A line annotation should end with a semicolon",46
+                        ,"/tt/TestJava.java:13: warning: A line annotation should end with a semicolon",74
+                        ,"/tt/TestJava.java:14: warning: A line annotation should end with a semicolon",74
+                        ,"/tt/TestJava.java:15: warning: A line annotation should end with a semicolon",75
+                        ,"/tt/TestJava.java:16: warning: A line annotation should end with a semicolon",56
+                        ,"/tt/TestJava.java:17: Expected an identifier here in the line annotation",35
+                        ,"/tt/TestJava.java:8: cannot find symbol\n" + 
+                                 "  symbol:   class X\n" + 
+                                 "  location: class tt.TestJava",29
                         );
     }
 

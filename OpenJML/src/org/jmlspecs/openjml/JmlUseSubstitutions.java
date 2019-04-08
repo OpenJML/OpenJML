@@ -135,8 +135,8 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                 exprPrecondition = exprHead = null;
                 JmlSpecificationCase cs = lemmaspecs.cases.cases.head;
                 for (JmlMethodClause cl: cs.clauses) {
-                    IJmlClauseType ct = cl.clauseType;
-                    if (ct == requiresClause) {
+                    IJmlClauseKind ct = cl.clauseKind;
+                    if (ct == requiresClauseKind) {
                             expr = ((JmlMethodClauseExpr)cl).expression;
                             if (exprPrecondition != null) {
                                 log.error(cl,"jml.internal","Use lemmas currently implement only one requires clause");
@@ -145,7 +145,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                                 subst.replacements = replacements;
                                 exprPrecondition = subst.copy(expr);
                             }
-                    } else if (ct == ensuresClause) {
+                    } else if (ct == ensuresClauseKind) {
                             expr = ((JmlMethodClauseExpr)cl).expression;
                             if (exprHead != null) {
                                 log.error(cl,"jml.internal","Use lemmas currently implement only one ensures clause");

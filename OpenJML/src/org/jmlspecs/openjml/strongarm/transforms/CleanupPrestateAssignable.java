@@ -101,7 +101,7 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
 
             JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr) clause;
 
-            if (mExpr.clauseType == ensuresClause
+            if (mExpr.clauseKind == ensuresClauseKind
                     && mExpr.expression instanceof JCBinary) {
                 JCBinary b = (JCBinary) mExpr.expression;
 
@@ -122,28 +122,28 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
         if (clause instanceof JmlMethodClauseStoreRef) {
             JmlMethodClauseStoreRef mExpr = (JmlMethodClauseStoreRef) clause;
 
-            if (mExpr.clauseType == assignableClause
+            if (mExpr.clauseKind == assignableClauseKind
                     && mExpr.toString().startsWith("assignable \\result.")) {
                 return true;
             }
 
-            if (mExpr.clauseType == assignableClause
+            if (mExpr.clauseKind == assignableClauseKind
                     && mExpr.toString().startsWith("assignable \\result")) {
                 return true;
             }
             if (AnalysisTypes.enabled(context, AnalysisType.TAUTOLOGIES)) {
-                if (mExpr.clauseType == assignableClause
+                if (mExpr.clauseKind == assignableClauseKind
                         && mExpr.toString().startsWith("assignable true")) {
                     return true;
                 }
             }
 
-            if (mExpr.clauseType == assignableClause && mExpr.toString()
+            if (mExpr.clauseKind == assignableClauseKind && mExpr.toString()
                     .startsWith("assignable " + Strings.newArrayVarString)) {
                 return true;
             }
 
-            if (mExpr.clauseType == assignableClause && mExpr.toString()
+            if (mExpr.clauseKind == assignableClauseKind && mExpr.toString()
                     .startsWith("assignable " + Strings.newObjectVarString)) {
                 return true;
             }
@@ -344,21 +344,21 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
             }
 
             if (clause instanceof JmlMethodClauseExpr
-                    && clause.clauseType == requiresClause
+                    && clause.clauseKind == requiresClauseKind
                     && (((JmlMethodClauseExpr) clause).expression.toString()
                             .contains("\\result"))) {
                 return true;
             }
 
             if (clause instanceof JmlMethodClauseExpr
-                    && clause.clauseType == ensuresClause
+                    && clause.clauseKind == ensuresClauseKind
                     && (((JmlMethodClauseExpr) clause).expression.toString()
                             .contains("this.overallStart == time"))) {
                 return true;
             }
 
             if (clause instanceof JmlMethodClauseExpr
-                    && clause.clauseType == ensuresClause
+                    && clause.clauseKind == ensuresClauseKind
                     && (((JmlMethodClauseExpr) clause).expression.toString()
                             .contains("colSize == children.content.theSize"))) {
                 return true;

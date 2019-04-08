@@ -1,84 +1,84 @@
 Proving methods in Allocator
 Starting proof of Allocator.Allocator() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Allocator.Allocator() with prover !!!! - no warnings
 Starting proof of Allocator.alloc(int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Allocator.alloc(int) with prover !!!! - no warnings
 Completed proving methods in Allocator
 Proving methods in AllocatorTest
 Starting proof of AllocatorTest.AllocatorTest() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of AllocatorTest.AllocatorTest() with prover !!!! - no warnings
 Starting proof of AllocatorTest.testAllocSmall() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - before explicit assert statement : OK
-Feasibility check #3 - before explicit assert statement : OK
-Feasibility check #4 - before explicit assert statement : OK
-Feasibility check #5 - before explicit assert statement : OK
-Feasibility check #6 - before explicit assert statement : OK
-Feasibility check #7 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
 Completed proof of AllocatorTest.testAllocSmall() with prover !!!! - no warnings
 Starting proof of AllocatorTest.testAllocLarge() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - before explicit assert statement : OK
-Feasibility check #3 - before explicit assert statement : OK
-Feasibility check #4 - before explicit assert statement : OK
-Feasibility check #5 - before explicit assert statement : OK
-Feasibility check #6 - before explicit assert statement : OK
-Feasibility check #7 - before explicit assert statement : OK
-Feasibility check #8 - before explicit assert statement : OK
-Feasibility check #9 - before explicit assert statement : OK
-Feasibility check #10 - before explicit assert statement : OK
-Feasibility check #11 - before explicit assert statement : OK
-Feasibility check #12 - before explicit assert statement : OK
-Feasibility check #13 - before explicit assert statement : OK
-Feasibility check #14 - before explicit assert statement : OK
-Feasibility check #15 - before explicit assert statement : OK
-Feasibility check #16 - before explicit assert statement : OK
-Feasibility check #17 - before explicit assert statement : OK
-Feasibility check #18 - before explicit assert statement : OK
-Feasibility check #19 - before explicit assert statement : OK
-Feasibility check #20 - before explicit assert statement : OK
-Feasibility check #21 - before explicit assert statement : OK
-Feasibility check #22 - before explicit assert statement : OK
-Feasibility check #23 - before explicit assert statement : OK
-Feasibility check #24 - before explicit assert statement : OK
-Feasibility check #25 - before explicit assert statement : OK
-Feasibility check #26 - before explicit assert statement : OK
-Feasibility check #27 - before explicit assert statement : OK
-Feasibility check #28 - before explicit assert statement : OK
-Feasibility check #29 - before explicit assert statement : OK
-Feasibility check #30 - before explicit assert statement : OK
-Feasibility check #31 - before explicit assert statement : OK
-Feasibility check #32 - before explicit assert statement : OK
-Feasibility check #33 - before explicit assert statement : OK
-Feasibility check #34 - before explicit assert statement : OK
-Feasibility check #35 - before explicit assert statement : OK
-Feasibility check #36 - before explicit assert statement : OK
-Feasibility check #37 - before explicit assert statement : OK
-Feasibility check #38 - before explicit assert statement : OK
-Feasibility check #39 - before explicit assert statement : OK
-Feasibility check #40 - before explicit assert statement : OK
-Feasibility check #41 - before explicit assert statement : OK
-Feasibility check #42 - before explicit assert statement : OK
-Feasibility check #43 - before explicit assert statement : OK
-Feasibility check #44 - before explicit assert statement : OK
-Feasibility check #45 - before explicit assert statement : OK
-Feasibility check #46 - before explicit assert statement : OK
-Feasibility check #47 - before explicit assert statement : OK
-Feasibility check #48 - before explicit assert statement : OK
-Feasibility check #49 - before explicit assert statement : OK
-Feasibility check #50 - before explicit assert statement : OK
-Feasibility check #51 - before explicit assert statement : OK
-Feasibility check #52 - before explicit assert statement : OK
-Feasibility check #53 - before explicit assert statement : OK
-Feasibility check #54 - before explicit assert statement : OK
-Feasibility check #55 - before explicit assert statement : OK
-Feasibility check #56 - before explicit assert statement : OK
-Feasibility check #57 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
 Completed proof of AllocatorTest.testAllocLarge() with prover !!!! - no warnings
 Completed proving methods in AllocatorTest

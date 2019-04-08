@@ -3,7 +3,7 @@ package org.jmlspecs.openjml.strongarm.tree.analysis;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
@@ -20,9 +20,9 @@ import com.sun.tools.javac.util.Log.WriterKind;
 public class CollectExpressionsAnalysis extends JmlTreeAnalysis {
 
     private Set<JCTree> exprs = new HashSet<JCTree>();
-    private final IJmlClauseType clauseType;
+    private final IJmlClauseKind clauseType;
     
-    public CollectExpressionsAnalysis(Context context, IJmlClauseType clauseType) {
+    public CollectExpressionsAnalysis(Context context, IJmlClauseKind clauseType) {
         super(context);
         
         this.clauseType = clauseType;
@@ -37,7 +37,7 @@ public class CollectExpressionsAnalysis extends JmlTreeAnalysis {
     @Override
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
         
-        if(tree.clauseType == clauseType){
+        if(tree.clauseKind == clauseType){
             exprs.add(tree);
         }
         
@@ -47,7 +47,7 @@ public class CollectExpressionsAnalysis extends JmlTreeAnalysis {
     
     public static Set<JCTree> analyze(JCTree tree){
         
-        CollectExpressionsAnalysis analysis = new CollectExpressionsAnalysis(Strongarm._context, requiresClause);
+        CollectExpressionsAnalysis analysis = new CollectExpressionsAnalysis(Strongarm._context, requiresClauseKind);
         
         
         analysis.scan(tree);
@@ -57,7 +57,7 @@ public class CollectExpressionsAnalysis extends JmlTreeAnalysis {
     }
 
 
-    public static Set<JCTree> analyze(JCTree tree, Context ctx, IJmlClauseType clauseType){
+    public static Set<JCTree> analyze(JCTree tree, Context ctx, IJmlClauseKind clauseType){
         
         CollectExpressionsAnalysis analysis = new CollectExpressionsAnalysis(ctx, clauseType);
         

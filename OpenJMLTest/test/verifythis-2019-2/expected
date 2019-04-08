@@ -1,0 +1,11 @@
+Proving methods in Challenge
+Starting proof of Challenge.Challenge() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Challenge.Challenge() with prover !!!! - no warnings
+Starting proof of Challenge.leftNeighbors(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at reachable statement : OK
+Feasibility check - at program exit : OK
+Completed proof of Challenge.leftNeighbors(int[]) with prover !!!! - no warnings
+Completed proving methods in Challenge

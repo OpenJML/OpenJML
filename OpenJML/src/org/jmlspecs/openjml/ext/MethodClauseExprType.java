@@ -2,7 +2,7 @@ package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 
 import com.sun.tools.javac.code.Type;
@@ -14,7 +14,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 
-public class MethodClauseExprType extends IJmlClauseType.MethodClause {
+public class MethodClauseExprType extends IJmlClauseKind.MethodClause {
     
     public MethodClauseExprType(String keyword) {
         this.keyword = keyword;
@@ -27,7 +27,7 @@ public class MethodClauseExprType extends IJmlClauseType.MethodClause {
 
     @Override
     public 
-    JmlMethodClauseExpr parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+    JmlMethodClauseExpr parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
         if (mods != null) {
             error(mods, "jml.message", "A " + keyword + " clause may not have modifiers");
             return null;

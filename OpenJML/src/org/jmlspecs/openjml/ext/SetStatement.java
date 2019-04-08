@@ -6,7 +6,7 @@ package org.jmlspecs.openjml.ext;
 
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
 import org.jmlspecs.openjml.JmlTree.JmlStatement;
@@ -40,23 +40,23 @@ public class SetStatement extends JmlExtension.Statement {
     public static final String setID = "set";
     public static final String debugID = "debug";
     
-    public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             setClause, debugClause }; }
     
-    public static final IJmlClauseType setClause = new JmlStatementType() {
+    public static final IJmlClauseKind setClause = new JmlStatementType() {
         public String name() { return setID; }
     };
     
-    public static final IJmlClauseType debugClause = new JmlStatementType() {
+    public static final IJmlClauseKind debugClause = new JmlStatementType() {
         public String name() { return debugID; }
     };
     
 
-    public static class JmlStatementType extends IJmlClauseType.Statement {
+    public static class JmlStatementType extends IJmlClauseKind.Statement {
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
 
-        public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             
             int pp = parser.pos();
@@ -64,17 +64,26 @@ public class SetStatement extends JmlExtension.Statement {
             
             scanner.setJmlKeyword(false);
             parser.nextToken();
-            JCExpression e = parser.parseExpression(); // Was super.
-            JCStatement t = jmlF.Exec(e);
-//            if (!(t instanceof JCExpressionStatement)) {
-//                parser.jmlerror(t.getStartPosition(),
-//                        parser.getEndPos(t),
-//                        "jml.bad.statement.in.set.debug");
-//                t = null;
-//            }
-            JmlAbstractStatement st = toP(jmlF.at(pp).JmlStatement(clauseType, (JCExpressionStatement)t));
-            wrapup(st, clauseType, true);
-            return st;
+//            JCExpression e = parser.parseExpression();
+//            JCStatement t = jmlF.Exec(e);
+            boolean saved = parser.setInJmlDeclaration(true);
+            try {
+                JCStatement t = parser.parseJavaStatement();
+                //          if (!(t instanceof JCExpressionStatement)) {
+                //          parser.jmlerror(t.getStartPosition(),
+                //                  parser.getEndPos(t),
+                //                  "jml.bad.statement.in.set.debug");
+                //          t = null;
+                //      }
+                //      JmlAbstractStatement st = toP(jmlF.at(pp).JmlStatement(clauseType, (JCExpressionStatement)t));
+                JmlAbstractStatement st = toP(jmlF.at(pp).JmlStatement(clauseType, t));
+
+
+                wrapup(st, clauseType, false);
+                return st;
+            } finally {
+                parser.setInJmlDeclaration(saved);
+            }
         }
         
         @Override

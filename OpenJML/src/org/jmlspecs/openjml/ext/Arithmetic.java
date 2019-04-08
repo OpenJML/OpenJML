@@ -2,7 +2,7 @@ package org.jmlspecs.openjml.ext;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.IArithmeticMode;
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
@@ -59,7 +59,7 @@ abstract public class Arithmetic extends ExpressionExtension {
             JmlTokenKind.BSBIGINT_MATH, JmlTokenKind.BSJAVAMATH, JmlTokenKind.BSSAFEMATH}; }
     
     @Override
-    public IJmlClauseType[] clauseTypes() {
+    public IJmlClauseKind[] clauseTypes() {
         // TODO Auto-generated method stub
         return null;
     }
@@ -333,8 +333,8 @@ abstract public class Arithmetic extends ExpressionExtension {
 
         TypeTag typetag = newtype.getTag();
         
+        boolean smtPredefined = true;
         // Check for overflows
-        
         if (checkOverflow) {
             // The overflow checks have to work whether integers are eventually encoded as fixed length bit vectors or as mathematical values
             if (optag == JCTree.Tag.PLUS || optag == JCTree.Tag.MINUS) {
@@ -404,6 +404,14 @@ abstract public class Arithmetic extends ExpressionExtension {
                         JCExpression d = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, b, rewriter.convertCopy(rhs));
                         rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, 
                                 condition(rewriter, rewriter.treeutils.makeOr(p, c, d)), "long multiply overflow");
+                    }
+                } else if (smtPredefined) {
+                    if (newtype.getTag() == TypeTag.INT) {
+                        assertIt(rewriter, that, "int multiply overflow", 
+                            rewriter.treeutils.makeJmlMethodInvocation(that,"|#isMul32ok#|", syms.booleanType, lhs, rhs));
+                    } else if (newtype.getTag() == TypeTag.LONG) {
+                        assertIt(rewriter, that, "long multiply overflow", 
+                                rewriter.treeutils.makeJmlMethodInvocation(that,"|#isMul64ok#|", syms.booleanType, lhs, rhs));
                     }
                 } else {
                     if (newtype.getTag() == TypeTag.INT) {
@@ -497,7 +505,13 @@ abstract public class Arithmetic extends ExpressionExtension {
                     // posvalue =  big ? sub : f;
                     // negvalue = small ? fneg + biglit : fneg
                     // result = g = e ? bin : pos ? posvalue : negvalue;
-                    if (typetag == TypeTag.INT) {
+                    if (smtPredefined) {
+                        if (newtype.getTag() == TypeTag.INT) {
+                            bin = rewriter.treeutils.makeJmlMethodInvocation(that,"|#mul32#|", syms.intType, lhs, rhs);
+                        } else if (newtype.getTag() == TypeTag.LONG) {
+                            bin = rewriter.treeutils.makeJmlMethodInvocation(that,"|#mul64#|", syms.longType, lhs, rhs);
+                        }
+                    } else if (typetag == TypeTag.INT) {
                         // The MOD here is Java %, which is negative if the dividend is negative
                         // DIV is OK here because it is exact
                         JCExpression zero = rewriter.treeutils.makeIntLiteral(p, 0);

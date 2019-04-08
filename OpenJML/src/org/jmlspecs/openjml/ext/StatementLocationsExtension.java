@@ -3,7 +3,8 @@ package org.jmlspecs.openjml.ext;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.Extensions;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
@@ -28,24 +29,24 @@ public class StatementLocationsExtension extends JmlExtension.Statement {
     public static final String havocID = "havoc";
     public static final String loopmodifiesID = "loop_modifies";
     
-    public static final IJmlClauseType havocStatement = new LocationSetStatementType() {
+    public static final IJmlClauseKind havocStatement = new LocationSetStatementType() {
         public String name() { return havocID; }
     };
     
-    public static final IJmlClauseType loopmodifiesStatement = new LocationSetStatementType() {
+    public static final IJmlClauseKind loopmodifiesStatement = new LocationSetStatementType() {
         public String name() { return loopmodifiesID; }
     };
     
     @Override
-    public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             havocStatement, loopmodifiesStatement }; }
     
-    public static class LocationSetStatementType extends IJmlClauseType.Statement {
+    public static class LocationSetStatementType extends IJmlClauseKind.Statement {
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
         
         @Override
-        public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             if (mods != null) {
                 error(mods, "jml.message", "A " + keyword + " clause may not have modifiers");
                 return null;
@@ -90,6 +91,14 @@ public class StatementLocationsExtension extends JmlExtension.Statement {
             // TODO Auto-generated method stub
             return null;
         }
+    }
+    public void register() {
+        synonym("loop_writes",loopmodifiesStatement);
+        synonym("loop_assigns",loopmodifiesStatement);
+    }
+    
+    public void synonym(String s, IJmlClauseKind t) {
+        Extensions.statementMethodClauses.put(s,t);
     }
     
 }

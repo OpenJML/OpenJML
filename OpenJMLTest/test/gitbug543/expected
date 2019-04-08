@@ -1,44 +1,44 @@
 Proving methods in Test541
 Starting proof of Test541.Test541() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test541.Test541() with prover !!!! - no warnings
 Starting proof of Test541.set(int[]) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test541.set(int[]) with prover !!!! - no warnings
 Starting proof of Test541.set(int[],int,int,int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - before explicit assert statement : OK
-Feasibility check #3 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
 Completed proof of Test541.set(int[],int,int,int) with prover !!!! - no warnings
 Starting proof of Test541.set1(int[],int,int,int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test541.set1(int[],int,int,int) with prover !!!! - no warnings
 Starting proof of Test541.set2(int[],int,int,int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test541.set2(int[],int,int,int) with prover !!!! - no warnings
 Starting proof of Test541.m(int[]) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test541.m(int[]) with prover !!!! - no warnings
 Starting proof of Test541.m2(int[]) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test541.m2(int[]) with prover !!!! - no warnings
 Starting proof of Test541.kk(int[],int,int,int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - after explicit assume statement : OK
-Feasibility check #3 - before explicit assert statement : OK
-Feasibility check #4 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
 Completed proof of Test541.kk(int[],int,int,int) with prover !!!! - no warnings
 Starting proof of Test541.kkk(int[],int,int,int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - after explicit assume statement : OK
-Feasibility check #3 - before explicit assert statement : OK
-Feasibility check #4 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
 Completed proof of Test541.kkk(int[],int,int,int) with prover !!!! - no warnings
 Starting proof of Test541.kkkbad(int[],int,int,int) with prover !!!!
 test/gitbug543/Test541.java:87: warning: The prover cannot establish an assertion (Assert) in method kkkbad

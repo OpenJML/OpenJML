@@ -5,7 +5,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import static org.jmlspecs.openjml.JmlTokenKind.BSNOTHING;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
@@ -32,10 +32,10 @@ public class SignalsOnlyClauseExtension extends JmlExtension.MethodClause {
     public static final String signalsOnlyID = "signals_only";
     
     @Override
-    public IJmlClauseType[] clauseTypes() { return new IJmlClauseType[]{
-            signalsOnlyClause }; }
+    public IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
+            signalsOnlyClauseKind }; }
     
-    public static final IJmlClauseType signalsOnlyClause = new IJmlClauseType.MethodClause() {
+    public static final IJmlClauseKind signalsOnlyClauseKind = new IJmlClauseKind.MethodClause() {
         @Override
         public String name() { return signalsOnlyID; }
         @Override
@@ -44,7 +44,7 @@ public class SignalsOnlyClauseExtension extends JmlExtension.MethodClause {
         public boolean preOrOldWithLabelAllowed() { return false; }
         
         @Override
-        public JmlMethodClauseSignalsOnly parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        public JmlMethodClauseSignalsOnly parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             
             int pp = parser.pos();
@@ -53,7 +53,7 @@ public class SignalsOnlyClauseExtension extends JmlExtension.MethodClause {
             scanner.setJmlKeyword(false);
             parser.nextToken();
 
-            IJmlClauseType jt = this;
+            IJmlClauseKind jt = this;
             ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
 
             if (parser.jmlTokenKind() == BSNOTHING) {

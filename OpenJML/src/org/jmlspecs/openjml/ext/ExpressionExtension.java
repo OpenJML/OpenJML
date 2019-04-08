@@ -8,7 +8,7 @@ import java.lang.reflect.Constructor;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
@@ -62,7 +62,7 @@ abstract public class ExpressionExtension extends JmlExtension {
         this.utils = Utils.instance(context);
     }
     
-    public JCExpression parse(String keyword, IJmlClauseType clauseType, JmlParser parser) { return null; }
+    public JCExpression parse(String keyword, IJmlClauseKind clauseType, JmlParser parser) { return null; }
     
     /** Writes an error message to the log, using the given DiagnosticPosition
      * (typically gotten from tree.pos()), 

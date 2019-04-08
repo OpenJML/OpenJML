@@ -6,7 +6,7 @@ package org.jmlspecs.openjml.ext;
 
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.IJmlLoop;
@@ -42,7 +42,7 @@ public class InlinedLoopStatement extends JmlExtension.Statement implements IJml
 
     public static final String inlinedloopID = "inlined_loop";
     
-    public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             inlinedLoopStatement }; }
     
     public List<JmlStatementLoop> loopSpecs;
@@ -57,9 +57,9 @@ public class InlinedLoopStatement extends JmlExtension.Statement implements IJml
         this.loopSpecs = loopSpecs;
     }
 
-    public static final IJmlClauseType inlinedLoopStatement = new IJmlClauseType.Statement() {
+    public static final IJmlClauseKind inlinedLoopStatement = new IJmlClauseKind.Statement() {
         public String name() { return inlinedloopID; }
-        public JmlInlinedLoop parse(JCModifiers mods, String id, IJmlClauseType clauseType, JmlParser parser) {
+        public JmlInlinedLoop parse(JCModifiers mods, String id, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             int pp = parser.pos();
             int pe = parser.endPos();

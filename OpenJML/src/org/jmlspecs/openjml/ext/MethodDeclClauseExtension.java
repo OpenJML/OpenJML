@@ -2,7 +2,7 @@ package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
 import org.jmlspecs.openjml.JmlExtension;
@@ -27,25 +27,25 @@ public class MethodDeclClauseExtension extends JmlExtension.MethodClause  {
     public static final String oldID = "old";
     public static final String forallID = "forall";
     
-    public static final IJmlClauseType oldClause = new MethodClauseDeclType() {
+    public static final IJmlClauseKind oldClause = new MethodClauseDeclType() {
         public String name() { return oldID; }
         public boolean isPreconditionClause() { return true; }
     };
     
-    public static final IJmlClauseType forallClause = new MethodClauseDeclType() {
+    public static final IJmlClauseKind forallClause = new MethodClauseDeclType() {
         public String name() { return forallID; }
         public boolean isPreconditionClause() { return true; }
     };
     
     @Override
-    public IJmlClauseType[] clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             oldClause, forallClause }; }
     
-    public static class MethodClauseDeclType extends IJmlClauseType.MethodClause {
+    public static class MethodClauseDeclType extends IJmlClauseKind.MethodClause {
 
         @Override
         public 
-        JmlMethodClauseDecl parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        JmlMethodClauseDecl parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             // TODO: Warning if mods is not null or empty
             mods = parser.maker().Modifiers(0L);

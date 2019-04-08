@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Implementation-Title: Apache Commons Collections
+Implementation-Version: 4.3
+Built-By: solomax
+Specification-Vendor: The Apache Software Foundation
+Specification-Title: Apache Commons Collections
+Implementation-Vendor-Id: org.apache.commons
+Created-By: Apache Maven 3.6.0
+Build-Jdk: 1.8.0_191
+Specification-Version: 4.3
+Implementation-URL: http://commons.apache.org/proper/commons-collectio
+ ns/
+Implementation-Vendor: The Apache Software Foundation
+

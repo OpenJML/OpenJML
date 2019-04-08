@@ -6,7 +6,7 @@ package org.jmlspecs.openjml.ext;
 
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
@@ -37,18 +37,18 @@ public class ReachableStatement extends JmlExtension.Statement {
     public static final String reachableID = "reachable";
     public static final String unreachableID = "unreachable";
     
-    public static final IJmlClauseType reachableClause = new ExprStatementType() {
+    public static final IJmlClauseKind reachableClause = new ExprStatementType() {
         public String name() { return reachableID; }
     };
 
-    public static final IJmlClauseType unreachableClause = new ExprStatementType() {
+    public static final IJmlClauseKind unreachableClause = new ExprStatementType() {
         public String name() { return unreachableID; }
     };
 
-    public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             reachableClause, unreachableClause }; }
     
-    public static class ExprStatementType extends IJmlClauseType.Statement {
+    public static class ExprStatementType extends IJmlClauseKind.Statement {
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
         // allowed forms:
@@ -57,7 +57,7 @@ public class ReachableStatement extends JmlExtension.Statement {
         //   reachable <expr> : <expr> ; // The first <epxr> is a String literal, used as a message or identifier
         // FIXME - string literal is not used
         @Override
-        public JmlStatementExpr parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        public JmlStatementExpr parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             int pp = parser.pos();
             int pe = parser.endPos();

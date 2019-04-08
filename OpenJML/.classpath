@@ -14,5 +14,6 @@
 	<classpathentry kind="lib" path="otherlibs/jpaul-2.5.1.jar"/>
 	<classpathentry kind="lib" path="otherlibs/javax.mail.jar"/>
 	<classpathentry exported="true" kind="lib" path="otherlibs/gson-2.8.1.jar"/>
+	<classpathentry kind="lib" path="/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home/jre/lib/jce.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

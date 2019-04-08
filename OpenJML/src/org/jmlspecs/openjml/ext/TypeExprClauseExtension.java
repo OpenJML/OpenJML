@@ -3,7 +3,7 @@ package org.jmlspecs.openjml.ext;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.FOR;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
@@ -27,7 +27,7 @@ import com.sun.tools.javac.util.Context;
 public class TypeExprClauseExtension extends JmlExtension.TypeClause {
 
     @Override
-    public IJmlClauseType[] clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             invariantClause, constraintClause, axiomClause, initiallyClause}; }
     
     public static final String invariantID = "invariant";
@@ -35,15 +35,15 @@ public class TypeExprClauseExtension extends JmlExtension.TypeClause {
     public static final String axiomID = "axiom";
     public static final String initiallyID = "initially";
     
-    public static final IJmlClauseType invariantClause = new TypeClause(invariantID);
+    public static final IJmlClauseKind invariantClause = new TypeClause(invariantID);
     
-    public static final IJmlClauseType constraintClause = new TypeClause(constraintID);
+    public static final IJmlClauseKind constraintClause = new TypeClause(constraintID);
     
-    public static final IJmlClauseType axiomClause = new TypeClause(axiomID);
+    public static final IJmlClauseKind axiomClause = new TypeClause(axiomID);
     
-    public static final IJmlClauseType initiallyClause = new TypeClause(initiallyID);
+    public static final IJmlClauseKind initiallyClause = new TypeClause(initiallyID);
     
-    public static class TypeClause extends IJmlClauseType.TypeClause {
+    public static class TypeClause extends IJmlClauseKind.TypeClause {
         public TypeClause(String keyword) {
             this.keyword = keyword;
         }
@@ -52,7 +52,7 @@ public class TypeExprClauseExtension extends JmlExtension.TypeClause {
         public boolean preOrOldWithLabelAllowed() { return false; }
         
         public 
-        JmlTypeClause parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        JmlTypeClause parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             
             int pp = parser.pos();

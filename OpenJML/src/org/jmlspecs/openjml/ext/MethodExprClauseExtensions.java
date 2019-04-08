@@ -1,6 +1,6 @@
 package org.jmlspecs.openjml.ext;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 
 public class MethodExprClauseExtensions extends JmlExtension.MethodClause {
@@ -12,32 +12,32 @@ public class MethodExprClauseExtensions extends JmlExtension.MethodClause {
     public static final String breaksID = "breaks";
     public static final String returnsID = "returns";
     
-    public static final IJmlClauseType ensuresClause = new MethodClauseExprType(ensuresID) {
+    public static final IJmlClauseKind ensuresClauseKind = new MethodClauseExprType(ensuresID) {
         public boolean oldNoLabelAllowed() { return true; }
     };
     
-    public static final IJmlClauseType divergesClause = new MethodClauseExprType(divergesID);
+    public static final IJmlClauseKind divergesClause = new MethodClauseExprType(divergesID);
     
-    public static final IJmlClauseType whenClause = new MethodClauseExprType(whenID);
+    public static final IJmlClauseKind whenClause = new MethodClauseExprType(whenID);
     
-    public static final IJmlClauseType continuesClause = new MethodClauseExprType(continuesID) {
-        public boolean oldNoLabelAllowed() { return true; }
-        public boolean preOrOldWithLabelAllowed() { return true; }
-    };
-    
-    public static final IJmlClauseType breaksClause = new MethodClauseExprType(breaksID) {
+    public static final IJmlClauseKind continuesClause = new MethodClauseExprType(continuesID) {
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
     };
     
-    public static final IJmlClauseType returnsClause = new MethodClauseExprType(returnsID) {
+    public static final IJmlClauseKind breaksClause = new MethodClauseExprType(breaksID) {
+        public boolean oldNoLabelAllowed() { return true; }
+        public boolean preOrOldWithLabelAllowed() { return true; }
+    };
+    
+    public static final IJmlClauseKind returnsClause = new MethodClauseExprType(returnsID) {
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
     };
     
     @Override
-    public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
-            ensuresClause, divergesClause, whenClause,
+    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
+            ensuresClauseKind, divergesClause, whenClause,
             continuesClause, breaksClause, returnsClause}; }
     
 }

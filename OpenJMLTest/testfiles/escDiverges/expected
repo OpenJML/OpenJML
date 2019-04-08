@@ -3,11 +3,11 @@ testfiles\escDiverges\escDiverges.java:9: Note: Not implemented for static check
       ^
 Proving methods in escDiverges
 Starting proof of escDiverges.escDiverges() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of escDiverges.escDiverges() with prover !!!! - no warnings
 Starting proof of escDiverges.sqrt(double) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of escDiverges.sqrt(double) with prover !!!! - no warnings
 Completed proving methods in escDiverges

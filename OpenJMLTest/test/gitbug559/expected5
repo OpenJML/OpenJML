@@ -1,7 +1,7 @@
 Proving methods in EntryList
 Starting proof of EntryList.EntryList((@org.jmlspecs.annotation.Nullable :: java.lang.Object),(@org.jmlspecs.annotation.Nullable :: EntryList)) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of EntryList.EntryList((@org.jmlspecs.annotation.Nullable :: java.lang.Object),(@org.jmlspecs.annotation.Nullable :: EntryList)) with prover !!!! - no warnings
 Starting proof of EntryList.size() with prover !!!!
 test/gitbug559/EntryList.java:13: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method size

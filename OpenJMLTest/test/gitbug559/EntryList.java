@@ -14,7 +14,7 @@ public class EntryList {
       @ (\result == rest.size() + 1);
       @ pure
       @*/
-    public int size() {
+    public int size() {  //@ assume rest != null ==> rest.size() < 1000000000; // Just to avoid overflow warnings
         if(this.first == null) {
             return 0;
         }

@@ -4,7 +4,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.Extensions;
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
@@ -29,40 +29,41 @@ public class AssignableClauseExtension extends JmlExtension.MethodClause {
     public static final String accessibleID = "accessible";
     public static final String capturesID = "captures";
     
-    public static final IJmlClauseType assignableClause = new LocationSetClauseType() {
+    public static final IJmlClauseKind assignableClauseKind = new LocationSetClauseType() {
         public String name() { return assignableID; }
     };
     
-    public static final IJmlClauseType accessibleClause = new LocationSetClauseType() {
+    public static final IJmlClauseKind accessibleClause = new LocationSetClauseType() {
         public String name() { return accessibleID; }
     };
     
-    public static final IJmlClauseType capturesClause = new LocationSetClauseType() {
+    public static final IJmlClauseKind capturesClause = new LocationSetClauseType() {
         public String name() { return capturesID; }
     };
     
     public void register() {
-        synonym("modifies",assignableClause);
-        synonym("assigns",assignableClause);
-        synonym("writes",assignableClause);
-        synonym("modifiable",assignableClause);
+        synonym("modifies",assignableClauseKind);
+        synonym("assigns",assignableClauseKind);
+        synonym("writes",assignableClauseKind);
+        synonym("modifiable",assignableClauseKind);
+        synonym("reads",accessibleClause);
     }
     
-    public void synonym(String s, IJmlClauseType t) {
+    public void synonym(String s, IJmlClauseKind t) {
         Extensions.typeMethodClauses.put(s,t);
         Extensions.statementMethodClauses.put(s,t);
     }
     
     @Override
-    public IJmlClauseType[]  clauseTypes() { return new IJmlClauseType[]{
-            assignableClause, accessibleClause, capturesClause }; }
+    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
+            assignableClauseKind, accessibleClause, capturesClause }; }
     
-    public static class LocationSetClauseType extends IJmlClauseType.MethodClause {
+    public static class LocationSetClauseType extends IJmlClauseKind.MethodClause {
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
         
         @Override
-        public JmlMethodClause parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        public JmlMethodClause parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             if (mods != null) {
                 error(mods, "jml.message", "A " + keyword + " clause may not have modifiers");
                 return null;

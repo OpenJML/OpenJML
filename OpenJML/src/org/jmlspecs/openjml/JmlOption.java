@@ -123,6 +123,7 @@ public class JmlOption implements IOption {
     public static final JmlOption DETERMINISM = new JmlOption("-determinism",false,true,"Experimental: enables better determinism",null);
 
     public static final JmlOption OSNAME = new JmlOption("-osname",true,null,"Name of OS to use in selecting solver executable",null);
+    public static final JmlOption INLINE_FUNCTION_LITERAL = new JmlOption("-inline-function-literal",false,true,"Whether to inline function literals",null);
 
     
 //    // Options Related to Specification Inference

@@ -1,7 +1,7 @@
 Proving methods in Types
 Starting proof of Types.Types() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Types.Types() with prover !!!! - no warnings
 Starting proof of Types.types3(java.util.List<java.lang.Integer>) with prover !!!!
 ..\..\OpenJMLDemo\src\openjml\demo\Types.java:9: warning: The prover cannot establish an assertion (Assert) in method types3
@@ -26,20 +26,20 @@ Starting proof of Types.types2(java.util.List<java.lang.Integer>) with prover !!
 		    ^
 Completed proof of Types.types2(java.util.List<java.lang.Integer>) with prover !!!! - with warnings
 Starting proof of Types.<T>types(java.util.List<T>) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - after explicit assume statement : OK
-Feasibility check #3 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - at program exit : OK
 Completed proof of Types.<T>types(java.util.List<T>) with prover !!!! - no warnings
 Starting proof of Types.<T>types5(java.util.List<T>) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - after explicit assume statement : OK
-Feasibility check #3 - before explicit assert statement : OK
-Feasibility check #4 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
 Completed proof of Types.<T>types5(java.util.List<T>) with prover !!!! - no warnings
 Starting proof of Types.<T>types4(java.util.List<T>) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - after explicit assume statement : OK
-Feasibility check #3 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - at program exit : OK
 Completed proof of Types.<T>types4(java.util.List<T>) with prover !!!! - no warnings
 Starting proof of Types.types1(java.util.List<?>) with prover !!!!
 ..\..\OpenJMLDemo\src\openjml\demo\Types.java:40: warning: The prover cannot establish an assertion (PossiblyBadCast) in method types1:  a java.lang.Object cannot be proved to be a java.lang.Integer
@@ -47,12 +47,12 @@ Starting proof of Types.types1(java.util.List<?>) with prover !!!!
 		                            ^
 Completed proof of Types.types1(java.util.List<?>) with prover !!!! - with warnings
 Starting proof of Types.typesr(java.util.List<?>) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Types.typesr(java.util.List<?>) with prover !!!! - no warnings
 Starting proof of Types.<T>typesz(java.util.List<T>) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Types.<T>typesz(java.util.List<T>) with prover !!!! - no warnings
 Completed proving methods in Types
 7 warnings

@@ -145,7 +145,6 @@ public enum JmlTokenKind implements ITokenKind {
     CONSTRUCTOR("constructor"),
     FIELD("field"),
     METHOD("method"),
-    NOWARN("nowarn"),
     
     // These are various tokens related to JML expressions
     BSEXCEPTION("\\exception"), // This is for internal use only, so it is before \result
@@ -306,20 +305,20 @@ public enum JmlTokenKind implements ITokenKind {
     /** This is a set of all of the tokens that begin method specification clauses,
      * defined so that it is quick and easy to test for a given token.
      */
-    public final static Set<IJmlClauseType> methodClauseTokens = new HashSet<>();
+    public final static Set<IJmlClauseKind> methodClauseTokens = new HashSet<>();
     static {
-        for (IJmlClauseType ct: Extensions.typeMethodClauses.values()) {
-            if (ct instanceof IJmlClauseType.MethodClause) methodClauseTokens.add(ct);
+        for (IJmlClauseKind ct: Extensions.typeMethodClauses.values()) {
+            if (ct instanceof IJmlClauseKind.MethodClause) methodClauseTokens.add(ct);
         }
     }
     
     /** This is a set of all of the tokens that begin JML statements in the body of a method,
      * defined so that it is quick and easy to test for a given token.
      */
-    public final static Set<IJmlClauseType> methodStatementTokens = new HashSet<>();
+    public final static Set<IJmlClauseKind> methodStatementTokens = new HashSet<>();
     static {
-        for (IJmlClauseType ct: Extensions.statementMethodClauses.values()) {
-            if (ct instanceof IJmlClauseType.Statement) methodStatementTokens.add(ct);
+        for (IJmlClauseKind ct: Extensions.statementMethodClauses.values()) {
+            if (ct instanceof IJmlClauseKind.Statement) methodStatementTokens.add(ct);
         }
     }
     

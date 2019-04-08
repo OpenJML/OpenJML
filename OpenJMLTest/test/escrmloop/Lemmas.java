@@ -17,7 +17,8 @@ final class Lemmas {
     }
 
     /*@ public normal_behaviour
-      @  requires sa.a != null;                             requires k > 0;
+      @  requires sa.a != null;
+      @  requires k > 0;
       @  requires 0 <= a && a <= sa.a.length - k;
       @  requires 0 <= b && b < sa.a.length;
       @  requires 0 <= c && c <= sa.a.length - k;
@@ -42,15 +43,14 @@ final class Lemmas {
       @*/
     public static boolean compareSuffixArray(SuffixArray sa, int i, int j) {
 
-	/*
-	  @ decreases j - m;
-	  @ assignable \nothing;
-	  @ loop_invariant sa.compare(sa.suffixes[m], sa.suffixes[i]) > 0 && i+1 <= m && m <= j;
-	  @*/
-	for(int m = i + 1; m < j; m++) {
-	    compareTrans(sa, sa.suffixes[m+1], sa.suffixes[m], sa.suffixes[i]);
-	}
-	return true;
+        /*@ decreases j - m;
+          @ assignable \nothing;
+          @ loop_invariant sa.compare(sa.suffixes[m], sa.suffixes[i]) > 0 && i+1 <= m && m <= j;
+          @*/
+        for(int m = i + 1; m < j; m++) {
+            compareTrans(sa, sa.suffixes[m+1], sa.suffixes[m], sa.suffixes[i]);
+        }
+        return true;
     }
 
     /*@ public normal_behaviour

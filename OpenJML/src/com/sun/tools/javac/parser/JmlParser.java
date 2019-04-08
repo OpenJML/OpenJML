@@ -16,11 +16,13 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
+import org.jmlspecs.openjml.ext.AssignableClauseExtension;
 import org.jmlspecs.openjml.ext.ChooseClause;
 import org.jmlspecs.openjml.ext.EndStatement;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.ext.InlinedLoopStatement;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.MethodClauseType;
+import org.jmlspecs.openjml.ext.StatementLocationsExtension;
 
 import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
@@ -71,6 +73,8 @@ public class JmlParser extends JavacParser {
 
     /** True only when we are parsing within a model program */
     public boolean       inModelProgram = false;
+    
+    public java.util.List<IJmlLineAnnotation> lineAnnotations = new java.util.LinkedList<>();
 
     /**
      * A constructor for a new parser, but you should get new instances of the
@@ -389,6 +393,14 @@ public class JmlParser extends JavacParser {
 
     }
     
+    @Override
+    public JCClassDecl classDeclaration(JCModifiers mods, Comment dc) {
+        JCClassDecl cd = super.classDeclaration(mods, dc);
+        ((JmlClassDecl)cd).lineAnnotations = ((JmlTokenizer)S.tokenizer).lineAnnotations;
+        ((JmlTokenizer)S.tokenizer).lineAnnotations = new java.util.LinkedList<>();
+        return cd;
+    }
+    
     /** Overridden to do any post-processing of a list of block statements that JML needs,
      * possibly rewriting the list of statements;
      * at present that is to collect loop specifications and attach them to the loop statement
@@ -407,6 +419,18 @@ public class JmlParser extends JavacParser {
             if (s instanceof JmlStatementLoop) {
                 loopspecs.add((JmlStatementLoop)s);
                 continue;
+            }
+            // This case allows grandfathering an assignable statement as a loop_modifies statement
+            // if it is not the first loop specification statement
+            if (s instanceof JmlMethodClauseStoreRef && ((JmlMethodClauseStoreRef)s).clauseKind == AssignableClauseExtension.assignableClauseKind) {
+                JmlMethodClauseStoreRef sa = (JmlMethodClauseStoreRef)s;
+                JmlStatementLoop sloop = jmlF.at(sa.pos).JmlStatementLoopModifies(StatementLocationsExtension.loopmodifiesStatement, sa.list);
+                if (!loopspecs.isEmpty()) {
+                    log.warning(s.pos, "jml.message", "Use 'loop_writes' keyword instead of '" + sa.keyword + "' in loop specifications");
+                    loopspecs.add(sloop);
+                    continue;
+                }
+                
             }
             if (!loopspecs.isEmpty()) {
                 if (s instanceof IJmlLoop) {
@@ -455,8 +479,10 @@ public class JmlParser extends JavacParser {
             // then we proceed to parse it as a (JML) statement
             if (S.jml() && token.kind == TokenKind.IDENTIFIER) {
                 String id = token.name().toString();
-                if (Extensions.instance(context).findSM(0,id,false) != null) {
-                    JCStatement s = parseStatement();
+                IJmlClauseKind ext = Extensions.instance(context).findSM(0,id,false);
+                if (ext != null) {
+                    JCStatement s = (JCStatement)ext.parse(null, id, ext, this);
+//                    JCStatement s = parseStatement();
                     return List.<JCStatement>of(s);
                 }
                 // If the identifier is not the beginning of a JML statement, then
@@ -517,6 +543,10 @@ public class JmlParser extends JavacParser {
         }
     }
     
+    public JCStatement parseJavaStatement() {
+        return super.parseStatement();
+    }
+    
     /** Overridden to parse JML statements */
     @Override  // TODO - needs REVIEW
     public JCStatement parseStatement() {
@@ -529,8 +559,8 @@ public class JmlParser extends JavacParser {
             if (token.kind == TokenKind.IDENTIFIER) {
                 boolean needSemi = true;
                 id = token.name().toString();
-                IJmlClauseType clauseType = Extensions.instance(context).findSM(pos(),id,false);
-                if (clauseType instanceof IJmlClauseType.Statement) {
+                IJmlClauseKind clauseType = Extensions.instance(context).findSM(pos(),id,false);
+                if (clauseType instanceof IJmlClauseKind.Statement) {
                     st = (JmlAbstractStatement)clauseType.parse(null,id,clauseType,this);
                     needSemi = false; // OK for set // FIXME - not sure this is needed
                     S.setJmlKeyword(true);
@@ -556,7 +586,7 @@ public class JmlParser extends JavacParser {
                     }
                     while (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) nextToken();
                     return st;
-                } else if (clauseType instanceof IJmlClauseType.MethodClause) {
+                } else if (clauseType instanceof IJmlClauseKind.MethodClause) {
                     st = parseRefining(pos(),null);
                     return st;
                 } else if (token.kind == TokenKind.ASSERT) {
@@ -958,7 +988,7 @@ public class JmlParser extends JavacParser {
     protected boolean startOfMethodSpecs(Token possibleKeyword) {
         if (!(S.jml())) return false;
         if (possibleKeyword.kind == TokenKind.IDENTIFIER) {
-            return Extensions.instance(context).findTM(0,possibleKeyword.name().toString(),false) instanceof IJmlClauseType.MethodClause;
+            return Extensions.instance(context).findTM(0,possibleKeyword.name().toString(),false) instanceof IJmlClauseKind.MethodClause;
         } else {
             ITokenKind jt = possibleKeyword.ikind;
             return (jt == JmlTokenKind.ALSO || jt == JmlTokenKind.BEHAVIOR || jt == JmlTokenKind.NORMAL_BEHAVIOR
@@ -977,7 +1007,7 @@ public class JmlParser extends JavacParser {
     protected boolean startOfTypeSpec(Token possibleKeyword) {
         if (!(S.jml())) return false;
         if (possibleKeyword.kind == TokenKind.IDENTIFIER) {
-            return Extensions.instance(context).findTM(0,possibleKeyword.name().toString(),false) instanceof IJmlClauseType.TypeClause;
+            return Extensions.instance(context).findTM(0,possibleKeyword.name().toString(),false) instanceof IJmlClauseKind.TypeClause;
         } else {
             ITokenKind jt = possibleKeyword.ikind;
             return (jt == JmlTokenKind.INITIALIZER || jt == JmlTokenKind.STATIC_INITIALIZER);
@@ -1012,7 +1042,7 @@ public class JmlParser extends JavacParser {
                 log.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + jt.internedName() + " clause (ignored)");
                 currentMethodSpecs = null;
             }
-            IJmlClauseType ct = null;
+            IJmlClauseKind ct = null;
             String id = null;
             if (S.jml() && token.kind == TokenKind.IDENTIFIER) {
                 id = token.name().toString();
@@ -1832,7 +1862,11 @@ public class JmlParser extends JavacParser {
         }
         return args.toList();
     }
-
+    
+    public JCExpression parseQualifiedIdent(boolean allowAnnos) {
+        return qualident(allowAnnos);
+    }
+    
     public JCExpression parseStoreRefListExpr() {
         int p = pos();
         JmlTokenKind jt = jmlTokenKind();
@@ -1882,7 +1916,7 @@ public class JmlParser extends JavacParser {
     
     public JmlTypeClause parseTypeSpecs(JCModifiers mods) {
         String id = token.kind == TokenKind.IDENTIFIER ?  token.name().toString() : jmlTokenKind().internedName();
-        IJmlClauseType ct = Extensions.instance(context).findTM(0,id,false);
+        IJmlClauseKind ct = Extensions.instance(context).findTM(0,id,false);
         JCTree t = ct.parse(mods, id, ct, this);
         return (JmlTypeClause)t;
     }
@@ -2140,7 +2174,7 @@ public class JmlParser extends JavacParser {
         String keyword = null;
         if (token().kind == IDENTIFIER && S.jml() && S.jmlKeywordMode()) keyword = token().name().toString();
         if (keyword != null) {
-            IJmlClauseType clauseType = Extensions.instance(context).findTM(pos(), keyword, true);
+            IJmlClauseKind clauseType = Extensions.instance(context).findTM(pos(), keyword, true);
             if (clauseType instanceof MethodClauseType) {
                 if (clauseType != null) {
                     return ((MethodClauseType)clauseType).parse(null, keyword, clauseType, this);
@@ -2154,8 +2188,8 @@ public class JmlParser extends JavacParser {
         S.setJmlKeyword(false);
         JmlMethodClause res = null;
         if (jt == null && keyword != null) {
-            IJmlClauseType ct = Extensions.instance(context).findTM(token().pos, keyword, true);
-            if (ct instanceof IJmlClauseType.MethodClause) {
+            IJmlClauseKind ct = Extensions.instance(context).findTM(token().pos, keyword, true);
+            if (ct instanceof IJmlClauseKind.MethodClause) {
                 res = (JmlMethodClause)ct.parse(null,keyword,ct,this);
             }
         }
@@ -3268,7 +3302,8 @@ public class JmlParser extends JavacParser {
             if (ee instanceof JmlLambda) {
                 ((JmlLambda)ee).jmlType = jmltype;
             } else {
-                log.warning(jmltype,"jml.message", "Ignoring JML type cast before a non-lambda expression (" + ee.getClass().toString() + ")");
+                e = jmlF.TypeCast(jmltype, e);
+                //log.warning(jmltype,"jml.message", "Ignoring JML type cast before a non-lambda expression (" + ee.getClass().toString() + ")");
             }
             return e;
         }

@@ -1,57 +1,57 @@
 Proving methods in AddLoop
 Starting proof of AddLoop.AddLoop() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of AddLoop.AddLoop() with prover !!!! - no warnings
 Starting proof of AddLoop.AddLoop(int,int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of AddLoop.AddLoop(int,int) with prover !!!! - no warnings
 Completed proving methods in AddLoop
 Proving methods in BinarySearch
 Starting proof of BinarySearch.BinarySearch() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of BinarySearch.BinarySearch() with prover !!!! - no warnings
 Starting proof of BinarySearch.BinarySearch(int[],int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of BinarySearch.BinarySearch(int[],int) with prover !!!! - no warnings
 Completed proving methods in BinarySearch
 Proving methods in CopyArray
 Starting proof of CopyArray.CopyArray() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of CopyArray.CopyArray() with prover !!!! - no warnings
 Starting proof of CopyArray.CopyArray(int[],int,int,int[]) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of CopyArray.CopyArray(int[],int,int,int[]) with prover !!!! - no warnings
 Completed proving methods in CopyArray
 Proving methods in FindFirstZero
 Starting proof of FindFirstZero.FindFirstZero() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of FindFirstZero.FindFirstZero() with prover !!!! - no warnings
 Starting proof of FindFirstZero.FindFirstZero(int[]) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of FindFirstZero.FindFirstZero(int[]) with prover !!!! - no warnings
 Completed proving methods in FindFirstZero
 Proving methods in Inverse
 Starting proof of Inverse.Inverse() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Inverse.Inverse() with prover !!!! - no warnings
 Starting proof of Inverse.Inverse(int[],int[]) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Inverse.Inverse(int[],int[]) with prover !!!! - no warnings
 Completed proving methods in Inverse
 Proving methods in MaybeAdd
 Starting proof of MaybeAdd.MaybeAdd() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of MaybeAdd.MaybeAdd() with prover !!!! - no warnings
 Starting proof of MaybeAdd.add(int,int) with prover !!!!
 test/rise4fun/MaybeAdd.java:9: warning: The prover cannot establish an assertion (Postcondition) in method add
@@ -62,32 +62,32 @@ test/rise4fun/MaybeAdd.java:7: warning: Associated declaration
         ^
 Completed proof of MaybeAdd.add(int,int) with prover !!!! - with warnings
 Starting proof of MaybeAdd.main(java.lang.String[]) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of MaybeAdd.main(java.lang.String[]) with prover !!!! - no warnings
 Completed proving methods in MaybeAdd
 Proving methods in MaybeAddFixed
 Starting proof of MaybeAddFixed.MaybeAddFixed() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of MaybeAddFixed.MaybeAddFixed() with prover !!!! - no warnings
 Starting proof of MaybeAddFixed.add(int,int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of MaybeAddFixed.add(int,int) with prover !!!! - no warnings
 Starting proof of MaybeAddFixed.main(java.lang.String[]) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of MaybeAddFixed.main(java.lang.String[]) with prover !!!! - no warnings
 Completed proving methods in MaybeAddFixed
 Proving methods in Smallest
 Starting proof of Smallest.Smallest() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Smallest.Smallest() with prover !!!! - no warnings
 Starting proof of Smallest.Smallest(int[]) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Smallest.Smallest(int[]) with prover !!!! - no warnings
 Completed proving methods in Smallest
 2 warnings

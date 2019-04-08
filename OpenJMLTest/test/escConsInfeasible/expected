@@ -1,22 +1,22 @@
 Proving methods in ConfInf
 Starting proof of ConfInf.inc() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of ConfInf.inc() with prover !!!! - no warnings
 Proving methods in ConfInf.1
 Starting proof of ConfInf.1.(int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of ConfInf.1.(int) with prover !!!! - no warnings
 Completed proving methods in ConfInf.1
 Starting proof of ConfInf.ConfInf(int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of ConfInf.ConfInf(int) with prover !!!! - no warnings
 Completed proving methods in ConfInf
 Proving methods in FF
 Starting proof of FF.FF(int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of FF.FF(int) with prover !!!! - no warnings
 Completed proving methods in FF

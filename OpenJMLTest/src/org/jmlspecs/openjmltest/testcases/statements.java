@@ -159,15 +159,16 @@ public class statements extends TCBase {
     }
 
     @Test public void testSet1() {
-        expectedExit = 0;
+        expectedExit = 1;
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; set j = 1 \n i = 0; \n}}"
-                ,"/A.java:2: warning: Inserting missing semicolon at the end of a set statement",27
+                ,"/A.java:2: ';' expected",28
+                //"/A.java:2: warning: Inserting missing semicolon at the end of a set statement",27
                 );
     }
     
     @Test public void testSet2() {
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; set if (true) {}; \n i = 0; \n}}"
-                ,"/A.java:2: A set or debug statement may only contain assignments or method calls",23
+                //,"/A.java:2: A set or debug statement may only contain assignments or method calls",23
                 );
     }
     
@@ -182,15 +183,15 @@ public class statements extends TCBase {
     }
 
     @Test public void testDebug1() {
-        expectedExit = 0;
+        expectedExit = 1;
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; debug m() \n i = 0; \n}}"
-                ,"/A.java:2: warning: Inserting missing semicolon at the end of a debug statement",27
+                ,"/A.java:2: ';' expected",28
+                //,"/A.java:2: warning: Inserting missing semicolon at the end of a debug statement",27
                 );
     }
 
     @Test public void testDebug2() {
-        helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; debug while (true) {}; \n i = 0; \n}}"
-                ,"/A.java:2: A set or debug statement may only contain assignments or method calls",25
+        helpTCF("A.java"," class A { Object o; void m() { int i=0; \n //@ ghost int j; debug while (i>0) {}; \n i = 0; \n}}"
                 );
     }
 

@@ -5,7 +5,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.IDENTIFIER;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.IF;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -38,16 +38,16 @@ public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
     
 
     @Override
-    public IJmlClauseType[] clauseTypes() { return new IJmlClauseType[]{
+    public IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             representsClause}; }
     
-    public static final IJmlClauseType representsClause = new IJmlClauseType.TypeClause() {
+    public static final IJmlClauseKind representsClause = new IJmlClauseKind.TypeClause() {
         public String name() { return representsID; }
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
         
         public 
-        JmlTypeClauseRepresents parse(JCModifiers mods, String keyword, IJmlClauseType clauseType, JmlParser parser) {
+        JmlTypeClauseRepresents parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             int pp = parser.pos();
             scanner.setJmlKeyword(false);

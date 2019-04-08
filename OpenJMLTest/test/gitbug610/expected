@@ -1,7 +1,7 @@
 Proving methods in CounterP1
 Starting proof of CounterP1.CounterP1() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of CounterP1.CounterP1() with prover !!!! - no warnings
 Starting proof of CounterP1.inc() with prover !!!!
 test/gitbug610/CounterP1.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc:  overflow in int sum
@@ -9,14 +9,14 @@ test/gitbug610/CounterP1.java:4: warning: The prover cannot establish an asserti
                      ^
 Completed proof of CounterP1.inc() with prover !!!! - with warnings
 Starting proof of CounterP1.val() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of CounterP1.val() with prover !!!! - no warnings
 Completed proving methods in CounterP1
 Proving methods in CounterPA
 Starting proof of CounterPA.CounterPA() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of CounterPA.CounterPA() with prover !!!! - no warnings
 Starting proof of CounterPA.inc() with prover !!!!
 test/gitbug610/CounterPA.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc:  overflow in int sum
@@ -34,18 +34,18 @@ test/gitbug610/CounterPA.java:11: warning: The prover cannot establish an assert
     	     ^
 Completed proof of CounterPA.inc2() with prover !!!! - with warnings
 Starting proof of CounterPA.incOK3() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of CounterPA.incOK3() with prover !!!! - no warnings
 Starting proof of CounterPA.incOK4() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of CounterPA.incOK4() with prover !!!! - no warnings
 Completed proving methods in CounterPA
 Proving methods in CounterPP
 Starting proof of CounterPP.CounterPP() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of CounterPP.CounterPP() with prover !!!! - no warnings
 Starting proof of CounterPP.inc() with prover !!!!
 test/gitbug610/CounterPP.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc:  overflow in int sum
@@ -58,16 +58,16 @@ test/gitbug610/CounterPP.java:7: warning: The prover cannot establish an asserti
               ^
 Completed proof of CounterPP.inc2() with prover !!!! - with warnings
 Starting proof of CounterPP.incOK3() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of CounterPP.incOK3() with prover !!!! - no warnings
 Starting proof of CounterPP.incOK4() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of CounterPP.incOK4() with prover !!!! - no warnings
 Starting proof of CounterPP.val() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of CounterPP.val() with prover !!!! - no warnings
 Completed proving methods in CounterPP
 6 warnings

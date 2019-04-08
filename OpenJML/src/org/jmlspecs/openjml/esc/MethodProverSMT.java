@@ -194,6 +194,7 @@ public class MethodProverSMT {
             if (loc != null && os != null && ex != null) {
                 exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + proverToUse;
                 if (new java.io.File(exec).exists()) return exec;
+                if (proverToUse.equals("cvc4")) ex = ex + "-1";
                 exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + ex + ".";
                 for (int i=9; i>=0; --i) {
                     if (new java.io.File(exec + i).exists()) {
@@ -440,12 +441,14 @@ public class MethodProverSMT {
 
                     java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.assumeChecks.get(methodDecl);
                     int feasibilityCheckNumber = 0;
+                    String scriptString = program.toString();
                     if (checks != null) for (JmlStatementExpr stat: checks) {
                         if (aborted) {
                         	throw new Main.JmlCanceledException("Aborted by user");
                         }
                         
                         ++feasibilityCheckNumber;
+                        if (!scriptString.contains("__JML_AssumeCheck_ != " + feasibilityCheckNumber)) continue;
                         if (feasibilityCheckNumber != stat.associatedPos) {
                             log.note("jml.message", "XXX");
                         }
@@ -515,7 +518,7 @@ public class MethodProverSMT {
                         }
                         String description = stat.description; // + " " + stat;
                         String fileLocation = utils.locationString(stat.pos, log.currentSourceFile());
-                        String msg2 =  (utils.jmlverbose >= Utils.PROGRESS) ? 
+                        String msg2 =  (utils.jmlverbose > Utils.PROGRESS || (utils.jmlverbose == Utils.PROGRESS && !Utils.testingMode)) ? 
                                 ("Feasibility check #" + feasibilityCheckNumber + " - " + description + " : ")
                                 :("Feasibility check - " + description + " : ");
                         boolean infeasible = solverResponse.equals(unsatResponse);
@@ -1055,8 +1058,8 @@ public class MethodProverSMT {
                             if (assertStat.associatedSource != null) log.useSource(prev);
                         }
                         if (assertStat.associatedClause != null && JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
-                            IJmlClauseType tkind = assertStat.associatedClause.clauseType;
-                            if (tkind == MethodExprClauseExtensions.ensuresClause || tkind == SignalsClauseExtension.signalsClause || tkind == SignalsOnlyClauseExtension.signalsOnlyClause) {  // FIXME - actually - any postcondition check
+                            IJmlClauseKind tkind = assertStat.associatedClause.clauseKind;
+                            if (tkind == MethodExprClauseExtensions.ensuresClauseKind || tkind == SignalsClauseExtension.signalsClauseKind || tkind == SignalsOnlyClauseExtension.signalsOnlyClauseKind) {  // FIXME - actually - any postcondition check
                                 int p = terminationPos;
                                 if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
                                     if (terminationPos == info.decl.pos) p = info.decl.getEndPosition(log.getSource(mainSource).getEndPosTable());
@@ -1408,8 +1411,8 @@ public class MethodProverSMT {
                         if (assertStat.associatedSource != null) log.useSource(prev);
                     }
                     if (assertStat.associatedClause != null && JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
-                        IJmlClauseType tkind = assertStat.associatedClause.clauseType;
-                        if (tkind == MethodExprClauseExtensions.ensuresClause || tkind == SignalsClauseExtension.signalsClause || tkind == SignalsOnlyClauseExtension.signalsOnlyClause) {  // FIXME - actually - any postcondition check
+                        IJmlClauseKind tkind = assertStat.associatedClause.clauseKind;
+                        if (tkind == MethodExprClauseExtensions.ensuresClauseKind || tkind == SignalsClauseExtension.signalsClauseKind || tkind == SignalsOnlyClauseExtension.signalsOnlyClauseKind) {  // FIXME - actually - any postcondition check
                             int p = terminationPos;
                             if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
                                 if (terminationPos == info.decl.pos) p = info.decl.getEndPosition(log.getSource(mainSource).getEndPosTable());

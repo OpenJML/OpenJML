@@ -7,7 +7,7 @@ package org.jmlspecs.openjml.ext;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.COLON;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.IJmlLoop;
@@ -42,14 +42,14 @@ import com.sun.tools.javac.util.Log;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class StatementExprType extends IJmlClauseType.Statement {
+public class StatementExprType extends IJmlClauseKind.Statement {
     
     public StatementExprType(String keyword) {
         this.keyword = keyword;
     }
     
     @Override
-    public JmlAbstractStatement parse(JCModifiers mods, String id, IJmlClauseType clauseType, JmlParser parser) {
+    public JmlAbstractStatement parse(JCModifiers mods, String id, IJmlClauseKind clauseType, JmlParser parser) {
         init(parser);
         int pp = parser.pos();
         int pe = parser.endPos();

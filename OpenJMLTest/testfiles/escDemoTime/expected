@@ -1,30 +1,30 @@
 Proving methods in Time
 Starting proof of Time.Time() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Time.Time() with prover !!!! - no warnings
 Starting proof of Time.setTime(byte,byte) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Time.setTime(byte,byte) with prover !!!! - no warnings
 Starting proof of Time.setTime(Time) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Time.setTime(Time) with prover !!!! - no warnings
 Starting proof of Time.getHour() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Time.getHour() with prover !!!! - no warnings
 Starting proof of Time.getMinute() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Time.getMinute() with prover !!!! - no warnings
 Starting proof of Time.getTime(byte[],short) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Time.getTime(byte[],short) with prover !!!! - no warnings
 Starting proof of Time.main(java.lang.String[]) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Time.main(java.lang.String[]) with prover !!!! - no warnings
 Completed proving methods in Time
