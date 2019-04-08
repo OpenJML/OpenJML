@@ -1911,8 +1911,8 @@ public class esc extends EscBase {
     }
 
     @Test
-    public void testNewCompares() {
-        expectedExit = 1; // FIXME - not yet implemented
+    public void testNewCompares() { // Just checks parsing
+        expectedExit = 0;
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "/*@ code_java_math spec_java_math*/ public class TestJava { \n" 

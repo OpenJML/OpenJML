@@ -1,0 +1,27 @@
+Proving methods in buggyCalculator
+Starting proof of buggyCalculator.buggyCalculator() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of buggyCalculator.buggyCalculator() with prover !!!! - no warnings
+Starting proof of buggyCalculator.calculate(int,int,char) with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of buggyCalculator.calculate(int,int,char) with prover !!!! - no warnings
+Starting proof of buggyCalculator.calculateBad(int,int,char) with prover !!!!
+Note: Using bit-vector arithmetic
+test/buggyCalculator/buggyCalculator.java:209: warning: The prover cannot establish an assertion (Postcondition) in method calculateBad
+            return output;
+            ^
+test/buggyCalculator/buggyCalculator.java:163: warning: Associated declaration
+        //@ ensures \result == -1;
+            ^
+test/buggyCalculator/buggyCalculator.java:209: warning: The prover cannot establish an assertion (Postcondition) in method calculateBad
+            return output;
+            ^
+test/buggyCalculator/buggyCalculator.java:113: warning: Associated declaration
+        //@ ensures \result == num1 + num2;
+            ^
+Completed proof of buggyCalculator.calculateBad(int,int,char) with prover !!!! - with warnings
+Completed proving methods in buggyCalculator
+4 warnings
