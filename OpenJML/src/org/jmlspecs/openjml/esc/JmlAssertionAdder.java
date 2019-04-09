@@ -7937,8 +7937,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // Recursive inlining
                 nodoTranslations = true;
             }
+            if (!splitExpressions) nodoTranslations = true;
             boolean hasTypeArgs = calleeMethodSym.type instanceof Type.ForAll; 
-
+//            if (!useMethodAxioms && splitExpressions) {
+//                log.error(that, "jml.message", "Method calls in quantifier bodies must be 'function's: " + calleeMethodSym.toString());
+//            }
             if (nodoTranslations && !hasTypeArgs && !isSuperCall && !isThisCall) {
                 List<JCExpression> ntrArgs = trArgs;
                 if ((useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
