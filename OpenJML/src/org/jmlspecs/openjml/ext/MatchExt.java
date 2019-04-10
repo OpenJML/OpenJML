@@ -1,7 +1,7 @@
 package org.jmlspecs.openjml.ext;
 
 import org.jmlspecs.annotation.Nullable;
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
@@ -27,12 +27,12 @@ public class MatchExt extends ExpressionExtension {
             JmlTokenKind.MATCH }; }
     
     @Override
-    public IJmlClauseType[] clauseTypes() {
+    public IJmlClauseKind[] clauseTypes() {
         return null;
     }
     
     @Override
-    public JCExpression parse(String keyword, IJmlClauseType clauseType, JmlParser parser) {
+    public JCExpression parse(String keyword, IJmlClauseKind clauseType, JmlParser parser) {
         parser.nextToken();
         parser.parseExpression();
         parser.accept(TokenKind.LBRACE);

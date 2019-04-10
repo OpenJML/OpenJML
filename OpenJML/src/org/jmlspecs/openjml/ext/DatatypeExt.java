@@ -1,6 +1,6 @@
 package org.jmlspecs.openjml.ext;
 
-import org.jmlspecs.openjml.IJmlClauseType;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlExtension.ClassLike;
@@ -115,7 +115,7 @@ public class DatatypeExt extends ClassLike {
     }
 
     @Override
-    public IJmlClauseType[] clauseTypes() {
+    public IJmlClauseKind[] clauseTypes() {
         return null;
     }
     

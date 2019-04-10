@@ -29,14 +29,15 @@ datatype NN<T> {
     Cons(T head, NN<T> tail)
     ;
     
-    NN<T> of(T t) { return Cons(t, Empty()); }
-    
     int length() {
        return match (this) {
          case Empty -> 0;
          case Cons(_,t) -> 1+ t.length();
        };
      }
+
+    NN<T> of(T t) { return Cons(t, Empty()); }
+    
 }
  */
 
