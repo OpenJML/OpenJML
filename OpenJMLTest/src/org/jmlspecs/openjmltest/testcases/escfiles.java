@@ -793,7 +793,7 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testRequiresElse() {
+    public void testRequiresElse() { // FIXME - why the two different formats of output
         helpTF("requiresElse","-show=program"); // -show=program is part of test results
     }
 
