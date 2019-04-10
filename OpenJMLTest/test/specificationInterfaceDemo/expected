@@ -6,7 +6,7 @@ Completed proof of SpecificationInterfaceDemo.SpecificationInterfaceDemo() with 
 Proving methods in SpecificationInterfaceDemo.PositivePureFunction
 Completed proving methods in SpecificationInterfaceDemo.PositivePureFunction
 Starting proof of SpecificationInterfaceDemo.mbad1(java.util.function.Function<java.lang.Integer,java.lang.Integer>,java.lang.Integer) with prover !!!!
-test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:20: warning: The prover cannot establish an assertion (Assignable) in method mbad1:  \everything
+test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:20: warning: The prover cannot establish an assertion (Assignable) in method mbad1:  applyFrame
     return f.apply(z);
                   ^
 test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:16: warning: Associated declaration
@@ -26,9 +26,6 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of SpecificationInterfaceDemo.mok(SpecificationInterfaceDemo.PositivePureFunction,java.lang.Integer) with prover !!!! - no warnings
 Starting proof of SpecificationInterfaceDemo.mbad3(java.util.function.Function<java.lang.Integer,java.lang.Integer>,java.lang.Integer) with prover !!!!
-test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:42: warning: The prover cannot establish an assertion (Assert) in method mbad3
-    //@ assert zz == 0; // FAILS because apply might change zz
-        ^
 test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:41: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method mbad3:  k
     Integer k = f.apply(z);
             ^
@@ -38,4 +35,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of SpecificationInterfaceDemo.mok2(SpecificationInterfaceDemo.PositivePureFunction,java.lang.Integer) with prover !!!! - no warnings
 Completed proving methods in SpecificationInterfaceDemo
-6 warnings
+5 warnings

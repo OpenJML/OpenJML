@@ -1,0 +1,277 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+
+--------------------------------------
+
+STARTING PROOF OF Test.Test()
+/*@
+  public behavior
+    assignable \nothing; 
+    signals () false; 
+    signals_only java.lang.RuntimeException; 
+    accessible this, this.*; 
+ */
+
+{
+  super();
+}
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m1(Test) with prover !!!!
+
+--------------------------------------
+
+STARTING PROOF OF Test.m1(Test)
+/*@
+  public behavior
+    requires !(o != null); 
+    signals_only NullPointerException; 
+    signals (java.lang.Exception) \exception instanceof NullPointerException && !(o != null); 
+    ensures false; 
+    assignable \nothing; 
+    accessible \everything; 
+also
+  public 
+    requires o != null; 
+    signals_only java.lang.RuntimeException; 
+    assignable \everything; 
+    accessible \everything; 
+ */
+
+{
+  if (o == null) throw new NullPointerException();
+}
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m1(Test) with prover !!!! - no warnings
+Starting proof of Test.m2(Test) with prover !!!!
+
+--------------------------------------
+
+STARTING PROOF OF Test.m2(Test)
+/*@
+  public behavior
+    requires !(o != null); 
+    signals_only NullPointerException; 
+    signals (java.lang.Exception) \exception instanceof NullPointerException && !(o != null); 
+    ensures false; 
+    assignable \nothing; 
+    accessible \everything; 
+also
+  public 
+    requires o != null; 
+    signals_only java.lang.RuntimeException; 
+    assignable \everything; 
+    accessible \everything; 
+ */
+
+{
+  o.f = 1;
+}
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m2(Test) with prover !!!! - no warnings
+Starting proof of Test.m3(Test,int) with prover !!!!
+
+--------------------------------------
+
+STARTING PROOF OF Test.m3(Test,int)
+/*@
+  public behavior
+    requires i >= 0; 
+    requires !(o != null) | !(i < 10); 
+    signals_only NullPointerException, ArrayIndexOutOfBoundsException; 
+    signals (java.lang.Exception) \exception instanceof NullPointerException && !(o != null) || \exception instanceof ArrayIndexOutOfBoundsException && !(i < 10); 
+    ensures false; 
+    assignable \nothing; 
+    accessible \everything; 
+also
+  public 
+    requires i >= 0; 
+    requires o != null; 
+    requires i < 10; 
+    signals_only java.lang.RuntimeException; 
+    assignable \everything; 
+    accessible \everything; 
+ */
+
+{
+  @Nullable 
+  int[] a = new int[10];
+  o.f = a[i];
+}
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m3(Test,int) with prover !!!! - no warnings
+Starting proof of Test.m4(Test,Test) with prover !!!!
+
+--------------------------------------
+
+STARTING PROOF OF Test.m4(Test,Test)
+/*@
+  public behavior
+    requires !(o != null) | !(i != null); 
+    signals_only NullPointerException, NullPointerException; 
+    signals (java.lang.Exception) \exception instanceof NullPointerException && !(o != null) || \exception instanceof NullPointerException && !(i != null); 
+    ensures false; 
+    assignable \nothing; 
+    accessible \everything; 
+also
+  public 
+    requires o != null; 
+    requires i != null; 
+    signals_only java.lang.RuntimeException; 
+    assignable \everything; 
+    accessible \everything; 
+ */
+
+{
+  int k = o.f + i.f;
+}
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m4(Test,Test) with prover !!!! - no warnings
+Starting proof of Test.m5(Test,Test) with prover !!!!
+
+--------------------------------------
+
+STARTING PROOF OF Test.m5(Test,Test)
+/*@
+  public behavior
+    requires !(o != null) | !(i != null); 
+    signals_only NullPointerException, RuntimeException; 
+    signals (java.lang.Exception) \exception instanceof NullPointerException && !(o != null) || \exception instanceof RuntimeException && !(i != null); 
+    ensures false; 
+    assignable \nothing; 
+    accessible \everything; 
+also
+  public 
+    requires o != null; 
+    requires i != null; 
+    signals_only java.lang.RuntimeException; 
+    assignable \everything; 
+    accessible \everything; 
+ */
+
+{
+  if (i == null) throw new RuntimeException();
+  int k = o.f + i.f;
+}
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m5(Test,Test) with prover !!!! - no warnings
+Starting proof of Test.m6(Test,Test) with prover !!!!
+
+--------------------------------------
+
+STARTING PROOF OF Test.m6(Test,Test)
+/*@
+  public behavior
+    requires !(o != null) | !(i != null); 
+    signals_only RuntimeException, NullPointerException; 
+    signals (java.lang.Exception) \exception instanceof RuntimeException && !(o != null) || \exception instanceof NullPointerException && !(i != null); 
+    ensures false; 
+    assignable \nothing; 
+    accessible \everything; 
+also
+  public 
+    requires o != null; 
+    requires i != null; 
+    signals_only java.lang.RuntimeException; 
+    assignable \everything; 
+    accessible \everything; 
+ */
+
+{
+  if (o == null) throw new RuntimeException();
+  int k = o.f + i.f;
+}
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m6(Test,Test) with prover !!!! - no warnings
+Starting proof of Test.m7(Test,Test) with prover !!!!
+
+--------------------------------------
+
+STARTING PROOF OF Test.m7(Test,Test)
+/*@
+  public behavior
+    requires !(o != null); 
+    signals_only RuntimeException; 
+    signals (java.lang.Exception) \exception instanceof RuntimeException && !(o != null); 
+    ensures false; 
+    assignable \nothing; 
+    accessible \everything; 
+also
+  public 
+    requires o != null; 
+    signals_only java.lang.RuntimeException; 
+    assignable \everything; 
+    accessible \everything; 
+ */
+
+{
+  int k = o.f + 1;
+}
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m7(Test,Test) with prover !!!! - no warnings
+Starting proof of Test.m8(Test,Test) with prover !!!!
+
+--------------------------------------
+
+STARTING PROOF OF Test.m8(Test,Test)
+/*@
+  public behavior
+    requires !(o != null) | !(i != null); 
+    signals_only RuntimeException, NullPointerException; 
+    signals (java.lang.Exception) \exception instanceof RuntimeException && !(o != null) || \exception instanceof NullPointerException && !(i != null); 
+    ensures false; 
+    assignable \nothing; 
+    accessible \everything; 
+also
+  public 
+    requires o != null; 
+    requires i != null; 
+    signals_only java.lang.RuntimeException; 
+    assignable \everything; 
+    accessible \everything; 
+ */
+
+{
+  int k = o.f + i.f;
+}
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m8(Test,Test) with prover !!!! - no warnings
+Starting proof of Test.m9(Test,Test) with prover !!!!
+
+--------------------------------------
+
+STARTING PROOF OF Test.m9(Test,Test)
+/*@
+  public behavior
+    requires !(o != null) | !(i != null); 
+    signals_only NullPointerException, NullPointerException; 
+    signals (java.lang.Exception) \exception instanceof NullPointerException && !(o != null) || \exception instanceof NullPointerException && !(i != null); 
+    ensures false; 
+    assignable \nothing; 
+    accessible \everything; 
+also
+  public 
+    requires o != null; 
+    requires i != null; 
+    ensures 0 <= o.f < 10 && i.f < 10 ==> \result < 20; 
+    signals_only java.lang.RuntimeException; 
+    assignable \everything; 
+    accessible \everything; 
+ */
+
+{
+  return o.f + i.f;
+}
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m9(Test,Test) with prover !!!! - no warnings
+Completed proving methods in Test

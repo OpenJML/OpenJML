@@ -8313,7 +8313,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (applyNesting <= 1 && !(isHelper(calleeMethodSym) && apply != null && apply.meth instanceof JCIdent)) {
                 addStat(comment(that, "Checking caller invariants before calling method " + utils.qualifiedMethodSig(calleeMethodSym),null));
                 if (!isSuperCall && !isThisCall) {
-                    if (meth instanceof JCFieldAccess) {
+//                    if (meth instanceof JCFieldAccess) {
 //                        addInvariants(that,savedEnclosingClass.type,
 //                                savedEnclosingMethod == null || utils.isJMLStatic(savedEnclosingMethod)  ? null : savedThisExpr,
 //                                currentStatements,
@@ -8324,7 +8324,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         currentStatements,
                                         false,calleeMethodSym.isConstructor(),isSuperCall,isHelper(calleeMethodSym),false,false,Label.INVARIANT_EXIT_CALLER,  "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
                         //utils.qualifiedMethodSig(methodDecl.sym) + " " + utils.qualifiedMethodSig(calleeMethodSym)); // FIXME - do we really do post here and below
-                    }
+//                    }
                 }
                 clearInvariants();
                 // Note that methodDecl.params will be null for initializer blocks
@@ -12352,23 +12352,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     //        if (!translatingJML && !pureCopy && that.sym != syms.lengthVar) checkAccess(JmlToken.ACCESSIBLE, that, that, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
             JCFieldAccess fa = treeutils.makeSelect(that.pos,selected,s);
             fa.type = that.type; // in rac the type can be changed to a representation type
-            eee = (translatingJML || !var || convertingAssignable) ? fa : newTemp(fa);
-            if (oldenv != null) {
+            eee = fa;
+            if (oldenv != null && !translatingLHS) {
                 eee = makeOld(that.pos,eee,oldenv); // FIXME - will make overly nested \old expressions
-//                if (oldenv.name == names.empty && inOldEnv) { // FIXME - should do this for all labels; also don't want to repeat if already present
-//                    JCExpression savedThisExpression = currentThisExpr;
-//                    try {
-//                        currentThisExpr = selected;
-//                        pushBlock();
-//                        addNullnessAllocationTypeCondition(that, that.sym, false);
-//                        JCBlock bl = popBlock(0L,that);
-//                        // append to oldblock list
-//                        oldBlock.stats = oldBlock.stats.appendList(bl.stats);
-//                    } finally {
-//                        currentThisExpr = savedThisExpression;
-//                    }
-//                }
             }
+            eee = (!var || convertingAssignable || !splitExpressions || rac) ? eee : newTemp(eee);
         }
         treeutils.copyEndPosition(result, that);
         if (translatingJML && !pureCopy && s instanceof VarSymbol && specs.isNonNull(s) && !utils.isPrimitiveType(that.selected.type)) {
@@ -12512,7 +12500,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addRepresentsAxioms(tsym, sym, that, currentThisExpr);
                 //         if (checkAccessEnabled) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
                 // FIXME - should we check accessibility for model fields
-                if (!rac) result = eresult = newfa;
+                JCExpression e = newfa;
+                if (oldenv != null && !translatingLHS) e = makeOld(that.pos,newfa,oldenv);
+                if (!rac) {
+                    result = eresult = e;
+                }
                 return;
             }
             
@@ -14647,7 +14639,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             case BSOLD:
             case BSPRE:
             {
-                if (!inOldEnv) {
+                if (oldenv == null) {
                     JmlLabeledStatement stat = M.at(that).JmlLabeledStatement(hereLabelName, null, null);
                     recordLabel(hereLabelName,stat);
                 }

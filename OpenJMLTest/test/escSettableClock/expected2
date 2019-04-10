@@ -1,0 +1,58 @@
+Proving methods in Clock
+Starting proof of Clock.Clock(int,int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Clock.Clock(int,int,int) with prover !!!! - no warnings
+Starting proof of Clock.hours() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Clock.hours() with prover !!!! - no warnings
+Starting proof of Clock.minutes() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Clock.minutes() with prover !!!! - no warnings
+Starting proof of Clock.seconds() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Clock.seconds() with prover !!!! - no warnings
+Starting proof of Clock.later(Clock) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Clock.later(Clock) with prover !!!! - no warnings
+Starting proof of Clock.earlier(Clock) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Clock.earlier(Clock) with prover !!!! - no warnings
+Starting proof of Clock.difference(Clock) with prover !!!!
+../../OpenJMLDemo/src/openjml/settableClock/Clock.java:163: warning: Feasibility is unknown - time or memory limit reached: : Aborted feasibility check: timeout
+  public /*@ pure */ int difference(final Clock the_other_clock) {
+                         ^
+Completed proof of Clock.difference(Clock) with prover !!!! - TIMEOUT
+Starting proof of Clock.setHours(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Clock.setHours(int) with prover !!!! - no warnings
+Starting proof of Clock.setMinutes(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Clock.setMinutes(int) with prover !!!! - no warnings
+Starting proof of Clock.setSeconds(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Clock.setSeconds(int) with prover !!!! - no warnings
+Starting proof of Clock.tick() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Clock.tick() with prover !!!! - no warnings
+Completed proving methods in Clock
+Proving methods in SettableClock
+Starting proof of SettableClock.SettableClock() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SettableClock.SettableClock() with prover !!!! - no warnings
+Starting proof of SettableClock.set(int,int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SettableClock.set(int,int,int) with prover !!!! - no warnings
+Completed proving methods in SettableClock
+1 warning
