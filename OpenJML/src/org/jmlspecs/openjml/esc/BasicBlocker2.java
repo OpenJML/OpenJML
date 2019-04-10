@@ -1001,7 +1001,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     that.args.get(0).accept(this);
                     that.args = com.sun.tools.javac.util.List.<JCExpression>of(that.args.get(0));
                 }
-                that.token = JmlTokenKind.BSSAME; // A no-op // TODO - Review this
+                that.token = JmlTokenKind.BSSAME; // A no-op -- reusing the JmlMethodInvocation node without any \old
             } finally {
                 currentMap = savedMap;
             }

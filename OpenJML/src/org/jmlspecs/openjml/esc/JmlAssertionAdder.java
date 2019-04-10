@@ -7698,7 +7698,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCIdent id = (JCIdent)meth;
                 isSuperCall = id.name.equals(names._super);
                 isThisCall = id.name.equals(names._this);
-                if (!isSuperCall && !isThisCall) meth = convertExpr(meth); 
+                //if (!isSuperCall && !isThisCall) meth = convertExpr(meth); // No transformation of a method name identifier?
                 
                 typeargs = convert(typeargs);
                 trArgs = convertArgs(that, untrArgs,meth.type.asMethodType().argtypes, (id.sym.flags() & Flags.VARARGS) != 0 );
@@ -12542,7 +12542,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 local = true;
 
             } else if (!(sym.owner instanceof Symbol.TypeSymbol)) {
-                // local variable  - just leave it as 
+                // local variable or formal parameter  - just leave it as 
                 // an ident (the owner is null or the method)
                 JCIdent id = treeutils.makeIdent(that.pos, sym);
                 result = eresult = id;
@@ -12638,7 +12638,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 result = eresult = fa;
             }
             treeutils.copyEndPosition(eresult, that);
-            if (oldenv != null && !local) {
+            if (oldenv != null) {
                 // FIXME - the old may imappropriately encapsulate the receiver
                 result = eresult = makeOld(that.pos, eresult, oldenv);
                 treeutils.copyEndPosition(eresult, that);
@@ -12647,7 +12647,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // Just for tracing
                 JCIdent nm = newTemp(eresult);
                 saveMapping(that,nm);
-                // Can't set eresult = nm because this ident might be an LHS.
+                // Can't set eresult = nm generally because this ident might be an LHS.
+                if (eresult instanceof JmlMethodInvocation) result = eresult = nm;
             }
         
         } finally {
@@ -14721,8 +14722,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         {
                             // FIXME - need to set the above scenario up for all labels
                             // FIXME - shouldn't true be condition here
-                            JCExpression m = convertNoSplit(that.meth, treeutils.trueLit, isPostcondition); // FIXME _ is that.meth ever not null?
-                            JCExpression arg = convertNoSplit(that.args.get(0), treeutils.trueLit, isPostcondition); // convert is affected by oldenv
+                            JCExpression m = (that.meth); // FIXME _ is that.meth ever not null?
+                            JCExpression arg = convertExpr(that.args.get(0)); // convert is affected by oldenv
                             // We have to wrap this in an old (even though it sometimes wraps twice) 
                             // in order to get arrays properly resolved
                             JmlMethodInvocation a = makeOld(that.pos, arg, oldenv);
