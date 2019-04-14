@@ -164,6 +164,14 @@ public class JmlFlow extends Flow  {
             scan(that.expression);
         }
 
+        public void visitJmlMatchExpression(JmlMatchExpression that) {
+            scan(that.expression);
+            for (JmlMatchExpression.MatchCase c: that.cases) {
+                scan(c.caseExpression);
+                scan(c.value);
+            }
+        }
+
         @Override
         public void visitJmlStatement(JmlStatement that) {
             scan(that.statement);
@@ -545,6 +553,14 @@ public class JmlFlow extends Flow  {
             scan(that.expression);
         }
 
+        public void visitJmlMatchExpression(JmlMatchExpression that) {
+            scan(that.expression);
+            for (JmlMatchExpression.MatchCase c: that.cases) {
+                //scan(c.caseExpression);
+                //scan(c.value); // FIXME - spurious nonn-initialized errors
+            }
+        }
+
         @Override
         public void visitJmlStatement(JmlStatement that) {
             scan(that.statement);
@@ -904,6 +920,14 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitJmlLblExpression(JmlLblExpression that) {
             scan(that.expression);
+        }
+
+        public void visitJmlMatchExpression(JmlMatchExpression that) {
+            scan(that.expression);
+            for (JmlMatchExpression.MatchCase c: that.cases) {
+                //scan(c.caseExpression);
+                scan(c.value);
+            }
         }
 
         @Override

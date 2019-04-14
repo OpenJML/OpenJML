@@ -4250,6 +4250,105 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = check(that, resultType, VAL, resultInfo);
     }
     
+    public void visitJmlMatchExpression(JmlMatchExpression that) {
+        Type seltype = attribExpr(that.expression, env, Type.noType);
+        Type at = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.IJmlDatatype")).type;
+        if (!jmltypes.isAssignable(seltype,at)) {
+            log.error(that.pos, "jml.message", "Match expression must be a datatype, not a " + seltype.toString());
+            result = syms.errType;
+            return;
+        }
+        Env<AttrContext> switchEnv =
+                env.dup(that, env.info.dup(env.info.scope.dup()));
+        Type topType = null;
+        try {
+            for (JmlMatchExpression.MatchCase c: that.cases) {
+                Env<AttrContext> caseEnv =
+                        switchEnv.dup(that, env.info.dup(switchEnv.info.scope.dup()));
+                try {
+                    attrMatchCase(c.caseExpression, seltype, caseEnv);
+                    attribExpr(c.value, caseEnv, Type.noType);
+                    Type nt = c.value.type;
+                    if (topType == null) topType = nt;
+                    else {
+                        if (!jmltypes.isAssignable(nt, topType)) {
+                            if (jmltypes.isAssignable(topType, nt)) topType = nt; 
+                            else {
+                                // calculate a least upper bound  // FIXME
+                                topType = syms.objectType;
+                            }
+                        }
+                    }
+                } finally {
+                    caseEnv.info.scope.leave();
+                }
+            }
+        } finally {
+            switchEnv.info.scope.leave();
+        }
+        result = check(that, topType, VAL, resultInfo);
+    }
+    
+    public void attrMatchCase(JCExpression expr, Type datatype, Env<AttrContext> caseEnv) {
+        if (expr instanceof JCMethodInvocation) {
+            visitMatchConstructor((JCMethodInvocation)expr,datatype,caseEnv);
+        } else {
+            log.error(expr, "jml.message", "Expected a constructor application here: " + expr.toString());
+        }
+    }
+    
+    public boolean visitMatchConstructor(JCMethodInvocation expr, Type datatype, Env<AttrContext> caseEnv) {
+        Name underscore = names.fromString("_");
+        JCExpression caller = expr.meth;
+        if (!(caller instanceof JCIdent)) {
+            log.error(expr, "jml.message", "Expected a constructor application here: " + expr.toString());
+            return false;
+        }
+        Name cn = ((JCIdent)caller).getName();
+        MethodSymbol msym = null;
+        x:{
+            for (Symbol e: datatype.tsym.getEnclosedElements()) {
+                if (e instanceof MethodSymbol) {
+                    msym = (MethodSymbol)e;
+                    Name n = e.getSimpleName();
+                    if (n.equals(cn)) break x;
+                }
+            }
+            log.error(expr, "jml.message", "Method " + cn + " is not a constructor of datatype " + datatype.toString());
+            return false;
+        }
+        expr.type = msym.getReturnType();
+        ((JCIdent)caller).sym = msym;
+        ((JCIdent)caller).type = msym.type;
+        boolean ok = true;
+        if (msym.params.size() != expr.args.size()) {
+            log.error(expr, "jml.message", "Constructor " + cn + " has incorrect number of arguments: " + expr.args.size() + " vs. " + msym.params.size() + " expected");
+            ok = false;
+        }
+        Iterator<VarSymbol> formals = msym.params.iterator();
+        Iterator<JCExpression> actuals = expr.args.iterator();
+        while (formals.hasNext() && actuals.hasNext()) {
+            VarSymbol formal = formals.next();
+            JCExpression actual = actuals.next();
+            if (actual instanceof JCIdent) {
+                Name n = ((JCIdent)actual).getName();
+                if (n.equals(underscore)) continue;
+                // Add identifier to current environment
+                JCVariableDecl vd = jmlMaker.VarDef(jmlMaker.Modifiers(0), n, jmlMaker.Type(formal.type), null);
+                memberEnter.memberEnter(vd, caseEnv);
+            } else if (actual instanceof JCMethodInvocation) {
+                // FIXME - formal type should be datatype
+                ok = visitMatchConstructor((JCMethodInvocation)actual, datatype, caseEnv) && ok;
+            } else {
+                log.error(actual, "log.message", "Expected an identifier or consturctor call here");
+                ok = false;
+            }
+        }
+        return ok;
+    }
+
+
+    
     /** This makes a new local environment that allows adding new declarations,
      * but can see out into the enclosing environment; you need to call leave()
      * when you leave this scope to get rid of new declarations.

@@ -32,6 +32,7 @@ public interface IJmlVisitor extends IVisitor {
     public void visitJmlInlinedLoop(JmlInlinedLoop that)           ;
     public void visitJmlLabeledStatement(JmlLabeledStatement that) ;
     public void visitJmlLblExpression(JmlLblExpression that)       ;
+    public void visitJmlMatchExpression(JmlMatchExpression that)   ;
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) ;
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) ;
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) ;

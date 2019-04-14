@@ -14234,6 +14234,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     // OK
     @Override
+    public void visitJmlMatchExpression(JmlMatchExpression that) {
+        // FIXME - not yet implemented
+        result = treeutils.makeZeroEquivalentLit(that.pos, that.type);
+    }
+
+    // OK
+    @Override
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
         JmlMethodClauseCallable mc = M.at(that).JmlMethodClauseCallable(that.keyword);
         mc.setType(that.type);
@@ -17747,8 +17754,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         @Override
         public /*@ nullable */ java.util.List<JmlStatementExpr> visitJmlLblExpression(JmlLblExpression that, Void p) {
-            // TODO Auto-generated method stub
-            return null;
+            return that.expression.accept(this,p);
+        }
+
+        @Override
+        public /*@ nullable */ java.util.List<JmlStatementExpr> visitJmlMatchExpression(JmlMatchExpression that, Void p) {
+            return that.expression.accept(this, p);
+            // FIXME - check well definedess of each case?
         }
 
         @Override

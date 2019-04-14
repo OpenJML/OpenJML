@@ -146,6 +146,14 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(that.expression);
     }
 
+    public void visitJmlMatchExpression(JmlMatchExpression that) {
+        scan(that.expression);
+        for (JmlMatchExpression.MatchCase c: that.cases) {
+            scan(c.caseExpression);
+            scan(c.value);
+        }
+    }
+
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
         scan(tree.keyword);
         scan(tree.methodSignatures);

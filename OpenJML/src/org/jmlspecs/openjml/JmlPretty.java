@@ -256,6 +256,29 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(that,e); }
     }
     
+    public void visitJmlMatchExpression(JmlMatchExpression that) {
+        try { 
+            // NOTE: JML requires that a lbl expression be in parentheses.
+            // In this parser the outer parentheses are a JCParens expression.
+            print("match (");
+            printExpr(that.expression);
+            print(") {");
+            indent();
+            println();
+            for (JmlMatchExpression.MatchCase c: that.cases) {
+                align();
+                printExpr(c.caseExpression);
+                print(" -> ");
+                printExpr(c.value);
+                println();
+            }
+            undent();
+            align();
+            print("}");
+            println();
+        } catch (IOException e) { perr(that,e); }
+    }
+    
     public void visitJmlImport(JmlImport that) {
         try {
             if (useJMLComments && that.isModel) print("//@ ");

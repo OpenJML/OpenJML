@@ -14,6 +14,7 @@ import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.Maker;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 
 import com.sun.tools.javac.code.Symtab;
@@ -51,6 +52,9 @@ abstract public class ExpressionExtension extends JmlExtension {
     /** The Utils instance */
     protected Utils utils;
     
+    /** The Maker instance */
+    protected Maker jmlF;
+    
     //@ public constraint context == \old(context);
 
     /** A constructor needed by derived classes; this class should not be
@@ -60,6 +64,7 @@ abstract public class ExpressionExtension extends JmlExtension {
         this.context = context;
         this.syms = Symtab.instance(context);
         this.utils = Utils.instance(context);
+        this.jmlF = Maker.instance(context);
     }
     
     public JCExpression parse(String keyword, IJmlClauseKind clauseType, JmlParser parser) { return null; }

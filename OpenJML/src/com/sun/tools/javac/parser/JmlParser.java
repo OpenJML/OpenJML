@@ -2949,6 +2949,8 @@ public class JmlParser extends JavacParser {
         }
     }
     
+    public boolean underscoreOK = false;
+    
     @Override
     public Name ident() {
         if (token.kind == CUSTOM) {
@@ -2966,6 +2968,10 @@ public class JmlParser extends JavacParser {
                 token = new Tokens.NamedToken(IDENTIFIER, token.pos, token.endPos, name, token.comments);
                 return super.ident();
             }
+        } else if (underscoreOK && token.kind == UNDERSCORE) {
+            Name name = token.name();
+            nextToken();
+            return name;
         } else {
             return super.ident();
         }
@@ -3096,7 +3102,7 @@ public class JmlParser extends JavacParser {
 
 
     @Override
-    protected JCExpression term3() {
+    public JCExpression term3() {
         List<JCExpression> typeArgs = null;
         // No JML function expects type arguments. If they did we would parse
         // them here (before seeing the JML token). But we can't do that just

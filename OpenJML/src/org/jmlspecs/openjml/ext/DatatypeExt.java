@@ -10,7 +10,9 @@ import org.jmlspecs.openjml.JmlTreeCopier;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Flags.Flag;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.Tokens.Comment;
@@ -102,7 +104,9 @@ public class DatatypeExt extends ClassLike {
         // Implicitly model
         mods.annotations = JmlSpecs.instance(context).addModelAnnotation(pos, mods.annotations);
         // FIXME - make this a novel primitive type
-        JmlDatatypeDecl d = new JmlDatatypeDecl(mods, datatypeName, typarams, null, List.<JCExpression>nil(), defs.toList(), null);
+        Type at = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.IJmlDatatype")).type;
+        JCExpression dtype = parser.jmlF.at(pos).Type(at);
+        JmlDatatypeDecl d = new JmlDatatypeDecl(mods, datatypeName, typarams, null, List.<JCExpression>of(dtype), defs.toList(), null);
         d.constructors = cons.toList();
         d.pos = pos;
         parser.utils.setJML(d.mods);

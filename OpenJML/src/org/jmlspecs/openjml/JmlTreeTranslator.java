@@ -185,6 +185,15 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: token, label
     }
 
+    public void visitJmlMatchExpression(JmlMatchExpression that) {
+        JmlMatchExpression r = that;
+        r.expression = translate(that.expression);
+        for (JmlMatchExpression.MatchCase c: that.cases) {
+            c.caseExpression = translate(c.caseExpression);
+            c. value = translate(c.value);
+        }
+    }
+
     @Override
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
         JmlMethodClauseCallable r = that;

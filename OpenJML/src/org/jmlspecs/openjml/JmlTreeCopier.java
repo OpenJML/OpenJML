@@ -278,6 +278,19 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 copy(that.expression,p)).setType(that.type);
     }
     
+    @Override
+    public JCTree visitJmlMatchExpression(JmlMatchExpression that, Void p) {
+        JmlMatchExpression cc = M.at(that.pos).JmlMatchExpression(
+                copy(that.expression),that.cases);
+        cc.setType(that.type);
+        ListBuffer<JmlMatchExpression.MatchCase> newcases = new ListBuffer<>();
+        for (JmlMatchExpression.MatchCase c: that.cases) {
+            newcases.add(new JmlMatchExpression.MatchCase(copy(c.caseExpression), copy(c.value)));
+        }
+        cc.cases = newcases.toList();
+        return cc;
+    }
+    
     // FIXME - missing copying end positions, here and probably elsewhere
 
     @Override

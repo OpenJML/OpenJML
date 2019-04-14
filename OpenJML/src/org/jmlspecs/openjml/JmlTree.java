@@ -116,6 +116,7 @@ public class JmlTree implements IJmlTree {
         JmlLabeledStatement JmlLabeledStatement(Name label, ListBuffer<JCStatement> extra, JCStatement block);
         JmlLambda JmlLambda(List<JCVariableDecl> params, JCTree body, JCExpression jmlType);
         JmlLblExpression JmlLblExpression(int labelPosition, JmlTokenKind token, Name label, JCTree.JCExpression expr);
+        JmlMatchExpression JmlMatchExpression(JCTree.JCExpression expr, List<JmlMatchExpression.MatchCase> cases);
         JmlMethodClauseGroup JmlMethodClauseGroup(List<JmlSpecificationCase> cases);
         JmlMethodClauseDecl JmlMethodClauseDecl(String keyword, IJmlClauseKind t, List<JCTree.JCVariableDecl> decls);
         JmlMethodClauseExpr JmlMethodClauseExpr(String keyword, IJmlClauseKind t, JCTree.JCExpression e);
@@ -508,6 +509,13 @@ public class JmlTree implements IJmlTree {
         @Override
         public JmlLblExpression JmlLblExpression(int labelPosition, JmlTokenKind token, Name label, JCTree.JCExpression expr) {
             JmlLblExpression p = new JmlLblExpression(pos,labelPosition,token,label,expr);
+            return p;
+        }
+        
+        /** Creates a JML match expression */
+        @Override
+        public JmlMatchExpression JmlMatchExpression(JCTree.JCExpression expr, List<JmlMatchExpression.MatchCase> cases) {
+            JmlMatchExpression p = new JmlMatchExpression(pos,expr,cases);
             return p;
         }
         
@@ -1967,6 +1975,55 @@ public class JmlTree implements IJmlTree {
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlLblExpression(this, d);
+            } else {
+                System.out.println("A JmlLblExpression expects an JmlTreeVisitor, not a " + v.getClass());
+                return null; // return super.accept(v,d);
+            }
+        }
+    }
+
+
+    /** This class represents a match expression, which has the form
+           match(expr) {
+           case expr -> expr;
+           ...
+           default -> expr;
+           }
+      */
+    public static class JmlMatchExpression extends JmlExpression {
+        
+        public static class MatchCase {
+            public JCExpression caseExpression;
+            public JCExpression value;
+            public MatchCase(JCExpression c, JCExpression v) { caseExpression = c; value = v; }
+            public MatchCase copy() { return new MatchCase(caseExpression, value); }
+        }
+        
+        /** The expression to match */
+        public JCExpression expression;
+        
+        public List<MatchCase> cases;
+    
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        protected JmlMatchExpression(int pos, JCTree.JCExpression expr, List<MatchCase> cases) {
+            this.expression = expr;
+            this.cases = cases;
+        }
+    
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlMatchExpression(this); 
+            } else {
+                //System.out.println("A JmlLblExpression expects an IJmlVisitor, not a " + v.getClass());
+                expression.accept(v);
+            }
+        }
+    
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlMatchExpression(this, d);
             } else {
                 System.out.println("A JmlLblExpression expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; // return super.accept(v,d);
