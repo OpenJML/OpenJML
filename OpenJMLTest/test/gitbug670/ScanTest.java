@@ -1,3 +1,4 @@
+// This submitted example failed because of inadequate specs for Scanner
 import java.util.Scanner;
 
 public class ScanTest

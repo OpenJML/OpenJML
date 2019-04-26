@@ -1,3 +1,5 @@
+// The complaint was that this did noty prove. The problem is partly the specs and partly the code
+// and partly handling of Strings.
 public class buggyPalindrome
 {
    private /*@ spec_public@*/String reverse = "";

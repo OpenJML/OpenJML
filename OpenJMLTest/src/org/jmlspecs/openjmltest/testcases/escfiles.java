@@ -781,6 +781,24 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testFactorial() {
+        expectedExit = 0;
+        helpTF("factorial");
+    }
+
+    @Test
+    public void testPrime() {
+        expectedExit = 0;
+        helpTF("primeNumbers");
+    }
+
+    @Test
+    public void testGCDCalculator() {
+        expectedExit = 0;
+        helpTF("gcdcalculator");
+    }
+
+    @Test
     public void testEscVisibilitySimple() {
         expectedExit = 1;
         helpTF("visibilitySimple");

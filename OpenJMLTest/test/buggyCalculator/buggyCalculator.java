@@ -1,4 +1,4 @@
-
+// This was a problem with SMT encoding of characters, now fixed.
 public class buggyCalculator {
 
 
