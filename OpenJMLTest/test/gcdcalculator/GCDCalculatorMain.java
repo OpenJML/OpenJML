@@ -1,6 +1,7 @@
 import java.util.Scanner;
 
 public class GCDCalculatorMain{
+    //@ requires System.out.isOpen && System.err.isOpen;
 	public static void main(String[] args){
 		try{ 
 			int num1, num2, gcd;

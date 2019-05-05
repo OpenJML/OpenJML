@@ -40,20 +40,3 @@ datatype NN<T> {
     
 }
  */
-
-/* @ model
-abstract class NN<T> {
-    
-    public static <T>NN<T> Empty() ;
-    
-    public abstract boolean isEmpty();
-    
-    public static <T>NN<T> Cons(T head, NN<T> tail) ;
-    
-    public abstract boolean isCons();
-    
-    public abstract T head();
-    
-    public abstract NN<T> tail();
-  }
-*/

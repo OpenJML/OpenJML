@@ -332,8 +332,14 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
+    // FIXME - problem in 503 is that various subtests non-deterministically timeout
+    // This seems particularly the case with A1 and A4, which have an extraneous template argument
     @Test public void gitbug503() {
-        helpTCG("-code-math=java"); // java math just to avoid overflow error messages
+        helpTCG("-code-math=java","-timeout=600"); // java math just to avoid overflow error messages
+    }
+
+    @Test public void gitbug503a() {
+        helpTCG("-code-math=java","-timeout=600"); // java math just to avoid overflow error messages
     }
 
     @Test public void gitbug535() {
@@ -1011,10 +1017,10 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
-    @Test
+    @Test   // FIXME - this seems to be a bug in Z3 having an inconsistent counterexample
     public void gitbug677() {
         expectedExit = 0;
-        helpTCG("-code-math=safe"); // The problem manifests with safe math
+        helpTCG("-code-math=safe");//,"-show","-method=calculateArea","-subexpressions","-ce"); // The problem manifests with safe math
     }
     
     public void gitbug888() {

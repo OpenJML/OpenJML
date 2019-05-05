@@ -792,10 +792,12 @@ public class escfiles extends EscBase {
         helpTF("primeNumbers");
     }
 
+    // Fails for -minquant and with the tnum1a/tnum2a intermediates
+    // Presumably a problem with instantiation/triggering
     @Test
     public void testGCDCalculator() {
         expectedExit = 0;
-        helpTF("gcdcalculator");
+        helpTF("gcdcalculator");//,"-show","-method=GCD","-subexpressions");
     }
 
     @Test

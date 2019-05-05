@@ -12,9 +12,8 @@ public class GCDCalculator{
      //@ requires num1 != Integer.MAX_VALUE && num1 != Integer.MAX_VALUE && num1 > Integer.MIN_VALUE + 1 && num2 > Integer.MIN_VALUE + 1;
      //@ {|  
 	//@ requires num1 != 0 && num2 != 0;
-	//@ old AbsoluteValue tm = new AbsoluteValue();
-	//@ old int tnum1 = tm.IntAbsolute(num1);
-	//@ old int tnum2 = tm.IntAbsolute(num2);
+	//@ old int tnum1 = Math.abs(num1);
+	//@ old int tnum2 = Math.abs(num2);
 	//@ old int greater = (tnum1 > tnum2) ? tnum1 : tnum2;
 	//@ old int smaller = (tnum1 > tnum2) ? tnum2 : tnum1;
 	//@ ensures \result > 0;
@@ -26,17 +25,15 @@ public class GCDCalculator{
 
 	//@ requires num1 == 0 && num2 != 0;
 	//@ requires num2 != Integer.MIN_VALUE;
-	//@ old AbsoluteValue tm = new AbsoluteValue();
-	//@ old int tnum2 = tm.IntAbsolute(num2);
-	//@ ensures \result == tnum2;
+	//@ old int tnum2a = Math.abs(num2);
+	//@ ensures \result == tnum2a;
 
 	//@ also
 
 	//@ requires num1 != 0 && num2 == 0;
 	//@ requires num1 != Integer.MIN_VALUE;
-	//@ old AbsoluteValue tm = new AbsoluteValue();
-	//@ old int tnum1 = tm.IntAbsolute(num1);
-	//@ ensures \result == tnum1;
+	//@ old int tnum1a = Math.abs(num1);  // FIXME: If we eliminnate this old clause, things work, but otherwise not.
+	//@ ensures \result == tnum1a;
       //@ |}
 
 	public int GCD(int num1, int num2)throws IllegalArgumentException {

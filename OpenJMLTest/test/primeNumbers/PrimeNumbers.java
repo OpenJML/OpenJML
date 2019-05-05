@@ -5,6 +5,7 @@
 	private /*@ spec_public nullable@*/ int primeArray[];
 	//@ requires n >= 1;
 	//@ assignable primeArray;
+	//@ ensures primeArray != null;
 	//@ ensures primeArray.length == n;
 	//@ ensures (\forall int i, j; i >= 0 && i < primeArray.length && j >= 2 && j <= primeArray[i]/2; primeArray[i]%j != 0); 
 	public void Prime(int n)

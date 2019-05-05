@@ -1,0 +1,40 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Proving methods in Test.N
+Starting proof of Test.N.N() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.N.N() with prover !!!! - no warnings
+Completed proving methods in Test.N
+Proving methods in X
+Starting proof of X.X() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of X.X() with prover !!!! - no warnings
+Completed proving methods in X
+Starting proof of Test.m() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m() with prover !!!! - no warnings
+Starting proof of Test.mm(NN<java.lang.Integer>) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mm(NN<java.lang.Integer>) with prover !!!! - no warnings
+Completed proving methods in Test
+Proving methods in NN
+Starting proof of NN.NN() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of NN.NN() with prover !!!! - no warnings
+Starting proof of NN.length() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of NN.length() with prover !!!! - no warnings
+Starting proof of NN.of(T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of NN.of(T) with prover !!!! - no warnings
+Completed proving methods in NN

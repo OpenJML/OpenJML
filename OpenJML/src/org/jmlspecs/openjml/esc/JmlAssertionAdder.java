@@ -15862,29 +15862,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         result = null;
         boolean saved = translatingJML;
         boolean savedP = isPostcondition;
+        IArithmeticMode savedAM = currentArithmeticMode;
+
         if (that.clauseType == showClause) {
-                try {
-                    translatingJML = true;
-                    isPostcondition = false;
-                    if (!pureCopy) addTraceableComment(that);
-                    for (JCExpression expr: that.expressions) {
-                        Name n = names.fromString("JMLSHOW_" + (++jmlShowUnique));
-                        // Add the equivalent of \lbl for each expressions
-                        JmlLblExpression e = M.at(expr.getStartPosition()).JmlLblExpression(expr.getStartPosition(),JmlTokenKind.BSLBLANY,n,expr);
-                        e.type = expr.type;
-                        condition = treeutils.trueLit;
-                        visitJmlLblExpression(e);
-                        showExpressions.put(n.toString(),expr);
-                    }
-                } catch (NoModelMethod e) {
-                    // Ignore - don't add a statement
-                } catch (JmlNotImplementedException e) {
-                    notImplemented(that.clauseType.name() + " statement containing ",e);
-                    result = null;
-                } finally {
-                    translatingJML = saved;
-                    isPostcondition = savedP;
+            currentArithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(
+                    methodDecl != null ? methodDecl.sym : classDecl.sym,true);
+            try {
+                translatingJML = true;
+                isPostcondition = false;
+                if (!pureCopy) addTraceableComment(that);
+                for (JCExpression expr: that.expressions) {
+                    Name n = names.fromString("JMLSHOW_" + (++jmlShowUnique));
+                    // Add the equivalent of \lbl for each expressions
+                    JmlLblExpression e = M.at(expr.getStartPosition()).JmlLblExpression(expr.getStartPosition(),JmlTokenKind.BSLBLANY,n,expr);
+                    e.type = expr.type;
+                    condition = treeutils.trueLit;
+                    visitJmlLblExpression(e);
+                    showExpressions.put(n.toString(),expr);
                 }
+            } catch (NoModelMethod e) {
+                // Ignore - don't add a statement
+            } catch (JmlNotImplementedException e) {
+                notImplemented(that.clauseType.name() + " statement containing ",e);
+                result = null;
+            } finally {
+                translatingJML = saved;
+                isPostcondition = savedP;
+                currentArithmeticMode = savedAM;
+            }
 
         } else {
             String msg = "Unknown token in JmlAssertionAdder.visitJmlStatement: " + that.clauseType.name();

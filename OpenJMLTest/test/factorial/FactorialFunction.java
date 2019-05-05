@@ -1,9 +1,9 @@
 
      
-    public class Factorial
+    public class FactorialFunction
     {
 	//@ requires n >= 0 && n <= 20;
-       public long Facto(int n)
+       public long FactoF(int n)
        {
           int c;
           long fact = 1;
@@ -35,7 +35,7 @@
            also
             requires n == 0;
             ensures \result == 1;
-        public static model pure long spec_factorial(int n){ 
+        public static model function pure long spec_factorial(int n){ 
 	    if(n == 0) {
 		 return 1; 
 	    }
