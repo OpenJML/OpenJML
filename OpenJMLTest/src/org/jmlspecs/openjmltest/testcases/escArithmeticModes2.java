@@ -215,11 +215,12 @@ public class escArithmeticModes2 extends EscBase {
 
     @Test
     public void testModSafeB() {
+        main.addOptions("-show","-method=ma","-subexpressions");
         //Assume.assumeTrue(runLongArithmetic);
         Assume.assumeTrue(!options.contains("-escBV=true")); // Very long - skip for now
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeSafeMath @SpecSafeMath public class TestJava { \n"
-                +"  //@ requires j != 0;\n"
+                +"  //@ requires j != 0 && i > 0 && j > 0;\n"
                 +"  //@ requires j != -1 || i != 0x80000000;\n"
                 +"  public void ma(int i, int j) {\n"
                 +"    //@ show i, j; \n"

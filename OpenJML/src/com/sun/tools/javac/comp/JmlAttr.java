@@ -2447,7 +2447,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** Overridden in order to be sure that the type specs are attributed. */
     public Type attribType(JCTree tree, Env<AttrContext> env) { // FIXME _ it seems this will automatically happen - why not?
-        Type result = super.attribType(tree,env);
+        Type result;
+        if (tree instanceof JCIdent && ((JCIdent)tree).name.charAt(0) == '\\') {
+            // Backslash identifier -- user added type
+            JCIdent id = (JCIdent)tree;
+            JCIdent t = jmlMaker.at(tree.pos).Ident(names.fromString(id.name.toString().substring(1)));
+            result = super.attribType(t,env);
+            id.type = t.type;
+            id.sym = t.sym;
+        } else {
+            result = super.attribType(tree,env);
+        }
         if (result.getTag() != TypeTag.VOID && result.isErroneous() && 
                 result.tsym instanceof ClassSymbol &&
                 !result.isPrimitive()) {

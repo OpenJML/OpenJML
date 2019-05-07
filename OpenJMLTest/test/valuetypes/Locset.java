@@ -38,7 +38,9 @@ public class Locset {
     void m() {
         //@ ghost locset s = locset.locset();
         //@ ghost locset ss = s;
+        //@ ghost \locset sss = s;
         //@ assert s == ss;
+        //@ assert ss == sss;
     }
     
 }

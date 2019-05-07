@@ -652,7 +652,9 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                     tk = TokenKind.CUSTOM;
                     jmlTokenKind = t;
                 } else {
-                    jmlError(ep, reader.bp, "jml.bad.backslash.token", seq);
+                    tk = TokenKind.IDENTIFIER;
+                    jmlTokenKind = null;
+                    //jmlError(ep, reader.bp, "jml.bad.backslash.token", seq);
                     // token is set to ERROR
                 }
             } else {
