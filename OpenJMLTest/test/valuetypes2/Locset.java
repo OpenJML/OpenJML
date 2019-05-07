@@ -16,6 +16,7 @@ public class Locset {
     //@ model public static void addBumpsSize(locset s, location o) {}
     
     //@ public normal_behavior
+    //@ ensures s.contains(o) ==> s == s.add(o);
     //@ ensures s.contains(o) ==> s.add(o).size() == s.size();
     //@ model public static void addDoesNotChangeSize(locset s, location o) {}
     
