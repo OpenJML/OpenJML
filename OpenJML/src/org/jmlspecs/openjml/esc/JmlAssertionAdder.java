@@ -15053,6 +15053,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 result = eresult = convertExpr(and);
                 break;
             }
+            case BSREQUIRES:
+            case BSENSURES:
+            case BSREADS:
+            case BSWRITES:
+            {
+                ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+                for (JCExpression arg : that.args) {
+                    JCExpression ex = convertExpr(arg);
+                    newargs.add(ex);
+                }
+                result = eresult = M.at(that.pos).JmlMethodInvocation(that.token, newargs.toList());
+                eresult.type = syms.booleanType;
+                if (splitExpressions) result = eresult = newTemp(eresult);
+                eresult.type = syms.booleanType;
+                break;
+            }
 
             default:
                 Log.instance(context).error("esc.internal.error","Unknown token in JmlAssertionAdder: " + that.token.internedName());

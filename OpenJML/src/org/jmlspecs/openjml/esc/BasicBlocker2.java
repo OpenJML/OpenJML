@@ -978,76 +978,118 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - review this
     //boolean extraEnv = false;
     public void visitJmlMethodInvocation(JmlMethodInvocation that) { 
-        if (that.token == JmlTokenKind.BSOLD || that.token == JmlTokenKind.BSPRE || that.token == JmlTokenKind.BSPAST) {
-            VarMap savedMap = currentMap;
-            try {
-//                if (that.args.size() == 1) {
-//                    currentMap = premap;
-//                    that.args.get(0).accept(this);
-//                } else 
-                {
-                    Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).name;
-                    //JCIdent label = (JCIdent)that.args.get(1);
-                    currentMap = labelmaps.get(label);
-                    if (currentMap == null) {
-                        // When method axioms are inserted they can appear before the label,
-                        // in which case control flow comes here. SO we are counting on proper
-                        // reporting of out of scope labels earlier.
-                        // This should have already been reported
-                        //log.error(label.pos,"jml.unknown.label",label.name.toString());
-                        // Just use the current map
-                        currentMap = savedMap;
-                    }
-                    that.args.get(0).accept(this);
-                    that.args = com.sun.tools.javac.util.List.<JCExpression>of(that.args.get(0));
-                }
-                that.token = JmlTokenKind.BSSAME; // A no-op -- reusing the JmlMethodInvocation node without any \old
-            } finally {
-                currentMap = savedMap;
-            }
-        } else if (that.token == JmlTokenKind.SUBTYPE_OF || that.token == JmlTokenKind.JSUBTYPE_OF) {
-            scan(that.args.get(0));
-            JCExpression lhs = result;
-            scan(that.args.get(1));
-            JCExpression rhs = result;
-            that.args = com.sun.tools.javac.util.List.<JCExpression>of(lhs,rhs);
-            result = that;
-        } else if (that.token == JmlTokenKind.BSNONNULLELEMENTS) {
-            scan(that.args.get(0));
-            JCExpression arg = result;
-            JCExpression argarrays = getArrayIdent(syms.objectType,that.pos);
-            that.args = com.sun.tools.javac.util.List.<JCExpression>of(arg,argarrays);
-            result = that;
-        } else if (that.name != null) {
+        if (that.name != null) {
             scanList(that.args);
             result = that;
-        } else if (that.token == null || that.token == JmlTokenKind.BSTYPELC || that.token == JmlTokenKind.BSTYPEOF || that.token == JmlTokenKind.BSDISTINCT) {
+        } else if (that.token == null) {
             //super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
             scan(that.typeargs);
             scan(that.meth);
             if (that.meth != null) that.meth = result;
             scanList(that.args);
             result = that;
-        } else if (that.token == JmlTokenKind.BSELEMTYPE || that.token == JmlTokenKind.BSERASURE) {
-            scan(that.typeargs);
-            scan(that.meth);
-            if (that.meth != null) that.meth = result;
-            scanList(that.args);
-            result = that;
-        } else if (that.token == JmlTokenKind.BSCONCAT) {
-            scan(that.typeargs);
-            scanList(that.args);
-            result = that;
-        } else if (that.token == JmlTokenKind.BSSAME) {
-            // In this context, BSSAME is a noop
-            scanList(that.args);
-            result = that;
+
+
         } else {
-            log.error(that.pos, "esc.internal.error", "Did not expect this kind of Jml node in BasicBlocker2: " + that.token.internedName());
-            shouldNotBeCalled(that);
+            switch (that.token) {
+                case BSOLD:
+                case BSPRE:
+                case BSPAST:
+                {
+                    VarMap savedMap = currentMap;
+                    try {
+                        //                if (that.args.size() == 1) {
+                        //                    currentMap = premap;
+                        //                    that.args.get(0).accept(this);
+                        //                } else 
+                        {
+                            Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).name;
+                            //JCIdent label = (JCIdent)that.args.get(1);
+                            currentMap = labelmaps.get(label);
+                            if (currentMap == null) {
+                                // When method axioms are inserted they can appear before the label,
+                                // in which case control flow comes here. SO we are counting on proper
+                                // reporting of out of scope labels earlier.
+                                // This should have already been reported
+                                //log.error(label.pos,"jml.unknown.label",label.name.toString());
+                                // Just use the current map
+                                currentMap = savedMap;
+                            }
+                            that.args.get(0).accept(this);
+                            that.args = com.sun.tools.javac.util.List.<JCExpression>of(that.args.get(0));
+                        }
+                        that.token = JmlTokenKind.BSSAME; // A no-op -- reusing the JmlMethodInvocation node without any \old
+                    } finally {
+                        currentMap = savedMap;
+                    }
+                    break;
+                }
+                case SUBTYPE_OF:
+                case JSUBTYPE_OF:
+                {
+                    scan(that.args.get(0));
+                    JCExpression lhs = result;
+                    scan(that.args.get(1));
+                    JCExpression rhs = result;
+                    that.args = com.sun.tools.javac.util.List.<JCExpression>of(lhs,rhs);
+                    result = that;
+                    break;
+                } 
+                case BSNONNULLELEMENTS: 
+                {
+                    scan(that.args.get(0));
+                    JCExpression arg = result;
+                    JCExpression argarrays = getArrayIdent(syms.objectType,that.pos);
+                    that.args = com.sun.tools.javac.util.List.<JCExpression>of(arg,argarrays);
+                    result = that;
+                    break;
+                } 
+                case BSTYPELC:
+                case BSTYPEOF:
+                case BSDISTINCT:
+                {
+                    //super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
+                    scan(that.typeargs);
+                    scan(that.meth);
+                    if (that.meth != null) that.meth = result;
+                    scanList(that.args);
+                    result = that;
+                    break;
+                } 
+                case BSELEMTYPE:
+                case BSERASURE:
+                case BSREQUIRES:
+                case BSENSURES:
+                case BSREADS:
+                case BSWRITES:
+                {
+                    scan(that.typeargs);
+                    scan(that.meth);
+                    if (that.meth != null) that.meth = result;
+                    scanList(that.args);
+                    result = that;
+                    break;
+                } 
+                case BSCONCAT: 
+                {
+                    scan(that.typeargs);
+                    scanList(that.args);
+                    result = that;
+                    break;
+                } 
+                case BSSAME:
+                {
+                    // In this context, BSSAME is a noop
+                    scanList(that.args);
+                    result = that;
+                    break;
+                } 
+                default:
+                    log.error(that.pos, "esc.internal.error", "Did not expect this kind of Jml node in BasicBlocker2: " + that.token.internedName());
+                    shouldNotBeCalled(that);
+            }
         }
     }
-    
     
     // FIXME - REVIEW and document
     protected List<Type> allTypeArgs(Type type) {
