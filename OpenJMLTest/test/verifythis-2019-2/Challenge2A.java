@@ -1,6 +1,6 @@
 // This is Challenge 2A from VerifyThis 2019
 
-public class Challenge {
+public class Challenge2A {
 
     //@ public normal_behavior
     //@ assigns \nothing;
@@ -44,7 +44,6 @@ public class Challenge {
             }
             stack[height++] = x;
         }
-        //@ reachable;
         return left;
     }
 }

@@ -1,6 +1,5 @@
 // This is Challenge 1A from the 2019 VerifyThis competition
-// FIXME - feasibility checking times out
-public class Test3 {
+public class Challenge1A {
     
     //@ public normal_behavior
     //@ assigns \nothing;
@@ -50,7 +49,6 @@ public class Test3 {
         }
         int[] newcut = new int[lengthcut];
         System.arraycopy(cut, 0, newcut, 0, lengthcut);
-        //@ reachable;
         return newcut;
     }
 }
