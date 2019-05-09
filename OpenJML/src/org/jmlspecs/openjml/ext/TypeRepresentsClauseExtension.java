@@ -38,7 +38,8 @@ public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
     
 
     @Override
-    public IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             representsClause}; }
     
     public static final IJmlClauseKind representsClause = new IJmlClauseKind.TypeClause() {

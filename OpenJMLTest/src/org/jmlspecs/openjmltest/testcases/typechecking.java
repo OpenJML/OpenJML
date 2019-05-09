@@ -880,7 +880,7 @@ public class typechecking extends TCBase {
                 ,"/A.java:1: A \\only_accessed expression may not be in a invariant clause",67
                 ,"/A.java:1: A \\only_captured expression may not be in a invariant clause",88
                 ,"/A.java:1: A \\not_assigned expression may not be in a invariant clause",109
-                ,"/A.java:1: A \\not_modified expression may not be in a invariant clause",129
+                ,"/A.java:1: A \\not_modified expression may not be in a invariant clause",142
                 );
     }
     
@@ -895,7 +895,7 @@ public class typechecking extends TCBase {
                 ,"/A.java:1: A \\only_accessed expression may not be in a jml declaration clause",82
                 ,"/A.java:1: A \\only_captured expression may not be in a jml declaration clause",103
                 ,"/A.java:1: A \\not_assigned expression may not be in a jml declaration clause",124
-                ,"/A.java:1: A \\not_modified expression may not be in a jml declaration clause",144
+                ,"/A.java:1: A \\not_modified expression may not be in a jml declaration clause",157
         );
     }
     

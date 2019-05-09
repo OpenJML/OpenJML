@@ -39,7 +39,8 @@ public class TypeInitializerClauseExtension extends JmlExtension.TypeClause {
     public static final String staticinitializerID = "static_initializer";
 
     @Override
-    public IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             initializerClause, staticinitializerClause}; }
     
     public static final IJmlClauseKind initializerClause = new InitializerBlock() {

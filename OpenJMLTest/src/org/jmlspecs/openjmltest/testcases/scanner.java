@@ -342,11 +342,10 @@ public class scanner extends JmlTestCase {
     /** Test for an invalid backslash identifier */
     @Test public void testBackslash5() {
         helpScanner("/*@ \\xyz result*/",
-                new ITokenKind[]{ERROR,IDENTIFIER,EJML},
+                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML},
                 null,
-                1);
-        checkMessages(new String[]{"/TEST.java:1: This backslash token is unknown: \\xyz"},
-                      new int[]{5});
+                0);
+        checkMessages();
     }
 
     /** Test for a JML backslash with no identifier */
@@ -571,10 +570,10 @@ public class scanner extends JmlTestCase {
 
     @Test public void testMultiLineError() {
         helpScanner("/*@ \\result\n  @@@\\xyz@*/",
-                new ITokenKind[]{BSRESULT,ERROR,EJML,EOF},
+                new ITokenKind[]{BSRESULT,IDENTIFIER,EJML,EOF},
                 new int[]{4,11,17,21,21,24,24,24},
-                1);
-        checkMessages("/TEST.java:2: This backslash token is unknown: \\xyz",6);
+                0);
+        checkMessages();
     }
 
     @Test public void testInformalComment() {

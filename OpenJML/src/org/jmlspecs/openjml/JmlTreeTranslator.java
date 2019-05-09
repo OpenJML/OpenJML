@@ -280,6 +280,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         visitApply(that);
         JmlMethodInvocation r = (JmlMethodInvocation)result;
+        r.kind = that.kind;
         r.varargsElement = (that.varargsElement); // FIXME
         r.typeargs = translate(that.typeargs);  // Should be in visitApply - TODO
         result = r;

@@ -59,7 +59,8 @@ abstract public class Arithmetic extends ExpressionExtension {
             JmlTokenKind.BSBIGINT_MATH, JmlTokenKind.BSJAVAMATH, JmlTokenKind.BSSAFEMATH}; }
     
     @Override
-    public IJmlClauseKind[] clauseTypes() {
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[] clauseTypes() {
         // TODO Auto-generated method stub
         return null;
     }

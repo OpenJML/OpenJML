@@ -31,7 +31,9 @@ public class SignalsClauseExtension extends JmlExtension.MethodClause {
     
     public static final String signalsID = "signals";
     
-    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
+    @Override
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             signalsClauseKind }; }
     
     public void register() {

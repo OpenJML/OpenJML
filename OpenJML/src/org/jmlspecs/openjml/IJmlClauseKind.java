@@ -5,13 +5,18 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import java.lang.reflect.Constructor;
+import java.util.function.Function;
 
 import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlSource;
 
+import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.comp.Attr;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -19,10 +24,13 @@ import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.JmlToken;
 import com.sun.tools.javac.parser.JmlTokenizer;
+import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
@@ -37,6 +45,7 @@ import com.sun.tools.javac.util.Log.WriterKind;
  *
  */
 public abstract class IJmlClauseKind {
+    
     
     public static abstract class MethodClause extends IJmlClauseKind {
         public boolean preAllowed() { return !isPreconditionClause(); }
@@ -78,14 +87,111 @@ public abstract class IJmlClauseKind {
     }
     public static abstract class TypeClause extends IJmlClauseKind {
     }
+
     public static abstract class Expression extends IJmlClauseKind {
+        abstract public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser);
     }
+    
+    /** This class is used for JML expressions that have a standard function-call
+     * form: a keyword followed by a parenthesized comma-separated list of expressions
+     */
+    public static abstract class FunctionLikeExpression extends Expression {
+        public FunctionLikeExpression(String name) {
+            this.keyword = name;
+        }
+        
+        /** This implementation of parse() parses a keyword + 
+         * parenthesized comma-separated list of expressions,
+         * producing a JmlMethodInvocation node. Derived classes
+         * must implement checkParse(), to do any additional checking,
+         * such as that the number of arguments is correct.
+         */
+        public JCExpression parse(JCModifiers mods, String name, IJmlClauseKind kind, JmlParser parser) {
+            this.parser = parser;
+            int startx = parser.pos();
+            JmlTokenKind jt = parser.jmlTokenKind();
+            parser.nextToken();
+            if (parser.token().kind != TokenKind.LPAREN) {
+                return parser.syntaxError(startx, null, "jml.args.required", jt.internedName());
+//            } else if (typeArgs != null && !typeArgs.isEmpty()) {
+//                return parser.syntaxError(p, null, "jml.no.typeargs.allowed", jt.internedName());
+            } else {
+                int preferredPos = parser.pos(); // points at the left-paren
+                List<JCExpression> args = parser.arguments();
+                JmlMethodInvocation t = toP(parser.maker().at(preferredPos).JmlMethodInvocation(jt, args));
+                t.startpos = startx;
+                t.kind = this; // FIXME - replace using jt with a kind
+                checkParse(parser,t);
+                return parser.primarySuffix(t, null);
+            }
+        }
+        
+        
+        abstract public void checkParse(JmlParser parser, JmlMethodInvocation e);
+
+        /** A helper method that can be called in a derived class's implementation
+         * of checkParse() -- this method applies the given function to the number of
+         * arguments and emits an error message if the function returns false.
+         */
+        public void checkNumberArgs(JmlParser parser, JmlMethodInvocation e, Function<Integer,Boolean> f, String key, Object ... messageArgs) {
+            if (!f.apply(e.args.size())) {
+                parser.jmlerror(e.pos, parser.getEndPos(e), key, messageArgs);
+            }
+        }
+
+        /** A helper method that can be called in a derived class's implementation
+         * of checkParse() -- for the case of exactly one argument.
+         */
+        public void checkOneArg(JmlParser parser, JmlMethodInvocation e) {
+            checkNumberArgs(parser, e, (n)->(n==1), "jml.one.arg", e.token.internedName());
+        }
+        
+        public void typecheckHelper(Attr attr, List<JCExpression> args, Env<AttrContext> localEnv) {
+            ListBuffer<Type> argTypes = new ListBuffer<>();
+            Attr.ResultInfo resultInfo = attr.new ResultInfo(Kinds.VAL, Type.noType );
+            for (JCExpression e: args) {
+                Type t = attr.attribExpr(e, localEnv);
+                t = attr.check(e, t, Kinds.VAL, resultInfo );
+                argTypes.add(t);
+            }
+
+        }
+
+    }
+    /** This class is used for JML expressions that are just a keyword with
+     * no parenthesized argument list
+     */
+    public static abstract class SingletonExpression extends Expression {
+        public JCExpression parse(JmlParser parser,
+                @Nullable List<JCExpression> typeArgs) {
+            this.parser = parser;
+            JmlTokenKind jt = parser.jmlTokenKind();
+            int p = parser.pos();
+            parser.nextToken();
+            if (parser.token().kind == TokenKind.LPAREN) {
+                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.internedName());
+            } else if (typeArgs != null && !typeArgs.isEmpty()) {
+                return parser.syntaxError(p, null, "jml.no.typeargs.allowed", jt.internedName());
+            } else {
+                return parser.jmlF.at(p).JmlSingleton(jt);
+            }
+        }
+        
+        /** A method meant to be overridden in dervied classes to do any
+         * checking after the argument list has been parsed, such as that
+         * the number of arguments is correct.
+         */
+        public void checkParse(JmlParser parser, JmlMethodInvocation e) {}
+
+    }
+    
     public static abstract class Modifier extends IJmlClauseKind {
     }
 
     // These fields and methods give behavior of JML clauses of the given kind.
 
-    protected String keyword;
+    public String keyword = null;
+
     public String name() { return keyword; }
     
     public String toString() { return name(); }

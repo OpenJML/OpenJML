@@ -220,6 +220,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
                 that.token,
                 copy(that.args,p));
         copy.name = that.name;
+        copy.kind = that.kind;
         copy.startpos = that.startpos;
         copy.labelProperties = that.labelProperties;
         copy.type = that.type;

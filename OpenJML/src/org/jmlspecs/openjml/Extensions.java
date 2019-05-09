@@ -25,6 +25,7 @@ import org.jmlspecs.openjml.ext.*;
 import org.osgi.framework.Bundle;
 
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 
@@ -91,6 +92,10 @@ public class Extensions {
             }
         }
         return e;
+    }
+    
+    public @Nullable IJmlClauseKind findK(int pos, String token, boolean complain) {
+        return allKinds.get(token);
     }
     
     // Finds a type or method clause type for the given keyword
@@ -178,14 +183,18 @@ public class Extensions {
     static public Map<String,IJmlClauseKind> typeMethodClauses = new HashMap<>();
     static public Map<String,IJmlClauseKind> statementMethodClauses = new HashMap<>();
     static public Map<String,IJmlClauseKind> lineAnnotations = new HashMap<>();
-    
+    static public Map<String,IJmlClauseKind> expressionKinds = new HashMap<>();
+    static public Map<String,IJmlClauseKind> allKinds = new HashMap<>();
+
     static protected Map<String,Class<? extends FieldExtension>> fieldClasses = new HashMap<>();
 
     protected Map<String,FieldExtension> fieldInstances = new HashMap<>();
     
-    // This static block runs through all the extension classes and adds
+    // This static method runs through all the extension classes and adds
     // appropriate information to the HashMap above, so extensions can be 
-    // looked up at runtime.
+    // looked up at runtime. The extension classes include the predefined
+    // package org.jmlspecs.openjml.ext and any classes or packages given in the
+    // extensions option.
     public static void register(Context context) {
         Package p = Package.getPackage("org.jmlspecs.openjml.ext");
         try {
@@ -199,7 +208,7 @@ public class Extensions {
         for (String extname : exts.split(",")) {
             try {
                 Class<?> cl = Class.forName(extname);
-                if (!registerClass(context,cl)) {
+                if (cl == null || !registerClass(context,cl)) {
                     Log.instance(context).error("jml.extension.failed", extname, "Improperly formed extension");
                 }
                 continue;
@@ -219,6 +228,7 @@ public class Extensions {
         }
     }
     
+    /** Register all the classes in the given package, as found by findClasses() */
     public static void registerPackage(Context context, Package p) throws java.io.IOException {
         java.util.List<Class<?>> extensions;
         extensions = findClasses(context,p);
@@ -238,6 +248,21 @@ public class Extensions {
 //                }
 //            }
 //        }
+        int mask = Flags.FINAL|Flags.STATIC|Flags.PUBLIC;
+        for (Field f: cc.getDeclaredFields()) {
+            int mods = f.getModifiers();
+            // Look for final static public fields with type IJmlClauseKind
+            if ((mods & mask) != mask) continue;
+            if (IJmlClauseKind.class.isAssignableFrom(f.getType())) {
+                try {
+                    IJmlClauseKind kind = (IJmlClauseKind)f.get(null);
+                    allKinds.put(kind.name(), kind);
+                    if (kind instanceof IJmlClauseKind.Expression) expressionKinds.put(kind.name(), kind);
+                } catch (IllegalAccessException e) {
+                    // Error - this should nnever happen
+                }
+            }
+        }
         if (ExpressionExtension.class.isAssignableFrom(cc)) {
             @SuppressWarnings("unchecked")
             Class<ExpressionExtension> c = (Class<ExpressionExtension>)cc;
@@ -245,9 +270,16 @@ public class Extensions {
             try {
                 Method m = c.getMethod("tokens");
                 tokens = (JmlTokenKind[])m.invoke(null);
-                for (JmlTokenKind t: tokens) {
+                if (tokens != null) for (JmlTokenKind t: tokens) {
                     extensionClasses.put(t.internedName(), c);
                     //clauseTypes.put(t.name(), t);
+                }
+                m = c.getMethod("clauseTypes");
+                if (m != null) {
+                    IJmlClauseKind[] kinds = (IJmlClauseKind[])m.invoke(null);
+                    if (kinds != null) for (IJmlClauseKind t: kinds) {
+                        expressionKinds.put(t.name(), t);
+                    }
                 }
             } catch (Exception e) {
                 return false;

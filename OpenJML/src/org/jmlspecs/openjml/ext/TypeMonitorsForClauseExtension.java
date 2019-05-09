@@ -35,7 +35,8 @@ public class TypeMonitorsForClauseExtension extends JmlExtension.TypeClause {
     public static final String monitorsforID = "monitors_for";
 
     @Override
-    public IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             monitorsforClause}; }
     
     public static final IJmlClauseKind monitorsforClause = new IJmlClauseKind.TypeClause() {

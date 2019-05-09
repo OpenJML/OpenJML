@@ -29,7 +29,8 @@ public class MatchExt extends ExpressionExtension {
             JmlTokenKind.MATCH }; }
     
     @Override
-    public IJmlClauseKind[] clauseTypes() {
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[] clauseTypes() {
         return null;
     }
     

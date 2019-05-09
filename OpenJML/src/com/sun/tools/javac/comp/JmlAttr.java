@@ -157,7 +157,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @NonNull final public static String utilsClassName = org.jmlspecs.utils.Utils.class.getCanonicalName();
     
     /** Cached symbol of the org.jmlspecs.utils.Utils class */
-    @NonNull final protected ClassSymbol utilsClass;
+    @NonNull final public ClassSymbol utilsClass;
     
     /** Cached identifier of the org.jmlspecs.utils.Utils class */
     @NonNull final protected JCIdent utilsClassIdent;
@@ -3482,18 +3482,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 result = check(tree, t, VAL, resultInfo);
                 break;
 
-            case BSTYPEOF :
-                // Expect one argument of any type, result type \TYPE
-                // The argument expression may contain JML constructs
-                attribArgs(VAL, tree.args, localEnv, argtypesBuf);
-                //attribTypes(tree.typeargs, localEnv);
-                n = tree.args.size();
-                if (n != 1) {
-                    log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
-                }
-                t = jmltypes.TYPE;
-                result = check(tree, t, VAL, resultInfo);
-                break;
+//            case BSTYPEOF :
+//                // Expect one argument of any type, result type \TYPE
+//                // The argument expression may contain JML constructs
+//                attribArgs(VAL, tree.args, localEnv, argtypesBuf);
+//                //attribTypes(tree.typeargs, localEnv);
+//                n = tree.args.size();
+//                if (n != 1) {
+//                    log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
+//                }
+//                t = jmltypes.TYPE;
+//                result = check(tree, t, VAL, resultInfo);
+//                break;
 
 //            case BSNOTMODIFIED :
 //                // Expect any number of arguments of any type, result type is boolean
@@ -3534,22 +3534,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
 
             case BSISINITIALIZED :
-                // The argument is a type that is a reference type; the result is boolean
-                // The argument may contain JML constructs
-            {
-                n = tree.args.size();
-                if (n != 1) {
-                    log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
-                }
-                for (JCExpression arg: tree.args) {
-                    Type argtype = attribExpr(arg, localEnv);
-                    if (!argtype.isNullOrReference() && !argtype.isErroneous()) {
-                        log.error(arg.pos(),"jml.ref.arg.required",token.internedName());
-                    }
-                }
-                result = check(tree, syms.booleanType, VAL, resultInfo);
-                break;
-            }
+//                // The argument is a type that is a reference type; the result is boolean
+//                // The argument may contain JML constructs
+//            {
+//                n = tree.args.size();
+//                if (n != 1) {
+//                    log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
+//                }
+//                for (JCExpression arg: tree.args) {
+//                    Type argtype = attribExpr(arg, localEnv);
+//                    if (!argtype.isNullOrReference() && !argtype.isErroneous()) {
+//                        log.error(arg.pos(),"jml.ref.arg.required",token.internedName());
+//                    }
+//                }
+//                result = check(tree, syms.booleanType, VAL, resultInfo);
+//                break;
+//            }
 
             case BSTYPELC :
                 // Takes one argument which is a type (not an expression); the result is of type \TYPE
@@ -3575,50 +3575,50 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 result = saved;
                 break;
 
-            case BSDISTINCT :
-                // The result is boolean.
-                // Case 1) All types are reference types
-                // Case 2) Some or all are primitive - all must be convertible to
-                // a common primitive type, including through unboxing
-                attribArgs(VAL, tree.args, localEnv, argtypesBuf); 
-                //attribTypes(tree.typeargs, localEnv);
-                boolean anyPrimitive = false;
-                Type maxPrimitiveType = null;
-                for (JCExpression arg : tree.args) {
-                    Type tt = arg.type;
-                    if (tt.isErroneous()) continue;
-                    if (tt.isPrimitive()) {
-                        anyPrimitive = true;
-                    }
-                }
-                if (anyPrimitive) for (JCExpression arg : tree.args) {
-                    Type tt = arg.type;
-                    if (tt.isErroneous()) { continue; }
-                    if (!tt.isPrimitive()) tt = types.unboxedType(tt);
-                    if (tt.getTag() == TypeTag.VOID) {
-                        // FIXME -error
-                    } else if (maxPrimitiveType == null) {
-                        maxPrimitiveType = tt;
-                    } else if (types.isConvertible(tt,maxPrimitiveType)) {
-                        // OK
-                    } else if (types.isConvertible(maxPrimitiveType, tt)) {
-                        maxPrimitiveType = tt;
-                    } else {
-                        // FIXME - error
-                    }
-                }
-                if (anyPrimitive) {
-                    for (JCExpression arg : tree.args) {
-                        Type tt = arg.type;
-                        if (tt.isErroneous()) continue;
-                        if (!tt.isPrimitive()) tt = types.unboxedType(tt);
-                        if (!types.isConvertible(tt,maxPrimitiveType)) {
-                            // FIXME - ERROR
-                        }
-                    }
-                }
-                result = check(tree, syms.booleanType, VAL, resultInfo);
-                break;
+//            case BSDISTINCT :
+//                // The result is boolean.
+//                // Case 1) All types are reference types
+//                // Case 2) Some or all are primitive - all must be convertible to
+//                // a common primitive type, including through unboxing
+//                attribArgs(VAL, tree.args, localEnv, argtypesBuf); 
+//                //attribTypes(tree.typeargs, localEnv);
+//                boolean anyPrimitive = false;
+//                Type maxPrimitiveType = null;
+//                for (JCExpression arg : tree.args) {
+//                    Type tt = arg.type;
+//                    if (tt.isErroneous()) continue;
+//                    if (tt.isPrimitive()) {
+//                        anyPrimitive = true;
+//                    }
+//                }
+//                if (anyPrimitive) for (JCExpression arg : tree.args) {
+//                    Type tt = arg.type;
+//                    if (tt.isErroneous()) { continue; }
+//                    if (!tt.isPrimitive()) tt = types.unboxedType(tt);
+//                    if (tt.getTag() == TypeTag.VOID) {
+//                        // FIXME -error
+//                    } else if (maxPrimitiveType == null) {
+//                        maxPrimitiveType = tt;
+//                    } else if (types.isConvertible(tt,maxPrimitiveType)) {
+//                        // OK
+//                    } else if (types.isConvertible(maxPrimitiveType, tt)) {
+//                        maxPrimitiveType = tt;
+//                    } else {
+//                        // FIXME - error
+//                    }
+//                }
+//                if (anyPrimitive) {
+//                    for (JCExpression arg : tree.args) {
+//                        Type tt = arg.type;
+//                        if (tt.isErroneous()) continue;
+//                        if (!tt.isPrimitive()) tt = types.unboxedType(tt);
+//                        if (!types.isConvertible(tt,maxPrimitiveType)) {
+//                            // FIXME - ERROR
+//                        }
+//                    }
+//                }
+//                result = check(tree, syms.booleanType, VAL, resultInfo);
+//                break;
 
             case BSFRESH :
                 // The first argument is a JML spec-expressions of any reference type; the result is boolean
@@ -3711,33 +3711,39 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 result = check(tree, syms.longType, VAL, resultInfo);
                 break;
 
-            case BSNOWARN:
-            case BSNOWARNOP:
-            case BSWARN:
-            case BSWARNOP:
-            case BSBIGINT_MATH:
-            case BSSAFEMATH:
-            case BSJAVAMATH:
-                // Expects one expression argument of any type; result is of the same type
-                // FIXME - does this allow any JML spec-expression?
-                // FIXME - the JMLb rules will require some numeric type promotions
-                //attribTypes(tree.typeargs, localEnv);
-                n = tree.args.size();
-                if (n != 1) {
-                    log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
-                    result = tree.type = syms.errType;
-                } else {
-                    JCExpression arg = tree.args.get(0);
-                    attribTree(arg, localEnv, resultInfo);
-                    result = check(tree, arg.type, VAL, resultInfo);
-                }
-                break;
+//            case BSNOWARN:
+//            case BSNOWARNOP:
+//            case BSWARN:
+//            case BSWARNOP:
+//            case BSBIGINT_MATH:
+//            case BSSAFEMATH:
+//            case BSJAVAMATH:
+//                // Expects one expression argument of any type; result is of the same type
+//                // FIXME - does this allow any JML spec-expression?
+//                // FIXME - the JMLb rules will require some numeric type promotions
+//                //attribTypes(tree.typeargs, localEnv);
+//                n = tree.args.size();
+//                if (n != 1) {
+//                    log.error(tree.pos(),"jml.one.arg",token.internedName(),n);
+//                    result = tree.type = syms.errType;
+//                } else {
+//                    JCExpression arg = tree.args.get(0);
+//                    attribTree(arg, localEnv, resultInfo);
+//                    result = check(tree, arg.type, VAL, resultInfo);
+//                }
+//                break;
                  
             default:
-                ExpressionExtension ext = (ExpressionExtension)Extensions.instance(context).findE(tree.pos,token.internedName(),true);
-                Type ttt = ext.typecheck(this,tree,localEnv);
-                result = check(tree, ttt, VAL, resultInfo);
-                break;
+                if (tree.kind != null) {
+                    Type ttt = tree.kind.typecheck(this, tree, localEnv);
+                    result = check(tree, ttt, VAL, resultInfo);
+                    break;
+                } else {
+                    ExpressionExtension ext = (ExpressionExtension)Extensions.instance(context).findE(tree.pos,token.internedName(),true);
+                    Type ttt = ext.typecheck(this,tree,localEnv);
+                    result = check(tree, ttt, VAL, resultInfo);
+                    break;
+                }
 
             case BSONLYCALLED: // FIXME - needs implementation
             case BSONLYASSIGNED: // FIXME - needs implementation
@@ -3774,7 +3780,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return oldenv;
     }
     
-    protected void checkForWildcards(JCExpression e, JCExpression arg) {
+    public void checkForWildcards(JCExpression e, JCExpression arg) { // OPENJML _ changed from protected to public
         if (e instanceof JCWildcard) {
             log.error(e,"jml.no.wildcards.in.type",JmlPretty.write(arg));
         }

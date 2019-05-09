@@ -31,7 +31,8 @@ public class CallableClauseExtension extends JmlExtension.MethodClause {
     public static final String callableID = "callable";
     
     @Override
-    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             callableClause }; }
     
     public static final IJmlClauseKind callableClause = new IJmlClauseKind.MethodClause() {

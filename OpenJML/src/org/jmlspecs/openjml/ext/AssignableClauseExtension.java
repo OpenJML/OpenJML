@@ -55,7 +55,8 @@ public class AssignableClauseExtension extends JmlExtension.MethodClause {
     }
     
     @Override
-    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             assignableClauseKind, accessibleClause, capturesClause }; }
     
     public static class LocationSetClauseType extends IJmlClauseKind.MethodClause {

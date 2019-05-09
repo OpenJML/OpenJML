@@ -18,6 +18,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.AssignableClauseExtension;
 import org.jmlspecs.openjml.ext.ChooseClause;
+import org.jmlspecs.openjml.ext.Elemtype;
 import org.jmlspecs.openjml.ext.EndStatement;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.ext.InlinedLoopStatement;
@@ -342,10 +343,12 @@ public class JmlParser extends JavacParser {
             JmlTypeClauseExpr axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0), axiomID,axiomClause,ex);
             newdefs.add(axiom); 
             ex = jmlF.JmlMethodInvocation(JmlTokenKind.BSDISTINCT,args.toList());
+            ((JmlMethodInvocation)ex).kind = Elemtype.distinctKind;
             // The enum constants are all distinct and distinct from NULL.
             axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0),axiomID,axiomClause,ex);
             newdefs.add(axiom);
             ex = jmlF.JmlMethodInvocation(JmlTokenKind.BSDISTINCT,argsn.toList());
+            ((JmlMethodInvocation)ex).kind = Elemtype.distinctKind;
             // The enum names are all distinct and distinct from NULL.
             axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0),axiomID,axiomClause,ex);
             newdefs.add(axiom);
@@ -3189,6 +3192,7 @@ public class JmlParser extends JavacParser {
                             nextToken();
                         // FIXME - this should be a type literal
                         e = toP(jmlF.at(p).JmlMethodInvocation(jt, List.of(e)));
+                        //((JmlMethodInvocation)e).kind = Elemtype.typelcKind;
                         ((JmlMethodInvocation)e).startpos = start;
                         return primaryTrailers(e, null);
                     }
@@ -3199,9 +3203,9 @@ public class JmlParser extends JavacParser {
                 case BSREACH:
                 case BSSPACE:
                 case BSWORKINGSPACE:
-                case BSDISTINCT:
+//                case BSDISTINCT:
                 case BSDURATION:
-                case BSISINITIALIZED:
+//                case BSISINITIALIZED:
                 case BSINVARIANTFOR: {
                     int startx = pos();
                     nextToken();
@@ -3237,9 +3241,9 @@ public class JmlParser extends JavacParser {
 //                case BSNOWARNOP:
 //                case BSWARN:
 //                case BSWARNOP:
-                case BSBIGINT_MATH:
-                case BSSAFEMATH:
-                case BSJAVAMATH:
+//                case BSBIGINT_MATH:
+//                case BSSAFEMATH:
+//                case BSJAVAMATH:
 //                    ExpressionExtension ne = Extensions.instance(context).find(pos(),
 //                            jt);
 //                    if (ne == null) {
@@ -3250,17 +3254,17 @@ public class JmlParser extends JavacParser {
 //                        return ne.parse(this, typeArgs);
 //                    }
 //
-                case BSNOTMODIFIED: {
-                    int startx = pos();
-                    int preferred = pos();
-                    nextToken();
-                    List<JCExpression> args = arguments();
-                    JCExpression te = jmlF.at(preferred).JmlMethodInvocation(
-                            jt, args);
-                    ((JmlMethodInvocation)te).startpos = startx;
-                    te = toP(te);
-                    return te;
-                }
+//                case BSNOTMODIFIED: {
+//                    int startx = pos();
+//                    int preferred = pos();
+//                    nextToken();
+//                    List<JCExpression> args = arguments();
+//                    JCExpression te = jmlF.at(preferred).JmlMethodInvocation(
+//                            jt, args);
+//                    ((JmlMethodInvocation)te).startpos = startx;
+//                    te = toP(te);
+//                    return te;
+//                }
                 
                 case BSONLYACCESSED:  // FIXME
                 case BSONLYCAPTURED:  // FIXME
@@ -3332,22 +3336,28 @@ public class JmlParser extends JavacParser {
                 default:
                 {
                     String id = jt.internedName();
-                    ExpressionExtension ne = (ExpressionExtension)Extensions.instance(context).findE(pos(),id,false);
-                    if (ne == null) {
-                        jmlerror(p, endPos(), "jml.bad.type.expression",
-                                "( token " + jt.internedName()
-                                        + " in JmlParser.term3())");
-//                        jmlerror(p, endPos(), "jml.no.such.extension",
-//                                jt.internedName());
-                        return jmlF.at(p).Erroneous();
+                    IJmlClauseKind kind = Extensions.instance(context).findK(pos(),id,false);
+                    if (kind != null) {
+                        if (kind instanceof IJmlClauseKind.Expression) {
+                            return ((IJmlClauseKind.Expression)kind).parse(null, id, kind, this);
+                        } else {
+                            jmlerror(p, endPos(), "jml.message",
+                                    "Token " + id + " does not introduce an expression");
+                            return jmlF.at(p).Erroneous();
+                        }
                     } else {
-                        return ne.parse(this, typeArgs);
+                        ExpressionExtension ne = (ExpressionExtension)Extensions.instance(context).findE(pos(),id,false);
+                        if (ne == null) {
+                            jmlerror(p, endPos(), "jml.bad.type.expression",
+                                    "( token " + jt.internedName()
+                                    + " in JmlParser.term3())");
+                            //                        jmlerror(p, endPos(), "jml.no.such.extension",
+                            //                                jt.internedName());
+                            return jmlF.at(p).Erroneous();
+                        } else {
+                            return ne.parse(this, typeArgs);
+                        }
                     }
-
-//                    jmlerror(p, endPos(), "jml.bad.type.expression",
-//                            "( token " + jt.internedName()
-//                                    + " in JmlParser.term3())");
-//                    return toP(jmlF.at(p).Erroneous());
                 }
             }
         }

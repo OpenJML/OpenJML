@@ -38,7 +38,8 @@ public class StatementLocationsExtension extends JmlExtension.Statement {
     };
     
     @Override
-    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             havocStatement, loopmodifiesStatement }; }
     
     public static class LocationSetStatementType extends IJmlClauseKind.Statement {

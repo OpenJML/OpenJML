@@ -28,7 +28,8 @@ public class StatementExprExtensions extends JmlExtension.MethodClause {
     public static final IJmlClauseKind loopdecreasesClause = new StatementExprType(loopdecreasesID);
     
     @Override
-    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             assertClause, assumeClause, useClause, commentClause, hencebyClause,
             loopinvariantClause, loopdecreasesClause }; }
     

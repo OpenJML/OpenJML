@@ -128,7 +128,9 @@ public class LineAnnotationClauses extends JmlExtension.LineAnnotation {
         public String name() { return nowarnID; }
     };
     
-    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
+    @Override
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             allowClauseKind, forbidClauseKind, ignoreClauseKind, nowarnClauseKind }; }
     
     public static class ExceptionLineAnnotation extends IJmlClauseKind.LineAnnotationKind.LineAnnotation {

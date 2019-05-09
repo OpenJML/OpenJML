@@ -32,7 +32,8 @@ public class SignalsOnlyClauseExtension extends JmlExtension.MethodClause {
     public static final String signalsOnlyID = "signals_only";
     
     @Override
-    public IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             signalsOnlyClauseKind }; }
     
     public static final IJmlClauseKind signalsOnlyClauseKind = new IJmlClauseKind.MethodClause() {

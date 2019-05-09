@@ -77,7 +77,8 @@ public class RequiresClause extends JmlExtension.MethodClause {
     };
     
     @Override
-    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             requiresClauseKind}; }
     
     public static class Node extends JmlTree.JmlMethodClauseExpr {

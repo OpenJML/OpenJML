@@ -36,7 +36,9 @@ public class ChooseClause extends JmlExtension.Statement {
     
     public static final String chooseID = "choose";
     
-    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
+    @Override
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             chooseClause }; }
     
     public void register() {

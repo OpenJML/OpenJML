@@ -41,7 +41,9 @@ public class EndStatement extends JmlExtension.Statement {
 
     public static final String endID = "end";
     
-    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
+    @Override
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             endClause }; }
     
     public static final IJmlClauseKind endClause = new IJmlClauseKind.Statement() {

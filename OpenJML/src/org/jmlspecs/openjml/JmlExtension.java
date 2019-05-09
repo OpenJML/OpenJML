@@ -21,7 +21,7 @@ public abstract class JmlExtension {
     /** Returns a list of clause type objects that sre the extensions provided by
      *  this derived class of JmlExtension
      */
-    abstract public IJmlClauseKind[] clauseTypes(); 
+    abstract public IJmlClauseKind[] clauseTypesA(); 
     
     public void register() {}
     
@@ -34,7 +34,7 @@ public abstract class JmlExtension {
     public static abstract class TypeClause extends JmlExtension {
         public void register(Context context) {
             super.register(context);
-            IJmlClauseKind[] cTypes = clauseTypes();
+            IJmlClauseKind[] cTypes = clauseTypesA();
             for (IJmlClauseKind t: cTypes) {
                 Extensions.typeMethodClauses.put(t.name(), t);
             }
@@ -58,7 +58,7 @@ public abstract class JmlExtension {
     public static abstract class MethodClause extends JmlExtension {
         public void register(Context context) {
             super.register(context);
-            IJmlClauseKind[] cTypes = clauseTypes();
+            IJmlClauseKind[] cTypes = clauseTypesA();
             for (IJmlClauseKind t: cTypes) {
                 Extensions.typeMethodClauses.put(t.name(), t);
                 Extensions.statementMethodClauses.put(t.name(), t);
@@ -72,7 +72,7 @@ public abstract class JmlExtension {
     public static abstract class Statement extends JmlExtension {
         public void register(Context context) {
             super.register(context);
-            IJmlClauseKind[] cTypes = clauseTypes();
+            IJmlClauseKind[] cTypes = clauseTypesA();
             for (IJmlClauseKind t: cTypes) {
                 Extensions.statementMethodClauses.put(t.name(), t);
             }
@@ -85,7 +85,7 @@ public abstract class JmlExtension {
     public static abstract class LineAnnotation extends JmlExtension.Statement {
         public void register(Context context) {
             super.register(context);
-            IJmlClauseKind[] cTypes = clauseTypes();
+            IJmlClauseKind[] cTypes = clauseTypesA();
             for (IJmlClauseKind t: cTypes) {
                 Extensions.lineAnnotations.put(t.name(), t);
             }

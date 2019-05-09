@@ -45,7 +45,9 @@ public class ReachableStatement extends JmlExtension.Statement {
         public String name() { return unreachableID; }
     };
 
-    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
+    @Override
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             reachableClause, unreachableClause }; }
     
     public static class ExprStatementType extends IJmlClauseKind.Statement {

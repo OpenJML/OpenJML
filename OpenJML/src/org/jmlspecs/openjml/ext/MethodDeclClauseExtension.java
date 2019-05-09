@@ -38,7 +38,8 @@ public class MethodDeclClauseExtension extends JmlExtension.MethodClause  {
     };
     
     @Override
-    public IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             oldClause, forallClause }; }
     
     public static class MethodClauseDeclType extends IJmlClauseKind.MethodClause {

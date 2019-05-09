@@ -2088,6 +2088,7 @@ public class JmlTree implements IJmlTree {
     public static class JmlMethodInvocation extends JCMethodInvocation {
         public int startpos;
         public JmlTokenKind token;
+        public IJmlClauseKind kind;
         public String name;
         public Object labelProperties = null; // FIXME - explain this
         public boolean javaType = false; // FIXME - this is a hack

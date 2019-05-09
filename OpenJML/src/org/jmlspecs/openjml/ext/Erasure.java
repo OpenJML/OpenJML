@@ -41,7 +41,8 @@ public class Erasure extends ExpressionExtension {
     static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{JmlTokenKind.BSERASURE}; }
     
     @Override
-    public IJmlClauseKind[] clauseTypes() {
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[] clauseTypes() {
         // TODO Auto-generated method stub
         return null;
     }

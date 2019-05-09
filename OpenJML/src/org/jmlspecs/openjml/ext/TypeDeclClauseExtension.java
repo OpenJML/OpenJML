@@ -24,7 +24,9 @@ import com.sun.tools.javac.util.Context;
 public class TypeDeclClauseExtension extends JmlExtension.TypeClause {
 
     @Override
-    public IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
+    public IJmlClauseKind[] clauseTypesA() { return clauseTypes(); }
+    
+    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             typedeclClause}; }
     
     public static final String typedeclID = "type declaration";

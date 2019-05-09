@@ -43,7 +43,9 @@ public class ShowStatement extends JmlExtension.Statement {
 
     public static final String showID = "show";
     
-    public IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
+    @Override
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             showClause }; }
     
     public static final IJmlClauseKind showClause = new JmlStatementType() {
