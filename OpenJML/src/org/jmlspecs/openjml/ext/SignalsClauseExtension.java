@@ -10,6 +10,7 @@ import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
+import org.jmlspecs.openjml.JmlTree.Maker;
 
 import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Type;
@@ -43,9 +44,7 @@ public class SignalsClauseExtension extends JmlExtension.MethodClause {
         Extensions.statementMethodClauses.put("throws",signalsClauseKind);
     }
     
-    public static final IJmlClauseKind signalsClauseKind = new IJmlClauseKind.MethodClause() {
-        @Override
-        public String name() { return signalsID; }
+    public static final IJmlClauseKind signalsClauseKind = new IJmlClauseKind.MethodClause(signalsID) {
         @Override
         public boolean oldNoLabelAllowed() { return true; }
         @Override
@@ -71,10 +70,11 @@ public class SignalsClauseExtension extends JmlExtension.MethodClause {
             int rpos = pp;
             if (parser.token().kind != LPAREN) {
                 int pos = parser.pos();
+                Maker M = parser.maker().at(pos);
                 parser.syntaxError(pos, null, "jml.expected.lparen.signals");
-                t = parser.to(jmlF.at(pos).Ident(names.fromString("java")));
-                t = parser.to(jmlF.at(pos).Select(t, names.fromString("lang")));
-                t = parser.to(jmlF.at(pos).Select(t, names.fromString("Exception")));
+                t = parser.to(M.Ident(parser.names.fromString("java")));
+                t = parser.to(M.Select(t, parser.names.fromString("lang")));
+                t = parser.to(M.Select(t, parser.names.fromString("Exception")));
                 e = parser.parsePredicateOrNotSpecified();
             } else {
                 parser.nextToken();
@@ -88,19 +88,19 @@ public class SignalsClauseExtension extends JmlExtension.MethodClause {
                 if (parser.token().kind != RPAREN) {
                     parser.syntaxError(rpos, null, "jml.expected.rparen.signals");
                     parser.skipToSemi();
-                    e = toP(jmlF.at(parser.pos()).Erroneous());
+                    e = toP(parser.maker().at(parser.pos()).Erroneous());
                 } else {
                     parser.nextToken();
                     if (parser.token().kind == SEMI) {
-                        e = toP(jmlF.at(parser.pos()).Literal(TypeTag.BOOLEAN, 1)); // Boolean.TRUE));
+                        e = toP(parser.maker().at(parser.pos()).Literal(TypeTag.BOOLEAN, 1)); // Boolean.TRUE));
                     } else {
                         e = parser.parsePredicateOrNotSpecified();
                     }
                 }
             }
             scanner.setJmlKeyword(true);
-            JCTree.JCVariableDecl var = jmlF.at(t.pos).VarDef(
-                    jmlF.at(t.pos).Modifiers(0), ident, t, null);
+            JCTree.JCVariableDecl var = parser.maker().at(t.pos).VarDef(
+                    parser.maker().at(t.pos).Modifiers(0), ident, t, null);
             parser.storeEnd(var, rpos);
             if (parser.token().kind != SEMI) {
                 if (e.getKind() != Kind.ERRONEOUS)
@@ -109,7 +109,7 @@ public class SignalsClauseExtension extends JmlExtension.MethodClause {
             } else {
                 parser.nextToken();
             }
-            return toP(jmlF.at(pp).JmlMethodClauseSignals(keyword, clauseType, var, e));
+            return toP(parser.maker().at(pp).JmlMethodClauseSignals(keyword, clauseType, var, e));
 
         }
         

@@ -196,7 +196,9 @@ public class JmlScanner extends Scanner {
      *            the new value of the keyword mode, returning the old mode
      */
     public boolean setJmlKeyword(boolean j) {
-        if (!savedTokens.isEmpty()) Log.instance(context).getWriter(WriterKind.NOTICE).println("JmlKeyword mode changed while token buffer has lookahead");
+        if (!savedTokens.isEmpty()) {
+            Log.instance(context).getWriter(WriterKind.NOTICE).println("JmlKeyword mode changed while token buffer has lookahead");
+        }
         jmltokenizer.setJmlKeyword(j);
         boolean b = jmlkeyword;
         jmlkeyword = j;

@@ -77,13 +77,13 @@ public class JavacParser implements Parser {
 
     /** The log to be used for error diagnostics.
      */
-    protected Log log; // OpenJML - changed from private to protected
+    public Log log; // OpenJML - changed from private to public
 
     /** The Source language setting. */
     private Source source;
 
     /** The name table. */
-    protected Names names; // OpenJML - changed from private to protected
+    public Names names; // OpenJML - changed from private to public
 
     /** End position mappings container */
     protected final AbstractEndPosTable endPosTable; // DRC - changed from private to protected
@@ -1296,7 +1296,7 @@ public class JavacParser implements Parser {
     }
     
     // OPENJML - extracted this method from term3() so that it can be used in overriding methods
-    protected JCExpression primaryTrailers(JCExpression t,
+    public JCExpression primaryTrailers(JCExpression t,
             List<JCExpression> typeArgs) {
         return term3Rest(t, typeArgs);
 

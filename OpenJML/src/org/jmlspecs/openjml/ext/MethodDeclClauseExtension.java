@@ -27,13 +27,11 @@ public class MethodDeclClauseExtension extends JmlExtension.MethodClause  {
     public static final String oldID = "old";
     public static final String forallID = "forall";
     
-    public static final IJmlClauseKind oldClause = new MethodClauseDeclType() {
-        public String name() { return oldID; }
+    public static final IJmlClauseKind oldClause = new MethodClauseDeclType(oldID) {
         public boolean isPreconditionClause() { return true; }
     };
     
-    public static final IJmlClauseKind forallClause = new MethodClauseDeclType() {
-        public String name() { return forallID; }
+    public static final IJmlClauseKind forallClause = new MethodClauseDeclType(forallID) {
         public boolean isPreconditionClause() { return true; }
     };
     
@@ -43,7 +41,7 @@ public class MethodDeclClauseExtension extends JmlExtension.MethodClause  {
             oldClause, forallClause }; }
     
     public static class MethodClauseDeclType extends IJmlClauseKind.MethodClause {
-
+        public MethodClauseDeclType(String keyword) { super(keyword); }
         @Override
         public 
         JmlMethodClauseDecl parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
@@ -65,7 +63,7 @@ public class MethodDeclClauseExtension extends JmlExtension.MethodClause  {
             ListBuffer<JCTree.JCVariableDecl> decls = parser.variableDeclarators(mods2, t,
                     new ListBuffer<JCVariableDecl>());
             parser.setInJmlDeclaration(prev);
-            JmlMethodClauseDecl res = parser.to(jmlF.at(pp)
+            JmlMethodClauseDecl res = parser.to(parser.maker().at(pp)
                     .JmlMethodClauseDecl(keyword, clauseType, decls.toList()));
             scanner.setJmlKeyword(true);
             if (parser.token().kind == SEMI) {

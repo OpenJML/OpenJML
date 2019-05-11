@@ -118,10 +118,10 @@ public class Extensions {
     
     
     /** Last resort list of classes that add extensions to the Parser */
-    static Class<?>[] extensions = { Elemtype.class, 
+    static Class<?>[] extensions = { FunctionLikeExpressions.class, 
             // Expressions
             Arithmetic.class, 
-            Elemtype.class, 
+            FunctionLikeExpressions.class, 
             Erasure.class, 
             Key.class, 
             ProgramLocation.class, 

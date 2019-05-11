@@ -186,6 +186,7 @@ public class prettyprinting extends ParseBase {
                 "      do {" + eol +
                 "      } while (true);" + eol +
                 "    }" + eol +
+                "    /*@ assert (* xyz *);*/" + eol +
                 "  }" + eol +
                 "}"
         );

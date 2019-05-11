@@ -2617,6 +2617,7 @@ public class JmlTree implements IJmlTree {
         
         /** The kind of singleton expression */
         public JmlTokenKind token;
+        public IJmlClauseKind kind;
         
         /** Used for additional information, such as the comment string of an informal expression */
         public Object info = null;

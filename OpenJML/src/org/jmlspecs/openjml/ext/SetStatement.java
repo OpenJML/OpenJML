@@ -45,16 +45,14 @@ public class SetStatement extends JmlExtension.Statement {
     public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             setClause, debugClause }; }
     
-    public static final IJmlClauseKind setClause = new JmlStatementType() {
-        public String name() { return setID; }
-    };
+    public static final IJmlClauseKind setClause = new JmlStatementType(setID);
     
-    public static final IJmlClauseKind debugClause = new JmlStatementType() {
-        public String name() { return debugID; }
+    public static final IJmlClauseKind debugClause = new JmlStatementType(debugID) {
     };
     
 
     public static class JmlStatementType extends IJmlClauseKind.Statement {
+        public JmlStatementType(String keyword) { super(keyword); }
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
 
@@ -78,7 +76,7 @@ public class SetStatement extends JmlExtension.Statement {
                 //          t = null;
                 //      }
                 //      JmlAbstractStatement st = toP(jmlF.at(pp).JmlStatement(clauseType, (JCExpressionStatement)t));
-                JmlAbstractStatement st = toP(jmlF.at(pp).JmlStatement(clauseType, t));
+                JmlAbstractStatement st = toP(parser.maker().at(pp).JmlStatement(clauseType, t));
 
 
                 wrapup(st, clauseType, false);

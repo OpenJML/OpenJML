@@ -39,8 +39,7 @@ public class TypeMonitorsForClauseExtension extends JmlExtension.TypeClause {
     public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             monitorsforClause}; }
     
-    public static final IJmlClauseKind monitorsforClause = new IJmlClauseKind.TypeClause() {
-        public String name() { return monitorsforID; }
+    public static final IJmlClauseKind monitorsforClause = new IJmlClauseKind.TypeClause(monitorsforID) {
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
         
@@ -56,7 +55,7 @@ public class TypeMonitorsForClauseExtension extends JmlExtension.TypeClause {
             ITokenKind tk = parser.token().kind;
             if (tk != IDENTIFIER) {
                 error(parser.pos(), parser.endPos(), "jml.expected", "an identifier");
-                n = names.asterisk; // place holder for an error situation
+                n = parser.names.asterisk; // place holder for an error situation
             } else {
                 n = parser.ident(); // Advances to next token
                 if (parser.token().kind != TokenKind.EQ && parser.jmlTokenKind() != JmlTokenKind.LEFT_ARROW) {
@@ -67,14 +66,14 @@ public class TypeMonitorsForClauseExtension extends JmlExtension.TypeClause {
                     elist = parser.parseExpressionList();
                 }
             }
-            JCTree.JCIdent id = parser.to(jmlF.at(identPos).Ident(n));
+            JCTree.JCIdent id = parser.to(parser.maker().at(identPos).Ident(n));
             scanner.setJmlKeyword(true);
             if (parser.token().kind != SEMI) {
                 parser.skipThroughSemi();
             } else {
                 parser.nextToken();
             }
-            return toP(jmlF.at(pp).JmlTypeClauseMonitorsFor(mods, id, elist));
+            return toP(parser.maker().at(pp).JmlTypeClauseMonitorsFor(mods, id, elist));
         }
         
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {

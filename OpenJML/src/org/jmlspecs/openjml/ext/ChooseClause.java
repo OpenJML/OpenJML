@@ -45,9 +45,7 @@ public class ChooseClause extends JmlExtension.Statement {
         Extensions.statementMethodClauses.put("choose_if",chooseClause);
     }
     
-    public static final IJmlClauseKind chooseClause = new IJmlClauseKind.Statement() {
-        @Override
-        public String name() { return chooseID; }
+    public static final IJmlClauseKind chooseClause = new IJmlClauseKind.Statement(chooseID) {
         @Override
         public boolean oldNoLabelAllowed() { return true; }
         @Override
@@ -82,7 +80,7 @@ public class ChooseClause extends JmlExtension.Statement {
             } finally {
                 parser.inModelProgram = saved;
             }
-            return toP(jmlF.at(pp).JmlChoose(keyword, clauseType, orBlocks.toList(), elseBlock));
+            return toP(parser.maker().at(pp).JmlChoose(keyword, clauseType, orBlocks.toList(), elseBlock));
         }
         
         @Override

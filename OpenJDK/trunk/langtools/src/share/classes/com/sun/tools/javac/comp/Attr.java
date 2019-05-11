@@ -77,8 +77,8 @@ public class Attr extends JCTree.Visitor {
         new Context.Key<Attr>();
 
     final Names names;
-    final Log log;
-    final Symtab syms;
+    public final Log log; // OPENJML - changed from default to public
+    public final Symtab syms; // OPENJML - changed from default to public
     final Resolve rs;
     final Infer infer;
     final DeferredAttr deferredAttr;

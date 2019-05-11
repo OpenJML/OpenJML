@@ -3,6 +3,7 @@ package org.jmlspecs.openjml.ext;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.COMMA;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import static org.jmlspecs.openjml.JmlTokenKind.BSNOTHING;
+import static org.jmlspecs.openjml.JmlTokenKind.BSNOTSPECIFIED;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
@@ -36,9 +37,7 @@ public class SignalsOnlyClauseExtension extends JmlExtension.MethodClause {
     public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             signalsOnlyClauseKind }; }
     
-    public static final IJmlClauseKind signalsOnlyClauseKind = new IJmlClauseKind.MethodClause() {
-        @Override
-        public String name() { return signalsOnlyID; }
+    public static final IJmlClauseKind signalsOnlyClauseKind = new IJmlClauseKind.MethodClause(signalsOnlyID) {
         @Override
         public boolean oldNoLabelAllowed() { return false; }
         @Override
@@ -66,6 +65,10 @@ public class SignalsOnlyClauseExtension extends JmlExtension.MethodClause {
                 } else {
                     parser.nextToken();
                 }
+            } else if (parser.jmlTokenKind() == BSNOTSPECIFIED) {
+                scanner.setJmlKeyword(true);
+                parser.syntaxError(parser.pos(), null, "jml.message", "\\not_specified is not permitted in a signals_only clause");
+                parser.skipThroughSemi();
             } else if (parser.token().kind == SEMI) {
                 scanner.setJmlKeyword(true);
                 parser.syntaxError(parser.pos(), null, "jml.use.nothing", keyword);
@@ -99,7 +102,7 @@ public class SignalsOnlyClauseExtension extends JmlExtension.MethodClause {
                     break;
                 }
             }
-            return toP(jmlF.at(pp).JmlMethodClauseSignalsOnly(keyword, clauseType, list.toList()));
+            return toP(parser.maker().at(pp).JmlMethodClauseSignalsOnly(keyword, clauseType, list.toList()));
         }
         
         @Override

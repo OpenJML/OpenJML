@@ -48,12 +48,12 @@ public class ShowStatement extends JmlExtension.Statement {
     public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             showClause }; }
     
-    public static final IJmlClauseKind showClause = new JmlStatementType() {
-        public String name() { return showID; }
+    public static final IJmlClauseKind showClause = new JmlStatementType(showID) {
     };
     
 
     public static class JmlStatementType extends IJmlClauseKind.Statement {
+        public JmlStatementType(String keyword) { super(keyword); }
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
 
@@ -87,7 +87,7 @@ public class ShowStatement extends JmlExtension.Statement {
                     expressions.add(t);
                 }
             }
-            JmlStatementShow st = toP(jmlF.at(pp).JmlStatementShow(showClause,expressions.toList()));
+            JmlStatementShow st = toP(parser.maker().at(pp).JmlStatementShow(showClause,expressions.toList()));
             wrapup(st, clauseType, false);
             scanner.setJmlKeyword(true);
             if (parser.token().kind == TokenKind.SEMI) {

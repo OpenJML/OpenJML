@@ -60,6 +60,7 @@ public class AssignableClauseExtension extends JmlExtension.MethodClause {
             assignableClauseKind, accessibleClause, capturesClause }; }
     
     public static class LocationSetClauseType extends IJmlClauseKind.MethodClause {
+        public LocationSetClauseType() { super(null); }
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
         
@@ -70,6 +71,7 @@ public class AssignableClauseExtension extends JmlExtension.MethodClause {
                 return null;
             }
             init(parser);
+            this.keyword = keyword;
             
             int pp = parser.pos();
             int pe = parser.endPos();
@@ -100,7 +102,7 @@ public class AssignableClauseExtension extends JmlExtension.MethodClause {
                     parser.nextToken();
                 }
             }
-            return toP(jmlF.at(pp).JmlMethodClauseStoreRef(keyword, clauseType, list.toList()));
+            return toP(parser.maker().at(pp).JmlMethodClauseStoreRef(keyword, clauseType, list.toList()));
         }
         
         @Override

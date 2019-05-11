@@ -37,13 +37,9 @@ public class ReachableStatement extends JmlExtension.Statement {
     public static final String reachableID = "reachable";
     public static final String unreachableID = "unreachable";
     
-    public static final IJmlClauseKind reachableClause = new ExprStatementType() {
-        public String name() { return reachableID; }
-    };
+    public static final IJmlClauseKind reachableClause = new ExprStatementType(reachableID);
 
-    public static final IJmlClauseKind unreachableClause = new ExprStatementType() {
-        public String name() { return unreachableID; }
-    };
+    public static final IJmlClauseKind unreachableClause = new ExprStatementType(unreachableID);
 
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
@@ -51,6 +47,7 @@ public class ReachableStatement extends JmlExtension.Statement {
             reachableClause, unreachableClause }; }
     
     public static class ExprStatementType extends IJmlClauseKind.Statement {
+        public ExprStatementType(String keyword) { super(keyword); }
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
         // allowed forms:
@@ -65,7 +62,7 @@ public class ReachableStatement extends JmlExtension.Statement {
             int pe = parser.endPos();
             int p = scanner.currentPos();
             parser.nextToken();
-            JmlStatementExpr st = jmlF.at(pp).JmlExpressionStatement(keyword,clauseType,null,jmlF.Literal(TypeTag.BOOLEAN,1));
+            JmlStatementExpr st = parser.maker().at(pp).JmlExpressionStatement(keyword,clauseType,null,parser.maker().Literal(TypeTag.BOOLEAN,1));
             if (parser.token().kind == TokenKind.SEMI) {
                 return st;
             } else if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {

@@ -46,8 +46,7 @@ public class EndStatement extends JmlExtension.Statement {
     public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             endClause }; }
     
-    public static final IJmlClauseKind endClause = new IJmlClauseKind.Statement() {
-        public String name() { return endID; }
+    public static final IJmlClauseKind endClause = new IJmlClauseKind.Statement(endID) {
      
         @Override
         public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
@@ -70,7 +69,7 @@ public class EndStatement extends JmlExtension.Statement {
 //                error(parser.pos(), parser.pos()+1, "jml.bad.expression.list.in.show"); // FIXME 
 //                parser.skipThroughSemi();
 //            }
-            JmlStatement st = toP(jmlF.at(pp).JmlStatement(endClause, null));
+            JmlStatement st = toP(parser.maker().at(pp).JmlStatement(endClause, null));
             wrapup(st,clauseType,true);
             return st;
 

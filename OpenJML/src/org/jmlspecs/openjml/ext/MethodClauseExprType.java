@@ -17,7 +17,7 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 public class MethodClauseExprType extends IJmlClauseKind.MethodClause {
     
     public MethodClauseExprType(String keyword) {
-        this.keyword = keyword;
+        super(keyword);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class MethodClauseExprType extends IJmlClauseKind.MethodClause {
         } else {
             parser.nextToken(); // skip SEMI
         }
-        JmlMethodClauseExpr cl = jmlF.at(pp).JmlMethodClauseExpr(keyword, clauseType, e);
+        JmlMethodClauseExpr cl = parser.maker().at(pp).JmlMethodClauseExpr(keyword, clauseType, e);
         return toP(cl);
 
     }

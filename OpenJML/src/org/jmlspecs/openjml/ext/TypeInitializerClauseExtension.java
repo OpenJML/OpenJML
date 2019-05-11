@@ -43,22 +43,19 @@ public class TypeInitializerClauseExtension extends JmlExtension.TypeClause {
     public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             initializerClause, staticinitializerClause}; }
     
-    public static final IJmlClauseKind initializerClause = new InitializerBlock() {
-        public String name() { return initializerID; }
-    };
+    public static final IJmlClauseKind initializerClause = new InitializerBlock(initializerID);
     
-    public static final IJmlClauseKind staticinitializerClause = new InitializerBlock() {
-        public String name() { return staticinitializerID; }
-    };
+    public static final IJmlClauseKind staticinitializerClause = new InitializerBlock(staticinitializerID);
     
     private static class InitializerBlock extends IJmlClauseKind.TypeClause {
+        public InitializerBlock(String keyword) { super(keyword); }
         
         public 
         JmlTypeClauseInitializer parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             int pp = parser.pos();
             init(parser);
             parser.nextToken(); // skip over initializer token
-            JmlTypeClauseInitializer initializer = jmlF.at(pp).JmlTypeClauseInitializer(clauseType,mods);
+            JmlTypeClauseInitializer initializer = parser.maker().at(pp).JmlTypeClauseInitializer(clauseType,mods);
             //@ FIXME - parse failure?
             initializer.specs = parser.currentMethodSpecs;
             parser.currentMethodSpecs = null;

@@ -11,6 +11,7 @@ import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseIn;
+import org.jmlspecs.openjml.JmlTree.Maker;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -32,13 +33,9 @@ public class TypeRWClauseExtension extends JmlExtension.TypeClause {
     public static final String readableID = "readable";
     public static final String writableID = "writable";
     
-    public static final IJmlClauseKind readableClause = new RWClauseType() {
-        public String name() { return readableID; }
-    };
+    public static final IJmlClauseKind readableClause = new RWClauseType(readableID);
     
-    public static final IJmlClauseKind writableClause = new RWClauseType() {
-        public String name() { return writableID; }
-    };
+    public static final IJmlClauseKind writableClause = new RWClauseType(writableID);
 
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
@@ -47,6 +44,7 @@ public class TypeRWClauseExtension extends JmlExtension.TypeClause {
     
 
     public static class RWClauseType extends IJmlClauseKind.TypeClause {
+        public RWClauseType(String keyword) { super(keyword); }
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
         
@@ -59,28 +57,29 @@ public class TypeRWClauseExtension extends JmlExtension.TypeClause {
             Name n;
             JCExpression e;
             int identPos = parser.pos();
+            Maker M = parser.maker().at(identPos);
             if (parser.token().kind != TokenKind.IDENTIFIER) {
                 error(parser.pos(), parser.endPos(), "jml.expected", "an identifier");
-                n = names.asterisk; // place holder for an error situation
-                e = jmlF.Erroneous();
+                n = parser.names.asterisk; // place holder for an error situation
+                e = M.Erroneous();
             } else {
                 n = parser.ident();
                 if (parser.token().kind != IF) {
                     error(parser.pos(), parser.endPos(), "jml.expected", "an if token");
-                    e = jmlF.Erroneous();
+                    e = M.Erroneous();
                 } else {
                     parser.accept(TokenKind.IF);
                     e = parser.parseExpression();
                 }
             }
-            JCTree.JCIdent id = parser.to(jmlF.at(identPos).Ident(n));
+            JCTree.JCIdent id = parser.to(M.Ident(n));
             scanner.setJmlKeyword(true);
             if (e.getTag() == JCTree.Tag.ERRONEOUS || parser.token().kind != SEMI) {
                 parser.skipThroughSemi();
             } else {
                 parser.nextToken();
             }
-            return toP(jmlF.at(pp).JmlTypeClauseConditional(mods, clauseType, id, e));
+            return toP(M.at(pp).JmlTypeClauseConditional(mods, clauseType, id, e));
         }
         
         @Override

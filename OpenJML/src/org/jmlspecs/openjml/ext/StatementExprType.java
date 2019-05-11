@@ -44,9 +44,7 @@ import com.sun.tools.javac.util.Log;
 // RAC and ESC translation are added.
 public class StatementExprType extends IJmlClauseKind.Statement {
     
-    public StatementExprType(String keyword) {
-        this.keyword = keyword;
-    }
+    public StatementExprType(String keyword) { super(keyword); }
     
     @Override
     public JmlAbstractStatement parse(JCModifiers mods, String id, IJmlClauseKind clauseType, JmlParser parser) {
@@ -61,14 +59,14 @@ public class StatementExprType extends IJmlClauseKind.Statement {
         JmlAbstractStatement ste;
         if (clauseType == StatementExprExtensions.loopinvariantClause ||
                 clauseType == StatementExprExtensions.loopdecreasesClause) {
-            JmlTree.JmlStatementLoopExpr st = jmlF
+            JmlTree.JmlStatementLoopExpr st = parser.maker()
                     .at(pp)
                     .JmlStatementLoopExpr(
                             clauseType,
                                 t);
             ste = st;
         } else {
-            JmlTree.JmlStatementExpr st = jmlF
+            JmlTree.JmlStatementExpr st = parser.maker()
                     .at(pp)
                     .JmlExpressionStatement(
                             nm,

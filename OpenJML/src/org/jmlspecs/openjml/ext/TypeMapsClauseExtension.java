@@ -22,10 +22,7 @@ public class TypeMapsClauseExtension extends JmlExtension.TypeClause {
     
     public static final String mapsID = "maps";
     
-    public static final IJmlClauseKind mapsClause = new IJmlClauseKind.TypeClause() {
-        public String name(){
-            return mapsID;
-        }
+    public static final IJmlClauseKind mapsClause = new IJmlClauseKind.TypeClause(mapsID) {
 
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }

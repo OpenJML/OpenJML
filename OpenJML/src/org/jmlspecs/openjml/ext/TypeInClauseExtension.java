@@ -33,10 +33,7 @@ public class TypeInClauseExtension extends JmlExtension.TypeClause {
     
     public static final String inID = "in";
     
-    public static final IJmlClauseKind inClause = new IJmlClauseKind.TypeClause() {
-        public String name(){
-            return inID;
-        }
+    public static final IJmlClauseKind inClause = new IJmlClauseKind.TypeClause(inID) {
 
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
@@ -52,7 +49,7 @@ public class TypeInClauseExtension extends JmlExtension.TypeClause {
             ListBuffer<JmlGroupName> list = parser.parseGroupNameList();
             scanner.setJmlKeyword(true);
             parser.accept(SEMI);
-            return parser.toP(jmlF.at(pp).JmlTypeClauseIn(list.toList()));
+            return parser.toP(parser.maker().at(pp).JmlTypeClauseIn(list.toList()));
         }
         
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {

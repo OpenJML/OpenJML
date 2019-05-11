@@ -15,6 +15,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseIn;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
+import org.jmlspecs.openjml.JmlTree.Maker;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -42,8 +43,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
     public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             representsClause}; }
     
-    public static final IJmlClauseKind representsClause = new IJmlClauseKind.TypeClause() {
-        public String name() { return representsID; }
+    public static final IJmlClauseKind representsClause = new IJmlClauseKind.TypeClause(representsID) {
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
         
@@ -78,8 +78,9 @@ public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
                 suchThat = false;
             }
             scanner.setJmlKeyword(true);
+            Maker M = parser.maker().at(pp);
             if (e == null) { // skip
-                e = jmlF.Erroneous();
+                e = parser.maker().Erroneous();
             } else if (parser.token().kind != SEMI) {
                 parser.jmlerror(parser.pos(), parser.endPos(),
                         "jml.invalid.expression.or.missing.semi");
@@ -88,8 +89,8 @@ public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
                 parser.nextToken();
             }
 //            if (id == null) return null;
-            if (mods == null) mods = jmlF.at(pp).Modifiers(0);
-            JmlTypeClauseRepresents tcl = parser.to(jmlF.at(pp).JmlTypeClauseRepresents(
+            if (mods == null) mods = M.Modifiers(0);
+            JmlTypeClauseRepresents tcl = parser.to(M.JmlTypeClauseRepresents(
                     mods, id, suchThat, e));
             tcl.source = log.currentSourceFile();
             return tcl;

@@ -29,13 +29,9 @@ public class StatementLocationsExtension extends JmlExtension.Statement {
     public static final String havocID = "havoc";
     public static final String loopmodifiesID = "loop_modifies";
     
-    public static final IJmlClauseKind havocStatement = new LocationSetStatementType() {
-        public String name() { return havocID; }
-    };
+    public static final IJmlClauseKind havocStatement = new LocationSetStatementType(havocID);
     
-    public static final IJmlClauseKind loopmodifiesStatement = new LocationSetStatementType() {
-        public String name() { return loopmodifiesID; }
-    };
+    public static final IJmlClauseKind loopmodifiesStatement = new LocationSetStatementType(loopmodifiesID);
     
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
@@ -43,6 +39,7 @@ public class StatementLocationsExtension extends JmlExtension.Statement {
             havocStatement, loopmodifiesStatement }; }
     
     public static class LocationSetStatementType extends IJmlClauseKind.Statement {
+        public LocationSetStatementType(String keyword) { super(keyword); }
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
         
@@ -83,8 +80,8 @@ public class StatementLocationsExtension extends JmlExtension.Statement {
                     parser.nextToken();
                 }
             }
-            if (keyword.equals(havocID)) return toP(jmlF.at(pp).JmlHavocStatement(list.toList()));
-            return toP(jmlF.at(pp).JmlStatementLoopModifies(clauseType, list.toList()));
+            if (keyword.equals(havocID)) return toP(parser.maker().at(pp).JmlHavocStatement(list.toList()));
+            return toP(parser.maker().at(pp).JmlStatementLoopModifies(clauseType, list.toList()));
         }
         
         @Override

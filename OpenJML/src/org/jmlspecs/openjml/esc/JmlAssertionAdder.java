@@ -46,6 +46,8 @@ import org.jmlspecs.openjml.ext.ReachableStatement;
 import org.jmlspecs.openjml.ext.SetStatement;
 import org.jmlspecs.openjml.ext.SignalsClauseExtension;
 import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
+import org.jmlspecs.openjml.ext.SingletonExpressions;
+
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeInClauseExtension.*;
@@ -13548,6 +13550,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             {
 
                 JmlSingleton index = M.at(that.pos).JmlSingleton(JmlTokenKind.BSCOUNT);
+                index.kind = SingletonExpressions.countKind;
                 index.type = syms.intType;
                 JCExpression ocond = treeutils.makeBinary(that.pos, JCTree.Tag.LT, 
                         index,

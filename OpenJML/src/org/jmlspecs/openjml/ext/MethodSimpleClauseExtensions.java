@@ -24,23 +24,15 @@ public class MethodSimpleClauseExtensions extends JmlExtension.MethodClause {
     public static final String alsoID = "also";
     public static final String modelprogramID = "model_program";
     
-    public static final IJmlClauseKind specGroupStartClause = new MethodClauseType() {
-        @Override public String name() { return specGroupStartID; }
-    };
+    public static final IJmlClauseKind specGroupStartClause = new MethodClauseType(specGroupStartID);
     
-    public static final IJmlClauseKind specGroupEndClause = new MethodClauseType() {
-        @Override public String name() { return specGroupEndID; }
-    };
+    public static final IJmlClauseKind specGroupEndClause = new MethodClauseType(specGroupEndID);
     
-    public static final IJmlClauseKind modelprogramClause = new MethodClauseType() {
-        @Override public String name() { return modelprogramID; }
-    };
+    public static final IJmlClauseKind modelprogramClause = new MethodClauseType(modelprogramID);
     
-    public static final IJmlClauseKind alsoClause = new MethodClauseType() {
-        @Override public String name() { return alsoID; }
-    };
+    public static final IJmlClauseKind alsoClause = new MethodClauseType(alsoID);
     
-    public static final IJmlClauseKind declClause = new MethodClauseType() {
+    public static final IJmlClauseKind declClause = new MethodClauseType("jml declaration") {
         @Override public String name() { return "jml declaration"; }
     };
     
@@ -50,7 +42,7 @@ public class MethodSimpleClauseExtensions extends JmlExtension.MethodClause {
             specGroupStartClause, specGroupEndClause, modelprogramClause, alsoClause,}; }
     
     public static class MethodClauseType extends IJmlClauseKind.MethodClause {
-
+        public MethodClauseType(String keyword) { super(keyword); }
         @Override
         public 
         JmlMethodClauseDecl parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {

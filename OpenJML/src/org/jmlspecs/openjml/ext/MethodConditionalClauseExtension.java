@@ -22,20 +22,17 @@ public class MethodConditionalClauseExtension extends JmlExtension.MethodClause 
     public static final String workingspaceID = "working_space";
     public static final String measuredbyID = "measured_by";
     
-    public static final IJmlClauseKind durationClause = new MethodConditionalClauseType() {
-        public String name() { return durationID; }
+    public static final IJmlClauseKind durationClause = new MethodConditionalClauseType(durationID) {
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
     };
     
-    public static final IJmlClauseKind workingspaceClause = new MethodConditionalClauseType() {
-        public String name() { return workingspaceID; }
+    public static final IJmlClauseKind workingspaceClause = new MethodConditionalClauseType(workingspaceID) {
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return false; }
     };
     
-    public static final IJmlClauseKind measuredbyClause = new MethodConditionalClauseType() {
-        public String name() { return measuredbyID; }
+    public static final IJmlClauseKind measuredbyClause = new MethodConditionalClauseType(measuredbyID) {
     };
     
     @Override
@@ -44,7 +41,8 @@ public class MethodConditionalClauseExtension extends JmlExtension.MethodClause 
             durationClause, measuredbyClause, workingspaceClause}; }
     
     public static class MethodConditionalClauseType extends IJmlClauseKind.MethodClause {
- 
+        public MethodConditionalClauseType(String keyword) { super(keyword); }
+
         @Override
         public boolean oldNoLabelAllowed() { return false; }
         @Override
@@ -68,7 +66,7 @@ public class MethodConditionalClauseExtension extends JmlExtension.MethodClause 
                 parser.nextToken();
                 p = parser.parseExpression();
             }
-            JmlMethodClauseConditional res = parser.to(jmlF.at(pp)
+            JmlMethodClauseConditional res = parser.to(parser.maker().at(pp)
                     .JmlMethodClauseConditional(keyword, clauseType, e, p));
             scanner.setJmlKeyword(true);
             if (parser.token().kind == SEMI) {

@@ -861,7 +861,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - review and document
     protected JCExpression makeSignalsOnly(JmlMethodClauseSignalsOnly clause) {
         JCExpression e = treeutils.makeBooleanLiteral(clause.pos,false);
-        JCExpression id = factory.at(0).JmlSingleton(JmlTokenKind.BSEXCEPTION);
+        JmlSingleton id = factory.at(0).JmlSingleton(JmlTokenKind.BSEXCEPTION);
+        id.kind = org.jmlspecs.openjml.ext.SingletonExpressions.exceptionKind;
         for (JCExpression typetree: clause.list) {
             int pos = typetree.getStartPosition();
             e = treeutils.makeBinary(pos, 

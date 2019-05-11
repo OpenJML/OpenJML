@@ -7,6 +7,7 @@ import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
+import org.jmlspecs.openjml.JmlTree.Maker;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -34,9 +35,7 @@ public class TypeDeclClauseExtension extends JmlExtension.TypeClause {
     public static final IJmlClauseKind typedeclClause = new TypeClause(typedeclID);
     
     public static class TypeClause extends IJmlClauseKind.TypeClause {
-        public TypeClause(String keyword) {
-            this.keyword = keyword;
-        }
+        public TypeClause(String keyword) { super(keyword); }
         
         public 
         JmlTypeClauseExpr parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
@@ -57,8 +56,9 @@ public class TypeDeclClauseExtension extends JmlExtension.TypeClause {
             } else {
                 parser.nextToken();
             }
-            if (mods == null) mods = jmlF.at(pp).Modifiers(0);
-            JmlTypeClauseExpr tcl = parser.to(jmlF.at(pp).JmlTypeClauseExpr(mods, keyword, clauseType, e));
+            Maker M = parser.maker().at(pp);
+            if (mods == null) mods = M.Modifiers(0);
+            JmlTypeClauseExpr tcl = parser.to(M.JmlTypeClauseExpr(mods, keyword, clauseType, e));
             tcl.source = log.currentSourceFile();
             return tcl;
         }

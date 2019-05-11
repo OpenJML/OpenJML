@@ -35,9 +35,7 @@ public class CallableClauseExtension extends JmlExtension.MethodClause {
     public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             callableClause }; }
     
-    public static final IJmlClauseKind callableClause = new IJmlClauseKind.MethodClause() {
-        @Override
-        public String name() { return callableID; }
+    public static final IJmlClauseKind callableClause = new IJmlClauseKind.MethodClause(callableID) {
         @Override
         public boolean oldNoLabelAllowed() { return false; }
         @Override
@@ -63,10 +61,10 @@ public class CallableClauseExtension extends JmlExtension.MethodClause {
             parser.accept(SEMI);
             JmlMethodClauseCallable ec;
             if (refkeyword != null) {
-                ec = toP(jmlF.at(pp).JmlMethodClauseCallable(
+                ec = toP(parser.maker().at(pp).JmlMethodClauseCallable(
                         refkeyword));
             } else {
-                ec = toP(jmlF.at(pp).JmlMethodClauseCallable(sigs));
+                ec = toP(parser.maker().at(pp).JmlMethodClauseCallable(sigs));
             }
             return ec;
         }

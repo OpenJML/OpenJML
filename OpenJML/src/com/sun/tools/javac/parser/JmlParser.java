@@ -18,11 +18,13 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.AssignableClauseExtension;
 import org.jmlspecs.openjml.ext.ChooseClause;
-import org.jmlspecs.openjml.ext.Elemtype;
+import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
 import org.jmlspecs.openjml.ext.EndStatement;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.ext.InlinedLoopStatement;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.MethodClauseType;
+import org.jmlspecs.openjml.ext.MiscExpressions;
+import org.jmlspecs.openjml.ext.SingletonExpressions;
 import org.jmlspecs.openjml.ext.StatementLocationsExtension;
 
 import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.*;
@@ -343,12 +345,12 @@ public class JmlParser extends JavacParser {
             JmlTypeClauseExpr axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0), axiomID,axiomClause,ex);
             newdefs.add(axiom); 
             ex = jmlF.JmlMethodInvocation(JmlTokenKind.BSDISTINCT,args.toList());
-            ((JmlMethodInvocation)ex).kind = Elemtype.distinctKind;
+            ((JmlMethodInvocation)ex).kind = FunctionLikeExpressions.distinctKind;
             // The enum constants are all distinct and distinct from NULL.
             axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0),axiomID,axiomClause,ex);
             newdefs.add(axiom);
             ex = jmlF.JmlMethodInvocation(JmlTokenKind.BSDISTINCT,argsn.toList());
-            ((JmlMethodInvocation)ex).kind = Elemtype.distinctKind;
+            ((JmlMethodInvocation)ex).kind = FunctionLikeExpressions.distinctKind;
             // The enum names are all distinct and distinct from NULL.
             axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0),axiomID,axiomClause,ex);
             newdefs.add(axiom);
@@ -2344,7 +2346,9 @@ public class JmlParser extends JavacParser {
         if (jmlTokenKind() == BSNOTSPECIFIED) {
             int pos = pos();
             nextToken();
-            return toP(jmlF.at(pos).JmlSingleton(BSNOTSPECIFIED));
+            JmlSingleton e = jmlF.at(pos).JmlSingleton(BSNOTSPECIFIED);
+            e.kind = SingletonExpressions.notspecifiedKind;
+            return toP(e);
         } else {
             return parseExpression();
         }
@@ -3129,105 +3133,106 @@ public class JmlParser extends JavacParser {
                 return t;
             }
             switch (jt) {
-                case BSINDEX:
-                    // FIXME - turn the following one when we have time to fix the tests - perhaps guard with an option
-//                    log.warning(p,jt.internedName() + " is deprecated -- use \\count instead");
+//                case BSINDEX:
+//                    // FIXME - turn the following one when we have time to fix the tests - perhaps guard with an option
+////                    log.warning(p,jt.internedName() + " is deprecated -- use \\count instead");
+//                    // fall-through
+//                case BSEXCEPTION:// FIXME - what can follow this?
+//                case BSCOUNT:
+//                case BSVALUES:// FIXME - what can follow this?
+//                    if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
+//                        log.warning(p,"jml.not.strict",jt.internedName());
+//                    }
                     // fall-through
-                case BSEXCEPTION:// FIXME - what can follow this?
-                case BSCOUNT:
-                case BSVALUES:// FIXME - what can follow this?
-                    if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
-                        log.warning(p,"jml.not.strict",jt.internedName());
-                    }
-                    // fall-through
-                case BSRESULT:// FIXME - what can follow this?
-                case BSLOCKSET: // FIXME - what can follow this?
-                    t = to(jmlF.at(p).JmlSingleton(jt));
-                    nextToken();
-                    if (token.kind == LPAREN) {
-                        JCExpression res = syntaxError(pos(), null,
-                                "jml.no.args.allowed", jt.internedName());
-                        primaryTrailers(t, typeArgs); // Parse arguments and
-                        // ignore, both to do as much
-                        // type checking as possible and to skip valid
-                        // constructs to avoid extra errors
-                        return res;
-                    } else {
-                        return primaryTrailers(t, typeArgs);
-                    }
+//                case BSRESULT:// FIXME - what can follow this?
+//                case BSLOCKSET: // FIXME - what can follow this?
+//                    t = to(jmlF.at(p).JmlSingleton(jt));
+//                    nextToken();
+//                    if (token.kind == LPAREN) {
+//                        JCExpression res = syntaxError(pos(), null,
+//                                "jml.no.args.allowed", jt.internedName());
+//                        primaryTrailers(t, typeArgs); // Parse arguments and
+//                        // ignore, both to do as much
+//                        // type checking as possible and to skip valid
+//                        // constructs to avoid extra errors
+//                        return res;
+//                    } else {
+//                        return primaryTrailers(t, typeArgs);
+//                    }
 
-                case BSSAME:
-                    t = to(jmlF.at(p).JmlSingleton(jt));
-                    nextToken();
-                    return t;
+//                case BSSAME:
+//                    t = to(jmlF.at(p).JmlSingleton(jt));
+//                    nextToken();
+//                    return t;
+//
+//                case INFORMAL_COMMENT:
+//                    t = to(jmlF.at(p).JmlSingleton(jt));
+//                    ((JmlSingleton) t).info = S.chars();
+//                    nextToken();
+//                    return t;
 
-                case INFORMAL_COMMENT:
-                    t = to(jmlF.at(p).JmlSingleton(jt));
-                    ((JmlSingleton) t).info = S.chars();
-                    nextToken();
-                    return t;
+//                case BSTYPELC:
+//                    int start = pos();
+//                    nextToken();
+//                    p = pos();
+//                    if (token.kind != LPAREN) {
+//                        return syntaxError(p, List.<JCTree> nil(),
+//                                "jml.args.required", jt);
+//                    } else {
+//                        accept(TokenKind.LPAREN);
+//                        JCExpression e;
+//                        if (token.kind == VOID) {
+//                            e = to(F.at(pos()).TypeIdent(TypeTag.VOID));
+//                            nextToken();
+//                        } else {
+//                            e = parseType(); // FIXME - does not parseType() parse a void?
+//                        }
+//                        if (token.kind != RPAREN) {
+//                            if (!(e instanceof JCErroneous))
+//                                jmlerror(pos(), endPos(),
+//                                        "jml.bad.bstype.expr");
+//                            skipThroughRightParen();
+//                        } else
+//                            nextToken();
+//                        // FIXME - this should be a type literal
+//                        e = toP(jmlF.at(p).JmlMethodInvocation(jt, List.of(e)));
+//                        //((JmlMethodInvocation)e).kind = Elemtype.typelcKind;
+//                        ((JmlMethodInvocation)e).startpos = start;
+//                        return primaryTrailers(e, null);
+//                    }
 
-                case BSTYPELC:
-                    int start = pos();
-                    nextToken();
-                    p = pos();
-                    if (token.kind != LPAREN) {
-                        return syntaxError(p, List.<JCTree> nil(),
-                                "jml.args.required", jt);
-                    } else {
-                        accept(TokenKind.LPAREN);
-                        JCExpression e;
-                        if (token.kind == VOID) {
-                            e = to(F.at(pos()).TypeIdent(TypeTag.VOID));
-                            nextToken();
-                        } else {
-                            e = parseType(); // FIXME - does not parseType() parse a void?
-                        }
-                        if (token.kind != RPAREN) {
-                            if (!(e instanceof JCErroneous))
-                                jmlerror(pos(), endPos(),
-                                        "jml.bad.bstype.expr");
-                            skipThroughRightParen();
-                        } else
-                            nextToken();
-                        // FIXME - this should be a type literal
-                        e = toP(jmlF.at(p).JmlMethodInvocation(jt, List.of(e)));
-                        //((JmlMethodInvocation)e).kind = Elemtype.typelcKind;
-                        ((JmlMethodInvocation)e).startpos = start;
-                        return primaryTrailers(e, null);
-                    }
-
-                case BSNONNULLELEMENTS:
-                case BSMAX:
-                case BSFRESH:
-                case BSREACH:
-                case BSSPACE:
-                case BSWORKINGSPACE:
+//                case BSNONNULLELEMENTS:
+//                case BSMAX:
+//                case BSFRESH:
+//                case BSREACH:
+//                case BSSPACE:
+//                case BSWORKINGSPACE:
 //                case BSDISTINCT:
-                case BSDURATION:
+//                case BSDURATION:
 //                case BSISINITIALIZED:
-                case BSINVARIANTFOR: {
-                    int startx = pos();
-                    nextToken();
-                    if (token.kind != LPAREN) {
-                        if (jt == BSMAX) {
-                            return parseQuantifiedExpr(p, jt);
-                        }
-                        return syntaxError(p, null, "jml.args.required",
-                                jt.internedName());
-                    } else {
-                        int preferred = pos();
-                        List<JCExpression> args = arguments();
-                        JCExpression te = jmlF.at(preferred).JmlMethodInvocation(
-                                jt, args);
-                        ((JmlMethodInvocation)te).startpos = startx;
-                        te = toP(te);
-                        if (jt == BSREACH || jt == BSMAX) {
-                            te = primaryTrailers(te, null);
-                        }
-                        return te;
-                    }
-                }
+//                case BSINVARIANTFOR: 
+//                {
+//                    int startx = pos();
+//                    nextToken();
+//                    if (token.kind != LPAREN) {
+//                        if (jt == BSMAX) {
+//                            return parseQuantifiedExpr(p, jt);
+//                        }
+//                        return syntaxError(p, null, "jml.args.required",
+//                                jt.internedName());
+//                    } else {
+//                        int preferred = pos();
+//                        List<JCExpression> args = arguments();
+//                        JCExpression te = jmlF.at(preferred).JmlMethodInvocation(
+//                                jt, args);
+//                        ((JmlMethodInvocation)te).startpos = startx;
+//                        te = toP(te);
+//                        if (jt == BSREACH || jt == BSMAX) {
+//                            te = primaryTrailers(te, null);
+//                        }
+//                        return te;
+//                    }
+//                }
                 
 //                case BSESC:
 //                case BSRAC:
@@ -3339,7 +3344,8 @@ public class JmlParser extends JavacParser {
                     IJmlClauseKind kind = Extensions.instance(context).findK(pos(),id,false);
                     if (kind != null) {
                         if (kind instanceof IJmlClauseKind.Expression) {
-                            return ((IJmlClauseKind.Expression)kind).parse(null, id, kind, this);
+                            JCExpression tt = ((IJmlClauseKind.Expression)kind).parse(null, id, kind, this);
+                            return primaryTrailers(tt, typeArgs);
                         } else {
                             jmlerror(p, endPos(), "jml.message",
                                     "Token " + id + " does not introduce an expression");
