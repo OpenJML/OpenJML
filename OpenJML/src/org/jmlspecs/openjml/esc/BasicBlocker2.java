@@ -22,6 +22,11 @@ import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
+import static org.jmlspecs.openjml.ext.FrameExpressions.*;
+import static org.jmlspecs.openjml.ext.MiscExpressions.*;
+import static org.jmlspecs.openjml.ext.StateExpressions.*;
+import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import org.jmlspecs.openjml.ext.EndStatement;
 
@@ -861,7 +866,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - review and document
     protected JCExpression makeSignalsOnly(JmlMethodClauseSignalsOnly clause) {
         JCExpression e = treeutils.makeBooleanLiteral(clause.pos,false);
-        JmlSingleton id = factory.at(0).JmlSingleton(JmlTokenKind.BSEXCEPTION);
+        JmlSingleton id = factory.at(0).JmlSingleton(exceptionKind);
         id.kind = org.jmlspecs.openjml.ext.SingletonExpressions.exceptionKind;
         for (JCExpression typetree: clause.list) {
             int pos = typetree.getStartPosition();
@@ -982,7 +987,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         if (that.name != null) {
             scanList(that.args);
             result = that;
-        } else if (that.token == null) {
+        } else if (that.token == null && that.kind == null) {
             //super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
             scan(that.typeargs);
             scan(that.meth);
@@ -992,10 +997,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
 
         } else {
-            switch (that.token) {
-                case BSOLD:
-                case BSPRE:
-                case BSPAST:
+            if (that.kind != null) switch (that.kind.keyword) {
+                case oldID:
+                case preID:
+                case pastID:
                 {
                     VarMap savedMap = currentMap;
                     try {
@@ -1019,12 +1024,54 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                             that.args.get(0).accept(this);
                             that.args = com.sun.tools.javac.util.List.<JCExpression>of(that.args.get(0));
                         }
-                        that.token = JmlTokenKind.BSSAME; // A no-op -- reusing the JmlMethodInvocation node without any \old
+                        that.token = null;
+                        that.kind = sameKind; // A no-op -- reusing the JmlMethodInvocation node without any \old
                     } finally {
                         currentMap = savedMap;
                     }
                     break;
                 }
+                case nonnullelementsID: 
+                {
+                    scan(that.args.get(0));
+                    JCExpression arg = result;
+                    JCExpression argarrays = getArrayIdent(syms.objectType,that.pos);
+                    that.args = com.sun.tools.javac.util.List.<JCExpression>of(arg,argarrays);
+                    result = that;
+                    break;
+                } 
+                case typelcID:
+                case typeofID:
+                case distinctID:
+                {
+                    //super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
+                    scan(that.typeargs);
+                    scan(that.meth);
+                    if (that.meth != null) that.meth = result;
+                    scanList(that.args);
+                    result = that;
+                    break;
+                } 
+                case elemtypeID:
+                {
+                    scan(that.typeargs);
+                    scan(that.meth);
+                    if (that.meth != null) that.meth = result;
+                    scanList(that.args);
+                    result = that;
+                    break;
+                } 
+                case sameID:
+                {
+                    // In this context, BSSAME is a noop
+                    scanList(that.args);
+                    result = that;
+                    break;
+                } 
+                default:
+                    log.error(that.pos, "esc.internal.error", "No implementation for this kind of Jml node in BasicBlocker2: " + that.kind.name());
+                    
+            } else switch (that.token) { 
                 case SUBTYPE_OF:
                 case JSUBTYPE_OF:
                 {
@@ -1036,28 +1083,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     result = that;
                     break;
                 } 
-                case BSNONNULLELEMENTS: 
-                {
-                    scan(that.args.get(0));
-                    JCExpression arg = result;
-                    JCExpression argarrays = getArrayIdent(syms.objectType,that.pos);
-                    that.args = com.sun.tools.javac.util.List.<JCExpression>of(arg,argarrays);
-                    result = that;
-                    break;
-                } 
-                case BSTYPELC:
-                case BSTYPEOF:
-                case BSDISTINCT:
-                {
-                    //super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
-                    scan(that.typeargs);
-                    scan(that.meth);
-                    if (that.meth != null) that.meth = result;
-                    scanList(that.args);
-                    result = that;
-                    break;
-                } 
-                case BSELEMTYPE:
                 case BSERASURE:
                 case BSREQUIRES:
                 case BSENSURES:
@@ -1078,17 +1103,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     result = that;
                     break;
                 } 
-                case BSSAME:
-                {
-                    // In this context, BSSAME is a noop
-                    scanList(that.args);
-                    result = that;
-                    break;
-                } 
                 default:
                     log.error(that.pos, "esc.internal.error", "Did not expect this kind of Jml node in BasicBlocker2: " + that.token.internedName());
                     shouldNotBeCalled(that);
             }
+            return;
         }
     }
     

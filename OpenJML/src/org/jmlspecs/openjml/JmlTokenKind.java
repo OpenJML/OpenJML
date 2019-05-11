@@ -147,15 +147,15 @@ public enum JmlTokenKind implements ITokenKind {
     METHOD("method"),
     
     // These are various tokens related to JML expressions
-    BSEXCEPTION("\\exception"), // This is for internal use only, so it is before \result
-    BSRESULT("\\result"), // Keep this one the first of the backslash tokens
+//    BSEXCEPTION("\\exception"), // This is for internal use only, so it is before \result
+//    BSRESULT("\\result"), // Keep this one the first of the backslash tokens
     BSEVERYTHING("\\everything"),
     BSLOCKSET("\\lockset"),
-    BSCOUNT("\\count"), // New version of \index
-    BSINDEX("\\index"), // Obsolete in favor of \count
+//    BSCOUNT("\\count"), // New version of \index
+//    BSINDEX("\\index"), // Obsolete in favor of \count
     BSVALUES("\\values"),
     BSNOTHING("\\nothing"),
-    BSSAME("\\same"),
+//    BSSAME("\\same"),
     MATCH("match"),
     BSNOTSPECIFIED("\\not_specified"),
 
@@ -164,40 +164,40 @@ public enum JmlTokenKind implements ITokenKind {
     BSREADS("\\reads"),
     BSWRITES("\\writes"),
     BSENSURES("\\ensures"),
-    BSDISTINCT("\\distinct"),
-    BSDURATION("\\duration"),
-    BSELEMTYPE("\\elemtype"),
+//    BSDISTINCT("\\distinct"),
+//    BSDURATION("\\duration"),
+//    BSELEMTYPE("\\elemtype"),
     BSERASURE("\\erasure"),
     BSFRESH("\\fresh"),
-    BSINVARIANTFOR("\\invariant_for"),
-    BSISINITIALIZED("\\is_initialized"),
+//    BSINVARIANTFOR("\\invariant_for"),
+//    BSISINITIALIZED("\\is_initialized"),
     BSKEY("\\key"),
     BSLBLANY("\\lbl"),
     BSLBLNEG("\\lblneg"),
     BSLBLPOS("\\lblpos"),
     BSLET("\\let"),
     BSMAX("\\max"),
-    BSNONNULLELEMENTS("\\nonnullelements"),
+//    BSNONNULLELEMENTS("\\nonnullelements"),
     BSNOTASSIGNED("\\not_assigned"),
-    BSNOTMODIFIED("\\not_modified"),
-    BSOLD("\\old"),
+//    BSNOTMODIFIED("\\not_modified"),
+//    BSOLD("\\old"),
     BSONLYACCESSED("\\only_accessed"),
     BSONLYASSIGNED("\\only_assigned"),
     BSONLYCALLED("\\only_called"),
     BSONLYCAPTURED("\\only_captured"),
-    BSPAST("\\past"),
+//    BSPAST("\\past"),
     BSPRE("\\pre"), // overloaded both \post-like and \old-like
-    BSPOST("\\post"),
+//    BSPOST("\\post"),
     BSASSIGNS("\\assigns"),
     BSREACH("\\reach"),
-    BSSPACE("\\space"),
-    BSTYPEOF("\\typeof"),
-    BSTYPELC("\\type"),
-    BSWORKINGSPACE("\\working_space"),
+//    BSSPACE("\\space"),
+//    BSTYPEOF("\\typeof"),
+//    BSTYPELC("\\type"),
+//    BSWORKINGSPACE("\\working_space"),
 
-    BSBIGINT_MATH("\\bigint_math"),
-    BSJAVAMATH("\\java_math"),
-    BSSAFEMATH("\\safe_math"),
+//    BSBIGINT_MATH("\\bigint_math"),
+//    BSJAVAMATH("\\java_math"),
+//    BSSAFEMATH("\\safe_math"),
     BSNOWARN("\\nowarn"),
     BSNOWARNOP("\\nowarn_op"),
     BSWARN("\\warn"),
@@ -347,7 +347,7 @@ public enum JmlTokenKind implements ITokenKind {
 //        synonyms.put("decreases",loopdecreasesID);
 //        synonyms.put("maintaining",loopinvariantID);
 
-        for (JmlTokenKind t: EnumSet.range(BSEXCEPTION,BSBIGINT)) {
+        for (JmlTokenKind t: EnumSet.range(BSEVERYTHING,BSBIGINT)) {
             backslashTokens.put(t.internedName(),t);
         }
         for (JmlTokenKind t: JmlTokenKind.values()) {

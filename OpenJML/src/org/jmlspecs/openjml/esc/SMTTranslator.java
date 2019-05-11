@@ -7,96 +7,30 @@ package org.jmlspecs.openjml.esc;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
+import static org.jmlspecs.openjml.ext.MiscExpressions.*;
+import static org.jmlspecs.openjml.ext.StateExpressions.*;
+
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
-import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import org.smtlib.ICommand;
 import org.smtlib.ICommand.IScript;
 import org.smtlib.IExpr;
-import org.smtlib.IExpr.IAttributedExpr;
-import org.smtlib.IExpr.IBinding;
-import org.smtlib.IExpr.IDeclaration;
-import org.smtlib.IExpr.INumeral;
-import org.smtlib.IExpr.ISymbol;
+import org.smtlib.IExpr.*;
 import org.smtlib.ISort;
 import org.smtlib.SMT;
 import org.smtlib.SMT.Configuration;
-import org.smtlib.command.C_assert;
-import org.smtlib.command.C_check_sat;
-import org.smtlib.command.C_declare_fun;
-import org.smtlib.command.C_declare_sort;
-import org.smtlib.command.C_define_fun;
-import org.smtlib.command.C_push;
-import org.smtlib.command.C_set_logic;
-import org.smtlib.command.C_set_option;
+import org.smtlib.command.*;
 import org.smtlib.impl.Factory;
 import org.smtlib.impl.SMTExpr.Numeral;
 import org.smtlib.impl.Script;
 
-import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.JmlType;
-import com.sun.tools.javac.code.JmlTypes;
-import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.Type.ArrayType;
-import com.sun.tools.javac.code.Type.TypeVar;
-import com.sun.tools.javac.code.TypeTag;
-import com.sun.tools.javac.code.Types;
+import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.code.Type.*;
 import com.sun.tools.javac.model.JavacTypes;
 import com.sun.tools.javac.tree.*;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
-import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
-import com.sun.tools.javac.tree.JCTree.JCAssert;
-import com.sun.tools.javac.tree.JCTree.JCAssign;
-import com.sun.tools.javac.tree.JCTree.JCAssignOp;
-import com.sun.tools.javac.tree.JCTree.JCBinary;
-import com.sun.tools.javac.tree.JCTree.JCBlock;
-import com.sun.tools.javac.tree.JCTree.JCBreak;
-import com.sun.tools.javac.tree.JCTree.JCCase;
-import com.sun.tools.javac.tree.JCTree.JCCatch;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
-import com.sun.tools.javac.tree.JCTree.JCConditional;
-import com.sun.tools.javac.tree.JCTree.JCContinue;
-import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
-import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
-import com.sun.tools.javac.tree.JCTree.JCErroneous;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCForLoop;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCIf;
-import com.sun.tools.javac.tree.JCTree.JCImport;
-import com.sun.tools.javac.tree.JCTree.JCInstanceOf;
-import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCNewArray;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.tree.JCTree.JCParens;
-import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
-import com.sun.tools.javac.tree.JCTree.JCReturn;
-import com.sun.tools.javac.tree.JCTree.JCSkip;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.JCTree.JCSwitch;
-import com.sun.tools.javac.tree.JCTree.JCSynchronized;
-import com.sun.tools.javac.tree.JCTree.JCThrow;
-import com.sun.tools.javac.tree.JCTree.JCTry;
-import com.sun.tools.javac.tree.JCTree.JCTypeApply;
-import com.sun.tools.javac.tree.JCTree.JCTypeCast;
-import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
-import com.sun.tools.javac.tree.JCTree.JCTypeUnion;
-import com.sun.tools.javac.tree.JCTree.JCUnary;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
-import com.sun.tools.javac.tree.JCTree.JCWildcard;
-import com.sun.tools.javac.tree.JCTree.LetExpr;
-import com.sun.tools.javac.tree.JCTree.TypeBoundKind;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.Log;
@@ -1969,14 +1903,27 @@ public class SMTTranslator extends JmlTreeScanner {
      */
     @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
-        if (that.token == JmlTokenKind.BSTYPELC) {
+        if (that.kind == typelcKind) {
             Type t = that.args.get(0).type;
             addType(t);
             result = that.javaType ? javaTypeSymbol(t) : jmlTypeSymbol(t);
             return;
         }
         List<IExpr> newargs = convertExprList(that.args);
-        if (that.token == null) {
+        if (that.kind == typeofKind) {
+            ISymbol s = that.javaType ? F.symbol("javaTypeOf") : F.symbol("jmlTypeOf");
+            result = F.fcn(s, newargs);
+        } else if (that.kind == nonnullelementsKind) {
+            result = F.fcn(F.symbol(nonnullelements), newargs);
+        } else if (that.kind == elemtypeKind) {
+            result = F.fcn(F.symbol(arrayElemType), newargs);
+        } else if (that.kind == sameKind) {
+            result = newargs.get(0);
+        } else if (that.token == JmlTokenKind.BSERASURE) {
+            result = F.fcn(F.symbol("erasure"), newargs);
+        } else if (that.kind == distinctKind) {
+            result = F.fcn(distinctSym, newargs);
+        } else if (that.token == null) {
             result = F.fcn(F.symbol(that.name), newargs);
         } else if (that.token == JmlTokenKind.SUBTYPE_OF) {
             result = F.fcn(F.symbol(JMLSUBTYPE), newargs);
@@ -1986,17 +1933,6 @@ public class SMTTranslator extends JmlTreeScanner {
             result = F.fcn(F.symbol(JAVASUBTYPE), newargs);
         } else if (that.token == JmlTokenKind.JSUBTYPE_OF_EQ) {
             result = F.fcn(F.symbol(JAVASUBTYPE), newargs);
-        } else if (that.token == JmlTokenKind.BSTYPEOF) {
-            ISymbol s = that.javaType ? F.symbol("javaTypeOf") : F.symbol("jmlTypeOf");
-            result = F.fcn(s, newargs);
-        } else if (that.token == JmlTokenKind.BSNONNULLELEMENTS) {
-            result = F.fcn(F.symbol(nonnullelements), newargs);
-        } else if (that.token == JmlTokenKind.BSELEMTYPE) {
-            result = F.fcn(F.symbol(arrayElemType), newargs);
-        } else if (that.token == JmlTokenKind.BSERASURE) {
-            result = F.fcn(F.symbol("erasure"), newargs);
-        } else if (that.token == JmlTokenKind.BSDISTINCT) {
-            result = F.fcn(distinctSym, newargs);
         } else if (that.meth != null) {
             // Built-in methods
             String n = that.meth.toString();

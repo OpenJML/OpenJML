@@ -323,6 +323,7 @@ public class JmlEsc extends JmlTreeScanner {
             noticeWriter.println("STARTING PROOF OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
             noticeWriter.println(JmlSpecs.instance(context).getDenestedSpecs(methodDecl.sym).toString());
             noticeWriter.println(JmlPretty.write(methodDecl.body));
+            JmlAssertionAdder.checkZZZ(methodDecl.body);
         }
         
         IProverResult res = null;

@@ -8,7 +8,7 @@ import java.util.Map;
 
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree.*;
-
+import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import com.sun.source.tree.*;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeCopier;
@@ -95,12 +95,12 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
     @Override
     public JCTree visitJmlSingleton(JmlSingleton that, Void p) {
         // for substitution \result
-        if (that.token == JmlTokenKind.BSRESULT) {
+        if (that.kind == resultKind) {
             @Nullable JCExpression newexpr = replacements.get(that.token);
             if (newexpr != null) return copy(newexpr);
             else return super.visitJmlSingleton(that,  p);
-        } else if (that.token == JmlTokenKind.BSINDEX || that.token == JmlTokenKind.BSCOUNT) {
-            @Nullable JCExpression newexpr = replacements.get(JmlTokenKind.BSCOUNT);
+        } else if (that.kind == countKind) {
+            @Nullable JCExpression newexpr = replacements.get(countID);
             if (newexpr != null) return copy(newexpr);
             else return super.visitJmlSingleton(that,  p);
         } else {

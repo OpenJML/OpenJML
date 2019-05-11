@@ -6,11 +6,13 @@ package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.Kinds.VAL;
+import static org.jmlspecs.openjml.ext.RequiresClause.requiresClauseKind;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Kinds;
@@ -51,11 +53,11 @@ public class FunctionLikeExpressions extends ExpressionExtension {
     }
 
     static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
-            JmlTokenKind.BSELEMTYPE, JmlTokenKind.BSTYPEOF,
-            JmlTokenKind.BSOLD, JmlTokenKind.BSPAST, JmlTokenKind.BSPRE, JmlTokenKind.BSNOWARN, JmlTokenKind.BSNOWARNOP,
-            JmlTokenKind.BSPOST, JmlTokenKind.BSASSIGNS,
-            JmlTokenKind.BSWARN, JmlTokenKind.BSWARNOP,
-            JmlTokenKind.BSBIGINT_MATH, JmlTokenKind.BSSAFEMATH, JmlTokenKind.BSJAVAMATH
+//            JmlTokenKind.BSELEMTYPE, JmlTokenKind.BSTYPEOF,
+//            JmlTokenKind.BSOLD, JmlTokenKind.BSPAST, JmlTokenKind.BSPRE, JmlTokenKind.BSNOWARN, JmlTokenKind.BSNOWARNOP,
+//            JmlTokenKind.BSPOST, JmlTokenKind.BSASSIGNS,
+//            JmlTokenKind.BSWARN, JmlTokenKind.BSWARNOP,
+//            JmlTokenKind.BSBIGINT_MATH, JmlTokenKind.BSSAFEMATH, JmlTokenKind.BSJAVAMATH
     }; }
 
     @Override
@@ -70,7 +72,8 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         //        checkOneArg(parser,e);
     }
 
-    public static final IJmlClauseKind elemtypeKind = new IJmlClauseKind.FunctionLikeExpression("\\elemtype") {
+    public static final String elemtypeID = "\\elemtype";
+    public static final IJmlClauseKind elemtypeKind = new IJmlClauseKind.FunctionLikeExpression(elemtypeID) {
 
         @Override
         public Type typecheck(JmlAttr attr, JCTree tr, Env<AttrContext> localEnv) {
@@ -104,7 +107,8 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         }
     };
 
-    public static final IJmlClauseKind typeofKind = new IJmlClauseKind.FunctionLikeExpression("\\typeof") {
+    public static final String typeofID = "\\typeof";
+    public static final IJmlClauseKind typeofKind = new IJmlClauseKind.FunctionLikeExpression(typeofID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             JmlMethodInvocation tree = (JmlMethodInvocation)expr;
@@ -119,7 +123,8 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         }        
     };
 
-    public static final IJmlClauseKind distinctKind = new IJmlClauseKind.FunctionLikeExpression("\\distinct") {
+    public static final String distinctID = "\\distinct";
+    public static final IJmlClauseKind distinctKind = new IJmlClauseKind.FunctionLikeExpression(distinctID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             // The result is boolean.
@@ -175,8 +180,8 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         }        
     };
 
-
-    public static final IJmlClauseKind isInitializedKind = new IJmlClauseKind.FunctionLikeExpression("\\isInitialized") {
+    public static final String isInitializedID = "\\isInitialized";
+    public static final IJmlClauseKind isInitializedKind = new IJmlClauseKind.FunctionLikeExpression(isInitializedID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             // The argument is a type that is a reference type; the result is boolean
@@ -240,26 +245,38 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         }
     }
 
-    public static final IJmlClauseKind javaMathKind = new OneArgExpression("\\safe_math");
+    public static final String javaMathID = "\\java_math";
+    public static final IJmlClauseKind javaMathKind = new OneArgExpression(javaMathID);
+    public static final String safeMathID = "\\safe_math";
+    public static final IJmlClauseKind safeMathKind = new OneArgExpression(safeMathID);
+    public static final String bigintMathID = "\\bigint_math";
+    public static final IJmlClauseKind bigintMathKind = new OneArgExpression(bigintMathID);
 
-    public static final IJmlClauseKind safeMathKind = new OneArgExpression("\\safe_math");
+    public static final String warnopID = "\\warnop";
+    public static final IJmlClauseKind warnopKind = new OneArgExpression(warnopID);
+    public static final String nowarnopID = "\\nowarnop";
+    public static final IJmlClauseKind nowarnopKind = new OneArgExpression(nowarnopID);
+    public static final String warnID = "\\warn";
+    public static final IJmlClauseKind warnKind = new OneArgExpression(warnID);
+    public static final String nowarnID = "\\nowarn";
+    public static final IJmlClauseKind nowarnKind = new OneArgExpression(nowarnID);
 
-    public static final IJmlClauseKind bigintMathKind = new OneArgExpression("\\bigint_math");
-    public static final IJmlClauseKind warnopKind = new OneArgExpression("\\bigint_math");
-    public static final IJmlClauseKind nowarnopKind = new OneArgExpression("\\bigint_math");
-    public static final IJmlClauseKind warnKind = new OneArgExpression("\\bigint_math");
-    public static final IJmlClauseKind nowarnKind = new OneArgExpression("\\bigint_math");
-
-    public static final IJmlClauseKind notModifiedKind = new AnyArgExpressions("\\not_modified") {
+    public static final String notModifiedID = "\\not_modified";
+    public static final IJmlClauseKind notModifiedKind = new AnyArgExpressions(notModifiedID) {
         
         @Override
-        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
-            super.typecheck(attr, expr, localEnv);
+        public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
+            super.typecheck(attr, tree, localEnv);
+            if (!attr.postClauses.contains(attr.currentClauseType)) {
+                JmlMethodInvocation expr = (JmlMethodInvocation)tree;
+                log.error(tree.pos, "jml.misplaced.token", expr.kind != null ? expr.kind.name() : expr.token.internedName(), attr.currentClauseType == null ? "jml declaration" : attr.currentClauseType.name());
+            }
             return Symtab.instance(context).booleanType;
         }
     };
     
-    public static final IJmlClauseKind invariantForKind = new AnyArgBooleanExpressions("\\invariant_for") {
+    public static final String invariantForID = "\\invariant_for";
+    public static final IJmlClauseKind invariantForKind = new AnyArgBooleanExpressions(invariantForID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;
@@ -279,7 +296,8 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         }
     };
     
-    public static final IJmlClauseKind nonnullElementsKind = new AnyArgBooleanExpressions("\\nonnullelements") {
+    public static final String nonnullelementsID = "\\nonnullelements";
+    public static final IJmlClauseKind nonnullelementsKind = new AnyArgBooleanExpressions(nonnullelementsID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;
@@ -295,7 +313,8 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         }
     };
     
-    public static final IJmlClauseKind spaceKind = new OneArgExpression("\\space") {
+    public static final String spaceID = "\\space";
+    public static final IJmlClauseKind spaceKind = new OneArgExpression(spaceID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             // The argument may be a JML spec-expression
@@ -307,7 +326,8 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         }
     };
     
-    public static final IJmlClauseKind workingspaceKind = new OneArgExpression("\\working_space") {
+    public static final String workingspaceID = "\\working_space";
+    public static final IJmlClauseKind workingspaceKind = new OneArgExpression(workingspaceID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             // The argument must be a Java expression
@@ -321,7 +341,8 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         }
     };
     
-    public static final IJmlClauseKind durationKind = new OneArgExpression("\\duration") {
+    public static final String durationID = "\\duration";
+    public static final IJmlClauseKind durationKind = new OneArgExpression(durationID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             // The argument must be a Java expression
@@ -336,12 +357,26 @@ public class FunctionLikeExpressions extends ExpressionExtension {
     };
     
     // FIXME - reach should allow primaryTrailers
-    public static final IJmlClauseKind reachKind = new OneArgExpression("\\reach") {
+    public static final String reachID = "\\reach";
+    public static final IJmlClauseKind reachKind = new OneArgExpression(reachID) {
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             super.typecheck(attr,tree,localEnv);
             return attr.JMLSetType;
         }
     };
+    
+    public static final String sameID = "\\same";
+    public static final IJmlClauseKind sameKind = new OneArgExpression(sameID) {
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
+            if (attr.currentClauseType != requiresClauseKind) {
+                Log.instance(context).error(((JmlSingleton)that).pos,"jml.misplaced.same");
+            }
+            return Symtab.instance(context).booleanType;
+        }
+    };
+    
+
 
     public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
         //        JmlMethodInvocation tree = (JmlMethodInvocation)expr;

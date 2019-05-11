@@ -63,7 +63,7 @@ public class Erasure extends ExpressionExtension {
             error(tree.pos(),"jml.one.arg",token.internedName(),n);
         } else {
             JCExpression e = tree.args.get(0);
-            if (e instanceof JmlMethodInvocation && ((JmlMethodInvocation)e).token == JmlTokenKind.BSTYPELC) {
+            if (e instanceof JmlMethodInvocation && ((JmlMethodInvocation)e).kind == MiscExpressions.typelcKind) {
                 ((JmlMethodInvocation)e).javaType = true;
             }
         }

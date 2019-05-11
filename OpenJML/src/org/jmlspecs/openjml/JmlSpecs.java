@@ -41,6 +41,8 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.ext.SingletonExpressions;
+
 import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
 import static org.jmlspecs.openjml.ext.SignalsClauseExtension.*;
 import static org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension.*;
@@ -1048,7 +1050,7 @@ public class JmlSpecs {
             JmlMethodClause clpa = M.at(pos).JmlMethodClauseStoreRef("accessible", accessibleClause,
                     com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,JmlTokenKind.BSNOTHING)));
             JmlMethodClauseSignals sig = M.at(pos).JmlMethodClauseSignals("signals", signalsClauseKind, null, JmlTreeUtils.instance(context).falseLit);
-            JCExpression res = M.at(pos).JmlSingleton(JmlTokenKind.BSRESULT);
+            JCExpression res = M.at(pos).JmlSingleton(SingletonExpressions.resultKind);
             res.setType(((Type.MethodType)sym.type).restype);
             JCBinary resnn = treeutils.makeNotNull(pos,res);
             JmlMethodClauseExpr en = M.at(pos).JmlMethodClauseExpr("ensures", ensuresClauseKind, resnn);

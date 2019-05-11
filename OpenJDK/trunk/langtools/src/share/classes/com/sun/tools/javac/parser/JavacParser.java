@@ -1250,7 +1250,7 @@ public class JavacParser implements Parser {
             }
             break;
         case UNDERSCORE: case IDENTIFIER: case ASSERT: case ENUM:
-            if (typeArgs != null) return illegal();
+            if (typeArgs != null && typeArgs.size() > 0) return illegal(typeArgs.head.getStartPosition()); // OPENJML - improved position of error message
             if ((mode & EXPR) != 0 && peekToken(ARROW)) {
                 t = lambdaExpressionOrStatement(false, false, pos);
             } else {

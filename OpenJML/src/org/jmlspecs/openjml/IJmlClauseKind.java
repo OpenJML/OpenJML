@@ -347,9 +347,9 @@ public abstract class IJmlClauseKind {
             } else {
                 int preferredPos = parser.pos(); // points at the left-paren
                 List<JCExpression> args = parser.arguments();
-                JmlMethodInvocation t = toP(parser.maker().at(preferredPos).JmlMethodInvocation(jt, args));
+                JmlMethodInvocation t = toP(parser.maker().at(preferredPos).JmlMethodInvocation(this, args));
                 t.startpos = startx;
-                t.kind = this; // FIXME - replace using jt with a kind
+                t.token = jt; // FIXME - replace using jt with a kind
                 checkParse(parser,t);
                 return parser.primarySuffix(t, null);
             }
@@ -371,7 +371,7 @@ public abstract class IJmlClauseKind {
          * of checkParse() -- for the case of exactly one argument.
          */
         public void checkOneArg(JmlParser parser, JmlMethodInvocation e) {
-            checkNumberArgs(parser, e, (n)->(n==1), "jml.one.arg", e.token.internedName());
+            checkNumberArgs(parser, e, (n)->(n==1), "jml.one.arg", e.kind.name());
         }
         
         public void typecheckHelper(Attr attr, List<JCExpression> args, Env<AttrContext> localEnv) {

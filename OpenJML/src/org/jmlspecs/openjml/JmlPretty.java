@@ -14,6 +14,8 @@ import java.util.Iterator;
 import org.jmlspecs.annotation.NonNull;
 
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
+import org.jmlspecs.openjml.ext.MiscExpressions;
 import org.jmlspecs.openjml.ext.RequiresClause;
 
 import static org.jmlspecs.openjml.ext.EndStatement.*;
@@ -198,10 +200,18 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         try {
-            if (that.token != null) {
+            if (that.kind != null) {
+                print(that.kind.name());
+                if (that.javaType && 
+                        (that.kind == MiscExpressions.typelcKind || that.kind == FunctionLikeExpressions.typeofKind)
+                        ) print("j");
+                print("(");
+                printExprs(that.args);
+                print(")");
+            } else if (that.token != null) {
                 print(that.token.internedName());
                 if (that.javaType && 
-                        (that.token == JmlTokenKind.BSTYPELC || that.token == JmlTokenKind.BSTYPEOF)
+                        (that.kind == MiscExpressions.typelcKind || that.kind == FunctionLikeExpressions.typeofKind)
                         ) print("j");
                 print("(");
                 printExprs(that.args);

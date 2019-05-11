@@ -37,6 +37,11 @@ import org.jmlspecs.openjml.esc.BoogieProgram;
 import org.jmlspecs.openjml.esc.BoogieProgram.BoogieBlock;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
 import org.jmlspecs.openjml.ext.StatementExprExtensions;
+
+import static org.jmlspecs.openjml.ext.MiscExpressions.*;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
+import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
+import static org.jmlspecs.openjml.ext.StateExpressions.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.*;
@@ -737,7 +742,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     // FIXME - do we need this - here?
     /** Makes a JML \typeof expression, with the given expression as the argument */
     protected JCExpression makeTypeof(JCExpression e) {
-        JCExpression typeof = M.at(e.pos).JmlMethodInvocation(JmlTokenKind.BSTYPEOF,e);
+        JCExpression typeof = M.at(e.pos).JmlMethodInvocation(typeofKind,e);
         typeof.type = syms.classType;
         return typeof;
     }
@@ -787,7 +792,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     // FIXME - review and document
     protected JCExpression makeSignalsOnly(JmlMethodClauseSignalsOnly clause) {
         JCExpression e = treeutils.makeBooleanLiteral(clause.pos,false);
-        JmlSingleton id = M.at(0).JmlSingleton(JmlTokenKind.BSEXCEPTION);
+        JmlSingleton id = M.at(0).JmlSingleton(SingletonExpressions.exceptionKind);
         id.kind = SingletonExpressions.exceptionKind;
         for (JCExpression typetree: clause.list) {
             int pos = typetree.getStartPosition();
@@ -917,7 +922,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     // FIXME - review this
     //boolean extraEnv = false;
     public void visitJmlMethodInvocation(JmlMethodInvocation that) { 
-        if (that.token == JmlTokenKind.BSOLD || that.token == JmlTokenKind.BSPRE || that.token == JmlTokenKind.BSPAST) {
+        if (that.kind == oldKind || that.kind == preKind || that.kind == pastKind) {
                 if (that.args.size() == 1) {
                     that.args.get(0).accept(this);
                 } else {
@@ -925,7 +930,8 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
                     that.args.get(0).accept(this);
                     that.args = com.sun.tools.javac.util.List.<JCExpression>of(that.args.get(0));
                 }
-                that.token = JmlTokenKind.BSSAME; // A no-op // TODO - Review this
+                that.token = null;
+                that.kind = sameKind; // A no-op // TODO - Review this
         } else if (that.token == null) {
             super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
             scan(that.typeargs);

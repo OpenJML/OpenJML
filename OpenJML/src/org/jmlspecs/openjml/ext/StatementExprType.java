@@ -15,6 +15,7 @@ import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlStatement;
 import org.jmlspecs.openjml.JmlTree.JmlStatementLoop;
+import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.tools.javac.code.Type;
@@ -55,8 +56,10 @@ public class StatementExprType extends IJmlClauseKind.Statement {
         parser.nextToken(); // skip over the keyword
 
         JCExpression t = parser.parseExpression();
+        if (t instanceof JCTree.JCErroneous) parser.skipToSemi();
         String nm = clauseType.name();
         JmlAbstractStatement ste;
+        //if (t instanceof JCTree.JCErroneous) t = JmlTreeUtils.instance(context).trueLit;
         if (clauseType == StatementExprExtensions.loopinvariantClause ||
                 clauseType == StatementExprExtensions.loopdecreasesClause) {
             JmlTree.JmlStatementLoopExpr st = parser.maker()

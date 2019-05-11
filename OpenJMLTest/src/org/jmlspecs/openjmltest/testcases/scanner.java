@@ -314,28 +314,28 @@ public class scanner extends JmlTestCase {
     /** Test that a backslash token is found */
     @Test public void testBackslash() {
         helpScanner("/*@ \\result */",
-                new ITokenKind[]{BSRESULT,EJML},
+                new ITokenKind[]{IDENTIFIER,EJML},
                 null);
     }
     
     /** Test that two immediately consecutive backslash tokens are found */
     @Test public void testBackslash1() {
         helpScanner("/*@ \\result\\result */",
-                new ITokenKind[]{BSRESULT,BSRESULT,EJML},
+                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML},
                 null);
     }
     
     /** Test that backslash tokens are found immediately after a line termination */
     @Test public void testBackslash2() {
         helpScanner("/*@ \\result \n\\result*/",
-                new ITokenKind[]{BSRESULT,BSRESULT,EJML},
+                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML},
                 null);
     }
     
     /** Test that a backslash token without the backslash is a regular identifier */
     @Test public void testBackslash3() {
         helpScanner("/*@ \\result result*/",
-                new ITokenKind[]{BSRESULT,IDENTIFIER,EJML},
+                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML},
                 null);
     }
     
@@ -351,7 +351,7 @@ public class scanner extends JmlTestCase {
     /** Test for a JML backslash with no identifier */
     @Test public void testBackslash6() {
         helpScanner("/*@ \\ \\result*/",
-                new ITokenKind[]{ERROR,BSRESULT,EJML},
+                new ITokenKind[]{ERROR,IDENTIFIER,EJML},
                 null,
                 1);
         checkMessages("/TEST.java:1: A backslash in a JML comment expects to be followed by a valid identifier",5);
@@ -570,7 +570,7 @@ public class scanner extends JmlTestCase {
 
     @Test public void testMultiLineError() {
         helpScanner("/*@ \\result\n  @@@\\xyz@*/",
-                new ITokenKind[]{BSRESULT,IDENTIFIER,EJML,EOF},
+                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML,EOF},
                 new int[]{4,11,17,21,21,24,24,24},
                 0);
         checkMessages();
@@ -578,19 +578,19 @@ public class scanner extends JmlTestCase {
 
     @Test public void testInformalComment() {
         helpScanner("/*@ \\result(* requires *)*/",
-                new ITokenKind[]{BSRESULT,INFORMAL_COMMENT,EJML},
+                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EJML},
                 new int[]{4,11,11,25,25,27},
                 0);
     }
     @Test public void testInformalComment2() {
         helpScanner("/*@ \\result(* requires *****)*/",
-                new ITokenKind[]{BSRESULT,INFORMAL_COMMENT,EJML},
+                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EJML},
                 new int[]{4,11,11,29,29,31},
                 0);
     }
     @Test public void testInformalComment3() {
         helpScanner("/*@ \\result(* requires **** *)*/",
-                new ITokenKind[]{BSRESULT,INFORMAL_COMMENT,EJML},
+                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EJML},
                 new int[]{4,11,11,30,30,32},
                 0);
     }
@@ -599,7 +599,7 @@ public class scanner extends JmlTestCase {
     // Testing an unclosed informal comment in a BLOCK comment
     @Test public void testInformalComment4() {
         helpScanner("/*@ \\result(* requires **** */",
-                new ITokenKind[]{BSRESULT,INFORMAL_COMMENT,EJML},
+                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EJML},
                 new int[]{4,11,11,28,28,30},
                 1);
         checkMessages("/TEST.java:1: The informal expression is not closed",13);
@@ -608,7 +608,7 @@ public class scanner extends JmlTestCase {
     // Testing an unclosed informal comment in a BLOCK comment
     @Test public void testInformalComment4a() {
         helpScanner("/*@ \\result(* requires *\n*** */",
-                new ITokenKind[]{BSRESULT,INFORMAL_COMMENT,EJML},
+                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EJML},
                 new int[]{4,11,11,29,29,31},
                 1);
         checkMessages("/TEST.java:1: The informal expression is not closed",13);
@@ -626,7 +626,7 @@ public class scanner extends JmlTestCase {
     // Testing an unclosed informal comment in a LINE comment
     @Test public void testInformalComment5() {
         helpScanner("//@ \\result(* requires **** \n public",
-                new ITokenKind[]{BSRESULT,INFORMAL_COMMENT,EJML,PUBLIC,EOF},
+                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EJML,PUBLIC,EOF},
                 new int[]{4,11,11,28,28,29,30,36,36,36},
                 1);
         checkMessages("/TEST.java:1: The informal expression is not closed",13);
@@ -635,7 +635,7 @@ public class scanner extends JmlTestCase {
     // Testing an unclosed informal comment in a LINE comment
     @Test public void testInformalComment5a() {
         helpScanner("//@ \\result(* requires *****",
-                new ITokenKind[]{BSRESULT,INFORMAL_COMMENT,EOF},
+                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EOF},
                 new int[]{4,11,11,28,28,28},
                 1);
         checkMessages("/TEST.java:1: The informal expression is not closed",13);
@@ -644,7 +644,7 @@ public class scanner extends JmlTestCase {
     // Testing an unclosed informal comment in a LINE comment
     @Test public void testInformalComment6() {
         helpScanner("//@ \\result(* requires ***\"*) \" requires\n",
-                new ITokenKind[]{BSRESULT,INFORMAL_COMMENT,ERROR,EOF},
+                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,ERROR,EOF},
                 new int[]{4,11,11,29,30,40,40,40},  // FIXME - check posiiton of EOF
                 1);
         checkMessages("/TEST.java:1: unclosed string literal",31);

@@ -21,6 +21,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.ext.StatementExprType;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
+import org.jmlspecs.openjml.ext.MiscExpressions;
 import org.jmlspecs.openjml.ext.SignalsClauseExtension;
 import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
@@ -271,6 +272,7 @@ public class MethodProverSMT {
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
             log.getWriter(WriterKind.NOTICE).println("TRANSFORMATION OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(newblock));
+            log.getWriter(WriterKind.NOTICE).flush();
         }
 
         // determine the executable
@@ -311,6 +313,7 @@ public class MethodProverSMT {
         {
             // now convert to basic block form
             basicBlocker = new BasicBlocker2(context);
+            JmlAssertionAdder.checkZZZ(newblock);
             program = basicBlocker.convertMethodBody(newblock, methodDecl, denestedSpecs, currentClassDecl, jmlesc.assertionAdder);
             if (printBB) {
                 log.getWriter(WriterKind.NOTICE).println(Strings.empty);
@@ -1831,7 +1834,7 @@ public class MethodProverSMT {
 
         @Override
         public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
-            if (tree.token != JmlTokenKind.BSTYPELC) {
+            if (tree.kind != MiscExpressions.typelcKind) {
                 for (JCExpression a: tree.args) {
                     scan(a);
                 }

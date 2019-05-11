@@ -18,13 +18,15 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.AssignableClauseExtension;
 import org.jmlspecs.openjml.ext.ChooseClause;
-import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
 import org.jmlspecs.openjml.ext.EndStatement;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.ext.InlinedLoopStatement;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.MethodClauseType;
-import org.jmlspecs.openjml.ext.MiscExpressions;
-import org.jmlspecs.openjml.ext.SingletonExpressions;
+import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
+import static org.jmlspecs.openjml.ext.MiscExpressions.*;
+import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
+import static org.jmlspecs.openjml.ext.StateExpressions.*;
 import org.jmlspecs.openjml.ext.StatementLocationsExtension;
 
 import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.*;
@@ -344,12 +346,12 @@ public class JmlParser extends JavacParser {
             // _JMLvalues is not null
             JmlTypeClauseExpr axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0), axiomID,axiomClause,ex);
             newdefs.add(axiom); 
-            ex = jmlF.JmlMethodInvocation(JmlTokenKind.BSDISTINCT,args.toList());
+            ex = jmlF.JmlMethodInvocation(distinctKind,args.toList());
             ((JmlMethodInvocation)ex).kind = FunctionLikeExpressions.distinctKind;
             // The enum constants are all distinct and distinct from NULL.
             axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0),axiomID,axiomClause,ex);
             newdefs.add(axiom);
-            ex = jmlF.JmlMethodInvocation(JmlTokenKind.BSDISTINCT,argsn.toList());
+            ex = jmlF.JmlMethodInvocation(distinctKind,argsn.toList());
             ((JmlMethodInvocation)ex).kind = FunctionLikeExpressions.distinctKind;
             // The enum names are all distinct and distinct from NULL.
             axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0),axiomID,axiomClause,ex);
@@ -1916,7 +1918,7 @@ public class JmlParser extends JavacParser {
             int pp = pos();
             Name label = ident();
             JCIdent id = this.maker().at(pp).Ident(label);
-            JmlMethodInvocation tt = toP(this.maker().at(t).JmlMethodInvocation(JmlTokenKind.BSOLD, List.<JCExpression>of(t,id)));
+            JmlMethodInvocation tt = toP(this.maker().at(t).JmlMethodInvocation(oldKind, List.<JCExpression>of(t,id)));
             return tt;
         }
         return t;    
@@ -2346,8 +2348,7 @@ public class JmlParser extends JavacParser {
         if (jmlTokenKind() == BSNOTSPECIFIED) {
             int pos = pos();
             nextToken();
-            JmlSingleton e = jmlF.at(pos).JmlSingleton(BSNOTSPECIFIED);
-            e.kind = SingletonExpressions.notspecifiedKind;
+            JmlSingleton e = jmlF.at(pos).JmlSingleton(notspecifiedKind);
             return toP(e);
         } else {
             return parseExpression();
@@ -3111,6 +3112,23 @@ public class JmlParser extends JavacParser {
     @Override
     public JCExpression term3() {
         List<JCExpression> typeArgs = null;
+        int p = pos(); // Position of the keyword
+        if (token.kind == IDENTIFIER) {
+            String id = token.name().toString();
+            if (id.charAt(0) == '\\') {
+                IJmlClauseKind kind = Extensions.instance(context).findK(pos(),id,false);
+                if (kind != null && kind instanceof IJmlClauseKind.Expression) {
+                    if (kind instanceof IJmlClauseKind.Expression) {
+                        JCExpression tt = ((IJmlClauseKind.Expression)kind).parse(null, id, kind, this);
+                        return primaryTrailers(tt, typeArgs);
+                    } else {
+                        jmlerror(p, endPos(), "jml.message",
+                                "Token " + id + " does not introduce an expression");
+                        return jmlF.at(p).Erroneous();
+                    }
+                }
+            }
+        }
         // No JML function expects type arguments. If they did we would parse
         // them here (before seeing the JML token). But we can't do that just
         // to check, because super.term3() down below expects to parse them
@@ -3120,7 +3138,6 @@ public class JmlParser extends JavacParser {
         if (token.kind == CUSTOM || jmlTokenKind() == JmlTokenKind.PRIMITIVE_TYPE) {
             JCExpression t;
             JmlTokenKind jt = jmlTokenKind();
-            int p = pos(); // Position of the keyword
 
             if (isJmlTypeToken(jt)) {
                 String n = jt.internedName();
@@ -3271,20 +3288,20 @@ public class JmlParser extends JavacParser {
 //                    return te;
 //                }
                 
-                case BSONLYACCESSED:  // FIXME
-                case BSONLYCAPTURED:  // FIXME
-                case BSNOTASSIGNED:
-                case BSONLYASSIGNED: {
-                    int preferred = pos();
-                    int startx = pos();
-                    nextToken();
-                    List<JCExpression> args = arguments();
-                    JCExpression te = jmlF.at(preferred).JmlMethodInvocation(
-                            jt, args);
-                    ((JmlMethodInvocation)te).startpos = startx;
-                    te = toP(te);
-                    return te;
-                }
+//                case BSONLYACCESSED:  // FIXME
+//                case BSONLYCAPTURED:  // FIXME
+//                case BSNOTASSIGNED:
+//                case BSONLYASSIGNED: {
+//                    int preferred = pos();
+//                    int startx = pos();
+//                    nextToken();
+//                    List<JCExpression> args = arguments();
+//                    JCExpression te = jmlF.at(preferred).JmlMethodInvocation(
+//                            jt, args);
+//                    ((JmlMethodInvocation)te).startpos = startx;
+//                    te = toP(te);
+//                    return te;
+//                }
                 
                 case BSFORALL:
                 case BSEXISTS:
@@ -3318,25 +3335,25 @@ public class JmlParser extends JavacParser {
                     nextToken();
                     return parseLet(p);
                     
-                case BSONLYCALLED:
-                    warnNotImplemented(pos(), jt.internedName(),
-                            "\\only_called");
-                    nextToken();
-                    if (token.kind != LPAREN) {
-                        accept(LPAREN); // fails
-                        skipThroughRightParen();
-                    } else {
-                        accept(LPAREN);
-                        parseMethodNameList();
-                        if (token.kind != RPAREN) {
-                            accept(RPAREN); // fails
-                            skipThroughRightParen();
-                        } else {
-                            accept(RPAREN);
-                        }
-                    }
-                    // FIXME - needs implementation
-                    return toP(jmlF.at(p).Erroneous());
+//                case BSONLYCALLED:
+//                    warnNotImplemented(pos(), jt.internedName(),
+//                            "\\only_called");
+//                    nextToken();
+//                    if (token.kind != LPAREN) {
+//                        accept(LPAREN); // fails
+//                        skipThroughRightParen();
+//                    } else {
+//                        accept(LPAREN);
+//                        parseMethodNameList();
+//                        if (token.kind != RPAREN) {
+//                            accept(RPAREN); // fails
+//                            skipThroughRightParen();
+//                        } else {
+//                            accept(RPAREN);
+//                        }
+//                    }
+//                    // FIXME - needs implementation
+//                    return toP(jmlF.at(p).Erroneous());
 
                 default:
                 {
@@ -3420,7 +3437,7 @@ public class JmlParser extends JavacParser {
             int pp = pos();
             Name label = ident();
             JCIdent id = this.maker().at(pp).Ident(label);
-            JmlMethodInvocation tt = toP(this.maker().at(t).JmlMethodInvocation(JmlTokenKind.BSOLD, List.<JCExpression>of(t,id)));
+            JmlMethodInvocation tt = toP(this.maker().at(t).JmlMethodInvocation(oldKind, List.<JCExpression>of(t,id)));
             return tt;
         }
         JCExpression e = super.primarySuffix(t,typeArgs);
@@ -3433,7 +3450,7 @@ public class JmlParser extends JavacParser {
             int pp = pos();
             Name label = ident();
             JCIdent id = this.maker().at(pp).Ident(label);
-            JmlMethodInvocation tt = toP(this.maker().at(t).JmlMethodInvocation(JmlTokenKind.BSOLD, List.<JCExpression>of(t,id)));
+            JmlMethodInvocation tt = toP(this.maker().at(t).JmlMethodInvocation(oldKind, List.<JCExpression>of(t,id)));
             return tt;
         }
         return t;

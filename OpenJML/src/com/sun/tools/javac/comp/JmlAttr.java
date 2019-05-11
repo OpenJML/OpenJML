@@ -37,6 +37,7 @@ import static org.jmlspecs.openjml.ext.TypeRepresentsClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeInitializerClauseExtension.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.StatementLocationsExtension.*;
+import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import org.jmlspecs.openjml.ext.RequiresClause;
 
 import java.util.Collection;
@@ -71,6 +72,7 @@ import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
 import org.jmlspecs.openjml.ext.SignalsClauseExtension;
 import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
+import static org.jmlspecs.openjml.ext.StateExpressions.*;
 import org.jmlspecs.openjml.ext.FieldExtension;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
 
@@ -1700,8 +1702,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (decl.restype != null && decl.restype.type.getTag() != TypeTag.VOID && !utils.isPrimitiveType(decl.restype.type)) {
                 boolean isNonnull = specs.isNonNull(decl.sym,decl.sym.enclClass());
                 if (isNonnull) {
-                    JmlSingleton id = jmlMaker.JmlSingleton(JmlTokenKind.BSRESULT);
-                    id.kind = SingletonExpressions.resultKind;
+                    JmlSingleton id = jmlMaker.JmlSingleton(resultKind);
                     id.type = decl.restype.type;
                     JCExpression e = treeutils.makeBinary(id,JCTree.Tag.NE,id,nulllit);
                     id.pos = annotationPos;
@@ -2035,8 +2036,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                             excRequires.expression, nn.expression);
                 }
                 signalsOnly.list = signalsOnly.list.append(excType);
-                JmlSingleton ee = jmlMaker.at(m.pos).JmlSingleton(JmlTokenKind.BSEXCEPTION);
-                ee.kind = SingletonExpressions.exceptionKind;
+                JmlSingleton ee = jmlMaker.at(m.pos).JmlSingleton(exceptionKind);
                 JCExpression iof = treeutils.makeInstanceOf(m.pos, ee, excType);
                 JCExpression disjunct = treeutils.makeAnd(m.pos, iof, nn.expression);
                 signalsClause.expression = treeutils.makeOrSimp(m.pos, signalsClause.expression, disjunct);
@@ -3032,7 +3032,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     // FIXME - test the name lookup with forall and old clauses
     
-    protected Env<AttrContext> savedMethodClauseOutputEnv = null;
+    public Env<AttrContext> savedMethodClauseOutputEnv = null;
 
     /** This is an implementation that does the type attribution for 
      * method specification clauses
@@ -3336,10 +3336,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     // These are the annotation types in which \pre and \old with a label can be used (e.g. assert)
-    private Set<IJmlClauseKind> preTokens = JmlTokenKind.methodStatementTokens;
+    public Set<IJmlClauseKind> preTokens = JmlTokenKind.methodStatementTokens;
     
     // These are the annotation, method and type spec clause types in which \old without a label can be used
-    private Set<IJmlClauseKind> oldNoLabelTokens = JmlTokenKind.methodStatementTokens;
+    public Set<IJmlClauseKind> oldNoLabelTokens = JmlTokenKind.methodStatementTokens;
     {
         Set<IJmlClauseKind> t = new HashSet<>();
         t.addAll(oldNoLabelTokens);
@@ -3385,93 +3385,98 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean jmlstrict = JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
         
         Type t = null;
-        int n;
-        switch (token) {
-            case BSPAST:
-            case BSOLD:
-            case BSPRE:
-                // The argument can be a JML spec-expression
-                // Expect one argument, result type is the same type
-                Name savedLabel = currentEnvLabel;
-                n = tree.args.size();
-                if (!(n == 1 || (token != JmlTokenKind.BSPRE && n == 2))) {
-                    if (token != JmlTokenKind.BSPRE) log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),
-                            "1 or 2",n);
-                    else log.error(tree.pos(),"jml.one.arg",token.internedName(),
-                            n);
-                }
-                if (token == BSPRE) {
-                    // pre
-                    if (!preTokens.contains(currentClauseType) && !currentClauseType.preAllowed()) {
-                        log.error(tree.pos+1, "jml.misplaced.old", "\\pre token", currentClauseType.name());
-                        t = syms.errType;
-                    }
-                } else if (n == 1) {
-                    // old with no label
-                    if (currentClauseType == null) {
-                        // OK
-                    } else if (!oldNoLabelTokens.contains(currentClauseType) && (currentClauseType == null || !currentClauseType.oldNoLabelAllowed())) {
-                        log.error(tree.pos+1, "jml.misplaced.old", "\\old token with no label", currentClauseType.name());
-                        t = syms.errType;
-                    }
-                } else {
-                    // old with label
-                    if (!preTokens.contains(currentClauseType) && (currentClauseType == null || !currentClauseType.preOrOldWithLabelAllowed())) {
-                        log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", currentClauseType.name());
-                        t = syms.errType;
-                    }
-                }
-                Name label = null;
-                JCExpression labelarg = null;
-                if (n == 2) {
-                    labelarg = tree.args.get(1);
-                    label = checkLabel(labelarg);
-                    if (label == null) {
-                        t = syms.errType;
-                    }
-                }
-                
-                // FIXME - is it possible for a variable to have a different type at a previous label?
-                
-                // label == empty ==> pre state; label == null ==> current state
-                currentEnvLabel = label == null ? names.empty : label;
-                if (n == 0 || t == syms.errType) {
-                    t = syms.errType;
-                } else if (env.enclMethod == null) { // FIXME - what about types declared within methods
-                    // In an type clause
-                    attribExpr(tree.args.get(0), localEnv, Type.noType);
-                    attribTypes(tree.typeargs, localEnv);
-                    t = tree.args.get(0).type;
-                } else {
-                    // in a method clause
-                    Env<AttrContext> oldenv = envForLabel(labelarg, label, savedMethodClauseOutputEnv);
-                    
-                    Env<AttrContext> qOldEnv = oldenv;
-                    for (JmlQuantifiedExpr qexpr: quantifiedExprs) {
-
-                        qOldEnv = envForExpr(qexpr,qOldEnv);
-                        Scope enclScope = enter.enterScope(qOldEnv);
-
-                        for (JCVariableDecl decl: qexpr.decls) {
-
-                            // FIXME - do we need to do these checks?
-//                            if (chk.checkUnique(tree.pos(), v, enclScope)) {
-//                                chk.checkTransparentVar(tree.pos(), v, enclScope);
-                                enclScope.enter(decl.sym);
-//                            }
-                        }
-                    }
-                    attribExpr(tree.args.get(0), qOldEnv, Type.noType);
-                    attribTypes(tree.typeargs, qOldEnv);
-                    t = tree.args.get(0).type;
-                    Scope scope = qOldEnv.info.scope;
-                    for (JmlQuantifiedExpr qexpr: quantifiedExprs) {
-                        scope = scope.leave();
-                    }
-                }
-                result = check(tree, t, VAL, resultInfo);
-                currentEnvLabel = savedLabel;
-                break;
+        int n = -1;
+        if (token == null) {
+            if (tree.kind != null && tree.kind instanceof IJmlClauseKind.Expression) {
+                Type ttt = tree.kind.typecheck(this, tree, localEnv);
+                result = t = check(tree, ttt, VAL, resultInfo);
+            }
+        } else switch (token) {
+//            case BSPAST:
+//            case BSOLD:
+//            case BSPRE:
+//                // The argument can be a JML spec-expression
+//                // Expect one argument, result type is the same type
+//                Name savedLabel = currentEnvLabel;
+//                n = tree.args.size();
+//                if (!(n == 1 || (token != JmlTokenKind.BSPRE && n == 2))) {
+//                    if (token != JmlTokenKind.BSPRE) log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),
+//                            "1 or 2",n);
+//                    else log.error(tree.pos(),"jml.one.arg",token.internedName(),
+//                            n);
+//                }
+//                if (token == BSPRE) {
+//                    // pre
+//                    if (!preTokens.contains(currentClauseType) && !currentClauseType.preAllowed()) {
+//                        log.error(tree.pos+1, "jml.misplaced.old", "\\pre token", currentClauseType.name());
+//                        t = syms.errType;
+//                    }
+//                } else if (n == 1) {
+//                    // old with no label
+//                    if (currentClauseType == null) {
+//                        // OK
+//                    } else if (!oldNoLabelTokens.contains(currentClauseType) && (currentClauseType == null || !currentClauseType.oldNoLabelAllowed())) {
+//                        log.error(tree.pos+1, "jml.misplaced.old", "\\old token with no label", currentClauseType.name());
+//                        t = syms.errType;
+//                    }
+//                } else {
+//                    // old with label
+//                    if (!preTokens.contains(currentClauseType) && (currentClauseType == null || !currentClauseType.preOrOldWithLabelAllowed())) {
+//                        log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", currentClauseType.name());
+//                        t = syms.errType;
+//                    }
+//                }
+//                Name label = null;
+//                JCExpression labelarg = null;
+//                if (n == 2) {
+//                    labelarg = tree.args.get(1);
+//                    label = checkLabel(labelarg);
+//                    if (label == null) {
+//                        t = syms.errType;
+//                    }
+//                }
+//                
+//                // FIXME - is it possible for a variable to have a different type at a previous label?
+//                
+//                // label == empty ==> pre state; label == null ==> current state
+//                currentEnvLabel = label == null ? names.empty : label;
+//                if (n == 0 || t == syms.errType) {
+//                    t = syms.errType;
+//                } else if (env.enclMethod == null) { // FIXME - what about types declared within methods
+//                    // In an type clause
+//                    attribExpr(tree.args.get(0), localEnv, Type.noType);
+//                    attribTypes(tree.typeargs, localEnv);
+//                    t = tree.args.get(0).type;
+//                } else {
+//                    // in a method clause
+//                    Env<AttrContext> oldenv = envForLabel(labelarg, label, savedMethodClauseOutputEnv);
+//                    
+//                    Env<AttrContext> qOldEnv = oldenv;
+//                    for (JmlQuantifiedExpr qexpr: quantifiedExprs) {
+//
+//                        qOldEnv = envForExpr(qexpr,qOldEnv);
+//                        Scope enclScope = enter.enterScope(qOldEnv);
+//
+//                        for (JCVariableDecl decl: qexpr.decls) {
+//
+//                            // FIXME - do we need to do these checks?
+////                            if (chk.checkUnique(tree.pos(), v, enclScope)) {
+////                                chk.checkTransparentVar(tree.pos(), v, enclScope);
+//                                enclScope.enter(decl.sym);
+////                            }
+//                        }
+//                    }
+//                    attribExpr(tree.args.get(0), qOldEnv, Type.noType);
+//                    attribTypes(tree.typeargs, qOldEnv);
+//                    t = tree.args.get(0).type;
+//                    Scope scope = qOldEnv.info.scope;
+//                    for (JmlQuantifiedExpr qexpr: quantifiedExprs) {
+//                        scope = scope.leave();
+//                    }
+//                }
+//                result = check(tree, t, VAL, resultInfo);
+//                currentEnvLabel = savedLabel;
+//                break;
                 
 //            case BSMAX:
 //                // Expect one argument of type JMLSetType, result type Lock
@@ -3756,19 +3761,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     break;
                 }
 
-            case BSONLYCALLED: // FIXME - needs implementation
-            case BSONLYASSIGNED: // FIXME - needs implementation
-            case BSONLYACCESSED: // FIXME - needs implementation
-            case BSONLYCAPTURED: // FIXME - needs implementation
-            case BSNOTMODIFIED: // FIXME - needs implementation
-            case BSNOTASSIGNED: {// FIXME - needs implementation
-                attribArgs(VAL, tree.args, localEnv, argtypesBuf);
-                if (!postClauses.contains(currentClauseType)) {
-                    log.error(tree.pos+1, "jml.misplaced.token", tree.token.internedName(), currentClauseType == null ? "jml declaration" : currentClauseType.name());
-                }
-                result = check(tree, syms.booleanType, VAL, resultInfo);
-                break;
-            }
+//            case BSONLYCALLED: // FIXME - needs implementation
+//            case BSONLYASSIGNED: // FIXME - needs implementation
+//            case BSONLYACCESSED: // FIXME - needs implementation
+//            case BSONLYCAPTURED: // FIXME - needs implementation
+//            case BSNOTMODIFIED: // FIXME - needs implementation
+//            case BSNOTASSIGNED: {// FIXME - needs implementation
+//                attribArgs(VAL, tree.args, localEnv, argtypesBuf);
+//                if (!postClauses.contains(currentClauseType)) {
+//                    log.error(tree.pos+1, "jml.misplaced.token", tree.token.internedName(), currentClauseType == null ? "jml declaration" : currentClauseType.name());
+//                }
+//                result = check(tree, syms.booleanType, VAL, resultInfo);
+//                break;
+//            }
         }
     }
     
@@ -4034,7 +4039,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlSingleton(JmlSingleton that) {
         JmlTokenKind jt = that.token;
         Type t = syms.errType;
-        switch (jt) {
+        if (jt == null) {
+            if (that.kind != null) {
+                t = that.kind.typecheck(this,that,env);
+            }
+        } else switch (jt) {
                
 //            case BSLOCKSET:
 //                t = JMLSetType;
@@ -4390,7 +4399,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param env the current env
      * @return the new env
      */
-    protected Env<AttrContext> envForExpr(JCTree tree,  Env<AttrContext> env) {
+    public Env<AttrContext> envForExpr(JCTree tree,  Env<AttrContext> env) {
         Env<AttrContext> localEnv;
         // We can't use a delegated scope - they are used for variable initializers
         // and don;'t accept any new variable declarations.
@@ -4430,7 +4439,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return localEnv;
     }
     
-    protected java.util.List<JmlQuantifiedExpr> quantifiedExprs = new LinkedList<JmlQuantifiedExpr>();
+    public java.util.List<JmlQuantifiedExpr> quantifiedExprs = new LinkedList<JmlQuantifiedExpr>();
     
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
 
@@ -6854,7 +6863,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         @Override
         public void visitJmlSingleton(JmlSingleton that) {
-            if (that.token == JmlTokenKind.BSRESULT) {
+            if (that.kind == resultKind) {
                 // external
                 if (checkInternal) throw new RCheckEx();
             }
@@ -6862,7 +6871,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         @Override
         public void visitJmlMethodInvocation(JmlMethodInvocation that) {
-            if (that.token == JmlTokenKind.BSOLD || that.token == JmlTokenKind.BSPAST || that.token == JmlTokenKind.BSPRE) {
+            if (that.kind == oldKind || that.kind == pastKind || that.kind == preKind) {
                 // external
                 if (checkInternal) throw new RCheckEx();
             }
@@ -6874,9 +6883,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (tree instanceof JmlExpression) {
             if (tree instanceof JmlQuantifiedExpr) return true; // At least for current quantifiers: forall, exists, sum, prod, num_of
             if (tree instanceof JmlSingleton) {
-                JmlTokenKind kind = ((JmlSingleton)tree).token;
-                if (kind == JmlTokenKind.INFORMAL_COMMENT) return true;
-                if (kind == JmlTokenKind.BSRESULT) {
+                IJmlClauseKind kind = ((JmlSingleton)tree).kind;
+                if (kind == informalCommentKind) return true;
+                if (kind == resultKind) {
                     JCTree.JCMethodDecl md = enclosingMethodEnv.enclMethod;
                     JCTree res = md.getReturnType(); 
                     TypeTag t = res.type.getTag();

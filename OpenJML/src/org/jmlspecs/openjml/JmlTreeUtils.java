@@ -18,6 +18,11 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.Label;
+import org.jmlspecs.openjml.ext.MiscExpressions;
+
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
+import static org.jmlspecs.openjml.ext.MiscExpressions.*;
+import static org.jmlspecs.openjml.ext.StateExpressions.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 
 import com.sun.tools.javac.code.*;
@@ -1139,18 +1144,20 @@ public class JmlTreeUtils {
    
     /** Makes an \old expression */
     public JCMethodInvocation makeOld(DiagnosticPosition pos, JCExpression arg) {
-        JCMethodInvocation m;
-        m = factory.at(pos).JmlMethodInvocation(JmlTokenKind.BSOLD, List.<JCExpression>of(arg));
+        JmlMethodInvocation m;
+        m = factory.at(pos).JmlMethodInvocation(oldKind, List.<JCExpression>of(arg));
         m.type = arg.type;
+        m.kind = oldKind;
         return m;
     }
     
     public JCMethodInvocation makeOld(DiagnosticPosition pos, JCExpression arg, JmlAssertionAdder.LabelProperties labelprop) {
         JmlMethodInvocation m;
         JCIdent id = makeIdent(pos.getStartPosition(), labelprop.name,null);
-        m = factory.at(pos).JmlMethodInvocation(JmlTokenKind.BSOLD, List.<JCExpression>of(arg,id));
+        m = factory.at(pos).JmlMethodInvocation(oldKind, List.<JCExpression>of(arg,id));
         m.labelProperties = labelprop;
         m.type = arg.type;
+        m.kind = oldKind;
         return m;
     }
     
@@ -1163,12 +1170,12 @@ public class JmlTreeUtils {
     public JCMethodInvocation makePast(int pos, JCExpression arg, JCIdent label) {
         JCMethodInvocation m;
         if (label.toString().isEmpty()) {
-            m = factory.JmlMethodInvocation(JmlTokenKind.BSPAST, List.<JCExpression>of(arg));
+            m = factory.JmlMethodInvocation(pastKind, List.<JCExpression>of(arg));
         } else {
             JCIdent id = factory.at(pos).Ident(label.name);
             id.type = null; // Should never refer to the label's type
             id.sym = null; // Should never refer to the label's symbol
-            m = factory.JmlMethodInvocation(JmlTokenKind.BSPAST, List.<JCExpression>of(arg, id));
+            m = factory.JmlMethodInvocation(pastKind, List.<JCExpression>of(arg, id));
         }
         m.type = arg.type;
         return m;
@@ -1249,6 +1256,17 @@ public class JmlTreeUtils {
         return call;
     }
     
+    public JmlMethodInvocation makeJmlMethodInvocation(DiagnosticPosition pos, IJmlClauseKind token, Type type, JCExpression ... args) {
+        ListBuffer<JCExpression> a = new ListBuffer<JCExpression>();
+        a.appendArray(args);
+        JmlMethodInvocation call = factory.at(pos).JmlMethodInvocation(token, a.toList());
+        call.type = type;
+        call.meth = null;
+        call.typeargs = null;
+        call.varargsElement = null;
+        return call;
+    }
+    
     public JmlMethodInvocation makeJmlMethodInvocation(DiagnosticPosition pos, String token, Type type, JCExpression ... args) {
         ListBuffer<JCExpression> a = new ListBuffer<JCExpression>();
         a.appendArray(args);
@@ -1310,29 +1328,31 @@ public class JmlTreeUtils {
 
     /** Makes a JML \typeof expression, with the given expression as the argument */
     public JCExpression makeTypeof(JCExpression e) {
-        JmlMethodInvocation typeof = factory.at(e.pos).JmlMethodInvocation(JmlTokenKind.BSTYPEOF,e);
+        JmlMethodInvocation typeof = factory.at(e.pos).JmlMethodInvocation(typeofKind,e);
         typeof.type = types.TYPE;
+        typeof.kind = typeofKind;
         return typeof;
     }
     
     /** Makes a JML \typeof expression, with the given expression as the argument */
     public JCExpression makeTypelc(JCExpression e) {
-        JmlMethodInvocation typeof = factory.at(e.pos).JmlMethodInvocation(JmlTokenKind.BSTYPELC,e);
+        JmlMethodInvocation typeof = factory.at(e.pos).JmlMethodInvocation(typelcKind,e);
         typeof.type = types.TYPE;
         return typeof;
     }
     
     /** Makes an equivalent of \erasure(\typeof ) expression, with the given expression as the argument */
     public JCExpression makeJavaTypelc(JCExpression e) {
-        JmlMethodInvocation type = factory.at(e.pos).JmlMethodInvocation(JmlTokenKind.BSTYPELC,e);
+        JmlMethodInvocation type = factory.at(e.pos).JmlMethodInvocation(typelcKind,e);
         type.javaType = true;
         type.type = syms.classType;
         return type;
     }
     
     public JCExpression makeElemtype(JCExpression e) {
-        JmlMethodInvocation elem = factory.at(e.pos).JmlMethodInvocation(JmlTokenKind.BSELEMTYPE,e);
+        JmlMethodInvocation elem = factory.at(e.pos).JmlMethodInvocation(elemtypeKind,e);
         elem.type = types.TYPE;
+        elem.kind = elemtypeKind;
         return elem;
     }
     
@@ -1351,7 +1371,7 @@ public class JmlTreeUtils {
         }
         
         JCExpression lhs = makeTypeof(id);
-        JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(JmlTokenKind.BSTYPELC,makeType(p,type));
+        JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(typelcKind,makeType(p,type));
         rhs.type = JmlTypes.instance(context).TYPE;
         JCExpression expr = makeEqObject(p,lhs,rhs);
         expr = makeAnd(p,expr,
@@ -1365,9 +1385,9 @@ public class JmlTreeUtils {
         }
         if (type.getTag() == TypeTag.ARRAY) {
             Type compType = ((Type.ArrayType)type).getComponentType();
-            JmlMethodInvocation ct = factory.at(p).JmlMethodInvocation(JmlTokenKind.BSTYPELC,makeType(p,compType));
+            JmlMethodInvocation ct = factory.at(p).JmlMethodInvocation(typelcKind,makeType(p,compType));
             JCExpression e = makeTypeof(id);
-            e = factory.at(p).JmlMethodInvocation(JmlTokenKind.BSELEMTYPE,e);
+            e = factory.at(p).JmlMethodInvocation(elemtypeKind,e);
             e.type = ct.type = types.TYPE;
             e = makeEqObject(p, e, ct);
             expr = makeAnd(p,expr,e);
@@ -1406,7 +1426,7 @@ public class JmlTreeUtils {
         int p = pos.getPreferredPosition();
         if (type.getKind().isPrimitive()) return trueLit;
         JCExpression lhs = makeTypeof(id); // FIXME - copy?
-        JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(JmlTokenKind.BSTYPELC,makeType(p,type));
+        JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(typelcKind,makeType(p,type));
         rhs.type = JmlTypes.instance(context).TYPE;
         JCExpression expr = makeJmlMethodInvocation(pos,JmlTokenKind.SUBTYPE_OF,syms.booleanType,lhs,rhs);
         {
@@ -1416,8 +1436,9 @@ public class JmlTreeUtils {
             } else {
                 Type comptype = ((Type.ArrayType)type).elemtype;
                 JCExpression e = makeTypeof(id);
-                e = makeJmlMethodInvocation(pos,JmlTokenKind.BSELEMTYPE,e.type,e);
-                JmlMethodInvocation tt = factory.at(p).JmlMethodInvocation(JmlTokenKind.BSTYPELC,makeType(p,comptype));
+                e = makeJmlMethodInvocation(pos,elemtypeKind,e.type,e);
+                ((JmlMethodInvocation)e).kind = elemtypeKind;
+                JmlMethodInvocation tt = factory.at(p).JmlMethodInvocation(typelcKind,makeType(p,comptype));
                 tt.type = JmlTypes.instance(context).TYPE;
                 if (comptype.isPrimitive()) e = makeEquality(p,e,tt);
                 else e = makeJmlMethodInvocation(pos,JmlTokenKind.SUBTYPE_OF,syms.booleanType,e,tt);

@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.ext.SingletonExpressions;
 
 import com.sun.source.tree.*;
 import com.sun.tools.javac.tree.JCTree;
@@ -127,7 +128,7 @@ public class JmlTreeInline extends JmlTreeCopier {
     @Override
     public JCTree visitJmlSingleton(JmlSingleton that, Void p) {
         // for substitution \result
-        if (that.token == JmlTokenKind.BSRESULT) {
+        if (that.kind == SingletonExpressions.resultKind) {
             @Nullable JCExpression newexpr = replacements.get(that.token);
             if (newexpr != null) return copy(newexpr);
             else return super.visitJmlSingleton(that,  p);
@@ -245,12 +246,13 @@ public class JmlTreeInline extends JmlTreeCopier {
         // nodes.
         // CAUTION: if JCMethodInvocation adds fields, they have to be added here
         JmlMethodInvocation copy = M.at(that.pos).JmlMethodInvocation(
-                that.token,
+                that.kind,
                 copy(that.args,p));
         copy.name = that.name;
         copy.startpos = that.startpos;
         copy.labelProperties = that.labelProperties;
         copy.type = that.type;
+        copy.token = that.token;
         copy.meth = copy(that.meth,p);
         copy.typeargs = copy(that.typeargs,p);
         copy.varargsElement = that.varargsElement; // FIXME - copy?

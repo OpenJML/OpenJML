@@ -122,11 +122,12 @@ public class JmlTree implements IJmlTree {
         JmlMethodClauseExpr JmlMethodClauseExpr(String keyword, IJmlClauseKind t, JCTree.JCExpression e);
         JmlMethodClauseCallable JmlMethodClauseCallable(JmlStoreRefKeyword keyword);
         JmlMethodClauseCallable JmlMethodClauseCallable(List<JmlMethodSig> methodSignatures);
-        JmlMethodClauseConditional JmlMethodClauseConditional(String keyword, IJmlClauseKind t, JCTree.JCExpression e, JCTree.JCExpression predicate);
-        JmlMethodClauseSignals JmlMethodClauseSignals(String keyword, IJmlClauseKind t, JCTree.JCVariableDecl var, JCTree.JCExpression e);
-        JmlMethodClauseSignalsOnly JmlMethodClauseSignalsOnly(String keyword, IJmlClauseKind t, List<JCTree.JCExpression> e);
-        JmlMethodClause JmlMethodClauseStoreRef(String keyword, IJmlClauseKind t, List<JCExpression> list);
+        JmlMethodClauseConditional JmlMethodClauseConditional(String keyword, IJmlClauseKind kind, JCTree.JCExpression e, JCTree.JCExpression predicate);
+        JmlMethodClauseSignals JmlMethodClauseSignals(String keyword, IJmlClauseKind kind, JCTree.JCVariableDecl var, JCTree.JCExpression e);
+        JmlMethodClauseSignalsOnly JmlMethodClauseSignalsOnly(String keyword, IJmlClauseKind kind, List<JCTree.JCExpression> e);
+        JmlMethodClause JmlMethodClauseStoreRef(String keyword, IJmlClauseKind kind, List<JCExpression> list);
         JmlMethodInvocation JmlMethodInvocation(JmlTokenKind token, List<JCExpression> args);
+        JmlMethodInvocation JmlMethodInvocation(IJmlClauseKind kind, List<JCExpression> args);
         JmlMethodInvocation JmlMethodInvocation(String token, List<JCExpression> args);
         JmlMethodSpecs JmlMethodSpecs(List<JmlSpecificationCase> cases);
         JmlModelProgramStatement JmlModelProgramStatement(JCTree item);
@@ -134,6 +135,7 @@ public class JmlTree implements IJmlTree {
         JmlQuantifiedExpr JmlQuantifiedExpr(JmlTokenKind token, List<JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression predicate);
         JmlSetComprehension JmlSetComprehension(JCTree.JCExpression type, JCTree.JCVariableDecl v, JCTree.JCExpression predicate);
         JmlSingleton JmlSingleton(JmlTokenKind jt);
+        JmlSingleton JmlSingleton(IJmlClauseKind jt);
         JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlTokenKind t, JmlTokenKind also, List<JmlMethodClause> clauses, JCBlock block);
         JmlSpecificationCase JmlSpecificationCase(JmlSpecificationCase sc, List<JmlMethodClause> clauses);
         JmlStatement JmlStatement(IJmlClauseKind t, JCTree.JCStatement e);
@@ -419,6 +421,10 @@ public class JmlTree implements IJmlTree {
         public JmlSingleton JmlSingleton(JmlTokenKind jt) {
             return new JmlSingleton(pos,jt);
         }
+        @Override
+        public JmlSingleton JmlSingleton(IJmlClauseKind jt) {
+            return new JmlSingleton(pos,jt);
+        }
         
         /** Creates a JML import statement (possibly a model import) */
         @Override
@@ -470,6 +476,22 @@ public class JmlTree implements IJmlTree {
             return new JmlMethodInvocation(pos,token,List.<JCExpression>of(arg,arg2));
         }
         
+        /** Creates a JML method invocation for the special case of one argument (e.g. for JmlTokens with arguments, such as \typeof) */
+        public JmlMethodInvocation JmlMethodInvocation(IJmlClauseKind kind, JCExpression arg) {
+            return new JmlMethodInvocation(pos,kind,List.<JCExpression>of(arg));
+        }
+        
+        /** Creates a JML method invocation for the special case of two arguments */
+        public JmlMethodInvocation JmlMethodInvocation(IJmlClauseKind kind, JCExpression arg, JCExpression arg2) {
+            return new JmlMethodInvocation(pos,kind,List.<JCExpression>of(arg,arg2));
+        }
+
+        /** Creates a JML method invocation */
+        @Override
+        public org.jmlspecs.openjml.JmlTree.JmlMethodInvocation JmlMethodInvocation(IJmlClauseKind kind, List<JCExpression> args) {
+            return new JmlMethodInvocation(pos,kind,args);
+        }
+
         /** Creates a JML quantified expression */
         @Override
         public JmlQuantifiedExpr JmlQuantifiedExpr(JmlTokenKind t, List<JCTree.JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression value) {
@@ -2106,6 +2128,17 @@ public class JmlTree implements IJmlTree {
             this.pos = pos; // preferred position
             this.startpos = pos;
         }
+        protected JmlMethodInvocation(int pos,
+                IJmlClauseKind kind,
+                List<JCExpression> args)
+        {
+            super(List.<JCExpression>nil(),null,args);
+            this.token = null;
+            this.kind = kind;
+            this.name = null;
+            this.pos = pos; // preferred position
+            this.startpos = pos;
+        }
         
         protected JmlMethodInvocation(int pos,
                 String name,
@@ -2628,14 +2661,21 @@ public class JmlTree implements IJmlTree {
             this.token = token;
         }
 
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        protected JmlSingleton(int pos, IJmlClauseKind kind) {
+            this.pos = pos;
+            this.token = null;
+            this.kind = kind;
+        }
+
         @Override
         public String toString() {
-            return token.internedName();
+            return token == null ? kind.name() : token.internedName();
         }
         
         @Override
         public int getEndPosition(EndPosTable endPosTable) {
-            return pos + token.internedName().length();
+            return pos + (kind != null ? kind.name() : token.internedName()).length();
         }
 
         @Override

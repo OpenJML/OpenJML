@@ -87,7 +87,7 @@ public class Attr extends JCTree.Visitor {
     final MemberEnter memberEnter;
     final TreeMaker make;
     final ConstFold cfolder;
-    final Enter enter;
+    public final Enter enter; // OPENJML _ changed from default to public
     final Target target;
     final Types types;
     final JCDiagnostic.Factory diags;

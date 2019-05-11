@@ -924,7 +924,7 @@ public class Pretty extends JCTree.Visitor {
 
     public void visitApply(JCMethodInvocation tree) {
         try {
-            if (!tree.typeargs.isEmpty()) {
+            if (tree.typeargs != null && !tree.typeargs.isEmpty()) { // OPENJML - improved check
                 if (tree.meth.hasTag(SELECT)) {
                     JCFieldAccess left = (JCFieldAccess)tree.meth;
                     printExpr(left.selected);
