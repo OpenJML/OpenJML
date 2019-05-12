@@ -150,10 +150,10 @@ public enum JmlTokenKind implements ITokenKind {
 //    BSEXCEPTION("\\exception"), // This is for internal use only, so it is before \result
 //    BSRESULT("\\result"), // Keep this one the first of the backslash tokens
     BSEVERYTHING("\\everything"),
-    BSLOCKSET("\\lockset"),
+//    BSLOCKSET("\\lockset"),
 //    BSCOUNT("\\count"), // New version of \index
 //    BSINDEX("\\index"), // Obsolete in favor of \count
-    BSVALUES("\\values"),
+//    BSVALUES("\\values"),
     BSNOTHING("\\nothing"),
 //    BSSAME("\\same"),
     MATCH("match"),

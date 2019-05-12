@@ -1347,23 +1347,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         scan(tree);
 
         saveMapping(tree, result);
-        checkZZZ(result);
         return (T)result;
-    }
-    
-    public static boolean checkZZZ(JCTree e) { 
-        return false;
-//        if ( e == null ) return false; 
-//        boolean b = e.toString().contains("<:(/*missing*/(_JML__tmp34.owner)");
-//        return b;
-    }
-    
-    public static boolean checkZZZ(ListBuffer<JCStatement> stats) {
-//        if (stats == null) return false;
-//        for (JCStatement s: stats) {
-//            if (checkZZZ(s)) return true;
-//        }
-        return false;
     }
     
     /** Returns a translation of a list of tree, possibly pushing additional
@@ -1459,10 +1443,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             saveMapping(tree,eresult);
         }
-        if (tree != null) {
-            boolean b = checkZZZ(eresult);
-        }
-        checkZZZ(currentStatements);
         return eresult;
     }
     
@@ -5299,10 +5279,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 initialize2(that.flags & Flags.STATIC);
             }
             scan(that.stats);
-            if (that != null) {
-                checkZZZ(that);
-            }
-            checkZZZ(currentStatements);
         } finally {
             checkAccessEnabled = pv;
             JCBlock bl = popBlock(that.flags,that);
@@ -5313,7 +5289,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             methodDecl = prev;
             result = bl;
-            checkZZZ(currentStatements);
         }
     }
 
@@ -5529,7 +5504,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                addStat(treeutils.makeAssignStat(that.body.pos,localResult,eresult));
 //            }
             JCBlock bl = popBlock(0L,that.pos(), check);
-            checkZZZ(bl);
 //            JCStatement stat = M.JmlLabeledStatement(breakName, null, bl);
 //            bl = M.at(that).Block(0L, List.<JCStatement>of(stat));
             result = eresult = M.Lambda(that.params, bl);
@@ -6098,7 +6072,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addTraceableComment(that);
         }
         JCExpression arg = convertExpr(that.getExpression());
-        checkZZZ(arg);
         
         // For rac and esc, assignments become a new variable,
         // so no exec statement is needed, and arg is then an ident.
@@ -7325,7 +7298,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         applyHelper(that);
-        checkZZZ(currentStatements);
     }
     
     public boolean checkCodeModifier(MethodSymbol calleeMethodSym, MethodSymbol mpsym, JmlSpecificationCase cs) {
@@ -7639,7 +7611,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // before we return to complete the translation of method declaration
         // we are now in (methodDecl)
         
-        checkZZZ(currentStatements);
         ListBuffer<JCStatement> check0 = pushBlock();
         ListBuffer<JCStatement> outerDeclarations = new ListBuffer<JCStatement>();
 
@@ -7780,7 +7751,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else {
                     receiverType = fa.selected.type;
                     convertedReceiver = alreadyConverted ? fa.selected : convertExpr(fa.selected);
-                    checkZZZ(currentStatements);
                 }
                 newTypeVarMapping = typevarMapping = typemapping(receiverType, fa.sym, null, meth.type.asMethodType());
 
@@ -7813,11 +7783,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 replacements.put(d.sym, iter.next());
                             }
                             VarSymbol oldSymbol = resultSym;
-                            checkZZZ(block);
-                            checkZZZ(currentStatements);
                             result = eresult = inlineBlock(block,replacements,resultType);
-                            checkZZZ(currentStatements);
-                            checkZZZ(result);
                             resultSym = oldSymbol;
                         } else {
                             addStat(block);
@@ -14416,7 +14382,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 methodDecl = savedMD;
             } else {
                 body = convertMethodBodyNoInit(that,classDecl);
-                checkZZZ(body);
             }
 
             List<JCTypeParameter> typarams = that.typarams;
@@ -15051,7 +15016,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             case onlyAssignedID:
             case onlyCapturedID:
                 // FIXME - not implemented
-                throw new JmlNotImplementedException(that,that.token.internedName());
+                throw new JmlNotImplementedException(that,that.kind.name());
 
        } else switch (that.token) { 
             case BSERASURE:

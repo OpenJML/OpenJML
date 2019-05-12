@@ -53,31 +53,33 @@ public class TypeRWClauseExtension extends JmlExtension.TypeClause {
             int pp = parser.pos();
             init(parser);
             scanner.setJmlKeyword(false);
-            parser.nextToken();
+            parser.nextToken(); // skip over readable/writable token; current token should now be the identifier
             Name n;
             JCExpression e;
+            JCTree.JCIdent id;
             int identPos = parser.pos();
-            Maker M = parser.maker().at(identPos);
+            Maker M = parser.maker();
             if (parser.token().kind != TokenKind.IDENTIFIER) {
                 error(parser.pos(), parser.endPos(), "jml.expected", "an identifier");
                 n = parser.names.asterisk; // place holder for an error situation
-                e = M.Erroneous();
+                id = parser.to(M.at(identPos).Ident(n));
+                e = M.at(identPos).Erroneous();
             } else {
-                n = parser.ident();
+                n = parser.ident(); // reads name and advances scanner
+                id = parser.toP(M.at(identPos).Ident(n));
                 if (parser.token().kind != IF) {
                     error(parser.pos(), parser.endPos(), "jml.expected", "an if token");
                     e = M.Erroneous();
                 } else {
-                    parser.accept(TokenKind.IF);
-                    e = parser.parseExpression();
+                    parser.accept(TokenKind.IF); // check that current token is 'if' and advace scanner
+                    e = parser.parseExpression(); // read expression, advancinng scanner to token after expression
                 }
             }
-            JCTree.JCIdent id = parser.to(M.Ident(n));
             scanner.setJmlKeyword(true);
             if (e.getTag() == JCTree.Tag.ERRONEOUS || parser.token().kind != SEMI) {
                 parser.skipThroughSemi();
             } else {
-                parser.nextToken();
+                parser.accept(TokenKind.SEMI); // skip over semicolon
             }
             return toP(M.at(pp).JmlTypeClauseConditional(mods, clauseType, id, e));
         }

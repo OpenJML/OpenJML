@@ -313,7 +313,6 @@ public class MethodProverSMT {
         {
             // now convert to basic block form
             basicBlocker = new BasicBlocker2(context);
-            JmlAssertionAdder.checkZZZ(newblock);
             program = basicBlocker.convertMethodBody(newblock, methodDecl, denestedSpecs, currentClassDecl, jmlesc.assertionAdder);
             if (printBB) {
                 log.getWriter(WriterKind.NOTICE).println(Strings.empty);

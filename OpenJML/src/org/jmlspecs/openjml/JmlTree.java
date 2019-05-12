@@ -2670,7 +2670,7 @@ public class JmlTree implements IJmlTree {
 
         @Override
         public String toString() {
-            return token == null ? kind.name() : token.internedName();
+            return kind != null ? kind.name() : token.internedName();
         }
         
         @Override
