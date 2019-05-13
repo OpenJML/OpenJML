@@ -275,6 +275,22 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         }
     };
     
+    public static final String concatID = "\\concat";
+    public static final IJmlClauseKind concatKind = new AnyArgExpressions(concatID) {
+        
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
+            super.typecheck(attr, tree, localEnv);
+            Type stringType = attr.syms.stringType;
+            for (JCExpression e: ((JmlMethodInvocation)tree).args) {
+                if (!(attr.jmltypes.isSameType(e.type, stringType))) {
+                    attr.log.error(e.pos, "jml.message", "The arguments of \\concat must have txype String, not " + e.type);
+                }
+            }
+            return stringType;
+        }
+    };
+    
     public static final String invariantForID = "\\invariant_for";
     public static final IJmlClauseKind invariantForKind = new AnyArgBooleanExpressions(invariantForID) {
         @Override

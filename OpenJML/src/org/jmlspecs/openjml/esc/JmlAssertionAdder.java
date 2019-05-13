@@ -11332,7 +11332,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             rhs = eresult;
                         }
                     }
-                    result = eresult = M.at(that).JmlMethodInvocation(JmlTokenKind.BSCONCAT,lhs,rhs).setType(that.type);
+                    result = eresult = M.at(that).JmlMethodInvocation(concatKind,lhs,rhs).setType(that.type);
                     if (!rac && splitExpressions) result = eresult = newTemp(eresult);
                 }
                 return;
@@ -15067,7 +15067,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             
             case BSMAX :
-            case BSREACH :
+            //case BSREACH :
             //case BSSPACE :
             //case BSWORKINGSPACE :
             //case BSDURATION :
@@ -15078,7 +15078,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             //case BSWARNOP:
             //case BSNOTASSIGNED:
             //case BSONLYASSIGNED:
-            case BSONLYCAPTURED:
+            //case BSONLYCAPTURED:
                 // FIXME - not implemented
                 throw new JmlNotImplementedException(that,that.token.internedName());
 

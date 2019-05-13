@@ -1923,6 +1923,17 @@ public class SMTTranslator extends JmlTreeScanner {
             result = F.fcn(F.symbol("erasure"), newargs);
         } else if (that.kind == distinctKind) {
             result = F.fcn(distinctSym, newargs);
+        } else if (that.kind == concatKind) {
+            if (newargs.size() != 0) {
+               Iterator<IExpr> iter = newargs.iterator();
+               result = iter.next();
+               while (iter.hasNext()) {
+                   result = F.fcn(F.symbol(concat), result, iter.next());
+               }
+            } else {
+                // ERROR - or empty string?
+                result = null;
+            }
         } else if (that.token == null) {
             result = F.fcn(F.symbol(that.name), newargs);
         } else if (that.token == JmlTokenKind.SUBTYPE_OF) {

@@ -1068,6 +1068,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     result = that;
                     break;
                 } 
+                case concatID: 
+                {
+                    scan(that.typeargs);
+                    scanList(that.args);
+                    result = that;
+                    break;
+                } 
                 default:
                     log.error(that.pos, "esc.internal.error", "No implementation for this kind of Jml node in BasicBlocker2: " + that.kind.name());
                     
@@ -1092,13 +1099,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     scan(that.typeargs);
                     scan(that.meth);
                     if (that.meth != null) that.meth = result;
-                    scanList(that.args);
-                    result = that;
-                    break;
-                } 
-                case BSCONCAT: 
-                {
-                    scan(that.typeargs);
                     scanList(that.args);
                     result = that;
                     break;

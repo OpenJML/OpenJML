@@ -10,7 +10,6 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.LPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.VOID;
 import static org.jmlspecs.openjml.JmlTokenKind.BSMAX;
-import static org.jmlspecs.openjml.JmlTokenKind.BSREACH;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlPretty;
@@ -78,12 +77,11 @@ public class MiscExpressions extends ExpressionExtension {
         public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             int start = parser.pos();
-            JmlTokenKind jt = parser.jmlTokenKind();
             parser.nextToken();
             int p = parser.pos();
             if (parser.token().kind != LPAREN) {
                 return parser.syntaxError(p, List.<JCTree> nil(),
-                        "jml.args.required", jt);
+                        "jml.args.required", this.name());
             } else {
                 parser.accept(TokenKind.LPAREN);
                 JCExpression e;
