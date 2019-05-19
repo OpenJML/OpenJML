@@ -862,7 +862,7 @@ public class JmlTreeUtils {
      * @param rhs the right-hand expression
      * @return the new node
      */
-    public JmlBinary makeJmlBinary(int pos, JmlTokenKind op, JCExpression lhs, JCExpression rhs) {
+    public JmlBinary makeJmlBinary(int pos, IJmlClauseKind op, JCExpression lhs, JCExpression rhs) {
         JmlBinary e = factory.at(pos).JmlBinary(op,lhs,rhs);
         e.type = syms.booleanType;
         copyEndPosition(e,rhs);

@@ -280,7 +280,7 @@ public class scanner extends JmlTestCase {
     
     @Test public void testOperators3() {
         helpScanner("/*@ <<< <<<= <: <:= @ */",
-                new ITokenKind[]{LTWF,LEWF,SUBTYPE_OF,SUBTYPE_OF_EQ, MONKEYS_AT,EJML},
+                new ITokenKind[]{WF_LT,WF_LE,SUBTYPE_OF,SUBTYPE_OF_EQ, MONKEYS_AT,EJML},
                 new int[]{4,7, 8,12, 13,15, 16,19, 20,21, 22,24});
     }
     @Test public void testBadOperator() {

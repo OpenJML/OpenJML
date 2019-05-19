@@ -122,8 +122,8 @@ public class Extensions {
             // Expressions
             Arithmetic.class, 
             FunctionLikeExpressions.class, 
-            Erasure.class, 
-            Key.class, 
+            //Erasure.class, 
+            //Key.class, 
             ProgramLocation.class, 
             
             // Modifiers
@@ -256,7 +256,7 @@ public class Extensions {
             if (IJmlClauseKind.class.isAssignableFrom(f.getType())) {
                 try {
                     IJmlClauseKind kind = (IJmlClauseKind)f.get(null);
-                    allKinds.put(kind.name(), kind);
+                    if (kind != null) allKinds.put(kind.name(), kind);
                     if (kind instanceof IJmlClauseKind.Expression) expressionKinds.put(kind.name(), kind);
                 } catch (IllegalAccessException e) {
                     // Error - this should nnever happen

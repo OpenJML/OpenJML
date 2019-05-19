@@ -434,7 +434,7 @@ public class JmlTreeMatch extends JmlTreeScanner {
     
     public void visitJmlBinary(JmlBinary that) {
         JmlBinary t = (JmlBinary)top;
-        if (that.getOp() != t.getOp()) nomatch();
+        if (that.op != t.op) nomatch();
         top = t.lhs;
         scan(that.lhs);
         top = t.rhs;
@@ -518,7 +518,7 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //    
     public void visitJmlLblExpression(JmlLblExpression that) {
         JmlLblExpression t = (JmlLblExpression)top;
-        if (t.token != that.token) nomatch();
+        if (t.kind != that.kind) nomatch();
         // Labels may be different
         top = t.expression;
         scan(that.expression);
@@ -608,7 +608,7 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //
     public void visitJmlSingleton(JmlSingleton that) {
         JmlSingleton t = (JmlSingleton)top;
-        if (that.token != t.token) nomatch(); 
+        if (that.kind != t.kind) nomatch(); 
         // no children to scan
     }
 
@@ -671,7 +671,7 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //
     public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
         JmlStoreRefKeyword t = (JmlStoreRefKeyword)top;
-        if (t.token != that.token) nomatch();
+        if (t.kind != that.kind) nomatch();
         // nothing to scan
     }
 

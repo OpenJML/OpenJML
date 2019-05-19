@@ -2,12 +2,11 @@ package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.COMMA;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
-import static org.jmlspecs.openjml.JmlTokenKind.BSNOTHING;
-import static org.jmlspecs.openjml.JmlTokenKind.BSNOTSPECIFIED;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
+import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
@@ -56,7 +55,7 @@ public class SignalsOnlyClauseExtension extends JmlExtension.MethodClause {
             IJmlClauseKind jt = this;
             ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
 
-            if (parser.jmlTokenKind() == BSNOTHING) {
+            if (parser.jmlTokenClauseKind() == nothingKind) {
                 scanner.setJmlKeyword(true);
                 parser.nextToken();
                 if (parser.token().kind != SEMI) {
@@ -65,7 +64,7 @@ public class SignalsOnlyClauseExtension extends JmlExtension.MethodClause {
                 } else {
                     parser.nextToken();
                 }
-            } else if (parser.jmlTokenKind() == BSNOTSPECIFIED) {
+            } else if (parser.jmlTokenClauseKind() == notspecifiedKind) {
                 scanner.setJmlKeyword(true);
                 parser.syntaxError(parser.pos(), null, "jml.message", "\\not_specified is not permitted in a signals_only clause");
                 parser.skipThroughSemi();

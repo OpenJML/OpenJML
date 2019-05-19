@@ -149,15 +149,15 @@ public enum JmlTokenKind implements ITokenKind {
     // These are various tokens related to JML expressions
 //    BSEXCEPTION("\\exception"), // This is for internal use only, so it is before \result
 //    BSRESULT("\\result"), // Keep this one the first of the backslash tokens
-    BSEVERYTHING("\\everything"),
+//    BSEVERYTHING("\\everything"),
 //    BSLOCKSET("\\lockset"),
 //    BSCOUNT("\\count"), // New version of \index
 //    BSINDEX("\\index"), // Obsolete in favor of \count
 //    BSVALUES("\\values"),
-    BSNOTHING("\\nothing"),
+//    BSNOTHING("\\nothing"),
 //    BSSAME("\\same"),
     MATCH("match"),
-    BSNOTSPECIFIED("\\not_specified"),
+//    BSNOTSPECIFIED("\\not_specified"),
 
 //    BSCONCAT("\\concat"),
     BSREQUIRES("\\requires"),
@@ -167,16 +167,16 @@ public enum JmlTokenKind implements ITokenKind {
 //    BSDISTINCT("\\distinct"),
 //    BSDURATION("\\duration"),
 //    BSELEMTYPE("\\elemtype"),
-    BSERASURE("\\erasure"),
+//    BSERASURE("\\erasure"),
 //    BSFRESH("\\fresh"),
 //    BSINVARIANTFOR("\\invariant_for"),
 //    BSISINITIALIZED("\\is_initialized"),
-    BSKEY("\\key"),
-    BSLBLANY("\\lbl"),
-    BSLBLNEG("\\lblneg"),
-    BSLBLPOS("\\lblpos"),
+//    BSKEY("\\key"),
+//    BSLBLANY("\\lbl"),
+//    BSLBLNEG("\\lblneg"),
+//    BSLBLPOS("\\lblpos"),
     BSLET("\\let"),
-    BSMAX("\\max"),
+//    BSMAX("\\max"),
 //    BSNONNULLELEMENTS("\\nonnullelements"),
 //    BSNOTASSIGNED("\\not_assigned"),
 //    BSNOTMODIFIED("\\not_modified"),
@@ -203,20 +203,20 @@ public enum JmlTokenKind implements ITokenKind {
 //    BSWARN("\\warn"),
 //    BSWARNOP("\\warn_op"),
     
-    BSINTO("\\into"),
-    BSSUCHTHAT("\\such_that"),
+//    BSINTO("\\into"),
+//    BSSUCHTHAT("\\such_that"),
 
-    BSPEER("\\peer"),
+//    BSPEER("\\peer"),
     BSREADONLY("\\readonly"),
-    BSREP("\\rep"),
+//    BSREP("\\rep"),
     
     // These are quantifier types (also \max )
-    BSEXISTS("\\exists"),
-    BSFORALL("\\forall"),
-    BSMIN("\\min"),
-    BSNUMOF("\\num_of"),
-    BSPRODUCT("\\product"),
-    BSSUM("\\sum"),
+//    BSEXISTS("\\exists"),
+//    BSFORALL("\\forall"),
+//    BSMIN("\\min"),
+//    BSNUMOF("\\num_of"),
+//    BSPRODUCT("\\product"),
+//    BSSUM("\\sum"),
     
     // These are JML type literals
     BSTYPEUC("\\TYPE"),
@@ -236,8 +236,8 @@ public enum JmlTokenKind implements ITokenKind {
     JSUBTYPE_OF_EQ("<::="), // Operands are Class<?> values, used only internally
     LOCK_LT("<#"),
     LOCK_LE("<#="),
-    LTWF("<<<"),
-    LEWF("<<<="),
+    WF_LT("<<<"),
+    WF_LE("<<<="),
     
     // Other special character combinations
     DOT_DOT(".."),
@@ -347,7 +347,7 @@ public enum JmlTokenKind implements ITokenKind {
 //        synonyms.put("decreases",loopdecreasesID);
 //        synonyms.put("maintaining",loopinvariantID);
 
-        for (JmlTokenKind t: EnumSet.range(BSEVERYTHING,BSBIGINT)) {
+        for (JmlTokenKind t: EnumSet.range(BSREQUIRES,BSBIGINT)) {
             backslashTokens.put(t.internedName(),t);
         }
         for (JmlTokenKind t: JmlTokenKind.values()) {

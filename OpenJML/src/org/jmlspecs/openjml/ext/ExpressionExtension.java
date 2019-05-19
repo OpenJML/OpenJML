@@ -167,7 +167,9 @@ abstract public class ExpressionExtension extends JmlExtension {
         } else if (typeArgs != null && !typeArgs.isEmpty()) {
             return parser.syntaxError(p, null, "jml.no.typeargs.allowed", jt.internedName());
         } else {
-            return parser.jmlF.at(p).JmlSingleton(jt);
+            IJmlClauseKind kind = parser.jmlTokenClauseKind();
+            if (kind != null) return parser.jmlF.at(p).JmlSingleton(kind);
+            throw new RuntimeException("some kind of singleton");
         }
     }
     

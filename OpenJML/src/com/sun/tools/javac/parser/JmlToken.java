@@ -5,6 +5,7 @@
  */
 package com.sun.tools.javac.parser;
 
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 
 import com.sun.tools.javac.parser.Tokens.Token;
@@ -19,22 +20,25 @@ import com.sun.tools.javac.parser.Tokens.TokenKind;
 public class JmlToken extends Token {
 
     public JmlTokenKind jmlkind;
+    public IJmlClauseKind jmlclausekind;
     
     /** Creates a JmlToken object, as either, if jmlkind is null, a Java token in a JMLToken wrapper or, 
       * if jmlkind is not null, a JMlToken object for a JML construct.
       */
-    public JmlToken(/*@ nullable */JmlTokenKind jmlkind, TokenKind tk, int pos, int endPos) {
+    public JmlToken(/*@ nullable */JmlTokenKind jmlkind, IJmlClauseKind jmlclausekind, TokenKind tk, int pos, int endPos) {
         super(jmlkind != null ? jmlkind : tk, pos, endPos, null); // FIXME - do we ever need to add in a List<Comment>
         this.jmlkind = jmlkind;
+        this.jmlclausekind = jmlclausekind;
     }
     
     public JmlToken(Token javaToken) {
-        this(null, javaToken);
+        this(null, null, javaToken);
     }
     
-    public JmlToken(JmlTokenKind jmlkind, Token javaToken) {
+    public JmlToken(JmlTokenKind jmlkind, IJmlClauseKind jmlclausekind, Token javaToken) {
         super(jmlkind != null ? jmlkind : javaToken.kind, javaToken.pos, javaToken.endPos, javaToken.comments);
         this.jmlkind = jmlkind;
+        this.jmlclausekind = jmlclausekind;
     }
 
     protected void checkKind() {

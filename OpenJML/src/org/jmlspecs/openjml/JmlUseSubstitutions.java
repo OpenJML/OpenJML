@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
+import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.walkers.JmlTreeMatch;
 import static org.jmlspecs.openjml.ext.RequiresClause.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
@@ -83,7 +84,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
     public void visitJmlStatementExpr(JmlStatementExpr that) {
         if (that.clauseType == useClause) {
             JCExpression expr = that.expression;
-            if (expr instanceof JmlBinary && ((JmlBinary)expr).op == JmlTokenKind.IMPLIES) {
+            if (expr instanceof JmlBinary && ((JmlBinary)expr).op == Operators.impliesKind) {
                 JmlBinary imp = (JmlBinary)expr;
                 if (!(imp.rhs instanceof JCBinary && ((JCBinary)imp.rhs).getTag() == JCTree.Tag.EQ)) {
                     log.error(expr, "jml.message", "Invalid kind of expression for a use statement; should be a lemma call, implication, or equality");
@@ -155,7 +156,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                                 subst.replacements = replacements;
                                 exprHead = subst.copy(bin.lhs);
                                 exprTail = subst.copy(bin.rhs);
-                            } else if (expr instanceof JmlBinary && ((JmlBinary)expr).op == JmlTokenKind.IMPLIES) {
+                            } else if (expr instanceof JmlBinary && ((JmlBinary)expr).op == Operators.impliesKind) {
                                 JmlBinary bin = (JmlBinary)expr;
                                 subst.replacements = replacements;
                                 exprHead = subst.copy(bin.lhs);

@@ -14,6 +14,7 @@ import static org.jmlspecs.openjml.ext.StateExpressions.*;
 
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.smtlib.ICommand;
 import org.smtlib.ICommand.IScript;
 import org.smtlib.IExpr;
@@ -1919,7 +1920,7 @@ public class SMTTranslator extends JmlTreeScanner {
             result = F.fcn(F.symbol(arrayElemType), newargs);
         } else if (that.kind == sameKind) {
             result = newargs.get(0);
-        } else if (that.token == JmlTokenKind.BSERASURE) {
+        } else if (that.kind == erasureKind) {
             result = F.fcn(F.symbol("erasure"), newargs);
         } else if (that.kind == distinctKind) {
             result = F.fcn(distinctSym, newargs);
@@ -2802,7 +2803,8 @@ public class SMTTranslator extends JmlTreeScanner {
             IExpr range = result;
             scan(that.value);
             IExpr value = result;
-            if (that.op == JmlTokenKind.BSFORALL) {
+            switch (that.kind.name()) {
+            case QuantifiedExpressions.qforallID:
                 if (range != null) value = F.fcn(impliesSym,range,value);
                 if (typeConstraint != null && (that.range == null || treeutils.isTrueLit(that.range))) value = F.fcn(impliesSym, typeConstraint, value);
                 if (that.triggers != null && !that.triggers.isEmpty()) {
@@ -2811,7 +2813,8 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else {
                     result = F.forall(params,value);
                 }
-            } else if (that.op == JmlTokenKind.BSEXISTS) {
+                break;
+            case QuantifiedExpressions.qexistsID:
                 if (range != null) value = F.fcn(andSym,range,value);
                 if (typeConstraint != null && (that.range == null || treeutils.isTrueLit(that.range))) value = F.fcn(andSym, typeConstraint, value);
                 if (that.triggers != null && !that.triggers.isEmpty()) {
@@ -2820,8 +2823,9 @@ public class SMTTranslator extends JmlTreeScanner {
                 } {
                     result = F.exists(params,value);
                 }
-            } else {
-                notImplWarn(that, "JML Quantified expression using " + that.op.internedName());
+                break;
+            default:
+                notImplWarn(that, "JML Quantified expression using " + that.kind.name());
                 ISymbol sym = F.symbol(makeBarEnclosedString(that));
                 addConstant(sym,convertSort(that.type),null);
                 result = sym;

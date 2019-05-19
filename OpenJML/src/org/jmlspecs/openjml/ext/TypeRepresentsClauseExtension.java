@@ -67,7 +67,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
                 suchThat = false;
                 parser.nextToken();
                 e = parser.parseExpression();
-            } else if (parser.jmlTokenKind() == JmlTokenKind.BSSUCHTHAT) {
+            } else if (parser.jmlTokenClauseKind() == MiscExtensions.suchthatKind) {
                 suchThat = true;
                 parser.nextToken();
                 e = parser.parseExpression();

@@ -245,7 +245,7 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
     public JCTree visitJmlLblExpression(JmlLblExpression that, Void p) {
         return M.at(that.pos).JmlLblExpression(
                 that.labelPosition,
-                that.token,
+                that.kind,
                 that.label,
                 copy(that.expression,p));
     }
@@ -401,7 +401,7 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
     @Override
     public JCTree visitJmlQuantifiedExpr(JmlQuantifiedExpr that, Void p) {
         JmlQuantifiedExpr q =  M.at(that.pos).JmlQuantifiedExpr(
-                that.op,
+                that.kind,
                 copy(that.decls,p),
                 copy(that.range,p),
                 copy(that.value,p));
@@ -420,9 +420,8 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
 
     @Override
     public JCTree visitJmlSingleton(JmlSingleton that, Void p) {
-        JmlSingleton r = M.at(that.pos).JmlSingleton(that.token);
+        JmlSingleton r = M.at(that.pos).JmlSingleton(that.kind);
         r.type = that.type;
-        r.kind = that.kind;
         r.info = that.info;
         //r.symbol = that.symbol;
         return r;
@@ -538,7 +537,7 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
     @Override
     public JCTree visitJmlStoreRefKeyword(JmlStoreRefKeyword that, Void p) {
         JmlStoreRefKeyword copy = M.at(that.pos).JmlStoreRefKeyword(
-                that.token);
+                that.kind);
         copy.type = that.type;
         return copy;
     }

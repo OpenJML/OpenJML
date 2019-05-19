@@ -89,7 +89,7 @@ public class StateExpressions extends ExpressionExtension {
 
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            syms = Symtab.instance(context);
+            syms = attr.syms;
             JmlMethodInvocation tree = (JmlMethodInvocation)that;
             Name savedLabel = attr.currentEnvLabel;
             int n = tree.args.size();
@@ -118,7 +118,7 @@ public class StateExpressions extends ExpressionExtension {
             } else {
                 // old with label
                 if (!attr.preTokens.contains(currentClauseType) && (currentClauseType == null || !currentClauseType.preOrOldWithLabelAllowed())) {
-                    log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", currentClauseType.name());
+                    attr.log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", currentClauseType.name());
                     t = syms.errType;
                 }
             }

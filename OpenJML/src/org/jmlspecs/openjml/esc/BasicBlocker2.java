@@ -28,7 +28,10 @@ import static org.jmlspecs.openjml.ext.MiscExpressions.*;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
 import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
+import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import org.jmlspecs.openjml.ext.EndStatement;
+import org.jmlspecs.openjml.ext.Operators;
+import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
@@ -859,7 +862,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     protected JCExpression makeNNInstanceof(JCExpression e, int epos, Type type, int typepos) {
         JCExpression e1 = treeutils.makeTypeof(e);
         JCExpression e2 = makeTypeLiteral(type,typepos);
-        JCExpression ee = treeutils.makeJmlBinary(epos,JmlTokenKind.SUBTYPE_OF,e1,e2);
+        JCExpression ee = treeutils.makeJmlBinary(epos,Operators.subtypeofKind,e1,e2);
         return ee;
     }
     
@@ -1068,6 +1071,15 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     result = that;
                     break;
                 } 
+                case erasureID:
+                {
+                    scan(that.typeargs);
+                    scan(that.meth);
+                    if (that.meth != null) that.meth = result;
+                    scanList(that.args);
+                    result = that;
+                    break;
+                } 
                 case concatID: 
                 {
                     scan(that.typeargs);
@@ -1090,7 +1102,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     result = that;
                     break;
                 } 
-                case BSERASURE:
                 case BSREQUIRES:
                 case BSENSURES:
                 case BSREADS:
@@ -1166,8 +1177,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 }
             }
         } else if (storeref instanceof JmlStoreRefKeyword) {
-            JmlTokenKind t = ((JmlStoreRefKeyword)storeref).token;
-            if (t == JmlTokenKind.BSEVERYTHING || t == JmlTokenKind.BSNOTSPECIFIED) {
+            IJmlClauseKind t = ((JmlStoreRefKeyword)storeref).kind;
+            if (t == everythingKind || t == notspecifiedKind) {
                 for (VarSymbol vsym: currentMap.keySet()) {
                     // Local variables are not affected by havoc \everything
                     // The owner of a local symbol is a MethodSymbol
@@ -1285,7 +1296,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     }
 
                     // FIXME - set line and source
-                    expr = factory.at(p).JmlQuantifiedExpr(JmlTokenKind.BSFORALL,com.sun.tools.javac.util.List.<JCVariableDecl>of(decl),comp,eq);
+                    expr = factory.at(p).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind,com.sun.tools.javac.util.List.<JCVariableDecl>of(decl),comp,eq);
                     expr.setType(syms.booleanType);
                     addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
                     //log.warning(storeref.pos,"jml.internal","Ignoring unknown kind of storeref in havoc: " + storeref);

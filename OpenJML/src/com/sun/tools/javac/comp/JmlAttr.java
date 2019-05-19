@@ -38,6 +38,8 @@ import static org.jmlspecs.openjml.ext.TypeInitializerClauseExtension.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.StatementLocationsExtension.*;
 import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
+import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
+import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import org.jmlspecs.openjml.ext.RequiresClause;
 
 import java.util.Collection;
@@ -68,7 +70,11 @@ import org.jmlspecs.openjml.ext.AssignableClauseExtension;
 import org.jmlspecs.openjml.ext.CallableClauseExtension;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
+import org.jmlspecs.openjml.ext.MiscExpressions;
+import org.jmlspecs.openjml.ext.QuantifiedExpressions;
+
 import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
+import static org.jmlspecs.openjml.ext.Operators.*;
 import org.jmlspecs.openjml.ext.SignalsClauseExtension;
 import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
@@ -172,7 +178,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @NonNull final protected JmlSpecs specs;
     
     /** The Utils instance for this context */
-    @NonNull final protected Utils utils;
+    @NonNull final public Utils utils;
 
     /** The Types instance for this context */
     @NonNull final public JmlTypes jmltypes;
@@ -1853,7 +1859,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 defaultClause = null;
             } else if (pure != null || (constructorDefault.equals("pure") && decl.sym.isConstructor())) {
                 int pos = pure != null ? pure.pos : cs.pos;
-                JmlStoreRefKeyword kw = jmlMaker.at(pos).JmlStoreRefKeyword(JmlTokenKind.BSNOTHING);
+                JmlStoreRefKeyword kw = jmlMaker.at(pos).JmlStoreRefKeyword(nothingKind);
                 defaultClause = jmlMaker.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                         List.<JCExpression>of(kw));
 //            } else if (decl.sym.isConstructor()) {
@@ -1864,7 +1870,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
 //                        List.<JCExpression>of(jmlMaker.at(cs.pos).Select(t,(Name)null)));
             } else {
-                JmlStoreRefKeyword kw = jmlMaker.at(cs.pos).JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING);
+                JmlStoreRefKeyword kw = jmlMaker.at(cs.pos).JmlStoreRefKeyword(everythingKind);
                 defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                         List.<JCExpression>of(kw));
             }
@@ -1887,7 +1893,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         List.<JCExpression>of(t,jmlMaker.Select(t,(Name)null)));
             } else {
                 defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClause,
-                        List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
+                        List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(everythingKind)));
             }
             if (defaultClause != null) {
                 defaultClause.sourcefile = log.currentSourceFile();
@@ -2030,7 +2036,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     exlist.add(signalsClause);
                     exlist.add(jmlMaker.at(m.pos).JmlMethodClauseExpr(ensuresID,ensuresClauseKind,treeutils.falseLit));
                     exlist.add(jmlMaker.JmlMethodClauseStoreRef(assignableID,assignableClauseKind,
-                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSNOTHING))));
+                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(nothingKind))));
                 } else {
                     excRequires.expression = treeutils.makeBitOr(m.pos,
                             excRequires.expression, nn.expression);
@@ -2083,7 +2089,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     // may only be members of the class
                     for (JCTree tt: asg.list) {
                         if (tt instanceof JmlStoreRefKeyword) {
-                            if (((JmlStoreRefKeyword)tt).token == JmlTokenKind.BSNOTHING) {
+                            if (((JmlStoreRefKeyword)tt).kind == nothingKind) {
                                 // OK
                             } else {
                                 jmlerror(m,"jml.pure.constructor",tt);
@@ -2116,7 +2122,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 } else {
                     for (JCTree tt: asg.list) {
                         if (tt instanceof JmlStoreRefKeyword &&
-                            ((JmlStoreRefKeyword)tt).token == JmlTokenKind.BSNOTHING) {
+                            ((JmlStoreRefKeyword)tt).kind == nothingKind) {
                                 // OK
                         } else if (isFunction(decl.sym)) {
                             jmlerror(tt,"jml.function.method",tt);
@@ -3145,7 +3151,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             e.type = attribTree(e, env, new ResultInfo(TYP, syms.exceptionType));
             if (e instanceof JmlSingleton) {
                 IJmlClauseKind k = ((JmlSingleton)e).kind;
-                if (k == SingletonExpressions.notspecifiedKind) {
+                if (k == notspecifiedKind) {
                     log.error(e.pos(), "jml.message", "\\not_specified is not allowed in a signals_only clause");
                 }
                 
@@ -4037,109 +4043,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     /** This handles expression constructs with no argument list such as \\result */
     public void visitJmlSingleton(JmlSingleton that) {
-        JmlTokenKind jt = that.token;
-        Type t = syms.errType;
-        if (jt == null) {
-            if (that.kind != null) {
-                t = that.kind.typecheck(this,that,env);
-            }
-        } else switch (jt) {
-               
-//            case BSLOCKSET:
-//                t = JMLSetType;
-//                break;
-//                
-//            case BSINDEX:
-//            case BSCOUNT:
-//                t = syms.intType;
-//                if (loopStack.isEmpty()) {
-//                    log.error(that.pos,"jml.outofscope",jt.internedName());
-//                } else {
-//                    that.info = loopStack.get(0).sym;
-//                }
-//                break;
-//                
-//            case BSVALUES:
-//                t = JMLValuesType;
-//                if (foreachLoopStack.isEmpty()) {
-//                    log.error(that.pos,"jml.outofscope",jt.internedName());
-//                } else {
-//                    JCVariableDecl d = foreachLoopStack.get(0).valuesDecl;
-//                    if (d == null) {
-//                        log.error(that.pos,"jml.notforthisloop",jt.internedName());
-//                    } else {
-//                        that.info = d.sym;
-//                    }
-//                }
-//                break;
-                
-//            case BSRESULT:
-//                JCTree.JCMethodDecl md = enclosingMethodEnv.enclMethod;
-//                JCTree res = md.getReturnType();
-//                if (res == null || (!res.type.isErroneous() && types.isSameType(res.type,syms.voidType))) {
-//                    log.error(that.pos+1, "jml.void.result");
-//                    t = syms.errType;
-//                } else {
-//                    t = res.type;
-//                }
-//                if (currentEnvLabel != null) {
-//                    log.error(that.pos, "jml.no.result.in.old");
-//                }
-//                if (!resultClauses.contains(currentClauseType)) {
-//                    // The +1 is to fool the error reporting mechanism into 
-//                    // allowing other error reports about the same token
-//                    log.error(that.pos+1, "jml.misplaced.result", currentClauseType.name());
-//                    t = syms.errType;
-//                }
-//                break;
-//                
-//            case BSEXCEPTION:
-//                JCTree.JCMethodDecl md = env.enclMethod;
-//                if (!exceptionClauses.contains(currentClauseType)) {
-//                    // The +1 is to fool the error reporting mechanism into 
-//                    // allowing other error reports about the same token
-//                    log.error(that.pos+1, "jml.misplaced.exception", currentClauseType.name());
-//                    t = syms.errType;
-//                } else {
-//                    t = currentExceptionType;
-//                }
-//                break;
-                
-//            case BSSAME:
-//                if (currentClauseType != requiresClauseKind) {
-//                    log.error(that.pos,"jml.misplaced.same");
-//                }
-//                t = syms.booleanType;
-//                // Check that this is only used in a requires clause and not in conjunction with anything else - FIXME
-//                break;
-//                
-            case BSNOTSPECIFIED:
-                t = syms.errType;  // Use errType so it does not propagate error messages
-                break;
-
-            case BSNOTHING:
-            case BSEVERYTHING:
-                t = Type.noType;
-                break;
-                
-//            case INFORMAL_COMMENT:
-//                t = syms.booleanType;
-//                break;
-                
-            default:
-                if (that.kind != null) {
-                    t = that.kind.typecheck(this,that,env);
-                } else {
-                    IJmlClauseKind ext = Extensions.instance(context).findSM(that.pos,jt.internedName(),true);
-                    t = ext.typecheck(this,that,env);
-                }
-                break;
-
-//            default:
-//                t = syms.errType;
-//                log.error(that.pos,"jml.unknown.type.token",that.token.internedName(),"JmlAttr.visitJmlSingleton");
-//                break;
-        }
+        IJmlClauseKind jt = that.kind;
+        Type t = that.kind.typecheck(this,that,env);
         result = check(that, t, VAL, resultInfo);
     }
     
@@ -4194,32 +4099,32 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
 
     public void visitJmlBinary(JmlBinary that) {  // FIXME - how do we handle unboxing, casting
-        switch (that.op) {
-            case EQUIVALENCE:
-            case INEQUIVALENCE:
-            case IMPLIES:
-            case REVERSE_IMPLIES:
+        switch (that.op.name()) {
+            case equivalenceID:
+            case inequivalenceID:
+            case impliesID:
+            case reverseimpliesID:
                 attribExpr(that.lhs,env,syms.booleanType);
                 attribExpr(that.rhs,env,syms.booleanType);
                 result = syms.booleanType;
                 break;
                 
-            case LOCK_LT:
-            case LOCK_LE:
+            case lockltID:
+            case lockleID:
                 attribExpr(that.lhs,env,syms.objectType);
                 attribExpr(that.rhs,env,syms.objectType);
                 result = syms.booleanType;
                 break;
                 
-            case LTWF:
-            case LEWF:
+            case wfltID:
+            case wfleID:
                 attribExpr(that.lhs,env,syms.objectType);
                 attribExpr(that.rhs,env,syms.objectType);
                 result = syms.booleanType;
                 break;
                 
-            case SUBTYPE_OF:
-            case SUBTYPE_OF_EQ:
+            case subtypeofID:
+            case subtypeofeqID:
                 // Note: the method of comparing types here ignores any type
                 // arguments.  If we use isSameType, for example, then Class
                 // and Class<Object> are different.  In this case, all we need 
@@ -4245,13 +4150,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if ((t == jmltypes.TYPE) != (tt == jmltypes.TYPE) && !errorAlready) {
                     log.error(that.rhs.pos(),"jml.subtype.arguments.same",that.rhs.type);
                 }
-                if (t != jmltypes.TYPE) that.op = JmlTokenKind.JSUBTYPE_OF; // Java subtyping
+                if (t != jmltypes.TYPE) that.op = jsubtypeofKind; // Java subtyping
                 
                 result = syms.booleanType;
                 break;
                 
             default:
-                log.error(that.pos(),"jml.unknown.operator",that.op.internedName(),"JmlAttr");
+                log.error(that.pos(),"jml.unknown.operator",that.op.name(),"JmlAttr");
                 break;
         }
         result = check(that, result, VAL, resultInfo);
@@ -4282,7 +4187,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // FIXME - does not check set comprehension
             log.error(that.pos, "jml.lbl.in.quantified");
         }
-        Type t = that.token == JmlTokenKind.BSLBLANY ? Type.noType : syms.booleanType;
+        Type t = that.kind == MiscExpressions.lblanyKind ? Type.noType : syms.booleanType;
         attribExpr(that.expression, env, t);
         Type resultType = that.expression.type;
         if (resultType.constValue() != null) resultType = resultType.constType(null);
@@ -4463,7 +4368,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         ((JmlMemberEnter)memberEnter).setInJml(b);
         quantifiedExprs.add(that);
         
-        if (that.triggers != null && that.triggers.size() > 0 && that.op != BSFORALL && that.op != BSEXISTS ) {
+        if (that.triggers != null && that.triggers.size() > 0 && that.kind != qforallKind && that.kind != qexistsKind ) {
             log.warning(that.triggers.get(0),"jml.message","Triggers not in \\forall or \\exists quantified expressions are ignored");
             that.triggers = null;
         }
@@ -4472,9 +4377,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (that.range != null) attribExpr(that.range, localEnv, syms.booleanType);
 
             Type resultType = syms.errType;
-            switch (that.op) {
-                case BSEXISTS:
-                case BSFORALL:
+            switch (that.kind.name()) {
+                case qexistsID:
+                case qforallID:
                     attribExpr(that.value, localEnv, syms.booleanType);
                     resultType = syms.booleanType;
                     if (that.triggers != null) {
@@ -4484,13 +4389,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     }
                     break;
 
-                case BSNUMOF:
+                case qnumofID:
                     attribExpr(that.value, localEnv, syms.booleanType);
                     resultType = syms.intType; // FIXME - int? long? bigint?
                     break;
 
-                case BSMAX:
-                case BSMIN:
+                case qmaxID:
+                case qminID:
                     attribExpr(that.value, localEnv, Type.noType);
                     resultType = that.value.type;
                     // FIXME - allow this for any Comparable type
@@ -4500,8 +4405,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     //                }
                     break;
 
-                case BSSUM:
-                case BSPRODUCT:
+                case qsumID:
+                case qproductID:
                     attribExpr(that.value, localEnv, Type.noType); // FIXME - int? long? numeric? bigint? double?
                     resultType = that.value.type;
                     if (!jmltypes.isNumeric(jmltypes.unboxedTypeOrType(resultType))) {
@@ -4511,7 +4416,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     break;
 
                 default:
-                    log.error(that.pos(),"jml.unknown.construct",that.op.internedName(),"JmlAttr.visitJmlQuantifiedExpr");
+                    log.error(that.pos(),"jml.unknown.construct",that.kind.name(),"JmlAttr.visitJmlQuantifiedExpr");
                     break;
             }
             result = check(that, resultType, VAL, resultInfo);
@@ -4607,18 +4512,26 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JCVariableDecl firstDecl = null;
             ListBuffer<JCStatement> bodyStats = new ListBuffer<JCStatement>();
 
-            if (q.op == JmlTokenKind.BSFORALL || q.op == JmlTokenKind.BSEXISTS) { 
-            } else if (q.op == JmlTokenKind.BSNUMOF) {
+            switch (q.kind.name()) {
+            case qforallID:
+            case qexistsID: 
+                break;
+            case qnumofID: 
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_count$$$"), F.Type(restype), F.Literal(restype.getTag(),0).setType(syms.intType));
-            } else if (q.op == JmlTokenKind.BSSUM) {
+                break;
+            case qsumID:
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_sum$$$"), F.Type(restype), F.Literal(restype.getTag(),0).setType(syms.intType));
-            } else if (q.op == JmlTokenKind.BSPRODUCT) {
+                break;
+            case qproductID:
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_prod$$$"), F.Type(restype), F.Literal(restype.getTag(),1).setType(syms.intType));
-            } else if (q.op == JmlTokenKind.BSMAX || q.op == JmlTokenKind.BSMIN) {
+                break;
+            case qmaxID:
+            case qminID:
                 firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTag.BOOLEAN), F.Literal(TypeTag.BOOLEAN,1).setType(syms.booleanType));
-                initialDecl = F.VarDef(F.Modifiers(0), names.fromString(q.op == JmlTokenKind.BSMIN ? "_min$$$" : "_max$$$"), F.Type(restype), F.Literal(restype.getTag(),0).setType(restype));
+                initialDecl = F.VarDef(F.Modifiers(0), names.fromString(q.kind == qminKind ? "_min$$$" : "_max$$$"), F.Type(restype), F.Literal(restype.getTag(),0).setType(restype));
                 valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
-            } else {
+                break;
+            default:
                 return;
             }
             if (initialDecl != null) bodyStats.add(initialDecl);
@@ -4768,15 +4681,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             JCStatement retStat;
             JCExpression cond = newvalue;
-            if (q.op == JmlTokenKind.BSFORALL || q.op == JmlTokenKind.BSEXISTS) { 
-                if (q.op == JmlTokenKind.BSFORALL) {
+            if (q.kind == qforallKind || q.kind == qexistsKind) { 
+                if (q.kind == qforallKind) {
                     cond = treeutils.makeNot(cond.pos, cond);
 //                    cond = F.Unary(JCTree.NOT, cond).setType(syms.booleanType); 
 //                    ((JCUnary)cond).operator = rs.resolveUnaryOperator(cond.pos(), JCTree.NOT, env, newvalue.type);
                 }
-                update = F.If(cond, q.op == JmlTokenKind.BSFORALL? retfalse : rettrue , null);
-                retStat = q.op == JmlTokenKind.BSFORALL ? rettrue : retfalse;
-            } else if (q.op == JmlTokenKind.BSNUMOF) {
+                update = F.If(cond, q.kind == qforallKind ? retfalse : rettrue , null);
+                retStat = q.kind == qforallKind  ? rettrue : retfalse;
+            } else if (q.kind == qnumofKind) {
                 JCIdent id = F.Ident(initialDecl.name);
                 id.setType(initialDecl.type);
                 id.sym = initialDecl.sym;
@@ -4786,7 +4699,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                op.operator = rs.resolveUnaryOperator(op.pos(),op.getTag(),env,op.arg.type);
                 update = F.If(cond, F.Exec(op) , null);
                 retStat = F.Return(id); // Is it OK to reuse the node?
-            } else if (q.op == JmlTokenKind.BSSUM) {
+            } else if (q.kind == qsumKind) {
                 JCIdent id = F.Ident(initialDecl.name);
                 id.setType(initialDecl.type);
                 id.sym = initialDecl.sym;
@@ -4796,7 +4709,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                asn.operator = rs.resolveBinaryOperator(asn.pos(), asn.getTag() - JCTree.ASGOffset, env, asn.lhs.type, asn.rhs.type);
                 update = F.Exec(asn);
                 retStat = F.Return(id); // Is it OK to reuse the node?
-            } else if (q.op == JmlTokenKind.BSPRODUCT) {
+            } else if (q.kind == qproductKind) {
                 JCIdent id = F.Ident(initialDecl.name);
                 id.pos = Position.NOPOS;
                 id.setType(initialDecl.type);
@@ -4807,7 +4720,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                asn.operator = rs.resolveBinaryOperator(asn.pos(), asn.getTag() - JCTree.ASGOffset, env, asn.lhs.type, asn.rhs.type);
                 update = F.Exec(asn);
                 retStat = F.Return(id);
-            } else if (q.op == JmlTokenKind.BSMAX || q.op == JmlTokenKind.BSMIN) {
+            } else if (q.kind == qmaxKind || q.kind == qminKind) {
                 JCIdent id = F.Ident(initialDecl.name);
                 id.setType(initialDecl.type);
                 id.sym = initialDecl.sym;
@@ -4822,7 +4735,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 update = F.If((op1=F.Binary(
                                             JCTree.Tag.OR, 
                                             (op2=F.Binary(
-                                                    ( q.op == JmlTokenKind.BSMIN ? JCTree.Tag.LT : JCTree.Tag.GT), 
+                                                    ( q.kind == qminKind ? JCTree.Tag.LT : JCTree.Tag.GT), 
                                                     F.Assign(vid, newvalue).setType(vid.type), 
                                                     id
                                                     )).setType(syms.booleanType), 
@@ -4839,7 +4752,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 op1.operator = treeutils.orSymbol;
                 op2.operator = rs.resolveBinaryOperator(op2.pos(),op2.getTag(), env, op2.lhs.type, op2.rhs.type);
                 retStat = F.Return(id);
-            } else if (q.op == JmlTokenKind.BSMIN) {
+            } else if (q.kind == qminKind) {
                 JCIdent id = F.Ident(initialDecl.name);
                 id.setType(initialDecl.type);
                 id.sym = initialDecl.sym;

@@ -11,6 +11,7 @@ import static org.jmlspecs.openjml.ext.RequiresClause.requiresClauseKind;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTokenKind;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 
@@ -28,6 +29,9 @@ import com.sun.tools.javac.comp.Attr.ResultInfo;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
@@ -291,20 +295,49 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         }
     };
     
+    public static final String erasureID = "\\erasure";
+    public static final IJmlClauseKind erasureKind = new OneArgExpression(erasureID) {
+        
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
+            JmlMethodInvocation tree = (JmlMethodInvocation)expr;
+            
+            // Expect one argument of any array type, result type is \TYPE
+            // The argument expression may contain JML constructs
+            int n = tree.args.size();
+            if (n != 1) {
+                error(tree.pos(),"jml.one.arg",name(),n);
+            } else {
+                JCExpression e = tree.args.get(0);
+                if (e instanceof JmlMethodInvocation && ((JmlMethodInvocation)e).kind == MiscExpressions.typelcKind) {
+                    ((JmlMethodInvocation)e).javaType = true;
+                }
+            }
+            ListBuffer<Type> argtypesBuf = new ListBuffer<>();
+            attr.attribArgs(tree.args, localEnv, argtypesBuf);
+            Type t = attr.syms.errType;
+            if (n > 0) {
+                Type tt = tree.args.get(0).type;
+                if (tt == attr.jmltypes.TYPE || tt == attr.syms.classType) t = attr.syms.classType; 
+            }
+            return t;
+        }
+    };
+    
     public static final String invariantForID = "\\invariant_for";
     public static final IJmlClauseKind invariantForKind = new AnyArgBooleanExpressions(invariantForID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;
             int n = expr.args.size();
-            if (n != 1 && requireStringJML()) {
+            if (n != 1 && requireStrictJML()) {
                 Log.instance(context).error(tree.pos(), "jml.one.arg", name(), n);
             }
             for (JCExpression arg: expr.args) {
                 attr.attribTree(arg, localEnv, attr.new ResultInfo(TYP|VAL, Infer.anyPoly));
                 if (arg.type.isPrimitive()) {
                     Log.instance(context).error(arg.pos(),"jml.ref.arg.required",name());
-                } else if (requireStringJML() && attr.treeutils.isATypeTree(arg)) {
+                } else if (requireStrictJML() && attr.treeutils.isATypeTree(arg)) {
                     Log.instance(context).error(arg.pos(),"jml.ref.arg.required",name());
                 }
             }
@@ -318,7 +351,7 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;
             super.typecheck(attr, expr, localEnv);
-            if (expr.args.size() != 1 && requireStringJML()) Log.instance(context).error(tree.pos(),"jml.one.arg",name(),expr.args.size());
+            if (expr.args.size() != 1 && requireStrictJML()) Log.instance(context).error(tree.pos(),"jml.one.arg",name(),expr.args.size());
             for (JCExpression arg: expr.args) {
                 Type argtype = arg.type;
                 if (!(argtype instanceof Type.ArrayType) && !argtype.isErroneous()) {
@@ -389,6 +422,35 @@ public class FunctionLikeExpressions extends ExpressionExtension {
                 Log.instance(context).error(((JmlSingleton)that).pos,"jml.misplaced.same");
             }
             return Symtab.instance(context).booleanType;
+        }
+    };
+    
+    public static final String keyID = "\\key";
+    public static final IJmlClauseKind keyKind = new AnyArgExpressions(keyID) {
+        
+        @Override
+        public JCExpression parse(JCModifiers mods, String name, IJmlClauseKind kind, JmlParser parser) {
+            int pos = parser.pos();
+            JmlMethodInvocation expr = (JmlMethodInvocation)super.parse(mods, name, kind, parser);
+            boolean value = true;
+            for (JCExpression arg: expr.args) {
+                if (arg instanceof JCLiteral) {
+                    String key = ((JCLiteral)arg).getValue().toString();
+                    value = value && Utils.instance(context).commentKeys.contains(key);
+                } else if (arg instanceof JCIdent) {
+                    String key = ((JCIdent)arg).name.toString();
+                    value = value && Utils.instance(context).commentKeys.contains(key);
+                } else {
+                    error(arg.pos(), "jml.message", "An argument to \\key must be an identifier or a string literal");
+                    return parser.maker().at(pos).Erroneous();
+                }
+            }
+            return parser.maker().at(pos).Literal(value);
+        }
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
+            attr.log.error(that.pos, "jml.message", "INTERNAL ERROR: keyKind.typecheck should not be called");
+            return attr.syms.booleanType;
         }
     };
     

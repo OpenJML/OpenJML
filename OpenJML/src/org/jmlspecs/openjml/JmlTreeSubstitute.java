@@ -96,7 +96,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
     public JCTree visitJmlSingleton(JmlSingleton that, Void p) {
         // for substitution \result
         if (that.kind == resultKind) {
-            @Nullable JCExpression newexpr = replacements.get(that.token);
+            @Nullable JCExpression newexpr = replacements.get(resultID); // FIXME - nont sure about these - should be sym?
             if (newexpr != null) return copy(newexpr);
             else return super.visitJmlSingleton(that,  p);
         } else if (that.kind == countKind) {
@@ -121,7 +121,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
                 newdecls.add(newdecl);
             }
             JmlQuantifiedExpr q =  M.at(that.pos).JmlQuantifiedExpr(
-                    that.op,
+                    that.kind,
                     newdecls.toList(),
                     null,
                     null);

@@ -84,7 +84,7 @@ public class Attr extends JCTree.Visitor {
     final DeferredAttr deferredAttr;
     final Check chk;
     final Flow flow;
-    final MemberEnter memberEnter;
+    public final MemberEnter memberEnter; // OPENJML _ changed from default to public
     final TreeMaker make;
     final ConstFold cfolder;
     public final Enter enter; // OPENJML _ changed from default to public
@@ -550,7 +550,7 @@ public class Attr extends JCTree.Visitor {
 
     /** Visitor argument: the currently expected attribution result.
      */
-    ResultInfo resultInfo;
+    public ResultInfo resultInfo; // OPENJML - changed to public
 
     /** Visitor result: the computed type.
      */
@@ -728,6 +728,7 @@ public class Attr extends JCTree.Visitor {
     /**
      * Attribute the type references in a list of annotations.
      */
+    public // OPENJML - changed from default to public
     void attribAnnotationTypes(List<JCAnnotation> annotations,
                                Env<AttrContext> env) {
         for (List<JCAnnotation> al = annotations; al.nonEmpty(); al = al.tail) {

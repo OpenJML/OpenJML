@@ -129,7 +129,7 @@ public class JmlTreeInline extends JmlTreeCopier {
     public JCTree visitJmlSingleton(JmlSingleton that, Void p) {
         // for substitution \result
         if (that.kind == SingletonExpressions.resultKind) {
-            @Nullable JCExpression newexpr = replacements.get(that.token);
+            @Nullable JCExpression newexpr = replacements.get(that.kind);
             if (newexpr != null) return copy(newexpr);
             else return super.visitJmlSingleton(that,  p);
         } else {
@@ -150,7 +150,7 @@ public class JmlTreeInline extends JmlTreeCopier {
                 newdecls.add(newdecl);
             }
             JmlQuantifiedExpr q =  M.at(that.pos).JmlQuantifiedExpr(
-                    that.op,
+                    that.kind,
                     newdecls.toList(),
                     null,
                     null);

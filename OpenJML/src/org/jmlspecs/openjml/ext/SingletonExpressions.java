@@ -184,33 +184,6 @@ public class SingletonExpressions extends ExpressionExtension {
             return attr.JMLSetType;
         }
     };
-    
-    public static final String notspecifiedID = "\\not_specified";
-    public static final IJmlClauseKind notspecifiedKind = new IJmlClauseKind.SingletonExpression(notspecifiedID) {
-        @Override
-        public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            return attr.syms.errType;
-        }
-    };
-    
-    public static final String nothingID = "\\nothing";
-    public static final IJmlClauseKind nothingKind = new IJmlClauseKind.SingletonExpression(nothingID) {
-        @Override
-        public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            return Type.noType;
-        }
-    };
-    
-    public static final String everythingID = "\\everything";
-    public static final IJmlClauseKind everythingKind = new IJmlClauseKind.SingletonExpression(everythingID) {
-        @Override
-        public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            return Type.noType;
-        }
-    };
-    
-
-
 
     // FIXME - eventually remove these
     

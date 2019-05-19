@@ -71,7 +71,7 @@ import com.sun.tools.javac.util.Position;
 // FIXME - review and fix the else branches of all the accept statements
 // FIXME - the start and end positions are gotten from TreeInfo, which does not work for JML nodes
 /** This class simply holds the classes which are JML-specific nodes of parse trees. */
-public class JmlTree implements IJmlTree {
+public class JmlTree {
 
     /** Convert a tree to a pretty-printed string using the JmlPrettyPrinter; note that
      * this is not inherited by anyone, it is here as a utility method and needs
@@ -100,7 +100,7 @@ public class JmlTree implements IJmlTree {
     public interface JmlFactory extends JCTree.Factory {
         JmlAnnotation Annotation(JCTree type, List<JCExpression> args);
         JmlAnnotation TypeAnnotation(JCTree annotationType, List<JCExpression> args);
-        JmlBinary JmlBinary(JmlTokenKind t, JCTree.JCExpression left, JCTree.JCExpression right);
+        JmlBinary JmlBinary(IJmlClauseKind t, JCTree.JCExpression left, JCTree.JCExpression right);
         JmlBlock Block(long flags, List<JCStatement> stats);
         JmlChained JmlChained(List<JCBinary> conjuncts);
         JmlChoose JmlChoose(String keyword, IJmlClauseKind clauseType, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock);
@@ -115,7 +115,7 @@ public class JmlTree implements IJmlTree {
         JmlInlinedLoop JmlInlinedLoop(List<JmlStatementLoop> loopSpecs);
         JmlLabeledStatement JmlLabeledStatement(Name label, ListBuffer<JCStatement> extra, JCStatement block);
         JmlLambda JmlLambda(List<JCVariableDecl> params, JCTree body, JCExpression jmlType);
-        JmlLblExpression JmlLblExpression(int labelPosition, JmlTokenKind token, Name label, JCTree.JCExpression expr);
+        JmlLblExpression JmlLblExpression(int labelPosition, IJmlClauseKind kind, Name label, JCTree.JCExpression expr);
         JmlMatchExpression JmlMatchExpression(JCTree.JCExpression expr, List<JmlMatchExpression.MatchCase> cases);
         JmlMethodClauseGroup JmlMethodClauseGroup(List<JmlSpecificationCase> cases);
         JmlMethodClauseDecl JmlMethodClauseDecl(String keyword, IJmlClauseKind t, List<JCTree.JCVariableDecl> decls);
@@ -132,9 +132,8 @@ public class JmlTree implements IJmlTree {
         JmlMethodSpecs JmlMethodSpecs(List<JmlSpecificationCase> cases);
         JmlModelProgramStatement JmlModelProgramStatement(JCTree item);
         JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt, Name id);
-        JmlQuantifiedExpr JmlQuantifiedExpr(JmlTokenKind token, List<JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression predicate);
+        JmlQuantifiedExpr JmlQuantifiedExpr(IJmlClauseKind kind, List<JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression predicate);
         JmlSetComprehension JmlSetComprehension(JCTree.JCExpression type, JCTree.JCVariableDecl v, JCTree.JCExpression predicate);
-        JmlSingleton JmlSingleton(JmlTokenKind jt);
         JmlSingleton JmlSingleton(IJmlClauseKind jt);
         JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlTokenKind t, JmlTokenKind also, List<JmlMethodClause> clauses, JCBlock block);
         JmlSpecificationCase JmlSpecificationCase(JmlSpecificationCase sc, List<JmlMethodClause> clauses);
@@ -145,7 +144,7 @@ public class JmlTree implements IJmlTree {
         JmlStatementLoopModifies JmlStatementLoopModifies(IJmlClauseKind t, List<JCTree.JCExpression> e);
         JmlStatementSpec JmlStatementSpec(JmlMethodSpecs specs);
         JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi);
-        JmlStoreRefKeyword JmlStoreRefKeyword(JmlTokenKind t);
+        JmlStoreRefKeyword JmlStoreRefKeyword(IJmlClauseKind t);
         JmlStoreRefListExpression JmlStoreRefListExpression(JmlTokenKind t, List<JCExpression> list);
         JmlTuple JmlTuple(java.util.List<JCExpression> list);
         JmlTypeClauseConditional JmlTypeClauseConditional(JCModifiers mods, IJmlClauseKind token, JCTree.JCIdent ident, JCTree.JCExpression p);
@@ -418,10 +417,6 @@ public class JmlTree implements IJmlTree {
         
         /** Creates JML expressions from tokens without arguments (e.g. \result)*/
         @Override
-        public JmlSingleton JmlSingleton(JmlTokenKind jt) {
-            return new JmlSingleton(pos,jt);
-        }
-        @Override
         public JmlSingleton JmlSingleton(IJmlClauseKind jt) {
             return new JmlSingleton(pos,jt);
         }
@@ -440,7 +435,7 @@ public class JmlTree implements IJmlTree {
         
         /** Creates a JML binary operation */
         @Override
-        public JmlBinary JmlBinary(JmlTokenKind t, JCTree.JCExpression left, JCTree.JCExpression right) {
+        public JmlBinary JmlBinary(IJmlClauseKind t, JCTree.JCExpression left, JCTree.JCExpression right) {
             return new JmlBinary(pos,t,left,right);
         }
         
@@ -494,8 +489,8 @@ public class JmlTree implements IJmlTree {
 
         /** Creates a JML quantified expression */
         @Override
-        public JmlQuantifiedExpr JmlQuantifiedExpr(JmlTokenKind t, List<JCTree.JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression value) {
-            return new JmlQuantifiedExpr(pos,t,decls,range,value);
+        public JmlQuantifiedExpr JmlQuantifiedExpr(IJmlClauseKind kind, List<JCTree.JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression value) {
+            return new JmlQuantifiedExpr(pos,kind,decls,range,value);
         }
         
         /** Creates a JML set-comprehension expression */
@@ -529,8 +524,8 @@ public class JmlTree implements IJmlTree {
 
         /** Creates a JML labeled expression */
         @Override
-        public JmlLblExpression JmlLblExpression(int labelPosition, JmlTokenKind token, Name label, JCTree.JCExpression expr) {
-            JmlLblExpression p = new JmlLblExpression(pos,labelPosition,token,label,expr);
+        public JmlLblExpression JmlLblExpression(int labelPosition, IJmlClauseKind kind, Name label, JCTree.JCExpression expr) {
+            JmlLblExpression p = new JmlLblExpression(pos,labelPosition,kind,label,expr);
             return p;
         }
         
@@ -667,7 +662,7 @@ public class JmlTree implements IJmlTree {
         }
 
         @Override
-        public JmlStoreRefKeyword JmlStoreRefKeyword(JmlTokenKind t) {
+        public JmlStoreRefKeyword JmlStoreRefKeyword(IJmlClauseKind t) {
             return new JmlStoreRefKeyword(pos,t);
         }
 
@@ -1462,23 +1457,18 @@ public class JmlTree implements IJmlTree {
     }
 
     /** This class represents binary expressions with JML operators */
-    public static class JmlBinary extends JmlExpression implements IJmlBinary {
-        public JmlTokenKind op;
+    public static class JmlBinary extends JmlExpression {
+        public IJmlClauseKind op;
         public JCExpression lhs;
         public JCExpression rhs;
         
-        @Override
         public ExpressionTree getLeftOperand() { return lhs; }
-        
-        @Override
-        public JmlTokenKind getOp() { return op; }
-        
-        @Override
+                
         public ExpressionTree getRightOperand() {return rhs; }
 
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlBinary(int pos, JmlTokenKind op,
+        protected JmlBinary(int pos, IJmlClauseKind op,
                 JCExpression lhs,
                 JCExpression rhs) {
             this.pos = pos;
@@ -1961,7 +1951,7 @@ public class JmlTree implements IJmlTree {
     /** This class represents JML LBL expressions */
     public static class JmlLblExpression extends JmlExpression {
         /** The kind of label (BSLBLANY, BSLBLPOS, BSLBLNEG) */
-        public JmlTokenKind token;
+        public IJmlClauseKind kind;
         /** The name given by the label*/
         public Name label;
         /** The expression that is labelled */
@@ -1970,12 +1960,17 @@ public class JmlTree implements IJmlTree {
         public int labelPosition;
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlLblExpression(int pos, int labelPosition, JmlTokenKind token, Name label, JCTree.JCExpression expr) {
+        protected JmlLblExpression(int pos, int labelPosition, IJmlClauseKind kind, Name label, JCTree.JCExpression expr) {
             this.pos = pos;
-            this.token = token;
+            this.labelPosition = labelPosition;
+            this.kind = kind;
             this.label = label;
             this.expression = expr;
-            this.labelPosition = labelPosition;
+        }
+        
+        public JmlLblExpression(JmlLblExpression that) {
+            this(that.pos,that.labelPosition,that.kind,that.label,that.expression);
+            
         }
         
         /*@ pure */
@@ -2579,7 +2574,7 @@ public class JmlTree implements IJmlTree {
         // class permits different types.
         
         /** The operation, e.g \\forall, \\exists, \\let, ... */
-        public JmlTokenKind op;
+        public IJmlClauseKind kind;
         
         /** The declarations over which the expressions are quantified */
         public List<JCVariableDecl> decls;
@@ -2598,17 +2593,17 @@ public class JmlTree implements IJmlTree {
         public List<JCExpression> triggers = null;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlQuantifiedExpr(int pos, JmlTokenKind op,
+        protected JmlQuantifiedExpr(int pos, IJmlClauseKind kind,
                 List<JCVariableDecl> decls,
                 JCExpression range, JCExpression value) {
             this.pos = pos;  // Start of the token
-            this.op = op;
+            this.kind = kind;
             this.decls = decls;
             this.range = range;
             this.value = value;
             this.racexpr = null;
         }
-        
+                
         @Override 
         public int getStartPosition() {
             return pos;
@@ -2649,33 +2644,32 @@ public class JmlTree implements IJmlTree {
     public static class JmlSingleton extends JmlExpression {
         
         /** The kind of singleton expression */
-        public JmlTokenKind token;
         public IJmlClauseKind kind;
         
         /** Used for additional information, such as the comment string of an informal expression */
         public Object info = null;
 
-        /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlSingleton(int pos, JmlTokenKind token) {
-            this.pos = pos;
-            this.token = token;
-        }
+//        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+//        protected JmlSingleton(int pos, JmlTokenKind token) {
+//            this.pos = pos;
+//            this.token = token;
+//        }
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlSingleton(int pos, IJmlClauseKind kind) {
             this.pos = pos;
-            this.token = null;
+//            this.token = null;
             this.kind = kind;
         }
 
         @Override
         public String toString() {
-            return kind != null ? kind.name() : token.internedName();
+            return kind.name();
         }
         
         @Override
         public int getEndPosition(EndPosTable endPosTable) {
-            return pos + (kind != null ? kind.name() : token.internedName()).length();
+            return pos + kind.name().length();
         }
 
         @Override
@@ -3246,17 +3240,17 @@ public class JmlTree implements IJmlTree {
     /** Represents a nothing, everything or informal comment token */
     // FIXME - is the content of the informal comment stored somewhere?  JmlExpression???
     public static class JmlStoreRefKeyword extends JmlExpression {
-        public JmlTokenKind token; // nothing or everything or informal comment
+        public IJmlClauseKind kind; // nothing or everything or informal comment
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlStoreRefKeyword(int pos, JmlTokenKind token) {
+        protected JmlStoreRefKeyword(int pos, IJmlClauseKind kind) {
             this.pos = pos;
-            this.token = token;
+            this.kind = kind;
         }
         
         @Override
         public int getEndPosition(EndPosTable endPosTable) {
-            return pos + token.internedName().length();
+            return pos + kind.name().length();
         }
 
         @Override

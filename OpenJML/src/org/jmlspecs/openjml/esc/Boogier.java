@@ -28,27 +28,20 @@ import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.JmlTreeScanner;
-import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Nowarns;
-import org.jmlspecs.openjml.Utils;
-import org.jmlspecs.openjml.esc.BasicBlocker2.VarMap;
-import org.jmlspecs.openjml.esc.BasicProgramParent.BlockParent;
 import org.jmlspecs.openjml.esc.BoogieProgram;
 import org.jmlspecs.openjml.esc.BoogieProgram.BoogieBlock;
+import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
 import org.jmlspecs.openjml.ext.StatementExprExtensions;
 
-import static org.jmlspecs.openjml.ext.MiscExpressions.*;
+import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
-import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
-import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
-import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeRepresentsClauseExtension.*;
 
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
@@ -68,11 +61,9 @@ import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
-import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
-import com.sun.tools.javac.util.Position;
 
 /** This class converts a Java AST into a Boogie2 program. It leaves to whatever
  * tool processes the Boogie program the tasks of DSA and passification.
@@ -759,7 +750,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         JCExpression e1 = makeTypeof(e);
         JCExpression e2 = makeTypeLiteral(type,typepos);
         //if (inSpecExpression) e2 = trSpecExpr(e2,null);
-        JCExpression ee = treeutils.makeJmlBinary(epos,JmlTokenKind.SUBTYPE_OF,e1,e2);
+        JCExpression ee = treeutils.makeJmlBinary(epos,Operators.subtypeofKind,e1,e2);
         return ee;
     }
     
@@ -767,7 +758,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     /** Makes the equivalent of an instanceof operation: e !=null && \typeof(e) <: \type(type) */
     protected JCExpression makeInstanceof(JCExpression e, int epos, Type type, int typepos) {
         JCExpression e1 = treeutils.makeNeqObject(epos,e,treeutils.nullLit);
-        JCExpression e2 = treeutils.makeJmlBinary(epos,JmlTokenKind.SUBTYPE_OF,makeTypeof(e),makeTypeLiteral(type,typepos));
+        JCExpression e2 = treeutils.makeJmlBinary(epos,Operators.subtypeofKind,makeTypeof(e),makeTypeLiteral(type,typepos));
         //if (inSpecExpression) e2 = trSpecExpr(e2,null);
         JCExpression ee = treeutils.makeBinary(epos,JCTree.Tag.AND,e1,e2);
         return ee;
@@ -1394,7 +1385,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
         while (iter.hasNext()) {
             JCExpression x = iter.next();
-            if (x instanceof JmlStoreRefKeyword && ((JmlStoreRefKeyword)x).token == JmlTokenKind.BSNOTHING)
+            if (x instanceof JmlStoreRefKeyword && ((JmlStoreRefKeyword)x).kind == nothingKind)
                 {}
             else newlist.add(x);
         }

@@ -9,12 +9,13 @@ import static com.sun.tools.javac.code.Kinds.VAL;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.LPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.VOID;
-import static org.jmlspecs.openjml.JmlTokenKind.BSMAX;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlExpression;
+import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions.AnyArgBooleanExpressions;
 
@@ -34,11 +35,13 @@ import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCErroneous;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Name;
 
 /** This class handles expression extensions that take an argument list of JCExpressions.
  * Even if there are constraints on the number of arguments, it
@@ -59,7 +62,7 @@ public class MiscExpressions extends ExpressionExtension {
     static public JmlTokenKind[] tokens() { return null; }
 
     @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public IJmlClauseKind[] clauseTypesA() { return clauseTypes(); }
     public static IJmlClauseKind[] clauseTypes() {
         // TODO Auto-generated method stub
         return null;
@@ -159,23 +162,25 @@ public class MiscExpressions extends ExpressionExtension {
     public static final IJmlClauseKind bsmaxKind = new IJmlClauseKind.Expression(bsmaxID) {
 
         @Override
-        public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
+        public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind kind, JmlParser parser) {
             init(parser);
             int startx = parser.pos();
-            parser.nextToken();
-            if (parser.token().kind != LPAREN) {
-                return parser.parseQuantifiedExpr(startx, BSMAX);
+            if (parser.getScanner().token(1).kind != LPAREN) {
+                return (JCExpression)QuantifiedExpressions.qmaxKind.parse(mods,keyword,QuantifiedExpressions.qmaxKind,parser);
+                //return parser.parseQuantifiedExpr(startx, QuantifiedExpressions.maxKind);
             } else {
+                parser.nextToken();
                 int preferred = parser.pos();
                 List<JCExpression> args = parser.arguments();
                 JmlMethodInvocation te = parser.maker().at(preferred).JmlMethodInvocation(
-                        BSMAX, args);
+                        bsmaxKind, args);
                 te.startpos = startx;
                 te.kind = bsmaxKind;
                 te = toP(te);
                 return parser.primaryTrailers(te, null);
             }
         }
+
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;    
@@ -201,6 +206,56 @@ public class MiscExpressions extends ExpressionExtension {
         }
     };
 
+    public static class LabelExpression extends IJmlClauseKind.Expression {
+        public LabelExpression(String keyword) { super(keyword); }
+
+        @Override
+        public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
+            init(parser);
+            int pos = parser.pos();
+            parser.nextToken(); // skip over the keyword
+            // pos is the position of the \lbl token
+            int labelPos = parser.pos();
+            if (parser.token().kind == TokenKind.LPAREN) {
+                if (requireStrictJML()) {
+                    log.warning(pos,"jml.not.strict","functional form of lbl expression");
+                }
+                parser.nextToken();
+                List<JCExpression> args = parser.parseExpressionList();
+                if (parser.token().kind != TokenKind.RPAREN) {
+                    log.error(parser.pos(),"jml.message", "Expected a comma or right parenthesis here");
+                } else if (args.length() != 2) {
+                    log.error(labelPos, "jml.message", "Expected two arguments to a lbl experession");
+                } else if (!(args.get(0) instanceof JCIdent)) {
+                    log.error(args.get(0).pos, "jml.message", "The first argument of a lbl expression must be an identifier");
+                } else {
+                    parser.nextToken(); // skip the RPAREN
+                    Name id = ((JCIdent)args.get(0)).name;
+                    return toP(parser.maker().at(pos).JmlLblExpression(args.get(0).pos, this, id, args.get(1)));
+                }
+                return toP(parser.maker().at(labelPos).Erroneous());
+            } else {
+                Name n = parser.ident();
+                JCExpression e = parser.parseExpression();
+                e = toP(parser.maker().at(pos).JmlLblExpression(labelPos,this, n, e));
+                if (this == lblanyKind ) strictCheck(parser, e);
+                return e;
+            }
+        }
+
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
+            JmlLblExpression expr = (JmlLblExpression)tree;    
+            return expr.expression.type;
+        }
+    }
+
+    public static final String lblanyID = "\\lbl";
+    public static final IJmlClauseKind lblanyKind = new LabelExpression(lblanyID); 
+    public static final String lblposID = "\\lblpos";
+    public static final IJmlClauseKind lblposKind = new LabelExpression(lblposID); 
+    public static final String lblnegID = "\\lblneg";
+    public static final IJmlClauseKind lblnegKind = new LabelExpression(lblnegID); 
 
     public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
         //        JmlMethodInvocation tree = (JmlMethodInvocation)expr;

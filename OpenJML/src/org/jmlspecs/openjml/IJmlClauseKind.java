@@ -222,8 +222,9 @@ public abstract class IJmlClauseKind {
             // So we need to do the following conversion.
             if (parser.token().kind == IDENTIFIER && scanner.jml()) {
                 JmlTokenKind tt = JmlTokenKind.allTokens.get(scanner.chars());
+                IJmlClauseKind tk = Extensions.allKinds.get(scanner.chars());
                 if (tt != null) {
-                    scanner.setToken(new JmlToken(tt, null, parser.pos(), parser.endPos()));
+                    scanner.setToken(new JmlToken(tt, tk, null, parser.pos(), parser.endPos()));
                 }
             }
         } else if (parser.token().ikind == ENDJMLCOMMENT) {
@@ -244,13 +245,13 @@ public abstract class IJmlClauseKind {
     abstract public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env);
     
     /** returns true if strict adherence to JML is required (language option is jml) */
-    public boolean requireStringJML() {
+    public boolean requireStrictJML() {
         return JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
     }
     
     /** Issue warning if strictness is required -- e.g. call this if an extension is being used */
     public void strictCheck(JmlParser parser, JCTree e) {
-        if (requireStringJML()) {
+        if (requireStrictJML()) {
             Log.instance(context).warning(e.pos(),"jml.not.strict",name());
         }
     }
@@ -318,6 +319,13 @@ public abstract class IJmlClauseKind {
         }
     }
 
+    /** A base class for JML extensions that do nont fll innto other categories */
+    public static abstract class Misc extends IJmlClauseKind {
+        public Misc(String keyword) { super(keyword); }
+        abstract public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser);
+    }
+    
+    /** A base class for JML extensions that are kinds of expressions */
     public static abstract class Expression extends IJmlClauseKind {
         public Expression(String keyword) { super(keyword); }
         abstract public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser);
@@ -385,6 +393,36 @@ public abstract class IJmlClauseKind {
         }
     }
     
+    /** This class is used for JML items that are just a keyword but
+     * are not expressions or other categories themselves.
+     */
+    public static abstract class Singleton extends IJmlClauseKind.Misc {
+        
+        public Singleton(String name) { super(name); }
+        
+        @Override
+        public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
+            init(parser);
+            IJmlClauseKind jt = parser.jmlTokenClauseKind();
+            int p = parser.pos();
+            String stringRep = parser.getScanner().chars();
+            parser.nextToken();
+            if (parser.token().kind == TokenKind.LPAREN) {
+                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.name());
+            } else {
+                JmlSingleton e = parser.maker().at(p).JmlSingleton(jt);
+                e.kind = this;
+                checkParse(parser,e,stringRep);
+                return e;
+            }
+        }
+        
+        /** A method meant to be overridden in derived classes to do any
+         * additional checking -- typically none for a singleton.
+         */
+        public void checkParse(JmlParser parser, JmlSingleton e, String rep) {}
+
+    }
     /** This class is used for JML expressions that are just a keyword with
      * no parenthesized argument list
      */
@@ -395,12 +433,12 @@ public abstract class IJmlClauseKind {
         @Override
         public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
-            JmlTokenKind jt = parser.jmlTokenKind();
+            IJmlClauseKind jt = parser.jmlTokenClauseKind();
             int p = parser.pos();
             String stringRep = parser.getScanner().chars();
             parser.nextToken();
             if (parser.token().kind == TokenKind.LPAREN) {
-                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.internedName());
+                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.name());
             } else {
                 JmlSingleton e = parser.maker().at(p).JmlSingleton(jt);
                 e.kind = this;

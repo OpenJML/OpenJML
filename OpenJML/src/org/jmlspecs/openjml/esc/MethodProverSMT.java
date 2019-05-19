@@ -22,6 +22,7 @@ import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.ext.StatementExprType;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
+import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.SignalsClauseExtension;
 import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
@@ -1135,9 +1136,9 @@ public class MethodProverSMT {
     }
     
     // These strings must mirror the strings used in JmlAsssertionAdder.visitJmlLblExpression
-    private final static String prefix_lblpos = Strings.labelVarString + JmlTokenKind.BSLBLPOS.internedName().substring(1) + "_";
-    private final static String prefix_lblneg = Strings.labelVarString + JmlTokenKind.BSLBLNEG.internedName().substring(1) + "_";
-    private final static String prefix_lbl = Strings.labelVarString + JmlTokenKind.BSLBLANY.internedName().substring(1) + "_";
+    private final static String prefix_lblpos = Strings.labelVarString + MiscExpressions.lblposKind.name().substring(1) + "_";
+    private final static String prefix_lblneg = Strings.labelVarString + MiscExpressions.lblnegKind.name().substring(1) + "_";
+    private final static String prefix_lbl = Strings.labelVarString + MiscExpressions.lblanyKind.name().substring(1) + "_";
 
     public int checkTerminationPosition(String id, int terminationPos) {
         // The BasicBlocker2 implementation creates special RETURN and 
@@ -1766,11 +1767,11 @@ public class MethodProverSMT {
         @Override
         public void visitJmlBinary(JmlBinary tree) {
             // Special handling of short-circuit cases
-            if (tree.op == JmlTokenKind.IMPLIES) {
+            if (tree.op == Operators.impliesKind) {
                 scan(tree.lhs);
                 String v = cemap.get(tree.lhs);
                 if ("true".equals(v)) scan(tree.rhs);
-            } else if (tree.op == JmlTokenKind.REVERSE_IMPLIES) {
+            } else if (tree.op == Operators.reverseimpliesKind) {
                 scan(tree.lhs);
                 String v = cemap.get(tree.lhs);
                 if ("false".equals(v)) scan(tree.rhs);

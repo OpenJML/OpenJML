@@ -16,7 +16,9 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
+import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.RequiresClause;
+import org.jmlspecs.openjml.ext.SingletonExpressions;
 
 import static org.jmlspecs.openjml.ext.EndStatement.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
@@ -158,13 +160,13 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             int ownprec = JmlParser.jmlPrecedence(that.op); // FIXME - This needs a bit more testing
             int p = ownprec;
             if (ownprec == -2) {
-                if (that.op == JmlTokenKind.EQUIVALENCE || that.op == JmlTokenKind.INEQUIVALENCE) p = TreeInfo.orPrec - 2;
+                if (that.op == Operators.equivalenceKind || that.op == Operators.inequivalenceKind) p = TreeInfo.orPrec - 2;
                 else p = TreeInfo.orPrec - 1;
             }
             open(prec, p);
             printExpr(that.lhs, p);
             print(Strings.space);
-            print(that.op.internedName());
+            print(that.op.name());
             print(Strings.space);
             printExpr(that.rhs, p + 1);
             close(prec, p);
@@ -258,7 +260,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try { 
             // NOTE: JML requires that a lbl expression be in parentheses.
             // In this parser the outer parentheses are a JCParens expression.
-            print(that.token.internedName());
+            print(that.kind.name());
             print(" ");
             print(that.label.toString());
             print(" ");
@@ -467,7 +469,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try { 
             // FIXME - it appears that the enclosing parentheses are parsed as a Parens
             // expression - is this really right?
-            print(that.op.internedName());
+            print(that.kind.name());
             print(" "); //$NON-NLS-1$
             boolean first = true;
             for (JCTree.JCVariableDecl n: that.decls) {
@@ -513,7 +515,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlSingleton(JmlSingleton that) {
         try {
-            if (that.token == JmlTokenKind.INFORMAL_COMMENT) {
+            if (that.kind == SingletonExpressions.informalCommentKind) {
                 print("(*");
                 print(that.info);
                 print("*)");
@@ -879,7 +881,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
         try { 
-            print(that.token.internedName()); 
+            print(that.kind.name()); 
         } catch (IOException e) { perr(that,e); }
     }
     
