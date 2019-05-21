@@ -227,6 +227,7 @@ public class racnew extends RacBase {
     // TODO need multiple requires, multiple spec cases
 
     @Test public void testPostcondition() {
+        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures k == i; */ static int m(int i) { k = i; return 13; } " +
                 "}"

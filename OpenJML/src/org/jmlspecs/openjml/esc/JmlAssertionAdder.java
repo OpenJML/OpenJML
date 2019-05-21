@@ -2364,6 +2364,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return attr.isHelper(symbol) || (symbol.owner.isEnum() && (symbol.name == names.values || symbol.name == names.ordinal || symbol.name == names._name)); // FIXME - could declare the methods helper
     }
     
+    // Returns true if the symbol is a formal parameter of the given method,
+    // or of any method if msym is null
+    // not a local variable or a field
+    public boolean isFormal(VarSymbol v, MethodSymbol msym) {
+        if ((v.flags() & Flags.PARAMETER) == 0) return false;
+        if (msym == null) return true;
+        return v.owner == msym;
+    }
+    
     /** Returns true if the given symbol has a annotation */
     public boolean isPure(MethodSymbol symbol) {
         return attr.isPureMethod(symbol);
@@ -2538,7 +2547,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     /** Adds invariants, constraints and initially clauses from a given class and its parents.
      * This is used for pre and post conditions, in which case the invariants from a 
-     * meethod's own class (and its parents) are used; it is also used for other 
+     * method's own class (and its parents) are used; it is also used for other 
      * relevant classes, such as the classes of method parameters. The value of
      * 'methodDecl' (and 'classDecl') is the method for which a logical encoding
      * is being constructed, but is not necessarily the callee class which is causing
@@ -3922,18 +3931,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         addInvariants(methodDecl,owner.type,receiver,currentStatements,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),false,true,Label.INVARIANT_ENTRANCE,
                 utils.qualifiedMethodSig(methodDecl.sym) );
         // Assume invariants for the class of each parameter
-//        for (JCVariableDecl v: methodDecl.params) {
-        for (Symbol vsym: preparams.keySet()) {
-            JCIdent idd = preparams.get(vsym);
+        for (JCVariableDecl v: methodDecl.params) {
+        //for (Symbol vsym: preparams.keySet()) {
+            Symbol vsym = v.sym;
+            //JCIdent idd = preparams.get(vsym);
             if (utils.isPrimitiveType(vsym.type)) continue;
-            JCIdent d = preparams.get(vsym);
-            if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
+            JCIdent idd = treeutils.makeIdent(v.pos,v.sym);
+            //JCIdent d = preparams.get(vsym);
+            if (isHelper(methodDecl.sym) && v.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
             if (owner.type.tsym == vsym.type.tsym && methodDecl.sym.isConstructor()) {
-                JCIdent id = treeutils.makeIdent(idd.pos,d.sym);
+                JCIdent id = treeutils.makeIdent(idd.pos,v.sym);
                 addAssume(idd,Label.IMPLICIT_ASSUME,
                         treeutils.makeNeqObject(idd.pos, id, currentThisExpr));
             }
-            JCIdent id = treeutils.makeIdent(idd.pos,d.sym);
+            JCIdent id = treeutils.makeIdent(idd.pos,v.sym);
             addStat(comment(idd,"Adding invariants for method parameter " + vsym,null));
             addInvariants(idd,idd.type,id,currentStatements,true,false,false,false,false,true,Label.INVARIANT_ENTRANCE,
                     utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + idd.name + ")");
@@ -4463,11 +4474,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!isPure || isConstructor) {
             for (JCVariableDecl v: methodDecl.params) {
                 if (utils.isPrimitiveType(v.type)) continue;
-                JCIdent d = preparams.get(v.sym);
-                if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
+//                JCIdent d = preparams.get(v.sym);
+                if (isHelper(methodDecl.sym) && v.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
 
-                JCIdent id = treeutils.makeIdent(v.pos,d.sym);
-                addInvariants(v,v.type,id,ensuresStats,true,false,false,false,true,false,Label.INVARIANT_EXIT,
+                JCIdent id = treeutils.makeIdent(v.pos,v.sym);
+                JCExpression oldid = treeutils.makeOld(v.pos(),id,labelProperties.get(preLabel.name));
+                if (rac) oldid = convertExpr(oldid);
+                addInvariants(v,v.type,oldid,ensuresStats,true,false,false,false,true,false,Label.INVARIANT_EXIT,
                         utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
             }
         }
@@ -4495,9 +4508,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!isPure || isConstructor) {
             for (JCVariableDecl v: methodDecl.params) {
                 if (utils.isPrimitiveType(v.type)) continue;
-                JCIdent d = preparams.get(v.sym);
-                if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
-                JCIdent id = treeutils.makeIdent(v.pos,d.sym);
+                //JCIdent d = preparams.get(v.sym);
+                if (isHelper(methodDecl.sym) && v.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
+                JCIdent id = treeutils.makeIdent(v.pos,v.sym);
                 addInvariants(v,v.type,id,exsuresStats,false,false,false,false,true,false,Label.INVARIANT_EXCEPTION_EXIT,
                         utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
                 //            addConstraintInitiallyChecks(v,v.type.tsym,id,exsuresStats,false,false,false,false,true,false,null,
@@ -6490,7 +6503,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCIdent pid = (JCIdent)pfac;
             if (!isContainedIn(fa.sym,pid.sym)) return isLocal;
             if (utils.isJMLStatic(pid.sym)) return treeutils.trueLit;
-            JCExpression idthis = treeutils.makeOld(pos, baseThisExpr);
+            JCExpression idthis = treeutils.makeOld(pos, baseThisExpr, labelProperties.get(preLabel.name));
             if (rac) idthis = convertJML(idthis);
             JCExpression result = treeutils.makeEqObject(posp, idthis, 
                      convertJML(fa.selected));  // FIXM E- fa already translated - always?
@@ -8346,8 +8359,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (utils.isPrimitiveType(v.type)) continue;
                     // FIXME - it is an open question which invariants to check here - in principle all invariants must hold - but which might not? - need the pack/unpack capability
                     // FIXME - for now we check the invariants of the parameters in the prestate
-                    JCIdent d = preparams.get(v.sym);
-                    JCIdent id = treeutils.makeIdent(v.pos,d.sym);
+                    //JCIdent d = preparams.get(v.sym);
+                    JCIdent id = treeutils.makeIdent(v.pos,v.sym);
+                    // FIXME - do we needs an \old here?
                     addStat(comment(v, "Checking invariants for caller parameter " + v.sym + " before calling method " + utils.qualifiedMethodSig(calleeMethodSym),null));
                     addInvariants(v,v.type,id,currentStatements,
                             false,false,false,isHelper(calleeMethodSym),false,false,Label.INVARIANT_EXIT_CALLER, "(Parameter: " + v.sym + ", Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
@@ -9381,10 +9395,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (utils.isPrimitiveType(v.type)) continue;
                         // FIXME - it is an open question which invariants to check here - in principle all invariants must hold - but which might not? - need the pack/unpack capability
                         // FIXME - for now we check the invariants of the parameters in the prestate
-                        JCIdent d = preparams.get(v.sym);
-                        JCIdent id = treeutils.makeIdent(v.pos,d.sym);
+                        //JCIdent d = preparams.get(v.sym);
+                        JCIdent id = treeutils.makeIdent(v.pos,v.sym);
+                        JCExpression oldid = treeutils.makeOld(v.pos(), id, labelProperties.get(preLabel.name));
+                        if (rac) oldid = convertExpr(oldid);
                         currentStatements.add(comment(that, "Assuming invariants for caller parameter " + id + " upon reentering the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
-                        addInvariants(v,v.type,id,currentStatements,
+                        addInvariants(v,v.type,oldid,currentStatements,
                                 false,false,false,false,false,true,Label.INVARIANT_REENTER_CALLER, "(Parameter: " + v.sym + ", Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
                     }
                 }
@@ -12495,7 +12511,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     return;
                 }
                 if (rac && isPostcondition && preparams != null && (d=preparams.get(sym)) != null) {
-                    result = eresult = treeutils.makeIdent(that.pos,d.sym);
+                    JCExpression e  = treeutils.makeOld(that,treeutils.makeIdent(that.pos,sym),labelProperties.get(preLabel.name));
+                    isPostcondition = false;
+                    result = eresult = convertExpr(e);
+                    isPostcondition = true;
                     treeutils.copyEndPosition(eresult, that);
                     return;
                 }
