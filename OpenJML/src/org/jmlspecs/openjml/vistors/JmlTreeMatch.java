@@ -2,7 +2,7 @@
  * This file is part of the OpenJML project. 
  * Author: David R. Cok
  */
-package org.jmlspecs.openjml.walkers;
+package org.jmlspecs.openjml.vistors;
 
 import java.util.Map;
 
@@ -10,11 +10,9 @@ import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTreeVisitor;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.JmlTreeScanner;
 
 import com.sun.source.tree.*;
 import com.sun.tools.javac.tree.JCTree;

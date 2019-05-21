@@ -6,8 +6,8 @@ import static org.junit.Assert.fail;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.jmlspecs.openjml.IJmlVisitor;
-import org.jmlspecs.openjml.JmlTreeScanner;
+import org.jmlspecs.openjml.vistors.IJmlVisitor;
+import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;

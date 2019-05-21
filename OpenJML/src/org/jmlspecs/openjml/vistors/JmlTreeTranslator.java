@@ -2,14 +2,18 @@
  * This file is part of the OpenJML project. 
  * Author: David R. Cok
  */
-package org.jmlspecs.openjml;
+package org.jmlspecs.openjml.vistors;
 
 // FIXME - not ready for use - review and fix
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.JmlTree.JmlMatchExpression.MatchCase;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeTranslator;

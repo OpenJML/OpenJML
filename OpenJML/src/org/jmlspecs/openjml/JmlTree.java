@@ -16,6 +16,8 @@ import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.*;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
+import org.jmlspecs.openjml.vistors.IJmlVisitor;
+import org.jmlspecs.openjml.vistors.JmlTreeVisitor;
 
 import static org.jmlspecs.openjml.ext.TypeRepresentsClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeInitializerClauseExtension.*;
@@ -1478,7 +1480,7 @@ public class JmlTree {
         }
         
         /** A shallow copy constructor */
-        protected JmlBinary(JmlBinary that) {
+        public JmlBinary(JmlBinary that) {
             this.op = that.op;
             this.lhs = that.lhs;
             this.rhs = that.rhs;
@@ -1534,7 +1536,7 @@ public class JmlTree {
         }
         
         /** A shallow copy constructor */
-        protected JmlChained(JmlChained that) {
+        public JmlChained(JmlChained that) {
             this.conjuncts = that.conjuncts;
             this.type = that.type;
         }

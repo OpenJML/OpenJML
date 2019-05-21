@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.openjml.IJmlVisitor;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree;
@@ -18,7 +17,8 @@ import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.ext.OptionsInfer;
 import org.jmlspecs.openjml.strongarm.Strongarm;
 import org.jmlspecs.openjml.strongarm.SubstitutionCache;
-import org.jmlspecs.openjml.JmlTreeScanner;
+import org.jmlspecs.openjml.vistors.IJmlVisitor;
+import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
 

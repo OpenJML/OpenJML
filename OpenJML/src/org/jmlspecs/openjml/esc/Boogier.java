@@ -27,13 +27,13 @@ import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.esc.BoogieProgram;
 import org.jmlspecs.openjml.esc.BoogieProgram.BoogieBlock;
 import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
 import org.jmlspecs.openjml.ext.StatementExprExtensions;
+import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;

@@ -156,7 +156,7 @@ public class QuantifiedExpressions extends ExpressionExtension {
             attr.quantifiedExprs.add(that);
             
             if (that.triggers != null && that.triggers.size() > 0 && that.kind != qforallKind && that.kind != qexistsKind ) {
-                attr.log.warning(that.triggers.get(0),"jml.message","Triggers not in \\forall or \\exists quantified expressions are ignored");
+                attr.log.warning(that.triggers.get(0),"jml.message","Triggers only recognized in \\forall or \\exists quantified expressions");
                 that.triggers = null;
             }
             Type resultType = syms.errType;

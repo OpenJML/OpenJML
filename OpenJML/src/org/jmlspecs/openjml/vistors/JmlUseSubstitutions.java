@@ -1,13 +1,18 @@
-package org.jmlspecs.openjml;
+package org.jmlspecs.openjml.vistors;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTreeUtils;
+import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.Operators;
-import org.jmlspecs.openjml.walkers.JmlTreeMatch;
+
 import static org.jmlspecs.openjml.ext.RequiresClause.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;

@@ -1,5 +1,6 @@
 // DemoWalkTree1.java
 import org.jmlspecs.openjml.*;
+import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 
 import com.sun.tools.javac.tree.JCTree;
 

@@ -2,12 +2,18 @@
  * This file is part of the OpenJML project. 
  * Author: David R. Cok
  */
-package org.jmlspecs.openjml;
+package org.jmlspecs.openjml.vistors;
 
 import java.io.IOException;
 import java.util.Iterator;
 
+import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
+import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.JmlTree.JmlMatchExpression.MatchCase;
 
 import com.sun.source.tree.LabeledStatementTree;
 import com.sun.tools.javac.tree.JCTree;

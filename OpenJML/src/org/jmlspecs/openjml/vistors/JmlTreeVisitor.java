@@ -2,8 +2,9 @@
  * This file is part of the OpenJML project. 
  * Author: David R. Cok
  */
-package org.jmlspecs.openjml;
+package org.jmlspecs.openjml.vistors;
 
+import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.source.tree.TreeVisitor;

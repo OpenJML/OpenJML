@@ -3,16 +3,16 @@ package org.jmlspecs.openjml.strongarm.transforms;
 import java.io.StringWriter;
 
 import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.openjml.IJmlVisitor;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
-import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.OptionsInfer;
+import org.jmlspecs.openjml.vistors.IJmlVisitor;
+import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 
 import com.sun.source.tree.ExpressionStatementTree;
 import com.sun.tools.javac.code.Symtab;

@@ -2,7 +2,7 @@
  * This file is part of the OpenJML project. 
  * Author: David R. Cok
  */
-package org.jmlspecs.openjml;
+package org.jmlspecs.openjml.vistors;
 
 import com.sun.tools.javac.tree.JCTree.*;
 

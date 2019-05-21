@@ -7,12 +7,12 @@ package com.sun.tools.javac.comp;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.IJmlVisitor;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.StateExpressions;
+import org.jmlspecs.openjml.vistors.IJmlVisitor;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;

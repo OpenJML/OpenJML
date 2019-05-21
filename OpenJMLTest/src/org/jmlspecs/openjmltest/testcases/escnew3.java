@@ -1014,7 +1014,7 @@ public class escnew3 extends EscBase {
                 + "  }\n"
                 + "}"
                 ,"/tt/TestJava.java:7: incompatible types: boolean cannot be converted to int",47
-                ,"/tt/TestJava.java:8: warning: Triggers not in \\forall or \\exists quantified expressions are ignored",46
+                ,"/tt/TestJava.java:8: warning: Triggers only recognized in \\forall or \\exists quantified expressions",46
                  );
         
     }

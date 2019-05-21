@@ -5,7 +5,7 @@ import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.ensuresClauseK
 import static org.jmlspecs.openjml.ext.RequiresClause.requiresClauseKind;
 
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
-import org.jmlspecs.openjml.JmlTreeScanner;
+import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 
 import com.sun.tools.javac.tree.JCTree;
 

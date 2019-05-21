@@ -7,7 +7,7 @@ package com.sun.tools.javac.comp;
 
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlLambda;
-import org.jmlspecs.openjml.JmlTreeCopier;
+import org.jmlspecs.openjml.vistors.JmlTreeCopier;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeCopier;

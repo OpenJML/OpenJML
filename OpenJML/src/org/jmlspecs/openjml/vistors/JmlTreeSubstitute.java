@@ -2,12 +2,15 @@
  * This file is part of the OpenJML project. 
  * Author: David R. Cok
  */
-package org.jmlspecs.openjml;
+package org.jmlspecs.openjml.vistors;
 
 import java.util.Map;
 
 import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlTree.*;
+
 import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import com.sun.source.tree.*;
 import com.sun.tools.javac.tree.JCTree;

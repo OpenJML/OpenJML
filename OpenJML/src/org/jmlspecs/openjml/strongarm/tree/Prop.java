@@ -22,7 +22,6 @@ import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
-import org.jmlspecs.openjml.JmlTreeCopier;
 import org.jmlspecs.openjml.strongarm.AnalysisTypes;
 import org.jmlspecs.openjml.strongarm.AnalysisTypes.AnalysisType;
 import org.jmlspecs.openjml.strongarm.BlockReader;
@@ -31,6 +30,7 @@ import org.jmlspecs.openjml.strongarm.Strongarm;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupPrestateAssignable;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2;
+import org.jmlspecs.openjml.vistors.JmlTreeCopier;
 
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;

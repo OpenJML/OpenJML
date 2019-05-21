@@ -28,6 +28,7 @@ import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.Span;
+import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.smtlib.IAttributeValue;
 import org.smtlib.ICommand;

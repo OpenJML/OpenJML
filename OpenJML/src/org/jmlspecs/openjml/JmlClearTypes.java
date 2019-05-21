@@ -19,6 +19,7 @@ import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 
 public class JmlClearTypes extends JmlTreeScanner {
 

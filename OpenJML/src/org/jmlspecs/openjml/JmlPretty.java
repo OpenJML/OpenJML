@@ -19,6 +19,7 @@ import org.jmlspecs.openjml.ext.MiscExpressions;
 import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.RequiresClause;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
+import org.jmlspecs.openjml.vistors.IJmlVisitor;
 
 import static org.jmlspecs.openjml.ext.EndStatement.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;

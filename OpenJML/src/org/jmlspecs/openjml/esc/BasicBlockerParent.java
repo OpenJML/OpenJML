@@ -17,6 +17,8 @@ import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.esc.BasicProgramParent.BlockParent;
+import org.jmlspecs.openjml.vistors.JmlTreeScanner;
+
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 
 import com.sun.tools.javac.code.Symbol;
