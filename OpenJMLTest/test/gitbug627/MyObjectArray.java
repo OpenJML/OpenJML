@@ -14,7 +14,7 @@ public class MyObjectArray {
     public MyObjectArray() {
         //@ maintaining i >= 0 && i <= 100;
         //@ loop_invariant (\forall int j; 0<=j && j<i; addresses[j] != null);
-        //@ loop_invariant (\forall int j; 0<=j && j<i; !\fresh(addresses[j],LoopBodyBegin));
+        //@ loop_invariant (\forall int j; 0<=j && j<i; \fresh(addresses[j],LoopInit));
         //@ loop_invariant (\forall int j; 0<=j && j<i; (\forall int k; 0<=k && k<j; addresses[j] != addresses[k]));
         //@ decreasing 100 - i;
         for (int i = 0; i < 100; ++i) {
@@ -22,9 +22,11 @@ public class MyObjectArray {
             int jj = 0;
             //@ havoc jj;
             //@ assume 0 <= jj && jj < i ;
-            //@ show jj,i;
+            //@ show jj,i,addresses[jj],addresses[i], \fresh(addresses[jj],LoopBodyBegin), \fresh(addresses[i],LoopBodyBegin);
             //@ assert addresses[i] != addresses[jj];
-        //@ assert (\forall int j; 0<=j && j<=i; (\forall int k; 0<=k && k<j; addresses[j] != addresses[k]));
+            //@ assert !\fresh(addresses[jj], LoopBodyBegin);
+            //@ assert \fresh(addresses[i], LoopBodyBegin);
+            //@ assert (\forall int j; 0<=j && j<=i; (\forall int k; 0<=k && k<j; addresses[j] != addresses[k]));
         }
 
         //@ maintaining i >= 0 && i <= 100;

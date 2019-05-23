@@ -7,10 +7,12 @@ package com.sun.tools.javac.comp;
 
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.MiscExpressions;
 import org.jmlspecs.openjml.ext.StateExpressions;
 import org.jmlspecs.openjml.vistors.IJmlVisitor;
 
@@ -454,7 +456,8 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitApply(JCMethodInvocation tree) {
             if (tree.meth == null) {
-                if (((JmlMethodInvocation)tree).kind == StateExpressions.oldKind) {
+                IJmlClauseKind k = ((JmlMethodInvocation)tree).kind;
+                if (k == StateExpressions.oldKind || k == MiscExpressions.freshKind) {
                     scanExpr(tree.args.get(0)); // A second argument is just a label, and not a regular identifier
                     // FIXME - where do we check that the label is in scope
                 } else {

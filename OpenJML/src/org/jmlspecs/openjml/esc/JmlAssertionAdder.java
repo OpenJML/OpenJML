@@ -386,7 +386,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** A map from formals to a declaration of a variable that holds the formal's
      * value at method body entrance (for use by postconditions).
      */
-    protected Map<Symbol,JCIdent> preparams = new HashMap<Symbol,JCIdent>();
+//    protected Map<Symbol,JCIdent> preparams = new HashMap<Symbol,JCIdent>();
     
     /** A map from specification case to a JCIdent that is a variable holding
      * the value of the precondition for that specification case.
@@ -600,7 +600,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.count = 0;
         this.assertCount = 0;
         this.precount = 0;
-        this.preparams.clear();
+//        this.preparams.clear();
         this.preconditions.clear();
         //this.labels.clear();
         this.pureCopy = !(infer||esc||rac);
@@ -795,8 +795,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         IArithmeticMode savedArithmeticMode = this.currentArithmeticMode;
         ListBuffer<JCStatement> prevStats = initialStatements;
         ListBuffer<JCStatement> savedOldStatements = oldStatements;
-        Map<Symbol,JCIdent> savedPreparams = preparams;
-        preparams = new HashMap<Symbol,JCIdent>(savedPreparams);
+//        Map<Symbol,JCIdent> savedPreparams = preparams;
+//        preparams = new HashMap<Symbol,JCIdent>(savedPreparams);
         JavaFileObject prevSource = log.useSource(pmethodDecl.source());
         Map<Object,JCExpression> savedParamActuals = paramActuals;
         java.util.List<Symbol> savedCompletedInvariants = this.completedInvariants;
@@ -835,6 +835,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         typevarMapping = typemapping(pclassDecl.type, null, null);
         
+        boolean undoLabels = false;
         try {
             enclosingMethod = pmethodDecl.sym;
             enclosingClass = pmethodDecl.sym.owner;
@@ -1002,10 +1003,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             lp.allocCounter = 0;
             lp.heapCount = heapCount;
             lp.name = preLabel.name;
-            labelProperties.put(preLabel.name,lp);
+            labelPropertiesStore.put(preLabel.name,lp);
             JmlLabeledStatement mark = M.JmlLabeledStatement(preLabel.name, null, null);
-            labelProperties.put(oldLabel.name,lp);
+            labelPropertiesStore.put(oldLabel.name,lp);
             oldStatements = mark.extraStatements;
+            undoLabels = true;
             
             if (isConstructor && rac) {
                 pushBlock();
@@ -1192,7 +1194,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             Log.instance(context).error("jml.internal.notsobad",message);
             return null;
         } finally {
-            this.preparams = savedPreparams;
+            if (undoLabels) {
+                labelPropertiesStore.pop(preLabel.name);
+                labelPropertiesStore.pop(oldLabel.name);
+            }
+
+//            this.preparams = savedPreparams;
             this.assumeCheckCount = prevAssumeCheckCount;
             this.methodDecl = prevMethodDecl;
             this.classDecl = prevClass;
@@ -2367,7 +2374,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // Returns true if the symbol is a formal parameter of the given method,
     // or of any method if msym is null
     // not a local variable or a field
-    public boolean isFormal(VarSymbol v, MethodSymbol msym) {
+    public boolean isFormal(Symbol v, MethodSymbol msym) {
         if ((v.flags() & Flags.PARAMETER) == 0) return false;
         if (msym == null) return true;
         return v.owner == msym;
@@ -3237,7 +3244,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         JCExpression e = treeutils.makeSelect(that.pos, translatedSelector, varsym);
                                         if (inOldEnv) {
                                             JmlMethodInvocation ee = treeutils.makeJmlMethodInvocation(that.pos(),oldKind, e.type, e, oldenv);
-                                            ee.labelProperties = labelProperties.get(oldenv.name);
+                                            ee.labelProperties = labelPropertiesStore.get(oldenv.name);
                                             e = ee;
                                         }
                                         e = treeutils.makeBinary(that.pos, JCTree.Tag.EQ, e, r);
@@ -3792,7 +3799,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         /* Declare new variables, initialized to the values of the formal 
          * parameters, so that they can be referred to in postconditions and other invariant checks. 
          */
-        addStat(comment(methodDecl,"Declare pre-state value of formals",null));
+        addStat(comment(methodDecl,"Declare formals and assume type conditions",null));
         for (JCVariableDecl d: methodDecl.params) {
             JCVariableDecl dd = treeutils.makeVarDefWithSym(d.sym, null);
             dd.pos = d.pos;
@@ -3801,12 +3808,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addNullnessAllocationTypeCondition2(dd,dd.sym,false);
             }
             
-            dd = treeutils.makeVarDef(d.type,M.Name(Strings.formalPrefix+d.name.toString()),  
-                    d.sym.owner, M.Ident(d.sym));
-            dd.pos = dd.sym.pos = d.sym.pos;
-            preparams.put(d.sym,M.at(dd).Ident(dd.sym));
-            if (esc) dd.sym.owner = null; // FIXME - can get these straight from the labelmaps - do we need this?
-            addStat(dd);
+//            dd = treeutils.makeVarDef(d.type,M.Name(Strings.formalPrefix+d.name.toString()),  
+//                    d.sym.owner, M.Ident(d.sym));
+//            dd.pos = dd.sym.pos = d.sym.pos;
+//            preparams.put(d.sym,M.at(dd).Ident(dd.sym));
+//            if (esc) dd.sym.owner = null; // FIXME - can get these straight from the labelmaps - do we need this?
+//            addStat(dd);
 //            // Declare allocation time of formals if they are not null
 //            if (esc && !d.type.isPrimitive()) {
 //                JCIdent id = treeutils.makeIdent(d.pos, d.sym);
@@ -4478,7 +4485,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (isHelper(methodDecl.sym) && v.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
 
                 JCIdent id = treeutils.makeIdent(v.pos,v.sym);
-                JCExpression oldid = treeutils.makeOld(v.pos(),id,labelProperties.get(preLabel.name));
+                JCExpression oldid = treeutils.makeOld(v.pos(),id,labelPropertiesStore.get(preLabel.name));
                 if (rac) oldid = convertExpr(oldid);
                 addInvariants(v,v.type,oldid,ensuresStats,true,false,false,false,true,false,Label.INVARIANT_EXIT,
                         utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
@@ -5381,11 +5388,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
-    protected LabelPropertyStore labelProperties = new LabelPropertyStore();
+    protected LabelPropertyStore labelPropertiesStore = new LabelPropertyStore();
     
     protected LabelProperties recordLabel(Name labelName, JmlLabeledStatement stat) {
         LabelProperties lp = new LabelProperties();
-        labelProperties.put(labelName, lp);
+        labelPropertiesStore.put(labelName, lp);
         lp.labeledStatement = stat;
         lp.name = labelName;
         lp.heapCount = heapCount;
@@ -6503,7 +6510,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCIdent pid = (JCIdent)pfac;
             if (!isContainedIn(fa.sym,pid.sym)) return isLocal;
             if (utils.isJMLStatic(pid.sym)) return treeutils.trueLit;
-            JCExpression idthis = treeutils.makeOld(pos, baseThisExpr, labelProperties.get(preLabel.name));
+            JCExpression idthis = treeutils.makeOld(pos, baseThisExpr, labelPropertiesStore.get(preLabel.name));
             if (rac) idthis = convertJML(idthis);
             JCExpression result = treeutils.makeEqObject(posp, idthis, 
                      convertJML(fa.selected));  // FIXM E- fa already translated - always?
@@ -7645,7 +7652,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         nestedCallLocation = null;
         
         Map<Object,JCExpression> savedParamActuals = paramActuals; // Mapping from formal parameter symbols to the actual arguments
-        Map<Symbol,JCIdent> savedpreparams = preparams;
+//        Map<Symbol,JCIdent> savedpreparams = preparams;
         ListBuffer<JCStatement> savedOldStatements = oldStatements;
         JCIdent savedFresh = currentFresh;
         JCIdent savedPreLabel = preLabel;
@@ -8775,7 +8782,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JmlLabeledStatement stat = M.at(that).JmlLabeledStatement(calllabel,null,bl);
                 addStat(stat);
                 LabelProperties lp = recordLabel(calllabel,stat);
-                labelProperties.put(oldLabel.name, lp);
+                labelPropertiesStore.put(oldLabel.name, lp);
                 labelPushed= true;
 
                 oldStatements = currentStatements;
@@ -9397,7 +9404,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         // FIXME - for now we check the invariants of the parameters in the prestate
                         //JCIdent d = preparams.get(v.sym);
                         JCIdent id = treeutils.makeIdent(v.pos,v.sym);
-                        JCExpression oldid = treeutils.makeOld(v.pos(), id, labelProperties.get(preLabel.name));
+                        JCExpression oldid = treeutils.makeOld(v.pos(), id, labelPropertiesStore.get(preLabel.name));
                         if (rac) oldid = convertExpr(oldid);
                         currentStatements.add(comment(that, "Assuming invariants for caller parameter " + id + " upon reentering the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
                         addInvariants(v,v.type,oldid,currentStatements,
@@ -9699,13 +9706,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             resultSym = savedResultSym;
             resultExpr = savedResultExpr;
             exceptionSym = savedExceptionSym;
-            preparams = savedpreparams;
+//            preparams = savedpreparams;
             currentThisId = savedThisId;
             currentThisExpr = savedThisExpr;
             oldStatements = savedOldStatements;
             condition = savedCondition;
             preLabel = savedPreLabel;
-            if (labelPushed) labelProperties.pop(oldLabel.name);
+            if (labelPushed) labelPropertiesStore.pop(oldLabel.name);
             currentFresh = savedFresh;
             enclosingMethod = savedEnclosingMethod;
             enclosingClass = savedEnclosingClass;
@@ -12501,17 +12508,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
                 JCIdent d;
-                if (esc && isPostcondition && sym.owner == methodDecl.sym && (sym.flags() & Flags.PARAMETER) != 0) {
+                if (esc && isPostcondition && isFormal(sym,methodDecl.sym)) {
                     // Variables are owned by methods if they are locals or formals
                     // Locals can't be in postcondition, so this must be a formal
                     // Formals are evaluated in the pre-state
                     result = eresult = treeutils.makeOld(that,treeutils.makeIdent(that.pos, sym),
-                                labelProperties.get(preLabel.name));
+                                labelPropertiesStore.get(preLabel.name));
                     treeutils.copyEndPosition(eresult, that);
                     return;
                 }
-                if (rac && isPostcondition && preparams != null && (d=preparams.get(sym)) != null) {
-                    JCExpression e  = treeutils.makeOld(that,treeutils.makeIdent(that.pos,sym),labelProperties.get(preLabel.name));
+                if (rac && isPostcondition && isFormal(sym,methodDecl.sym)) {
+                    JCExpression e  = treeutils.makeOld(that,treeutils.makeIdent(that.pos,sym),labelPropertiesStore.get(preLabel.name));
                     isPostcondition = false;
                     result = eresult = convertExpr(e);
                     isPostcondition = true;
@@ -13063,7 +13070,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Makes an \old expression */
     public JmlMethodInvocation makeOld(int pos, JCExpression arg, JCIdent label) {
-        return makeOld(pos, arg, label, labelProperties.get(label.name));
+        return makeOld(pos, arg, label, labelPropertiesStore.get(label.name));
     }
     public JmlMethodInvocation makeOld(int pos, JCExpression arg, JCIdent label, JmlAssertionAdder.LabelProperties labelProperties) {
         JmlMethodInvocation m;
@@ -14148,8 +14155,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // increment the index
         loopHelperIncrementIndex(indexDecl);
         
-        recordLabel(loopbodyLabelName,null);
-
         // After the loop, check the invariants and check that the variants have decreased
         loopHelperAssertInvariants(that.loopSpecs,decreasesIDs);
         
@@ -14157,6 +14162,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Finish up the output block
         heapCount = savedHeapCount; // FIXME - only if no break statements targeted the end of the loop
         loopHelperFinish(loop,that);
+        labelPropertiesStore.pop(loopbodyLabelName);
+        labelPropertiesStore.pop(loopLabelInit);
     }
 
     @Override
@@ -14610,7 +14617,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        } else {
             // FIXME _ I don;'t beklieve the use of currentStsatements is correct here
 //            ListBuffer<JCStatement> list = labelProperties.get(label.name).activeOldLists;
-            JmlLabeledStatement labelStat = labelProperties.get(label.name).labeledStatement;
+            JmlLabeledStatement labelStat = labelPropertiesStore.get(label.name).labeledStatement;
             labelStat.extraStatements.add(stat);
 //            if (list != null) {
 //                list.add(stat);
@@ -14704,7 +14711,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             } else {
                                 label = oldLabel.name;
                             }
-                            LabelProperties lp = labelProperties.get(label);
+                            LabelProperties lp = labelPropertiesStore.get(label);
                             currentStatements = lp.labeledStatement.extraStatements;
                             
                             heapCount = lp.heapCount;
@@ -14754,7 +14761,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             // The second argument is a label, held as a JCIdent
                             oldenv = (JCIdent)that.args.get(1);
                         }
-                        that.labelProperties = labelProperties.get(oldenv.name);
+                        that.labelProperties = labelPropertiesStore.get(oldenv.name);
 
                         {
                             // FIXME - need to set the above scenario up for all labels
@@ -14772,7 +14779,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     oldenv = savedEnv;
                     inOldEnv = savedInOldEnv;
                     if (!inOldEnv) {
-                        labelProperties.pop(hereLabelName);
+                        labelPropertiesStore.pop(hereLabelName);
                     }
                     heapCount = savedHeap;
                 }
@@ -15015,9 +15022,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         // FIXME - I don't think a string is allowed by type-checking
                         String s = ((JCLiteral)lb).value.toString();
                         label = names.fromString(s);
-                        if (labelProperties.get(label) == null) label = oldLabel.name;
+                        if (labelPropertiesStore.get(label) == null) label = oldLabel.name;
                     } else {
                         label = ((JCIdent)lb).name;
+                    }
+                    if (labelPropertiesStore.get(label) == null) {
+                        log.error(lb, "jml.message", "Label " + label + " is not in scope here");
+                        result = eresult = treeutils.trueLit;
+                        break;
                     }
                 }
                 if (rac) {
@@ -15133,7 +15145,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         if (label == null) ac = allocCounter;
         else {
-            lp = labelProperties.get(label);
+            lp = labelPropertiesStore.get(label);
             if (lp != null) {
                 ac = lp.allocCounter;
             } else if (label.toString().isEmpty()) {
@@ -16886,7 +16898,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             Map<Symbol,MethodSymbol> newpm = new HashMap<Symbol,MethodSymbol>(pm);
             oldHeapMethods.put(label, newpm);
         }
-        LabelProperties lp = labelProperties.get(label);
+        LabelProperties lp = labelPropertiesStore.get(label);
         lp.labeledStatement = marker;
         lp.heapCount = this.heapCount;
         
@@ -17178,7 +17190,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected Name newNameForCallee(int pos, MethodSymbol msym, boolean useheap) {
-        int heap = inOldEnv ? labelProperties.get(oldenv.name).heapCount : heapCount;
+        int heap = inOldEnv ? labelPropertiesStore.get(oldenv.name).heapCount : heapCount;
         return names.fromString(utils.qualifiedName(msym).replace('.', '_') + ( !useheap ? "_"  : "_H" + heap + "_") + pos);
     }
     
@@ -17277,7 +17289,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             // Create the symbol for the new method
             int hc = heapCount;
-            if (oldenv != null) hc = labelProperties.get(oldenv.name).heapCount;
+            if (oldenv != null) hc = labelPropertiesStore.get(oldenv.name).heapCount;
             Name newMethodNameWithHeap = newNameForCallee(calleeDeclPos,msym, (useNamesForHeap && !isFunction) );
             JCModifiers newmods;
             MethodSymbol newsym;
