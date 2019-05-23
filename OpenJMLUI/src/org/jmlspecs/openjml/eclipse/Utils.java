@@ -97,13 +97,13 @@ import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.annotation.Query;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
-import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.Main.Cmd;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.eclipse.PathItem.ProjectPath;
 import org.jmlspecs.openjml.esc.MethodProverSMT.Counterexample;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
+import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 import org.osgi.framework.Bundle;
 
 import com.sun.tools.javac.tree.JCTree;
