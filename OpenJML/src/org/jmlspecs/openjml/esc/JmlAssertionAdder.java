@@ -210,6 +210,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** True if we are translating for inference */
     public boolean infer ;
     
+    /** True if we are translating for boogie */
+    public boolean boogie;
+    
 
     /** If true, we are making a pure copy (!esc && !rac)*/
     public boolean pureCopy;
@@ -348,6 +351,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * receiver object, but can change as methods or constructors are called.
      */
     protected JCIdent currentThisId;
+    protected JCIdent explicitThisId;
 
     /** The receiver expression, such as when performing a method call within the body of the method being translated.
      */
@@ -597,6 +601,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.showRacSource = JmlOption.isOption(context,JmlOption.RAC_SHOW_SOURCE);
         this.racCheckAssumeStatements = JmlOption.isOption(context,JmlOption.RAC_CHECK_ASSUMPTIONS);
         this.javaChecks = esc || (rac && JmlOption.isOption(context,JmlOption.RAC_JAVA_CHECKS));
+        this.boogie = esc && JmlOption.isOption(context,JmlOption.BOOGIE);
         this.count = 0;
         this.assertCount = 0;
         this.precount = 0;
@@ -784,6 +789,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JmlMethodDecl prevMethodDecl = this.methodDecl;
         JmlClassDecl prevClass = this.classDecl;
         JCIdent savedThisId = this.currentThisId;
+        JCIdent savedExplicitThisId = this.explicitThisId;
         JCExpression savedThisExpr = this.currentThisExpr;
         Symbol savedExceptionSym = this.exceptionSym;
         Symbol savedEnclosingMethod = this.enclosingMethod;
@@ -872,7 +878,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
             
-            addFormals(initialStatements);
+            // For esc we are tranlating the method into a block, but
+            // for boogie (and rac) there is a method signature that has the 
+            // formal declarations
+            if (esc && !boogie) addFormals(initialStatements);
             
             // Declare the result of the method or constructor
             
@@ -919,20 +928,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 isAllocSym = treeutils.makeVarSymbol(0, names.fromString(Strings.isAllocName), syms.booleanType, classDecl.pos);;
                 isAllocSym.owner = classDecl.sym;
 
-                // FIXME - why is the following code inside the if (allocSym == null) block
-                if ((infer || esc)) {
-                    // THIS is an id that is a proxy for the this object on which a method is called;
-                    // we need to distinguish it from uses of 'this' in the text
-                    // FIXME - should make this NonNull
-                    this.currentThisId = makeThisId(classDecl.pos,classDecl.sym);
-                    this.currentThisExpr = this.currentThisId;
-                } else { // rac
-                    // For RAC we use the actual 'this'   FIXME - not sure about this design - perhaps just need to be cautious about what is translated and what is not
-                    this.currentThisId = treeutils.makeIdent(classDecl.pos, classDecl.thisSymbol);
-                    this.currentThisExpr = this.currentThisId;
-                    this.thisIds.put(classDecl.sym, currentThisId);
-                }
             }
+            
+            if ((infer || esc)) {
+                // THIS is an id that is a proxy for the this object on which a method is called;
+                // we need to distinguish it from uses of 'this' in the text
+                // FIXME - should make this NonNull
+                this.explicitThisId = makeThisId(classDecl.pos,classDecl.sym);
+                this.currentThisId = this.explicitThisId;
+                this.currentThisExpr = this.currentThisId;
+            } else { // rac
+                // For RAC we use the actual 'this'   FIXME - not sure about this design - perhaps just need to be cautious about what is translated and what is not
+                this.currentThisId = treeutils.makeIdent(classDecl.pos, classDecl.thisSymbol);
+                this.currentThisExpr = this.currentThisId;
+                this.thisIds.put(classDecl.sym, currentThisId);
+                this.explicitThisId = this.currentThisId;
+            }
+
             
 //            if ((infer || esc) && (isConstructor || !utils.isJMLStatic(methodDecl.sym))) {
 //                currentStatements = initialStatements;  // FIXME - an unnecessary assignment I think
@@ -1205,6 +1217,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             this.classDecl = prevClass;
             this.initialStatements = prevStats;
             this.currentThisId = savedThisId;
+            this.explicitThisId = savedExplicitThisId;
             this.currentThisExpr = savedThisExpr;
             this.resultSym = savedResultSym;
             this.resultExpr = savedResultExpr;
@@ -3799,14 +3812,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         /* Declare new variables, initialized to the values of the formal 
          * parameters, so that they can be referred to in postconditions and other invariant checks. 
          */
-        addStat(comment(methodDecl,"Declare formals and assume type conditions",null));
+        addStat(comment(methodDecl,"Declare formals",null));
         for (JCVariableDecl d: methodDecl.params) {
             JCVariableDecl dd = treeutils.makeVarDefWithSym(d.sym, null);
-            dd.pos = d.pos;
-            if (esc) {
-                addStat(dd);
-                addNullnessAllocationTypeCondition2(dd,dd.sym,false);
-            }
+            addStat(dd);
+//            dd.pos = d.pos;
+//            if (esc) {
+//                addNullnessAllocationTypeCondition2(dd,dd.sym,false);
+//            }
             
 //            dd = treeutils.makeVarDef(d.type,M.Name(Strings.formalPrefix+d.name.toString()),  
 //                    d.sym.owner, M.Ident(d.sym));
@@ -5033,7 +5046,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 pre = pre == null ? p : treeutils.makeAnd(clause.pos, pre, p);
                             } else if (clause.clauseKind == MethodExprClauseExtensions.ensuresClauseKind) {
                                 JCExpression p = convertJML(((JmlMethodClauseExpr)clause).expression);
-                                post = post == null ? p : treeutils.makeAnd(clause.pos, post, p);
+                                post = post == null ? p : treeutils.makeAndSimp(clause.pos, post, p);
                             } else {
                                 notImplemented(clause,"Clause not implemented in an initializer: " + clause.keyword);
                             }
@@ -7762,7 +7775,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 mExpr.setType(that.type);
                 mExpr.varargsElement = null; // We have combined the arargs elements into an array
                 trExpr = mExpr;
-                newThisExpr = utils.isJMLStatic(id.sym) ? null : splitExpressions ? newTemp(currentThisExpr) : currentThisExpr;
+                newThisExpr = utils.isJMLStatic(id.sym) ? null : (splitExpressions && currentThisExpr != explicitThisId) ? newTemp(currentThisExpr) : currentThisExpr;
                 newThisId = newThisExpr instanceof JCIdent ? (JCIdent)newThisExpr : null;
                 enclosingMethod = id.sym;
                 enclosingClass = id.sym.owner;
@@ -12481,7 +12494,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!rac && sym != null && alreadyDiscoveredFields.add(sym)) { // true if s was NOT in the set already
             if (utils.isJMLStatic(sym) && isFinal(sym)) {
                 if (newfa != null) addFinalStaticField(newfa);
-            } else if (sym.kind == Kinds.VAR && sym.owner != null && sym.owner.kind == Kinds.MTH && splitExpressions && !localVariables.containsKey(sym)) {
+            } else if (sym.kind == Kinds.VAR && sym.owner != null && sym.owner.kind == Kinds.MTH && splitExpressions && !localVariables.containsKey(sym) && !isFormal(sym,(MethodSymbol)sym.owner)) {
                 addLocalVar(that);
             } else {
                 if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note("jml.message", "No invariants created for " + that);
