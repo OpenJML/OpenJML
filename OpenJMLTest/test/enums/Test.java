@@ -1,3 +1,10 @@
+enum EEC {
+    
+    AAA, BBB;
+    EEC() {}
+    
+}
+
 enum EEE {
     
     AA, BB, CC, DD;

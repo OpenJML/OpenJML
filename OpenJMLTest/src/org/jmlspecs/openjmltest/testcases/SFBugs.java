@@ -789,7 +789,7 @@ public class SFBugs extends EscBase {
     }
     
     @Test
-    public void gitbug627() {
+    public void gitbug627() { // Problem with fresh in loop bodies
         expectedExit = 0;
         helpTCG();
     }

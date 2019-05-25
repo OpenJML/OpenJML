@@ -7336,6 +7336,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 that.args = newargs.toList();
             }
         }
+        if (classDecl.sym.isEnum() && methodDecl.sym.isConstructor() && that.meth instanceof JCIdent && ((JCIdent)that.meth).name.equals(names._super)) {
+            // OpenJDK inserts default constructors in classes and
+            // inserts super() calls in constructors. For enums, this 
+            // super() call seems incorrect, since java.lang.Enum does not
+            // have such a constructor. The effect of the constructor is to
+            // set the name and ordinal fields.
+            // TODO: For now we avoid processing the erroneous? super call.
+            
+            return;
+        }
         applyHelper(that);
     }
     
