@@ -1488,7 +1488,12 @@ public class JmlTreeUtils {
             call.type = ((Type.ForAll)meth.type).getReturnType();
         return call;
     }
-    
+
+    public JCStatement makeUtilsMethodStat(int pos, String methodName, JCExpression... args) {
+        JCMethodInvocation m = makeUtilsMethodCall(pos, methodName, args);
+        return factory.at(pos).Exec(m);
+    }
+
     public JCExpression copyArray(int pos, JCExpression ad) {
         Type t = ((Type.ArrayType)ad.type).getComponentType(); 
         JCExpression a = null;

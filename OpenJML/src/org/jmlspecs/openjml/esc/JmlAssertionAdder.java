@@ -4069,27 +4069,37 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             checkAccessEnabled = false;  // FIXME _ review what this is for
                             ListBuffer<JCStatement> check = null;
                             try {
+                                JCBlock thenbl, elsebl;
                                 if (rac) {
-                                    JCVariableDecl d = newTempDecl(ex,ex.type);
-                                    addStat(d);
+                                    // FIXME: The following does not work correctly (cf. testNonNullPrecondition)
+                                    // unless a boxed type is used (a Boolean). It is not at all clear why this should be.
+                                    // The generated source code looks perfectly fine. See additional instance in JmlAssertionAdder.
+                                    JCVariableDecl d = newTempDecl(ex,boxedType(ex.type));
                                     d.init = treeutils.makeZeroEquivalentLit(ex.pos, ex.type);
+                                    addStat(d);
                                     check = pushBlock();
                                     JCExpression convertedEx = convertJML(ex);
                                     nextPreExpr = treeutils.makeIdent(ex.pos, d.sym);
-                                    JCExpressionStatement stat = treeutils.makeAssignStat(ex.pos,nextPreExpr,convertedEx);
-                                    addStat(stat);
+                                    addStat(treeutils.makeAssignStat(ex.pos,nextPreExpr,convertedEx));
+                                    thenbl = popBlock(0L,ex,check);
+                                    elsebl = null;
+                                    check = null;
+//                                    pushBlock();
+//                                    addStat(treeutils.makeAssignStat(ex.pos,nextPreExpr,treeutils.falseLit));
+//                                    JCBlock elsebl = popBlock(0L,ex);
                                 } else {
+                                    nextPreExpr = newTemp(ex,ex.type);
                                     check = pushBlock();
                                     JCExpression convertedEx = convertJML(ex);
-                                    nextPreExpr = newTemp(ex,ex.type);
-                                    JCIdent id = convertedEx instanceof JCIdent ? (JCIdent)convertedEx : newTemp(convertedEx);
-                                    addAssume(ex,Label.PRECONDITION,treeutils.makeEquality(ex.pos,nextPreExpr,id));
+                                    addAssume(ex,Label.IMPLICIT_ASSUME,treeutils.makeEquality(ex.pos,nextPreExpr,convertedEx));
+                                    //addStat(treeutils.makeAssignStat(ex.pos,nextPreExpr,convertedEx));
+                                    thenbl = popBlock(0L,ex,check);
+                                    check = null;
+                                    pushBlock();
+                                    addAssume(ex,Label.IMPLICIT_ASSUME,treeutils.makeEquality(ex.pos,nextPreExpr,treeutils.falseLit));
+                                    //addStat(treeutils.makeAssignStat(ex.pos,nextPreExpr,treeutils.falseLit));
+                                    elsebl = popBlock(0L,ex);
                                 }
-                                JCBlock thenbl = popBlock(0L,ex,check);
-                                check = null;
-                                pushBlock();
-                                addAssume(ex,Label.PRECONDITION,treeutils.makeEquality(ex.pos,nextPreExpr,treeutils.falseLit));
-                                JCBlock elsebl = popBlock(0L,ex);
                                 if (preexpr == null) {
                                     addStat(thenbl);
                                 } else {
@@ -8668,15 +8678,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
                                             addTraceableComment(ex,clause.toString());
                                             JCIdent nextPreExpr;
+                                            JCBlock thenbl, elsebl;
                                             if (rac) {
-                                                JCVariableDecl d = newTempDecl(ex,ex.type);
-                                                addStat(oldStatements,d);
+                                                // FIXME: The following does not work correctly (cf. testNonNullPrecondition)
+                                                // unless a boxed type is used (a Boolean). It is not at all clear why this should be.
+                                                // The generated source code looks perfectly fine. See additional instance in JmlAssertionAdder.
+                                                JCVariableDecl d = newTempDecl(ex,boxedType(ex.type));
+                                                //JCVariableDecl d = newTempDecl(ex,(ex.type));
                                                 d.init = treeutils.makeZeroEquivalentLit(ex.pos, ex.type);
+                                                addStat(oldStatements,d);
                                                 check = pushBlock();
                                                 JCExpression convertedEx = convertJML(ex);
                                                 nextPreExpr = treeutils.makeIdent(ex.pos, d.sym);
                                                 JCExpressionStatement stat = treeutils.makeAssignStat(ex.pos,nextPreExpr,convertedEx);
                                                 addStat(stat);
+                                                //addStat(treeutils.makeUtilsMethodStat(ex.pos, "report", treeutils.makeStringLiteral(ex.pos, "then")));
+                                                //addStat(treeutils.makeUtilsMethodStat(ex.pos, "reportBoolean", treeutils.makeStringLiteral(ex.pos, "A"), nextPreExpr));
+                                                thenbl = popBlock(0L,ex,check);
+                                                elsebl = null;
+//                                                pushBlock();
+//                                                addStat(treeutils.makeAssignStat(ex.pos,nextPreExpr,treeutils.falseLit));
+//                                                //addStat(treeutils.makeUtilsMethodStat(ex.pos, "report", treeutils.makeStringLiteral(ex.pos, "else")));
+//                                                //addStat(treeutils.makeUtilsMethodStat(ex.pos, "reportBoolean", treeutils.makeStringLiteral(ex.pos, "B"), nextPreExpr));
+//                                                JCBlock elsebl = popBlock(0L,ex);
                                             } else {
                                                 nextPreExpr = newTemp(ex,ex.type);
                                                 cpreindex3 = preconditionDetailLocal3;
@@ -8684,22 +8708,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 preconditionDetailLocal3 = cpreindex3;
                                                 check = pushBlock();
                                                 JCExpression convertedEx = convertJML(labeledPrecondition);
-//                                                if (!(convertedEx instanceof JCIdent)) {
-//                                                    JCTree t = getMapping(convertedEx);
-//                                                    if (t instanceof JCIdent) convertedEx = (JCIdent)t;
-//                                                }
-                                                addAssume(ex,Label.PRECONDITION,treeutils.makeEquality(ex.pos,nextPreExpr,convertedEx));
+                                                addAssume(ex,Label.IMPLICIT_ASSUME,treeutils.makeEquality(ex.pos,nextPreExpr,convertedEx));
+                                                thenbl = popBlock(0L,ex,check);
+                                                pushBlock();
+                                                addAssume(ex,Label.IMPLICIT_ASSUME,treeutils.makeEquality(ex.pos,nextPreExpr,treeutils.falseLit));
+                                                elsebl = popBlock(0L,ex);
                                             }
-                                            JCBlock thenbl = popBlock(0L,ex,check);
-                                            check = null;
-                                            pushBlock();
-                                            addAssume(ex,Label.PRECONDITION,treeutils.makeEquality(ex.pos,nextPreExpr,treeutils.falseLit));
-                                            JCBlock elsebl = popBlock(0L,ex);
                                             if (prex == null) {
                                                 addStat(thenbl);
                                             } else {
                                                 addStat(M.at(ex.pos).If(prex, thenbl, elsebl));
                                             }
+                                            check = null;
                                             prex = nextPreExpr;
                                             clauseIds.put(clause, nextPreExpr);
                                         } catch (NoModelMethod ex) {
@@ -8739,6 +8759,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                    //     preconditions.put(cs,preId); // Add to the list of spec cases, in order of declaration
                         pre = preId;
                         combinedPrecondition = treeutils.makeOrSimp(pre.pos, combinedPrecondition, pre);
+                        //addStat(treeutils.makeUtilsMethodStat(pre.pos, "reportBoolean", treeutils.makeStringLiteral(that.pos, "C"), combinedPrecondition));
                         if (esc) {
                             String nm = "_$CPRE__" + preconditionDetailLocal + "_" + preconditionDetail2;
                             JCIdent cpreId = newTemp(cs.pos, nm, pre);
@@ -8775,6 +8796,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     } else {
                         JmlSource loc = mspecs == null ? null : mspecs.decl;
                         if (loc == null) loc = clauseToReference;
+                        //addStat(treeutils.makeUtilsMethodStat(that.pos, "reportBoolean", treeutils.makeStringLiteral(that.pos, "D"), combinedPrecondition));
                         JCStatement stat = loc != null ? addAssert(that,translatingJML ? Label.UNDEFINED_PRECONDITION : Label.PRECONDITION,
                                 combinedPrecondition,
                                 (DiagnosticPosition)loc,loc.source())

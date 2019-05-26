@@ -193,7 +193,7 @@ public class racnew extends RacBase {
                 ,"                    ^"
                 ,"/tt/TestJava.java:5: JML precondition is false"
                 ," /*@ requires true; */ "
-                ,"              ^"
+                ,"     ^"
                 ,"END"
                 );
     }
