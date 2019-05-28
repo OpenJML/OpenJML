@@ -4,6 +4,8 @@
  */
 package org.jmlspecs.openjml.vistors;
 
+import org.jmlspecs.openjml.JmlTree.JmlNewClass;
+
 import com.sun.tools.javac.tree.JCTree.*;
 
 /**

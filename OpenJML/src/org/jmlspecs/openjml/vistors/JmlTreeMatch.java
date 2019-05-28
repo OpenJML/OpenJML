@@ -58,6 +58,12 @@ public class JmlTreeMatch extends JmlTreeScanner {
         if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note(tree, "jml.message", "Match found");
         return true;
     }
+    
+    public <T extends JCTree> boolean matches(List<T> treelist, List<T> others) {
+        if (treelist == null && others == null) return true;
+        if (treelist != null && others != null) return false;
+        return matches(treelist.head, others.head) && matches(treelist.tail, others.tail);
+    }
 
     /** Visitor method: Scan a single node.
      */
@@ -361,6 +367,18 @@ public class JmlTreeMatch extends JmlTreeScanner {
     public void visitLiteral(JCLiteral tree) {
         JCLiteral t = (JCLiteral) top;
         if (!t.value.equals(tree.value)) nomatch();
+    }
+    
+    public void visitNewClass(JmlNewClass tree) {
+        JmlNewClass t = (JmlNewClass)top;
+        if (tree == null && t == null) return;
+        if (tree == null || t == null) nomatch();
+        if (matches(tree.encl, t.encl)
+                && matches(tree.typeargs, t.typeargs)
+                && matches(tree.clazz, t.clazz)
+                && matches(tree.args, t.args)
+                && matches(tree.def, t.def)) return;
+        nomatch();
     }
 
 //    public void visitTypeIdent(JCPrimitiveTypeTree tree) {  FIXME

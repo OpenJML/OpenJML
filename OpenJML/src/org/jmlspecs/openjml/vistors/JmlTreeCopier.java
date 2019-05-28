@@ -17,6 +17,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeCopier;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 
@@ -253,12 +254,20 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
     
     public JCTree visitLambda(JCLambda that, Void p) {
-        JmlLambda copy = M.at(that.pos).JmlLambda(copy(that.params), (JCExpression)copy(that.body), copy(((JmlLambda)that).jmlType));
+        JmlLambda copy = M.at(that.pos).JmlLambda(copy(that.params,p), copy(that.body,p), copy(((JmlLambda)that).jmlType,p));
         copy.type = that.type;
         copy.canCompleteNormally = that.canCompleteNormally;
         copy.paramKind = that.paramKind;
         copy.polyKind = that.polyKind;
         copy.targets = that.targets; // FIXME - should make new copies?
+        return copy;
+    }
+
+    public JCTree visitJmlNewClass(JmlNewClass that, Void p) {
+        JmlNewClass copy = M.at(that.pos).NewClass(
+                copy(that.encl,p), copy(that.typeargs,p), copy(that.clazz,p), copy(that.args,p), (JCClassDecl)copy(that.def,p));
+        copy.type = that.type;
+        // Not copying capturedExpressions
         return copy;
     }
 

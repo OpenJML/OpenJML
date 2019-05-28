@@ -964,6 +964,27 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prevJml = isInJmlDeclaration;
         isInJmlDeclaration = true;  // FIXME - why is this true
         try {
+            // Need to scan for ghost fields identifying captured variables
+            // before we scan the body of the JmlNewClass, because we are
+            // inserting an initializer block
+            if (tree.def != null && tree instanceof JmlNewClass) {
+                for (JCTree t: tree.def.defs) {
+                    if (t instanceof JmlVariableDecl) {
+                        JmlVariableDecl vd = (JmlVariableDecl)t;
+                        if (isGhost(vd.mods) && vd.init == null) {
+                            Name n = vd.name;
+                            JCIdent id = jmlMaker.at(vd.pos).Ident(n);
+                            attribExpr(id,env);
+                            ((JmlNewClass)tree).capturedExpressions.put(n,id);
+//                            JCIdent idl = jmlMaker.at(vd.pos).Ident(n);
+//                            stats.add(treeutils.makeAssignStat(vd.pos, idl, id));
+                        }
+                    }
+                }
+//                JCBlock bl = jmlMaker.at(tree.pos).Block(0L,stats.toList());
+//                tree.def.defs = tree.def.defs.append(bl);
+            }
+            
             implementationAllowed= true;
             super.visitNewClass(tree);
             if (!(tree.type instanceof Type.ErrorType) && pureEnvironment) {
@@ -986,6 +1007,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             implementationAllowed = prev;
             isInJmlDeclaration = prevJml;
         }
+        
     }
     
     protected void nonPureWarning(DiagnosticPosition pos, MethodSymbol msym) {
@@ -5288,7 +5310,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return false;
     }
     
-    /** Returns true if the given symbol has a pure annotation 
+    /** Returns true if the given symbol has a helper annotation 
      * @param symbol the symbol to check
      * @return true if the symbol has a model annotation, false otherwise
      */
@@ -5305,6 +5327,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        if (symbol.attributes_field == null) return false;  // FIXME - should have the attributes - this is necessary but why?
 //        return symbol.attribute(tokenToAnnotationSymbol.get(JmlToken.HELPER))!=null;
 
+    }
+    
+    public boolean isGhost(VarSymbol symbol) {
+        FieldSpecs mspecs = specs.getSpecs(symbol);
+        return findMod(mspecs.mods,JmlTokenKind.GHOST) != null;
     }
     
     public void addHelper(MethodSymbol symbol) {

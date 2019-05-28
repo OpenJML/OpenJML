@@ -183,6 +183,12 @@ public class JmlEsc extends JmlTreeScanner {
      */
     @Override
     public void visitMethodDef(@NonNull JCMethodDecl decl) {
+        if (decl.sym.isConstructor() && decl.sym.owner.isAnonymous()) {
+            // Constructors for anonymous classes are not explicit. They are checked
+            // in the course of instantiating the anonymous object.
+            return;
+        }
+
         Main.instance(context).pushOptions(decl.mods);
         IProverResult res = null;
         if (decl.body == null) return; // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent

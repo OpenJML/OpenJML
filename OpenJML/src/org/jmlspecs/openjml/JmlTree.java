@@ -8,6 +8,7 @@ import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 import static org.jmlspecs.openjml.ext.EndStatement.*;
 
 import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.tools.JavaFileObject;
@@ -45,6 +46,7 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
 import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -55,6 +57,7 @@ import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCLambda;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
@@ -511,6 +514,12 @@ public class JmlTree {
         @Override
         public JmlLambda JmlLambda(List<JCVariableDecl> params, JCTree body, JCExpression jmlType) {
             return new JmlLambda(params,body,jmlType);
+        }
+
+        @Override
+        public JmlNewClass NewClass(JCExpression encl, List<JCExpression> typeargs,
+                JCExpression clazz, List<JCExpression> args, JCClassDecl def) {
+            return new JmlNewClass(encl,typeargs,clazz,args,def);
         }
 
         /** Creates a JML labeled statement */
@@ -3752,7 +3761,7 @@ public class JmlTree {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitLambda(this); 
             } else {
-                //System.out.println("A JmlTypeClauseRepresents expects an IJmlVisitor, not a " + v.getClass());
+                //System.out.println("A JmlLambda expects an IJmlVisitor, not a " + v.getClass());
                 super.accept(v);
             }
         }
@@ -3768,6 +3777,36 @@ public class JmlTree {
         }
 
     }
+    
+    public static class JmlNewClass extends JCNewClass {
+        protected JmlNewClass(JCExpression encl, List<JCExpression> typeargs,
+                JCExpression clazz, List<JCExpression> args, JCClassDecl def) {
+            super(encl, typeargs, clazz, args, def);
+        }
+
+        public Map<Name,JCExpression> capturedExpressions = new HashMap<>();
+
+        
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitNewClass(this); 
+            } else {
+                //System.out.println("A JmlNewClass expects an IJmlVisitor, not a " + v.getClass());
+                super.accept(v);
+            }
+        }
+    
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return v.visitNewClass(this, d);
+            } else {
+                //System.out.println("A JmlNewClass expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
+            }
+        }
+}
 
     // FIXME - the following do not have factory methods - do not set pos, do not have accept, getKind, getTag, toString methods, or documentation
     // Arrays are represented by a 2 level map, representing all the arrays of a given type

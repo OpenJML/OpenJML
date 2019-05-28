@@ -801,8 +801,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         IArithmeticMode savedArithmeticMode = this.currentArithmeticMode;
         ListBuffer<JCStatement> prevStats = initialStatements;
         ListBuffer<JCStatement> savedOldStatements = oldStatements;
-//        Map<Symbol,JCIdent> savedPreparams = preparams;
-//        preparams = new HashMap<Symbol,JCIdent>(savedPreparams);
         JavaFileObject prevSource = log.useSource(pmethodDecl.source());
         Map<Object,JCExpression> savedParamActuals = paramActuals;
         java.util.List<Symbol> savedCompletedInvariants = this.completedInvariants;
@@ -1021,6 +1019,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             oldStatements = mark.extraStatements;
             undoLabels = true;
             
+//            if (isConstructor && !rac && classDecl.sym.isAnonymous()) {
+//                for ()
+//            }
+            
             if (isConstructor && rac) {
                 pushBlock();
                 if (callingThis || callingSuper) {
@@ -1100,7 +1102,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 boolean pv = checkAccessEnabled;
                 checkAccessEnabled = false; // Not sure about this - all references are to instance fieldsd, no?
                 try {
-                    addInstanceInitialization();
+                    addInstanceInitialization(methodDecl.sym);
                 } finally {
                     checkAccessEnabled = pv;
                 }
@@ -2378,6 +2380,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return id;
     }
 
+
+    /** Returns true if the given symbol is specified as Helper or Function annotation */
+    public boolean isGhost(VarSymbol symbol) {
+        return attr.isGhost(symbol);
+    }
 
     /** Returns true if the given symbol is specified as Helper or Function annotation */
     public boolean isHelper(MethodSymbol symbol) {
@@ -4965,7 +4972,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         assumingPostConditions = true;
     }
     
-    protected void addInstanceInitialization() {
+    protected void addInstanceInitialization(Symbol methodSym) {
         JmlSpecs.TypeSpecs tspecs = specs.get(classDecl.sym);
         
         addStat( comment(methodDecl,"Class fields for constructor",null));
@@ -4978,7 +4985,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression field = treeutils.makeIdent(vd.pos, vd.sym);
             field = convertJML(field);
             JCExpression z = treeutils.makeZeroEquivalentLit(vd.pos,vd.type);
-            //addStat(treeutils.makeAssignStat(vd.pos, receiver, z));
             addAssumeEqual(vd.pos(), Label.IMPLICIT_ASSUME, field, z);
         }
     }
@@ -8367,6 +8373,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCExpression e = allocCounterEQ(that, resultExpr, ++allocCounter);
                     addAssume(that,Label.IMPLICIT_ASSUME,e);
                 }
+                
+                if (newclass.def != null) for (JCTree t: newclass.def.defs) {
+                    if (!(t instanceof JmlVariableDecl)) continue;
+                    JmlVariableDecl vd = (JmlVariableDecl)t;
+                    if (!isGhost(vd.sym)) continue;
+                    JCExpression fa = M.at(vd.pos).Select(resultExpr, vd.sym);
+                    JCExpression init = ((JmlNewClass)newclass).capturedExpressions.get(vd.name);
+                    addAssumeEqual(vd.pos(), Label.IMPLICIT_ASSUME, fa, init);
+                }
             }
  
             ListBuffer<JCStatement> saved = currentStatements;
@@ -8408,6 +8423,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     clearInvariants();
                 }
             }
+            
+//            if (newclass != null && calleeMethodSym.isConstructor() && calleeMethodSym.owner.isAnonymous() && that instanceof JmlNewClass) {
+//                addStat(comment(that, "Adding capturing assumptions",null));
+//                for (JCTree t: newclass.def.defs) {
+//                    if (t instanceof JmlVariableDecl) {
+//                        JmlVariableDecl vd = (JmlVariableDecl)t;
+//                        {
+//                            JCExpression e = ((JmlNewClass)that).capturedExpressions.get(vd.name);
+//                            if (e != null) {
+//                                JCExpression fa = M.at(vd.pos).Select(resultExpr,vd.sym);
+//                                JCExpression eq = treeutils.makeEquality(vd.pos, fa, e);
+//                                //addAssume(vd.pos(), Label.IMPLICIT_ASSUME, eq);
+//                                addStat(treeutils.makeAssignStat(vd.pos, fa, e));
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+
+
 
             JCExpression collectedInvariants = treeutils.trueLit; // FIXME - do we need this - do we include this in the 'condition' ?
             Label assertionLabel = Label.INVARIANT_ENTRANCE;
@@ -9509,7 +9544,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     exsuresStatsOuter.add(comment(methodDecl,"Assuming exceptional postconditions for " + utils.qualifiedMethodSig(mpsym),null));
 
                     paramActuals = mapParamActuals.get(mpsym);
-
+                    
                     // FIXME - we should set condition
                     // Be sure to do assignable (havoc) clauses, then invariants, and then postcondition clauses
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
@@ -12621,9 +12656,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else if (!(sym.owner instanceof Symbol.TypeSymbol)) {
                 // local variable or formal parameter  - just leave it as 
                 // an ident (the owner is null or the method)
-                JCIdent id = treeutils.makeIdent(that.pos, sym);
-                result = eresult = id;
-                local = true;
+                
+                if (sym.owner == methodDecl.sym) { 
+                    JCIdent id = treeutils.makeIdent(that.pos, sym);
+                    result = eresult = id;
+                    local = true;
+                } else {
+                    Name nm = that.name;
+                    for (JCTree t : classDecl.defs) {
+                        if (!(t instanceof JmlVariableDecl)) continue;
+                        JmlVariableDecl vd = (JmlVariableDecl)t;
+                        if (vd.name != nm) continue;
+                        if (!isGhost(vd.sym)) continue;
+                        result = eresult =  M.at(vd.pos).Select(currentThisExpr, vd.sym);
+                        eresult.type = vd.type;
+                        break;
+                    }
+                }
 
             } else if (currentThisExpr instanceof JCIdent && sym == ((JCIdent)currentThisExpr).sym) {
                 // 'this' - leave it as it is

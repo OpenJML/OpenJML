@@ -15,10 +15,12 @@ import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.JmlTree.JmlMatchExpression.MatchCase;
 
+import com.sun.source.tree.NewClassTree;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeTranslator;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCLambda;
+import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
@@ -329,6 +331,19 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         r.jmlType = translate(that.jmlType);
         result = r;
     }
+
+    @Override
+    public void visitNewClass(JCNewClass jthat) {
+        JmlNewClass that = (JmlNewClass)jthat;
+        JmlNewClass r = that;
+        r.encl = translate(that.encl);
+        r.typeargs = translate(that.typeargs);
+        r.clazz = translate(that.clazz);
+        r.args = translate(that.args);
+        r.def = translate(that.def);
+        result = r;
+    }
+
 
     @Override
     public void visitJmlSetComprehension(JmlSetComprehension that) {
