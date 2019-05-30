@@ -971,13 +971,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 for (JCTree t: tree.def.defs) {
                     if (t instanceof JmlVariableDecl) {
                         JmlVariableDecl vd = (JmlVariableDecl)t;
-                        if (isGhost(vd.mods) && vd.init == null) {
+                        if (isCaptured(vd) && vd.init == null) {
                             Name n = vd.name;
                             JCIdent id = jmlMaker.at(vd.pos).Ident(n);
                             attribExpr(id,env);
                             ((JmlNewClass)tree).capturedExpressions.put(n,id);
-//                            JCIdent idl = jmlMaker.at(vd.pos).Ident(n);
-//                            stats.add(treeutils.makeAssignStat(vd.pos, idl, id));
                         }
                     }
                 }
@@ -2280,7 +2278,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
        };
        
     public JmlTokenKind[] allowedGhostFieldModifiers = new JmlTokenKind[] {
-            GHOST, NONNULL, NULLABLE, INSTANCE, MONITORED, SECRET,
+            GHOST, NONNULL, NULLABLE, INSTANCE, MONITORED, SECRET, CAPTURES,
             PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
        };
        
@@ -5101,6 +5099,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 tokenToAnnotationSymbol.put(t,sym);
             }
         }
+        JmlTokenKind t = JmlTokenKind.CAPTURES;
+        {
+            String s = t.annotationType.getName();
+            Name n = names.fromString(s);
+            tokenToAnnotationName.put(t,n);
+            ClassSymbol sym = ClassReader.instance(context).enterClass(n);
+            tokenToAnnotationSymbol.put(t,sym);
+        }        
         annotationPackageSymbol = tokenToAnnotationSymbol.get(JmlTokenKind.PURE).packge();
 
         nullablebydefaultAnnotationSymbol = tokenToAnnotationSymbol.get(JmlTokenKind.NULLABLE_BY_DEFAULT);
@@ -5374,7 +5380,26 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             return findMod(decl.mods, token);
         }
     }
-    
+
+    public/* @ nullable */JCAnnotation tokenToAnnotationAST(String annName) {
+        JmlTree.Maker F = jmlMaker;
+        int position = 0;
+        JCExpression t = (F.at(position).Ident(names.fromString("org")));
+        t = (F.at(position).Select(t, names.fromString("jmlspecs")));
+        t = (F.at(position).Select(t, names.fromString("annotation")));
+        t = (F.at(position).Select(t, names.fromString(annName)));
+        JCAnnotation ann = (F.at(position).Annotation(t,
+                List.<JCExpression> nil()));
+        ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
+        return ann;
+    }
+
+
+    public boolean isCaptured(JmlVariableDecl vd) {
+        return utils.findMod(vd.mods,names.fromString("org.jmlspecs.annotation.Captures")) != null;
+        
+    }
+
     /** Returns true if the given modifiers/annotations includes ghost
      * @param mods the modifiers to check
      * @return true if the ghost modifier is present, false if not

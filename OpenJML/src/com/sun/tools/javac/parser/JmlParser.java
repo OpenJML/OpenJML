@@ -1055,7 +1055,7 @@ public class JmlParser extends JavacParser {
             return Extensions.instance(context).findTM(0,possibleKeyword.name().toString(),false) instanceof IJmlClauseKind.TypeClause;
         } else {
             ITokenKind jt = possibleKeyword.ikind;
-            return (jt == JmlTokenKind.INITIALIZER || jt == JmlTokenKind.STATIC_INITIALIZER);
+            return (jt == CAPTURES || jt == JmlTokenKind.INITIALIZER || jt == JmlTokenKind.STATIC_INITIALIZER);
         }
     }
     
@@ -1107,9 +1107,9 @@ public class JmlParser extends JavacParser {
                     currentMethodSpecs = parseMethodSpecs(mods);
                     continue;
                 } else if (startOfTypeSpec(token)) {
-                    JmlTypeClause tc = parseTypeSpecs(mods);
-                    if (tc != null && currentMethodSpecs != null && jt != INITIALIZER && jt != STATIC_INITIALIZER) {
-                        log.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + tc.clauseType.name() + " clause (ignored)");
+                    JCTree tc = parseTypeSpecs(mods);
+                    if (tc instanceof JmlTypeClause && currentMethodSpecs != null && jt != INITIALIZER && jt != STATIC_INITIALIZER) {
+                        log.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + ((JmlTypeClause)tc).clauseType.name() + " clause (ignored)");
                         currentMethodSpecs = null;
                     }
                     if (tc instanceof JmlTypeClauseIn
@@ -1142,7 +1142,7 @@ public class JmlParser extends JavacParser {
                 currentMethodSpecs = parseMethodSpecs(mods);
                 continue;
             } else if (startOfTypeSpec(token)) {
-                JmlTypeClause tc = parseTypeSpecs(mods);
+                JCTree tc = parseTypeSpecs(mods);
                 list.append(tc);
                 continue;
             }
@@ -2005,11 +2005,11 @@ public class JmlParser extends JavacParser {
         return type;
     }
     
-    public JmlTypeClause parseTypeSpecs(JCModifiers mods) {
+    public JCTree parseTypeSpecs(JCModifiers mods) {
         String id = token.kind == TokenKind.IDENTIFIER ?  token.name().toString() : jmlTokenKind().internedName();
         IJmlClauseKind ct = Extensions.instance(context).findTM(0,id,false);
         JCTree t = ct.parse(mods, id, ct, this);
-        return (JmlTypeClause)t;
+        return t;
     }
 
     // Parses a sequence of specification cases, having already
@@ -2911,6 +2911,19 @@ public class JmlParser extends JavacParser {
         t = to(F.at(position).Select(t, names.fromString("jmlspecs")));
         t = to(F.at(position).Select(t, names.fromString("annotation")));
         t = to(F.at(position).Select(t, names.fromString(c.getSimpleName())));
+        JCAnnotation ann = to(F.at(position).Annotation(t,
+                List.<JCExpression> nil()));
+        ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
+        storeEnd(ann, endpos);
+        return ann;
+    }
+
+    public/* @ nullable */JCAnnotation tokenToAnnotationAST(String annName,
+            int position, int endpos) {
+        JCExpression t = to(F.at(position).Ident(names.fromString("org")));
+        t = to(F.at(position).Select(t, names.fromString("jmlspecs")));
+        t = to(F.at(position).Select(t, names.fromString("annotation")));
+        t = to(F.at(position).Select(t, names.fromString(annName)));
         JCAnnotation ann = to(F.at(position).Annotation(t,
                 List.<JCExpression> nil()));
         ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();

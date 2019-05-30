@@ -37,9 +37,9 @@ public class AssignableClauseExtension extends JmlExtension.MethodClause {
         public String name() { return accessibleID; }
     };
     
-    public static final IJmlClauseKind capturesClause = new LocationSetClauseType() {
-        public String name() { return capturesID; }
-    };
+//    public static final IJmlClauseKind capturesClause = new LocationSetClauseType() {
+//        public String name() { return capturesID; }
+//    };
     
     public void register() {
         synonym("modifies",assignableClauseKind);
@@ -57,7 +57,7 @@ public class AssignableClauseExtension extends JmlExtension.MethodClause {
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
     public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            assignableClauseKind, accessibleClause, capturesClause }; }
+            assignableClauseKind, accessibleClause }; }
     
     public static class LocationSetClauseType extends IJmlClauseKind.MethodClause {
         public LocationSetClauseType() { super(null); }

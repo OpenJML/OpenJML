@@ -51,6 +51,7 @@ public enum JmlTokenKind implements ITokenKind {
     REFINING("refining"),
 //    REACHABLE("reachable"),
 //    UNREACHABLE("unreachable"), // Keep this one last of the method statement tokens
+    CAPTURES("captures",org.jmlspecs.annotation.Captures.class),
 
     // These are modifiers
     PURE("pure",org.jmlspecs.annotation.Pure.class), // Keep this one the first of the modifiers (see the modifiers Map below)

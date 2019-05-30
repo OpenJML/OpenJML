@@ -8377,7 +8377,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (newclass.def != null) for (JCTree t: newclass.def.defs) {
                     if (!(t instanceof JmlVariableDecl)) continue;
                     JmlVariableDecl vd = (JmlVariableDecl)t;
-                    if (!isGhost(vd.sym)) continue;
+                    if (!attr.isCaptured(vd)) continue;
                     JCExpression fa = M.at(vd.pos).Select(resultExpr, vd.sym);
                     JCExpression init = ((JmlNewClass)newclass).capturedExpressions.get(vd.name);
                     addAssumeEqual(vd.pos(), Label.IMPLICIT_ASSUME, fa, init);
@@ -12657,21 +12657,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // local variable or formal parameter  - just leave it as 
                 // an ident (the owner is null or the method)
                 
-                if (sym.owner == methodDecl.sym) { 
-                    JCIdent id = treeutils.makeIdent(that.pos, sym);
-                    result = eresult = id;
-                    local = true;
-                } else {
+                if (sym.owner != methodDecl.sym) { 
                     Name nm = that.name;
                     for (JCTree t : classDecl.defs) {
                         if (!(t instanceof JmlVariableDecl)) continue;
                         JmlVariableDecl vd = (JmlVariableDecl)t;
                         if (vd.name != nm) continue;
-                        if (!isGhost(vd.sym)) continue;
+                        if (!attr.isCaptured(vd)) continue;
                         result = eresult =  M.at(vd.pos).Select(currentThisExpr, vd.sym);
                         eresult.type = vd.type;
                         break;
                     }
+                }
+                if (sym.owner == methodDecl.sym || eresult == null) {
+                    JCIdent id = treeutils.makeIdent(that.pos, sym);
+                    result = eresult = id;
+                    local = true;
                 }
 
             } else if (currentThisExpr instanceof JCIdent && sym == ((JCIdent)currentThisExpr).sym) {

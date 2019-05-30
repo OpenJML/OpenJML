@@ -833,5 +833,11 @@ public class escfiles extends EscBase {
         helpTF("tupleBad");
     }
 
+    @Test
+    public void testCaptures() {
+        expectedExit = 1;
+        helpTF("anonymousCaptures");//,"-show","-exclude=AAA.*");
+    }
+
 
 }
