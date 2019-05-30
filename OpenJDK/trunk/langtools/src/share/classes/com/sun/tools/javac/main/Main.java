@@ -73,7 +73,7 @@ public class Main {
 
     /** The writer to use for diagnostic output.
      */
-    protected PrintWriter out; // DRC - changed from default to protected
+    protected PrintWriter out; // OPENJML - changed from default to protected
 
     /** The log to use for diagnostic output.
      */

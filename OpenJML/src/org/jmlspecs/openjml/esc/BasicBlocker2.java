@@ -1374,7 +1374,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             // Comments are included in the BB program without rewriting
             // This is essential to how counterexample path construction works
             currentBlock.statements.add(that);
-        } else if (that.clauseType == assumeClause || that.clauseType == assertClause) {
+        } else if (that.clauseType == assumeClause || that.clauseType == assertClause || that.clauseType == checkClause) {
             JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.clauseType.name(),that.clauseType,that.label,convertExpr(that.expression));
             st.id = that.id;
             st.optionalExpression = convertExpr(that.optionalExpression);

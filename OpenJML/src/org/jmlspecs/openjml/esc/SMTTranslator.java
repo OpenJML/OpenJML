@@ -1384,6 +1384,9 @@ public class SMTTranslator extends JmlTreeScanner {
                     } else if (s.clauseType == assertClause) {
                         IExpr exx = convertExpr(s.expression);
                         stack.push(exx);
+                    } else if (s.clauseType == checkClause) {
+                        IExpr exx = convertExpr(s.expression);
+                        stack.push(exx);
                     } else if (s.clauseType == commentClause) {
                         if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                         int k = s.id.indexOf(" ");
@@ -1427,6 +1430,13 @@ public class SMTTranslator extends JmlTreeScanner {
                         // sure it makes any difference. TODO - evaluate this sometime.
                         //return F.fcn(F.symbol("and"), exx, tail);
                         tail = F.fcn(andSym, exx, F.fcn(impliesSym, exx, tail));
+                    } else if (s.clauseType == checkClause) {
+                        IExpr exx = stack.pop();
+                        // The first return is the classic translation; the second
+                        // effectively inserts an assume after an assert. I'm not
+                        // sure it makes any difference. TODO - evaluate this sometime.
+                        //return F.fcn(F.symbol("and"), exx, tail);
+                        tail = F.fcn(andSym, exx, tail);
                     } else if (s.clauseType == commentClause) {
                         if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                         int k = s.id.indexOf(" ");
@@ -1528,6 +1538,9 @@ public class SMTTranslator extends JmlTreeScanner {
                     } else if (s.clauseType == assertClause) {
                         IExpr exx = convertExpr(s.expression);
                         stack.push(exx);
+                    } else if (s.clauseType == checkClause) {
+                        IExpr exx = convertExpr(s.expression);
+                        stack.push(exx);
                     } else if (s.clauseType == commentClause) {
                         if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                         int k = s.id.indexOf(" ");
@@ -1569,6 +1582,14 @@ public class SMTTranslator extends JmlTreeScanner {
                             ++n;
                         }
                     } else if (s.clauseType == assertClause) {
+                        IExpr exx = stack.pop();
+                        // The first return is the classic translation; the second
+                        // effectively inserts an assume after an assert. I'm not
+                        // sure it makes any difference. TODO - evaluate this sometime.
+                        //return F.fcn(andSym, exx, tail);
+                        tail = F.fcn(andSym, exx, F.fcn(impliesSym, exx, tail));
+                        ++n;
+                    } else if (s.clauseType == checkClause) {
                         IExpr exx = stack.pop();
                         // The first return is the classic translation; the second
                         // effectively inserts an assume after an assert. I'm not
@@ -1625,6 +1646,12 @@ public class SMTTranslator extends JmlTreeScanner {
                     args.add(tail);
                     return F.fcn(impliesSym, args);
                 } else if (s.clauseType == assertClause) {
+                    IExpr exx = convertExpr(s.expression);
+                    LinkedList<IExpr> args = new LinkedList<IExpr>();
+                    args.add(exx);
+                    args.add(tail);
+                    return F.fcn(andSym, args);
+                } else if (s.clauseType == checkClause) {
                     IExpr exx = convertExpr(s.expression);
                     LinkedList<IExpr> args = new LinkedList<IExpr>();
                     args.add(exx);

@@ -7,6 +7,7 @@ import org.jmlspecs.openjml.JmlExtension;
 public class StatementExprExtensions extends JmlExtension.MethodClause {
     
     public static final String assertID = "assert";
+    public static final String checkID = "check";
     public static final String assumeID = "assume";
     public static final String commentID = "comment";
     public static final String useID = "use";
@@ -15,6 +16,8 @@ public class StatementExprExtensions extends JmlExtension.MethodClause {
     public static final String loopdecreasesID = "loop_decreases";
     
     public static final IJmlClauseKind assertClause = new StatementExprType(assertID);
+    
+    public static final IJmlClauseKind checkClause = new StatementExprType(checkID);
     
     public static final IJmlClauseKind assumeClause = new StatementExprType(assumeID);
     
@@ -30,7 +33,7 @@ public class StatementExprExtensions extends JmlExtension.MethodClause {
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
     public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            assertClause, assumeClause, useClause, commentClause, hencebyClause,
+            assertClause, checkClause, assumeClause, useClause, commentClause, hencebyClause,
             loopinvariantClause, loopdecreasesClause }; }
     
     @Override

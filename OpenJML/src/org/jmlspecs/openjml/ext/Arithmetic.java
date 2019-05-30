@@ -218,11 +218,11 @@ abstract public class Arithmetic extends ExpressionExtension {
             if (typetag == TypeTag.INT) {
                 JCExpression e = rewriter.treeutils.makeNot(arg.pos,rewriter.treeutils.makeEquality(arg.pos, rewriter.convertCopy(arg), rewriter.treeutils.makeIntLiteral(arg.pos, Integer.MIN_VALUE)));
                 e = condition(rewriter,e);
-                rewriter.addAssert(that,Label.ARITHMETIC_OP_RANGE,e,"(int negation)");
+                rewriter.addCheck(that,Label.ARITHMETIC_OP_RANGE,e,"(int negation)");
             } else if (typetag == TypeTag.LONG) {
                 JCExpression e = rewriter.treeutils.makeNot(arg.pos,rewriter.treeutils.makeEquality(arg.pos, rewriter.convertCopy(arg), rewriter.treeutils.makeLit(arg.pos, that.type, Long.MIN_VALUE)));
                 e = condition(rewriter,e);
-                rewriter.addAssert(that,Label.ARITHMETIC_OP_RANGE,e,"(long negation)");
+                rewriter.addCheck(that,Label.ARITHMETIC_OP_RANGE,e,"(long negation)");
             }
         }
         if (rewriter.rac && rewriter.jmltypes.isJmlType(newtype)) {
@@ -606,7 +606,7 @@ abstract public class Arithmetic extends ExpressionExtension {
             JCTree.JCIdent id = rewriter.newTemp(x);
             rewriter.saveMapping(x,id);
         }
-        rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, x, str);
+        rewriter.addCheck(that, Label.ARITHMETIC_OP_RANGE, x, str);
     }
     
     /** This implements the bigint (which is also real) mathematical mode */

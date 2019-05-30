@@ -1369,7 +1369,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     public void visitJmlStatementExpr(JmlStatementExpr that) { 
         if (that.clauseType == StatementExprExtensions.commentClause) {
             currentBlock.statements.add(that);
-        } else if (that.clauseType == StatementExprExtensions.assertClause || that.clauseType == StatementExprExtensions.assumeClause) {
+        } else if (that.clauseType == StatementExprExtensions.assertClause || that.clauseType == StatementExprExtensions.assumeClause || that.clauseType == StatementExprExtensions.checkClause) {
             scan(that.expression);
             currentBlock.statements.add(that);
         } else {

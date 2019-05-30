@@ -838,6 +838,11 @@ public class escfiles extends EscBase {
         expectedExit = 1;
         helpTF("anonymousCaptures");//,"-show","-exclude=AAA.*");
     }
+    
+    @Test
+    public void checkAsserts() {
+        helpTF("checkAsserts");
+    }
 
 
 }

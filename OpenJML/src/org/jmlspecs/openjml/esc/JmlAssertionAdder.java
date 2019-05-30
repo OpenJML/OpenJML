@@ -1939,7 +1939,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * corresponding to the given Label.
      * Returns null if no assertion was added
      */
-    public @Nullable JCStatement addAssert(
+    public @Nullable JmlStatementExpr addAssert(
             boolean trace,
             DiagnosticPosition codepos, // FIXME _ document whether nullable and behavior
             Label label, 
@@ -2031,22 +2031,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 String msg2 = JmlTree.eol + (showRacSource? diag.toString() : diag.noSource()).replace("warning: ", "");
                 emsg = treeutils.makeUtilsMethodCall(emsg.pos, "concat", emsg, treeutils.makeStringLiteral(translatedExpr.pos,msg2));
             }
-            JCStatement st;
+            JCStatement stt;
             if (JmlOption.isOption(context, JmlOption.RAC_COMPILE_TO_JAVA_ASSERT)) {
-                st = M.at(codepos).Assert(translatedExpr, emsg);
+                stt = M.at(codepos).Assert(translatedExpr, emsg);
             } else {
                 if (info != null) {
                     emsg = info;
                 }
-                st = assertFailure(emsg,codepos,label);
-                if (!isFalse) st = M.at(codepos).If(
+                stt = assertFailure(emsg,codepos,label);
+                if (!isFalse) stt = M.at(codepos).If(
                         treeutils.makeNot(codepos == null ? Position.NOPOS : codepos.getPreferredPosition(), treeutils.makeIdent(translatedExpr.pos,assertDecl.sym)), 
-                        st, null);
+                        stt, null);
             }
             addStat(comment(translatedExpr,label + " assertion: " + translatedExpr.toString(),associatedSource));
             currentStatements.add(assertDecl);
-            currentStatements.add(st);
-            return st;
+            currentStatements.add(stt);
+            return null;
         }
         return null;
     }
@@ -2059,12 +2059,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * The args are arguments for the resource key giving the error message
      * corresponding to the given Label.
      */
-    public JCStatement addAssert(
+    public JmlStatementExpr addAssert(
             DiagnosticPosition codepos, 
             Label label, 
             JCExpression expr, 
             Object ... args) {
         return addAssert(true,codepos,label,expr,null,null,null,args);
+    }
+    
+    public JmlStatementExpr addCheck(
+            DiagnosticPosition codepos, 
+            Label label, 
+            JCExpression expr, 
+            Object ... args) {
+        JmlStatementExpr s = addAssert(true,codepos,label,expr,null,null,null,args);
+        if (s != null) s.clauseType = checkClause;
+        return s;
     }
     
     /** Creates a statement at which we can check feasibility */
@@ -15128,7 +15138,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
                 if (rac) {
-                    throw new JmlNotImplementedException(that,that.token.internedName());// FIXME
+                    throw new JmlNotImplementedException(that,that.kind.name());
                 } else {
                     result = eresult = makeFreshExpression(that,convertExpr(that.args.get(0)),label);
                 }
@@ -16094,7 +16104,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean saved = assumingPostConditions;
         assumingPostConditions = false;
         try {
-            if (that.clauseType == assertClause) {
+            if (that.clauseType == assertClause || that.clauseType == checkClause) {
                 addTraceableComment(that);
                 JCExpression e = convertJML(that.expression);
                 e = addImplicitConversion(that, syms.booleanType, e);
@@ -16107,9 +16117,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (o != null) opt = o;
                     }
                 }
+                if (that.clauseType == checkClause) {
+                    JCIdent id = newTemp(e, syms.booleanType);
+                    e = treeutils.makeOr(e,id,e);
+                }
                 Label label = that.label;
                 if (label == null) label = Label.EXPLICIT_ASSERT;
-                result = addAssert(false,that,label,e,null,null,opt);
+                JmlStatementExpr s = addAssert(false,that,label,e,null,null,opt);
+                if (that.clauseType == checkClause && !rac) {
+                    s.clauseType = checkClause;
+                }
+                result = s;
 
             } else if (that.clauseType == assumeClause) {
 

@@ -215,7 +215,7 @@ public class escArithmeticModes2 extends EscBase {
 
     @Test
     public void testModSafeB() {
-        main.addOptions("-show","-method=ma","-subexpressions");
+        //main.addOptions("-show","-method=ma","-subexpressions");
         //Assume.assumeTrue(runLongArithmetic);
         Assume.assumeTrue(!options.contains("-escBV=true")); // Very long - skip for now
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"

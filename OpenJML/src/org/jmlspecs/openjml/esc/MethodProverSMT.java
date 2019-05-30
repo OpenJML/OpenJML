@@ -993,7 +993,7 @@ public class MethodProverSMT {
                         return pathCondition;
                     }
                 }
-                if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).clauseType == assertClause) {
+                if (stat instanceof JmlStatementExpr && (((JmlStatementExpr)stat).clauseType == assertClause || ((JmlStatementExpr)stat).clauseType == checkClause)) {
                     JmlStatementExpr assertStat = (JmlStatementExpr)stat;
                     JCExpression e = assertStat.expression;
                     Label label = assertStat.label;
@@ -1005,9 +1005,10 @@ public class MethodProverSMT {
                         id = e.toString(); // Relies on all assert statements being reduced to identifiers
                         value = getBoolValue(id,info.smt,info.solver);
                     } else {
-                        return pathCondition; // For when assert statements are not identifiers
+                        return pathCondition; // For when assert statements are not identifiers // FIXME - this is a bad case
                     }
                     if (!value) { 
+                        if (e instanceof JCIdent) pathCondition = treeutils.makeNot(e, e);
                         boolean byPath = JmlOption.isOption(context, JmlOption.MAXWARNINGSPATH);
                         if (byPath) pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS, pathCondition, e);
                         else pathCondition = e;
@@ -1346,7 +1347,7 @@ public class MethodProverSMT {
                     return pathCondition;
                 }
             }
-            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).clauseType == assertClause) {
+            if (stat instanceof JmlStatementExpr && (((JmlStatementExpr)stat).clauseType == assertClause || ((JmlStatementExpr)stat).clauseType == checkClause)) {
                 JmlStatementExpr assertStat = (JmlStatementExpr)stat;
                 JCExpression e = assertStat.expression;
                 Label label = assertStat.label;
