@@ -4,7 +4,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.FOR;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
@@ -25,13 +25,8 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 
-public class TypeExprClauseExtension extends JmlExtension.TypeClause {
+public class TypeExprClauseExtension implements JmlDefinitions {
 
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            invariantClause, constraintClause, axiomClause, initiallyClause}; }
-    
     public static final String invariantID = "invariant";
     public static final String constraintID = "constraint";
     public static final String axiomID = "axiom";

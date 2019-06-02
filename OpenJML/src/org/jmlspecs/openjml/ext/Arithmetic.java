@@ -3,6 +3,7 @@ package org.jmlspecs.openjml.ext;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.IArithmeticMode;
 import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
@@ -34,8 +35,10 @@ import com.sun.tools.javac.util.Names;
 
 import org.jmlspecs.openjml.JmlOption;
 
-abstract public class Arithmetic extends ExpressionExtension {
+public class Arithmetic implements JmlDefinitions {
     
+    public Context context;
+    public Symtab syms;
     
     public static enum Mode { MATH(false,false), SAFE(true,true), JAVA(true,false) ;
         
@@ -51,20 +54,10 @@ abstract public class Arithmetic extends ExpressionExtension {
     };
     
     public Arithmetic(Context context) {
-        super(context);
-        this.intType = Symtab.instance(context).intType;
-    }
-    
-    static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
-//            JmlTokenKind.BSBIGINT_MATH, JmlTokenKind.BSJAVAMATH, JmlTokenKind.BSSAFEMATH
-            }; }
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+        this.context = context;
+        this.syms = Symtab.instance(context);
+        this.intType = syms.intType;
+    }    
 
     Symbol codeBigintMath = null;
     Symbol codeSafeMath = null;
@@ -142,32 +135,32 @@ abstract public class Arithmetic extends ExpressionExtension {
     }
 
     
-    @Override
-    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-        checkOneArg(parser,e);
-    }
-
-    @Override
-    public Type typecheck(JmlAttr attr, JCExpression expr,
-            Env<AttrContext> env) {
-        JmlMethodInvocation tree = (JmlMethodInvocation)expr;
-        JmlTokenKind token = tree.token;
-        
-        // Expect one argument of any type, result type is the same type
-        // The argument expression may contain JML constructs
-        ListBuffer<Type> argtypesBuf = new ListBuffer<>();
-        attr.attribArgs(tree.args, env, argtypesBuf);
-        //attr.attribTypes(tree.typeargs, env);
-        int n = tree.args.size();
-        if (n != 1) {
-            error(tree.pos(),"jml.one.arg",token.internedName(),n);
-        }
-        Type t = syms.errType;
-        if (n > 0) {
-            return tree.args.get(0).type;
-        }
-        return t;
-    }
+//    @Override
+//    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
+//        checkOneArg(parser,e);
+//    }
+//
+//    @Override
+//    public Type typecheck(JmlAttr attr, JCExpression expr,
+//            Env<AttrContext> env) {
+//        JmlMethodInvocation tree = (JmlMethodInvocation)expr;
+//        JmlTokenKind token = tree.token;
+//        
+//        // Expect one argument of any type, result type is the same type
+//        // The argument expression may contain JML constructs
+//        ListBuffer<Type> argtypesBuf = new ListBuffer<>();
+//        attr.attribArgs(tree.args, env, argtypesBuf);
+//        //attr.attribTypes(tree.typeargs, env);
+//        int n = tree.args.size();
+//        if (n != 1) {
+//            error(tree.pos(),"jml.one.arg",token.internedName(),n);
+//        }
+//        Type t = syms.errType;
+//        if (n > 0) {
+//            return tree.args.get(0).type;
+//        }
+//        return t;
+//    }
     /** Makes a expression appropriate to the given newtype and whether the translation
      *  is for rac or esc and whether it uses bit-vectors or not
      * @param rewriter the JmlAssertionAdder instance
@@ -617,7 +610,7 @@ abstract public class Arithmetic extends ExpressionExtension {
         }
         
         public static Math instance(Context context) {
-            return instance(context,Math.class);
+            return ExpressionExtension.instance(context,Math.class);
         }
         
         @Override
@@ -680,7 +673,7 @@ abstract public class Arithmetic extends ExpressionExtension {
         }
         
         public static Safe instance(Context context) {
-            return instance(context,Safe.class);
+            return ExpressionExtension.instance(context,Safe.class);
         }
         
         @Override
@@ -705,7 +698,7 @@ abstract public class Arithmetic extends ExpressionExtension {
         }
         
         public static Java instance(Context context) {
-            return instance(context,Java.class);
+            return ExpressionExtension.instance(context,Java.class);
         }
         
         @Override

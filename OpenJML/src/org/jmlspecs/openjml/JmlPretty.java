@@ -15,6 +15,7 @@ import org.jmlspecs.annotation.NonNull;
 
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
+import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
 import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.RequiresClause;
@@ -541,8 +542,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 print(" ");
                 modOrCodeOrBehavior = true;
             }
-            if (that.token == JmlTokenKind.MODEL_PROGRAM) {
-                print(that.token.internedName());
+            if (that.token == MethodSimpleClauseExtensions.modelprogramClause) {
+                print(that.token.toString());
                 print(" ");
                 that.block.accept(this);
                 return;
@@ -550,7 +551,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (that.token == null) {
                 // lightweight
             } else {
-                print(that.token.internedName());
+                print(that.token.toString());
                 modOrCodeOrBehavior = true;
             }
             if (modOrCodeOrBehavior) {
@@ -932,12 +933,12 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 tree.annotationType.toString();
             boolean isJml = s.startsWith(Strings.jmlAnnotationPackage);
             if (useJmlModifier && isJml) {
-                for (JmlTokenKind t: JmlTokenKind.values()) {
-                    if (t.annotationType != null && t.annotationType.toString().substring("interface ".length()).equals(s)) {
-                        print("/*@ " + t.internedName() + " */");
-                        return;
-                    }
-                }
+//                for (JmlTokenKind t: JmlTokenKind.values()) {
+//                    if (t.annotationType != null && t.annotationType.toString().substring("interface ".length()).equals(s)) {
+//                        print("/*@ " + t.internedName() + " */");
+//                        return;
+//                    }
+//                }  // FIXME
                 super.visitAnnotation(tree);
             } else if (!useFullAnnotationTypeName && isJml) {
                     s = s.substring(Strings.jmlAnnotationPackage.length()+1); // +1 for the extra period
@@ -1066,33 +1067,34 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         if (that.typeSpecs != null) {
             specsToPrint = that.typeSpecs;
         }
-        if (that instanceof org.jmlspecs.openjml.ext.DatatypeExt.JmlDatatypeDecl) {
-            org.jmlspecs.openjml.ext.DatatypeExt.JmlDatatypeDecl d = (org.jmlspecs.openjml.ext.DatatypeExt.JmlDatatypeDecl)that;
-            try {
-                print("datatype " + that.name.toString() + " {"); 
-                indent();
-                boolean first = true;
-                for (Pair<Name,List<JCTree.JCVariableDecl>> p: d.constructors) {
-                    if (!first) print(","); else first = false;
-                    println();
-                    align();
-                    print(p.fst.toString());
-                    print("(");
-                    print(p.snd.toString());
-                    print(")");
-                    // FIXME - commas, semicolon, methods
-                }
-                undent();
-                println();
-                align();
-                print("}"); println();
-                visitClassDef(that);
-            } catch (IOException e) {
-                perr(that,e);
-            }
-        } else {
+        // FIXME
+//        if (that instanceof org.jmlspecs.openjml.ext.DatatypeExt.JmlDatatypeDecl) {
+//            org.jmlspecs.openjml.ext.DatatypeExt.JmlDatatypeDecl d = (org.jmlspecs.openjml.ext.DatatypeExt.JmlDatatypeDecl)that;
+//            try {
+//                print("datatype " + that.name.toString() + " {"); 
+//                indent();
+//                boolean first = true;
+//                for (Pair<Name,List<JCTree.JCVariableDecl>> p: d.constructors) {
+//                    if (!first) print(","); else first = false;
+//                    println();
+//                    align();
+//                    print(p.fst.toString());
+//                    print("(");
+//                    print(p.snd.toString());
+//                    print(")");
+//                    // FIXME - commas, semicolon, methods
+//                }
+//                undent();
+//                println();
+//                align();
+//                print("}"); println();
+//                visitClassDef(that);
+//            } catch (IOException e) {
+//                perr(that,e);
+//            }
+//        } else {
             visitClassDef(that);
-        }
+//        }
     }
     
     @Override

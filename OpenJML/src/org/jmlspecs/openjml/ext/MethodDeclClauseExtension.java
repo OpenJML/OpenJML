@@ -5,7 +5,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -22,7 +22,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class MethodDeclClauseExtension extends JmlExtension.MethodClause  {
+public class MethodDeclClauseExtension {
 
     public static final String oldID = "old";
     public static final String forallID = "forall";
@@ -34,11 +34,6 @@ public class MethodDeclClauseExtension extends JmlExtension.MethodClause  {
     public static final IJmlClauseKind forallClause = new MethodClauseDeclType(forallID) {
         public boolean isPreconditionClause() { return true; }
     };
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            oldClause, forallClause }; }
     
     public static class MethodClauseDeclType extends IJmlClauseKind.MethodClause {
         public MethodClauseDeclType(String keyword) { super(keyword); }

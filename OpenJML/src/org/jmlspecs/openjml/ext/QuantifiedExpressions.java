@@ -11,6 +11,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
@@ -40,21 +41,8 @@ import com.sun.tools.javac.util.Name;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class QuantifiedExpressions extends ExpressionExtension {
+public class QuantifiedExpressions implements JmlDefinitions {
 
-    public QuantifiedExpressions(Context context) {
-        super(context);
-    }
-
-    static public JmlTokenKind[] tokens() { return null; }
-
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
     public static class QuantifiedExpression extends IJmlClauseKind.Expression {
         public QuantifiedExpression(String keyword) { super(keyword); }
 
@@ -142,7 +130,7 @@ public class QuantifiedExpressions extends ExpressionExtension {
                 JCModifiers mods = decl.getModifiers();
                 if (attr.utils.hasOnly(mods,0)!=0) log.error(mods.pos,"jml.no.java.mods.allowed","quantified expression");
                 attr.attribAnnotationTypes(mods.annotations,env);
-                attr.allAllowed(mods.annotations, JmlTokenKind.typeModifiers, "quantified expression");
+                attr.allAllowed(mods.annotations, ProgramLocation.LOCAL_TYPE, "quantified expression");
                 attr.utils.setExprLocal(mods);
 //                if (utils.hasAny(mods,Flags.STATIC)) {
 //                    log.error(that.pos,
@@ -244,16 +232,5 @@ public class QuantifiedExpressions extends ExpressionExtension {
     public static final String letID = "\\let";
     public static final IJmlClauseKind letKind = new QuantifiedExpression(letID);
 
-    // FIXME - eventually remove these
-    
-    public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
-        return null;
-    }
-
-    @Override
-    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-        // TODO Auto-generated method stub
-        
-    }
 }
 

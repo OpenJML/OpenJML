@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.IJmlLineAnnotation;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
@@ -28,7 +28,7 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 
-public class LineAnnotationClauses extends JmlExtension.LineAnnotation {
+public class LineAnnotationClauses implements JmlDefinitions {
 
     public static final String allowID = "allow";
     public static final String forbidID = "forbid";
@@ -121,11 +121,6 @@ public class LineAnnotationClauses extends JmlExtension.LineAnnotation {
     // We use ExceptionnLineAnnotationKind for nowarn annotations in order to share the scan method,
     // even though it is handled differently and does not hold a list of exceptions
     public static final IJmlClauseKind nowarnClauseKind = new ExceptionLineAnnotationKind(nowarnID);
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            allowClauseKind, forbidClauseKind, ignoreClauseKind, nowarnClauseKind }; }
     
     public static class ExceptionLineAnnotation extends IJmlClauseKind.LineAnnotationKind.LineAnnotation {
         java.util.List<JCTree.JCExpression> exceptionTypes = new java.util.LinkedList<>();

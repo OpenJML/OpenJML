@@ -11,6 +11,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.VOID;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -53,25 +54,8 @@ import com.sun.tools.javac.util.Name;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class MiscExpressions extends ExpressionExtension {
+public class MiscExpressions implements JmlDefinitions {
 
-    public MiscExpressions(Context context) {
-        super(context);
-    }
-
-    static public JmlTokenKind[] tokens() { return null; }
-
-    @Override
-    public IJmlClauseKind[] clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-        //        checkOneArg(parser,e);
-    }
 
     public static final String typelcID = "\\type";
     public static final IJmlClauseKind typelcKind = new IJmlClauseKind.Expression(typelcID) {

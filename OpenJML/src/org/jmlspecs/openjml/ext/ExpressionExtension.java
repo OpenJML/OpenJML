@@ -9,7 +9,7 @@ import java.lang.reflect.Constructor;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlExpression;
@@ -37,7 +37,7 @@ import com.sun.tools.javac.util.Log.WriterKind;
 /* FIXME - do more to implement extensions */
 
 /* TODO - needs documentation */
-abstract public class ExpressionExtension extends JmlExtension {
+abstract public class ExpressionExtension implements JmlDefinitions {
     protected static final Context.Key<ExpressionExtension> exprExtensionsKey =
             new Context.Key<ExpressionExtension>();
 

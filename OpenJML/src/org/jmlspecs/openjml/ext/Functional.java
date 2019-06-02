@@ -7,6 +7,7 @@ package org.jmlspecs.openjml.ext;
 import java.util.Iterator;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 
@@ -44,12 +45,8 @@ import com.sun.tools.javac.util.Names;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class Functional extends ExpressionExtension {
+public class Functional implements JmlDefinitions {
 
-    public Functional(Context context) {
-        super(context);
-    }
-    
     static public class FunctionalKinds extends IJmlClauseKind.FunctionLikeExpression {
         public FunctionalKinds(String keyword) {
             super(keyword);
@@ -157,28 +154,4 @@ public class Functional extends ExpressionExtension {
     static public final IJmlClauseKind readsExprKind = new FunctionalKinds("\\reads");
     static public final IJmlClauseKind writesExprKind = new FunctionalKinds("\\writes");
     
-    static public JmlTokenKind[] tokens() { return null; }
-    
-    @Override
-    public IJmlClauseKind[] clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() {
-        return new IJmlClauseKind[] { requiresExprKind, ensuresExprKind, readsExprKind, writesExprKind};
-    }
-    
-    
-    // FIXME - get rid of the following two methods
-
-    @Override
-    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public Type typecheck(JmlAttr attr, JCExpression expr,
-            Env<AttrContext> env) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
 }

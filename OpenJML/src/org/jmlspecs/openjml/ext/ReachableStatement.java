@@ -7,7 +7,7 @@ package org.jmlspecs.openjml.ext;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 
@@ -32,7 +32,7 @@ import com.sun.tools.javac.util.Context;
  * @author David Cok
  *
  */
-public class ReachableStatement extends JmlExtension.Statement {
+public class ReachableStatement implements JmlDefinitions {
 
     public static final String reachableID = "reachable";
     public static final String unreachableID = "unreachable";
@@ -40,11 +40,6 @@ public class ReachableStatement extends JmlExtension.Statement {
     public static final IJmlClauseKind reachableClause = new ExprStatementType(reachableID);
 
     public static final IJmlClauseKind unreachableClause = new ExprStatementType(unreachableID);
-
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            reachableClause, unreachableClause }; }
     
     public static class ExprStatementType extends IJmlClauseKind.Statement {
         public ExprStatementType(String keyword) { super(keyword); }

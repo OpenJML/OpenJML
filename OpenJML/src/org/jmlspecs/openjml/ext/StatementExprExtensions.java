@@ -2,9 +2,9 @@ package org.jmlspecs.openjml.ext;
 
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 
-public class StatementExprExtensions extends JmlExtension.MethodClause {
+public class StatementExprExtensions implements JmlDefinitions {
     
     public static final String assertID = "assert";
     public static final String assumeID = "assume";
@@ -28,16 +28,10 @@ public class StatementExprExtensions extends JmlExtension.MethodClause {
     public static final IJmlClauseKind loopdecreasesClause = new StatementExprType(loopdecreasesID);
     
     @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            assertClause, assumeClause, useClause, commentClause, hencebyClause,
-            loopinvariantClause, loopdecreasesClause }; }
-    
-    @Override
     public void register() {
-        Extensions.statementMethodClauses.put("decreases",loopdecreasesClause);
-        Extensions.statementMethodClauses.put("decreasing",loopdecreasesClause);
-        Extensions.statementMethodClauses.put("maintaining",loopinvariantClause);
+        Extensions.statementClauses.put("decreases",loopdecreasesClause);
+        Extensions.statementClauses.put("decreasing",loopdecreasesClause);
+        Extensions.statementClauses.put("maintaining",loopinvariantClause);
     }
     
 }

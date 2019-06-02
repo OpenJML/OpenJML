@@ -5,7 +5,7 @@ import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
@@ -24,7 +24,7 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class StatementLocationsExtension extends JmlExtension.Statement {
+public class StatementLocationsExtension implements JmlDefinitions {
     
     public static final String havocID = "havoc";
     public static final String loopmodifiesID = "loop_modifies";
@@ -32,11 +32,6 @@ public class StatementLocationsExtension extends JmlExtension.Statement {
     public static final IJmlClauseKind havocStatement = new LocationSetStatementType(havocID);
     
     public static final IJmlClauseKind loopmodifiesStatement = new LocationSetStatementType(loopmodifiesID);
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            havocStatement, loopmodifiesStatement }; }
     
     public static class LocationSetStatementType extends IJmlClauseKind.Statement {
         public LocationSetStatementType(String keyword) { super(keyword); }
@@ -96,7 +91,7 @@ public class StatementLocationsExtension extends JmlExtension.Statement {
     }
     
     public void synonym(String s, IJmlClauseKind t) {
-        Extensions.statementMethodClauses.put(s,t);
+        Extensions.statementClauses.put(s,t);
     }
     
 }

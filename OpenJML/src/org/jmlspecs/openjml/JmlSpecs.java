@@ -41,6 +41,9 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
+import org.jmlspecs.openjml.ext.ModifierExtension;
+import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
 import org.jmlspecs.openjml.vistors.JmlTreeCopier;
 
@@ -1032,9 +1035,9 @@ public class JmlSpecs {
             JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                     com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,nothingKind)));
             if (sym.isConstructor()) {
-                JCAnnotation annotation = org.jmlspecs.openjml.Utils.instance(context).tokenToAnnotationAST(JmlTokenKind.PURE, pos, pos);
+                JCAnnotation annotation = org.jmlspecs.openjml.Utils.instance(context).tokenToAnnotationAST(Modifiers.PURE_KIND, pos, pos);
                 JCFieldAccess fa = (JCTree.JCFieldAccess)annotation.annotationType;
-                fa.sym = JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlTokenKind.PURE);
+                fa.sym = Modifiers.PURE_KIND.annotationSymbol(context);
                 annotation.type = fa.type = fa.sym.type;
                 
                 mods.annotations = mods.annotations.append(annotation);
@@ -1042,7 +1045,7 @@ public class JmlSpecs {
 
             JmlMethodClauseSignals sig = M.at(pos).JmlMethodClauseSignals(signalsID, signalsClauseKind, null, JmlTreeUtils.instance(context).falseLit);
             JCModifiers csm = M.at(pos).Modifiers(mods.flags & Flags.AccessFlags);
-            JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false,JmlTokenKind.BEHAVIOR,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig),null);
+            JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false,MethodSimpleClauseExtensions.behaviorClause,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig),null);
             mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
             return mspecs;
             // FIXME - this case should happen only if parent constructors are pure and have no signals clause
@@ -1131,7 +1134,7 @@ public class JmlSpecs {
             } else {
                 break xx;
             }
-            JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false,JmlTokenKind.BEHAVIOR,null,clauses,null);
+            JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false,MethodSimpleClauseExtensions.behaviorClause,null,clauses,null);
             mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
             mspecs.mods.annotations = addPureAnnotation(pos, mspecs.mods.annotations);
             return mspecs;
@@ -1165,7 +1168,7 @@ public class JmlSpecs {
         if (decl == null) clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,clpa,cl);
         else clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(cl);
         JCModifiers csm = M.at(pos).Modifiers(mods.flags & Flags.AccessFlags);
-        JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase(csm, false, JmlTokenKind.BEHAVIOR,null,clauses,null);
+        JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase(csm, false, MethodSimpleClauseExtensions.behaviorClause,null,clauses,null);
         mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
         if (decl == null) mspecs.cases.deSugared = mspecs.cases;
         return mspecs;
@@ -1196,20 +1199,20 @@ public class JmlSpecs {
     }
     
     public JmlAnnotation makePureAnnotation(int pos, JmlTree.Maker F) {
-        JmlAnnotation annot = makeAnnotation(pos, F, JmlTokenKind.PURE);
+        JmlAnnotation annot = makeAnnotation(pos, F, Modifiers.PURE_KIND);
         annot.type = pureAnnotationSymbol().type;
         return annot;
     }
 
     public com.sun.tools.javac.util.List<JCAnnotation> addModelAnnotation(int pos, com.sun.tools.javac.util.List<JCAnnotation> annots) {
         JmlTree.Maker F = JmlTree.Maker.instance(context);
-        JmlAnnotation annot = makeAnnotation(pos, F, JmlTokenKind.MODEL);
+        JmlAnnotation annot = makeAnnotation(pos, F, Modifiers.MODEL_KIND);
         annot.type = modelAnnotationSymbol().type;
         return annots.append(annot);
     }
 
-    public JmlAnnotation makeAnnotation(int pos, JmlTree.Maker F, JmlTokenKind jt) {
-        Class<?> c = jt.annotationType;
+    public JmlAnnotation makeAnnotation(int pos, JmlTree.Maker F, ModifierExtension jt) {
+        Class<?> c = jt.javaAnnotation();
         if (c == null) return null;
         F.at(pos);
         JCExpression t = (F.Ident(names.fromString("org")));
@@ -1280,7 +1283,7 @@ public class JmlSpecs {
          * on containing classes, and the system default.
          */
         //@ nullable
-        private JmlTokenKind defaultNullity = null;
+        private ModifierExtension defaultNullity = null;
         
         /** All the specification clauses for the class (not method clauses or field clauses or block clauses) */
         /*@ non_null */
@@ -1398,18 +1401,18 @@ public class JmlSpecs {
      * @return JmlToken.NULLABLE or JmlToken.NONNULL
      */
     //@ ensures \result != null;
-    public /*@non_null*/ JmlTokenKind defaultNullity(/*@ nullable*/ ClassSymbol csymbol) {
+    public /*@non_null*/ ModifierExtension defaultNullity(/*@ nullable*/ ClassSymbol csymbol) {
         if (csymbol == null) {
             // FIXME - this is no longer true
             // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.
             // If neither one is present, then the logic here will give the
             // default as NONNULL.
             if (JmlOption.isOption(context,JmlOption.NULLABLEBYDEFAULT)) {
-                return JmlTokenKind.NULLABLE;
+                return Modifiers.NULLABLE_KIND;
             } else if (JmlOption.isOption(context,JmlOption.NONNULLBYDEFAULT)) {
-                return JmlTokenKind.NONNULL;
+                return Modifiers.NONNULL_KIND;
             } else {
-                return JmlTokenKind.NONNULL;  // The default when nothing is specified
+                return Modifiers.NONNULL_KIND;  // The default when nothing is specified
             }
         }
         {
@@ -1418,29 +1421,29 @@ public class JmlSpecs {
                 JCTree tree = env.tree;
                 if (tree != null && tree instanceof JmlClassDecl) {
                     JmlClassDecl decl = (JmlClassDecl)tree;
-                    return isNonNull(decl) ? JmlTokenKind.NONNULL : JmlTokenKind.NULLABLE;
+                    return isNonNull(decl) ? Modifiers.NONNULL_KIND : Modifiers.NULLABLE_KIND;
                 }
             }
         }
         
         TypeSpecs spec = get(csymbol); // spec is null if the TypeSpecs are in the process of being initialized
         if (spec == null || spec.defaultNullity == null) {
-            JmlTokenKind t = null;
+            ModifierExtension t = null;
             if (spec.refiningSpecDecls == null) {
                 if (csymbol.getAnnotationMirrors() != null) {
                     if (csymbol.attribute(attr.nullablebydefaultAnnotationSymbol) != null) {
-                        t = JmlTokenKind.NULLABLE;
+                        t = Modifiers.NULLABLE_KIND;
                     } else if (csymbol.attribute(attr.nonnullbydefaultAnnotationSymbol) != null) {
-                        t = JmlTokenKind.NONNULL;
+                        t = Modifiers.NONNULL_KIND;
                     }
                 } 
             } else {
                 JCModifiers mods = spec.refiningSpecDecls.mods;
                 if (spec.decl.specsDecl != null) mods = spec.decl.specsDecl.mods;
                 if (utils.findMod(mods, attr.nullablebydefaultAnnotationSymbol) != null) {
-                    t = JmlTokenKind.NULLABLE;
+                    t = Modifiers.NULLABLE_KIND;
                 } else if (utils.findMod(mods, attr.nonnullbydefaultAnnotationSymbol) != null) {
-                    t = JmlTokenKind.NONNULL;
+                    t = Modifiers.NONNULL_KIND;
                 }
             }
             if (t == null) {
@@ -1522,7 +1525,7 @@ public class JmlSpecs {
             JmlClassDecl cdecl = (JmlClassDecl)env.tree;
             return isNonNull(cdecl);
         } else {
-            return defaultNullity((ClassSymbol)owner) == JmlTokenKind.NONNULL;
+            return defaultNullity((ClassSymbol)owner) == Modifiers.NONNULL_KIND;
         }
     }
     
@@ -1537,8 +1540,8 @@ public class JmlSpecs {
         }
         Symbol parent = decl.sym.owner;
         while (parent instanceof MethodSymbol) parent = parent.owner;
-        if (!(parent instanceof Symbol.ClassSymbol)) return defaultNullity(null) == JmlTokenKind.NONNULL;  // FIXME - is this OK for interfaces
-        if (Enter.instance(context).getEnv((Symbol.TypeSymbol)parent) == null) return defaultNullity(null) == JmlTokenKind.NONNULL;
+        if (!(parent instanceof Symbol.ClassSymbol)) return defaultNullity(null) == Modifiers.NONNULL_KIND;  // FIXME - is this OK for interfaces
+        if (Enter.instance(context).getEnv((Symbol.TypeSymbol)parent) == null) return defaultNullity(null) == Modifiers.NONNULL_KIND;
         JmlClassDecl encl = (JmlClassDecl)Enter.instance(context).getEnv((Symbol.TypeSymbol)parent).tree;
         return isNonNull(encl);
     }
@@ -1572,7 +1575,7 @@ public class JmlSpecs {
             if (fspecs != null && utils.findMod(fspecs.mods,nullableAnnotationSymbol) != null) return false;
             else if (fspecs != null && utils.findMod(fspecs.mods,nonnullAnnotationSymbol) != null) return true;
             else if (symbol.name == names._this) return true;
-            else return defaultNullity((Symbol.ClassSymbol)symbol.owner) == JmlTokenKind.NONNULL;
+            else return defaultNullity((Symbol.ClassSymbol)symbol.owner) == Modifiers.NONNULL_KIND;
         } else if (symbol instanceof Symbol.VarSymbol && (symbol.owner == null || symbol.owner instanceof Symbol.MethodSymbol)) {
             attr = symbol.attribute(nullableAnnotationSymbol);
             if (attr != null) return false;
@@ -1588,21 +1591,21 @@ public class JmlSpecs {
             // else return defaultNullity(csymbol) == JmlToken.NONNULL;
             
             // Need to distinguish the two cases. The following is correct for variables in the body
-            return defaultNullity(csymbol) == JmlTokenKind.NONNULL;
+            return defaultNullity(csymbol) == Modifiers.NONNULL_KIND;
             
         } else if (symbol instanceof Symbol.MethodSymbol) {
             // Method return value
             MethodSpecs mspecs = getSpecs((Symbol.MethodSymbol)symbol);
             if (mspecs != null && utils.findMod(mspecs.mods,nullableAnnotationSymbol) != null) return false;
             else if (mspecs != null && utils.findMod(mspecs.mods,nonnullAnnotationSymbol) != null) return true;
-            else return defaultNullity(csymbol) == JmlTokenKind.NONNULL;
+            else return defaultNullity(csymbol) == Modifiers.NONNULL_KIND;
         } else {
             // What else?
             attr = symbol.attribute(nullableAnnotationSymbol);  // FIXME - the symbol might be 'THIS' which should always be non_null
             if (attr != null) return false;
             attr = symbol.attribute(nonnullAnnotationSymbol);
             if (attr != null) return true;
-            return defaultNullity(csymbol) == JmlTokenKind.NONNULL;
+            return defaultNullity(csymbol) == Modifiers.NONNULL_KIND;
         }
     }
     
@@ -1668,11 +1671,23 @@ public class JmlSpecs {
         return utils.findMod(fspecs.mods,annotationSymbol);
     }
 
+    public JCAnnotation fieldSpecHasAnnotation(VarSymbol sym, ModifierExtension token) {
+        FieldSpecs fspecs = getSpecs(sym);
+        if (fspecs == null) return null;
+        Symbol annotationSymbol = token.annotationSymbol(context);
+        return utils.findMod(fspecs.mods,annotationSymbol);
+    }
+
     public JCAnnotation methodSpecHasAnnotation(MethodSymbol sym, JmlTokenKind token) {
         MethodSpecs mspecs = getSpecs(sym);
         if (mspecs == null) return null;
-        Symbol annotationSymbol = attr.tokenToAnnotationSymbol.get(token);
-        return utils.findMod(mspecs.mods,annotationSymbol);
+        return utils.findMod(mspecs.mods,token);
+    }
+
+    public JCAnnotation methodSpecHasAnnotation(MethodSymbol sym, ModifierExtension token) {
+        MethodSpecs mspecs = getSpecs(sym);
+        if (mspecs == null) return null;
+        return utils.findMod(mspecs.mods,token);
     }
 
     /** Adds the specs in the second argument to the stored specs for the 

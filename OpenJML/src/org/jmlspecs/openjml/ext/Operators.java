@@ -11,7 +11,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.VOID;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -54,7 +54,7 @@ import com.sun.tools.javac.util.Name;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class Operators extends JmlExtension {
+public class Operators implements JmlDefinitions {
     Context context;
     
     public Operators(Context context) {
@@ -123,12 +123,5 @@ public class Operators extends JmlExtension {
     public static final String endjmlcommentID = "@*/";
     public static final IJmlClauseKind endjmlcommentKind = new Operator(endjmlcommentID);
 
-    
-    @Override
-    public IJmlClauseKind[] clauseTypesA() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
 }
 

@@ -10,6 +10,7 @@ import static org.jmlspecs.openjml.ext.RequiresClause.requiresClauseKind;
 
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -44,23 +45,7 @@ import com.sun.tools.javac.util.Log;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class SingletonExpressions extends ExpressionExtension {
-
-    protected JmlTypes jmltypes;
-
-    public SingletonExpressions(Context context) {
-        super(context);
-        this.jmltypes = JmlTypes.instance(context);
-    }
-
-    static public JmlTokenKind[] tokens() { return null; }
-
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+public class SingletonExpressions implements JmlDefinitions {
     
     public static final String resultID ="\\result";
     public static final IJmlClauseKind resultKind = new IJmlClauseKind.SingletonExpression(resultID) {
@@ -190,16 +175,5 @@ public class SingletonExpressions extends ExpressionExtension {
         Extensions.allKinds.put("\\index", countKind);
     }
 
-    // FIXME - eventually remove these
-    
-    public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
-        return null;
-    }
-
-    @Override
-    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-        // TODO Auto-generated method stub
-        
-    }
 }
 

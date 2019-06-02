@@ -3,7 +3,7 @@ package org.jmlspecs.openjml.ext;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.*;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.vistors.IJmlVisitor;
@@ -20,7 +20,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.Visitor;
 
-public class RequiresClause extends JmlExtension.MethodClause {
+public class RequiresClause implements JmlDefinitions {
     
     public static final String requiresID = "requires";
     
@@ -75,11 +75,6 @@ public class RequiresClause extends JmlExtension.MethodClause {
         
 
     };
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            requiresClauseKind}; }
     
     public static class Node extends JmlTree.JmlMethodClauseExpr {
 

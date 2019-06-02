@@ -7,7 +7,7 @@ package org.jmlspecs.openjml.ext;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
@@ -39,15 +39,10 @@ import com.sun.tools.javac.util.ListBuffer;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class ShowStatement extends JmlExtension.Statement {
+public class ShowStatement implements JmlDefinitions {
 
     public static final String showID = "show";
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            showClause }; }
-    
+        
     public static final IJmlClauseKind showClause = new JmlStatementType(showID) {
     };
     

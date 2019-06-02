@@ -21,6 +21,7 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
+import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.strongarm.InferenceType;
 import org.jmlspecs.openjml.strongarm.JmlInfer;
 import org.jmlspecs.openjml.strongarm.JmlInferPostConditions;
@@ -580,7 +581,7 @@ public class JmlCompiler extends JavaCompiler {
             JmlTree.Maker M = JmlTree.Maker.instance(context);
             JCClassDecl that = (JCClassDecl)tree;
             
-            if (((JmlAttr)attr).hasAnnotation(that.sym,JmlTokenKind.SKIP_RAC)) {
+            if (((JmlAttr)attr).hasAnnotation(that.sym,Modifiers.SKIPRAC_KIND)) {
                 utils.progress(1,1,"Skipping RAC of " + that.name.toString() + " (SkipRac annotation)");
                 return env;
             }

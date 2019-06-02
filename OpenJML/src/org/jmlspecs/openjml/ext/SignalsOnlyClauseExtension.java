@@ -5,7 +5,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
@@ -27,14 +27,9 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class SignalsOnlyClauseExtension extends JmlExtension.MethodClause {
+public class SignalsOnlyClauseExtension implements JmlDefinitions {
 
     public static final String signalsOnlyID = "signals_only";
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            signalsOnlyClauseKind }; }
     
     public static final IJmlClauseKind signalsOnlyClauseKind = new IJmlClauseKind.MethodClause(signalsOnlyID) {
         @Override

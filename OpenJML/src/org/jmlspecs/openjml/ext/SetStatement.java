@@ -7,7 +7,7 @@ package org.jmlspecs.openjml.ext;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
 import org.jmlspecs.openjml.JmlTree.JmlStatement;
 
@@ -35,17 +35,12 @@ import com.sun.tools.javac.util.Context;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class SetStatement extends JmlExtension.Statement {
+public class SetStatement implements JmlDefinitions {
 
     public static final String setID = "set";
     public static final String debugID = "debug";
     
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            setClause, debugClause }; }
-    
-    public static final IJmlClauseKind setClause = new JmlStatementType(setID);
+    public static       IJmlClauseKind setClause = new JmlStatementType(setID);
     
     public static final IJmlClauseKind debugClause = new JmlStatementType(debugID) {
     };

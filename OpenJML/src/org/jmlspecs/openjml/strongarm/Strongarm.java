@@ -25,6 +25,7 @@ import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import static org.jmlspecs.openjml.ext.RequiresClause.*;
+import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
 import org.jmlspecs.openjml.ext.OptionsInfer;
 import org.jmlspecs.openjml.strongarm.AnalysisTypes.AnalysisType;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebugger;
@@ -292,7 +293,7 @@ public class Strongarm
         methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
         
     	
-    	methodDecl.cases.cases.head.token = JmlTokenKind.NORMAL_BEHAVIOR;
+    	methodDecl.cases.cases.head.token = normalbehaviorClause;
         
 
     	if (verbose) {
@@ -648,7 +649,7 @@ public class Strongarm
         methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
         
         methodDecl.cases.cases.head.modifiers = treeutils.factory.Modifiers(Flags.PUBLIC);
-        methodDecl.cases.cases.head.token = JmlTokenKind.NORMAL_BEHAVIOR;
+        methodDecl.cases.cases.head.token = normalbehaviorClause;
         
         if (verbose) {
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
@@ -1076,7 +1077,7 @@ public class Strongarm
                 methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
                 
                 methodDecl.cases.cases.head.modifiers = treeutils.factory.Modifiers(Flags.PUBLIC);
-                methodDecl.cases.cases.head.token = JmlTokenKind.NORMAL_BEHAVIOR;
+                methodDecl.cases.cases.head.token = normalbehaviorClause;
                 
                 // SWAP
                 contract = cases;

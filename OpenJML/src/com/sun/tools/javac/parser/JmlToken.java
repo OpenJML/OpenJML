@@ -45,7 +45,7 @@ public class JmlToken extends Token {
     }
 
     public String toString() {
-        return ikind.toString();
+        return jmlclausekind != null ? jmlclausekind.toString() : jmlkind == null ? jmlkind.toString() : super.toString();
     }
     
 }

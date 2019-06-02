@@ -6,7 +6,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.IF;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
@@ -38,16 +38,10 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 
-public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
+public class TypeRepresentsClauseExtension implements JmlDefinitions {
 
     public static final String representsID = "represents";
     public static final String capturesID = "captures";
-    
-
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            representsClause, capturesClause}; }
     
     public static final IJmlClauseKind representsClause = new IJmlClauseKind.TypeClause(representsID) {
         public boolean oldNoLabelAllowed() { return false; }

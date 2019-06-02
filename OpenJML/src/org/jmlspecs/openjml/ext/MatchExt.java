@@ -21,19 +21,11 @@ import com.sun.tools.javac.util.ListBuffer;
 
 public class MatchExt extends ExpressionExtension {
 
-    public MatchExt(Context context) {
+    
+    protected MatchExt(Context context) {
         super(context);
     }
 
-    static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
-            JmlTokenKind.MATCH }; }
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() {
-        return null;
-    }
-    
     @Override
     public JCExpression parse(String keyword, IJmlClauseKind clauseType, JmlParser parser) {
         this.parser = parser;

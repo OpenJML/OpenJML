@@ -3,8 +3,9 @@ package org.jmlspecs.openjml.ext;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.IF;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
+import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
 
 import com.sun.tools.javac.code.Type;
@@ -16,7 +17,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 
-public class MethodConditionalClauseExtension extends JmlExtension.MethodClause {
+public class MethodConditionalClauseExtension implements JmlDefinitions {
 
     public static final String durationID = "duration";
     public static final String workingspaceID = "working_space";
@@ -34,12 +35,7 @@ public class MethodConditionalClauseExtension extends JmlExtension.MethodClause 
     
     public static final IJmlClauseKind measuredbyClause = new MethodConditionalClauseType(measuredbyID) {
     };
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            durationClause, measuredbyClause, workingspaceClause}; }
-    
+        
     public static class MethodConditionalClauseType extends IJmlClauseKind.MethodClause {
         public MethodConditionalClauseType(String keyword) { super(keyword); }
 

@@ -7,7 +7,7 @@ package org.jmlspecs.openjml.ext;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.IJmlLoop;
 import org.jmlspecs.openjml.JmlTree.JmlInlinedLoop;
@@ -38,26 +38,21 @@ import com.sun.tools.javac.util.List;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class InlinedLoopStatement extends JmlExtension.Statement implements IJmlLoop {
+public class InlinedLoopStatement implements JmlDefinitions {
 
     public static final String inlinedloopID = "inlined_loop";
     
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            inlinedLoopStatement }; }
-    
-    public List<JmlStatementLoop> loopSpecs;
-
-    @Override
-    public List<JmlStatementLoop> loopSpecs() {
-        return loopSpecs;
-    }
-
-    @Override
-    public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) {
-        this.loopSpecs = loopSpecs;
-    }
+//    public List<JmlStatementLoop> loopSpecs;
+//
+//    @Override
+//    public List<JmlStatementLoop> loopSpecs() {
+//        return loopSpecs;
+//    }
+//
+//    @Override
+//    public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) {
+//        this.loopSpecs = loopSpecs;
+//    }
 
     public static final IJmlClauseKind inlinedLoopStatement = new IJmlClauseKind.Statement(inlinedloopID) {
         public JmlInlinedLoop parse(JCModifiers mods, String id, IJmlClauseKind clauseType, JmlParser parser) {

@@ -82,7 +82,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     /*@ NonNull */ protected Set<String>     keys = new HashSet<>();
     
     /** A mode of the scanner that determines whether end of jml comment tokens are returned */
-    public boolean returnEndOfCommentTokens = true;
+    public boolean returnEndOfCommentTokens = false;
     
     /**
      * When jml is true, then (non-backslash) JML keywords are recognized if
@@ -393,8 +393,10 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                     // if initialJml == true and now the token is ENDJMLCOMMENT, then we had 
                     // an empty comment. We don't return a token in that case.
                     if (!returnEndOfCommentTokens || !initialJml) continue; // Go get next token
+                    System.out.println("END_JML_COMMENT");
                     return jmlToken;
                 } else {
+                    System.out.println("TOKEN " + (t==null?" - ":t.toString()) + " " + (jmlTokenKind==null?" - ":jmlTokenKind.toString()) + " " + (jmlTokenClauseKind==null?" - ":jmlTokenClauseKind.toString()));
                     return t; // A Java token
                 }
             }
@@ -407,9 +409,9 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                     continue;
                 }
             }
-//            } else if (jmlTokenKind == JmlTokenKind.PRIMITIVE_TYPE) {
-//                // finish and exit
-            if (tk == TokenKind.STAR && reader.ch == '/'
+            if (tk == TokenKind.CUSTOM) { 
+                // continue on to build the JmlToken at the return
+            } else if (tk == TokenKind.STAR && reader.ch == '/'
                 && jmlcommentstyle == CommentStyle.BLOCK) {
                 // We're in a BLOCK comment and we scanned a * and the next
                 // character is a / so we are at the end of the comment
@@ -484,18 +486,6 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 tk = TokenKind.CUSTOM;
                 jmlTokenKind = JmlTokenKind.INFORMAL_COMMENT;
                 jmlTokenClauseKind = SingletonExpressions.informalCommentKind;
-//            } else if (jmlTokenKind == JmlTokenKind.MODEL) {
-//                int prevbp = reader.bp; // FIXME _ this is probably not working; check endPos
-//                Token tt = super.readToken();
-//                //docComment = dc;
-//                if (jml && tt.kind == TokenKind.IMPORT) {
-//                    jmlTokenKind = JmlTokenKind.MODEL;
-//                } else {
-//                    // Need to backtrack
-//                    setReaderState(prevbp);
-//                    tk = TokenKind.CUSTOM;
-//                    jmlTokenKind = JmlTokenKind.MODEL;
-//                }
             } else if (tk == TokenKind.LBRACE && reader.ch == '|') {
                 tk = TokenKind.CUSTOM;
                 jmlTokenKind = JmlTokenKind.SPEC_GROUP_START;
@@ -512,8 +502,10 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 jmlTokenKind = JmlTokenKind.DOT_DOT;
                 jmlTokenClauseKind = Operators.dotdotKind;
                 endPos = reader.bp;
+            // else the token is a regular Java token in the JML context
             }
-            return jmlTokenKind == null ? t : new JmlToken(jmlTokenKind, jmlTokenClauseKind, TokenKind.CUSTOM, pos, endPos);
+            System.out.println("TOKEN " + (t==null?" - ":t.toString()) + " " + (jmlTokenKind==null?" - ":jmlTokenKind.toString()) + " " + (jmlTokenClauseKind==null?" - ":jmlTokenClauseKind.toString()));
+            return (jmlTokenKind == null && jmlTokenClauseKind == null) ? t : new JmlToken(jmlTokenKind, jmlTokenClauseKind, TokenKind.CUSTOM, pos, endPos);
         }
     }
     
@@ -623,26 +615,24 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         jmlTokenClauseKind = null;
         if (jml && tk == TokenKind.ASSERT) {
             tk = TokenKind.IDENTIFIER;
+            name = Names.instance(context).fromString("assert");
         }
-        if (!jml || !jmlkeyword) {
-            return;
-        }
-        if (tk == TokenKind.IDENTIFIER) {
+        if (jml && tk == TokenKind.IDENTIFIER) {
             String s = reader.chars();
             // TODO - we are just ignoring the redundantly suffixes
             if (s.endsWith("_redundantly")) {
                 s = s.substring(0, s.length() - "_redundantly".length());
                 name = Names.instance(context).fromString(s);
             }
-            JmlTokenKind tt = JmlTokenKind.allTokens.get(s);
-            if (tt != null) {
-                jmlTokenKind = tt;
-                jmlTokenClauseKind = Extensions.allKinds.get(s);
-                return; 
-            }
-        } else if (tk == TokenKind.ASSERT) {
-            tk = TokenKind.IDENTIFIER;
-            name = Names.instance(context).fromString("assert");
+//            jmlTokenKind = JmlTokenKind.allTokens.get(s);
+//            jmlTokenClauseKind = Extensions.allKinds.get(s);
+//            if (jmlTokenClauseKind != null) {
+//                tk = TokenKind.CUSTOM;
+//                return; 
+//            }
+//        } else if (tk == TokenKind.ASSERT) {
+//            tk = TokenKind.IDENTIFIER;
+//            name = Names.instance(context).fromString("assert");
         }
     }
 
@@ -662,19 +652,19 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 super.scanIdent();  // tk and name are set
                 // assuming that token() is Token.IDENTIFIER
                 String seq = reader.chars();
-                JmlTokenKind t = JmlTokenKind.backslashTokens.get(seq);
-                if (t != null) {
-                    tk = TokenKind.CUSTOM;
-                    jmlTokenKind = t;
-                    jmlTokenClauseKind = Extensions.allKinds.get(seq);
-                } else {
+//                JmlTokenKind t = JmlTokenKind.backslashTokens.get(seq);
+//                if (t != null) {
+//                    tk = TokenKind.CUSTOM;
+//                    jmlTokenKind = t;
+//                    jmlTokenClauseKind = Extensions.allKinds.get(seq);
+//                } else {
                     tk = TokenKind.IDENTIFIER;
                     jmlTokenKind = null;
                     jmlTokenClauseKind = Extensions.allKinds.get(seq);
 
                     //jmlError(ep, reader.bp, "jml.bad.backslash.token", seq);
                     // token is set to ERROR
-                }
+//                }
             } else {
                 jmlError(ep, reader.bp, "jml.extraneous.backslash");
                 // token is set to ERROR

@@ -10,6 +10,7 @@ import java.util.function.Function;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 import org.jmlspecs.openjml.JmlTree.JmlSource;
@@ -25,8 +26,10 @@ import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.JmlToken;
 import com.sun.tools.javac.parser.JmlTokenizer;
+import com.sun.tools.javac.parser.Tokens.ITokenKind;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
@@ -45,7 +48,7 @@ import com.sun.tools.javac.util.Log.WriterKind;
  * @author davidcok
  *
  */
-public abstract class IJmlClauseKind {
+public abstract class IJmlClauseKind implements ITokenKind {
     
     public IJmlClauseKind(String keyword) {
         this.keyword = keyword;
@@ -263,6 +266,8 @@ public abstract class IJmlClauseKind {
         public boolean preAllowed() { return !isPreconditionClause(); }
         public boolean isPreconditionClause() { return false; }
         @Override
+        abstract public JmlMethodClause parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser);
+        @Override
         public void init(JmlParser parser) {
             super.init(parser);
             this.scanner.setJmlKeyword(false);
@@ -324,7 +329,14 @@ public abstract class IJmlClauseKind {
         public Misc(String keyword) { super(keyword); }
         abstract public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser);
     }
+
+    public static abstract class ClassLike  {
+        
+        abstract public String name();
+        abstract public JCClassDecl parse(JmlParser parser, JCTree.JCModifiers mods);
+    }
     
+
     /** A base class for JML extensions that are kinds of expressions */
     public static abstract class Expression extends IJmlClauseKind {
         public Expression(String keyword) { super(keyword); }

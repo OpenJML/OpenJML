@@ -1,10 +1,10 @@
 package org.jmlspecs.openjml.ext;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlOption;
 
-public abstract class OptionsInfer extends JmlExtension {
+public abstract class OptionsInfer implements JmlDefinitions {
 
     // Options Related to Specification Inference
     public static final JmlOption INFER = new JmlOption("-infer",true,"POSTCONDITIONS","Infer missing contracts (postconditions (default), preconditions)","-command=infer");

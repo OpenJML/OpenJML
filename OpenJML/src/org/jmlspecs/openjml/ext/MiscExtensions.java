@@ -11,7 +11,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.VOID;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -54,7 +54,7 @@ import com.sun.tools.javac.util.Name;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class MiscExtensions extends JmlExtension {
+public class MiscExtensions implements JmlDefinitions {
     Context context;
     
     public MiscExtensions(Context context) {
@@ -119,25 +119,9 @@ public class MiscExtensions extends JmlExtension {
     public static final String suchthatID = "\\such_that";
     public static final IJmlClauseKind suchthatKind = new NoTypeMisc(suchthatID);
 
-    public static final String bspeerID = "\\peer";
-    public static final IJmlClauseKind bspeerKind = new NoTypeMisc(bspeerID);
-    
     public static final String readonlyID = "readonly";
     public static final IJmlClauseKind readonlyKind = new NoTypeMisc(readonlyID);
 
-    public static final String bsreadonlyID = "\\readonly";
-    public static final IJmlClauseKind bsreadonlyKind = new NoTypeMisc(bsreadonlyID);
 
-    public static final String bsrepID = "\\rep";
-    public static final IJmlClauseKind bsrepKind = new NoTypeMisc(bsrepID);
-
-    
-    
-    @Override
-    public IJmlClauseKind[] clauseTypesA() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
 }
 

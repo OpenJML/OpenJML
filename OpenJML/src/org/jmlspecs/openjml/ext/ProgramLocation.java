@@ -43,16 +43,16 @@ public class ProgramLocation {
     
     public int index() { return index; }
     
-    final static public ProgramLocation TOP_LEVEL_CLASS = new ProgramLocation("TOP_LEVEL_CLASS");
-    final static public ProgramLocation TOP_LEVEL_INTERFACE = new ProgramLocation("TOP_LEVEL_INTERFACE");
-    final static public ProgramLocation NESTED_CLASS = new ProgramLocation("NESTED_CLASS");
-    final static public ProgramLocation NESTED_INTERFACE = new ProgramLocation("NESTED_INTERFACE");
-    final static public ProgramLocation LOCAL_CLASS = new ProgramLocation("LOCAL_CLASS");
-    final static public ProgramLocation LOCAL_INTERFACE = new ProgramLocation("LOCAL_INTERFACE");
+    final static public ProgramLocation TOP_LEVEL_TYPE = new ProgramLocation("TOP_LEVEL_TYPE");
+    final static public ProgramLocation NESTED_TYPE = new ProgramLocation("NESTED_TYPE");
+    final static public ProgramLocation LOCAL_TYPE = new ProgramLocation("LOCAL_TYPE");
     final static public ProgramLocation METHOD = new ProgramLocation("METHOD");
+    final static public ProgramLocation MODEL_METHOD = new ProgramLocation("MODEL METHOD");
     final static public ProgramLocation CONSTRUCTOR = new ProgramLocation("CONSTRUCTOR");
-    final static public ProgramLocation CLASS_FIELD = new ProgramLocation("CLASS_FIELD");
-    final static public ProgramLocation INTERFACE_FIELD = new ProgramLocation("INTERFACE_FIELD");
+    final static public ProgramLocation MODEL_CONSTRUCTOR = new ProgramLocation("MODEL CONSTRUCTOR");
+    final static public ProgramLocation JAVA_FIELD = new ProgramLocation("FIELD");
+    final static public ProgramLocation MODEL_FIELD = new ProgramLocation("MODEL_FIELD");
+    final static public ProgramLocation GHOST_FIELD = new ProgramLocation("GHOST_FIELD");
     final static public ProgramLocation FORMAL_PARAMETER = new ProgramLocation("FORMAL_PARAMETER");
     final static public ProgramLocation LOCAL_VARIABLE = new ProgramLocation("LOCAL_VARIABLE");
     

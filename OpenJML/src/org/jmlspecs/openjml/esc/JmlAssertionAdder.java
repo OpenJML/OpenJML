@@ -39,6 +39,8 @@ import static org.jmlspecs.openjml.ext.MiscExpressions.*;
 import static org.jmlspecs.openjml.ext.FrameExpressions.*;
 import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
 import static org.jmlspecs.openjml.ext.Operators.*;
+import static org.jmlspecs.openjml.ext.Modifiers.*;
+import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
 import org.jmlspecs.openjml.ext.CallableClauseExtension;
 import org.jmlspecs.openjml.ext.EndStatement;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
@@ -49,6 +51,7 @@ import org.jmlspecs.openjml.vistors.JmlTreeSubstitute;
 import org.jmlspecs.openjml.ext.MethodConditionalClauseExtension;
 import org.jmlspecs.openjml.ext.MethodDeclClauseExtension;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
+import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.jmlspecs.openjml.ext.ReachableStatement;
 import org.jmlspecs.openjml.ext.SetStatement;
@@ -2408,7 +2411,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Returns true if the given symbol has a Model annotation */
     public boolean isModel(Symbol symbol) {
-        return symbol.attribute(attr.tokenToAnnotationSymbol.get(JmlTokenKind.MODEL))!=null; // FIXME - need to get this from the spec
+        return symbol.attribute(MODEL_KIND.annotationSymbol(context))!=null; // FIXME - need to get this from the spec
     }
     
     public boolean hasStatic(JCModifiers mods) {
@@ -7976,7 +7979,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             //specs.getSpecs(calleeMethodSym).cases.deSugared = null;// FIXME _ sometimes desugaring is wrongly computed ????
             JmlMethodSpecs mspecs = specs.getDenestedSpecs(calleeMethodSym);
-            boolean inliningCall = mspecs != null && mspecs.decl != null && mspecs.decl.mods != null && attr.findMod(mspecs.decl.mods,JmlTokenKind.INLINE) != null;
+            boolean inliningCall = mspecs != null && mspecs.decl != null && mspecs.decl.mods != null && attr.findMod(mspecs.decl.mods,Modifiers.INLINE_KIND) != null;
             
             // Collect all the methods overridden by the method being called, including the method itself
             java.util.List<Pair<MethodSymbol,Type>> overridden = parents(calleeMethodSym,receiverType);
@@ -8056,7 +8059,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (!utils.isJMLStatic(calleeMethodSym)) {
                         ntrArgs = ntrArgs.prepend(newThisExpr);
                     }
-                    if (!attr.hasAnnotation(calleeMethodSym,JmlTokenKind.FUNCTION) && !useNamesForHeap) {
+                    if (!attr.hasAnnotation(calleeMethodSym,FUNCTION_KIND) && !useNamesForHeap) {
                         JCExpression heap = treeutils.makeIdent(that.pos,heapSym);
                         ntrArgs = ntrArgs.prepend(heap); // only if heap dependent
                     }
@@ -8618,7 +8621,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     Map<Object,JCIdent> clauseIds = new HashMap<>();
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
                         if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
-                        if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue; // exceptional behavior clauses are not used for pure functions within JML expressions
+                        if (translatingJML && cs.token == exceptionalbehaviorClause) continue; // exceptional behavior clauses are not used for pure functions within JML expressions
                         if (mpsym != calleeMethodSym && cs.code) continue;
                         if (cs.block != null) hasAModelProgram = true;
                         preconditionDetail2++;
@@ -8904,7 +8907,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                         for (JmlSpecificationCase cs : calleeSpecs.cases) {
                           if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
-                          if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
+                          if (translatingJML && cs.token == exceptionalbehaviorClause) continue;
                           if (mpsym != calleeMethodSym && cs.code) continue;
                           JavaFileObject prev = log.useSource(cs.source());
                           pushBlock();
@@ -9192,7 +9195,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
                       if (mpsym != calleeMethodSym && cs.code) continue;
                       if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
-                      if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
+                      if (translatingJML && cs.token == exceptionalbehaviorClause) continue;
                       JCExpression pre = convertCopy(calleePreconditions.get(cs));
                       JavaFileObject prev = log.useSource(cs.source());
                       pushBlock();
@@ -9338,7 +9341,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 notImplemented(clause.keyword + " clause containing ",e, clause.source());
                             }
                         }
-                        if (useDefault && !translatingJML && cs.token != JmlTokenKind.MODEL_PROGRAM && cs.block == null && !inliningCall) {
+                        if (useDefault && !translatingJML && cs.token != modelprogramClause && cs.block == null && !inliningCall) {
                             log.warning(cs,"jml.internal","Unexpected absence of an assignable clause after desugaring: " + mpsym.owner + " " + mpsym.toString());
                         }
                       } finally {
@@ -9550,7 +9553,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
                         if (cs.block != null) hasModelProgramBlocks = true;
                         if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
-                        if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
+                        if (translatingJML && cs.token == exceptionalbehaviorClause) continue;
                         if (mpsym != calleeMethodSym && cs.code) continue;
                         ListBuffer<JCStatement> ensuresStats = new ListBuffer<JCStatement>();
                         ListBuffer<JCStatement> exsuresStats = new ListBuffer<JCStatement>();
@@ -9841,7 +9844,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 LinkedList<ListBuffer<JCStatement>> temptt = markBlock();
                 for (JmlSpecificationCase cs : calleeSpecs.cases) {
                     if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
-                    if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
+                    if (translatingJML && cs.token == exceptionalbehaviorClause) continue;
                     if (mpsym != calleeMethodSym && cs.code) continue;
 
                     if (cs.block != null && !localVariables.isEmpty()) {
@@ -16636,13 +16639,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 that.type = jmltypes.repSym((JmlType)that.type).type;
                 that.sym.type = that.type;
             }
-            if (specs.fieldSpecHasAnnotation(that.sym, JmlTokenKind.SPEC_PUBLIC) != null) {
+            if (specs.fieldSpecHasAnnotation(that.sym, SPECPUBLIC_KIND) != null) {
                 that.mods.flags &= ~Flags.AccessFlags;
                 that.mods.flags |= Flags.PUBLIC;
                 that.sym.flags_field  &= ~Flags.AccessFlags;
                 that.sym.flags_field |= Flags.PUBLIC;
             }
-            if (specs.fieldSpecHasAnnotation(that.sym, JmlTokenKind.SPEC_PROTECTED) != null) {
+            if (specs.fieldSpecHasAnnotation(that.sym, SPECPROTECTED_KIND) != null) {
                 that.mods.flags &= ~Flags.AccessFlags;
                 that.mods.flags |= Flags.PROTECTED;
                 that.sym.flags_field  &= ~Flags.AccessFlags;
@@ -16655,7 +16658,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addTraceableComment(that,that,that.toString(),null);
         }
        
-        if (( that.type.tsym.flags_field & Flags.ENUM)!= 0 && that.sym.owner instanceof ClassSymbol) { // FIXME - should check the initializer expressions of enums
+        if (that.type.tsym.isEnum() && that.sym.owner instanceof ClassSymbol) { // FIXME - should check the initializer expressions of enums
             JmlVariableDecl stat = M.at(that).VarDef(that.sym,that.init);
             stat.ident = newident;
 
@@ -17484,7 +17487,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 for (JmlSpecificationCase cs : calleeSpecs.cases) {
                     if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
                     //if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
-                    if (cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
+                    if (cs.token == exceptionalbehaviorClause) continue;
                     // FIXME - will need to add OLD and FORALL clauses in here
                     
                     JCExpression pre = qthisnn != null ? qthisnn : treeutils.trueLit;

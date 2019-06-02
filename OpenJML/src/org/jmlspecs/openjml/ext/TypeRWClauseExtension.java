@@ -4,7 +4,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.IF;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
@@ -28,7 +28,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
-public class TypeRWClauseExtension extends JmlExtension.TypeClause {
+public class TypeRWClauseExtension implements JmlDefinitions {
 
     public static final String readableID = "readable";
     public static final String writableID = "writable";
@@ -37,11 +37,6 @@ public class TypeRWClauseExtension extends JmlExtension.TypeClause {
     
     public static final IJmlClauseKind writableClause = new RWClauseType(writableID);
 
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            readableClause, writableClause}; }
-    
 
     public static class RWClauseType extends IJmlClauseKind.TypeClause {
         public RWClauseType(String keyword) { super(keyword); }

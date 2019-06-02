@@ -3,7 +3,7 @@ package org.jmlspecs.openjml.ext;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
@@ -22,14 +22,8 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 
-public class TypeDeclClauseExtension extends JmlExtension.TypeClause {
+public class TypeDeclClauseExtension implements JmlDefinitions {
 
-    @Override
-    public IJmlClauseKind[] clauseTypesA() { return clauseTypes(); }
-    
-    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            typedeclClause}; }
-    
     public static final String typedeclID = "type declaration";
     
     public static final IJmlClauseKind typedeclClause = new TypeClause(typedeclID);

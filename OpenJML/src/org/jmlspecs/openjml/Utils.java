@@ -35,6 +35,8 @@ import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.IInJML;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.ext.ModifierExtension;
+import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.strongarm.JDKListUtils;
 
 import com.sun.tools.javac.code.Flags;
@@ -376,9 +378,9 @@ public class Utils {
             Symbol csym = sym.owner;
             if (csym != null && (csym.flags() & Flags.INTERFACE) != 0) {
                 // TODO - should cleanup this reference to JmlAttr from Utils
-                if (JmlAttr.instance(context).hasAnnotation(sym,JmlTokenKind.INSTANCE)) return false;
+                if (JmlAttr.instance(context).hasAnnotation(sym,Modifiers.INSTANCE_KIND)) return false;
             } 
-        } else if (JmlAttr.instance(context).hasAnnotation(sym,JmlTokenKind.INSTANCE)) return false;
+        } else if (JmlAttr.instance(context).hasAnnotation(sym,Modifiers.INSTANCE_KIND)) return false;
         return true;
     }
 
@@ -389,7 +391,7 @@ public class Utils {
         // JML field marked as instance.
         if ((csym.flags() & Flags.INTERFACE) != 0) {
             // TODO - should cleanup this reference to JmlAttr from Utils
-            if (JmlAttr.instance(context).findMod(mods,JmlTokenKind.INSTANCE) != null) return false;
+            if (JmlAttr.instance(context).findMod(mods,Modifiers.INSTANCE_KIND) != null) return false;
             if ((mods.flags & STATIC) == 0 || (mods.flags & Utils.JMLINSTANCE) != 0) return false;
         } 
         return ((mods.flags & Flags.STATIC) != 0);
@@ -473,7 +475,8 @@ public class Utils {
         for (JCTree.JCAnnotation a: mods.annotations) {
             Type t = a.annotationType.type;
             if (t != null) {
-                if (t.tsym.equals(asym)) return (JmlTree.JmlAnnotation)a; 
+                // FIXME - we get different symbols for annotations but shouldn't
+                if (t.tsym.equals(asym) || t.tsym.flatName().equals(asym.flatName())) return (JmlTree.JmlAnnotation)a; 
             } else {
                 // FIXME this is not going to work for unattributed and not-fully qualified annotations, and at best is a real hack
                 String s = a.annotationType.toString();
@@ -481,6 +484,10 @@ public class Utils {
             }
         }
         return null;
+    }
+    
+    public JmlTree.JmlAnnotation findMod(/*@ nullable */ JCModifiers mods, ModifierExtension m) {
+        return findMod(mods, m.annotationSymbol(context));
     }
     
 //    public boolean hasAnnotation(Symbol sym, JmlTokenKind token) {
@@ -926,11 +933,11 @@ public class Utils {
     }
     
     public boolean hasSpecPublic(Symbol s) {
-        return s != null && s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PUBLIC)) != null;
+        return s != null && s.attribute(Modifiers.SPECPUBLIC_KIND.annotationSymbol(context)) != null;
     }
 
     public boolean hasSpecProtected(Symbol s) {
-        return s != null && s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PROTECTED)) != null;
+        return s != null && s.attribute(Modifiers.SPECPROTECTED_KIND.annotationSymbol(context)) != null;
     }
 
     /** Returns true if a declaration in the 'parent' class with the given flags 
@@ -1135,6 +1142,37 @@ public class Utils {
         ((JmlTree.JmlAnnotation)ann).sourcefile = log().currentSourceFile();
         
         ClassSymbol sym = JmlAttr.instance(context).tokenToAnnotationSymbol.get(jt);
+        if (sym != null) {
+            ann.type = sym.type;
+            t.sym = sym;         // org.jmlspecs.annotation.X
+            t.type = sym.type;
+            JCFieldAccess pa = (JCFieldAccess)p;  // org.jmlspecs.annotation
+            pa.sym = sym.owner;
+            pa.type = pa.sym.type;
+            pa = (JCFieldAccess)pa.selected;  // org.jmlspecs
+            pa.sym = sym.owner.owner;
+            pa.type = pa.sym.type;
+            JCIdent porg = (JCIdent)pa.selected;  // org
+            porg.sym = sym.owner.owner.owner;
+            porg.type = porg.sym.type;
+       }
+
+        return ann;
+    }
+    
+    public/* @ nullable */JCAnnotation tokenToAnnotationAST(ModifierExtension jt,
+            int position, int endpos) {
+        Class<?> c = jt.javaAnnotation();
+        if (c == null) return null;
+        JmlTree.Maker F = JmlTree.Maker.instance(context);
+        Names names = Names.instance(context);
+        JCExpression p = nametree(position, "org.jmlspecs.annotation");
+        JCFieldAccess t = (F.at(position).Select(p, names.fromString(c.getSimpleName())));
+        JCAnnotation ann = (F.at(position).Annotation(t,
+                com.sun.tools.javac.util.List.<JCExpression> nil()));
+        ((JmlTree.JmlAnnotation)ann).sourcefile = log().currentSourceFile();
+        
+        ClassSymbol sym = jt.annotationSymbol(context);
         if (sym != null) {
             ann.type = sym.type;
             t.sym = sym;         // org.jmlspecs.annotation.X

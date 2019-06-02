@@ -6,7 +6,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.IF;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
@@ -33,16 +33,11 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
-public class TypeInitializerClauseExtension extends JmlExtension.TypeClause {
+public class TypeInitializerClauseExtension implements JmlDefinitions {
 
     public static final String initializerID = "initializer";
     public static final String staticinitializerID = "static_initializer";
 
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            initializerClause, staticinitializerClause}; }
-    
     public static final IJmlClauseKind initializerClause = new InitializerBlock(initializerID);
     
     public static final IJmlClauseKind staticinitializerClause = new InitializerBlock(staticinitializerID);

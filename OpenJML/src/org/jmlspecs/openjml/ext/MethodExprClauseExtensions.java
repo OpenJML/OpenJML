@@ -1,9 +1,9 @@
 package org.jmlspecs.openjml.ext;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 
-public class MethodExprClauseExtensions extends JmlExtension.MethodClause {
+public class MethodExprClauseExtensions {
     
     public static final String ensuresID = "ensures";
     public static final String divergesID = "diverges";
@@ -34,11 +34,5 @@ public class MethodExprClauseExtensions extends JmlExtension.MethodClause {
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
     };
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            ensuresClauseKind, divergesClause, whenClause,
-            continuesClause, breaksClause, returnsClause}; }
     
 }

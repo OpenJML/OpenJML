@@ -140,7 +140,7 @@ public class JmlTree {
         JmlQuantifiedExpr JmlQuantifiedExpr(IJmlClauseKind kind, List<JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression predicate);
         JmlSetComprehension JmlSetComprehension(JCTree.JCExpression type, JCTree.JCVariableDecl v, JCTree.JCExpression predicate);
         JmlSingleton JmlSingleton(IJmlClauseKind jt);
-        JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlTokenKind t, JmlTokenKind also, List<JmlMethodClause> clauses, JCBlock block);
+        JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, IJmlClauseKind t, IJmlClauseKind also, List<JmlMethodClause> clauses, JCBlock block);
         JmlSpecificationCase JmlSpecificationCase(JmlSpecificationCase sc, List<JmlMethodClause> clauses);
         JmlStatement JmlStatement(IJmlClauseKind t, JCTree.JCStatement e);
         JmlStatementShow JmlStatementShow(IJmlClauseKind t, List<JCExpression> expressions);
@@ -797,7 +797,7 @@ public class JmlTree {
         }
 
         @Override
-        public JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, JmlTokenKind t, JmlTokenKind also, List<JmlMethodClause> clauses, JCBlock block) {
+        public JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, IJmlClauseKind t, IJmlClauseKind also, List<JmlMethodClause> clauses, JCBlock block) {
             JmlSpecificationCase jcase = new JmlSpecificationCase(pos,mods,code,t,also,clauses,block);
             jcase.sourcefile = Log.instance(context).currentSourceFile();
             return jcase;
@@ -2742,14 +2742,14 @@ public class JmlTree {
     /** This class represents a specification case in a method specification */
     public static class JmlSpecificationCase extends JmlAbstractStatement implements JmlSource {
         public JCModifiers modifiers;
-        public JmlTokenKind token;
-        public JmlTokenKind also;
+        public IJmlClauseKind token;
+        public IJmlClauseKind also;
         public boolean code;
         public List<JmlMethodClause> clauses; // A behavior spec case has clauses but no block of statements
         public JCBlock block;  // A model program has a block (of statements) but no clauses
         public JavaFileObject sourcefile;
         
-        public JmlSpecificationCase(int pos, JCModifiers mods, boolean code, JmlTokenKind token, JmlTokenKind also, List<JmlMethodClause> clauses, JCBlock block) {
+        public JmlSpecificationCase(int pos, JCModifiers mods, boolean code, IJmlClauseKind token, IJmlClauseKind also, List<JmlMethodClause> clauses, JCBlock block) {
             this.pos = pos;
             this.sourcefile = null;
             this.modifiers = mods;
@@ -2892,13 +2892,13 @@ public class JmlTree {
      * declarations (FIXME _ local class?)
      */
     public static class JmlStatementDecls extends JmlAbstractStatement {
-        public JmlTokenKind token;
+        public IJmlClauseKind token;
         public List<JCTree.JCStatement> list;
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlStatementDecls(int pos, List<JCTree.JCStatement> list) {
             this.pos = pos;
-            this.token = JmlTokenKind.GHOST;
+            this.token = Modifiers.GHOST_KIND;
             this.list = list;
         }
     

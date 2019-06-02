@@ -8,7 +8,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
@@ -32,18 +32,13 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
-public class ChooseClause extends JmlExtension.Statement {
-    
-    public static final String chooseID = "choose";
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            chooseClause }; }
+public class ChooseClause implements JmlDefinitions {
     
     public void register() {
-        Extensions.statementMethodClauses.put("choose_if",chooseClause);
+        Extensions.statementClauses.put("choose_if",chooseClause);
     }
+    
+    public static final String chooseID = "choose";
     
     public static final IJmlClauseKind chooseClause = new IJmlClauseKind.Statement(chooseID) {
         @Override

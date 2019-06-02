@@ -10,6 +10,7 @@ import static org.jmlspecs.openjml.JmlTokenKind.BSPRE;
 import static org.jmlspecs.openjml.ext.RequiresClause.requiresClauseKind;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -50,20 +51,7 @@ import com.sun.tools.javac.util.Name;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class StateExpressions extends ExpressionExtension {
-
-    public StateExpressions(Context context) {
-        super(context);
-    }
-
-    static public JmlTokenKind[] tokens() { return null; }
-
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+public class StateExpressions implements JmlDefinitions {
     
     public static class StateExpression extends IJmlClauseKind.Expression {
         public StateExpression(String keyword) { super(keyword); }
@@ -103,7 +91,7 @@ public class StateExpressions extends ExpressionExtension {
             Type t = null;
             if (tree.token == BSPRE) {
                 // pre
-                if (!attr.preTokens.contains(currentClauseType) && !currentClauseType.preAllowed()) {
+                if (!currentClauseType.preAllowed()) {
                     log.error(tree.pos+1, "jml.misplaced.old", "\\pre token", currentClauseType.name());
                     t = syms.errType;
                 }
@@ -111,13 +99,13 @@ public class StateExpressions extends ExpressionExtension {
                 // old with no label
                 if (attr.currentClauseType == null) {
                     // OK
-                } else if (!attr.oldNoLabelTokens.contains(currentClauseType) && (currentClauseType == null || !currentClauseType.oldNoLabelAllowed())) {
+                } else if (currentClauseType == null || !currentClauseType.oldNoLabelAllowed()) {
                     log.error(tree.pos+1, "jml.misplaced.old", "\\old token with no label", currentClauseType.name());
                     t = syms.errType;
                 }
             } else {
                 // old with label
-                if (!attr.preTokens.contains(currentClauseType) && (currentClauseType == null || !currentClauseType.preOrOldWithLabelAllowed())) {
+                if (currentClauseType == null || !currentClauseType.preOrOldWithLabelAllowed()) {
                     attr.log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", currentClauseType.name());
                     t = syms.errType;
                 }
@@ -183,16 +171,5 @@ public class StateExpressions extends ExpressionExtension {
     public static final String pastID = "\\past";
     public static final IJmlClauseKind pastKind = new StateExpression(pastID);
 
-    // FIXME - eventually remove these
-    
-    public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
-        return null;
-    }
-
-    @Override
-    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-        // TODO Auto-generated method stub
-        
-    }
 }
 

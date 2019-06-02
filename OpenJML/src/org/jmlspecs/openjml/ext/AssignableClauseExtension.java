@@ -5,7 +5,7 @@ import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 
@@ -23,17 +23,17 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class AssignableClauseExtension extends JmlExtension.MethodClause {
+public class AssignableClauseExtension implements JmlDefinitions {
     
     public static final String assignableID = "assignable";
     public static final String accessibleID = "accessible";
     public static final String capturesID = "captures";
     
-    public static final IJmlClauseKind assignableClauseKind = new LocationSetClauseType() {
+    public static final IJmlClauseKind.MethodClause assignableClauseKind = new LocationSetClauseType() {
         public String name() { return assignableID; }
     };
     
-    public static final IJmlClauseKind accessibleClause = new LocationSetClauseType() {
+    public static final IJmlClauseKind.MethodClause accessibleClause = new LocationSetClauseType() {
         public String name() { return accessibleID; }
     };
     
@@ -49,15 +49,10 @@ public class AssignableClauseExtension extends JmlExtension.MethodClause {
         synonym("reads",accessibleClause);
     }
     
-    public void synonym(String s, IJmlClauseKind t) {
-        Extensions.typeMethodClauses.put(s,t);
-        Extensions.statementMethodClauses.put(s,t);
+    public void synonym(String s, IJmlClauseKind.MethodClause t) {
+        Extensions.methodSpecKeywords.put(s,t);
+        Extensions.methodClauseKeywords.put(s,t);
     }
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            assignableClauseKind, accessibleClause }; }
     
     public static class LocationSetClauseType extends IJmlClauseKind.MethodClause {
         public LocationSetClauseType() { super(null); }

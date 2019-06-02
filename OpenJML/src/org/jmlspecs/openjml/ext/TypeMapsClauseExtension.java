@@ -1,7 +1,7 @@
 package org.jmlspecs.openjml.ext;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMaps;
 
 import com.sun.tools.javac.code.Type;
@@ -13,13 +13,8 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 
-public class TypeMapsClauseExtension extends JmlExtension.TypeClause {
+public class TypeMapsClauseExtension implements JmlDefinitions {
 
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            mapsClause}; }
-    
     public static final String mapsID = "maps";
     
     public static final IJmlClauseKind mapsClause = new IJmlClauseKind.TypeClause(mapsID) {

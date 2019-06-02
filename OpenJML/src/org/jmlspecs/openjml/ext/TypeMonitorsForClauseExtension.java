@@ -5,7 +5,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.IF;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
@@ -30,15 +30,10 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
-public class TypeMonitorsForClauseExtension extends JmlExtension.TypeClause {
+public class TypeMonitorsForClauseExtension implements JmlDefinitions {
 
     public static final String monitorsforID = "monitors_for";
 
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            monitorsforClause}; }
-    
     public static final IJmlClauseKind monitorsforClause = new IJmlClauseKind.TypeClause(monitorsforID) {
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
@@ -52,7 +47,7 @@ public class TypeMonitorsForClauseExtension extends JmlExtension.TypeClause {
             List<JCExpression> elist = List.<JCExpression>nil();
             Name n;
             int identPos = parser.pos();
-            ITokenKind tk = parser.token().kind;
+            TokenKind tk = parser.token().kind;
             if (tk != IDENTIFIER) {
                 error(parser.pos(), parser.endPos(), "jml.expected", "an identifier");
                 n = parser.names.asterisk; // place holder for an error situation

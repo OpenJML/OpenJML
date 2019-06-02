@@ -4,7 +4,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
@@ -26,14 +26,9 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class CallableClauseExtension extends JmlExtension.MethodClause {
+public class CallableClauseExtension implements JmlDefinitions {
 
     public static final String callableID = "callable";
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            callableClause }; }
     
     public static final IJmlClauseKind callableClause = new IJmlClauseKind.MethodClause(callableID) {
         @Override

@@ -7,7 +7,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlDefinitions;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.Maker;
@@ -28,23 +28,15 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Name;
 
-public class SignalsClauseExtension extends JmlExtension.MethodClause {
+public class SignalsClauseExtension implements JmlDefinitions {
     
     public static final String signalsID = "signals";
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            signalsClauseKind }; }
-    
+        
     public void register() {
-        Extensions.typeMethodClauses.put("exsures",signalsClauseKind);
-        Extensions.statementMethodClauses.put("exsures",signalsClauseKind);
-        Extensions.typeMethodClauses.put("throws",signalsClauseKind);
-        Extensions.statementMethodClauses.put("throws",signalsClauseKind);
+        Extensions.methodSpecKeywords.put("throws",signalsClauseKind);
     }
     
-    public static final IJmlClauseKind signalsClauseKind = new IJmlClauseKind.MethodClause(signalsID) {
+    public static final IJmlClauseKind.MethodClause signalsClauseKind = new IJmlClauseKind.MethodClause(signalsID) {
         @Override
         public boolean oldNoLabelAllowed() { return true; }
         @Override

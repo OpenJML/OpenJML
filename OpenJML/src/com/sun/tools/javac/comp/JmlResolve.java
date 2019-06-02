@@ -9,6 +9,7 @@ import org.jmlspecs.openjml.JmlCompiler;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.Modifiers;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Scope;
@@ -218,10 +219,10 @@ public class JmlResolve extends Resolve {
         }
 
         if (specPublicSym == null) {
-            specPublicSym = attr.tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PUBLIC);
+            specPublicSym = Modifiers.SPECPUBLIC_KIND.annotationSymbol(context);
         }
         if (specProtectedSym == null) {
-            specProtectedSym = attr.tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PROTECTED);
+            specProtectedSym = Modifiers.SPECPROTECTED_KIND.annotationSymbol(context);
         }
 
         boolean isSpecPublic = utils.findMod(mods,specPublicSym) != null;
