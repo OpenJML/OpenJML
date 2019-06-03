@@ -4016,7 +4016,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 addStat(initialStats,newdecl);
                                 mapSymbols.put(decl.sym, newdecl.sym);
                                 JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
-                                pushBlock();
+                                ListBuffer<JCStatement> check2 = pushBlock();
                                 if (rac) {
                                     newdecl.init = treeutils.makeZeroEquivalentLit(decl.init.pos, decl.type);
                                 } else {
@@ -4032,12 +4032,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     } else {
                                         addAssume(clause,Label.PRECONDITION,treeutils.makeEquality(clause.pos,id,convertedInit));
                                     }
-                                    JCBlock bl = popBlock(0L,clause);
-                                    if (preexpr == null) {
-                                        addStat(bl);
-                                    } else {
-                                        addStat(M.at(clause).If(preexpr, bl, null));
-                                    }
+                                }
+                                JCBlock bl = popBlock(0L,clause,check2);
+                                if (preexpr == null) {
+                                    addStat(bl);
+                                } else {
+                                    addStat(M.at(clause).If(preexpr, bl, null));
                                 }
                                 //paramActuals.put(decl.sym,id);
                                 //preparams.put(decl.sym,id);
@@ -8600,12 +8600,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 } else {
                                                     addAssume(clause,Label.PRECONDITION,treeutils.makeEquality(clause.pos,id,convertedInit));
                                                 }
-                                                JCBlock bl = popBlock(0L,clause);
-                                                if (treeutils.isTrueLit(prex)) {
-                                                    addStat(bl);
-                                                } else {
-                                                    addStat(M.at(clause).If(prex, bl, null));
-                                                }
+                                            }
+                                            JCBlock bl = popBlock(0L,clause);
+                                            if (treeutils.isTrueLit(prex)) {
+                                                addStat(bl);
+                                            } else {
+                                                addStat(M.at(clause).If(prex, bl, null));
                                             }
                                             //paramActuals.put(decl.sym,id);
                                             //preparams.put(decl.sym,id);
