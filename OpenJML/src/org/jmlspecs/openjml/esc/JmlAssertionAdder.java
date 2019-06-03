@@ -12666,7 +12666,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else if (!(sym.owner instanceof Symbol.TypeSymbol)) {
                 // local variable or formal parameter  - just leave it as 
                 // an ident (the owner is null or the method)
-                
+                eresult = null;
                 if (sym.owner != methodDecl.sym) { 
                     Name nm = that.name;
                     for (JCTree t : classDecl.defs) {
@@ -14508,15 +14508,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         log.useSource(that.source());
         boolean saved = translatingJML;
+        JmlMethodDecl savedMD = methodDecl;
+        methodDecl = that;
         try {
             // FIXME - implemente constructors - need super calls.
             //        if (that.restype == null) { classDefs.add(that); return; } // FIXME - implement constructors
             JCBlock body = null;
             if (pureCopy) {
-                JmlMethodDecl savedMD = methodDecl;
-                methodDecl = that;
                 body = convertIntoBlock(that.body,that.body);
-                methodDecl = savedMD;
             } else {
                 body = convertMethodBodyNoInit(that,classDecl);
             }
@@ -14568,6 +14567,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             log.error(e.pos,"jml.unrecoverable", "Unimplemented construct in a method or model method or represents clause");
         } finally {
+            methodDecl = savedMD;
             translatingJML = saved;
         }
         

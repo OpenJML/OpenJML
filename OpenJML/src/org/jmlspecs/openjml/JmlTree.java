@@ -519,7 +519,7 @@ public class JmlTree {
         @Override
         public JmlNewClass NewClass(JCExpression encl, List<JCExpression> typeargs,
                 JCExpression clazz, List<JCExpression> args, JCClassDecl def) {
-            return new JmlNewClass(encl,typeargs,clazz,args,def);
+            return new JmlNewClass(pos,encl,typeargs,clazz,args,def);
         }
 
         /** Creates a JML labeled statement */
@@ -3779,9 +3779,10 @@ public class JmlTree {
     }
     
     public static class JmlNewClass extends JCNewClass {
-        protected JmlNewClass(JCExpression encl, List<JCExpression> typeargs,
+        protected JmlNewClass(int pos, JCExpression encl, List<JCExpression> typeargs,
                 JCExpression clazz, List<JCExpression> args, JCClassDecl def) {
             super(encl, typeargs, clazz, args, def);
+            this.pos = pos;
         }
 
         public Map<Name,JCExpression> capturedExpressions = new HashMap<>();

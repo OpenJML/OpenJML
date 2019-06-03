@@ -217,9 +217,23 @@ public class escm extends EscBase {
                 ,"/tt/TestJava.java:33: warning: Associated declaration",6
         );
     }
-
+    
     @Test
     public void testAnon() {
+        main.addOptions("-show");
+        helpTCX("tt.TestJava","package tt; \n"
+                                +" import org.jmlspecs.annotation.*; \n"
+                                +"@NonNullByDefault public class TestJava { public int x; \n"
+
+                                +"  public void mm() {\n"
+                                +"       //@ assert new TestJava() {  public invariant x >= 0; public void mm() { } } != null; \n"  // Line 5
+                                +"  }\n"
+                                +"}\n"
+                                );
+    }
+
+    @Test
+    public void testAnonX() {
         main.addOptions("-checkFeasibility=none");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
