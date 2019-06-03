@@ -1023,6 +1023,12 @@ public class SFBugs extends EscBase {
         helpTCG("-code-math=safe");//,"-show","-method=calculateArea","-subexpressions","-ce"); // The problem manifests with safe math
     }
     
+    @Test
+    public void gitbug682() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
     public void gitbug888() {
         expectedExit = 0;
         helpTCG();
