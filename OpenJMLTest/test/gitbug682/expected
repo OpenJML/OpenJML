@@ -1,0 +1,10 @@
+Proving methods in bug
+Starting proof of bug.bug() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of bug.bug() with prover !!!! - no warnings
+Starting proof of bug.demo(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of bug.demo(int[]) with prover !!!! - no warnings
+Completed proving methods in bug
