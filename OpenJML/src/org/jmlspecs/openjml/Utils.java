@@ -1137,7 +1137,7 @@ public class Utils {
         Names names = Names.instance(context);
         JCExpression p = nametree(position, "org.jmlspecs.annotation");
         JCFieldAccess t = (F.at(position).Select(p, names.fromString(c.getSimpleName())));
-        JCAnnotation ann = (F.at(position).Annotation(t,
+        JCAnnotation ann = (F.at(position).JmlAnnotation(t, jt.internedName(),
                 com.sun.tools.javac.util.List.<JCExpression> nil()));
         ((JmlTree.JmlAnnotation)ann).sourcefile = log().currentSourceFile();
         
@@ -1168,7 +1168,7 @@ public class Utils {
         Names names = Names.instance(context);
         JCExpression p = nametree(position, "org.jmlspecs.annotation");
         JCFieldAccess t = (F.at(position).Select(p, names.fromString(c.getSimpleName())));
-        JCAnnotation ann = (F.at(position).Annotation(t,
+        JCAnnotation ann = (F.at(position).JmlAnnotation(t, jt.name(),
                 com.sun.tools.javac.util.List.<JCExpression> nil()));
         ((JmlTree.JmlAnnotation)ann).sourcefile = log().currentSourceFile();
         

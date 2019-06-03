@@ -1185,7 +1185,7 @@ public class JmlSpecs {
         t = (M.at(position).Select(t, names.fromString("jmlspecs")));
         t = (M.at(position).Select(t, names.fromString("annotation")));
         t = (M.at(position).Select(t, names.fromString(c.getSimpleName())));
-        JCAnnotation ann = (M.at(position).Annotation(t,
+        JCAnnotation ann = (M.at(position).JmlAnnotation(t, jt.internedName(),
                 com.sun.tools.javac.util.List.<JCExpression> nil()));
         ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
         //storeEnd(ann, endpos);
@@ -1219,7 +1219,7 @@ public class JmlSpecs {
         t = (F.Select(t, names.fromString("jmlspecs")));
         t = (F.Select(t, names.fromString("annotation")));
         t = (F.Select(t, names.fromString(c.getSimpleName())));
-        JmlAnnotation ann = (F.Annotation(t, com.sun.tools.javac.util.List.<JCExpression> nil()));
+        JmlAnnotation ann = F.JmlAnnotation(t, jt.name(), com.sun.tools.javac.util.List.<JCExpression> nil());
         //((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
         //storeEnd(ann, endpos);
         return ann;

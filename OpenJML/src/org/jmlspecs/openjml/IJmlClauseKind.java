@@ -14,6 +14,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 import org.jmlspecs.openjml.JmlTree.JmlSource;
+import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.MethodClauseType;
 
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Symtab;
@@ -53,6 +54,8 @@ public abstract class IJmlClauseKind implements ITokenKind {
     public IJmlClauseKind(String keyword) {
         this.keyword = keyword;
     }
+    
+    public void register() {}
     
     // These fields and methods give behavior of JML clauses of the given kind.
 
@@ -272,6 +275,10 @@ public abstract class IJmlClauseKind implements ITokenKind {
             super.init(parser);
             this.scanner.setJmlKeyword(false);
         }
+        public void register() {
+            if (!(this instanceof MethodClauseType)) Extensions.methodClauseKeywords.put(this.name(), this);
+            Extensions.methodSpecKeywords.put(this.name(), this);
+        }
     }
     
     public static abstract class Statement extends IJmlClauseKind{
@@ -284,6 +291,7 @@ public abstract class IJmlClauseKind implements ITokenKind {
             super.init(parser);
             this.scanner.setJmlKeyword(false);
         }
+        public void register() { Extensions.statementClauses.put(this.name(), this); }
     }
     
     /** The kind of line annotations */
@@ -322,6 +330,10 @@ public abstract class IJmlClauseKind implements ITokenKind {
             super.init(parser);
             this.scanner.setJmlKeyword(false);
         }
+        @Override
+        public void register() {
+            Extensions.typeClauses.put(this.name(), this);
+        }
     }
 
     /** A base class for JML extensions that do nont fll innto other categories */
@@ -341,6 +353,7 @@ public abstract class IJmlClauseKind implements ITokenKind {
     public static abstract class Expression extends IJmlClauseKind {
         public Expression(String keyword) { super(keyword); }
         abstract public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser);
+        public void register() { Extensions.expressionKinds.put(this.name(), this); }
     }
     
     /** This class is used for JML expressions that have a standard function-call

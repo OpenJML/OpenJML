@@ -1437,14 +1437,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     // Create a default: public model secret JMLDataGroup
                     JmlTree.Maker maker = JmlTree.Maker.instance(context);
                     JCTree.JCModifiers nmods = maker.Modifiers(Flags.PUBLIC);
-                    JCTree.JCAnnotation a = maker.Annotation(maker.Type(MODEL_KIND.annotationSymbol(context).type),List.<JCExpression>nil());
-                    JCTree.JCAnnotation aa = maker.Annotation(maker.Type(SECRET_KIND.annotationSymbol(context).type),List.<JCExpression>nil());
+                    JCTree.JCAnnotation a = maker.JmlAnnotation(maker.Type(MODEL_KIND.annotationSymbol(context).type),MODEL_KIND.name(),List.<JCExpression>nil());
+                    JCTree.JCAnnotation aa = maker.JmlAnnotation(maker.Type(SECRET_KIND.annotationSymbol(context).type),SECRET_KIND.name(),List.<JCExpression>nil());
                     boolean isStatic = utils.isJMLStatic(tree.sym);
                     if (isStatic) {
                         nmods.flags |= Flags.STATIC;
                         nmods.annotations = List.<JCAnnotation>of(a,aa);
                     } else {
-                        JCTree.JCAnnotation aaa = maker.Annotation(maker.Type(INSTANCE_KIND.annotationSymbol(context).type),List.<JCExpression>nil());
+                        JCTree.JCAnnotation aaa = maker.JmlAnnotation(maker.Type(INSTANCE_KIND.annotationSymbol(context).type),INSTANCE_KIND.name(),List.<JCExpression>nil());
                         nmods.annotations = List.<JCAnnotation>of(a,aa,aaa);
                     }
                     JCTree.JCExpression type = maker.Type(datagroupClass.type);
@@ -5189,14 +5189,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // a is not in the list, but before we complain, check that it is
             // one of our annotations
             if (a.annotationType.type.tsym.packge().flatName().equals(annotationPackageName)) { // FIXME - change to comparing symbols instead of strings?
-                String nm = a.annotationType.type.tsym.getSimpleName().toString();
+                String nm = a instanceof JmlAnnotation? ((JmlAnnotation)a).modifierString : a.annotationType.type.tsym.getSimpleName().toString();
                 JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
                 log.error(a.pos,"jml.illegal.annotation2",place,nm);
                 log.useSource(prev);
             }
         }
-    }
-    
+    }    
    
     /** This checks that the given modifier set does not have annotations for
      * both of a pair of mutually exclusive annotations; it prints an error
@@ -5485,7 +5484,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         t = (F.at(position).Select(t, names.fromString("jmlspecs")));
         t = (F.at(position).Select(t, names.fromString("annotation")));
         t = (F.at(position).Select(t, names.fromString(simpleName)));
-        JCAnnotation ann = (F.at(position).Annotation(t,
+        JCAnnotation ann = (F.at(position).JmlAnnotation(t, simpleName, // FIXME _ wrong name
                 List.<JCExpression> nil()));
         ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
         return ann;

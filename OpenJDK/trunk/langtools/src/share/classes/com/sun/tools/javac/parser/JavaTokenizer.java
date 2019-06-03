@@ -430,7 +430,7 @@ public class JavaTokenizer {
     /** Read longest possible sequence of special characters and convert
      *  to token.
      */
-    protected void scanOperator() { // DRC - private to protected
+    protected void scanOperator() { // OPENJML - private to protected
         while (true) {
             reader.putChar(false);
             Name newname = reader.name();

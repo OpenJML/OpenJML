@@ -125,9 +125,9 @@ public class TypeRepresentsClauseExtension implements JmlDefinitions {
                 return null;
             }
             JmlVariableDecl vd = (JmlVariableDecl)t;
-            JCAnnotation a = parser.tokenToAnnotationAST("Ghost", pp, pp);
+            JCAnnotation a = parser.tokenToAnnotationAST(Modifiers.GHOST_KIND, pp, pp);
             vd.mods.annotations = vd.mods.annotations.append(a);
-            a = parser.tokenToAnnotationAST("Captures", pp, pp);
+            a = parser.tokenToAnnotationAST(Modifiers.CAPTURES_KIND, pp, pp);
             vd.mods.annotations = vd.mods.annotations.append(a);
             return vd;
         }

@@ -5768,7 +5768,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Name throwableName = names.fromString("__JMLthrowableException_" + resource.pos);
         JCVariableDecl throwableDecl = treeutils.makeVarDef(syms.throwableType, throwableName, methodDecl != null ? methodDecl.sym : classDecl.sym, resource.pos);
         Type atype = attr.nullableAnnotationSymbol.type;
-        throwableDecl.mods.annotations = throwableDecl.mods.annotations.append(M.Annotation(M.Type(atype),List.<JCExpression>nil()));
+        throwableDecl.mods.annotations = throwableDecl.mods.annotations.append(M.JmlAnnotation(M.Type(atype),Modifiers.NULLABLE_ID,List.<JCExpression>nil()));
         List<com.sun.tools.javac.util.Pair<Symbol.MethodSymbol,Attribute>>nlist = List.<com.sun.tools.javac.util.Pair<MethodSymbol,Attribute>>nil();
         Compound c = new Attribute.Compound(atype,nlist);
         throwableDecl.sym.appendAttributes(List.<Compound>of(c)); 
@@ -12909,7 +12909,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (fullTranslation) {
             JCTree aType = convertCopy(that.annotationType);
             List<JCExpression> args = convertCopy(that.args);
-            JCAnnotation a = M.at(that).Annotation(aType,args);
+            JCAnnotation a = M.at(that).JmlAnnotation(aType, that instanceof JmlAnnotation ? ((JmlAnnotation)that).modifierString : null, args);
             a.setType(that.type);
             treeutils.copyEndPosition(a,that);
             result = eresult = a;

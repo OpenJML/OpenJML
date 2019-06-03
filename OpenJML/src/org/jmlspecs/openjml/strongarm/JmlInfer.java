@@ -460,7 +460,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                     if(isPrivate(var) && var.toString().contains("@SpecPublic")==false){
                         
                         JCExpression t = M.Ident("org.jmlspecs.annotation.SpecPublic");        
-                        JCAnnotation ann = M.Annotation(t, List.<JCExpression> nil());
+                        JCAnnotation ann = M.JmlAnnotation(t, "spec_public", List.<JCExpression> nil());
             
                         
                         if(var.mods.annotations==null){

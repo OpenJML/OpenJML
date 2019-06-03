@@ -5,6 +5,7 @@
 package org.jmlspecs.openjml.ext;
 
 import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.Strings;
 
@@ -46,7 +47,7 @@ public class ModifierExtension extends IJmlClauseKind {
     }
     
     public static void register(Context context) { }
-    public void register() { annotationSymbol = null; }
+    public void register() { annotationSymbol = null; Extensions.modifierKinds.put(this.name(), this);}
     
     /** Returns the keyword representing the modifier, or null if there is none (only an annotation) */
     public @Nullable String jmlKeyword() { return keyword; }

@@ -103,9 +103,13 @@ public class JmlTree {
      * the pos field is set using other methods on the factory.
      */
     public interface JmlFactory extends JCTree.Factory {
+        @Override
         JmlAnnotation Annotation(JCTree type, List<JCExpression> args);
+        JmlAnnotation JmlAnnotation(JCTree type, String modifier, List<JCExpression> args);
         JmlAnnotation TypeAnnotation(JCTree annotationType, List<JCExpression> args);
+        JmlAnnotation JmlTypeAnnotation(JCTree annotationType, String modifier, List<JCExpression> args);
         JmlBinary JmlBinary(IJmlClauseKind t, JCTree.JCExpression left, JCTree.JCExpression right);
+        @Override
         JmlBlock Block(long flags, List<JCStatement> stats);
         JmlChained JmlChained(List<JCBinary> conjuncts);
         JmlChoose JmlChoose(String keyword, IJmlClauseKind clauseType, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock);
@@ -274,14 +278,28 @@ public class JmlTree {
         
         @Override
         public JmlAnnotation Annotation(JCTree type, List<JCExpression> args) {
-            JmlAnnotation a = new JmlAnnotation(JCTree.Tag.ANNOTATION,type,args);
+            JmlAnnotation a = new JmlAnnotation(JCTree.Tag.ANNOTATION,type,null,args);
+            a.pos = pos;
+            return a;
+        }
+        
+        @Override
+        public JmlAnnotation JmlAnnotation(JCTree type, String modifier, List<JCExpression> args) {
+            JmlAnnotation a = new JmlAnnotation(JCTree.Tag.ANNOTATION,type,modifier,args);
             a.pos = pos;
             return a;
         }
         
         @Override
         public JmlAnnotation TypeAnnotation(JCTree annotationType, List<JCExpression> args) {
-            JmlAnnotation tree = new JmlAnnotation(Tag.TYPE_ANNOTATION, annotationType, args);
+            JmlAnnotation tree = new JmlAnnotation(Tag.TYPE_ANNOTATION, annotationType, null, args);
+            tree.pos = pos;
+            return tree;
+        }
+        
+        @Override
+        public JmlAnnotation JmlTypeAnnotation(JCTree annotationType, String modifier, List<JCExpression> args) {
+            JmlAnnotation tree = new JmlAnnotation(Tag.TYPE_ANNOTATION, annotationType, modifier, args);
             tree.pos = pos;
             return tree;
         }
@@ -3899,13 +3917,15 @@ public class JmlTree {
     }
 
     public static class JmlAnnotation extends JCAnnotation {
-        public JmlAnnotation(Tag tag, JCTree annotationType, List<JCExpression> args) {
+        public JmlAnnotation(Tag tag, JCTree annotationType, String modifier, List<JCExpression> args) {
             super(tag,annotationType,args);
+            this.modifierString = modifier;
         }
         
         /** The origin of the annotation, which may not be the same as the item being annotated;
          * if null, the annotation is inserted to make a default explicit.
          */
         @Nullable public JavaFileObject sourcefile;
+        public String modifierString;
     }
 }

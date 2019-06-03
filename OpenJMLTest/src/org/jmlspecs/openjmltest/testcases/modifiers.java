@@ -19,7 +19,7 @@ public class modifiers extends TCBase {
     
     @Test public void testClassMods2() {
         helpTCF("t/A.java","package t; \n /*@ non_null */class A{}",
-                "/t/A.java:2: This JML modifier is not allowed for a type declaration", 6
+                "/t/A.java:2: This JML modifier is not allowed for a type declaration: non_null", 6
                 );
     }
     
@@ -67,7 +67,7 @@ public class modifiers extends TCBase {
     
     @Test public void testClassMods11() {
         helpTCF("A.java"," \n public /*@ non_null */  class A{}",
-                "/A.java:2: This JML modifier is not allowed for a type declaration", 13);
+                "/A.java:2: This JML modifier is not allowed for a type declaration: non_null", 13);
     }
     
     @Test public void testClassMods12() {
@@ -86,19 +86,19 @@ public class modifiers extends TCBase {
     
     @Test public void testClassMods14() {
         helpTCF("A.java","public class A{} \n //@        ghost class B{}\n   class C{}",
-                "/A.java:2: This JML modifier is not allowed for a type declaration", 13
+                "/A.java:2: This JML modifier is not allowed for a type declaration: ghost", 13
                 ,"/A.java:2: A method or type declaration within a JML annotation must be model",19
                 );
     }
     
     @Test public void testClassMods14a() {
         helpTCF("A.java"," \n public /*@ghost*/ class A{}",
-                "/A.java:2: This JML modifier is not allowed for a type declaration", 12);
+                "/A.java:2: This JML modifier is not allowed for a type declaration: ghost", 12);
     }
     
     @Test public void testClassMods14b() {
         helpTCF("A.java","import org.jmlspecs.annotation.*;\n //@  @Ghost class B{}\n public class A {}",
-                "/A.java:2: This JML modifier is not allowed for a type declaration", 7
+                "/A.java:2: This JML modifier is not allowed for a type declaration: ghost", 7
                 ,"/A.java:2: A method or type declaration within a JML annotation must be model",14
                 );
     }
@@ -114,8 +114,10 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testOnlyModelClass2() {
-        helpTCF("A.java","public class A {}\n public model class B{}",
-                "/A.java:2: class, interface, or enum expected", 9);
+        helpTCF("A.java","public class A {}\n public model class B{}"
+                ,"/A.java:2: class B is public, should be declared in a file named B.java", 15
+                ,"/A.java:2: A Java declaration (not within a JML annotation) may not be either ghost or model",15
+                );
     }
 
     @Test public void testOnlyModelClass3() {
@@ -143,7 +145,7 @@ public class modifiers extends TCBase {
         // code path
         specs.setSpecsPath(new String[]{"$A","$B","$SY","../OpenJML/runtime"});
         helpTCF("A.java","import org.jmlspecs.annotation.*;  \n public @Ghost class A{}",
-                "/A.java:2: This JML modifier is not allowed for a type declaration", 9);
+                "/A.java:2: This JML modifier is not allowed for a type declaration: ghost", 9);
     }
     
     @Test public void testClassMods14d() {
@@ -152,7 +154,7 @@ public class modifiers extends TCBase {
         // code path
         specs.setSpecsPath(new String[]{"$A","$B","$SY"});
         helpTCF("A.java","import org.jmlspecs.annotation.*;  \n public @Ghost class A{}",
-                "/A.java:2: This JML modifier is not allowed for a type declaration", 9);
+                "/A.java:2: This JML modifier is not allowed for a type declaration: ghost", 9);
     }
     
     @Test public void testClassMods15() {
@@ -416,9 +418,9 @@ public class modifiers extends TCBase {
     
     @Test public void testTopLevelClass2() {
         helpTCF("A.java","/*@helper ghost spec_public*/ public class A{ }"
-                ,"/A.java:1: This JML modifier is not allowed for a type declaration",4
-                ,"/A.java:1: This JML modifier is not allowed for a type declaration",11
-                ,"/A.java:1: This JML modifier is not allowed for a type declaration",17
+                ,"/A.java:1: This JML modifier is not allowed for a type declaration: helper",4
+                ,"/A.java:1: This JML modifier is not allowed for a type declaration: ghost",11
+                ,"/A.java:1: This JML modifier is not allowed for a type declaration: spec_public",17
                 ,"/A.java:1: warning: There is no point to a declaration being both public and spec_public",17
         );
     }
@@ -430,9 +432,9 @@ public class modifiers extends TCBase {
     
     @Test public void testTopLevelInterface2() {
         helpTCF("A.java","/*@helper ghost spec_protected*/ public interface A{ }"
-                ,"/A.java:1: This JML modifier is not allowed for a type declaration",4
-                ,"/A.java:1: This JML modifier is not allowed for a type declaration",11
-                ,"/A.java:1: This JML modifier is not allowed for a type declaration",17
+                ,"/A.java:1: This JML modifier is not allowed for a type declaration: helper",4
+                ,"/A.java:1: This JML modifier is not allowed for a type declaration: ghost",11
+                ,"/A.java:1: This JML modifier is not allowed for a type declaration: spec_protected",17
                 ,"/A.java:1: warning: There is no point to a declaration being both public and spec_protected",17
         );
     }
@@ -449,8 +451,8 @@ public class modifiers extends TCBase {
     
     @Test public void testNestedClass3() {
         helpTCF("A.java","public class A{ /*@helper ghost */ public class B {}}"
-                ,"/A.java:1: This JML modifier is not allowed for a nested type declaration",20
-                ,"/A.java:1: This JML modifier is not allowed for a nested type declaration",27
+                ,"/A.java:1: This JML modifier is not allowed for a nested type declaration: helper",20
+                ,"/A.java:1: This JML modifier is not allowed for a nested type declaration: ghost",27
         		//,"/A.java:1: A Java declaration (not within a JML annotation) may not be either ghost or model",27
         );
     }
@@ -479,8 +481,8 @@ public class modifiers extends TCBase {
     
     @Test public void testNestedInterface3() {
         helpTCF("A.java","public class A{ /*@helper ghost */ public interface B {}}"
-                ,"/A.java:1: This JML modifier is not allowed for a nested type declaration",20
-                ,"/A.java:1: This JML modifier is not allowed for a nested type declaration",27
+                ,"/A.java:1: This JML modifier is not allowed for a nested type declaration: helper",20
+                ,"/A.java:1: This JML modifier is not allowed for a nested type declaration: ghost",27
         		//,"/A.java:1: A Java declaration (not within a JML annotation) may not be either ghost or model",27
         );
     }
@@ -525,15 +527,15 @@ public class modifiers extends TCBase {
     
     @Test public void testLocalClass3() {
         helpTCF("A.java","public class A{ void m() {\n /*@ helper spec_public */ class C {}; } }"
-                ,"/A.java:2: This JML modifier is not allowed for a local type declaration",6
-                ,"/A.java:2: This JML modifier is not allowed for a local type declaration",13
+                ,"/A.java:2: This JML modifier is not allowed for a local type declaration: helper",6
+                ,"/A.java:2: This JML modifier is not allowed for a local type declaration: spec_public",13
                 ); 
         
     }
     
     @Test public void testLocalClass4() {
         helpTCF("A.java","public class A{ void m() {\n /*@ ghost  class C {} */ } }"
-                ,"/A.java:2: This JML modifier is not allowed for a local type declaration",6
+                ,"/A.java:2: This JML modifier is not allowed for a local type declaration: ghost",6
                 ,"/A.java:2: A method or type declaration within a JML annotation must be model",13
                 ); 
         
@@ -563,7 +565,7 @@ public class modifiers extends TCBase {
     
     @Test public void testField4() {
         helpTCF("A.java","public class A{ /*@helper*/ Object o;}"
-                ,"/A.java:1: This JML modifier is not allowed for a field declaration",20
+                ,"/A.java:1: This JML modifier is not allowed for a field declaration: helper",20
                 );
     }
     
@@ -590,22 +592,22 @@ public class modifiers extends TCBase {
     
     @Test public void testGhostField4() {
         helpTCF("A.java","public class A{ /*@ghost helper spec_protected Object o;*/}"
-                ,"/A.java:1: This JML modifier is not allowed for a ghost field declaration",26
-                ,"/A.java:1: This JML modifier is not allowed for a ghost field declaration",33
+                ,"/A.java:1: This JML modifier is not allowed for a ghost field declaration: helper",26
+                ,"/A.java:1: This JML modifier is not allowed for a ghost field declaration: spec_protected",33
                 );
     }
      
     @Test public void testGhostField5() {
         helpTCF("A.java","public class A{ /*@ghost helper spec_public Object o;*/}"
-                ,"/A.java:1: This JML modifier is not allowed for a ghost field declaration",26
-                ,"/A.java:1: This JML modifier is not allowed for a ghost field declaration",33
+                ,"/A.java:1: This JML modifier is not allowed for a ghost field declaration: helper",26
+                ,"/A.java:1: This JML modifier is not allowed for a ghost field declaration: spec_public",33
                 );
     }
      
     
     @Test public void testModelField() {
         helpTCF("A.java","public class A{ /*@model ghost Object o; */}"
-                ,"/A.java:1: This JML modifier is not allowed for a ghost field declaration",20
+                ,"/A.java:1: This JML modifier is not allowed for a ghost field declaration: model",20
                 );
     }
     
@@ -627,17 +629,17 @@ public class modifiers extends TCBase {
     
     @Test public void testModelField4() {
         helpTCF("A.java","public class A{ /*@model helper monitored spec_public Object o;*/}"
-                ,"/A.java:1: This JML modifier is not allowed for a model field declaration",26
-                ,"/A.java:1: This JML modifier is not allowed for a model field declaration",33
-                ,"/A.java:1: This JML modifier is not allowed for a model field declaration",43
+                ,"/A.java:1: This JML modifier is not allowed for a model field declaration: helper",26
+                ,"/A.java:1: This JML modifier is not allowed for a model field declaration: monitored",33
+                ,"/A.java:1: This JML modifier is not allowed for a model field declaration: spec_public",43
                 );
     }
      
     @Test public void testModelField5() {
         helpTCF("A.java","public class A{ /*@model helper monitored spec_protected Object o;*/}"
-                ,"/A.java:1: This JML modifier is not allowed for a model field declaration",26
-                ,"/A.java:1: This JML modifier is not allowed for a model field declaration",33
-                ,"/A.java:1: This JML modifier is not allowed for a model field declaration",43
+                ,"/A.java:1: This JML modifier is not allowed for a model field declaration: helper",26
+                ,"/A.java:1: This JML modifier is not allowed for a model field declaration: monitored",33
+                ,"/A.java:1: This JML modifier is not allowed for a model field declaration: spec_protected",43
                 );
     }
      
@@ -653,7 +655,7 @@ public class modifiers extends TCBase {
      
     @Test public void testInterfaceMethod() {
         helpTCF("A.java","public interface A{ /*@ pure non_null  spec_protected extract */ Object m(); }"
-                ,"/A.java:1: This JML modifier is not allowed for a interface method declaration",55
+                ,"/A.java:1: This JML modifier is not allowed for a interface method declaration: extract",55
                 );
     }
      
@@ -747,9 +749,9 @@ public class modifiers extends TCBase {
      
     @Test public void testModelMethod2() {
         helpTCF("A.java","public class A{ /*@ model instance spec_public spec_protected void m(){}*/  }"
-                ,"/A.java:1: This JML modifier is not allowed for a model method declaration",27
-                ,"/A.java:1: This JML modifier is not allowed for a model method declaration",36
-                ,"/A.java:1: This JML modifier is not allowed for a model method declaration",48
+                ,"/A.java:1: This JML modifier is not allowed for a model method declaration: instance",27
+                ,"/A.java:1: This JML modifier is not allowed for a model method declaration: spec_public",36
+                ,"/A.java:1: This JML modifier is not allowed for a model method declaration: spec_protected",48
                 );
     }
      
@@ -850,14 +852,14 @@ public class modifiers extends TCBase {
     @Test public void testLocalVar6() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  void m() {\n /*@ helper */ Object o; } }"
-                ,"/A.java:3: This JML modifier is not allowed for a local variable declaration",6
+                ,"/A.java:3: This JML modifier is not allowed for a local variable declaration: helper",6
                 );
     }
      
     @Test public void testLocalVar7() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  void m() {\n /*@ helper ghost  Object o; */} }"
-                ,"/A.java:3: This JML modifier is not allowed for a local variable declaration",6
+                ,"/A.java:3: This JML modifier is not allowed for a local variable declaration: helper",6
                 );
     }
      
@@ -998,7 +1000,7 @@ public class modifiers extends TCBase {
                 "  //@ forall @Pure Object o6; \n" +
                 "  //@ forall final Object o5; \n" +
                 "  void m() {} }"
-                ,"/A.java:4: This JML modifier is not allowed for a local variable declaration",14
+                ,"/A.java:4: This JML modifier is not allowed for a local variable declaration: pure",14
                 ,"/A.java:5: No Java modifiers are allowed in a method specification declaration",7
                 );
     }
@@ -1012,7 +1014,7 @@ public class modifiers extends TCBase {
                 "  //@ old @Pure Object o6 = null; \n" +
                 "  //@ old final Object o5 = null; \n" +
                 "  void m() {} }"
-                ,"/A.java:4: This JML modifier is not allowed for a local variable declaration",11
+                ,"/A.java:4: This JML modifier is not allowed for a local variable declaration: pure",11
                 ,"/A.java:5: No Java modifiers are allowed in a method specification declaration",7
                 );
     }
@@ -1069,11 +1071,11 @@ public class modifiers extends TCBase {
                 "  //@ spec_public axiom true; \n" +
                 "  void m() {} }"
                 ,"/A.java:3: These modifiers are not allowed here: public", 14
-                ,"/A.java:4: This JML modifier is not allowed for a axiom clause", 7
+                ,"/A.java:4: This JML modifier is not allowed for a axiom clause: pure", 7
                 ,"/A.java:5: These modifiers are not allowed here: private", 15
                 ,"/A.java:6: These modifiers are not allowed here: public private", 22
-                ,"/A.java:7: This JML modifier is not allowed for a axiom clause", 7
-                ,"/A.java:8: This JML modifier is not allowed for a axiom clause", 7
+                ,"/A.java:7: This JML modifier is not allowed for a axiom clause: non_null", 7
+                ,"/A.java:8: This JML modifier is not allowed for a axiom clause: spec_public", 7
                 );
     }
      
@@ -1114,7 +1116,7 @@ public class modifiers extends TCBase {
                 ,"/$A/java/lang/Object.jml:2: A declaration may not be both spec_public and spec_protected",17
                 ,"/$A/java/lang/Object.jml:2: warning: There is no point to a declaration being both public and spec_protected",17
                 ,"/$A/java/lang/Object.jml:2: warning: There is no point to a declaration being both public and spec_public",5
-                ,"/$A/java/lang/Object.jml:1: This JML modifier is not allowed for a type declaration",24
+                ,"/$A/java/lang/Object.jml:1: This JML modifier is not allowed for a type declaration: non_null",24
                 );
     }
     

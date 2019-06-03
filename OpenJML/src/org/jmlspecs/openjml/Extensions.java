@@ -241,18 +241,8 @@ public class Extensions {
         }
     }
     
-    private static final int mods = Flags.PUBLIC | Flags.STATIC | Flags.FINAL;
+    private static final int mask = Flags.PUBLIC | Flags.STATIC | Flags.FINAL;
     public static boolean registerClass(Context context, Class<?> cc) {
-        // Options self-register when constructor is called
-//        if (JmlExtension.class.isAssignableFrom(cc)) {
-//            for (Field f: cc.getDeclaredFields()) {
-//                if (JmlOption.class.isAssignableFrom(f.getType())) {
-//                    //if ((f.getModifiers() & mods) == mods)
-//                    
-//                }
-//            }
-//        }
-        int mask = Flags.FINAL|Flags.STATIC|Flags.PUBLIC;
         for (Field f: cc.getDeclaredFields()) {
             int mods = f.getModifiers();
             // Look for final static public fields with type IJmlClauseKind
@@ -262,25 +252,16 @@ public class Extensions {
                     IJmlClauseKind kind = (IJmlClauseKind)f.get(null);
                     if (kind == null) continue; // This should never happen
                     String nm = kind.name();
-                    allKinds.put(kind.name(), kind);
-                    if (kind instanceof IJmlClauseKind.Expression) {
-                        expressionKinds.put(kind.name(), kind);
-                    }
-                    if (kind instanceof IJmlClauseKind.MethodClause) {
-                        if (!(kind instanceof MethodClauseType)) methodClauseKeywords.put(nm, (IJmlClauseKind.MethodClause)kind);
-                        methodSpecKeywords.put(nm, (IJmlClauseKind.MethodClause)kind);
-                    }
-                    if (kind instanceof ModifierExtension) {
-                        ((ModifierExtension)kind).register();
-                        modifierKinds.put(nm, (ModifierExtension)kind); 
-                        continue; 
-                    }
+                    allKinds.put(nm, kind);
+                    kind.register();
                 } catch (IllegalAccessException|IllegalArgumentException|NullPointerException|ExceptionInInitializerError e) {
                     // Error - this should never happen
                 }
             }
         }
         try {
+            // This is the register() method of the containing class.
+            // It registers aspects such as synonyms.
             Constructor<?> c = cc.getConstructor();
             Method m = cc.getMethod("register");
             m.invoke(c.newInstance());
@@ -288,100 +269,6 @@ public class Extensions {
             // DO nothing
         }
         return true;
-//        if (ExpressionExtension.class.isAssignableFrom(cc)) {
-//            @SuppressWarnings("unchecked")
-//            Class<ExpressionExtension> c = (Class<ExpressionExtension>)cc;
-//            JmlTokenKind[] tokens;
-//            try {
-//                Method m = c.getMethod("tokens");
-//                tokens = (JmlTokenKind[])m.invoke(null);
-//                if (tokens != null) for (JmlTokenKind t: tokens) {
-//                    extensionClasses.put(t.internedName(), c);
-//                    //clauseTypes.put(t.name(), t);
-//                }
-//                m = c.getMethod("clauseTypes");
-//                if (m != null) {
-//                    IJmlClauseKind[] kinds = (IJmlClauseKind[])m.invoke(null);
-//                    if (kinds != null) for (IJmlClauseKind t: kinds) {
-//                        expressionKinds.put(t.name(), t);
-//                    }
-//                }
-//            } catch (Exception e) {
-//                return false;
-//            }
-//            return true;
-//        } else 
-//            if (FieldExtension.class.isAssignableFrom(cc)) {
-//            @SuppressWarnings("unchecked")
-//            Class<? extends FieldExtension> c = (Class<? extends FieldExtension>)cc;
-//            try {
-//                Method m = c.getMethod("ids");
-//                String[] ids = (String[])m.invoke(null);
-//                for (String t: ids) {
-//                    fieldClasses.put(t, c);
-//                }
-//            } catch (Exception e) {
-//                return false;
-//            }
-//            return true;
-//        } else if (JmlExtension.MethodClause.class.isAssignableFrom(cc)) {
-//            @SuppressWarnings("unchecked")
-//            Class<JmlExtension.MethodClause> c = (Class<JmlExtension.MethodClause>)cc;
-//            try {
-//                Constructor<MethodClause> cct = c.getConstructor();
-//                MethodClause occ = cct.newInstance();
-//                occ.register(context);
-//            } catch (Exception e) {
-//                return false;
-//            }
-//            return true;
-//        } else if (JmlExtension.TypeClause.class.isAssignableFrom(cc)) {
-//            @SuppressWarnings("unchecked")
-//            Class<JmlExtension.TypeClause> c = (Class<JmlExtension.TypeClause>)cc;
-//            try {
-//                Constructor<JmlExtension.TypeClause> cct = c.getConstructor();
-//                JmlExtension.TypeClause occ = cct.newInstance();
-//                occ.register(context);
-//            } catch (Exception e) {
-//                return false;
-//            }
-//            return true;
-//        } else if (JmlExtension.LineAnnotation.class.isAssignableFrom(cc)) {
-//            @SuppressWarnings("unchecked")
-//            Class<JmlExtension.LineAnnotation> c = (Class<JmlExtension.LineAnnotation>)cc;
-//            try {
-//                Constructor<JmlExtension.LineAnnotation> cct = c.getConstructor();
-//                JmlExtension.LineAnnotation occ = cct.newInstance();
-//                occ.register(context);
-//            } catch (Exception e) {
-//                return false;
-//            }
-//            return true;
-//        } else if (JmlExtension.Statement.class.isAssignableFrom(cc)) {
-//            @SuppressWarnings("unchecked")
-//            Class<JmlExtension.Statement> c = (Class<JmlExtension.Statement>)cc;
-//            try {
-//                Constructor<JmlExtension.Statement> cct = c.getConstructor();
-//                JmlExtension.Statement occ = cct.newInstance();
-//                occ.register(context);
-//            } catch (Exception e) {
-//                return false;
-//            }
-//            return true;
-//        } else if (JmlExtension.ClassLike.class.isAssignableFrom(cc)) {
-//            @SuppressWarnings("unchecked")
-//            Class<JmlExtension.ClassLike> c = (Class<JmlExtension.ClassLike>)cc;
-//            try {
-//                Constructor<JmlExtension.ClassLike> cct = c.getConstructor();
-//                JmlExtension.ClassLike occ = cct.newInstance();
-//                occ.register(context);
-//            } catch (Exception e) {
-//                return false;
-//            }
-//            return true;
-//        } else {
-//            return false;
-//        }
     }
     
     // This method finds all the classes in a given package that are OpenJML

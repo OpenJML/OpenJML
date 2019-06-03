@@ -84,7 +84,7 @@ public class Purifier extends JmlTreeScanner {
         
         if(instance.isPure()){
             JCExpression t = instance.M.Ident("org.jmlspecs.annotation.Pure");        
-            JCAnnotation ann = instance.M.Annotation(t, List.<JCExpression> nil());
+            JCAnnotation ann = instance.M.JmlAnnotation(t, "pure", List.<JCExpression> nil());
 
             if(instance.currentMethod.mods.annotations==null){
                 instance.currentMethod.mods.annotations = List.of(ann);                

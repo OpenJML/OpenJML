@@ -21,11 +21,7 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:3: ';' expected",14
-                ,"/TEST.java:3: Method specs may not precede a variable declaration",7
-                ,"/TEST.java:3: cannot find symbol\n" + 
-                                        "  symbol:   class r\n" + 
-                                        "  location: class A",5
+                ,"/TEST.java:3: The token r is illegal or not implemented for a type or method clause (JmlParser.classOrInterfaceBodyDeclaration)",5
                 );
     }
 
@@ -38,11 +34,7 @@ public class methodspecs extends TCBase {
                 +"//@ s ignals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:4: ';' expected",18
-                ,"/TEST.java:4: Method specs may not precede a variable declaration",7
-                ,"/TEST.java:4: <identifier> expected",28
-                ,"/TEST.java:4: cannot find symbol\n  symbol:   class s\n  location: class A",5
-//                ,"/TEST.java:4: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: s",5
+                ,"/TEST.java:4: The token s is illegal or not implemented for a type or method clause (JmlParser.classOrInterfaceBodyDeclaration)",5
                 );
     }
 
@@ -54,9 +46,7 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:2: ';' expected",14
-                ,"/TEST.java:2: cannot find symbol\n  symbol:   class r\n  location: class A",5
-//                ,"/TEST.java:2: A declaration within a JML annotation must be either ghost or model",7
+                ,"/TEST.java:2: The token r is illegal or not implemented for a type or method clause (JmlParser.classOrInterfaceBodyDeclaration)",5
                 );
     }
     
@@ -68,11 +58,7 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:2: illegal start of type",5
-                ,"/TEST.java:2: ';' expected",9
-                ,"/TEST.java:2: illegal start of type",18
-                ,"/TEST.java:2: <identifier> expected",22
-                ,"/TEST.java:2: ';' expected",23
+                ,"/TEST.java:2: The token true is illegal or not implemented for a type or method clause (JmlParser.classOrInterfaceBodyDeclaration)",5
                 );
     }
     
@@ -84,9 +70,7 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:2: '{' expected",18
-                ,"/TEST.java:5: reached end of file while parsing",2
-                ,"/TEST.java:2: A method or type declaration within a JML annotation must be model",5
+                ,"/TEST.java:2: The token class is illegal or not implemented for a type or method clause (JmlParser.classOrInterfaceBodyDeclaration)",5
                 );
     }
     
@@ -222,7 +206,7 @@ public class methodspecs extends TCBase {
                 +"//@ assignable k, sk, this.k;\n"
                 +"//@ |}\n"
                 +"//@ pure\n"
-                +"int m() {  return 0; }\n"
+                +"int mmm() {  return 0; }\n"
                 +"}"
                 ,"/TEST.java:6: Pure methods may not assign to any fields: k",16
                 ,"/TEST.java:6: Pure methods may not assign to any fields: sk",19

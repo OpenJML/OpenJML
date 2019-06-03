@@ -1980,21 +1980,21 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
 
     
-    /** Creates a JCAnnotation tree (without position, source, or type information) from a token; has limited use */
-    protected JmlTree.JmlAnnotation tokenToAnnotationAST(JmlTokenKind jt) {
-        Class<?> c = jt.annotationType;
-        if (c == null) {
-            log.warning("jml.internal","Expected annotation type to be defined when calling tokenToAnnotationAST");
-            return null;
-        }
-        // FIXME - this is also repeated code and repeated fixed strings
-        JCExpression t = jmlF.Ident(names.fromString("org"));
-        t = jmlF.Select(t, names.fromString("jmlspecs"));
-        t = jmlF.Select(t, names.fromString("annotation"));
-        t = jmlF.Select(t, names.fromString(c.getSimpleName()));
-        JmlTree.JmlAnnotation ann = jmlF.Annotation(t, List.<JCExpression>nil());
-        return ann;
-    }
+//    /** Creates a JCAnnotation tree (without position, source, or type information) from a token; has limited use */
+//    protected JmlTree.JmlAnnotation tokenToAnnotationAST(JmlTokenKind jt) {
+//        Class<?> c = jt.annotationType;
+//        if (c == null) {
+//            log.warning("jml.internal","Expected annotation type to be defined when calling tokenToAnnotationAST");
+//            return null;
+//        }
+//        // FIXME - this is also repeated code and repeated fixed strings
+//        JCExpression t = jmlF.Ident(names.fromString("org"));
+//        t = jmlF.Select(t, names.fromString("jmlspecs"));
+//        t = jmlF.Select(t, names.fromString("annotation"));
+//        t = jmlF.Select(t, names.fromString(c.getSimpleName()));
+//        JmlTree.JmlAnnotation ann = jmlF.Annotation(t, jt.internedName(), List.<JCExpression>nil());
+//        return ann;
+//    }
     
     
     protected void enterSpecsForBinaryFields(ClassSymbol parent, JmlVariableDecl specstree) {

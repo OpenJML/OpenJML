@@ -44,23 +44,23 @@ public class escvisibility1 extends EscBase {
                 +"  private int pv;\n"
                 
                 +"  //@ invariant 0 == pb;\n"  // Line 7
-                +"  //@ invariant 0 == pt;\n"
-                +"  //@ invariant 0 == pa;\n"
-                +"  //@ invariant 0 == pv;\n"
+                +"  // @ invariant 0 == pt;\n"
+                +"  // @ invariant 0 == pa;\n"
+                +"  // @ invariant 0 == pv;\n"
                 
-                +"  //@ public invariant 0 == pb;\n"
-                +"  //@ public invariant 0 == pt;\n"
-                +"  //@ public invariant 0 == pa;\n"
-                +"  //@ public invariant 0 == pv;\n"
+                +"  // @ public invariant 0 == pb;\n"
+                +"  // @ public invariant 0 == pt;\n"
+                +"  // @ public invariant 0 == pa;\n"
+                +"  // @ public invariant 0 == pv;\n"
                 
-                +"  //@ protected invariant 0 == pb;\n"  // Line 15
-                +"  //@ protected invariant 0 == pt;\n"
-                +"  //@ protected invariant 0 == pa;\n"
-                +"  //@ protected invariant 0 == pv;\n"
+                +"  // @ protected invariant 0 == pb;\n"  // Line 15
+                +"  // @ protected invariant 0 == pt;\n"
+                +"  // @ protected invariant 0 == pa;\n"
+                +"  // @ protected invariant 0 == pv;\n"
                 
-                +"  //@ private invariant 0 == pb;\n"
-                +"  //@ private invariant 0 == pt;\n"
-                +"  //@ private invariant 0 == pa;\n"
+                +"  // @ private invariant 0 == pb;\n"
+                +"  // @ private invariant 0 == pt;\n"
+                +"  // @ private invariant 0 == pa;\n"
                 +"  //@ private invariant 0 == pv;\n"
                 +"}"
                 ,"/tt/TestJava.java:7: An identifier with public visibility may not be used in a invariant clause with package visibility",22

@@ -390,13 +390,15 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             if (!jml) {
                 if (jmlTokenClauseKind == Operators.endjmlcommentKind) {
                     jmlToken = new JmlToken(jmlTokenKind, jmlTokenClauseKind, t);
+                    jmlTokenKind = null; 
+                    jmlTokenClauseKind = null;
                     // if initialJml == true and now the token is ENDJMLCOMMENT, then we had 
                     // an empty comment. We don't return a token in that case.
+                    //System.out.println("END_JML_COMMENT");
                     if (!returnEndOfCommentTokens || !initialJml) continue; // Go get next token
-                    System.out.println("END_JML_COMMENT");
                     return jmlToken;
                 } else {
-                    System.out.println("TOKEN " + (t==null?" - ":t.toString()) + " " + (jmlTokenKind==null?" - ":jmlTokenKind.toString()) + " " + (jmlTokenClauseKind==null?" - ":jmlTokenClauseKind.toString()));
+                    //System.out.println("TOKEN " + (t==null?" - ":t.toString()) + " " + (jmlTokenKind==null?" - ":jmlTokenKind.toString()) + " " + (jmlTokenClauseKind==null?" - ":jmlTokenClauseKind.toString()));
                     return t; // A Java token
                 }
             }
@@ -418,9 +420,9 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 scanChar(); // advance past the /
                 jml = false;
                 endPos = reader.bp;
+                if (!returnEndOfCommentTokens || !initialJml) continue;
                 jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
                 jmlTokenClauseKind = Operators.endjmlcommentKind;
-                if (!returnEndOfCommentTokens || !initialJml) continue;
             } else if (tk == TokenKind.MONKEYS_AT) {
                 // This is just for the case that a terminating */ is preceded by one or more @s
                 // JML allows this, but it just complicates scanning - I wish JML would deprecate that syntax
@@ -447,12 +449,12 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                             reader.scanChar(); // consume /
                         }
                     }
+                    endPos = reader.bp;
+                    jml = false;
+                    if (!returnEndOfCommentTokens || !initialJml) continue;
                     tk = TokenKind.CUSTOM;
                     jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
                     jmlTokenClauseKind = Operators.endjmlcommentKind;
-                    jml = false;
-                    endPos = reader.bp;
-                    if (!returnEndOfCommentTokens || !initialJml) continue;
                 }
             } else if (tk == TokenKind.LPAREN && reader.ch == '*') {
                 int start = reader.bp;
@@ -504,7 +506,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 endPos = reader.bp;
             // else the token is a regular Java token in the JML context
             }
-            System.out.println("TOKEN " + (t==null?" - ":t.toString()) + " " + (jmlTokenKind==null?" - ":jmlTokenKind.toString()) + " " + (jmlTokenClauseKind==null?" - ":jmlTokenClauseKind.toString()));
+            //System.out.println("TOKEN " + (t==null?" - ":t.toString()) + " " + (jmlTokenKind==null?" - ":jmlTokenKind.toString()) + " " + (jmlTokenClauseKind==null?" - ":jmlTokenClauseKind.toString()));
             return (jmlTokenKind == null && jmlTokenClauseKind == null) ? t : new JmlToken(jmlTokenKind, jmlTokenClauseKind, TokenKind.CUSTOM, pos, endPos);
         }
     }
@@ -584,9 +586,10 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         if (jml) {
             if (jmlcommentstyle == CommentStyle.LINE) {
                 jml = false;
-                jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
-                jmlTokenClauseKind = Operators.endjmlcommentKind;
+                endPos = reader.bp;
                 if (returnEndOfCommentTokens) {
+                    jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
+                    jmlTokenClauseKind = Operators.endjmlcommentKind;
                     reader.ch = '@'; // Signals the end of comment to nextToken()
                     reader.bp--; // FIXME - not right for unicode
                 }

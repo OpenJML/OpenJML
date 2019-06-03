@@ -31,6 +31,7 @@ import static org.jmlspecs.openjml.ext.StateExpressions.*;
 import static org.jmlspecs.openjml.ext.Operators.*;
 import static org.jmlspecs.openjml.ext.Modifiers.*;
 import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
+import static org.jmlspecs.openjml.ext.TypeInitializerClauseExtension.*;
 import org.jmlspecs.openjml.ext.StatementLocationsExtension;
 import org.jmlspecs.openjml.ext.TypeRepresentsClauseExtension;
 
@@ -400,7 +401,7 @@ public class JmlParser extends JavacParser {
             ListBuffer<JCTree> newdefs = new ListBuffer<>();
             JCVariableDecl vd = jmlF.VarDef(jmlF.Modifiers(Flags.PUBLIC|Flags.STATIC),names.fromString("_JMLvalues"),jmlF.TypeArray(jmlF.Ident(cd.name)),null);
             utils.setJML(vd.mods);
-            JCAnnotation a = tokenToAnnotationAST(MODEL_KIND.javaAnnotation().getSimpleName(), cd.pos, cd.pos);  // FIXME -is position correct?
+            JCAnnotation a = tokenToAnnotationAST(MODEL_KIND, cd.pos, cd.pos);  // FIXME -is position correct?
             vd.mods.annotations =  vd.mods.annotations.append(a);
             // declare _JMLvalues as model field
             newdefs.add(vd);
@@ -570,23 +571,23 @@ public class JmlParser extends JavacParser {
                 // it might be the type that begins a declaration (or it could be a
                 // misspelled JML key word)
             }
-            if (S.jml() && token.kind == TokenKind.CUSTOM) {
-                String id = token.toString();
-                IJmlClauseKind ext = Extensions.instance(context).findSM(0,id,false);
-                if (ext != null) {
-                    JCStatement s = (JCStatement)ext.parse(null, id, ext, this);
-//                    JCStatement s = parseStatement();
-                    return List.<JCStatement>of(s);
-                }
-                // FIXME
-//                ClassLike cl = Extensions.classLike.get(id);
-//                if (cl != null) {
-//                    return List.<JCStatement>of(cl.parse(this, null));
+//            if (S.jml() && token.kind == TokenKind.CUSTOM) {
+//                String id = token.toString();
+//                IJmlClauseKind ext = Extensions.instance(context).findSM(0,id,false);
+//                if (ext != null) {
+//                    JCStatement s = (JCStatement)ext.parse(null, id, ext, this);
+////                    JCStatement s = parseStatement();
+//                    return List.<JCStatement>of(s);
 //                }
-                // If the identifier is not the beginning of a JML statement, then
-                // it might be the type that begins a declaration (or it could be a
-                // misspelled JML key word)
-            }
+//                // FIXME
+////                ClassLike cl = Extensions.classLike.get(id);
+////                if (cl != null) {
+////                    return List.<JCStatement>of(cl.parse(this, null));
+////                }
+//                // If the identifier is not the beginning of a JML statement, then
+//                // it might be the type that begins a declaration (or it could be a
+//                // misspelled JML key word)
+//            }
             if (!(token instanceof JmlToken)) {
                 JCExpression replacementType = null;
                 if (token.kind == TokenKind.BANG) {  // TODO - is this still part of extended JML?
@@ -1166,22 +1167,16 @@ public class JmlParser extends JavacParser {
                                                // pushBackModifiers
             JmlTokenKind jt = jmlTokenKind();
             IJmlClauseKind ct = jmlTokenClauseKind();
-            if (!isJmlTypeToken(jt) && ct != null && currentMethodSpecs != null && !startOfMethodSpecs(token) && jt != INITIALIZER && jt != STATIC_INITIALIZER) {
-                log.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + jt.internedName() + " clause (ignored)");
+            if (!isJmlTypeToken(jt) && ct != null && currentMethodSpecs != null && !startOfMethodSpecs(token) && ct != initializerClause && ct != staticinitializerClause) {
+                log.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + ct.toString() + " clause (ignored)");
                 currentMethodSpecs = null;
             }
-            String id = null;
-//            if (S.jml() && token.kind == TokenKind.IDENTIFIER) {
-//                id = token.name().toString();
-//                ct = Extensions.instance(context).findTM(0,id,false);
-//            }
-//            if (ct != null) {
                 if (startOfMethodSpecs(token)) {
                     currentMethodSpecs = parseMethodSpecs(mods);
                     continue;
                 } else if (startOfTypeSpec(token)) {
                     JCTree tc = parseTypeSpecs(mods);
-                    if (tc instanceof JmlTypeClause && currentMethodSpecs != null && jt != INITIALIZER && jt != STATIC_INITIALIZER) {
+                    if (tc instanceof JmlTypeClause && currentMethodSpecs != null && ct != initializerClause && ct != staticinitializerClause) {
                         log.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + ((JmlTypeClause)tc).clauseType.name() + " clause (ignored)");
                         currentMethodSpecs = null;
                     }
@@ -2985,22 +2980,23 @@ public class JmlParser extends JavacParser {
         t = to(F.at(position).Select(t, names.fromString("jmlspecs")));
         t = to(F.at(position).Select(t, names.fromString("annotation")));
         t = to(F.at(position).Select(t, names.fromString(c.getSimpleName())));
-        JCAnnotation ann = to(F.at(position).Annotation(t,
+        JCAnnotation ann = to(jmlF.at(position).JmlAnnotation(t, jt.internedName(),
                 List.<JCExpression> nil()));
         ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
         storeEnd(ann, endpos);
         return ann;
     }
 
-    public/* @ nullable */JCAnnotation tokenToAnnotationAST(String annName,
+    public/* @ nullable */JCAnnotation tokenToAnnotationAST(ModifierExtension kind,
             int position, int endpos) {
+        String annName = kind.javaAnnotation().getSimpleName().toString();
         JCExpression t = to(F.at(position).Ident(names.fromString("org")));
         t = to(F.at(position).Select(t, names.fromString("jmlspecs")));
         t = to(F.at(position).Select(t, names.fromString("annotation")));
         t = to(F.at(position).Select(t, names.fromString(annName)));
-        JCAnnotation ann = to(F.at(position).Annotation(t,
+        JmlAnnotation ann = to(((JmlTree.Maker)F).at(position).JmlAnnotation(t, kind.name(),
                 List.<JCExpression> nil()));
-        ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
+        ann.sourcefile = log.currentSourceFile();
         storeEnd(ann, endpos);
         return ann;
     }
@@ -3025,7 +3021,7 @@ public class JmlParser extends JavacParser {
         while (true) {
             while ((jmlmod = jmlModifier()) != null) {
                 last = endPos();
-                JCAnnotation a = tokenToAnnotationAST(jmlmod.javaAnnotation().getSimpleName(), pos(), last);  // FIXME -is position correct?
+                JCAnnotation a = tokenToAnnotationAST(jmlmod, pos(), last);  // FIXME -is position correct?
                 if (a != null) {
                     annotations = annotations.append(a);
                     if (pos == Position.NOPOS) pos = a.getStartPosition();
