@@ -8683,12 +8683,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 } else {
                                                     addAssume(clause,Label.PRECONDITION,treeutils.makeEquality(clause.pos,id,convertedInit));
                                                 }
-                                                JCBlock bl = popBlock(clause,check);
-                                                if (treeutils.isTrueLit(prex)) {
-                                                    addStat(bl);
-                                                } else {
-                                                    addStat(M.at(clause).If(prex, bl, null));
-                                                }
+                                            }
+                                            JCBlock bl = popBlock(clause,check);
+                                            if (treeutils.isTrueLit(prex)) {
+                                                addStat(bl);
+                                            } else {
+                                                addStat(M.at(clause).If(prex, bl, null));
                                             }
                                             //paramActuals.put(decl.sym,id);
                                             //preparams.put(decl.sym,id);
