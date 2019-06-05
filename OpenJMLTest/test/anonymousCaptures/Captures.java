@@ -5,8 +5,8 @@ public class Captures {
         int y = x;
     
         AAA a = new AAA() { 
-            //@ captures public int x;
-            //@ captures public int y;
+            //@ captured public int x;
+            //@ captured public int y;
             //@ public invariant x == y;
             
             //@ also public normal_behavior
@@ -22,7 +22,7 @@ public class Captures {
     
         // @ assert xxxx != null;
         AAA a = new AAA() { 
-            //@ captures public Object xxxx;
+            //@ captured public Object xxxx;
             //@ public invariant xxxx != null;
             
             //@ also public normal_behavior

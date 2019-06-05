@@ -31,8 +31,10 @@ public class TypeDeclClauseExtension extends JmlExtension.TypeClause {
             typedeclClause}; }
     
     public static final String typedeclID = "type declaration";
+    public static final String capturedID = "captured";
     
     public static final IJmlClauseKind typedeclClause = new TypeClause(typedeclID);
+    public static final IJmlClauseKind capturedClause = new TypeClause(capturedID);
     
     public static class TypeClause extends IJmlClauseKind.TypeClause {
         public TypeClause(String keyword) { super(keyword); }

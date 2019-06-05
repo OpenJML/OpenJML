@@ -1762,14 +1762,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        int orig = currentStatements.hashCode();
         JCBlock b = null;
         if (pos != null) b = M.at(pos).Block(flags, currentStatements.toList());
+        else             b = M.at(0).Block(flags, currentStatements.toList());
         currentStatements = statementStack.removeFirst();
 //        int sz = statementStack.size();
 //        System.out.println("POPPING[" + sz +"]   " + orig + " NOW " + (currentStatements == null ? 0 : currentStatements.hashCode()));
-//        if (check != null && check != currentStatements) {
+        if (check != null && check != currentStatements) {
 //            System.out.println("POPPING-MISMATCH   " + check.hashCode() + " vs. " + currentStatements.hashCode());
-//            log.error("jml.internal", "MISMATCHED BLOCKS");
-//            throw new RuntimeException("MISMATCHED BLOCKS");
-//        }
+            log.error("jml.internal", "MISMATCHED BLOCKS");
+            throw new RuntimeException("MISMATCHED BLOCKS");
+        }
         return b;
     }
 

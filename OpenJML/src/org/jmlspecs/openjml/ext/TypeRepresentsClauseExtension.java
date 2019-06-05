@@ -41,13 +41,13 @@ import com.sun.tools.javac.util.Names;
 public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
 
     public static final String representsID = "represents";
-    public static final String capturesID = "captures";
+    public static final String capturedID = "captured";
     
 
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
     public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            representsClause, capturesClause}; }
+            representsClause, capturedClause}; }
     
     public static final IJmlClauseKind representsClause = new IJmlClauseKind.TypeClause(representsID) {
         public boolean oldNoLabelAllowed() { return false; }
@@ -109,7 +109,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
     };
     
     
-    public static final IJmlClauseKind capturesClause = new IJmlClauseKind.TypeClause(capturesID) {
+    public static final IJmlClauseKind capturedClause = new IJmlClauseKind.TypeClause(capturedID) {
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
         
@@ -133,7 +133,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
             JmlVariableDecl vd = (JmlVariableDecl)t;
             JCAnnotation a = parser.tokenToAnnotationAST("Ghost", pp, pp);
             vd.mods.annotations = vd.mods.annotations.append(a);
-            a = parser.tokenToAnnotationAST("Captures", pp, pp);
+            a = parser.tokenToAnnotationAST("Captured", pp, pp);
             vd.mods.annotations = vd.mods.annotations.append(a);
             return vd;
         }

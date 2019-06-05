@@ -1055,7 +1055,7 @@ public class JmlParser extends JavacParser {
             return Extensions.instance(context).findTM(0,possibleKeyword.name().toString(),false) instanceof IJmlClauseKind.TypeClause;
         } else {
             ITokenKind jt = possibleKeyword.ikind;
-            return (jt == CAPTURES || jt == JmlTokenKind.INITIALIZER || jt == JmlTokenKind.STATIC_INITIALIZER);
+            return (jt == CAPTURED || jt == JmlTokenKind.INITIALIZER || jt == JmlTokenKind.STATIC_INITIALIZER);
         }
     }
     

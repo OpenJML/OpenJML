@@ -220,7 +220,6 @@ public class escm extends EscBase {
     
     @Test
     public void testAnon() {
-        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                                 +" import org.jmlspecs.annotation.*; \n"
                                 +"@NonNullByDefault public class TestJava { public int x; \n"

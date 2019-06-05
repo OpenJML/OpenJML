@@ -2278,7 +2278,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
        };
        
     public JmlTokenKind[] allowedGhostFieldModifiers = new JmlTokenKind[] {
-            GHOST, NONNULL, NULLABLE, INSTANCE, MONITORED, SECRET, CAPTURES,
+            GHOST, NONNULL, NULLABLE, INSTANCE, MONITORED, SECRET, CAPTURED,
             PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
        };
        
@@ -5099,7 +5099,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 tokenToAnnotationSymbol.put(t,sym);
             }
         }
-        JmlTokenKind t = JmlTokenKind.CAPTURES;
+        JmlTokenKind t = JmlTokenKind.CAPTURED;
         {
             String s = t.annotationType.getName();
             Name n = names.fromString(s);
