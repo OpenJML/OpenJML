@@ -6169,6 +6169,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!pureCopy) {
             addTraceableComment(that);
         }
+        // Turn off any current exception if there is a break,
+        // including breaks without labels in switch and loop statements
+        // (The only way these can get executed is if they are in a catch or finally block:wq
+        
+        {
+            JCIdent id = treeutils.makeIdent(that,exceptionSym);
+            JCStatement stat = treeutils.makeAssignStat(that.pos,id,treeutils.nullLit);
+            addStat(stat);
+        }
+
         JCBreak st = M.at(that).Break(that.label);
         st.target = treeMap.get(that.target);
         if (st.target == null) {
@@ -6184,6 +6194,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void visitContinue(JCContinue that) {
         if (!pureCopy) {
             addTraceableComment(that);
+        }
+        // Turn off any current exception if there is a break,
+        // including breaks without labels in switch and loop statements
+        // (The only way these can get executed is if they are in a catch or finally block:wq
+        
+        if (!pureCopy) {
+            JCIdent id = treeutils.makeIdent(that,exceptionSym);
+            JCStatement stat = treeutils.makeAssignStat(that.pos,id,treeutils.nullLit);
+            addStat(stat);
         }
         if (that.label == null && !pureCopy) {
             // The translation of loops puts the body of a loop in its own

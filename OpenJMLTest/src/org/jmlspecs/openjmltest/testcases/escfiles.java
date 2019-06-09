@@ -739,6 +739,11 @@ public class escfiles extends EscBase {
         helpTF("escOld");
     }
     
+    @Test
+    public void exceptionCancel() {
+        helpTF("exceptionCancel");
+    }
+    
 
     
     @Test @Ignore // FIXME - ignore for now, because it slways times out.

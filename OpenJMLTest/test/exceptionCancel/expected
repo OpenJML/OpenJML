@@ -1,0 +1,35 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m0(int,java.lang.RuntimeException) with prover !!!!
+test/exceptionCancel/Test.java:8: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m0
+               if (i == 0) throw e;
+                           ^
+test/exceptionCancel/Test.java:4: warning: Associated declaration
+    //@ signals (RuntimeException) false; // SHOULD FAIL
+        ^
+Completed proof of Test.m0(int,java.lang.RuntimeException) with prover !!!! - with warnings
+Starting proof of Test.m1(int,java.lang.RuntimeException) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at reachable statement : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m1(int,java.lang.RuntimeException) with prover !!!! - no warnings
+Starting proof of Test.m2(int,java.lang.RuntimeException) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at reachable statement : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m2(int,java.lang.RuntimeException) with prover !!!! - no warnings
+Starting proof of Test.m3(int,java.lang.RuntimeException) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at reachable statement : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m3(int,java.lang.RuntimeException) with prover !!!! - no warnings
+Starting proof of Test.m4(int,java.lang.RuntimeException) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at reachable statement : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m4(int,java.lang.RuntimeException) with prover !!!! - no warnings
+Completed proving methods in Test
+2 warnings

@@ -22,7 +22,7 @@ import com.sun.tools.javac.tree.JCTree.Visitor;
 
 public class RequiresClause extends JmlExtension.MethodClause {
     
-    public static final String requiresID = "requires";
+    public static final String requiresID = "recommends";
     
     public static final IJmlClauseKind requiresClauseKind = new MethodClauseExprType(requiresID) {
         

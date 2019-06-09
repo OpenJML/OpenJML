@@ -23,7 +23,7 @@
 	</target>
 		
 	<target name="props2" if="isMac">
-	  <property name="openjml.jdk" value="/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home
+	  <property name="openjml.jdk" value="/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home
 "/>
 	  <property name="openjml.env.path" value="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/home/davidcok/apps"/>
 	</target>
