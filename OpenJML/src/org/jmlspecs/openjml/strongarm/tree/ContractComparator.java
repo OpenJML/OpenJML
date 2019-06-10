@@ -5,7 +5,7 @@ import java.util.Comparator;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
-import static org.jmlspecs.openjml.ext.RequiresClause.*;
+import static org.jmlspecs.openjml.ext.RecommendsClause.*;
 
 public class ContractComparator implements Comparator<JmlMethodClause> {
 

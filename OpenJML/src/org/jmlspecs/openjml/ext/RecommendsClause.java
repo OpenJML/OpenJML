@@ -20,11 +20,11 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.Visitor;
 
-public class RequiresClause extends JmlExtension.MethodClause {
+public class RecommendsClause extends JmlExtension.MethodClause {
     
-    public static final String requiresID = "recommends";
+    public static final String recommendsID = "recommends";
     
-    public static final IJmlClauseKind requiresClauseKind = new MethodClauseExprType(requiresID) {
+    public static final IJmlClauseKind recommendsClauseKind = new MethodClauseExprType(recommendsID) {
         
         public boolean isPreconditionClause() { return true; }
         
@@ -48,7 +48,10 @@ public class RequiresClause extends JmlExtension.MethodClause {
             if (scanner.token().kind == ELSE) {
                 parser.nextToken();
                 ex = parser.parseType();
-            } 
+            } else {
+                parser.syntaxError(parser.pos(), null, "jml.message", "A recommends clause must include an exception (recommends <expr> else <exception>;");
+                parser.skipToSemi();
+            }
             if (scanner.token().kind != SEMI) {
                 parser.syntaxError(parser.pos(), null, "jml.invalid.expression.or.missing.semi");
                 parser.skipThroughSemi();
@@ -76,18 +79,13 @@ public class RequiresClause extends JmlExtension.MethodClause {
 
     };
     
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            requiresClauseKind}; }
-    
     public static class Node extends JmlTree.JmlMethodClauseExpr {
 
         //@ nullable
         public JCExpression exceptionType;
 
         protected Node(int pos, JCExpression expression, JCExpression exceptionType) {
-            super(pos, requiresID, requiresClauseKind, expression);
+            super(pos, recommendsID, recommendsClauseKind, expression);
             this.exceptionType = exceptionType;
         }
         
@@ -118,5 +116,10 @@ public class RequiresClause extends JmlExtension.MethodClause {
             }
         }
 
+    }
+
+    @Override
+    public IJmlClauseKind[] clauseTypesA() {
+        return new IJmlClauseKind[] { recommendsClauseKind };
     }
 }

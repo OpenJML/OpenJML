@@ -1,7 +1,7 @@
 package org.jmlspecs.openjmltest.testcases;
 
 import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.ext.RequiresClause;
+import org.jmlspecs.openjml.ext.RecommendsClause;
 import org.jmlspecs.openjmltest.ParseBase;
 import org.junit.Test;
 
@@ -200,7 +200,7 @@ public class compilationUnit extends ParseBase {
               JmlMethodSpecs.class, 34, 34, 62,
               JmlSpecificationCase.class, 34,34,62,
               JCModifiers.class, -1,-1,-1,
-              RequiresClause.Node.class, 34,34,48,
+              JmlMethodClauseExpr.class, 34,34,48,
               JCLiteral.class, 43,43,47,
               JmlMethodClauseExpr.class, 49,49,62,
               JCLiteral.class, 57,57,61,
@@ -213,26 +213,29 @@ public class compilationUnit extends ParseBase {
     
     @Test
     public void testRefining2() {
-        checkCompilationUnit("class A { void m() { /*@          requires true; ensures true; */ m(); }}",
-              JmlCompilationUnit.class, 0,0,73,
-              JmlClassDecl.class, 0,0,73,
+        checkCompilationUnit("class A { void m() { /*@        recommends true else NullPointerException; ensures true; */ m(); }}",
+              JmlCompilationUnit.class, 0,0,99,
+              JmlClassDecl.class, 0,0,99,
               JCModifiers.class, -1,-1,-1,
-              JmlMethodDecl.class, 10,15,72,
+              JmlMethodDecl.class, 10,15,98,
               JCModifiers.class, -1,-1,-1,
               JCPrimitiveTypeTree.class, 10,10,14,
-              JmlBlock.class, 19,19,72,
-              RequiresClause.Node.class, 34,34, 48,
-              JCLiteral.class, 43, 43, 47,
-              JmlMethodSpecs.class, 34, 34, 62,
-              JmlSpecificationCase.class, 34,34,62,
+              JmlBlock.class, 19,19,98,
+
+              JmlStatementSpec.class, 32, 32, 88, 
+              JmlMethodSpecs.class, 32, 32, 88,
+              JmlSpecificationCase.class, 32,32,88,
               JCModifiers.class, -1,-1,-1,
-              RequiresClause.Node.class, 34,34,48,
-              JCLiteral.class, 43,43,47,
-              JmlMethodClauseExpr.class, 49,49,62,
-              JCLiteral.class, 57,57,61,
-              JCExpressionStatement.class, 66,66,70,
-              JCMethodInvocation.class, 66,67,69,
-              JCIdent.class, 66,66,67
+
+              RecommendsClause.Node.class, 32,32, 74,
+              JCLiteral.class, 43, 43, 47,
+              JCIdent.class, 53,53,73,
+
+              JmlMethodClauseExpr.class, 75,75,88,
+              JCLiteral.class, 83,83,87,
+              JCExpressionStatement.class, 92,92,96,
+              JCMethodInvocation.class, 92,93,95,
+              JCIdent.class, 92,92,93
         );
         checkMessages();
     }
@@ -248,9 +251,9 @@ public class compilationUnit extends ParseBase {
                 JmlMethodSpecs.class, 14,14,53,
                 JmlSpecificationCase.class, 14,14,53,
                 JCModifiers.class, -1,-1,-1,
-                RequiresClause.Node.class, 14,14,28,
+                JmlMethodClauseExpr.class, 14,14,28,
                 JCLiteral.class, 23,23,27,
-                RequiresClause.Node.class, 29,29,53,
+                JmlMethodClauseExpr.class, 29,29,53,
                 JmlSingleton.class, 38,38,52,
                 
                 JCModifiers.class, -1,-1,-1,

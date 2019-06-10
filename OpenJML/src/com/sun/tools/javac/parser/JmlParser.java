@@ -510,9 +510,14 @@ public class JmlParser extends JavacParser {
                 String id = token.name().toString();
                 IJmlClauseKind ext = Extensions.instance(context).findSM(0,id,false);
                 if (ext != null) {
-                    JCStatement s = (JCStatement)ext.parse(null, id, ext, this);
-//                    JCStatement s = parseStatement();
-                    return List.<JCStatement>of(s);
+                    if (ext instanceof IJmlClauseKind.MethodClause) {
+                        JCStatement s = parseRefining(pos(), null);
+                        return List.<JCStatement>of(s);
+                    } else {
+                        JCStatement s = (JCStatement)ext.parse(null, id, ext, this);
+                        //                    JCStatement s = parseStatement();
+                        return List.<JCStatement>of(s);
+                    }
                 }
                 ClassLike cl = Extensions.classLike.get(id);
                 if (cl != null) {

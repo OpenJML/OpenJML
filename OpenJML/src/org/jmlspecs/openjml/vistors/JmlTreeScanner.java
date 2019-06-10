@@ -10,6 +10,7 @@ import java.util.Iterator;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.RecommendsClause;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
@@ -179,6 +180,10 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
         scan(tree.expression);
+        if (tree instanceof RecommendsClause.Node) {
+            RecommendsClause.Node n = (RecommendsClause.Node)tree;
+            scan(n.exceptionType);
+        }
     }
 
     public void visitJmlMethodClauseGroup(JmlMethodClauseGroup tree) {

@@ -6,17 +6,16 @@ package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.Kinds.VAL;
-import static org.jmlspecs.openjml.ext.RequiresClause.requiresClauseKind;
+import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.requiresClauseKind;
+import static org.jmlspecs.openjml.ext.RecommendsClause.*;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 
 import com.sun.tools.javac.code.JmlTypes;
-import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
@@ -418,7 +417,8 @@ public class FunctionLikeExpressions extends ExpressionExtension {
     public static final IJmlClauseKind sameKind = new OneArgExpression(sameID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            if (attr.currentClauseType != requiresClauseKind) {
+            if (attr.currentClauseType != requiresClauseKind &&
+                    attr.currentClauseType != recommendsClauseKind) {
                 Log.instance(context).error(((JmlSingleton)that).pos,"jml.misplaced.same");
             }
             return Symtab.instance(context).booleanType;

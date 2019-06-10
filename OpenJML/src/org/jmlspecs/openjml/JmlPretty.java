@@ -17,7 +17,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
 import org.jmlspecs.openjml.ext.Operators;
-import org.jmlspecs.openjml.ext.RequiresClause;
+import org.jmlspecs.openjml.ext.RecommendsClause;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
 import org.jmlspecs.openjml.vistors.IJmlVisitor;
 
@@ -348,8 +348,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             print(useCanonicalName ? that.clauseKind.name() : that.keyword);
             print(" ");
             printExpr(that.expression);  // noPrec
-            if (that instanceof RequiresClause.Node) {
-                RequiresClause.Node rc = (RequiresClause.Node)that;
+            if (that instanceof RecommendsClause.Node) {
+                RecommendsClause.Node rc = (RecommendsClause.Node)that;
                 if (rc.exceptionType != null) {
                     print(" else ");
                     printExpr(rc.exceptionType);

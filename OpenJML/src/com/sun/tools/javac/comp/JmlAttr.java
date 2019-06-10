@@ -23,7 +23,7 @@ import static com.sun.tools.javac.tree.JCTree.Tag.ASSIGN;
 import static org.jmlspecs.openjml.JmlTokenKind.*;
 import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
-import static org.jmlspecs.openjml.ext.RequiresClause.*;
+import static org.jmlspecs.openjml.ext.RecommendsClause.*;
 import static org.jmlspecs.openjml.ext.MethodDeclClauseExtension.*;
 import static org.jmlspecs.openjml.ext.MethodConditionalClauseExtension.*;
 import static org.jmlspecs.openjml.ext.CallableClauseExtension.*;
@@ -40,7 +40,7 @@ import static org.jmlspecs.openjml.ext.StatementLocationsExtension.*;
 import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
-import org.jmlspecs.openjml.ext.RequiresClause;
+import org.jmlspecs.openjml.ext.RecommendsClause;
 import static org.jmlspecs.openjml.ext.ShowStatement.*;
 
 import java.util.Collection;
@@ -2029,12 +2029,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         ListBuffer<JmlSpecificationCase> newlist = new ListBuffer<JmlSpecificationCase>();
         ListBuffer<JmlMethodClause> exlist = null;
         JmlMethodClauseSignalsOnly signalsOnly = null;
-        RequiresClause.Node excRequires = null;
+        JmlMethodClauseExpr excRequires = null;
         JmlMethodClauseSignals signalsClause = null;
         for (JmlMethodClause m: clauses) {
             IJmlClauseKind t = m.clauseKind;
             JCExpression excType = null;
-            if (t == requiresClauseKind && (excType=((RequiresClause.Node)m).exceptionType) != null) {
+            if (t == recommendsClauseKind && (excType=((RecommendsClause.Node)m).exceptionType) != null) {
                 // Generate these clauses for the exceptional behavior 
                 //     requires disjunction of negation of each requires condition
                 //     assigns \nothing
@@ -2045,11 +2045,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (first) {
                     exlist = copy(prefix);
                 }
-                RequiresClause.Node rc = (RequiresClause.Node)m;
-                rc.exceptionType = null;
-                prefix.append(rc);
-                RequiresClause.Node nn = rc.copy();
-                nn.expression = treeutils.makeNot(nn.pos, nn.expression);
+                RecommendsClause.Node rc = (RecommendsClause.Node)m;
+                JmlMethodClauseExpr substRequires = jmlMaker.at(m.pos).JmlMethodClauseExpr(requiresID,requiresClauseKind,rc.expression);
+                prefix.append(substRequires);
+                JmlMethodClauseExpr nn = jmlMaker.at(m.pos).JmlMethodClauseExpr(requiresID,requiresClauseKind,
+                        treeutils.makeNot(substRequires.pos, rc.expression));
                 if (first) {
                     excRequires = nn;
                     exlist.add(excRequires);
@@ -3073,9 +3073,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         savedMethodClauseOutputEnv = this.env;
         currentClauseType = tree.clauseKind;
         switch (tree.clauseKind.name()) {
-            case "requires":
+            case "recommends":
                 tree.clauseKind.typecheck(this,tree,env);
                 break;
+            case "requires":
             case "ensures":
             case "diverges":
             case "when":

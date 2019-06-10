@@ -14,7 +14,7 @@ import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
-import static org.jmlspecs.openjml.ext.RequiresClause.*;
+import static org.jmlspecs.openjml.ext.RecommendsClause.*;
 import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
 
 

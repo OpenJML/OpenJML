@@ -8,7 +8,8 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
-import static org.jmlspecs.openjml.ext.RequiresClause.requiresClauseKind;
+import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.requiresClauseKind;
+import static org.jmlspecs.openjml.ext.RecommendsClause.*;
 import org.jmlspecs.openjml.strongarm.translators.SubstitutionEQProverSMT;
 
 import com.sun.tools.javac.tree.JCTree;

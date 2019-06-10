@@ -2,7 +2,8 @@ package org.jmlspecs.openjml.strongarm.transforms;
 
 import static org.jmlspecs.openjml.ext.AssignableClauseExtension.assignableClauseKind;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.ensuresClauseKind;
-import static org.jmlspecs.openjml.ext.RequiresClause.requiresClauseKind;
+import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.requiresClauseKind;
+import static org.jmlspecs.openjml.ext.RecommendsClause.*;
 
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.vistors.JmlTreeScanner;
