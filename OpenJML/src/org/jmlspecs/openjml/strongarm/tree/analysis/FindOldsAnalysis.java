@@ -34,7 +34,7 @@ public class FindOldsAnalysis extends JmlTreeAnalysis {
     @Override
     public void visitIdent(JCIdent tree){
         if(tree==null) return;
-        if(tree.toString().equals(Strings.thisName)) return;
+        if(tree.toString().equals(Strings.THIS)) return;
         
         idents.add(tree.toString());
     }

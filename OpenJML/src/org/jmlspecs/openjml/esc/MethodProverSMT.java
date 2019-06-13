@@ -1562,7 +1562,8 @@ public class MethodProverSMT {
      * by the solver is an error or is null. 
      */
     public String getValue(String id, SMT smt, ISolver solver, boolean report) {
-        org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id);
+        String ids = SMTTranslator.makeBarEnclosedString(id);
+        org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(ids);
         IResponse resp = null;
         try {
             resp = solver.get_value(s);

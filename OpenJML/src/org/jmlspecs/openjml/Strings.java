@@ -153,6 +153,15 @@ public class Strings {
     // program. They must be distinct from names used in the user's Java program.
     // Some are prefixes or other components of a resulting variable name.
     
+    /** The prefix of generated strings in the transformation, so they do not clash with
+     * Java identifiers. Thus we use characters not allowed in Java identifiers, though
+     * then the SMT encoding must use || delimiters.
+     */
+    final static public String genPrefix = "`";
+    
+    /** A String used to represent the 'this' object in methods.*/
+    final static public String THIS = genPrefix + "THIS";
+    
     /** A String used as the root of a variable name that is a temporary
      * intermediate result in an expression evaluation.
      */
@@ -161,7 +170,7 @@ public class Strings {
     /** A String used as the Java variable for \result, hopefully obfuscated
      * enough that no one will ever actually use a Java variable with this name.
      */
-    final static public String resultVarString = "_JML___result"; //$NON-NLS-1$
+    final static public String resultVarString = genPrefix + "result"; //$NON-NLS-1$
     
     /** A String used as the root of a temporary variable to hold the
      * value of the result of a 'new' constructor call .
@@ -198,17 +207,15 @@ public class Strings {
     /** A String used as variable that records the location of the return or
      * throw statement marking the exit from a method.
      */
-    final static public String terminationVarString = "_JML___termination"; //$NON-NLS-1$
+    final static public String terminationVarString = genPrefix + "terminationPosition"; //$NON-NLS-1$
     
-    /** A String used as the Java variable for \exception, hopefully obfuscated
-     * enough that no one will ever actually use a Java variable with this name.
+    /** A String used as the Java variable for \exception.
      */
-    final static public String exceptionVarString = "_JML___exception"; //$NON-NLS-1$
+    final static public String exceptionVarString = genPrefix + "exception"; //$NON-NLS-1$
     
-    /** A String used as a local Java variable for a thrown exception, hopefully obfuscated
-     * enough that no one will ever actually use a Java variable with this name.
+    /** A String used as a local Java variable for a thrown exception.
      */
-    final static public String exceptionLocalVarString = "_JML___exception_L_"; //$NON-NLS-1$
+    final static public String exceptionLocalVarString = genPrefix + "exception_L_"; //$NON-NLS-1$
     
     /** A String used as the name of the exception variable when catching 
      * runtime exceptions that may happen while evaluating JML expressions
@@ -242,9 +249,6 @@ public class Strings {
     
     /** Name used for the array of allocation state */
     public final static String isAllocName = "_isalloc__";
-    
-    /** Name used to represent the 'this' object for non-static methods */
-    public final static String thisName = "THIS";
     
     /** Name of a field put into every rac-compiled class, to signal that it is rac-compiled */
     // Must match corresponding string in Utils.

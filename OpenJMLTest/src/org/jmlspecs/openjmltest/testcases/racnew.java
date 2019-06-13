@@ -227,7 +227,6 @@ public class racnew extends RacBase {
     // TODO need multiple requires, multiple spec cases
 
     @Test public void testPostcondition() {
-        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures k == i; */ static int m(int i) { k = i; return 13; } " +
                 "}"
@@ -1223,7 +1222,6 @@ public class racnew extends RacBase {
     }
     
     @Test public void testStaticInvariant() {
-        main.addOptions("-show");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ static public invariant i == 0; \n "
                 +"public static void m(); \n"
@@ -3106,7 +3104,6 @@ public class racnew extends RacBase {
     
     @Test
     public void testOldClause2() {
-        main.addOptions("-show");
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { public static void main(String[] args) { m(6); k = 6; m(4); } \n"

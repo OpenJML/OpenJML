@@ -721,7 +721,7 @@ public class BlockReader {
                     String rep = s.toString();
                     
                     // we need to meet three conditions
-                    if(rep.contains("THIS") && rep.contains("!") && rep.contains("null")){
+                    if(rep.contains(Strings.THIS) && rep.contains("!") && rep.contains("null")){
                         UNDRs.add(rep);
                     }
                 }

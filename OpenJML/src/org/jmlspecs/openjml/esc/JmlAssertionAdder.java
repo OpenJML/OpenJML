@@ -986,7 +986,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addStat(comment(methodDecl,"Declaration of THIS",null));
                 currentStatements = initialStatements;  // FIXME - an unnecessary assignment I think
                 
-                addStat(treeutils.makeVariableDecl(names.fromString("THIS"), currentThisExpr.type, null, pmethodDecl.pos));
+                addStat(treeutils.makeVariableDecl(names.fromString(Strings.THIS), currentThisExpr.type, null, pmethodDecl.pos));
                 if (!utils.isPrimitiveType(currentThisExpr.type)) {
                     // assume 'this' is non-null and assume its type
                     JCExpression e = treeutils.makeNeqObject(methodDecl.pos,currentThisExpr,treeutils.nullLit);
@@ -7207,7 +7207,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         if (obj == null) return treeutils.falseLit;
         if (enclosingMethod == null) return treeutils.trueLit; // initializer block 
-        if (enclosingMethod.isConstructor() && obj instanceof JCIdent && ((JCIdent)obj).sym.toString().equals(Strings.thisName) ) return treeutils.trueLit; // Fields of an object being constructed are always assignable
+        if (enclosingMethod.isConstructor() && obj instanceof JCIdent && ((JCIdent)obj).sym.toString().equals(Strings.THIS) ) return treeutils.trueLit; // Fields of an object being constructed are always assignable
 //        obj = convertJML(obj);  // FIXME - in some cases at least this is a second conversion
         if (true || !convertingAssignable) obj = newTemp(obj);
         
@@ -12554,7 +12554,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Symbol sym = convertSymbol(that.sym);
         
         // FIXME - what about super when esc? or when we have a different currentThisExpr?
-        if (sym.name == names._super && rac && (currentThisExpr.toString().equals("this")||currentThisExpr.toString().equals("THIS"))) {
+        if (sym.name == names._super && rac && (currentThisExpr.toString().equals("this")||currentThisExpr.toString().equals(Strings.THIS))) {
             // super is special in that it precludes dynamic dispatch
             // reaming super to a new ident would just end up calling the child method again
             result = eresult = that;
@@ -12780,7 +12780,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     else newfa = treeutils.makeSelect(that.pos, currentThisExpr, sym);
                 }
                 JCExpression cp = convertCopy(newfa.getExpression());
-                if (cp != null && cp.toString().equals("THIS")) ((JCIdent)cp).pos = that.pos;
+                if (cp != null && cp.toString().equals(Strings.THIS)) ((JCIdent)cp).pos = that.pos;
                 JCExpression fa = treeutils.makeSelect(that.pos,cp,that.sym);
                 fa.type = convertType(fa.type);
 //                if (sym instanceof VarSymbol && sym.owner instanceof ClassSymbol && specs.isNonNull(sym, classDecl.sym) && !localVariables.isEmpty()) {
@@ -13188,7 +13188,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     // FIXME - review this
     public JCIdent makeThisId(int pos, Symbol sym)  {
-        VarSymbol THISSym = treeutils.makeVarSymbol(Flags.STATIC,names.fromString(Strings.thisName),sym.type, Position.NOPOS);
+        VarSymbol THISSym = treeutils.makeVarSymbol(Flags.STATIC,names.fromString(Strings.THIS),sym.type, Position.NOPOS);
         THISSym.owner = infer || esc ? null : sym; 
             // In esc, the owner is null (instead of sym) to indicate
             // that this new symbol is a synthetic variable that will not ever

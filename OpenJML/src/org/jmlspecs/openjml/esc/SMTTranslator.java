@@ -123,7 +123,7 @@ public class SMTTranslator extends JmlTreeScanner {
     // may be simply used in place.
     // Strings that are defined by SMTLIB are used explicitly in place.
     public static final String NULL = "NULL";
-    public static final String this_ = Strings.thisName; // Must be the same as the id used in JmlAssertionAdder
+    public static final String this_ = makeBarEnclosedString(Strings.THIS); // Must be the same as the id used in JmlAssertionAdder
     public static final String REF = "REF"; // SMT sort for Java references
     public static final String JAVATYPESORT = REF; // "JavaTypeSort";
     public static final String JMLTYPESORT = "JMLTypeSort";
@@ -915,8 +915,8 @@ public class SMTTranslator extends JmlTreeScanner {
         // The 'defined' set holds all Names that have already had SMT definitions issued
         // We have already defined some names - record that fact.
         
-        defined.add(names.fromString(this_));
-        defined.add(names.fromString(arrayLength));
+        defined.add(this_);
+        defined.add(arrayLength);
         
         // Add the rest that are recorded in the basic block program
         for (JCIdent id: program.declarations) {
@@ -1014,9 +1014,9 @@ public class SMTTranslator extends JmlTreeScanner {
     }
     
     protected void addConstant(JCIdent id) {
-        if (defined.add(id.name)) {
+        String nm = makeBarEnclosedString(id.name.toString());
+        if (defined.add(nm)) {
             try {
-                String nm = id.name.toString();
                 ISort sort = convertSort(id.type);
                 // FIXME - I don't think 'this' should ever get this far
                 if (id.sym != null && id.sym.owner instanceof Symbol.ClassSymbol && !Utils.instance(context).isJMLStatic(id.sym) && !id.sym.name.toString().equals("this")) {
@@ -1039,8 +1039,8 @@ public class SMTTranslator extends JmlTreeScanner {
     }
     
     protected boolean addConstant(ISymbol sym, ISort sort, JCExpression expr) {
-        Name nm = names.fromString(sym.toString());
-        boolean isnew = defined.add(nm);
+        String s = sym.toString();
+        boolean isnew = defined.add(s);
         if (isnew) {
             ICommand c = new C_declare_fun(sym,emptyList,sort);
             startCommands.add(c);
@@ -1320,7 +1320,8 @@ public class SMTTranslator extends JmlTreeScanner {
                 IExpr init = null;
                 if (useFcnDef) init = decl.init == null ? null : convertExpr(decl.init);
                 
-                ISymbol sym = F.symbol(decl.name.toString());
+                String s = makeBarEnclosedString(decl.name.toString());
+                ISymbol sym = F.symbol(s);
                 if (init == null) {
                     commands.add(new C_declare_fun(
                             sym,
@@ -2621,7 +2622,7 @@ public class SMTTranslator extends JmlTreeScanner {
 
 
     /** A set of names of fields that are already defined */
-    protected java.util.Set<Name> defined = new java.util.HashSet<Name>();
+    protected java.util.Set<String> defined = new java.util.HashSet<>();
     
     @Override
     public void visitSelect(JCFieldAccess tree) {
@@ -2630,8 +2631,9 @@ public class SMTTranslator extends JmlTreeScanner {
             JCExpression object = tree.selected;
             Symbol field = tree.sym;
             if (field != syms.lengthVar) {
-                IExpr.ISymbol name = F.symbol(tree.name.toString());
-                if (defined.add(tree.name)) {
+                String encName = makeBarEnclosedString(tree.name.toString());
+                IExpr.ISymbol name = F.symbol(encName);
+                if (defined.add(encName)) {
                     ISort arrsort = F.createSortExpression(arraySym,convertSort(object.type),convertSort(field.type));
                     ICommand c = new C_declare_fun(name,emptyList,arrsort);
                     commands.add(c);
@@ -2659,7 +2661,7 @@ public class SMTTranslator extends JmlTreeScanner {
         if (n.equals("length")) { // FIXME - not sure about this - length as array length is always a field name
             result = F.symbol(arrayLength);
         } else {
-            result = F.symbol(n);
+            result = F.symbol(makeBarEnclosedString(n));
         }
     }
     
@@ -2750,6 +2752,11 @@ public class SMTTranslator extends JmlTreeScanner {
     
     protected String makeBarEnclosedString(JCTree tree) {
         String s = tree.toString();
+        return makeBarEnclosedString(s);
+    }
+    protected static String makeBarEnclosedString(String s) {
+        if (s.startsWith("arrays")) return s;
+        if (s.charAt(0) == '|') return s;
         s = s.replace('|','#').replace('\n', ' ').replace("\r","").replace("\\","#");
         if (s.length() > 40) {
             s = s.substring(0, 40) + s.hashCode();
