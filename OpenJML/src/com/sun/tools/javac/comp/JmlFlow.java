@@ -484,14 +484,14 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlBinary(JmlBinary that) {
-            scan(that.lhs);
-            scan(that.rhs);
+            scanExpr(that.lhs);
+            scanExpr(that.rhs);
         }
 
         @Override
         public void visitJmlChained(JmlChained that) {
-            scan(that.conjuncts.head.lhs);
-            for (JCTree.JCBinary b: that.conjuncts) scan(b.rhs);
+            scanExpr(that.conjuncts.head.lhs);
+            for (JCTree.JCBinary b: that.conjuncts) scanExpr(b.rhs);
         }
         
         @Override
@@ -548,17 +548,17 @@ public class JmlFlow extends Flow  {
         
         public void visitJmlTuple(JmlTuple that) {
             for (JCExpression e: that.values)
-                scan(e);
+                scanExpr(e);
         }
         
 
         @Override
         public void visitJmlLblExpression(JmlLblExpression that) {
-            scan(that.expression);
+            scanExpr(that.expression);
         }
 
         public void visitJmlMatchExpression(JmlMatchExpression that) {
-            scan(that.expression);
+            scanExpr(that.expression);
             for (JmlMatchExpression.MatchCase c: that.cases) {
                 //scan(c.caseExpression);
                 //scan(c.value); // FIXME - spurious nonn-initialized errors
@@ -572,7 +572,7 @@ public class JmlFlow extends Flow  {
         
         @Override
         public void visitJmlStatementShow(JmlStatementShow that) {
-            scan(that.expressions);
+            scanExprs(that.expressions);
         }
 
         @Override
@@ -624,7 +624,7 @@ public class JmlFlow extends Flow  {
             } else {
                 scanExpr(that.range);
                 scanExpr(that.value);
-                scan(that.triggers);
+                scanExprs(that.triggers);
             }
             quantDeclStack.remove(0);
         }
@@ -726,9 +726,9 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
-            scan(that.expression);
-            scan(that.lo);
-            if (that.lo != that.hi) scan(that.hi);
+            scanExpr(that.expression);
+            scanExpr(that.lo);
+            if (that.lo != that.hi) scanExpr(that.hi);
 //            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
         }
 
