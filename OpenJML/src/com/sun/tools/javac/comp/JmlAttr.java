@@ -72,6 +72,7 @@ import org.jmlspecs.openjml.ext.CallableClauseExtension;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
+import org.jmlspecs.openjml.ext.ModifierExtension;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 
 import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
@@ -1329,6 +1330,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     allAllowed(mods.annotations,allowedConstructorAnnotations,"constructor declaration");
                 }            
             }
+            
+            if (!isPureMethod(javaMethodTree.sym) &&
+                utils.findMod(mods,tokenToAnnotationSymbol.get(IMMUTABLE))!=null) {
+                log.error(javaMethodTree.pos, "jml.message", "Methods of an immutable class must be pure");
+            }
+
             
             // Check rules about Function
             JCAnnotation a=utils.findMod(mods,tokenToAnnotationSymbol.get(FUNCTION));
@@ -3176,10 +3183,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) {
+        IJmlClauseKind savedClauseKind = currentClauseType;
+        currentClauseType = tree.clauseKind;
         for (JCTree e: tree.list) {
             attribExpr(e, env, Type.noType);
             if (!isRefining) checkIfLocal(e);
+            if (currentClauseType == assignableClauseKind) {
+                if (e instanceof JCFieldAccess) {
+                    if (isImmutable(((JCFieldAccess)e).selected.type.tsym)) {
+                        log.error(tree.pos, "jml.message", "Fields of an object with immutable type may not be modified");
+                    }
+                }
+            }
+
         }
+        currentClauseType = savedClauseKind;
         // FIXME - check the result
     }
 
@@ -5203,7 +5221,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public boolean hasAnnotation(Symbol symbol, JmlTokenKind t) {
       return symbol.attribute(tokenToAnnotationSymbol.get(t)) != null;
 
-  }
+    }
+    
+    /** Returns true if the given symbol has a Model annotation */
+    public boolean isImmutable(Symbol symbol) {
+        return symbol.attribute(tokenToAnnotationSymbol.get(JmlTokenKind.IMMUTABLE))!=null; // FIXME - need to get this from the spec
+    }
+
   
     /** Returns true if the given symbol has a given annotation 
      * @param symbol the symbol to check
