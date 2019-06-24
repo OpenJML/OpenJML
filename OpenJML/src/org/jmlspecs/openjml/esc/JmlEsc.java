@@ -3,8 +3,12 @@
  * Author: David R. Cok
  */
 package org.jmlspecs.openjml.esc;
+
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +29,22 @@ import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
@@ -137,9 +157,101 @@ public class JmlEsc extends JmlTreeScanner {
         }
     }
     
+    @JsonIgnoreProperties(value = { "owner", "toplevel", "scope", "tsym", "env",
+            "members_field", "refiningSpecDecls", "typeSpecs", "outer_field",
+            "interface", "sourceFile", "source", "sourceMap", "sourcefile",
+            "classfile", "context", "parser", "scanner", "log", "reader", "syms", "pos" })
+    @JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
+    @JsonTypeInfo(use = Id.CLASS, include = As.PROPERTY, property = "@class")
+    public class AllMixin {
+    }
+
+    @JsonIdentityInfo(generator = ObjectIdGenerators.None.class)
+    @JsonTypeInfo(use = Id.NONE)
+    public class CollectionMixin {   
+    }
+//
+//    @JsonIgnoreProperties({"table"})
+//    @JsonAutoDetect(fieldVisibility=Visibility.NONE, getterVisibility=Visibility.NONE, isGetterVisibility=Visibility.NONE, setterVisibility=Visibility.NONE)
+//    public class NameMixin extends AllMixin {
+//        @JsonProperty
+//        public String getName() { return toString(); }
+//    }
+
+    class MyDtoNullKeySerializer extends StdSerializer<Object> {
+        private static final long serialVersionUID = 1L;
+
+        public MyDtoNullKeySerializer() {
+            this(null);
+        }
+
+        public MyDtoNullKeySerializer(Class<Object> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(Object nullKey, JsonGenerator jsonGenerator,
+                SerializerProvider unused) throws IOException {
+            jsonGenerator.writeFieldName("");
+        }
+    }
+
+    void dumpJson(JCClassDecl node, File file) {
+        SimpleModule module = new SimpleModule()
+                .addSerializer(Name.class, new StdSerializer<Name>(Name.class) {
+                    private static final long serialVersionUID = 1L;
+                    @Override
+                    public void serialize(Name obj, JsonGenerator json,
+                            SerializerProvider serializer) throws IOException {
+                        json.writeString(obj.toString());
+                    }
+                    @Override
+                    public void serializeWithType(Name obj, JsonGenerator json, SerializerProvider provider,
+                            TypeSerializer serializer)
+                        throws IOException {
+                        serialize(obj, json, provider);
+                    }
+                });
+        ObjectMapper objectMapper = new ObjectMapper()
+                .registerModule(module)
+                .addMixIn(Object.class, AllMixin.class)
+                .addMixIn(Collection.class, CollectionMixin.class)
+//                .addMixIn(Name.class, NameMixin.class)
+                .setVisibility(PropertyAccessor.FIELD, Visibility.ANY)
+                .setVisibility(PropertyAccessor.GETTER, Visibility.NONE)
+                .setVisibility(PropertyAccessor.IS_GETTER, Visibility.NONE)
+                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+                .enable(SerializationFeature.INDENT_OUTPUT,
+                        SerializationFeature.FLUSH_AFTER_WRITE_VALUE,
+                        SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
+        objectMapper.getSerializerProvider()
+                .setNullKeySerializer(new StdSerializer<Object>(Object.class) {
+                    private static final long serialVersionUID = 1L;
+                    @Override
+                    public void serialize(Object arg0, JsonGenerator json,
+                            SerializerProvider arg2) throws IOException {
+                        json.writeFieldName("");
+                    }
+                });
+        try {
+            objectMapper.writeValue(file, node);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     /** Visit a class definition */
     @Override
     public void visitClassDef(JCClassDecl node) {
+
+        File file = new File(node.name.toString()+".json");
+        if (file.exists())
+            System.out.println("Not dumping AST to "+file+", file exists");
+        else {
+            System.out.println("Dumping AST to "+file);
+            dumpJson(node, file);
+        }
+
         boolean savedMethodsOK = allMethodsOK;
         allMethodsOK = true;
         Main.instance(context).pushOptions(node.mods);
