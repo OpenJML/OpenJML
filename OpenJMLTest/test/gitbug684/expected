@@ -1,0 +1,12 @@
+Proving methods in Crash
+Starting proof of Crash.Crash() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Crash.Crash() with prover !!!! - no warnings
+Starting proof of Crash.m(java.lang.Object,boolean,boolean) with prover !!!!
+test/gitbug684/Crash.java:4: warning: The prover cannot establish an assertion (Assert) in method m
+//@ assert (a && b) == (o != null);
+    ^
+Completed proof of Crash.m(java.lang.Object,boolean,boolean) with prover !!!! - with warnings
+Completed proving methods in Crash
+1 warning

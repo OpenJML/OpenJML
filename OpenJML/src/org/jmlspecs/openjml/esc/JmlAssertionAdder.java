@@ -13884,12 +13884,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         newlist.add(convertNoSplit( ((JmlVariableDecl)t).ident ));
                     }
                 }
-                if (useDefaultModifies) {
-                    JCIdent id = treeutils.makeIdent(pos.getPreferredPosition(),indexStack.get(0).sym);  // FIXME _ use indexDecl here?
-                    newlist.add(convertNoSplit(id));
-                }
                 useDefaultModifies = false;
             }
+        }
+        {
+            JCIdent id = treeutils.makeIdent(pos.getPreferredPosition(),indexStack.get(0).sym);  // FIXME _ use indexDecl here?
+            newlist.add(convertNoSplit(id));
         }
         if (useDefaultModifies) {
             ListBuffer<JCExpression> targets = new ListBuffer<JCExpression>();
@@ -13928,10 +13928,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 newlist.add(convertJML(newtarget));
             }
         }
-        
+        List<JCExpression> newlistx = expandStoreRefList(newlist.toList(), methodDecl.sym, true );
         int p = pos.getPreferredPosition();
-        JmlStatementHavoc st = M.at(p).JmlHavocStatement(newlist.toList());
-        for (JCExpression hv: newlist) {
+        JmlStatementHavoc st = M.at(p).JmlHavocStatement(newlistx);
+        for (JCExpression hv: newlistx) {
             if (hv instanceof JCFieldAccess) havocModelFields((JCFieldAccess)hv);
         }
         allocCounter++;
