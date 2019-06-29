@@ -8,6 +8,7 @@ import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.Kinds.VAL;
 import static org.jmlspecs.openjml.ext.RequiresClause.requiresClauseKind;
 
+import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
@@ -195,6 +196,10 @@ public class SingletonExpressions extends ExpressionExtension {
     public void checkParse(JmlParser parser, JmlMethodInvocation e) {
         // TODO Auto-generated method stub
         
+    }
+    
+    public void register(Context context) {
+        Extensions.expressionKinds.put("\\index", countKind);
     }
 }
 
