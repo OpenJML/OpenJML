@@ -8908,7 +8908,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 markLocation(calllabel,currentStatements,stat);
             }
 
-            {
+            {   
                 if (isPure(calleeMethodSym)) {
                     addStat(comment(that, "... Not checking assignables of pure callee " + calleeMethodSym,null));
                     // FIXME - this will skip the model program blcok as well?
@@ -14509,20 +14509,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
         // Checks whether there is a Skip annotation
-        if (esc && JmlEsc.skip(that)) return;
-        if (esc && !utils.filter(that,false)) return;
-        if (rac && (JmlEsc.skipRac(that) || that.body == null)) {
-            if (that.body == null && that.sym.owner.isInterface() && (that.mods.flags & Flags.DEFAULT) != 0) {
-                // A default was put on a method with no body, presumably because it was a model method in an interface
-                // SO remove the default and add Abstract
-                that.mods.flags &= ~Flags.DEFAULT;
-                that.mods.flags |= Flags.ABSTRACT;
-                that.sym.flags_field &= ~Flags.DEFAULT;
-                that.sym.flags_field |= Flags.ABSTRACT;
-            }
-            if (classDefs != null) classDefs.add(that); // FIXME - should make a fresh copy of the declaration
-            return;
-        }
+//        if (esc && JmlEsc.skip(that)) return;
+//        if (esc && !utils.filter(that,false)) return;
+//        if (rac && (JmlEsc.skipRac(that) || that.body == null)) {
+//            if (that.body == null && that.sym.owner.isInterface() && (that.mods.flags & Flags.DEFAULT) != 0) {
+//                // A default was put on a method with no body, presumably because it was a model method in an interface
+//                // SO remove the default and add Abstract
+//                that.mods.flags &= ~Flags.DEFAULT;
+//                that.mods.flags |= Flags.ABSTRACT;
+//                that.sym.flags_field &= ~Flags.DEFAULT;
+//                that.sym.flags_field |= Flags.ABSTRACT;
+//            }
+//            if (classDefs != null) classDefs.add(that); // FIXME - should make a fresh copy of the declaration
+//            return;
+//        }
         
         // Simple name of method
         String nm = that.name.toString();

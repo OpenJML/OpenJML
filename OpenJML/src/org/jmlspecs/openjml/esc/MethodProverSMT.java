@@ -884,6 +884,9 @@ public class MethodProverSMT {
                             ((JmlStatementExpr)bbstat).expression instanceof JCLiteral ?
                                     ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString()
                                     : null;
+                    if (comment != null && comment.contains("Assignable assertion:")) {
+                           System.out.println("");             
+                    }
                     ifstat: if (origStat != null || stat instanceof JmlStatementExpr){
                         String loc = origStat == null ? "" :utils.locationString(origStat.getStartPosition());
                         //String comment = ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString();
@@ -892,7 +895,6 @@ public class MethodProverSMT {
                         JCTree toTrace = null;
                         String val = null;
                         if (origStat instanceof JmlStatementExpr && ((JmlStatementExpr)origStat).clauseType == assumeClause) {
-                            //toTrace = ((JmlStatementExpr)stat).expression;
                             break ifstat;
                         } else if (origStat instanceof JCIf) {
                             toTrace = ((JCIf)origStat).getCondition();
@@ -937,7 +939,14 @@ public class MethodProverSMT {
 //                        } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.COMMENT && ((JmlStatementExpr)stat).expression.toString().contains("ImplicitAssume")) {
 //                            break ifstat;
                         } else {
-                            toTrace = origStat;
+                            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).clauseType == assumeClause
+                                    && ((JmlStatementExpr)stat).label == Label.ASSIGNMENT && stat.toString().contains("ASSERT")) {
+                                       toTrace = ((JmlStatementExpr)stat).expression;
+                            } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).clauseType == assumeClause
+                                    && ((JmlStatementExpr)stat).label == Label.ASSIGNMENT && stat.toString().contains("ASSERT")) {
+                                       toTrace = ((JmlStatementExpr)stat).expression;
+                            } 
+                            else toTrace = origStat;
                         }
                         if (toTrace != null && sp == -2) {
                             sp = toTrace.getStartPosition();

@@ -201,6 +201,10 @@ public class JmlEsc extends JmlTreeScanner {
         }
         JmlMethodDecl methodDecl = (JmlMethodDecl)decl;
 
+        // Do any nested classes and methods first (which will recursively call
+        // this method)
+        super.visitMethodDef(methodDecl);
+
         if (skip(methodDecl)) {
             markMethodSkipped(methodDecl," (excluded by skipesc)"); //$NON-NLS-1$
             return;
@@ -210,10 +214,6 @@ public class JmlEsc extends JmlTreeScanner {
             markMethodSkipped(methodDecl," (excluded by -method)"); //$NON-NLS-1$ // FIXME excluded by -method or -exclude
             return;
         }
-
-        // Do any nested classes and methods first (which will recursively call
-        // this method)
-        super.visitMethodDef(methodDecl);
 
         try {
     	    res = doMethod(methodDecl);
