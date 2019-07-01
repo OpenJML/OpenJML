@@ -191,5 +191,9 @@ public class SingletonExpressions extends ExpressionExtension {
         // TODO Auto-generated method stub
         
     }
+    
+    public void register(Context context) {
+        Extensions.expressionKinds.put("\\index", countKind);
+    }
 }
 
