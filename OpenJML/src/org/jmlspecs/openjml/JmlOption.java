@@ -37,13 +37,12 @@ public class JmlOption implements IOption {
     public static final JmlOption DIRS = new JmlOption("-dirs",true,null,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)",null);
     public static final JmlOption ENDOPTIONS = new JmlOption("--",false,null,"Terminates option processing - all remaining arguments are files",null);  // FIXME - fix or remove
     public static final JmlOption KEYS = new JmlOption("-keys",true,"","Identifiers for optional JML comments",null);
-    public static final JmlOption COMMAND = new JmlOption("-command",true,"check","The command to execute (check,esc,rac,compile)",null);
+    public static final JmlOption COMMAND = new JmlOption("-command",true,"check","The command to execute (check,esc,rac,compile,tojson)",null);
     public static final JmlOption CHECK = new JmlOption("-check",false,null,"Does a JML syntax check","-command=check");
     public static final JmlOption COMPILE = new JmlOption("-compile",false,null,"Does a Java-only compile","-command=compile");
     public static final JmlOption RAC = new JmlOption("-rac",false,null,"Enables generating code instrumented with runtime assertion checks","-command=rac");
     public static final JmlOption ESC = new JmlOption("-esc",false,null,"Enables static checking","-command=esc");
     public static final JmlOption BOOGIE = new JmlOption("-boogie",false,false,"Enables static checking with boogie",null);
-    public static final JmlOption WHY3 = new JmlOption("-why3",false,false,"Enables static checking with why3",null);
     public static final JmlOption USEJAVACOMPILER = new JmlOption("-java",false,false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null);
     public static final JmlOption JML = new JmlOption("-jml",false,true,"When on, the JML compiler is used and all JML constructs are ignored; use -no-jml to use OpenJML but ignore JML annotations",null);
     //public static final JmlOption STRICT = new JmlOption("-strictJML",false,false,"Disables any JML extensions in OpenJML",null);

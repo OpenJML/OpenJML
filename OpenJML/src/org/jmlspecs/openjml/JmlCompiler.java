@@ -22,6 +22,7 @@ import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.sa.MethodDependencies;
+import org.jmlspecs.openjml.esc.JmlToJson;
 import org.jmlspecs.openjml.strongarm.InferenceType;
 import org.jmlspecs.openjml.strongarm.JmlInfer;
 import org.jmlspecs.openjml.strongarm.JmlInferPostConditions;
@@ -475,6 +476,10 @@ public class JmlCompiler extends JavaCompiler {
             for (Env<AttrContext> env: envs)
                 desugar(env, results);
             
+        } else if (utils.tojson) {
+            JmlToJson toJson = JmlToJson.instance(context);
+            for (Env<AttrContext> env: envs)
+                toJson.toJson(env.toplevel);
         } else {
             for (Env<AttrContext> env: envs)
                 desugar(env, results);

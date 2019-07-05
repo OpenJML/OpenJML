@@ -917,6 +917,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         utils.cmd = cmd;
         utils.rac = cmd == Cmd.RAC;
         utils.esc = cmd == Cmd.ESC;
+        utils.tojson = cmd == Cmd.TOJSON;
         utils.check = cmd == Cmd.CHECK;
         utils.compile = cmd == Cmd.COMPILE;
         utils.infer   = cmd == Cmd.INFER;
@@ -1404,7 +1405,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
     
     /** An Enum type that gives a choice of various tools to be executed. */
-    public static enum Cmd { CHECK("check"), ESC("esc"), RAC("rac"), DEP("dep"), JMLDOC("doc"), COMPILE("compile"), INFER("infer");
+    public static enum Cmd { CHECK("check"), ESC("esc"), RAC("rac"), DEP("dep"), JMLDOC("doc"), COMPILE("compile"), INFER("infer"), TOJSON("tojson");
         String name;
         public String toString() { return name; }
         private Cmd(String name) { this.name = name; }
