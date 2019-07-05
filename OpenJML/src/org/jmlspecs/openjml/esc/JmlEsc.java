@@ -4,14 +4,30 @@
  */
 package org.jmlspecs.openjml.esc;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -28,6 +44,10 @@ import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.jmlspecs.openjml.vistors.JmlTreeScanner;
+import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
@@ -49,6 +69,7 @@ import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symtab;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
@@ -60,6 +81,7 @@ import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.PropagatedException;
+import com.voodoodyne.jackson.jsog.JSOGGenerator;
 
 /**
  * This class is the main driver for executing ESC on a Java/JML AST. It
@@ -157,18 +179,18 @@ public class JmlEsc extends JmlTreeScanner {
         }
     }
     
-    @JsonIgnoreProperties(value = { "owner", "toplevel", "scope", "tsym", "env",
-            "members_field", "refiningSpecDecls", "typeSpecs", "outer_field",
-            "interface", "sourceFile", "source", "sourceMap", "sourcefile",
+    @JsonIgnoreProperties(value = { "owner", "toplevel", "scope", "env",
+            "members_field", "refiningSpecDecls", "file", "outer_field", "associatedSource",
+            "interface", "sourceFile", "source", "sourceMap", "sourcefile", "metadata",
             "classfile", "context", "parser", "scanner", "log", "reader", "syms", "pos" })
-    @JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
-    @JsonTypeInfo(use = Id.CLASS, include = As.PROPERTY, property = "@class")
-    public class AllMixin {
+    @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "@class")
+    @JsonIdentityInfo(generator = JSOGGenerator.class, property = "@id")
+    public class DefaultMixin {
     }
 
     @JsonIdentityInfo(generator = ObjectIdGenerators.None.class)
     @JsonTypeInfo(use = Id.NONE)
-    public class CollectionMixin {   
+    public class SimpleMixin {   
     }
 //
 //    @JsonIgnoreProperties({"table"})
@@ -197,7 +219,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
 
     void dumpJson(JCClassDecl node, File file) {
-        SimpleModule module = new SimpleModule()
+        SimpleModule nameModule = new SimpleModule()
                 .addSerializer(Name.class, new StdSerializer<Name>(Name.class) {
                     private static final long serialVersionUID = 1L;
                     @Override
@@ -213,17 +235,14 @@ public class JmlEsc extends JmlTreeScanner {
                     }
                 });
         ObjectMapper objectMapper = new ObjectMapper()
-                .registerModule(module)
-                .addMixIn(Object.class, AllMixin.class)
-                .addMixIn(Collection.class, CollectionMixin.class)
-//                .addMixIn(Name.class, NameMixin.class)
+                .registerModule(nameModule)
+                .addMixIn(Object.class, DefaultMixin.class)
+                .addMixIn(Collection.class, SimpleMixin.class)
+                .addMixIn(TypeTag.class, SimpleMixin.class)
                 .setVisibility(PropertyAccessor.FIELD, Visibility.ANY)
                 .setVisibility(PropertyAccessor.GETTER, Visibility.NONE)
                 .setVisibility(PropertyAccessor.IS_GETTER, Visibility.NONE)
-                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
-                .enable(SerializationFeature.INDENT_OUTPUT,
-                        SerializationFeature.FLUSH_AFTER_WRITE_VALUE,
-                        SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
+                .enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
         objectMapper.getSerializerProvider()
                 .setNullKeySerializer(new StdSerializer<Object>(Object.class) {
                     private static final long serialVersionUID = 1L;
@@ -239,10 +258,84 @@ public class JmlEsc extends JmlTreeScanner {
             e.printStackTrace();
         }
     }
+    
+    private Map<Class<?>, Set<Class<?>>> getSubclasses(Class<?> rootClass) {
+        Collection<URL> urls = new HashSet<>(ClasspathHelper.forPackage("com.sun.tools.javac"));
+        urls.addAll(ClasspathHelper.forPackage("org.jmlspecs.openjml"));
+        ConfigurationBuilder config = new ConfigurationBuilder()
+                .setUrls(urls)
+                .setScanners(new SubTypesScanner());
+        Reflections r = new Reflections(config);
+        System.out.println("Subclasses of "+rootClass);
+        Map<Class<?>, Set<Class<?>>> subclasses = new HashMap<>();
+        for (Class<?> clazz1 : r.getSubTypesOf(rootClass)) {
+            Class<?> super1 = clazz1.getSuperclass();
+            if (!subclasses.containsKey(super1))
+                subclasses.put(super1, new HashSet<>());
+            subclasses.get(super1).add(clazz1);
+        }
+        return subclasses;
+    }
+    
+    String indent(int depth) {
+        StringBuilder sb = new StringBuilder();
+        for (int i=0; i<depth; i++)
+            sb.append("  ");
+        return sb.toString();
+    }
 
+    String[] jsonIgnoreProperties() {
+        for (Annotation annotation: DefaultMixin.class.getAnnotations()) 
+            if (annotation instanceof JsonIgnoreProperties) {
+                JsonIgnoreProperties ignore = (JsonIgnoreProperties) annotation;
+                return ignore.value();
+            }
+        throw new RuntimeException("Couldn't find ignore properties");
+    }
+    
+    private void dumpHierarchy(Class<?> clazz, Map<Class<?>, Set<Class<?>>> subclasses, Collection<String> ignoreProperties, int depth, PrintStream out) {
+        String indent = indent(depth);
+        out.println(indent + "- name: " + clazz.getSimpleName());
+        out.println(indent + "  fields:");
+        for (Field field: clazz.getFields())
+            if (!ignoreProperties.contains(field.getName()))
+                out.println(indent + "  - {type: " + field.getType().getSimpleName() + ", name: " + field.getName() + "}");
+        if (subclasses.containsKey(clazz)) {
+            out.println(indent + "  subclasses:");
+            for (Class<?> subclass: subclasses.get(clazz))
+                dumpHierarchy(subclass, subclasses, ignoreProperties, depth+1, out);
+        }
+    }
+    
+//    void dumpTypes(Map<Class<?>, Set<Class<?>>> subclasses, PrintStream out) {
+//        for (Class<?> clazz: subclasses.keySet()) {
+//            out.println("type "+clazz.getSimpleName() + " =");
+//            for (Class<?> subclass: subclasses.get(clazz)) {
+//                if (subclasses.containsKey(subclass))
+//                    out.println("  | "+subclass.getSimpleName());
+//                else {
+//                    out.print("  | "+subclass.getSimpleName()+" of ");
+//                    for (Field field: )
+//                }
+//            }
+//        }
+//    }
+    
     /** Visit a class definition */
     @Override
     public void visitClassDef(JCClassDecl node) {
+        
+        Map<Class<?>, Set<Class<?>>> subclasses = getSubclasses(JCTree.class);
+        try {
+            OutputStream writer = Files.newOutputStream(Paths.get("classes-jctree.yaml"), StandardOpenOption.CREATE);
+            dumpHierarchy(JCTree.class, subclasses, Arrays.asList(jsonIgnoreProperties()), 0, new PrintStream(writer));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+//        try {
+//            OutputStream writer= Files.newOutputStream(Paths.get("types.ml"), StandardOpenOption.WRITE);
+//            dumpTypes(subclasses, new PrintStream(writer));
 
         File file = new File(node.name.toString()+".json");
         if (file.exists())
@@ -250,6 +343,7 @@ public class JmlEsc extends JmlTreeScanner {
         else {
             System.out.println("Dumping AST to "+file);
             dumpJson(node, file);
+            System.exit(0);
         }
 
         boolean savedMethodsOK = allMethodsOK;
@@ -288,7 +382,7 @@ public class JmlEsc extends JmlTreeScanner {
         allMethodsOK = savedMethodsOK;
         Main.instance(context).popOptions();
     }
-    
+
     /** When we visit a method declaration, we translate and prove the method;
      * we do not walk into the method any further from this call, only through
      * the translation mechanism.  

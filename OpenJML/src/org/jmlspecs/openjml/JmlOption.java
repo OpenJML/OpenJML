@@ -43,6 +43,7 @@ public class JmlOption implements IOption {
     public static final JmlOption RAC = new JmlOption("-rac",false,null,"Enables generating code instrumented with runtime assertion checks","-command=rac");
     public static final JmlOption ESC = new JmlOption("-esc",false,null,"Enables static checking","-command=esc");
     public static final JmlOption BOOGIE = new JmlOption("-boogie",false,false,"Enables static checking with boogie",null);
+    public static final JmlOption WHY3 = new JmlOption("-why3",false,false,"Enables static checking with why3",null);
     public static final JmlOption USEJAVACOMPILER = new JmlOption("-java",false,false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null);
     public static final JmlOption JML = new JmlOption("-jml",false,true,"When on, the JML compiler is used and all JML constructs are ignored; use -no-jml to use OpenJML but ignore JML annotations",null);
     //public static final JmlOption STRICT = new JmlOption("-strictJML",false,false,"Disables any JML extensions in OpenJML",null);
