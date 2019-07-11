@@ -57,29 +57,7 @@ public class JmlToJson {
         return instance;
     }
 
-    
-    @JsonIgnoreProperties(value = { "owner", "toplevel", "scope", "env", "topLevelEnv", "namedImportScope", "starImportScope", "lineMap", "endPositions",
-            "members_field", "refiningSpecDecls", "file", "outer_field", "associatedSource",
-            "interface", "sourceFile", "source", "sourceMap", "sourcefile", "metadata",
-            "classfile", "context", "parser", "scanner", "log", "reader", "syms", "pos" })
-    @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "@class")
-    @JsonIdentityInfo(generator = JSOGGenerator.class, property = "@id")
-    public class DefaultMixin {
-    }
-
-    @JsonIdentityInfo(generator = ObjectIdGenerators.None.class)
-    @JsonTypeInfo(use = Id.NONE)
-    public class SimpleMixin {   
-    }
-//
-//    @JsonIgnoreProperties({"table"})
-//    @JsonAutoDetect(fieldVisibility=Visibility.NONE, getterVisibility=Visibility.NONE, isGetterVisibility=Visibility.NONE, setterVisibility=Visibility.NONE)
-//    public class NameMixin extends AllMixin {
-//        @JsonProperty
-//        public String getName() { return toString(); }
-//    }
-
-    class MyDtoNullKeySerializer extends StdSerializer<Object> {
+    private class MyDtoNullKeySerializer extends StdSerializer<Object> {
         private static final long serialVersionUID = 1L;
 
         public MyDtoNullKeySerializer() {
@@ -96,23 +74,56 @@ public class JmlToJson {
             jsonGenerator.writeFieldName("");
         }
     }
+    
+    private final class NameSerializer extends StdSerializer<Name> {
+        private static final long serialVersionUID = 1L;
+
+        private NameSerializer(Class<Name> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(Name obj, JsonGenerator json,
+                SerializerProvider serializer) throws IOException {
+            json.writeString(obj.toString());
+        }
+
+        @Override
+        public void serializeWithType(Name obj, JsonGenerator json, SerializerProvider provider,
+                TypeSerializer serializer)
+            throws IOException {
+            serialize(obj, json, provider);
+        }
+    }
+
+
+    @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "@class")
+    private class JCTreeMixin {
+    }
+
+    
+    @JsonIgnoreProperties(value = { "owner", "toplevel", "scope", "env", "topLevelEnv", "namedImportScope", "starImportScope", "lineMap", "endPositions",
+            "members_field", "refiningSpecDecls", "file", "outer_field", "associatedSource",
+            "interface", "sourceFile", "source", "sourceMap", "sourcefile", "metadata",
+            "classfile", "context", "parser", "scanner", "log", "reader", "syms", "pos" })
+    @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "@class")
+    @JsonIdentityInfo(generator = JSOGGenerator.class, property = "@id")
+    private class DefaultMixin {}
+
+    @JsonIdentityInfo(generator = ObjectIdGenerators.None.class)
+    @JsonTypeInfo(use = Id.NONE)
+    private class SimpleMixin {}
+//
+//    @JsonIgnoreProperties({"table"})
+//    @JsonAutoDetect(fieldVisibility=Visibility.NONE, getterVisibility=Visibility.NONE, isGetterVisibility=Visibility.NONE, setterVisibility=Visibility.NONE)
+//    public class NameMixin extends AllMixin {
+//        @JsonProperty
+//        public String getName() { return toString(); }
+//    }
 
     void dumpJson(Object node, File file) {
         SimpleModule nameModule = new SimpleModule()
-                .addSerializer(Name.class, new StdSerializer<Name>(Name.class) {
-                    private static final long serialVersionUID = 1L;
-                    @Override
-                    public void serialize(Name obj, JsonGenerator json,
-                            SerializerProvider serializer) throws IOException {
-                        json.writeString(obj.toString());
-                    }
-                    @Override
-                    public void serializeWithType(Name obj, JsonGenerator json, SerializerProvider provider,
-                            TypeSerializer serializer)
-                        throws IOException {
-                        serialize(obj, json, provider);
-                    }
-                });
+                .addSerializer(Name.class, new NameSerializer(Name.class));
         ObjectMapper objectMapper = new ObjectMapper()
                 .registerModule(nameModule)
                 .addMixIn(Object.class, DefaultMixin.class)
@@ -137,7 +148,7 @@ public class JmlToJson {
             e.printStackTrace();
         }
     }
-    
+    /*
     private Map<Class<?>, Set<Class<?>>> getSubclasses(Class<?> rootClass) {
         Collection<URL> urls = new HashSet<>(ClasspathHelper.forPackage("com.sun.tools.javac"));
         urls.addAll(ClasspathHelper.forPackage("org.jmlspecs.openjml"));
@@ -199,7 +210,7 @@ public class JmlToJson {
 //            }
 //        }
 //    }
-    
+     */
     public void toJson(JCCompilationUnit node) {
 
         File file = new File(node.sourcefile.getName().replace(".java", ".json"));
