@@ -234,6 +234,7 @@ public class escm extends EscBase {
     @Test
     public void testAnonX() {
         main.addOptions("-checkFeasibility=none");
+        //main.addOptions("-show","-method=m1,tt.TestJava.1.");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
