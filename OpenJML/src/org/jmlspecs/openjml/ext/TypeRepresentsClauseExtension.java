@@ -41,13 +41,13 @@ import com.sun.tools.javac.util.Names;
 public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
 
     public static final String representsID = "represents";
-    public static final String capturedID = "captured";
+    //public static final String capturedID = "captured";
     
 
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
     public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            representsClause, capturedClause}; }
+            representsClause}; }
     
     public static final IJmlClauseKind representsClause = new IJmlClauseKind.TypeClause(representsID) {
         public boolean oldNoLabelAllowed() { return false; }
@@ -109,39 +109,39 @@ public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
     };
     
     
-    public static final IJmlClauseKind capturedClause = new IJmlClauseKind.TypeClause(capturedID) {
-        public boolean oldNoLabelAllowed() { return false; }
-        public boolean preOrOldWithLabelAllowed() { return false; }
-        
-        public 
-        JmlVariableDecl parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
-            int pp = parser.pos();
-            scanner.setJmlKeyword(false);
-            parser.nextToken();
-            Name className = Names.instance(context).fromString("");
-            List<JCTree> decls = parser.classOrInterfaceBodyDeclaration(className,false);
-            if (decls.size() != 1) {
-                log.error(pp,"jml.message", "Expected exactly one declaration");
-                if (decls.size() == 0) return null;
-            }
-            JCTree t = decls.get(0);
-            if (!(t instanceof JmlVariableDecl)) {
-                log.error(pp, "jml.message", "Expected a field declaration");
-                return null;
-            }
-            JmlVariableDecl vd = (JmlVariableDecl)t;
-            JCAnnotation a = parser.tokenToAnnotationAST("Ghost", pp, pp);
-            vd.mods.annotations = vd.mods.annotations.append(a);
-            a = parser.tokenToAnnotationAST("Captured", pp, pp);
-            vd.mods.annotations = vd.mods.annotations.append(a);
-            return vd;
-        }
-        
-        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-    };
+//    public static final IJmlClauseKind capturedClause = new IJmlClauseKind.TypeClause(capturedID) {
+//        public boolean oldNoLabelAllowed() { return false; }
+//        public boolean preOrOldWithLabelAllowed() { return false; }
+//        
+//        public 
+//        JmlVariableDecl parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
+//            init(parser);
+//            int pp = parser.pos();
+//            scanner.setJmlKeyword(false);
+//            parser.nextToken();
+//            Name className = Names.instance(context).fromString("");
+//            List<JCTree> decls = parser.classOrInterfaceBodyDeclaration(className,false);
+//            if (decls.size() != 1) {
+//                log.error(pp,"jml.message", "Expected exactly one declaration");
+//                if (decls.size() == 0) return null;
+//            }
+//            JCTree t = decls.get(0);
+//            if (!(t instanceof JmlVariableDecl)) {
+//                log.error(pp, "jml.message", "Expected a field declaration");
+//                return null;
+//            }
+//            JmlVariableDecl vd = (JmlVariableDecl)t;
+//            JCAnnotation a = parser.tokenToAnnotationAST("Ghost", pp, pp);
+//            vd.mods.annotations = vd.mods.annotations.append(a);
+//            a = parser.tokenToAnnotationAST("Captured", pp, pp);
+//            vd.mods.annotations = vd.mods.annotations.append(a);
+//            return vd;
+//        }
+//        
+//        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
+//            // TODO Auto-generated method stub
+//            return null;
+//        }
+//    };
    
 }

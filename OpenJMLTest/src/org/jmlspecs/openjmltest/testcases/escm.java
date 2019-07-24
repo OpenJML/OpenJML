@@ -132,17 +132,13 @@ public class escm extends EscBase {
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (InvariantExit) in method C",8  // C.<init>
                 ,"/tt/TestJava.java:9: warning: Associated declaration",23
                 ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method C.m()",17  // The false invariant is triggered as a constructor postcondition
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantExit) in method tt.TestJava$1$",22 // Constructor of anonymous D // FIXME - need name for anonymous constructor
-                ,"/tt/TestJava.java:13: warning: Associated declaration",35
-                      
                 ,"/tt/TestJava.java:13: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.1.m()",59 // m() of anonymous D
                 ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (InvariantExit) in method E",8  // E.<init>
                 ,"/tt/TestJava.java:14: warning: Associated declaration",29
                 ,"/tt/TestJava.java:14: warning: Invariants+Preconditions appear to be contradictory in method E.mm()",52 
-                
-                ,"/tt/TestJava.java:15: warning: There is no feasible path to program point at program exit in method tt.TestJava.2.()",22
                 ,"/tt/TestJava.java:15: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.2.mm()",30
-                ,"/tt/TestJava.java:7: warning: There is no feasible path to program point at program exit in method tt.TestJava.m1(tt.TestJava)",15
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method m1:  (Caller: tt.TestJava.m1(tt.TestJava), Callee: tt.TestJava.1.())",14
+                ,"/tt/TestJava.java:13: warning: Associated declaration",35
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (InvariantExit) in method A",17  // A
                 ,"/tt/TestJava.java:18: warning: Associated declaration",17
                 ,"/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.A.m2()",18
@@ -228,6 +224,11 @@ public class escm extends EscBase {
                                 +"       //@ assert new TestJava() {  public invariant x >= 0; public void mm() { } } != null; \n"  // Line 5
                                 +"  }\n"
                                 +"}\n"
+                                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method mm",74
+                                ,"/tt/TestJava.java:5: warning: Associated declaration",44
+                                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantEntrance) in method mm:  (Caller: tt.TestJava.mm(), Callee: tt.TestJava.1.())",19
+                                ,"/tt/TestJava.java:5: warning: Associated declaration",44
+
                                 );
     }
 
@@ -240,7 +241,7 @@ public class escm extends EscBase {
                 +"@NonNullByDefault public class TestJava { \n"
 
                 +"  public int m1(TestJava o) {\n"
-                +"       //@ assert new TestJava() {  invariant false; int i; } == null; \n"  // Line 5
+                +"       //@ assert new TestJava() {  invariant false; int i; } == null; \n"  // Line 5 // TODO: Perhaps have the column npoint to the invariant
                 +"       return 0;\n"
                 +"  }\n"
 
@@ -248,11 +249,17 @@ public class escm extends EscBase {
                 +"       //@ assert new TestJava() {  int i; } == null; \n"  // Line 9
                 +"       return 0;\n"
                 +"  }\n"
+
+                +"  public int m3(TestJava o) {\n"
+                +"       //@ assert new TestJava() {  invariant true; int i; } == null; \n"  // Line 5
+                +"       return 0;\n"
+                +"  }\n"
+
                 +"}\n"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method tt.TestJava$1$",34
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantEntrance) in method m1:  (Caller: tt.TestJava.m1(tt.TestJava), Callee: tt.TestJava.1.())",19
                 ,"/tt/TestJava.java:5: warning: Associated declaration",37
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1",12
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m2",12
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m3",12
         );
     }
 

@@ -9,7 +9,7 @@ public class Test {
     public static TestB m(TestA t) {
         //@ assert t != null;
         TestA tt = new TestA() {
-            
+            //@ public invariant t != null;
             public TestA show(TestA aa) {
                 int k = t.f;  // should not have a null-dereference error
                 k = aa.f; // should not have null dereference error either

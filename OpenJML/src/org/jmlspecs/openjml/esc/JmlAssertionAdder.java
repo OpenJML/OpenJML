@@ -2628,9 +2628,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
 
         java.util.List<Type> parents = parents(basetype, true);
-//        boolean isConstructedObject = isConstructor && receiver.sym == currentThisId.sym;
-        boolean self = basecsym == methodDecl.sym.owner; // true if we are inserting invariants for the base method, either as pre and post conditions or prior to calling a callee
-        boolean contextIsStatic = receiver == null; // && !methodDecl.sym.isConstructor(); //|| (self && utils.isJMLStatic(methodDecl.sym));
+        boolean contextIsStatic = receiver == null;
         
         // Iterate through parent classes and interfaces, assuming relevant axioms and invariants
         // These are checked prior to calling the callee
@@ -2739,6 +2737,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         if (!isConstructor || isPost) doit = true; // pre and postcondition case
                                         if (isConstructor ) {
                                             if (clauseIsStatic) doit = true;
+                                            if (utils.findMod(classDecl.mods, JmlTokenKind.CAPTURED) != null) doit = true;
                                             // FIXME - should not use erasure here, but pasrameterized dtypes do not seem to work
                                             // properly even if ctype is obtrained by collecting super classes and super interfaces of basetype
                                             boolean b = !types.isAssignable(types.erasure(basetype),types.erasure(ctype));
@@ -2748,7 +2747,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             t = (JmlTypeClauseExpr)convertCopy(clause); // FIXME - why copy the clause
                                             addTraceableComment(t.expression,clause.toString());
                                             JCExpression e = convertJML(t.expression,treeutils.trueLit,isPost);
-                                            // FIXME - be nice to record where called from, not just the location of the invariant declaration
                                             if (assume) addAssume(pos,invariantLabel,
                                                     e,
                                                     cpos,clause.source, invariantDescription);
@@ -2779,10 +2777,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (!onlyComments(bl.stats) && !infer) {
                             if (contextIsStatic) {
                                 staticStats.add(bl);
+                            } else if (receiver == null) {
+                                // This can be because we are in a constructor
+                                staticStats.add(bl);
                             } else {
                                 JCExpression ex = treeutils.makeNeqObject(pos.getPreferredPosition(),receiver,treeutils.nullLit);
                                 JCStatement st = M.at(pos).If(ex, bl, null);
-                                staticStats.add(st);
+                                staticStats.add(st); // FIXME _ why is this static?
                             }
                         }
                     }
@@ -8440,7 +8441,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         addInvariants(that,calleeClass.type,
                                 utils.isJMLStatic(calleeMethodSym) || calleeMethodSym.isConstructor() ? null : newThisExpr,
                                         currentStatements,
-                                        false,calleeMethodSym.isConstructor(),isSuperCall,isHelper(calleeMethodSym),false,false,Label.INVARIANT_EXIT_CALLER,  "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
+                                        false,
+                                        calleeMethodSym.isConstructor(),isSuperCall,isHelper(calleeMethodSym),false,false,Label.INVARIANT_EXIT_CALLER,  "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
                         //utils.qualifiedMethodSig(methodDecl.sym) + " " + utils.qualifiedMethodSig(calleeMethodSym)); // FIXME - do we really do post here and below
 //                    }
                 }
@@ -9429,7 +9431,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
                 if (!isHelper(calleeMethodSym)) {
-                    addInvariants(that,calleeClass.type,newThisExpr,currentStatements,
+                    boolean assume = !(calleeMethodSym.isConstructor() && calleeMethodSym.owner.isAnonymous());
+                    if (assume) addInvariants(that,calleeClass.type,newThisExpr,currentStatements,
                             false,calleeMethodSym.isConstructor(),false,isHelper(calleeMethodSym),true,true,Label.INVARIANT_EXIT,
                             msg);
                 }
@@ -12754,7 +12757,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else if (!utils.isJMLStatic(sym)) {
                 // It is a non-static class field, so we prepend the receiver
 
-                if (esc && sym.owner != currentThisExpr.type.tsym && currentThisExpr.type.tsym instanceof ClassSymbol) {
+                // FIXME - if currentThisExpr is null, when not static, it should be the object being constructed
+                if (esc && currentThisExpr != null && sym.owner != currentThisExpr.type.tsym && currentThisExpr.type.tsym instanceof ClassSymbol) {
                     ClassSymbol base = (ClassSymbol)currentThisExpr.type.tsym;
                     ClassSymbol fieldOwner = (ClassSymbol)sym.owner;
                     JCExpression baseExpr = currentThisExpr;

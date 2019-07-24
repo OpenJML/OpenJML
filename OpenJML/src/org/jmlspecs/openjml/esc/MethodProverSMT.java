@@ -668,6 +668,7 @@ public class MethodProverSMT {
                             program,smt,solver,methodDecl,cemap,jmap,
                             jmlesc.assertionAdder.pathMap, basicBlocker.pathmap);
                     
+                    if (showTrace && pathCondition != null) log.getWriter(WriterKind.NOTICE).println("PATH CONDITION " + pathCondition.toString());
                     if (showTrace) log.getWriter(WriterKind.NOTICE).println(tracer.text());
 
                     // FIXME - decide how to show counterexamples when there is no tracing
@@ -1017,7 +1018,7 @@ public class MethodProverSMT {
                         return pathCondition; // For when assert statements are not identifiers // FIXME - this is a bad case
                     }
                     if (!value) { 
-                        if (e instanceof JCIdent) pathCondition = treeutils.makeNot(e, e);
+//                        if (e instanceof JCIdent) pathCondition = treeutils.makeNot(e, e);
                         boolean byPath = JmlOption.isOption(context, JmlOption.MAXWARNINGSPATH);
                         if (byPath) pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS, pathCondition, e);
                         else pathCondition = e;

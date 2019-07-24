@@ -465,6 +465,30 @@ public class JmlParser extends JavacParser {
                 if (s instanceof IJmlLoop) {
                     ((IJmlLoop)s).setLoopSpecs(loopspecs.toList());
                     loopspecs = new ListBuffer<>();
+//                } else if (s instanceof JmlStatementSpec && ((JmlStatementSpec)s).statements.head instanceof IJmlLoop
+//                        && ((JmlStatementSpec)s).statementSpecs.cases.length() == 1) {
+//                    JmlStatementSpec ss = (JmlStatementSpec)s;
+//                    boolean error = false;
+//                    for (JmlMethodClause cl: ss.statementSpecs.cases.head.clauses) {
+//                        if (cl.clauseKind == AssignableClauseExtension.assignableClauseKind) {
+//                           loopspecs.add(jmlF.at(cl).JmlStatementLoopModifies(StatementLocationsExtension.loopmodifiesStatement,((JmlMethodClauseStoreRef)cl).list));
+//                        } else {
+//                            jmlerror(cl.pos,"jml.message","A statement spec or a loop spec is misplaced or misnamed");
+//                            error = true;
+//                            break;
+//                        }
+//                    }
+//                    if (!error) {
+//                        if (!ss.statementSpecs.cases.head.clauses.isEmpty()) {
+//                        } else {
+//                            jmlerror(loopspecs.first().pos,
+//                            loopspecs.last().getEndPosition(endPosTable),
+//                            "jml.loop.spec.misplaced");
+//                            loopspecs.clear();
+//                        }
+//                    } else {
+//                        loopspecs.clear();
+//                    }
                 } else {
                     jmlerror(loopspecs.first().pos,
                             loopspecs.last().getEndPosition(endPosTable),
@@ -1060,7 +1084,7 @@ public class JmlParser extends JavacParser {
             return Extensions.instance(context).findTM(0,possibleKeyword.name().toString(),false) instanceof IJmlClauseKind.TypeClause;
         } else {
             ITokenKind jt = possibleKeyword.ikind;
-            return (jt == CAPTURED || jt == JmlTokenKind.INITIALIZER || jt == JmlTokenKind.STATIC_INITIALIZER);
+            return (jt == JmlTokenKind.INITIALIZER || jt == JmlTokenKind.STATIC_INITIALIZER);
         }
     }
     
@@ -1932,7 +1956,7 @@ public class JmlParser extends JavacParser {
         int p = S.token().pos;
         while (S.jml() && ((token.kind == DOT && S.token(1).kind == INTLITERAL) || 
                 (token.kind == TokenKind.DOUBLELITERAL && token.stringVal().charAt(0) == '.'))) {
-            System.out.println("PB " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + t.pos + " " + t);
+            //System.out.println("PB " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + t.pos + " " + t);
             if (token.kind == DOUBLELITERAL) {
                 t = jmlF.at(p).Select(t, names.fromString("_$T" + token.stringVal().substring(1)));
                 accept(DOUBLELITERAL);
@@ -1943,7 +1967,7 @@ public class JmlParser extends JavacParser {
                 t = jmlF.at(p).Select(t, names.fromString("_$T" + d));
                 accept(INTLITERAL);
                 toP(t);
-                System.out.println("P " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + t.pos + " " + t);
+                //System.out.println("P " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + t.pos + " " + t);
             }
             p = S.token().pos;
         }

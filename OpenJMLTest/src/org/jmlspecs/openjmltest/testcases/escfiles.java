@@ -841,7 +841,7 @@ public class escfiles extends EscBase {
     @Test
     public void testCaptures() {
         expectedExit = 1;
-        helpTF("anonymousCaptures");//,"-show","-exclude=AAA.*");
+        helpTF("anonymousCaptures","-show","-method=m");
     }
     
     @Test

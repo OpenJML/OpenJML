@@ -51,12 +51,13 @@ public enum JmlTokenKind implements ITokenKind {
     REFINING("refining"),
 //    REACHABLE("reachable"),
 //    UNREACHABLE("unreachable"), // Keep this one last of the method statement tokens
-    CAPTURED("captured",org.jmlspecs.annotation.Captured.class),
+//    CAPTURED("captured",org.jmlspecs.annotation.Captured.class),
 
     // These are modifiers
     PURE("pure",org.jmlspecs.annotation.Pure.class), // Keep this one the first of the modifiers (see the modifiers Map below)
     CODE_JAVA_MATH("code_java_math",org.jmlspecs.annotation.CodeJavaMath.class),
     CODE_SAFE_MATH("code_safe_math",org.jmlspecs.annotation.CodeSafeMath.class),
+    CAPTURED("captured",org.jmlspecs.annotation.Captured.class),
     EXTRACT("extract",org.jmlspecs.annotation.Extract.class),
     GHOST("ghost",org.jmlspecs.annotation.Ghost.class),
     IMMUTABLE("immutable",org.jmlspecs.annotation.Immutable.class), // FIXME - this is an extension - comment

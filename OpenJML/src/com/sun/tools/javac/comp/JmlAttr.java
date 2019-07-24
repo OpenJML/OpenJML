@@ -2285,7 +2285,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
        };
        
     public JmlTokenKind[] allowedGhostFieldModifiers = new JmlTokenKind[] {
-            GHOST, NONNULL, NULLABLE, INSTANCE, MONITORED, SECRET, CAPTURED,
+            GHOST, NONNULL, NULLABLE, INSTANCE, MONITORED, SECRET, 
             PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
        };
        
@@ -2718,7 +2718,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     JmlTokenKind[] clauseAnnotations = new JmlTokenKind[]{ INSTANCE };
-    JmlTokenKind[] invariantAnnotations = new JmlTokenKind[]{ SECRET, INSTANCE };
+    JmlTokenKind[] invariantAnnotations = new JmlTokenKind[]{ SECRET, INSTANCE, CAPTURED };
+    JmlTokenKind[] representsAnnotations = new JmlTokenKind[]{ SECRET, INSTANCE };
     JmlTokenKind[] noAnnotations = new JmlTokenKind[]{  };
 
     public void checkTypeClauseMods(JCTree tree, JCModifiers mods,String where, IJmlClauseKind token) {
@@ -2736,8 +2737,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 allAllowed(mods.annotations,noAnnotations,where);
                 break;
             case invariantID:
-            case representsID:
                 allAllowed(mods.annotations,invariantAnnotations,where);
+                JmlAnnotation an = findMod(mods, JmlTokenKind.CAPTURED);
+                if (an != null) {
+                    if (!((JmlClassDecl)enclosingClassEnv.tree).sym.isAnonymous()) {
+                        log.error(an.pos(),"jml.message","The captured modifier may only modify anaonnymous class invariants that contain only captured variables");
+                    } else {
+                        // FIXME - need to check that all variables are captured
+                    }
+                }
+                break;
+            case representsID:
+                allAllowed(mods.annotations,representsAnnotations,where);
                 break;
             default:
                 allAllowed(mods.annotations,clauseAnnotations,where);
@@ -5118,14 +5129,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 tokenToAnnotationSymbol.put(t,sym);
             }
         }
-        JmlTokenKind t = JmlTokenKind.CAPTURED;
-        {
-            String s = t.annotationType.getName();
-            Name n = names.fromString(s);
-            tokenToAnnotationName.put(t,n);
-            ClassSymbol sym = ClassReader.instance(context).enterClass(n);
-            tokenToAnnotationSymbol.put(t,sym);
-        }        
+//        JmlTokenKind t = JmlTokenKind.CAPTURED;
+//        {
+//            String s = t.annotationType.getName();
+//            Name n = names.fromString(s);
+//            tokenToAnnotationName.put(t,n);
+//            ClassSymbol sym = ClassReader.instance(context).enterClass(n);
+//            tokenToAnnotationSymbol.put(t,sym);
+//        }        
         annotationPackageSymbol = tokenToAnnotationSymbol.get(JmlTokenKind.PURE).packge();
 
         nullablebydefaultAnnotationSymbol = tokenToAnnotationSymbol.get(JmlTokenKind.NULLABLE_BY_DEFAULT);

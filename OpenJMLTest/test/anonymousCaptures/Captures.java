@@ -5,24 +5,21 @@ public class Captures {
         int y = x;
     
         AAA a = new AAA() { 
-            //@ captured public int x;
-            //@ captured public int y;
             //@ public invariant x == y;
             
             //@ also public normal_behavior
-            //@ ensures \result == (x == y); 
+            //@   ensures \result == (x == y); 
             //@ pure
             public boolean p() { return x == y; } 
             };
         boolean res = a.p();
         //@ assert res;
     }
-    
+        
     public void mm(/*@ nullable */ Object xxxx) {
     
         // @ assert xxxx != null;
         AAA a = new AAA() { 
-            //@ captured public Object xxxx;
             //@ public invariant xxxx != null;
             
             //@ also public normal_behavior
@@ -46,5 +43,5 @@ class AAA {
     
     //@ public normal_behavior
     //@ pure
-    public boolean p() {return false;}
+    public boolean p() { return false; }
 }

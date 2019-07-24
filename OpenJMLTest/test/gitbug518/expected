@@ -10,4 +10,7 @@ test/gitbug518/Test.java:18: error: variable e is already defined in method mmm(
 test/gitbug518/Test.java:27: error: variable e is already defined in method mmm(int)
         //@ old boolean e = f == 0;
                         ^
-4 errors
+test/gitbug518/Test.java:28: error: incomparable types: boolean and int
+        //@ ensures e==0;
+                     ^
+5 errors
