@@ -93,7 +93,7 @@ public class JmlToJson {
     }
     
     private interface ModifiersMixin {
-        @JsonProperty("flagSet")
+        @JsonProperty("flags")
         public Set<Modifier> getFlags();        
     }
     
