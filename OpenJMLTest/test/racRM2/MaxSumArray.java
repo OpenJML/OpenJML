@@ -39,7 +39,7 @@ public class MaxSumArray {
 			while(!sorted){
 				sorted = true;
 				/*@ 
-				  @ assignable a[*];
+				  @ loop_modifies a[*];
 				  @ loop_invariant 1 <= j && (j <= a.length || a.length == 0);
 				  @ loop_invariant sorted ==> (\forall int i; 0 <= i && 1 + 2 * i < j; a[2*i+1] <= a[2*i+2]);
 				  
@@ -51,7 +51,7 @@ public class MaxSumArray {
 						sorted = false;
 					}
 				}
-				/* @ assignable a[*];
+				/* @ loop_modifies a[*];
 				  @ loop_invariant 0 <= k && k <= a.length;
 				  @ loop_invariant sorted ==> (\forall int i; 0 <= i && 2 * i < k; a[2*i] <= a[2*i+1]) && (\forall int i; 0 <= i && 1+ 2 * i < a.length-1; a[2*i+1] <= a[2*i+2]);
 				  @ loop_invariant \dl_seqPerm(\dl_array2seq(a), \old(\dl_array2seq(a)));				  

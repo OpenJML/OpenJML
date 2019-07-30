@@ -15,6 +15,7 @@ if [[ -n "${LOCAL_SETUP}" ]]; then
 	source ${LOCAL_SETUP}
 fi
 
+JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home
 java -version
 which java
 

@@ -13,10 +13,10 @@ import java.util.Map;
 
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.openjml.JmlPretty;
-import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.ext.StatementExprExtensions;
 
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
@@ -227,12 +227,12 @@ public class BoogieProgram extends BasicProgramParent<BoogieProgram.BoogieBlock>
 
         public void visitJmlStatementExpr(JmlStatementExpr that) {
             try { 
-                if (that.token == JmlTokenKind.COMMENT) {
+                if (that.clauseType == StatementExprExtensions.commentClause) {
                     // SKIP
                     //print("// ");
                     //print(((JCLiteral)that.expression).value); // FIXME - can the comment span more than one line?
                 } else {
-                    print(that.token.internedName());
+                    print(that.keyword);
                     print(" ");
                     if (that.label != null) {
                         print("{ :reason \"");

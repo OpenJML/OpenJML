@@ -1,0 +1,10 @@
+Proving methods in Challenge2A
+Starting proof of Challenge2A.Challenge2A() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Challenge2A.Challenge2A() with prover !!!! - no warnings
+Starting proof of Challenge2A.leftNeighbors(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Challenge2A.leftNeighbors(int[]) with prover !!!! - no warnings
+Completed proving methods in Challenge2A

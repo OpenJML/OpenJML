@@ -108,12 +108,16 @@ public class AttrContext {
 
     /** Duplicate this context, copying all fields.
      */
-    public AttrContext dup() { // DRC - changed from default to public visibility
+    public AttrContext dup() { // OPENJML - changed from default to public visibility
         return dup(scope);
     }
 
-    public AttrContext dupUnshared() { // DRC - added this method
+    public AttrContext dupUnshared() { // OPENJML - added this method
         return dup(scope.dupUnshared());
+    }
+    
+    public Scope scope() { // OPENJML - added this method
+        return scope;
     }
     
     public Iterable<Symbol> getLocalElements() {

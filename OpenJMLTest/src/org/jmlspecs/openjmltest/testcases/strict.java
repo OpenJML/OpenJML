@@ -9,14 +9,16 @@ import org.junit.Test;
 
 public class strict extends TCBase {
 
-    String opt = JmlOption.STRICT.optionName();
+    String opt = JmlOption.LANG.optionName();
+    String optjml = opt + "=jml";
+    String optjmlp = opt + "=jml+";
     
     @Override
     public void setUp() throws Exception {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
         super.setUp();
-        main.addOptions(opt);
+        main.addOptions(optjml);
         expectedExit = 0;
     }
 
@@ -24,13 +26,13 @@ public class strict extends TCBase {
     public void testLbl() {
         helpTCF("A.java","public class A {\n" +
                 " //@ ghost int i = (\\lbl A 0);\n }"
-                ,"/A.java:2: warning: The \\lbl construct is an OpenJML extension to JML and not allowed under " + opt,21
+                ,"/A.java:2: warning: The \\lbl construct is an OpenJML extension to JML and not allowed under " + optjml,21
                 );
     }
 
     @Test
     public void testLblB() {
-        main.addOptions(opt + "=false");
+        main.addOptions(optjmlp);
         helpTCF("A.java","public class A {\n" +
                 " //@ ghost int i = (\\lbl A 0);\n }"
                 );
@@ -42,13 +44,13 @@ public class strict extends TCBase {
                 " void m(int[] a) { for (int i: a) {\n" +
                 "    //@ assert \\count == i; \n" +
                 " }}}"
-                ,"/A.java:3: warning: The \\count construct is an OpenJML extension to JML and not allowed under " + opt,16
+                ,"/A.java:3: warning: The \\count construct is an OpenJML extension to JML and not allowed under " + optjml,16
                 );
     }
 
     @Test
     public void testIndexB() {
-        main.addOptions(opt + "=false");
+        main.addOptions(optjmlp);
         helpTCF("A.java","public class A {\n" +
                 " void m(int[] a) { for (int i: a) {\n" +
                 "    //@ assert \\count == i; \n" +
@@ -62,13 +64,13 @@ public class strict extends TCBase {
                 " void m(int[] a) { for (int i: a) {\n" +
                 "    //@ assert \\values.size() >= 0; \n" +
                 " }}}"
-                ,"/A.java:3: warning: The \\values construct is an OpenJML extension to JML and not allowed under " + opt,16
+                ,"/A.java:3: warning: The \\values construct is an OpenJML extension to JML and not allowed under " + optjml,16
                 );
     }
 
     @Test
     public void testValuesB() {
-        main.addOptions(opt + "=false");
+        main.addOptions(optjmlp);
         helpTCF("A.java","public class A {\n" +
                 " void m(int[] a) { for (int i: a) {\n" +
                 "    //@ assert \\values.size() >= 0; \n" +
@@ -78,7 +80,7 @@ public class strict extends TCBase {
 
     @Test
     public void testExceptionB() {
-        main.addOptions(opt + "=false");
+        main.addOptions(optjmlp);
         helpTCF("A.java","public class A {\n" +
                 " //@ signals (Exception) \\exception != null;\n" +
                 " void m(int[] a) {\n" +
@@ -92,7 +94,7 @@ public class strict extends TCBase {
                 " //@ signals (Exception) \\exception != null;\n" +
                 " void m(int[] a) {\n" +
                 " }}"
-                ,"/A.java:2: warning: The \\exception construct is an OpenJML extension to JML and not allowed under " + opt,26
+                ,"/A.java:2: warning: The \\exception construct is an OpenJML extension to JML and not allowed under " + optjml,26
                 );
     }
 
@@ -102,13 +104,13 @@ public class strict extends TCBase {
                 " /*@ secret */ private int i;\n" +
                 " void m(int[] a) {\n" +
                 " }}"
-                ,"/A.java:2: warning: The secret construct is an OpenJML extension to JML and not allowed under " + opt,6
+                ,"/A.java:2: warning: The secret construct is an OpenJML extension to JML and not allowed under " + optjml,6
                 );
     }
 
     @Test
     public void testSecretB() {
-        main.addOptions(opt + "=false");
+        main.addOptions(optjmlp);
         helpTCF("A.java","public class A {\n" +
                 " /*@ secret */ private int i;\n" +
                 " void m(int[] a) {\n" +
@@ -122,13 +124,13 @@ public class strict extends TCBase {
                 " //@ query\n" +
                 " int m() { return 0; \n" +
                 " }}"
-                ,"/A.java:2: warning: The query construct is an OpenJML extension to JML and not allowed under " + opt,6
+                ,"/A.java:2: warning: The query construct is an OpenJML extension to JML and not allowed under " + optjml,6
                 );
     }
 
     @Test
     public void testQueryB() {
-        main.addOptions(opt + "=false");
+        main.addOptions(optjmlp);
         helpTCF("A.java","public class A {\n" +
                 " //@ query\n" +
                 " int m() { return 0; \n" +
@@ -142,13 +144,13 @@ public class strict extends TCBase {
                 " //@ assignable a[0..];\n" +
                 " int m(int[] a) { return 0; \n" +
                 " }}"
-                ,"/A.java:2: warning: The storeref with implied end-of-range (a[i..]) construct is an OpenJML extension to JML and not allowed under " + opt,22
+                ,"/A.java:2: warning: The storeref with implied end-of-range (a[i..]) construct is an OpenJML extension to JML and not allowed under " + optjml,22
                 );
     }
 
     @Test
     public void testStoreRefB() {
-        main.addOptions(opt + "=false");
+        main.addOptions(optjmlp);
         helpTCF("A.java","public class A {\n" +
                 " //@ assignable a[0..];\n" +
                 " int m(int[] a) { return 0; \n" +

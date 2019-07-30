@@ -1,0 +1,11 @@
+Proving methods in CircleArea
+Skipping proof of CircleArea.CircleArea() (excluded by -method)
+Starting proof of CircleArea.calculateArea(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CircleArea.calculateArea(int) with prover !!!! - no warnings
+Completed proving methods in CircleArea
+Proving methods in CircleAreaNoWarning
+Skipping proof of CircleAreaNoWarning.CircleAreaNoWarning() (excluded by -method)
+Skipping proof of CircleAreaNoWarning.calculateAreaNoWarning(int) (excluded by -method)
+Completed proving methods in CircleAreaNoWarning

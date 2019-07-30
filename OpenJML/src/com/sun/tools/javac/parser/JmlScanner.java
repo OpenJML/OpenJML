@@ -175,7 +175,7 @@ public class JmlScanner extends Scanner {
     protected boolean       jmlkeyword = true;
 
     /** Set to true internally while the scanner is within a JML comment */
-    protected boolean       jml() {
+    public boolean       jml() {
         return jmltokenizer.jml;
     }
     
@@ -193,13 +193,23 @@ public class JmlScanner extends Scanner {
      * Sets the keyword mode
      * 
      * @param j
-     *            the new value of the keyword mode
+     *            the new value of the keyword mode, returning the old mode
      */
-    public void setJmlKeyword(boolean j) {
-        if (!savedTokens.isEmpty()) Log.instance(context).getWriter(WriterKind.NOTICE).println("JmlKeyword mode changed while token buffer has lookahead");
+    public boolean setJmlKeyword(boolean j) {
+        if (!savedTokens.isEmpty()) {
+            Log.instance(context).getWriter(WriterKind.NOTICE).println("JmlKeyword mode changed while token buffer has lookahead");
+        }
         jmltokenizer.setJmlKeyword(j);
+        boolean b = jmlkeyword;
         jmlkeyword = j;
+        return b;
     }
+    
+    /** current value of the keyword mode */
+    public boolean jmlKeywordMode() {
+        return jmlkeyword;
+    }
+    
     /**
      * Creates a new scanner, but you should use JmlFactory.newScanner() to get
      * one, not this constructor.<P>

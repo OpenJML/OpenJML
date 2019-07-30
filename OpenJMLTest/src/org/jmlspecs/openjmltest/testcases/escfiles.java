@@ -242,8 +242,54 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testValueTypes() {
+        helpTF("valuetypes","-classpath","../OpenJML/runtime");
+    }
+
+    @Test
+    public void testValueTypes2() {
+        helpTF("valuetypes2","-classpath","../OpenJML/runtime");
+    }
+
+    @Test
+    public void testValueTypesErr() {
+        expectedExit = 1;
+        helpTF("valuetypesErr","-classpath","../OpenJML/runtime");
+    }
+
+    @Test
+    public void testOld() {
+        helpTF("oldproblem","-classpath","../OpenJML/runtime");
+    }
+
+    @Test
+    public void testBuggyCalculator() {
+        helpTF("buggyCalculator");
+    }
+
+    @Test
+    public void testBuggyRandomNumbers() {
+        helpTF("buggyRandomNumbers");
+    }
+
+    @Test
+    public void testPrimeNumbers() {
+        helpTF("buggyPrimeNumbers");
+    }
+
+    @Test
+    public void testBuggyPalindrome() {
+        helpTF("buggyPalindrome");
+    }
+
+    @Test
     public void testException() {
         helpTF("escException");
+    }
+
+    @Test
+    public void testINF() {
+        helpTF("escINF");
     }
 
     @Test
@@ -263,6 +309,36 @@ public class escfiles extends EscBase {
         expectedExit = 0;
         helpTF("escArrayCopy");
     }
+
+    @Test
+    public void testArrayClone() {
+        expectedExit = 0;
+        helpTF("escClone");
+    }
+    @Test
+    public void test2DArray() {
+        expectedExit = 0;
+        helpTF("esc2DArray");
+    }
+
+    @Test
+    public void test2DTranspose() {
+        expectedExit = 0;
+        helpTF("esc2DTranspose");
+    }
+
+    @Test
+    public void testVT20191() {
+        expectedExit = 0;
+        helpTF("verifythis-2019-1","-checkFeasibility=none"); // FIXME - feasibility check times out
+    }
+
+    @Test
+    public void testVT20192() {
+        expectedExit = 0;
+        helpTF("verifythis-2019-2");
+    }
+
 
 // FIXME - there is a problem with instantiating the model field or the getter functions, such that my_dollars differs from dollars()
     @Test  @Ignore
@@ -523,6 +599,26 @@ public class escfiles extends EscBase {
     }
     
     @Test
+    public void testEscRecursiveOld() {
+        helpTF("escRecursiveOld");
+    }
+    
+    @Test
+    public void testEnsuresInfeasible() {
+        helpTF("escEnsuresInfeasible");
+    }
+
+    @Test
+    public void testEnsuresInfeasible2() {
+        helpTF("escEnsuresInfeasible2");
+    }
+
+    @Test
+    public void testConstructorInfeasible() {
+        helpTF("escConsInfeasible");
+    }
+
+    @Test
     public void testEscMultipleModel() {
         helpTF("escMultipleModel");
     }
@@ -625,7 +721,7 @@ public class escfiles extends EscBase {
     
     @Test
     public void testRmLoop() {
-        helpTF("escrmloop","-method=doLRS","-timeout=10"); // SHort timeout because this does not yet work properly
+        helpTF("escrmloop","-checkFeasibility=none","-timeout=30"); // FIXME SHort timeout because this does not yet work properly
     }
     
     @Test
@@ -636,6 +732,16 @@ public class escfiles extends EscBase {
     @Test
     public void escLemma() {
         helpTF("escLemma");
+    }
+    
+    @Test
+    public void escOld() {
+        helpTF("escOld");
+    }
+    
+    @Test
+    public void exceptionCancel() {
+        helpTF("exceptionCancel");
     }
     
 
@@ -654,6 +760,57 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testPrimitiveTypes() {
+        expectedExit = 0;
+        helpTF("primitives");
+    }
+
+    @Test
+    public void testEnums() {
+        expectedExit = 0;
+        helpTF("enums");
+    }
+
+    @Test
+    public void testEnums1() {
+        expectedExit = 0;
+        helpTF("enums1");
+        //helpTF("enums1","-show","-method=m5c","-subexpressions");
+    }
+
+    @Test
+    public void testEnums2() {
+        expectedExit = 0;
+        helpTF("enums2");
+    }
+
+    @Test
+    public void testDatatypes() {
+        expectedExit = 0;
+        helpTF("datatype");
+    }
+
+    @Test
+    public void testFactorial() {
+        expectedExit = 0;
+        helpTF("factorial");
+    }
+
+    @Test
+    public void testPrime() {
+        expectedExit = 0;
+        helpTF("primeNumbers");
+    }
+
+    // Fails for -minquant and with the tnum1a/tnum2a intermediates
+    // Presumably a problem with instantiation/triggering
+    @Test
+    public void testGCDCalculator() {
+        expectedExit = 0;
+        helpTF("gcdcalculator");//,"-show","-method=GCD","-subexpressions");
+    }
+
+    @Test
     public void testEscVisibilitySimple() {
         expectedExit = 1;
         helpTF("visibilitySimple");
@@ -661,10 +818,36 @@ public class escfiles extends EscBase {
 
     @Test
     public void testVisibilityB() {
-    	expectedExit = 1;
+        expectedExit = 1;
         helpTCF("test/visibilityB/org/apache/commons/cli/Option.java","test/visibilityB","-classpath","test/visibilityB");
     }
 
+    @Test
+    public void testRequiresElse() { // FIXME - why the two different formats of output
+        helpTF("requiresElse","-show=program"); // -show=program is part of test results
+    }
+
+    @Test
+    public void testTuple() {
+        helpTF("tuple");
+    }
+
+    @Test
+    public void testTupleBad() {
+        expectedExit = 1;
+        helpTF("tupleBad");
+    }
+
+    @Test
+    public void testCaptures() {
+        expectedExit = 1;
+        helpTF("anonymousCaptures","-show","-method=m");
+    }
+    
+    @Test
+    public void checkAsserts() {
+        helpTF("checkAsserts");
+    }
 
 
 }

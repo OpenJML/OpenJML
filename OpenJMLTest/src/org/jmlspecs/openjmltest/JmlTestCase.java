@@ -66,8 +66,9 @@ public abstract class JmlTestCase {
     
     static protected String root = new File(".").getAbsoluteFile().getParentFile().getParentFile().getParent();
     
-    protected boolean ignoreNotes = false;
+    protected boolean ignoreNotes = false; // FIXME - set but does not appear to be used anywhere
     
+    // An object holding routines for comparing output with oracle output
     public OutputCompare outputCompare = new OutputCompare();
 
     /** This is here so we can get the name of a test, using name.getMethodName() */

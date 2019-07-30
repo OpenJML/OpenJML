@@ -1,0 +1,48 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.mbyte((@org.jmlspecs.annotation.NonNull :: byte)[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mbyte((@org.jmlspecs.annotation.NonNull :: byte)[]) with prover !!!! - no warnings
+Starting proof of Test.mint((@org.jmlspecs.annotation.NonNull :: int)[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mint((@org.jmlspecs.annotation.NonNull :: int)[]) with prover !!!! - no warnings
+Starting proof of Test.mchar((@org.jmlspecs.annotation.NonNull :: char)[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mchar((@org.jmlspecs.annotation.NonNull :: char)[]) with prover !!!! - no warnings
+Starting proof of Test.mshort((@org.jmlspecs.annotation.NonNull :: short)[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mshort((@org.jmlspecs.annotation.NonNull :: short)[]) with prover !!!! - no warnings
+Starting proof of Test.mlong((@org.jmlspecs.annotation.NonNull :: long)[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mlong((@org.jmlspecs.annotation.NonNull :: long)[]) with prover !!!! - no warnings
+Starting proof of Test.mboolean((@org.jmlspecs.annotation.NonNull :: boolean)[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mboolean((@org.jmlspecs.annotation.NonNull :: boolean)[]) with prover !!!! - no warnings
+Starting proof of Test.minherited() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.minherited() with prover !!!! - no warnings
+Starting proof of Test.mtest() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mtest() with prover !!!! - no warnings
+Completed proving methods in Test
+Proving methods in A
+Starting proof of A.A() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.A() with prover !!!! - no warnings
+Starting proof of A.minherited() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.minherited() with prover !!!! - no warnings
+Completed proving methods in A

@@ -9,6 +9,7 @@ public class Test {
         a[3] = 10;
         //@ loop_invariant 5<=i && i<=8;
         //@ assignable i,a[4..7];
+        //@ writes i,a[4..7];
         for (int i= 5; i<8; i++) {
             a[i] = -4;
         }

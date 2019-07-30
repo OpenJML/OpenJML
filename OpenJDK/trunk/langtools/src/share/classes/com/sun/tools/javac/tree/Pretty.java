@@ -110,7 +110,7 @@ public class Pretty extends JCTree.Visitor {
 
     /** The enclosing class name.
      */
-    Name enclClassName;
+    protected Name enclClassName; // JLS - changed to protected
 
     /** A table mapping trees to their documentation comments
      *  (can be null)
@@ -212,7 +212,7 @@ public class Pretty extends JCTree.Visitor {
      *************************************************************************/
 
     /** Exception to propogate IOException through visitXXX methods */
-    protected static class UncheckedIOException extends Error { // DRC - changed from private to protected
+    public static class UncheckedIOException extends Error { // DRC - changed from private to public
         static final long serialVersionUID = -4032692679158424751L;
         public UncheckedIOException(IOException e) { // DRC - changed from package to public
             super(e.getMessage(), e);
@@ -924,7 +924,7 @@ public class Pretty extends JCTree.Visitor {
 
     public void visitApply(JCMethodInvocation tree) {
         try {
-            if (!tree.typeargs.isEmpty()) {
+            if (tree.typeargs != null && !tree.typeargs.isEmpty()) { // OPENJML - improved check
                 if (tree.meth.hasTag(SELECT)) {
                     JCFieldAccess left = (JCFieldAccess)tree.meth;
                     printExpr(left.selected);

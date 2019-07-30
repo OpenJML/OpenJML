@@ -1,6 +1,7 @@
 package org.jmlspecs.openjmltest.testcases;
 
 import org.jmlspecs.openjmltest.TCBase;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class typechecking extends TCBase {
@@ -47,7 +48,7 @@ public class typechecking extends TCBase {
 
     @Test public void testTypeArgs() {
         helpTC(" class A { int k; boolean b; <T> int mm() {} void m() { int t = this.<Integer>mm(); \n//@ assert <Object>\\old(k);\n}}"
-                ,"/TEST.java:2: illegal start of expression",20
+                ,"/TEST.java:2: illegal start of expression",13
                 );
     }
 
@@ -110,7 +111,7 @@ public class typechecking extends TCBase {
 
     @Test public void testOld2() {
         helpTC(" class A { int k; boolean b; void m() { \n//@ assert \\old();\n}}",
-                "/TEST.java:2: A \\old expression expects just 1 or 2 argument, not 0",16);
+                "/TEST.java:2: A \\old expression expects just 1 or 2 arguments, not 0",16);
     }
 
     @Test public void testOld2a() {
@@ -164,6 +165,13 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testOld12() {
+        helpTCF("A.java"," class A { boolean b; void m() { \n k: {};\n boolean bb = false; //@ assert \\old(bb) && \\old(bb,k);\n}}"
+                ,"/A.java:3: cannot find symbol\n  symbol:   variable bb\n  location: class A",38
+                ,"/A.java:3: cannot find symbol\n  symbol:   variable bb\n  location: class A",50
+                );
+    }
+
+    @Test public void testOld13() {
         helpTCF("A.java"," class A { boolean b; void m() { \n k: {};\n //@ assert \\old(b,k);\n}}"
                 );
     }
@@ -225,13 +233,12 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testInvariantFor6() {
-    	main.addOptions("-strictJML");
+    	main.addOptions("-lang=jml");
         helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for(Integer,k);\n}}"
-        		,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -strictJML",37
+        		,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -lang=jml",37
         		,"/A.java:2: A \\invariant_for expression expects just 1 argument, not 2", 26
         		,"/A.java:2: The argument of \\invariant_for must be of reference type", 27
         		,"/A.java:2: The argument of \\invariant_for must be of reference type", 35
-        		,"$SPECS/specs/java/nio/ByteBuffer.jml:298: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",29
         		);
     }
 
@@ -242,11 +249,10 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testInvariantFor7() {
-    	main.addOptions("-strictJML");
+    	main.addOptions("-lang=jml");
         helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for();\n}}"
-        		,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -strictJML",37
+        		,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The \\count construct is an OpenJML extension to JML and not allowed under -lang=jml",37
         		,"/A.java:2: A \\invariant_for expression expects just 1 argument, not 0", 26
-                ,"$SPECS/specs/java/nio/ByteBuffer.jml:298: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML",29
         		);
     }
 
@@ -730,26 +736,29 @@ public class typechecking extends TCBase {
     }
 
 
+    @Ignore  // FIXME - what is \same?
     @Test public void testSame() {
         helpTCF("A.java","public class A { //@ requires  i; also requires \\same; \n boolean m(boolean i) { return false; }\n}"
                 );
     }
-    
+    @Ignore  // FIXME - what is \same?
     @Test public void testSame1() {
         helpTCF("A.java","public class A { //@ requires 1+\\same; \n boolean m(double i) { return false; }\n}",
                 "/A.java:1: bad operand types for binary operator '+'\n  first type:  int\n  second type: boolean",32);
     }
-    
+    @Ignore
     @Test public void testSame2() {  // FIXME - should not allow \same inside expressions
         helpTCF("A.java","public class A { //@ requires i; also requires !\\same; \n boolean m(boolean i) { return false; }\n}"
                 );
     }
     
+    @Ignore
     @Test public void testSame3() { // FIXME - should not allow \same without previous preconditions
         helpTCF("A.java","public class A { //@ requires \\same; \n boolean m(double i) { return false; }\n}"
                 );
     }
     
+    @Ignore
     @Test public void testSame4() {
         helpTCF("A.java","public class A { //@ ensures \\same; \n boolean m(double i) { return false; }\n}"
                 ,"/A.java:1: A \\same token may only be used in requires clauses",30
@@ -847,6 +856,7 @@ public class typechecking extends TCBase {
     
     @Test public void testFresh3() {
         helpTCF("A.java","public class A { Object o,oo; //@ ensures \\fresh(); \n void m() {}  \n }"
+                ,"/A.java:1: A \\fresh expression expects just 1 or 2 arguments, not 0",49
                 );
     }
     
@@ -870,11 +880,11 @@ public class typechecking extends TCBase {
     
     @Test public void testOnlyAssigned() {
         helpTCF("A.java","public class A { Object o,oo; //@ invariant \\only_assigned(o) || \\only_accessed(o) || \\only_captured(o) || \\not_assigned(o) || \\not_modified(o);  \n }"
-                ,"/A.java:1: A \\only_assigned expression may not be in a invariant clause",46
-                ,"/A.java:1: A \\only_accessed expression may not be in a invariant clause",67
-                ,"/A.java:1: A \\only_captured expression may not be in a invariant clause",88
-                ,"/A.java:1: A \\not_assigned expression may not be in a invariant clause",109
-                ,"/A.java:1: A \\not_modified expression may not be in a invariant clause",129
+                ,"/A.java:1: A \\only_assigned expression may not be in a invariant clause",59
+                ,"/A.java:1: A \\only_accessed expression may not be in a invariant clause",80
+                ,"/A.java:1: A \\only_captured expression may not be in a invariant clause",101
+                ,"/A.java:1: A \\not_assigned expression may not be in a invariant clause",121
+                ,"/A.java:1: A \\not_modified expression may not be in a invariant clause",141
                 );
     }
     
@@ -885,11 +895,11 @@ public class typechecking extends TCBase {
     
     @Test public void testOnlyAssigned2() {
         helpTCF("A.java","public class A { int i; Object o,oo; //@ ghost boolean k = \\only_assigned(o) || \\only_accessed(o) || \\only_captured(o) || \\not_assigned(o) || \\not_modified(o);  \n }"
-                ,"/A.java:1: A \\only_assigned expression may not be in a jml declaration clause",61
-                ,"/A.java:1: A \\only_accessed expression may not be in a jml declaration clause",82
-                ,"/A.java:1: A \\only_captured expression may not be in a jml declaration clause",103
-                ,"/A.java:1: A \\not_assigned expression may not be in a jml declaration clause",124
-                ,"/A.java:1: A \\not_modified expression may not be in a jml declaration clause",144
+                ,"/A.java:1: A \\only_assigned expression may not be in a jml declaration clause",74
+                ,"/A.java:1: A \\only_accessed expression may not be in a jml declaration clause",95
+                ,"/A.java:1: A \\only_captured expression may not be in a jml declaration clause",116
+                ,"/A.java:1: A \\not_assigned expression may not be in a jml declaration clause",136
+                ,"/A.java:1: A \\not_modified expression may not be in a jml declaration clause",156
         );
     }
     

@@ -1,0 +1,33 @@
+Proving methods in Vector
+Starting proof of Vector.Vector(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Vector.Vector(int,int) with prover !!!! - no warnings
+Starting proof of Vector.add(java.lang.Object) with prover !!!!
+test/escVector/Vector.java:69: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method add
+      final Object[] new_data = new Object[my_element_count + my_capacity_increment]; // ERROR - could be negative under Java math
+                                                            ^
+Completed proof of Vector.add(java.lang.Object) with prover !!!! - with warnings
+Starting proof of Vector.copyInto(java.lang.Object[]) with prover !!!!
+test/escVector/Vector.java:93: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method copyInto
+      the_array[i] = my_element_data[i]; // ERROR _ don't know size of the_array - i might be too big; ERROR - don't know the runtime type of the_array
+                   ^
+test/escVector/Vector.java:93: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method copyInto
+      the_array[i] = my_element_data[i]; // ERROR _ don't know size of the_array - i might be too big; ERROR - don't know the runtime type of the_array
+               ^
+Completed proof of Vector.copyInto(java.lang.Object[]) with prover !!!! - with warnings
+Starting proof of Vector.indexOf(java.lang.Object,int) with prover !!!!
+test/escVector/Vector.java:114: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method indexOf
+      if (the_elem.equals(my_element_data[i])) {   // the_index might be negative
+                                         ^
+Completed proof of Vector.indexOf(java.lang.Object,int) with prover !!!! - with warnings
+Starting proof of Vector.elementAt(int) with prover !!!!
+test/escVector/Vector.java:135: warning: The prover cannot establish an assertion (Postcondition) in method elementAt
+      return my_element_data[the_index];
+      ^
+test/escVector/Vector.java:129: warning: Associated declaration
+  public final synchronized Object elementAt(final int the_index) 
+                                   ^
+Completed proof of Vector.elementAt(int) with prover !!!! - with warnings
+Completed proving methods in Vector
+6 warnings

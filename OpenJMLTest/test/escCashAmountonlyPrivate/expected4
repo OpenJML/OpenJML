@@ -1,0 +1,38 @@
+Proving methods in CashAmountOnlyPrivate
+Starting proof of CashAmountOnlyPrivate.CashAmountOnlyPrivate(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CashAmountOnlyPrivate.CashAmountOnlyPrivate(int,int) with prover !!!! - no warnings
+Starting proof of CashAmountOnlyPrivate.negate() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CashAmountOnlyPrivate.negate() with prover !!!! - no warnings
+Starting proof of CashAmountOnlyPrivate.increase(CashAmountOnlyPrivate) with prover !!!!
+../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:93: warning: The prover cannot establish an assertion (Precondition) in method increase
+    return new CashAmountOnlyPrivate(new_dollars, new_cents);
+           ^
+../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:51: warning: Associated declaration
+  /*@ pure */ public CashAmountOnlyPrivate(final int the_dollars, final int the_cents) {
+                     ^
+../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:42: warning: Precondition conjunct is false: the_cents >= 0 <==> the_dollars >= 0
+  //@ requires the_cents >= 0 <==> the_dollars >= 0;
+                              ^
+Completed proof of CashAmountOnlyPrivate.increase(CashAmountOnlyPrivate) with prover !!!! - with warnings
+Starting proof of CashAmountOnlyPrivate.decrease(CashAmountOnlyPrivate) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CashAmountOnlyPrivate.decrease(CashAmountOnlyPrivate) with prover !!!! - no warnings
+Starting proof of CashAmountOnlyPrivate.dollars() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CashAmountOnlyPrivate.dollars() with prover !!!! - no warnings
+Starting proof of CashAmountOnlyPrivate.cents() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CashAmountOnlyPrivate.cents() with prover !!!! - no warnings
+Starting proof of CashAmountOnlyPrivate.equivalent(CashAmountOnlyPrivate) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CashAmountOnlyPrivate.equivalent(CashAmountOnlyPrivate) with prover !!!! - no warnings
+Completed proving methods in CashAmountOnlyPrivate
+3 warnings

@@ -1,0 +1,15 @@
+Proving methods in MyObjectArray
+Proving methods in MyObjectArray.Address
+Starting proof of MyObjectArray.Address.Address() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MyObjectArray.Address.Address() with prover !!!! - no warnings
+Completed proving methods in MyObjectArray.Address
+Starting proof of MyObjectArray.MyObjectArray() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of MyObjectArray.MyObjectArray() with prover !!!! - no warnings
+Completed proving methods in MyObjectArray

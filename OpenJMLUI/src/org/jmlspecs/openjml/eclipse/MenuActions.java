@@ -146,6 +146,25 @@ abstract public class MenuActions extends AbstractHandler {
     		utils.checkSelection(selection,window,shell);
     	}
     }
+    
+    
+    public static class JMLInfer extends MenuActions {
+    	
+	@Override
+	public void action() {
+	    try {
+		if (Options.uiverboseness) {
+		    Log.log("INFER action initiated"); 
+		}
+		utils.inferSelection(selection, window, shell);
+	    } catch (Exception e) {
+		utils.topLevelException(shell, "MenuActions.JMLInfer", e); 
+	    }
+	}
+    }
+
+    
+    
 
     /** This class implements the action for doing ESC on the selected objects -
      * which may be any folder, java file, working set or class or method.

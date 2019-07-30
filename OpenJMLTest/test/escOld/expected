@@ -1,0 +1,14 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.mmm(int[],boolean) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mmm(int[],boolean) with prover !!!! - no warnings
+Starting proof of Test.qq(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.qq(int) with prover !!!! - no warnings
+Completed proving methods in Test

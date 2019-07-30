@@ -864,7 +864,7 @@ public class JavaCompiler {
                     enterTrees(stopIfError(CompileState.PARSE, parseFiles(sourceFileObjects))),
                     classnames);
 
-            delegateCompiler.compile2(compilePolicy);  // DRC - passed in the argument, to make it more convenient to use in derived classes
+            delegateCompiler.compile2(compilePolicy);  // OPENJML - passed in the argument, to make it more convenient to use in derived classes
             // delegateCompiler.close(); // DRC - commented out in order to be able to query the compiler later
             elapsed_msec = delegateCompiler.elapsed_msec;
         } catch (Abort ex) {

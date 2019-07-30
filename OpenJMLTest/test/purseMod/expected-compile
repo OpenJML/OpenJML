@@ -1,7 +1,42 @@
-..\..\OpenJMLDemo\src\openjml\purseMod\Card.java:6: warning: JML model field is not implemented: state
-	//@ public model Object state;
-	                        ^
-..\..\OpenJMLDemo\src\openjml\purseMod\Token.java:4: warning: JML model field is not implemented: state
-	//@ public model Object state;
-	                        ^
-2 warnings
+../../OpenJMLDemo/src/openjml/purseMod/Card.java:66: Note: Not implemented for runtime assertion checking: constraint clause containing quantifier variable inside a \old or \pre expression: i
+	                         (\forall int i; 0 <= i && i < master_pin.length; master_pin[i] == \old(master_pin[i]));
+	                                                                                                           ^
+../../OpenJMLDemo/src/openjml/purseMod/Card.java:68: Note: Not implemented for runtime assertion checking: constraint clause containing quantifier variable inside a \old or \pre expression: i
+	                         (\forall int i; 0 <= i && i < basic_pin.length; basic_pin[i] == \old(basic_pin[i]));
+	                                                                                                        ^
+../../OpenJMLDemo/src/openjml/purseMod/Card.java:119: Note: Not implemented for runtime assertion checking: constraint clause containing quantifier variable inside a \old or \pre expression: i
+	                     \old(loaded[i]) != null ==> \old(loaded[i]) == loaded[i]);
+	                                 ^
+../../OpenJMLDemo/src/openjml/purseMod/Card.java:121: Note: Not implemented for runtime assertion checking: constraint clause containing quantifier variable inside a \old or \pre expression: i
+	                     \old(payed[i]) != null ==> \old(payed[i]) == payed[i]);
+	                                ^
+../../OpenJMLDemo/src/openjml/purseMod/Card.java:321: Note: Not implemented for runtime assertion checking: signals clause containing quantifier variable inside a \old or \pre expression: i
+	          (\forall int i; 0 <= i && i < loaded.length; loaded[i] == \old(loaded[i]));
+	                                                                                ^
+../../OpenJMLDemo/src/openjml/purseMod/Card.java:363: Note: Not implemented for runtime assertion checking: signals clause containing quantifier variable inside a \old or \pre expression: i
+	          (\forall int i; 0 <= i && i < payed.length; payed[i] == \old(payed[i]));
+	                                                                             ^
+../../OpenJMLDemo/src/openjml/purseMod/Terminal.java:126: Note: Not implemented for runtime assertion checking: ensures clause containing quantifier variable inside a \old or \pre expression: i
+                       i == \old(pin_pos)? pin[i] == digit : pin[i] == \old(pin[i]));
+                                                                                ^
+../../OpenJMLDemo/src/openjml/purseMod/Terminal.java:126: Note: Not implemented for runtime assertion checking: ensures clause containing quantifier variable inside a \old or \pre expression: i
+                       i == \old(pin_pos)? pin[i] == digit : pin[i] == \old(pin[i]));
+                                                                                ^
+../../OpenJMLDemo/src/openjml/purseMod/Card.java:66: Note: Not implemented for runtime assertion checking: constraint clause containing quantifier variable inside a \old or \pre expression: i
+	                         (\forall int i; 0 <= i && i < master_pin.length; master_pin[i] == \old(master_pin[i]));
+	                                                                                                           ^
+../../OpenJMLDemo/src/openjml/purseMod/Card.java:68: Note: Not implemented for runtime assertion checking: constraint clause containing quantifier variable inside a \old or \pre expression: i
+	                         (\forall int i; 0 <= i && i < basic_pin.length; basic_pin[i] == \old(basic_pin[i]));
+	                                                                                                        ^
+../../OpenJMLDemo/src/openjml/purseMod/Card.java:119: Note: Not implemented for runtime assertion checking: constraint clause containing quantifier variable inside a \old or \pre expression: i
+	                     \old(loaded[i]) != null ==> \old(loaded[i]) == loaded[i]);
+	                                 ^
+../../OpenJMLDemo/src/openjml/purseMod/Card.java:121: Note: Not implemented for runtime assertion checking: constraint clause containing quantifier variable inside a \old or \pre expression: i
+	                     \old(payed[i]) != null ==> \old(payed[i]) == payed[i]);
+	                                ^
+../../OpenJMLDemo/src/openjml/purseMod/Card.java:321: Note: Not implemented for runtime assertion checking: signals clause containing quantifier variable inside a \old or \pre expression: i
+	          (\forall int i; 0 <= i && i < loaded.length; loaded[i] == \old(loaded[i]));
+	                                                                                ^
+../../OpenJMLDemo/src/openjml/purseMod/Card.java:363: Note: Not implemented for runtime assertion checking: signals clause containing quantifier variable inside a \old or \pre expression: i
+	          (\forall int i; 0 <= i && i < payed.length; payed[i] == \old(payed[i]));
+	                                                                             ^

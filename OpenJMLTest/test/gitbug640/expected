@@ -1,0 +1,26 @@
+Proving methods in W
+Starting proof of W.W() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of W.W() with prover !!!! - no warnings
+Proving methods in W.R
+Starting proof of W.R.R() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of W.R.R() with prover !!!! - no warnings
+Completed proving methods in W.R
+Proving methods in W.S
+Starting proof of W.S.S() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of W.S.S() with prover !!!! - no warnings
+Completed proving methods in W.S
+Starting proof of W.m(W.R,W.S) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of W.m(W.R,W.S) with prover !!!! - no warnings
+Starting proof of W.p(W.R,W.S) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of W.p(W.R,W.S) with prover !!!! - no warnings
+Completed proving methods in W

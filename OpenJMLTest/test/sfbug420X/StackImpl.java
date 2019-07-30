@@ -61,6 +61,8 @@ public class StackImpl implements Stack {
 		boolean b2 = s.push(2);
 		boolean b3 = s.push(2);
 		if (!(b1 && b2 && b3)) return;
+		//@ assert s.count() == 3;
+		//@ assert s.count == 3;
 		System.out.println(s.itemAt(1));
 		System.out.println(s.itemAt(2));
 		System.out.println(s.itemAt(3));
@@ -73,6 +75,9 @@ public class StackImpl implements Stack {
 		boolean b2 = s.push(2);
 		boolean b3 = s.push(2);
 		if (!(b1 && b2 && b3)) return;
+		//@ assert s.count() == 3;
+		//@ assert s.count == 3;
+		//@ assert s.stackCounter == 3;
 		System.out.println(s.itemAt(1));
 		System.out.println(s.itemAt(2));
 		System.out.println(s.itemAt(3));

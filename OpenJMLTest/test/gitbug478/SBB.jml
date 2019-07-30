@@ -14,14 +14,14 @@ public class SBB implements SB {
 
     //@ public instance invariant buf.capacity() - size < 16;
     
+    
     /*@ private normal_behavior
       @   requires !buf.isReadOnly();
       @   requires buf.capacity >= size;
       @   requires buf.capacity % 16 == 0;
       @   requires buf.capacity - size < 16;
       @   requires size >= 0;
-      @   assignable buf.position, buf.mark, buf.limit;
-      @   assignable this.buf, this.size;
+      @   assignable \nothing;
       @   ensures buf.position == 0;
       @   ensures buf.mark < 0;
       @*/

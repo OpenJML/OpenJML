@@ -1,0 +1,14 @@
+Proving methods in A
+Starting proof of A.A() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.A() with prover !!!! - no warnings
+Starting proof of A.add(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.add(int) with prover !!!! - no warnings
+Starting proof of A.main(java.lang.String[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.main(java.lang.String[]) with prover !!!! - no warnings
+Completed proving methods in A

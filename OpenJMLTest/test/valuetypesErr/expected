@@ -1,0 +1,10 @@
+test/valuetypesErr/Arr.java:7: error: incompatible types: array<String> cannot be converted to array<Short>
+//@ ghost array<Short> arx = args.array; // ERROR
+                                 ^
+test/valuetypesErr/Arr.java:13: error: cannot find symbol
+boolean b = a.array;
+             ^
+  symbol:   variable array
+  location: variable a of type Integer[]
+Operation not performed because of parse or type errors
+2 errors

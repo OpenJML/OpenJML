@@ -1,0 +1,20 @@
+Proving methods in B
+Starting proof of B.B() with prover !!!!
+test/gitbug637/B.java:11: warning: The prover cannot establish an assertion (Assert) in method B
+      //@ assert !b;  // BAD! This does not hold after a call to havocX
+          ^
+Completed proof of B.B() with prover !!!! - with warnings
+Starting proof of B.havocX() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of B.havocX() with prover !!!! - no warnings
+Starting proof of B.m() with prover !!!!
+test/gitbug637/B.java:22: warning: The prover cannot establish an assertion (Postcondition) in method m
+    public void m() {
+                ^
+test/gitbug637/B.java:21: warning: Associated declaration
+    //@ ensures b == \old(b); // This also should not be valid
+        ^
+Completed proof of B.m() with prover !!!! - with warnings
+Completed proving methods in B
+3 warnings

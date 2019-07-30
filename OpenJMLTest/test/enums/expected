@@ -1,0 +1,80 @@
+Proving methods in EEC
+Starting proof of EEC.EEC() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of EEC.EEC() with prover !!!! - no warnings
+Completed proving methods in EEC
+Proving methods in EEE
+Starting proof of EEE.EEE() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of EEE.EEE() with prover !!!! - no warnings
+Completed proving methods in EEE
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m0() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m0() with prover !!!! - no warnings
+Starting proof of Test.m2b() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m2b() with prover !!!! - no warnings
+Starting proof of Test.m2d() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m2d() with prover !!!! - no warnings
+Starting proof of Test.m3(EEE) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m3(EEE) with prover !!!! - no warnings
+Starting proof of Test.m4(EEE) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m4(EEE) with prover !!!! - no warnings
+Starting proof of Test.m5(EEE) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m5(EEE) with prover !!!! - no warnings
+Starting proof of Test.m5b(EEE) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m5b(EEE) with prover !!!! - no warnings
+Starting proof of Test.m5c(EEE) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m5c(EEE) with prover !!!! - no warnings
+Starting proof of Test.m5a(EEE) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m5a(EEE) with prover !!!! - no warnings
+Starting proof of Test.m6((@org.jmlspecs.annotation.Nullable :: java.lang.String)) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m6((@org.jmlspecs.annotation.Nullable :: java.lang.String)) with prover !!!! - no warnings
+Starting proof of Test.m6a((@org.jmlspecs.annotation.Nullable :: java.lang.String)) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m6a((@org.jmlspecs.annotation.Nullable :: java.lang.String)) with prover !!!! - no warnings
+Starting proof of Test.m7(EEE) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m7(EEE) with prover !!!! - no warnings
+Starting proof of Test.m8(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m8(int) with prover !!!! - no warnings
+Starting proof of Test.m9() with prover !!!!
+test/enums/Test.java:126: warning: The prover cannot establish an assertion (Assert) in method m9
+        //@ assert \fresh(e); // false
+            ^
+Completed proof of Test.m9() with prover !!!! - with warnings
+Starting proof of Test.m9a() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m9a() with prover !!!! - no warnings
+Completed proving methods in Test
+1 warning

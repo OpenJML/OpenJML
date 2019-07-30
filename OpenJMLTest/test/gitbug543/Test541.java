@@ -20,6 +20,9 @@ public class Test541 implements I541 {
     //@ requires d + length <= buf.length;
     //@   assignable buf[d..d+length-1];
     //@   ensures (\forall int k; d<=k && k < d+length; buffer[k] == src[s-d+k]);
+    // SMT has a hard time with the above formulation -- using equalArrays below works fine
+    // Note the use of buffer in the specs and buf in the code
+    // FIXME - this used to work??
     public void set1(int[] src, int s, int d, int length) { 
         System.arraycopy(src, s, buf, d, length); 
     }
@@ -30,7 +33,21 @@ public class Test541 implements I541 {
     //@ requires d >= 0;
     //@ requires d + length <= buf.length;
     //@   assignable buf[d..d+length-1];
+    //@   ensures java.util.Arrays.equalArrays(buffer,d,src,s,length);
+    public void set1x(int[] src, int s, int d, int length) { 
+        System.arraycopy(src, s, buf, d, length); 
+    }
+    
+    //@ requires length >= 0;
+    //@ requires s >= 0;
+    //@ requires s + length <= src.length;
+    //@ requires d >= 0;
+    //@ requires d + length <= buf.length;
+    //@   assignable buf[d..d+length-1];
     //@   ensures (\forall int k; s<=k && k < s+length; buffer[d-s+k] == src[k]);
+    // SMT has a hard time with the above formulation -- using equalArrays above works fine
+    // Note the use of buffer in the specs and buf in the code
+    // FIXME - this used to work??
     public void set2(int[] src, int s, int d, int length) { 
         System.arraycopy(src, s, buf, d, length); 
     }

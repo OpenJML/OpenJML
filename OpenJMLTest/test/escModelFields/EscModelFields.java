@@ -9,8 +9,8 @@ public class EscModelFields {
     //@ public invariant value >= 0;
     
     //@ requires v >= 0;
-    //@ modifies this.*;
     //@ ensures value == v;
+    //@ pure
     public EscModelFields(int v) {
         rep = -v;
     }

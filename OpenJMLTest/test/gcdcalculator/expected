@@ -1,0 +1,38 @@
+Proving methods in AbsoluteValue
+Starting proof of AbsoluteValue.AbsoluteValue() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of AbsoluteValue.AbsoluteValue() with prover !!!! - no warnings
+Starting proof of AbsoluteValue.IntAbsolute(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of AbsoluteValue.IntAbsolute(int) with prover !!!! - no warnings
+Starting proof of AbsoluteValue.LongAbsolute(long) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of AbsoluteValue.LongAbsolute(long) with prover !!!! - no warnings
+Completed proving methods in AbsoluteValue
+Proving methods in GCDCalculator
+Starting proof of GCDCalculator.GCDCalculator() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of GCDCalculator.GCDCalculator() with prover !!!! - no warnings
+Starting proof of GCDCalculator.div(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of GCDCalculator.div(int,int) with prover !!!! - no warnings
+Starting proof of GCDCalculator.GCD(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of GCDCalculator.GCD(int,int) with prover !!!! - no warnings
+Completed proving methods in GCDCalculator
+Proving methods in GCDCalculatorMain
+Starting proof of GCDCalculatorMain.GCDCalculatorMain() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of GCDCalculatorMain.GCDCalculatorMain() with prover !!!! - no warnings
+Starting proof of GCDCalculatorMain.main(java.lang.String[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of GCDCalculatorMain.main(java.lang.String[]) with prover !!!! - no warnings
+Completed proving methods in GCDCalculatorMain

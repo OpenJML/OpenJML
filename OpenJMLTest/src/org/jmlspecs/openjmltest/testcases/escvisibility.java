@@ -657,6 +657,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate8() {
+    	expectedExit = 1;
         main.addOptions("-method", "tt.TestJava.m1");
         addMockJavaFile("tx/B.java","package tx; public class B {\n"
                 +"  //@ private normal_behavior\n"
@@ -673,7 +674,7 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                
+                ,"/tt/TestJava.java:4: No visible specifications for this call site: tx.B.m1() called from tt.TestJava.m1()",13
                 );
     }
     
@@ -706,6 +707,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected8() {
+    	expectedExit = 1;
         main.addOptions("-method", "tt.TestJava.m1");
         addMockJavaFile("tx/B.java","package tx; public class B {\n"
                 +"  //@ protected normal_behavior\n"
@@ -723,11 +725,13 @@ public class escvisibility extends EscBase {
                 
                 +"}"
                 
+                ,"/tt/TestJava.java:4: No visible specifications for this call site: tx.B.m1() called from tt.TestJava.m1()",13
                 );
     }
         
     @Test
     public void testPackage8() {
+    	expectedExit = 1;
         main.addOptions("-method", "tt.TestJava.m1");
         addMockJavaFile("tx/B.java","package tx; public class B {\n"
                 +"  //@ normal_behavior\n"
@@ -745,12 +749,14 @@ public class escvisibility extends EscBase {
 
                     +"}"
 
+                ,"/tt/TestJava.java:4: No visible specifications for this call site: tx.B.m1() called from tt.TestJava.m1()",13
                 );
     }
 
 
     @Test
     public void testPrivate9() {
+    	expectedExit = 1;
         main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class B { \n"
@@ -767,6 +773,7 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
+                ,"/tt/TestJava.java:10: No visible specifications for this call site: tt.B.m1() called from tt.TestJava.m1()",11
                 );
     }
     

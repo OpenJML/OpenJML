@@ -1,0 +1,24 @@
+Proving methods in CheckTests
+Starting proof of CheckTests.CheckTests() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CheckTests.CheckTests() with prover !!!! - no warnings
+Starting proof of CheckTests.m1(int) with prover !!!!
+test/checkAsserts/CheckTests.java:4: warning: The prover cannot establish an assertion (Assert) in method m1
+        //@ assert i >= 0; // FAILS
+            ^
+Completed proof of CheckTests.m1(int) with prover !!!! - with warnings
+Starting proof of CheckTests.m2(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CheckTests.m2(int) with prover !!!! - no warnings
+Starting proof of CheckTests.m3(int) with prover !!!!
+test/checkAsserts/CheckTests.java:15: warning: The prover cannot establish an assertion (Assert) in method m3
+        //@ assert i >= 0; // FAILS
+            ^
+test/checkAsserts/CheckTests.java:14: warning: The prover cannot establish an assertion (Assert) in method m3
+        //@ check  i >= 0; // FAILS
+            ^
+Completed proof of CheckTests.m3(int) with prover !!!! - with warnings
+Completed proving methods in CheckTests
+3 warnings

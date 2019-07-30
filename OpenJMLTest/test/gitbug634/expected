@@ -1,0 +1,39 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.bad() with prover !!!!
+test/gitbug634/Test.java:17: warning: The prover cannot establish an assertion (Postcondition) in method bad
+    public void bad() {
+                ^
+test/gitbug634/Test.java:16: warning: Associated declaration
+    //@   ensures NNNN == \old(NNNN);  // BOGUS! This should not verify, but it does.
+          ^
+Completed proof of Test.bad() with prover !!!! - with warnings
+Starting proof of Test.good() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.good() with prover !!!! - no warnings
+Starting proof of Test.bad2() with prover !!!!
+test/gitbug634/Test.java:32: warning: The prover cannot establish an assertion (Postcondition) in method bad2
+    public void bad2() {
+                ^
+test/gitbug634/Test.java:31: warning: Associated declaration
+    //@   ensures NNNN == \old(NNNN);  // BOGUS! This should not verify, but it does.
+          ^
+Completed proof of Test.bad2() with prover !!!! - with warnings
+Starting proof of Test.good2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.good2() with prover !!!! - no warnings
+Starting proof of Test.bad3() with prover !!!!
+test/gitbug634/Test.java:47: warning: The prover cannot establish an assertion (Postcondition) in method bad3
+    public void bad3() {
+                ^
+test/gitbug634/Test.java:46: warning: Associated declaration
+    //@   ensures NNNN3 == \old(NNNN3);  // BOGUS! This should not verify, but it does.
+          ^
+Completed proof of Test.bad3() with prover !!!! - with warnings
+Completed proving methods in Test
+6 warnings

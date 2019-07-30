@@ -392,7 +392,7 @@ public class modelghost extends TCBase {
         helpTCF("TestJava.java","package tt; \n"
                 +"public interface TestJava { \n"
 
-                +"  //@ public model int z;\n"
+                +"  //@ public model instance int z;\n"
                 +"  //@ static model int z2;\n"
                 +"  public static int zz = 0;\n"
                 +"}"

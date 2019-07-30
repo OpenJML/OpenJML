@@ -10,8 +10,8 @@ test\escJML\Test.java:14: warning: The prover cannot establish an assertion (Pos
 		       ^
 Completed proof of Test.m2(java.lang.Object) with prover !!!! - with warnings
 Starting proof of Test.m3(java.lang.Object) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.m3(java.lang.Object) with prover !!!! - no warnings
 Starting proof of Test.p() with prover !!!!
 test\escJML\Test.java:23: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method p
@@ -24,8 +24,8 @@ test\escJML\Test.java:28: warning: The prover cannot establish an assertion (Pos
 		   ^
 Completed proof of Test.p2() with prover !!!! - with warnings
 Starting proof of Test.p3() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.p3() with prover !!!! - no warnings
 Starting proof of Test.q() with prover !!!!
 test\escJML\Test.java:39: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method q:  oo
@@ -33,8 +33,8 @@ test\escJML\Test.java:39: warning: The prover cannot establish an assertion (Pos
     	                ^
 Completed proof of Test.q() with prover !!!! - with warnings
 Starting proof of Test.n() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.n() with prover !!!! - no warnings
 Starting proof of Test.nn() with prover !!!!
 test\escJML\Test.java:45: warning: The prover cannot establish an assertion (Postcondition) in method nn
@@ -50,12 +50,12 @@ test\escJML\Test.java:50: warning: The prover cannot establish an assertion (Pos
     	  ^
 Completed proof of Test.t(java.lang.Object) with prover !!!! - with warnings
 Starting proof of Test.tt(java.lang.Object) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.tt(java.lang.Object) with prover !!!! - no warnings
 Starting proof of Test.v() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.v() with prover !!!! - no warnings
 Starting proof of Test.mf() with prover !!!!
 test\escJML\Test.java:72: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method mf
@@ -63,12 +63,12 @@ test\escJML\Test.java:72: warning: The prover cannot establish an assertion (Pos
 		   ^
 Completed proof of Test.mf() with prover !!!! - with warnings
 Starting proof of Test.mf2() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.mf2() with prover !!!! - no warnings
 Starting proof of Test.mf3() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.mf3() with prover !!!! - no warnings
 Starting proof of Test.mf4() with prover !!!!
 test\escJML\Test.java:84: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method mf4:  q
@@ -76,14 +76,14 @@ test\escJML\Test.java:84: warning: The prover cannot establish an assertion (Pos
 		                ^
 Completed proof of Test.mf4() with prover !!!! - with warnings
 Starting proof of Test.Test() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Completed proving methods in Test
 Proving methods in A
 Starting proof of A.mf() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of A.mf() with prover !!!! - no warnings
 Starting proof of A.mf2() with prover !!!!
 test\escJML\Test.java:107: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method mf2
@@ -96,12 +96,12 @@ test\escJML\Test.java:112: warning: The prover cannot establish an assertion (Po
 		                ^
 Completed proof of A.mf3() with prover !!!! - with warnings
 Starting proof of A.mf4() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of A.mf4() with prover !!!! - no warnings
 Starting proof of A.m() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of A.m() with prover !!!! - no warnings
 Starting proof of A.mnn() with prover !!!!
 test\escJML\Test.java:127: warning: The prover cannot establish an assertion (Postcondition) in method mnn
@@ -112,8 +112,8 @@ test\escJML\Test.java:126: warning: Associated declaration
 	       ^
 Completed proof of A.mnn() with prover !!!! - with warnings
 Starting proof of A.t(java.lang.Object) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of A.t(java.lang.Object) with prover !!!! - no warnings
 Starting proof of A.tt(java.lang.Object) with prover !!!!
 test\escJML\Test.java:136: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method tt
@@ -121,14 +121,14 @@ test\escJML\Test.java:136: warning: The prover cannot establish an assertion (Po
     	    ^
 Completed proof of A.tt(java.lang.Object) with prover !!!! - with warnings
 Starting proof of A.A() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of A.A() with prover !!!! - no warnings
 Completed proving methods in A
 Proving methods in B
 Starting proof of B.B() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of B.B() with prover !!!! - no warnings
 Starting proof of B.m(java.lang.Object) with prover !!!!
 test\escJML\Test.java:145: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m:  oo
@@ -136,24 +136,24 @@ test\escJML\Test.java:145: warning: The prover cannot establish an assertion (Po
 		                ^
 Completed proof of B.m(java.lang.Object) with prover !!!! - with warnings
 Starting proof of B.m2(java.lang.Object) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of B.m2(java.lang.Object) with prover !!!! - no warnings
 Starting proof of B.m3(java.lang.Object) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of B.m3(java.lang.Object) with prover !!!! - no warnings
 Starting proof of B.mn(java.lang.Object) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of B.mn(java.lang.Object) with prover !!!! - no warnings
 Starting proof of B.mn2(java.lang.Object) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of B.mn2(java.lang.Object) with prover !!!! - no warnings
 Starting proof of B.mn3(java.lang.Object) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of B.mn3(java.lang.Object) with prover !!!! - no warnings
 Starting proof of B.v(java.lang.Object) with prover !!!!
 test\escJML\Test.java:172: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method v:  oo

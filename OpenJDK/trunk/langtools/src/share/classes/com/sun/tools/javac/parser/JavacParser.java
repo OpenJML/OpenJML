@@ -77,13 +77,13 @@ public class JavacParser implements Parser {
 
     /** The log to be used for error diagnostics.
      */
-    protected Log log; // DRC - changed from private to protected
+    public Log log; // OpenJML - changed from private to public
 
     /** The Source language setting. */
     private Source source;
 
     /** The name table. */
-    private Names names;
+    public Names names; // OpenJML - changed from private to public
 
     /** End position mappings container */
     protected final AbstractEndPosTable endPosTable; // DRC - changed from private to protected
@@ -542,19 +542,19 @@ public class JavacParser implements Parser {
 
 /* -------- source positions ------- */
 
-    protected void setErrorEndPos(int errPos) { // DRC - changed from private to protected
+    protected void setErrorEndPos(int errPos) { // OPENJML - changed from private to protected
         endPosTable.setErrorEndPos(errPos);
     }
 
-    public void storeEnd(JCTree tree, int endpos) { // DRC - changed from private to public
+    public void storeEnd(JCTree tree, int endpos) { // OPENJML - changed from private to public
         endPosTable.storeEnd(tree, endpos);
     }
 
-    public <T extends JCTree> T to(T t) { // DRC - changed from private to public
+    public <T extends JCTree> T to(T t) { // OPENJML - changed from private to public
         return endPosTable.to(t);
     }
 
-    public <T extends JCTree> T toP(T t) { // DRC - changed from private to public
+    public <T extends JCTree> T toP(T t) { // OPENJML - changed from private to public
         return endPosTable.toP(t);
     }
 
@@ -576,7 +576,7 @@ public class JavacParser implements Parser {
      * @param tree  The tree node
      */
     public int getEndPos(JCTree tree) {
-        return tree.getEndPosition(endPosTable); // DRC - changed to accommodate JML nodes
+        return tree.getEndPosition(endPosTable); // OpenJML - changed to accommodate JML nodes
     }
 
 
@@ -956,7 +956,7 @@ public class JavacParser implements Parser {
 
         if (t.hasTag(JCTree.Tag.PLUS)) {
             t = foldStrings(t);
-            if (t != null) {  // DRC - FIXME - why is this if-statement added
+            if (t != null) {
                 t = toP(F.at(startPos).Literal(TypeTag.CLASS, t.toString()));
             }
         }
@@ -1250,7 +1250,7 @@ public class JavacParser implements Parser {
             }
             break;
         case UNDERSCORE: case IDENTIFIER: case ASSERT: case ENUM:
-            if (typeArgs != null) return illegal();
+            if (typeArgs != null && typeArgs.size() > 0) return illegal(typeArgs.head.getStartPosition()); // OPENJML - improved position of error message
             if ((mode & EXPR) != 0 && peekToken(ARROW)) {
                 t = lambdaExpressionOrStatement(false, false, pos);
             } else {
@@ -1296,7 +1296,7 @@ public class JavacParser implements Parser {
     }
     
     // OPENJML - extracted this method from term3() so that it can be used in overriding methods
-    protected JCExpression primaryTrailers(JCExpression t,
+    public JCExpression primaryTrailers(JCExpression t,
             List<JCExpression> typeArgs) {
         return term3Rest(t, typeArgs);
 
@@ -1600,7 +1600,7 @@ public class JavacParser implements Parser {
                     if (permitTypeAnnotationsPushBack)
                         typeAnnotationsPushedBack = annos;
                     else
-                        return illegal(annos.head.pos);
+                        return trailingAt(t, annos.head.pos);
                 }
                 break;
             }
@@ -1612,6 +1612,10 @@ public class JavacParser implements Parser {
             nextToken();
         }
         return toP(t);
+    }
+    
+    public JCExpression trailingAt(JCExpression t, int p) {
+        return illegal(p);
     }
 
     /**
@@ -3818,7 +3822,7 @@ public class JavacParser implements Parser {
      *  FormalParameterList = [ FormalParameterListNovarargs , ] LastFormalParameter
      *  FormalParameterListNovarargs = [ FormalParameterListNovarargs , ] FormalParameter
      */
-    List<JCVariableDecl> formalParameters() {
+    public List<JCVariableDecl> formalParameters() { // OPENJML: made public
         return formalParameters(false);
     }
     List<JCVariableDecl> formalParameters(boolean lambdaParameters) {

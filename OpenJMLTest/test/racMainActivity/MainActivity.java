@@ -74,7 +74,7 @@ public class MainActivity {
 			ResH=Math.sqrt(Math.pow(I1,2)+Math.pow(I2,2));
 		else
 			ResH = 0;
-		//@ ensures \result > 0;
+		// @ ensures \result > 0; // TODO: Avoid crash when this is enabled
 		 return(ResH);			   
 	}
 	

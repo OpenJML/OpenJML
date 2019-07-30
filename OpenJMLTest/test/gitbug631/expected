@@ -1,0 +1,94 @@
+Proving methods in TestA
+Starting proof of TestA.TestA(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TestA.TestA(int,int) with prover !!!! - no warnings
+Starting proof of TestA.set(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TestA.set(int) with prover !!!! - no warnings
+Starting proof of TestA.m(TestA) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of TestA.m(TestA) with prover !!!! - no warnings
+Starting proof of TestA.ms(TestA) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of TestA.ms(TestA) with prover !!!! - no warnings
+Starting proof of TestA.ma(TestA[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of TestA.ma(TestA[]) with prover !!!! - no warnings
+Starting proof of TestA.msa(TestA[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of TestA.msa(TestA[]) with prover !!!! - no warnings
+Starting proof of TestA.maa(TestA[][]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of TestA.maa(TestA[][]) with prover !!!! - no warnings
+Starting proof of TestA.msaa(TestA[][]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of TestA.msaa(TestA[][]) with prover !!!! - no warnings
+Starting proof of TestA.mt(TestA) with prover !!!!
+test/gitbug631/TestA.java:94: warning: The prover cannot establish an assertion (Assert) in method mt
+        //@ assert this.value == 1; // ERROR - should fail
+            ^
+Completed proof of TestA.mt(TestA) with prover !!!! - with warnings
+Starting proof of TestA.mt2(TestA) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of TestA.mt2(TestA) with prover !!!! - no warnings
+Starting proof of TestA.max(TestA[]) with prover !!!!
+test/gitbug631/TestA.java:116: warning: The prover cannot establish an assertion (Assert) in method max
+        //@ assert t[1].value == 1;  // Fails
+            ^
+Completed proof of TestA.max(TestA[]) with prover !!!! - with warnings
+Starting proof of TestA.max1(TestA[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of TestA.max1(TestA[]) with prover !!!! - no warnings
+Starting proof of TestA.max2(TestA[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of TestA.max2(TestA[]) with prover !!!! - no warnings
+Completed proving methods in TestA
+2 warnings

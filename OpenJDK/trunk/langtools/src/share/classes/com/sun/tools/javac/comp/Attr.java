@@ -77,17 +77,17 @@ public class Attr extends JCTree.Visitor {
         new Context.Key<Attr>();
 
     final Names names;
-    final Log log;
-    final Symtab syms;
+    public final Log log; // OPENJML - changed from default to public
+    public final Symtab syms; // OPENJML - changed from default to public
     final Resolve rs;
     final Infer infer;
     final DeferredAttr deferredAttr;
     final Check chk;
     final Flow flow;
-    final MemberEnter memberEnter;
+    public final MemberEnter memberEnter; // OPENJML _ changed from default to public
     final TreeMaker make;
     final ConstFold cfolder;
-    final Enter enter;
+    public final Enter enter; // OPENJML _ changed from default to public
     final Target target;
     final Types types;
     final JCDiagnostic.Factory diags;
@@ -253,7 +253,7 @@ public class Attr extends JCTree.Visitor {
      *  @param ownkind  The computed kind of the tree
      *  @param resultInfo  The expected result of the tree
      */
-    Type check(final JCTree tree, final Type found, final int ownkind, final ResultInfo resultInfo) {
+    public Type check(final JCTree tree, final Type found, final int ownkind, final ResultInfo resultInfo) { // OPENJML - changed default to public
         InferenceContext inferenceContext = resultInfo.checkContext.inferenceContext();
         Type owntype;
         boolean shouldCheck = !found.hasTag(ERROR) &&
@@ -463,12 +463,12 @@ public class Attr extends JCTree.Visitor {
         }
     }
 
-    class ResultInfo {
+    public class ResultInfo {  // OPENJML: Changed to public visibility
         final int pkind;
         final Type pt;
         final CheckContext checkContext;
 
-        ResultInfo(int pkind, Type pt) {
+        public ResultInfo(int pkind, Type pt) { // OPENJML - changed from package to public visibility
             this(pkind, pt, chk.basicHandler);
         }
 
@@ -550,7 +550,7 @@ public class Attr extends JCTree.Visitor {
 
     /** Visitor argument: the currently expected attribution result.
      */
-    ResultInfo resultInfo;
+    public ResultInfo resultInfo; // OPENJML - changed to public
 
     /** Visitor result: the computed type.
      */
@@ -567,10 +567,11 @@ public class Attr extends JCTree.Visitor {
      *  @param env     The environment visitor argument.
      *  @param resultInfo   The result info visitor argument.
      */
-    Type attribTree(JCTree tree, Env<AttrContext> env, ResultInfo resultInfo) {
+    public Type attribTree(JCTree tree, Env<AttrContext> env, ResultInfo resultInfo) { // changed from default to public
         Env<AttrContext> prevEnv = this.env;
         ResultInfo prevResult = this.resultInfo;
         try {
+            if(tree==null){ return null; }
             this.env = env;
             this.resultInfo = resultInfo;
             tree.accept(this);
@@ -727,6 +728,7 @@ public class Attr extends JCTree.Visitor {
     /**
      * Attribute the type references in a list of annotations.
      */
+    public // OPENJML - changed from default to public
     void attribAnnotationTypes(List<JCAnnotation> annotations,
                                Env<AttrContext> env) {
         for (List<JCAnnotation> al = annotations; al.nonEmpty(); al = al.tail) {
@@ -1045,7 +1047,7 @@ public class Attr extends JCTree.Visitor {
         }
 
         VarSymbol v = tree.sym;
-        if (v == null) return; // OPENJML - marked a duplicate
+        if (v == null) return; // OPENJML - a duplicate declaration
         Lint lint = env.info.lint.augment(v);
         Lint prevLint = chk.setLint(lint);
 

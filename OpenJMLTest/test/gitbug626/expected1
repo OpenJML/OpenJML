@@ -1,0 +1,80 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.findFirstSetLoop(boolean[]) with prover !!!!
+test/gitbug626/Test.java:13: warning: The prover cannot establish an assertion (Postcondition) in method findFirstSetLoop
+        return -1;
+        ^
+test/gitbug626/Test.java:8: warning: Associated declaration
+    //@ensures (\result==-1)==>(\forall int i; (0<=i) && (i<4); !x[i]);
+       ^
+
+TRACE of Test.findFirstSetLoop(boolean[])
+test/gitbug626/Test.java:9:  	requires x != null; 
+			VALUE: x	 === REF!val!9
+			VALUE: null	 === NULL
+			VALUE: x != null	 === true
+test/gitbug626/Test.java:5:  	requires (x.length == 4); 
+			VALUE: x.length	 === 4
+			VALUE: 4	 === 4
+			VALUE: x.length == 4	 === true
+			VALUE: (x.length == 4)	 === true
+test/gitbug626/Test.java:5:  	UndefinedNullDeReference assertion: !(x != null && x != null) || x != null
+test/gitbug626/Test.java:11:  	int i = 0
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+test/gitbug626/Test.java:10:  	//@ loop_invariant 0 <= i && i <= 4;
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+			VALUE: 0 <= i	 === true
+			VALUE: i	 === 0
+			VALUE: 4	 === 4
+			VALUE: i <= 4	 === true
+test/gitbug626/Test.java:10:  	LoopInvariantBeforeLoop assertion: _JML__conditionalResult_19
+test/gitbug626/Test.java:10:  	//@ loop_invariant 0 <= i && i <= 4;
+			VALUE: 0	 === 0
+			VALUE: i	 === 4
+			VALUE: 0 <= i	 === true
+			VALUE: i	 === 4
+			VALUE: 4	 === 4
+			VALUE: i <= 4	 === true
+			VALUE: 0 <= i && i <= 4	 === true
+test/gitbug626/Test.java:11:  	Loop test
+			VALUE: i	 === 4
+			VALUE: 0	 === 0
+			VALUE: i >= 0	 === true
+			VALUE: i	 === 4
+			VALUE: 4	 === 4
+			VALUE: i < 4	 === false
+			VALUE: i >= 0 && i < 4	 === false
+test/gitbug626/Test.java:13:  	return -1;
+			VALUE: -1	 === ( - 1 )
+test/gitbug626/Test.java:6:  	ensures (\result >= -1) && (\result < 4); 
+			VALUE: \result	 === ( - 1 )
+			VALUE: -1	 === ( - 1 )
+			VALUE: \result >= -1	 === true
+			VALUE: (\result >= -1)	 === true
+			VALUE: \result	 === ( - 1 )
+			VALUE: 4	 === 4
+			VALUE: \result < 4	 === true
+			VALUE: (\result < 4)	 === true
+test/gitbug626/Test.java:7:  	ensures (\result >= 0) ==> x[\result]; 
+			VALUE: \result	 === ( - 1 )
+			VALUE: 0	 === 0
+			VALUE: \result >= 0	 === false
+			VALUE: (\result >= 0)	 === false
+test/gitbug626/Test.java:8:  	ensures (\result == -1) ==> (\forall int i; (0 <= i) && (i < 4); !x[i]); 
+			VALUE: \result	 === ( - 1 )
+			VALUE: -1	 === ( - 1 )
+			VALUE: \result == -1	 === true
+			VALUE: (\result == -1)	 === true
+			VALUE: \forall int i; (0 <= i) && (i < 4); !x[i]	 === false
+			VALUE: (\forall int i; (0 <= i) && (i < 4); !x[i])	 === false
+test/gitbug626/Test.java:13:  Invalid assertion (Postcondition)
+ Associated location
+
+Completed proof of Test.findFirstSetLoop(boolean[]) with prover !!!! - with warnings
+Completed proving methods in Test
+2 warnings

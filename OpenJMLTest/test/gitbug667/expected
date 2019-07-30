@@ -1,0 +1,82 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.add(int) with prover !!!!
+test/gitbug667/Test.java:7: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method add:  overflow in int sum
+        return a+1;  // Should issue an overflow error
+                ^
+Completed proof of Test.add(int) with prover !!!! - with warnings
+Starting proof of Test.inc(int) with prover !!!!
+test/gitbug667/Test.java:10: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc:  overflow in int sum
+        return ++a;  // Should issue an overflow error
+               ^
+Completed proof of Test.inc(int) with prover !!!! - with warnings
+Starting proof of Test.dec(int) with prover !!!!
+test/gitbug667/Test.java:13: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method dec:  underflow in int difference
+        return --a;  // Should issue an overflow error
+               ^
+Completed proof of Test.dec(int) with prover !!!! - with warnings
+Starting proof of Test.incp(int) with prover !!!!
+test/gitbug667/Test.java:17: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method incp:  overflow in int sum
+        return a++;  // Should issue an overflow error
+                ^
+Completed proof of Test.incp(int) with prover !!!! - with warnings
+Starting proof of Test.decp(int) with prover !!!!
+test/gitbug667/Test.java:21: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method decp:  underflow in int difference
+        return a--;  // Should issue an overflow error
+                ^
+Completed proof of Test.decp(int) with prover !!!! - with warnings
+Starting proof of Test.addarray(int[]) with prover !!!!
+test/gitbug667/Test.java:26: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method addarray:  overflow in int sum
+        return aa[0]+1;  // Should issue an overflow error
+                    ^
+Completed proof of Test.addarray(int[]) with prover !!!! - with warnings
+Starting proof of Test.incarray(int[]) with prover !!!!
+test/gitbug667/Test.java:30: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method incarray:  overflow in int sum
+        return ++aa[0];  // Should issue an overflow error
+               ^
+Completed proof of Test.incarray(int[]) with prover !!!! - with warnings
+Starting proof of Test.decarray(int[]) with prover !!!!
+test/gitbug667/Test.java:34: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method decarray:  underflow in int difference
+        return --aa[0];  // Should issue an overflow error
+               ^
+Completed proof of Test.decarray(int[]) with prover !!!! - with warnings
+Starting proof of Test.incarrayx(int[]) with prover !!!!
+test/gitbug667/Test.java:38: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method incarrayx:  overflow in int sum
+        return aa[0]++;  // Should issue an overflow error
+                    ^
+Completed proof of Test.incarrayx(int[]) with prover !!!! - with warnings
+Starting proof of Test.decarrayx(int[]) with prover !!!!
+test/gitbug667/Test.java:42: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method decarrayx:  underflow in int difference
+        return aa[0]--;  // Should issue an overflow error
+                    ^
+Completed proof of Test.decarrayx(int[]) with prover !!!! - with warnings
+Starting proof of Test.add(Test) with prover !!!!
+test/gitbug667/Test.java:46: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method add:  overflow in int sum
+        return a.f+1;  // Should issue an overflow error
+                  ^
+Completed proof of Test.add(Test) with prover !!!! - with warnings
+Starting proof of Test.inc(Test) with prover !!!!
+test/gitbug667/Test.java:49: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc:  overflow in int sum
+        return ++a.f;  // Should issue an overflow error
+               ^
+Completed proof of Test.inc(Test) with prover !!!! - with warnings
+Starting proof of Test.dec(Test) with prover !!!!
+test/gitbug667/Test.java:52: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method dec:  underflow in int difference
+        return --a.f;  // Should issue an overflow error
+               ^
+Completed proof of Test.dec(Test) with prover !!!! - with warnings
+Starting proof of Test.incx(Test) with prover !!!!
+test/gitbug667/Test.java:55: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method incx:  overflow in int sum
+        return a.f++;  // Should issue an overflow error
+                  ^
+Completed proof of Test.incx(Test) with prover !!!! - with warnings
+Starting proof of Test.decx(Test) with prover !!!!
+test/gitbug667/Test.java:58: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method decx:  underflow in int difference
+        return a.f--;  // Should issue an overflow error
+                  ^
+Completed proof of Test.decx(Test) with prover !!!! - with warnings
+Completed proving methods in Test
+15 warnings

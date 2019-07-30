@@ -9,7 +9,7 @@ import java.util.Arrays;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
-import org.jmlspecs.openjml.JmlTreeScanner;
+import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 import org.jmlspecs.openjmltest.JmlTestCase;
 import org.jmlspecs.openjmltest.TestJavaFileObject;
 import org.junit.Rule;

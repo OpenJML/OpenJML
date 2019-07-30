@@ -25,7 +25,7 @@ public class StackImpl implements Stack {
 	}
 
 	//@ pure
-	public boolean isEmpty() {
+	@Override public boolean isEmpty() {
 		return internalStack.length == 0;
 	}
 

@@ -1,0 +1,10 @@
+Proving methods in INF
+Starting proof of INF.INF() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of INF.INF() with prover !!!! - no warnings
+Starting proof of INF.mk() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of INF.mk() with prover !!!! - no warnings
+Completed proving methods in INF

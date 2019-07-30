@@ -28,7 +28,7 @@ public class SpecificationInterfaceDemo {
   }
 
   //@   requires z > 0;
-  //@   assignable \nothing;
+  //@   assignable f.applyFrame;
   //@   ensures \result != null && \result > 0;
   public Integer mok(/*@{ PositivePureFunction }@*/ Function<Integer,Integer> f, Integer z) {
     return f.apply(z);
@@ -39,7 +39,7 @@ public class SpecificationInterfaceDemo {
   public void mbad3(Function<Integer,Integer> f, Integer z) {
     zz = 0;
     Integer k = f.apply(z);
-    //@ assert zz == 0; // FAILS because apply might change zz
+    //@ assert zz == 0;
   }
 
   //@   requires z > 0;

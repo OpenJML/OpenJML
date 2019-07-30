@@ -9,9 +9,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.jmlspecs.openjml.Extensions;
+import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.IJmlLineAnnotation;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.LineAnnotationClauses;
+import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
+import org.jmlspecs.openjml.ext.MiscExtensions;
+import org.jmlspecs.openjml.ext.Operators;
+import org.jmlspecs.openjml.ext.SingletonExpressions;
 
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
 import com.sun.tools.javac.parser.Tokens.Token;
@@ -22,6 +30,8 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.DiagnosticSource;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.LayoutCharacters;
+import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
 
 /* NOTE: (FIXME Review this now that Tokenizer has been refactored out) 
@@ -57,6 +67,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     
     /** A temporary reference to the instance of the nowarn collector for the context. */
     /*@ non_null */ public Nowarns nowarns;
+    public java.util.List<ExceptionLineAnnotation> lineAnnotations = new java.util.LinkedList<>();
 
     /**
      * A flag that, when true, causes all JML constructs to be ignored; it is
@@ -91,7 +102,8 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
 
     /** Valid after nextToken() and contains the next token if it is a JML token
      * and null if the next token is a Java token */
-    @Nullable protected JmlTokenKind   jmlTokenKind;
+    @Nullable public JmlTokenKind   jmlTokenKind;
+    @Nullable public IJmlClauseKind jmlTokenClauseKind;
 
     
     private JmlToken jmlToken; // FIXME - does this need to be a field?
@@ -145,6 +157,10 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         boolean t = jml;
         jml = j;
         return t;
+    }
+    
+    public boolean jml() {
+        return jml;
     }
 
     /**
@@ -343,6 +359,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         int pos, endPos;
         while (true) { // The loop is just so we can easily restart with a 'continue' 
             jmlTokenKind = null;
+            jmlTokenClauseKind = null;
             Token t = super.readToken(); // Sets tk, May modify jmlTokenKind
             pos = t.pos;
             endPos = t.endPos;
@@ -371,8 +388,10 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             // FIXME - review and fix use of ENDOFCOMMENT tokens in the parser; also unicode
             
             if (!jml) {
-                if (jmlTokenKind == JmlTokenKind.ENDJMLCOMMENT) {
-                    jmlToken = new JmlToken(jmlTokenKind, t);
+                if (jmlTokenClauseKind == Operators.endjmlcommentKind) {
+                    jmlToken = new JmlToken(jmlTokenKind, jmlTokenClauseKind, t);
+                    // if initialJml == true and now the token is ENDJMLCOMMENT, then we had 
+                    // an empty comment. We don't return a token in that case.
                     if (!returnEndOfCommentTokens || !initialJml) continue; // Go get next token
                     return jmlToken;
                 } else {
@@ -380,10 +399,17 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 }
             }
 
-            if (jmlTokenKind == JmlTokenKind.NOWARN) {
-                scanNowarn(reader.bp);  // FIXME - I doubt this is working after the Java 8 merge
-                continue;
-            } else if (tk == TokenKind.STAR && reader.ch == '/'
+            if (t.kind == TokenKind.IDENTIFIER && jmlkeyword) {
+                String id = t.name().toString();
+                IJmlClauseKind lak = org.jmlspecs.openjml.Extensions.lineAnnotations.get(id);
+                if (lak!= null) {
+                    scanLineAnnotation(reader.bp, id, lak);
+                    continue;
+                }
+            }
+//            } else if (jmlTokenKind == JmlTokenKind.PRIMITIVE_TYPE) {
+//                // finish and exit
+            if (tk == TokenKind.STAR && reader.ch == '/'
                 && jmlcommentstyle == CommentStyle.BLOCK) {
                 // We're in a BLOCK comment and we scanned a * and the next
                 // character is a / so we are at the end of the comment
@@ -391,6 +417,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 jml = false;
                 endPos = reader.bp;
                 jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
+                jmlTokenClauseKind = Operators.endjmlcommentKind;
                 if (!returnEndOfCommentTokens || !initialJml) continue;
             } else if (tk == TokenKind.MONKEYS_AT) {
                 // This is just for the case that a terminating */ is preceded by one or more @s
@@ -420,6 +447,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                     }
                     tk = TokenKind.CUSTOM;
                     jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
+                    jmlTokenClauseKind = Operators.endjmlcommentKind;
                     jml = false;
                     endPos = reader.bp;
                     if (!returnEndOfCommentTokens || !initialJml) continue;
@@ -455,6 +483,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 endPos = reader.bp;
                 tk = TokenKind.CUSTOM;
                 jmlTokenKind = JmlTokenKind.INFORMAL_COMMENT;
+                jmlTokenClauseKind = SingletonExpressions.informalCommentKind;
 //            } else if (jmlTokenKind == JmlTokenKind.MODEL) {
 //                int prevbp = reader.bp; // FIXME _ this is probably not working; check endPos
 //                Token tt = super.readToken();
@@ -470,18 +499,21 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             } else if (tk == TokenKind.LBRACE && reader.ch == '|') {
                 tk = TokenKind.CUSTOM;
                 jmlTokenKind = JmlTokenKind.SPEC_GROUP_START;
+                jmlTokenClauseKind = Operators.specgroupstartKind;
                 scanChar();
                 endPos = reader.bp;
             } else if (tk == TokenKind.BAR && reader.ch == '}') {
                 tk = TokenKind.CUSTOM;
                 jmlTokenKind = JmlTokenKind.SPEC_GROUP_END;
+                jmlTokenClauseKind = Operators.specgroupendKind;
                 reader.scanChar();
                 endPos = reader.bp;
             } else if (tk == TokenKind.ERROR && reader.sp == 2 && reader.sbuf[0] == '.' && reader.sbuf[1] == '.') {
                 jmlTokenKind = JmlTokenKind.DOT_DOT;
+                jmlTokenClauseKind = Operators.dotdotKind;
                 endPos = reader.bp;
             }
-            return jmlTokenKind == null ? t : new JmlToken(jmlTokenKind, TokenKind.CUSTOM, pos, endPos);
+            return jmlTokenKind == null ? t : new JmlToken(jmlTokenKind, jmlTokenClauseKind, TokenKind.CUSTOM, pos, endPos);
         }
     }
     
@@ -503,43 +535,8 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     /** This method presumes the NOWARN token has been read and handles the names
      * within the nowarn, reading through the terminating semicolon or end of JML comment
      */
-    public void scanNowarn(int pos) {
-        boolean prev = jmlkeyword;
-        jmlkeyword = false;
-        try {
-            Token t = readToken();
-            if (t.kind == TokenKind.SEMI || t.ikind == JmlTokenKind.ENDJMLCOMMENT) {
-                // No labels - so this means suppress everything
-                // Indicate this with null
-                handleNowarn(log.currentSource(), pos, null);
-            } else {
-                while (t.kind != TokenKind.SEMI && t.ikind != JmlTokenKind.ENDJMLCOMMENT) {
-                    if (t.kind != TokenKind.IDENTIFIER){
-                        // Bad statement or missing terminating semicolon
-                        jmlError(t.pos, reader.bp, "jml.bad.nowarn");
-                        // expected identifier
-                        skipThroughChar(';');
-                        return;
-                    }
-                    String label = reader.chars();
-                    handleNowarn(log.currentSource(), reader.bp, label);
-                    t = readToken();
-                    if (t.kind == TokenKind.COMMA){
-                        t = readToken();
-                    }
-                }
-            }
-            if (jmlTokenKind == JmlTokenKind.ENDJMLCOMMENT) { 
-                log.warning(t.pos, "jml.nowarn.with.no.semicolon");
-                // Here we are swallowing the end of comment - we normally 
-                // expect that token in the stream. However if there is just a 
-                // nowarn, the Java scanner will not expect a standalone ENDJMLCOMMENT
-                // FIXME - check the case of //@ some JML stuff ; nowarn xx 
-                // or with /*@  -- does this parse OK
-            }
-        } finally {
-            jmlkeyword = prev;
-        }
+    public void scanLineAnnotation(int pos, String id, IJmlClauseKind ckind) {
+        ((IJmlClauseKind.LineAnnotationKind)ckind).scan(pos, id, ckind, this);
     }
 
     /**
@@ -596,6 +593,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             if (jmlcommentstyle == CommentStyle.LINE) {
                 jml = false;
                 jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
+                jmlTokenClauseKind = Operators.endjmlcommentKind;
                 if (returnEndOfCommentTokens) {
                     reader.ch = '@'; // Signals the end of comment to nextToken()
                     reader.bp--; // FIXME - not right for unicode
@@ -621,22 +619,30 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     @Override
     protected void scanIdent() {
         super.scanIdent(); // Sets tk and name
-        if (!jml || !jmlkeyword)  // FIXME _ in this case jmlTokenKind should be set to null?
+        jmlTokenKind = null;
+        jmlTokenClauseKind = null;
+        if (jml && tk == TokenKind.ASSERT) {
+            tk = TokenKind.IDENTIFIER;
+        }
+        if (!jml || !jmlkeyword) {
             return;
+        }
         if (tk == TokenKind.IDENTIFIER) {
             String s = reader.chars();
             // TODO - we are just ignoring the redundantly suffixes
             if (s.endsWith("_redundantly")) {
                 s = s.substring(0, s.length() - "_redundantly".length());
+                name = Names.instance(context).fromString(s);
             }
             JmlTokenKind tt = JmlTokenKind.allTokens.get(s);
             if (tt != null) {
                 jmlTokenKind = tt;
+                jmlTokenClauseKind = Extensions.allKinds.get(s);
                 return; 
             }
-            // FIXME - can we count on jmlTokenKind to be null?
         } else if (tk == TokenKind.ASSERT) {
-            jmlTokenKind = JmlTokenKind.ASSERT;
+            tk = TokenKind.IDENTIFIER;
+            name = Names.instance(context).fromString("assert");
         }
     }
 
@@ -660,8 +666,13 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 if (t != null) {
                     tk = TokenKind.CUSTOM;
                     jmlTokenKind = t;
+                    jmlTokenClauseKind = Extensions.allKinds.get(seq);
                 } else {
-                    jmlError(ep, reader.bp, "jml.bad.backslash.token", seq);
+                    tk = TokenKind.IDENTIFIER;
+                    jmlTokenKind = null;
+                    jmlTokenClauseKind = Extensions.allKinds.get(seq);
+
+                    //jmlError(ep, reader.bp, "jml.bad.backslash.token", seq);
                     // token is set to ERROR
                 }
             } else {
@@ -681,6 +692,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 endPos = reader.bp;
                 tk = TokenKind.CUSTOM;
                 jmlTokenKind = JmlTokenKind.IMPLIES; // ==>
+                jmlTokenClauseKind = Operators.impliesKind;
             }
         } else if (t == TokenKind.LTEQ) {
             if (reader.ch == '=') {
@@ -689,11 +701,13 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 if (reader.ch == '>') {
                     tk = TokenKind.CUSTOM;
                     jmlTokenKind = JmlTokenKind.EQUIVALENCE; // <==>
+                    jmlTokenClauseKind = Operators.equivalenceKind;
                     reader.scanChar();
                     endPos = reader.bp;
                 } else {
                     tk = TokenKind.CUSTOM;
                     jmlTokenKind = JmlTokenKind.REVERSE_IMPLIES; // <==
+                    jmlTokenClauseKind = Operators.reverseimpliesKind;
                     endPos = reader.bp;
                 }
             } else if (reader.ch == '!') {
@@ -704,6 +718,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                     if (reader.ch == '>') {
                         tk = TokenKind.CUSTOM;
                         jmlTokenKind = JmlTokenKind.INEQUIVALENCE; // <=!=>
+                        jmlTokenClauseKind = Operators.inequivalenceKind;
                         reader.scanChar();
                         endPos = reader.bp;
                     } else { // reset to the !
@@ -717,34 +732,49 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             if (reader.ch == ':') {
                 tk = TokenKind.CUSTOM;
                 jmlTokenKind = JmlTokenKind.SUBTYPE_OF; // <:
+                jmlTokenClauseKind = Operators.subtypeofKind;
                 reader.scanChar();
                 endPos = reader.bp;
+                if (reader.ch == '=') {
+                    tk = TokenKind.CUSTOM;
+                    jmlTokenKind = JmlTokenKind.SUBTYPE_OF_EQ; // <:=
+                    jmlTokenClauseKind = Operators.subtypeofeqKind;
+                    reader.scanChar();
+                    endPos = reader.bp;
+                }
             } else if (reader.ch == '-') {
                 tk = TokenKind.CUSTOM;
                 jmlTokenKind = JmlTokenKind.LEFT_ARROW; // <-
+                jmlTokenClauseKind = Operators.leftarrowKind;
                 reader.scanChar();
                 endPos = reader.bp;
             } else if (reader.ch == '#') {
                 tk = TokenKind.CUSTOM;
                 jmlTokenKind = JmlTokenKind.LOCK_LT; // <#
+                jmlTokenClauseKind = Operators.lockltKind;
                 reader.scanChar();
                 if (reader.ch == '=') {
                     jmlTokenKind = JmlTokenKind.LOCK_LE; // <#=
+                    jmlTokenClauseKind = Operators.lockleKind;
                     reader.scanChar();
                 }
                 endPos = reader.bp;
             }
-//        } else if (tk == TokenKind.ARROW) {
-//            // Java 8 has a token called ARROW - which was not present in Java 7
-//            // FIXME - we will need to combine the two uses
-//            jmlTokenKind = JmlTokenKind.RIGHT_ARROW;
-//        } else if (tk == TokenKind.SUB) {
-//            if (reader.ch == '>') {
-//                tk = TokenKind.CUSTOM;
-//                jmlTokenKind = JmlTokenKind.RIGHT_ARROW; // ->
-//                reader.scanChar();
-//                endPos = reader.bp;
-//            }
+        } else if (t == TokenKind.LTLT) {
+            if (reader.ch == '<') {
+                tk = TokenKind.CUSTOM;
+                jmlTokenKind = JmlTokenKind.WF_LT; // <<<
+                jmlTokenClauseKind = Operators.wfltKind;
+                reader.scanChar();
+                endPos = reader.bp;
+                if (reader.ch == '=') {
+                    tk = TokenKind.CUSTOM;
+                    jmlTokenKind = JmlTokenKind.WF_LE; // <<<=
+                    jmlTokenClauseKind = Operators.wfleKind;
+                    reader.scanChar();
+                    endPos = reader.bp;
+                }
+            }
         }
     }
 
@@ -769,6 +799,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         if (reader.sp == 2 && "illegal.dot".equals(key) && reader.sbuf[0] == '.' && reader.sbuf[1] == '.') {
             tk = TokenKind.CUSTOM;
             jmlTokenKind = JmlTokenKind.DOT_DOT;
+            jmlTokenClauseKind = Operators.dotdotKind;
         } else {
             jmlError(pos,key,args);
         }
@@ -782,13 +813,14 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         tk = TokenKind.ERROR;
         jmlToken = null;
         jmlTokenKind = null;
+        jmlTokenClauseKind = null;
         errPos(pos);
     }
 
     /** Logs an error; the character range of the error is from pos up to 
      * BUT NOT including endpos.
      */
-    protected void jmlError(int pos, int endpos, String key, Object... args) {
+    public void jmlError(int pos, int endpos, String key, Object... args) {
         // FIXME - the endPos -1 is not unicode friendly - and actually we'd like to adjust the
         // positions of pos and endpos to correspond to appropriate unicode boundaries, here and in
         // the other jmlError method
@@ -796,6 +828,14 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         tk = TokenKind.ERROR;
         jmlToken = null;
         errPos(pos);
+    }
+    
+    public String chars() {
+        return reader.chars();
+    }
+    // Index of next character to be read
+    public int pos() {
+        return reader.bp;
     }
     
     /** A derived class of DiagnosticPosition that allows for straightforward setting of the

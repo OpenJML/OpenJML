@@ -2,19 +2,19 @@ Proving methods in AA
 Completed proving methods in AA
 Proving methods in A
 Starting proof of A.A() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of A.A() with prover !!!! - no warnings
 Starting proof of A.ok(int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of A.ok(int) with prover !!!! - no warnings
 Starting proof of A.test(int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of A.test(int) with prover !!!! - no warnings
 Starting proof of A.test2(int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of A.test2(int) with prover !!!! - no warnings
 Completed proving methods in A

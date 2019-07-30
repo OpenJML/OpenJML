@@ -25,7 +25,7 @@ public class Test {
         int e;
         
         //@ old boolean e = f == 0;
-        //@ ensures e;
+        //@ ensures e==0;
         {
             e = 1;
             f = 1;

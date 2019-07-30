@@ -1,0 +1,106 @@
+Proving methods in Map
+Starting proof of Map.Map() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Map.Map() with prover !!!! - no warnings
+Starting proof of Map.<K,V>newMapIsEmpty() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Map.<K,V>newMapIsEmpty() with prover !!!! - no warnings
+Starting proof of Map.<K,V>putBumpsSize(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Map.<K,V>putBumpsSize(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!! - no warnings
+Starting proof of Map.<K,V>putDoesNotChangeSize(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Map.<K,V>putDoesNotChangeSize(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!! - no warnings
+Starting proof of Map.<K,V>putRemove(org.jmlspecs.lang.map<K,V>,K,V,K) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Map.<K,V>putRemove(org.jmlspecs.lang.map<K,V>,K,V,K) with prover !!!! - no warnings
+Starting proof of Map.<K,V>putRemoveA(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Map.<K,V>putRemoveA(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!! - no warnings
+Starting proof of Map.<K,V>keyset(org.jmlspecs.lang.map<K,V>,K) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Map.<K,V>keyset(org.jmlspecs.lang.map<K,V>,K) with prover !!!! - no warnings
+Starting proof of Map.<K,V>putNoChange(org.jmlspecs.lang.map<K,V>,K) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Map.<K,V>putNoChange(org.jmlspecs.lang.map<K,V>,K) with prover !!!! - no warnings
+Starting proof of Map.<K,V>addRemove(org.jmlspecs.lang.map<K,V>,K) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Map.<K,V>addRemove(org.jmlspecs.lang.map<K,V>,K) with prover !!!! - no warnings
+Starting proof of Map.<K,V>addRemoveB(org.jmlspecs.lang.map<K,V>,K) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Map.<K,V>addRemoveB(org.jmlspecs.lang.map<K,V>,K) with prover !!!! - no warnings
+Completed proving methods in Map
+Proving methods in Seq
+Starting proof of Seq.Seq() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Seq.Seq() with prover !!!! - no warnings
+Starting proof of Seq.<T>newSeqIsEmpty() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Seq.<T>newSeqIsEmpty() with prover !!!! - no warnings
+Starting proof of Seq.<T>addBumpsSize(org.jmlspecs.lang.seq<T>,T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Seq.<T>addBumpsSize(org.jmlspecs.lang.seq<T>,T) with prover !!!! - no warnings
+Starting proof of Seq.<T>addBumpsSize(org.jmlspecs.lang.seq<T>,T,\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Seq.<T>addBumpsSize(org.jmlspecs.lang.seq<T>,T,\bigint) with prover !!!! - no warnings
+Starting proof of Seq.<T>removeLowersSize(org.jmlspecs.lang.seq<T>,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Seq.<T>removeLowersSize(org.jmlspecs.lang.seq<T>,int) with prover !!!! - no warnings
+Starting proof of Seq.<T>addRemove(org.jmlspecs.lang.seq<T>,T,\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Seq.<T>addRemove(org.jmlspecs.lang.seq<T>,T,\bigint) with prover !!!! - no warnings
+Completed proving methods in Seq
+Proving methods in Set
+Starting proof of Set.Set() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Set.Set() with prover !!!! - no warnings
+Starting proof of Set.<T>newSetIsEmpty() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Set.<T>newSetIsEmpty() with prover !!!! - no warnings
+Starting proof of Set.<T>singleton(T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Set.<T>singleton(T) with prover !!!! - no warnings
+Starting proof of Set.<T>addBumpsSize(org.jmlspecs.lang.set<T>,T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Set.<T>addBumpsSize(org.jmlspecs.lang.set<T>,T) with prover !!!! - no warnings
+Starting proof of Set.<T>addDoesNotChangeSize(org.jmlspecs.lang.set<T>,T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Set.<T>addDoesNotChangeSize(org.jmlspecs.lang.set<T>,T) with prover !!!! - no warnings
+Starting proof of Set.<T>addRemove(org.jmlspecs.lang.set<T>,T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Set.<T>addRemove(org.jmlspecs.lang.set<T>,T) with prover !!!! - no warnings
+Starting proof of Set.<T>addNoChange(org.jmlspecs.lang.set<T>,T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Set.<T>addNoChange(org.jmlspecs.lang.set<T>,T) with prover !!!! - no warnings
+Starting proof of Set.<T>addRemoveA(org.jmlspecs.lang.set<T>,T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Set.<T>addRemoveA(org.jmlspecs.lang.set<T>,T) with prover !!!! - no warnings
+Starting proof of Set.<T>addRemoveB(org.jmlspecs.lang.set<T>,T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Set.<T>addRemoveB(org.jmlspecs.lang.set<T>,T) with prover !!!! - no warnings
+Completed proving methods in Set

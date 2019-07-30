@@ -4,13 +4,13 @@ public class Test {
 	
     //@ public normal_behavior
 	//@   requires f != null && g != null;
-	//@   ensures \result != null && (\forall Integer i,r;; \post(\result,r,i) == (\exists Integer t;; \post(g,t,i) && \post(f,r,t)));
+	//@   ensures \result != null && (\forall Integer i,r;; \ensures(\result,r,i) == (\exists Integer t;; \ensures(g,t,i) && \ensures(f,r,t)));
 	public static Function<Integer,Integer> compose(Function<Integer,Integer> f, Function<Integer,Integer> g) {
 		return i -> f.apply(g.apply(i));
 	}
 	
 	public static class Dec implements Function<Integer,Integer> {
-		//@ public normal_behavior
+		//@ also public normal_behavior
 		//@   requires i != Integer.MIN_VALUE;
 		//@   ensures \result != null && \result == i - 1;
 		public Integer apply(Integer i) {
@@ -21,7 +21,7 @@ public class Test {
 	public Function<Integer,Integer> dec = i -> i-1;
 	
 	public static class Inc implements Function<Integer,Integer>  {
-		//@ public normal_behavior
+		//@ also public normal_behavior
 		//@   requires i != Integer.MAX_VALUE;
 		//@   ensures \result != null && \result == i + 1;
 		public Integer apply(Integer i) {
@@ -32,7 +32,7 @@ public class Test {
 	public Function<Integer,Integer> inc = i -> i-1;
 	
 	public static class Bump implements Function<Integer,Integer>  {
-		//@ public normal_behavior
+		//@ also public normal_behavior
 		//@   requires i != Integer.MAX_VALUE;
 		//@   ensures \result != null && \result > i;
 		public Integer apply(Integer i) {

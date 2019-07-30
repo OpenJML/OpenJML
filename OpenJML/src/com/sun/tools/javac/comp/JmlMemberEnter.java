@@ -452,6 +452,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (m.isConstructor() && (m.flags() & Utils.JMLBIT) != 0 && m.params().isEmpty()) {
             ((JmlCheck)chk).noDuplicateWarn = true;
         }
+//        if (m.owner.isEnum() && m.toString().equals("valueOf(java.lang.String)")) {
+//            ((JmlCheck)chk).noDuplicateWarn = true;
+//        }  // FIXME
         if (chk.checkUnique(tree.pos(), m, enclScope)) {
             if (!noEntering) {
                 if (tree.body == null && m.owner.isInterface() && utils.isJML(m.flags())) {
@@ -657,6 +660,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // Note that if the class is binary, javaDecl will be null, but csym will not
 
         MethodSymbol matchSym = false ? specsMethodDecl.sym : matchMethod(specsMethodDecl,csym,env,false);
+        if (matchSym != null && matchSym.owner != csym) {
+            log.warning("jml.message", "Unexpected location (ASD): " + csym);
+            matchSym = specsMethodDecl.sym;
+        }
         
         // matchsym == null ==> no match or duplicate; otherwise matchSym is the matching symbol
         
@@ -742,7 +749,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 javaMatch.methodSpecsCombined = specsMethodDecl.methodSpecsCombined;
                 javaMatch.methodSpecsCombined.cases.decl = javaMatch; // FIXME - is this needed?
                 
-            } else {
+            } else if (javaMatch != specsMethodDecl) {
                 javaMatch = null;
                 log.error("jml.internal", "Unexpected duplicate Java method declaration, without a matching symbol: " + matchSym);
             }
@@ -1935,6 +1942,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (utils.isJML(tree.mods)) resolve.setAllowJML(prev);
         if (tree.sym == null) {
             // A duplicate
+            env.enclClass.defs = List.filter(env.enclClass.defs,tree);
             return;
         }
         Symbol sym = tree.sym;
@@ -1964,7 +1972,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             chk.checkTransparentVar(tree.pos(), v, enclScope);
             if (!noEntering) enclScope.enter(v);
         } else {
-            tree.sym = null; // An indication that the field is a duplicate and should be removed/ignored
+            // A duplicate definition. It is not entered into the scope, but we
+            // give it its symbol so later processing does not crash.
+            tree.sym = v;
         }
     }
 

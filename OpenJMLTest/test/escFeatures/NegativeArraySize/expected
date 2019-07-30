@@ -1,16 +1,16 @@
 Proving methods in features.NegativeArraySize
 Starting proof of features.NegativeArraySize.NegativeArraySize() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of features.NegativeArraySize.NegativeArraySize() with prover !!!! - no warnings
 Starting proof of features.NegativeArraySize.main(java.lang.String...) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of features.NegativeArraySize.main(java.lang.String...) with prover !!!! - no warnings
 Starting proof of features.NegativeArraySize.test(int) with prover !!!!
 ..\..\OpenJMLDemo\src\features\NegativeArraySize.java:12: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method test
 		int[] a = new int[size];
-		          ^
+		                  ^
 Completed proof of features.NegativeArraySize.test(int) with prover !!!! - with warnings
 Completed proving methods in features.NegativeArraySize
 1 warning

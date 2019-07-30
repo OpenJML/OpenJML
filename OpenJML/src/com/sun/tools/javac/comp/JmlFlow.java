@@ -7,15 +7,19 @@ package com.sun.tools.javac.comp;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.IJmlVisitor;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.MiscExpressions;
+import org.jmlspecs.openjml.ext.StateExpressions;
+import org.jmlspecs.openjml.vistors.IJmlVisitor;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
@@ -100,6 +104,12 @@ public class JmlFlow extends Flow  {
         }
         
         @Override
+        public void visitJmlChained(JmlChained that) {
+            scan(that.conjuncts.head.lhs);
+            for (JCTree.JCBinary b: that.conjuncts) scan(b.rhs);
+        }
+        
+        @Override
         public void visitJmlBlock(JmlBlock that) {
             scanStats(that.stats);
         }
@@ -140,7 +150,7 @@ public class JmlFlow extends Flow  {
         public void visitJmlImport(JmlImport that) {
             visitImport(that);
         }
-
+        
         @Override
         public void visitJmlSingleton(JmlSingleton that) {
             // nothing to do
@@ -148,13 +158,21 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-//            scan(that.extraStatements.toList()); // TODO - check about this
+            scan(that.extraStatements.toList());
             scan(that.body);
         }
 
         @Override
         public void visitJmlLblExpression(JmlLblExpression that) {
             scan(that.expression);
+        }
+
+        public void visitJmlMatchExpression(JmlMatchExpression that) {
+            scan(that.expression);
+            for (JmlMatchExpression.MatchCase c: that.cases) {
+                scan(c.caseExpression);
+                scan(c.value);
+            }
         }
 
         @Override
@@ -183,6 +201,11 @@ public class JmlFlow extends Flow  {
             scan(that.storerefs);
         }
 
+        public void visitJmlTuple(JmlTuple that) {
+            for (JCExpression e: that.values)
+                scan(e);
+        }
+        
         @Override
         public void visitJmlVariableDecl(JmlVariableDecl that) {
             visitVarDef(that);
@@ -261,12 +284,14 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseDecl");
+            // Needed for old clauses
+            for (JCVariableDecl d: that.decls) visitVarDef(d);
+            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseDecl");
         }
 
         @Override
         public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseExpr");
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseExpr");
         }
 
         @Override
@@ -311,10 +336,10 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
-//            scan(that.expression);
-//            scan(that.lo);
-//            scan(that.hi);
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
+            scan(that.expression);
+            scan(that.lo);
+            if (that.lo != that.hi) scan(that.hi);
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
         }
 
         @Override
@@ -431,7 +456,8 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitApply(JCMethodInvocation tree) {
             if (tree.meth == null) {
-                if (((JmlMethodInvocation)tree).token == JmlTokenKind.BSOLD) {
+                IJmlClauseKind k = ((JmlMethodInvocation)tree).kind;
+                if (k == StateExpressions.oldKind || k == MiscExpressions.freshKind) {
                     scanExpr(tree.args.get(0)); // A second argument is just a label, and not a regular identifier
                     // FIXME - where do we check that the label is in scope
                 } else {
@@ -458,8 +484,14 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlBinary(JmlBinary that) {
-            scan(that.lhs);
-            scan(that.rhs);
+            scanExpr(that.lhs);
+            scanExpr(that.rhs);
+        }
+
+        @Override
+        public void visitJmlChained(JmlChained that) {
+            scanExpr(that.conjuncts.head.lhs);
+            for (JCTree.JCBinary b: that.conjuncts) scanExpr(b.rhs);
         }
         
         @Override
@@ -510,14 +542,27 @@ public class JmlFlow extends Flow  {
         }
 
         public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-//            scan(that.extraStatements.toList()); // TODO _ review this
+            scan(that.extraStatements.toList());
             scan(that.body);
+        }
+        
+        public void visitJmlTuple(JmlTuple that) {
+            for (JCExpression e: that.values)
+                scanExpr(e);
         }
         
 
         @Override
         public void visitJmlLblExpression(JmlLblExpression that) {
-            scan(that.expression);
+            scanExpr(that.expression);
+        }
+
+        public void visitJmlMatchExpression(JmlMatchExpression that) {
+            scanExpr(that.expression);
+            for (JmlMatchExpression.MatchCase c: that.cases) {
+                //scan(c.caseExpression);
+                //scan(c.value); // FIXME - spurious nonn-initialized errors
+            }
         }
 
         @Override
@@ -527,7 +572,7 @@ public class JmlFlow extends Flow  {
         
         @Override
         public void visitJmlStatementShow(JmlStatementShow that) {
-            scan(that.expressions);
+            scanExprs(that.expressions);
         }
 
         @Override
@@ -579,6 +624,7 @@ public class JmlFlow extends Flow  {
             } else {
                 scanExpr(that.range);
                 scanExpr(that.value);
+                scanExprs(that.triggers);
             }
             quantDeclStack.remove(0);
         }
@@ -629,12 +675,13 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseDecl");
+            for (JCVariableDecl d: that.decls) visitVarDef(d);
+            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseDecl");
         }
 
         @Override
         public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseExpr");
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseExpr");
         }
 
         @Override
@@ -679,10 +726,10 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
-//            scan(that.expression);
-//            scan(that.lo);
-//            scan(that.hi);
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
+            scanExpr(that.expression);
+            scanExpr(that.lo);
+            if (that.lo != that.hi) scanExpr(that.hi);
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
         }
 
         @Override
@@ -816,6 +863,12 @@ public class JmlFlow extends Flow  {
         }
         
         @Override
+        public void visitJmlChained(JmlChained that) {
+            scan(that.conjuncts.head.lhs);
+            for (JCTree.JCBinary b: that.conjuncts) scan(b.rhs);
+        }
+        
+        @Override
         public void visitJmlBlock(JmlBlock that) {
             scan(that.stats);
         }
@@ -864,13 +917,21 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-//            scan(that.extraStatements.toList()); // FIXME - REVIEW THIS
+            scan(that.extraStatements.toList());
             scan(that.body);
         }
 
         @Override
         public void visitJmlLblExpression(JmlLblExpression that) {
             scan(that.expression);
+        }
+
+        public void visitJmlMatchExpression(JmlMatchExpression that) {
+            scan(that.expression);
+            for (JmlMatchExpression.MatchCase c: that.cases) {
+                //scan(c.caseExpression);
+                scan(c.value);
+            }
         }
 
         @Override
@@ -944,6 +1005,11 @@ public class JmlFlow extends Flow  {
             // FIXME: Skipping set comprehension
         }
 
+        public void visitJmlTuple(JmlTuple that) {
+            for (JCExpression e: that.values)
+                scan(e);
+        }
+        
         @Override
         public void visitJmlStatementSpec(JmlStatementSpec that) {
             // No need to scan specs
@@ -975,12 +1041,13 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseDecl");
+            for (JCVariableDecl d: that.decls) visitVarDef(d);
+            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseDecl");
         }
 
         @Override
         public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseExpr");
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseExpr");
         }
 
         @Override
@@ -1025,10 +1092,10 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
-//            scan(that.expression);
-//            scan(that.lo);
-//            scan(that.hi);
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
+            scan(that.expression);
+            scan(that.lo);
+            if (that.lo != that.hi) scan(that.hi);
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
         }
 
         @Override

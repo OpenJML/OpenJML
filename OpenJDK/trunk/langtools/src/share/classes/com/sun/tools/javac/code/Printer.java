@@ -282,7 +282,7 @@ public abstract class Printer implements Type.Visitor<String, Locale>, Symbol.Vi
 
     public String visitType(Type t, Locale locale) {
         String s = (t.tsym == null || t.tsym.name == null)
-                ? localize(locale, "compiler.misc.type.none")
+                ? t.toString() // localize(locale, "compiler.misc.type.none") // OPENJML - to allow printing extension types
                 : t.tsym.name.toString();
         return s;
     }

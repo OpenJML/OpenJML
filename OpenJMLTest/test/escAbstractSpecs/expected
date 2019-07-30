@@ -1,28 +1,28 @@
 Proving methods in Test
 Starting proof of Test.Test() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Proving methods in Test.A
 Starting proof of Test.A.A() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.A.A() with prover !!!! - no warnings
 Starting proof of Test.A.m() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #3 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.A.m() with prover !!!! - no warnings
 Completed proving methods in Test.A
 Proving methods in Test.B
 Starting proof of Test.B.B() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.B.B() with prover !!!! - no warnings
 Completed proving methods in Test.B
 Proving methods in Test.BB
 Starting proof of Test.BB.BB() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test.BB.BB() with prover !!!! - no warnings
 Starting proof of Test.BB.toString() with prover !!!!
 test/escAbstractSpecs/Test.java:33: warning: The prover cannot establish an assertion (Postcondition) in method toString

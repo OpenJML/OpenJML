@@ -23,7 +23,7 @@ class A {
     static private int m() {
         return 1;
     }
-    //@ ensures \result == 1;
+    //@ public normal_behavior ensures \result == 1;
     //@ pure 
     public int mi() {
         return 1;
@@ -38,7 +38,7 @@ class B extends A {
     static private int m() {
         return 2;
     }
-    //@ also ensures \result == 2;
+    //@ also public normal_behavior ensures \result == 2;
     //@ pure
     public int mi() {
         return 2;

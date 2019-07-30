@@ -40,6 +40,7 @@ import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.esc.MethodProverSMT;
+import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 
 import com.sun.tools.javac.code.JmlTypes;
@@ -56,7 +57,6 @@ import com.sun.tools.javac.main.CommandLine;
 import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.main.Option;
 import com.sun.tools.javac.main.Main.Result;
-import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -840,10 +840,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         Options options = Options.instance(context);
         Utils utils = Utils.instance(context);
         
-//        if (options.get(helpOption) != null) {
-//            return false;
-//        }
-        
         String t = options.get(JmlOption.JMLTESTING.optionName());
         Utils.testingMode =  ( t != null && !t.equals("false"));
         String benchmarkDir = options.get(JmlOption.BENCHMARKS.optionName());
@@ -922,7 +918,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         utils.esc = cmd == Cmd.ESC;
         utils.check = cmd == Cmd.CHECK;
         utils.compile = cmd == Cmd.COMPILE;
-        boolean picked = utils.rac||utils.esc||utils.check||utils.compile;
+        utils.infer   = cmd == Cmd.INFER;
+        
+        boolean picked = utils.rac||utils.esc||utils.check||utils.compile||utils.infer;
+        
         if (!picked && cmd != null) {
             Log.instance(context).error("jml.unimplemented.command",cmd);
             return false;
@@ -939,6 +938,16 @@ public class Main extends com.sun.tools.javac.main.Main {
             options.put(JmlOption.ESC_BV.optionName(),(String)JmlOption.ESC_BV.defaultValue());
         }
 
+        val = options.get(JmlOption.LANG.optionName());
+        if (val == null || val.isEmpty()) {
+            options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
+        } else if(JmlOption.langPlus.equals(val) || JmlOption.langJavelyn.equals(val) || JmlOption.langJML.equals(val)) {
+        } else {
+            Log.instance(context).warning("jml.message","Command-line argument error: Expected '" + JmlOption.langPlus + "', '" + JmlOption.langJML + "' or '" + JmlOption.langJavelyn + "' for -lang: " + val);
+            //Log.instance(context).getWriter(WriterKind.NOTICE).println("Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: " + val);
+            options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
+        }
+        
         String keysString = options.get(JmlOption.KEYS.optionName());
         utils.commentKeys = new HashSet<String>();
         if (keysString != null && !keysString.isEmpty()) {
@@ -948,7 +957,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         
         if (utils.esc) utils.commentKeys.add("ESC"); 
         if (utils.rac) utils.commentKeys.add("RAC"); 
-        if (JmlOption.isOption(context,JmlOption.STRICT.optionName())) utils.commentKeys.add("STRICT"); 
+        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) utils.commentKeys.add("STRICT"); 
         utils.commentKeys.add("OPENJML"); 
         JmlSpecs.instance(context).initializeSpecsPath();
 
@@ -1402,7 +1411,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
     
     /** An Enum type that gives a choice of various tools to be executed. */
-    public static enum Cmd { CHECK("check"), ESC("esc"), RAC("rac"), JMLDOC("doc"), COMPILE("compile");
+    public static enum Cmd { CHECK("check"), ESC("esc"), RAC("rac"), JMLDOC("doc"), COMPILE("compile"), INFER("infer");
         String name;
         public String toString() { return name; }
         private Cmd(String name) { this.name = name; }

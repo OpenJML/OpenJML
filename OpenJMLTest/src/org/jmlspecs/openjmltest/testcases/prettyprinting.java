@@ -6,6 +6,7 @@ import static org.junit.Assert.fail;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjmltest.ParseBase;
 import org.jmlspecs.openjmltest.TestJavaFileObject;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.sun.tools.javac.parser.Parser;
@@ -183,8 +184,27 @@ public class prettyprinting extends ParseBase {
                 "    }" + eol +
                 "    while (true) {" + eol +
                 "      do {" + eol +
-                "      }       while (true);" + eol + // FIXME - excess space
+                "      } while (true);" + eol +
                 "    }" + eol +
+                "    /*@ assert (* xyz *);*/" + eol +
+                "  }" + eol +
+                "}"
+        );
+    }
+    
+    @Test @Ignore
+    public void testMethodStatements2() {
+        precise = false; // TODO
+        helpPP(
+                eol + 
+                "public static final class A {" + eol + 
+                "  " + eol + 
+                "  void m() {" + eol +
+                "    int a;" + eol +
+                "    a = 5;" + eol +
+                "    ;" + eol + 
+                "    a += 5;" + eol +
+                "    /*@ choose { a = 6; } or { assume a == 6; a = 7; } else { a = 7; } */" + eol +
                 "  }" + eol +
                 "}"
         );

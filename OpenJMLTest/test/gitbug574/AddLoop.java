@@ -1,5 +1,5 @@
 public class AddLoop {
-    //@ requires true;
+    //@ requires -1000000 < x & x < 1000000 & -1000000 < y & y < 1000000;
     //@ ensures \result == x + y;
     public static int AddLoop(int x, int y) {
         int sum = x;

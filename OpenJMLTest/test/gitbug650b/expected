@@ -1,0 +1,18 @@
+Proving methods in A
+Proving methods in A.Content
+Starting proof of A.Content.Content() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.Content.Content() with prover !!!! - no warnings
+Completed proving methods in A.Content
+Completed proving methods in A
+Proving methods in B
+Starting proof of B.B((@org.jmlspecs.annotation.NonNull :: A)) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of B.B((@org.jmlspecs.annotation.NonNull :: A)) with prover !!!! - no warnings
+Starting proof of B.testMethod() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of B.testMethod() with prover !!!! - no warnings
+Completed proving methods in B

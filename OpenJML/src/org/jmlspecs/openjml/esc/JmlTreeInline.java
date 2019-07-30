@@ -8,6 +8,8 @@ import java.util.Map;
 
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.ext.SingletonExpressions;
+import org.jmlspecs.openjml.vistors.JmlTreeCopier;
 
 import com.sun.source.tree.*;
 import com.sun.tools.javac.tree.JCTree;
@@ -127,8 +129,8 @@ public class JmlTreeInline extends JmlTreeCopier {
     @Override
     public JCTree visitJmlSingleton(JmlSingleton that, Void p) {
         // for substitution \result
-        if (that.token == JmlTokenKind.BSRESULT) {
-            @Nullable JCExpression newexpr = replacements.get(that.token);
+        if (that.kind == SingletonExpressions.resultKind) {
+            @Nullable JCExpression newexpr = replacements.get(that.kind);
             if (newexpr != null) return copy(newexpr);
             else return super.visitJmlSingleton(that,  p);
         } else {
@@ -149,12 +151,13 @@ public class JmlTreeInline extends JmlTreeCopier {
                 newdecls.add(newdecl);
             }
             JmlQuantifiedExpr q =  M.at(that.pos).JmlQuantifiedExpr(
-                    that.op,
+                    that.kind,
                     newdecls.toList(),
                     null,
                     null);
             q.range = copy(that.range,p);
             q.value = copy(that.value,p);
+            q.triggers = copy(that.triggers);
             q.racexpr = copy(that.racexpr);
             q.setType(that.type);
             return q;
@@ -244,11 +247,13 @@ public class JmlTreeInline extends JmlTreeCopier {
         // nodes.
         // CAUTION: if JCMethodInvocation adds fields, they have to be added here
         JmlMethodInvocation copy = M.at(that.pos).JmlMethodInvocation(
-                that.token,
+                that.kind,
                 copy(that.args,p));
+        copy.name = that.name;
         copy.startpos = that.startpos;
-        copy.label = that.label;
+        copy.labelProperties = that.labelProperties;
         copy.type = that.type;
+        copy.token = that.token;
         copy.meth = copy(that.meth,p);
         copy.typeargs = copy(that.typeargs,p);
         copy.varargsElement = that.varargsElement; // FIXME - copy?

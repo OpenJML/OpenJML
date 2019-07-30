@@ -1,24 +1,24 @@
 Proving methods in BoxingTests
 Starting proof of BoxingTests.incr_test() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of BoxingTests.incr_test() with prover !!!! - no warnings
 Starting proof of BoxingTests.incr_test2(BoxingTests) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - before explicit assert statement : OK
-Feasibility check #3 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
 Completed proof of BoxingTests.incr_test2(BoxingTests) with prover !!!! - no warnings
 Starting proof of BoxingTests.incr_test3(java.lang.Integer[]) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - before explicit assert statement : OK
-Feasibility check #3 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
 Completed proof of BoxingTests.incr_test3(java.lang.Integer[]) with prover !!!! - no warnings
 Starting proof of BoxingTests.and_test() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of BoxingTests.and_test() with prover !!!! - no warnings
 Starting proof of BoxingTests.BoxingTests() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of BoxingTests.BoxingTests() with prover !!!! - no warnings
 Completed proving methods in BoxingTests

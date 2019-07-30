@@ -21,6 +21,10 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
+import org.jmlspecs.openjml.strongarm.InferenceType;
+import org.jmlspecs.openjml.strongarm.JmlInfer;
+import org.jmlspecs.openjml.strongarm.JmlInferPostConditions;
+import org.jmlspecs.openjml.vistors.JmlUseSubstitutions;
 
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
@@ -214,7 +218,16 @@ public class JmlCompiler extends JavaCompiler {
         String typeName = typeSymbol.flatName().toString();
         JavaFileObject f = JmlSpecs.instance(context).findAnySpecFile(typeName);
         /*@Nullable*/ JmlCompilationUnit speccu = parseSingleFile(f);
-        if (speccu != null) speccu.packge = (Symbol.PackageSymbol)typeSymbol.outermostClass().getEnclosingElement();
+        if (speccu != null) {
+            Symbol.PackageSymbol p = typeSymbol.packge();
+            speccu.packge = p;
+            if (true || !typeSymbol.toString().equals("Array")) {
+                speccu.packge = (Symbol.PackageSymbol)typeSymbol.outermostClass().getEnclosingElement();
+                if (p != speccu.packge) {
+                    log.warning("jml.message","Unexpected change in package");
+                }
+            }
+        }
         return speccu;
     }
     
@@ -438,6 +451,10 @@ public class JmlCompiler extends JavaCompiler {
                 if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode) log.note("jml.message", summary);
         	}
     		return results; // Empty list - Do nothing more
+        } else if (utils.infer) {
+            for (Env<AttrContext> env: envs)
+                infer(env);
+            return results;
         } else if (utils.rac) {
             for (Env<AttrContext> env: envs) {
                 JCTree t = env.tree;
@@ -687,6 +704,29 @@ public class JmlCompiler extends JavaCompiler {
 
         return;
     }
+    
+    
+    protected void infer(Env<AttrContext> env) {
+        if (((JmlCompilationUnit)env.toplevel).mode != JmlCompilationUnit.JAVA_SOURCE_FULL) return;
+
+        JmlInfer infer;        
+        String currentFile = env.toplevel.sourcefile.getName();
+        
+        if(InferenceType.valueOf(JmlOption.value(context, org.jmlspecs.openjml.ext.OptionsInfer.INFER))==InferenceType.POSTCONDITIONS){
+            infer = JmlInferPostConditions.instance(context);
+        }else{
+            // NOT DONE YET!
+            log.error("jml.internal","Precondition inference is not available yet.");
+            return;
+        }
+
+        infer.check(env.tree);
+        
+        if((infer.persistContracts || infer.weaveContracts) && env.tree instanceof JmlClassDecl){
+            infer.flushContracts(currentFile, (JmlClassDecl)env.tree);
+        }
+    }
+
 
     // FIXME - we are overriding to only allow SIMPLE compile policy
     public void compile2(CompilePolicy compPolicy) {

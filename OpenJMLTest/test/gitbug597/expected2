@@ -1,0 +1,21 @@
+Proving methods in SITA3
+Starting proof of SITA3.SITA3() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SITA3.SITA3() with prover !!!! - no warnings
+Starting proof of SITA3.swap(int[],int,int) with prover !!!!
+test/gitbug597/SITA3.java:9: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method swap
+        temp = a[pos1]; a[pos1] = a[pos2] ; a[pos2] = temp;
+                ^
+test/gitbug597/SITA3.java:9: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method swap
+        temp = a[pos1]; a[pos1] = a[pos2] ; a[pos2] = temp;
+                                   ^
+test/gitbug597/SITA3.java:9: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method swap
+        temp = a[pos1]; a[pos1] = a[pos2] ; a[pos2] = temp;
+                                   ^
+test/gitbug597/SITA3.java:9: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method swap
+        temp = a[pos1]; a[pos1] = a[pos2] ; a[pos2] = temp;
+                ^
+Completed proof of SITA3.swap(int[],int,int) with prover !!!! - with warnings
+Completed proving methods in SITA3
+4 warnings

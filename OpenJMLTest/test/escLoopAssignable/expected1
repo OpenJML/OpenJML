@@ -1,0 +1,16 @@
+test/escLoopAssignable/Test.java:10: error: Loop specifications must immediately precede a while or for statement
+        //@ loop_invariant 5<=i && i<=8;
+            ^
+Continuing bravely despite parsing errors
+test/escLoopAssignable/Test.java:11: error: cannot find symbol
+        //@ assignable i,a[4..7];
+                       ^
+  symbol:   variable i
+  location: class Test
+test/escLoopAssignable/Test.java:12: error: cannot find symbol
+        //@ writes i,a[4..7];
+                   ^
+  symbol:   variable i
+  location: class Test
+Operation not performed because of parse or type errors
+3 errors

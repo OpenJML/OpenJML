@@ -6,10 +6,17 @@ package org.jmlspecs.openjml;
 
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.sun.tools.javac.parser.Tokens.ITokenKind;
 import com.sun.tools.javac.tree.JCTree;
+import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
+import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
+import static org.jmlspecs.openjml.ext.SignalsClauseExtension.*;
+import static org.jmlspecs.openjml.ext.StatementLocationsExtension.*;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 
 /**
  * This class defines the scanner tokens that represent JML syntax.
@@ -26,28 +33,31 @@ public enum JmlTokenKind implements ITokenKind {
     ENDJMLCOMMENT("<JMLEND>"),
     
     // These are statement types
-    ASSUME("assume"),  // Keep this one first of the method statement tokens
-    ASSERT("assert"),
-    COMMENT("comment"), // For comments in BasicBlock programs
-    HAVOC("havoc"), // Just used in ESC
-    DEBUG("debug"),
-    END("end"),
-    SET("set"),
-    SHOW("show"),
-    USE("use"),
-    DECREASES("decreases"),
-    INLINED_LOOP("inlined_loop"),
-    LOOP_INVARIANT("loop_invariant"),
-    LOOP_MODIFIES("loop_modifies"),
-    HENCE_BY("hence_by"),
+//    ASSUME("assume"),  // Keep this one first of the method statement tokens
+//    ASSERT("assert"),
+//    COMMENT("comment"), // For comments in BasicBlock programs
+//    HAVOC("havoc"), // Just used in ESC
+//    DEBUG("debug"),
+//    END("end"),
+//    SET("set"),
+//    SHOW("show"),
+//    USE("use"),
+//    DECREASES("decreases"),
+//    LOOP_DECREASES("loop_decreases"),
+//    INLINED_LOOP("inlined_loop"),
+//    LOOP_INVARIANT("loop_invariant"),
+//    LOOP_MODIFIES("loop_modifies"),
+//    HENCE_BY("hence_by"),
     REFINING("refining"),
-    REACHABLE("reachable"),
-    UNREACHABLE("unreachable"), // Keep this one last of the method statement tokens
+//    REACHABLE("reachable"),
+//    UNREACHABLE("unreachable"), // Keep this one last of the method statement tokens
+//    CAPTURED("captured",org.jmlspecs.annotation.Captured.class),
 
     // These are modifiers
     PURE("pure",org.jmlspecs.annotation.Pure.class), // Keep this one the first of the modifiers (see the modifiers Map below)
     CODE_JAVA_MATH("code_java_math",org.jmlspecs.annotation.CodeJavaMath.class),
     CODE_SAFE_MATH("code_safe_math",org.jmlspecs.annotation.CodeSafeMath.class),
+    CAPTURED("captured",org.jmlspecs.annotation.Captured.class),
     EXTRACT("extract",org.jmlspecs.annotation.Extract.class),
     GHOST("ghost",org.jmlspecs.annotation.Ghost.class),
     IMMUTABLE("immutable",org.jmlspecs.annotation.Immutable.class), // FIXME - this is an extension - comment
@@ -80,19 +90,19 @@ public enum JmlTokenKind implements ITokenKind {
     LAST("_",null), // This is a fake entry that is the end of the standard+extension modifiers list
     
     // These are class/interface clause types
-    INVARIANT("invariant"),
-    INITIALLY("initially"),
-    CONSTRAINT("constraint"),
-    AXIOM("axiom"),
-    REPRESENTS("represents"),
-    JMLDECL("jml declaration"), // not a scannable token
-    IN("in"),
-    MAPS("maps"),
+//    INVARIANT("invariant"),
+//    INITIALLY("initially"),
+//    CONSTRAINT("constraint"),
+//    AXIOM("axiom"),
+//    REPRESENTS("represents"),
+//    JMLDECL("jml declaration"), // not a scannable token
+//    IN("in"),
+//    MAPS("maps"),
     INITIALIZER("initializer"),
     STATIC_INITIALIZER("static_initializer"),
-    MONITORS_FOR("monitors_for"),
-    READABLE("readable"),
-    WRITABLE("writable"),
+//    MONITORS_FOR("monitors_for"),
+//    READABLE("readable"),
+//    WRITABLE("writable"),
     
     // These are related to specification cases
     ALSO("also"),  // Keep this one first
@@ -109,107 +119,112 @@ public enum JmlTokenKind implements ITokenKind {
     CODE("code"),  // Keep this one last
     
     // These are the method clause types
-    REQUIRES("requires"),   // Keep this one first
-    ENSURES("ensures"),
-    SIGNALS("signals"),
-    SIGNALS_ONLY("signals_only"),
-    DIVERGES("diverges"),
-    WHEN("when"),
-    DURATION("duration"),
-    WORKING_SPACE("working_space"),
-    FORALL("forall"),
-    OLD("old"),
-    ASSIGNABLE("assignable"),
-    ACCESSIBLE("accessible"),
-    MEASURED_BY("measured_by"),
-    CALLABLE("callable"),
-    CAPTURES("captures"),  // Keep this one last
+//    REQUIRES("requires"),   // Keep this one first
+//    ENSURES("ensures"),
+//    SIGNALS("signals"),
+//    SIGNALS_ONLY("signals_only"),
+//    DIVERGES("diverges"),
+//    WHEN("when"),
+//    DURATION("duration"),
+//    WORKING_SPACE("working_space"),
+//    FORALL("forall"),
+//    OLD("old"),
+//    ASSIGNABLE("assignable"),
+//    ACCESSIBLE("accessible"),
+//    MEASURED_BY("measured_by"),
+//    CALLABLE("callable"),
+//    CAPTURES("captures"),  // Keep this one last
     
     // These are only in model programs
-    CHOOSE("choose"),
-    CHOOSE_IF("choose_if"),
-    BREAKS("breaks"),
-    CONTINUES("continues"),
-    OR("or"),
-    RETURNS("returns"),
+//    CHOOSE("choose"),
+//    CHOOSE_IF("choose_if"),
+//    BREAKS("breaks"),
+//    CONTINUES("continues"),
+//    OR("or"),
+//    RETURNS("returns"),
     
     // Other misc
     CONSTRUCTOR("constructor"),
     FIELD("field"),
     METHOD("method"),
-    NOWARN("nowarn"),
     
     // These are various tokens related to JML expressions
-    BSEXCEPTION("\\exception"), // This is for internal use only, so it is before \result
-    BSRESULT("\\result"), // Keep this one the first of the backslash tokens
-    BSEVERYTHING("\\everything"),
-    BSLOCKSET("\\lockset"),
-    BSCOUNT("\\count"), // New version of \index
-    BSINDEX("\\index"), // Obsolete in favor of \count
-    BSVALUES("\\values"),
-    BSNOTHING("\\nothing"),
-    BSSAME("\\same"),
-    BSNOTSPECIFIED("\\not_specified"),
+//    BSEXCEPTION("\\exception"), // This is for internal use only, so it is before \result
+//    BSRESULT("\\result"), // Keep this one the first of the backslash tokens
+//    BSEVERYTHING("\\everything"),
+//    BSLOCKSET("\\lockset"),
+//    BSCOUNT("\\count"), // New version of \index
+//    BSINDEX("\\index"), // Obsolete in favor of \count
+//    BSVALUES("\\values"),
+//    BSNOTHING("\\nothing"),
+//    BSSAME("\\same"),
+    MATCH("match"),
+//    BSNOTSPECIFIED("\\not_specified"),
 
-    BSCONCAT("\\concat"),
-    BSDISTINCT("\\distinct"),
-    BSDURATION("\\duration"),
-    BSELEMTYPE("\\elemtype"),
-    BSERASURE("\\erasure"),
-    BSFRESH("\\fresh"),
-    BSINVARIANTFOR("\\invariant_for"),
-    BSISINITIALIZED("\\is_initialized"),
-    BSKEY("\\key"),
-    BSLBLANY("\\lbl"),
-    BSLBLNEG("\\lblneg"),
-    BSLBLPOS("\\lblpos"),
+//    BSCONCAT("\\concat"),
+    BSREQUIRES("\\requires"),
+    BSREADS("\\reads"),
+    BSWRITES("\\writes"),
+    BSENSURES("\\ensures"),
+//    BSDISTINCT("\\distinct"),
+//    BSDURATION("\\duration"),
+//    BSELEMTYPE("\\elemtype"),
+//    BSERASURE("\\erasure"),
+//    BSFRESH("\\fresh"),
+//    BSINVARIANTFOR("\\invariant_for"),
+//    BSISINITIALIZED("\\is_initialized"),
+//    BSKEY("\\key"),
+//    BSLBLANY("\\lbl"),
+//    BSLBLNEG("\\lblneg"),
+//    BSLBLPOS("\\lblpos"),
     BSLET("\\let"),
-    BSMAX("\\max"),
-    BSNONNULLELEMENTS("\\nonnullelements"),
-    BSNOTASSIGNED("\\not_assigned"),
-    BSNOTMODIFIED("\\not_modified"),
-    BSOLD("\\old"),
-    BSONLYACCESSED("\\only_accessed"),
-    BSONLYASSIGNED("\\only_assigned"),
-    BSONLYCALLED("\\only_called"),
-    BSONLYCAPTURED("\\only_captured"),
-    BSPAST("\\past"),
+//    BSMAX("\\max"),
+//    BSNONNULLELEMENTS("\\nonnullelements"),
+//    BSNOTASSIGNED("\\not_assigned"),
+//    BSNOTMODIFIED("\\not_modified"),
+//    BSOLD("\\old"),
+//    BSONLYACCESSED("\\only_accessed"),
+//    BSONLYASSIGNED("\\only_assigned"),
+//    BSONLYCALLED("\\only_called"),
+//    BSONLYCAPTURED("\\only_captured"),
+//    BSPAST("\\past"),
     BSPRE("\\pre"), // overloaded both \post-like and \old-like
-    BSPOST("\\post"),
+//    BSPOST("\\post"),
     BSASSIGNS("\\assigns"),
-    BSREACH("\\reach"),
-    BSSPACE("\\space"),
-    BSTYPEOF("\\typeof"),
-    BSTYPELC("\\type"),
-    BSWORKINGSPACE("\\working_space"),
+//    BSREACH("\\reach"),
+//    BSSPACE("\\space"),
+//    BSTYPEOF("\\typeof"),
+//    BSTYPELC("\\type"),
+//    BSWORKINGSPACE("\\working_space"),
 
-    BSBIGINT_MATH("\\bigint_math"),
-    BSJAVAMATH("\\java_math"),
-    BSSAFEMATH("\\safe_math"),
-    BSNOWARN("\\nowarn"),
-    BSNOWARNOP("\\nowarn_op"),
-    BSWARN("\\warn"),
-    BSWARNOP("\\warn_op"),
+//    BSBIGINT_MATH("\\bigint_math"),
+//    BSJAVAMATH("\\java_math"),
+//    BSSAFEMATH("\\safe_math"),
+//    BSNOWARN("\\nowarn"),
+//    BSNOWARNOP("\\nowarn_op"),
+//    BSWARN("\\warn"),
+//    BSWARNOP("\\warn_op"),
     
-    BSINTO("\\into"),
-    BSSUCHTHAT("\\such_that"),
+//    BSINTO("\\into"),
+//    BSSUCHTHAT("\\such_that"),
 
-    BSPEER("\\peer"),
+//    BSPEER("\\peer"),
     BSREADONLY("\\readonly"),
-    BSREP("\\rep"),
+//    BSREP("\\rep"),
     
     // These are quantifier types (also \max )
-    BSEXISTS("\\exists"),
-    BSFORALL("\\forall"),
-    BSMIN("\\min"),
-    BSNUMOF("\\num_of"),
-    BSPRODUCT("\\product"),
-    BSSUM("\\sum"),
+//    BSEXISTS("\\exists"),
+//    BSFORALL("\\forall"),
+//    BSMIN("\\min"),
+//    BSNUMOF("\\num_of"),
+//    BSPRODUCT("\\product"),
+//    BSSUM("\\sum"),
     
     // These are JML type literals
     BSTYPEUC("\\TYPE"),
     BSREAL("\\real"),
     BSBIGINT("\\bigint"), // Keep this one the last of the backslash tokens
+    PRIMITIVE_TYPE("\\primitive"),
     
     // These are JML operators (in expressions)
     // Note that the jmloperators set relies on this ordering
@@ -218,9 +233,13 @@ public enum JmlTokenKind implements ITokenKind {
     IMPLIES("==>"),
     REVERSE_IMPLIES("<=="),
     SUBTYPE_OF("<:"), // Operands are \TYPE values
+    SUBTYPE_OF_EQ("<:="), // Operands are \TYPE values
     JSUBTYPE_OF("<::"), // Operands are Class<?> values, used only internally
+    JSUBTYPE_OF_EQ("<::="), // Operands are Class<?> values, used only internally
     LOCK_LT("<#"),
     LOCK_LE("<#="),
+    WF_LT("<<<"),
+    WF_LE("<<<="),
     
     // Other special character combinations
     DOT_DOT(".."),
@@ -270,7 +289,9 @@ public enum JmlTokenKind implements ITokenKind {
     public final static Map<String,JmlTokenKind> backslashTokens = new HashMap<String,JmlTokenKind>();
     
     /** This is a map from string to token for all of the tokens, and includes defined synonyms. */
-    public final static Map<String,JmlTokenKind> allTokens = new HashMap<String,JmlTokenKind>();
+    public final static Map<String,JmlTokenKind> allTokens = new HashMap<>();
+    //public final static Map<String,IJmlClauseType> allClauseTypes = new HashMap<>();
+    public final static Map<String,String> synonyms = new HashMap<>();
     
     /** This is a set of all the modifier tokens, defined so that it is quick
      * and easy to test if a token is a modifier.
@@ -291,40 +312,66 @@ public enum JmlTokenKind implements ITokenKind {
     /** This is a set of all of the tokens that begin method specification clauses,
      * defined so that it is quick and easy to test for a given token.
      */
-    public final static EnumSet<JmlTokenKind> methodClauseTokens = EnumSet.range(REQUIRES,CAPTURES);
+    public final static Set<IJmlClauseKind> methodClauseTokens = new HashSet<>();
+    static {
+        for (IJmlClauseKind ct: Extensions.typeMethodClauses.values()) {
+            if (ct instanceof IJmlClauseKind.MethodClause) methodClauseTokens.add(ct);
+        }
+    }
     
     /** This is a set of all of the tokens that begin JML statements in the body of a method,
      * defined so that it is quick and easy to test for a given token.
      */
-    public final static EnumSet<JmlTokenKind> methodStatementTokens = EnumSet.range(ASSUME,UNREACHABLE);
+    public final static Set<IJmlClauseKind> methodStatementTokens = new HashSet<>();
+    static {
+        for (IJmlClauseKind ct: Extensions.statementMethodClauses.values()) {
+            if (ct instanceof IJmlClauseKind.Statement) methodStatementTokens.add(ct);
+        }
+    }
     
     /** This is the set of tokens that can occur at the beginning of a specification case */
     public final static EnumSet<JmlTokenKind> specCaseTokens = EnumSet.range(ALSO,CODE);
     
     static {
-        for (JmlTokenKind t: EnumSet.range(BSEXCEPTION,BSBIGINT)) {
+        
+        // Synonyms
+        
+//        synonyms.put("modifies",assignableID);
+//        synonyms.put("modifiable",assignableID);
+//        synonyms.put("pre",requiresID);
+//        synonyms.put("post",ensuresID);
+//        synonyms.put("exsures",signalsID);
+        synonyms.put("behaviour","behavior");
+        synonyms.put("exceptional_behaviour","exceptional_behavior");
+        synonyms.put("normal_behaviour","normal_behavior");
+        synonyms.put("abrupt_behaviour","abrupt_behavior");
+//        synonyms.put("decreasing",loopdecreasesID);
+//        synonyms.put("decreases",loopdecreasesID);
+//        synonyms.put("maintaining",loopinvariantID);
+
+        for (JmlTokenKind t: EnumSet.range(BSREQUIRES,BSBIGINT)) {
             backslashTokens.put(t.internedName(),t);
         }
         for (JmlTokenKind t: JmlTokenKind.values()) {
             allTokens.put(t.internedName(),t);
         }
+        for (String s: synonyms.keySet()) {
+            String ss = synonyms.get(s);
+            JmlTokenKind t = allTokens.get(ss);
+            allTokens.put(s, t);
+        }
+//        for (IJmlClauseType t: Extensions.statementMethodCalsues.values()) {
+//            allClauseTypes.put(t.name(),t);
+//        }
+//        for (String s: synonyms.keySet()) {
+//            String ss = synonyms.get(s);
+//            IJmlClauseType ct = allClauseTypes.get(ss);
+//            if (ct != null) allClauseTypes.put(ss, ct);
+//            // else FIXME - error
+//        }
         //allTokens.remove(BSEXCEPTION.internedName());
         modifiers.add(BSREADONLY);
         // the LAST token is fake and doesn't really need to be in the modifiers set
         modifiers.remove(LAST);
-        
-        // Synonyms
-        
-        allTokens.put("modifies".intern(),ASSIGNABLE);
-        allTokens.put("modifiable".intern(),ASSIGNABLE);
-        allTokens.put("pre".intern(),REQUIRES);
-        allTokens.put("post".intern(),ENSURES);
-        allTokens.put("exsures".intern(),SIGNALS);
-        allTokens.put("behaviour".intern(),BEHAVIOR);
-        allTokens.put("exceptional_behaviour".intern(),EXCEPTIONAL_BEHAVIOR);
-        allTokens.put("normal_behaviour".intern(),NORMAL_BEHAVIOR);
-        allTokens.put("abrupt_behaviour".intern(),ABRUPT_BEHAVIOR);
-        allTokens.put("decreasing".intern(),DECREASES);
-        allTokens.put("maintaining".intern(),LOOP_INVARIANT);
-    }
+}
 }

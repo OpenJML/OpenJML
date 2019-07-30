@@ -2,6 +2,6 @@ Proving methods in TestArrayList
 Skipping proof of TestArrayList.TestArrayList() (excluded by -method)
 Skipping proof of TestArrayList.main(java.lang.String...) (excluded by skipesc)
 Starting proof of TestArrayList.esc(int) with prover !!!!
-Feasibility check #21 - at program exit : OK
+Feasibility check - at program exit : OK
 Completed proof of TestArrayList.esc(int) with prover !!!! - no warnings
 Completed proving methods in TestArrayList

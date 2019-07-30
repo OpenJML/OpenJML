@@ -39,7 +39,7 @@ public class notspecified extends TCBase {
     @Test
     public void testNotSpecified1a() {
         helpTCF("A.java","public class A { //@ signals_only \\not_specified; \n public void m(boolean i) {}}"
-                ,"/A.java:1: The type or expression near here is invalid (or not implemented): ( token \\not_specified in JmlParser.term3())",35
+                ,"/A.java:1: \\not_specified is not permitted in a signals_only clause",35
                 );        // Not allowed
 
     }

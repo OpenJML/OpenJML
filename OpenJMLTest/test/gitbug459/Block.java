@@ -3,13 +3,13 @@ public class Block {
 
     /*@ public normal_behavior
       @   ensures \fresh(contents);
-      @*/
+      @ pure */
     public Block() { contents = new int[10]; }
 
     /*@ public normal_behavior
       @   requires cont != null;
-      @   assignable contents;
       @   ensures contents == cont;
+      @ pure
       @*/
     public Block(int[] cont) {
         contents = cont;

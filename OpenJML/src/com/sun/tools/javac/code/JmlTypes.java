@@ -6,6 +6,7 @@
 package com.sun.tools.javac.code;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -169,6 +170,16 @@ public class JmlTypes extends Types {
             if (repSym((JmlType)s) == t.tsym) return true;
             return false;
         }
+        if ((s instanceof JmlListType) != (t instanceof JmlListType)) return false;
+        if ((s instanceof JmlListType) && (t instanceof JmlListType)) {
+            Iterator<Type> siter = ((JmlListType)s).types.iterator();
+            Iterator<Type> titer = ((JmlListType)t).types.iterator();
+            if (siter.hasNext() && titer.hasNext()) {
+                if (!isAssignable(titer.next(), siter.next(), warn)) return false;
+            }
+            if (!siter.hasNext() && !titer.hasNext()) return false;
+        }
+        
         return super.isAssignable(t, s, warn);
     }
     

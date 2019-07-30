@@ -1,0 +1,37 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Proving methods in Test.MyException
+Starting proof of Test.MyException.MyException() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.MyException.MyException() with prover !!!! - no warnings
+Completed proving methods in Test.MyException
+Starting proof of Test.ThrowPure() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.ThrowPure() with prover !!!! - no warnings
+Starting proof of Test.callerBad() with prover !!!!
+test/gitbug635/Test.java:16: warning: The prover cannot establish an assertion (Postcondition) in method callerBad
+            ThrowPure();
+                     ^
+test/gitbug635/Test.java:13: warning: Associated declaration
+    //@   ensures false;
+          ^
+Completed proof of Test.callerBad() with prover !!!! - with warnings
+Starting proof of Test.Throw() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Throw() with prover !!!! - no warnings
+Starting proof of Test.callerOK() with prover !!!!
+test/gitbug635/Test.java:32: warning: The prover cannot establish an assertion (Postcondition) in method callerOK
+            Throw();
+                 ^
+test/gitbug635/Test.java:29: warning: Associated declaration
+    //@   ensures false;
+          ^
+Completed proof of Test.callerOK() with prover !!!! - with warnings
+Completed proving methods in Test
+4 warnings

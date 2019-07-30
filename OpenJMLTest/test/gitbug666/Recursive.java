@@ -20,16 +20,18 @@ public class Recursive {
    }
 
    //@ public normal_behavior
-   //@   requires y >= 0 && x >= 0;
+   //@   requires x <= 10 && y <= 15;
+   //@   requires y >= 0 && x >= 1;
    //@   ensures \result == (y == 0 ? 1 : y == 1 ? x : x * mpow(x,y-1));
    //@ pure
-   //@ model public static function helper int mpow(int x, int y);
+   //@ model public static function helper long mpow(long x, long y);
 
    //@ public normal_behavior
-   //@   requires y >= 0 && x >= 0;
-   //@   ensures (\lbl R \result) == (\lbl MP mpow(x,y));
-   //@ pure code_bigint_math
-   public static int pow(int x, int y) {
+   //@   requires x <= 10 && y <= 15;
+   //@   requires y >= 0 && x >= 1;
+   //@   ensures (\lbl R \result) == (long)(\lbl MP mpow(x,y));
+   //@ pure
+   public static long pow(long x, long y) {
        //@ show x, y;
         return y == 0 ? 1 : y == 1 ? x : x * pow(x, y-1);
    }

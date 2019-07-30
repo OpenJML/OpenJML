@@ -1,30 +1,30 @@
 Proving methods in AssignableBug
 Starting proof of AssignableBug.AssignableBug(Piece,int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of AssignableBug.AssignableBug(Piece,int) with prover !!!! - no warnings
 Starting proof of AssignableBug.test(Position) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #3 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of AssignableBug.test(Position) with prover !!!! - no warnings
 Starting proof of AssignableBug.inRange(Position) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of AssignableBug.inRange(Position) with prover !!!! - no warnings
 Completed proving methods in AssignableBug
 Proving methods in Piece
 Starting proof of Piece.Piece(Position) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Piece.Piece(Position) with prover !!!! - no warnings
 Starting proof of Piece.setPosition(Position) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Piece.setPosition(Position) with prover !!!! - no warnings
 Completed proving methods in Piece
 Proving methods in Position
 Starting proof of Position.Position() with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Position.Position() with prover !!!! - no warnings
 Completed proving methods in Position

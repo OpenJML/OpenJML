@@ -354,7 +354,7 @@ The internal specifications are written for programs that conform to Java 1.7.  
 \item \textbf{-dirs} : treat all subsequent command-line arguments as if each were the argument to \texttt{-dir}
 \item \textbf{-specspath} \textit{<path>} : defines the specifications path, cf. section TBD
 \item \textbf{-keys} \textit{<keys>} : the argument is a comma-separated list of options JML keys (cf. section TBD)
-\item \textbf{-strictJML} : warns about an OpenJML extensions to standard JML
+\item \textbf{-lang=jml} : warns about an OpenJML extensions to standard JML
 \end{itemize}
 
 \begin{itemize}
@@ -531,7 +531,7 @@ An option used primarily for testing:
 \item \textbf{-specspath}: the parameter gives the sequence of directories in which to find .jml specification files for unnamed but referenced classes (cf. section TBD)
 \item \textbf{-checkSpecsPath}: if enabled (the default), warns about \texttt{specspath} elements that do not exist
 \item \textbf{-keys}: comma-separated list of the optional JML comment keys to enable (empty by default)
-\item \textbf{-strictJML}: (disabled by default) warns about the use of any OpenJML extensions to standard JML; disable with -no-strictJML
+\item \textbf{-lang=jml}: (disabled by default) warns about the use of any OpenJML extensions to standard JML; disable with -lang=jml+
 \item \textbf{-showNotImplemented}: (disabled by default) warns about the use of features that are not implemented; disable with -no-showNotImplemented
 \end{itemize}
 

@@ -6,7 +6,7 @@ public class LongArith2 {
     
     //@ public normal_behavior
     //@   requires l <= ((long)u)+1;
-    //@   assignable lb, ub;
+    //@   assignable \nothing;
     //@   ensures lb == (long)l && ub == (long)u;
     public LongArith2(int l, int u) {
         lb = l; ub = u; 

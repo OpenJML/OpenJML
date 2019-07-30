@@ -60,8 +60,8 @@ public class nowarn extends ParseBase {
                 JCIdent.class, 24,
                 JmlClassDecl.class, 56,
                 JCModifiers.class, -1);
-        checkMessages("/TEST.java:1: warning: A nowarn pragma must end with a semicolon",23,
-                "/TEST.java:1: warning: A nowarn pragma must end with a semicolon",40);
+        checkMessages("/TEST.java:1: warning: A line annotation should end with a semicolon",23,
+                "/TEST.java:1: warning: A line annotation should end with a semicolon",40);
     }
     
     @Test
@@ -71,8 +71,8 @@ public class nowarn extends ParseBase {
                 JCIdent.class, 24,
                 JmlClassDecl.class, 56,
                 JCModifiers.class, -1);
-        checkMessages("/TEST.java:1: warning: A nowarn pragma must end with a semicolon",23,
-                "/TEST.java:1: warning: A nowarn pragma must end with a semicolon",40);
+        checkMessages("/TEST.java:1: warning: A line annotation should end with a semicolon",23,
+                "/TEST.java:1: warning: A line annotation should end with a semicolon",40);
     }
     
     @Test
@@ -82,7 +82,7 @@ public class nowarn extends ParseBase {
                 JCIdent.class, 28,
                 JmlClassDecl.class, 33,
                 JCModifiers.class, -1);
-        checkMessages("/TEST.java:1: warning: A nowarn pragma must end with a semicolon",27);
+        checkMessages("/TEST.java:1: warning: A line annotation should end with a semicolon",27);
     }
     
     @Test
@@ -114,7 +114,7 @@ public class nowarn extends ParseBase {
                 JCFieldAccess.class, 16,
                 JCIdent.class, 16
         );
-        checkMessages("/TEST.java:2: warning: A nowarn pragma must end with a semicolon",19);
+        checkMessages("/TEST.java:2: warning: A line annotation should end with a semicolon",19);
     }
     
     @Test
@@ -151,7 +151,7 @@ public class nowarn extends ParseBase {
                 JCFieldAccess.class, 16,
                 JCIdent.class, 16
                 );
-        checkMessages("/TEST.java:2: warning: A nowarn pragma must end with a semicolon",39);
+        checkMessages("/TEST.java:2: warning: A line annotation should end with a semicolon",39);
     }
   
     @Test
@@ -161,6 +161,6 @@ public class nowarn extends ParseBase {
                 JCIdent.class, 8,
                 JmlClassDecl.class, 32,
                 JCModifiers.class, -1);
-        checkMessages("/TEST.java:2: Expected an identifier here in the nowarn pragma",14);
+        checkMessages("/TEST.java:2: Expected an identifier here in the line annotation",14);
     }
 }

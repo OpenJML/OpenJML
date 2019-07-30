@@ -45,7 +45,7 @@ JML options:
   -boogie                    Enables static checking with boogie
   -java                      When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)
   -jml                       When on, the JML compiler is used and all JML constructs are ignored; use -no-jml to use OpenJML but ignore JML annotations
-  -strictJML                 Disables any JML extensions in OpenJML
+  -lang                      Set the language variant to use: jml, javelyn, or jml+ (the default)
   -extensions                Extension packages and classes (comma-separated qualified names)
   -stopIfParseErrors         When enabled, stops after parsing if any files have parsing errors
   -method                    Comma-separated list of method name patterns on which to run ESC
@@ -55,8 +55,8 @@ JML options:
   -logic                     The SMT logic to use (default ALL)
   -nonnullByDefault          Makes references non_null by default [-nullableByDefault=false]
   -nullableByDefault         Makes references nullable by default
-  -code-math                 Arithmetic mode for Java code
-  -spec-math                 Arithmetic mode for specifications
+  -code-math                 Arithmetic mode for Java code (code, safe, bigint)
+  -spec-math                 Arithmetic mode for specifications (code, safe, bigint)
   -checkAccessible           When on (the default), JML accessible clauses are checked
   -specspath                 Specifies the directory path to search for specification files
   -checkSpecsPath            When on (the default), warnings for non-existent specification path directories are issued
@@ -70,6 +70,7 @@ JML options:
   -quiet                     Only output warnings and errors [-verboseness=0]
   -normal                    Limited output [-verboseness=1]
   -progress                  Shows progress through compilation phases [-verboseness=2]
+  -skipped                   Shows methods whose proofs are skipped
   -jmlverbose                Like -verbose, but only jml information and not as much [-verboseness=3]
   -jmldebug                  When on, the program emits lots of output (includes -progress) [-verboseness=4]
   -showOptions               When enabled, the values of options and properties are printed, for debugging
@@ -78,6 +79,7 @@ JML options:
   -show                      Show intermediate programs
   -split                     Split proof into sections
   -escBV                     ESC: If enabled, use bit-vector arithmetic (auto, true, false)
+  -triggers                  ESC: Enable quantifier triggers in SMT encoding (default true)
   -escExitInfo               ESC: Show exit location for postconditions (default true)
   -escMaxWarnings            ESC: Maximum number of warnings to find per method
   -escMaxWarningsPath        ESC: If true, find all counterexample paths to each invalid assert
@@ -86,8 +88,8 @@ JML options:
   -subexpressions            ESC: Enables tracing with subexpressions
   -checkFeasibility          ESC: Check feasibility of assumptions
   -benchmarks                ESC: Collects solver communications
-  -minQuant                  Minimizes using quantifications, in favor of inlining
-  -typeQuants                Introduces quantified assertions for type variables (true, false, or auto)
+  -minQuant                  ESC: Minimizes using quantifications, in favor of inlining
+  -typeQuants                ESC: Introduces quantified assertions for type variables (true, false, or auto)
   -modelFieldNoRep           RAC action when a model field has no represents clause (zero,ignore,warn)
   -racShowSource             RAC: Error messages will include source information
   -racCheckAssumptions       RAC: Enables runtime checking that assumptions hold
@@ -102,3 +104,17 @@ JML options:
   -staticInitWarning         Warns about missing static_initializer clauses
   -determinism               Experimental: enables better determinism
   -osname                    Name of OS to use in selecting solver executable
+  -inline-function-literal   Whether to inline function literals
+  -infer                     Infer missing contracts (postconditions (default), preconditions) [-command=infer]
+  -infer-debug               Enable debugging of contract inference
+  -infer-tag                 If true, inferred specifications are tagged with the key INFERRED
+  -infer-preconditions       If not specified, the precondition of methods lacking preconditions will be set to true (otherwise inference is skipped).
+  -noexit                    Infer contracts (suppress exiting) [-command=infer-no-exit]
+  -infer-minimize-expressions Minimize expressions where possible.
+  -infer-dump-graphs         Dump any specification that would have been inferred to a file for offline analysis
+  -infer-persist             Persist inferred specs. If "java" specs are written to the source files. If "jml" (default) they are written to seperate .jml files (defaults to location of class source and can be overridden with -infer-persist-path and -specspath)
+  -infer-persist-path        Specify output directory of specifications (overrides -specspath)
+  -infer-max-depth           The largest CFG we will agree to process
+  -infer-timeout             Give up inference after this many seconds. A value of -1 will wait indefinitely
+  -infer-dev-mode            Special features for developers.
+  -infer-analysis-types      Enables specific analysis types. Takes a comma seperated list of analysis types. Support kinds are: REDUNDANT, UNSAT, TAUTOLOGIES, FRAMES, PURITY, and VISIBILITY

@@ -36,12 +36,13 @@ public class JmlOptions extends Options {
     }
     
     public static void preRegister(Context context) {
+        //JmlOption.init();
         context.put(Options.optionsKey, new JmlOptions(context));
     }
     
     public void defaults() {
         //System.out.println("SETTING DEFAULTS");
-        for (JmlOption opt : JmlOption.values()) {
+        for (JmlOption opt : JmlOption.map.values()) {
             Object d = opt.defaultValue();
             String s = d == null ? null : d.toString();
             put(opt.optionName(),s);

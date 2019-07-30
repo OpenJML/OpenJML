@@ -130,7 +130,7 @@ public class racnew2 extends RacBase {
                 "  TestJava a = new TestJava();\n" +
                 "  int i = a.m(10); \n" +
                 "  //@ assert i == 11; \n" +
-                "  TestJava aa = new TestJava() { public int m(int i) { return i + 2; } };\n" +
+                "  TestJava aa = new TestJava() { public int m(int i) { return i + 2; } } ;\n" +
                 "  i = aa.m(10); \n" +
                 "  //@ assert i == 12; \n" +
                 

@@ -10,14 +10,14 @@ Completed proof of Test.Test(int) with prover !!!! - with warnings
 Completed proving methods in Test
 Proving methods in TestP
 Starting proof of TestP.TestP(int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of TestP.TestP(int) with prover !!!! - no warnings
 Completed proving methods in TestP
 Proving methods in Test2
 Starting proof of Test2.Test2(int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test2.Test2(int) with prover !!!! - no warnings
 Completed proving methods in Test2
 Proving methods in Test3B
@@ -32,8 +32,8 @@ Completed proof of Test3B.Test3B(int) with prover !!!! - with warnings
 Completed proving methods in Test3B
 Proving methods in Test3
 Starting proof of Test3.Test3(int) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
 Completed proof of Test3.Test3(int) with prover !!!! - no warnings
 Completed proving methods in Test3
 4 warnings

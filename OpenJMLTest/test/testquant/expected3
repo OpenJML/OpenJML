@@ -1,0 +1,33 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.foo(int[]) with prover !!!!
+test/testquant/Test.java:8: warning: NOT IMPLEMENTED: Not yet supported feature in converting BasicPrograms to SMTLIB: JML Quantified expression using \sum
+     //@ loop_invariant sum == (\sum int j; 0<=j && j<\count; a[j]);
+                                ^
+test/testquant/Test.java:8: warning: NOT IMPLEMENTED: Not yet supported feature in converting BasicPrograms to SMTLIB: JML Quantified expression using \sum
+     //@ loop_invariant sum == (\sum int j; 0<=j && j<\count; a[j]);
+                                ^
+test/testquant/Test.java:8: warning: NOT IMPLEMENTED: Not yet supported feature in converting BasicPrograms to SMTLIB: JML Quantified expression using \sum
+     //@ loop_invariant sum == (\sum int j; 0<=j && j<\count; a[j]);
+                                ^
+test/testquant/Test.java:4: warning: NOT IMPLEMENTED: Not yet supported feature in converting BasicPrograms to SMTLIB: JML Quantified expression using \sum
+  //@ ensures \result == (\sum int i; 0 <= i && i < a.length; a[i]);
+                          ^
+test/testquant/Test.java:8: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method foo
+     //@ loop_invariant sum == (\sum int j; 0<=j && j<\count; a[j]);
+         ^
+test/testquant/Test.java:8: warning: The prover cannot establish an assertion (LoopInvariant) in method foo
+     //@ loop_invariant sum == (\sum int j; 0<=j && j<\count; a[j]);
+         ^
+test/testquant/Test.java:12: warning: The prover cannot establish an assertion (Postcondition) in method foo
+     return sum;
+     ^
+test/testquant/Test.java:4: warning: Associated declaration
+  //@ ensures \result == (\sum int i; 0 <= i && i < a.length; a[i]);
+      ^
+Completed proof of Test.foo(int[]) with prover !!!! - with warnings
+Completed proving methods in Test
+8 warnings

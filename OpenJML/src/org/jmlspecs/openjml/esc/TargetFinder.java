@@ -1,6 +1,6 @@
 package org.jmlspecs.openjml.esc;
 
-import org.jmlspecs.openjml.JmlTreeScanner;
+import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAssign;

@@ -8,8 +8,8 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Symbol;
@@ -122,9 +122,29 @@ class ClassCollector extends JmlTreeScanner {
     public void visitBinary(JCTree.JCBinary tree) {
         JCTree.Tag op = tree.getTag();
         if (tree.type.getTag() != TypeTag.BOOLEAN) {
-            if (op == JCTree.Tag.BITAND || op == JCTree.Tag.BITAND_ASG || op == JCTree.Tag.BITOR || op == JCTree.Tag.BITOR_ASG || op == JCTree.Tag.BITXOR || op == JCTree.Tag.BITXOR_ASG) useBV = true;
+            if (op == JCTree.Tag.BITAND || op == JCTree.Tag.BITAND_ASG) {
+                if (!useBV && tree.rhs instanceof JCLiteral) {
+                    Object o = ((JCLiteral)tree.rhs).getValue();
+                    if (o instanceof Number) {
+                        long v = ((Number)o).longValue();
+                        if (v > 0 && Long.bitCount(v+1) == 1) {
+                            // OK
+                        } else {
+                            useBV = true;
+                        }
+                    } else {
+                        useBV = true;
+                    }
+                } else {
+                    useBV = true;
+                }
+            } else if (op == JCTree.Tag.BITOR || op == JCTree.Tag.BITOR_ASG || op == JCTree.Tag.BITXOR || op == JCTree.Tag.BITXOR_ASG) {
+                useBV = true;
+            }
         }
-        if (op == JCTree.Tag.SL || op == JCTree.Tag.SL_ASG || op == JCTree.Tag.SR || op == JCTree.Tag.SR_ASG || op == JCTree.Tag.USR || op == JCTree.Tag.USR_ASG    ) useBV = true;
+        if (op == JCTree.Tag.SL || op == JCTree.Tag.SL_ASG || op == JCTree.Tag.SR || op == JCTree.Tag.SR_ASG || op == JCTree.Tag.USR || op == JCTree.Tag.USR_ASG    ) {
+            if (true || !(tree.rhs instanceof JCLiteral)) useBV = true;
+        }
         super.visitBinary(tree);
     }
     

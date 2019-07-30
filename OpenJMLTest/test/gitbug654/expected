@@ -1,0 +1,26 @@
+Proving methods in C
+Starting proof of C.C() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of C.C() with prover !!!! - no warnings
+Completed proving methods in C
+Proving methods in B
+Starting proof of B.B() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of B.B() with prover !!!! - no warnings
+Starting proof of B.getXyz() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of B.getXyz() with prover !!!! - no warnings
+Completed proving methods in B
+Proving methods in Test
+Starting proof of Test.Test(B) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test(B) with prover !!!! - no warnings
+Starting proof of Test.TestMethod(B) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.TestMethod(B) with prover !!!! - no warnings
+Completed proving methods in Test

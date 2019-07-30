@@ -1,0 +1,12 @@
+Proving methods in B
+Starting proof of B.B() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of B.B() with prover !!!! - no warnings
+Proving methods in B.Content
+Starting proof of B.Content.Content() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of B.Content.Content() with prover !!!! - no warnings
+Completed proving methods in B.Content
+Completed proving methods in B

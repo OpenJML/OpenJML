@@ -2,6 +2,7 @@ package org.jmlspecs.openjml.ext;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.IArithmeticMode;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
@@ -20,7 +21,6 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.jvm.ClassReader;
-import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
@@ -56,8 +56,16 @@ abstract public class Arithmetic extends ExpressionExtension {
     }
     
     static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
-            JmlTokenKind.BSBIGINT_MATH, JmlTokenKind.BSJAVAMATH, JmlTokenKind.BSSAFEMATH}; }
+//            JmlTokenKind.BSBIGINT_MATH, JmlTokenKind.BSJAVAMATH, JmlTokenKind.BSSAFEMATH
+            }; }
     
+    @Override
+    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
+    public static IJmlClauseKind[] clauseTypes() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     Symbol codeBigintMath = null;
     Symbol codeSafeMath = null;
     Symbol codeJavaMath = null;
@@ -152,7 +160,7 @@ abstract public class Arithmetic extends ExpressionExtension {
         //attr.attribTypes(tree.typeargs, env);
         int n = tree.args.size();
         if (n != 1) {
-            error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+            error(tree.pos(),"jml.one.arg",token.internedName(),n);
         }
         Type t = syms.errType;
         if (n > 0) {
@@ -173,6 +181,24 @@ abstract public class Arithmetic extends ExpressionExtension {
         arg = rewriter.addImplicitConversion(arg,newtype,arg);
         JCTree.Tag optag = that.getTag();
         TypeTag typetag = that.type.getTag();
+        JCExpression eresult = null;
+//        if (arg instanceof JCLiteral) {
+//            // NEG, POS, COMPL
+//            Number n = (Number)((JCLiteral)arg).getValue();
+//            if (typetag == TypeTag.INT) {
+//                int v = n.intValue();
+//                if (v != Integer.MIN_VALUE || optag != JCTree.Tag.NEG) {
+//                    v = optag == JCTree.Tag.NEG ? -v : optag == JCTree.Tag.COMPL ? -1-v : v;
+//                    return rewriter.treeutils.makeIntLiteral(that.pos,v);
+//                }
+//            } else if (typetag == TypeTag.LONG) {
+//                long v = n.longValue();
+//                if (v != Long.MIN_VALUE || optag != JCTree.Tag.NEG) {
+//                    v = optag == JCTree.Tag.NEG ? -v : optag == JCTree.Tag.COMPL ? -1-v : v;
+//                    return rewriter.treeutils.makeLongLiteral(that.pos,v);
+//                }
+//            }
+//        }
         if (implementOverflow && !(arg instanceof JCLiteral)) {
             if (typetag == TypeTag.INT) {
                 JCExpression maxlit = rewriter.treeutils.makeIntLiteral(arg, Integer.MAX_VALUE);
@@ -188,16 +214,15 @@ abstract public class Arithmetic extends ExpressionExtension {
                 rewriter.addAssume(that, Label.IMPLICIT_ASSUME, rewriter.treeutils.makeAnd(that,a,b));
             }
         }
-        JCExpression eresult = null;
         if (warnOverflow && optag == JCTree.Tag.NEG && rewriter.jmltypes.isSameType(that.type,that.getExpression().type)) {
             if (typetag == TypeTag.INT) {
                 JCExpression e = rewriter.treeutils.makeNot(arg.pos,rewriter.treeutils.makeEquality(arg.pos, rewriter.convertCopy(arg), rewriter.treeutils.makeIntLiteral(arg.pos, Integer.MIN_VALUE)));
                 e = condition(rewriter,e);
-                rewriter.addAssert(that,Label.ARITHMETIC_OP_RANGE,e,"(int negation)");
+                rewriter.addCheck(that,Label.ARITHMETIC_OP_RANGE,e,"(int negation)");
             } else if (typetag == TypeTag.LONG) {
                 JCExpression e = rewriter.treeutils.makeNot(arg.pos,rewriter.treeutils.makeEquality(arg.pos, rewriter.convertCopy(arg), rewriter.treeutils.makeLit(arg.pos, that.type, Long.MIN_VALUE)));
                 e = condition(rewriter,e);
-                rewriter.addAssert(that,Label.ARITHMETIC_OP_RANGE,e,"(long negation)");
+                rewriter.addCheck(that,Label.ARITHMETIC_OP_RANGE,e,"(long negation)");
             }
         }
         if (rewriter.rac && rewriter.jmltypes.isJmlType(newtype)) {
@@ -211,7 +236,7 @@ abstract public class Arithmetic extends ExpressionExtension {
             } else if (optag == JCTree.Tag.POS) {
                 eresult = arg;
             } else if (optag == JCTree.Tag.COMPL) {
-                // Assumed to be a bigint (not real) operation - equivalent to -x-1
+                // Assumed to be a bigint (not real) operation - equivalent to -1-x
                 JCExpression e = rewriter.treeutils.makeUtilsMethodCall(that.pos,"bigint_neg",rewriter.convertCopy(arg));
                 e = rewriter.treeutils.makeUtilsMethodCall(that.pos,"bigint_sub1",e);
                 eresult = e;
@@ -262,18 +287,17 @@ abstract public class Arithmetic extends ExpressionExtension {
 
         // Need to do this operation before any implicit conversions, because those conversions may convert
         // to bigint or real, which complicates this test
-        if (javaChecks) {
-            if (optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD) {
-                @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs);
-                if (nonzero != null) rewriter.addAssert(that,
-                        rewriter.translatingJML ? Label.UNDEFINED_DIV0 : Label.POSSIBLY_DIV0,
-                        condition(rewriter, nonzero));
-            }
+        if (optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD) {
+            @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs);
+            if (nonzero != null) rewriter.addJavaCheck(that,nonzero,
+                    Label.POSSIBLY_DIV0, Label.UNDEFINED_DIV0, "java.lang.ArithmeticException");
         }
         
         
-        lhs = rewriter.addImplicitConversion(lhs,newtype,lhs);
-        rhs = rewriter.addImplicitConversion(rhs,newtype,rhs);
+        if (!(rac && alreadyConverted)) {
+            lhs = rewriter.addImplicitConversion(lhs,newtype,lhs);
+            rhs = rewriter.addImplicitConversion(rhs,newtype,rhs);
+        }
         
         // In MATH mode, the types can be promoted to \bigint or \real, even though the .type field is still smaller
         if (rewriter.jmltypes.isJmlType(lhs.type)) newtype = lhs.type;
@@ -311,8 +335,8 @@ abstract public class Arithmetic extends ExpressionExtension {
 
         TypeTag typetag = newtype.getTag();
         
+        boolean smtPredefined = true;
         // Check for overflows
-        
         if (checkOverflow) {
             // The overflow checks have to work whether integers are eventually encoded as fixed length bit vectors or as mathematical values
             if (optag == JCTree.Tag.PLUS || optag == JCTree.Tag.MINUS) {
@@ -382,6 +406,14 @@ abstract public class Arithmetic extends ExpressionExtension {
                         JCExpression d = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, b, rewriter.convertCopy(rhs));
                         rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, 
                                 condition(rewriter, rewriter.treeutils.makeOr(p, c, d)), "long multiply overflow");
+                    }
+                } else if (smtPredefined) {
+                    if (newtype.getTag() == TypeTag.INT) {
+                        assertIt(rewriter, that, "int multiply overflow", 
+                            rewriter.treeutils.makeJmlMethodInvocation(that,"|#isMul32ok#|", syms.booleanType, lhs, rhs));
+                    } else if (newtype.getTag() == TypeTag.LONG) {
+                        assertIt(rewriter, that, "long multiply overflow", 
+                                rewriter.treeutils.makeJmlMethodInvocation(that,"|#isMul64ok#|", syms.booleanType, lhs, rhs));
                     }
                 } else {
                     if (newtype.getTag() == TypeTag.INT) {
@@ -475,7 +507,13 @@ abstract public class Arithmetic extends ExpressionExtension {
                     // posvalue =  big ? sub : f;
                     // negvalue = small ? fneg + biglit : fneg
                     // result = g = e ? bin : pos ? posvalue : negvalue;
-                    if (typetag == TypeTag.INT) {
+                    if (smtPredefined) {
+                        if (newtype.getTag() == TypeTag.INT) {
+                            bin = rewriter.treeutils.makeJmlMethodInvocation(that,"|#mul32#|", syms.intType, lhs, rhs);
+                        } else if (newtype.getTag() == TypeTag.LONG) {
+                            bin = rewriter.treeutils.makeJmlMethodInvocation(that,"|#mul64#|", syms.longType, lhs, rhs);
+                        }
+                    } else if (typetag == TypeTag.INT) {
                         // The MOD here is Java %, which is negative if the dividend is negative
                         // DIV is OK here because it is exact
                         JCExpression zero = rewriter.treeutils.makeIntLiteral(p, 0);
@@ -568,7 +606,7 @@ abstract public class Arithmetic extends ExpressionExtension {
             JCTree.JCIdent id = rewriter.newTemp(x);
             rewriter.saveMapping(x,id);
         }
-        rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, x, str);
+        rewriter.addCheck(that, Label.ARITHMETIC_OP_RANGE, x, str);
     }
     
     /** This implements the bigint (which is also real) mathematical mode */
