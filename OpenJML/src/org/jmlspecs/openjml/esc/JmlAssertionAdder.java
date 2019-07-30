@@ -12830,6 +12830,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 saveMapping(that,nm);
                 // Can't set eresult = nm generally because this ident might be an LHS.
                 if (eresult instanceof JmlMethodInvocation) result = eresult = nm;
+                else result = eresult = convertCopy(eresult);
             }
         
         } finally {

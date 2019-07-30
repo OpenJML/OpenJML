@@ -1913,12 +1913,13 @@ public class SMTTranslator extends JmlTreeScanner {
                 newname = "_" + m.toString();
                 addFcn(newname,tree);
             } else {
-                // FIXME - the non-static should have a fiully qualified name as well
-                newname = name;
+                newname = fa.sym.owner.toString() + "." + name;
                 addFcn(newname,tree);
             }
             List<IExpr> newargs = new LinkedList<IExpr>();
-            if (!Utils.instance(context).isJMLStatic(fa.sym)) newargs.add(convertExpr(fa.selected));
+            if (!Utils.instance(context).isJMLStatic(fa.sym)) {
+                newargs.add(convertExpr(fa.selected));
+            }
             for (JCExpression arg: tree.args) {
                 newargs.add(convertExpr(arg));
             }
@@ -2631,7 +2632,12 @@ public class SMTTranslator extends JmlTreeScanner {
             JCExpression object = tree.selected;
             Symbol field = tree.sym;
             if (field != syms.lengthVar) {
-                String encName = makeBarEnclosedString(tree.name.toString());
+                String encName;
+                if (Utils.instance(context).isJMLStatic(field)) {
+                    encName = makeBarEnclosedString(tree.name.toString());
+                } else {
+                    encName = makeBarEnclosedString(tree.sym.owner.toString() + "_" + tree.name.toString());
+                }
                 IExpr.ISymbol name = F.symbol(encName);
                 if (defined.add(encName)) {
                     ISort arrsort = F.createSortExpression(arraySym,convertSort(object.type),convertSort(field.type));
