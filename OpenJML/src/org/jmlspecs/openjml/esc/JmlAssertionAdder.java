@@ -376,7 +376,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected int assertCount = 0;
     
     /** A counter that ensures unique variable names (within a method body). */
-    protected int count = 0;
+    protected int uniqueCount = 0;
     
     public boolean useBV;
     
@@ -603,7 +603,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.racCheckAssumeStatements = JmlOption.isOption(context,JmlOption.RAC_CHECK_ASSUMPTIONS);
         this.javaChecks = esc || (rac && JmlOption.isOption(context,JmlOption.RAC_JAVA_CHECKS));
         this.boogie = esc && JmlOption.isOption(context,JmlOption.BOOGIE);
-        this.count = 0;
+        this.uniqueCount = 0;
         this.assertCount = 0;
         this.precount = 0;
 //        this.preparams.clear();
@@ -816,6 +816,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Set<Type> savedActiveExceptions = activeExceptions;
         activeExceptions = new HashSet<>();
         findActiveExceptions(pmethodDecl);
+        
+        //System.out.println("Translating " + pmethodDecl.sym.toString());
 
         allocCounter = 0;
         
@@ -1251,8 +1253,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     void popMapSymbols(Map<Symbol,Symbol> savedMapSymbols) {
         mapSymbols.clear();
-        mapSymbols = savedMapSymbols;
-        savedMapSymbols = null;
+        mapSymbols.putAll(savedMapSymbols);
+        savedMapSymbols.clear();
     }
     
     /** Internal method to do the method body conversion */
@@ -2292,7 +2294,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected String uniqueTempString() {
-        return Strings.tmpVarString + (++count);
+        return Strings.tmpVarString + (uniqueCount++);
     }
 
     protected JmlVariableDecl newTempDecl(DiagnosticPosition pos, Type t) {
@@ -4048,9 +4050,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             if (clauseIds.containsKey(clause)) continue; // Don't reevaluate if we have nested specs
                             for (JCVariableDecl decl : ((JmlMethodClauseDecl)clause).decls) {
                                 addTraceableComment(decl,clause.toString());
-                                //                             Name name = names.fromString(decl.name.toString() + "__OLD_" + decl.pos);
+                                Name name = names.fromString(decl.name.toString() + "__OLD_" + decl.pos + "_" + (uniqueCount++));
                                 //JCVariableDecl newdecl = convertCopy(decl);
-                                JCVariableDecl newdecl = treeutils.makeVarDef(decl.type, decl.name, methodDecl.sym, clause.pos);
+                                JCVariableDecl newdecl = treeutils.makeVarDef(decl.type, name, methodDecl.sym, clause.pos);
                                 addStat(initialStats,newdecl);
                                 mapSymbols.put(decl.sym, newdecl.sym);
                                 JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
@@ -5506,10 +5508,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             ListBuffer<JCStatement> check = pushBlock(); // To swallow and ignore the addStat of a block in visitBlock  // which no longer happens
             boolean saved = translatingJML;
             translatingJML = false;
-            JCLambda nthat = M.Lambda(convert(that.params), convert(that.body));
+            JmlLambda nthat = M.Lambda(convert(that.params), convert(that.body));
             nthat.pos = that.pos;
             nthat.type = that.type;
-            ((JmlLambda)nthat).jmlType = convert(((JmlLambda)that).jmlType);
+            nthat.literal = convert(((JmlLambda)that).literal);
+            nthat.jmlType = convert(((JmlLambda)that).jmlType);
             result = eresult = nthat;
             translatingJML = saved;
             popBlock(that,check);
@@ -5526,17 +5529,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         
         boolean b = JmlOption.isOption(context, JmlOption.INLINE_FUNCTION_LITERAL);
-        if (!b) {
-            int n = lambdaLiterals.size();
-            String nm = "$$JML$LAMBDALIT_" + n;
-            lambdaLiterals.put(nm, that);
-            JCVariableDecl d = treeutils.makeVarDef(that.type,names.fromString(nm),methodDecl.sym,that.pos);
-            addStat(d);
-            JCIdent id = treeutils.makeIdent(that.pos, d.sym);
-            addAssume(that,Label.IMPLICIT_ASSUME, treeutils.makeNotNull(that.pos, id));
-            result = eresult = id;
-            return;
-        }
+
+        int n = lambdaLiterals.size();
+        String nm = "$$JML$LAMBDALIT_" + n;
+        lambdaLiterals.put(nm, that);
+        JCVariableDecl d = treeutils.makeVarDef(that.type,names.fromString(nm),methodDecl.sym,that.pos);
+        addStat(d);
+        JCIdent id = treeutils.makeIdent(that.pos, d.sym);
+        id.type = that.type;
+        addAssume(that,Label.IMPLICIT_ASSUME, treeutils.makeNotNull(that.pos, id));
+
 
         JCExpression savedExpr = resultExpr;
         resultExpr = null;
@@ -5579,7 +5581,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCBlock bl = popBlock(that.pos(), check);
 //            JCStatement stat = M.JmlLabeledStatement(breakName, null, bl);
 //            bl = M.at(that).Block(0L, List.<JCStatement>of(stat));
-            result = eresult = M.Lambda(that.params, bl);
+            JmlLambda lam = M.Lambda(that.params, bl);
+            lam.literal = id;
+            result = eresult = lam;
             eresult.pos = that.pos;
             eresult.type = that.type;
 //            addStat(bl);
@@ -6034,7 +6038,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 result = eresult = convertExpr(that.truepart);
             } else {
 
-                Name resultname = names.fromString(Strings.conditionalResult + (++count));
+                Name resultname = names.fromString(Strings.conditionalResult + (uniqueCount++));
                 JCVariableDecl vdecl = treeutils.makeVarDef(that.type, resultname, /*esc? null :*/ methodDecl.sym, that.pos);
                 addStat(vdecl);
 
@@ -7335,6 +7339,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - needs work
     @Override
     public void visitApply(JCMethodInvocation that) {
+        JCExpression savedCondition = condition;
+        try {
+        condition = treeutils.trueLit;
+
         //System.out.println("APPLY ENTER " + statementStack.size());
         // FIXME - needs result set - needs proper handling of pure methods etc.
         if (that.meth.toString().startsWith("System.out.")) {
@@ -7399,7 +7407,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             return;
         }
+        Map<Symbol,Symbol> saved = pushMapSymbols();
         applyHelper(that);
+        popMapSymbols(saved);
+        } finally {
+        condition = savedCondition;
+        }
     }
     
     public boolean checkCodeModifier(MethodSymbol calleeMethodSym, MethodSymbol mpsym, JmlSpecificationCase cs) {
@@ -8280,7 +8293,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // ESC - Constructor call
                     Type t = that.type;
                     if (t instanceof Type.TypeVar) t = paramActuals.get(t.toString()).type; 
-                    JCVariableDecl decl = treeutils.makeVarDef(t,names.fromString(Strings.newObjectVarString + that.pos+ "_" + (++count)), null, that.pos);
+                    JCVariableDecl decl = treeutils.makeVarDef(t,names.fromString(Strings.newObjectVarString + that.pos+ "_" + (uniqueCount++)), null, that.pos);
                     addStat(decl);
                     resultSym = decl.sym;
                     resultExpr = treeutils.makeIdent(that.pos, decl.sym);
@@ -8686,7 +8699,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             addTraceableComment(decl,clause.toString());
                                             //                             Name name = names.fromString(decl.name.toString() + "__OLD_" + decl.pos);
                                             //JCVariableDecl newdecl = convertCopy(decl);
-                                            JCVariableDecl newdecl = treeutils.makeVarDef(decl.type, decl.name, methodDecl.sym, clause.pos);
+                                            Name name = names.fromString(decl.name.toString() + "__OLD_" + decl.pos + "_" + (uniqueCount++));
+                                            JCVariableDecl newdecl = treeutils.makeVarDef(decl.type, name, methodDecl.sym, clause.pos);
                                             addStat(oldStatements,newdecl);
                                             mapSymbols.put(decl.sym, newdecl.sym);
                                             JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
@@ -8895,7 +8909,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             Name calllabel = null;
             if (!translatingJML) {
                 JCBlock bl = M.at(that).Block(0L, List.<JCStatement>nil());
-                String label = "_JMLCALL_" + that.pos + "_" + (++count);
+                String label = "_JMLCALL_" + that.pos + "_" + (uniqueCount++);
                 calllabel = names.fromString(label);
                 JmlLabeledStatement stat = M.at(that).JmlLabeledStatement(calllabel,null,bl);
                 addStat(stat);
@@ -13751,7 +13765,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else {
             // Have an iterable instead of an array
             
-            Name iteratorName = names.fromString("_JML_iterator_" + (++count));
+            Name iteratorName = names.fromString("_JML_iterator_" + (uniqueCount++));
             JCExpression iter = methodCallUtilsExpression(array,"iterator",array);
             Type restype;
             restype = iter.type; 
@@ -13862,7 +13876,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected JCVariableDecl loopHelperDeclareIndex(DiagnosticPosition pos) {
         int p = pos.getPreferredPosition();
         if (p<0) p = 0;
-        Name indexName = names.fromString("index_" + p + "_" + (++count));
+        Name indexName = names.fromString("index_" + p + "_" + (uniqueCount++));
         JCVariableDecl indexDecl = treeutils.makeVarDef(syms.intType, indexName, methodDecl.sym, treeutils.zero);
         indexDecl.sym.pos = pos.getPreferredPosition();
         indexDecl.pos = pos.getPreferredPosition();
@@ -14008,7 +14022,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected void loopHelperMakeBody(JCStatement body) {
         addTraceableComment(body,null,"Begin loop body");
         JCBlock bodyBlock = M.at(body).Block(0, null);
-        Name label = names.fromString("loopBody_" + body.pos + "_" + (++count));
+        Name label = names.fromString("loopBody_" + body.pos + "_" + (uniqueCount++));
         JCLabeledStatement lab = M.at(body).JmlLabeledStatement(label,null,bodyBlock);
         continueStack.push(lab);
         addStat(lab);
@@ -14871,7 +14885,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 
                             } else {
                                 arg = convertExpr(arg); // into label extra statements
-                                String s = "_JML___old_" + (++count); // FIXME - Put string in Strings
+                                String s = "_JML___old_" + (uniqueCount++); // FIXME - Put string in Strings
                                 Name nm = names.fromString(s);
                                 JCVariableDecl d = treeutils.makeVarDef(arg.type,nm,methodDecl.sym,treeutils.makeZeroEquivalentLit(arg.pos,arg.type));
                                 //v.mods.flags |= Flags.FINAL; // If we use this, the sym has to be set FINAL as well.
@@ -14945,14 +14959,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 // at least Z3 to  timeout. So we insert the definition directly.
                                 int p = arg.pos;
                                 // replace \nonnullelements(arg) with (\let temp0 = arg; temp0 != null && (\forall int temp; 0 <= temp && temp < temp0.length; temp0[temp] != null);
-                                Name nm0 = names.fromString("__JMLtemp" + (++count));
+                                Name nm0 = names.fromString("__JMLtemp" + (uniqueCount++));
                                 JCVariableDecl vd0 = treeutils.makeVariableDecl(nm0, arg.type, arg, p);
                                 JCExpression id0 = treeutils.makeIdent(p,  vd0.sym);
                                 
                                 // FIXME _ for now don't use a let: there are problems translating it
                                 id0 = arg;
                                 
-                                Name nm = names.fromString("__JMLtemp" + (++count));
+                                Name nm = names.fromString("__JMLtemp" + (uniqueCount++));
                                 JCVariableDecl vd = treeutils.makeVariableDecl(nm, syms.intType, null, p);
                                 JCExpression z = treeutils.makeIntLiteral(p,  0);
                                 JCExpression id1 = treeutils.makeIdent(p,  vd.sym);
@@ -15521,13 +15535,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 // The accumulator variable
                 Type t = that.type;
-                Name n = names.fromString("_JML$val$$" + (++count));
+                Name n = names.fromString("_JML$val$$" + (uniqueCount++));
                 JCVariableDecl decl = treeutils.makeVarDef(t, n, methodDecl.sym, that.pos);
                 decl.init = treeutils.makeZeroEquivalentLit(that.pos, types.unboxedTypeOrType(t));
                 addStat(decl);
                 
                 // Label for the loop, so we can break out of it
-                Name label = names.fromString("__JMLwhile_" + (++count));
+                Name label = names.fromString("__JMLwhile_" + (uniqueCount++));
                 boolean saved = pureCopy;
                 ListBuffer<JCStatement> check = pushBlock(); // B // enclosing block, except for declaration of accumulator
                 try {

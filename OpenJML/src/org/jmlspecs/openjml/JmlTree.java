@@ -583,7 +583,7 @@ public class JmlTree {
             return new JmlDoWhileLoop(loop,loopSpecs); // pos set from loop argument
         }
         
-        public JCLambda Lambda(List<JCVariableDecl> params,
+        public JmlLambda Lambda(List<JCVariableDecl> params,
                 JCTree body) {
             //return super.Lambda(params, body);
             return JmlLambda(params, body, null);
@@ -3749,6 +3749,7 @@ public class JmlTree {
     
     public static class JmlLambda extends JCLambda {
         public JCExpression jmlType;
+        public JCIdent literal;
         
         public JmlLambda(List<JCVariableDecl> params,
                 JCTree body, JCExpression jmlType) {

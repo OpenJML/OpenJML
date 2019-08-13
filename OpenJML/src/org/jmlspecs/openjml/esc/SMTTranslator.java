@@ -988,7 +988,7 @@ public class SMTTranslator extends JmlTreeScanner {
             dargs.addAll(functionSymbols);
             dargs.add(nullSym);
             IExpr f = F.fcn(distinctSym, dargs);
-            startCommands.add(new C_assert(f));
+            commands.add(new C_assert(f));
         }
         addTypeRelationships(loc,smt);
         
