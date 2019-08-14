@@ -7339,9 +7339,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - needs work
     @Override
     public void visitApply(JCMethodInvocation that) {
-        JCExpression savedCondition = condition;
-        try {
-        condition = treeutils.trueLit;
+//        JCExpression savedCondition = condition;
+//        try {
+//        condition = treeutils.trueLit;
 
         //System.out.println("APPLY ENTER " + statementStack.size());
         // FIXME - needs result set - needs proper handling of pure methods etc.
@@ -7410,9 +7410,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Map<Symbol,Symbol> saved = pushMapSymbols();
         applyHelper(that);
         popMapSymbols(saved);
-        } finally {
-        condition = savedCondition;
-        }
+//        } finally {
+//        condition = savedCondition;
+//        }
     }
     
     public boolean checkCodeModifier(MethodSymbol calleeMethodSym, MethodSymbol mpsym, JmlSpecificationCase cs) {
@@ -10047,8 +10047,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         // FIXME - need to check definedness by testing preconditions when translatingJML
 
-        JCExpression savedCondition = condition;
-        condition = treeutils.trueLit;
+//        JCExpression savedCondition = condition;
+//        condition = treeutils.trueLit;
         
         // FIXME - need to call the constructor; need an assertion about the type of the result; about allocation time
         boolean isUtils = that.type.toString().contains("org.jmlspecs.utils.Utils"); // FIXME - must be a better way
@@ -10068,13 +10068,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             expr.varargsElement = that.varargsElement;
             expr.setType(that.type);
             result = eresult = expr;
-            condition = savedCondition;
+//            condition = savedCondition;
             return;
         }
         Map<Symbol,Symbol> saved = pushMapSymbols();
         applyHelper(that);
         popMapSymbols(saved);
-        condition = savedCondition;
+//        condition = savedCondition;
     }
     
     Map<Symbol, WellDefined>  wellDefinedCheck = new HashMap<Symbol,WellDefined>();

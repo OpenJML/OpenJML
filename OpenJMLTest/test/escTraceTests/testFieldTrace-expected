@@ -1,3 +1,4 @@
+PATH CONDITION ASSERT_56_136
 
 TRACE of tt.TestJava.m1(int)
 /tt/TestJava.java:5:  	k = 5 + i
