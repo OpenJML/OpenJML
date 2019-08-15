@@ -175,12 +175,12 @@ public class Strings {
     /** A String used as the root of a temporary variable to hold the
      * value of the result of a 'new' constructor call .
      */
-    final static public String newObjectVarString = "_JML___NEWOBJECT_"; //$NON-NLS-1$
+    final static public String newObjectVarString = genPrefix + "NEWOBJECT_"; //$NON-NLS-1$
     
     /** A String used as the root of a temporary variable to hold the value of
      * the result of a new array call.
      */
-    final static public String newArrayVarString = "_JML___NEWARRAY_"; //$NON-NLS-1$
+    final static public String newArrayVarString = genPrefix + "NEWARRAY_"; //$NON-NLS-1$
     
     /** A String used as a quantified variable in enum axioms */
     final static public String enumVar = "_JML__enum_";
@@ -221,7 +221,7 @@ public class Strings {
      * runtime exceptions that may happen while evaluating JML expressions
      * during RAC.
      */
-    final static public String runtimeException = "_JML__runtimeException"; //$NON-NLS-1$
+    final static public String runtimeException = genPrefix + "runtimeException"; //$NON-NLS-1$
     
     /** A string used as the name of the exception variable for method calls
      * within the body of a method.

@@ -12418,7 +12418,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else {
                     JCExpression nonnull = treeutils.trueLit;
                     if (utils.isPrimitiveType(selected.type)) treeutils.makeNotNull(that.pos, selected); 
-                    if (selected.toString().contains("NEWOBJECT")) nonnull = treeutils.trueLit;
+                    if (selected.toString().contains(Strings.newObjectVarString)) nonnull = treeutils.trueLit;
 
                     addJavaCheck(that,nonnull,Label.POSSIBLY_NULL_DEREFERENCE,Label.UNDEFINED_NULL_DEREFERENCE,"java.lang.NullPointerException");
                         // FIXME - what if the dereference happens in a spec in a different file - ,that,log.currentSourceFile());
@@ -12479,7 +12479,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else {
                     JCExpression nonnull = treeutils.trueLit;
                     if (!utils.isPrimitiveType(selected.type)) nonnull = treeutils.makeNotNull(that.pos, selected); 
-                    if (selected.toString().contains("NEWOBJECT")) nonnull = treeutils.trueLit;
+                    if (selected.toString().contains(Strings.newObjectVarString)) nonnull = treeutils.trueLit;
                     
                     addJavaCheck(that,nonnull,Label.POSSIBLY_NULL_DEREFERENCE,Label.UNDEFINED_NULL_DEREFERENCE,"java.lang.NullPointerException");
 //                    if (translatingJML) nonnull = conditionedAssertion(that, nonnull);
@@ -14529,18 +14529,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Checks whether there is a Skip annotation
 //        if (esc && JmlEsc.skip(that)) return;
 //        if (esc && !utils.filter(that,false)) return;
-//        if (rac && (JmlEsc.skipRac(that) || that.body == null)) {
-//            if (that.body == null && that.sym.owner.isInterface() && (that.mods.flags & Flags.DEFAULT) != 0) {
-//                // A default was put on a method with no body, presumably because it was a model method in an interface
-//                // SO remove the default and add Abstract
-//                that.mods.flags &= ~Flags.DEFAULT;
-//                that.mods.flags |= Flags.ABSTRACT;
-//                that.sym.flags_field &= ~Flags.DEFAULT;
-//                that.sym.flags_field |= Flags.ABSTRACT;
-//            }
-//            if (classDefs != null) classDefs.add(that); // FIXME - should make a fresh copy of the declaration
-//            return;
-//        }
+        if (rac && (JmlEsc.skipRac(that) || that.body == null)) {
+            if (that.body == null && that.sym.owner.isInterface() && (that.mods.flags & Flags.DEFAULT) != 0) {
+                // A default was put on a method with no body, presumably because it was a model method in an interface
+                // SO remove the default and add Abstract
+                that.mods.flags &= ~Flags.DEFAULT;
+                that.mods.flags |= Flags.ABSTRACT;
+                that.sym.flags_field &= ~Flags.DEFAULT;
+                that.sym.flags_field |= Flags.ABSTRACT;
+            }
+            if (classDefs != null) classDefs.add(that); // FIXME - should make a fresh copy of the declaration
+            return;
+        }
         
         // Simple name of method
         String nm = that.name.toString();

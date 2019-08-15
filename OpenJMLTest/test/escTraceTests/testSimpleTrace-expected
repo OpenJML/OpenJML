@@ -1,3 +1,4 @@
+PATH CONDITION ASSERT_55_140
 
 TRACE of tt.TestJava.m1(int)
 /tt/TestJava.java:4:  	int j = 5
