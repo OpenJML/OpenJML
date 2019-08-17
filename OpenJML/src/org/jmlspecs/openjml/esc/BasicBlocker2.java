@@ -374,7 +374,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     protected Name encodedName(VarSymbol sym, long incarnationPosition) {
         Symbol own = sym.owner;
         if (incarnationPosition == Position.NOPOS || own == null || (!isConstructor && (sym.flags() & Flags.FINAL) != 0) || (isConstructor && (sym.flags() & (Flags.STATIC|Flags.FINAL)) == (Flags.STATIC|Flags.FINAL))) { 
-            Name n = utils.isJMLStatic(sym) ? sym.getQualifiedName() : sym.name;
+            //Name n = utils.isJMLStatic(sym) ? sym.getQualifiedName() : sym.name;
+            Name n = sym.name;
             if (sym.pos >= 0 && !n.toString().equals(Strings.THIS)) n = names.fromString(n.toString() + ("_" + sym.pos));
             if (own != null && own != methodDecl.sym.owner && own instanceof TypeSymbol) {
                 Name s = own.getQualifiedName();
@@ -383,7 +384,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             return n;
         } else
             return names.fromString(
-                    sym.getQualifiedName() 
+                    //sym.getQualifiedName() 
+                    sym.name 
                     + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) // declaration position
                     + incarnationPosition // new definition position
                     + "___" 

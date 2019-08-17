@@ -1026,7 +1026,7 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug681() {
         expectedExit = 0;
-        helpTCG("-show","-method=main");
+        helpTCG();
     }
     
     @Test

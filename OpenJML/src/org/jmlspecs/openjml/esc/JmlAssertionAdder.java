@@ -7345,7 +7345,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         //System.out.println("APPLY ENTER " + statementStack.size());
         // FIXME - needs result set - needs proper handling of pure methods etc.
-        if (that.meth.toString().startsWith("System.out.")) {
+        if (that.meth.toString().startsWith("System.out.println")) {
             // We handle System.out.println specially. It is essentially pure and
             // does not depend on any class invariants, so we can safely just call it
             // after translating the arguments. This avoids bloat caused by putting

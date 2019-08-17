@@ -1014,7 +1014,9 @@ public class SMTTranslator extends JmlTreeScanner {
     }
     
     protected void addConstant(JCIdent id) {
-        String nm = makeBarEnclosedString(id.name.toString());
+        String nm = makePQBarEnclosedString(id);
+
+        //String nm = makeBarEnclosedString(id.name.toString());
         if (defined.add(nm)) {
             try {
                 ISort sort = convertSort(id.type);
@@ -1322,16 +1324,18 @@ public class SMTTranslator extends JmlTreeScanner {
                 
                 String s = makeBarEnclosedString(decl.name.toString());
                 ISymbol sym = F.symbol(s);
+                addType(decl.type);
+                ISort sort = convertSort(decl.type);
                 if (init == null) {
                     commands.add(new C_declare_fun(
                             sym,
                             emptyList,
-                            convertSort(decl.type)));
+                            sort));
                 } else if (decl.init instanceof JmlQuantifiedExpr) {
                     commands.add(new C_declare_fun(
                             sym,
                             emptyList,
-                            convertSort(decl.type)));
+                            sort));
                     commands.add(new C_assert(
                             F.fcn(eqSym, sym, init)
                             ));
@@ -1339,12 +1343,18 @@ public class SMTTranslator extends JmlTreeScanner {
                     commands.add(new C_define_fun(
                             sym,
                             new LinkedList<IDeclaration>(),
-                            convertSort(decl.type),
+                            sort,
                             init));
                 }
                 // An identifier may be appended to a JmlVariableDecl simply
                 // to have an expression with which to associated an SMT value
                 if (decl.ident != null) bimap.put(decl.ident, sym);
+//                if (sort == refSort && (decl.type instanceof Type.ClassType)) {
+//                    ICommand c = new C_assert(
+//                            F.fcn(orSym,F.fcn(eqSym, sym, nullSym),makeInstanceof(sym,decl.type))
+//                            );
+//                   commands.add(c);
+//                }
             } catch (JmlBVException ee) {
                 throw ee;
             } catch (RuntimeException ee) {
@@ -2634,7 +2644,11 @@ public class SMTTranslator extends JmlTreeScanner {
             if (field != syms.lengthVar) {
                 String encName;
                 if (Utils.instance(context).isJMLStatic(field)) {
-                    encName = makeBarEnclosedString(tree.name.toString());
+                    String ostr = tree.sym.owner.toString();
+                    String nstr = tree.name.toString();
+                    // FIXME: SHould not have to do this check -- means that naming is inconsistent in JmlAssertionAdder or BasicBlocker2
+                    if (!nstr.startsWith(ostr)) nstr = ostr + "_" + nstr;
+                    encName = makeBarEnclosedString(nstr);
                 } else {
                     encName = makeBarEnclosedString(tree.sym.owner.toString() + "_" + tree.name.toString());
                 }
@@ -2667,11 +2681,13 @@ public class SMTTranslator extends JmlTreeScanner {
         if (n.equals("length")) { // FIXME - not sure about this - length as array length is always a field name
             result = F.symbol(arrayLength);
         } else {
-            result = F.symbol(makeBarEnclosedString(n));
+            result = F.symbol(makePQBarEnclosedString(tree));
         }
     }
     
     protected Map<Double,String> reals = new HashMap<Double,String>();
+    
+    protected Map<String,String> strings = new HashMap<>();
     
     @Override
     public void visitLiteral(JCLiteral tree) {
@@ -2716,10 +2732,20 @@ public class SMTTranslator extends JmlTreeScanner {
             result = nullSym;
         } else if (tree.typetag == TypeTag.CLASS) {
             // FIXME - every literal is different and we don't remember the value
-            ISymbol sym = F.symbol("STRINGLIT"+(++stringCount)); 
-            ICommand c = new C_declare_fun(sym,emptyList, refSort);
-            commands.add(c);
-            result = sym;
+            // FIXME _ literals are now different, but should they alwasy be?
+            String lit = (String)tree.value;
+            String sv = strings.get(lit);
+            if (sv == null) {
+                String ns = "STRINGLIT"+(++stringCount);
+                ISymbol sym = F.symbol(ns); 
+                ICommand c = new C_declare_fun(sym,emptyList, refSort);
+                commands.add(c);
+                result = sym;
+                strings.put(lit, ns);
+            } else {
+                ISymbol sym = F.symbol(sv); 
+                result = sym;
+            }
         } else if (tree.typetag == TypeTag.FLOAT || tree.typetag == TypeTag.DOUBLE) {
             result = makeRealValue(((Number)v).doubleValue());
         } else {
@@ -2769,6 +2795,23 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         s = "|" + s + "|";
         return s;
+    }
+    
+    protected String makePQBarEnclosedString(JCIdent id) {
+        String nm;
+        if (id.sym == null || id.sym.owner == null || !(id.sym.owner instanceof Symbol.ClassSymbol)) {
+            // This is the case for generated names or local names
+            nm = makeBarEnclosedString(id.name.toString());
+        } else if (Utils.instance(context).isJMLStatic(id.sym)) {
+            String ostr = id.sym.owner.toString();
+            String nstr = id.name.toString();
+            // FIXME: SHould not have to do this check -- means that naming is inconsistent in JmlAssertionAdder or BasicBlocker2
+            if (!nstr.startsWith(ostr)) nstr = ostr + "_" + nstr;
+            nm = makeBarEnclosedString(nstr);
+        } else {
+            nm = makeBarEnclosedString(id.sym.owner.toString() + "_" + id.name.toString());
+        }
+        return nm;
     }
     
     @Override
