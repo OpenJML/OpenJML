@@ -45,6 +45,7 @@ import org.smtlib.command.C_check_sat;
 import org.smtlib.command.C_push;
 import org.smtlib.sexpr.ISexpr;
 
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
@@ -677,13 +678,17 @@ public class MethodProverSMT {
                         for (VarSymbol v: basicBlocker.premap.keySet()) {
                             Name n = basicBlocker.premap.getName(v);
                             String ns = n.toString();
+                            if (v.owner instanceof Symbol.ClassSymbol) {
+                                String ostr = v.owner.toString();
+                                if (!ns.startsWith(ostr)) ns = ostr + "_" + ns;
+                            }
                             if (ns.equals("this")) continue; // FIXME - use symbols for these
                             if (ns.equals("length")) continue;
                             if (ns.equals("_alloc__")) continue;
                             if (ns.equals("_heap__")) continue;
 
-                            String s = getValue(n.toString(),smt,solver);
-                            log.getWriter(WriterKind.NOTICE).println(n.toString() + " = " + s);
+                            String s = getValue(ns,smt,solver);
+                            log.getWriter(WriterKind.NOTICE).println(ns + " = " + s);
                         }
                         log.getWriter(WriterKind.NOTICE).println(Strings.empty);
                     }

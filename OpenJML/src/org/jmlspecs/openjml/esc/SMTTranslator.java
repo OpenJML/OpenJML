@@ -1324,7 +1324,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 
                 String s = makeBarEnclosedString(decl.name.toString());
                 ISymbol sym = F.symbol(s);
-                addType(decl.type);
+                if (!utils.isPrimitiveOrVoidType(decl.type)) addType(decl.type);
                 ISort sort = convertSort(decl.type);
                 if (init == null) {
                     commands.add(new C_declare_fun(
@@ -2643,7 +2643,7 @@ public class SMTTranslator extends JmlTreeScanner {
             Symbol field = tree.sym;
             if (field != syms.lengthVar) {
                 String encName;
-                if (Utils.instance(context).isJMLStatic(field)) {
+                if (Utils.instance(context).isJMLStatic(field) || true) {
                     String ostr = tree.sym.owner.toString();
                     String nstr = tree.name.toString();
                     // FIXME: SHould not have to do this check -- means that naming is inconsistent in JmlAssertionAdder or BasicBlocker2

@@ -706,6 +706,10 @@ public class Utils {
         return ct.isPrimitive() || jmltypes().isJmlType(ct) || isExtensionValueType(ct);
     }
 
+    public boolean isPrimitiveOrVoidType(Type ct) {
+        return ct.isPrimitiveOrVoid() || jmltypes().isJmlType(ct) || isExtensionValueType(ct);
+    }
+
     public boolean isExtensionValueType(Type ct) {
         if (ct instanceof Type.MethodType) return false;
         if (ct.getTag() == TypeTag.BOT) return false;
