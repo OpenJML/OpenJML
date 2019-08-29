@@ -226,33 +226,33 @@ public class Strings {
     /** A string used as the name of the exception variable for method calls
      * within the body of a method.
      */
-    final static public String exceptionCallVarString = "_JML___exceptionCall"; //$NON-NLS-1$
+    final static public String exceptionCallVarString = genPrefix + "exceptionCall"; //$NON-NLS-1$
     
     /** A string used as the ID of the Exception in a a signals clause that
      * does not actually have an ID present: signals (Exception) ...
      */ // FIXME - can we use the one above just as well?
-    public final static String syntheticExceptionID = "_JML___syntheticExceptionID"; //$NON-NLS-1$
+    public final static String syntheticExceptionID = genPrefix + "syntheticExceptionID"; //$NON-NLS-1$
     
     /** The prefix of names used to record the result of a
      * conditional expression.
      */
-    public final static String conditionalResult = "_JML__conditionalResult_";
+    public final static String conditionalResult = genPrefix + "conditionalResult_";
     
     /** Synthetic methods are constructed to implement the combination of model
      * fields and represents clauses; the name of method is this prefix string
      * combined with name of the model field.
      */
-    public final static String modelFieldMethodPrefix = "_JML$model$";
+    public final static String modelFieldMethodPrefix = genPrefix + "model$";
     
     /** Name used for the array of allocation ids */
-    public final static String allocName = "_alloc__";
+    public final static String allocName = genPrefix + "alloc__";
     
     /** Name used for the array of allocation state */
-    public final static String isAllocName = "_isalloc__";
+    public final static String isAllocName = genPrefix + "isalloc__";
     
     /** Name of a field put into every rac-compiled class, to signal that it is rac-compiled */
     // Must match corresponding string in Utils.
-    public final static String racCompiled = "__JML_racCompiled";
+    public final static String racCompiled = genPrefix + "racCompiled";
     
     public final static String preLabelBuiltin = "\\Pre";
     public final static String oldLabelBuiltin = "\\Old";
