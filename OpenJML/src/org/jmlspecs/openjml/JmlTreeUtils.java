@@ -1334,7 +1334,7 @@ public class JmlTreeUtils {
         return typeof;
     }
     
-    /** Makes a JML \typeof expression, with the given expression as the argument */
+    /** Makes a JML \type expression, with the given expression as the argument */
     public JCExpression makeTypelc(JCExpression e) {
         JmlMethodInvocation typeof = factory.at(e.pos).JmlMethodInvocation(typelcKind,e);
         typeof.type = types.TYPE;
@@ -1374,23 +1374,26 @@ public class JmlTreeUtils {
         JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(typelcKind,makeType(p,type));
         rhs.type = JmlTypes.instance(context).TYPE;
         JCExpression expr = makeEqObject(p,lhs,rhs);
-        expr = makeAnd(p,expr,
+        // FIXME - the check below just until unerased types are supported in boogie
+        if (!JmlOption.isOption(context, JmlOption.BOOGIE)) {
+            expr = makeAnd(p,expr,
                 makeJmlMethodInvocation(pos,JmlTokenKind.SUBTYPE_OF,syms.booleanType,lhs,rhs));
-        {
-            Type t = types.erasure(type);
-            if (!t.isPrimitive() && t.getKind() != TypeKind.ARRAY) {
-                JCTree.JCInstanceOf tt = makeInstanceOf(p,id,types.erasure(type));
-                expr = makeAnd(p,tt,expr);
+            {
+                Type t = types.erasure(type);
+                if (!t.isPrimitive() && t.getKind() != TypeKind.ARRAY) {
+                    JCTree.JCInstanceOf tt = makeInstanceOf(p,id,types.erasure(type));
+                    expr = makeAnd(p,tt,expr);
+                }
             }
-        }
-        if (type.getTag() == TypeTag.ARRAY) {
-            Type compType = ((Type.ArrayType)type).getComponentType();
-            JmlMethodInvocation ct = factory.at(p).JmlMethodInvocation(typelcKind,makeType(p,compType));
-            JCExpression e = makeTypeof(id);
-            e = factory.at(p).JmlMethodInvocation(elemtypeKind,e);
-            e.type = ct.type = types.TYPE;
-            e = makeEqObject(p, e, ct);
-            expr = makeAnd(p,expr,e);
+            if (type.getTag() == TypeTag.ARRAY) {
+                Type compType = ((Type.ArrayType)type).getComponentType();
+                JmlMethodInvocation ct = factory.at(p).JmlMethodInvocation(typelcKind,makeType(p,compType));
+                JCExpression e = makeTypeof(id);
+                e = factory.at(p).JmlMethodInvocation(elemtypeKind,e);
+                e.type = ct.type = types.TYPE;
+                e = makeEqObject(p, e, ct);
+                expr = makeAnd(p,expr,e);
+            }
         }
         
         if (!type.isPrimitive() ) {
@@ -1433,6 +1436,7 @@ public class JmlTreeUtils {
             if (type.getKind() != TypeKind.ARRAY) {
                 JCTree.JCInstanceOf tt = makeInstanceOf(p,id,types.erasure(type));
                 expr = makeAnd(p,tt,expr);
+                if (JmlOption.isOption(context, JmlOption.BOOGIE)) expr = tt; // FIXME - just until Boogie handles unerased types
             } else {
                 Type comptype = ((Type.ArrayType)type).elemtype;
                 JCExpression e = makeTypeof(id);

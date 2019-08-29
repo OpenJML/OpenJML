@@ -879,6 +879,31 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
             
+            if ((infer || esc) && (isConstructor || !utils.isJMLStatic(methodDecl.sym))) {
+                addStat(comment(methodDecl,"Declaration of THIS",null));
+                currentStatements = initialStatements;  // FIXME - an unnecessary assignment I think
+                
+                addStat(treeutils.makeVariableDecl(names.fromString(Strings.THIS), currentThisExpr.type, null, pmethodDecl.pos));
+                if (!utils.isPrimitiveType(currentThisExpr.type)) {
+                    // assume 'this' is non-null and assume its type
+                    JCExpression e = treeutils.makeNeqObject(methodDecl.pos,currentThisExpr,treeutils.nullLit);
+                    addAssume(methodDecl,Label.IMPLICIT_ASSUME,e);
+                    if (isConstructor) addAssume(classDecl,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeEquality(classDecl,currentThisExpr,classDecl.type));
+                    else               addAssume(classDecl,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(classDecl,currentThisExpr,classDecl.type));
+
+                    if (!boogie) {
+                        // Assume when the 'this' object was allocated. 
+                        // Anything already allocated has a alloc value <= 0
+                        // If this is a constructor, then the alloc value of 'this' is set > 0; otherwise the alloc value of 'this' is 0
+                        JCExpression fa = M.at(methodDecl.pos).Select(currentThisExpr, allocSym);
+                        fa = treeutils.makeBinary(methodDecl,JCTree.Tag.EQ, fa, 
+                                treeutils.makeIntLiteral(methodDecl, enclosingClass.isEnum() ? 0 : isConstructor ? ++allocCounter : 0));
+                        addStat(treeutils.makeAssume(methodDecl, Label.IMPLICIT_ASSUME, fa ));
+                        // FIXME - the above setting for enums very likely has to be fixed.
+                    }
+                }
+            }
+
             // For esc we are tranlating the method into a block, but
             // for boogie (and rac) there is a method signature that has the 
             // formal declarations
@@ -985,25 +1010,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
 
             if ((infer || esc) && (isConstructor || !utils.isJMLStatic(methodDecl.sym))) {
-                addStat(comment(methodDecl,"Declaration of THIS",null));
+//                addStat(comment(methodDecl,"Declaration of THIS",null));
                 currentStatements = initialStatements;  // FIXME - an unnecessary assignment I think
                 
-                addStat(treeutils.makeVariableDecl(names.fromString(Strings.THIS), currentThisExpr.type, null, pmethodDecl.pos));
-                if (!utils.isPrimitiveType(currentThisExpr.type)) {
-                    // assume 'this' is non-null and assume its type
-                    JCExpression e = treeutils.makeNeqObject(methodDecl.pos,currentThisExpr,treeutils.nullLit);
-                    addAssume(methodDecl,Label.IMPLICIT_ASSUME,e);
-                    addAssume(classDecl,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(classDecl,currentThisExpr,classDecl.type));
-
-                    // Assume when the 'this' object was allocated. 
-                    // Anything already allocated has a alloc value <= 0
-                    // If this is a constructor, then the alloc value of 'this' is set > 0; otherwise the alloc value of 'this' is 0
-                    JCExpression fa = M.at(methodDecl.pos).Select(currentThisExpr, allocSym);
-                    fa = treeutils.makeBinary(methodDecl,JCTree.Tag.EQ, fa, 
-                            treeutils.makeIntLiteral(methodDecl, enclosingClass.isEnum() ? 0 : isConstructor ? ++allocCounter : 0));
-                    addStat(treeutils.makeAssume(methodDecl, Label.IMPLICIT_ASSUME, fa ));
-                    // FIXME - the above setting for enums very likely has to be fixed.
-                }
+//                addStat(treeutils.makeVariableDecl(names.fromString(Strings.THIS), currentThisExpr.type, null, pmethodDecl.pos));
+//                if (!utils.isPrimitiveType(currentThisExpr.type)) {
+//                    // assume 'this' is non-null and assume its type
+//                    JCExpression e = treeutils.makeNeqObject(methodDecl.pos,currentThisExpr,treeutils.nullLit);
+//                    addAssume(methodDecl,Label.IMPLICIT_ASSUME,e);
+//                    addAssume(classDecl,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(classDecl,currentThisExpr,classDecl.type));
+//
+//                    // Assume when the 'this' object was allocated. 
+//                    // Anything already allocated has a alloc value <= 0
+//                    // If this is a constructor, then the alloc value of 'this' is set > 0; otherwise the alloc value of 'this' is 0
+//                    JCExpression fa = M.at(methodDecl.pos).Select(currentThisExpr, allocSym);
+//                    fa = treeutils.makeBinary(methodDecl,JCTree.Tag.EQ, fa, 
+//                            treeutils.makeIntLiteral(methodDecl, enclosingClass.isEnum() ? 0 : isConstructor ? ++allocCounter : 0));
+//                    addStat(treeutils.makeAssume(methodDecl, Label.IMPLICIT_ASSUME, fa ));
+//                    // FIXME - the above setting for enums very likely has to be fixed.
+//                }
                 if (callingSuper && iter != null && iter.hasNext()) {
                     if (utils.isExtensionValueType(methodDecl.sym.owner.type)) {
                         iter.next(); // Don't do superclass
