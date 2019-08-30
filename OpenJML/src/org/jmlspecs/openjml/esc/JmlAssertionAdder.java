@@ -12909,9 +12909,28 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 JCExpression m = treeutils.makeMethodInvocation(that,id,msym);
                 m.type = syms.intType;
-                m = treeutils.makeEquality(that.pos, m, treeutils.makeIntLiteral(that.pos, ((String)that.getValue()).length()));
+                int len = ((String)that.getValue()).length();
+                m = treeutils.makeEquality(that.pos, m, treeutils.makeIntLiteral(that.pos, len));
                 JCStatement st = treeutils.makeAssume(that, Label.IMPLICIT_ASSUME, m);
                 st.accept(this);
+                
+                if (len > 0) {
+                    msym = null;
+                    for (Symbol s: tsym.getEnclosedElements()) {
+                        if (s instanceof MethodSymbol) {
+                            String sn = s.name.toString();
+                            if ("charAt".equals(sn)) { msym = (MethodSymbol)s; break; }
+                        }
+                    }
+                    JCExpression z = treeutils.makeIntLiteral(that.pos, 0);
+                    JCExpression mm = treeutils.makeMethodInvocation(that,id,msym,z);
+                    mm.type = syms.charType;
+                    JCExpression c = treeutils.makeCharLiteral(that.pos, ((String)that.getValue()).charAt(0));
+                    m = treeutils.makeEquality(that.pos, mm, c);
+                    st = treeutils.makeAssume(that, Label.IMPLICIT_ASSUME, m);
+                    st.accept(this);
+                }
+                
             }
 
 

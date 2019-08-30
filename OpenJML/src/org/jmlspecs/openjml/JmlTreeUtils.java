@@ -482,6 +482,17 @@ public class JmlTreeUtils {
         return r;
     }
 
+    /** Makes a constant char literal AST node.
+     * @param pos the position to use for the node
+     * @param value the char value of the constant node
+     * @return the AST node
+     */
+    public JCLiteral makeCharLiteral(int pos, char value) {
+        JCLiteral r = factory.at(pos).Literal(TypeTag.CHAR,(int)value);
+        r.type = syms.charType.constType(value);
+        return r;
+    }
+
     /** Make a zero-equivalent constant node of the given type
      * @param type the type of the node, e.g. syms.intType
      * @return the AST node
