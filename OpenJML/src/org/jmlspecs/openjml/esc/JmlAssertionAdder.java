@@ -13110,6 +13110,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (splitExpressions) {
             JCIdent id = newTempNull(that,that.type); // Adds a declaration
             ListBuffer<JCStatement> check = pushBlock();
+            for (JCVariableDecl d : that.defs) {
+                localVariables.put(d.sym,d.sym);
+            }
             try {
                 for (JCVariableDecl d : that.defs) {
                     convert(d);
@@ -13117,6 +13120,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCExpression e = convertExpr((JCExpression)that.expr);
                 addStat(treeutils.makeAssignStat(that.pos,treeutils.makeIdent(id.pos, id.sym),e));
             } finally {
+                for (JCVariableDecl d : that.defs) {
+                    localVariables.remove(d.sym);
+                }
                 addStat(popBlock(that,check));
                 result = eresult = treeutils.makeIdent(id.pos,id.sym);
             }
@@ -16855,6 +16861,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean inClassDecl = inClassDecl(); 
         if (localVariables.containsKey(that.sym)) {
             JmlVariableDecl stat = M.at(that).VarDef(that.sym,null);
+            JCExpression init = convertExpr(that.init);
+            stat.init = init;
             stat.ident = newident;
             if (inClassDecl) classDefs.add(stat);
             else addStat(stat);

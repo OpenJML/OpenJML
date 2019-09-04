@@ -1346,13 +1346,13 @@ public class Utils {
                         fullyQualifiedSig.equals(exclude) ||
                         simpleName.equals(exclude)) {
                     if (emitWarning && this.jmlverbose > Utils.PROGRESS)
-                        log.getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
+                        log().getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
                     return false;
                 }
                 try {
                     if (Pattern.matches(exclude,fullyQualifiedName)) {
                         if (emitWarning && this.jmlverbose > Utils.PROGRESS)
-                            log.getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
+                            log().getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
                         return false;
                     }
                 } catch(PatternSyntaxException e) {
@@ -1394,7 +1394,7 @@ public class Utils {
                     }
                 }
                 if (emitWarning && this.jmlverbose > Utils.PROGRESS) {
-                    log.getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
+                    log().getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
                 }
                 return false;
             }
