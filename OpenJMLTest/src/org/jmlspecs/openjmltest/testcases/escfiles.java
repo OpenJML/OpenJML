@@ -801,6 +801,12 @@ public class escfiles extends EscBase {
         expectedExit = 0;
         helpTF("primeNumbers");
     }
+    
+    @Test
+    public void testSplits() {
+        expectedExit = 0;
+        helpTF("splits");
+    }
 
     // Fails for -minquant and with the tnum1a/tnum2a intermediates
     // Presumably a problem with instantiation/triggering

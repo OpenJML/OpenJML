@@ -1,0 +1,90 @@
+test/splits/Test.java:45: warning: Ignoring out of place split statement
+        //@ split
+            ^
+test/splits/Test.java:51: warning: Ignoring out of place split statement
+        //@ split
+            ^
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Method assertions are validated
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.mnosplit(int) with prover !!!!
+test/splits/Test.java:8: warning: The prover cannot establish an assertion (Postcondition) in method mnosplit
+            return i > 0; // ERROR
+            ^
+test/splits/Test.java:3: warning: Associated declaration
+    //@ ensures \result;
+        ^
+Completed proof of Test.mnosplit(int) with prover !!!! - with warnings
+Starting proof of Test.m1(int) with prover !!!!
+Proof attempt for split A
+Method assertions are validated
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Result of split A is UNSAT
+Proof attempt for split B
+test/splits/Test.java:18: warning: The prover cannot establish an assertion (Postcondition) in method m1
+            return i > 0; // ERROR
+            ^
+test/splits/Test.java:12: warning: Associated declaration
+    //@ ensures \result;
+        ^
+Result of split B is POSSIBLY_SAT
+Composite result POSSIBLY_SAT
+Completed proof of Test.m1(int) with prover !!!! - with warnings
+Starting proof of Test.m2(int) with prover !!!!
+Proof attempt for split A
+test/splits/Test.java:26: warning: The prover cannot establish an assertion (Postcondition) in method m2
+            return i < 0; // ERROR
+            ^
+test/splits/Test.java:22: warning: Associated declaration
+    //@ ensures \result;
+        ^
+Result of split A is POSSIBLY_SAT
+Proof attempt for split B
+Method assertions are validated
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Result of split B is UNSAT
+Composite result POSSIBLY_SAT
+Completed proof of Test.m2(int) with prover !!!! - with warnings
+Starting proof of Test.m3(int) with prover !!!!
+Proof attempt for split A
+Method assertions are validated
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Result of split A is UNSAT
+Proof attempt for split B
+test/splits/Test.java:38: warning: The prover cannot establish an assertion (Postcondition) in method m3
+        case 2: return i == 10; // ERROR
+                ^
+test/splits/Test.java:33: warning: Associated declaration
+    //@ ensures \result;
+        ^
+Result of split B is POSSIBLY_SAT
+Proof attempt for split C
+Method assertions are validated
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Result of split C is UNSAT
+Proof attempt for split D
+Method assertions are validated
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Result of split D is UNSAT
+Composite result POSSIBLY_SAT
+Completed proof of Test.m3(int) with prover !!!! - with warnings
+Starting proof of Test.bad() with prover !!!!
+Method assertions are validated
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.bad() with prover !!!! - no warnings
+Starting proof of Test.bad2() with prover !!!!
+Method assertions are validated
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.bad2() with prover !!!! - no warnings
+Completed proving methods in Test
+10 warnings
