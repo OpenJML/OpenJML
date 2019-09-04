@@ -21,6 +21,7 @@ import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.MethodClauseType;
 import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
+import static org.jmlspecs.openjml.ext.ReachableStatement.*;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
@@ -444,11 +445,23 @@ public class JmlParser extends JavacParser {
     protected List<JCStatement> collectLoopSpecs(List<JCStatement> stats) {
         ListBuffer<JCStatement> newstats = new ListBuffer<>();
         ListBuffer<JmlStatementLoop> loopspecs = new ListBuffer<>();
+        JmlStatementExpr split = null;
         for (JCStatement s: stats) {
             if (s instanceof JmlStatementLoop) {
                 loopspecs.add((JmlStatementLoop)s);
                 continue;
             }
+            boolean isSplit = split != null;
+            if (s instanceof JmlIfStatement) {
+                ((JmlIfStatement)s).split = isSplit;
+            } else if (s instanceof JmlSwitchStatement) {
+                ((JmlSwitchStatement)s).split = isSplit;
+            } else if (isSplit) {
+                log.warning(split, "jml.message", "Ignoring out of place split statement");
+            }
+            split = s instanceof JmlStatementExpr && ((JmlStatementExpr)s).clauseType == splitClause
+                    ? (JmlStatementExpr)s : null;
+            if (split != null) continue;
             // This case allows grandfathering an assignable statement as a loop_modifies statement
             // if it is not the first loop specification statement
             if (s instanceof JmlMethodClauseStoreRef && ((JmlMethodClauseStoreRef)s).clauseKind == AssignableClauseExtension.assignableClauseKind) {
@@ -503,6 +516,9 @@ public class JmlParser extends JavacParser {
                     loopspecs.last().getEndPosition(endPosTable),
                     "jml.loop.spec.misplaced");
             loopspecs.clear();
+        }
+        if (split != null) {
+            log.warning(split, "jml.message", "Ignoring out of place split statement");
         }
         return newstats.toList();
     }

@@ -256,28 +256,6 @@ public class MethodProverSMT {
         JmlMethodSpecs denestedSpecs = methodDecl.sym == null ? null : 
             JmlSpecs.instance(context).getDenestedSpecs(methodDecl.sym);
 
-        // newblock is the translated version of the method body
-        JmlMethodDecl translatedMethod = jmlesc.assertionAdder.methodBiMap.getf(methodDecl);
-        if (translatedMethod == null) {
-            log.warning("jml.internal","No translated method for " + utils.qualifiedMethodSig(methodDecl.sym));
-            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.SKIPPED,null);
-        }
-        JCBlock newblock = translatedMethod.getBody();
-        if (newblock == null) {
-            JCDiagnostic d = log.factory().error(log.currentSource(), null, "esc.no.typechecking",methodDecl.name.toString());
-            log.report(d);
-        	//log.error("esc.no.typechecking",methodDecl.name.toString()); //$NON-NLS-1$
-            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null).setOtherInfo(d);
-        }
-        if (printPrograms) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println(separator);
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("TRANSFORMATION OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(newblock));
-            log.getWriter(WriterKind.NOTICE).flush();
-        }
-
         // determine the executable
         String exec = pickProverExec(proverToUse);
         if (exec == null || exec.trim().isEmpty()) {
@@ -287,6 +265,41 @@ public class MethodProverSMT {
             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null).setOtherInfo(d);
         }
         
+        IProverResult proofResultAccumulated = null;
+        IProverResult proofResult = null;
+
+        Translations translations = jmlesc.assertionAdder.methodBiMap.getf(methodDecl);
+        for (String splitkey: translations.keys()) {
+            
+        if (utils.jmlverbose >= Utils.PROGRESS && !splitkey.isEmpty()) {
+            log.getWriter(WriterKind.NOTICE).println("Proof attempt for split " + splitkey);
+        }
+        
+        JmlMethodDecl translatedMethod = translations.getTranslation(splitkey);
+        jmlesc.assertionAdder.setSplits(translations, splitkey);
+
+        if (translatedMethod == null) {
+            log.warning("jml.internal","No translated method for " + utils.qualifiedMethodSig(methodDecl.sym));
+            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.SKIPPED,null);
+        }
+        // newBlock is the translated version of the method body, for a given split
+        JCBlock newblock = translatedMethod.getBody();
+        if (newblock == null) {
+            JCDiagnostic d = log.factory().error(log.currentSource(), null, "esc.no.typechecking",methodDecl.name.toString());
+            log.report(d);
+            //log.error("esc.no.typechecking",methodDecl.name.toString()); //$NON-NLS-1$
+            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null).setOtherInfo(d);
+        }
+        
+        if (printPrograms) {
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println(separator);
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("TRANSFORMATION OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(newblock));
+            log.getWriter(WriterKind.NOTICE).flush();
+        }
+
         // create an SMT object, adding any options
         SMT smt = new SMT();
         smt.processCommandLine(new String[]{}, smt.smtConfig);
@@ -400,8 +413,6 @@ public class MethodProverSMT {
             log.getWriter(WriterKind.NOTICE).println("Proof result is " + smt.smtConfig.defaultPrinter.toString(solverResponse));
         }
 
-        IProverResult proofResult = null;
-
         {
             IResponse unsatResponse = smt.smtConfig.responseFactory.unsat();
             if (solverResponse.isError()) {
@@ -429,9 +440,10 @@ public class MethodProverSMT {
             String loc = utils.qualifiedNameNoInit(methodDecl.sym);
             if (Utils.testingMode) loc = "";
             if (solverResponse.equals(unsatResponse)) {
-                // FIXME - get rid of the next line some time when we can change the test results
-                String msg = loc + " Method assertions are validated";
-                if (!Utils.testingMode) utils.progress(0,1,msg + String.format(" [%4.2f secs]", duration));
+                String msg = "Method assertions are validated";
+                if (!Utils.testingMode) msg = msg + String.format(" [%4.2f secs]", duration);
+                // FIXME - get rid of the check on testingMode below some time when we can change the test results
+                if (!Utils.testingMode) utils.progress(0,1,msg);
 
                 if (verbose) log.getWriter(WriterKind.NOTICE).println("Method checked OK");
                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
@@ -483,19 +495,6 @@ public class MethodProverSMT {
                                 script = smttrans.convert(program,smt,methodDecl.usedBitVectors);
 
                             }
-//                            if (printPrograms) {
-//                                try {
-//                                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-//                                    log.getWriter(WriterKind.NOTICE).println(separator);
-//                                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-//                                    log.getWriter(WriterKind.NOTICE).println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
-//                                    org.smtlib.sexpr.Printer.WithLines.write(new PrintWriter(log.getWriter(WriterKind.NOTICE)),script);
-//                                    log.getWriter(WriterKind.NOTICE).println();
-//                                    log.getWriter(WriterKind.NOTICE).println();
-//                                } catch (VisitorException e) {
-//                                    log.getWriter(WriterKind.NOTICE).print("Exception while printing SMT script: " + e); //$NON-NLS-1$
-//                                }
-//                            }
                             try {
                                 solverResponse = script.execute(solver2); // Note - the solver knows the smt configuration
                             } catch (Exception e) {
@@ -733,7 +732,18 @@ public class MethodProverSMT {
             // FIXME - include information about the errors - now just in UI
             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
         }
-        return proofResult;
+        if (utils.jmlverbose >= Utils.PROGRESS && !splitkey.isEmpty()) {
+            log.getWriter(WriterKind.NOTICE).println("Result of split "  + splitkey + " is " + proofResult.result());
+        }
+        if (proofResultAccumulated == null) proofResultAccumulated = proofResult;
+        else if (proofResultAccumulated.result() == IProverResult.UNSAT) {
+            proofResultAccumulated = proofResult;
+        }
+        } // end of splitkey
+        if (utils.jmlverbose >= Utils.PROGRESS && translations.keys().size() > 1) {
+            log.getWriter(WriterKind.NOTICE).println("Composite result " + proofResultAccumulated.result());
+        }
+        return proofResultAccumulated; // FIXME - need to combine results
         
     }
     

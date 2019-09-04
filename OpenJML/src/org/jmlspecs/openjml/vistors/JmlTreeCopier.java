@@ -810,7 +810,9 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     public JCTree visitIf(IfTree node, Void p) {
-        return super.visitIf(node,p).setType(((JCTree)node).type);
+        JCTree t = super.visitIf(node,p).setType(((JCTree)node).type);
+        ((JmlIfStatement)t).split = ((JmlIfStatement)node).split;
+        return t;
     }
 
     public JCTree visitImport(ImportTree node, Void p) {
@@ -879,7 +881,9 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     public JCTree visitSwitch(SwitchTree node, Void p) {
-        return super.visitSwitch(node,p).setType(((JCTree)node).type);
+        JCTree t = super.visitSwitch(node,p).setType(((JCTree)node).type);
+        ((JmlSwitchStatement)t).split = ((JmlSwitchStatement)node).split;
+        return t;
     }
 
     public JCTree visitSynchronized(SynchronizedTree node, Void p) {

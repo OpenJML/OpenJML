@@ -367,6 +367,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Depth of nesting of applyHelper calls */
     protected int applyNesting;
     
+    public Translations translations = null;
+    public String originalSplit = Strings.empty;
+    public String currentSplit = Strings.empty;
+    public void setSplits(Translations t, String split) {
+        translations = t;
+        originalSplit = split;
+        currentSplit = split;
+    }
+    
     /** The counter used to make uniquely named variables for preconditions,
      * unique within a method body. */
     int precount = 0;
@@ -505,7 +514,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public BiMap<JCTree,JCTree> pathMap = new BiMap<JCTree,JCTree>();
     
     /** A bi-map used to record the mapping between original and rewritten method ASTs */
-    public BiMap<JmlMethodDecl, JmlMethodDecl> methodBiMap = new BiMap<JmlMethodDecl, JmlMethodDecl>();
+    public BiMap<JmlMethodDecl, Translations> methodBiMap = new BiMap<JmlMethodDecl, Translations>();
 
     /** A bi-map used to record the mapping between original and rewritten class ASTs */
     public BiMap<JmlClassDecl, JmlClassDecl> classBiMap = new BiMap<JmlClassDecl, JmlClassDecl>();
@@ -5276,7 +5285,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             m.sourcefile = null;
             m.specsDecl = null;
             result = m;
-            methodBiMap.put((JmlMethodDecl)that,m);
+            methodBiMap.put((JmlMethodDecl)that,new Translations(m));
         } else if (translatingJML) {
             error(that,"Unexpected call of JmlAssertionAdder.visitMethodDef while translating JML: " + that.getClass());
         } else {
@@ -5728,6 +5737,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     //OK
     @Override
     public void visitSwitch(JCSwitch that) {
+        boolean split = that instanceof JmlSwitchStatement && ((JmlSwitchStatement)that).split;
         JCExpression switchExpr = that.selector;
         if (!pureCopy) {
             addStat(traceableComment(that,that,"switch " + that.getExpression() + " ...","Selection"));
@@ -5749,19 +5759,51 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     selector = addImplicitConversion(switchExpr,syms.intType,selector);
                 }
             }
-            JCSwitch sw = M.at(that).Switch(selector, null);
-            // record the translation from old to new AST before translating the body
-            treeMap.put(that,sw);
-            ListBuffer<JCCase> cases = new ListBuffer<JCCase>();
-            for (JCCase c: that.cases) {
-                JCExpression pat = (rac && c.pat instanceof JCIdent) ? c.pat : convertExpr(c.pat);
-                JCBlock b = convertIntoBlock(c,c.stats);
-                b.stats = b.stats.prepend(traceableComment(c,c,(c.pat == null ? "default:" : "case " + c.pat + ":"),null));
-                JCCase cc = M.at(c.pos).Case(pat,b.stats);
-                cases.add(cc);
+            if (!split || currentSplit == null || rac || infer) {
+                JCSwitch sw = M.at(that).Switch(selector, null);
+                ((JmlSwitchStatement)sw).split = ((JmlSwitchStatement)that).split;
+                // record the translation from old to new AST before translating the body
+                treeMap.put(that,sw);
+                ListBuffer<JCCase> cases = new ListBuffer<JCCase>();
+                for (JCCase c: that.cases) {
+                    JCExpression pat = (rac && c.pat instanceof JCIdent) ? c.pat : convertExpr(c.pat);
+                    JCBlock b = convertIntoBlock(c,c.stats);
+                    b.stats = b.stats.prepend(traceableComment(c,c,(c.pat == null ? "default:" : "case " + c.pat + ":"),null));
+                    JCCase cc = M.at(c.pos).Case(pat,b.stats);
+                    cases.add(cc);
+                }
+                sw.cases = cases.toList();
+                result = addStat(sw.setType(that.type));
+            } else {
+                int doCase = 0;
+                if (currentSplit.isEmpty()) {
+                    translations.addSplit(originalSplit, that.cases.size());
+                    originalSplit += "A";
+                } else {
+                    doCase = currentSplit.charAt(0) - 'A';
+                    currentSplit = currentSplit.substring(1);
+                }
+                {
+                    JCCase cs = that.cases.get(doCase);
+                    // FIXME - only works for traditional enums or ints, not strings or patterns
+                    JCExpression cond;
+                    if (cs.pat != null) cond = treeutils.makeEquality(cs.pos,selector,convertExpr(cs.pat));
+                    else {
+                        // default
+                        cond = null;
+                        for (JCCase c: that.cases) {
+                            if (c.pat == null) continue;
+                            JCExpression e = treeutils.makeEquality(c.pos,convertCopy(selector),convertExpr(c.pat));
+                            cond = cond == null ? e : treeutils.makeOr(that, cond, e);
+                        }
+                        cond = treeutils.makeNot(that,cond);
+                    }
+                    addAssume(that.pos(), Label.IMPLICIT_ASSUME, cond);
+                    JCBlock b = convertIntoBlock(cs,cs.stats);
+                    result = addStat( b );
+                }
+                
             }
-            sw.cases = cases.toList();
-            result = addStat(sw.setType(that.type));
         } finally {
             treeMap.remove(that);
         }
@@ -6100,13 +6142,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitIf(JCIf that) {
+        boolean split = that instanceof JmlIfStatement && ((JmlIfStatement)that).split;
         if (pureCopy) {
             JCExpression cond = convertExpr(that.cond);
             JCStatement thenpart = convert(that.thenpart);
 
             JCStatement elsepart = convert(that.elsepart);
 
-            JCStatement st = M.at(that).If(cond,thenpart,elsepart).setType(that.type);
+            JmlIfStatement st = (JmlIfStatement)M.at(that).If(cond,thenpart,elsepart).setType(that.type);
+            st.split = ((JmlIfStatement)that).split;
             result = addStat( st );
         }
         else {
@@ -6119,16 +6163,41 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // statement in the branch.
             int savedHeapCount = heapCount;
             
-            JCBlock thenpart = convertIntoBlock(that.thenpart,that.thenpart);
+            if (!split || currentSplit == null || rac || infer) {
+                JCBlock thenpart = convertIntoBlock(that.thenpart,that.thenpart);
 
-            int resultHeapCount = heapCount;
-            heapCount = savedHeapCount;
-            JCBlock elsepart = that.elsepart == null ? null :
-                convertIntoBlock(that.elsepart, that.elsepart);
+                int resultHeapCount = heapCount;
+                heapCount = savedHeapCount;
+                JCBlock elsepart = that.elsepart == null ? null :
+                    convertIntoBlock(that.elsepart, that.elsepart);
 
-            if (resultHeapCount != heapCount) heapCount = nextHeapCount();
-            JCStatement st = M.at(that).If(cond,thenpart,elsepart).setType(that.type);
-            result = addStat( st );
+                if (resultHeapCount != heapCount) heapCount = nextHeapCount();
+                JCStatement st = M.at(that).If(cond,thenpart,elsepart).setType(that.type);
+                result = addStat( st );
+            } else {
+                boolean doThen = true;
+                if (currentSplit.isEmpty()) {
+                    translations.addSplit(originalSplit, 2);
+                    originalSplit += "A";
+                } else {
+                    doThen = currentSplit.charAt(0) == 'A';
+                    currentSplit = currentSplit.substring(1);
+                }
+                if (doThen) {
+                    addAssume(that.cond.pos(), Label.IMPLICIT_ASSUME, cond);
+                    JCBlock thenpart = convertIntoBlock(that.thenpart,that.thenpart);
+
+                    JCStatement st = thenpart.setType(that.thenpart.type);
+                    result = addStat( st );
+                } else {
+                    addAssume(that.cond.pos(), Label.IMPLICIT_ASSUME, treeutils.makeNot(that.cond,cond));
+                    JCBlock elsepart = that.elsepart == null ? null :
+                        convertIntoBlock(that.elsepart, that.elsepart);
+
+                    JCStatement st = elsepart.setType(that.elsepart.type);
+                    result = addStat( st );
+                }
+            }
         }
     }
     
@@ -14599,53 +14668,64 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean saved = translatingJML;
         JmlMethodDecl savedMD = methodDecl;
         methodDecl = that;
+        Translations t = new Translations();
+        methodBiMap.put(that,t);
         try {
             // FIXME - implemente constructors - need super calls.
             //        if (that.restype == null) { classDefs.add(that); return; } // FIXME - implement constructors
-            JCBlock body = null;
-            if (pureCopy) {
-                body = convertIntoBlock(that.body,that.body);
-            } else {
-                body = convertMethodBodyNoInit(that,classDecl);
+            while (true) {
+                String splitkey = t.nextToDo();
+                if (splitkey == null) break;
+
+                setSplits(t,splitkey);
+                JCBlock body = null;
+                if (pureCopy) {
+                    body = convertIntoBlock(that.body,that.body);
+                } else {
+                    body = convertMethodBodyNoInit(that,classDecl);
+                }
+
+                List<JCTypeParameter> typarams = that.typarams;
+                if (fullTranslation) typarams = convertCopy(typarams); // FIXME - is there anything to be translated
+                List<JCVariableDecl> params = that.params;
+                if (fullTranslation) params = convertCopy(params); // Just a copy - the parameters are just modifiers, types, and names
+                JCExpression restype = that.restype;
+                if (fullTranslation) restype = convertExpr(restype);
+                JmlMethodDecl m = M.MethodDef(convert(that.mods), that.name, restype, typarams, null, params, convertExprList(that.thrown), body, convertExpr(that.defaultValue));
+                m.pos = that.pos;
+                m.sym = that.sym;
+                m.setType(that.type);
+                m._this = that._this;
+                m.sourcefile = that.sourcefile;
+                //m.owner = that.owner; // FIXME - new class decl?
+                m.docComment = that.docComment;
+                m.cases = convertCopy(that.cases);
+                m.methodSpecsCombined = that.methodSpecsCombined; // FIXME - copy?
+                m.specsDecl = that.specsDecl; // FIXME - needs new reference
+                if (classDefs != null) classDefs.add(m); // classDefs can be null if  JmlEsc.check is called directly on a JCMethodDecl
+
+                // FIXME - not working yet
+                //            if (rac && that.sym.isStatic() && that.name.toString().equals("main")) { // FIXME - check the arguments?
+                //                Name n = names.fromString("_JML_racE");
+                //                ClassSymbol sym = attr.createClass("java.lang.NoClassDefFoundError");
+                //                JCVariableDecl decl = treeutils.makeVarDef(sym.type, n, that.sym, that.pos);
+                //                // decl.type = 
+                //                JCExpression msg = treeutils.makeStringLiteral(that.pos, "Executable is compiled with RAC, but the classpath is missing the jmlruntime.jar");
+                //                JCExpression ty = M.at(that).Type(syms.runtimeExceptionType);
+                //                JCExpression newex = M.at(that).NewClass(null, List.<JCExpression>nil(), ty, List.<JCExpression>of(msg), null);
+                //                JCThrow th = M.at(that).Throw(newex);
+                //                JCBlock bl = M.at(that).Block(0L, List.<JCStatement>of(th));
+                //                JCCatch catcher = M.at(that).Catch(decl,bl);
+                //                JCTry tr = M.at(that).Try(m.body, List.<JCCatch>of(catcher), null);
+                //                m.body = M.at(that).Block(0L, List.<JCStatement>of(tr));
+                //            }
+
+                result = m;
+                t.addTranslation(originalSplit,m);
             }
-
-            List<JCTypeParameter> typarams = that.typarams;
-            if (fullTranslation) typarams = convertCopy(typarams); // FIXME - is there anything to be translated
-            List<JCVariableDecl> params = that.params;
-            if (fullTranslation) params = convertCopy(params); // Just a copy - the parameters are just modifiers, types, and names
-            JCExpression restype = that.restype;
-            if (fullTranslation) restype = convertExpr(restype);
-            JmlMethodDecl m = M.MethodDef(convert(that.mods), that.name, restype, typarams, null, params, convertExprList(that.thrown), body, convertExpr(that.defaultValue));
-            m.pos = that.pos;
-            m.sym = that.sym;
-            m.setType(that.type);
-            m._this = that._this;
-            m.sourcefile = that.sourcefile;
-            //m.owner = that.owner; // FIXME - new class decl?
-            m.docComment = that.docComment;
-            m.cases = convertCopy(that.cases);
-            m.methodSpecsCombined = that.methodSpecsCombined; // FIXME - copy?
-            m.specsDecl = that.specsDecl; // FIXME - needs new reference
-            if (classDefs != null) classDefs.add(m); // classDefs can be null if  JmlEsc.check is called directly on a JCMethodDecl
-
-            // FIXME - not working yet
-//            if (rac && that.sym.isStatic() && that.name.toString().equals("main")) { // FIXME - check the arguments?
-//                Name n = names.fromString("_JML_racE");
-//                ClassSymbol sym = attr.createClass("java.lang.NoClassDefFoundError");
-//                JCVariableDecl decl = treeutils.makeVarDef(sym.type, n, that.sym, that.pos);
-//                // decl.type = 
-//                JCExpression msg = treeutils.makeStringLiteral(that.pos, "Executable is compiled with RAC, but the classpath is missing the jmlruntime.jar");
-//                JCExpression ty = M.at(that).Type(syms.runtimeExceptionType);
-//                JCExpression newex = M.at(that).NewClass(null, List.<JCExpression>nil(), ty, List.<JCExpression>of(msg), null);
-//                JCThrow th = M.at(that).Throw(newex);
-//                JCBlock bl = M.at(that).Block(0L, List.<JCStatement>of(th));
-//                JCCatch catcher = M.at(that).Catch(decl,bl);
-//                JCTry tr = M.at(that).Try(m.body, List.<JCCatch>of(catcher), null);
-//                m.body = M.at(that).Block(0L, List.<JCStatement>of(tr));
-//            }
-
-            result = m;
-            methodBiMap.put(that,m);
+//            String splits = "";
+//            for (String s: translations.keys()) splits += (s + " " );
+//            log.note(that.pos,"jml.message","Splits: " + splits);
         } catch (JmlNotImplementedException e) {
             // FIXME _ if it is actually the synthetic method for a model field we used to use this
             //notImplemented("represents clause containing ", ee, that.source());

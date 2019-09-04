@@ -141,7 +141,7 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
             JmlSpecs.instance(context).getDenestedSpecs(methodDecl.sym);
 
         // newblock is the translated version of the method body
-        JmlMethodDecl translatedMethod = jmlesc.assertionAdder.methodBiMap.getf(methodDecl);
+        JmlMethodDecl translatedMethod = jmlesc.assertionAdder.methodBiMap.getf(methodDecl).getTranslation("");
         if (translatedMethod == null) {
             log.warning("jml.internal","No translated method for " + utils.qualifiedMethodSig(methodDecl.sym));
             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.SKIPPED,null);

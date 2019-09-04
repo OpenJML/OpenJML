@@ -158,7 +158,7 @@ public class Strongarm
 
         // newblock is the translated version of the method body
         JmlMethodDecl translatedMethod = infer.assertionAdder.methodBiMap
-                .getf(methodDecl);
+                .getf(methodDecl).getTranslation("");
 
         if (translatedMethod == null) {
             log.warning("jml.internal", "No translated method for "

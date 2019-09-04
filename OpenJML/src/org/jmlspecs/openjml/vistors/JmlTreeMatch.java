@@ -21,7 +21,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
-/** This class determines whether two subtrees match.
+/** This class determines whether two expression subtrees match.
  * 
  * @author David Cok
  *

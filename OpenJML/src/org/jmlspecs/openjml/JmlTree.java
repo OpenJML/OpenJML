@@ -46,6 +46,7 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCCase;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
 import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
@@ -54,11 +55,13 @@ import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCForLoop;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCIf;
 import com.sun.tools.javac.tree.JCTree.JCLambda;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCSwitch;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
@@ -551,6 +554,16 @@ public class JmlTree {
         @Override
         public JmlStatementExpr JmlExpressionStatement(String keyword, IJmlClauseKind t, Label label, JCTree.JCExpression e) {
             return new JmlStatementExpr(pos,t,label,e);
+        }
+        
+        @Override
+        public JmlIfStatement If(JCExpression cond, JCStatement t, JCStatement e) {
+            return new JmlIfStatement(cond,t,e);
+        }
+        
+        @Override
+        public JmlSwitchStatement Switch(JCExpression selector, List<JCCase> cases) {
+            return new JmlSwitchStatement(selector,cases);
         }
         
         /** Creates a JML havoc statement */
@@ -2010,6 +2023,23 @@ public class JmlTree {
         }
     }
 
+    public static class JmlIfStatement extends JCIf {
+        
+        public boolean split = false;
+        
+        public JmlIfStatement(JCExpression cond, JCStatement then, JCStatement els) {
+            super(cond,then,els);
+        }
+    }
+
+    public static class JmlSwitchStatement extends JCSwitch {
+        
+        public boolean split = false;
+        
+        public JmlSwitchStatement(JCExpression selector, List<JCCase> cases) {
+            super(selector,cases);
+        }
+    }
 
     /** This class represents a match expression, which has the form
            match(expr) {
