@@ -16328,6 +16328,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     result = addStat(st);
                 }
 
+            } else if (that.clauseType == ReachableStatement.splitClause) {
+
+                if (currentSplit == null || rac || infer) {
+                    // ignore;
+                } else {
+                    boolean doPos = true;
+                    if (currentSplit.isEmpty()) {
+                        translations.addSplit(originalSplit, 2);
+                        originalSplit += "A";
+                    } else {
+                        doPos = currentSplit.charAt(0) == 'A';
+                        currentSplit = currentSplit.substring(1);
+                    }
+                    JCExpression cond = convertJML(that.expression);
+                    if (!doPos) cond = treeutils.makeNot(that,cond);
+                    addAssume(that, Label.IMPLICIT_ASSUME, cond);
+                }
+
             } else if (that.clauseType == ReachableStatement.unreachableClause) {
 
                 addTraceableComment(that);

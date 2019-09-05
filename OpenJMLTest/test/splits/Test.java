@@ -50,4 +50,10 @@ public class Test {
         int i;
         //@ split
     }
+    
+    //@ ensures \result;
+    public boolean mbool(int i) {
+        //@ split i > 0;
+        return i > 0;
+    }
 }

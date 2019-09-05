@@ -10,6 +10,7 @@ import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.JmlTreeUtils;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
@@ -65,7 +66,8 @@ public class ReachableStatement extends JmlExtension.Statement {
             int pe = parser.endPos();
             int p = scanner.currentPos();
             parser.nextToken();
-            JmlStatementExpr st = parser.maker().at(pp).JmlExpressionStatement(keyword,clauseType,null,parser.maker().Literal(TypeTag.BOOLEAN,1));
+            JmlStatementExpr st = parser.maker().at(pp).JmlExpressionStatement(keyword,clauseType,null,null);
+            if (!keyword.equals(splitID)) st.expression = JmlTreeUtils.instance(context).makeBooleanLiteral(pp,true);
             if (parser.token().kind == TokenKind.SEMI) {
                 parser.nextToken();
                 return st;

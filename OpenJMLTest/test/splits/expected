@@ -78,5 +78,20 @@ Starting proof of Test.bad2() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.bad2() with prover !!!! - no warnings
+Starting proof of Test.mbool(int) with prover !!!!
+Proof attempt for split A
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Result of split A is UNSAT
+Proof attempt for split B
+test/splits/Test.java:57: warning: The prover cannot establish an assertion (Postcondition) in method mbool
+        return i > 0;
+        ^
+test/splits/Test.java:54: warning: Associated declaration
+    //@ ensures \result;
+        ^
+Result of split B is POSSIBLY_SAT
+Composite result POSSIBLY_SAT
+Completed proof of Test.mbool(int) with prover !!!! - with warnings
 Completed proving methods in Test
-10 warnings
+12 warnings

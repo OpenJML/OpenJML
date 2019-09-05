@@ -459,7 +459,7 @@ public class JmlParser extends JavacParser {
             } else if (isSplit) {
                 log.warning(split, "jml.message", "Ignoring out of place split statement");
             }
-            split = s instanceof JmlStatementExpr && ((JmlStatementExpr)s).clauseType == splitClause
+            split = s instanceof JmlStatementExpr && ((JmlStatementExpr)s).clauseType == splitClause && ((JmlStatementExpr)s).expression == null
                     ? (JmlStatementExpr)s : null;
             if (split != null) continue;
             // This case allows grandfathering an assignable statement as a loop_modifies statement
@@ -478,30 +478,6 @@ public class JmlParser extends JavacParser {
                 if (s instanceof IJmlLoop) {
                     ((IJmlLoop)s).setLoopSpecs(loopspecs.toList());
                     loopspecs = new ListBuffer<>();
-//                } else if (s instanceof JmlStatementSpec && ((JmlStatementSpec)s).statements.head instanceof IJmlLoop
-//                        && ((JmlStatementSpec)s).statementSpecs.cases.length() == 1) {
-//                    JmlStatementSpec ss = (JmlStatementSpec)s;
-//                    boolean error = false;
-//                    for (JmlMethodClause cl: ss.statementSpecs.cases.head.clauses) {
-//                        if (cl.clauseKind == AssignableClauseExtension.assignableClauseKind) {
-//                           loopspecs.add(jmlF.at(cl).JmlStatementLoopModifies(StatementLocationsExtension.loopmodifiesStatement,((JmlMethodClauseStoreRef)cl).list));
-//                        } else {
-//                            jmlerror(cl.pos,"jml.message","A statement spec or a loop spec is misplaced or misnamed");
-//                            error = true;
-//                            break;
-//                        }
-//                    }
-//                    if (!error) {
-//                        if (!ss.statementSpecs.cases.head.clauses.isEmpty()) {
-//                        } else {
-//                            jmlerror(loopspecs.first().pos,
-//                            loopspecs.last().getEndPosition(endPosTable),
-//                            "jml.loop.spec.misplaced");
-//                            loopspecs.clear();
-//                        }
-//                    } else {
-//                        loopspecs.clear();
-//                    }
                 } else {
                     jmlerror(loopspecs.first().pos,
                             loopspecs.last().getEndPosition(endPosTable),
