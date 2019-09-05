@@ -6,7 +6,6 @@ test/splits/Test.java:51: warning: Ignoring out of place split statement
             ^
 Proving methods in Test
 Starting proof of Test.Test() with prover !!!!
-Method assertions are validated
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
@@ -20,7 +19,6 @@ test/splits/Test.java:3: warning: Associated declaration
 Completed proof of Test.mnosplit(int) with prover !!!! - with warnings
 Starting proof of Test.m1(int) with prover !!!!
 Proof attempt for split A
-Method assertions are validated
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Result of split A is UNSAT
@@ -44,7 +42,6 @@ test/splits/Test.java:22: warning: Associated declaration
         ^
 Result of split A is POSSIBLY_SAT
 Proof attempt for split B
-Method assertions are validated
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Result of split B is UNSAT
@@ -52,7 +49,6 @@ Composite result POSSIBLY_SAT
 Completed proof of Test.m2(int) with prover !!!! - with warnings
 Starting proof of Test.m3(int) with prover !!!!
 Proof attempt for split A
-Method assertions are validated
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Result of split A is UNSAT
@@ -65,24 +61,20 @@ test/splits/Test.java:33: warning: Associated declaration
         ^
 Result of split B is POSSIBLY_SAT
 Proof attempt for split C
-Method assertions are validated
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Result of split C is UNSAT
 Proof attempt for split D
-Method assertions are validated
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Result of split D is UNSAT
 Composite result POSSIBLY_SAT
 Completed proof of Test.m3(int) with prover !!!! - with warnings
 Starting proof of Test.bad() with prover !!!!
-Method assertions are validated
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.bad() with prover !!!! - no warnings
 Starting proof of Test.bad2() with prover !!!!
-Method assertions are validated
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.bad2() with prover !!!! - no warnings
