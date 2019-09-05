@@ -56,4 +56,20 @@ public class Test {
         //@ split i > 0;
         return i > 0;
     }
+    
+    //@ ensures \result;
+    public boolean mcombined(int i) {
+        //@ split
+        if (i > 0) {
+            //@ split i >= 0;
+            return i >= 0; // ERROR
+        } else {
+            //@ split
+            switch (i) {
+            case 0: return true;
+            case 1: return i > 0; // Infeasible
+            default: return i < 0;
+            }
+        }
+    }
 }
