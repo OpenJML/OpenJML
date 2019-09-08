@@ -40,14 +40,19 @@ import com.sun.tools.javac.util.Context;
 public class EndStatement extends JmlExtension.Statement {
 
     public static final String endID = "end";
+    public static final String beginID = "begin";
     
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
     public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            endClause }; }
-    
-    public static final IJmlClauseKind endClause = new IJmlClauseKind.Statement(endID) {
-     
+            beginClause, endClause }; }
+
+    public static final IJmlClauseKind beginClause = new SimpleStatement(beginID);
+    public static final IJmlClauseKind endClause = new SimpleStatement(endID);
+
+    public static class SimpleStatement extends IJmlClauseKind.Statement {
+        public SimpleStatement(String id) { super(id); }
+        
         @Override
         public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
@@ -58,19 +63,8 @@ public class EndStatement extends JmlExtension.Statement {
             scanner.setJmlKeyword(false);
             parser.nextToken();
 
-//            Token tk = parser.token();
-//            if (tk.kind == TokenKind.SEMI) {
-//                // this is what we expect
-//                parser.accept(TokenKind.SEMI);
-//            } else if (tk.ikind == JmlTokenKind.ENDJMLCOMMENT) {
-//                // show with no list and no semicolon
-//                error(parser.pos()-1, parser.pos(), "jml.missing.semicolon.in.show");  // FIXME - fix error message
-//            } else {
-//                error(parser.pos(), parser.pos()+1, "jml.bad.expression.list.in.show"); // FIXME 
-//                parser.skipThroughSemi();
-//            }
-            JmlStatement st = toP(parser.maker().at(pp).JmlStatement(endClause, null));
-            wrapup(st,clauseType,true);
+            JmlStatement st = toP(parser.maker().at(pp).JmlStatement(clauseType, null));
+            wrapup(st,clauseType,true,false);
             return st;
 
         }

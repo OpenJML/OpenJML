@@ -252,7 +252,7 @@ public class FeasibilityCheckerSMT extends MethodProverSMT {
     
                 solver.pop(1); // Pop off previous check_sat
     
-                List<JmlStatementExpr> checks = jmlesc.assertionAdder.assumeChecks.get(methodDecl);
+                List<JmlStatementExpr> checks = jmlesc.assertionAdder.assumeChecks.get(methodDecl.sym.toString()); // FIXME - needs sp[litkey
                 
                 // we want to convert the filters and the current proposition into a statement like this: 
                 //

@@ -456,10 +456,12 @@ public class MethodProverSMT {
                         solver.exit();
                     }
 
-                    java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.assumeChecks.get(methodDecl);
+                    java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.getAssumeChecks(methodDecl, splitkey);
                     int feasibilityCheckNumber = 0;
                     String scriptString = program.toString();
+                    boolean quit = false;
                     if (checks != null) for (JmlStatementExpr stat: checks) {
+                        if (quit) break;
                         if (aborted) {
                         	throw new Main.JmlCanceledException("Aborted by user");
                         }
@@ -473,6 +475,7 @@ public class MethodProverSMT {
                         if (prevErrors != log.nerrors) break;
                         
                         // Only do the feasibility check if called for by the feasibility option
+                        quit = stat.description == Strings.atSummaryAssumeCheckDescription;
                         if (!allFeasibilities && !Strings.feasibilityContains(stat.description,context)) continue;
                             
                         if (!usePushPop) {

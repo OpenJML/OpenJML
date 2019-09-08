@@ -447,8 +447,17 @@ public class JmlParser extends JavacParser {
         ListBuffer<JmlStatementLoop> loopspecs = new ListBuffer<>();
         JmlStatementExpr split = null;
         for (JCStatement s: stats) {
+            String sss = s.toString();
             if (s instanceof JmlStatementLoop) {
                 loopspecs.add((JmlStatementLoop)s);
+                continue;
+            }
+            if (s instanceof JmlStatement && ((JmlStatement)s).clauseType == EndStatement.endClause) {
+                log.error(s, "jml.message", "Improperly nested spec-end pair");
+                continue;
+            }
+            if (s instanceof JmlStatement && ((JmlStatement)s).clauseType == EndStatement.beginClause) {
+                log.error(s, "jml.message", "Improperly nested spec-end pair");
                 continue;
             }
             boolean isSplit = split != null;
@@ -949,27 +958,34 @@ public class JmlParser extends JavacParser {
         ste = jmlF.at(pos).JmlStatementSpec(specs);
         storeEnd(ste, getEndPos(specs));
 
+        List<JCStatement> stat = blockStatement();
+        if (stat == null || stat.isEmpty()) {
+            log.error(ste, "jml.message", "Statement specs found at the end of a block (or before an erroneous statement)");
+            return null;
+        }
         ListBuffer<JCStatement> stats = new ListBuffer<>();
-        while (true) {
-            List<JCStatement> stat = blockStatement();
-            if (stat.isEmpty()) {
-                // FIXME - should have seen an END statement before the end of the block
-                break;
-            } else if (stat.get(0) instanceof JmlStatement && ((JmlStatement)stat.get(0)).clauseType == EndStatement.endClause) {
-                stats.addAll(stat);
-                break;
-            } else {
-                if (token.pos <= endPosTable.errorEndPos) {
-                    //                    skip(false, true, true, true);
-                    // FIXME - error recovery
+        if (stat.head instanceof JmlStatement && ((JmlStatement)stat.head).clauseType == EndStatement.beginClause) {
+            JCStatement begin = stat.head;
+            // Has a begin statement, so we read statement until an end
+            while (true) {
+                stat = blockStatement();
+                if (stat.isEmpty()) {
+                    log.error(begin, "jml.message", "Expected an 'end' statement to match the begin statement before the end of block");
+                    break;
+                } else if (stat.get(0) instanceof JmlStatement && ((JmlStatement)stat.get(0)).clauseType == EndStatement.endClause) {
+                    break;
+                } else {
+                    stats.addAll(stat);
                 }
-                stats.addAll(stat);
             }
+        } else if (stat.isEmpty()) {
+            log.error(ste, "jml.message", "Statement specs found at the end of a block (or before an erroneous statement)");
+        } else {
+            stats.addAll(stat);
         }
         ste.statements = collectLoopSpecs(stats.toList());
         return ste;
     }
-    // TODO - rework how refining statements are handled
     
     /* Replicated and slightly altered from JavacParser in order to handle the case where a JML statement
      * precedes a single Java statement that should be a block (e.g. one statement in a if statement or loop)

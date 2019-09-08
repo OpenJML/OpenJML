@@ -264,6 +264,8 @@ public class Strings {
     /** Text used to describe the program position at the end of the preconditions */
     static final public String preconditionAssumeCheckDescription = "end of preconditions";
     /** Text used to describe the program position at the end of the program, before the postcondition checks */ // FIXME - check this
+    static final public String atSummaryAssumeCheckDescription = "at statement spec";
+    /** Text used to describe the program position at the end of the program, before the postcondition checks */ // FIXME - check this
     static final public String atExitAssumeCheckDescription = "at program exit";
     /** Text used to describe the program position just prior to an explicit JML assert */
     static final public String beforeAssertAssumeCheckDescription = "before explicit assert statement";
@@ -278,6 +280,7 @@ public class Strings {
     // They must be contained in the strings that describe the feasibility point, given above.
     static final public String feas_pre = "precondition";
     static final public String feas_exit = "exit";
+    static final public String feas_summary = "spec";
     static final public String feas_assumes = "assume";
     static final public String feas_asserts = "assert";
     static final public String feas_reachable = "reachable";
@@ -286,11 +289,11 @@ public class Strings {
     static final public String feas_debug = "debug";
     static final public String feas_default = "default";
     static final public String feas_none = "none";
-    static final public String feas_defaults = "precondition,exit,reachable";
-    static final public String feas_alls = "precondition,exit,reachable,assume,assert";
+    static final public String feas_defaults = "precondition,spec,exit,reachable";
+    static final public String feas_alls = "precondition,spec,exit,reachable,assume,assert";
     
     static final public String[] feasibilities_alone = new String[]{ feas_none};
-    static final public String[] feasibilities = new String[]{feas_pre, feas_exit, feas_reachable, feas_assumes, feas_asserts, feas_all, feas_debug};
+    static final public String[] feasibilities = new String[]{feas_pre, feas_summary, feas_exit, feas_reachable, feas_assumes, feas_asserts, feas_all, feas_debug};
 
     // Returns null if OK, returns bad string if one is not allowed
     static final public /*@ nullable */ String isOK(String commaSep) {

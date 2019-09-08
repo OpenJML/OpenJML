@@ -590,7 +590,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (useJMLComments) print ("/*@ ");
             print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" ");
-            if (that.clauseType == endClause) print(": ");
+            if (that.statement == null) print(": "); // FIXME - why the colon?
             else that.statement.accept(this);
             if (useJMLComments) print("*/");
         } catch (IOException e) { perr(that,e); }

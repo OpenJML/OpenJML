@@ -206,8 +206,12 @@ public abstract class IJmlClauseKind {
         this.scanner = parser.getScanner();
 //        this.jmlF = parser.maker();
     }
-    
+
     protected void wrapup(JCTree statement, IJmlClauseKind clauseType, boolean parseSemicolon) {
+        wrapup(statement,clauseType,parseSemicolon, true);
+    }
+    
+    protected void wrapup(JCTree statement, IJmlClauseKind clauseType, boolean parseSemicolon, boolean requireSemicolon) {
         parser.toP(statement);
         if (statement instanceof JmlSource) {
             ((JmlSource)statement).setSource(Log.instance(context).currentSourceFile());
@@ -229,7 +233,7 @@ public abstract class IJmlClauseKind {
             }
         } else if (parser.token().ikind == ENDJMLCOMMENT) {
             // FIXME - why -2 here
-            log.warning(parser.pos()-2, "jml.missing.semi", clauseType.name());
+            if (requireSemicolon) log.warning(parser.pos()-2, "jml.missing.semi", clauseType.name());
         } else if (parser.token().kind != SEMI) {
             error(parser.pos(), parser.endPos(), "jml.bad.construct", clauseType.name() + " statement");
             parser.skipThroughSemi();

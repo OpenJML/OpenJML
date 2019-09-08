@@ -278,7 +278,7 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
     
                 solver.pop(1); // Pop off previous check_sat
     
-                List<JmlStatementExpr> checks = jmlesc.assertionAdder.assumeChecks.get(methodDecl);
+                List<JmlStatementExpr> checks = jmlesc.assertionAdder.assumeChecks.get(methodDecl.sym.toString()); // Needs splitkey
                 
                 // we want to convert the filters and the current proposition into a statement like this: 
                 //
