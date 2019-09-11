@@ -3191,7 +3191,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {
         for (JCExpression e: tree.list) {
-            e.type = attribTree(e, env, new ResultInfo(TYP, syms.exceptionType));
+            e.type = attribTree(e, env, new ResultInfo(TYP, syms.throwableType));
             if (e instanceof JmlSingleton) {
                 IJmlClauseKind k = ((JmlSingleton)e).kind;
                 if (k == notspecifiedKind) {

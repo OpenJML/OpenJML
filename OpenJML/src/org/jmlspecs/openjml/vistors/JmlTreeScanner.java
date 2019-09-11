@@ -24,6 +24,8 @@ import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
 import com.sun.tools.javac.tree.JCTree.JCLambda;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.ListBuffer;
 
 /**
  * This class is used to construct visitors that walk a Java/JML parse tree. The
@@ -61,11 +63,16 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     public JmlTreeScanner(int mode) {
         scanMode = mode;
     }
-    
-    public void scan(Iterable<? extends JCTree> list) {
-        Iterator<? extends JCTree> iter = list.iterator();
-        while (iter.hasNext()) scan(iter.next());
+
+    public void scan(JCTree t) { super.scan(t); }
+
+    public void scan(List<? extends JCTree> list) { super.scan(list); }
+
+    public void scan(Iterable<? extends JCTree> list) { 
+        if (list != null)
+          for (JCTree t: list) scan(t);
     }
+    
     
     public void visitJmlBinary(JmlBinary that) {
         scan(that.lhs);

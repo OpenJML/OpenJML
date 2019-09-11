@@ -135,7 +135,7 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Object;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:3: incompatible types: java.lang.Object cannot be converted to java.lang.Exception",18
+                ,"/TEST.java:3: incompatible types: java.lang.Object cannot be converted to java.lang.Throwable",18
                 );
     }
     

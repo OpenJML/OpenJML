@@ -21,6 +21,7 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
+import org.jmlspecs.openjml.sa.MethodDependencies;
 import org.jmlspecs.openjml.strongarm.InferenceType;
 import org.jmlspecs.openjml.strongarm.JmlInfer;
 import org.jmlspecs.openjml.strongarm.JmlInferPostConditions;
@@ -435,6 +436,10 @@ public class JmlCompiler extends JavaCompiler {
             env.tree = subst.translate(env.tree);
         }
         
+        if (false) {
+            MethodDependencies.find(context, envs);
+            return results;
+        }
         
         if (utils.check || utils.doc) {
             // Stop here

@@ -503,16 +503,6 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testEscBodySpecs1() {
-        helpTCA("test/escBodySpecs","test/escBodySpecs1","-split=A->");
-    }
-
-    @Test
-    public void testEscBodySpecs2() {
-        helpTCA("test/escBodySpecs","test/escBodySpecs2","-split=->A","-method=m");
-    }
-
-    @Test
     public void testEscDeterministic() {
         helpTF("escDeterministic");
     }
