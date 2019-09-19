@@ -15,6 +15,7 @@ public class DayTime {
     //@ ensures this.hours == hours;
     //@ ensures this.minutes == minutes;
     //@ ensures this.seconds == seconds;
+    //@ pure
     public DayTime(int hours, int minutes, int seconds) {
 	this.seconds = seconds;
 	this.minutes = minutes;

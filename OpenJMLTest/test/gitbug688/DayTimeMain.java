@@ -5,6 +5,7 @@ public static void main(String[] args) {
                 stop = new DayTime(7, 5, 45);
         int diff;
 
+        //@ show start.hours, start.minutes, start.seconds, stop.hours, stop.minutes, stop.seconds;
         System.out.printf("SECONDS DIFFERENCE: %d:%d:%d - ", start.hour(), start.minute(), start.second());
         System.out.printf("%d:%d:%d ", stop.hour(), stop.minute(), stop.second());
         System.out.printf("= %d:\n", start.diffSeconds(stop));

@@ -1,0 +1,36 @@
+Proving methods in DayTime
+Starting proof of DayTime.DayTime(int,int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of DayTime.DayTime(int,int,int) with prover !!!! - no warnings
+Starting proof of DayTime.hour() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of DayTime.hour() with prover !!!! - no warnings
+Starting proof of DayTime.minute() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of DayTime.minute() with prover !!!! - no warnings
+Starting proof of DayTime.second() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of DayTime.second() with prover !!!! - no warnings
+Starting proof of DayTime.secondCalulation(DayTime) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of DayTime.secondCalulation(DayTime) with prover !!!! - no warnings
+Starting proof of DayTime.diffSeconds(DayTime) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of DayTime.diffSeconds(DayTime) with prover !!!! - no warnings
+Completed proving methods in DayTime
+Proving methods in DayTimeMain
+Starting proof of DayTimeMain.DayTimeMain() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of DayTimeMain.DayTimeMain() with prover !!!! - no warnings
+Starting proof of DayTimeMain.main(java.lang.String[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of DayTimeMain.main(java.lang.String[]) with prover !!!! - no warnings
+Completed proving methods in DayTimeMain

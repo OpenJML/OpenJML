@@ -1056,14 +1056,7 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug688() {
         expectedExit = 0;
-        helpTCG();
-    }
-    
-    @Test
-    public void gitbug688rac() {
-        String dir = "test/gitbug688";
-        expectedExit = 0;
-        helpTCF(dir,dir+"rac","-cp","test/gitbug688","-rac");
+        helpTCG("-subexpressions");
     }
     
     public void gitbug888() {
