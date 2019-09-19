@@ -4,7 +4,13 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Starting proof of Test.m(int) with prover !!!!
+Proof attempt for split A
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
+Result of split A is UNSAT
+Proof attempt for split B
+Feasibility check - end of preconditions : OK
+Result of split B is UNSAT
+Composite result UNSAT
 Completed proof of Test.m(int) with prover !!!! - no warnings
 Completed proving methods in Test

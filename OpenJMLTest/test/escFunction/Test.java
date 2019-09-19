@@ -1,5 +1,5 @@
 // From a bug encountered in proving.
-// When this is fixed, review the spec of Integer.asUnsignedToLong
+// See also the spec of Integer.asUnsignedToLong
 
 public class Test {
 	
@@ -19,7 +19,7 @@ public class Test {
 	public long f(int i) {
 		return g(i);
 	}
-/*	
+	
 	//@ public normal_behavior
 	//@   ensures \result == (i<0 ? ((long)i - Integer.MIN_VALUE - Integer.MIN_VALUE) : i) && 0 <= \result && \result <= 0xffff_ffffL;
 	//@ pure helper function
@@ -50,6 +50,6 @@ public class Test {
 	public long f3(int i) {
 		return g3(i);
 	}
-*/	
+	
 	
 }

@@ -574,13 +574,13 @@ public class typeclauses extends TCBase {
     @Test
     public void testSignalsOnly8() {
         helpTCF("A.java","public class A {\n//@signals_only RuntimeException[];\nvoid m() {}}",
-                "/A.java:2: incompatible types: java.lang.RuntimeException[] cannot be converted to java.lang.Exception",33);
+                "/A.java:2: incompatible types: java.lang.RuntimeException[] cannot be converted to java.lang.Throwable",33);
     }
 
     @Test
     public void testSignalsOnly9() {
         helpTCF("A.java","public class A {\n//@signals_only int;\nvoid m() {}}",
-                "/A.java:2: incompatible types: int cannot be converted to java.lang.Exception",17);
+                "/A.java:2: incompatible types: int cannot be converted to java.lang.Throwable",17);
     }
 
     @Test

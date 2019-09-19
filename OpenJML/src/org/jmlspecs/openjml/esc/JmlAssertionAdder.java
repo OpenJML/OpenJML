@@ -17687,7 +17687,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         pre = treeutils.trueLit;
                     } else if (qthisid != null && classType != syms.objectType) {
                         // FIXME - not sure this is needed and it makes valid assertions harder to prove
-                        if (!types.isSubtype(receiverType, classType)) {
+                        if (true || !types.isSubtype(receiverType, classType)) {
                             pre = treeutils.makeInstanceOf(cs.pos,qthisid,classType);
                             pre = convertCopy(pre);
                         }

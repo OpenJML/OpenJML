@@ -397,9 +397,7 @@ public class esc extends EscBase {
                 + "  //@ public normal_behavior  ensures true;\n" 
                 + "  public void m3() {\n" 
                 + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
-                + "    //@ assert values.content.owner == values;\n" 
                 + "    Integer k = new Integer(1);\n"
-                + "    //@ assert values.content.owner == values;\n" 
                 + "    values.add(k);\n" 
                 + "  }\n"
 

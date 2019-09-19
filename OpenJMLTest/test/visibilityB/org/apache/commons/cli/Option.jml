@@ -1476,7 +1476,7 @@ private /*@ spec_public */ String longOpt;
         requires this.description != null; 
         requires this.longOpt != null; 
         requires this.opt != null; 
-        ensures \result == (this.values.content.theSize == 0); 
+        ensures \result == (this.values.values.length == 0); 
         {|
           requires this.values != null; 
         also
@@ -1486,7 +1486,7 @@ private /*@ spec_public */ String longOpt;
         requires this.longOpt != null; 
         requires this.opt != null; 
         requires this.values != null; 
-        ensures \result == (this.values.content.theSize == 0); 
+        ensures \result == (this.values.values.length == 0); 
         {|
           requires !(this.description != null); 
           requires this.argName != null; 
@@ -1500,7 +1500,7 @@ private /*@ spec_public */ String longOpt;
         requires this.description != null; 
         requires this.opt != null; 
         requires this.values != null; 
-        ensures \result == (this.values.content.theSize == 0); 
+        ensures \result == (this.values.values.length == 0); 
       |}
    */
 
@@ -1764,7 +1764,7 @@ private /*@ spec_public */ String longOpt;
         requires this.description != null; 
         requires this.longOpt != null; 
         requires this.opt != null; 
-        ensures \result == (this.values.content.theSize == 0); 
+        ensures \result == (this.values.values.length == 0); 
         {|
           requires this.values != null; 
         also
@@ -1791,7 +1791,7 @@ private /*@ spec_public */ String longOpt;
         requires this.values != null; 
         {|
           requires (this.numberOfArgs == UNLIMITED_VALUES); 
-          ensures \result == (this.values.content.theSize == 0); 
+          ensures \result == (this.values.values.length == 0); 
         also
           requires !(this.numberOfArgs == UNLIMITED_VALUES); 
         |}
@@ -1804,7 +1804,7 @@ private /*@ spec_public */ String longOpt;
         requires this.values != null; 
         {|
           requires (this.numberOfArgs == UNLIMITED_VALUES); 
-          ensures \result == (this.values.content.theSize == 0); 
+          ensures \result == (this.values.values.length == 0); 
         also
           requires !(this.numberOfArgs == UNLIMITED_VALUES); 
         |}
@@ -1817,7 +1817,7 @@ private /*@ spec_public */ String longOpt;
         requires this.values != null; 
         {|
           requires (this.numberOfArgs == UNLIMITED_VALUES); 
-          ensures \result == (this.values.content.theSize == 0); 
+          ensures \result == (this.values.values.length == 0); 
         also
           requires !(this.numberOfArgs == UNLIMITED_VALUES); 
         |}

@@ -8,7 +8,6 @@ public class ArrList {
     // Use default assignable, else use assignable theList, theList.*;
     //@ ensures theList != null;
     //@ ensures theList.size() == 1;
-    //@ ensures theList.content.owner == theList;
     // @ ensures theList.indexOf(a) == 0; // FIXME - at this time, the spec of ArrayList (and List) is not adequate to prove this assertion
     //@ pure
     public ArrList(int a) {
