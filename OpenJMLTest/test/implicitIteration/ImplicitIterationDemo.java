@@ -32,7 +32,6 @@ public class ImplicitIterationDemo {
      //@ assert (\forall int j; 0<=j && j<s.count(); s.values[j] != null);
      allTrue = true;
      
-     
      //@ loop_invariant (boolean)s.values[0] && !(boolean)s.values[1] && (boolean)s.values[2];
      //@ loop_invariant allTrue==(\forall int j; 0<=j && j <\count; (boolean)s.values[j]);
      //@ loop_modifies allTrue;

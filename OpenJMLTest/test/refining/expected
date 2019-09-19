@@ -1,0 +1,28 @@
+Proving methods in TestRefines
+Starting proof of TestRefines.TestRefines() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TestRefines.TestRefines() with prover !!!! - no warnings
+Starting proof of TestRefines.m1(int) with prover !!!!
+Proof attempt for split A
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Result of split A is UNSAT
+Proof attempt for split B
+Feasibility check - end of preconditions : OK
+Feasibility check - at statement spec : OK
+Result of split B is UNSAT
+Composite result UNSAT
+Completed proof of TestRefines.m1(int) with prover !!!! - no warnings
+Starting proof of TestRefines.m2(int) with prover !!!!
+Proof attempt for split A
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Result of split A is UNSAT
+Proof attempt for split B
+Feasibility check - end of preconditions : OK
+Feasibility check - at statement spec : OK
+Result of split B is UNSAT
+Composite result UNSAT
+Completed proof of TestRefines.m2(int) with prover !!!! - no warnings
+Completed proving methods in TestRefines

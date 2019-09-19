@@ -66,7 +66,7 @@ public class escfiles extends EscBase {
         // Fill in exactly 'extraOpts' initial elements
         newopts[0] = "-classpath";
         newopts[1] = d;
-        newopts[2] = "-checkFeasibility=precondition,reachable,exit";
+        newopts[2] = "-checkFeasibility=precondition,reachable,exit,spec";
         newopts[3] = "-code-math=bigint"; // Just to avoid overflow errors in these tests
         newopts[4] = "-spec-math=bigint"; // Just to avoid overflow errors in these tests
         System.arraycopy(opts,0,newopts,extraOpts,opts.length);
@@ -88,7 +88,7 @@ public class escfiles extends EscBase {
         // Fill in exactly 'extraOpts' initial elements
         newopts[0] = "-classpath";
         newopts[1] = sourceDirname;
-        newopts[2] = "-checkFeasibility=precondition,reachable,exit";
+        newopts[2] = "-checkFeasibility=precondition,reachable,exit,spec";
         newopts[3] = "-code-math=bigint"; // Just to avoid overflow errors in these tests
         newopts[4] = "-spec-math=bigint"; // Just to avoid overflow errors in these tests
         System.arraycopy(opts,0,newopts,extraOpts,opts.length);
@@ -665,7 +665,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testImplicitIteration() {
-        helpTF("implicitIteration");
+        helpTF("implicitIteration");//,"-method=testA","-show");
     }
 
     @Test
@@ -801,6 +801,18 @@ public class escfiles extends EscBase {
     public void testSplits() {
         expectedExit = 0;
         helpTF("splits");
+    }
+    
+    @Test
+    public void refines() {
+        expectedExit = 0;
+        helpTF("refining");
+    }
+
+    @Test
+    public void refinesBad() {
+        expectedExit = 1;
+        helpTF("refining2");
     }
 
     // Fails for -minquant and with the tnum1a/tnum2a intermediates
