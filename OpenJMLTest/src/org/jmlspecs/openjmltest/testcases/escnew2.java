@@ -900,7 +900,16 @@ public class escnew2 extends EscBase {
                 );
     }
     
-    
+    @Test
+    public void testAdd() { // Tests datagroup expansion
+        helpTCX("tt.TestJava","package tt; \n"
+           +"public class TestJava { \n"
+           +" public java.util.LinkedList<Object> list = new java.util.LinkedList<>(); \n"
+           +" //@ assigns list.objectState;  \n"
+           +" public void m(Object o) { list.add(o); } \n"
+           +"}\n"
+           );
+    }
     
 
 }
