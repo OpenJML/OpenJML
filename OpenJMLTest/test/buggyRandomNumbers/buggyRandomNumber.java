@@ -50,7 +50,7 @@ public class buggyRandomNumber{
       //@ maintaining (\forall int i; 0 <= i && i < randomNumbers.size(); 0 <= randomNumbers.get(i) && randomNumbers.get(i) <range);
       for (counter = 1; counter <= repeat; counter++) {
      selected = rnum.nextInt(range);
-     randomNumbers.add(selected-100);
+     randomNumbers.add(selected);
      //@ assert randomNumbers.get(randomNumbers.size()-1) == selected - 100;
      //@ assert 0 <= randomNumbers.get(randomNumbers.size()-1);
      //@ assert randomNumbers.get(randomNumbers.size()-1) < range;

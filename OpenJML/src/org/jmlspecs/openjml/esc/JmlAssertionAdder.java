@@ -6511,14 +6511,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     java.util.List<JCFieldAccess> datagroupContents(JCFieldAccess fa, ClassSymbol csym) {
         java.util.List<JCFieldAccess> list = new LinkedList<>();
         list.add(fa);
-        TypeSpecs tspecs = JmlSpecs.instance(context).getSpecs(csym);
-        for (JCTree tree: tspecs.decl.defs) {
-            if (tree instanceof JCVariableDecl) {
-                JCVariableDecl vd = (JCVariableDecl)tree;
-                if (isContainedIn(vd.sym,fa.sym)) {
-                    JCFieldAccess nfa = (JCFieldAccess)M.at(fa.pos).Select(fa.selected, vd.sym);
-                    nfa.type = vd.type;
-                    list.add(nfa);
+        for (Type parent:  parents(csym.type,false)) {
+            if (!(parent.tsym instanceof ClassSymbol)) continue; // TODO - Review - what to do with type variables
+            TypeSpecs tspecs = JmlSpecs.instance(context).getSpecs((ClassSymbol)parent.tsym);
+            for (JCTree tree: tspecs.decl.defs) {
+                if (tree instanceof JCVariableDecl) {
+                    JCVariableDecl vd = (JCVariableDecl)tree;
+                    if (isContainedIn(vd.sym,fa.sym)) {
+                        JCFieldAccess nfa = (JCFieldAccess)M.at(fa.pos).Select(fa.selected, vd.sym);
+                        nfa.type = vd.type;
+                        list.add(nfa);
+                    }
                 }
             }
         }
