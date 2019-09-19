@@ -1,0 +1,31 @@
+Proving methods in AgeBug
+Starting proof of AgeBug.AgeBug(int,int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of AgeBug.AgeBug(int,int,int) with prover !!!! - no warnings
+Starting proof of AgeBug.month() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of AgeBug.month() with prover !!!! - no warnings
+Starting proof of AgeBug.day() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of AgeBug.day() with prover !!!! - no warnings
+Starting proof of AgeBug.year() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of AgeBug.year() with prover !!!! - no warnings
+Starting proof of AgeBug.equals(Date) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of AgeBug.equals(Date) with prover !!!! - no warnings
+Starting proof of AgeBug.today_later(AgeBug) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of AgeBug.today_later(AgeBug) with prover !!!! - no warnings
+Completed proving methods in AgeBug
+Proving methods in Date
+Completed proving methods in Date

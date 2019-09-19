@@ -1,8 +1,8 @@
 public interface Date {
 
-   /*@ model instance int year = 1;
-       model instance int month = 1;
-       model instance int day = 1; @*/
+   /*@ model instance int year ;
+       model instance int month ;
+       model instance int day ; @*/
 
     //@ ensures \result == this.month;
     /*@ pure @*/ int month();
@@ -13,7 +13,8 @@ public interface Date {
     //@ ensures \result == this.year;
     /*@ pure @*/ int year();
 
-   /*@ ensures \result == (this.year == birth.year) && this.month == birth.month && this.day == birth.day; @*/
+    // Original submission had == instead of <==> 
+    /*@ ensures \result <==> (this.year == birth.year) && this.month == birth.month && this.day == birth.day; @*/
    public /*@ pure @*/ boolean equals(Date birth);
 
 }

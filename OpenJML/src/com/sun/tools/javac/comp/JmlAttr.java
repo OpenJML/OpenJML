@@ -6058,6 +6058,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             //        if (that.specsDecl != null) {
             //            that.mods.annotations = that.specsDecl.mods.annotations;
             //        }
+            
+            // non-final model fields should not have initializers
+            if (that.init != null && utils.isModel(that.sym) && (that.mods.flags & Flags.FINAL) == 0) {
+                log.warning(that.init, "jml.message", "A non-final model field may not have an initializer");
+                that.init = null;
+            }
         } finally {
             if (prevSource != null) log.useSource(prevSource);
             currentClauseType = savedType;

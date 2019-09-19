@@ -41,7 +41,7 @@ public class AgeBug implements Date {
 
     // specification inherited
    public /*@ pure @*/ boolean equals(Date oth) {
-	return _year == oth.year() && _month == oth.month() && _day == oth.day();
+        return _year == oth.year() && _month == oth.month() && _day == oth.day();
    }
 
    /*@ requires this != birth;
