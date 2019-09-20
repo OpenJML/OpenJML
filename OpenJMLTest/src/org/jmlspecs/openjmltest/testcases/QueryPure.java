@@ -289,7 +289,7 @@ public class QueryPure extends TCBase {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
-                "  //@ secret model Integer cache = null; //@ in value; \n" + 
+                "  //@ secret model Integer cache ; //@ in value; \n" + 
                 "  //@ secret model Object value; in cache; \n" + // error - circular
                 "} \n"
                 ,"/A.java:3: This field participates in a circular datagroup inclusion chain: cache -> value -> cache",28

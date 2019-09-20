@@ -1606,6 +1606,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             splitExpressions = savedSplit;
         }
     }
+    
+    public IArithmeticMode pushArithMode() {
+        Arithmetic.Math.instance(context).rac = rac; // FIXME - HACK FOR NOW
+        IArithmeticMode saved = currentArithmeticMode;
+        Arithmetic.Math.instance(context).rac = rac; // FIXME - HACK FOR NOW
+        currentArithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(
+                methodDecl != null ? methodDecl.sym : classDecl.sym,true);
+        return saved;
+    }
+    
+    public void popArithMode(IArithmeticMode saved) {
+        currentArithmeticMode = saved;
+    }
 
     /** Translates an AST as JML - that is, assuming that the AST is pure;
      * this call is used to switch to the translatingJML mode, setting the
@@ -1620,13 +1633,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean savedt = this.translatingJML;
         boolean savedSplit = this.splitExpressions;
         boolean savedCA = this.checkAccessEnabled;
-        IArithmeticMode savedArithmeticMode = this.currentArithmeticMode;
+        IArithmeticMode savedArithmeticMode = !translatingJML ? pushArithMode() : currentArithmeticMode;
         JCExpression savedc = this.condition;
         try {
             if (!translatingJML) {  // FIXME - not sure about this translatingJML guard
-                Arithmetic.Math.instance(context).rac = rac; // FIXME - HACK FOR NOW
-                currentArithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(
-                        methodDecl != null ? methodDecl.sym : classDecl.sym,true);
                 if (condition == null) condition = treeutils.trueLit;
             }
             this.isPostcondition = isPostcondition;
@@ -4098,7 +4108,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 alreadyDiscoveredFields.add(id.sym);
                                 if (decl.init != null) {
                                     JCExpression convertedInit = convertJML(decl.init);
+                                    IArithmeticMode savedAM = pushArithMode();
                                     convertedInit = addImplicitConversion(decl.init, decl.type, convertedInit);
+                                    popArithMode(savedAM);
                                     if (rac) {
                                         JCExpressionStatement stat = treeutils.makeAssignStat(decl.init.pos,id,convertedInit);
                                         addStat(stat);
@@ -6514,6 +6526,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         for (Type parent:  parents(csym.type,false)) {
             if (!(parent.tsym instanceof ClassSymbol)) continue; // TODO - Review - what to do with type variables
             TypeSpecs tspecs = JmlSpecs.instance(context).getSpecs((ClassSymbol)parent.tsym);
+            if (tspecs.decl == null) continue;
             for (JCTree tree: tspecs.decl.defs) {
                 if (tree instanceof JCVariableDecl) {
                     JCVariableDecl vd = (JCVariableDecl)tree;
@@ -8807,7 +8820,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             alreadyDiscoveredFields.add(id.sym);
                                             if (decl.init != null) {
                                                 JCExpression convertedInit = convertJML(decl.init);
+                                                IArithmeticMode savedAM = pushArithMode();
                                                 convertedInit = addImplicitConversion(decl.init, decl.type, convertedInit);
+                                                this.currentArithmeticMode = savedAM;
                                                 if (rac) {
                                                     JCExpressionStatement stat = treeutils.makeAssignStat(decl.init.pos,id,convertedInit);
                                                     addStat(stat);
@@ -14697,7 +14712,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (fullTranslation) params = convertCopy(params); // Just a copy - the parameters are just modifiers, types, and names
                 JCExpression restype = that.restype;
                 if (fullTranslation) restype = convertExpr(restype);
-                JmlMethodDecl m = M.MethodDef(convert(that.mods), that.name, restype, typarams, null, params, convertExprList(that.thrown), body, convertExpr(that.defaultValue));
+                JCModifiers mods = convert(that.mods);
+                if (rac && attr.isSpecPublic(that.sym)) {
+                    long newflags = (mods.flags & ~Flags.AccessFlags) | Flags.PUBLIC;
+                    mods.flags = newflags;
+                    that.sym.flags_field = newflags;
+                }
+                if (rac && attr.isSpecProtected(that.sym)) {
+                    long newflags = (mods.flags & ~Flags.AccessFlags) | Flags.PROTECTED;
+                    mods.flags = newflags;
+                    that.sym.flags_field = newflags;
+                }
+                JmlMethodDecl m = M.MethodDef(mods, that.name, restype, typarams, null, params, convertExprList(that.thrown), body, convertExpr(that.defaultValue));
                 m.pos = that.pos;
                 m.sym = that.sym;
                 m.setType(that.type);

@@ -5376,6 +5376,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return findMod(mspecs.mods,JmlTokenKind.GHOST) != null;
     }
     
+    public boolean isSpecPublic(MethodSymbol symbol) {
+        MethodSpecs mspecs = specs.getSpecs(symbol);
+        return findMod(mspecs.mods,JmlTokenKind.SPEC_PUBLIC) != null;
+    }
+    
+    public boolean isSpecProtected(MethodSymbol symbol) {
+        MethodSpecs mspecs = specs.getSpecs(symbol);
+        return findMod(mspecs.mods,JmlTokenKind.SPEC_PROTECTED) != null;
+    }
+    
     public void addHelper(MethodSymbol symbol) {
         MethodSpecs mspecs = specs.getSpecs(symbol);
         if (mspecs == null) {

@@ -1,4 +1,4 @@
-// The complaint was that this did noty prove. The problem is partly the specs and partly the code
+// The complaint was that this did not prove. The problem is partly the specs and partly the code
 // and partly handling of Strings.
 public class buggyPalindrome
 {
@@ -17,18 +17,18 @@ public class buggyPalindrome
       //@ maintaining i >= -1 && i < original.length(); 
       //@ maintaining \forall int k; 0<=k & k<i_counter; reverse.charAt(k) == original.charAt(length-1-k);
       //@ decreases i;
-      //@ maintaining reverse != null && i_counter == reverse.length();
+      //@ maintaining reverse != null && reverse instanceof String && i_counter == reverse.length();
       //@ maintaining i_counter + i + 1 == length;
       // @ maintaining \invariant_for(reverse);
       for (int i = length - 1; i >= 0; i--){
           //@ assert \forall int k; 0<=k & k<i_counter; reverse.charAt(k) == original.charAt(length-1-k);
           //@ assert reverse.length() == i_counter;
          reverse = reverse + original.charAt(i);
-         //@ assume reverse.length() == i_counter+1;
-         //@ assume reverse.charAt(i_counter) == original.charAt(length-1-i_counter);
+         //@ assert reverse.length() == i_counter+1;
+         //@ assert reverse.charAt(i_counter) == original.charAt(length-1-i_counter);
          //@ assert \forall int k; 0<=k & k<=i_counter; reverse.charAt(k) == original.charAt(length-1-k);
-     // @ assert reverse.charAt(i_counter) == (original.charAt(reverse.length() - 1));
-     //@ set i_counter = i_counter + 1;
+         // @ assert reverse.charAt(i_counter) == (original.charAt(reverse.length() - 1));
+         //@ set i_counter = i_counter + 1;
        }
       //@ assert i_counter == length; 
 
@@ -58,8 +58,8 @@ public class buggyPalindrome
       //@ maintaining i_counter + i + 1 == length;
       for (int i = length - 1; i >= 0; i--){
          reverse = reverse + original.charAt(i-50); // Won't fail
-     // assert original.charAt(i) == (reverse.charAt(reverse.length() - 1));
-     //@ set i_counter = i_counter + 1;
+         // assert original.charAt(i) == (reverse.charAt(reverse.length() - 1));
+         //@ set i_counter = i_counter + 1;
        }
       //@ assert i_counter == length; 
 
@@ -88,6 +88,7 @@ public class buggyPalindrome
       //@ maintaining i_counter + i + 1 == length;
       for (int i = length - 1; i >= 0; i--){
          reverse = reverse + original.charAt(i-50); // Fails
+         //@ assume reverse instanceof String;
      // assert original.charAt(i) == (reverse.charAt(reverse.length() - 1));
      //@ set i_counter = i_counter + 1;
        }

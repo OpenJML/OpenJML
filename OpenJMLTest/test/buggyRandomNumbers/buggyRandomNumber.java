@@ -51,7 +51,7 @@ public class buggyRandomNumber{
       for (counter = 1; counter <= repeat; counter++) {
      selected = rnum.nextInt(range);
      randomNumbers.add(selected);
-     //@ assert randomNumbers.get(randomNumbers.size()-1) == selected - 100;
+     //@ assert randomNumbers.get(randomNumbers.size()-1) == selected;
      //@ assert 0 <= randomNumbers.get(randomNumbers.size()-1);
      //@ assert randomNumbers.get(randomNumbers.size()-1) < range;
       }

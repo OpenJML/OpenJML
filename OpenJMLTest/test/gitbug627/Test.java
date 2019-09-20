@@ -8,7 +8,6 @@ public class Test {
 
   public void blah(Collection<String> tagNames) {
     final Set<String> lowerTagNames = new HashSet<String>();
-    //@ assert lowerTagNames.content.owner == lowerTagNames;
     lowerTagNames.add(new Function<String, String>() {
       @Override //@ pure
       public String apply(String s) {
