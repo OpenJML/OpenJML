@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
@@ -130,15 +131,9 @@ public class JmlToJson {
     }
 
     public void toJson(JCCompilationUnit node) {
-
-        File file = new File(
-                node.sourcefile.getName().replace(".java", ".json"));
-//        if (file.exists())
-//            System.out.println("Not dumping AST to "+file+", file exists");
-//        else {
-        System.out.println("Dumping AST to " + file);
+        File file = new File(node.sourcefile.getName()+".json");
         dumpJson(node, file);
+        System.out.println("AST dumped to " + file);
         System.exit(0);
-//        }
     }
 }
