@@ -12399,7 +12399,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // FIXME - resolve the use of splitExpressions vs. !pureCopy
         
         // FIXME - for now we don't check undefinedness inside quantified expressions
-        {
+        JCExpression ind = that.indexed;
+        Symbol sym = null;
+        boolean doit = true;
+        if (ind instanceof JCFieldAccess) sym = ((JCFieldAccess)ind).sym;
+        if (ind instanceof JCIdent) sym = ((JCIdent)ind).sym;
+        if (sym instanceof VarSymbol) {
+            VarSymbol vsym = (VarSymbol)sym;
+            doit = !(attr.isNonNull(vsym) && isModel(vsym));
+        }
+        if (doit) {
             JCExpression nonnull = treeutils.makeNeqObject(that.indexed.pos, indexed, 
                     treeutils.makeNullLiteral(that.indexed.getEndPosition(log.currentSource().getEndPosTable())));
             addJavaCheck(that,nonnull,Label.POSSIBLY_NULL_DEREFERENCE,Label.UNDEFINED_NULL_DEREFERENCE,"java.lang.NullPointerException");
@@ -12999,15 +13008,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 st.accept(this);
                 
                 if (len > 0) {
-                    msym = null;
-                    for (Symbol s: tsym.getEnclosedElements()) {
-                        if (s instanceof MethodSymbol) {
+                    VarSymbol vsym = null;
+                    ClassSymbol csym = ClassReader.instance(context).loadClass(names.fromString("java.lang.CharSequence"));
+                    for (Symbol s: csym.getEnclosedElements()) {
+                        if (s instanceof VarSymbol) {
                             String sn = s.name.toString();
-                            if ("charAt".equals(sn)) { msym = (MethodSymbol)s; break; }
+                            if ("charArray".equals(sn)) { vsym = (VarSymbol)s; break; }
                         }
                     }
+                    JCFieldAccess arr = treeutils.makeSelect(that.pos, id, vsym);
                     JCExpression z = treeutils.makeIntLiteral(that.pos, 0);
-                    JCExpression mm = treeutils.makeMethodInvocation(that,id,msym,z);
+                    JCExpression mm = treeutils.makeArrayElement(that.pos,arr,z);
                     mm.type = syms.charType;
                     JCExpression c = treeutils.makeCharLiteral(that.pos, ((String)that.getValue()).charAt(0));
                     m = treeutils.makeEquality(that.pos, mm, c);

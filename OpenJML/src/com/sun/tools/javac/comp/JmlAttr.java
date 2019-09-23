@@ -5237,6 +5237,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return false;  // FIXME - use default?
     }
     
+    /** Returns true if the given symbol has non_null or does not have nullable annotation */
+    public boolean isNonNull(VarSymbol vsym) {
+        FieldSpecs fspecs = specs.getSpecs(vsym);
+        if (fspecs == null) return true; // FIXME - what should this be?
+        JCModifiers mods = fspecs.mods;
+        return isNonNull(mods);
+    }
+    
 
     /** Returns true if the given modifiers includes model
      * @param mods the modifiers to check
