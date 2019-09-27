@@ -62,10 +62,16 @@ public class MethodDependencies extends JmlTreeScanner {
         java.util.List<Symbol.MethodSymbol> list = new ArrayList<>(dep.deps.keySet());
         Collections.sort(list, (s1,s2)->dep.order.get(s1).compareTo(dep.order.get(s2)));
         Set<Symbol.MethodSymbol> sk = new HashSet<>(dep.skipped);
+        System.out.println("----------- All methods that are skipped or depend on a skipped method");
         for (Symbol.MethodSymbol m: list) {
             if (!sk.contains(m)) {
                 boolean any = false;
-                for (Symbol.MethodSymbol mm: dep.deps.get(m)) any |= sk.contains(mm);
+                for (Symbol.MethodSymbol mm: dep.deps.get(m)) {
+                    if (sk.contains(mm)) {
+                        any = true;
+                        System.out.println("*** " + dep.order.get(mm) + " " + toString(mm));
+                    }
+                }
                 if (any) {
                     sk.add(m);
                     System.out.println(dep.order.get(m) + " " + toString(m));
@@ -74,7 +80,7 @@ public class MethodDependencies extends JmlTreeScanner {
                 System.out.println("SK " + dep.order.get(m) + " " + toString(m));
             }
         }
-        System.out.println("-----------");
+        System.out.println("----------- All methods with dependencies");
         for (Symbol.MethodSymbol m: list) {
             System.out.print(dep.order.get(m) + " " + toString(m) + " :");
             for (Symbol.MethodSymbol mm: dep.deps.get(m)) System.out.print(" " + toString(mm));
@@ -105,6 +111,7 @@ public class MethodDependencies extends JmlTreeScanner {
     public void visitJmlMethodDecl(JmlMethodDecl that) {
         Symbol.MethodSymbol save = currentMethod;
         currentMethod = that.sym;
+        deps.put(that.sym,new HashSet<Symbol.MethodSymbol>());
         boolean sk = JmlEsc.skip(that);
         if (sk) skipped.add(that.sym);
         super.visitJmlMethodDecl(that);

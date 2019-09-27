@@ -785,11 +785,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                             // Type information ? - FIXME 
                             JCIdent pold = newIdentUse(m,sym,pos);
                             JCIdent pnew = newIdentUse(newMap,sym,pos);
-                            JCBinary eq = treeutils.makeEquality(pos,pnew,pold);
-                            addAssume(pos,Label.DSA,eq,b.statements);
+                            if (pold.name != pnew.name) { 
+                                JCBinary eq = treeutils.makeEquality(pos,pnew,pold);
+                                addAssume(pos,Label.DSA,eq,b.statements);
+                            }
                         }
                     }
-                    
                 } else {
                     // If the symbol is owned by the method, then if it is not 
                     // in every inherited map,
@@ -798,10 +799,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     Name maxName = null;
                     Long max = -1L;
                     boolean skip = false;
+                    boolean diff = false;
                     for (VarMap m: all) {
                         Name n = m.getName(sym);
                         if (n == null) { skip = true; break; }
                         Long i = m.getSAVersionNum(sym);
+                        if (max >= 0 && max != i) diff = true;
                         if (i > max) {
                             max = i;
                             maxName = n;
@@ -822,6 +825,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //                        newName = id.name;
 //                    }
                     newMap.putSAVersion(sym,newName,max);
+                    if (!diff) continue;
                     //if (different) {
                         for (BasicBlock b: block.preceders) {
                             VarMap m = blockmaps.get(b);
@@ -831,8 +835,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                                 // Type information put in, though I don't know that we need it
                                 JCIdent pold = newIdentUse(m,sym,pos);
                                 JCIdent pnew = newIdentUse(newMap,sym,pos);
-                                JCBinary eq = treeutils.makeEquality(pos,pnew,pold);
-                                addAssume(pos,Label.DSA,eq,b.statements);
+                                if (pold.name != pnew.name) { 
+                                    JCBinary eq = treeutils.makeEquality(pos,pnew,pold);
+                                    addAssume(pos,Label.DSA,eq,b.statements);
+                                }
                             }
                         }
                     //}

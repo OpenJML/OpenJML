@@ -6200,11 +6200,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     result = addStat( st );
                 } else {
                     addAssume(that.cond.pos(), Label.IMPLICIT_ASSUME, treeutils.makeNot(that.cond,cond));
-                    JCBlock elsepart = that.elsepart == null ? null :
-                        convertIntoBlock(that.elsepart, that.elsepart);
-
-                    JCStatement st = elsepart.setType(that.elsepart.type);
-                    result = addStat( st );
+                    if (that.elsepart != null) {
+                        JCBlock elsepart = convertIntoBlock(that.elsepart, that.elsepart);
+                        JCStatement st = elsepart.setType(that.elsepart.type);
+                        result = addStat( st );
+                    }
                 }
             }
         }
@@ -14110,7 +14110,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addNullnessTypeCondition(item, ((JCIdent)item).sym, false );
                 } else if (item instanceof JCFieldAccess) {
                     JCFieldAccess fa = (JCFieldAccess)item;
-                    if (fa.name != null) addNullnessTypeCondition(item, fa.sym, false );
+                    if (fa.name != null) {
+                        JCExpression saved = currentThisExpr;
+                        currentThisExpr = fa.selected;
+                        addNullnessTypeCondition(item, fa.sym, false );
+                        currentThisExpr = saved;
+                    }
                 }
                 // FIXME - zadd more types? becareful not to include wildcards
             }
