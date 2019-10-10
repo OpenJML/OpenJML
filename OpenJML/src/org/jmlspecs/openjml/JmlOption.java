@@ -249,9 +249,9 @@ public class JmlOption implements IOption {
      * @param context the compilation context
      * @param option the option to enable
      */
-    public static void putOption(Context context, JmlOption option) {
-        putOption(context,option,"");
-    }
+//    public static void putOption(Context context, JmlOption option) {
+//        putOption(context,option,"");
+//    }
     
     /** Sets the value of the given option
      * 

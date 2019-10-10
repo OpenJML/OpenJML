@@ -3460,14 +3460,14 @@ public class esc extends EscBase {
         );
     }
 
-
     @Test
     public void testCatch3() {
         helpTCX("tt.TestJava",
-                "package tt; \n" 
+                "package tt; // @ non_null_by_default \n" 
                         + "public class TestJava  { \n" 
                         + "  //@ public normal_behavior \n"
-                        + "  //@   ensures i != 1 && i != 2 && \\result == 0;\n"
+                        + "  //@   requires i != 1 & i != 2;\n"
+                        + "  //@   ensures \\result == 0;\n"
                         + "  //@ also public exceptional_behavior \n"
                         + "  //@   requires i == 2; \n"
                         + "  //@   signals (ArrayIndexOutOfBoundsException ex) true; \n"
@@ -3477,12 +3477,36 @@ public class esc extends EscBase {
                         + "      if (i == 2) throw ee;\n"
                         + "      return 0;\n"
                         + "    } catch (NullPointerException exx) {\n"
-                        + "      throw ae;\n"  // Line 14
+                        + "      throw ae;\n"
                         + "    }\n"
                         + "  }\n"
                         + "}\n"
-                        ,"/tt/TestJava.java:10: warning: Cannot chain comparisons that are in different directions",17
-                        ,"/tt/TestJava.java:11: warning: Cannot chain comparisons that are in different directions",17
+                        );
+    }
+
+    @Test
+    public void testCatch4() {
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  //@ public normal_behavior \n"
+                        + "  //@   requires e != null & ee != null & ae != null;\n"
+                        + "  //@   requires i != 1 & i != 2;\n"
+                        + "  //@   ensures \\result == 0;\n"
+                        + "  //@ also public exceptional_behavior \n"
+                        + "  //@   requires e != null & ee != null & ae != null;\n"
+                        + "  //@   requires i == 2; \n"
+                        + "  //@   signals (ArrayIndexOutOfBoundsException ex) true; \n"
+                        + "  public int m(int i, NullPointerException e, ArrayIndexOutOfBoundsException ee, AssertionError ae) {\n"
+                        + "    try {\n"
+                        + "      if (i == 1) throw e;\n"
+                        + "      if (i == 2) throw ee;\n"
+                        + "      return 0;\n"
+                        + "    } catch (NullPointerException exx) {\n"
+                        + "      throw ae;\n"
+                        + "    }\n"
+                        + "  }\n"
+                        + "}\n"
                         );
     }
 
