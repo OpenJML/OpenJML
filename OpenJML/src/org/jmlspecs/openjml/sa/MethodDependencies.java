@@ -64,20 +64,22 @@ public class MethodDependencies extends JmlTreeScanner {
         Set<Symbol.MethodSymbol> sk = new HashSet<>(dep.skipped);
         System.out.println("----------- All methods that are skipped or depend on a skipped method");
         for (Symbol.MethodSymbol m: list) {
+            boolean bm = dep.skipped.contains(m);
             if (!sk.contains(m)) {
                 boolean any = false;
                 for (Symbol.MethodSymbol mm: dep.deps.get(m)) {
                     if (sk.contains(mm)) {
                         any = true;
-                        System.out.println("*** " + dep.order.get(mm) + " " + toString(mm));
+                        boolean b = dep.skipped.contains(mm);
+                        System.out.println("*** " + (b?"SK ":"") + dep.order.get(mm) + " " + toString(mm));
                     }
                 }
                 if (any) {
                     sk.add(m);
-                    System.out.println(dep.order.get(m) + " " + toString(m));
+                    System.out.println((bm?"SK ":"") + dep.order.get(m) + " " + toString(m));
                 }
             } else {
-                System.out.println("SK " + dep.order.get(m) + " " + toString(m));
+                System.out.println((bm?"SK ":"") + dep.order.get(m) + " " + toString(m));
             }
         }
         System.out.println("----------- All methods with dependencies");

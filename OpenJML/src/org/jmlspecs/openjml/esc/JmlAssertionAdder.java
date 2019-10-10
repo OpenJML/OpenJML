@@ -6019,7 +6019,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 saveMapping(nid,convertCopy(nid));
 //                block.stats = block.stats.prepend(traceableComment(catcher.getParameter(),nid,"Exception caught"));
 // FIXME - the nid is not being evaluated for the trace
-
+                
+                // Prepend local exception = EXCEPTION
+                e = treeutils.makeEqObject(catcher.pos, id, treeutils.makeIdent(catcher.pos, exceptionSym));
+                block.stats.prepend(treeutils.makeAssume(catcher.pos(),Label.IMPLICIT_ASSUME,e));
+ 
                 // TERMINATION = 0
                 JCIdent termid = treeutils.makeIdent(catcher.pos,terminationSym);
                 block.stats = block.stats.prepend(treeutils.makeAssignStat(catcher.pos, termid, treeutils.zero));
@@ -8407,14 +8411,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addNullnessAllocationTypeCondition(that, resultSym, false, false, false);
                     {
                         JCExpression cr = convertedReceiver;
-                        if (cr == null && !calleeMethodSym.owner.isStatic()) {
+                        if (cr == null && !calleeMethodSym.owner.isStatic() && !(calleeMethodSym.owner.owner instanceof MethodSymbol)) {
                             cr = savedThisExpr;
                         }
-                        VarSymbol vsym = makeEnclosingSymbol((ClassSymbol)calleeMethodSym.owner, cr);
-                        if (vsym != null) {
-                            JCExpression fa = treeutils.makeSelect(that.pos,resultExpr,vsym);
-                            JCExpression bin = treeutils.makeEqObject(that.pos, fa, cr);
-                            addAssume(that.pos(), Label.IMPLICIT_ASSUME, bin);
+                        if (cr != null) {
+                            VarSymbol vsym = makeEnclosingSymbol((ClassSymbol)calleeMethodSym.owner, cr);
+                            if (vsym != null) {
+                                JCExpression fa = treeutils.makeSelect(that.pos,resultExpr,vsym);
+                                JCExpression bin = treeutils.makeEqObject(that.pos, fa, cr);
+                                addAssume(that.pos(), Label.IMPLICIT_ASSUME, bin);
+                            }
                         }
                     }
 
@@ -14713,7 +14719,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             while (true) {
                 String splitkey = t.nextToDo();
                 if (splitkey == null) break;
-
                 setSplits(t,splitkey);
                 JCBlock body = null;
                 if (pureCopy) {

@@ -268,8 +268,14 @@ public class MethodProverSMT {
         IProverResult proofResultAccumulated = null;
         IProverResult proofResult = null;
 
+        String splitlist = JmlOption.value(context,JmlOption.SPLIT);
+        String[] splits = splitlist.split(",");
         Translations translations = jmlesc.assertionAdder.methodBiMap.getf(methodDecl);
         for (String splitkey: translations.keys()) {
+        if (!splitlist.isEmpty() && !java.util.Arrays.stream(splits).anyMatch(s -> splitkey.equals(s))) {
+            log.getWriter(WriterKind.NOTICE).println("Skipping proof attempt for split " + splitkey);
+            continue;
+        }
             
         if (utils.jmlverbose >= Utils.PROGRESS && !splitkey.isEmpty()) {
             log.getWriter(WriterKind.NOTICE).println("Proof attempt for split " + splitkey);

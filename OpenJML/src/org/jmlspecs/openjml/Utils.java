@@ -153,6 +153,8 @@ public class Utils {
     static public final int JMLVERBOSE = 3;
     static public final int JMLDEBUG = 4;
 
+    public Main.Cmd cmd = null;
+    
     /** Do ESC - set by Main.setupOptions */
     public boolean esc = false;
 

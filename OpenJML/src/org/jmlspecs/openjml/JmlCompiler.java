@@ -436,7 +436,7 @@ public class JmlCompiler extends JavaCompiler {
             env.tree = subst.translate(env.tree);
         }
         
-        if (false) {
+        if (utils.cmd == Main.Cmd.DEP) {
             MethodDependencies.find(context, envs);
             return results;
         }

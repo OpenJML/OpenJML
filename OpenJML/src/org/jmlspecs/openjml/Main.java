@@ -914,20 +914,13 @@ public class Main extends com.sun.tools.javac.main.Main {
             Log.instance(context).error("jml.bad.command",val);
             return false;
         }
+        utils.cmd = cmd;
         utils.rac = cmd == Cmd.RAC;
         utils.esc = cmd == Cmd.ESC;
         utils.check = cmd == Cmd.CHECK;
         utils.compile = cmd == Cmd.COMPILE;
         utils.infer   = cmd == Cmd.INFER;
-        
-        boolean picked = utils.rac||utils.esc||utils.check||utils.compile||utils.infer;
-        
-        if (!picked && cmd != null) {
-            Log.instance(context).error("jml.unimplemented.command",cmd);
-            return false;
-        }
-        if (!picked) utils.check = true;
-        
+                
         val = options.get(JmlOption.ESC_BV.optionName());
         if (val == null || val.isEmpty()) {
             options.put(JmlOption.ESC_BV.optionName(),(String)JmlOption.ESC_BV.defaultValue());
@@ -1411,7 +1404,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
     
     /** An Enum type that gives a choice of various tools to be executed. */
-    public static enum Cmd { CHECK("check"), ESC("esc"), RAC("rac"), JMLDOC("doc"), COMPILE("compile"), INFER("infer");
+    public static enum Cmd { CHECK("check"), ESC("esc"), RAC("rac"), DEP("dep"), JMLDOC("doc"), COMPILE("compile"), INFER("infer");
         String name;
         public String toString() { return name; }
         private Cmd(String name) { this.name = name; }
