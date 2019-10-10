@@ -3460,6 +3460,32 @@ public class esc extends EscBase {
         );
     }
 
+
+    @Test
+    public void testCatch3() {
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  //@ public normal_behavior \n"
+                        + "  //@   ensures i != 1 && i != 2 && \\result == 0;\n"
+                        + "  //@ also public exceptional_behavior \n"
+                        + "  //@   requires i == 2; \n"
+                        + "  //@   signals (ArrayIndexOutOfBoundsException ex) true; \n"
+                        + "  public int m(int i, NullPointerException e, ArrayIndexOutOfBoundsException ee, AssertionError ae) {\n"
+                        + "    try {\n"
+                        + "      if (i == 1) throw e;\n"
+                        + "      if (i == 2) throw ee;\n"
+                        + "      return 0;\n"
+                        + "    } catch (NullPointerException exx) {\n"
+                        + "      throw ae;\n"  // Line 14
+                        + "    }\n"
+                        + "  }\n"
+                        + "}\n"
+                        ,"/tt/TestJava.java:10: warning: Cannot chain comparisons that are in different directions",17
+                        ,"/tt/TestJava.java:11: warning: Cannot chain comparisons that are in different directions",17
+                        );
+    }
+
     @Test
     public void testTypes() {
         helpTCX("tt.TestJava", "package tt; \n" 
