@@ -5926,6 +5926,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // FIXME - add position, types, symbols
     }
     
+    protected MethodSymbol findParentConstructor(JmlNewClass newcl) {
+        JmlMethodDecl md = null;
+        x: {for (JCTree o: newcl.def.defs) {
+              if (o instanceof JmlMethodDecl) {
+                  md = (JmlMethodDecl)o;
+                  if (md.sym.isConstructor()) break x;
+              }
+            }
+           return null;
+        }
+        JCStatement st = md.body.stats.head;
+        JCExpression ex = ((JCMethodInvocation)((JCExpressionStatement)st).expr).meth;
+        if (ex instanceof JCIdent) return (MethodSymbol)((JCIdent)ex).sym;
+        if (ex instanceof JCFieldAccess) return (MethodSymbol)((JCFieldAccess)ex).sym;
+        return null;
+    }
+    
     protected MethodSymbol findCloseMethod(ClassSymbol csym) {
         MethodSymbol msym = null;
         for (Symbol sym: csym.members().getElementsByName(closeName)) {
@@ -8627,6 +8644,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addInvariants(arg,arg.type,id,currentStatements,
                             false,false,false,false,false,false,assertionLabel,msg);
                 }
+                clearInvariants(); // TODO - test this?
             }
             
             // The following assumptions state that non-primitive arguments of a constructor call
@@ -8696,6 +8714,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 for (Pair<MethodSymbol,Type> pair: overridden) {
                     MethodSymbol mpsym = pair.first;
                     Type classType = pair.second;
+                    if (mpsym.isConstructor() && mpsym.owner.isAnonymous() && mpsym == calleeMethodSym && that instanceof JmlNewClass) {
+                        MethodSymbol m = findParentConstructor((JmlNewClass)that);
+                        if (m != null) {
+                            mpsym = m;
+                            classType = m.owner.type;
+                        }
+                    }
                     addStat(comment(that, "... Preconditions of callee " + calleeMethodSym + " in " + classType.toString(),null));
                     // FIXME - meth is null for constructors - fix that also; also generic types
                     typevarMapping = typemapping(classType, calleeMethodSym, typeargs, 
@@ -8916,7 +8941,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 addAssume(ex,Label.IMPLICIT_ASSUME,treeutils.makeEquality(ex.pos,nextPreExpr,treeutils.falseLit));
                                                 elsebl = popBlock(ex,ch);
                                             }
-                                            if (prex == null) {
+                                            if (prex == null || treeutils.isTrueLit(prex)) {
                                                 addStat(thenbl);
                                             } else {
                                                 addStat(M.at(ex.pos).If(prex, thenbl, elsebl));
@@ -9560,8 +9585,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
                 if (!isHelper(calleeMethodSym)) {
-                    boolean assume = !(calleeMethodSym.isConstructor() && calleeMethodSym.owner.isAnonymous());
-                    if (assume) addInvariants(that,calleeClass.type,newThisExpr,currentStatements,
+                    addInvariants(that,calleeClass.type,newThisExpr,currentStatements,
                             false,calleeMethodSym.isConstructor(),false,isHelper(calleeMethodSym),true,true,Label.INVARIANT_EXIT,
                             msg);
                 }
@@ -9864,7 +9888,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             // The +1 is so that the position of this if statement
                             // and hence the names of the BRANCHT and BRANCHE variables
                             // is different from the if prior to the apply // FIXME - review if this is still needed
-                            JCStatement st = M.at(cs.pos+1).If(pre,exsuresBlock,null);
+                            // FIXME - don't think pre should be null
+                            JCStatement st = pre == null ? exsuresBlock : M.at(cs.pos+1).If(pre,exsuresBlock,null);
                             JCBlock bl = M.at(cs.pos+1).Block(0,List.<JCStatement>of(st));
                             exsuresStatsOuter.add( wrapRuntimeException(cs, bl, "JML undefined precondition while checking exceptional postconditions - exception thrown", null));
                         }
@@ -13612,6 +13637,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         try {
             addInvariants(classDecl,classDecl.sym.type,null,currentStatements,true,false,false,false,true,false,Label.STATIC_INIT,
                 "invariant is false");
+            clearInvariants();
         } finally {
             checkAccessEnabled = pv;
         }

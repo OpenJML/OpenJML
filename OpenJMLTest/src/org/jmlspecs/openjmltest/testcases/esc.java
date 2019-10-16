@@ -3463,7 +3463,32 @@ public class esc extends EscBase {
     @Test
     public void testCatch3() {
         helpTCX("tt.TestJava",
-                "package tt; // @ non_null_by_default \n" 
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  //@ public normal_behavior \n"
+                        + "  //@   requires i != 1 & i != 2;\n"
+                        + "  //@   ensures \\result == 0;\n"
+                        + "  //@ also public exceptional_behavior \n"
+                        + "  //@   requires i == 2 && ee != null; \n"
+                        + "  //@   signals (ArrayIndexOutOfBoundsException ex) true; \n"
+                        + "  public int m(int i, NullPointerException e, ArrayIndexOutOfBoundsException ee, AssertionError ae) {\n"
+                        + "    try {\n"
+                        + "      if (i == 1) throw e;\n"
+                        + "      if (i == 2) throw ee;\n"
+                        + "      return 0;\n"
+                        + "    } catch (NullPointerException exx) {\n"
+                        + "      throw ae;\n"
+                        + "    }\n"
+                        + "  }\n"
+                        + "}\n"
+                        );
+    }
+
+
+    @Test
+    public void testCatch3a() {
+        helpTCX("tt.TestJava",
+                "package tt; //@ non_null_by_default \n" 
                         + "public class TestJava  { \n" 
                         + "  //@ public normal_behavior \n"
                         + "  //@   requires i != 1 & i != 2;\n"
