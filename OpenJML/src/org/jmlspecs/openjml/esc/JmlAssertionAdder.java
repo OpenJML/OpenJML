@@ -2015,7 +2015,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
-        //if (assertCount == 291) Utils.stop();
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
         JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? (classDecl == null ? null : classDecl.sym) : methodDecl.sym,translatedExpr);
@@ -2426,7 +2425,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Creates a declaration for a new name and type initialized to a zero-equivalent literal. */
     protected JCIdent newTempNull(DiagnosticPosition pos, Type type) {
         Name n = M.Name(uniqueTempString());
-        //if (count == 19) Utils.stop();
         // By having the owner be null, the BasicBlocker2 does not append any unique-ifying suffix - FIXME - does this affect RAC?
         JCVariableDecl d = treeutils.makeVarDef(
                 type, 
@@ -4657,7 +4655,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 JCExpression fa = convertJML(treeutils.makeIdent(d.pos, d.sym));
                 addStat(comment(dd,"Adding exit invariants for " + d.sym,null));
-                if (d.sym.toString().equals("state")) Utils.stop();
                 addRecInvariants(false,d,fa);
             }
             currentThisExpr = savedThis;
@@ -7603,7 +7600,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected boolean isFunctional(Type t) {
-        if (t.tsym.getAnnotationMirrors() == null) Utils.stop();
         if (t.tsym.getAnnotationMirrors() == null) return false;
         for (Attribute.Compound a : t.tsym.getAnnotationMirrors()) {
             if (a.getAnnotationType().toString().contains("FunctionalInterface")) return true;  // FIXME - need a better way to do this
@@ -8305,7 +8301,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                // FIXME - make this work for old environments as well
 //                Type rt = calleeMethodSym.getReturnType();
 //                if (esc && newclass == null && rt != null && rt.getTag() != TypeTag.VOID && oldenv == null) xx: {
-//                    if (calleeMethodSym.toString().startsWith("intValue") && methodDecl.name.toString().equals("incr_test2")) Utils.stop();
 //                    if (newThisExpr != null && newThisExpr.toString().contains("\\old")) break xx; // FIXME - sfbug410 has shared ASTs that lead to bad SSA translation in incr_test2
 //                    // Make an encoded name
 //                    // FIXME - we should include resolved type variables in the mangled name; also need to distinguish methods with the same name
@@ -11596,7 +11591,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean shift = optag == JCTree.Tag.SL || optag == JCTree.Tag.SR || optag == JCTree.Tag.USR;
         boolean arith = optag == JCTree.Tag.PLUS || optag == JCTree.Tag.MINUS || optag == JCTree.Tag.MUL || optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD;
         boolean bit = optag == JCTree.Tag.BITAND || optag == JCTree.Tag.BITOR || optag == JCTree.Tag.BITXOR;
-        if (that.lhs instanceof JCLambda) Utils.stop();
 
         if (pureCopy) {
             JCExpression lhs = convertExpr(that.getLeftOperand());
@@ -13454,7 +13448,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         IArithmeticMode savedMode = this.currentArithmeticMode;
         
         try {
-            //if (that.name.toString().contains("Inner")) Utils.stop();
             enclosingExpr = savedThisExpr;
             this.classDecl = that;
             this.methodDecl = null;
@@ -16055,7 +16048,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     public JCExpression castType(Type target, JCExpression arg) {
-        if ((arg.type == jmltypes.BIGINT || arg.type.toString().contains("BigInteger")) && target.toString().equals("java.lang.Integer")) Utils.stop();
         if (jmltypes.isSameType(arg.type,target)) return arg;
         if (!rac) return treeutils.makeTypeCast(arg, target, arg);
         boolean isPrim = arg.type.isPrimitive() && !(rac && jmltypes.isJmlType(arg.type));

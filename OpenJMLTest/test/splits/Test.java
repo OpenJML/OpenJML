@@ -72,4 +72,15 @@ public class Test {
             }
         }
     }
+    
+    //@ ensures i>0 ==> \result == 10 * 10101;
+    //@ ensures i<=0 ==> \result == 20 * 10101;
+    //@ @org.jmlspecs.annotation.Options("-split=A")
+    public int splitx(int i) {
+        //@ split
+        if (i > 0) {
+            return 101010;
+        }
+        return 202020;
+    }
 }

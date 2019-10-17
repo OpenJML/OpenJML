@@ -122,5 +122,12 @@ Feasibility check - at program exit : OK
 Result of split BC is UNSAT
 Composite result INFEASIBLE
 Completed proof of Test.mcombined(int) with prover !!!! - INFEASIBLE
+Starting proof of Test.splitx(int) with prover !!!!
+Proof attempt for split A
+Feasibility check - end of preconditions : OK
+Result of split A is UNSAT
+Skipping proof attempt for split B
+Composite result UNSAT
+Completed proof of Test.splitx(int) with prover !!!! - no warnings
 Completed proving methods in Test
 14 warnings

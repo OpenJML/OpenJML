@@ -1173,9 +1173,13 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             if (!remainingStatements.isEmpty()) {
                 // Not fatal, but does indicate a problem with the original
                 // program, which the compiler may have already identified
-                log.warning(remainingStatements.get(0).pos,
-                        "esc.internal.error", //$NON-NLS-1$
-                        "Unexpected statements following a return statement are ignored"); //$NON-NLS-1$
+                // Does happen when splits are used. In which case the extra
+                // statements are appropriately ignored and are not represented in
+                // the basic blocker program because txhey no longer follow any
+                // live statements.
+//                log.warning(remainingStatements.get(0).pos,
+//                        "esc.internal.error", //$NON-NLS-1$
+//                        "Unexpected statements following a return statement are ignored"); //$NON-NLS-1$
                 remainingStatements.clear();
             }
         }

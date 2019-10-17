@@ -752,6 +752,10 @@ public class MethodProverSMT {
         if (utils.jmlverbose >= Utils.PROGRESS && translations.keys().size() > 1) {
             log.getWriter(WriterKind.NOTICE).println("Composite result " + proofResultAccumulated.result());
         }
+        if (proofResultAccumulated == null) {
+            log.getWriter(WriterKind.NOTICE).println("No matching splits");
+            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR, new Date());
+        }
         return proofResultAccumulated; // FIXME - need to combine results
         
     }
