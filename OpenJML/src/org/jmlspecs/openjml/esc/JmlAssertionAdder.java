@@ -5542,7 +5542,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     boolean translatingLambda = false;
     
-    Map<String,JCLambda> lambdaLiterals = new HashMap<>();
+    Map<String,Pair<JCLambda,JCExpression>> lambdaLiterals = new HashMap<>();
     
     @Override
     public void visitLambda(JCLambda that) {
@@ -5574,7 +5574,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         int n = lambdaLiterals.size();
         String nm = "$$JML$LAMBDALIT_" + n;
-        lambdaLiterals.put(nm, that);
+        lambdaLiterals.put(nm, new Pair<>(that,currentThisExpr));
         JCVariableDecl d = treeutils.makeVarDef(that.type,names.fromString(nm),methodDecl.sym,that.pos);
         addStat(d);
         JCIdent id = treeutils.makeIdent(that.pos, d.sym);
@@ -5609,21 +5609,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         ListBuffer<JCStatement> saved = collectedAxioms;
         collectedAxioms = new ListBuffer<JCStatement>();
-        ListBuffer<JCStatement> check = pushBlock();
+//        ListBuffer<JCStatement> check = pushBlock();
 //        resultExpr = localResult;
 //        resultSym = localResult == null ? null : (VarSymbol)localResult.sym;
         boolean savedTL = translatingLambda;
         int saveHC = heapCount;
         try {
             translatingLambda = true;
-            convert(body);
+            body = convertCopy(body);
 //            if (!isVoid && that.body instanceof JCExpression) {
 //                addStat(treeutils.makeAssignStat(that.body.pos,localResult,eresult));
 //            }
-            JCBlock bl = popBlock(that.pos(), check);
+//            JCBlock bl = popBlock(that.pos(), check);
 //            JCStatement stat = M.JmlLabeledStatement(breakName, null, bl);
 //            bl = M.at(that).Block(0L, List.<JCStatement>of(stat));
-            JmlLambda lam = M.Lambda(that.params, bl);
+            JmlLambda lam = M.Lambda(that.params, body);
             lam.literal = id;
             result = eresult = lam;
             eresult.pos = that.pos;
@@ -5659,6 +5659,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JmlTreeInline inliner = new JmlTreeInline(M, replacements, returnId, breakName, labeled) ;
         JCTree outBlock = inliner.copy(block);
         breakNames.remove(breakName);
+        labeled.body = (JCBlock)outBlock;
+        addStat(labeled);
+        JCExpression ex = null;
+        if (returnId != null) ex = addImplicitConversion(block,returnType,returnId);
+        return ex;
+    }
+    
+    public JCExpression inlineConvertBlock(JCBlock block, Map<Object,JCExpression> replacements, Type returnType) {
+        DiagnosticPosition pos = block;
+        Name breakName = names.fromString("JMLBreakForReturn_" + (++lblUnique));
+        JCIdent returnId = null;
+        if (returnType.getTag() != TypeTag.VOID) returnId = newTemp(pos,returnType);
+        JmlLabeledStatement labeled = M.JmlLabeledStatement(breakName, null, null);
+        treeMap.put(labeled,labeled);
+        breakNames.put(breakName, labeled);
+        JmlTreeInline inliner = new JmlTreeInline(M, replacements, returnId, breakName, labeled) ;
+        JCTree outBlock = inliner.copy(block);
+        breakNames.remove(breakName);
+        outBlock = convertBlock((JCBlock)outBlock);
         labeled.body = (JCBlock)outBlock;
         addStat(labeled);
         JCExpression ex = null;
@@ -8000,7 +8019,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 xx: {
                     if (convertedReceiver instanceof JCTree.JCLambda) {
                         // Now need to apply the lambda to its arguments, by substitution
-                        JCTree bl = ((JCTree.JCLambda)convertedReceiver).body;
+                        JCTree bl = (((JCTree.JCLambda)convertedReceiver).body);
                         JCBlock block = null;
                         if (bl instanceof JCBlock) {
                             block = (JCBlock) bl;
@@ -8014,7 +8033,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             throw new JmlInternalError(msg);
                         }
                         // If there are arguments or a return value, we need to do a substitution pass
-                        addStat(comment(that, "Inlining lambda",log.currentSourceFile()));
+                        addStat(comment(that, "Inlining lambda " + convertedReceiver.toString(),log.currentSourceFile()));
                         if (true || trArgs.size() != 0 || resultType.getTag() != TypeTag.VOID) {
                             Map<Object,JCExpression> replacements = new HashMap<Object,JCExpression>();
                             Iterator<JCExpression> iter = trArgs.iterator();
@@ -8022,7 +8041,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 replacements.put(d.sym, iter.next());
                             }
                             VarSymbol oldSymbol = resultSym;
-                            result = eresult = inlineBlock(block,replacements,resultType);
+                            JCExpression saved = currentThisExpr;
+                            currentThisExpr = lambdaLiterals.get(convertedReceiver.toString()).second;
+                            result = eresult = inlineConvertBlock(block,replacements,resultType);
+                            currentThisExpr = saved;
                             resultSym = oldSymbol;
                         } else {
                             addStat(block);
@@ -10644,6 +10666,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                ;
 //        JCIdent id = M.Ident(names.fromString(methodName));
         if (newIsPrim && !isPrim) {
+            if (expr.type instanceof Type.TypeVar) {
+                // FIXME: This is a hack - should really translate the typevar
+                expr.type = boxedType(annotatedNewtype.unannotatedType());
+            }
             JCExpression mth = createUnboxingExpr(expr);
             if (translatingJML || mth instanceof JCIdent) {
                 eresult = mth;
@@ -10731,7 +10757,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             String fieldName = "the" + origtypeString;
             if (origtypeString.equals("BigInteger")) fieldName = "value";
             Name id = names.fromString(fieldName);
-            VarSymbol fsym = getField(expr.type,id);
+            Type t = expr.type;
+            VarSymbol fsym = getField(t,id);
             if (fsym == null) {
                 log.error(expr, "jml.message", "Could not find model field " + fieldName);
                 // ERROR - throw something
@@ -11000,7 +11027,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
 
             // FIXME _ use checkAssignable
-            checkAccess(assignableClauseKind, that, fa, newfa, currentThisId, currentThisId); // FIXME - should the second argument be newfa?
+            checkAccess(assignableClauseKind, that, fa, newfa, currentThisExpr, currentThisExpr); // FIXME - should the second argument be newfa?
 //            for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
 //                JCExpression check = checkAssignable(fa,c,currentThisId.sym,currentThisId.sym);
 //                if (!treeutils.isTrueLit(check)) {
@@ -12697,6 +12724,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitIdent(JCIdent that) {
+        if (translatingLambda && that.sym.name == names._this) {
+            convertCopy(currentThisExpr);
+            return;
+        }
         if (pureCopy) {
             JCIdent id = treeutils.makeIdent(that.pos, that.name, that.sym);
             id.type = that.type; // in case that.sym is null
@@ -18186,6 +18217,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         @Override
         public /*@ nullable */ java.util.List<JmlStatementExpr> visitJmlLblExpression(JmlLblExpression that, Void p) {
             return that.expression.accept(this,p);
+        }
+
+        @Override
+        public /*@ nullable */ java.util.List<JmlStatementExpr> visitJmlNewClass(JmlNewClass that, Void p) {
+            return null;  // FIXME 
         }
 
         @Override

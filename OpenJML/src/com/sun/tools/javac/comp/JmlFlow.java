@@ -167,6 +167,10 @@ public class JmlFlow extends Flow  {
             scan(that.expression);
         }
 
+        public void visitJmlNewClass(JmlNewClass that) {
+            visitNewClass(that);
+        }
+
         public void visitJmlMatchExpression(JmlMatchExpression that) {
             scan(that.expression);
             for (JmlMatchExpression.MatchCase c: that.cases) {
@@ -557,6 +561,10 @@ public class JmlFlow extends Flow  {
             scanExpr(that.expression);
         }
 
+        public void visitJmlNewClass(JmlNewClass that) {
+            visitNewClass(that);
+        }
+
         public void visitJmlMatchExpression(JmlMatchExpression that) {
             scanExpr(that.expression);
             for (JmlMatchExpression.MatchCase c: that.cases) {
@@ -924,6 +932,10 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitJmlLblExpression(JmlLblExpression that) {
             scan(that.expression);
+        }
+
+        public void visitJmlNewClass(JmlNewClass that) {
+            visitNewClass(that);
         }
 
         public void visitJmlMatchExpression(JmlMatchExpression that) {

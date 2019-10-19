@@ -263,10 +263,12 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    public JCTree visitJmlNewClass(JmlNewClass that, Void p) {
+    public JmlNewClass visitJmlNewClass(JmlNewClass that, Void p) {
         JmlNewClass copy = M.at(that.pos).NewClass(
                 copy(that.encl,p), copy(that.typeargs,p), copy(that.clazz,p), copy(that.args,p), (JCClassDecl)copy(that.def,p));
         copy.type = that.type;
+        copy.constructor = that.constructor;
+        copy.constructorType = that.constructorType;
         // Not copying capturedExpressions
         return copy;
     }

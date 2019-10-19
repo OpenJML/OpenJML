@@ -46,6 +46,7 @@ public interface IJmlVisitor extends IVisitor {
     public void visitJmlMethodInvocation(JmlMethodInvocation that) ;
     public void visitJmlMethodSpecs(JmlMethodSpecs that)           ;
     public void visitJmlModelProgramStatement(JmlModelProgramStatement that);
+    public void visitJmlNewClass(JmlNewClass that)                 ;
     public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that);
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that)     ;
     public void visitJmlSetComprehension(JmlSetComprehension that) ;

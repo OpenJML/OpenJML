@@ -3822,7 +3822,7 @@ public class JmlTree {
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitNewClass(this); 
+                ((IJmlVisitor)v).visitJmlNewClass(this); 
             } else {
                 //System.out.println("A JmlNewClass expects an IJmlVisitor, not a " + v.getClass());
                 super.accept(v);
@@ -3832,13 +3832,13 @@ public class JmlTree {
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
-                return v.visitNewClass(this, d);
+                return ((JmlTreeVisitor<R,D>)v).visitJmlNewClass(this, d);
             } else {
                 //System.out.println("A JmlNewClass expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);
             }
         }
-}
+    }
 
     // FIXME - the following do not have factory methods - do not set pos, do not have accept, getKind, getTag, toString methods, or documentation
     // Arrays are represented by a 2 level map, representing all the arrays of a given type

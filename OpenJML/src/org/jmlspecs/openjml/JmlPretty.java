@@ -275,6 +275,10 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(that,e); }
     }
     
+    public void visitJmlNewClass(JmlNewClass that) {
+        visitNewClass(that);
+    }
+
     public void visitJmlMatchExpression(JmlMatchExpression that) {
         try { 
             // NOTE: JML requires that a lbl expression be in parentheses.

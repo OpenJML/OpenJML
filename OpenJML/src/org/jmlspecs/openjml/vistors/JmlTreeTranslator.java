@@ -601,4 +601,9 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
+    public void visitJmlNewClass(JmlNewClass that) {
+        visitNewClass(that);
+    }
+
+
 }

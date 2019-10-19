@@ -3869,6 +3869,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = check(that, resultType, VAL, resultInfo);
     }
     
+    public void visitJmlNewClass(JmlNewClass that) {
+        visitNewClass(that);
+    }
+
     public void visitJmlMatchExpression(JmlMatchExpression that) {
         Type seltype = attribExpr(that.expression, env, Type.noType);
         Type at = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.IJmlDatatype")).type;
