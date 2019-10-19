@@ -821,7 +821,7 @@ public class SFBugs extends EscBase {
     }
     
     @Test
-    public void gitbug633a() { // (FIXME) - nondeterministically fails
+    public void gitbug633a() {
         expectedExit = 0;
         helpTCG();
     }

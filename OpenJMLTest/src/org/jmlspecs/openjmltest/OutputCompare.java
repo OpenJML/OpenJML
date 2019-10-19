@@ -174,7 +174,9 @@ public class OutputCompare {
         }
         String act = JmlTestCase.noSource(collector.getDiagnostics().get(j)).replace('\\','/');
         String exp = null;
-        if (list[i] != null) exp = list[i].toString().replace("$SPECS", JmlTestCase.specsdir).replace('\\','/');
+        if (list[i] != null) {
+            exp = JmlTestCase.doReplacements(list[i].toString()).replace('\\','/');
+        }
         long actualColumn = -1;
         if (!exp.equals(act)) {
             failureLocation = j;
@@ -274,8 +276,7 @@ public class OutputCompare {
                 String sexp = exp.readLine();
                 if (sexp != null) {
                     sexp = sexp.replace("\r\n", "\n");
-                    sexp = sexp.replace("$ROOT",JmlTestCase.root);
-                    sexp = sexp.replace("$SPECS", JmlTestCase.specsdir);
+                    sexp = JmlTestCase.doReplacements(sexp);
                     sexp = sexp.replace('\\','/');
                 }
                 while (true) {
@@ -398,8 +399,7 @@ public class OutputCompare {
                     diff += ("Less actual input than expected" + JmlTestCase.eol);
                     return diff;
                 }
-                sexp = sexp.replace("$ROOT",JmlTestCase.root);
-                sexp = sexp.replace("$SPECS", JmlTestCase.specsdir);
+                sexp = JmlTestCase.doReplacements(sexp);
                 String sact = lines[line-1];
                 if (sexp.equals(sact)) {
                     // OK

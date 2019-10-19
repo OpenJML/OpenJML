@@ -99,6 +99,7 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected IExpr.ISymbol andSym;
     final protected IExpr.ISymbol orSym;
     final protected IExpr.ISymbol notSym;
+    final protected IExpr.ISymbol negSym;
     final protected IExpr.ISymbol arraySym;
     final protected IExpr.ISymbol eqSym;
     final protected IExpr.ISymbol leSym;
@@ -218,6 +219,7 @@ public class SMTTranslator extends JmlTreeScanner {
         andSym = F.symbol("and"); // Name determined by SMT Core theory
         orSym = F.symbol("or"); // Name determined by SMT Core theory
         notSym = F.symbol("not"); // Name determined by SMT Core theory
+        negSym = F.symbol("-"); // Name determined by SMT arithmetic theories
         distinctSym = F.symbol("distinct"); // Name determined by SMT Core theory
         impliesSym = F.symbol("=>"); // Name determined by SMT Core theory
         selectSym = F.symbol("select"); // Name determined by SMT Array Theory
@@ -2770,8 +2772,13 @@ public class SMTTranslator extends JmlTreeScanner {
             addReal(); // Makes sure there is a real sort declared
             ICommand c = new C_declare_fun(sym,emptyList,realSort); // use definefun and a constant FIXME
             if (Double.isFinite(v)) {
-                String s = v.toString();
-                c = new C_define_fun(sym,emptyDeclList,realSort,F.decimal(s));
+                if (v >= 0) {
+                    String s = v.toString();
+                    c = new C_define_fun(sym,emptyDeclList,realSort,F.decimal(s));
+                } else {
+                    String s = v.toString().substring(1);
+                    c = new C_define_fun(sym,emptyDeclList,realSort,F.fcn(negSym, F.decimal(s)));
+                }
             }
             commands.add(c);
             return sym;

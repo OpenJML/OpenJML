@@ -5,6 +5,7 @@ import static org.junit.Assert.fail;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
+import org.jmlspecs.openjmltest.JmlTestCase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -84,7 +85,8 @@ public class compiler {
         String expected;
         if (expectedFile != null) {
         	try {
-        		expected = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(expectedFile))).replace("../testfiles","testfiles").replace("$SPECS",specsHome);
+        		expected = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(expectedFile)));
+        		expected = JmlTestCase.doReplacements(expected.replace("../testfiles","testfiles"));
         	} catch (Exception ee) {
         		expected = null;
         		org.junit.Assert.fail(ee.toString());
@@ -92,7 +94,7 @@ public class compiler {
         } else {
             expected = output[0];
         }
-        expected = expected.replace("${PROJ}",projHome).replace("$SPECS", specsHome);
+        expected = JmlTestCase.doReplacements(expected.replace("${PROJ}",projHome));
         actualOutput = actualOutput.replace("\r", "");
         errOutput = errOutput.replace("\r", "");
         expected = expected.replace("\r", "");
@@ -804,7 +806,7 @@ public class compiler {
                   "-extensions=X", // Ignored when strict
                   "test/testNoErrors/A.jml"
                 },0,0
-                ,"$SPECS/specs/java/util/stream/Stream.jml:60: warning: The /count construct is an OpenJML extension to JML and not allowed under -lang=jml\n"
+                ,"$SPECS/specs/java/util/stream/Stream.jml:$STRL: warning: The /count construct is an OpenJML extension to JML and not allowed under -lang=jml\n"
                 +"            //@ loop_invariant i == /count && 0 <= i && i <= values.length;\n"
                 +"                                    ^\n"
                 +"1 warning\n");

@@ -59,7 +59,8 @@ public abstract class JmlTestCase {
 
     // This value is for running tests, so we can presume the current directory is .../OpenJML/OpenJMLTest
     public final static String specsdir = System.getenv("SPECSDIR") != null ? System.getenv("SPECSDIR") : Paths.get("../../Specs").toAbsolutePath().toString();
-
+    public final static String streamLine = "9"; // This line number is present in many test oracle files, but changes as edits are made to Stream.jml
+    
     static protected boolean isWindows = System.getProperty("os.name").contains("Wind");
 
     static protected String projLocation = System.getProperty("openjml.eclipseProjectLocation");
@@ -399,6 +400,9 @@ public abstract class JmlTestCase {
         return dd.noSource();
     }
 
+    public static String doReplacements(String s) {
+        return s.replace("$ROOT",JmlTestCase.root).replace("$SPECS",specsdir).replace("$STRL", JmlTestCase.streamLine);
+    }
 
 }
 
