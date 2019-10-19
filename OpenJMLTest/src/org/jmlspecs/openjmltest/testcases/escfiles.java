@@ -858,6 +858,12 @@ public class escfiles extends EscBase {
     }
     
     @Test
+    public void testStreams() {
+        expectedExit = 1;
+        helpTF("streams","-show","-method=m1");
+    }
+    
+    @Test
     public void checkAsserts() {
         helpTF("checkAsserts");
     }
