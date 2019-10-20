@@ -519,8 +519,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** A bi-map used to record the mapping between original and rewritten class ASTs */
     public BiMap<JmlClassDecl, JmlClassDecl> classBiMap = new BiMap<JmlClassDecl, JmlClassDecl>();
 
-    /** A map from Class Symbols to an ident containing the this symbol for that class */
-    public Map<Symbol,JCIdent> thisIds = new HashMap<Symbol,JCIdent>();
+//    /** A map from Class Symbols to an ident containing the this symbol for that class */
+//    public Map<Symbol,JCIdent> thisIds = new HashMap<Symbol,JCIdent>();
     
     public int assumeCheckCount = 0;
     
@@ -976,7 +976,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // For RAC we use the actual 'this'   FIXME - not sure about this design - perhaps just need to be cautious about what is translated and what is not
                 this.currentThisId = treeutils.makeIdent(classDecl.pos, classDecl.thisSymbol);
                 this.currentThisExpr = this.currentThisId;
-                this.thisIds.put(classDecl.sym, currentThisId);
+                //this.thisIds.put(classDecl.sym, currentThisId);
                 this.explicitThisId = this.currentThisId;
             }
 
@@ -7101,7 +7101,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
           }
         }
         if (noSpecCases) {
-            JCExpression check = checkAccess(token,assignPosition, lhs,lhs,M.at(methodDecl.pos).JmlSpecificationCase(null, false, null, null, List.<JmlMethodClause>nil(), null),currentThisId,currentThisId,false);
+            JCExpression check = checkAccess(token,assignPosition, lhs,lhs,M.at(methodDecl.pos).JmlSpecificationCase(null, false, null, null, List.<JmlMethodClause>nil(), null),currentThisExpr,currentThisExpr,false);
             if (!treeutils.isTrueLit(check)) {
                 check = makeAssertionOptional(check);
                 addAssert(assignPosition,
@@ -10905,7 +10905,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
               addAssert(pos, Label.POSSIBLY_NULL_ASSIGNMENT, e);
           }
       }
-      checkAccess(assignableClauseKind, pos, id, lhs, currentThisId, currentThisId);
+      checkAccess(assignableClauseKind, pos, id, lhs, currentThisExpr, currentThisExpr);
       checkRW(writableClause,id.sym,currentThisExpr,id);
       
       JCExpressionStatement st = treeutils.makeAssignStat(pos.getPreferredPosition(),  lhs, rhs);
@@ -11068,7 +11068,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             newfaa.setType(that.type);
             // FIXME - test this 
             if(!infer){
-                checkAccess(assignableClauseKind, that, aa, newfaa, currentThisId, currentThisId);
+                checkAccess(assignableClauseKind, that, aa, newfaa, currentThisExpr, currentThisExpr);
             }
 //            for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
 //                JCExpression check = checkAssignable(aa,c,currentThisId.sym,currentThisId.sym);
@@ -11198,7 +11198,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
 
 
-            checkAccess(assignableClauseKind, that, lhs, lhs, currentThisId, currentThisId);
+            checkAccess(assignableClauseKind, that, lhs, lhs, currentThisExpr, currentThisExpr);
             checkRW(writableClause,((JCIdent)lhs).sym,currentThisExpr,lhs);
 
             // Note that we need to introduce the temporary since the rhs contains
@@ -11248,7 +11248,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             }
             addBinaryChecks(that,op,newfa,rhs,maxJmlType);
-            checkAccess(assignableClauseKind, that, that.lhs, newfa, currentThisId, currentThisId);
+            checkAccess(assignableClauseKind, that, that.lhs, newfa, currentThisExpr, currentThisExpr);
 
             // We have to make a copy because otherwise the old and new JCFieldAccess share
             // a name field, when in fact they must be different
@@ -11294,7 +11294,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addJavaCheck(that.lhs,e,Label.POSSIBLY_TOOLARGEINDEX,Label.UNDEFINED_TOOLARGEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
             }
 
-            checkAccess(assignableClauseKind, that, lhs, newfa, currentThisId, currentThisId);
+            checkAccess(assignableClauseKind, that, lhs, newfa, currentThisExpr, currentThisExpr);
 
             rhs = convertExpr(rhs);
             rhs = addImplicitConversion(rhs,optype,rhs);
@@ -12856,7 +12856,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             
             // FIXME - are we expecting fully-qualified arguments?
-            if (checkAccessEnabled) checkAccess(accessibleClause, that, that, that, currentThisId, currentThisId);
+            if (checkAccessEnabled) checkAccess(accessibleClause, that, that, that, currentThisExpr, currentThisExpr);
             // Lookup if there is some other translation of the id. For example, 
             // this could be a translation of the formal from the specification 
             // in a parent class mapped to the formal in the target class. It
@@ -13398,15 +13398,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     // FIXME - review this
-    public JCIdent getThisId(Symbol sym) {
-        JCIdent id = thisIds.get(sym);
-        if (id == null) {
-            id = makeThisId(Position.NOPOS,sym); // FIXME - do we really want NOPOS?
-        }
-        return id;
-    }
-    
-    // FIXME - review this
     public JCIdent makeThisId(int pos, Symbol sym)  {
         VarSymbol THISSym = treeutils.makeVarSymbol(Flags.STATIC,names.fromString(Strings.THIS),sym.type, Position.NOPOS);
         THISSym.owner = infer || esc ? null : sym; 
@@ -13414,7 +13405,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // that this new symbol is a synthetic variable that will not ever
             // be assigned to.
         JCIdent id = treeutils.makeIdent(pos,THISSym);
-        this.thisIds.put(sym, id);
+//        this.thisIds.put(sym, id);
         saveMapping(id,id);
         return id;
     }
