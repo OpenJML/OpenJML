@@ -137,14 +137,17 @@ public class SpecsBase extends TCBase {
         this.classname = classname;
     }
 
+    java.util.List<String> jars;
+    String jarString;
 
     @Override
     public void setUp() throws Exception {
         useSystemSpecs = true;
         super.setUp();
-        java.util.List<String> jars = java.nio.file.Files.list(Paths.get("../OpenJMLTest/libs")).map(Path::toString).collect(java.util.stream.Collectors.toList());
+        jars = java.nio.file.Files.list(Paths.get("../OpenJMLTest/libs")).map(Path::toString).collect(java.util.stream.Collectors.toList());
         jars.add(0,"../OpenJML/bin-runtime"); // prepend
-        main.addOptions("-classpath",String.join(File.pathSeparator,jars));
+        jarString = String.join(File.pathSeparator,jars);
+        main.addOptions("-classpath",jarString);
         // We turn off purity checking because there are too many purity errors in the specs to handle right now. (TODO)
         JmlOption.setOption(context,JmlOption.PURITYCHECK,false);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
@@ -168,7 +171,9 @@ public class SpecsBase extends TCBase {
             if (filename != null) addMockFile("#B/" + filename,f);
             Log.instance(context).useSource(f);
             List<JavaFileObject> files = List.of(f);
-            int ex = main.compile(new String[]{"-cp","/Users/davidcok/.p2/pool/plugins/org.junit_4.12.0.v201504281640/junit.jar:libs/hamcrest-junit-2.0.0.0.jar:libs/java-hamcrest-2.0.0.0.jar"}, null, context, files, null).exitCode;
+            String cp1 = "/Users/davidcok/.p2/pool/plugins/org.junit_4.12.0.v201504281640/junit.jar";
+            //String cp2 = "libs/hamcrest-junit-2.0.0.0.jar:libs/java-hamcrest-2.0.0.0.jar";
+            int ex = main.compile(new String[]{"-cp",cp1 + ":" + jarString}, null, context, files, null).exitCode;
             if (print) JmlSpecs.instance(context).printDatabase();
             int expected = expectedExit;
             if (expected == -1) expected = collector.getDiagnostics().size() == 0 ? 0 : 1;

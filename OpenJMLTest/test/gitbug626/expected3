@@ -10,6 +10,7 @@ test/gitbug626/Test.java:13: warning: The prover cannot establish an assertion (
 test/gitbug626/Test.java:8: warning: Associated declaration
     //@ensures (\result==-1)==>(\forall int i; (0<=i) && (i<4); !x[i]);
        ^
+PATH CONDITION ASSERT_63_247
 
 TRACE of Test.findFirstSetLoop(boolean[])
 test/gitbug626/Test.java:9:  	requires x != null; 
@@ -21,7 +22,7 @@ test/gitbug626/Test.java:5:  	requires (x.length == 4);
 			VALUE: 4	 === 4
 			VALUE: x.length == 4	 === true
 			VALUE: (x.length == 4)	 === true
-test/gitbug626/Test.java:5:  	UndefinedNullDeReference assertion: !(x != null && x != null) || x != null
+test/gitbug626/Test.java:5:  	UndefinedNullDeReference assertion: !(x != null) || x != null
 test/gitbug626/Test.java:11:  	int i = 0
 			VALUE: 0	 === 0
 			VALUE: i	 === 0
@@ -32,7 +33,7 @@ test/gitbug626/Test.java:10:  	//@ loop_invariant 0 <= i && i <= 4;
 			VALUE: i	 === 0
 			VALUE: 4	 === 4
 			VALUE: i <= 4	 === true
-test/gitbug626/Test.java:10:  	LoopInvariantBeforeLoop assertion: _JML__conditionalResult_19
+test/gitbug626/Test.java:10:  	LoopInvariantBeforeLoop assertion: `conditionalResult_15
 test/gitbug626/Test.java:10:  	//@ loop_invariant 0 <= i && i <= 4;
 			VALUE: 0	 === 0
 			VALUE: i	 === 4
