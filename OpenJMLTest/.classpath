@@ -7,6 +7,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
 	<classpathentry kind="lib" path="libs/hamcrest-junit-2.0.0.0.jar"/>
 	<classpathentry kind="lib" path="libs/java-hamcrest-2.0.0.0.jar"/>
-	<classpathentry kind="lib" path="/Users/davidcok/cok/projects/OpenJMLA/OpenJML/OpenJMLTest/libs/junit-jupiter-api-5.5.2.jar"/>
+	<classpathentry kind="lib" path="/Users/davidcok/projects/OpenJMLA/OpenJML/OpenJMLTest/libs/apiguardian-api-1.1.0.jar"/>
+	<classpathentry kind="lib" path="/Users/davidcok/projects/OpenJMLA/OpenJML/OpenJMLTest/libs/junit-jupiter-api-5.5.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
