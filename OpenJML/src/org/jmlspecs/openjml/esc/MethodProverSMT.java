@@ -574,9 +574,11 @@ public class MethodProverSMT {
                                     boolean timeout = msg3.contains("timeout");
                                     if (timeout) {
                                         log.warning(methodDecl,"esc.resourceout.feasibility",": " + msg3);
-                                        return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.TIMEOUT,start);
+                                        proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.TIMEOUT,start);
+                                        utils.progress(0,1,fileLocation + msg + "timeout");
+                                    } else {
+                                        utils.progress(0,1,fileLocation + msg + "unknown reason: " + value);
                                     }
-                                    utils.progress(0,1,fileLocation + msg + "unknown reason: " + value);
                                 }
                             } else {
                                 // Unexpected result
