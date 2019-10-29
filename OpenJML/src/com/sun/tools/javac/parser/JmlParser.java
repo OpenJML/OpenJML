@@ -940,6 +940,10 @@ public class JmlParser extends JavacParser {
                 jmlerror(pos(), endPos(), "jml.invalid.also");
                 nextToken();
             }
+            if (token.ikind == TokenKind.ELSE) {
+                jmlerror(pos(), endPos(), "jml.invalid.also"); // FIXME - should warn about else
+                nextToken();
+            }
         } else {
             if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
                 log.warning(pos(),"jml.refining.required");
@@ -1070,7 +1074,9 @@ public class JmlParser extends JavacParser {
             return Extensions.instance(context).findTM(0,possibleKeyword.name().toString(),false) instanceof IJmlClauseKind.MethodClause;
         } else {
             ITokenKind jt = possibleKeyword.ikind;
-            return (jt == JmlTokenKind.ALSO || jt == JmlTokenKind.BEHAVIOR || jt == JmlTokenKind.NORMAL_BEHAVIOR
+            return (jt == JmlTokenKind.ALSO 
+                    || jt == JmlTokenKind.BEHAVIOR 
+                    || jt == JmlTokenKind.NORMAL_BEHAVIOR
                     || jt == JmlTokenKind.EXCEPTIONAL_BEHAVIOR
                     || jt == JmlTokenKind.IMPLIES_THAT
                     || jt == JmlTokenKind.CODE
@@ -1079,7 +1085,9 @@ public class JmlParser extends JavacParser {
                     || jt == JmlTokenKind.EXAMPLE
                     || jt == JmlTokenKind.NORMAL_EXAMPLE
                     || jt == JmlTokenKind.EXCEPTIONAL_EXAMPLE
-                    || jt == JmlTokenKind.ABRUPT_BEHAVIOR);
+                    || jt == JmlTokenKind.ABRUPT_BEHAVIOR
+                    || jt == TokenKind.ELSE
+                    );
         }
     }
 
@@ -2120,6 +2128,8 @@ public class JmlParser extends JavacParser {
                 || ((mods.flags & Flags.StandardFlags) == 0 && (mods.annotations == null || mods.annotations
                         .isEmpty()));
     }
+    
+    public int casenum = 0;
 
     // [ also ] [ modifiers ] [ | behavior | normal_behavior |
     // exceptional_behavior ] [ clause ]*
@@ -2127,7 +2137,7 @@ public class JmlParser extends JavacParser {
             boolean exampleSection) {
         JmlTokenKind also = null;
         JmlTokenKind ijt = jmlTokenKind();
-        if (ijt == ALSO) {
+        if (ijt == ALSO || token.ikind == TokenKind.ELSE) {
             if (!isNone(mods)) {
                 jmlerror(mods.getStartPosition(), endPos(),
                         "jml.no.mods.allowed", ijt.internedName());
@@ -2212,6 +2222,7 @@ public class JmlParser extends JavacParser {
         if (jt == null && code) code = false; // Already warned about this
         JmlSpecificationCase j = jmlF.at(pos).JmlSpecificationCase(mods, code,
                 jt, also, clauses.toList(), stat);
+        j.name = "_case_" + (++casenum);
         storeEnd(j, j.clauses.isEmpty() ? pos + 1 : getEndPos(j.clauses.last()));
         j.sourcefile = log.currentSourceFile();
         return j;
@@ -2269,7 +2280,7 @@ public class JmlParser extends JavacParser {
                 list.append(g);
             }
             if (jmlTokenKind() == ENDJMLCOMMENT) nextToken();
-        } while (jmlTokenKind() == ALSO);
+        } while (jmlTokenKind() == ALSO || token.ikind == TokenKind.ELSE);
         if (jmlTokenKind() == ENDJMLCOMMENT) nextToken();
         if (jmlTokenKind() != SPEC_GROUP_END) {
             jmlerror(pos(), endPos(), "jml.invalid.spec.group.end");

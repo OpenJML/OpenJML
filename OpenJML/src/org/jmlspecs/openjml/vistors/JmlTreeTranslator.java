@@ -367,6 +367,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         r.modifiers = translate(that.modifiers);
         r.clauses = translate(that.clauses);
         r.block = translate(that.block);
+        r.name = that.name;
         result = r;
         // Not translating: token, also, code, sourcefile
     }

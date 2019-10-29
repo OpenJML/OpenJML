@@ -561,6 +561,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 // lightweight
             } else {
                 print(that.token.internedName());
+                if (that.name != null) {
+                    print(" ");
+                    print(that.name);
+                    print(": ");
+                }
                 modOrCodeOrBehavior = true;
             }
             if (modOrCodeOrBehavior) {

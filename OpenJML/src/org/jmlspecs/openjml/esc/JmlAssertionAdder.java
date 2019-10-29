@@ -496,6 +496,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * when 'result' is a JCExpression. */
     protected JCExpression eresult;
     
+    protected JCExpression elseExpression = null;
+    
     // FIXME - DOCUMENT
     protected JCBlock axiomBlock = null;
     
@@ -3999,6 +4001,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             heapCount = preheapcount;
             Map<JmlMethodClause,JCIdent> clauseIds = new HashMap<>();
+            elseExpression = treeutils.falseLit;
             for (JmlSpecificationCase scase : denestedSpecs.cases) {
                 if (!doSpecificationCase(methodDecl, parentMethodSym, scase)) continue;
                 JavaFileObject prev = log.useSource(scase.source());
@@ -4136,11 +4139,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         combinedPrecondition = treeutils.makeBitOr(scase.pos, combinedPrecondition, preident);
                     }
                     combinedPreconditionSource = scase.sourcefile;
+                    elseExpression = treeutils.makeBitOr(scase.pos, elseExpression, preident);;
                 } finally {
                     log.useSource(prev);
                 }
             }
             clauseIds.clear();
+            elseExpression = null;
         }
 
         // If combinedPrecondition is null then there were no specs, so the implicit precondition is true and does not
@@ -16053,6 +16058,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else {
                     error(that,"jml.misplaced.count",that.kind.name());
                 }
+
+        } else if (k == elseKind) {
+            if (elseExpression == null) {
+                error(that, "jml.message", "An \\else token not permitted here");
+                eresult = treeutils.falseLit;
+            } else {
+                eresult = treeutils.makeNot(that, elseExpression);
+            }
 
                 // FIXME - implement these
 //            case BSVALUES:

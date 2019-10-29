@@ -22,6 +22,7 @@ public class MethodSimpleClauseExtensions extends JmlExtension.MethodClause {
     public static final String specGroupStartID = "{|";
     public static final String specGroupEndID = "|}";
     public static final String alsoID = "also";
+    public static final String elseID = "also";
     public static final String modelprogramID = "model_program";
     
     public static final IJmlClauseKind specGroupStartClause = new MethodClauseType(specGroupStartID);
@@ -31,6 +32,7 @@ public class MethodSimpleClauseExtensions extends JmlExtension.MethodClause {
     public static final IJmlClauseKind modelprogramClause = new MethodClauseType(modelprogramID);
     
     public static final IJmlClauseKind alsoClause = new MethodClauseType(alsoID);
+    public static final IJmlClauseKind elseClause = new MethodClauseType(elseID);
     
     public static final IJmlClauseKind declClause = new MethodClauseType("jml declaration") {
         @Override public String name() { return "jml declaration"; }
@@ -39,7 +41,7 @@ public class MethodSimpleClauseExtensions extends JmlExtension.MethodClause {
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
     public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            specGroupStartClause, specGroupEndClause, modelprogramClause, alsoClause,}; }
+            specGroupStartClause, specGroupEndClause, modelprogramClause, alsoClause, elseClause}; }
     
     public static class MethodClauseType extends IJmlClauseKind.MethodClause {
         public MethodClauseType(String keyword) { super(keyword); }

@@ -81,6 +81,21 @@ public class SingletonExpressions extends ExpressionExtension {
     };
 
     
+    public static final String elseID = "\\else";
+    public static final IJmlClauseKind elseKind = new IJmlClauseKind.SingletonExpression(elseID) {
+        
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
+            syms = Symtab.instance(context);
+            return syms.booleanType;
+        }
+        
+        @Override
+        public void checkParse(JmlParser parser, JmlSingleton e, String rep) {
+            if (this == elseKind) strictCheck(parser, e);
+        }
+    };
+    
     public static final String countID = "\\count";
     public static final IJmlClauseKind countKind = new IJmlClauseKind.SingletonExpression(countID) {
         
