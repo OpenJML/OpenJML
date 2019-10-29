@@ -246,6 +246,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
                 copy(that.block,p));
         copy.sourcefile = that.sourcefile;
         copy.type = that.type;
+        copy.name = that.name;
         return copy;
     }
 
