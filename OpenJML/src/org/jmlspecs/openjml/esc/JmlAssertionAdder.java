@@ -8741,6 +8741,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     
                     // For each specification case, we accumulate the precondition and save the expression for later use
                     Map<Object,JCIdent> clauseIds = new HashMap<>();
+                    JCExpression savedElseExpression = elseExpression;
+                    elseExpression = treeutils.falseLit;
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
                         if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
                         if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue; // exceptional behavior clauses are not used for pure functions within JML expressions
@@ -8918,6 +8920,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     "JML undefined precondition - exception thrown",
                                     null));
                         }
+                        elseExpression = treeutils.makeBitOr(cs.pos, elseExpression, preId);
                         calleePreconditions.put(cs,preId); // Add to the list of spec cases, in order of declaration
                    //     preconditions.put(cs,preId); // Add to the list of spec cases, in order of declaration
                         pre = preId;
@@ -8931,6 +8934,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         }
                     }
                     clauseIds.clear();
+                    elseExpression = savedElseExpression;
                 }
                 
 
@@ -17662,7 +17666,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // Also they would need to be captured and proved in the
                 // the context of a quantification.
                         
-                
+                JCExpression savedElseExpression = elseExpression;
+                elseExpression = treeutils.falseLit;
                 for (JmlSpecificationCase cs : calleeSpecs.cases) {
                     if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
                     //if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
@@ -17730,6 +17735,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     falses = falses == null ? not : treeutils.makeAndSimp(falses.pos, falses, not);
                                     continue;
                                 }
+                                elseExpression = treeutils.makeBitOr(cs.pos, elseExpression, pre);
                                 if (newDeclsList.isEmpty()) {
                                     e = treeutils.makeImplies(e.pos, convertCopy(pre), e);
                                 } else {
@@ -17757,6 +17763,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
                 paramActuals = null;
+                elseExpression = savedElseExpression;
             }
             if (falses != null) {
                 combinedPre = combinedPre != null ? treeutils.makeAnd(combinedPre.pos,combinedPre,falses) : falses;
