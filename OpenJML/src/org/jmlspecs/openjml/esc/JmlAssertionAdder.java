@@ -363,6 +363,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** The mode to use to model arithmetic operations - only null until initialized */
     protected IArithmeticMode currentArithmeticMode = null;
     
+    protected boolean isRefiningBranch = false;
+    
     /** Depth of nesting of applyHelper calls */
     protected int applyNesting;
     
@@ -1065,7 +1067,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCBlock bbl = popBlock(methodDecl,check2);
                     c = M.at(methodDecl.pos).Catch(ex, bbl);
                 }
-                if (!pureCopy) addPostConditions(outerFinalizeStats);
+                if (!pureCopy && !isRefiningBranch) addPostConditions(outerFinalizeStats);
+                else isRefiningBranch = false;
                 JCTry outerTryStatement = M.at(methodDecl).Try(
                                 newMainBody,
                                 esc ? List.<JCCatch>nil() : List.<JCCatch>of(c),
@@ -1161,7 +1164,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!pureCopy) {
                 popMapSymbols(savedMapSymbols);
                 outerFinalizeStats.add( comment(methodDecl,"Check Postconditions",null));
-                addPostConditions(outerFinalizeStats);
+                if (!isRefiningBranch) addPostConditions(outerFinalizeStats);
+                else isRefiningBranch = false;
                 axiomBlock = null;
             }
             
@@ -5983,7 +5987,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
                 // Prepend local exception = EXCEPTION
                 e = treeutils.makeEqObject(catcher.pos, id, treeutils.makeIdent(catcher.pos, exceptionSym));
-                block.stats.prepend(treeutils.makeAssume(catcher.pos(),Label.IMPLICIT_ASSUME,e));
+                block.stats = block.stats.prepend(treeutils.makeAssume(catcher.pos(),Label.IMPLICIT_ASSUME,e));
  
                 // TERMINATION = 0
                 JCIdent termid = treeutils.makeIdent(catcher.pos,terminationSym);
@@ -16496,8 +16500,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JmlMethodClauseExpr a = (JmlMethodClauseExpr)clause;
                 addAssert(clause, Label.POSTCONDITION, convertJML(a.expression));
             }
-            // FIXME - should end translation here
-        
+            isRefiningBranch = true;
+            throw new JmlTreeScanner.AbortBlockException();
         }
         result = null;
     }

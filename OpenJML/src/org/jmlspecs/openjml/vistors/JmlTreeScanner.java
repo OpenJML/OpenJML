@@ -66,7 +66,16 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 
     public void scan(JCTree t) { super.scan(t); }
 
-    public void scan(List<? extends JCTree> list) { super.scan(list); }
+    public static class AbortBlockException extends RuntimeException {
+    }
+    
+    public void scan(List<? extends JCTree> list) { 
+        try {
+            super.scan(list); 
+        } catch (AbortBlockException e) {
+            
+        }
+    }
 
     public void scan(Iterable<? extends JCTree> list) { 
         if (list != null)
