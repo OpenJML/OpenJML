@@ -5948,8 +5948,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             ListBuffer<JCCatch> ncatchers = new ListBuffer<JCCatch>();
             for (JCCatch catcher: that.catchers) {
                 
+                int sp = catcher.getParameter().getStartPosition();
                 ListBuffer<JCStatement> check = pushBlock();
+                addStat(comment(catcher.getParameter(),"catch (" + catcher.param +") ...",null));
+
                 JCIdent id = treeutils.makeIdent(catcher.param, catcher.param.sym);
+
+                //  local exception = EXCEPTION
+//                JCExpression e = treeutils.makeEqObject(catcher.pos, id, treeutils.makeIdent(catcher.pos, exceptionSym));
+//                addStat(treeutils.makeAssume(catcher.pos(),Label.IMPLICIT_ASSUME,e));
+ 
                 Type ct = catcher.param.type;
                 JCExpression e = treeutils.falseLit;
                 if (ct.isUnion()) {
@@ -5958,41 +5966,41 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         Type tt = (Type)t;
                         e = treeutils.makeOrSimp(catcher.pos, e, treeutils.makeInstanceOf(catcher.param.pos,id,tt));
                     }
-                } else {
+                    addAssume(catcher.pos(),Label.IMPLICIT_ASSUME,e);
+                } else if (rac) {
                     e = treeutils.makeInstanceOf(catcher.param.pos,id,ct);
+                    addAssume(catcher.pos(),Label.IMPLICIT_ASSUME,e);
                 }
-                addAssume(catcher.pos(),Label.IMPLICIT_ASSUME,e);
+
+                addStat(traceableComment(catcher.getParameter(),id,"Exception caught",""));
+
+                if (rac) {
+                    // These assignments must be duplicated here because they are needed by RAC
+                    // TerminationPos = 0
+                    JCIdent termid = treeutils.makeIdent(catcher.pos,terminationSym);
+                    addStat(treeutils.makeAssignStat(catcher.pos, termid, treeutils.zero));
+
+                    
+                    // EXCEPTION = NULL
+                    JCIdent exId = treeutils.makeIdent(sp, exceptionSym);
+                    treeutils.copyEndPosition(exId, catcher.getParameter());
+                    JCStatement st = treeutils.makeAssignStat(sp, exId, treeutils.nullLit);
+                    addStat(st);
+                }
+                
                 addRecInvariants(true,catcher.param,id); // This only adds invariants for the union type
-                JCBlock block = popBlock( catcher.param, check);
-                block.stats = block.stats.prepend(comment(catcher.getParameter(),"catch (" + catcher.param +") ...",null));
-                
+
+
                 JCBlock bl = convertBlock(catcher.getBlock());
-                //block.stats = block.stats.prepend(traceableComment(catcher.getParameter(),catcher.getParameter(),"catch (" + catcher.param +") ..."));
-                block.stats = block.stats.append(bl);
+                addStat(bl);
                 
-                // These assignments must be here (and not in BasicBlocker...) because they are needed by RAC
-                
-                // EXCEPTION = NULL
-                int sp = catcher.getParameter().getStartPosition();
-                JCIdent exId = treeutils.makeIdent(sp, exceptionSym);
-                treeutils.copyEndPosition(exId, catcher.getParameter());
-                JCStatement st = treeutils.makeAssignStat(sp, exId, treeutils.nullLit);
-                block.stats = block.stats.prepend(st);
                 
                 JCIdent nid = treeutils.makeIdent(sp, catcher.getParameter().sym);
                 treeutils.copyEndPosition(nid, catcher.getParameter());
                 saveMapping(nid,convertCopy(nid));
-//                block.stats = block.stats.prepend(traceableComment(catcher.getParameter(),nid,"Exception caught"));
-// FIXME - the nid is not being evaluated for the trace
                 
-                // Prepend local exception = EXCEPTION
-                e = treeutils.makeEqObject(catcher.pos, id, treeutils.makeIdent(catcher.pos, exceptionSym));
-                block.stats = block.stats.prepend(treeutils.makeAssume(catcher.pos(),Label.IMPLICIT_ASSUME,e));
- 
-                // TERMINATION = 0
-                JCIdent termid = treeutils.makeIdent(catcher.pos,terminationSym);
-                block.stats = block.stats.prepend(treeutils.makeAssignStat(catcher.pos, termid, treeutils.zero));
-
+                JCBlock block = popBlock( catcher.param, check);
+                
                 JCVariableDecl odecl = catcher.getParameter();  
                 JmlVariableDecl decl = M.at(odecl).VarDef(odecl.sym,  null); // Catcher declarations have no initializer
                 JCCatch ncatcher = M.at(catcher).Catch(decl,block);

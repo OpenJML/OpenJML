@@ -948,7 +948,6 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         
         // Now create the paths for each catch 
         List<JCStatement> assumptions = new LinkedList<JCStatement>();
-        addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeNeqObject(pos,ex,treeutils.nullLit),assumptions);
         for (JCCatch catcher: that.catchers) {
             JCExpression ty = catcher.param != null ? catcher.param.vartype : treeutils.makeType(catcher.pos, syms.exceptionType);
             JCExpression tt = M.at(catcher.pos).TypeTest(ex,ty).setType(syms.booleanType);
@@ -975,6 +974,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         
         // And the path if an exception is not caught by anything
         T noCatchBlock = newBlock(NOCATCH,pos);
+        addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeNeqObject(pos,ex,treeutils.nullLit),noCatchBlock.statements);
         noCatchBlock.statements.addAll(assumptions);
         follows(targetBlock,noCatchBlock);
         follows(noCatchBlock,finallyBlock);

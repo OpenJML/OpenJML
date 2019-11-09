@@ -1764,7 +1764,11 @@ public class escnew3 extends EscBase {
                 + "  }\n"
                 + "  //@ public normal_behavior\n"
                 + "  public void fooA(/*@ nullable */ A a) { \n"
-                + "     try { int j = a.x; } catch (NullPointerException e) {}"
+                + "     try { int j = a.x; } catch (NullPointerException e) {}\n"
+                + "  }\n"
+                + "  public void fooAA(/*@ nullable */ A a, NullPointerException en) {//@ assume a == null & en != null; \n"
+                + "     try { int j = a.x; } catch (NullPointerException e) {/*@ assert a == null; */ }\n"
+                + "     int k = a.x;\n"
                 + "  }\n"
                 + "  //@ public normal_behavior requires true;\n"
                 + "  //@ also public exceptional_behavior requires false; signals_only NullPointerException;\n"
@@ -1778,8 +1782,9 @@ public class escnew3 extends EscBase {
                 + "  }\n"
                 + "}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",15
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
-                ,"/tt/TestJava.java:11: warning: Associated declaration",14
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method fooAA",15
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
+                ,"/tt/TestJava.java:16: warning: Associated declaration",14
                  );
         
     }
