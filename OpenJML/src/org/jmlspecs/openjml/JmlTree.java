@@ -1656,6 +1656,10 @@ public class JmlTree {
      */
     public static class JmlDoWhileLoop extends JCDoWhileLoop implements IJmlLoop {
     
+        public boolean split;
+        public boolean isSplit() { return split; }
+        public void setSplit(boolean s) { split = s; }
+        
         public List<JmlStatementLoop> loopSpecs;
 
         public List<JmlStatementLoop> loopSpecs() { return loopSpecs; }
@@ -1699,6 +1703,10 @@ public class JmlTree {
      * to it.
      */
     public static class JmlEnhancedForLoop extends JCEnhancedForLoop implements IJmlLoop {
+
+        public boolean split;
+        public boolean isSplit() { return split; }
+        public void setSplit(boolean s) { split = s; }
 
         public List<JmlStatementLoop> loopSpecs;
 
@@ -1749,9 +1757,15 @@ public class JmlTree {
     public static interface IJmlLoop {
         List<JmlStatementLoop> loopSpecs();
         void setLoopSpecs(List<JmlStatementLoop> loopSpecs);
+        boolean isSplit();
+        void setSplit(boolean s);
     }
     
     public static class JmlInlinedLoop extends JmlAbstractStatement implements IJmlLoop {
+
+        public boolean split;
+        public boolean isSplit() { return split; }
+        public void setSplit(boolean s) { split = s; }
 
         public boolean consumed;
         public List<JmlStatementLoop> loopSpecs;
@@ -1807,6 +1821,10 @@ public class JmlTree {
      */
     public static class JmlForLoop extends JCForLoop implements IJmlLoop {
     
+        public boolean split;
+        public boolean isSplit() { return split; }
+        public void setSplit(boolean s) { split = s; }
+
         public List<JmlStatementLoop> loopSpecs;
         
         public List<JmlStatementLoop> loopSpecs() { return loopSpecs; }
@@ -1850,6 +1868,11 @@ public class JmlTree {
      * to it.
      */
     public static class JmlWhileLoop extends JCWhileLoop implements IJmlLoop {
+ 
+        public boolean split;
+        public boolean isSplit() { return split; }
+        public void setSplit(boolean s) { split = s; }
+
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlWhileLoop(JCWhileLoop loop, List<JmlStatementLoop> loopSpecs) {
             super(loop.cond,loop.body);

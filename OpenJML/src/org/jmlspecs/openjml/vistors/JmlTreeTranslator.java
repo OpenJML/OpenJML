@@ -141,6 +141,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         visitDoLoop(that);
         JmlDoWhileLoop r = (JmlDoWhileLoop)result;
         r.loopSpecs = translate(that.loopSpecs);
+        r.split = that.split;
         result = r;
         // Not translating: none
     }
@@ -150,6 +151,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         visitForeachLoop(that);
         JmlEnhancedForLoop r = (JmlEnhancedForLoop)result;
         r.loopSpecs = translate(that.loopSpecs);
+        r.split = that.split;
         result = r;
         // Not translating: none
     }
@@ -159,6 +161,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         visitForLoop(that);
         JmlForLoop r = (JmlForLoop)result;
         r.loopSpecs = translate(that.loopSpecs);
+        r.split = that.split;
         result = r;
         // Not translating: none
     }
@@ -584,6 +587,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         visitWhileLoop(that);
         JmlWhileLoop r = (JmlWhileLoop)result;
         r.loopSpecs = translate(that.loopSpecs);
+        r.split = that.split;
         result = r;
         // Not translating: none
     }

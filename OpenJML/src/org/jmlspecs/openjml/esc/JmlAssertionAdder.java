@@ -13603,6 +13603,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 treeMap.put(that, loop);
                 JCStatement bl = convert(that.body);
                 loop.body = bl;
+                loop.split = that.split;
                 loop.setType(that.type);
                 loop.loopSpecs = convert(that.loopSpecs); 
                 result = loop;
@@ -13708,6 +13709,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             List<JmlStatementLoop> loopSpecs = that.loopSpecs == null ? null : convertCopy(that.loopSpecs);
             JmlEnhancedForLoop loop = M.at(that).JmlEnhancedForLoop(jloop, loopSpecs);
             jloop.type = loop.type = that.type;
+            loop.split = that.split;
             try {
                 treeMap.put(that, jloop);
                 JCStatement bl = convertIntoBlock(that.body,that.body);
@@ -14106,13 +14108,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Create the if statement that is the loop exit */
     protected void loopHelperMakeBreak(List<JmlStatementLoop> loopSpecs, JCExpression cond, JCTree loop, DiagnosticPosition pos) {
+        boolean split  = ((IJmlLoop)pos).isSplit();
         ListBuffer<JCStatement> check = pushBlock();
         JCBreak br = M.at(pos).Break(null);
         br.target = loop;
         addStat(br);
         JCBlock bl = popBlock(pos,check);
-        JCExpression ncond = treeutils.makeNot(pos.getPreferredPosition(),cond);
-        addStat(M.at(pos).If(ncond,bl,null));
+        if (split & currentSplit != null) {
+            boolean conditionTrue = true;
+            if (currentSplit.isEmpty()) {
+                adjustSplit(2);
+            } else {
+                conditionTrue = currentSplit.charAt(0) == 'A';
+                currentSplit = currentSplit.substring(1);
+            }
+            JCExpression ccond = convertCopy(cond);
+            if (conditionTrue) {
+                addAssume(pos,Label.IMPLICIT_ASSUME,ccond);
+                // TODO: Should skip all material after the loop
+            } else {
+                addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeNot(pos, ccond));
+                JCExpression ncond = treeutils.makeNot(pos.getPreferredPosition(),cond);
+                addStat(M.at(pos).If(ncond,bl,null));
+                // TODO: Should skip the rest of the input
+            }
+        } else {
+            JCExpression ncond = treeutils.makeNot(pos.getPreferredPosition(),cond);
+            addStat(M.at(pos).If(ncond,bl,null));
+        }
     }
     
     /** Convert the loop body */
@@ -14257,11 +14280,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlForLoop(JmlForLoop that) {
+
         if (pureCopy) {
             List<JCStatement> init = convert(that.init);
             JCExpression cond = convertExpr(that.cond);
             List<JCExpressionStatement> step = convert(that.step);
             JmlForLoop loop = M.at(that).ForLoop(init,cond,step,null);
+            loop.split = that.split;
             try {
                 treeMap.put(that, loop);
                 JCStatement bl = convertIntoBlock(that.body,that.body);
@@ -17074,6 +17099,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 treeMap.put(that, loop);
                 JCStatement bl = convertIntoBlock(that.body,that.body);
                 loop.body = bl;
+                loop.split = that.split;
                 loop.setType(that.type);
                 loop.loopSpecs = convertCopy(that.loopSpecs); 
                 result = loop;

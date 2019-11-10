@@ -452,6 +452,20 @@ public class JmlParser extends JavacParser {
                 loopspecs.add((JmlStatementLoop)s);
                 continue;
             }
+            boolean isSplit = split != null;
+            if (s instanceof JmlIfStatement) {
+                ((JmlIfStatement)s).split = isSplit;
+            } else if (s instanceof JmlSwitchStatement) {
+                ((JmlSwitchStatement)s).split = isSplit;
+            } else if (s instanceof IJmlLoop) {
+                ((IJmlLoop)s).setSplit(isSplit);
+            } else if (isSplit) {
+                log.warning(split, "jml.message", "Ignoring out of place split statement");
+            }
+            split = s instanceof JmlStatementExpr && ((JmlStatementExpr)s).clauseType == splitClause && ((JmlStatementExpr)s).expression == null
+                    ? (JmlStatementExpr)s : null;
+            if (split != null) continue;
+
             if (s instanceof JmlStatement && ((JmlStatement)s).clauseType == EndStatement.endClause) {
                 log.error(s, "jml.message", "Improperly nested spec-end pair");
                 continue;
@@ -460,17 +474,6 @@ public class JmlParser extends JavacParser {
                 log.error(s, "jml.message", "Improperly nested spec-end pair");
                 continue;
             }
-            boolean isSplit = split != null;
-            if (s instanceof JmlIfStatement) {
-                ((JmlIfStatement)s).split = isSplit;
-            } else if (s instanceof JmlSwitchStatement) {
-                ((JmlSwitchStatement)s).split = isSplit;
-            } else if (isSplit) {
-                log.warning(split, "jml.message", "Ignoring out of place split statement");
-            }
-            split = s instanceof JmlStatementExpr && ((JmlStatementExpr)s).clauseType == splitClause && ((JmlStatementExpr)s).expression == null
-                    ? (JmlStatementExpr)s : null;
-            if (split != null) continue;
             // This case allows grandfathering an assignable statement as a loop_modifies statement
             // if it is not the first loop specification statement
             if (s instanceof JmlMethodClauseStoreRef && ((JmlMethodClauseStoreRef)s).clauseKind == AssignableClauseExtension.assignableClauseKind) {
