@@ -2274,6 +2274,14 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             return mapSAVersion.keySet();
         }
         
+//        public String debug(String s) {
+//            String r = "";
+//            for (VarSymbol v: keySet()) {
+//                if (v.toString().equals(s)) r = r + getCurrentName(v) + " ";
+//            }
+//            return r;
+//        }
+        
         /** Returns a debug representation of the map */
         public String toString() {
             StringBuilder s = new StringBuilder();

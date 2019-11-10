@@ -306,7 +306,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     final protected Name exceptionName;
     
     /** The symbol for the variable that tracks exceptions in the body of a method */
-    protected Symbol exceptionSym = null;
+    protected VarSymbol exceptionSym = null;
     
     /** The symbol for the variable that holds allocation ids to distinguish dynamically allocated objects */
     protected Symbol allocSym = null;
@@ -318,7 +318,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected int allocCounter = 0;
     
     /** Exception Symbols used for various methods */
-    protected Map<JCMethodDecl,Symbol> exceptionSymbols = new HashMap<JCMethodDecl,Symbol>();
+    protected Map<JCMethodDecl,VarSymbol> exceptionSymbols = new HashMap<>();
     
     /** The Name used for catching exceptions thrown by called methods */
     final protected Name exceptionNameCall;
@@ -327,10 +327,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     final protected Name terminationName;
     
     /** The symbol to go with terminationName. */
-    protected Symbol terminationSym = null;
+    protected VarSymbol terminationSym = null;
 
     /** Termination Symbols used for various methods */
-    protected Map<JCMethodDecl,Symbol> terminationSymbols = new HashMap<JCMethodDecl,Symbol>();
+    protected Map<JCMethodDecl,VarSymbol> terminationSymbols = new HashMap<>();
     
     // Fields used and modified during translation
     // These should only be modified by visit methods
@@ -653,19 +653,31 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             msym);
         }
         if (!pureCopy) {
-            JCVariableDecl d = treeutils.makeVarDef(syms.exceptionType,exceptionName,msym,
-                    treeutils.makeNullLiteral(methodDecl.pos));
-            exceptionSym = d.sym;
-            exceptionSymbols.put(methodDecl,exceptionSym);
-            currentStatements.add(d);
+            exceptionSym = exceptionSymbols.get(methodDecl);
+            if (exceptionSym == null) {
+                JCVariableDecl d = treeutils.makeVarDef(syms.exceptionType,exceptionName,msym,
+                        treeutils.makeNullLiteral(methodDecl.pos));
+                exceptionSym = d.sym;
+                exceptionSymbols.put(methodDecl,exceptionSym);
+                currentStatements.add(d);
+            } else {
+                JCVariableDecl d = treeutils.makeVarDefWithSym(exceptionSym, treeutils.makeNullLiteral(methodDecl.pos));
+                currentStatements.add(d);
+            }
         }
 
         if (!pureCopy) {
-            JCVariableDecl d = treeutils.makeVarDef(syms.intType,terminationName,methodDecl.sym,
-                    treeutils.makeIntLiteral(methodDecl.pos,0));
-            terminationSym = d.sym;
-            terminationSymbols.put(methodDecl, terminationSym);
-            currentStatements.add(d);
+            terminationSym = terminationSymbols.get(methodDecl);
+            if (terminationSym == null) {
+                JCVariableDecl d = treeutils.makeVarDef(syms.intType,terminationName,methodDecl.sym,
+                        treeutils.makeIntLiteral(methodDecl.pos,0));
+                terminationSym = d.sym;
+                terminationSymbols.put(methodDecl, terminationSym);
+                currentStatements.add(d);
+            } else {
+                JCVariableDecl d = treeutils.makeVarDefWithSym(terminationSym, treeutils.makeIntLiteral(methodDecl.pos,0));
+                currentStatements.add(d);
+            }
         }
         if (esc) {
             Name name = names.fromString(assumeCheckVar);
@@ -793,12 +805,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JmlClassDecl prevClass = this.classDecl;
         JCIdent savedExplicitThisId = this.explicitThisId;
         JCExpression savedThisExpr = this.currentThisExpr;
-        Symbol savedExceptionSym = this.exceptionSym;
+        VarSymbol savedExceptionSym = this.exceptionSym;
         Symbol savedEnclosingMethod = this.enclosingMethod;
         Symbol savedEnclosingClass = this.enclosingClass;
         VarSymbol savedResultSym = this.resultSym;
         JCExpression savedResultExpr = this.resultExpr;
-        Symbol savedTerminationSym = this.terminationSym;
+        VarSymbol savedTerminationSym = this.terminationSym;
         int savedFreshnessReferenceCount = this.freshnessReferenceCount; this.freshnessReferenceCount = 0;
         IArithmeticMode savedArithmeticMode = this.currentArithmeticMode;
         ListBuffer<JCStatement> prevStats = initialStatements;
@@ -7809,7 +7821,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression savedCondition = condition; // This is the logical context in which this method is called - only used for JML expressions
         /*@ nullable */ VarSymbol savedResultSym = resultSym; // This is the symbol of the JCIdent representing the result of the method call, null if the method is void
         /*@ nullable */ JCExpression savedResultExpr = resultExpr;
-        /*@ nullable */ Symbol savedExceptionSym = exceptionSym; // The symbol that holds the active exception (or null) // FIXME - doesnot get changed so why save it?
+        /*@ nullable */ VarSymbol savedExceptionSym = exceptionSym; // The symbol that holds the active exception (or null) // FIXME - doesnot get changed so why save it?
         /*@ nullable */ JCExpression savedThisExpr = currentThisExpr; // The JCIdent holding what 'this' means in the current context (already translated)
         /*@ nullable */ JCTree savedNestedCallLocation = nestedCallLocation;
         int savedFreshnessReferenceCount = this.freshnessReferenceCount;
