@@ -207,6 +207,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 (JCDoWhileLoop)this.visitDoWhileLoop(that,p),
                 copy(that.loopSpecs,p));
         // already done: r.type = that.type;
+        r.split = that.split;
         return r;
     }
 
@@ -217,6 +218,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 copy(that.loopSpecs,p));
         // already done: r.type = that.type;
         // FIXME - implementation, indexDecl, valuesDecl, iterDecl
+        r.split = that.split;
         return r;
     }
 
@@ -227,6 +229,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 (JCForLoop)this.visitForLoop(that,p),
                 copy(that.loopSpecs,p));
         // already done: r.type = that.type;
+        r.split = that.split;
         return r;
     }
 
@@ -716,6 +719,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 (JmlWhileLoop)this.visitWhileLoop(that,p),
                 copy(that.loopSpecs,p));
         // already done: r.type = that.type;
+        r.split = that.split;
         return r;
     }
     

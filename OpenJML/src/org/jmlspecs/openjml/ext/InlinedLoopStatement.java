@@ -40,6 +40,9 @@ import com.sun.tools.javac.util.List;
 // RAC and ESC translation are added.
 public class InlinedLoopStatement extends JmlExtension.Statement implements IJmlLoop {
 
+    public boolean isSplit() { return false; }
+    public void setSplit(boolean s) {}
+    
     public static final String inlinedloopID = "inlined_loop";
     
     @Override
