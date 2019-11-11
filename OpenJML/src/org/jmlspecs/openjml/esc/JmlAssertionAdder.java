@@ -1152,9 +1152,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         checkAccessEnabled = pv;
                     }
                 }
-                while (iter.hasNext()) {
-                    JCStatement s = iter.next();
-                    convert(s);
+                try {
+                    while (iter.hasNext()) {
+                        JCStatement s = iter.next();
+                        convert(s);
+                    }
+                } catch (AbortBlockException e) {
+                    // continue
                 }
             }
             JCBlock newMainBody = popBlock(methodDecl.body == null ? methodDecl: methodDecl.body,check);

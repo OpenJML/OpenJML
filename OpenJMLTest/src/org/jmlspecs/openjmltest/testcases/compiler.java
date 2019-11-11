@@ -807,7 +807,7 @@ public class compiler {
                   "test/testNoErrors/A.jml"
                 },0,0
                 ,"$SPECS/specs/java/util/stream/Stream.jml:$STRL: warning: The /count construct is an OpenJML extension to JML and not allowed under -lang=jml\n"
-                +"            //@ loop_invariant i == /count && 0 <= i && i <= values.length;\n"
+                +"            //@ loop_invariant i == /count && 0 <= i <= values.length;\n"
                 +"                                    ^\n"
                 +"1 warning\n");
     }
