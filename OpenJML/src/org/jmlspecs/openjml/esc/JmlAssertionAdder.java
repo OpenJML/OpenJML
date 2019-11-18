@@ -9714,7 +9714,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         ListBuffer<JCStatement> ensuresStats = new ListBuffer<JCStatement>();
                         ListBuffer<JCStatement> exsuresStats = new ListBuffer<JCStatement>();
                         JCExpression pre = convertCopy(calleePreconditions.get(cs));
-                        if (pre == treeutils.falseLit) continue; // Don't bother with postconditions if corresponding precondition is explicitly false 
+                        if (treeutils.isFalseLit(pre)) continue; // Don't bother with postconditions if corresponding precondition is explicitly false 
                         condition = pre; // FIXME - is this right? what about the havoc statement?
 
                         currentStatements = ensuresStats;
@@ -15519,8 +15519,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (clause.clauseType != invariantClause) continue;
                 if (!utils.visible(base.tsym, t.tsym, clause.modifiers.flags)) continue;
                 if (obj == null && !hasStatic(clause.modifiers)) continue;
-                JCExpression e = convertJML(((JmlTypeClauseExpr)clause).expression);
-                result = result == null ? e : treeutils.makeAnd(pos,result,e);
+                JavaFileObject prevSource = log.useSource(clause.source);
+                try {
+                    JCExpression e = convertJML(((JmlTypeClauseExpr)clause).expression);
+                    result = result == null ? e : treeutils.makeAnd(pos,result,e);
+                } finally {
+                    log.useSource(prevSource);
+                }
             }
         } finally {
             currentThisExpr = saved;
