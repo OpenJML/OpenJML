@@ -468,6 +468,14 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             	println();
             	undent();
             }
+            if (that.feasible != null) {
+                print("also feasible"); println();
+                indent();
+                for (JmlMethodClause cl: that.feasible) {
+                    cl.accept(this);
+                }
+                undent();
+            }
             if (useJMLComments) { align(); print(" */"); println(); }
         } catch (Exception e) { 
             perr(that,e);

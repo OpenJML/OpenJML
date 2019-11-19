@@ -8,7 +8,7 @@ STARTING PROOF OF Test.Test()
   public behavior
     assignable \nothing; 
     signals () false; 
-    signals_only java.lang.RuntimeException; 
+    signals_only \nothing; 
     accessible this, this.*; 
  */
 
@@ -97,7 +97,7 @@ also
  */
 
 {
-  /*@ nullable */ 
+  @Nullable 
   int[] a = new int[10];
   o.f = a[i];
 }

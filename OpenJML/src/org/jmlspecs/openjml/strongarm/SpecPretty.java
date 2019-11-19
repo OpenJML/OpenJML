@@ -9,6 +9,7 @@ import javax.lang.model.element.ElementKind;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
@@ -68,6 +69,14 @@ public class SpecPretty extends JmlPretty {
                 align();
                 c.accept(this);  // presumes already aligned; does not end with println
                 println();
+                undent();
+            }
+            if (that.feasible != null) {
+                print("also feasible"); println();
+                indent();
+                for (JmlMethodClause cl: that.feasible) {
+                    cl.accept(this);
+                }
                 undent();
             }
             if (useJMLComments) { align(); print(" */"); println(); }

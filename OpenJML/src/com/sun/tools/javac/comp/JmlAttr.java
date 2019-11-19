@@ -1986,15 +1986,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected void addDefaultSignalsOnly(ListBuffer<JmlMethodClause> prefix, JmlSpecificationCase parent, JmlMethodDecl decl) {
         if (parent.block != null) return; // If there is a model_program block, we do not add any default
         boolean anySOClause = false;
+        boolean anyRecommendsClause = false;
         boolean signalsIsFalse = false;
         for (JmlMethodClause cl: prefix) {
             if (cl.clauseKind == signalsClauseKind && treeutils.isFalseLit(((JmlMethodClauseSignals)cl).expression)) signalsIsFalse = true;
             if (cl.clauseKind == signalsOnlyClauseKind) anySOClause = true;
+            if (cl.clauseKind == recommendsClauseKind) anyRecommendsClause = true;
         }
+        // FIXME - should incorporate the recommends exceptions somehow
         if (!anySOClause) {
             DiagnosticPosition p = decl.pos();
             ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
-            if (!signalsIsFalse) {
+            if (!signalsIsFalse || anyRecommendsClause) {
                 if (decl.thrown != null && !decl.thrown.isEmpty()) p = decl.thrown.get(0).pos();
                 if (decl.thrown != null) list.addAll(decl.thrown);
                 list.add(jmlMaker.at(p).Type(syms.runtimeExceptionType));
@@ -3394,8 +3397,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     }
                 }
             }
-
+            
             c.accept(this);
+        }
+        if (tree.feasible != null) for (JmlMethodClause cl: tree.feasible) {
+            cl.accept(this);
         }
         pureEnvironment = prev;
     }

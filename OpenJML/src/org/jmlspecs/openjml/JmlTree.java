@@ -2514,6 +2514,7 @@ public class JmlTree {
         /** The for-example specification cases */
         public List<JmlSpecificationCase> forExampleCases;
         
+        public List<JmlMethodClause> feasible;
         
         public JmlMethodSpecs deSugared = null; // FIXME - should this be here?
         
@@ -2525,6 +2526,7 @@ public class JmlTree {
             this.cases = cases;
             this.impliesThatCases = List.<JmlSpecificationCase>nil();
             this.forExampleCases = List.<JmlSpecificationCase>nil();
+            this.feasible = null;
         }
         
         public JmlMethodSpecs() {
@@ -2532,6 +2534,7 @@ public class JmlTree {
             this.cases = List.<JmlSpecificationCase>nil();;
             this.impliesThatCases = List.<JmlSpecificationCase>nil();
             this.forExampleCases = List.<JmlSpecificationCase>nil();
+            this.feasible = null;
         }
         
         @Override

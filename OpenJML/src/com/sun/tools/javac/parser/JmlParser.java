@@ -1081,6 +1081,7 @@ public class JmlParser extends JavacParser {
                     || jt == JmlTokenKind.BEHAVIOR 
                     || jt == JmlTokenKind.NORMAL_BEHAVIOR
                     || jt == JmlTokenKind.EXCEPTIONAL_BEHAVIOR
+                    || jt == JmlTokenKind.FEASIBLE_BEHAVIOR
                     || jt == JmlTokenKind.IMPLIES_THAT
                     || jt == JmlTokenKind.CODE
                     || jt == JmlTokenKind.MODEL_PROGRAM
@@ -2076,6 +2077,21 @@ public class JmlParser extends JavacParser {
         }
         JmlMethodSpecs sp = jmlF.at(pos).JmlMethodSpecs(cases.toList());
         // end position set below
+        if ((t = jmlTokenKind()) == JmlTokenKind.FEASIBLE_BEHAVIOR) {
+            if (!isNone(mods))
+                jmlerror(pos(), endPos(), "jml.no.mods.allowed",
+                        t.internedName());
+            nextToken();
+            mods = modifiersOpt();
+            ListBuffer<JmlMethodClause> clauses = new ListBuffer<JmlMethodClause>();
+            JmlMethodClause cl;
+            while ((cl = getClause()) != null) {
+                clauses.append(cl);
+                lastPos = getEndPos(cl);
+                mods = modifiersOpt();
+            }
+            sp.feasible = clauses.toList();
+        }
         if ((t = jmlTokenKind()) == JmlTokenKind.IMPLIES_THAT) {
             if (!isNone(mods))
                 jmlerror(pos(), endPos(), "jml.no.mods.allowed",
@@ -2153,6 +2169,7 @@ public class JmlParser extends JavacParser {
         }
         boolean code = false;
         int codePos = 0;
+        if (jmlTokenKind() == JmlTokenKind.FEASIBLE_BEHAVIOR) return null;
         if (jmlTokenKind() == JmlTokenKind.CODE) {
             codePos = pos();
             code = true;

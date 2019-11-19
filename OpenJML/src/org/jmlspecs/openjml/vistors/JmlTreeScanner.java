@@ -243,6 +243,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(tree.cases);
         scan(tree.impliesThatCases);
         scan(tree.forExampleCases);
+        scan(tree.feasible);
     }
 
     public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {

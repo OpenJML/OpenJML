@@ -109,6 +109,7 @@ public enum JmlTokenKind implements ITokenKind {
     NORMAL_BEHAVIOR("normal_behavior"),
     BEHAVIOR("behavior"),
     EXCEPTIONAL_BEHAVIOR("exceptional_behavior"),
+    FEASIBLE_BEHAVIOR("feasible_behavior"),
     ABRUPT_BEHAVIOR("abrupt_behavior"),
     NORMAL_EXAMPLE("normal_example"),
     EXAMPLE("example"),

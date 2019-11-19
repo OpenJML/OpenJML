@@ -1,0 +1,28 @@
+Proving methods in Feasible
+Starting proof of Feasible.Feasible() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Feasible.Feasible() with prover !!!! - no warnings
+Starting proof of Feasible.ma(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at reachable statement : infeasible
+test/feasible/Feasible.java:9: warning: There is no feasible path to program point at reachable statement in method Feasible.ma(int)
+        //@ reachable;
+            ^
+Feasibility check - at program exit : OK
+Completed proof of Feasible.ma(int) with prover !!!! - INFEASIBLE
+Starting proof of Feasible.mb(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at reachable statement : OK
+Feasibility check - at program exit : OK
+Completed proof of Feasible.mb(int) with prover !!!! - no warnings
+Starting proof of Feasible.mc(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at reachable statement : infeasible
+test/feasible/Feasible.java:31: warning: There is no feasible path to program point at reachable statement in method Feasible.mc(int)
+        //@ reachable;
+            ^
+Feasibility check - at program exit : OK
+Completed proof of Feasible.mc(int) with prover !!!! - INFEASIBLE
+Completed proving methods in Feasible
+2 warnings

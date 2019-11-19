@@ -263,6 +263,17 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testFeasible() {
+        helpTF("feasible");
+    }
+
+    // Just for debugging, not for testing
+//    @Test
+//    public void testOpt() {
+//        helpTF("opt","-show","-method=m");
+//    }
+
+    @Test
     public void testBuggyCalculator() {
         helpTF("buggyCalculator");
     }

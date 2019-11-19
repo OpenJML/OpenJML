@@ -308,6 +308,14 @@ public class MethodProverSMT {
 
         // create an SMT object, adding any options
         SMT smt = new SMT();
+        int seed = 0;
+        String strseed = JmlOption.value(context, JmlOption.SEED);
+        if (strseed != null && !strseed.isEmpty()) try {
+            seed = Integer.parseInt(strseed);
+            smt.smtConfig.seed = seed;
+        } catch (NumberFormatException e) {
+            log.warning("jml.message","Expected an integer for a seed: " + strseed);
+        }
         smt.processCommandLine(new String[]{}, smt.smtConfig);
         Object o = JmlOption.value(context,  JmlOption.TIMEOUT);
         if (o != null && !o.toString().isEmpty()) {

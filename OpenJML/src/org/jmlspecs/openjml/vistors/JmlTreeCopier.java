@@ -429,6 +429,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlMethodSpecs copy = M.at(that.pos).JmlMethodSpecs(copy(that.cases,p));
         copy.impliesThatCases = copy(that.impliesThatCases,p);
         copy.forExampleCases = copy(that.forExampleCases,p);
+        copy.feasible = copy(that.feasible,p);
         copy.type = that.type;
         // FIXME - decl desugared
         return copy;

@@ -102,7 +102,7 @@ public class JmlOption implements IOption {
     public static final JmlOption BENCHMARKS = new JmlOption("-benchmarks",true,null,"ESC: Collects solver communications",null);
     public static final JmlOption MINIMIZE_QUANTIFICATIONS = new JmlOption("-minQuant",false,true,"ESC: Minimizes using quantifications, in favor of inlining",null);
     public static final JmlOption QUANTS_FOR_TYPES = new JmlOption("-typeQuants",true,"auto","ESC: Introduces quantified assertions for type variables (true, false, or auto)",null);
-
+    public static final JmlOption SEED = new JmlOption("-solver-seed",true,"0","ESC: Seed to initialize solver's random number generation",null);
     public static final JmlOption MODEL_FIELD_NO_REP = new JmlOption("-modelFieldNoRep",true,"zero","RAC action when a model field has no represents clause (zero,ignore,warn)",null);
 //    ROOTS("-roots",false,false,"Enables the Reflective Object-Oriented Testing System---w00t!",null);
     

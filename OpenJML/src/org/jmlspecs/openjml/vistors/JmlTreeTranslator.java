@@ -303,6 +303,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         r.cases = translate(that.cases);
         r.impliesThatCases = translate(that.impliesThatCases);
         r.forExampleCases = translate(that.forExampleCases);
+        r.feasible = translate(that.feasible);
         result = r;
     }
 

@@ -90,6 +90,7 @@ JML options:
   -benchmarks                ESC: Collects solver communications
   -minQuant                  ESC: Minimizes using quantifications, in favor of inlining
   -typeQuants                ESC: Introduces quantified assertions for type variables (true, false, or auto)
+  -solver-seed               ESC: Seed to initialize solver's random number generation
   -modelFieldNoRep           RAC action when a model field has no represents clause (zero,ignore,warn)
   -racShowSource             RAC: Error messages will include source information
   -racCheckAssumptions       RAC: Enables runtime checking that assumptions hold

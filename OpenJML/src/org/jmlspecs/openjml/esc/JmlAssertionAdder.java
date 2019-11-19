@@ -1055,6 +1055,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addStat(mark);
                     markLocation(preLabel.name,initialStatements,mark);
                 }
+                if (!pureCopy) {
+                    addFeasibility(methodDecl,initialStatements);
+                }
                 // FIXME - need to fix RAC So it can check preconditions etc. of a constructor
                 ListBuffer<JCStatement> checkZ = pushBlock();
                 JCBlock newMainBody = null;
@@ -1117,6 +1120,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addStat(initialStatements,preconditionAssumeCheck);
                 initialStatements.add(mark);
                 markLocation(preLabel.name,initialStatements,mark);
+                addFeasibility(methodDecl,initialStatements);
             }
             
             if (esc && isConstructor && !callingThis) {
@@ -3853,6 +3857,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
 
         popBlock();
+    }
+    
+    protected void addFeasibility(JmlMethodDecl methodDecl, ListBuffer<JCStatement> initialStatements) {
+        JmlSpecs.MethodSpecs mspecs = specs.getSpecs(methodDecl.sym);
+        if (mspecs.cases.feasible == null) return;
+        ListBuffer<JCStatement> check = pushBlock();
+        addStat(comment(methodDecl,"Feasibility assumptions",null));
+        for (JmlMethodClause cl: mspecs.cases.feasible) {
+            if (cl.clauseKind == requiresClauseKind) {
+                JCExpression e = convertJML(((JmlMethodClauseExpr)cl).expression);
+                addAssume(cl, Label.IMPLICIT_ASSUME, e);
+            } else {  // FIXME - should implement old clauses
+                log.warning(cl, "jml.message", "Ignoring clauses other than requires in feasibility section");
+            }
+        }
+        DiagnosticPosition p = mspecs.cases;
+        JCBlock bl = popBlock(p,check);
+        JCIdent id = treeutils.makeIdent(p, assumeCheckSym);
+        JCExpression bin = treeutils.makeBinary(p,JCTree.Tag.NE,treeutils.intneqSymbol,id,treeutils.makeIntLiteral(p,0));
+        JCStatement st = M.at(p).If(bin, bl, null);
+        initialStatements.add(st);
     }
     
     /** Computes and adds checks for all the pre and postcondition clauses. */
@@ -8670,6 +8695,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             // Iterate over all specs to find preconditions
             int callLabelReferenceCount = allocCounter;  // FIXME _ is this too early?
+            boolean allCasesNormal = true;
+            int numCases = 0;
             { // In quantifications, splitExpressions is set to false
                 boolean combinedNoModel = false;
                 addStat(comment(that, "Checking preconditions of callee " + calleeMethodSym + " by the caller",null));
@@ -8776,6 +8803,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue; // exceptional behavior clauses are not used for pure functions within JML expressions
                         if (mpsym != calleeMethodSym && cs.code) continue;
                         if (cs.block != null) hasAModelProgram = true;
+                        numCases++;
+                        if (cs.token != JmlTokenKind.NORMAL_BEHAVIOR) allCasesNormal = false;
                         preconditionDetail2++;
                         anyVisibleSpecCases = true;
                         JCIdent preId = null;
@@ -9502,7 +9531,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         }
                       } finally {
                           JCBlock bl = popBlock(cs);
-                          addStat(M.at(cs.pos).If(pre,bl,null));
+                          if (numCases == 1 && !rac) addStat(bl);
+                          else addStat(M.at(cs.pos).If(pre,bl,null));
                           log.useSource(prev);
                       }
 
@@ -9846,7 +9876,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             // The +1 is so that the position of this if statement
                             // and hence the names of the BRANCHT and BRANCHE variables
                             // is different from the if prior to the apply // FIXME - review if this is still needed
-                            JCStatement st = M.at(cs.pos+1).If(pre,ensuresBlock,null);
+                            JCStatement st = numCases == 1 && !rac? ensuresBlock : M.at(cs.pos+1).If(pre,ensuresBlock,null);
                             JCBlock bl = M.at(cs.pos+1).Block(0,List.<JCStatement>of(st));
                             ensuresStatsOuter.add( wrapRuntimeException(cs, bl, "JML undefined precondition while checking postconditions - exception thrown", null));
                         }
@@ -9856,7 +9886,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             // and hence the names of the BRANCHT and BRANCHE variables
                             // is different from the if prior to the apply // FIXME - review if this is still needed
                             // FIXME - don't think pre should be null
-                            JCStatement st = pre == null ? exsuresBlock : M.at(cs.pos+1).If(pre,exsuresBlock,null);
+                            JCStatement st = ((numCases == 1 && !rac) || pre == null) ? exsuresBlock : M.at(cs.pos+1).If(pre,exsuresBlock,null);
                             JCBlock bl = M.at(cs.pos+1).Block(0,List.<JCStatement>of(st));
                             exsuresStatsOuter.add( wrapRuntimeException(cs, bl, "JML undefined precondition while checking exceptional postconditions - exception thrown", null));
                         }
@@ -9922,6 +9952,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCBinary ch = treeutils.makeEqObject(that.pos, nexceptionId, treeutils.nullLit);
                     JCBlock exsuresBlock = M.at(that).Block(0, exsuresStatsOuter.toList());
                     JCStatement st = M.at(that.pos).If(ch, ensuresBlock, exsuresBlock);
+                    if (allCasesNormal && !rac) {
+                        addAssume(that, Label.IMPLICIT_ASSUME, ch);
+                        st = ensuresBlock;
+                    }
                     addStat(st);
                 } else {
                     addStat(ensuresBlock);
@@ -15581,6 +15615,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ms.deSugared = that.deSugared; // FIXME - copy
         ms.forExampleCases = that.forExampleCases; // FIXME - copy
         ms.impliesThatCases = that.impliesThatCases; // FIXME - copy
+        ms.feasible = that.feasible; // FIXME - copy
         result = ms;
     }
 
