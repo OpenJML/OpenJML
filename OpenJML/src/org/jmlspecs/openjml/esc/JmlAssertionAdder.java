@@ -11569,6 +11569,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         return M.at(that).Literal(res);
     }
+    
+    public Type maxNumericType(Type maxType, Type rhst) {
+        if (maxType == null) return null;
+        if (rhst.isReference()) rhst = types.unboxedType(rhst);
+        boolean rhsIsPrim = rhst.isPrimitive() && rhst.getTag() != TypeTag.BOT;
+        if (jmltypes.isJmlType(rhst) || jmltypes.isJmlRepType(rhst)) maxType = rhst;
+        // The following is only valid for numeric types
+        if (rhsIsPrim) maxType = treeutils.maxType(maxType, rhst);
+        return maxType;
+    }
 
     // OK
     @Override
@@ -11889,15 +11899,37 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     public void visitJmlChained(JmlChained that) {
-        JCExpression lhs = convertExpr(that.conjuncts.head.lhs);
+        if (pureCopy) {
+            JCExpression lhs = convertExpr(that.conjuncts.head.lhs);
+            ListBuffer<JCBinary> conjuncts = new ListBuffer<>();
+            for (JCBinary b: that.conjuncts) {
+                JCExpression rhs = convertExpr(b.rhs);
+                JCBinary bb = M.at(b.pos).Binary(b.opcode,lhs,rhs);
+                bb.operator = b.operator;
+                bb.type = b.type;
+                lhs = rhs;
+                conjuncts.add(bb);
+            }
+            result = eresult = M.at(that.pos).JmlChained(conjuncts.toList());
+            eresult.type = that.type;
+            return;
+        }
+        JCExpression lhs = that.conjuncts.head.lhs;
+        Type maxType = maxNumericType(syms.intType, lhs.type);
+        for (JCBinary b: that.conjuncts) {
+            maxType = maxNumericType(maxType, b.rhs.type);
+        }
+        
+        lhs = convertExpr(that.conjuncts.head.lhs);
+        lhs = addImplicitConversion(lhs,maxType,lhs);
         JCExpression ba = null;
         for (JCBinary b: that.conjuncts) {
             JCExpression rhs = convertExpr(b.rhs);
+            rhs = addImplicitConversion(rhs,maxType,rhs);
             JCBinary bb = M.at(b.pos).Binary(b.opcode,lhs,rhs);
             bb.operator = b.operator;
             bb.type = b.type;
-            JCExpression bbb = convertExpr(bb);
-            ba = ba == null ? bbb : treeutils.makeBitAnd(b.pos, ba, bbb);
+            ba = ba == null ? bb : treeutils.makeBitAnd(b.pos, ba, bb);
             lhs = rhs;
         }
         result = eresult = splitExpressions ? newTemp(ba) : ba;
