@@ -1,4 +1,4 @@
-PATH CONDITION ASSERT_62_178
+PATH CONDITION ASSERT_63_178
 
 TRACE of tt.TestJava.m1(int)
 /tt/TestJava.java:4:  	requires i == Integer.MAX_VALUE; 
