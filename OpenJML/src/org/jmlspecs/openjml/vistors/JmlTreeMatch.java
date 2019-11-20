@@ -44,11 +44,13 @@ public class JmlTreeMatch extends JmlTreeScanner {
     public static class NoMatchException extends RuntimeException {}
     
     JCTree top;
-    boolean p = false;
+    JCTree originalTop;
+    public boolean assignOpMatch = false;
     
     public boolean matches(JCTree tree, JCTree arg) {
         if (tree == null) return false;
         top = arg;
+        originalTop = tree;
         try {
             scan(tree);
         } catch (NoMatchException e) {
@@ -76,6 +78,9 @@ public class JmlTreeMatch extends JmlTreeScanner {
                 } else if (top instanceof JCParens) {
                     top = ((JCParens)top).expr;
                     continue;
+                } else if (tree instanceof JCAssignOp && top instanceof JCBinary) {
+                    tree.accept(this);
+                    return;
                 } else {
                     nomatch();
                 }
@@ -292,13 +297,46 @@ public class JmlTreeMatch extends JmlTreeScanner {
     }
 
     public void visitAssignop(JCAssignOp tree) {
-        JCAssignOp t = (JCAssignOp)top;
-        if (t.getTag() != tree.getTag()) nomatch();
-        top = t.lhs;
-        scan(tree.lhs);
-        top = t.rhs;
-        scan(tree.rhs);
-        top = t;
+        Tag trt = tree.getTag();
+        if (top instanceof JCAssignOp) {
+            JCAssignOp t = (JCAssignOp)top;
+            if (t.getTag() == trt) {
+                top = t.lhs;
+                scan(tree.lhs);
+                top = t.rhs;
+                scan(tree.rhs);
+                top = t;
+                return;
+            }
+            nomatch();
+        }
+        if (top instanceof JCBinary) {
+            JCBinary t = (JCBinary)top;
+            Tag tt = t.getTag();
+       
+            if (
+                    (tt == Tag.BITOR && trt == Tag.BITOR_ASG) ||
+                    (tt == Tag.BITAND && trt == Tag.BITAND_ASG) ||
+                    (tt == Tag.BITXOR && trt == Tag.BITXOR_ASG) ||
+                    (tt == Tag.PLUS && trt == Tag.PLUS_ASG) ||
+                    (tt == Tag.MINUS && trt == Tag.MINUS_ASG) ||
+                    (tt == Tag.MUL && trt == Tag.MUL_ASG) ||
+                    (tt == Tag.DIV && trt == Tag.DIV_ASG) ||
+                    (tt == Tag.MOD && trt == Tag.MOD_ASG) ||
+                    (tt == Tag.SL && trt == Tag.SL_ASG) ||
+                    (tt == Tag.SR && trt == Tag.SR_ASG) ||
+                    (tt == Tag.USR && trt == Tag.USR_ASG)
+                    ) {
+                top = t.lhs;
+                scan(tree.lhs);
+                top = t.rhs;
+                scan(tree.rhs);
+                top = t;
+                assignOpMatch = true;
+                return;
+            }
+        }
+        nomatch();
     }
 
     public void visitUnary(JCUnary tree) {
@@ -311,12 +349,15 @@ public class JmlTreeMatch extends JmlTreeScanner {
 
     public void visitBinary(JCBinary tree) {
         JCBinary t = (JCBinary)top; 
+        Tag tt = t.getTag();
+        Tag trt = tree.getTag();
         if (t.getTag() != tree.getTag()) nomatch();
         top = t.lhs;
         scan(tree.lhs);
         top = t.rhs;
         scan(tree.rhs);
         top = t;
+        return;
     }
 
     public void visitTypeCast(JCTypeCast tree) {

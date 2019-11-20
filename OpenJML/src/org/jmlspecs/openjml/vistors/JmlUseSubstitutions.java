@@ -77,9 +77,15 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
             // exprTail. Then we set exprHead to null, so it is not used again.
             // That is we only do one substitution, whenever the next substitution is.
             // log.note(tree.pos, "jml.message", "Substituting here: " + exprHead.toString() + " with " + exprTail.toString() + " and precondition " + exprPrecondition.toString());
-            exprPrecondition = null;
-            exprHead = null;
-            return exprTail;
+            if (matcher.assignOpMatch) {
+                matcher.assignOpMatch = false;
+                JCAssignOp t = (JCAssignOp)tree;
+                return JmlTree.Maker.instance(context).at(tree.pos).Assign(t.lhs,exprTail);
+            } else {
+                exprPrecondition = null;
+                exprHead = null;
+                return exprTail;
+            }
         } else {
             return super.translate(tree);
         }
