@@ -2729,56 +2729,56 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             boolean clauseIsStatic = utils.isJMLStatic(clause.modifiers,csym);
                             boolean clauseIsFinal = (clause.modifiers.flags & Flags.FINAL) != 0;
                             currentStatements = clauseIsStatic? staticStats : instanceStats;
-                            //JavaFileObject prevSource = log.useSource(clause.source());
-                            try {
-                                // FIXME - guard against the receiver being null for non-static invariants
-                                if (clause.clauseType == invariantClause) {
-                                    // invariants on both pre and post for all classes of parameters and return value
-                                    // Pre and post conditions:
-                                    //      helper - no invariants for class of method
-                                    //      non-helper constructor - invariants only on post
-                                    //      non-helper method - invariants on pre and post
-                                    // Calling a method - caller invariants
-                                    //      same as pre and postconditions, except
-                                    //      when a constructor is calling super(), no invariants of containing class are assumed in post
-                                    // Calling a method - callee invariants
-                                    //      callee is helper - no invariants in pre or post for class containing method
-                                    //      callee is super() - invariants of super class on post
-                                    //      callee is constructor - invariants on post
-                                    //      callee is method - invariants on pre and post
-                                        if (contextIsStatic && !clauseIsStatic) continue;
-                                        if (clauseIsFinal && !assume) continue;
-                                        if (clauseIsFinal && !contextIsStatic && clauseIsStatic) continue;
-                                        if (isHelper && (!clauseIsFinal || !assume)) continue;
-                                        if (isSuper && !isPost) continue;
-                                        boolean doit = false;
-                                        if (!isConstructor || isPost) doit = true; // pre and postcondition case
-                                        if (isConstructor ) {
-                                            if (clauseIsStatic) doit = true;
-                                            if (utils.findMod(classDecl.mods, JmlTokenKind.CAPTURED) != null) doit = true;
-                                            // FIXME - should not use erasure here, but pasrameterized dtypes do not seem to work
-                                            // properly even if ctype is obtrained by collecting super classes and super interfaces of basetype
-                                            boolean b = !types.isAssignable(types.erasure(basetype),types.erasure(ctype));
-                                            if (b) doit = true;
-                                        }
-                                        if (doit) {
-                                            t = (JmlTypeClauseExpr)convertCopy(clause); // FIXME - why copy the clause
-                                            addTraceableComment(t.expression,clause.toString());
-                                            JCExpression e = convertJML(t.expression,treeutils.trueLit,isPost);
-                                            if (assume) addAssume(pos,invariantLabel,
-                                                    e,
-                                                    cpos,clause.source, invariantDescription);
-                                            else  addAssert(pos,invariantLabel,
-                                                    e,
-                                                    cpos,clause.source, invariantDescription);
-                                        }
+                            // FIXME - guard against the receiver being null for non-static invariants
+                            if (clause.clauseType == invariantClause) {
+                                // invariants on both pre and post for all classes of parameters and return value
+                                // Pre and post conditions:
+                                //      helper - no invariants for class of method
+                                //      non-helper constructor - invariants only on post
+                                //      non-helper method - invariants on pre and post
+                                // Calling a method - caller invariants
+                                //      same as pre and postconditions, except
+                                //      when a constructor is calling super(), no invariants of containing class are assumed in post
+                                // Calling a method - callee invariants
+                                //      callee is helper - no invariants in pre or post for class containing method
+                                //      callee is super() - invariants of super class on post
+                                //      callee is constructor - invariants on post
+                                //      callee is method - invariants on pre and post
+                                if (contextIsStatic && !clauseIsStatic) continue;
+                                if (clauseIsFinal && !assume) continue;
+                                if (clauseIsFinal && !contextIsStatic && clauseIsStatic) continue;
+                                if (isHelper && (!clauseIsFinal || !assume)) continue;
+                                if (isSuper && !isPost) continue;
+                                boolean doit = false;
+                                if (!isConstructor || isPost) doit = true; // pre and postcondition case
+                                if (isConstructor ) {
+                                    if (clauseIsStatic) doit = true;
+                                    if (utils.findMod(classDecl.mods, JmlTokenKind.CAPTURED) != null) doit = true;
+                                    // FIXME - should not use erasure here, but pasrameterized dtypes do not seem to work
+                                    // properly even if ctype is obtrained by collecting super classes and super interfaces of basetype
+                                    boolean b = !types.isAssignable(types.erasure(basetype),types.erasure(ctype));
+                                    if (b) doit = true;
                                 }
-                            } catch (NoModelMethod e) {
-//                                log.error(clause.pos, "jml.message", e.getMessage());
-                            } catch (JmlNotImplementedException e) {
-                                notImplemented(clause.clauseType.name() + " clause containing ", e, clause.source());
-                            } finally {
-                                //log.useSource(prevSource);
+                                if (doit) {
+                                    JavaFileObject prevSource = log.useSource(clause.source());
+                                    try {
+                                        t = (JmlTypeClauseExpr)convertCopy(clause); // FIXME - why copy the clause
+                                        addTraceableComment(t.expression,clause.toString());
+                                        JCExpression e = convertJML(t.expression,treeutils.trueLit,isPost);
+                                        if (assume) addAssume(pos,invariantLabel,
+                                                e,
+                                                cpos,clause.source, invariantDescription);
+                                        else  addAssert(pos,invariantLabel,
+                                                e,
+                                                cpos,clause.source, invariantDescription);
+                                    } catch (NoModelMethod e) {
+                                        //                                              log.error(clause.pos, "jml.message", e.getMessage());
+                                    } catch (JmlNotImplementedException e) {
+                                        notImplemented(clause.clauseType.name() + " clause containing ", e, clause.source());
+                                    } finally {
+                                        log.useSource(prevSource);
+                                    }
+                                }
                             }
                         }
                     } finally {
@@ -12339,6 +12339,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else if (jmltypes.isSameType(origType,jmltypes.REAL)) {
                 // FIXME - box a \real to reference
 
+            } else if (esc && types.isSubtype(argType,clazz.type)) {
+                // The cast is to a parent type and is statically allowed
+                
+                // No check needed
+                newexpr = castexpr;
+                
             } else {
                 // object to object
                 // For RAC, we check that the expression will not throw an exception

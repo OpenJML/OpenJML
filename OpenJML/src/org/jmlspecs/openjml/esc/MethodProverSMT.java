@@ -313,6 +313,7 @@ public class MethodProverSMT {
         if (strseed != null && !strseed.isEmpty()) try {
             seed = Integer.parseInt(strseed);
             smt.smtConfig.seed = seed;
+            if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note("jml.message","Using seed " + seed);
         } catch (NumberFormatException e) {
             log.warning("jml.message","Expected an integer for a seed: " + strseed);
         }
