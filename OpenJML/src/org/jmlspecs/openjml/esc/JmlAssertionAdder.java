@@ -7550,6 +7550,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             return;
         }
+        if (that.meth instanceof JCIdent) {
+            Symbol msym = ((JCIdent)that.meth).sym;
+            if (msym.isStatic()) {
+                that.meth = M.at(that).Select(M.at(that).Type(msym.owner.type), msym);
+            } else {
+                // TODO _ substitute the QTHIS argument
+            }
+        }
         Map<Symbol,Symbol> saved = pushMapSymbols();
         applyHelper(that);
         popMapSymbols(saved);
