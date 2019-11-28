@@ -666,7 +666,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void escLet() {
-        helpTF("escLet","-show","-checkFeasibility=debug","-verbose","-method=m");
+        helpTF("escLet");
     }
     
     @Test

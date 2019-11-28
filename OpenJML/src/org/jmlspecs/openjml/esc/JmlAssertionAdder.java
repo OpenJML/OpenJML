@@ -13261,7 +13261,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitLetExpr(LetExpr that) {
         if (splitExpressions) {
-            JCIdent id = newTempNull(that,that.type); // Adds a declaration
+            JmlVariableDecl dec = newTempDecl(that,that.type); // Adds a declaration
+            addStat(dec);
             ListBuffer<JCStatement> check = pushBlock();
             for (JCVariableDecl d : that.defs) {
                 localVariables.put(d.sym,d.sym);
@@ -13271,13 +13272,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     convert(d);
                 }
                 JCExpression e = convertExpr((JCExpression)that.expr);
-                addStat(treeutils.makeAssignStat(that.pos,treeutils.makeIdent(id.pos, id.sym),e));
+                addStat(treeutils.makeAssignStat(that.pos,treeutils.makeIdent(that.pos, dec.sym),e));
             } finally {
                 for (JCVariableDecl d : that.defs) {
                     localVariables.remove(d.sym);
                 }
                 addStat(popBlock(that,check));
-                result = eresult = treeutils.makeIdent(id.pos,id.sym);
+                result = eresult = treeutils.makeIdent(dec.pos,dec.sym);
             }
         } else {
             result = eresult = M.at(that).LetExpr(convert(that.defs), convert(that.expr)).setType(that.type);
