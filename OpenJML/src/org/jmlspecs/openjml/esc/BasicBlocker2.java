@@ -373,11 +373,16 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      */
     protected Name encodedName(VarSymbol sym, long incarnationPosition) {
         Symbol own = sym.owner;
+        // No uniqueness information is attached if any one of the following is true
+        // a) the position information provided is NOPOS
+        // b) there is no owner (i.e. it is a generated, single-use temporary)
+        // c) it is final and not in a constructor (so it will only ever have one instantiation)
+        // d) it is in a constructor but static and final (so it will only ever have one instantiation)
         if (incarnationPosition == Position.NOPOS || own == null || (!isConstructor && (sym.flags() & Flags.FINAL) != 0) || (isConstructor && (sym.flags() & (Flags.STATIC|Flags.FINAL)) == (Flags.STATIC|Flags.FINAL))) { 
             //Name n = utils.isJMLStatic(sym) ? sym.getQualifiedName() : sym.name;
             Name n = sym.name;
             if (sym.pos >= 0 && !n.toString().equals(Strings.THIS)) n = names.fromString(n.toString() + ("_" + sym.pos));
-            if (own != null && own != methodDecl.sym.owner && own instanceof TypeSymbol) {
+            if (own != null && (utils.isJMLStatic(sym) || own != methodDecl.sym.owner) && own instanceof TypeSymbol) {
                 Name s = own.getQualifiedName();
                 n = names.fromString(s.toString() + "_" + n.toString());
             }
@@ -930,7 +935,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             msym = (MethodSymbol)(fa.sym);
             if (msym == null || utils.isJMLStatic(msym)) obj = null; // msym is null for injected methods such as box and unbox
             else {
-                obj = ( fa.selected );
+                that.meth = convertExpr(fa.selected);
                 // FIXME - should do better than converting to String
                 //if (!fa.selected.type.toString().endsWith("JMLTYPE")) checkForNull(obj,fa.pos,trueLiteral,null);
             }

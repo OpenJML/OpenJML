@@ -2690,7 +2690,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     VarSymbol v = (VarSymbol)s;
                                     Object o = v.getConstValue(); // This call returns the raw underlying value, not the stated type (i.e. Integer for boolean and char)
                                     if (o != null) {
-                                        JCIdent id = treeutils.makeIdent(v.pos,v);
+                                        JCExpression id = treeutils.makeIdent(v.pos,v);
+                                        if (utils.isJMLStatic(v)) {
+                                            JCExpression ty = treeutils.makeType(v.pos, v.owner.type);
+                                            id = treeutils.makeSelect(v.pos, ty, v);
+                                        }
                                         JCLiteral val = treeutils.makeLit(v.pos,v.type,o);
                                         JCExpression e = treeutils.makeEquality(v.pos, id, val);
                                         if (utils.isJMLStatic(s)) {
@@ -2846,7 +2850,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 VarSymbol v = (VarSymbol)s;
                 Type vartype = v.type;
                 JCExpression field;
-                if (receiver == null) field = treeutils.makeIdent(pos,v);
+                if (receiver == null) field = treeutils.makeSelect(v.pos, treeutils.makeType(v.pos, v.owner.type), v);
                 else field = M.at(pos).Select(receiver, v);
                 if (!utils.isPrimitiveType(vartype) && !isDataGroup(vartype)) {
                     JCExpression e = treeutils.makeNotNull(pos.getStartPosition(),field); // FIXME - position not right
