@@ -935,7 +935,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             msym = (MethodSymbol)(fa.sym);
             if (msym == null || utils.isJMLStatic(msym)) obj = null; // msym is null for injected methods such as box and unbox
             else {
-                that.meth = convertExpr(fa.selected);
+                fa.selected = convertExpr(fa.selected);
                 // FIXME - should do better than converting to String
                 //if (!fa.selected.type.toString().endsWith("JMLTYPE")) checkForNull(obj,fa.pos,trueLiteral,null);
             }
