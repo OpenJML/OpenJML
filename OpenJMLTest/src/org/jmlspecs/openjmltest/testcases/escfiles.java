@@ -666,7 +666,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void escLet() {
-        helpTF("escLet");
+        helpTF("escLet","-solver-seed=9999","-show","-method=m1");
     }
     
     @Test

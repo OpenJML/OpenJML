@@ -2765,7 +2765,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     if (b) doit = true;
                                 }
                                 if (doit) {
-                                    JavaFileObject prevSource = log.useSource(clause.source());
+                                    //JavaFileObject prevSource = log.useSource(clause.source());
                                     try {
                                         t = (JmlTypeClauseExpr)convertCopy(clause); // FIXME - why copy the clause
                                         addTraceableComment(t.expression,clause.toString());
@@ -2781,7 +2781,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     } catch (JmlNotImplementedException e) {
                                         notImplemented(clause.clauseType.name() + " clause containing ", e, clause.source());
                                     } finally {
-                                        log.useSource(prevSource);
+                                        //log.useSource(prevSource);
                                     }
                                 }
                             }

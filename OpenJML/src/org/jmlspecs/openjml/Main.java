@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.annotation.processing.Processor;
 import javax.tools.DiagnosticListener;
@@ -1244,11 +1245,11 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (addedOptionsAnnotation != null) {
             List<JCExpression> exprs = addedOptionsAnnotation.getArguments();
             JCExpression rhs = ((JCAssign)exprs.head).rhs;
-            String[] opts = rhs instanceof JCNewArray ? ((JCNewArray)rhs).elems.toString().split(",")
+            String[] opts = rhs instanceof JCNewArray ? ((JCNewArray)rhs).elems.stream().map(e->e.toString()).collect(Collectors.toList()).toArray(new String[((JCNewArray)rhs).elems.size()])
                           : rhs instanceof JCLiteral ? new String[]{ rhs.toString() }
                           : null;
             addOptions(opts);
-            setupOptions();
+            setupOptions(); // Already run
         }
     }
     

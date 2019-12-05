@@ -12,6 +12,7 @@
         //@ normal_behavior
         //@   requires (\let int c = cc; c != 0);
         //@ pure
+        //@ @org.jmlspecs.annotation.Options("-solver-seed=2000")
         void m(int cc) {
             //@ assert cc != 0;
         }

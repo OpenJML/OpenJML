@@ -763,7 +763,6 @@ public class SMTTranslator extends JmlTreeScanner {
         if (strseed != null && !strseed.isEmpty()) try {
             int seed = Integer.parseInt(strseed);
             if (seed != 0) startCommands.add(command(smt,"(set-option :random-seed " + seed + ")"));
-
         } catch (NumberFormatException e) {
             log.warning("jml.message","Expected an integer for a seed: " + strseed);
         }
