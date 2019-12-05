@@ -759,6 +759,14 @@ public class SMTTranslator extends JmlTreeScanner {
             startCommands.add(command(smt,"(set-option :AUTO_CONFIG false)"));
             startCommands.add(command(smt,"(set-option :smt.MBQI false)"));
         }
+        String strseed = JmlOption.value(context, JmlOption.SEED);
+        if (strseed != null && !strseed.isEmpty()) try {
+            int seed = Integer.parseInt(strseed);
+            if (seed != 0) startCommands.add(command(smt,"(set-option :random-seed " + seed + ")"));
+
+        } catch (NumberFormatException e) {
+            log.warning("jml.message","Expected an integer for a seed: " + strseed);
+        }
 
         // add background statements
         // declare the sorts we use to model Java+JML

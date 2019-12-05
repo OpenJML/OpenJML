@@ -4309,7 +4309,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         currentThisExpr = savedThis;
     }
     
-    protected void assumeFieldInvariants(ClassSymbol classSym, boolean staticOnly) {
+    protected void assumeFieldInvariants(ClassSymbol classSym, boolean staticOnly, boolean noFinal) {
         // Assume invariants for the class of each field of the argument
         JCExpression savedThis = currentThisExpr;
         JmlSpecs.TypeSpecs cspecs = specs.getSpecs(classSym); 
@@ -4321,6 +4321,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCVariableDecl d = (JCVariableDecl)dd;
             if (utils.isPrimitiveType(d.sym.type)) continue;
             if (staticOnly && !utils.isJMLStatic(d.sym)) continue;
+            if (noFinal && isFinal(d.sym)) continue;
             if (isDataGroup(d.type)) continue;
             
             //if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
@@ -9611,10 +9612,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     currentThisExpr = newThisExpr;
                     int savedCount = freshnessReferenceCount;
                     try {
-                        currentStatements.add(comment(classDecl, "Assuming invariants for caller fields after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
-                        freshnessReferenceCount = allocCounter;
-                        assumeFieldInvariants((ClassSymbol)calleeMethodSym.owner, utils.isJMLStatic(calleeMethodSym)); // FIXME - do parent classes also?
-                    } finally {
+                        if (isPure(calleeMethodSym)) {
+                            currentStatements.add(comment(classDecl, "Not assuming invariants for caller fields after exiting the pure callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
+                        } else {
+                            currentStatements.add(comment(classDecl, "Assuming non-final invariants for caller fields after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
+                            freshnessReferenceCount = allocCounter;
+                            assumeFieldInvariants((ClassSymbol)calleeMethodSym.owner, utils.isJMLStatic(calleeMethodSym), true); // FIXME - do parent classes also?
+                        }
+                        } finally {
                         currentThisExpr = saved2;
                         freshnessReferenceCount = savedCount;
                     }
