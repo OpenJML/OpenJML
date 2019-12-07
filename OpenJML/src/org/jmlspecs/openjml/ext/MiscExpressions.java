@@ -158,6 +158,27 @@ public class MiscExpressions extends ExpressionExtension {
         }
     };
 
+    public static final String allocID = "\\isAllocated";
+    public static final IJmlClauseKind allocKind = new AnyArgBooleanExpressions(allocID){
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
+            JmlMethodInvocation expr = (JmlMethodInvocation)tree;
+            int n = expr.args.size();
+            if (n != 1 && n != 2) {
+                Log.instance(context).error(tree.pos(),"jml.wrong.number.args",name(),"1 or 2",n);
+            }
+            if (n > 0) {
+                if (n > 1) attr.checkLabel(expr.args.get(1));
+                JCExpression arg = expr.args.get(0);
+                Type tt = attr.attribExpr(arg, localEnv);
+                if (tt.isPrimitive()) {
+                    Log.instance(context).error(arg.pos(),"jml.ref.arg.required", name());
+                }
+            }
+            return Symtab.instance(context).booleanType;
+        }
+    };
+
     public static final String bsmaxID = "\\max";
     public static final IJmlClauseKind bsmaxKind = new IJmlClauseKind.Expression(bsmaxID) {
 

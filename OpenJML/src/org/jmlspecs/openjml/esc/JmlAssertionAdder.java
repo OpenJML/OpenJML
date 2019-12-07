@@ -2647,10 +2647,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         TypeSymbol basecsym = basetype.tsym;
         if (basetype.isPrimitive()) return;
         if (!translatingJML) clearInvariants();
-        if (startInvariants(basecsym,pos)) return;
         if (methodDecl.sym.isConstructor() && assume && types.isSameType(methodDecl.sym.type, basetype)) {
             return;
         }
+        if (startInvariants(basecsym,pos)) return;
+        //if (basecsym.toString().contains("SassyOption")) System.out.println("START SassyOption " + (scount++));
 
         java.util.List<Type> parents = parents(basetype, true);
         boolean contextIsStatic = receiver == null;
@@ -3808,9 +3809,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected void assumeStaticInvariants(ClassSymbol csym) {
-        if (startInvariants(csym,methodDecl)) return;
         JmlSpecs.TypeSpecs tspecs = specs.get(csym);
         if (tspecs == null) return; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
+        if (startInvariants(csym,methodDecl)) return;
+        //if (csym.toString().contains("SassyOption")) System.out.println("START SassyOption " + (scount++));
+        try {
         for (JmlTypeClause t : tspecs.clauses) {
             if (t.clauseType != invariantClause) continue; 
             if (!utils.isJMLStatic(t.modifiers,csym)) continue;
@@ -3820,7 +3823,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     t,t.source(),
                     utils.qualifiedMethodSig(methodDecl.sym));
         }
+        } finally {
         endInvariants(csym);
+        }
         for (Symbol ccsym: csym.getEnclosedElements()) {
             if (ccsym instanceof ClassSymbol) {
                 assumeStaticInvariants((ClassSymbol)ccsym);
@@ -4263,6 +4268,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected void assumeFieldInvariants(JCMethodDecl methodDecl, JCClassDecl classDecl) {
         // Assume invariants for the class of each field of the owning class
+        // If methodDecl is static, then only consider static fields
+        // If methodDecl is helper, then do not add fields of the same type as the owner of the method
         JCExpression savedThis = currentThisExpr;
         for (JCTree dd: classDecl.defs) {
             if (!(dd instanceof JCVariableDecl)) continue;
@@ -4321,7 +4328,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCVariableDecl d = (JCVariableDecl)dd;
             if (utils.isPrimitiveType(d.sym.type)) continue;
             if (staticOnly && !utils.isJMLStatic(d.sym)) continue;
-            if (noFinal && isFinal(d.sym)) continue;
+            if (noFinal && isFinal(d.sym)) continue; // No need to repeat final invariants
             if (isDataGroup(d.type)) continue;
             
             //if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
@@ -7372,7 +7379,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
 
-    /** Returns an expression indicating whether an object is allocated in the current state.
+    /** Returns an expression indicating whether an object is allocated in the current state (obj.isalloc__).
      */
     protected JCFieldAccess isAllocated(DiagnosticPosition pos, JCExpression obj) {
         //if (rac) return treeutils.falseLit; // FIXME - how do we handle this aspect of assignment checking in RAC.
@@ -7710,6 +7717,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public java.util.List<Symbol> completedInvariants = new LinkedList<Symbol>();
     public java.util.Set<Symbol> inProcessInvariants = new HashSet<Symbol>();
     
+    //int scount = 0;
+    //int ecount = 0;
+    
     protected boolean startInvariants(Symbol csym, DiagnosticPosition pos) {
         if (completedInvariants.contains(csym)) return true; // skip processing
         if (inProcessInvariants.add(csym)) return false; // ok to do processing
@@ -7731,6 +7741,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected void endInvariants(Symbol csym) {
+        //if (csym.toString().contains("SassyOption")) System.out.println("END SassyOption " + (ecount++) + " " + scount);
         inProcessInvariants.remove(csym);
         completedInvariants.add(csym);
     }
@@ -7758,16 +7769,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected JCExpression allocCounterLE(DiagnosticPosition pos, JCExpression expr, int counter) {
         JCFieldAccess fa = treeutils.makeSelect(pos.getPreferredPosition(), expr, allocSym);
-        JCExpression e = treeutils.makeBinary(pos, JCTree.Tag.LE, treeutils.intleSymbol, fa, treeutils.makeIntLiteral(pos, counter));
-        return treeutils.makeOr(pos.getPreferredPosition(), treeutils.makeEqNull(pos.getPreferredPosition(), expr),e);
+        return treeutils.makeBinary(pos, JCTree.Tag.LE, treeutils.intleSymbol, fa, treeutils.makeIntLiteral(pos, counter));
     }
     
+    // expr.alloc == counter (that is, expr was allocated in the state corresponding to counter)
     protected JCExpression allocCounterEQ(DiagnosticPosition pos, JCExpression expr, int counter) {
         JCFieldAccess fa = treeutils.makeSelect(pos.getPreferredPosition(), expr, allocSym);
         JCExpression e = treeutils.makeBinary(pos, JCTree.Tag.EQ, treeutils.inteqSymbol, fa, treeutils.makeIntLiteral(pos, counter));
         return treeutils.makeOr(pos.getPreferredPosition(), treeutils.makeEqNull(pos.getPreferredPosition(), expr),e);
     }
     
+    // expr.alloc > counter (that is, expr was allocated after the state corresponding to counter)
     protected JCExpression allocCounterGT(DiagnosticPosition pos, JCExpression expr, int counter) {
         JCFieldAccess fa = treeutils.makeSelect(pos.getPreferredPosition(), expr, allocSym);
         JCExpression e = treeutils.makeBinary(pos, JCTree.Tag.GT, treeutils.intgtSymbol, fa, treeutils.makeIntLiteral(pos, counter));
@@ -8236,6 +8248,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (details && !isHelper(calleeMethodSym) && !isSuperCall && !isThisCall &&
                             !startInvariants(calleeMethodSym.owner,that)) {
 
+                        //if (calleeMethodSym.owner.toString().contains("SassyOption")) System.out.println("START SassyOption " + (scount++));
                         for (Type t: parents(calleeMethodSym.owner.type, false)) {
                             ClassSymbol csym = (ClassSymbol)t.tsym;
                             for (JmlTypeClause clause: specs.getSpecs(csym).clauses) {
@@ -8408,6 +8421,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // expressions - at least if the method returns a value and the
             // method call is a subexpression of a larger expression
             
+            // If there is a possiblity that something will be allocated in the call we bump up the allocation counter:
+            // No if the method is pure and does not return an object.
+            
+            int preAllocCounter = allocCounter;
+            if (!isPure(methodDecl.sym) || newclass != null || resultType.isReference()) {
+                ++allocCounter;
+            }
             
             // A variable for the method call result is declared, and then 
             // everything else is within a block.
@@ -8576,7 +8596,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
                 if (resultExpr != null && !utils.isPrimitiveType(resultExpr.type)) { // FIXME - expect this to be always true
                     newAllocation2(that,resultExpr); // FIXME - should have an JCIdent?
-                    JCExpression e = allocCounterEQ(that, resultExpr, ++allocCounter);
+                    JCExpression e = allocCounterEQ(that, resultExpr, allocCounter);
                     addAssume(that,Label.IMPLICIT_ASSUME,e);
                 }
                 
@@ -8730,7 +8750,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             boolean hasModelProgram = hasModelProgram(overridden);
             
             // Iterate over all specs to find preconditions
-            int callLabelReferenceCount = allocCounter;  // FIXME _ is this too early?
+            int callLabelReferenceCount = preAllocCounter;  // FIXME _ is this too early?
             boolean allCasesNormal = true;
             int numCases = 0;
             { // In quantifications, splitExpressions is set to false
@@ -9087,6 +9107,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JmlLabeledStatement stat = M.at(that).JmlLabeledStatement(calllabel,null,bl);
                 addStat(stat);
                 LabelProperties lp = recordLabel(calllabel,stat);
+                lp.allocCounter = preAllocCounter;
                 labelPropertiesStore.put(oldLabel.name, lp);
                 labelPushed= true;
 
@@ -9340,7 +9361,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCBlock bl = M.at(that.pos).Block(0L,stats);
                 if (!resultSym.type.isPrimitiveOrVoid() && !utils.isPrimitiveType(resultSym.type)) {
                     JCExpression isNotFresh = treeutils.makeNot(that.pos,
-                            makeFreshExpression(that,resultExpr,preLabel.name));
+                            makeFreshExpression(that,resultExpr,oldLabel.name));
                     JCStatement stat = M.at(that.pos).If(isNotFresh,bl,null);
                     ensuresStatsOuter.add(stat);
                 } else {
@@ -9612,14 +9633,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     currentThisExpr = newThisExpr;
                     int savedCount = freshnessReferenceCount;
                     try {
-                        if (isPure(calleeMethodSym)) {
+                        if (isPure(calleeMethodSym)) { // Seems sensible, but causes failures in current work
                             currentStatements.add(comment(classDecl, "Not assuming invariants for caller fields after exiting the pure callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
                         } else {
-                            currentStatements.add(comment(classDecl, "Assuming non-final invariants for caller fields after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
-                            freshnessReferenceCount = allocCounter;
+                            currentStatements.add(comment(classDecl, "Assuming invariants for caller fields after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
+                            freshnessReferenceCount = preAllocCounter;
                             assumeFieldInvariants((ClassSymbol)calleeMethodSym.owner, utils.isJMLStatic(calleeMethodSym), true); // FIXME - do parent classes also?
                         }
-                        } finally {
+                    } finally {
                         currentThisExpr = saved2;
                         freshnessReferenceCount = savedCount;
                     }
@@ -9653,7 +9674,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         nn = treeutils.makeOr(that.pos, nn, isAllocated(that,resultExpr));
                         addAssume(that,Label.IMPLICIT_ASSUME,nn);
                         
-                        addAssume(that,Label.IMPLICIT_ASSUME, allocCounterLE(that.pos(), resultExpr, ++allocCounter));
+                        addAssume(that,Label.IMPLICIT_ASSUME, allocCounterLE(that.pos(), resultExpr, allocCounter));
                         
                         nn = treeutils.makeDynamicTypeInEquality(that, resultExpr, retType);
                         addAssume(that, Label.IMPLICIT_ASSUME, nn);
@@ -15077,7 +15098,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         if (pureCopy ) {
-            if (that.kind == oldKind || that.kind == pastKind || that.kind == preKind || that.kind == freshKind) {
+            if (that.kind == oldKind || that.kind == pastKind || that.kind == preKind || that.kind == freshKind || that.kind == allocKind) {
                 boolean savedInOldEnv = inOldEnv;
                 inOldEnv = true;
                 JCExpression arg0 = convertExpr(that.args.get(0));
@@ -15474,6 +15495,38 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 break;
             }
+            case allocID :
+            {
+                Name label = oldenv == null ? hereLabelName : oldenv.name; // Default is current location
+                if (that.args.size() > 1) {
+                    try {
+                    JCExpression lb = that.args.get(1);
+                    if (lb instanceof JCLiteral) {
+                        // FIXME - I don't think a string is allowed by type-checking
+                        String s = ((JCLiteral)lb).value.toString();
+                        label = names.fromString(s);
+                        if (labelPropertiesStore.get(label) == null) label = oldLabel.name;
+                    } else {
+                        label = ((JCIdent)lb).name;
+                    }
+                    if (labelPropertiesStore.get(label) == null) {
+                        log.error(lb, "jml.message", "Label " + label + " is not in scope here");
+                        result = eresult = treeutils.trueLit;
+                        break;
+                    }
+                    } catch (Exception e) {
+                        log.error(that, "jml.message", "Label " + label + " is not valid or not in scope here");
+                        result = eresult = treeutils.trueLit;
+                        break;
+                    }
+                }
+                if (rac) {
+                    throw new JmlNotImplementedException(that,that.kind.name());
+                } else {
+                    result = eresult = makeAllocExpression(that,convertExpr(that.args.get(0)),label);
+                }
+                break;
+            }
             case erasureID:
             {
                 JCExpression arg = that.args.get(0);
@@ -15571,14 +15624,67 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     JCExpression makeFreshExpression(DiagnosticPosition pos, JCExpression trarg, /*@ nullable */ Name label) {
+//        int ac;
+//        LabelProperties lp = null;
+//        if (trarg.type.tsym.isEnum()) {
+//            // Enums are not fresh
+//            // FIXME - what about enums classes declared as statement declarations.
+//            return treeutils.falseLit;
+//        }
+//        if (label == null) ac = allocCounter;
+//        else {
+//            lp = labelPropertiesStore.get(label);
+//            if (lp != null) {
+//                ac = lp.allocCounter;
+//            } else if (label.toString().isEmpty()) {
+//                // ERROR _ FIXME - forgot to insert a LabelProperties for Pre
+//                ac = 0;
+//            } else if (label.toString().equals("LoopBodyBegin")) {
+//                // Happens when a fresh expression referencing this label is in a loop_invariant
+//                // The checking of the loop invariant before the loop begins occurs before the label
+//                ac = allocCounter;
+//            } else {
+//                // ERROR - FIXME
+//                ac = 0;
+//            }
+//        }
+//        int p = pos.getPreferredPosition();
+        JCExpression arg = trarg;
+//        if (localVariables.isEmpty()) arg = newTemp(arg); // We make a temp variable so that the (converted) argument is not captured by the \old, except in a quantified expression
+//        // FIXME _ I don't think this works properly if no temp is allocated
+//        
+//        // obj.isAlloc && !\old(obj.isalloc,label);
+//        JCFieldAccess fa = isAllocated(pos,arg);
+//        JCExpression n = makeOld(p,fa,treeutils.makeIdent(p,label,null));
+//        JCExpression prev = treeutils.makeNot(p, n);
+//        fa = isAllocated(pos,convertCopy(arg));
+//        JCExpression ee = treeutils.makeAnd(p, prev, fa);
+//        JCExpression e = treeutils.makeNeqObject(p, arg, treeutils.nullLit);
+//        ee = e; //treeutils.makeAnd(that.pos, e, ee);
+//        
+        JCExpression exprCopy = convertCopy(arg);
+////        if (assumingPostConditions) {
+////            // allocCounter is already bumped up earlier when it was declared that the result was allocated
+////            e = allocCounterGT(pos, exprCopy, allocCounter-1);
+////        } else {
+//            // FIXME - explain why this is different than the above - this would be the postcondition for the method
+//            e = allocCounterGT(pos, exprCopy, ac);
+////        }
+        Name current = oldenv == null ? hereLabelName : oldenv.name;
+        return treeutils.makeAnd(pos, 
+                    makeAllocExpression(pos,arg,current),
+                    treeutils.makeNot(pos,makeAllocExpression(pos,exprCopy,label)));
+    }
+    
+    JCExpression makeAllocExpression(DiagnosticPosition pos, JCExpression trarg, /*@ nullable */ Name label) {
         int ac;
         LabelProperties lp = null;
         if (trarg.type.tsym.isEnum()) {
-            // Enums are not fresh
+            // Enums are always allocated
             // FIXME - what about enums classes declared as statement declarations.
-            return treeutils.falseLit;
+            return treeutils.trueLit;
         }
-        if (label == null) ac = allocCounter;
+        if (label == null || label == hereLabelName) ac = allocCounter; // CUrrent allocation state
         else {
             lp = labelPropertiesStore.get(label);
             if (lp != null) {
@@ -15599,13 +15705,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression arg = trarg;
         if (localVariables.isEmpty()) arg = newTemp(arg); // We make a temp variable so that the (converted) argument is not captured by the \old, except in a quantified expression
         // FIXME _ I don't think this works properly if no temp is allocated
-        JCFieldAccess fa = isAllocated(pos,arg);
-        JCExpression n = makeOld(p,fa,treeutils.makeIdent(p,label,null));
-        JCExpression prev = treeutils.makeNot(p, n);
-        fa = isAllocated(pos,convertCopy(arg));
-        JCExpression ee = treeutils.makeAnd(p, prev, fa);
-        JCExpression e = treeutils.makeNeqObject(p, arg, treeutils.nullLit);
-        ee = e; //treeutils.makeAnd(that.pos, e, ee);
+//        JCFieldAccess fa = isAllocated(pos,arg);
+//        JCExpression ee = makeOld(p,fa,treeutils.makeIdent(p,label,null));
+//        JCExpression e = treeutils.makeNeqObject(p, arg, treeutils.nullLit);
+//        ee = e; //treeutils.makeAnd(that.pos, e, ee);
         
         JCExpression exprCopy = convertCopy(arg);
 //        if (assumingPostConditions) {
@@ -15613,9 +15716,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            e = allocCounterGT(pos, exprCopy, allocCounter-1);
 //        } else {
             // FIXME - explain why this is different than the above - this would be the postcondition for the method
-            e = allocCounterGT(pos, exprCopy, ac);
+            JCExpression e = allocCounterLE(pos, exprCopy, ac);
 //        }
-        return treeutils.makeAnd(p, e, ee);
+        return treeutils.makeAnd(p, treeutils.makeNotNull(p, arg), e);
     }
     
     @Nullable JCExpression getInvariantAll(DiagnosticPosition pos, Type baseType, JCExpression obj) {

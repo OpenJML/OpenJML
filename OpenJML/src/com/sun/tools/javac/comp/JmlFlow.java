@@ -461,7 +461,7 @@ public class JmlFlow extends Flow  {
         public void visitApply(JCMethodInvocation tree) {
             if (tree.meth == null) {
                 IJmlClauseKind k = ((JmlMethodInvocation)tree).kind;
-                if (k == StateExpressions.oldKind || k == MiscExpressions.freshKind) {
+                if (k == StateExpressions.oldKind || k == MiscExpressions.freshKind || k == MiscExpressions.allocKind) {
                     scanExpr(tree.args.get(0)); // A second argument is just a label, and not a regular identifier
                     // FIXME - where do we check that the label is in scope
                 } else {
