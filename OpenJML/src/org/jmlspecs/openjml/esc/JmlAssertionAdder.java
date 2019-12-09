@@ -842,7 +842,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        determinismSymbols = new HashMap<>();
                         
         // Collect all classes that are mentioned in the method
-        ClassCollector collector = ClassCollector.collect(pclassDecl,pmethodDecl);
+        ClassCollector collector = ClassCollector.collect(pclassDecl,pmethodDecl,context);
         
         {
             String bv = JmlOption.value(context,JmlOption.ESC_BV);
@@ -4467,7 +4467,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (isConstructor && classDecl.sym.isEnum()) return;
         
             // Collect all classes that are mentioned in the method
-        ClassCollector collector = ClassCollector.collect(this.classDecl,this.methodDecl);
+        ClassCollector collector = ClassCollector.collect(this.classDecl,this.methodDecl,context);
 
 
 //        if (esc) { // FIXME - what about inherited fields? fields of parameters? fields of anything else?

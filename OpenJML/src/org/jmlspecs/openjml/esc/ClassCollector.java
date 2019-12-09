@@ -5,8 +5,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlSpecs;
@@ -27,13 +29,15 @@ import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCTypeCast;
+import com.sun.tools.javac.util.Context;
 
 /** This class collects all mentions of classes within the ASTs scanned. */
 class ClassCollector extends JmlTreeScanner {
     
     /** Static method that is the entry point to the functionality the collector */
-    public static /*@ non_null pure */ ClassCollector collect(/*@ non_null */JmlClassDecl cd, /*@ nullable */JmlMethodDecl md) {
+    public static /*@ non_null pure */ ClassCollector collect(/*@ non_null */JmlClassDecl cd, /*@ nullable */JmlMethodDecl md, Context context) {
         ClassCollector collector = new ClassCollector();
+        collector.context = context;
         collector.useBV = false;
         collector.doMethods = false;
         collector.scan(cd);
@@ -45,6 +49,7 @@ class ClassCollector extends JmlTreeScanner {
     }
     // FIXME - change to collecting TypeSymbol
     
+    Context context;
     boolean doMethods;
     boolean useBV = false;
     public final Set<ClassSymbol> classes = new HashSet<ClassSymbol>();
@@ -174,10 +179,21 @@ class ClassCollector extends JmlTreeScanner {
         super.visitJmlMethodInvocation(tree);
     }
     
+    Set<Symbol.MethodSymbol> methodsVisited = new HashSet<>();
+    
     @Override
     public void visitApply(JCMethodInvocation tree) {
         save(tree.type);
         super.visitApply(tree);
+        Symbol sym = (tree.meth instanceof JCIdent) ? ((JCIdent)tree.meth).sym
+                            : (tree.meth instanceof JCFieldAccess) ? ((JCFieldAccess)tree.meth).sym : null;
+        if (sym instanceof Symbol.MethodSymbol) {
+            Symbol.MethodSymbol msym = (Symbol.MethodSymbol)sym;
+            if (methodsVisited.add(msym)) {
+                JmlSpecs.MethodSpecs mspecs = JmlSpecs.instance(context).getSpecs(msym);
+                if (mspecs != null) scan(mspecs.cases);
+            }
+        }
     }
 
     @Override
