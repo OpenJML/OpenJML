@@ -126,7 +126,8 @@ class ClassCollector extends JmlTreeScanner {
     @Override
     public void visitBinary(JCTree.JCBinary tree) {
         JCTree.Tag op = tree.getTag();
-        if (tree.type.getTag() != TypeTag.BOOLEAN) {
+        // FIXME - the tree may not always be typed, but this is likely not the correct behavior
+        if (tree.type != null && tree.type.getTag() != TypeTag.BOOLEAN) {
             if (op == JCTree.Tag.BITAND || op == JCTree.Tag.BITAND_ASG) {
                 if (!useBV && tree.rhs instanceof JCLiteral) {
                     Object o = ((JCLiteral)tree.rhs).getValue();
