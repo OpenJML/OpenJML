@@ -8425,7 +8425,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // No if the method is pure and does not return an object.
             
             int preAllocCounter = allocCounter;
-            if (!isPure(methodDecl.sym) || newclass != null || resultType.isReference()) {
+            if (!isPure(methodDecl.sym) || newclass != null || resultType.isReference() || isSuperCall || isThisCall ) {
                 ++allocCounter;
             }
             

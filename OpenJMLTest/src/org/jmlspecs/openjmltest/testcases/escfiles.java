@@ -675,6 +675,11 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void escConsFresh() {
+        helpTF("consfresh");
+    }
+
+    @Test
     public void testSpecificationInterface() {
         helpTF("specificationInterfaceDemo");
     }
