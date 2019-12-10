@@ -15663,7 +15663,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        JCExpression e = treeutils.makeNeqObject(p, arg, treeutils.nullLit);
 //        ee = e; //treeutils.makeAnd(that.pos, e, ee);
 //        
-        JCExpression exprCopy = convertCopy(arg);
+//        JCExpression exprCopy = convertCopy(arg);
 ////        if (assumingPostConditions) {
 ////            // allocCounter is already bumped up earlier when it was declared that the result was allocated
 ////            e = allocCounterGT(pos, exprCopy, allocCounter-1);
@@ -15674,7 +15674,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Name current = oldenv == null ? hereLabelName : oldenv.name;
         return treeutils.makeAnd(pos, 
                     makeAllocExpression(pos,arg,current),
-                    treeutils.makeNot(pos,makeAllocExpression(pos,exprCopy,label)));
+                    treeutils.makeNot(pos,makeAllocExpression(pos,arg,label)));
     }
     
     JCExpression makeAllocExpression(DiagnosticPosition pos, JCExpression trarg, /*@ nullable */ Name label) {
@@ -15711,13 +15711,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        JCExpression e = treeutils.makeNeqObject(p, arg, treeutils.nullLit);
 //        ee = e; //treeutils.makeAnd(that.pos, e, ee);
         
-        JCExpression exprCopy = convertCopy(arg);
+//        JCExpression exprCopy = convertCopy(arg);
 //        if (assumingPostConditions) {
 //            // allocCounter is already bumped up earlier when it was declared that the result was allocated
 //            e = allocCounterGT(pos, exprCopy, allocCounter-1);
 //        } else {
             // FIXME - explain why this is different than the above - this would be the postcondition for the method
-            JCExpression e = allocCounterLE(pos, exprCopy, ac);
+            JCExpression e = allocCounterLE(pos, arg, ac);
 //        }
         return treeutils.makeAnd(p, treeutils.makeNotNull(p, arg), e);
     }
