@@ -1,0 +1,12 @@
+Proving methods in ConsFresh
+Starting proof of ConsFresh.ConsFresh() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ConsFresh.ConsFresh() with prover !!!! - no warnings
+Completed proving methods in ConsFresh
+Proving methods in Parent
+Starting proof of Parent.Parent() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Parent.Parent() with prover !!!! - no warnings
+Completed proving methods in Parent
