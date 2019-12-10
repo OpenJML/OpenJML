@@ -9985,6 +9985,37 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                     paramActuals = null;
                 }
+//                
+//                if (!rac && newclass == null && !calleeMethodSym.isConstructor() && resultType.getTag() != TypeTag.VOID) {
+//                    MethodSymbol calleeMethodSym1 = calleeMethodSym;
+//                    JCExpression newThisExpr1 = newThisExpr;
+//                    final VarSymbol resultSym1 = resultSym;
+//                    List<JCStatement> stats = collectStats( () -> 
+//                        {
+//                            addStat(comment(that,"Add determinism function call",log.currentSourceFile()));
+//                            JmlMethodDecl mdecl = specs.getSpecs(calleeMethodSym1).cases.decl;
+//                            int p = (mdecl != null) ? mdecl.pos : 0;
+//                            Name newMethodName = newNameForCallee(p, calleeMethodSym1, !calleeIsFunction);
+//                            ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+//                            if (!utils.isJMLStatic(calleeMethodSym1)) newargs.add(newThisExpr1);
+//                            newargs.addAll(trArgs);
+//                            JCIdent id = M.at(p).Ident(newMethodName);
+//                            id.sym = calleeMethodSym1;
+//                            JCExpression newCall = M.at(p).Apply(List.<JCExpression>nil(),id,newargs.toList());
+//                            newCall.setType(that.type);
+//                            JCIdent resultId = M.at(p).Ident(resultSym1);
+//                            addAssumeEqual(that, Label.METHOD_ASSUME, resultId, newCall);
+//                        });
+//                    JCBlock bl = M.at(that.pos).Block(0L,stats);
+//                    if (!resultSym.type.isPrimitiveOrVoid() && !utils.isPrimitiveType(resultSym.type)) {
+//                        JCExpression isNotFresh = treeutils.makeNot(that.pos,
+//                                makeFreshExpression(that,resultExpr,oldLabel.name));
+//                        JCStatement stat = M.at(that.pos).If(isNotFresh,bl,null);
+//                        ensuresStatsOuter.add(stat);
+//                    } else {
+//                        ensuresStatsOuter.add(bl);
+//                    }
+//                }                
                 typevarMapping = newTypeVarMapping;
             }
             // FIXME - the source must be handled properly
@@ -15732,7 +15763,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         int p = pos.getPreferredPosition();
         JCExpression arg = trarg;
-        if (localVariables.isEmpty()) arg = newTemp(arg); // We make a temp variable so that the (converted) argument is not captured by the \old, except in a quantified expression
+//        if (localVariables.isEmpty()) arg = newTemp(arg); // We make a temp variable so that the (converted) argument is not captured by the \old, except in a quantified expression
         // FIXME _ I don't think this works properly if no temp is allocated
 //        JCFieldAccess fa = isAllocated(pos,arg);
 //        JCExpression ee = makeOld(p,fa,treeutils.makeIdent(p,label,null));
