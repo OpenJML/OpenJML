@@ -22,12 +22,14 @@ import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
 import static org.jmlspecs.openjml.ext.FrameExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExpressions.*;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
 import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
+import static org.jmlspecs.openjml.ext.ReachableStatement.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import org.jmlspecs.openjml.ext.EndStatement;
 import org.jmlspecs.openjml.ext.Operators;
@@ -308,6 +310,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         this.pathmap.clear();
         this.heapVar = treeutils.makeIdent(0,assertionAdder.heapSym);
         this.methodsSeen = new HashSet<Symbol>();
+        this.continuation = Continuation.CONTINUE;
         // currentMap is set when starting a block
         // premap is set during execution
     }
@@ -1407,6 +1410,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 }
             }
             currentBlock.statements.add(st);
+        } else if (that.clauseType == haltClause) {
+
+            continuation = JmlAssertionAdder.Continuation.HALT;
 
         } else {
             log.error(that.pos,"esc.internal.error","Unknown token in BasicBlocker2.visitJmlStatementExpr: " + that.clauseType.name());

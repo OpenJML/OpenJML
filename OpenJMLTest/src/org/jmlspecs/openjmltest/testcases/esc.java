@@ -3409,13 +3409,31 @@ public class esc extends EscBase {
     @Test
     public void testCatch() {
         helpTCX("tt.TestJava",
-                "package tt; \n" + "public class TestJava { \n" + "  public void m() {\n" + "    int i = 0;\n"
-                        + "    try {\n" + "      throw new RuntimeException();\n"
-                        + "    } catch (RuntimeException e) {\n" + "      i=1;\n" + "    } catch (Exception e) {\n"
-                        + "      i=2;\n" + "    }\n" + "    //@ assert i == 1;\n" + "  }\n" + "  public void ma() {\n"
-                        + "    int i = 0;\n" + "    try {\n" + "      throw new RuntimeException();\n"
-                        + "    } catch (RuntimeException e) {\n" + "      i=1;\n" + "    } catch (Exception e) {\n"
-                        + "      i=2;\n" + "    }\n" + "    //@ assert i == 2;\n" + "  }\n" + "}",
+                "package tt; \n" 
+                        + "public class TestJava { \n" 
+                        + "  public void m() {\n" 
+                        + "    int i = 0;\n"
+                        + "    try {\n" 
+                        + "      throw new RuntimeException();\n"
+                        + "    } catch (RuntimeException e) {\n" 
+                        + "      i=1;\n" 
+                        + "    } catch (Exception e) {\n"
+                        + "      i=2;\n" 
+                        + "    }\n" 
+                        + "    //@ assert i == 1;\n" 
+                        + "  }\n" 
+                        + "  public void ma() {\n"
+                        + "    int i = 0;\n" 
+                        + "    try {\n" 
+                        + "      throw new RuntimeException();\n"
+                        + "    } catch (RuntimeException e) {\n" 
+                        + "      i=1;\n" 
+                        + "    } catch (Exception e) {\n"
+                        + "      i=2;\n" 
+                        + "    }\n" 
+                        + "    //@ assert i == 2;\n" 
+                        + "  }\n" 
+                        + "}",
                 "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Assert) in method ma", 9);
     }
 

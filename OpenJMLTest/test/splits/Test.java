@@ -83,4 +83,78 @@ public class Test {
         }
         return 202020;
     }
+    
+    public int j;
+    //@ requires i < 1000;
+    //@ ensures j == i + 1;
+    public void msw(int i) {
+        switch (i) {
+        case 0: j = 1; return;
+        case 1: j = 2; return;
+        default: j = i +1; return;
+        }
+    }
+    
+    //@ requires i < 1000;
+    //@ ensures j == i + 1;
+    public void mswa(int i) {
+        switch (i) {
+        case 0: j = 1; return;
+        case 1: j = 3; break;
+        default: j = i + 1; return;
+        }
+    }
+    
+    //@ requires i < 1000;
+    //@ ensures (\lbl J j) == i + 1;
+    public void mswb(int i) {
+        //@ show i;
+        switch (i) {
+        case 0: j = 1; return;
+        case 1: j = 3; break;
+        default: j = i + 1; return;
+        }
+        j = 2;
+    }
+    
+    //@ requires i < 1000;
+    //@ ensures j == i + 1;
+    public void mswc(int i) {
+        switch (i) {
+        case 0: j = 1; return;
+        case 1: j = 2; return;
+        }
+    }
+    
+    public void halt1(int i) {
+        
+        if (i > 0) {
+            j = 10;
+            //@ halt
+            //@ assert j == 11; // IGNORED
+        }
+        //@ assert i < 0; // FAILS
+    }
+    
+    public void halt2(int i) {
+        
+        if (i > 0) {
+            j = 10;
+            //@ halt
+            //@ assert j == 11; // IGNORED
+        }
+        //@ assert i <= 0; // SUCCEEDS
+    }
+    
+    public void halt3(int i) {
+        
+        if (i > 0) {
+            j = 10;
+            //@ halt
+            //@ assert j == 11; // IGNORED
+        } else {
+            //@ halt
+        }
+        //@ assert false; // IGNORED
+    }
 }

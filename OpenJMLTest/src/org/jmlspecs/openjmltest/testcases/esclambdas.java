@@ -532,8 +532,9 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambda() {
-        main.addOptions("-method=mm");
-        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        main.addOptions("-method=mm"); // Part of test
+        main.addOptions("-show");
+        main.addOptions("-code-math=bigint","-spec-math=bigint");  // Part of test
         //@ nullableByDefault
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
