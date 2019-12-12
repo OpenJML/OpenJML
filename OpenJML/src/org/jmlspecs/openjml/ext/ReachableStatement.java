@@ -8,6 +8,7 @@ import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -38,6 +39,7 @@ public class ReachableStatement extends JmlExtension.Statement {
     public static final String reachableID = "reachable";
     public static final String unreachableID = "unreachable";
     public static final String splitID = "split";
+    public static final String haltID = "halt";
     
     public static final IJmlClauseKind reachableClause = new ExprStatementType(reachableID);
 
@@ -45,10 +47,12 @@ public class ReachableStatement extends JmlExtension.Statement {
 
     public static final IJmlClauseKind splitClause = new ExprStatementType(splitID);
 
+    public static final IJmlClauseKind haltClause = new ExprStatementType(haltID);
+
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
     public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            reachableClause, unreachableClause, splitClause }; }
+            reachableClause, unreachableClause, splitClause, haltClause }; }
     
     public static class ExprStatementType extends IJmlClauseKind.Statement {
         public ExprStatementType(String keyword) { super(keyword); }
@@ -65,14 +69,16 @@ public class ReachableStatement extends JmlExtension.Statement {
             int pp = parser.pos();
             int pe = parser.endPos();
             int p = scanner.currentPos();
+            boolean noExpression = keyword.equals(splitID) || keyword.equals(haltID);
+            boolean semiWarning = !noExpression && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
             parser.nextToken();
             JmlStatementExpr st = parser.maker().at(pp).JmlExpressionStatement(keyword,clauseType,null,null);
-            if (!keyword.equals(splitID)) st.expression = JmlTreeUtils.instance(context).makeBooleanLiteral(pp,true);
+            if (!noExpression) st.expression = JmlTreeUtils.instance(context).makeBooleanLiteral(pp,true);
             if (parser.token().kind == TokenKind.SEMI) {
                 parser.nextToken();
                 return st;
             } else if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
-                if (!keyword.equals(splitID)) parser.jmlwarning(p-1, "jml.missing.semi", keyword);
+                if (semiWarning) parser.jmlwarning(p-1, "jml.missing.semi", keyword);
                 return st;
             } else {
                 JCExpression opt = null;
@@ -87,7 +93,7 @@ public class ReachableStatement extends JmlExtension.Statement {
                 }
 
                 if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
-                    parser.jmlwarning(p-2, "jml.missing.semi", keyword);
+                    if (semiWarning) parser.jmlwarning(p-2, "jml.missing.semi", keyword);
                 } else if (parser.token().kind != TokenKind.SEMI) {
                     parser.jmlerror(p, "jml.missing.semi", keyword);
                 } else {
@@ -95,7 +101,6 @@ public class ReachableStatement extends JmlExtension.Statement {
                 }
                 return st;
             }
-
         }
 
         @Override

@@ -444,6 +444,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * it needs to be false when translating quantified expressions */
     public boolean splitExpressions = true;
     
+    
     // FIXME - DOCUMENT
     public boolean convertingAssignable = false;
     // FIXME - DOCUMENT
@@ -1156,14 +1157,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         checkAccessEnabled = pv;
                     }
                 }
-                try {
-                    while (iter.hasNext()) {
-                        JCStatement s = iter.next();
-                        convert(s);
-                    }
-                } catch (AbortBlockException e) {
-                    // continue
-                }
+                continuation = Continuation.CONTINUE;
+                while (continuation == Continuation.CONTINUE && iter.hasNext()) {
+                    JCStatement s = iter.next();
+                    convert(s);
+                }  // TODO: Warn if continuation is EXIT and there are remaining statements?
+                continuation = Continuation.CONTINUE;
             }
             JCBlock newMainBody = popBlock(methodDecl.body == null ? methodDecl: methodDecl.body,check);
 
@@ -1238,6 +1237,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             Log.instance(context).error("jml.internal.notsobad",message);
             return null;
         } finally {
+            if (continuation != Continuation.CONTINUE) {
+                addStat(M.at(methodDecl).JmlExpressionStatement(ReachableStatement.haltID, ReachableStatement.haltClause, null, null));
+            }
             if (undoLabels) {
                 labelPropertiesStore.pop(preLabel.name);
                 labelPropertiesStore.pop(oldLabel.name);
@@ -5389,7 +5391,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (isInInitializerBlock) {
                 initialize2(that.flags & Flags.STATIC);
             }
-            scan(that.stats);
+            for (JCStatement s: that.stats) {
+                scan(s);
+                if (continuation != Continuation.CONTINUE) {
+                    break;
+                }
+            }
         } finally {
             checkAccessEnabled = pv;
             JCBlock bl = popBlock(that.flags,that,check);
@@ -5786,13 +5793,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // record the translation from old to new AST before translating the body
                 treeMap.put(that,sw);
                 ListBuffer<JCCase> cases = new ListBuffer<JCCase>();
+                Continuation combined = Continuation.HALT;
+                boolean hasDefault = false;
                 for (JCCase c: that.cases) {
+                    continuation = Continuation.CONTINUE;
+                    if (c.pat == null) hasDefault = true;
                     JCExpression pat = (rac && c.pat instanceof JCIdent) ? c.pat : convertExpr(c.pat);
                     JCBlock b = convertIntoBlock(c,c.stats);
                     b.stats = b.stats.prepend(traceableComment(c,c,(c.pat == null ? "default:" : "case " + c.pat + ":"),null));
                     JCCase cc = M.at(c.pos).Case(pat,b.stats);
                     cases.add(cc);
+                    combined = combined.combine(continuation);  // FIXME - does this all work for fall-through cases
                 }
+                // If there is no default, there might be some cases missing, in which case CONTINUE is the appopriate value.
+                // But not if all possible cases are represented -- that situation is not represented here.
+                if (!hasDefault) combined = Continuation.CONTINUE;
+                continuation = combined;
                 sw.cases = cases.toList();
                 result = addStat(sw.setType(that.type));
             } else {
@@ -6052,7 +6068,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
                 addRecInvariants(true,catcher.param,id); // This only adds invariants for the union type
 
-
+                continuation = Continuation.CONTINUE;
                 JCBlock bl = convertBlock(catcher.getBlock());
                 addStat(bl);
                 
@@ -6071,6 +6087,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             catchers = ncatchers.toList();
         }
+        continuation = Continuation.CONTINUE;
         JCBlock finalizer = convertBlock(that.finalizer);
         List<JCTree> newResources = convertCopy(that.resources);
         // FIXME - no checks implemented on the resources
@@ -6081,6 +6098,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } finally {
             activeExceptions.clear();
             activeExceptions = savedActiveExceptions;
+            continuation = Continuation.CONTINUE;  // TODO _ can do better than this, e.g. using finallyCanCompleteNormally
         }
     }
 
@@ -6213,16 +6231,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             int savedHeapCount = heapCount;
             
             if (!split || currentSplit == null || rac || infer) {
+                continuation = Continuation.CONTINUE;
                 JCBlock thenpart = convertIntoBlock(that.thenpart,that.thenpart);
-
+                Continuation thenContinuation = continuation;
+                
+                continuation = Continuation.CONTINUE;
                 int resultHeapCount = heapCount;
                 heapCount = savedHeapCount;
                 JCBlock elsepart = that.elsepart == null ? null :
                     convertIntoBlock(that.elsepart, that.elsepart);
+                Continuation elseContinuation = continuation;
 
                 if (resultHeapCount != heapCount) heapCount = nextHeapCount();
                 JCStatement st = M.at(that).If(cond,thenpart,elsepart).setType(that.type);
                 result = addStat( st );
+                continuation = thenContinuation.combine(elseContinuation);
             } else {
                 boolean doThen = true;
                 if (currentSplit.isEmpty()) {
@@ -6237,6 +6260,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                     JCStatement st = thenpart.setType(that.thenpart.type);
                     result = addStat( st );
+                    // Keep the same value of continuation
                 } else {
                     addAssume(that.cond.pos(), Label.IMPLICIT_ASSUME, treeutils.makeNot(that.cond,cond));
                     if (that.elsepart != null) {
@@ -6244,6 +6268,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCStatement st = elsepart.setType(that.elsepart.type);
                         result = addStat( st );
                     }
+                    // Keep the same value of continuation
                 }
             }
         }
@@ -6430,6 +6455,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 stat = treeutils.makeAssignStat(p,id,treeutils.nullLit);
                 addStat(stat);
             }
+            continuation = Continuation.EXIT;
         }
         
         result = addStat( M.at(that).Return(retValue).setType(that.type) );
@@ -6467,6 +6493,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCThrow thrw = M.at(that).Throw(exceptionExpr);
                 addStat(thrw);
             }
+            continuation = Continuation.EXIT;
             
         } else {
         
@@ -6508,6 +6535,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } finally {
                 JCBlock block = popBlock(that,check);
                 result = addStat(block);
+                continuation = Continuation.EXIT;
             }
         }
         return;
@@ -16623,6 +16651,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addAssume(that, Label.IMPLICIT_ASSUME, cond);
                 }
 
+            } else if (that.clauseType == ReachableStatement.haltClause) {
+
+                addStat(that);
+                continuation = Continuation.HALT;
+                
             } else if (that.clauseType == ReachableStatement.unreachableClause) {
 
                 addTraceableComment(that);
@@ -16779,7 +16812,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addAssert(clause, Label.POSTCONDITION, convertJML(a.expression));
             }
             isRefiningBranch = true;
-            throw new JmlTreeScanner.AbortBlockException();
+            addStat(M.at(that).JmlExpressionStatement(ReachableStatement.haltID, ReachableStatement.haltClause, null, null));
+            continuation = Continuation.HALT;
         }
         result = null;
     }

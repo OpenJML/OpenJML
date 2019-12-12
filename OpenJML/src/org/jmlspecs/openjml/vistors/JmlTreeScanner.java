@@ -66,14 +66,21 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 
     public void scan(JCTree t) { super.scan(t); }
 
-    public static class AbortBlockException extends RuntimeException {
-    }
-    
-    public void scan(List<? extends JCTree> list) { 
-        try {
-            super.scan(list); 
-        } catch (AbortBlockException e) {
-            
+    public static enum Continuation { CONTINUE, HALT, EXIT ;
+        public Continuation combine(Continuation b) {
+            return this == Continuation.CONTINUE ? Continuation.CONTINUE
+                    : b == Continuation.CONTINUE ? Continuation.CONTINUE
+                    : this == b ? this
+                    : Continuation.EXIT;
+        }
+    } // EXIT represents any unconditional end of the current flow (return, throw, break, continue)
+    public Continuation continuation = Continuation.CONTINUE;
+
+    public void scan(List<? extends JCTree> trees) {
+        if (trees != null)
+        for (List<? extends JCTree> l = trees; l.nonEmpty(); l = l.tail) {
+            scan(l.head);
+            if (continuation != Continuation.CONTINUE) break;
         }
     }
 

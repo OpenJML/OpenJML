@@ -252,7 +252,6 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     /** The symbol used to designate the exception thrown by the method. */
     protected VarSymbol exceptionSym;
 
-
     // THE FOLLOWING FIELDS ARE USED IN THE COURSE OF DOING THE WORK OF CONVERTING
     // TO BASIC BLOCKS.  They are fields of the class because they need to be
     // shared across the visitor methods. Other such fields are declared close
@@ -389,7 +388,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             // log a warning, ignore the block, and continue processing.
             // Note that the block will still have an id and be in the 
             // id map (blockLookup).
-            // This can also happen if the previous block ended with a JML end statement.
+            // This can also happen if the previous block ended with a JML end or halt statement.
             if (!block.statements.isEmpty() && !block.id().name.toString().contains(TRYFINALLYNORMAL) && !block.id().name.toString().contains("finallyExit")) {
                 // Because of the possibility of end statements, for now we will not issue this warning
                 //                log.warning("jml.internal","A basic block has no predecessors - ignoring it: " + block.id);
@@ -414,7 +413,9 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * remainingStatements list).
      */
     protected void processCurrentBlock() {
+        continuation = Continuation.CONTINUE;
         processStats(remainingStatements);
+        if (currentBlock != null && continuation == Continuation.HALT) replaceFollows(currentBlock,(List<T>)null);
         completeBlock(currentBlock);
     }
     
@@ -422,6 +423,10 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         while (!stats.isEmpty()) {
             JCStatement s = stats.remove(0);
             if (s != null) s.accept(this);  // A defensive check - statements in the list should not be null
+            if (continuation != Continuation.CONTINUE) {
+                stats.clear();
+                break;
+            }
         }
     }
     
@@ -518,12 +523,12 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * @param before
      * @param after
      */
-    protected void replaceFollows(@NonNull T before, @NonNull List<T> after) {
+    protected void replaceFollows(@NonNull T before, List<T> after) {
         for (T b: before.followers()) {
             b.preceders().remove(before);
         }
         before.followers().clear();
-        for (T b: after) {
+        if (after != null) for (T b: after) {
             follows(before,b);
         }
     }
@@ -1173,15 +1178,12 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             if (!remainingStatements.isEmpty()) {
                 // Not fatal, but does indicate a problem with the original
                 // program, which the compiler may have already identified
-                // Does happen when splits are used. In which case the extra
-                // statements are appropriately ignored and are not represented in
-                // the basic blocker program because txhey no longer follow any
-                // live statements.
-//                log.warning(remainingStatements.get(0).pos,
-//                        "esc.internal.error", //$NON-NLS-1$
-//                        "Unexpected statements following a return statement are ignored"); //$NON-NLS-1$
+                if (continuation == Continuation.CONTINUE) log.warning(remainingStatements.get(0).pos,
+                        "esc.internal.error", //$NON-NLS-1$
+                        "Unexpected statements following a return statement are ignored"); //$NON-NLS-1$
                 remainingStatements.clear();
             }
+            if (continuation == Continuation.CONTINUE) continuation = Continuation.EXIT;
         }
         
         // There are no remaining statements, so this new block is empty.
@@ -1218,11 +1220,12 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             if (!remainingStatements.isEmpty()) {
                 // Not fatal, but does indicate a problem with the original
                 // program, which the compiler may have already identified
-                log.warning(remainingStatements.get(0).pos,
+                if (continuation == Continuation.CONTINUE) log.warning(remainingStatements.get(0).pos,
                         "esc.internal.error",
                         "Unexpected statements following a throw statement");
                 remainingStatements.clear();
             }
+            if (continuation == Continuation.CONTINUE) continuation = Continuation.EXIT;
         }
         
         // There are no remaining statements, so this new block is empty.

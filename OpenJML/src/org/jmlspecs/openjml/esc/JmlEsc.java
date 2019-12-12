@@ -189,7 +189,6 @@ public class JmlEsc extends JmlTreeScanner {
             return;
         }
 
-        Main.instance(context).pushOptions(decl.mods);
         IProverResult res = null;
         if (decl.body == null) return; // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent
         if (!(decl instanceof JmlMethodDecl)) {
@@ -215,14 +214,16 @@ public class JmlEsc extends JmlTreeScanner {
             return;
         }
 
+        Main.instance(context).pushOptions(decl.mods);
         try {
     	    res = doMethod(methodDecl);
         } catch (PropagatedException e) {
             IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
             if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult("",IProverResult.CANCELLED,methodDecl.sym));
             throw e;
+        } finally {
+            Main.instance(context).popOptions();
         }
-        Main.instance(context).popOptions();
         return;        
     }
     

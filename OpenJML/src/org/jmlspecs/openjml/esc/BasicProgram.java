@@ -241,7 +241,7 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
                     pw.flush();
                 }
                 if (followers.isEmpty()) {
-                    pw.print("    return;");
+                    pw.print("    <no continuation>;");
                 } else {
                     pw.print("    goto");
                     boolean first = true;
