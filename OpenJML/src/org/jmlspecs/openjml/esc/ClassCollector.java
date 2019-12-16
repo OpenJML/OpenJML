@@ -158,7 +158,9 @@ class ClassCollector extends JmlTreeScanner {
     public void visitAssignop(JCTree.JCAssignOp tree) {
         JCTree.Tag op = tree.getTag();
         if (op == JCTree.Tag.BITAND_ASG ||  op == JCTree.Tag.BITOR_ASG  || op == JCTree.Tag.BITXOR_ASG  
-            || op == JCTree.Tag.SL_ASG || op == JCTree.Tag.SR_ASG || op == JCTree.Tag.USR_ASG    ) useBV = true;
+            || op == JCTree.Tag.SL_ASG || op == JCTree.Tag.SR_ASG || op == JCTree.Tag.USR_ASG    ) {
+            useBV = true;
+        }
         super.visitAssignop(tree);
     }
     
