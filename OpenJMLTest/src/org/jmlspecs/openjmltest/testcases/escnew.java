@@ -2067,6 +2067,86 @@ public class escnew extends EscBase {
     }
 
     @Test 
+    public void testConstantFolding4() {
+        main.addOptions("-method=mm","-show=translated");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+
+                +"  //@ requires a.length > 10;\n" 
+                +"  public void mm(int[] a) {\n" 
+                +"      int x = a[2];\n" 
+                +"      int[] z = new int[3];\n" 
+                +"      //@ ghost boolean b = Integer.class <: Number.class;\n" 
+                +"      //@ ghost boolean bb = Number.class <: Boolean.class;\n" 
+                +"      //@ assert b && !bb;\n"
+                +"  }\n"
+                
+               
+                +"}"
+                );
+    }
+
+    @Test 
+    public void testConstantFolding3() {
+        main.addOptions("-method=mm","-show=translated");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+
+                +"  public void mm() {\n" 
+                +"      m(Integer.class);\n" 
+                +"      m(Boolean.class);\n" 
+                +"      m(Short.class);\n" 
+                +"  }\n"
+                +"  public static int j;\n" 
+                +"  //@ requires clazz <: Number.class;\n" 
+                +"  //@ assignable j;\n" 
+                +"  //@ ensures j > 100;\n" 
+                +"  //@ also\n" 
+                +"  //@ requires clazz <: Boolean.class;\n" 
+                +"  //@ assignable j;\n" 
+                +"  //@ ensures j > 200;\n" 
+                +"  //@ also\n" 
+                +"  //@ requires clazz <: String.class;\n" 
+                +"  //@ assignable j;\n" 
+                +"  //@ ensures j > 200;\n" 
+                +"  public static  void m( Class<?> clazz) {\n" 
+                +"    j = 1000;\n"
+                +"  }\n"
+                
+               
+                +"}"
+                );
+    }
+
+
+    @Test 
+    public void testConstantFolding5() {
+ //       main.addOptions("-method=mm","-show=translated");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+
+                +"  public void mm() {\n" 
+                +"      m(1);\n" 
+                +"      m(2);\n" 
+                +"  }\n"
+                +"  public int j;\n" 
+                +"  //@ requires i > 0;\n" 
+                +"  //@ assignable j;\n" 
+                +"  //@ ensures j > 100;\n" 
+                +"  //@ also\n" 
+                +"  //@ requires i >= 2;\n" 
+                +"  //@ assignable j;\n" 
+                +"  //@ ensures j > 200;\n" 
+                +"  public void m(int i) {\n" 
+                +"    j = 1000;\n"
+                +"  }\n"
+                
+               
+                +"}"
+                );
+    }
+
+    @Test 
     public void testConstantFolding2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"

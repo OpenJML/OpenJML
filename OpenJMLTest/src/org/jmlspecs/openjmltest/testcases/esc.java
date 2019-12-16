@@ -1728,12 +1728,12 @@ public class esc extends EscBase {
     public void testAssume() {
         //print=true;
         //org.junit.Assert.fail("Times out - needs fixing"); // TImes out on CHAIN1
-//        main.addOptions("-show","-method=bassumeCHAIN1");
+        main.addOptions("-show","-method=bassumeBADASSUMP");
         helpTCX("tt.TestJava", "package tt; \n" 
-                + "public class TestJava { \n" 
+                + "public class TestJava { public static final int z = 0; \n" 
                 + "  //@ requires bb;\n"
                 + "  //@ ensures true;\n"
-                + "  public static void bassumeBADASSUMP(boolean bb) { /*@assume 0==1 ;*/  /*@ assert false; */ }\n" // Should succeed despite the false assert
+                + "  public static void bassumeBADASSUMP(boolean bb) { /*@assume z==1 ;*/  /*@ assert false; */ }\n" // Should succeed despite the false assert
                 + "  //@ requires bbb;\n"
                 + "  public static void bifOK(boolean bb,boolean b, boolean bbb) { /*@assume true;*/ if (bb) { /*@assume !b;*/ /*@ assert !bb; */ }  }\n"
                 + "  //@ requires b;\n"
