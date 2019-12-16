@@ -852,6 +852,7 @@ public class JmlParser extends JavacParser {
                     needSemi = false;
 
                 } else if (jtoken == JmlTokenKind.REFINING) {
+                    S.setJmlKeyword(true);
                     st = parseRefining(pos,jtoken);
                     needSemi = false;
 
@@ -948,9 +949,9 @@ public class JmlParser extends JavacParser {
                 nextToken();
             }
         } else {
-            if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
+            //if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
                 log.warning(pos(),"jml.refining.required");
-            }
+            //}
         }
         JCModifiers mods = modifiersOpt();
         JmlMethodSpecs specs = parseMethodSpecs(mods);
