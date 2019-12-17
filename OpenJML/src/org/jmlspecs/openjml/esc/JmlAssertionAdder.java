@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 
@@ -14135,6 +14136,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Outer block to restrict scopes of temporaries
         pushBlock();
 
+        if (!rac && types.isSubtype(types.erasure(that.expr.type), types.erasure(syms.iterableType))) {
+            Type t = types.asSuper(that.expr.type, syms.iterableType.tsym);
+//            java.util.Optional<Symbol> sym = java.util.Optional.<Symbol>empty();
+//            for (Symbol ss: t.tsym.getEnclosedElements()) {
+//                if (ss.name.toString().equals("values")) {
+//                    sym = java.util.Optional.of(ss);
+//                }
+//            }
+            java.util.Optional<Symbol> sym = t.tsym.getEnclosedElements().stream().filter(s->s.name.toString().equals("values")).findFirst();
+            if (sym.isPresent()) {
+                JCExpression fa = M.at(that.expr).Select(that.expr,sym.get());
+                fa.type = sym.get().type;
+                that.expr = fa;
+            } else {
+                log.error(that.expr,"jml.message","No values field found for type " + that.expr.type);
+            }
+            
+        }
         JCExpression array = convertExpr(that.expr);
 
         JCVariableDecl indexDecl = loopHelperDeclareIndex(that);;
