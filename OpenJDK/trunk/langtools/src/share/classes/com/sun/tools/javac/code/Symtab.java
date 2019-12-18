@@ -50,6 +50,7 @@ import static com.sun.tools.javac.code.TypeTag.*;
  *  deletion without notice.</b>
  */
 public class Symtab {
+
     /** The context key for the symbol table. */
     protected static final Context.Key<Symtab> symtabKey =
         new Context.Key<Symtab>();
@@ -376,6 +377,31 @@ public class Symtab {
         type.interfaces_field = List.nil();
         return type;
     }
+    
+    private final class NoTypeSymbol extends TypeSymbol {
+        private NoTypeSymbol(int kind, long flags, Name name, Type type,
+                Symbol owner) {
+            super(kind, flags, name, type, owner);
+        }
+
+        public <R, P> R accept(ElementVisitor<R, P> v, P p) {
+            return v.visitUnknown(this, p);
+        }
+    }
+
+    private final class UnnamedPackageSymbol extends PackageSymbol {
+        private final JavacMessages messages;
+
+        private UnnamedPackageSymbol(Name name, Symbol owner,
+                JavacMessages messages) {
+            super(name, owner);
+            this.messages = messages;
+        }
+
+        public String toString() {
+            return messages.getLocalizedString("compiler.misc.unnamed.package");
+        }
+    }
 
     /** Constructor; enters all predefined identifiers and operators
      *  into symbol table.
@@ -392,16 +418,9 @@ public class Symtab {
         // create the basic builtin symbols
         rootPackage = new PackageSymbol(names.empty, null);
         final JavacMessages messages = JavacMessages.instance(context);
-        unnamedPackage = new PackageSymbol(names.empty, rootPackage) {
-                public String toString() {
-                    return messages.getLocalizedString("compiler.misc.unnamed.package");
-                }
-            };
-        noSymbol = new TypeSymbol(Kinds.NIL, 0, names.empty, Type.noType, rootPackage) {
-            public <R, P> R accept(ElementVisitor<R, P> v, P p) {
-                return v.visitUnknown(this, p);
-            }
-        };
+        unnamedPackage = new UnnamedPackageSymbol(names.empty, rootPackage, messages);
+        noSymbol = new NoTypeSymbol(Kinds.NIL, 0, names.empty, Type.noType,
+                rootPackage);
 
         // create the error symbols
         errSymbol = new ClassSymbol(PUBLIC|STATIC|ACYCLIC, names.any, null, rootPackage);

@@ -3,20 +3,17 @@
  * Author: David R. Cok
  */
 package org.jmlspecs.openjml.esc;
+
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.IAPI;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Strings;
@@ -26,7 +23,6 @@ import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
@@ -140,6 +136,7 @@ public class JmlEsc extends JmlTreeScanner {
     /** Visit a class definition */
     @Override
     public void visitClassDef(JCClassDecl node) {
+
         boolean savedMethodsOK = allMethodsOK;
         allMethodsOK = true;
         Main.instance(context).pushOptions(node.mods);
@@ -176,7 +173,7 @@ public class JmlEsc extends JmlTreeScanner {
         allMethodsOK = savedMethodsOK;
         Main.instance(context).popOptions();
     }
-    
+
     /** When we visit a method declaration, we translate and prove the method;
      * we do not walk into the method any further from this call, only through
      * the translation mechanism.  

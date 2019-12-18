@@ -158,6 +158,9 @@ public class Utils {
     /** Do ESC - set by Main.setupOptions */
     public boolean esc = false;
 
+    /** Print AST as JSON - set by Main.setupOptions */ 
+    public boolean tojson;
+    
     /** Do RAC - set by Main.setupOptions */
     public boolean rac = false;
 
