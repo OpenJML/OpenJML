@@ -74,29 +74,37 @@ public class JmlToJson {
         }
     }
 
+    /** The Java typed AST is serialized using the Jackson framework. Each element in the
+        type AST receives an unique identifier. The identifier is used to break cycles,
+        which may occurr in the typing information. We use mixin classes to configure the
+        AST objects serialization using Jackson. */
+
+    // Ignore a number of fields that are too verbose and carry too little information
     @JsonIgnoreProperties(value = { "lineMap", "endPositions", "file",
             "sourceFile", "sourceMap", "sourcefile", "classfile", "context",
             "parser", "scanner", "log", "reader", "metadata",
             "members_field", "syms", "source", "starImportScope"})
+    // Use JSON attribute @class for the object class
     @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "@class")
+    // Use JSON attribute @id for the unique identifier
     @JsonIdentityInfo(generator = JSOGGenerator.class, property = "@id")
-    private class DefaultMixin {
-    }
-    
-    @JsonIgnoreType
-    private class IgnoreMixin {
-    }
+    private class DefaultMixin {}
 
+    // Don't serialize objects with mixin IgnoreMixin
+    @JsonIgnoreType
+    private class IgnoreMixin {}
+
+    // Serialize directly (without unique identifier)
     @JsonIdentityInfo(generator = ObjectIdGenerators.None.class)
     @JsonTypeInfo(use = Id.NONE)
-    private class SimpleMixin {
-    }
-    
+    private class SimpleMixin {}
+
+    // Serialize the property flags (normally only fields are serialized)
     private interface ModifiersMixin {
         @JsonProperty("flags")
-        public Set<Modifier> getFlags();        
+        public Set<Modifier> getFlags();
     }
-    
+
     void dumpJson(Object node, File file) {
         SimpleModule nameModule = new SimpleModule()
                 .addSerializer(Name.class, new DontSerializer<Name>(Name.class))
