@@ -14136,18 +14136,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Outer block to restrict scopes of temporaries
         pushBlock();
 
+        JCExpression originalIterable = null;
+        Type iterableSuperType = null;
         if (!rac && types.isSubtype(types.erasure(that.expr.type), types.erasure(syms.iterableType))) {
-            Type t = types.asSuper(that.expr.type, syms.iterableType.tsym);
+            iterableSuperType = types.asSuper(that.expr.type, syms.iterableType.tsym);
 //            java.util.Optional<Symbol> sym = java.util.Optional.<Symbol>empty();
 //            for (Symbol ss: t.tsym.getEnclosedElements()) {
 //                if (ss.name.toString().equals("values")) {
 //                    sym = java.util.Optional.of(ss);
 //                }
 //            }
-            java.util.Optional<Symbol> sym = t.tsym.getEnclosedElements().stream().filter(s->s.name.toString().equals("values")).findFirst();
+            java.util.Optional<Symbol> sym = iterableSuperType.tsym.getEnclosedElements().stream().filter(s->s.name.toString().equals("values")).findFirst();
             if (sym.isPresent()) {
+                originalIterable = convertExpr(that.expr);
                 JCExpression fa = M.at(that.expr).Select(that.expr,sym.get());
                 fa.type = sym.get().type;
+                addAssume(that.expr,Label.IMPLICIT_ASSUME,treeutils.makeNotNull(that.expr.pos, fa));
                 that.expr = fa;
             } else {
                 log.error(that.expr,"jml.message","No values field found for type " + that.expr.type);
@@ -14206,13 +14210,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // Now in the loop, so check that the variants are non-negative
             loopHelperCheckNegative(decreasesIDs, that);
 
-            JCArrayAccess aa = new JmlBBArrayAccess(null,array,treeutils.makeIdent(that.pos, indexDecl.sym));
-            aa.setType(that.var.type);
+            JCExpression aa = new JmlBBArrayAccess(null,array,treeutils.makeIdent(that.pos, indexDecl.sym));
+            aa.pos = array.pos;
+            aa.setType(((Type.ArrayType)array.type).elemtype);
+            aa = addImplicitConversion(array, that.var.type, aa);
             JCVariableDecl loopVarDecl = treeutils.makeVarDef(that.var.type, 
                     that.var.name, methodDecl.sym, aa);
             loopVarDecl.sym = that.var.sym; // We share syms; if we don't we have to add
                                         // a mapping to paramActuals
             addStat(loopVarDecl);
+            if (that.var.type.isReference()) { // Not null
+                // If we originally had an Iterable, check the value of 'containsNull'
+                if (iterableSuperType != null) {
+                    java.util.Optional<Symbol> sym = iterableSuperType.tsym.getEnclosedElements().stream().filter(s->s.name.toString().equals("containsNull")).findFirst();
+                    if (sym.isPresent()) {
+                        JCExpression fa = M.at(that.expr).Select(originalIterable,sym.get());
+                        fa.type = syms.booleanType;
+                        JCExpression b = treeutils.makeNot(that.pos, fa);
+                        JCExpression e = treeutils.makeNotNull(that.pos, treeutils.makeIdent(that.pos, that.var.sym));
+                        b = treeutils.makeImplies(that.pos, b, e);
+                        addAssume(that,Label.IMPLICIT_ASSUME,b);
+                    }
+                }
+            }
 
         } else {
             // Have an iterable instead of an array
