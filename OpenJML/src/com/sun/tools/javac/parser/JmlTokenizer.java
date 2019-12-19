@@ -241,6 +241,12 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         scanChar(); // the next / or *
         int ch = scanChar(); // The @, or a + or - if there are keys, or something else if it is not a JML comment
         int plusPosition = reader.bp;
+        if (ch == '#') {
+            ch = scanChar();
+            if (ch == ' ') return null;
+            restoreReaderState();
+            return super.processComment(pos, endPos, style);
+        }
 
         boolean someplus = false; // true when at least one + key has been read
         boolean foundplus = false; // true when a + key that is in the list of enabled keys has been read
@@ -298,7 +304,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             return super.processComment(pos, endPos, style);
         }
 
-        // Either there were no optional keys or we fiound the right ones, so continue to process the comment
+        // Either there were no optional keys or we found the right ones, so continue to process the comment
         
         while (reader.ch == '@') {
             reader.scanChar();
