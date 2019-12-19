@@ -35,7 +35,7 @@ public class esclambdas extends EscBase {
                 +"  \n"
                 +"  public static class MMM {\n"
                 +"    public int i ;\n"
-                +"    public void bump() { i++; }\n"
+                +"    public void bump() { if (i>0) i--; i++; }\n"
                 +"  }\n"
                 
                 +"  public void m1(Iterable<@org.jmlspecs.annotation.Nullable MMM> a) {\n"
@@ -44,7 +44,7 @@ public class esclambdas extends EscBase {
                                 
                 +"}"
                 // FIXME - the column location is wrong - it is not clear that the possible null value is an element of the iterable, with the element being the receiver of the bump call in the foreach loop
-                ,"$SPECS/specs/java/lang/Iterable.jml:11: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",0
+                ,"$SPECS/specs/java/lang/Iterable.jml:41: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",40
                 );
     }
     
@@ -125,6 +125,7 @@ public class esclambdas extends EscBase {
                 +"     m1.i += (j + m2.i + k());\n"
                 +"  }\n"
                 
+                +"  //@ requires a.containsNull == false;\n"
                 +"  public void m1(/*@ non_null*/ Iterable<MMM> a) {\n"
                 +"    a.forEach(m->bump(m,m));\n"
                 +"  }\n"

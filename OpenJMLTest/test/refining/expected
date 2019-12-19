@@ -1,3 +1,6 @@
+test/refining/TestRefines.java:23: warning: A refining statement is required for statement specifications in strict JML mode
+        //@ assignable j;
+            ^
 Proving methods in TestRefines
 Starting proof of TestRefines.TestRefines() with prover !!!!
 Feasibility check - end of preconditions : OK
@@ -26,3 +29,4 @@ Result of split B is UNSAT
 Composite result UNSAT
 Completed proof of TestRefines.m2(int) with prover !!!! - no warnings
 Completed proving methods in TestRefines
+1 warning

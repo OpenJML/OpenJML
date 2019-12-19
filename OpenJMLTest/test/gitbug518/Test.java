@@ -15,7 +15,7 @@ public class Test {
         
         int e;
         
-        //@ signals (Exception e) e instanceof NullPointerException;
+        //@ refining signals (Exception e) e instanceof NullPointerException;
         {
         }
      }
@@ -23,7 +23,7 @@ public class Test {
     public void mmm(int f) {
         
         int e;
-        
+        //@ refining
         //@ old boolean e = f == 0;
         //@ ensures e==0;
         {

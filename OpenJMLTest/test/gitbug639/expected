@@ -13,8 +13,8 @@ test/gitbug639/A.java:2: warning: There is no feasible path to program point at 
 Result of split A is INFEASIBLE
 Proof attempt for split B
 test/gitbug639/A.java:4: warning: The prover cannot establish an assertion (Postcondition) in method main
-        //@ ensures false;  // statement spec, but no warning about false assertion
-            ^
+        //@ refining ensures false;  // statement spec, but no warning about false assertion
+                     ^
 Result of split B is POSSIBLY_SAT
 Composite result INFEASIBLE
 Completed proof of A.main(java.lang.String[]) with prover !!!! - INFEASIBLE
