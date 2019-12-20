@@ -1942,7 +1942,8 @@ public class SMTTranslator extends JmlTreeScanner {
             for (JCExpression arg: tree.args) {
                 newargs.add(convertExpr(arg));
             }
-            result = F.fcn(F.symbol(newname),newargs);
+            result = newargs.isEmpty() ? F.symbol(newname)
+                             : F.fcn(F.symbol(newname),newargs);
             
         }
     }
