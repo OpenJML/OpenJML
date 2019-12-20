@@ -2165,46 +2165,43 @@ public class escnew extends EscBase {
 
     @Test 
     public void testRefactoring() {
-        expectedExit = 1;
+        expectedExit = 0;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +"  public void mm(int i) {\n" 
                 +"      int a = 2;\n" 
                 +"      {\n" 
-                +"      //@ refactoring\n" 
+                +"      //#-\n" 
                 +"      a++;\n" 
-                +"      //@ as\n" 
+                +"      //#-\n" 
+                +"      a+=3;\n" 
+                +"      //# a += 2;\n" 
+                +"      }\n" 
+                +"      //@ assert a == 7;\n" 
+                +"  }\n"
+                
+                +"  public void mok2(int i) {\n" 
+                +"      int a = 2;\n" 
+                +"      {\n" 
+                +"      //#-\n" 
+                +"      a++;\n" 
                 +"      //# a += 2;\n" 
                 +"      }\n" 
                 +"      //@ assert a == 4;\n" 
                 +"  }\n"
                 
-                +"  public void mbad(int i) {\n" 
-                +"      int a = 2;\n" 
-                +"      {\n" 
-                +"      //@ refactoring\n" 
-                +"      a++;\n" 
-                +"      //# a += 2;\n" 
-                +"      }\n" 
-                +"      //@ assert a == 4;\n" 
-                +"  }\n"
-                
-                +"  public void mbad2(int i) {\n" 
-                +"      int a = 2;\n" 
-                +"      {\n" 
-                +"      //@ refactoring\n" 
-                +"      a++;\n" 
-                +"      //# a += 2;\n" 
-                +"      //@ as\n" 
-                +"      }\n" 
-                +"      //@ as\n" // FIXME warn about orphan as statement
-                +"      //@ assert a == 4;\n" 
-                +"  }\n"
+//                +"  public void mbad2(int i) {\n" 
+//                +"      int a = 2;\n" 
+//                +"      {\n" 
+//                +"      //#-\n"   // TODO - should warn about skipping the rest of the input
+//                +"      a++;\n" 
+//                +"      }\n" 
+//                +"      //@ assert a == 4;\n" 
+//                +"  }\n"
                 
                
                 +"}"
-                ,"/tt/TestJava.java:16: No terminating 'as' statement found for the 'refactoring' statement",11
                 );
     }
 

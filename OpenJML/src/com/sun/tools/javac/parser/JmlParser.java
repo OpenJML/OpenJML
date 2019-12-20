@@ -541,8 +541,6 @@ public class JmlParser extends JavacParser {
                     if (ext instanceof IJmlClauseKind.MethodClause) {
                         JCStatement s = parseRefining(pos(), null);
                         return List.<JCStatement>of(s);
-                    } else if (ext == EndStatement.refactoringClause) {
-                        parseRefactoring(pos());
                     } else {
                         JCStatement s = (JCStatement)ext.parse(null, id, ext, this);
                         //                    JCStatement s = parseStatement();
@@ -936,18 +934,6 @@ public class JmlParser extends JavacParser {
 //        }
         JCStatement stt = super.parseStatement();
         return stt;
-    }
-    
-    void parseRefactoring(int pos) {
-        nextToken();
-        List<JCStatement> s;
-        do {
-            s = blockStatement();
-            if (s.head instanceof JmlStatement && ((JmlStatement)s.head).clauseType == EndStatement.asClause ) {
-                return;
-            }
-        } while (s.head != null);
-        log.error(pos, "jml.message", "No terminating 'as' statement found for the 'refactoring' statement");
     }
     
     JCStatement parseRefining(int pos, JmlTokenKind jt) {
