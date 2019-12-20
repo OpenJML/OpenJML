@@ -41,18 +41,14 @@ public class EndStatement extends JmlExtension.Statement {
 
     public static final String endID = "end";
     public static final String beginID = "begin";
-    public static final String refactoringID = "refactoring";
-    public static final String asID = "as";
     
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
     public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            beginClause, endClause, refactoringClause, asClause }; }
+            beginClause, endClause }; }
 
     public static final IJmlClauseKind beginClause = new SimpleStatement(beginID);
     public static final IJmlClauseKind endClause = new SimpleStatement(endID);
-    public static final IJmlClauseKind refactoringClause = new SimpleStatement(refactoringID);
-    public static final IJmlClauseKind asClause = new SimpleStatement(asID);
 
     public static class SimpleStatement extends IJmlClauseKind.Statement {
         public SimpleStatement(String id) { super(id); }

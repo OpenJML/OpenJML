@@ -202,6 +202,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         reader.ch = ch;
     }
 
+    boolean skippingTokens = false;
     
     // This is called whenever the Java (superclass) scanner has scanned a whole
     // comment. We override it in order to handle JML comments specially. The
@@ -243,7 +244,18 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         int plusPosition = reader.bp;
         if (ch == '#') {
             ch = scanChar();
-            if (ch == ' ') return null;
+            if (ch == ' ' || ch == '\t') {
+                if (!skippingTokens) return null; // Go on reading from this point in the comment
+                skippingTokens = !skippingTokens;
+                return null;
+            }
+            if (ch == '-') {
+                skippingTokens = !skippingTokens;
+                scanChar();
+                restoreReaderState();
+                return null;
+            }
+            // Skip to the end of the comment - treat as non-JML
             restoreReaderState();
             return super.processComment(pos, endPos, style);
         }
@@ -369,6 +381,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             Token t = super.readToken(); // Sets tk, May modify jmlTokenKind
             pos = t.pos;
             endPos = t.endPos;
+            if (skippingTokens && t.kind != TokenKind.EOF) continue;
             // Note that the above may call processComment. If the comment is a JML comment, the
             // reader and tokenizer will be repointed to tokenize within the JML comment. This
             // may result in a CUSTOM Java token being produced with jmlTokenKind set, for example,
