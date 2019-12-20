@@ -14148,10 +14148,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            }
             java.util.Optional<Symbol> sym = iterableSuperType.tsym.getEnclosedElements().stream().filter(s->s.name.toString().equals("values")).findFirst();
             if (sym.isPresent()) {
-                originalIterable = convertExpr(that.expr);
+                originalIterable = (that.expr);
                 JCExpression fa = M.at(that.expr).Select(that.expr,sym.get());
                 fa.type = sym.get().type;
-                addAssume(that.expr,Label.IMPLICIT_ASSUME,treeutils.makeNotNull(that.expr.pos, fa));
+                fa = treeutils.makeNotNull(that.expr.pos, fa);
+                fa = convertExpr(fa);
+                addAssume(that.expr,Label.IMPLICIT_ASSUME,fa);
                 that.expr = fa;
             } else {
                 log.error(that.expr,"jml.message","No values field found for type " + that.expr.type);
@@ -14226,6 +14228,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (sym.isPresent()) {
                         JCExpression fa = M.at(that.expr).Select(originalIterable,sym.get());
                         fa.type = syms.booleanType;
+                        fa = convertExpr(fa);
                         JCExpression b = treeutils.makeNot(that.pos, fa);
                         JCExpression e = treeutils.makeNotNull(that.pos, treeutils.makeIdent(that.pos, that.var.sym));
                         b = treeutils.makeImplies(that.pos, b, e);
