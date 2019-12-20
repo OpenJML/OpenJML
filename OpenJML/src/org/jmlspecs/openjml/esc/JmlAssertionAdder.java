@@ -14151,9 +14151,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 originalIterable = (that.expr);
                 JCExpression fa = M.at(that.expr).Select(that.expr,sym.get());
                 fa.type = sym.get().type;
-                fa = treeutils.makeNotNull(that.expr.pos, fa);
-                fa = convertExpr(fa);
-                addAssume(that.expr,Label.IMPLICIT_ASSUME,fa);
+                JCExpression bin = treeutils.makeNotNull(that.expr.pos, fa);
+                bin = convertExpr(bin);
+                addAssume(that.expr,Label.IMPLICIT_ASSUME,bin);
                 that.expr = fa;
             } else {
                 log.error(that.expr,"jml.message","No values field found for type " + that.expr.type);
