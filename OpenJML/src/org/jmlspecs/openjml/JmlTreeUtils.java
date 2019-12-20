@@ -1167,7 +1167,10 @@ public class JmlTreeUtils {
      * @return the AST for the declaration
      */
     public JCVariableDecl makeVarDef(Type type, Name name, Symbol owner, int pos) {
-        int modifierFlags = 0;
+        return makeVarDef(type, name, owner, 0, pos);
+    }
+    
+    public JCVariableDecl makeVarDef(Type type, Name name, Symbol owner, int modifierFlags, int pos) {
         VarSymbol v = new VarSymbol(modifierFlags, name, type, owner);
         v.pos = pos;
         JCVariableDecl d = factory.VarDef(v,null);

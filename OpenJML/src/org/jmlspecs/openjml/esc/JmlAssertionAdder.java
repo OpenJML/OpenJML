@@ -5578,7 +5578,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         int n = lambdaLiterals.size();
         String nm = "$$JML$LAMBDALIT_" + n;
         lambdaLiterals.put(nm, new Pair<>(that,currentThisExpr));
-        JCVariableDecl d = treeutils.makeVarDef(that.type,names.fromString(nm),methodDecl.sym,that.pos);
+        JCVariableDecl d = treeutils.makeVarDef(that.type,names.fromString(nm),methodDecl.sym,Flags.FINAL,that.pos);
         addStat(d);
         JCIdent id = treeutils.makeIdent(that.pos, d.sym);
         id.type = that.type;

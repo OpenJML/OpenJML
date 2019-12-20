@@ -384,7 +384,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         if (incarnationPosition == Position.NOPOS || own == null || (!isConstructor && (sym.flags() & Flags.FINAL) != 0) || (isConstructor && (sym.flags() & (Flags.STATIC|Flags.FINAL)) == (Flags.STATIC|Flags.FINAL))) { 
             //Name n = utils.isJMLStatic(sym) ? sym.getQualifiedName() : sym.name;
             Name n = sym.name;
-            if (sym.pos >= 0 && !n.toString().equals(Strings.THIS)) n = names.fromString(n.toString() + ("_" + sym.pos));
+            if (sym.pos >= 0 && (sym.flags() & Flags.FINAL) == 0 && !n.toString().equals(Strings.THIS)) {
+                n = names.fromString(n.toString() + ("_" + sym.pos));
+            }
             if (own != null && (utils.isJMLStatic(sym) || own != methodDecl.sym.owner) && own instanceof TypeSymbol) {
                 Name s = own.getQualifiedName();
                 n = names.fromString(s.toString() + "_" + n.toString());
