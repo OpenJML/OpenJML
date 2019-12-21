@@ -1,4 +1,4 @@
-PATH CONDITION ASSERT_59_111
+PATH CONDITION ASSERT_59
 
 TRACE of tt.TestJava.m1(int)
 /tt/TestJava.java:4:  	requires i == 1; 
