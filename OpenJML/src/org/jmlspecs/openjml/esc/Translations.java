@@ -22,6 +22,7 @@ public class Translations {
         ArrayList<String> list = new ArrayList<String>(splits.keySet());
         if (list.isEmpty()) { 
             list.add(""); 
+            list.add("preconditionhalt"); 
         } else {
             Collections.sort(list);
         }

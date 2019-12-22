@@ -3211,8 +3211,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // FIXME - need to compare these to the exceptions in the method declaration
     }
     
-    protected void checkIfLocal(JCTree e) {
-        if (e instanceof JCIdent && ((JCIdent)e).sym.owner instanceof MethodSymbol) {
+    protected boolean isLocalOrParameter(JCTree e) {
+        return (e instanceof JCIdent && ((JCIdent)e).sym.owner instanceof MethodSymbol);
+    }
+    
+    protected boolean isLocalNotParameter(Symbol sym) {
+        return sym instanceof Symbol.VarSymbol && sym.owner instanceof MethodSymbol
+                        && (sym.flags() & Flags.PARAMETER) == 0;
+    }
+    
+    protected boolean isParameter(Symbol sym) {
+        return sym instanceof Symbol.VarSymbol && sym.owner instanceof MethodSymbol
+                        && (sym.flags() & Flags.PARAMETER) != 0;
+    }
+    
+    protected void checkIfParameter(JCIdent e) {
+        if (isParameter(e.sym)) {
             log.error(e,"jml.no.formals.in.assignable",e.toString());
         }
     }
@@ -3227,7 +3241,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         currentClauseType = tree.clauseKind;
         for (JCTree e: tree.list) {
             attribExpr(e, env, Type.noType);
-            if (!isRefining) checkIfLocal(e);
+            if (!isRefining && e instanceof JCIdent) checkIfParameter((JCIdent)e);
             if (currentClauseType == assignableClauseKind) {
                 if (e instanceof JCFieldAccess) {
                     if (isImmutable(((JCFieldAccess)e).selected.type.tsym)) {
@@ -3650,13 +3664,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         IJmlClauseKind prevClauseType = currentClauseType;
         currentClauseType = null;
         boolean saved = isRefining;
+        isRefining = false;
+        if (tree.statements != null) attribStats(tree.statements,env);
         try {
+            for (JCIdent id: tree.exports) {
+                attribExpr(id, env);
+                if (!isLocalNotParameter(id.sym)) {
+                    log.error("jml.message", "Identifiers here must be local: " + id.name);
+                }
+            }
             isRefining = true;
             if (tree.statementSpecs != null) attribStat(tree.statementSpecs,env);
         } finally {
             isRefining = saved;
         }
-        if (tree.statements != null) attribStats(tree.statements,env);
         currentClauseType = prevClauseType;
         jmlresolve.setAllowJML(prevAllowJML);
     }

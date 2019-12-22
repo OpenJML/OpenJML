@@ -1144,6 +1144,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat( comment(methodDecl,"Method Body",null));
 
             if (methodDecl.body != null) {
+                continuation = Continuation.CONTINUE;
+                if (currentSplit.equals("preconditionhalt")) {
+                    JCStatement s = M.at(methodDecl).JmlExpressionStatement(ReachableStatement.haltID, ReachableStatement.haltClause, Label.IMPLICIT_ASSUME, null);
+                    convert(s);
+                    continuation = Continuation.HALT;
+                }
                 if (callingThis || callingSuper) {
                     convert(iter.next());
                 } else if (isConstructor && (esc || infer)) {
@@ -1158,7 +1164,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         checkAccessEnabled = pv;
                     }
                 }
-                continuation = Continuation.CONTINUE;
                 while (continuation == Continuation.CONTINUE && iter.hasNext()) {
                     JCStatement s = iter.next();
                     convert(s);
@@ -16946,6 +16951,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // FIXME - fix when copiers are implemented
             JmlStatementSpec sp = M.at(that).JmlStatementSpec(convert(that.statementSpecs));
             sp.statements = convert(that.statements);
+            sp.exports = convert(that.exports);
             sp.setType(that.type);
             result = sp;
             return;
@@ -16966,11 +16972,46 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             currentSplit = currentSplit.substring(1);
         }
         
+        if (that.newStatements == null) {
+            ListBuffer<JCVariableDecl> newdecls = new ListBuffer<>();
+            ListBuffer<JCStatement> newstats = new ListBuffer<>();
+            for (JCStatement st: that.statements) {
+                if (st instanceof JCVariableDecl) {
+                    JCVariableDecl decl = (JCVariableDecl)st;
+                    for (JCIdent id: that.exports) {
+                        if (((JCVariableDecl)st).name == id.name) {
+                            decl = M.at(st.pos).VarDef(decl.sym, null);
+                            newdecls.add(decl);
+                            if (decl.init != null) {
+                                JCAssign assign = M.at(st.pos).Assign(
+                                    M.at(st.pos).Ident(decl.sym), decl.init);
+                                st = M.at(st.pos).Exec(assign);
+                            } else {
+                                st = null;
+                            }
+                        }
+                        break;
+                    }
+                }
+                if (st != null) newstats.add(st);
+            }
+            that.decls = newdecls.toList();
+            that.newStatements = newstats.toList();
+        }
+        for (JCVariableDecl decl: that.decls) addStat(decl); 
         JmlMethodSpecs sspecs = that.statementSpecs;
         JmlSpecificationCase cs = sspecs.cases.get(0);
         if (doSummary) {
             // Make summary branch -- use the spec instead of the code
             addStat(comment(that,"Summary branch",log.currentSourceFile()));
+            {
+                ListBuffer<JCExpression> newlist = new ListBuffer<>();
+                for (JCIdent id: that.exports) {
+                    newlist.add(convertAssignable(id,currentThisExpr,true));
+                }
+                JmlStatementHavoc hv = M.at(that).JmlHavocStatement(newlist.toList());
+                addStat(hv);
+            }
             for (JmlMethodClause clause: cs.clauses) {
                 if (clause.clauseKind != assignableClauseKind) continue;
                 JmlMethodClauseStoreRef a = (JmlMethodClauseStoreRef)clause;
@@ -16991,7 +17032,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
             // Make non-summary branch
             addStat(comment(that,"Non-summary branch",log.currentSourceFile()));
-            convert(that.statements);
+            convert(that.newStatements);
             // FIXME - change the name on this and the defaults
             // FIXME _ fix position
             addAssumeCheck(that,currentStatements,Strings.atSummaryAssumeCheckDescription);

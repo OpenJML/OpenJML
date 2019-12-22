@@ -938,6 +938,7 @@ public class JmlParser extends JavacParser {
     
     JCStatement parseRefining(int pos, JmlTokenKind jt) {
         JmlStatementSpec ste;
+        ListBuffer<JCIdent> exports = new ListBuffer<>();
         if (jt == JmlTokenKind.REFINING) {
             nextToken();
             if (jmlTokenKind() == JmlTokenKind.ALSO) {
@@ -946,6 +947,18 @@ public class JmlParser extends JavacParser {
             }
             if (token.ikind == TokenKind.ELSE) {
                 jmlerror(pos(), endPos(), "jml.invalid.also"); // FIXME - should warn about else
+                nextToken();
+            }
+            if (token.kind == TokenKind.COLON) { 
+                nextToken();
+                exports.add(jmlF.at(pos()).Ident(ident()));
+                while (token.kind == TokenKind.COMMA) {
+                    nextToken();
+                    exports.add(jmlF.at(pos()).Ident(ident()));
+                }
+                if (token.kind != TokenKind.SEMI) {
+                    jmlerror(pos(),endPos(), "jml.message", "Expected a comma or semicolon here");
+                }
                 nextToken();
             }
         } else {
@@ -964,6 +977,7 @@ public class JmlParser extends JavacParser {
             }
         }
         ste = jmlF.at(pos).JmlStatementSpec(specs);
+        ste.exports = exports.toList();
         storeEnd(ste, getEndPos(specs));
 
         List<JCStatement> stat = blockStatement();

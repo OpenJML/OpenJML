@@ -567,8 +567,11 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlStatementSpec(JmlStatementSpec that, Void p) {
-        return M.at(that.pos).JmlStatementSpec(
-                copy(that.statementSpecs,p)).setType(that.type);
+        JmlStatementSpec sp = M.at(that.pos).JmlStatementSpec(
+                copy(that.statementSpecs,p));
+        sp.exports = copy(that.exports, p);
+        sp.setType(that.type);
+        return sp;
     }
 
     @Override
