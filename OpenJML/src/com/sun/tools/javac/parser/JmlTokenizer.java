@@ -381,7 +381,6 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             Token t = super.readToken(); // Sets tk, May modify jmlTokenKind
             pos = t.pos;
             endPos = t.endPos;
-            if (skippingTokens && t.kind != TokenKind.EOF) continue;
             // Note that the above may call processComment. If the comment is a JML comment, the
             // reader and tokenizer will be repointed to tokenize within the JML comment. This
             // may result in a CUSTOM Java token being produced with jmlTokenKind set, for example,
@@ -412,8 +411,10 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                     // if initialJml == true and now the token is ENDJMLCOMMENT, then we had 
                     // an empty comment. We don't return a token in that case.
                     if (!returnEndOfCommentTokens || !initialJml) continue; // Go get next token
-                    return jmlToken;
+                    if (skippingTokens && t.kind != TokenKind.EOF) continue;
+                   return jmlToken;
                 } else {
+                    if (skippingTokens && t.kind != TokenKind.EOF) continue;
                     return t; // A Java token
                 }
             }
@@ -532,6 +533,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 jmlTokenClauseKind = Operators.dotdotKind;
                 endPos = reader.bp;
             }
+            if (skippingTokens && t.kind != TokenKind.EOF) continue;
             return jmlTokenKind == null ? t : new JmlToken(jmlTokenKind, jmlTokenClauseKind, TokenKind.CUSTOM, pos, endPos);
         }
     }
