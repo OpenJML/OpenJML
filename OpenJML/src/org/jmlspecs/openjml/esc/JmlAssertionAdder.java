@@ -16976,11 +16976,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             ListBuffer<JCVariableDecl> newdecls = new ListBuffer<>();
             ListBuffer<JCStatement> newstats = new ListBuffer<>();
             for (JCStatement st: that.statements) {
-                if (st instanceof JCVariableDecl) {
-                    JCVariableDecl decl = (JCVariableDecl)st;
+                if (st instanceof JmlVariableDecl) {
+                    JmlVariableDecl decl = (JmlVariableDecl)st;
                     for (JCIdent id: that.exports) {
-                        if (((JCVariableDecl)st).name == id.name) {
-                            decl = M.at(st.pos).VarDef(decl.sym, null);
+                        if (decl.name == id.name) {
+                            JmlVariableDecl ndecl = (JmlVariableDecl)M.at(st.pos).VarDef(decl.sym, null);
+                            ndecl.fieldSpecs = decl.fieldSpecs;
+                            ndecl.fieldSpecsCombined = decl.fieldSpecsCombined;
+                            ndecl.ident = decl.ident;
+                            ndecl.jmltype = decl.jmltype;
+                            ndecl.mods = decl.mods;
+                            ndecl.originalType = decl.originalType;
+                            ndecl.originalVartype = decl.originalVartype;
+                            ndecl.specsDecl = decl.specsDecl;
                             newdecls.add(decl);
                             if (decl.init != null) {
                                 JCAssign assign = M.at(st.pos).Assign(
@@ -17004,6 +17012,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (doSummary) {
             // Make summary branch -- use the spec instead of the code
             addStat(comment(that,"Summary branch",log.currentSourceFile()));
+            allocCounter++;
             {
                 ListBuffer<JCExpression> newlist = new ListBuffer<>();
                 for (JCIdent id: that.exports) {
