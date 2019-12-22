@@ -16989,7 +16989,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             ndecl.originalType = decl.originalType;
                             ndecl.originalVartype = decl.originalVartype;
                             ndecl.specsDecl = decl.specsDecl;
-                            newdecls.add(decl);
+                            newdecls.add(ndecl);
                             if (decl.init != null) {
                                 JCAssign assign = M.at(st.pos).Assign(
                                     M.at(st.pos).Ident(decl.sym), decl.init);
