@@ -62,6 +62,25 @@ public class TestRefines {
         return j;
     }
     
+    //@ public normal_behavior
+    //@   ensures \fresh(\result);
+    public Object m5(int i) {
+        
+        //@ refining : o;
+        //@  ensures \fresh(o);
+        //@ begin
+        Object o = q();
+        //@ end
+        
+        //@ assert o != null;
+        return o;
+    }
+    
+    //@ public normal_behavior
+    //@   ensures \fresh(\result);
+    //@ pure 
+    static public Object q() { return new Object(); }
+    
     
     
     
