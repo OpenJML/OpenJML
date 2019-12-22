@@ -674,7 +674,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlStatementSpec(JmlStatementSpec that) {
-        that.statementSpecs.accept(this);
+        that.statementSpecs.accept(this);  // FIXME - need to print exports
         if (that.statements != null) {
             try {
                 printStats(that.statements);

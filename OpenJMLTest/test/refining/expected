@@ -1,6 +1,3 @@
-test/refining/TestRefines.java:23: warning: A refining statement is required for statement specifications in strict JML mode
-        //@ assignable j;
-            ^
 Proving methods in TestRefines
 Starting proof of TestRefines.TestRefines() with prover !!!!
 Feasibility check - end of preconditions : OK
@@ -19,6 +16,21 @@ Composite result UNSAT
 Completed proof of TestRefines.m1(int) with prover !!!! - no warnings
 Starting proof of TestRefines.m2(int) with prover !!!!
 Proof attempt for split A
+test/refining/TestRefines.java:30: warning: The prover cannot establish an assertion (Postcondition) in method m2
+        return j;
+        ^
+test/refining/TestRefines.java:19: warning: Associated declaration
+    //@ ensures \result >= 12;
+        ^
+Result of split A is POSSIBLY_SAT
+Proof attempt for split B
+Feasibility check - end of preconditions : OK
+Feasibility check - at statement spec : OK
+Result of split B is UNSAT
+Composite result POSSIBLY_SAT
+Completed proof of TestRefines.m2(int) with prover !!!! - with warnings
+Starting proof of TestRefines.m3(int) with prover !!!!
+Proof attempt for split A
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Result of split A is UNSAT
@@ -27,6 +39,17 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at statement spec : OK
 Result of split B is UNSAT
 Composite result UNSAT
-Completed proof of TestRefines.m2(int) with prover !!!! - no warnings
+Completed proof of TestRefines.m3(int) with prover !!!! - no warnings
+Starting proof of TestRefines.m4(int) with prover !!!!
+Proof attempt for split A
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Result of split A is UNSAT
+Proof attempt for split B
+Feasibility check - end of preconditions : OK
+Feasibility check - at statement spec : OK
+Result of split B is UNSAT
+Composite result UNSAT
+Completed proof of TestRefines.m4(int) with prover !!!! - no warnings
 Completed proving methods in TestRefines
-1 warning
+2 warnings
