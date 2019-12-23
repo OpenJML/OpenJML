@@ -14240,6 +14240,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         addAssume(that,Label.IMPLICIT_ASSUME,b);
                     }
                 }
+                JCIdent id = M.at(that.var).Ident(that.var.sym);
+                JCExpression e = treeutils.makeNotNull(id.pos, id);
+                JCExpression ee = treeutils.makeInstanceOf(that.var.pos, id, that.var.type);
+                addAssume(that.var,Label.IMPLICIT_ASSUME,treeutils.makeImplies(that.var.pos, e, ee));
             }
 
         } else {
