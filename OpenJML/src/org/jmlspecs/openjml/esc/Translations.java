@@ -6,11 +6,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.Strings;
+
+import com.sun.tools.javac.util.Context;
 
 public class Translations {
     
-    public Translations() {}
+    public Context context;
+    
+    public Translations(Context context) {
+        this.context = context;
+    }
     
     public Translations(JmlMethodDecl d) {
         addFirstTranslation(d);
@@ -21,8 +29,9 @@ public class Translations {
     public List<String> keys() {
         ArrayList<String> list = new ArrayList<String>(splits.keySet());
         if (list.isEmpty()) { 
-            list.add(""); 
-            list.add("preconditionhalt"); 
+            list.add("");
+            if (JmlOption.value(context,JmlOption.FEASIBILITY).contains("preconditionOnly"))
+            splits.put(Strings.feas_preOnly, null);
         } else {
             Collections.sort(list);
         }

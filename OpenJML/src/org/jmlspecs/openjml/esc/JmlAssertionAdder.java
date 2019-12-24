@@ -1145,7 +1145,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             if (methodDecl.body != null) {
                 continuation = Continuation.CONTINUE;
-                if (currentSplit.equals("preconditionhalt")) {
+                if (currentSplit.equals(Strings.feas_preOnly)) {
                     JCStatement s = M.at(methodDecl).JmlExpressionStatement(ReachableStatement.haltID, ReachableStatement.haltClause, Label.IMPLICIT_ASSUME, null);
                     convert(s);
                     continuation = Continuation.HALT;
@@ -2002,6 +2002,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (label != Label.ASSUME_CHECK && Strings.feasibilityContains(Strings.feas_debug,context)) { 
             addAssumeCheck(translatedExpr,currentStatements,"Extra-Assert"); 
         }
+
         boolean isTrue = treeutils.isTrueLit(translatedExpr); 
         boolean isFalse = treeutils.isFalseLit(translatedExpr);
         if (isTrue) return null; // Literally true - don't even add the statement
@@ -2033,6 +2034,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             st.associatedClause = conditionAssociatedClause;
             treeutils.copyEndPosition(st.expression, translatedExpr);
             treeutils.copyEndPosition(st, translatedExpr); // Note that the position of the expression may be that of the associatedPos, not of the original assert, if there even is one
+
+            if (label == Label.UNDEFINED_PRECONDITION && callStack.size() > 1) {
+                String cat = String.join("\n",callStack);
+                cat = "Call stack\n" + cat + "\n";
+                callStacks.put(assertname, cat);
+            }
 
             if (trace) {
                 JCExpression newexpr = convertCopy(translatedExpr);
@@ -2171,7 +2178,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * The args are arguments for the resource key giving the error message
      * corresponding to the given Label.
      */
-    public JCStatement addAssert(
+    public JmlStatementExpr addAssert(
             DiagnosticPosition codepos, 
             Label label, 
             JCExpression expr, 
@@ -2226,7 +2233,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Creates an assumption with an associated declaration (perhaps in a different file), 
      * adding it to 'currentStatements' (does nothing if esc and rac are false)*/
-    public JCStatement addAssume(
+    public JmlStatementExpr addAssume(
             DiagnosticPosition pos, 
             Label label, 
             JCExpression ex, 
@@ -2238,7 +2245,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Creates an assumption with an associated declaration (perhaps in a 
      * different file), adding it to 'currentStatements' */
-    public JCStatement addAssume(
+    public JmlStatementExpr addAssume(
             DiagnosticPosition pos, 
             Label label, 
             JCExpression translatedExpr, 
@@ -2246,7 +2253,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             @Nullable JavaFileObject associatedSource, 
             @Nullable JCExpression info,
             Object ... args) {
-        JCStatement stt = null;
+        JmlStatementExpr stt = null;
         if ((infer || esc)) {
             if (label != Label.ASSUME_CHECK && currentStatements != null 
                     && Strings.feasibilityContains(Strings.feas_debug,context)) { 
@@ -7602,12 +7609,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         Map<Symbol,Symbol> saved = pushMapSymbols();
-        applyHelper(that);
-        popMapSymbols(saved);
-//        } finally {
-//        condition = savedCondition;
-//        }
+        try {
+            String s = utils.locationString(that.pos) + ": " +
+                    utils.qualifiedName(sym);
+            callStack.add(0,s);
+            applyHelper(that);
+        } finally {
+            callStack.remove(0);
+            popMapSymbols(saved);
+        }
     }
+    
+    java.util.List<String> callStack = new LinkedList<>();
+    Map<Name,String> callStacks = new HashMap<>();
+    
     
     public boolean checkCodeModifier(MethodSymbol calleeMethodSym, MethodSymbol mpsym, JmlSpecificationCase cs) {
         return !(mpsym != calleeMethodSym && cs.code);
@@ -8292,11 +8307,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 if (!utils.jmlvisible(null,classDecl.sym, csym, clause.modifiers.flags, methodDecl.mods.flags)) continue;
                                 JCExpression e = convertJML(((JmlTypeClauseExpr)clause).expression);
                                 e = conditionedAssertion(condition, e);// FIXME - why is the condition the location
+                                JmlStatementExpr st = null;
                                 if (assumingPureMethod) {
-                                    addAssume(that,translatingJML ? Label.UNDEFINED_PRECONDITION : Label.PRECONDITION,e,
+                                    st = addAssume(that,translatingJML ? Label.UNDEFINED_PRECONDITION : Label.PRECONDITION,e,
                                             clause,clause.source());
                                 } else if (!addingAxioms) {  // FIXME - these asserts end up in the wrong spot for axioms, but what guards do we need?
-                                    addAssert(that,translatingJML ? Label.UNDEFINED_PRECONDITION : Label.PRECONDITION,e,
+                                    st = addAssert(that,translatingJML ? Label.UNDEFINED_PRECONDITION : Label.PRECONDITION,e,
                                         clause,clause.source());
                                 }
 
@@ -15067,7 +15083,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean saved = translatingJML;
         JmlMethodDecl savedMD = methodDecl;
         methodDecl = that;
-        Translations t = new Translations();
+        Translations t = new Translations(context);
         methodBiMap.put(that,t);
         try {
             // FIXME - implemente constructors - need super calls.
