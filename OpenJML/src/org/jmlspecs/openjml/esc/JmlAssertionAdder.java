@@ -15098,6 +15098,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else {
                     body = convertMethodBodyNoInit(that,classDecl);
                 }
+                setSplits(t,splitkey); // in case the values are overwritten by recursive calls
 
                 List<JCTypeParameter> typarams = that.typarams;
                 if (fullTranslation) typarams = convertCopy(typarams); // FIXME - is there anything to be translated
