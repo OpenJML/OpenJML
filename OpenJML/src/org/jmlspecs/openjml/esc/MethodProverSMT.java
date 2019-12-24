@@ -273,7 +273,6 @@ public class MethodProverSMT {
         String[] splits = splitlist.split(",");
         Translations translations = jmlesc.assertionAdder.methodBiMap.getf(methodDecl);
         for (String splitkey: translations.keys()) {
-            
         if (splitkey.equals(Strings.feas_preOnly)) {
             if (proofResultAccumulated.isSat()) continue;
         }
