@@ -888,6 +888,11 @@ public class escfiles extends EscBase {
     public void checkAsserts() {
         helpTF("checkAsserts");
     }
+    
+    @Test
+    public void callstacks() {
+        helpTF("callstacks","-show","-method=mm");
+    }
 
 
 }

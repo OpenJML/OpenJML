@@ -289,10 +289,11 @@ public class Strings {
     static final public String feas_debug = "debug";
     static final public String feas_default = "default";
     static final public String feas_none = "none";
+    static final public String feas_preOnly = "preconditionOnly";
     static final public String feas_defaults = "precondition,spec,exit,reachable";
     static final public String feas_alls = "precondition,spec,exit,reachable,assume,assert";
     
-    static final public String[] feasibilities_alone = new String[]{ feas_none};
+    static final public String[] feasibilities_alone = new String[]{ feas_none, feas_preOnly};
     static final public String[] feasibilities = new String[]{feas_pre, feas_summary, feas_exit, feas_reachable, feas_assumes, feas_asserts, feas_all, feas_debug};
 
     // Returns null if OK, returns bad string if one is not allowed

@@ -267,18 +267,24 @@ public class MethodProverSMT {
         
         IProverResult proofResultAccumulated = null;
         IProverResult proofResult = null;
+        int numberAccumulated = 0;
 
         String splitlist = JmlOption.value(context,JmlOption.SPLIT);
         String[] splits = splitlist.split(",");
         Translations translations = jmlesc.assertionAdder.methodBiMap.getf(methodDecl);
         for (String splitkey: translations.keys()) {
+            
+        if (splitkey.equals(Strings.feas_preOnly)) {
+            if (proofResultAccumulated.isSat()) continue;
+        }
         if (!splitlist.isEmpty() && !java.util.Arrays.stream(splits).anyMatch(s -> splitkey.equals(s))) {
             log.getWriter(WriterKind.NOTICE).println("Skipping proof attempt for split " + splitkey);
             continue;
         }
             
-        if (utils.jmlverbose >= Utils.PROGRESS && !splitkey.isEmpty()) {
-            log.getWriter(WriterKind.NOTICE).println("Proof attempt for split " + splitkey);
+        if (utils.jmlverbose >= Utils.PROGRESS) {
+            if (!splitkey.isEmpty()) log.getWriter(WriterKind.NOTICE).println("Proof attempt for split " + splitkey);
+            //else if (translations.splits.size() > 1) log.getWriter(WriterKind.NOTICE).println("Proof attempt for full program");
         }
         
         JmlMethodDecl translatedMethod = translations.getTranslation(splitkey);
@@ -463,7 +469,11 @@ public class MethodProverSMT {
                 if (verbose) log.getWriter(WriterKind.NOTICE).println("Method checked OK");
                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
                 
-                if (!Strings.feasibilityContains(Strings.feas_none,context)) {
+                boolean doit = false;
+                if (Strings.feas_preOnly.equals(splitkey) && Strings.feasibilityContains(Strings.feas_preOnly,context)) {
+                    doit = true;
+                }
+                if (doit || !Strings.feasibilityContains(Strings.feas_none,context)) {
                     boolean allFeasibilities = Strings.feasibilityContains(Strings.feas_all,context) || Strings.feasibilityContains(Strings.feas_debug,context);
                     if (usePushPop) {
                         solver.pop(1); // Pop off previous check_sat
@@ -491,7 +501,8 @@ public class MethodProverSMT {
                         
                         // Only do the feasibility check if called for by the feasibility option
                         quit = stat.description == Strings.atSummaryAssumeCheckDescription;
-                        if (!allFeasibilities && !Strings.feasibilityContains(stat.description,context)) continue;
+                        if (!allFeasibilities && !Strings.feasibilityContains(stat.description,context)
+                                && !(doit && stat.description.contains(Strings.feas_pre))) continue;
                             
                         if (!usePushPop) {
                             solver2 = smt.startSolver(smt.smtConfig,proverToUse,exec);
@@ -752,15 +763,17 @@ public class MethodProverSMT {
             // FIXME - include information about the errors - now just in UI
             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
         }
-        if (utils.jmlverbose >= Utils.PROGRESS && !splitkey.isEmpty()) {
-            log.getWriter(WriterKind.NOTICE).println("Result of split "  + splitkey + " is " + proofResult.result());
+        if (utils.jmlverbose >= Utils.PROGRESS) {
+            if (!splitkey.isEmpty()) log.getWriter(WriterKind.NOTICE).println("Result of split "  + splitkey + " is " + proofResult.result());
+            //else if (translations.splits.size() > 1) log.getWriter(WriterKind.NOTICE).println("Result of full program analysis is " + proofResult.result());
         }
         if (proofResultAccumulated == null) proofResultAccumulated = proofResult;
         else if (proofResultAccumulated.result() == IProverResult.UNSAT) {
             proofResultAccumulated = proofResult;
+            numberAccumulated++;
         }
         } // end of splitkey
-        if (utils.jmlverbose >= Utils.PROGRESS && translations.keys().size() > 1) {
+        if (utils.jmlverbose >= Utils.PROGRESS && numberAccumulated > 1) {
             log.getWriter(WriterKind.NOTICE).println("Composite result " + proofResultAccumulated.result());
         }
         if (proofResultAccumulated == null) {
@@ -1097,6 +1110,13 @@ public class MethodProverSMT {
                             log.warning(assertStat.getPreferredPosition(),"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
                             loc = utils.locationString(assertStat.getPreferredPosition());
                             tracer.appendln(loc + " Invalid assertion (" + label + ")");
+                            if (label == Label.UNDEFINED_PRECONDITION) {
+                                try {
+                                    Name nm = ((JCIdent)assertStat.expression).name;
+                                    String s = jmlesc.assertionAdder.callStacks.get(nm);
+                                    if (s != null) log.note("jml.message",s);
+                                } catch (Exception ex) {}
+                            }
                         }
                         // TODO - above we include the optionalExpression as part of the error message
                         // however, it is an expression, and not evaluated for ESC. Even if it is
