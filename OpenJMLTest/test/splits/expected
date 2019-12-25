@@ -127,7 +127,6 @@ Proof attempt for split A
 Feasibility check - end of preconditions : OK
 Result of split A is UNSAT
 Skipping proof attempt for split B
-Composite result UNSAT
 Completed proof of Test.splitx(int) with prover !!!! - no warnings
 Starting proof of Test.msw(int) with prover !!!!
 Feasibility check - end of preconditions : OK
