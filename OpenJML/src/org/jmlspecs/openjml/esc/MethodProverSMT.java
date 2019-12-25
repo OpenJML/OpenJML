@@ -766,10 +766,10 @@ public class MethodProverSMT {
             if (!splitkey.isEmpty()) log.getWriter(WriterKind.NOTICE).println("Result of split "  + splitkey + " is " + proofResult.result());
             //else if (translations.splits.size() > 1) log.getWriter(WriterKind.NOTICE).println("Result of full program analysis is " + proofResult.result());
         }
+        numberAccumulated++;
         if (proofResultAccumulated == null) proofResultAccumulated = proofResult;
         else if (proofResultAccumulated.result() == IProverResult.UNSAT) {
             proofResultAccumulated = proofResult;
-            numberAccumulated++;
         }
         } // end of splitkey
         if (utils.jmlverbose >= Utils.PROGRESS && numberAccumulated > 1) {

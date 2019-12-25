@@ -15071,6 +15071,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return;
         }
         
+        Translations saved_t = translations;
+        String saved_original = originalSplit;
+        String saved_current = currentSplit;
         // Simple name of method
         String nm = that.name.toString();
 
@@ -15091,6 +15094,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             while (true) {
                 String splitkey = t.nextToDo();
                 if (splitkey == null) break;
+                // Save - in case of recursive calls
                 setSplits(t,splitkey);
                 JCBlock body = null;
                 if (pureCopy) {
@@ -15098,7 +15102,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else {
                     body = convertMethodBodyNoInit(that,classDecl);
                 }
-                setSplits(t,splitkey); // in case the values are overwritten by recursive calls
 
                 List<JCTypeParameter> typarams = that.typarams;
                 if (fullTranslation) typarams = convertCopy(typarams); // FIXME - is there anything to be translated
@@ -15164,6 +15167,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } finally {
             methodDecl = savedMD;
             translatingJML = saved;
+            // Restore
+            translations = saved_t;
+            originalSplit = saved_original;
+            currentSplit = saved_current;
         }
         
     }
