@@ -1,0 +1,40 @@
+Proving methods in CallStack
+Starting proof of CallStack.CallStack() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CallStack.CallStack() with prover !!!! - no warnings
+Starting proof of CallStack.mm() with prover !!!!
+test/callstacks/CallStack.java:7: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method mm
+    //@ requires x(i);
+                  ^
+Note: Call stack
+  test/callstacks/CallStack.java:7: : CallStack.x
+  test/callstacks/CallStack.java:4: : CallStack.m
+test/callstacks/CallStack.java:15: warning: Associated declaration
+    public boolean x(int i) {
+                   ^
+test/callstacks/CallStack.java:12: warning: Precondition conjunct is false: pos(i)
+    //@ requires pos(i);
+                    ^
+Completed proof of CallStack.mm() with prover !!!! - with warnings
+Starting proof of CallStack.m(int) with prover !!!!
+test/callstacks/CallStack.java:7: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m
+    //@ requires x(i);
+                  ^
+test/callstacks/CallStack.java:15: warning: Associated declaration
+    public boolean x(int i) {
+                   ^
+test/callstacks/CallStack.java:12: warning: Precondition conjunct is false: pos(i)
+    //@ requires pos(i);
+                    ^
+Completed proof of CallStack.m(int) with prover !!!! - with warnings
+Starting proof of CallStack.x(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CallStack.x(int) with prover !!!! - no warnings
+Starting proof of CallStack.pos(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CallStack.pos(int) with prover !!!! - no warnings
+Completed proving methods in CallStack
+6 warnings
