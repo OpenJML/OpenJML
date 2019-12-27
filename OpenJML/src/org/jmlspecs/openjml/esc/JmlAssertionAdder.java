@@ -5682,6 +5682,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     public JCExpression inlineConvertBlock(JCBlock block, Map<Object,JCExpression> replacements, Type returnType) {
+        if (!splitExpressions && block.stats.size() == 1 && block.stats.head instanceof JCReturn) {
+            // Simple expression block
+            JCExpression expr = ((JCReturn)block.stats.head).expr;
+            JCExpression newexpr = JmlTreeSubstitute.substitute(M,expr,replacements);
+            return newexpr;
+        }
         DiagnosticPosition pos = block;
         Name breakName = names.fromString("JMLBreakForReturn_" + (++lblUnique));
         JCIdent returnId = null;
