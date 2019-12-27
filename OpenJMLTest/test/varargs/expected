@@ -1,0 +1,45 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m(java.lang.Object,java.lang.Object...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m(java.lang.Object,java.lang.Object...) with prover !!!! - no warnings
+Starting proof of Test.mk(java.lang.Object,java.lang.Object...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mk(java.lang.Object,java.lang.Object...) with prover !!!! - no warnings
+Starting proof of Test.mm() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mm() with prover !!!! - no warnings
+Starting proof of Test.mmbad() with prover !!!!
+test/varargs/Test.java:28: warning: The prover cannot establish an assertion (Precondition) in method mmbad
+        Object p = mk(1,o2,null);
+                     ^
+test/varargs/Test.java:16: warning: Associated declaration
+    public Object mk(Object o, Object ... oo) {
+                  ^
+test/varargs/Test.java:13: warning: Precondition conjunct is false: \nonnullelements(oo)
+    //@   requires \nonnullelements(oo);
+                                   ^
+Completed proof of Test.mmbad() with prover !!!! - with warnings
+Starting proof of Test.mmbad2() with prover !!!!
+test/varargs/Test.java:33: warning: The prover cannot establish an assertion (Precondition) in method mmbad2
+        Object p = mk(1);
+                     ^
+test/varargs/Test.java:16: warning: Associated declaration
+    public Object mk(Object o, Object ... oo) {
+                  ^
+test/varargs/Test.java:12: warning: Precondition conjunct is false: oo.length > 1
+    //@   requires oo.length > 1;
+                             ^
+Completed proof of Test.mmbad2() with prover !!!! - with warnings
+Starting proof of Test.mn() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mn() with prover !!!! - no warnings
+Completed proving methods in Test
+6 warnings

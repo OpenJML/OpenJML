@@ -891,7 +891,12 @@ public class escfiles extends EscBase {
     
     @Test
     public void callstacks() {
-        helpTF("callstacks","-show","-method=mm");
+        helpTF("callstacks");
+    }
+    
+    @Test
+    public void varargs() {
+        helpTF("varargs");
     }
 
 
