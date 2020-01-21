@@ -1,0 +1,35 @@
+Proving methods in NullableOld
+Starting proof of NullableOld.NullableOld() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of NullableOld.NullableOld() with prover !!!! - no warnings
+Starting proof of NullableOld.m((@org.jmlspecs.annotation.Nullable :: java.lang.Object)) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of NullableOld.m((@org.jmlspecs.annotation.Nullable :: java.lang.Object)) with prover !!!! - no warnings
+Starting proof of NullableOld.mbad((@org.jmlspecs.annotation.Nullable :: java.lang.Object)) with prover !!!!
+test/nullableOld/NullableOld.java:9: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method mbad
+    //@ old Object o = oo;
+                       ^
+Completed proof of NullableOld.mbad((@org.jmlspecs.annotation.Nullable :: java.lang.Object)) with prover !!!! - with warnings
+Starting proof of NullableOld.mm() with prover !!!!
+test/nullableOld/NullableOld.java:16: warning: The prover cannot establish an assertion (Precondition) in method mm
+        m(null);
+         ^
+test/nullableOld/NullableOld.java:5: warning: Associated declaration
+    public void m(/*@ nullable */ Object oo) {
+                ^
+test/nullableOld/NullableOld.java:4: warning: Precondition conjunct is false: o != null
+    //@ requires o != null;
+                   ^
+Completed proof of NullableOld.mm() with prover !!!! - with warnings
+Starting proof of NullableOld.mmm() with prover !!!!
+test/nullableOld/NullableOld.java:9: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method mmm
+    //@ old Object o = oo;
+                       ^
+test/nullableOld/NullableOld.java:20: warning: Associated declaration
+        mbad(null);
+            ^
+Completed proof of NullableOld.mmm() with prover !!!! - with warnings
+Completed proving methods in NullableOld
+6 warnings

@@ -3050,13 +3050,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         IJmlClauseKind t = tree.clauseKind;
         for (JCTree.JCVariableDecl decl: tree.decls) {
             if (decl instanceof JmlVariableDecl) {
-                int wasFlags = 0;
-                if (env.enclMethod.sym.isStatic()) {
-                    wasFlags = Flags.STATIC;  // old and forall decls are implicitly static for a static method
-                    ((JmlVariableDecl)decl).mods.flags |= Flags.STATIC;  // old and forall decls are implicitly static for a static method
+                JCModifiers mods = ((JmlVariableDecl)decl).mods;
+                boolean statik = env.enclMethod.sym.isStatic();
+                long flags = 0;
+                if (statik) {
+                    flags |= Flags.STATIC;  // old and forall decls are implicitly static for a static method
                 }
+                if (utils.hasOnly(mods,flags) != 0) log.error(tree.pos,"jml.no.java.mods.allowed","method specification declaration");
+                mods.flags |= flags;
                 forallOldEnv = JmlCheck.instance(context).staticOldEnv;
-                JmlCheck.instance(context).staticOldEnv = wasFlags != 0;
+                JmlCheck.instance(context).staticOldEnv = statik;
                 try {
                     decl.accept(this);
                     if (decl.sym == null) {
@@ -3076,8 +3079,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 } else {
                     if (init == null) log.error(((JmlVariableDecl)decl).pos,"jml.old.must.have.init");
                 }
-                JCModifiers mods = ((JmlVariableDecl)decl).mods;
-                if (utils.hasOnly(mods,wasFlags)!=0) log.error(tree.pos,"jml.no.java.mods.allowed","method specification declaration");
                 // The annotations are already checked as part of the local variable declaration
                 //allAllowed(mods.annotations, JmlToken.typeModifiers, "method specification declaration");
             } else {

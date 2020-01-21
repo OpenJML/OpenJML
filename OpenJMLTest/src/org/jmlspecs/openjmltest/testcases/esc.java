@@ -1724,11 +1724,8 @@ public class esc extends EscBase {
     }
 
 
-    @Test
+    @Test   // FIXME - bassumeCHAIN1 times out 
     public void testAssume() {
-        //print=true;
-        //org.junit.Assert.fail("Times out - needs fixing"); // TImes out on CHAIN1
-        main.addOptions("-show","-method=bassumeBADASSUMP");
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { public static final int z = 0; \n" 
                 + "  //@ requires bb;\n"
@@ -1740,8 +1737,9 @@ public class esc extends EscBase {
                 + "  public static void bifBAD(boolean bb,boolean b) { /*@assume true;*/ if (bb) { /*@assume !b;*/ /*@ assert !bb; */ }  }\n"
                 + "  //@ requires bb;\n"
                 + "  //@ ensures true;\n"
-                + "  public static void bassumeBADASSUMP2(boolean bb) { /*@assume 0==1 ;*/  /*@ assert true; */ }\n" // Should succeed despite the false assert
-+"\n" // FIXME - times out                + "  public static void bassumeCHAIN1(boolean bb, boolean b) { if (bb) { /*@ assume !bb; assume bb;*/ b = true;  /* @ assert false; */ } }\n"
+                + "  public static void bassumeBADASSUMP2(boolean bb) { int x = 1; /*@assume 0==x ;*/  /*@ assert true; */ }\n" // Should succeed despite the false assert
++"\n" 
+                //+ "  public static void bassumeCHAIN1(boolean bb, boolean b) { if (bb) { /*@ assume !bb; assume bb;*/ b = true;  /* @ assert false; */ } }\n"
                 + "  public static void bassumeCHAIN2(boolean bb, boolean b) { if (bb) { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */ } }\n"
                 + "  public static void bassumeMULT(boolean bb, boolean b) { if (bb) { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */ } else { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */} }\n"
                 + "  public TestJava() {}\n" 
@@ -1752,8 +1750,8 @@ public class esc extends EscBase {
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method bifOK",113
                 ,"/tt/TestJava.java:9: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bifBAD(boolean,boolean)",84
                 ,"/tt/TestJava.java:9: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.bifBAD(boolean,boolean)",101
-                ,"/tt/TestJava.java:12: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeBADASSUMP2(boolean)",57
-                ,"/tt/TestJava.java:12: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.bassumeBADASSUMP2(boolean)",78
+                ,"/tt/TestJava.java:12: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeBADASSUMP2(boolean)",68
+                ,"/tt/TestJava.java:12: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.bassumeBADASSUMP2(boolean)",89
                 ,"/tt/TestJava.java:12: warning: There is no feasible path to program point at program exit in method tt.TestJava.bassumeBADASSUMP2(boolean)",22
                 // The following error is required, but can occur before or
                 // after the error on the same line

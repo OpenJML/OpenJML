@@ -299,6 +299,16 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testPreOld() {
+        helpTF("preold");//,"-show","-method=m");
+    }
+
+    @Test
+    public void testNullableOld() {
+        helpTF("nullableOld");
+    }
+
+    @Test
     public void testINF() {
         helpTF("escINF");
     }
@@ -666,7 +676,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void escLet() {
-        helpTF("escLet","-solver-seed=9999","-show","-method=m1");
+        helpTF("escLet","-solver-seed=9999");//,"-show","-method=m1");
     }
     
     @Test

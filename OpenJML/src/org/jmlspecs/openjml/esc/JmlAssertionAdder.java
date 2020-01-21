@@ -4097,7 +4097,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 addTraceableComment(decl,clause.toString());
                                 Name name = names.fromString(decl.name.toString() + "__OLD_" + decl.pos + "_" + (uniqueCount++));
                                 //JCVariableDecl newdecl = convertCopy(decl);
-                                JCVariableDecl newdecl = treeutils.makeVarDef(decl.type, name, methodDecl.sym, clause.pos);
+                                JCVariableDecl newdecl = treeutils.makeDupDecl(decl, methodDecl.sym, name, clause.pos);
+                                if (!rac) newdecl.mods.flags |= Flags.FINAL;
                                 addStat(initialStats,newdecl);
                                 mapSymbols.put(decl.sym, newdecl.sym);
                                 JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
@@ -4110,6 +4111,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 alreadyDiscoveredFields.add(id.sym);
                                 if (decl.init != null) {
                                     JCExpression convertedInit = convertJML(decl.init);
+                                    if (newdecl.sym.type.isReference() && specs.isNonNull(newdecl.sym)) {
+                                        addAssert(decl.init, Label.POSSIBLY_NULL_ASSIGNMENT, treeutils.makeNotNull(decl.init.pos, convertedInit));
+                                    }
                                     IArithmeticMode savedAM = pushArithMode();
                                     convertedInit = addImplicitConversion(decl.init, decl.type, convertedInit);
                                     popArithMode(savedAM);
@@ -8946,7 +8950,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             //                             Name name = names.fromString(decl.name.toString() + "__OLD_" + decl.pos);
                                             //JCVariableDecl newdecl = convertCopy(decl);
                                             Name name = names.fromString(decl.name.toString() + "__OLD_" + decl.pos + "_" + (uniqueCount++));
-                                            JCVariableDecl newdecl = treeutils.makeVarDef(decl.type, name, methodDecl.sym, clause.pos);
+                                            // FIXME - does the declzaration really need to be duplicated -- it is only used once
+                                            JCVariableDecl newdecl = treeutils.makeDupDecl(decl, methodDecl.sym, name, clause.pos);
+                                            if (!rac) newdecl.mods.flags |= Flags.FINAL;
                                             addStat(oldStatements,newdecl);
                                             mapSymbols.put(decl.sym, newdecl.sym);
                                             JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
@@ -8959,6 +8965,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             alreadyDiscoveredFields.add(id.sym);
                                             if (decl.init != null) {
                                                 JCExpression convertedInit = convertJML(decl.init);
+                                                if (newdecl.sym.type.isReference() && specs.isNonNull(newdecl.sym)) {
+                                                    addAssert(decl.init, Label.POSSIBLY_NULL_ASSIGNMENT, treeutils.makeNotNull(decl.init.pos, convertedInit));
+                                                }
                                                 IArithmeticMode savedAM = pushArithMode();
                                                 convertedInit = addImplicitConversion(decl.init, decl.type, convertedInit);
                                                 this.currentArithmeticMode = savedAM;
