@@ -309,6 +309,12 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testStaticOld() {
+        expectedExit = 1;
+        helpTF("staticOld");
+    }
+
+    @Test
     public void testINF() {
         helpTF("escINF");
     }
