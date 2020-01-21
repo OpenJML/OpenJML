@@ -1170,12 +1170,19 @@ public class JmlTreeUtils {
         return makeVarDef(type, name, owner, 0, pos);
     }
     
-    public JCVariableDecl makeVarDef(Type type, Name name, Symbol owner, int modifierFlags, int pos) {
+    public JCVariableDecl makeVarDef(Type type, Name name, Symbol owner, long modifierFlags, int pos) {
         VarSymbol v = new VarSymbol(modifierFlags, name, type, owner);
         v.pos = pos;
         JCVariableDecl d = factory.VarDef(v,null);
         d.pos = pos;
         return d;
+    }
+    
+    public JCVariableDecl makeDupDecl(JCVariableDecl decl, MethodSymbol owner, Name newname, int pos) {
+        JCVariableDecl newdecl = makeVarDef(decl.type, newname, owner, decl.mods.flags, pos);
+        newdecl.mods.annotations = decl.mods.annotations;
+        newdecl.sym.setAttributes(decl.sym);
+        return newdecl;
     }
     
    

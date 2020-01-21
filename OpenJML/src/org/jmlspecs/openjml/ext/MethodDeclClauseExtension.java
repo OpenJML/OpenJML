@@ -46,18 +46,19 @@ public class MethodDeclClauseExtension extends JmlExtension.MethodClause  {
         public 
         JmlMethodClauseDecl parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
+            this.scanner.setJmlKeyword(true); // Could still have a JML modifier
             // TODO: Warning if mods is not null or empty
             mods = parser.maker().Modifiers(0L);
             
             int pp = parser.pos();
             int pe = parser.endPos();
             
-            scanner.setJmlKeyword(false);
             parser.nextToken();
 
             // non_null and nullable and perhaps other type modifiers in the
             // future are allowed
             JCModifiers mods2 = parser.modifiersOpt();
+            scanner.setJmlKeyword(false);
             JCExpression t = parser.parseType();
             boolean prev = parser.setInJmlDeclaration(true); // allows non-ghost declarations
             ListBuffer<JCTree.JCVariableDecl> decls = parser.variableDeclarators(mods2, t,
