@@ -4226,6 +4226,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } finally {
                     log.useSource(prev);
                 }
+                recordLabel(scase.name,null);
             }
             clauseIds.clear();
             elseExpression = null;
@@ -13064,12 +13065,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // Variables are owned by methods if they are locals or formals
                     // Locals can't be in postcondition, so this must be a formal
                     // Formals are evaluated in the pre-state
+                    // It can also be an old id from the specification
+                    //Name nm = utils.isJMLTop(sym.flags()) ? names.fromString("Precondition") : preLabel.name;
                     result = eresult = treeutils.makeOld(that,treeutils.makeIdent(that.pos, sym),
                                 labelPropertiesStore.get(preLabel.name));
                     treeutils.copyEndPosition(eresult, that);
                     return;
                 }
                 if (rac && isPostcondition && isFormal(sym,methodDecl.sym)) {
+                    //Name nm = utils.isJMLTop(sym.flags()) ? names.fromString("Precondition") : preLabel.name;
                     JCExpression e  = treeutils.makeOld(that,treeutils.makeIdent(that.pos,sym),labelPropertiesStore.get(preLabel.name));
                     isPostcondition = false;
                     result = eresult = convertExpr(e);

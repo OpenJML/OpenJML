@@ -14,6 +14,7 @@ import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
+import com.sun.tools.javac.parser.Tokens.NamedToken;
 import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
@@ -196,8 +197,26 @@ public class JmlScanner extends Scanner {
      *            the new value of the keyword mode, returning the old mode
      */
     public boolean setJmlKeyword(boolean j) {
-        if (!savedTokens.isEmpty()) {
-            Log.instance(context).getWriter(WriterKind.NOTICE).println("JmlKeyword mode changed while token buffer has lookahead");
+        if (jmlkeyword != j && !savedTokens.isEmpty()) {
+            rescan();
+//            if (j) {
+//                // Should turn identifiers into JML tokens, where appropriate
+//                for (Token k: savedTokens) {
+//                    if (k.kind == TokenKind.IDENTIFIER) {
+//                        Log.instance(context).getWriter(WriterKind.NOTICE).println("JmlKeyword mode changed while token buffer has lookahead");
+//                    }
+//                }
+//            } else {
+//                // Should turn identifier-like JML tokens into identifiers
+//                for ( int i = 0; i < savedTokens.size(); i++) {
+//                    Token k = savedTokens.get(i);
+//                    if (k instanceof JmlToken && k.kind == TokenKind.IDENTIFIER && ((NamedToken)k).name.charAt(0) != '\\') {
+//                        Log.instance(context).getWriter(WriterKind.NOTICE).println("JmlKeyword mode changed while token buffer has lookahead");
+//                        new NamedToken(k.toString());
+//                        break;
+//                    }
+//                }
+//            }
         }
         jmltokenizer.setJmlKeyword(j);
         boolean b = jmlkeyword;

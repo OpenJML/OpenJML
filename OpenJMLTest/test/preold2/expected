@@ -1,0 +1,7 @@
+test/preold2/PreOld.java:10: error: cannot find symbol
+        //@ assert i - 1 == \old(x,a);
+                                 ^
+  symbol:   variable x
+  location: class PreOld
+Operation not performed because of parse or type errors
+1 error

@@ -2228,6 +2228,13 @@ public class JmlParser extends JavacParser {
             // lightweight
         }
         
+        Name name = null;
+        if (jt != null && token.kind == TokenKind.IDENTIFIER && S.token(1).kind == TokenKind.COLON) {
+            // Label for the specification case
+            name = ident(); // Advances token
+            nextToken(); // skips over colon
+        }
+        
         ListBuffer<JmlMethodClause> clauses = new ListBuffer<JmlMethodClause>();
         JmlMethodClause e;
         JCBlock stat = null;
@@ -2257,7 +2264,7 @@ public class JmlParser extends JavacParser {
         if (jt == null && code) code = false; // Already warned about this
         JmlSpecificationCase j = jmlF.at(pos).JmlSpecificationCase(mods, code,
                 jt, also, clauses.toList(), stat);
-        j.name = "_case_" + (++casenum);
+        j.name = name;
         storeEnd(j, j.clauses.isEmpty() ? pos + 1 : getEndPos(j.clauses.last()));
         j.sourcefile = log.currentSourceFile();
         return j;

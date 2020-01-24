@@ -2804,7 +2804,7 @@ public class JmlTree {
         public List<JmlMethodClause> clauses; // A behavior spec case has clauses but no block of statements
         public JCBlock block;  // A model program has a block (of statements) but no clauses
         public JavaFileObject sourcefile;
-        public String name;
+        public Name name;
         
         public JmlSpecificationCase(int pos, JCModifiers mods, boolean code, JmlTokenKind token, JmlTokenKind also, List<JmlMethodClause> clauses, JCBlock block) {
             this.pos = pos;

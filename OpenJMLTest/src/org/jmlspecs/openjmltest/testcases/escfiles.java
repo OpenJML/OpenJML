@@ -300,7 +300,13 @@ public class escfiles extends EscBase {
 
     @Test
     public void testPreOld() {
-        helpTF("preold");//,"-show","-method=m");
+        helpTF("preold");
+    }
+
+    @Test
+    public void testPreOld2() {
+        expectedExit = 1;
+        helpTF("preold2");
     }
 
     @Test
@@ -841,15 +847,15 @@ public class escfiles extends EscBase {
     }
     
     @Test
-    public void refines() {
+    public void refining() {
         expectedExit = 0;
         helpTF("refining");
     }
 
     @Test
-    public void refinesBad() {
+    public void refiningBad() {
         expectedExit = 1;
-        helpTF("refining2");
+        helpTF("refiningBad");
     }
 
     // Fails for -minquant and with the tnum1a/tnum2a intermediates

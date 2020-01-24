@@ -4,6 +4,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
 import org.jmlspecs.openjml.JmlExtension;
 
@@ -58,6 +59,8 @@ public class MethodDeclClauseExtension extends JmlExtension.MethodClause  {
             // non_null and nullable and perhaps other type modifiers in the
             // future are allowed
             JCModifiers mods2 = parser.modifiersOpt();
+            Utils.instance(context).setJML(mods2);
+            Utils.instance(context).setJMLTop(mods2);
             scanner.setJmlKeyword(false);
             JCExpression t = parser.parseType();
             boolean prev = parser.setInJmlDeclaration(true); // allows non-ghost declarations

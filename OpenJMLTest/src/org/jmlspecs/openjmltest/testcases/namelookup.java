@@ -248,9 +248,9 @@ public class namelookup extends TCBase {
                 "   }\n" +
                 "}"
         ,"/A.java:4: incompatible types: int cannot be converted to boolean", 20
+        ,"/A.java:5: incompatible types: double cannot be converted to boolean", 21
         ,"/A.java:7: incompatible types: int cannot be converted to boolean", 24
         ,"/A.java:8: incompatible types: double cannot be converted to boolean", 22
-        ,"/A.java:5: incompatible types: double cannot be converted to boolean", 21
         );
     }
 
@@ -265,8 +265,8 @@ public class namelookup extends TCBase {
                 "         //@ assume k(0);\n" +
                 "      }\n" +
                 "}"
-        ,"/A.java:5: incompatible types: double cannot be converted to boolean", 22
         ,"/A.java:3: incompatible types: double cannot be converted to boolean", 21
+        ,"/A.java:5: incompatible types: double cannot be converted to boolean", 22
         );
     }
 
