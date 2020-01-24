@@ -1,0 +1,18 @@
+test/refiningBad/TestRefinesBad.java:6: error: Improperly nested spec-end pair
+        //@ begin
+            ^
+test/refiningBad/TestRefinesBad.java:14: error: Improperly nested spec-end pair
+        //@ end
+            ^
+test/refiningBad/TestRefinesBad.java:23: error: Expected an 'end' statement to match the begin statement before the end of block
+        //@ begin
+            ^
+test/refiningBad/TestRefinesBad.java:32: error: Improperly nested spec-end pair
+        //@ end
+            ^
+test/refiningBad/TestRefinesBad.java:39: error: Statement specs found at the end of a block (or before an erroneous statement)
+        //@ refining ensures true;
+            ^
+Continuing bravely despite parsing errors
+Operation not performed because of parse or type errors
+5 errors

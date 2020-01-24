@@ -1,0 +1,31 @@
+Proving methods in PreOld
+Starting proof of PreOld.PreOld() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of PreOld.PreOld() with prover !!!! - no warnings
+Starting proof of PreOld.mtest(short) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of PreOld.mtest(short) with prover !!!! - no warnings
+Starting proof of PreOld.mbad(boolean,int) with prover !!!!
+test/preold/PreOld.java:23: warning: The prover cannot establish an assertion (Assert) in method mbad
+        //@ assert \old(x,b) == i - 1;
+            ^
+test/preold/PreOld.java:22: warning: The prover cannot establish an assertion (Assert) in method mbad
+        //@ assert \old(x,a) == i + 1;
+            ^
+Completed proof of PreOld.mbad(boolean,int) with prover !!!! - with warnings
+Starting proof of PreOld.mok(boolean,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of PreOld.mok(boolean,int) with prover !!!! - no warnings
+Starting proof of PreOld.mbad2(boolean,int) with prover !!!!
+test/preold/PreOld.java:49: warning: The prover cannot establish an assertion (Assert) in method mbad2
+            //@ assert \old(x,b) == i - 1;
+                ^
+test/preold/PreOld.java:47: warning: The prover cannot establish an assertion (Assert) in method mbad2
+            //@ assert \old(x,a) == i + 1;
+                ^
+Completed proof of PreOld.mbad2(boolean,int) with prover !!!! - with warnings
+Completed proving methods in PreOld
+4 warnings

@@ -662,6 +662,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //boolean prev = attribSpecs;
                 //attribSpecs = true;
                 attribStat(sp,localEnv);
+
                 //attribSpecs = prev;
             }
         } else {
@@ -673,7 +674,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // Scope is not duplicated
                 enclosingMethodEnv = env.dup(env.tree,env.info.dupUnshared());
             }
-            super.visitBlock(tree);
+
             //if (!isStatic(env.enclMethod.mods.flags)) {
             if (env.info.staticLevel == 0 && topMethodBodyBlock) {
                 ((JmlMethodDecl)env.enclMethod)._this = (VarSymbol)thisSym(tree.pos(),enclosingMethodEnv);
@@ -688,10 +689,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // not in an enclosing scope.  However, JML has the \old operator which gives
                 // access to the scope at method definition time from within other nestings.
                 boolean prevAllowJML = jmlresolve.setAllowJML(true);
+                JmlSpecs.MethodSpecs sp = ((JmlMethodDecl)env.enclMethod).methodSpecsCombined; //specs.getSpecs(env.enclMethod.sym);
                 try {
-                    JmlSpecs.MethodSpecs sp = ((JmlMethodDecl)env.enclMethod).methodSpecsCombined; //specs.getSpecs(env.enclMethod.sym);
-                    currentSecretContext = sp.secretDatagroup;
-                    currentQueryContext = null;
+//                    currentSecretContext = sp.secretDatagroup;
+//                    currentQueryContext = null;
 //                  if (enclosingMethodEnv == null) {
                     // FIXME - This can happen for anonymous classes, so I expect that
                     // specs (or at least \old) in anonymous classes will cause disaster
@@ -705,10 +706,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
 //                  }
                 } finally {
+//                    currentQueryContext = sp.queryDatagroup;
+//                    if (currentSecretContext == null) currentQueryContext = currentSecretContext;
                     jmlresolve.setAllowJML(prevAllowJML);
                 }
             }
-
+            super.visitBlock(tree);
         }
         enclosingMethodEnv = prevEnclosingMethodEnv;
     }
@@ -1040,7 +1043,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected boolean visitReferenceInJML() { 
         return currentClauseType != null;  // Returns true if in JML clause 
     }
-
     
     /** This is overridden in order to do correct checking of whether a method body is
      * present or not.
@@ -2377,7 +2379,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             kind = "local variable declaration";
             allAllowed(mods.annotations, allowedLocalVarModifiers, kind);
             if (modsinJML && !ghost  && !isInJmlDeclaration && !ownerInJML) {
-                utils.error(tree.source(),tree.pos,"jml.missing.ghost");
+                if (!utils.isJMLTop(mods)) utils.error(tree.source(),tree.pos,"jml.missing.ghost");
             } else if (!modsinJML && ghost) {
                 utils.error(tree.source(),tree.pos,"jml.ghost.on.java");
             } 
@@ -3376,6 +3378,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             } 
             
         } finally {
+            labelEnvs.put(tree.name,env.dup(tree,env.info.dupUnshared()));
             env = prevEnv;
             jmlVisibility = prevVisibility;
             if (localEnv != null) localEnv.info.scope.leave();
@@ -3447,8 +3450,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     Map<Name,Env<AttrContext>> labelEnvs = new HashMap<Name,Env<AttrContext>>();
     
     public void visitLabelled(JCLabeledStatement tree) {
-        Env<AttrContext> labelenv = env.dup(tree,env.info.dupUnshared());
-        labelEnvs.put(tree.label,labelenv);
+        labelEnvs.put(tree.label,env.dup(tree,env.info.dupUnshared()));
         super.visitLabelled(tree);
     }
     

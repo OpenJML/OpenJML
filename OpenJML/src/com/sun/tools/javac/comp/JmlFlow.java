@@ -637,6 +637,8 @@ public class JmlFlow extends Flow  {
             quantDeclStack.remove(0);
         }
         
+        Utils utils;
+        
         @Override
         public void visitIdent(JCIdent that) {
             for (List<JCVariableDecl> list: quantDeclStack) {
@@ -644,7 +646,14 @@ public class JmlFlow extends Flow  {
                     if (decl.sym.equals(that.sym)) return;
                 }
             }
-            super.visitIdent(that);
+            if (utils == null) utils = Utils.instance(context);
+            if (utils.isJML(that.sym.flags()) && utils.isJMLTop(that.sym.flags()) && (that.sym.flags() & Flags.HASINIT) != 0) {
+                // Skip check for initialization -- this is a JML declaration with an initializer
+                // so includes old clauses in spec cases
+                referenced(that.sym);
+            } else {
+                super.visitIdent(that);
+            }
         }
 
         @Override
