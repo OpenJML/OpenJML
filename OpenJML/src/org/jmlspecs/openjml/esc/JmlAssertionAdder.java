@@ -2866,7 +2866,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 VarSymbol v = (VarSymbol)s;
                 Type vartype = v.type;
                 JCExpression field;
-                if (receiver == null) field = treeutils.makeSelect(v.pos, treeutils.makeType(v.pos, v.owner.type), v);
+                if (utils.isJMLStatic(v)) field = treeutils.makeSelect(v.pos, treeutils.makeType(v.pos, v.owner.type), v);
                 else field = M.at(pos).Select(receiver, v);
                 if (!utils.isPrimitiveType(vartype) && !isDataGroup(vartype)) {
                     JCExpression e = treeutils.makeNotNull(pos.getStartPosition(),field); // FIXME - position not right
@@ -7624,14 +7624,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             String s = utils.locationString(that.pos) + ": " +
                     utils.qualifiedName(sym);
             callStack.add(0,s);
+            callStackSym.add(0,sym);
             applyHelper(that);
         } finally {
             callStack.remove(0);
+            callStackSym.remove(0);
             popMapSymbols(saved);
         }
     }
     
     java.util.List<String> callStack = new LinkedList<>();
+    java.util.List<Symbol> callStackSym = new LinkedList<>();
     Map<Name,String> callStacks = new HashMap<>();
     
     
@@ -8286,6 +8289,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (methodsInlined.contains(calleeMethodSym)) {
                 // Recursive inlining
                 nodoTranslations = true;
+            }
+            {
+                Iterator<Symbol> iter = callStackSym.iterator();
+                iter.next();
+                while (iter.hasNext()) {
+                    if (iter.next() == calleeMethodSym) { nodoTranslations = true; break; }
+                }
             }
             if (!splitExpressions) nodoTranslations = true;
             boolean hasTypeArgs = calleeMethodSym.type instanceof Type.ForAll; 
@@ -10937,7 +10947,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return null;
     }
     
-    // Presume exactly one element with thast name
+    // Presume exactly one element with that name
     protected VarSymbol getField(Type type, Name nm) {
         Iterator<Symbol> iter = type.tsym.members().getElementsByName(nm).iterator();
         if (iter.hasNext()) return (VarSymbol)iter.next();
@@ -12926,7 +12936,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCExpression nl = treeutils.makeNullLiteral(that.pos);
                         treeutils.copyEndPosition(nl,ee);
                         JCExpression nonnull = treeutils.makeNeqObject(that.pos, ee, nl);
-                        if (methodDecl.sym.isConstructor() && !utils.isJMLStatic(that.sym) && (s.owner == methodDecl.sym.owner) ) {
+                        if (methodDecl.sym.isConstructor() && !utils.isJMLStatic(that.sym) && (s.owner == methodDecl.sym.owner) && currentThisExpr != null) { // FIXME - needs review
                             JCExpression ne = treeutils.makeNeqObject(that.pos,currentThisExpr, selected);
                             nonnull = treeutils.makeImplies(nonnull.pos, ne, nonnull);
                         }
