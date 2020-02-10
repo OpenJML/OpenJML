@@ -8292,7 +8292,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             {
                 Iterator<Symbol> iter = callStackSym.iterator();
-                iter.next();
+                if (iter.hasNext()) iter.next();
                 while (iter.hasNext()) {
                     if (iter.next() == calleeMethodSym) { nodoTranslations = true; break; }
                 }
@@ -10391,9 +10391,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return;
         }
         Map<Symbol,Symbol> saved = pushMapSymbols();
-        applyHelper(that);
-        popMapSymbols(saved);
-//        condition = savedCondition;
+        try {
+            String s = utils.locationString(that.pos) + ": " +
+                    utils.qualifiedName(that.constructor);
+            callStack.add(0,s);
+            callStackSym.add(0,that.constructor);
+            applyHelper(that);
+        } finally {
+            callStack.remove(0);
+            callStackSym.remove(0);
+            popMapSymbols(saved);
+        }
     }
     
     Map<Symbol, WellDefined>  wellDefinedCheck = new HashMap<Symbol,WellDefined>();
@@ -11523,6 +11531,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (tag == JCTree.Tag.NOT && arg instanceof JCLiteral) {
                 result = eresult = treeutils.makeBooleanLiteral(arg.pos, !((Boolean)((JCLiteral)arg).getValue()));
             } else {
+                if (!rac) arg = addImplicitConversion(arg,syms.booleanType,arg);
                 JCExpression e = treeutils.makeUnary(that.pos,tag,that.getOperator(),arg);
                 if (splitExpressions) e = newTemp(e);
                 result = eresult = e;
