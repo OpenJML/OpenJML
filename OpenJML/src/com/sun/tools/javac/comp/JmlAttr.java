@@ -16,6 +16,7 @@ import static com.sun.tools.javac.code.Kinds.MTH;
 import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.Kinds.VAL;
 import static com.sun.tools.javac.code.Kinds.VAR;
+import static com.sun.tools.javac.code.TypeTag.ERROR;
 import static com.sun.tools.javac.code.TypeTag.FORALL;
 import static com.sun.tools.javac.code.TypeTag.METHOD;
 import static com.sun.tools.javac.code.TypeTag.NONE;
@@ -3645,7 +3646,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (tree.clauseType == loopinvariantClause) {
                 attribExpr(((JmlStatementLoopExpr)tree).expression,loopEnv,syms.booleanType);
             } else if (tree.clauseType == loopdecreasesClause){
-                attribExpr(((JmlStatementLoopExpr)tree).expression,loopEnv,syms.longType);  // FIXME - what type to use
+                Type t = attribExpr(((JmlStatementLoopExpr)tree).expression,loopEnv);
+                if (!jmltypes.isIntegral(t)) {
+                    log.error(((JmlStatementLoopExpr)tree).expression.getStartPosition(),"jml.message", "Expected an integral type in loop_decreases, not " + t.toString());
+                }
             } else if (tree.clauseType == loopmodifiesStatement) {
                 for (JCExpression stref: ((JmlStatementLoopModifies)tree).storerefs) {
                     attribExpr(stref,loopEnv,Type.noType);
@@ -4760,7 +4764,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitIndexed(JCArrayAccess tree) {
-        super.visitIndexed(tree);
+        if (jmlresolve.allowJML()) {
+            Type owntype = types.createErrorType(tree.type);
+            Type atype = attribExpr(tree.indexed, env);
+            Type t = attribExpr(tree.index, env);
+            if (types.isArray(atype))
+                owntype = types.elemtype(atype);
+            else if (!atype.hasTag(ERROR))
+                log.error(tree.pos(), "array.req.but.found", atype);
+            if (!jmltypes.isIntegral(t)) {
+                log.error(tree.pos(), "jml.message", "Expected an integral type as an index, not " + t.toString());
+            }
+            if ((pkind() & VAR) == 0) owntype = types.capture(owntype);
+            result = check(tree, owntype, VAR, resultInfo);
+
+        } else {
+            super.visitIndexed(tree);
+        }
         Type saved = result;
         if (tree.indexed instanceof JCIdent && ((JCIdent)tree.indexed).sym instanceof VarSymbol) {
             checkSecretReadable(tree.pos(),(VarSymbol)((JCIdent)tree.indexed).sym);
@@ -5036,6 +5056,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // determined type to tree.type, particularly if an error occurs,
                 // so we fill it in
                 if (tree.type == null) tree.type = result;
+                if (jmlresolve.allowJML() && tree.sym == syms.lengthVar) {
+                    // FIXME - we want the type to be \bigint, but the symbol does not match
+                    result = tree.type = jmltypes.BIGINT;
+                }
             }
         }
         Type saved = result;
@@ -5102,8 +5126,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** Attrbutes an array-element-range (a[1 .. 2]) store-ref expression */
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
-        if (that.lo != null) attribExpr(that.lo,env,syms.intType); // FIXME - int or long or bigint
-        if (that.hi != null && that.hi != that.lo) attribExpr(that.hi,env,syms.intType); // FIXME - int or long or bigint
+        if (that.lo != null) {
+            Type t = attribExpr(that.lo,env);
+            if (!jmltypes.isIntegral(t)) {
+                log.error(that.lo.getStartPosition(), "jml.message", "Expected an integral type, not " + t.toString());
+            }
+        }
+        if (that.hi != null && that.hi != that.lo) {
+            Type t = attribExpr(that.hi,env);
+            if (!jmltypes.isIntegral(t)) {
+                log.error(that.lo.getStartPosition(), "jml.message", "Expected an integral type, not " + t.toString());
+            }
+        }
         Type t = attribExpr(that.expression,env,Type.noType);
         if (t.getKind() != TypeKind.ARRAY) {
             if (t.getKind() != TypeKind.ERROR) log.error(that.expression.pos(),"jml.not.an.array",t);
