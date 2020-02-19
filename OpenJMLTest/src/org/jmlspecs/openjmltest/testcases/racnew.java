@@ -80,7 +80,7 @@ public class racnew extends RacBase {
 
     /** Tests that an optional argument on a JML assert is converted to a String and is what is printed as an error message */
     @Test public void testAssertion3() {
-        helpTCX("tt.TestAssert","package tt; public class TestAssert { public static void main(String[] args) { //@ assert false: args.length; \n System.out.println(\"END\"); }}"
+        helpTCX("tt.TestAssert","package tt; public class TestAssert { public static void main(String[] args) { //@ assert false: (int)args.length; \n System.out.println(\"END\"); }}"
                 ,"0"
                 ,"END"
                 );

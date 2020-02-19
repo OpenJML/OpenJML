@@ -730,7 +730,7 @@ public class escnew3 extends EscBase {
     public void testVarargs2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  //@ ensures \\result == (ints.length > 0 ? ints[0] : ints.length);\n"
+                +"  //@ ensures \\result == (ints.length > 0 ? ints[0] : (int)ints.length);\n"
                 +"  //@ pure \n"
                 +"  public static int m(int ... ints) { \n"
                 +"    //@ assert ints != null; \n"
@@ -759,7 +759,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires ints.length == 0 || ints[0] != null;\n"
-                +"  //@ ensures \\result == (ints.length > 0 ? ints[0] : ints.length);\n"
+                +"  //@ ensures \\result == (ints.length > 0 ? ints[0] : (int)ints.length);\n"
                 +"  //@ pure \n"
                 +"  public static int m(Integer ... ints) { \n"
                 +"    //@ assert ints != null; \n"

@@ -191,8 +191,14 @@ public class JmlTypes extends Types {
     
     /** True if the Java tag is an integral type (not for JML types). */
     public boolean isIntegral(Type t) {
-        int i = t.getTag().ordinal();
-        return (i >= TypeTag.BYTE.ordinal() && i <= TypeTag.LONG.ordinal()) || t.getTag() == TypeTag.INT || t == BIGINT;
+        return t.getTag().isSubRangeOf(TypeTag.LONG);
+    }
+    
+    /** True if the type is an integral type including boxed and JML types. */
+    public boolean isAnyIntegral(Type t) {
+        if (t == BIGINT) return true;
+        t = unboxedTypeOrType(t);
+        return isIntegral(t);
     }
     
     /** Overrides Types.isConvertible with functionality for JML primitive types. */

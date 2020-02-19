@@ -17,6 +17,9 @@ public class TestBoolean {
 		//@ assert t.booleanValue();
 		//@ assert !f.booleanValue();
 		
+        //-RAC@ show t.theBoolean, f.theBoolean, Boolean.TRUE.theBoolean, Boolean.FALSE.theBoolean;
+        //-RAC@ show Boolean.TRUE_HC, Boolean.FALSE_HC;
+		//-RAC@ show t.hashCode(), f.hashCode(), Boolean.TRUE.hashCode(), Boolean.FALSE.hashCode();
 		//@ assert t.hashCode() != f.hashCode();
 		//@ assert t.hashCode() == Boolean.TRUE.hashCode();
 		//@ assert f.hashCode() == Boolean.FALSE.hashCode();

@@ -450,7 +450,9 @@ public class JmlTree {
         /** Creates a JML chained operation */
         @Override
         public JmlChained JmlChained(List<JCBinary> conjuncts) {
-            return new JmlChained(conjuncts);
+            JmlChained c = new JmlChained(conjuncts);
+            c.pos = pos;
+            return c;
         }
         
         /** Creates a JML method invocation (e.g. for JmlTokens with arguments, such as \typeof) */
