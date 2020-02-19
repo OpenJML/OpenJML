@@ -3647,7 +3647,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 attribExpr(((JmlStatementLoopExpr)tree).expression,loopEnv,syms.booleanType);
             } else if (tree.clauseType == loopdecreasesClause){
                 Type t = attribExpr(((JmlStatementLoopExpr)tree).expression,loopEnv);
-                if (!jmltypes.isIntegral(t)) {
+                if (!jmltypes.isAnyIntegral(t) && !t.isErroneous()) {
                     log.error(((JmlStatementLoopExpr)tree).expression.getStartPosition(),"jml.message", "Expected an integral type in loop_decreases, not " + t.toString());
                 }
             } else if (tree.clauseType == loopmodifiesStatement) {
@@ -4772,7 +4772,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 owntype = types.elemtype(atype);
             else if (!atype.hasTag(ERROR))
                 log.error(tree.pos(), "array.req.but.found", atype);
-            if (!jmltypes.isIntegral(t)) {
+            if (!jmltypes.isAnyIntegral(t) && !t.isErroneous()) {
                 log.error(tree.pos(), "jml.message", "Expected an integral type as an index, not " + t.toString());
             }
             if ((pkind() & VAR) == 0) owntype = types.capture(owntype);
@@ -5058,7 +5058,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (tree.type == null) tree.type = result;
                 if (jmlresolve.allowJML() && tree.sym == syms.lengthVar) {
                     // FIXME - we want the type to be \bigint, but the symbol does not match
-                    result = tree.type = jmltypes.BIGINT;
+                    // FIXME - this mismatch causes crashes in code generation in RAC
+                    if (!utils.rac) result = tree.type = jmltypes.BIGINT;
                 }
             }
         }
@@ -5128,13 +5129,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
         if (that.lo != null) {
             Type t = attribExpr(that.lo,env);
-            if (!jmltypes.isIntegral(t)) {
+            if (!jmltypes.isAnyIntegral(t) && !t.isErroneous()) {
                 log.error(that.lo.getStartPosition(), "jml.message", "Expected an integral type, not " + t.toString());
             }
         }
         if (that.hi != null && that.hi != that.lo) {
             Type t = attribExpr(that.hi,env);
-            if (!jmltypes.isIntegral(t)) {
+            if (!jmltypes.isAnyIntegral(t) && !t.isErroneous()) {
                 log.error(that.lo.getStartPosition(), "jml.message", "Expected an integral type, not " + t.toString());
             }
         }

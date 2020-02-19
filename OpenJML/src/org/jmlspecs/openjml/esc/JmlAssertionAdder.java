@@ -7621,14 +7621,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         Map<Symbol,Symbol> saved = pushMapSymbols();
         try {
-            String s = utils.locationString(that.pos) + ": " +
-                    utils.qualifiedName(sym);
-            callStack.add(0,s);
-            callStackSym.add(0,sym);
             applyHelper(that);
         } finally {
-            callStack.remove(0);
-            callStackSym.remove(0);
             popMapSymbols(saved);
         }
     }
@@ -7946,6 +7940,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Helper method to do the work of visitApply and visitNewObject */
     protected void applyHelper(JCExpression that) {
+        boolean pushedMethod = false;
         preconditionDetail++;
         int preconditionDetailLocal = preconditionDetail;
         // We need to save the context of many variables because in the case of
@@ -8256,7 +8251,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             //specs.getSpecs(calleeMethodSym).cases.deSugared = null;// FIXME _ sometimes desugaring is wrongly computed ????
             JmlMethodSpecs mspecs = specs.getDenestedSpecs(calleeMethodSym);
             boolean inliningCall = mspecs != null && mspecs.decl != null && mspecs.decl.mods != null && attr.findMod(mspecs.decl.mods,JmlTokenKind.INLINE) != null;
-            
+   
             // Collect all the methods overridden by the method being called, including the method itself
             Type rt = dynamicTypes.get(convertedReceiver);
             if (rt == null) rt = receiverType;
@@ -8292,10 +8287,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             {
                 Iterator<Symbol> iter = callStackSym.iterator();
-                if (iter.hasNext()) iter.next();
                 while (iter.hasNext()) {
                     if (iter.next() == calleeMethodSym) { nodoTranslations = true; break; }
                 }
+            }
+            {
+                Symbol sym = (that instanceof JCMethodInvocation) ? treeutils.getSym(((JCMethodInvocation)that).meth) 
+                        : ((JCNewClass)that).constructor;
+                String s = utils.locationString(that.pos) + ": " +
+                        utils.qualifiedName(sym);
+                callStack.add(0,s);
+                callStackSym.add(0,sym);
+                pushedMethod = true;
             }
             if (!splitExpressions) nodoTranslations = true;
             boolean hasTypeArgs = calleeMethodSym.type instanceof Type.ForAll; 
@@ -10179,6 +10182,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCBlock b = popBlock(that,check0);
             currentStatements.addAll(b.stats);
             methodsInlined.remove(calleeMethodSym);
+            if (pushedMethod) {
+                callStack.remove(0);
+                callStackSym.remove(0);
+            }
         }
     }
 
@@ -10392,14 +10399,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         Map<Symbol,Symbol> saved = pushMapSymbols();
         try {
-            String s = utils.locationString(that.pos) + ": " +
-                    utils.qualifiedName(that.constructor);
-            callStack.add(0,s);
-            callStackSym.add(0,that.constructor);
             applyHelper(that);
         } finally {
-            callStack.remove(0);
-            callStackSym.remove(0);
             popMapSymbols(saved);
         }
     }

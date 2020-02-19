@@ -2179,30 +2179,45 @@ public class esc extends EscBase {
     @Test
     public void testMethodCallRet() {
         helpTCX("tt.TestJava",
-                "package tt; import org.jmlspecs.annotation.*; \n" + "/*@ code_bigint_math*/ public class TestJava { \n"
-                        + "  static public int j;\n" + "  //@ requires i>0;\n" + "  //@ modifies j;\n"
+                "package tt; import org.jmlspecs.annotation.*; \n" 
+                        + "/*@ code_bigint_math*/ public class TestJava { \n"
+                        + "  static public int j;\n" 
+                        + "  //@ requires i>0;\n" 
+                        + "  //@ modifies j;\n"
                         + "  //@ ensures j == i+1 && \\result == j;\n"
-                        + "  static public int m(int i) { j = i+1; return j; }\n" + "  //@ requires i>1; \n"
-                        + "  //@ modifies j;\n" + "  //@ ensures \\result == \\old(i)+1;\n"
+                        + "  static public int m(int i) { j = i+1; return j; }\n" 
+                        + "  //@ requires i>1; \n"
+                        + "  //@ modifies j;\n" 
+                        + "  //@ ensures \\result == \\old(i)+1;\n"
                         + "  public int inst(boolean b, int i) { m(i); m(i); m(i); return j; }\n"
-                        + "  //@ requires i>1; \n" + "  //@ modifies j;\n" + "  //@ ensures \\result == \\old(i)+3;\n"
-                        + "  public int inst2(boolean b, int i) { m(m(m(i))); return j; }\n" + "  //@ requires i>1; \n"
-                        + "  //@ modifies j;\n" + "  //@ ensures \\result == 3*i+4;\n" + "  //@ ensures j == i + 1;\n"
+                        + "  //@ requires i>1; \n" 
+                        + "  //@ modifies j;\n" 
+                        + "  //@ ensures \\result == \\old(i)+3;\n"
+                        + "  public int inst2(boolean b, int i) { m(m(m(i))); return j; }\n" 
+                        + "  //@ requires i>1; \n"
+                        + "  //@ modifies j;\n" 
+                        + "  //@ ensures \\result == 3*i+4;\n" 
+                        + "  //@ ensures j == i + 1;\n"
                         + "  public int inst3(boolean b, int i) { return m(m(i) + m(i)) + m(i); }\n"
-                        + "  //@ requires i>1; \n" + "  //@ modifies j;\n" + "  //@ ensures \\result == \\old(i);\n"
+                        + "  //@ requires i>1; \n" 
+                        + "  //@ modifies j;\n" 
+                        + "  //@ ensures \\result == \\old(i);\n"
                         + "  public int instx(boolean b, int i) { m(i); m(i); m(i); return j; }\n"
-                        + "  //@ requires i>1; \n" + "  //@ modifies j;\n" + "  //@ ensures \\result == \\old(i)+4;\n"
-                        + "  public int instx2(boolean b, int i) { m(m(m(i))); return j; }\n" + "  //@ requires i>1; \n"
+                        + "  //@ requires i>1; \n" 
+                        + "  //@ modifies j;\n" 
+                        + "  //@ ensures \\result == \\old(i)+4;\n"
+                        + "  public int instx2(boolean b, int i) { m(m(m(i))); return j; }\n" 
+                        + "  //@ requires i>1; \n"
                         + "  //@ modifies j;\n" // Line 30
-                        + "  //@ ensures \\result == 3*i+4;\n" + "  //@ ensures j == i + 2;\n"
-                        + "  public int instx3(boolean b, int i) { return m(m(i) + m(i)) + m(i); }\n" + "}",
-                "/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Postcondition) in method instx",
-                58, "/tt/TestJava.java:23: warning: Associated declaration", 7,
-                "/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Postcondition) in method instx2",
-                53, "/tt/TestJava.java:27: warning: Associated declaration", 7,
-                "/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Postcondition) in method instx3",
-                41, "/tt/TestJava.java:32: warning: Associated declaration", 7
-
+                        + "  //@ ensures \\result == 3*i+4;\n" 
+                        + "  //@ ensures j == i + 2;\n"
+                        + "  public int instx3(boolean b, int i) { return m(m(i) + m(i)) + m(i); }\n" + "}"
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Postcondition) in method instx",58
+                ,"/tt/TestJava.java:23: warning: Associated declaration", 7
+                ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Postcondition) in method instx2",53
+                ,"/tt/TestJava.java:27: warning: Associated declaration", 7
+                ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Postcondition) in method instx3",41
+                ,"/tt/TestJava.java:32: warning: Associated declaration", 7
         );
     }
 
@@ -2829,7 +2844,8 @@ public class esc extends EscBase {
     @Test
     public void testPureMethod() {
         helpTCX("tt.TestJava",
-                "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
+                "package tt; import org.jmlspecs.annotation.*; \n" 
+                        + "public class TestJava { \n"
                         + "  //@ requires i < 1000; ensures \\result == i+1;\n" 
                         + "  //@ pure \n"
                         + "  public int m(int i) { return i+1; }\n"
