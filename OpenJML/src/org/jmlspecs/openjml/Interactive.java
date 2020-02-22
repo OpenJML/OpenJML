@@ -24,6 +24,7 @@ import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.JavaCompiler;
+import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.parser.JmlDebugTreePrinter;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.util.Context;

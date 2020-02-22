@@ -49,6 +49,7 @@ import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.main.JavaCompiler;
+import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.comp.CompileStates;
 import com.sun.tools.javac.comp.CompileStates.CompileState;
 import com.sun.tools.javac.parser.JmlParser;
