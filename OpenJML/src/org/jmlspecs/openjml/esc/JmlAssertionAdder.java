@@ -8530,13 +8530,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    if (resultType instanceof Type.TypeVar){
 //                        resultType = syms.objectType;  // FIXME - use upperbound?  // use paramActuals?
 //                    }
-                    JCIdent resultId  = newTemp(that,resultType);
-                    resultSym = (VarSymbol) resultId.sym;
-                    resultExpr = resultId;
-                    boolean nn;  // Not sure this is giving the correct nullity
-                    if (mspecs.decl != null) nn = attr.isNonNull(mspecs.decl.mods);
-                    else nn = specs.isNonNull(calleeMethodSym.owner);
-                    addNullnessAllocationTypeCondition(that, resultSym, nn, false, false);
+                    if (splitExpressions) {
+                        JCIdent resultId  = newTemp(that,resultType);
+                        resultSym = (VarSymbol) resultId.sym;
+                        resultExpr = resultId;
+                        boolean nn;  // Not sure this is giving the correct nullity
+                        if (mspecs.decl != null) nn = attr.isNonNull(mspecs.decl.mods);
+                        else nn = specs.isNonNull(calleeMethodSym.owner);
+                        addNullnessAllocationTypeCondition(that, resultSym, nn, false, false);
+                    } else {
+                        resultSym = null;
+                        resultExpr = that;
+                    }
                 } else {
                     // ESC - Constructor call
                     Type t = that.type;
@@ -9423,7 +9428,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             ensuresStatsOuter.add(comment(that,"Assuming callee normal postconditions for " + calleeMethodSym,null));
             exsuresStatsOuter.add(comment(that,"Assuming callee exceptional postconditions for " + calleeMethodSym,null));
 
-            if (!rac && newclass == null && !calleeMethodSym.isConstructor() && resultType.getTag() != TypeTag.VOID) {
+            if (!rac && newclass == null && !calleeMethodSym.isConstructor() && resultSym != null && resultType.getTag() != TypeTag.VOID) {
                 MethodSymbol calleeMethodSym1 = calleeMethodSym;
                 JCExpression newThisExpr1 = newThisExpr;
                 final VarSymbol resultSym1 = resultSym;
@@ -10146,11 +10151,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addStat( popBlock(methodDecl,check1) );
             }
 
-            if (resultExpr != null) {
+            if (resultSym != null && resultExpr != null) {
                 result = eresult = treeutils.makeIdent(resultExpr.pos, resultSym);
                 transferInfo(resultExpr,eresult);
             }
-            else result = eresult = null;
+            else result = eresult = resultExpr;
             
         } catch (Error e) {
             log.error("jml.internal", e.toString()); // FIXME - improve error message

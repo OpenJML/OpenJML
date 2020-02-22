@@ -3,9 +3,10 @@
  * Author: David R. Cok
  */
 // FIXME - do a review
-package org.jmlspecs.openjml;
+package com.sun.tools.javac.main;
 
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
+import static com.sun.tools.javac.main.Option.PROC;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -15,10 +16,23 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.annotation.processing.Processor;
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.openjml.JmlClearTypes;
+import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.JmlPretty;
+import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlTokenKind;
+import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.Main;
+import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.Maker;
+import org.jmlspecs.openjml.Main.Cmd;
+import org.jmlspecs.openjml.Main.IProgressListener;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.sa.MethodDependencies;
@@ -570,6 +584,16 @@ public class JmlCompiler extends JavaCompiler {
             log.error("jml.internal","annotation processing produced a new instance of JavaCompiler, disabling further JML processing");
         }
         return result;
+    }
+    
+    @Override
+    public void initProcessAnnotations(Iterable<? extends Processor> processors) {
+        // Annotation processors are not necessarily compatible with OpenJML so 
+        // they are disabled (e.g. lombok is not)
+        if (!JmlOption.isOption(context, JmlOption.USEJAVACOMPILER)) {
+            options.put(PROC.text + "none", "none");
+        }
+        super.initProcessAnnotations(processors);
     }
     
     // FIXME _ review

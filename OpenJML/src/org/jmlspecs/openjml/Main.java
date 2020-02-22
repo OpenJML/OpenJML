@@ -5,6 +5,8 @@
 
 package org.jmlspecs.openjml;
 
+import static com.sun.tools.javac.main.Option.PROC;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -56,6 +58,7 @@ import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.main.CommandLine;
 import com.sun.tools.javac.main.JavaCompiler;
+import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.main.Option;
 import com.sun.tools.javac.main.Main.Result;
 import com.sun.tools.javac.parser.JmlFactory;
@@ -988,6 +991,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (badString != null) {
             Log.instance(context).getWriter(WriterKind.NOTICE).println("Unexpected value as argument for -checkFeasibility: " + badString);
         }
+        
         Extensions.register(context);
         return true;
 }

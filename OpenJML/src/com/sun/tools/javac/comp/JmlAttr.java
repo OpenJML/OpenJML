@@ -43,6 +43,7 @@ import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import org.jmlspecs.openjml.ext.RecommendsClause;
 import static org.jmlspecs.openjml.ext.ShowStatement.*;
+import com.sun.tools.javac.main.JmlCompiler;
 
 import java.util.Collection;
 import java.util.Collections;
