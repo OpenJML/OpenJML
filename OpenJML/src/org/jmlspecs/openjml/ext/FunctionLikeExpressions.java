@@ -21,6 +21,7 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.AttrContext;
+import com.sun.tools.javac.comp.DeferredAttr.DeferredType;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.Infer;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -225,12 +226,14 @@ public class FunctionLikeExpressions extends ExpressionExtension {
     public static class AnyArgExpressions extends IJmlClauseKind.FunctionLikeExpression {
         public AnyArgExpressions(String name) { super(name); }
         
+        // Unless overridden this returns the type of the first argument as the expression type
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             JmlMethodInvocation tree = (JmlMethodInvocation)expr;
             ListBuffer<Type> argtypes = new ListBuffer<>();
             attr.attribArgs(tree.args, localEnv, argtypes);
-            return tree.args.head != null ? tree.args.head.type : null;
+            com.sun.tools.javac.util.List<Type> typeargtypes = attr.attribTypes(tree.typeargs, localEnv);
+            return tree.args.head != null ? argtypes.first() : null;
         }
 
         @Override
@@ -265,7 +268,7 @@ public class FunctionLikeExpressions extends ExpressionExtension {
     public static final IJmlClauseKind nowarnKind = new OneArgExpression(nowarnID);
 
     public static final String notModifiedID = "\\not_modified";
-    public static final IJmlClauseKind notModifiedKind = new AnyArgExpressions(notModifiedID) {
+    public static final IJmlClauseKind notModifiedKind = new AnyArgBooleanExpressions(notModifiedID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
@@ -287,7 +290,7 @@ public class FunctionLikeExpressions extends ExpressionExtension {
             Type stringType = attr.syms.stringType;
             for (JCExpression e: ((JmlMethodInvocation)tree).args) {
                 if (!(attr.jmltypes.isSameType(e.type, stringType))) {
-                    attr.log.error(e.pos, "jml.message", "The arguments of \\concat must have txype String, not " + e.type);
+                    attr.log.error(e.pos, "jml.message", "The arguments of \\concat must have type String, not " + e.type);
                 }
             }
             return stringType;
@@ -353,7 +356,8 @@ public class FunctionLikeExpressions extends ExpressionExtension {
             if (expr.args.size() != 1 && requireStrictJML()) Log.instance(context).error(tree.pos(),"jml.one.arg",name(),expr.args.size());
             for (JCExpression arg: expr.args) {
                 Type argtype = arg.type;
-                if (!(argtype instanceof Type.ArrayType) && !argtype.isErroneous()) {
+                // FIXME - argtype is null when there is a DeferredType, in which case no checking is done
+                if (argtype != null && !(argtype instanceof Type.ArrayType) && !argtype.isErroneous()) {
                     Log.instance(context).error(arg.pos(),"jml.arraytype.required",name(),argtype.toString(),arg.toString());
                 }
             }
@@ -426,7 +430,7 @@ public class FunctionLikeExpressions extends ExpressionExtension {
     };
     
     public static final String keyID = "\\key";
-    public static final IJmlClauseKind keyKind = new AnyArgExpressions(keyID) {
+    public static final IJmlClauseKind keyKind = new AnyArgBooleanExpressions(keyID) {
         
         @Override
         public JCExpression parse(JCModifiers mods, String name, IJmlClauseKind kind, JmlParser parser) {
