@@ -6,7 +6,7 @@ Completed proof of Vector.Vector(int,int) with prover !!!! - no warnings
 Starting proof of Vector.add(java.lang.Object) with prover !!!!
 test/escVector/Vector.java:69: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method add
       final Object[] new_data = new Object[my_element_count + my_capacity_increment]; // ERROR - could be negative under Java math
-                                ^
+                                                            ^
 Completed proof of Vector.add(java.lang.Object) with prover !!!! - with warnings
 Starting proof of Vector.copyInto(java.lang.Object[]) with prover !!!!
 test\escVector\Vector.java:93: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method copyInto

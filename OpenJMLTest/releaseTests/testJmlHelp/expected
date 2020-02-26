@@ -44,7 +44,7 @@ JML options:
   -esc                       Enables static checking [-command=esc]
   -boogie                    Enables static checking with boogie
   -java                      When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)
-  -jml                       When on, the JML compiler is used and all JML constructs are ignored; use -no-jml to use OpenJML but ignore JML annotations
+  -jml                       When on, the JML compiler is used and all JML constructs are processed; use -no-jml to use OpenJML but ignore JML annotations
   -lang                      Set the language variant to use: jml, javelyn, or jml+ (the default)
   -extensions                Extension packages and classes (comma-separated qualified names)
   -stopIfParseErrors         When enabled, stops after parsing if any files have parsing errors

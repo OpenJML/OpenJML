@@ -11806,37 +11806,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCExpression lhs = that.getLeftOperand();
                     JCExpression rhs = that.getRightOperand();
                     lhs = convertExpr(lhs);
-                    if (lhs.type.isPrimitive() && lhs.type.getTag() != TypeTag.BOT) {
-                        lhs = addImplicitConversion(that.getLeftOperand(),boxedType(lhs.type),lhs);
-                        if (lhs.type.tsym != syms.stringType.tsym) {
-                            Symbol tostring = utils.findMember(lhs.type.tsym,"toString");
-                            if (tostring == null) log.error(that,"jml.internal","Could not find the toString method");
-                            JCExpression meth = M.at(that).Select(lhs,tostring);
-                            JCMethodInvocation calllhs = M.at(lhs).Apply(null, meth, List.<JCExpression>nil()).setType(syms.stringType);
-                            visitApply(calllhs);
-                            lhs = eresult;
-                        }
-                    }
+                    Type boxed = types.boxedTypeOrType(lhs.type);
+                    lhs = utils.convertToString(M,syms,lhs,boxed);
+                    if (lhs instanceof JCMethodInvocation) visitApply((JCMethodInvocation)lhs);
+                    lhs = eresult;
                     rhs = convertExpr(rhs);
-                    if (rhs.type.isPrimitive() && rhs.type.getTag() != TypeTag.BOT) {
-                        JCExpression prim = rhs;
-                        rhs = addImplicitConversion(that.getRightOperand(),boxedType(rhs.type),rhs);
-                        if (rhs.type.tsym != syms.stringType.tsym) {
-                            Symbol tostring = utils.findMember(rhs.type.tsym,"toString");
-                            if (tostring == null) log.error(that,"jml.internal","Could not find the toString method");
-                            else if (tostring.isStatic()) {
-                                JCExpression meth = M.at(that).Select(rhs,tostring);
-                                JCMethodInvocation callrhs = M.at(rhs).Apply(null, meth, List.<JCExpression>of(prim)).setType(syms.stringType);
-                                visitApply(callrhs);
-                                rhs = eresult;
-                            } else {
-                                JCExpression meth = M.at(that).Select(rhs,tostring);
-                                JCMethodInvocation callrhs = M.at(rhs).Apply(null, meth, List.<JCExpression>nil()).setType(syms.stringType);
-                                visitApply(callrhs);
-                                rhs = eresult;
-                            }
-                        }
-                    }
+                    boxed = types.boxedTypeOrType(rhs.type);
+                    rhs = utils.convertToString(M,syms,rhs,boxed);
+                    if (rhs instanceof JCMethodInvocation) visitApply((JCMethodInvocation)rhs);
+                    rhs = eresult;
                     result = eresult = M.at(that).JmlMethodInvocation(concatKind,lhs,rhs).setType(that.type);
                     if (!rac && splitExpressions) result = eresult = newTemp(eresult);
                 }
