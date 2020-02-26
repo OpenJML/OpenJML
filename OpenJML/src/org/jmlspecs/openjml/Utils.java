@@ -63,6 +63,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
@@ -503,6 +504,34 @@ public class Utils {
             if (s.name.equals(n)) return s;
         }
         return null;
+    }
+
+    public Symbol findToString(TypeSymbol sym, boolean isPrimitive) {
+        Name n = Names.instance(context).fromString("toString");
+        int args = isPrimitive ? 1 : 0;
+        for (Symbol s: sym.getEnclosedElements()) {
+            if (s.name.equals(n) && s instanceof MethodSymbol) {
+                MethodSymbol msym = (MethodSymbol)s;
+                if (msym.params.length() == args && msym.isStatic() == isPrimitive) return s;
+            }
+        }
+        return null;
+    }
+    
+    public JCExpression convertToString(JmlTree.Maker M, Symtab syms, JCExpression expr, Type boxed) {
+        if (expr.type.tsym == syms.stringType.tsym) return expr;
+        if (expr.type.isPrimitive() && expr.type.getTag() != TypeTag.BOT) {
+            Symbol tostring = findToString(boxed.tsym,true);
+            if (tostring == null) log.error(expr,"jml.internal","Could not find the toString method");
+            JCExpression meth = M.at(expr).Select(expr,tostring);
+            return M.at(expr).Apply(null, meth, com.sun.tools.javac.util.List.<JCExpression>of(expr)).setType(syms.stringType);
+        } else {
+            Symbol tostring = findToString(expr.type.tsym,false);
+            if (tostring == null) log.error(expr,"jml.internal","Could not find the toString method");
+            JCExpression meth = M.at(expr).Select(expr,tostring);
+            return M.at(expr).Apply(null, meth, com.sun.tools.javac.util.List.<JCExpression>nil()).setType(syms.stringType);
+        }
+
     }
 
     /** Returns true if the given String ends with a valid JML suffix, including the
