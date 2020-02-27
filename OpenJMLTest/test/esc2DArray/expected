@@ -1,0 +1,27 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m(int,int) with prover !!!! - no warnings
+Starting proof of Test.mm1(int[][]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mm1(int[][]) with prover !!!! - no warnings
+Starting proof of Test.mm2(int[][]) with prover !!!!
+test/esc2DArray/Test.java:64: warning: The prover cannot establish an assertion (Assert) in method mm2
+        //@ assert a.length == 5 && a[1].length == 6 && a[2].length == 7 && a[2][3] ==7;  // FAILS
+            ^
+test/esc2DArray/Test.java:64: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method mm2
+        //@ assert a.length == 5 && a[1].length == 6 && a[2].length == 7 && a[2][3] ==7;  // FAILS
+                                                                                ^
+Completed proof of Test.mm2(int[][]) with prover !!!! - with warnings
+Starting proof of Test.mm3(int[][]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mm3(int[][]) with prover !!!! - no warnings
+Completed proving methods in Test
+2 warnings

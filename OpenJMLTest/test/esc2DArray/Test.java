@@ -6,7 +6,7 @@ public class Test {
     //@ ensures \forall int i; 0<=i<m; \result[i] != null && \result[i].length == n;
     //@ ensures \forall int e; 0<=e<m; \forall int k; 0 <= k < n; \result[e][k] == e+k;
     public static int[][] m(int m, int n) {
-        
+        //@ assume m == 2 && n == 2;
         int[][] a = new int[m][n];
         //@ assert a != null;
         //@ assert a.length == m;
@@ -18,12 +18,14 @@ public class Test {
         
         //@ loop_invariant 0 <= i <= m;
         //@ loop_invariant \forall int k; 0<=k<m; a[k] != null && a[k].length == n;
+        //@ loop_invariant \forall int e; 0<=e<m; \forall int k; 0 <= k < m; (e != k ==> a[e] != a[k]);
         //@ loop_invariant \forall int e; 0<=e<i; \forall int k; 0 <= k < n; a[e][k] == e+k;
         //@ loop_modifies a[*][*];
         //@ loop_decreases m-i;
         for (int i=0; i<m; i++) {
             //@ loop_invariant 0 <= j <= n;
             //@ loop_invariant \forall int k; 0<=k<m; a[k] != null && a[k].length == n;
+            //@ loop_invariant \forall int e; 0<=e<m; \forall int k; 0 <= k < m; (e != k ==> a[e] != a[k]);
             //@ loop_invariant \forall int e; 0<=e<i; \forall int k; 0 <= k < n; a[e][k] == e+k;
             //@ loop_invariant \forall int k; 0 <= k < j; a[i][k] == i+k;
             //@ loop_modifies a[*][*];
@@ -45,10 +47,10 @@ public class Test {
         //@ assume a[2].length == 7;
         //@ assume a[2][3] ==7;
         a[1][2] = 13;
-        //@ assert a.length == 5;
-        //@ assert a[1].length == 6;
-        //@ assert a[2].length == 7;
-        //@ assert a[2][3] ==7;
+        //@ assert a.length == 5; //OK
+        //@ assert a[1].length == 6; //OK
+        //@ assert a[2].length == 7; //OK
+        //@ assert a[2][3] ==7; //OK
     }
     
     public static void mm2(int[][] a) {
@@ -59,10 +61,11 @@ public class Test {
         //@ assume a[2].length == 7;
         //@ assume a[2][3] ==7;
         //@ havoc a[*][*];
-        //@ assert a.length == 5;
-        //@ assert a[1].length == 6;
-        //@ assert a[2].length == 7;
-        //@ assert a[2][3] ==7;
+        //@ assert a.length == 5 && a[1].length == 6 && a[2].length == 7 && a[2][3] ==7;  // FAILS
+        // @ assert a.length == 5;  // FAILS
+        // @ assert a[1].length == 6;  // FAILS
+        // @ assert a[2].length == 7;  // FAILS
+        // @ assert a[2][3] ==7;  // FAILS
     }
     
     public static void mm3(int[][] a) {
@@ -74,10 +77,10 @@ public class Test {
         //@ assume a[2].length == 7;
         //@ assume a[2][3] ==7;
         a[1][2] = 13;
-        //@ assert a.length == 5;
-        //@ assert a[1].length == 6;
-        //@ assert a[2].length == 7;
-        //@ assert a[2][3] ==7;
-        //@ assert b[2] == 13;
+        //@ assert a.length == 5; // OK
+        //@ assert a[1].length == 6; // OK
+        //@ assert a[2].length == 7; // OK
+        //@ assert a[2][3] ==7; // OK
+        //@ assert b[2] == 13; // OK
     }
 }
