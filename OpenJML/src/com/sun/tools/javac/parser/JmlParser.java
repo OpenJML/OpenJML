@@ -17,6 +17,7 @@ import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.AssignableClauseExtension;
 import org.jmlspecs.openjml.ext.EndStatement;
+import org.jmlspecs.openjml.ext.EndStatement.SimpleStatement;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.MethodClauseType;
 import org.jmlspecs.openjml.ext.Operators;
@@ -478,7 +479,7 @@ public class JmlParser extends JavacParser {
             // if it is not the first loop specification statement
             if (s instanceof JmlMethodClauseStoreRef && ((JmlMethodClauseStoreRef)s).clauseKind == AssignableClauseExtension.assignableClauseKind) {
                 JmlMethodClauseStoreRef sa = (JmlMethodClauseStoreRef)s;
-                JmlStatementLoop sloop = jmlF.at(sa.pos).JmlStatementLoopModifies(StatementLocationsExtension.loopmodifiesStatement, sa.list);
+                JmlStatementLoop sloop = jmlF.at(sa.pos).JmlStatementLoopModifies(StatementLocationsExtension.loopwritesStatement, sa.list);
                 if (!loopspecs.isEmpty()) {
                     log.warning(s.pos, "jml.message", "Use 'loop_writes' keyword instead of '" + sa.keyword + "' in loop specifications");
                     loopspecs.add(sloop);
@@ -984,6 +985,9 @@ public class JmlParser extends JavacParser {
         if (stat == null || stat.isEmpty()) {
             log.error(ste, "jml.message", "Statement specs found at the end of a block (or before an erroneous statement)");
             return null;
+        } else if (stat.head instanceof JmlAbstractStatement && stat.head.toString() == EndStatement.beginID) {
+            log.error(stat.head, "jml.message", "Statement specs may not precede a JML statement clause");
+            return stat.head;
         }
         ListBuffer<JCStatement> stats = new ListBuffer<>();
         if (stat.head instanceof JmlStatement && ((JmlStatement)stat.head).clauseType == EndStatement.beginClause) {
@@ -1020,8 +1024,9 @@ public class JmlParser extends JavacParser {
             stat = super.parseStatementAsBlock();
         }
         if (stat != null) stats.add(stat);
-        if (stats.size() > 1) return F.at(stats.first().pos).Block(0, stats.toList());
-        return stats.first();
+        List<JCStatement> statslist = collectLoopSpecs(stats.toList());
+        if (statslist.size() > 1) return F.at(statslist.head.pos).Block(0, statslist);
+        return statslist.head;
     }
 
     // TODO - generalize this and move it out of JmlParser

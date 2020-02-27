@@ -820,10 +820,10 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
-    @Test
+    @Test  // Z3 non-deterministically crashes; trying to fix that by specifying the seed
     public void gitbug633a() {
         expectedExit = 0;
-        helpTCG();
+        helpTCG("-solver-seed=42");
     }
     
     @Test

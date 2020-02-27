@@ -27,16 +27,16 @@ import com.sun.tools.javac.util.ListBuffer;
 public class StatementLocationsExtension extends JmlExtension.Statement {
     
     public static final String havocID = "havoc";
-    public static final String loopmodifiesID = "loop_modifies";
+    public static final String loopwritesID = "loop_writes";
     
     public static final IJmlClauseKind havocStatement = new LocationSetStatementType(havocID);
     
-    public static final IJmlClauseKind loopmodifiesStatement = new LocationSetStatementType(loopmodifiesID);
+    public static final IJmlClauseKind loopwritesStatement = new LocationSetStatementType(loopwritesID);
     
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
     public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            havocStatement, loopmodifiesStatement }; }
+            havocStatement, loopwritesStatement }; }
     
     public static class LocationSetStatementType extends IJmlClauseKind.Statement {
         public LocationSetStatementType(String keyword) { super(keyword); }
@@ -91,8 +91,8 @@ public class StatementLocationsExtension extends JmlExtension.Statement {
         }
     }
     public void register() {
-        synonym("loop_writes",loopmodifiesStatement);
-        synonym("loop_assigns",loopmodifiesStatement);
+        synonym("loop_assigns",loopwritesStatement);
+        synonym("loop_modifies",loopwritesStatement);
     }
     
     public void synonym(String s, IJmlClauseKind t) {

@@ -149,7 +149,9 @@ class ClassCollector extends JmlTreeScanner {
             }
         }
         if (op == JCTree.Tag.SL || op == JCTree.Tag.SL_ASG || op == JCTree.Tag.SR || op == JCTree.Tag.SR_ASG || op == JCTree.Tag.USR || op == JCTree.Tag.USR_ASG    ) {
-            if (true || !(tree.rhs instanceof JCLiteral)) useBV = true;
+            if (!(tree.rhs instanceof JCLiteral)) {
+                useBV = true;
+            }
         }
         super.visitBinary(tree);
     }

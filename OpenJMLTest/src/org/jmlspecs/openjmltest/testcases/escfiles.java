@@ -243,7 +243,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testValueTypes() {
-        helpTF("valuetypes","-classpath","../OpenJML/runtime");
+        helpTF("valuetypes","-classpath","../OpenJML/runtime","-show","-method=newSetIsEmpty");
     }
 
     @Test
@@ -688,7 +688,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void escLet() {
-        helpTF("escLet","-solver-seed=9999");//,"-show","-method=m1");
+        helpTF("escLet","-solver-seed=9999");
     }
     
     @Test
@@ -757,9 +757,15 @@ public class escfiles extends EscBase {
         helpTF("sfbug420X");
     }
     
-    @Test
+    @Test  // TODO - could use some additional investigation as to what this submitted file set is supposed to do
     public void testRmLoop() {
-        helpTF("escrmloop","-checkFeasibility=none","-timeout=30"); // FIXME SHort timeout because this does not yet work properly
+        helpTF("escrmloop","-checkFeasibility=none","-timeout=60");
+    }
+    
+    @Test
+    public void testRmLoop2() {
+        expectedExit = 1;
+        helpTF("escrmloop2");
     }
     
     @Test

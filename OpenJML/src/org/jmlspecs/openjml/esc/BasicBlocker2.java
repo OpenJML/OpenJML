@@ -1645,8 +1645,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     public void visitIdent(JCIdent that) {
         if (that.sym instanceof Symbol.VarSymbol){ 
             Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
-            if (localVars.contains(vsym)) {
-                // no change to local vars (e.g. quantifier and let decls)
+            if (localVars.containsKey(vsym)) {
+                that.name = localVars.get(vsym).name;
             } else if (currentMap != null) { // FIXME - why would currentMap ever be null?
                 that.name = currentMap.getCurrentName(vsym);
                 if (isDefined.add(that.name)) {
@@ -1944,8 +1944,19 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         for (JCVariableDecl d: that.defs) {
             scan(d.init);
         }
-        scan(that.expr);
-        result = that;
+        for (JCVariableDecl d: that.defs) {
+            Name n = encodedName(d.sym,0L);
+            d.name = n;
+            localVars.put(d.sym,d);
+        }
+        try {
+            scan(that.expr);
+        } finally {
+            result = that;
+            for (JCVariableDecl d: that.defs) {
+                localVars.remove(d.sym);
+            }
+        }
     }
     
     @Override
@@ -2030,11 +2041,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override public void visitMethodDef(JCMethodDecl that)        { shouldNotBeCalled(that); }
     
     
-    final protected List<Symbol> localVars = new LinkedList<Symbol>();
+    final protected Map<Symbol,JCVariableDecl> localVars = new HashMap<>();
     
     @Override public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) { 
         for (JCVariableDecl d: that.decls) {
-            localVars.add(d.sym);
+            localVars.put(d.sym,d);
+            //d.name = encodedName(d.sym,0L); // FIXME - why doesn't this work?
         }
         try {
             that.range = convertExpr(that.range);

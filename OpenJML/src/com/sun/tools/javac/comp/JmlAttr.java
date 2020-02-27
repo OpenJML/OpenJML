@@ -3651,7 +3651,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (!jmltypes.isAnyIntegral(t) && !t.isErroneous()) {
                     log.error(((JmlStatementLoopExpr)tree).expression.getStartPosition(),"jml.message", "Expected an integral type in loop_decreases, not " + t.toString());
                 }
-            } else if (tree.clauseType == loopmodifiesStatement) {
+            } else if (tree.clauseType == loopwritesStatement) {
                 for (JCExpression stref: ((JmlStatementLoopModifies)tree).storerefs) {
                     attribExpr(stref,loopEnv,Type.noType);
                 }

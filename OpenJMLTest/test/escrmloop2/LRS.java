@@ -28,8 +28,6 @@ public class LRS {
    private /*@ spec_public @*/ final SuffixArray sa;
 
    /* @ requires arr!=null; @*/
-   //@ ensures sa == arr;
-   //@ skipesc // Proof failures
    LRS (SuffixArray arr) { sa = arr; }
 
 
@@ -46,7 +44,6 @@ public class LRS {
      @            (\forall int j; k <= j && j <= k+l; sa.a[j] == sa.a[j-k+i]));
      @         // there is no LRS of length l+1
      @*/
-   //@ skipesc // Time out
    public void doLRS() {
        int s = 0; int t = 0; int l = 0;
 

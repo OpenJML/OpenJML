@@ -1,0 +1,27 @@
+Proving methods in LCP
+Starting proof of LCP.LCP() with prover !!!!
+Completed proof of LCP.LCP() with prover !!!! - no warnings
+Starting proof of LCP.lcp(int[],int,int) with prover !!!!
+Completed proof of LCP.lcp(int[],int,int) with prover !!!! - no warnings
+Completed proving methods in LCP
+Proving methods in Lemmas
+Starting proof of Lemmas.Lemmas() with prover !!!!
+Completed proof of Lemmas.Lemmas() with prover !!!! - no warnings
+Skipping proof of Lemmas.compareTrans(SuffixArray,int,int,int) (excluded by skipesc)
+Skipping proof of Lemmas.compareRun(SuffixArray,int,int,int,int) (excluded by skipesc)
+Skipping proof of Lemmas.compareSuffixArray(SuffixArray,int,int) (excluded by skipesc)
+Starting proof of Lemmas.compareReflex(SuffixArray,int) with prover !!!!
+Completed proof of Lemmas.compareReflex(SuffixArray,int) with prover !!!! - no warnings
+Skipping proof of Lemmas.neighbourMax(SuffixArray,int,int,int) (excluded by skipesc)
+Completed proving methods in Lemmas
+Proving methods in SuffixArray
+Skipping proof of SuffixArray.SuffixArray(int[]) (excluded by skipesc)
+Skipping proof of SuffixArray.compare(int,int) (excluded by skipesc)
+Skipping proof of SuffixArray.sort(int[]) (excluded by skipesc)
+Starting proof of SuffixArray.swap(int[],int) with prover !!!!
+Completed proof of SuffixArray.swap(int[],int) with prover !!!! - no warnings
+Completed proving methods in SuffixArray
+Proving methods in LRS
+Skipping proof of LRS.LRS(SuffixArray) (excluded by skipesc)
+Skipping proof of LRS.doLRS() (excluded by skipesc)
+Completed proving methods in LRS

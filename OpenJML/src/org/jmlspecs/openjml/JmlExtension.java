@@ -76,7 +76,7 @@ public abstract class JmlExtension {
             for (IJmlClauseKind t: cTypes) {
                 Extensions.statementMethodClauses.put(t.name(), t);
             }
-            //register();
+            register();
         }
     }
 
