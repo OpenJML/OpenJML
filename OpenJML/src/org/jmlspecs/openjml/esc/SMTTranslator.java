@@ -2868,11 +2868,11 @@ public class SMTTranslator extends JmlTreeScanner {
     
     // We need to create nested let expressions because the SMT let expression
     // does parallel bindings of initializers to variables, while Java does
-    // sequential bindings.
+    // sequential bindings. So we also need unique bound identifiers.
     private IExpr doLet(Iterator<JCVariableDecl> iter, JCExpression expr) {
         if (iter.hasNext()) {
             JCVariableDecl decl = iter.next();
-            IExpr.ISymbol sym = F.symbol(decl.name.toString());
+            IExpr.ISymbol sym = F.symbol(makeBarEnclosedString(decl.name.toString()));
             IExpr e = convertExpr(decl.init);
             List<IBinding> bindings = new LinkedList<IBinding>();
             bindings.add(F.binding(sym,e));
@@ -2890,11 +2890,11 @@ public class SMTTranslator extends JmlTreeScanner {
             inQuant = true;
             List<IDeclaration> params = new LinkedList<IDeclaration>();
             for (JCVariableDecl decl: that.decls) {
-                IExpr.ISymbol sym = F.symbol(decl.name.toString());
+                IExpr.ISymbol sym = F.symbol(makeBarEnclosedString(decl.name.toString()));
                 ISort sort = convertSort(decl.type);
                 params.add(F.declaration(sym, sort));
                 if (decl.type.isPrimitive() && sort == intSort && !decl.type.toString().contains("\\")) {
-                    IExpr c = makeTypeConstraint(decl.type, F.symbol(decl.name.toString()));
+                    IExpr c = makeTypeConstraint(decl.type, sym);
                     typeConstraint = typeConstraint == null ? c : F.fcn(andSym, typeConstraint, c);
                 }
             }

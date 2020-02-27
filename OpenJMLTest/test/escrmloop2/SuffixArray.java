@@ -25,7 +25,6 @@ public final class SuffixArray {
     /*@ public normal_behavior
       @ ensures this.a == a;
       @*/
-    //@ skipesc // Various proof failures
     public /*@ pure @*/ SuffixArray(int[] a) {
         this.a = a;
         suffixes = new int[a.length];
@@ -51,11 +50,10 @@ public final class SuffixArray {
       @           (\exists int j; x <= j && j < a.length;
       @               ((j < a.length-y+x && a[j] > a[y+j-x] ) || j == a.length-y+x)
       @               && (\forall int k; x <= k && k < j; a[k] == a[k-x+y]));
-      @ // ensures \result == -compare(y,x);
+      @ ensures \result == -compare(y,x);
       @ accessible a, a[*];
       @ spec_public pure helper
       @*/
-    //@ skipesc // Various proof failures
     private int compare(int x, int y) {
         if (x == y) return 0;
         int l = LCP.lcp(a,x,y);
@@ -72,7 +70,6 @@ public final class SuffixArray {
     //@ private normal_behavior
     //@   assignable data[*];
     //@   ensures (\forall int k; 0 < k && k < data.length; data[k] >= data[k-1]);
-    //@ skipesc // Various proof failures
     private /*@ helper @*/ void sort(final int[] data) {
        /* @ //assignable data[*];
           @ maintaining data.length == a.length;
@@ -85,7 +82,7 @@ public final class SuffixArray {
           @ decreasing data.length - k;         
           @*/
         for(int k = 0; k < data.length; k++) 
-           /*@ loop_modifies data[*];
+           /*@ loop_writes data[*];
               @ maintaining 0 <= l && l <= k;
               @ maintaining (\forall int i; l < i && i <= k;
               @                 compare(data[i],data[i-1]) > 0);

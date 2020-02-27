@@ -12,7 +12,6 @@ final class Lemmas {
       @  ensures sa.compare(a,c) > 0;
       @  pure helper
       @*/
-    //@ skipesc // Times out
     public static boolean compareTrans(SuffixArray sa, int a, int b, int c) {
 	return true;
     }
@@ -31,7 +30,6 @@ final class Lemmas {
       @  ensures  b < sa.a.length - k;
       @  pure helper
       @*/
-    //@ skipesc // Time out
     public static boolean compareRun(SuffixArray sa, 
 					int a, int b, int c, int k){
 	return true;
@@ -43,11 +41,10 @@ final class Lemmas {
       @  ensures sa.compare(sa.suffixes[j], sa.suffixes[i]) > 0;
       @  pure helper
       @*/
-    //@ skipesc // Various proof failures
     public static boolean compareSuffixArray(SuffixArray sa, int i, int j) {
 
         /*@ decreases j - m;
-          @ loop_modifies \nothing;
+          @ assignable \nothing;
           @ loop_invariant sa.compare(sa.suffixes[m], sa.suffixes[i]) > 0 && i+1 <= m && m <= j;
           @*/
         for(int m = i + 1; m < j; m++) {
@@ -79,7 +76,6 @@ final class Lemmas {
       @  ensures \result;
       @  pure helper
       @*/
-    //@ skipesc // Time out
     public static boolean neighbourMax(SuffixArray sa, int i, int j, int k) {
 
 	compareSuffixArray(sa, i, j);

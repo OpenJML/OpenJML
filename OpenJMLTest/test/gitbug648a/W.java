@@ -1,14 +1,14 @@
 public class W {
 
     public void m() {
-        int x = X.qqq();
-        //@ assert x == 701;
+        int x = X.qqq();  // ERROR - no visible specs
+        //@ assert x == 701; // FAILS to prove because specs are not visible
     }
 
     //@ public normal_behavior
     //@   ensures true;
     public int mm() {
-        int x = X.qqq();
+        int x = X.qqq();  // ERROR - no visible specs
         return x;
     }
 }

@@ -1,8 +1,8 @@
 test/gitbug648a/W.java:4: error: No visible specifications for this call site: X.qqq() called from W.m()
-        int x = X.qqq();
+        int x = X.qqq();  // ERROR - no visible specs
                      ^
 test/gitbug648a/W.java:11: error: No visible specifications for this call site: X.qqq() called from W.mm()
-        int x = X.qqq();
+        int x = X.qqq();  // ERROR - no visible specs
                      ^
 Proving methods in W
 Starting proof of W.W() with prover !!!!
@@ -11,12 +11,12 @@ Feasibility check - at program exit : OK
 Completed proof of W.W() with prover !!!! - no warnings
 Starting proof of W.m() with prover !!!!
 test/gitbug648a/W.java:5: warning: The prover cannot establish an assertion (Assert) in method m
-        //@ assert x == 701;
+        //@ assert x == 701; // FAILS to prove because specs are not visible
             ^
 Completed proof of W.m() with prover !!!! - with warnings
 Starting proof of W.mm() with prover !!!!
 test/gitbug648a/W.java:11: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method mm
-        int x = X.qqq();
+        int x = X.qqq();  // ERROR - no visible specs
                      ^
 test/gitbug648a/W.java:8: warning: Associated declaration
     //@ public normal_behavior

@@ -8832,6 +8832,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // Iterate over all specs to find preconditions
             int callLabelReferenceCount = preAllocCounter;  // FIXME _ is this too early?
             boolean allCasesNormal = true;
+            boolean someCasesNormal = false;
             int numCases = 0;
             { // In quantifications, splitExpressions is set to false
                 boolean combinedNoModel = false;
@@ -8941,6 +8942,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (cs.block != null) hasAModelProgram = true;
                         numCases++;
                         if (cs.token != JmlTokenKind.NORMAL_BEHAVIOR) allCasesNormal = false;
+                        if (cs.token == JmlTokenKind.NORMAL_BEHAVIOR) someCasesNormal = true;
                         preconditionDetail2++;
                         anyVisibleSpecCases = true;
                         JCExpression preId = null; // JCIdent or JCLiteral
@@ -9432,11 +9434,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 MethodSymbol calleeMethodSym1 = calleeMethodSym;
                 JCExpression newThisExpr1 = newThisExpr;
                 final VarSymbol resultSym1 = resultSym;
+                final boolean heap = !calleeIsFunction && !calleeMethodSym1.owner.toString().startsWith("org.jmlspecs.lang");
                 List<JCStatement> stats = collectStats( () -> 
                     {
                         JmlMethodDecl mdecl = specs.getSpecs(calleeMethodSym1).cases.decl;
                         int p = (mdecl != null) ? mdecl.pos : 0;
-                        Name newMethodName = newNameForCallee(p, calleeMethodSym1, !calleeIsFunction);
+                        Name newMethodName = newNameForCallee(p, calleeMethodSym1, heap);
                         ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
                         if (!utils.isJMLStatic(calleeMethodSym1)) newargs.add(newThisExpr1);
                         newargs.addAll(trArgs);
@@ -10137,7 +10140,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCBinary ch = treeutils.makeEqObject(that.pos, nexceptionId, treeutils.nullLit);
                     JCBlock exsuresBlock = M.at(that).Block(0, exsuresStatsOuter.toList());
                     JCStatement st = M.at(that.pos).If(ch, ensuresBlock, exsuresBlock);
-                    if (allCasesNormal && !rac) {
+                    if (allCasesNormal && someCasesNormal && !rac) {
                         addAssume(that, Label.IMPLICIT_ASSUME, ch);
                         st = ensuresBlock;
                     }
@@ -18185,7 +18188,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // Create the symbol for the new method
             int hc = heapCount;
             if (oldenv != null) hc = labelPropertiesStore.get(oldenv.name).heapCount;
-            Name newMethodNameWithHeap = newNameForCallee(calleeDeclPos,msym, (useNamesForHeap && !isFunction) );
+            Name newMethodNameWithHeap = newNameForCallee(calleeDeclPos,msym, (useNamesForHeap && !isFunction && !msym.owner.toString().startsWith("org.jmlspecs.lang.")) );
             JCModifiers newmods;
             MethodSymbol newsym;
             if (inClassDecl()) {
