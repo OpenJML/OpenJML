@@ -2,6 +2,8 @@ import java.util.Scanner;
 
 public class GCDCalculatorMain{
     //@ requires System.out.isOpen && System.err.isOpen;
+    //@ requires \invariant_for(System.out);
+    //@ requires \invariant_for(System.err);
 	public static void main(String[] args){
 		try{ 
 			int num1, num2, gcd;
@@ -31,6 +33,8 @@ public class GCDCalculatorMain{
 			System.out.println("GCD of "+ num1 + " and " + num2 + " is equal to " + gcd);
 		}
 		catch (Exception e){
+		    //@ assume \invariant_for(System.err);
+		    //@ assume System.err.isOpen;
 			System.err.println("Scanner Exception!");
                         e.printStackTrace(System.err);
 			return;

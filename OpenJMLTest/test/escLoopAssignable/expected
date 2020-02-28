@@ -1,17 +1,34 @@
-test/escLoopAssignable/Test.java:11: warning: Use 'loop_writes' keyword instead of 'assignable' in loop specifications
+test/escLoopAssignable/Test.java:10: warning: A refining statement is required for statement specifications in strict JML mode
         //@ assignable i,a[4..7];
             ^
-test/escLoopAssignable/Test.java:12: warning: Use 'loop_writes' keyword instead of 'writes' in loop specifications
-        //@ writes i,a[4..7];
+test/escLoopAssignable/Test.java:9: error: Loop specifications must immediately precede a while or for statement
+        //@ loop_invariant 5<=i && i<=8;
             ^
-Proving methods in Test
-Starting proof of Test.Test() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of Test.Test() with prover !!!! - no warnings
-Starting proof of Test.mm(int[]) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of Test.mm(int[]) with prover !!!! - no warnings
-Completed proving methods in Test
-2 warnings
+test/escLoopAssignable/Test.java:23: error: ';' expected
+        //@ loop_assignable i,a[4..7];
+                                 ^
+test/escLoopAssignable/Test.java:22: error: Loop specifications must immediately precede a while or for statement
+        //@ loop_invariant 5<=i && i<=8;
+            ^
+Continuing bravely despite parsing errors
+test/escLoopAssignable/Test.java:10: error: cannot find symbol
+        //@ assignable i,a[4..7];
+                       ^
+  symbol:   variable i
+  location: class Test
+test/escLoopAssignable/Test.java:11: error: cannot find symbol
+        //@ writes i,a[4..7];
+                   ^
+  symbol:   variable i
+  location: class Test
+test/escLoopAssignable/Test.java:23: error: cannot find symbol
+        //@ loop_assignable i,a[4..7];
+            ^
+  symbol:   class loop_assignable
+  location: class Test
+test/escLoopAssignable/Test.java:23: error: variable a is already defined in method mok(int[])
+        //@ loop_assignable i,a[4..7];
+                              ^
+Operation not performed because of parse or type errors
+7 errors
+1 warning
