@@ -243,7 +243,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testValueTypes() {
-        helpTF("valuetypes","-classpath","../OpenJML/runtime","-show","-method=newSetIsEmpty");
+        helpTF("valuetypes","-classpath","../OpenJML/runtime");
     }
 
     @Test
@@ -527,6 +527,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testEscLoopAssignable() {
+        expectedExit = 1;
         helpTF("escLoopAssignable");
     }
 
@@ -864,12 +865,12 @@ public class escfiles extends EscBase {
         helpTF("refiningBad");
     }
 
-    // Fails for -minquant and with the tnum1a/tnum2a intermediates
+    // Failed for -minquant and with the tnum1a/tnum2a intermediates
     // Presumably a problem with instantiation/triggering
     @Test
     public void testGCDCalculator() {
         expectedExit = 0;
-        helpTF("gcdcalculator");//,"-show","-method=GCD","-subexpressions");
+        helpTF("gcdcalculator","-show","-method=GCD","-subexpressions");
     }
 
     @Test

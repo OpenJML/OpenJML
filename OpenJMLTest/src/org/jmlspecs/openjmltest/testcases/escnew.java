@@ -2153,7 +2153,7 @@ public class escnew extends EscBase {
 
                 // FIXME - lots more tests needed
                 +"  public void mm(int i) {\n" 
-                +"      int a = 2 / 0;\n" 
+                +"      int a = 2 / 1;\n" 
                 +"      a = 2 / (1-1);\n" 
                 +"      long g = 3L / 0;\n" 
                 +"  }\n"

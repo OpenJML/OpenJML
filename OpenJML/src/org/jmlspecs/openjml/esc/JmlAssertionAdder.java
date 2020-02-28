@@ -7549,11 +7549,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         //System.out.println("APPLY ENTER " + statementStack.size());
         // FIXME - needs result set - needs proper handling of pure methods etc.
-        if (that.meth.toString().startsWith("System.out.println")) {
+        if (that.meth != null && 
+                (that.meth.toString().startsWith("System.out.println") ||
+                 that.meth.toString().startsWith("System.err.println"))) {
             // We handle System.out.println specially. It is essentially pure and
             // does not depend on any class invariants, so we can safely just call it
             // after translating the arguments. This avoids bloat caused by putting
-            // in debug statements. 
+            // debug statements into the program under test. 
             List<JCExpression> args = convertExprList(that.args);
             JCMethodInvocation app = M.at(that).Apply(that.typeargs, that.meth, args).setType(that.type);
             app.varargsElement = that.varargsElement; // a Type
@@ -11810,8 +11812,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCExpression rhs = that.getRightOperand();
                     lhs = convertExpr(lhs);
                     Type boxed = types.boxedTypeOrType(lhs.type);
+                    JCExpression olhs = lhs;
                     lhs = utils.convertToString(M,syms,lhs,boxed);
-                    if (lhs instanceof JCMethodInvocation) visitApply((JCMethodInvocation)lhs);
+                    if (lhs != olhs) visitApply((JCMethodInvocation)lhs);
                     lhs = eresult;
                     rhs = convertExpr(rhs);
                     boxed = types.boxedTypeOrType(rhs.type);
@@ -13304,44 +13307,32 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             saveMappingOverride(that,id);  // The override is to help i nthe case where a calleee spec is reused but is not a full solution
         }
         if (stringType && !pureCopy) {
-            JCExpression e = treeutils.makeNeqObject(that.pos,id,treeutils.nullLit);
-            addAssume(that,Label.IMPLICIT_ASSUME,e);
             
             addNullnessTypeCondition(that,id.sym,false);
-
-            // These assumptions are necessary so that String literals are
-            // known to satisfy the invariants about Strings
-            addInvariants(id,id.type,id,currentStatements,false,false,false,false,false,true,Label.INVARIANT_ENTRANCE,utils.qualifiedMethodSig(methodDecl.sym));
             
             if (esc) {
-                TypeSymbol tsym = that.type.tsym;
-                MethodSymbol msym = null;
-                for (Symbol s: tsym.getEnclosedElements()) {
-                    if (s instanceof MethodSymbol && s.name == names.length) { msym = (MethodSymbol)s; break; }
-                }
-                JCExpression m = treeutils.makeMethodInvocation(that,id,msym);
-                m.type = syms.intType;
-                int len = ((String)that.getValue()).length();
-                m = treeutils.makeEquality(that.pos, m, treeutils.makeIntLiteral(that.pos, len));
-                JCStatement st = treeutils.makeAssume(that, Label.IMPLICIT_ASSUME, m);
-                st.accept(this);
+                ClassSymbol chseq = ClassReader.instance(context).enterClass(names.fromString("java.lang.CharSequence"));
+                Symbol chs = utils.findMember(chseq, "charArray");
+                JCExpression fa = M.at(id).Select(id, chs);
+                fa = treeutils.makeLength(id,fa);
+                String str = (String)that.getValue();
+                int len = str.length();
+                JCExpression e = treeutils.makeEquality(id.pos, fa, treeutils.makeIntLiteral(id,len));
+                addAssume(that,Label.IMPLICIT_ASSUME,e);
+
+                // These assumptions are necessary so that String literals are
+                // known to satisfy the invariants about Strings
+                addInvariants(id,id.type,id,currentStatements,false,false,false,false,false,true,Label.INVARIANT_ENTRANCE,utils.qualifiedMethodSig(methodDecl.sym));
+            
                 
                 if (len > 0) {
-                    VarSymbol vsym = null;
-                    ClassSymbol csym = ClassReader.instance(context).loadClass(names.fromString("java.lang.CharSequence"));
-                    for (Symbol s: csym.getEnclosedElements()) {
-                        if (s instanceof VarSymbol) {
-                            String sn = s.name.toString();
-                            if ("charArray".equals(sn)) { vsym = (VarSymbol)s; break; }
-                        }
-                    }
-                    JCFieldAccess arr = treeutils.makeSelect(that.pos, id, vsym);
+                    JCFieldAccess arr = treeutils.makeSelect(that.pos, id, chs);
                     JCExpression z = treeutils.makeIntLiteral(that.pos, 0);
                     JCExpression mm = treeutils.makeArrayElement(that.pos,arr,z);
                     mm.type = syms.charType;
-                    JCExpression c = treeutils.makeCharLiteral(that.pos, ((String)that.getValue()).charAt(0));
-                    m = treeutils.makeEquality(that.pos, mm, c);
-                    st = treeutils.makeAssume(that, Label.IMPLICIT_ASSUME, m);
+                    JCExpression c = treeutils.makeCharLiteral(that.pos, str.charAt(0));
+                    JCExpression m = treeutils.makeEquality(that.pos, mm, c);
+                    JCStatement st = treeutils.makeAssume(that, Label.IMPLICIT_ASSUME, m);
                     st.accept(this);
                 }
                 

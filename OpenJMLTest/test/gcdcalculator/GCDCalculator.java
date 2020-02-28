@@ -25,15 +25,15 @@ public class GCDCalculator{
 
 	//@ requires num1 == 0 && num2 != 0;
 	//@ requires num2 != Integer.MIN_VALUE;
-	//@ old int tnum2a = Math.abs(num2);
-	//@ ensures \result == tnum2a;
+	// @ old int tnum2a = Math.abs(num2);
+	//@ ensures \result == Math.abs(num2);
 
 	//@ also
 
 	//@ requires num1 != 0 && num2 == 0;
 	//@ requires num1 != Integer.MIN_VALUE;
 	//@ old int tnum1a = Math.abs(num1);  // FIXME: If we eliminnate this old clause, things work, but otherwise not.
-	//@ ensures \result == tnum1a;
+	//@ ensures \result == \lbl TNUM1a tnum1a;
       //@ |}
 
 	public int GCD(int num1, int num2)throws IllegalArgumentException {
@@ -59,6 +59,7 @@ public class GCDCalculator{
 		}
 
 		if(num1 == 0 || num2 == 0){ 
+		    //@ show \old(num1), \old(num2), num1, num2, num1>num2, Integer.MAX_VALUE;
 			return (num1 > num2) ? num1 : num2;
 		}
 
