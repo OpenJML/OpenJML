@@ -13308,24 +13308,28 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         if (stringType && !pureCopy) {
             
-            addNullnessTypeCondition(that,id.sym,false);
+            addNullnessAllocationTypeCondition(that,id.sym,true,false,false);
             
             if (esc) {
-                ClassSymbol chseq = ClassReader.instance(context).enterClass(names.fromString("java.lang.CharSequence"));
-                Symbol chs = utils.findMember(chseq, "charArray");
-                JCExpression fa = M.at(id).Select(id, chs);
-                fa = treeutils.makeLength(id,fa);
                 String str = (String)that.getValue();
                 int len = str.length();
-                JCExpression e = treeutils.makeEquality(id.pos, fa, treeutils.makeIntLiteral(id,len));
-                addAssume(that,Label.IMPLICIT_ASSUME,e);
+                ClassSymbol chseq = ClassReader.instance(context).enterClass(names.fromString("java.lang.CharSequence"));
+                Symbol chs = chseq == null ? null : utils.findMember(chseq, "charArray");
+                // chs is null if we don't have specs for CharSequence,
+                // or if the charArray model field has been renamed
+                if (chs != null) {
+                    JCExpression fa = M.at(id).Select(id, chs);
+                    fa = treeutils.makeLength(id,fa);
+                    JCExpression e = treeutils.makeEquality(id.pos, fa, treeutils.makeIntLiteral(id,len));
+                    addAssume(that,Label.IMPLICIT_ASSUME,e);
+                }
 
                 // These assumptions are necessary so that String literals are
                 // known to satisfy the invariants about Strings
                 addInvariants(id,id.type,id,currentStatements,false,false,false,false,false,true,Label.INVARIANT_ENTRANCE,utils.qualifiedMethodSig(methodDecl.sym));
             
                 
-                if (len > 0) {
+                if (chs != null && len > 0) {
                     JCFieldAccess arr = treeutils.makeSelect(that.pos, id, chs);
                     JCExpression z = treeutils.makeIntLiteral(that.pos, 0);
                     JCExpression mm = treeutils.makeArrayElement(that.pos,arr,z);
