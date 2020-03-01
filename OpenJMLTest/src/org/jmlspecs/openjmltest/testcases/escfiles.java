@@ -854,6 +854,12 @@ public class escfiles extends EscBase {
     }
     
     @Test
+    public void testSplits2() {
+        expectedExit = 0;
+        helpTF("splits2");
+    }
+    
+    @Test
     public void refining() {
         expectedExit = 0;
         helpTF("refining");
