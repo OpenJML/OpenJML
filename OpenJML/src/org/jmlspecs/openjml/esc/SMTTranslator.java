@@ -887,8 +887,8 @@ public class SMTTranslator extends JmlTreeScanner {
             addCommand(smt,"(define-fun |#trunc16s#| ((x Int)) Int (let ((m (mod x |#big16#|))) (ite (<= m |#max16#|) m (- m |#big16#|) )))");
             addCommand(smt,"(define-fun |#trunc8s#| ((x Int)) Int (let ((m (mod x |#big8#|))) (ite (<= m |#max8#|) m (- m |#big8#|) )))");
 
-            addCommand(smt,"(define-fun cdiv ((a Int) (b Int)) Int (ite (>= a 0) (div a b) (div (- a) (- b))))");
-            addCommand(smt,"(define-fun cmod ((a Int) (b Int)) Int (- a (* (cdiv a b) b)))");
+            addCommand(smt,"(define-fun |#cdiv#| ((a Int) (b Int)) Int (ite (>= a 0) (div a b) (div (- a) (- b))))");
+            addCommand(smt,"(define-fun |#cmod#| ((a Int) (b Int)) Int (ite (>= a 0) (mod a b) (mod (- a) (- b))))");
             addCommand(smt,"(define-fun |#inRange32#| ((a Int)) Bool (and (<= |#min32#| a) (<= a |#max32#|)))");
             addCommand(smt,"(define-fun |#add32ok#| ((a Int) (b Int)) Bool (|#inRange32#| (+ a b)) )");
             addCommand(smt,"(define-fun |#add32#| ((a Int) (b Int)) Int (let ((p (+ a b))) (ite (|#inRange32#| p) p (ite (< |#max32#| p) (- p |#big32#|) (+ p |#big32#|)))))");
@@ -2181,6 +2181,7 @@ public class SMTTranslator extends JmlTreeScanner {
                             F.fcn(F.symbol("div"), args),
                             F.fcn(F.symbol("div"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1)))
                             );
+                    //result = F.fcn(F.symbol("|#cdiv#|"), args);
                 }
                 break;
             case MOD:
@@ -2202,6 +2203,7 @@ public class SMTTranslator extends JmlTreeScanner {
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("div"), args))),
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("div"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1)))))
                             );
+                    //result = F.fcn(F.symbol("|#cmod#|"), args);
                 }
 //                result = F.fcn(F.symbol("ite"), 
 //                        F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 

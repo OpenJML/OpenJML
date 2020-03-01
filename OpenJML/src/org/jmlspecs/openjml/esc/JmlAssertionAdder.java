@@ -14077,7 +14077,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // In a do-while loop we test the condition before the invariants
         
         // Construct the loop test and the exit block. 
-        loopHelperMakeBreak(that.loopSpecs,cond,loop,that);
+        Boolean splitInfo = loopHelperMakeBreak(that.loopSpecs,cond,loop,that);
 
         // After the loop, check the invariants and check that the variants have decreased
         loopHelperAssertInvariants(that.loopSpecs,decreasesIDs);
@@ -14085,6 +14085,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Finish up the new loop body
         // Finish up the output block
         loopHelperFinish(loop,that);
+        addStat(popBlock(that));
     }
 
     // OK
@@ -14220,6 +14221,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         treeMap.put(that, loop);
 
         int savedHeapCount = -1;
+        Boolean splitInfo = null;
         if (that.expr.type.getTag() == TypeTag.ARRAY) {
         
             JCExpression lengthExpr = treeutils.makeLength(array, array);
@@ -14255,7 +14257,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // The exit block tests the condition; if exiting, it tests the
                 // invariant and breaks.
                 savedHeapCount = heapCount;
-                loopHelperMakeBreak(that.loopSpecs,cond,loop,that);
+                splitInfo = loopHelperMakeBreak(that.loopSpecs,cond,loop,that);
             }
 
             // Now in the loop, so check that the variants are non-negative
@@ -14332,7 +14334,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // The exit block tests the condition; if exiting, it tests the
                 // invariant and breaks.
                 savedHeapCount = heapCount;
-                loopHelperMakeBreak(that.loopSpecs,cond,loop,that);
+                splitInfo = loopHelperMakeBreak(that.loopSpecs,cond,loop,that);
             }
             
             // Now in the loop, so check that the variants are non-negative
@@ -14364,7 +14366,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Then translate the original loop body
         // Have to do some footwork to get the Block object before constructing its contents
-        loopHelperMakeBody(that.body);
+        if (splitInfo == null || splitInfo) loopHelperMakeBody(that.body);
     
         // increment the index
         loopHelperIncrementIndex(indexDecl);
@@ -14376,8 +14378,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Finish up the output block
         heapCount = savedHeapCount; // FIXME - only if no break statements targeted the end of the loop
         loopHelperFinish(loop,that); // Does two popBlock operations
+        JCBlock bl = popBlock(that);
+        if (splitInfo == null || splitInfo) addStat(bl);
+        if (splitInfo != null && splitInfo) continuation = Continuation.HALT;
 
-        
         // FIXME Need to add specifications; also index and values variables
 //        JCVariableDecl v = M.at(that.var.pos).VarDef(that.var.sym,null);
 //        v.setType(that.var.type);
@@ -14541,7 +14545,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     /** Create the if statement that is the loop exit */
-    protected void loopHelperMakeBreak(List<JmlStatementLoop> loopSpecs, JCExpression cond, JCTree loop, DiagnosticPosition pos) {
+    protected Boolean loopHelperMakeBreak(List<JmlStatementLoop> loopSpecs, JCExpression cond, JCTree loop, DiagnosticPosition pos) {
+        Boolean res = null;
         boolean split  = ((IJmlLoop)pos).isSplit();
         ListBuffer<JCStatement> check = pushBlock();
         JCBreak br = M.at(pos).Break(null);
@@ -14552,9 +14557,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             boolean conditionTrue = true;
             if (currentSplit.isEmpty()) {
                 adjustSplit(2);
+                res = true;
             } else {
                 conditionTrue = currentSplit.charAt(0) == 'A';
                 currentSplit = currentSplit.substring(1);
+                res = conditionTrue;
             }
             JCExpression ccond = convertCopy(cond);
             if (conditionTrue) {
@@ -14570,6 +14577,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression ncond = treeutils.makeNot(pos.getPreferredPosition(),cond);
             addStat(M.at(pos).If(ncond,bl,null));
         }
+        return res;
     }
     
     /** Convert the loop body */
@@ -14706,9 +14714,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         addStat(loop);
         treeMap.remove(that);
         indexStack.remove(0);
-
-        
-        addStat(popBlock(that));
     }
     
     // OK
@@ -14837,13 +14842,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Compute the condition, recording any side-effects
         int savedHeapCount = -1;
+        Boolean splitInfo = null;
         if (that.cond != null) {
             
             addTraceableComment(that.cond,that.cond,"Loop test");
             JCExpression cond = convertExpr(that.cond);
 
             // The exit block tests the condition; if exiting, it breaks out of the loop
-            loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
+            splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
             savedHeapCount = heapCount;
         }
         
@@ -14853,7 +14859,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Then translate the original loop body
         // Have to do some footwork to get the Block object before constructing its contents
         
-        loopHelperMakeBody(that.body);
+        if (splitInfo == null || splitInfo) loopHelperMakeBody(that.body);
         
         if (that.step != null) scan(that.step);
         
@@ -14867,6 +14873,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Finish up the output block
         heapCount = savedHeapCount; // FIXME - only if no break statements targeted the end of the loop
         loopHelperFinish(loop,that);
+        JCBlock bl = popBlock(that);
+        if (splitInfo == null || splitInfo) addStat(bl);
+        if (splitInfo != null && splitInfo) continuation = Continuation.HALT;
         labelPropertiesStore.pop(loopbodyLabelName);
         labelPropertiesStore.pop(loopLabelInit);
     }
@@ -17752,15 +17761,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
         
         // Compute the condition, recording any side-effects
-        
             
-            addTraceableComment(that.cond,that.cond,"Loop test");
-            JCExpression cond = convertExpr(that.cond);
+        addTraceableComment(that.cond,that.cond,"Loop test");
+        JCExpression cond = convertExpr(that.cond);
 
-            // The exit block tests the condition; if exiting, it tests the
-            // invariant and breaks.
-            int savedHeapCount = heapCount;
-            loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
+        // The exit block tests the condition; if exiting, it tests the
+        // invariant and breaks.
+        int savedHeapCount = heapCount;
+        Boolean splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
         
         if (esc) changeState(); // loop is different state than break block
         
@@ -17769,7 +17777,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Then translate the original loop body
         // Have to do some footwork to get the Block object before constructing its contents
-        loopHelperMakeBody(that.body);
+        if (splitInfo == null || splitInfo) loopHelperMakeBody(that.body);
         
         // increment the index
         loopHelperIncrementIndex(indexDecl);
@@ -17780,6 +17788,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Finish up the new loop body
         // Finish up the output block
         loopHelperFinish(loop,that);
+        JCBlock bl = popBlock(that);
+        if (splitInfo == null || splitInfo) addStat(bl);
+        if (splitInfo != null && splitInfo) continuation = Continuation.HALT;
+
         heapCount = savedHeapCount;
     }
     
