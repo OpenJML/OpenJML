@@ -3,41 +3,80 @@ Starting proof of Test.Test() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.whok(int) with prover !!!!
+Proof attempt for split A
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : infeasible
+test/splits2/Test.java:4: warning: There is no feasible path to program point at program exit in method Test.whok(int)
+    public void whok(int k) {
+                ^
+Result of split A is INFEASIBLE
+Proof attempt for split B
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Result of split B is UNSAT
+Composite result INFEASIBLE
+Completed proof of Test.whok(int) with prover !!!! - INFEASIBLE
 Starting proof of Test.wh(int) with prover !!!!
 Proof attempt for split A
-test/splits2/Test.java:6: warning: The prover cannot establish an assertion (Assert) in method wh
+test/splits2/Test.java:19: warning: The prover cannot establish an assertion (Assert) in method wh
             //@ assert i < -1; // Split A
                 ^
 Result of split A is POSSIBLY_SAT
 Proof attempt for split BAA
-test/splits2/Test.java:17: warning: The prover cannot establish an assertion (Assert) in method wh
+test/splits2/Test.java:30: warning: The prover cannot establish an assertion (Assert) in method wh
                 //@ assert k < 0; // FAILS - BAA
                     ^
 Result of split BAA is POSSIBLY_SAT
 Proof attempt for split BABA
-test/splits2/Test.java:23: warning: The prover cannot establish an assertion (Assert) in method wh
+test/splits2/Test.java:36: warning: The prover cannot establish an assertion (Assert) in method wh
                 //@ assert i < 1; // FAILS - BABA
                     ^
 Result of split BABA is POSSIBLY_SAT
 Proof attempt for split BABB
-test/splits2/Test.java:26: warning: The prover cannot establish an assertion (Assert) in method wh
+test/splits2/Test.java:39: warning: The prover cannot establish an assertion (Assert) in method wh
             //@ assert i < 2; // FAILS - BABB
                 ^
 Result of split BABB is POSSIBLY_SAT
 Proof attempt for split BBA
-test/splits2/Test.java:29: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method wh
+test/splits2/Test.java:42: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method wh
         //@ loop_invariant 0 <= j <= 10;
             ^
-test/splits2/Test.java:33: warning: The prover cannot establish an assertion (Assert) in method wh
-            //@ assert i < 3; // FAILS - BBA
-                ^
 Result of split BBA is POSSIBLY_SAT
 Proof attempt for split BBB
-test/splits2/Test.java:35: warning: The prover cannot establish an assertion (Assert) in method wh
-        //@ assert j < 0; // FAILS - BBB
+test/splits2/Test.java:42: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method wh
+        //@ loop_invariant 0 <= j <= 10;
             ^
 Result of split BBB is POSSIBLY_SAT
 Composite result POSSIBLY_SAT
 Completed proof of Test.wh(int) with prover !!!! - with warnings
+Starting proof of Test.whfor(int) with prover !!!!
+Proof attempt for split A
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : infeasible
+test/splits2/Test.java:52: warning: There is no feasible path to program point at program exit in method Test.whfor(int)
+    public void whfor(int k) {
+                ^
+Result of split A is INFEASIBLE
+Proof attempt for split B
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Result of split B is UNSAT
+Composite result INFEASIBLE
+Completed proof of Test.whfor(int) with prover !!!! - INFEASIBLE
+Starting proof of Test.enfor(int[]) with prover !!!!
+Proof attempt for split A
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : infeasible
+test/splits2/Test.java:64: warning: There is no feasible path to program point at program exit in method Test.enfor(int[])
+    public void enfor(int[] k) {
+                ^
+Result of split A is INFEASIBLE
+Proof attempt for split B
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Result of split B is UNSAT
+Composite result INFEASIBLE
+Completed proof of Test.enfor(int[]) with prover !!!! - INFEASIBLE
 Completed proving methods in Test
-7 warnings
+9 warnings
