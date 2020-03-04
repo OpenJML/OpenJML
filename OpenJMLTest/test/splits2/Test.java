@@ -1,5 +1,18 @@
 public class Test {
 
+    //@ requires k >= 0;
+    public void whok(int k) {
+        int i = k;
+        //@ loop_invariant 0 <= i <= k;
+        //@ loop_invariant \index == k-i;
+        //@ split
+        while (i > 0) {
+            i --;
+        }
+        //@ assert i == 0;
+    }
+    
+    
     public void wh(int i) {
         //@ split
         if (i < 0) {
@@ -34,5 +47,32 @@ public class Test {
         }
         //@ assert j < 0; // FAILS - BBB
     }
+
+    //@ requires k >= 0;
+    public void whfor(int k) {
+        int j = 0;
+        //@ loop_invariant 0 <= i <= k;
+        //@ loop_invariant j == k-i;
+        //@ loop_invariant \index == k-i;
+        //@ split
+        for (int i = k; i > 0; i--) {
+            j++;
+        }
+        //@ assert j == k;
+    }
+    
+    public void enfor(int[] k) {
+        int j = 0;
+        //@ loop_invariant j == \count;
+        //@ loop_invariant 0 <= \count <= k.length;
+        //@ loop_writes j;
+        //@ split
+        for (int i: k) {
+            j++;
+        }
+        //@ show j, k.length;
+        //@ assert j == k.length;
+    }
+    
 
 }
