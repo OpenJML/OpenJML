@@ -512,7 +512,7 @@ public class Utils {
         for (Symbol s: sym.getEnclosedElements()) {
             if (s.name.equals(n) && s instanceof MethodSymbol) {
                 MethodSymbol msym = (MethodSymbol)s;
-                if (msym.params.length() == args && msym.isStatic() == isPrimitive) return s;
+                if (msym.isStatic() == isPrimitive && msym.getParameters().length() == args) return s;
             }
         }
         return null;
@@ -521,10 +521,17 @@ public class Utils {
     public JCExpression convertToString(JmlTree.Maker M, Symtab syms, JCExpression expr, Type boxed) {
         if (expr.type.tsym == syms.stringType.tsym) return expr;
         if (expr.type.isPrimitive() && expr.type.getTag() != TypeTag.BOT) {
-            Symbol tostring = findToString(boxed.tsym,true);
-            if (tostring == null) log.error(expr,"jml.internal","Could not find the toString method");
-            JCExpression meth = M.at(expr).Select(expr,tostring);
-            return M.at(expr).Apply(null, meth, com.sun.tools.javac.util.List.<JCExpression>of(expr)).setType(syms.stringType);
+            if (jmltypes.isJmlType(expr.type)) {
+                Symbol tostring = findToString(boxed.tsym,false);
+                if (tostring == null) log.error(expr,"jml.internal","Could not find the toString method");
+                JCExpression meth = M.at(expr).Select(expr,tostring);
+                return M.at(expr).Apply(null, meth, com.sun.tools.javac.util.List.<JCExpression>nil()).setType(syms.stringType);
+            } else {
+                Symbol tostring = findToString(boxed.tsym,true);
+                if (tostring == null) log.error(expr,"jml.internal","Could not find the toString method");
+                JCExpression meth = M.at(expr).Select(expr,tostring);
+                return M.at(expr).Apply(null, meth, com.sun.tools.javac.util.List.<JCExpression>of(expr)).setType(syms.stringType);
+            }
         } else {
             Symbol tostring = findToString(expr.type.tsym,false);
             if (tostring == null) log.error(expr,"jml.internal","Could not find the toString method");

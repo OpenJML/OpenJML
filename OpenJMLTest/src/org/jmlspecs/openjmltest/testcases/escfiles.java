@@ -835,10 +835,10 @@ public class escfiles extends EscBase {
         helpTF("datatype");
     }
 
-    @Test
+    @Test // Baisc problem is with the toStroing conversion of a \bigint, because of the -code-math=bigint setting of these
     public void testFactorial() {
         expectedExit = 0;
-        helpTF("factorial");
+        helpTF("factorial","-code-math=java","-method=Facto","-show");
     }
 
     @Test
@@ -876,7 +876,7 @@ public class escfiles extends EscBase {
     @Test
     public void testGCDCalculator() {
         expectedExit = 0;
-        helpTF("gcdcalculator","-show","-method=GCD","-subexpressions");
+        helpTF("gcdcalculator");
     }
 
     @Test

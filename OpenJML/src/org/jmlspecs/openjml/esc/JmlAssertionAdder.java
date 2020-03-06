@@ -3757,6 +3757,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         for (Pair<MethodSymbol,Type> p : overridden) {
             JmlMethodSpecs mspecs = specs.getDenestedSpecs(p.first);
             for (JmlSpecificationCase cs: mspecs.cases) {
+                if (cs.code && p.first != methodDecl.sym) continue;
                 if (cs.block != null) return true;
             }
         }
@@ -7270,6 +7271,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // FIXME _ visibility> // if visibility is wrong, pre may be null
             JCExpression pre = calleePreconditions.get(c);
             if (pre == null) continue;
+            if (c.code && p.first.owner != methodDecl.sym.owner) continue;
             JCIdent id = newTemp(c,syms.booleanType);
             ListBuffer<JCStatement> check = pushBlock();
             JCExpression condition = checkAccess(token,callPosition, location, trLocation, c, baseThisId, targetThisId, true);
@@ -8805,7 +8807,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 MethodSymbol mpsym = pair.first;
 
                 JmlMethodSpecs s = specs.getDenestedSpecs(mpsym);
-                if (s != null && !s.cases.isEmpty()) {
+                if (s != null && !s.cases.isEmpty()) {  // FIXME - should not count any 'code' specs
                     anyFound = true;
                     break;
                 }
@@ -8993,7 +8995,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 }
                                                 IArithmeticMode savedAM = pushArithMode();
                                                 convertedInit = addImplicitConversion(decl.init, decl.type, convertedInit);
-                                                this.currentArithmeticMode = savedAM;
+                                                popArithMode(savedAM);
                                                 if (rac) {
                                                     JCExpressionStatement stat = treeutils.makeAssignStat(decl.init.pos,id,convertedInit);
                                                     addStat(stat);
@@ -13163,7 +13165,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
                 if (sym.owner == methodDecl.sym || eresult == null) {
-                    JCIdent id = treeutils.makeIdent(that.pos, sym);
+                    JCExpression id = treeutils.makeIdent(that.pos, sym);
                     result = eresult = id;
                     local = true;
                 }
@@ -18301,6 +18303,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     //if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
                     if (cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
                     // FIXME - will need to add OLD and FORALL clauses in here
+                    if (cs.code && mpsym.owner != msym.owner) continue;
                     
                     JCExpression pre = qthisnn != null ? qthisnn : treeutils.trueLit;
                     if (isPrimitiveType) {
