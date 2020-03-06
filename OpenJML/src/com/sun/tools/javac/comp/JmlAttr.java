@@ -692,9 +692,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // access to the scope at method definition time from within other nestings.
                 boolean prevAllowJML = jmlresolve.setAllowJML(true);
                 JmlSpecs.MethodSpecs sp = ((JmlMethodDecl)env.enclMethod).methodSpecsCombined; //specs.getSpecs(env.enclMethod.sym);
+                VarSymbol savedSecret = currentSecretContext;
+                VarSymbol savedQuery = currentQueryContext;
                 try {
-//                    currentSecretContext = sp.secretDatagroup;
-//                    currentQueryContext = null;
+                    currentSecretContext = sp.secretDatagroup;
+                    currentQueryContext = null;
 //                  if (enclosingMethodEnv == null) {
                     // FIXME - This can happen for anonymous classes, so I expect that
                     // specs (or at least \old) in anonymous classes will cause disaster
@@ -708,8 +710,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
 //                  }
                 } finally {
-//                    currentQueryContext = sp.queryDatagroup;
-//                    if (currentSecretContext == null) currentQueryContext = currentSecretContext;
+                    currentSecretContext = savedSecret;
+                    currentQueryContext = savedQuery;
                     jmlresolve.setAllowJML(prevAllowJML);
                 }
             }
@@ -4656,7 +4658,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         Type saved = result;
         if (!justAttribute && tree.sym instanceof VarSymbol) {
-            checkSecretReadable(tree.pos(),(VarSymbol)tree.sym);
+            checkSecretReadable(tree,(VarSymbol)tree.sym);
         }// Could also be a method call, and error, a package, a class...
         
         checkVisibility(tree, jmlVisibility, tree.sym);
