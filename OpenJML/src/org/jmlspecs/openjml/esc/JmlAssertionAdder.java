@@ -8234,6 +8234,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             if (addMethodAxioms) {
                 List<JCExpression> ntrArgs = trArgs;
+                if (!utils.isJMLStatic(calleeMethodSym)) {
+                    ntrArgs = ntrArgs.prepend(newThisExpr);
+                }
+                if (!attr.hasAnnotation(calleeMethodSym,JmlTokenKind.FUNCTION) && !useNamesForHeap) {
+                    JCExpression heap = treeutils.makeIdent(that.pos,heapSym);
+                    ntrArgs = ntrArgs.prepend(heap); // only if heap dependent
+                }
                 if ((useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
 
                     if (condition == null) condition = treeutils.trueLit;
@@ -8241,13 +8248,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     currentThisExpr = newThisExpr;
 
 
-                    if (!utils.isJMLStatic(calleeMethodSym)) {
-                        ntrArgs = ntrArgs.prepend(newThisExpr);
-                    }
-                    if (!attr.hasAnnotation(calleeMethodSym,JmlTokenKind.FUNCTION) && !useNamesForHeap) {
-                        JCExpression heap = treeutils.makeIdent(that.pos,heapSym);
-                        ntrArgs = ntrArgs.prepend(heap); // only if heap dependent
-                    }
                     
                     addMethodAxiomsPlus2(that, calleeMethodSym, newThisExpr, ntrArgs, receiverType,
                             overridden, details);
@@ -8381,7 +8381,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             if (!translatingJML && calleeIsFunction && !rac) {
                 // FIXME - replicated from above
-                addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, trArgs,
+                List<JCExpression> convertedArgs = convertCopy(trArgs);
+                if (!utils.isJMLStatic(calleeMethodSym)) {
+                    convertedArgs = convertedArgs.prepend(newThisExpr);
+                }
+                addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, convertedArgs,
                         receiverType, overridden, true);
 
                 //MethodSymbol newCalleeSym = pureMethod.get(calleeMethodSym);
@@ -8390,10 +8394,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     log.error("jml.internal","No logical function for method " + calleeMethodSym.getQualifiedName());
                 }
 
-                List<JCExpression> convertedArgs = convertCopy(trArgs);
-                if (!utils.isJMLStatic(calleeMethodSym)) {
-                    convertedArgs = convertedArgs.prepend(newThisExpr);
-                }
                 JCExpression methCall = treeutils.makeMethodInvocation(that,null,newCalleeSym,convertedArgs);
                 JCStatement stat;
                 if (resultExpr == null) stat = M.at(that.pos).Exec(methCall);  // FIXME - but if it is a function, why no return value?
@@ -9928,7 +9928,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     public void addMethodAxiomsPlus(JCExpression that,
             MethodSymbol calleeMethodSym, JCExpression newThisExpr,
-            List<JCExpression> trArgs, Type receiverType,
+            List<JCExpression> convertedArgs, Type receiverType,
             java.util.List<Pair<MethodSymbol, Type>> overridden, boolean details) {
         JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden,receiverType,that.type);
         if (details) { // FIXME - document this details check - if it is false, the axioms are dropped
@@ -9950,10 +9950,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 MethodSymbol s = info.sym;
                 if (s != null && localVariables.isEmpty() && !treeutils.isTrueLit(info.wellDefinedExpression)) {
                     JCExpression e;
-                    List<JCExpression> convertedArgs = convertCopy(trArgs);
-                    if (!utils.isJMLStatic(calleeMethodSym)) {
-                        convertedArgs = convertedArgs.prepend(newThisExpr);
-                    }
+//                    List<JCExpression> convertedArgs = convertCopy(trArgs);
+//                    if (!utils.isJMLStatic(calleeMethodSym)) {
+//                        convertedArgs = convertedArgs.prepend(newThisExpr);
+//                    }
 //                    if (!attr.hasAnnotation(calleeMethodSym,JmlTokenKind.FUNCTION) && !useNamesForHeap) {
 //                        JCExpression heap = treeutils.makeIdent(that.pos,heapSym);
 //                        convertedArgs = convertedArgs.prepend(heap); // only if heap dependent
