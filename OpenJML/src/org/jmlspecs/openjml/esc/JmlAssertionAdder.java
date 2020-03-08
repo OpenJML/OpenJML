@@ -8233,14 +8233,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             initialInvariantCheck(that, isSuperCall, isThisCall, calleeMethodSym, newThisExpr, trArgs, apply);
 
             if (addMethodAxioms) {
-                List<JCExpression> ntrArgs = trArgs;
-                if (!utils.isJMLStatic(calleeMethodSym)) {
-                    ntrArgs = ntrArgs.prepend(newThisExpr);
-                }
-                if (!attr.hasAnnotation(calleeMethodSym,JmlTokenKind.FUNCTION) && !useNamesForHeap) {
-                    JCExpression heap = treeutils.makeIdent(that.pos,heapSym);
-                    ntrArgs = ntrArgs.prepend(heap); // only if heap dependent
-                }
+                List<JCExpression> ntrArgs = extendArguments(that,
+                        calleeMethodSym, newThisExpr, trArgs);
                 if ((useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
 
                     if (condition == null) condition = treeutils.trueLit;
@@ -8249,8 +8243,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 
                     
-                    addMethodAxiomsPlus2(that, calleeMethodSym, newThisExpr, ntrArgs, receiverType,
+                    addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, ntrArgs, receiverType,
                             overridden, details);
+                    if (condition == null) condition = treeutils.trueLit;
                     
                     MethodSymbol newCalleeSym = oldHeapMethods.get(oldenv == null ? null : oldenv.name).get(calleeMethodSym);
                     if (newCalleeSym == null) {
@@ -8381,12 +8376,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             if (!translatingJML && calleeIsFunction && !rac) {
                 // FIXME - replicated from above
-                List<JCExpression> convertedArgs = convertCopy(trArgs);
-                if (!utils.isJMLStatic(calleeMethodSym)) {
-                    convertedArgs = convertedArgs.prepend(newThisExpr);
-                }
+                List<JCExpression> convertedArgs = extendArguments(that,
+                        calleeMethodSym, newThisExpr, trArgs);
                 addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, convertedArgs,
                         receiverType, overridden, true);
+//            }
+//                if (!translatingJML && calleeIsFunction && !rac) {
 
                 //MethodSymbol newCalleeSym = pureMethod.get(calleeMethodSym);
                 MethodSymbol newCalleeSym = oldHeapMethods.get(oldenv == null ? null : oldenv.name).get(calleeMethodSym);
@@ -9886,6 +9881,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
 
+
+    public List<JCExpression> extendArguments(JCExpression that,
+            MethodSymbol calleeMethodSym, JCExpression newThisExpr,
+            List<JCExpression> trArgs) {
+        List<JCExpression> ntrArgs = trArgs;
+        if (!utils.isJMLStatic(calleeMethodSym)) {
+            ntrArgs = ntrArgs.prepend(newThisExpr);
+        }
+        if (!attr.hasAnnotation(calleeMethodSym,JmlTokenKind.FUNCTION) && !useNamesForHeap) {
+            JCExpression heap = treeutils.makeIdent(that.pos,heapSym);
+            ntrArgs = ntrArgs.prepend(heap); // only if heap dependent
+        }
+        return ntrArgs;
+    }
+
     public void addMethodAxiomsPlus2(JCExpression that,
             MethodSymbol calleeMethodSym, JCExpression newThisExpr,
             List<JCExpression> ntrArgs, 
@@ -9906,7 +9916,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addStat(bl);
             }
         
-            if (condition == null) condition = treeutils.trueLit;
             WellDefined info = wellDefinedCheck.get(calleeMethodSym);
             if (info != null && !info.alltrue) { // FIXME - should not ever be null? perhaps anon types?
                 MethodSymbol s = info.sym;
@@ -9944,20 +9953,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addStat(bl);
             }
         
-//            if (condition == null) condition = treeutils.trueLit;
             WellDefined info = wellDefinedCheck.get(calleeMethodSym);
             if (info != null && !info.alltrue) { // FIXME - should not ever be null? perhaps anon types?
                 MethodSymbol s = info.sym;
                 if (s != null && localVariables.isEmpty() && !treeutils.isTrueLit(info.wellDefinedExpression)) {
                     JCExpression e;
-//                    List<JCExpression> convertedArgs = convertCopy(trArgs);
-//                    if (!utils.isJMLStatic(calleeMethodSym)) {
-//                        convertedArgs = convertedArgs.prepend(newThisExpr);
-//                    }
-//                    if (!attr.hasAnnotation(calleeMethodSym,JmlTokenKind.FUNCTION) && !useNamesForHeap) {
-//                        JCExpression heap = treeutils.makeIdent(that.pos,heapSym);
-//                        convertedArgs = convertedArgs.prepend(heap); // only if heap dependent
-//                    }
                     if (!convertedArgs.isEmpty()) e = treeutils.makeMethodInvocation(that,null,s,convertedArgs);
                     else e = treeutils.makeIdent(that, s);
                     if (oldenv != null) e  = makeOld(e.pos, e, oldenv);
