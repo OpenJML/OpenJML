@@ -207,7 +207,6 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testIFieldsS() {
-    	//main.addOptions("-show","-method=TestJava","-checkFeasibility=debug","-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final int I = 1;\n"

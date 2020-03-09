@@ -8232,19 +8232,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             oldStatements = currentStatements; // FIXME - why twice
             initialInvariantCheck(that, isSuperCall, isThisCall, calleeMethodSym, newThisExpr, trArgs, apply);
 
+            List<JCExpression> convertedArgs = extendArguments(that,
+                    calleeMethodSym, newThisExpr, trArgs);
+            if (!addMethodAxioms && !translatingJML && calleeIsFunction && !rac) {
+                addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, convertedArgs,
+                        receiverType, overridden, true);
+            }
             if (addMethodAxioms) {
-                List<JCExpression> ntrArgs = extendArguments(that,
-                        calleeMethodSym, newThisExpr, trArgs);
+                List<JCExpression> ntrArgs = convertedArgs;
                 if ((useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
-
-                    if (condition == null) condition = treeutils.trueLit;
-
-                    currentThisExpr = newThisExpr;
-
-
-                    
                     addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, ntrArgs, receiverType,
                             overridden, details);
+
+                    currentThisExpr = newThisExpr;
                     if (condition == null) condition = treeutils.trueLit;
                     
                     MethodSymbol newCalleeSym = oldHeapMethods.get(oldenv == null ? null : oldenv.name).get(calleeMethodSym);
@@ -8375,13 +8375,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             
             if (!translatingJML && calleeIsFunction && !rac) {
-                // FIXME - replicated from above
-                List<JCExpression> convertedArgs = extendArguments(that,
-                        calleeMethodSym, newThisExpr, trArgs);
-                addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, convertedArgs,
-                        receiverType, overridden, true);
-//            }
-//                if (!translatingJML && calleeIsFunction && !rac) {
 
                 //MethodSymbol newCalleeSym = pureMethod.get(calleeMethodSym);
                 MethodSymbol newCalleeSym = oldHeapMethods.get(oldenv == null ? null : oldenv.name).get(calleeMethodSym);

@@ -225,7 +225,7 @@ public class escfiles extends EscBase {
     public void testTaxpayer() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Taxpayer.java","test/demoTaxpayer","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-checkFeasibility=precondition,exit");//,"-show","-method=Taxpayer","-escMaxWarnings=1");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Taxpayer.java","test/demoTaxpayer","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-checkFeasibility=precondition,exit");
     }
 
     @Test
@@ -709,7 +709,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testImplicitIteration() {
-        helpTF("implicitIteration");//,"-method=testA","-show");
+        helpTF("implicitIteration");
     }
 
     @Test
@@ -835,10 +835,10 @@ public class escfiles extends EscBase {
         helpTF("datatype");
     }
 
-    @Test // Baisc problem is with the toStroing conversion of a \bigint, because of the -code-math=bigint setting of these
+    @Test // Baisc problem is with the toString conversion of a \bigint, because of the -code-math=bigint setting of these
     public void testFactorial() {
         expectedExit = 0;
-        helpTF("factorial","-code-math=java","-method=Facto","-show");
+        helpTF("factorial");//,"-code-math=java");
     }
 
     @Test
@@ -910,7 +910,7 @@ public class escfiles extends EscBase {
     @Test
     public void testCaptures() {
         expectedExit = 1;
-        helpTF("anonymousCaptures","-show","-method=m");
+        helpTF("anonymousCaptures");
     }
     
     @Test

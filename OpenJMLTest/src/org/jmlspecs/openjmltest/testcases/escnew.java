@@ -313,7 +313,6 @@ public class escnew extends EscBase {
     @Test
     public void testPostcondition5() {
     	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
-//    	main.addOptions("-show","-method=m1");
     	helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int iii;\n"
@@ -379,7 +378,6 @@ public class escnew extends EscBase {
     @Test
     public void testPostcondition5x() {
     	main.addOptions("-code-math=bigint","-spec-math=bigint"); // Just to avoid overflow warnings
-//    	main.addOptions("-show","-method=m1");
     	helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int iii;\n"

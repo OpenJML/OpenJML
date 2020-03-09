@@ -1590,7 +1590,6 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionSwitchNull() {
-        //main.addOptions("-show","-method=A","-subexpressions");
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
