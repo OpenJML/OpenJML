@@ -37,7 +37,6 @@ public class escCounterexamples extends EscBase {
     @Test
     public void testCE1() {
         print = true;
-        main.addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -439,7 +438,6 @@ public class escCounterexamples extends EscBase {
     /** Tests try/catch/finally */
     @Test
     public void testCE15() {
-        //main.addOptions("-show","-method=m2");
         main.addOptions(JmlOption.ESC_MAX_WARNINGS.optionName()+"=1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

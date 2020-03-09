@@ -785,7 +785,7 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug626() { // Varying test output
         expectedExit = 0;
-        helpTCG("-subexpressions");//,"-show","-method=findFirstSetLoop"); // -subexpressions is part of the test
+        helpTCG("-subexpressions");
     }
     
     @Test
@@ -973,7 +973,6 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug666() {  // FIXME - recursive -- not yet fixed
         expectedExit = 0;
-        //helpTCG("-show=all","-method=pow");
     }
     
     @Test

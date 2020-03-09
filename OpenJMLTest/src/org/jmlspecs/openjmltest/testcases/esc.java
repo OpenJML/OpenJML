@@ -1839,7 +1839,6 @@ public class esc extends EscBase {
 
     @Test
     public void testOldJava() {
-       // main.addOptions("-show","-method=TestJava","-checkFeasibility=debug","-progress");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                  + "/*@ code_java_math*/ public class TestJava { \n" 
@@ -2144,7 +2143,6 @@ public class esc extends EscBase {
 
     @Test
     public void testMethodCall2() { // Had problems with static and non-static
-       // main.addOptions("-show","-method=inst");
         helpTCX("tt.TestJava", 
                   "package tt; import org.jmlspecs.annotation.*; \n" 
                 + "public class TestJava { \n"
@@ -2223,7 +2221,6 @@ public class esc extends EscBase {
 
     @Test // FIXME - problem with maintaining result of j
     public void testMethodCallThis() {
-        //main.addOptions("-show","-method=instok","-subexpressions");
         helpTCX("tt.TestJava",
                 "package tt; import org.jmlspecs.annotation.*; \n" 
                         + "/*@ code_java_math*/ public class TestJava { \n"
@@ -2896,7 +2893,6 @@ public class esc extends EscBase {
     @Test
     public void testInheritedPost() {
         main.addOptions("-code-math=bigint");
-        //main.addOptions("-show","-method=n1","-checkFeasibility=debug","-progress");
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" 
                 + "abstract class TestJavaA { \n"
                 + "  \n" 
@@ -3877,7 +3873,6 @@ public class esc extends EscBase {
 
     @Test
     public void testMethodAxioms2a() {
-        //main.addOptions("-show","-method=mm");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -4319,7 +4314,6 @@ public class esc extends EscBase {
     @Test
     public void testFinalInvariant() {
         expectedExit = 0;
-        //main.addOptions("-show","-method=TestJava","-checkFeasibility=debug","-progress");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -4471,7 +4465,6 @@ public class esc extends EscBase {
 
     @Test
     public void testArrayCopy() {
-//        main.addOptions("-method=m","-show");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -4490,7 +4483,6 @@ public class esc extends EscBase {
 
     @Test
     public void testArrayCopy2() {
-//        main.addOptions("-method=m","-show");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 

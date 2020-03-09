@@ -531,7 +531,6 @@ public class escArithmeticModes2 extends EscBase {
     @Ignore // FIXME - long running
     @Test  // Tests that div and mod give correct answers, if they do not overflow, in bigint mode
     public void testDiv() {
-    	//main.addOptions("-show","-method=ma","-subexpressions");
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeBigintMath @SpecBigintMath public class TestJava { \n"
