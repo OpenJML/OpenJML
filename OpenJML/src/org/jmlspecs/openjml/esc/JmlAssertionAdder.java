@@ -8238,11 +8238,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, convertedArgs,
                         receiverType, overridden, true);
             }
+            if (addMethodAxioms && (useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
+                addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, convertedArgs, receiverType,
+                            overridden, details);
+            }
             if (addMethodAxioms) {
                 List<JCExpression> ntrArgs = convertedArgs;
                 if ((useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
-                    addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, ntrArgs, receiverType,
-                            overridden, details);
 
                     currentThisExpr = newThisExpr;
                     if (condition == null) condition = treeutils.trueLit;
@@ -8261,6 +8263,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         result = eresult = treeutils.makeMethodInvocation(that,newThisExpr,calleeMethodSym,trArgs);
                     }
                 }
+            }
+            if (addMethodAxioms) {
                 JCExpression convertedResult = eresult;
                 // Do any inlining
                 JCExpression savedRE = resultExpr;
@@ -8276,6 +8280,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 resultExpr = savedRE;
                 resultSym = savedSym;
                 result = eresult = convertedResult;
+            }
+            if (addMethodAxioms) {
                 return;
             } // End of function section
             
@@ -9889,43 +9895,43 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return ntrArgs;
     }
 
-    public void addMethodAxiomsPlus2(JCExpression that,
-            MethodSymbol calleeMethodSym, JCExpression newThisExpr,
-            List<JCExpression> ntrArgs, 
-            Type receiverType,
-            java.util.List<Pair<MethodSymbol, Type>> overridden,
-            boolean details) {
-        JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden,receiverType,that.type);
-        if (details) { // FIXME - document this details check - if it is false, the axioms are dropped
-            // FIXME - actually should add these into whatever environment is operative
-            if (bl == null) {
-            } else if (inOldEnv) {
-                escAddToOldList(oldenv,bl);
-            } else if (nonignoredStatements != null) {
-                nonignoredStatements.add(bl);
-            } else if (axiomBlock != null) {
-                axiomBlock.stats = axiomBlock.stats.append(bl);
-            } else {
-                addStat(bl);
-            }
-        
-            WellDefined info = wellDefinedCheck.get(calleeMethodSym);
-            if (info != null && !info.alltrue) { // FIXME - should not ever be null? perhaps anon types?
-                MethodSymbol s = info.sym;
-                if (s != null && localVariables.isEmpty() && !treeutils.isTrueLit(info.wellDefinedExpression)) {
-                    JCExpression e = treeutils.makeMethodInvocation(that,null,s,convertCopy(ntrArgs));
-                    e = conditionedAssertion(condition, e); // FIXME - why is the condition the location
-                    if (assumingPureMethod) {
-                        addAssume(that,translatingJML ? Label.UNDEFINED_PRECONDITION : Label.PRECONDITION,e,
-                                info.pos,info.source);
-                    } else {
-                        addAssert(that,translatingJML ? Label.UNDEFINED_PRECONDITION : Label.PRECONDITION,e,
-                                info.pos,info.source);
-                    }
-                }
-            }
-        }
-    }
+//    public void addMethodAxiomsPlus2(JCExpression that,
+//            MethodSymbol calleeMethodSym, JCExpression newThisExpr,
+//            List<JCExpression> ntrArgs, 
+//            Type receiverType,
+//            java.util.List<Pair<MethodSymbol, Type>> overridden,
+//            boolean details) {
+//        JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden,receiverType,that.type);
+//        if (details) { // FIXME - document this details check - if it is false, the axioms are dropped
+//            // FIXME - actually should add these into whatever environment is operative
+//            if (bl == null) {
+//            } else if (inOldEnv) {
+//                escAddToOldList(oldenv,bl);
+//            } else if (nonignoredStatements != null) {
+//                nonignoredStatements.add(bl);
+//            } else if (axiomBlock != null) {
+//                axiomBlock.stats = axiomBlock.stats.append(bl);
+//            } else {
+//                addStat(bl);
+//            }
+//        
+//            WellDefined info = wellDefinedCheck.get(calleeMethodSym);
+//            if (info != null && !info.alltrue) { // FIXME - should not ever be null? perhaps anon types?
+//                MethodSymbol s = info.sym;
+//                if (s != null && localVariables.isEmpty() && !treeutils.isTrueLit(info.wellDefinedExpression)) {
+//                    JCExpression e = treeutils.makeMethodInvocation(that,null,s,convertCopy(ntrArgs));
+//                    e = conditionedAssertion(condition, e); // FIXME - why is the condition the location
+//                    if (assumingPureMethod) {
+//                        addAssume(that,translatingJML ? Label.UNDEFINED_PRECONDITION : Label.PRECONDITION,e,
+//                                info.pos,info.source);
+//                    } else {
+//                        addAssert(that,translatingJML ? Label.UNDEFINED_PRECONDITION : Label.PRECONDITION,e,
+//                                info.pos,info.source);
+//                    }
+//                }
+//            }
+//        }
+//    }
 
 
     public void addMethodAxiomsPlus(JCExpression that,
@@ -18139,8 +18145,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (msym.getReturnType().isPrimitiveOrVoid()) {
                 // FIXME - add any range restrictions for primtiive types
             } else if (utils.isPrimitiveType(msym.getReturnType())) {
-                // These are user-defined prinitive types - do nothing
+                // These are user-defined primitive types - do nothing
             } else {
+                // Result of call is null or the correct type
                 JCExpression fcn = treeutils.makeIdent(Position.NOPOS,newsym);
                 JCMethodInvocation call = M.at(Position.NOPOS).Apply(
                         List.<JCExpression>nil(), fcn, newParamsWithHeap);
