@@ -35,7 +35,7 @@ public class strongarm extends StrongarmBase {
 
     @Parameters
     static public Collection<String[]> parameters() {
-        return minQuantAndSolvers(solvers);
+        return EscBase.parameters();
     }
 
     public void helpSA(String sourceDirname, String outDir, String... opts) {

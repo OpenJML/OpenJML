@@ -34,7 +34,7 @@ public class SFBugs extends EscBase {
     
     @Parameters
     static public Collection<String[]> parameters() {
-        return minQuantAndSolvers(solvers);
+        return EscBase.parameters();
     }
     
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {

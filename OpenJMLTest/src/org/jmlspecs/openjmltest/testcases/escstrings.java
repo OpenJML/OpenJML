@@ -17,10 +17,10 @@ public class escstrings extends EscBase {
         super(options,solver);
     }
     
-    @Parameters
-    static public Collection<String[]> parameters() {
-        return minQuantAndSolvers(solvers);
-    }
+//    @Parameters
+//    static public Collection<String[]> parameters() {
+//        return EscBase.parameters();
+//    }
     
 
     @Override

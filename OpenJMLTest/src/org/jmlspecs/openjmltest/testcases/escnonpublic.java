@@ -53,7 +53,7 @@ public class escnonpublic extends EscBase {
     
     @Parameters
     static public Collection<String[]> parameters() {
-        return minQuantAndSolvers(solvers);
+        return EscBase.parameters();
     }
     
     public java.util.List<String> setupForFiles(String sourceDirname, String outDir, String ... opts) {
@@ -166,28 +166,17 @@ public class escnonpublic extends EscBase {
     @Test
     public void escSokoban() { // FIXME
         //helpTCF("../../../OpenJMLDemoNonPublic/src/sokoban/Game.java","test/sokoban","-classpath","test/sokoban","-progress","-escMaxWarnings=10","-method=main","-show");
-        helpTCF(dir + "src/sokoban/src",dir + "src/sokoban/src","-no-minQuant","-progress","-timeout=120");
+        helpTCF(dir + "src/sokoban/src",dir + "src/sokoban/src","-progress","-timeout=120");
     }
 
     @Test
     public void escSokoban2() {
-        helpTCF(dir + "src/sokoban2/src",dir + "src/sokoban2/src","-no-minQuant","-progress","-timeout=120");//,"-escMaxWarnings=1","-method=Game.Game(Board,Player)","-subexpressions","-show");
-    }
-
-    @Test
-    public void escSokoban2MQ() {
-        helpTCF(dir + "src/sokoban2/src",dir + "src/sokoban2/mq","-minQuant","-progress","-timeout=120","-escMaxWarnings=1"); // "-method=movePlayer","-subexpressions","-show");
+        helpTCF(dir + "src/sokoban2/src",dir + "src/sokoban2/src","-progress","-timeout=120");//,"-escMaxWarnings=1","-method=Game.Game(Board,Player)","-subexpressions","-show");
     }
 
     @Test
     public void escSokoban3() {
-        helpTCF(dir + "src/sokoban3/src",dir + "src/sokoban3/src","-no-minQuant","-progress","-timeout=120"); //,"-subexpressions","-show");
+        helpTCF(dir + "src/sokoban3/src",dir + "src/sokoban3/src","-progress","-timeout=120"); //,"-subexpressions","-show");
     }
-
-    @Test
-    public void escSokoban3MQ() {
-        helpTCF(dir + "src/sokoban3/src",dir + "src/sokoban3/mq","-minQuant","-progress","-timeout=120","-escMaxWarnings=1"); //,"-subexpressions","-show");
-    }
-
 
 }

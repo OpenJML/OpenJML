@@ -65,18 +65,18 @@ public class SpecsEsc extends EscBase {
     protected boolean foundErrors;
     
     /** This test tests the file that is named as classname by the constructor */
-    @Test
-    public void testSpecificationFile() {
-    	expectedExit = 0;
-    	String subdir = "testspecs" + "/" + classname;
-        for (File f: new File(subdir).listFiles()) {
-        	if (f.getName().startsWith("Test")) {
-        		break;
-        	}
-        }
-    	escOnFiles(subdir,subdir,"-no-minQuant","-method=esc","-checkFeasibility=exit");
-    }
-    
+//    @Test
+//    public void testSpecificationFile() {
+//    	expectedExit = 0;
+//    	String subdir = "testspecs" + "/" + classname;
+//        for (File f: new File(subdir).listFiles()) {
+//        	if (f.getName().startsWith("Test")) {
+//        		break;
+//        	}
+//        }
+//    	escOnFiles(subdir,subdir,"-no-minQuant","-method=esc","-checkFeasibility=exit");
+//    }
+//    
     @Test
     public void testSpecificationFileMQ() {
     	expectedExit = 0;
@@ -86,7 +86,7 @@ public class SpecsEsc extends EscBase {
         		break;
         	}
         }
-    	escOnFiles(subdir,subdir,"-minQuant","-method=esc","-checkFeasibility=exit");
+    	escOnFiles(subdir,subdir,"-method=esc","-checkFeasibility=exit");
     }
     
     static public java.util.List<File> findAllFiles() {

@@ -22,7 +22,7 @@ public class escfunction extends EscBase {
     
     @Parameters
     static public Collection<String[]> parameters() {
-        return minQuantAndSolvers(solvers);
+        return EscBase.parameters();
     }
     
     @Override
