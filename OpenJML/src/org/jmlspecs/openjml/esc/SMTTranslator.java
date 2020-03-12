@@ -269,7 +269,7 @@ public class SMTTranslator extends JmlTreeScanner {
         if ("true".equals(q)) quants = true;
         else if ("false".equals(q)) quants = false;
         else {
-            boolean b = JmlOption.isOption(context, JmlOption.MINIMIZE_QUANTIFICATIONS);
+            //boolean b = true; // JmlOption.isOption(context, JmlOption.MINIMIZE_QUANTIFICATIONS);
             quants = false; // FIXME - set true if there are any type variables
         }
         // (declare-sort JMLTypeSort 0)

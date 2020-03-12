@@ -58,15 +58,15 @@ public abstract class EscBase extends JmlTestCase {
     			solversWithNull.addAll(solvers);
     		}
         
-    static public java.util.List<String[]> minQuants = java.util.Arrays.asList(new String[][]{ 
-            new String[]{"-minQuant"}, 
-            new String[]{"-no-minQuant"}, 
-            });
+//    static public java.util.List<String[]> minQuants = java.util.Arrays.asList(new String[][]{ 
+//            new String[]{"-minQuant"}, 
+//            new String[]{"-no-minQuant"}, 
+//            });
         
     /** The parameters must be a String[] and a String */
     @Parameters
     static public Collection<String[]> parameters() {
-        return minQuantAndSolvers(solvers);
+        return solversOnly();
     }
     
     static public Collection<String[]> solversOnly() {
@@ -77,13 +77,12 @@ public abstract class EscBase extends JmlTestCase {
     	return (new RuntimeException()).fillInStackTrace().getStackTrace()[i+1].getMethodName();
     }
     
-    public static final String[] minQuantOptions = new String[]{"-no-minQuant","-minQuant"};
+//    public static final String[] minQuantOptions = new String[]{"-no-minQuant","-minQuant"};
     
-    static public  Collection<String[]> minQuantAndSolvers(java.util.List<String> solvers) {
+    static public  Collection<String[]> solvers(java.util.List<String> solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
         for (String s: solvers) {
-            data.add(new String[]{"-no-minQuant",s});
-            data.add(new String[]{"-minQuant",s});
+            data.add(new String[]{s});
         }
         return data;
     }

@@ -383,7 +383,6 @@ public class escm extends EscBase {
 
     @Test
     public void testFunctionsInSpecs() {
-        //main.addOptions("-no-minQuant");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; //@ code_java_math spec_java_math \n"
                 +"@NonNullByDefault public class TestJava { static public boolean b; \n"
@@ -453,7 +452,6 @@ public class escm extends EscBase {
 
     @Test
     public void testMethodsInSpecs2() {
-        //main.addOptions("-no-minQuant");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { static public boolean b; \n"
@@ -514,7 +512,6 @@ public class escm extends EscBase {
 
     @Test
     public void testMethodsInSpecs3MQ() {
-        main.addOptions("-minQuant");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { static public boolean b; \n"

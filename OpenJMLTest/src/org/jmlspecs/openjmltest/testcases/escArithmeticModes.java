@@ -23,7 +23,7 @@ public class escArithmeticModes extends EscBase {
 
     @Parameters
     static public Collection<String[]> parameters() {
-        String[] options = {"-escBV=true,-minQuant","-escBV=true,-no-minQuant","-escBV=false,-minQuant","-escBV=false,-no-minQuant"};
+        String[] options = {"-escBV=true","-escBV=false"};
         return optionsAndSolvers(options,solvers);
     }
 

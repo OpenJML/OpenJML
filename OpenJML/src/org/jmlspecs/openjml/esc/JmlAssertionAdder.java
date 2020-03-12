@@ -621,7 +621,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.applyNesting = 0;
         racMessages.clear();
         escMessages.clear();
-        this.useMethodAxioms = !JmlOption.isOption(context,JmlOption.MINIMIZE_QUANTIFICATIONS);
+        this.useMethodAxioms = false; // !JmlOption.isOption(context,JmlOption.MINIMIZE_QUANTIFICATIONS);
         this.checkAccessEnabled = JmlOption.isOption(context,JmlOption.CHECK_ACCESSIBLE);
     }
     

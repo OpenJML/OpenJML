@@ -46,7 +46,7 @@ public class escDemofiles extends EscBase {
     
     @Parameters
     static public Collection<String[]> parameters() {
-        return minQuantAndSolvers(solvers);
+        return EscBase.parameters();
     }
     
     String[] rac = null;

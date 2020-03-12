@@ -28,7 +28,7 @@ public class escconstructor extends EscBase {
 
 	@Parameters
 	static public Collection<String[]> parameters() {
-		return minQuantAndSolvers(solvers);
+        return EscBase.parameters();
 	}
 
 	// FIXME = significant failures in boogie
