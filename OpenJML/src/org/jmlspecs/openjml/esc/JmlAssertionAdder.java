@@ -8234,15 +8234,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 List<JCExpression> ntrArgs = extendedArgs;
                 if ((useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
 
+                    result = eresult = makeDeterminismCall(that, calleeMethodSym, newThisExpr, extendedArgs);
                     currentThisExpr = newThisExpr;
                     if (condition == null) condition = treeutils.trueLit;
-                    
-                    MethodSymbol newCalleeSym = oldHeapMethods.get(oldenv == null ? null : oldenv.name).get(calleeMethodSym);
-                    if (newCalleeSym == null) {
-                        log.error("jml.internal","No logical function for method " + calleeMethodSym.getQualifiedName());
-                    }
-
-                    result = eresult = treeutils.makeMethodInvocation(that,null,newCalleeSym,ntrArgs);
+//                    
+//                    MethodSymbol newCalleeSym = oldHeapMethods.get(oldenv == null ? null : oldenv.name).get(calleeMethodSym);
+//                    if (newCalleeSym == null) {
+//                        log.error("jml.internal","No logical function for method " + calleeMethodSym.getQualifiedName());
+//                    }
+//
+//                    result = eresult = treeutils.makeMethodInvocation(that,null,newCalleeSym,ntrArgs);
                 } else {
                     if (utils.isJMLStatic(calleeMethodSym) || trArgs.isEmpty()) {
                         result = eresult = trExpr;
@@ -8364,6 +8365,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 JCExpression e = makeDeterminismCall(that, calleeMethodSym, newThisExpr,
                         extendedArgs);
+                currentThisExpr = newThisExpr;
                 if (!calleeMethodSym.isConstructor() && calleeMethodSym.getReturnType().isReference()) {
                     //makeFreshExpression()
                 }
@@ -9876,22 +9878,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     public JCExpression makeDeterminismCall(JCExpression that,
             MethodSymbol calleeMethodSym, JCExpression newThisExpr,
-            List<JCExpression> convertedArgs) {
-        List<JCExpression> ntrArgs = convertedArgs;
-        //if ((useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
+            List<JCExpression> extendedArgs) {
 
-            currentThisExpr = newThisExpr;
+//            currentThisExpr = newThisExpr;
             
             MethodSymbol newCalleeSym = oldHeapMethods.get(oldenv == null ? null : oldenv.name).get(calleeMethodSym);
             if (newCalleeSym == null) {
                 log.error("jml.internal","No logical function for method " + calleeMethodSym.getQualifiedName());
             }
 
-            if (utils.isJMLStatic(calleeMethodSym) && ntrArgs.isEmpty()) {
+            if (utils.isJMLStatic(calleeMethodSym) && extendedArgs.isEmpty()) {
                 // Should be a constant
                 return null; // FIXME
             } else {
-                return treeutils.makeMethodInvocation(that,null,newCalleeSym,ntrArgs);
+                return treeutils.makeMethodInvocation(that,null,newCalleeSym,extendedArgs);
             }
     }
 
