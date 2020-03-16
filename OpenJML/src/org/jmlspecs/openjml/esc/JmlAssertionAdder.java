@@ -8198,33 +8198,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             boolean calleeIsFunction = attr.isFunction(calleeMethodSym);
             if (calleeIsFunction && translatingJML) nodoTranslations = true;
             if (hasAModelProgram) nodoTranslations = false; 
-            if (methodsInlined.contains(calleeMethodSym)) {
-                // Recursive inlining
-                nodoTranslations = true;
-            }
-            {
-                Iterator<Symbol> iter = callStackSym.iterator();
-                while (iter.hasNext()) {
-                    if (iter.next() == calleeMethodSym) { nodoTranslations = true; break; }
-                }
-            }
-            {
-                Symbol sym = (that instanceof JCMethodInvocation) ? treeutils.getSym(((JCMethodInvocation)that).meth) 
-                        : ((JCNewClass)that).constructor;
-                String s = utils.locationString(that.pos) + ": " +
-                        utils.qualifiedName(sym);
-                callStack.add(0,s);
-                callStackSym.add(0,sym);
-                pushedMethod = true;
-            }
+            boolean isRecursive = isRecursiveCall(calleeMethodSym);
+            nodoTranslations =  nodoTranslations || isRecursive;
+            addToCallStack(that); pushedMethod = true;
             if (!splitExpressions) nodoTranslations = true;
             boolean hasTypeArgs = calleeMethodSym.type instanceof Type.ForAll; 
 //            if (!useMethodAxioms && splitExpressions) {
 //                log.error(that, "jml.message", "Method calls in quantifier bodies must be 'function's: " + calleeMethodSym.toString());
 //            }
             boolean addMethodAxioms = nodoTranslations && !hasTypeArgs && !isSuperCall && !isThisCall;
-            boolean inlineSpecs = !addMethodAxioms;
-            boolean includeDeterminism = true;
+//            boolean addMethodAxioms = !rac && !calleeMethodSym.isConstructor() && !hasTypeArgs && !isSuperCall && !isThisCall && isPure(calleeMethodSym)
+//                    && (!calleeMethodSym.getReturnType().isReference() || translatingJML);
+            boolean inlineSpecs = !isRecursive && splitExpressions && localVariables.isEmpty(); // !addMethodAxioms;
+            boolean strictlyPure = !calleeMethodSym.getReturnType().isReference();
+            boolean includeDeterminism = !rac && !calleeMethodSym.isConstructor() && !hasTypeArgs && !isSuperCall && !isThisCall && isPure(calleeMethodSym) && splitExpressions &&
+                    strictlyPure;
             boolean details = true
                     && !calleeMethodSym.owner.getQualifiedName().toString().equals(Strings.JMLClass);
 
@@ -8232,18 +8220,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             oldStatements = currentStatements; // FIXME - why twice
             initialInvariantCheck(that, isSuperCall, isThisCall, calleeMethodSym, newThisExpr, trArgs, apply);
 
-            List<JCExpression> convertedArgs = extendArguments(that,
+            List<JCExpression> extendedArgs = extendArguments(that,
                     calleeMethodSym, newThisExpr, trArgs);
             if (!addMethodAxioms && !translatingJML && calleeIsFunction && !rac) {
-                addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, convertedArgs,
+                addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, extendedArgs,
                         receiverType, overridden, true);
             }
             if (addMethodAxioms && (useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
-                addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, convertedArgs, receiverType,
+                addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, extendedArgs, receiverType,
                             overridden, details);
             }
             if (addMethodAxioms) {
-                List<JCExpression> ntrArgs = convertedArgs;
+                List<JCExpression> ntrArgs = extendedArgs;
                 if ((useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
 
                     currentThisExpr = newThisExpr;
@@ -8285,13 +8273,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 return;
             } // End of function section
             
-            // Implement by inlining specs, rather than creating method axioms
-            if (!addInlinedMethod(heapCount,calleeMethodSym)  && that instanceof JCIdent) {
-                // Under current logic, if a method has been inlined, a subsequent call will be handled by 
-                // the method axioms branch, so this error won't happen. The check is here defensively,
-                // though it only catches calls through JCIdent, not through qualified names.
-                log.error(that,"jml.message","Recursively inlining the method " + utils.qualifiedName(calleeMethodSym));
-            }
             
             // Set up the result variable - for RAC we have to do this
             // outside the block that starts a few lines down, because the
@@ -8388,7 +8369,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     log.error("jml.internal","No logical function for method " + calleeMethodSym.getQualifiedName());
                 }
 
-                JCExpression methCall = treeutils.makeMethodInvocation(that,null,newCalleeSym,convertedArgs);
+                JCExpression methCall = treeutils.makeMethodInvocation(that,null,newCalleeSym,extendedArgs);
                 JCStatement stat;
                 if (resultExpr == null) stat = M.at(that.pos).Exec(methCall);  // FIXME - but if it is a function, why no return value?
                 else stat = treeutils.makeAssignStat(that.pos, resultExpr, methCall);
@@ -9881,6 +9862,53 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
 
 
+    public JCExpression makeDeterminismCall(JCExpression that,
+            MethodSymbol calleeMethodSym, JCExpression newThisExpr,
+            List<JCExpression> convertedArgs) {
+        List<JCExpression> ntrArgs = convertedArgs;
+        //if ((useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
+
+            currentThisExpr = newThisExpr;
+            
+            MethodSymbol newCalleeSym = oldHeapMethods.get(oldenv == null ? null : oldenv.name).get(calleeMethodSym);
+            if (newCalleeSym == null) {
+                log.error("jml.internal","No logical function for method " + calleeMethodSym.getQualifiedName());
+            }
+
+            if (utils.isJMLStatic(calleeMethodSym) && ntrArgs.isEmpty()) {
+                // Should be a constant
+                return null; // FIXME
+            } else {
+                return treeutils.makeMethodInvocation(that,null,newCalleeSym,ntrArgs);
+            }
+    }
+
+
+    public void addToCallStack(JCExpression that) {
+            Symbol sym = (that instanceof JCMethodInvocation) ? treeutils.getSym(((JCMethodInvocation)that).meth) 
+                    : ((JCNewClass)that).constructor;
+            String s = utils.locationString(that.pos) + ": " +
+                    utils.qualifiedName(sym);
+            callStack.add(0,s);
+            callStackSym.add(0,sym);
+    }
+
+
+    public boolean isRecursiveCall(MethodSymbol calleeMethodSym) {
+        if (methodsInlined.contains(calleeMethodSym)) {
+            // Recursive inlining
+            return true;
+        }
+        {
+            Iterator<Symbol> iter = callStackSym.iterator();
+            while (iter.hasNext()) {
+                if (iter.next() == calleeMethodSym) { return true; }
+            }
+        }
+        return false;
+    }
+
+
     public List<JCExpression> extendArguments(JCExpression that,
             MethodSymbol calleeMethodSym, JCExpression newThisExpr,
             List<JCExpression> trArgs) {
@@ -9952,27 +9980,31 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addStat(bl);
             }
         
-            WellDefined info = wellDefinedCheck.get(calleeMethodSym);
-            if (info != null && !info.alltrue) { // FIXME - should not ever be null? perhaps anon types?
-                MethodSymbol s = info.sym;
-                if (s != null && localVariables.isEmpty() && !treeutils.isTrueLit(info.wellDefinedExpression)) {
-                    JCExpression e;
-                    if (!convertedArgs.isEmpty()) e = treeutils.makeMethodInvocation(that,null,s,convertedArgs);
-                    else e = treeutils.makeIdent(that, s);
-                    if (oldenv != null) e  = makeOld(e.pos, e, oldenv);
-                    e = condition == null ? e : conditionedAssertion(condition, e); // FIXME - why is the condition the location
-                    if (assumingPureMethod) {
-                        addAssume(that,Label.UNDEFINED_PRECONDITION,e,
-                                info.pos,info.source);
-                    } else {
-                        addAssert(that,Label.UNDEFINED_PRECONDITION,e,
-                                info.pos,info.source);
-                    }
+        }
+        
+    }
 
+
+    public void assertCalledMethodPrecondition(JCExpression that,
+            MethodSymbol calleeMethodSym, List<JCExpression> convertedArgs) {
+        WellDefined info = wellDefinedCheck.get(calleeMethodSym);
+        if (info != null && !info.alltrue) { // FIXME - should not ever be null? perhaps anon types?
+            MethodSymbol s = info.sym;
+            if (s != null && localVariables.isEmpty() && !treeutils.isTrueLit(info.wellDefinedExpression)) {
+                JCExpression e;
+                if (!convertedArgs.isEmpty()) e = treeutils.makeMethodInvocation(that,null,s,convertedArgs);
+                else e = treeutils.makeIdent(that, s);
+                if (oldenv != null) e  = makeOld(e.pos, e, oldenv);
+                e = condition == null ? e : conditionedAssertion(condition, e); // FIXME - why is the condition the location
+                if (assumingPureMethod) {
+                    addAssume(that,Label.UNDEFINED_PRECONDITION,e,
+                            info.pos,info.source);
+                } else {
+                    addAssert(that,Label.UNDEFINED_PRECONDITION,e,
+                            info.pos,info.source);
                 }
             }
         }
-        
     }
 
 
@@ -15017,8 +15049,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
         // Checks whether there is a Skip annotation
-//        if (esc && JmlEsc.skip(that)) return;
-//        if (esc && !utils.filter(that,false)) return;
+        if (esc && JmlEsc.skip(that)) return;
+        if (esc && !utils.filter(that,false)) return;
         if (rac && (JmlEsc.skipRac(that) || that.body == null)) {
             if (that.body == null && that.sym.owner.isInterface() && (that.mods.flags & Flags.DEFAULT) != 0) {
                 // A default was put on a method with no body, presumably because it was a model method in an interface
@@ -18035,9 +18067,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     ListBuffer<JCStatement> savedForAxioms = null;
     protected JCBlock addMethodAxioms(DiagnosticPosition callLocation, MethodSymbol msym, 
             java.util.List<Pair<MethodSymbol,Type>> overridden, Type receiverType, Type returnType) {
-        boolean isFunction = attr.isFunction(msym);
-        if (msym.owner.isEnum() && 
-                (msym.name == names.values || msym.name == names.valueOf || msym.name == names.ordinal)) isFunction = true;  // FIXME - make these modifiers at the point of declaration
+        boolean isFunction = isHeapIndependent(msym);
         if (!inOldEnv && !addAxioms(heapCount,msym)) { return M.at(Position.NOPOS).Block(0L, List.<JCStatement>nil()); }
         boolean isStatic = utils.isJMLStatic(msym);
         boolean isPrimitiveType = utils.isPrimitiveType(msym.owner.type);
@@ -18107,7 +18137,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    newparamsWithHeap.add(id);
 //                }
             }
-            List<JCVariableDecl> newDeclsList = newDecls.toList();
             
             List<JCExpression> newParamsWithHeap = newparamsWithHeap.toList();
             ListBuffer<Type> newparamtypes = new ListBuffer<Type>();
@@ -18116,30 +18145,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             List<Type> newParamTypes = newparamtypes.toList();
 
-            // Create the symbol for the new method
-            int hc = heapCount;
-            if (oldenv != null) hc = labelPropertiesStore.get(oldenv.name).heapCount;
-            Name newMethodNameWithHeap = newNameForCallee(calleeDeclPos,msym, (useNamesForHeap && !isFunction && !msym.owner.toString().startsWith("org.jmlspecs.lang.")) );
-            JCModifiers newmods;
-            MethodSymbol newsym;
-            if (inClassDecl()) {
-                // Declaration within a class
-                newmods = M.at(calleeSpecs.decl.mods.pos).Modifiers(calleeSpecs.decl.mods.flags | Flags.STATIC, calleeSpecs.decl.mods.annotations); // Note: annotations not duplicated
-                newsym = treeutils.makeMethodSym(newmods, newMethodNameWithHeap, returnType, (TypeSymbol)classDecl.sym, newParamTypes);
-            } else {
-                // Declaration within a method body
-                newmods = M.at(methodDecl.mods.pos).Modifiers(methodDecl.mods.flags | Flags.STATIC, methodDecl.mods.annotations); // Note: annotations not duplicated
-                newsym = treeutils.makeMethodSym(newmods, newMethodNameWithHeap, returnType, (TypeSymbol)methodDecl.sym.owner, newParamTypes);
-            }
-            
-            //pureMethod.put(msym,newsym);
-            {
-                Map<Symbol,MethodSymbol> pm;
-                Name nm = oldenv == null ? null : oldenv.name;
-                pm = oldHeapMethods.get(nm);
-                if (pm == null) oldHeapMethods.put(nm, pm = new HashMap<Symbol,MethodSymbol>());
-                pm.put(msym, newsym);
-            }
+            MethodSymbol newsym = makeAndSaveNewMethodName(msym, returnType, isFunction,
+                    calleeSpecs, calleeDeclPos, newParamTypes);
+
+            List<JCVariableDecl> newDeclsList = newDecls.toList();
+
+            Name newMethodNameWithHeap = newsym.name;
             
             // Construct axioms for the type of the result
             if (msym.getReturnType().isPrimitiveOrVoid()) {
@@ -18375,6 +18386,43 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             bl = null;
         }
         return bl;
+    }
+
+
+    public boolean isHeapIndependent(MethodSymbol msym) {
+        boolean isFunction = attr.isFunction(msym);
+        if (msym.owner.isEnum() && 
+                (msym.name == names.values || msym.name == names.valueOf || msym.name == names.ordinal)) isFunction = true;  // FIXME - make these modifiers at the point of declaration
+        return isFunction;
+    }
+
+
+    public MethodSymbol makeAndSaveNewMethodName(MethodSymbol msym,
+            Type returnType, boolean isFunction, JmlMethodSpecs calleeSpecs,
+            int calleeDeclPos, List<Type> newParamTypes) {
+   
+        MethodSymbol newsym;
+        // Check if symbol already exists
+        Name nm = oldenv == null ? null : oldenv.name;
+        Map<Symbol,MethodSymbol> pm = oldHeapMethods.get(nm);
+        if (pm == null) oldHeapMethods.put(nm, pm = new HashMap<Symbol,MethodSymbol>());
+        newsym = pm.get(msym);
+        if (newsym != null) return newsym;
+        // Create the symbol for the new method
+        Name newMethodNameWithHeap = newNameForCallee(calleeDeclPos,msym, (useNamesForHeap && !isFunction && !msym.owner.toString().startsWith("org.jmlspecs.lang.")) );
+        JCModifiers newmods;
+        if (inClassDecl()) {
+            // Declaration within a class
+            newmods = M.at(calleeSpecs.decl.mods.pos).Modifiers(calleeSpecs.decl.mods.flags | Flags.STATIC, calleeSpecs.decl.mods.annotations); // Note: annotations not duplicated
+            newsym = treeutils.makeMethodSym(newmods, newMethodNameWithHeap, returnType, classDecl.sym, newParamTypes);
+        } else {
+            // Declaration within a method body
+            newmods = M.at(methodDecl.mods.pos).Modifiers(methodDecl.mods.flags | Flags.STATIC, methodDecl.mods.annotations); // Note: annotations not duplicated
+            newsym = treeutils.makeMethodSym(newmods, newMethodNameWithHeap, returnType, (TypeSymbol)methodDecl.sym.owner, newParamTypes);
+        }
+        // Save the symbol
+        pm.put(msym, newsym);
+        return newsym;
     }
     
     
