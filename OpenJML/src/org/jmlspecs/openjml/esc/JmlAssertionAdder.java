@@ -8359,22 +8359,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // FIXME - what about newclass.encl
             }
             
-            
-            
-            if (!translatingJML && calleeIsFunction && !rac) {
+            if (!inlineSpecs) {
+                if (addMethodAxioms) assertCalledMethodPrecondition(that, calleeMethodSym, extendedArgs);
 
-                //MethodSymbol newCalleeSym = pureMethod.get(calleeMethodSym);
-                MethodSymbol newCalleeSym = oldHeapMethods.get(oldenv == null ? null : oldenv.name).get(calleeMethodSym);
-                if (newCalleeSym == null) {
-                    log.error("jml.internal","No logical function for method " + calleeMethodSym.getQualifiedName());
+                JCExpression e = makeDeterminismCall(that, calleeMethodSym, newThisExpr,
+                        extendedArgs);
+                if (!calleeMethodSym.isConstructor() && calleeMethodSym.getReturnType().isReference()) {
+                    //makeFreshExpression()
                 }
-
-                JCExpression methCall = treeutils.makeMethodInvocation(that,null,newCalleeSym,extendedArgs);
-                JCStatement stat;
-                if (resultExpr == null) stat = M.at(that.pos).Exec(methCall);  // FIXME - but if it is a function, why no return value?
-                else stat = treeutils.makeAssignStat(that.pos, resultExpr, methCall);
-                addStat(stat);
-}
+                if (includeDeterminism) addAssumeEqual(that, Label.IMPLICIT_ASSUME, resultExpr, e);
+                result = eresult = e;
+                return;
+            }
+            
+            
+//            if (!translatingJML && calleeIsFunction && !rac) {
+//
+//                //MethodSymbol newCalleeSym = pureMethod.get(calleeMethodSym);
+//                MethodSymbol newCalleeSym = oldHeapMethods.get(oldenv == null ? null : oldenv.name).get(calleeMethodSym);
+//                if (newCalleeSym == null) {
+//                    log.error("jml.internal","No logical function for method " + calleeMethodSym.getQualifiedName());
+//                }
+//
+//                JCExpression methCall = treeutils.makeMethodInvocation(that,null,newCalleeSym,extendedArgs);
+//                JCStatement stat;
+//                if (resultExpr == null) stat = M.at(that.pos).Exec(methCall);  // FIXME - but if it is a function, why no return value?
+//                else stat = treeutils.makeAssignStat(that.pos, resultExpr, methCall);
+//                addStat(stat);
+//            }
 
 
             
