@@ -16,6 +16,6 @@ public class FactorialMain {
 	  else	
 	     fact = tm.Facto(n);
           	
-         System.out.println("Factorial of "+n+" is = " + fact);	
+//         System.out.println("Factorial of "+n+" is = " + fact);	// Separate problem - cf. bigintToString
     }
 }

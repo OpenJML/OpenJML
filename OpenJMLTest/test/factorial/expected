@@ -1,0 +1,38 @@
+Proving methods in Factorial
+Starting proof of Factorial.Factorial() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Factorial.Factorial() with prover !!!! - no warnings
+Starting proof of Factorial.Facto(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Factorial.Facto(int) with prover !!!! - no warnings
+Starting proof of Factorial.spec_factorial(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Factorial.spec_factorial(int) with prover !!!! - no warnings
+Completed proving methods in Factorial
+Proving methods in FactorialFunction
+Starting proof of FactorialFunction.FactorialFunction() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FactorialFunction.FactorialFunction() with prover !!!! - no warnings
+Starting proof of FactorialFunction.FactoF(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FactorialFunction.FactoF(int) with prover !!!! - no warnings
+Starting proof of FactorialFunction.spec_factorial(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FactorialFunction.spec_factorial(int) with prover !!!! - no warnings
+Completed proving methods in FactorialFunction
+Proving methods in FactorialMain
+Starting proof of FactorialMain.FactorialMain() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FactorialMain.FactorialMain() with prover !!!! - no warnings
+Starting proof of FactorialMain.main(java.lang.String[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FactorialMain.main(java.lang.String[]) with prover !!!! - no warnings
+Completed proving methods in FactorialMain

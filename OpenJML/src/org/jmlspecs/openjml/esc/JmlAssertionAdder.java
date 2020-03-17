@@ -51,6 +51,7 @@ import org.jmlspecs.openjml.vistors.JmlTreeSubstitute;
 import org.jmlspecs.openjml.ext.MethodConditionalClauseExtension;
 import org.jmlspecs.openjml.ext.MethodDeclClauseExtension;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
+import org.jmlspecs.openjml.ext.MiscExtensions;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.jmlspecs.openjml.ext.ReachableStatement;
 import org.jmlspecs.openjml.ext.SetStatement;
@@ -531,6 +532,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public int topHeapCount = 0;
     public int nextHeapCount() {
         heapCount = ++topHeapCount;
+        oldHeapMethods.put(null,new HashMap<Symbol,MethodSymbol>());
         return heapCount;
     }
     
@@ -7814,7 +7816,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected void changeState() {
-        if ((infer || esc)) {
+        if (infer || esc) {
             heapCount = nextHeapCount();
             int p = methodDecl.pos; // FIXME - better position?
             JCStatement assign = treeutils.makeAssignStat(p, treeutils.makeIdent(p,heapSym),
@@ -7822,6 +7824,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    treeutils.makeBinary(p, JCTree.Tag.PLUS, treeutils.makeIdent(p,heapSym), treeutils.makeIntLiteral(p,1)));
             currentStatements.add(assign);
             wellDefinedCheck.clear();
+            addAxioms(heapCount, null);
 //            determinismSymbols.clear(); // FIXME - might need them again in  \old expressions
         }
         clearInvariants(); // FIXME - is this needed for rac?
@@ -10376,15 +10379,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return axiomsAdded.add(sym);
     }
     
-    protected boolean addInlinedMethod(int hc, Symbol sym) {
-        if (hc != heapCountForAxioms) {
-            axiomsAdded.clear();
-            wellDefinedCheck.clear();
-            methodsInlined.clear();
-            heapCountForAxioms = hc;
-        }
-        return methodsInlined.add(sym);
-    }
+//    protected boolean addInlinedMethod(int hc, Symbol sym) {
+//        if (hc != heapCountForAxioms) {
+//            axiomsAdded.clear();
+//            wellDefinedCheck.clear();
+//            methodsInlined.clear();
+//            heapCountForAxioms = hc;
+//        }
+//        return methodsInlined.add(sym);
+//    }
     
 
     // FIXME - review newArray
@@ -13990,7 +13993,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Havoc all items that might be changed in the loop
         if (esc) {
-            loopHelperHavoc(that.loopSpecs,that.body,indexDecl,null,that.body,that.cond);
+            boolean b = loopHelperHavoc(that.loopSpecs,that.body,indexDecl,null,that.body,that.cond);
+            if (!b) changeState();
         }
         
         loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
@@ -14171,7 +14175,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             // Havoc all items that might be changed in the loop
             if (esc) {
-                loopHelperHavoc(that.loopSpecs,that.body,indexDecl,null,that.body,that.expr);
+                boolean b = loopHelperHavoc(that.loopSpecs,that.body,indexDecl,null,that.body,that.expr);
+                if (!b) changeState();
             }
 
             // Assume the invariants
@@ -14251,7 +14256,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             // Havoc all items that might be changed in the loop
             if (esc) {
-                loopHelperHavoc(that.loopSpecs,that.body,indexDecl,null,that.expr,that.body);
+                boolean b = loopHelperHavoc(that.loopSpecs,that.body,indexDecl,null,that.expr,that.body);
+                if (!b) changeState();
             }
 
             // Assume the invariants
@@ -14358,7 +14364,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Finds variables assigned in the loop body and adds a havoc statement */
     // OK
     // FIXME - needs checking that we are getting all of needed variables
-    protected void loopHelperHavoc(List<JmlStatementLoop> loopSpecs, DiagnosticPosition pos, JCVariableDecl indexDecl, List<? extends JCTree> initlist, List<? extends JCTree> list, JCTree... trees) {
+    protected boolean loopHelperHavoc(List<JmlStatementLoop> loopSpecs, DiagnosticPosition pos, JCVariableDecl indexDecl, List<? extends JCTree> initlist, List<? extends JCTree> list, JCTree... trees) {
         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
         boolean useDefaultModifies = true;
         if (loopSpecs != null) for (JmlStatementLoop spec: loopSpecs) {
@@ -14428,6 +14434,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        JCExpression e = treeutils.makeBinary(p, JCTree.Tag.GT, id, treeutils.zero);
 //        addStat(M.at(p).If(e, st, null));
         addStat(st);
+        boolean allLocal = true;
         {
             for (JCExpression item: st.storerefs) {
                 if (item instanceof JCIdent) {
@@ -14441,9 +14448,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         currentThisExpr = saved;
                     }
                 }
+                if (!allLocal) continue;
+                if (item instanceof JmlStoreRefKeyword) {
+                    if (((JmlStoreRefKeyword)item).kind != MiscExtensions.nothingKind) allLocal = false;;
+                    continue;
+                }
+                if (item instanceof JCIdent && item.type.isPrimitive() && ((JCIdent)item).sym.owner instanceof MethodSymbol) continue;
+                allLocal = false;
                 // FIXME - zadd more types? becareful not to include wildcards
             }
         }
+        return allLocal;
     }
     
     // FIXME: implement loop_modifies?
@@ -14451,8 +14466,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Finds variables assigned in the loop body and adds a havoc statement */
     // OK
     // FIXME - needs checking that we are getting all of needed variables
-    protected void loopHelperHavoc(List<JmlStatementLoop> loopSpecs, DiagnosticPosition pos, JCVariableDecl indexDecl, /*@ nullable*/ List<? extends JCTree> initlist, JCTree... trees) {
-        loopHelperHavoc(loopSpecs, pos, indexDecl, initlist, null, trees);
+    protected boolean loopHelperHavoc(List<JmlStatementLoop> loopSpecs, DiagnosticPosition pos, JCVariableDecl indexDecl, /*@ nullable*/ List<? extends JCTree> initlist, JCTree... trees) {
+        return loopHelperHavoc(loopSpecs, pos, indexDecl, initlist, null, trees);
     }
     
     /** Adds a statement to increment the index variable */
@@ -14768,8 +14783,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Havoc all items that might be changed in the loop
         if (esc) {
-            loopHelperHavoc(that.loopSpecs,that.body,indexDecl,that.init,that.step,that.body,that.cond);
-            changeState();  // FIXME _ but only if something is havoced? and it is not a local variable?
+            boolean b = loopHelperHavoc(that.loopSpecs,that.body,indexDecl,that.init,that.step,that.body,that.cond);
+            if (!b) changeState();  // FIXME _ but only if something is havoced? and it is not a local variable?
         }
         
         JmlLabeledStatement lstat = M.at(that.body.pos).JmlLabeledStatement(loopbodyLabelName,null,null);
@@ -17693,8 +17708,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Havoc all items that might be changed in the loop
         if (esc) {
-            loopHelperHavoc(that.loopSpecs,that.body,indexDecl,null,that.body,that.cond);
-            changeState();  // FIXME - but only if somethings non-local is havoced?
+            boolean b = loopHelperHavoc(that.loopSpecs,that.body,indexDecl,null,that.body,that.cond);
+            if (!b) changeState();  // FIXME - but only if somethings non-local is havoced?
         }
         
         loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
@@ -17709,7 +17724,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         int savedHeapCount = heapCount;
         Boolean splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
         boolean doRemainderOfLoop = splitInfo == null || splitInfo;
-        if (esc) changeState(); // loop is different state than break block
         
         // Now in the loop, so check that the variants are non-negative
         if (doRemainderOfLoop) loopHelperCheckNegative(decreasesIDs, that);
