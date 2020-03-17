@@ -7,6 +7,10 @@ Starting proof of Relaxed.isRelaxedPrefix(int[],int[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Relaxed.isRelaxedPrefix(int[],int[]) with prover !!!! - no warnings
+Starting proof of Relaxed.isRelaxedPrefix2(int[],int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Relaxed.isRelaxedPrefix2(int[],int[]) with prover !!!! - no warnings
 Starting proof of Relaxed.diffIndex(int[],int[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
