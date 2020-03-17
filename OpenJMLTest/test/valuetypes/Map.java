@@ -29,19 +29,19 @@ public class Map<K,V> {
     //@ model public static <K,V> void putRemoveA(map<K,V> s, K k, V v) {}
     
     //@ public normal_behavior
-    //@ ensures s.keySet().contains(k) == s.containsKey(k);
+    //@   ensures s.keySet().contains(k) == s.containsKey(k);
     //@ model public static <K,V> void keyset(map<K,V> s, K k) {}
     
     //@ public normal_behavior
-    //@ ensures s.containsKey(k) ==> map.equals(s, s.put(k,s.get(k)));
+    //@   ensures s.containsKey(k) ==> map.equals(s, s.put(k,s.get(k)));
     //@ model public static <K,V> void putNoChange(map<K,V> s, K k) {}
     
     //@ public normal_behavior
-    //@ ensures !s.containsKey(k) ==> (s == s.remove(k));
+    //@   ensures !s.containsKey(k) ==> (s == s.remove(k));
     //@ model public static <K,V> void addRemove(map<K,V> s, K k) {}
     
     //@ public normal_behavior
-    //@ ensures s.containsKey(o) ==> s.remove(o).size() == s.size() - 1;
+    //@   ensures s.containsKey(o) ==> s.remove(o).size() == s.size() - 1;
     //@ model public static <K,V> void addRemoveB(map<K,V> s, K o) {}
     
     

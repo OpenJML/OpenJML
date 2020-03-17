@@ -4208,7 +4208,6 @@ public class esc extends EscBase {
     public void testExitInfo2() {
         expectedExit = 0;
         main.addOptions("-escExitInfo","-escMaxWarnings=10");
-        main.addOptions("-method=m0","-show");
         helpTCX("tt.TestJava",
                 "package tt; //@ nullable_by_default \n" 
                         + "public class TestJava  { \n" 
@@ -4218,7 +4217,7 @@ public class esc extends EscBase {
                         + "         return j >= 0; }\n"
                         + "  public int j; \n"
                         + "  //@ signals (NullPointerException e) positive(null,j); \n"
-                        + "  // @ signals (NegativeArraySizeException e) positive(null,j); \n"
+                        + "  //@ signals (NegativeArraySizeException e) positive(null,j); \n"
                         + "  public void m0(int i, Object o) {\n"
                         + "      if (i == 1) { j = -2; throw new NullPointerException(); }\n" 
                         + "           if (i == 2) { j = -1; throw new NegativeArraySizeException(); }\n" 
@@ -4226,11 +4225,13 @@ public class esc extends EscBase {
                         + "}"
                         ,anyorder(seq(
                  "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
-                ,"/tt/TestJava.java:3: warning: Associated declaration",93
-                ,"/tt/TestJava.java:12: warning: Associated method exit",34)
-                ,seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",48
-                ,"/tt/TestJava.java:3: warning: Associated declaration",93
+                ,"/tt/TestJava.java:5: warning: Associated declaration",45
+                ,"/tt/TestJava.java:12: warning: Associated method exit",34
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",18
+                ),seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",48
+                ,"/tt/TestJava.java:5: warning: Associated declaration",45
                 ,"/tt/TestJava.java:11: warning: Associated method exit",29
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",18
                 ))
                 );
     }

@@ -8175,7 +8175,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             java.util.List<Pair<MethodSymbol,Type>> overridden = parents(calleeMethodSym,rt);
             // The following line is needed for the case of new object expression with an anonymous class without a constructor
             if (overridden.isEmpty()) overridden.add(pair(calleeMethodSym,calleeMethodSym.owner.type));
-            boolean hasAModelProgram = hasModelProgram(overridden);
+
             /** We can either try to keep subexpressions as subexpressions, or break
              * them out into statements with temporary variables. Java code is
              * broken into statements so that side-effects can be handled straightforwardly.
@@ -8185,36 +8185,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
              * We currently expand non-quantified JML statements because
              * method calls in JML expressions are easier to handle.
              */
-            boolean uma = useMethodAxioms
-//                  // FIXME - org.jmlspecs.JML has special functions - we want to inline them, not represent as methods; could do this test more efficiently
-                    && !calleeMethodSym.owner.getQualifiedName().toString().equals(Strings.jmlSpecsPackage + ".JML")
-                    && calleeMethodSym.params != null;
-//            // FIXME - Strings give lots of problems if used as functions with axioms - sort it out later
-//                    && !calleeMethodSym.owner.getQualifiedName().toString().equals("java.lang.String")
-//                    && !calleeMethodSym.owner.getQualifiedName().toString().equals("java.lang.CharSequence")
-                    ;
-            boolean nodoTranslations = !rac && translatingJML && (uma ||  !localVariables.isEmpty()) && isPure(calleeMethodSym);
-            if (nodoTranslations && that instanceof JCNewClass) nodoTranslations = false; // FIXME - work this out in more detail. At least there should not be anonymous classes in JML expressions
+//            boolean uma = useMethodAxioms
+////                  // FIXME - org.jmlspecs.JML has special functions - we want to inline them, not represent as methods; could do this test more efficiently
+//                    && !calleeMethodSym.owner.getQualifiedName().toString().equals(Strings.jmlSpecsPackage + ".JML")
+//                    && calleeMethodSym.params != null; // FIXME - why this?
+            boolean calleeIsConstructor = calleeMethodSym.isConstructor();
             boolean calleeIsFunction = attr.isFunction(calleeMethodSym);
-            if (calleeIsFunction && translatingJML) nodoTranslations = true;
+            boolean nodoTranslations = !rac && translatingJML && (calleeIsFunction || (!(that instanceof JCNewClass) && !localVariables.isEmpty() && isPure(calleeMethodSym)));
+            boolean hasAModelProgram = hasModelProgram(overridden);
             if (hasAModelProgram) nodoTranslations = false; 
-            boolean isRecursive = isRecursiveCall(calleeMethodSym);
+            boolean isRecursive = isRecursiveCall(calleeMethodSym); // Checks whether this method has already been called in the call stack
             nodoTranslations =  nodoTranslations || isRecursive;
-            addToCallStack(that); pushedMethod = true;
             if (!splitExpressions) nodoTranslations = true;
             boolean hasTypeArgs = calleeMethodSym.type instanceof Type.ForAll; 
 //            if (!useMethodAxioms && splitExpressions) {
 //                log.error(that, "jml.message", "Method calls in quantifier bodies must be 'function's: " + calleeMethodSym.toString());
 //            }
-            boolean addMethodAxioms = nodoTranslations && !hasTypeArgs && !isSuperCall && !isThisCall;
+            boolean addMethodAxioms = nodoTranslations && !calleeIsConstructor && !hasTypeArgs && !isSuperCall && !isThisCall;
 //            boolean addMethodAxioms = !rac && !calleeMethodSym.isConstructor() && !hasTypeArgs && !isSuperCall && !isThisCall && isPure(calleeMethodSym)
 //                    && (!calleeMethodSym.getReturnType().isReference() || translatingJML);
             boolean inlineSpecs = !isRecursive && splitExpressions && localVariables.isEmpty(); // !addMethodAxioms;
             boolean strictlyPure = !calleeMethodSym.getReturnType().isReference();
-            boolean includeDeterminism = !rac && !calleeMethodSym.isConstructor() && !hasTypeArgs && !isSuperCall && !isThisCall && isPure(calleeMethodSym) && splitExpressions &&
+            boolean includeDeterminism = !rac && !calleeIsConstructor && !hasTypeArgs && !isSuperCall && !isThisCall && isPure(calleeMethodSym) &&
                     strictlyPure;
             boolean details = true
                     && !calleeMethodSym.owner.getQualifiedName().toString().equals(Strings.JMLClass);
+
+            addToCallStack(that); pushedMethod = true; // Must be after the check of isRecursive
+
 
 //            ListBuffer<JCStatement> saved = currentStatements;
             oldStatements = currentStatements; // FIXME - why twice
@@ -8222,28 +8220,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             List<JCExpression> extendedArgs = extendArguments(that,
                     calleeMethodSym, newThisExpr, trArgs);
-            if (!addMethodAxioms && !translatingJML && calleeIsFunction && !rac) {
-                addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, extendedArgs,
-                        receiverType, overridden, true);
-            }
-            if (addMethodAxioms && (useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
+//            if (!addMethodAxioms && !translatingJML && calleeIsFunction && !rac) {
+//                addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, extendedArgs,
+//                        receiverType, overridden, true);
+//            }
+            if (addMethodAxioms) {
                 addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, extendedArgs, receiverType,
                             overridden, details);
             }
             if (addMethodAxioms) {
-                List<JCExpression> ntrArgs = extendedArgs;
                 if ((useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
 
                     result = eresult = makeDeterminismCall(that, calleeMethodSym, newThisExpr, extendedArgs);
                     currentThisExpr = newThisExpr;
                     if (condition == null) condition = treeutils.trueLit;
-//                    
-//                    MethodSymbol newCalleeSym = oldHeapMethods.get(oldenv == null ? null : oldenv.name).get(calleeMethodSym);
-//                    if (newCalleeSym == null) {
-//                        log.error("jml.internal","No logical function for method " + calleeMethodSym.getQualifiedName());
-//                    }
-//
-//                    result = eresult = treeutils.makeMethodInvocation(that,null,newCalleeSym,ntrArgs);
                 } else {
                     if (utils.isJMLStatic(calleeMethodSym) || trArgs.isEmpty()) {
                         result = eresult = trExpr;
@@ -8253,7 +8243,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
             }
-            if (addMethodAxioms) {
+            if (addMethodAxioms && !inlineSpecs) {
                 JCExpression convertedResult = eresult;
                 // Do any inlining
                 JCExpression savedRE = resultExpr;
@@ -8270,9 +8260,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 resultSym = savedSym;
                 result = eresult = convertedResult;
             }
-            if (addMethodAxioms) {
-                return;
-            } // End of function section
+//            if (addMethodAxioms) {
+//                return;
+//            } // End of function section
             
             
             // Set up the result variable - for RAC we have to do this
@@ -8365,33 +8355,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 JCExpression e = makeDeterminismCall(that, calleeMethodSym, newThisExpr,
                         extendedArgs);
-                currentThisExpr = newThisExpr;
                 if (!calleeMethodSym.isConstructor() && calleeMethodSym.getReturnType().isReference()) {
                     //makeFreshExpression()
                 }
                 if (includeDeterminism) addAssumeEqual(that, Label.IMPLICIT_ASSUME, resultExpr, e);
                 result = eresult = e;
+                currentThisExpr = newThisExpr;
                 return;
             }
-            
-            
-//            if (!translatingJML && calleeIsFunction && !rac) {
-//
-//                //MethodSymbol newCalleeSym = pureMethod.get(calleeMethodSym);
-//                MethodSymbol newCalleeSym = oldHeapMethods.get(oldenv == null ? null : oldenv.name).get(calleeMethodSym);
-//                if (newCalleeSym == null) {
-//                    log.error("jml.internal","No logical function for method " + calleeMethodSym.getQualifiedName());
-//                }
-//
-//                JCExpression methCall = treeutils.makeMethodInvocation(that,null,newCalleeSym,extendedArgs);
-//                JCStatement stat;
-//                if (resultExpr == null) stat = M.at(that.pos).Exec(methCall);  // FIXME - but if it is a function, why no return value?
-//                else stat = treeutils.makeAssignStat(that.pos, resultExpr, methCall);
-//                addStat(stat);
-//            }
-
-
-            
            
             // FIXME - comment?
             // FIXME - don't duplicate what is in visitLabelled
@@ -18080,6 +18051,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected JCBlock addMethodAxioms(DiagnosticPosition callLocation, MethodSymbol msym, 
             java.util.List<Pair<MethodSymbol,Type>> overridden, Type receiverType, Type returnType) {
         boolean isFunction = isHeapIndependent(msym);
+        JCExpression savedCondition = condition;
+        if (isFunction) condition = treeutils.trueLit;
         if (!inOldEnv && !addAxioms(heapCount,msym)) { return M.at(Position.NOPOS).Block(0L, List.<JCStatement>nil()); }
         boolean isStatic = utils.isJMLStatic(msym);
         boolean isPrimitiveType = utils.isPrimitiveType(msym.owner.type);
@@ -18389,6 +18362,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             currentThisExpr = savedCurrentThisExpr;
             paramActuals = savedParamActuals;
             splitExpressions = savedSplitExpressions;
+            condition = savedCondition;
             depth--;
             if (depth == 0) savedForAxioms = null;
         }
