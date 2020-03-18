@@ -273,7 +273,7 @@ public class escfiles extends EscBase {
 //        helpTF("opt","-show","-method=m");
 //    }
 
-    @Test
+    @Test  // Problem is with mixed BV and bigint operations
     public void testBuggyCalculator() {
         helpTF("buggyCalculator");
     }
