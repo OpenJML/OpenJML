@@ -4,7 +4,16 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of A1.A1() with prover !!!! - no warnings
 Starting proof of A1.h() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of A1.h() with prover !!!! - no warnings
 Completed proving methods in A1
+Proving methods in A4
+Starting proof of A4.A4() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A4.A4() with prover !!!! - no warnings
+Starting proof of A4.h() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at reachable statement : OK
+Feasibility check - at program exit : OK
+Completed proof of A4.h() with prover !!!! - no warnings
+Completed proving methods in A4

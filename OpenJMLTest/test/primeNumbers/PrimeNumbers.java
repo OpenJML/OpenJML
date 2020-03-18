@@ -11,46 +11,50 @@
 	public void Prime(int n)
        {
           int status = 1, num = 3, count, j =2;
-	  primeArray = new int[n];
-          //@ assert num ==3;
+          primeArray = new int[n];
           if (n >= 1)
           {
              System.out.println("First "+n+" prime numbers are:");
              System.out.println(2);
-	     primeArray[0] = 2;
+             primeArray[0] = 2;
           }
+          //@ ghost int maxnumber = Integer.MAX_VALUE;
 
-	 //@ ghost int maxnumber = Integer.MAX_VALUE;
-
-         // maintaining (\forall int i, k; i >= 0 && i < count-1 && k >= 2 && k <= primeArray[i]/2; primeArray[i]%k != 0); 
-	 //@ maintaining num >= 3;
-         //@ maintaining count >= 2 && count <= n + 1; 
-         //@ decreases maxnumber - num; 
-          for (count = 2; count <=n;)
+          //@ maintaining 2 <= count <= n + 1; 
+          //@ maintaining primeArray[count-2] < num <= maxnumber;
+          //@ maintaining status == 1;
+          //@ maintaining (\forall int i, k; 0 <= i < count-1 && 2 <= k <= primeArray[i]/2; primeArray[i]%k != 0); 
+          //@ decreases maxnumber - num; 
+          //@ split
+          for (count = 2; count <=n && num < Integer.MAX_VALUE;)
           {    
-	     //@ maintaining j> 1 && j <= num/2 + 1; 
-	     //@ decreases num - j;
-             for (j = 2; j <= num/2; j++)
-             {
-                if (num%j == 0)
-                {
-		   //@ assert num%j == 0;
-                   status = 0;
-                   break;
-                }
-		//@ assert num%j != 0;
-             }
+              //@ maintaining 2 <= j <= num/2 + 1; 
+              //@ maintaining status != 0 && (\forall int jj; 2 <= jj <= j; num%jj != 0);
+              //@ decreases num - j;
+              for (j = 2; j <= num/2; j++)
+              {
+                  if (num%j == 0)
+                  {
+                      //@ assert num%j == 0;
+                      status = 0;
+                      break;
+                  }
+                  //@ assert num%j != 0;
+              }
+              // @ assert status == 0 ==> (\exists int jj; 2 <= jj <= num/2; num%jj == 0);
+              //@ assert status != 0 ==> (\forall int jj; 2 <= jj <= num/2; num%jj != 0);
 
-             if (status != 0)
-             {	
-		//@ assert status != 0;
-		primeArray[count -1] = num;
-		//@ assert (\forall int i; i >= 2 && i <= num/2; num%i != 0);
-		System.out.println("prime is : "+num);	
-                count++;
-             }
-             status = 1;
-             num++;
+              if (status != 0)
+              {
+                  //@ assert status != 0;
+                  primeArray[count -1] = num;
+                  //@ assert (\forall int i; 2 <= i <= num/2; num%i != 0);
+//                  System.out.println("prime is : "+num);	
+                  count++;
+              }
+              status = 1;
+              num++;
           }   
+          //@ assume count == primeArray.length + 1;
        }
     }

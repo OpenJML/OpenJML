@@ -38,7 +38,7 @@ public class buggyCalculator {
       //@ requires num1 % num2 <= Integer.MAX_VALUE;
       //@ requires num1 % num2 >= Integer.MIN_VALUE;
       //@ ensures \result == (num1 % num2);
-
+/*
       //@ also
 
       //@ requires operator == '&';
@@ -53,7 +53,7 @@ public class buggyCalculator {
 
       //@ requires operator == '^';
       //@ ensures \result == (num1 ^ num2);
-      //@ |}
+*/      //@ |}
 
       //@ also
       //@ requires operator != '+' && operator != '-' && operator != '*' && operator != '/' && operator != '%' && operator != '&' && operator != '^' && operator != '|';
@@ -84,20 +84,20 @@ public class buggyCalculator {
           break;
 
           case '%':
-          output = num1 % num2;
+                  output = num1 % num2;
                   break;
 
-          case '&':
-          output = num1 & num2;
-                  break;
-          
-               case '|':
-          output = num1 | num2;
-                  break;
-           
-              case '^':
-                  output = num1 ^ num2;
-              break;
+//          case '&':
+//                  output = num1 & num2;
+//                  break;
+//          
+//          case '|':
+//                  output = num1 | num2;
+//                  break;
+//           
+//              case '^':
+//                  output = num1 ^ num2;
+//              break;
 
               default:
                   System.err.println("You entered a not defined operator");
@@ -184,18 +184,18 @@ public class buggyCalculator {
 
                 case '/':
                     output = num1 / num2;
-            break;
+                    break;
 
             case '%':
-            output = num1 % num2;
+                    output = num1 % num2;
                     break;
 
             case '&':
-            output = num1 & num2;
+                    output = num1 & num2;
                     break;
             
                  case '|':
-            output = num1 | num2;
+                    output = num1 | num2;
                     break;
              
                 case '^':
