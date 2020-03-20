@@ -660,7 +660,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // Note that if the class is binary, javaDecl will be null, but csym will not
 
         MethodSymbol matchSym = false ? specsMethodDecl.sym : matchMethod(specsMethodDecl,csym,env,false);
-        if (matchSym != null && matchSym.owner != csym) {
+        if (matchSym != null && matchSym.owner != csym && !sameTree) {
             log.warning("jml.message", "Unexpected location (ASD): " + csym);
             matchSym = specsMethodDecl.sym;
         }
