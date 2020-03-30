@@ -10002,7 +10002,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ClassSymbol calleeClass = (ClassSymbol)calleeMethodSym.owner;
 
         // FIXME - the check on helper here is only if callee and caller have the same receiver, or is it receivers with the same class?
-        if (applyNesting <= 1 && !(isHelper(calleeMethodSym) && apply != null && apply.meth instanceof JCIdent)) {
+        if (applyNesting <= 1 && !(isHelper(calleeMethodSym) && apply != null && (utils.isJMLStatic(apply.meth instanceof JCIdent ? ((JCIdent)apply.meth).sym : ((JCFieldAccess)apply.meth).sym) || apply.meth instanceof JCIdent))) {
             addStat(comment(that, "Checking caller invariants before calling method " + utils.qualifiedMethodSig(calleeMethodSym),null));
             if (!isSuperCall && !isThisCall) {
 //                    if (meth instanceof JCFieldAccess) {
