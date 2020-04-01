@@ -4170,9 +4170,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                                    addStat(treeutils.makeAssignStat(ex.pos,nextPreExpr,treeutils.falseLit));
 //                                    JCBlock elsebl = popBlock(ex);
                                 } else {
-                                    nextPreExpr = newTemp(ex,ex.type);
+                                    nextPreExpr = newTemp(ex,syms.booleanType);
                                     check2 = pushBlock();
                                     JCExpression convertedEx = convertJML(ex);
+                                    convertedEx = addImplicitConversion(ex, syms.booleanType, convertedEx);
                                     addAssume(ex,Label.IMPLICIT_ASSUME,treeutils.makeEquality(ex.pos,nextPreExpr,convertedEx));
                                     //addStat(treeutils.makeAssignStat(ex.pos,nextPreExpr,convertedEx));
                                     thenbl = popBlock(ex,check2);
