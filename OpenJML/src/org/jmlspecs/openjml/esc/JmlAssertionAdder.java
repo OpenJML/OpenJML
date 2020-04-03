@@ -13998,7 +13998,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!b) changeState();
         }
         
-        loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
+        loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that, null);
         
         // Now in the loop, so check that the variants are non-negative
         loopHelperCheckNegative(decreasesIDs, that);
@@ -14182,7 +14182,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             // Assume the invariants
             // Compute and remember the variants
-            loopHelperAssumeInvariants(that.loopSpecs,decreasesIDs,that);
+            loopHelperAssumeInvariants(that.loopSpecs,decreasesIDs,that,lengthExpr);
 
             // Compute the condition, recording any side-effects
             {
@@ -14263,7 +14263,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             // Assume the invariants
             // Compute and remember the variants
-            loopHelperAssumeInvariants(that.loopSpecs,decreasesIDs,that);
+            loopHelperAssumeInvariants(that.loopSpecs,decreasesIDs,that,null);
 
             // Compute the condition, recording any side-effects
             {
@@ -14553,9 +14553,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Inserts the invariants as assumptions; also computes initial values of
      * the variants. (at the beginning of a loop body) */
-    protected void loopHelperAssumeInvariants(List<JmlStatementLoop> loopSpecs, java.util.List<JCIdent> decreasesIDs, JCTree that) {
+    protected void loopHelperAssumeInvariants(List<JmlStatementLoop> loopSpecs, java.util.List<JCIdent> decreasesIDs, JCTree that, JCExpression lengthExpr) {
         addTraceableComment(that, null, "Begin loop check");
         DiagnosticPosition pos = that;
+        
+        {
+            JCVariableDecl indexDecl = indexStack.get(0);
+            {
+                JCIdent id = treeutils.makeIdent(pos.getPreferredPosition(),indexDecl.sym);
+                JCBinary bin = treeutils.makeBinary(pos.getPreferredPosition(),JCTree.Tag.LE,treeutils.intleSymbol,treeutils.zero,id);
+                addAssume(pos,Label.IMPLICIT_ASSUME, bin);
+            }
+            
+            if (lengthExpr != null) {
+                JCIdent id = treeutils.makeIdent(pos.getPreferredPosition(),indexDecl.sym);
+                JCBinary bin = treeutils.makeBinary(pos.getPreferredPosition(),JCTree.Tag.LE,treeutils.intleSymbol,id,lengthExpr);
+                addAssume(pos,Label.IMPLICIT_ASSUME, bin);
+            }
+        }
+        
         
         // Assume the invariants
         if (loopSpecs != null) {
@@ -14572,12 +14588,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
             }
-        }
-        {
-            JCVariableDecl indexDecl = indexStack.get(0);
-            JCIdent id = treeutils.makeIdent(pos.getPreferredPosition(),indexDecl.sym);
-            JCBinary bin = treeutils.makeBinary(pos.getPreferredPosition(),JCTree.Tag.LE,treeutils.intleSymbol,treeutils.zero,id);
-            addAssume(pos,Label.IMPLICIT_ASSUME, bin);
         }
 
         // Compute and remember the variants
@@ -14792,7 +14802,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         recordLabel(loopbodyLabelName,lstat);
         addStat(lstat);
         
-        loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
+        loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that, null);
         
         // Compute the condition, recording any side-effects
         int savedHeapCount = -1;
@@ -17713,7 +17723,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!b) changeState();  // FIXME - but only if somethings non-local is havoced?
         }
         
-        loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
+        loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that, null);
         
         // Compute the condition, recording any side-effects
             
