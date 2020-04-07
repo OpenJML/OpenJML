@@ -314,6 +314,8 @@ public class JmlParser extends JavacParser {
         return s;
     }
     
+    // TODO: THese should be moved to JmlAssertionAdder, so that
+    // they work for binary Enums aas well.
     void addImplicitEnumAxioms(JCClassDecl cd) {
         if (utils.rac) return;
         ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
@@ -364,10 +366,10 @@ public class JmlParser extends JavacParser {
             JmlTypeClauseExpr axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0), axiomID,axiomClause,ex);
             newdefs.add(axiom); 
             ex = jmlF.JmlMethodInvocation(distinctKind,args.toList());
-            ((JmlMethodInvocation)ex).kind = FunctionLikeExpressions.distinctKind;
+            //((JmlMethodInvocation)ex).kind = FunctionLikeExpressions.distinctKind;
             // The enum constants are all distinct and distinct from NULL.
-            axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0),axiomID,axiomClause,ex);
-            newdefs.add(axiom);
+            //axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(0),axiomID,axiomClause,ex);
+            //newdefs.add(axiom);
             ex = jmlF.JmlMethodInvocation(distinctKind,argsn.toList());
             ((JmlMethodInvocation)ex).kind = FunctionLikeExpressions.distinctKind;
             // The enum names are all distinct and distinct from NULL.
