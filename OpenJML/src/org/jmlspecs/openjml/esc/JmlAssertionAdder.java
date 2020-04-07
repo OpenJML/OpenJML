@@ -57,6 +57,7 @@ import org.jmlspecs.openjml.ext.ReachableStatement;
 import org.jmlspecs.openjml.ext.SetStatement;
 import org.jmlspecs.openjml.ext.SignalsClauseExtension;
 import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
+import org.jmlspecs.openjml.ext.TypeExprClauseExtension;
 
 import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
@@ -3658,15 +3659,36 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             int pos = 0;
             if (csym.isEnum()) {
+                ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+                JCVariableDecl fdecl = newTempDecl(tspecs.decl, csym.type);
+                JCIdent fid = treeutils.makeIdent(pos, fdecl.sym);
+                JCExpression or = null;
+                JCExpression ort = null;
+                JCIdent tid = treeutils.makeIdent(pos,"this",csym.type);
+                tid.sym.owner = csym;
                 for (Symbol s : csym.getEnclosedElements()) {
+                    
                     if (s instanceof VarSymbol && s.isEnum()) {
                         JCIdent id = treeutils.makeIdent(pos, csym);
                         JCFieldAccess fa = treeutils.makeSelect(pos, id, s);
                         fa = treeutils.makeSelect(pos, fa, allocSym);
                         JCExpression bin = treeutils.makeBinary(pos, JCTree.Tag.LE, fa, treeutils.zero);
                         addAssume(tspecs.decl,Label.AXIOM,bin,null,null);
+                        id = treeutils.makeIdent(pos, csym);
+                        fa = treeutils.makeSelect(pos, id, s);
+                        newargs.add(fa);
+                        bin = treeutils.makeBinary(pos,  JCTree.Tag.EQ, fid, fa);
+                        or = or == null ? bin : treeutils.makeBitOr(pos, or, bin);
+                        bin = treeutils.makeBinary(pos,  JCTree.Tag.EQ, tid, fa);
+                        ort = ort == null ? bin : treeutils.makeBitOr(pos, ort, bin);
                     }
                 }
+                newargs.add(treeutils.nullLit);
+                JCExpression dist = M.at(pos).JmlMethodInvocation(distinctKind, newargs.toList());
+                addAssume(tspecs.decl,Label.AXIOM,dist,null,null);
+                or = M.at(pos).JmlQuantifiedExpr(qforallKind, List.<JCVariableDecl>of(fdecl), treeutils.trueLit, or);
+                addAssume(tspecs.decl,Label.AXIOM,or,null,null);
+                tspecs.clauses = tspecs.clauses.append(M.JmlTypeClauseExpr(M.Modifiers(Flags.PUBLIC|Flags.FINAL), TypeExprClauseExtension.invariantID, TypeExprClauseExtension.invariantClause, ort));
             }
         } finally {
             addingAxioms = prevAddingAxioms;
@@ -13111,10 +13133,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // 'this' - leave it as it is
                 result = eresult = convertCopy(currentThisExpr);
 
-            } else if (that.name.toString().equals("this")) {
+            } else if (that.name == names._this) {
                 result = eresult = currentThisExpr != null ? convertCopy(currentThisExpr) : convertCopy(that);
 
-            } else if (that.name.toString().equals("super")) {
+            } else if (that.name == names._super) {
                 result = eresult = currentThisExpr != null ? convertCopy(currentThisExpr) : convertCopy(that); // FIXME - want this instead of super
 
             } else if (that.name.equals(heapVarName)) {
