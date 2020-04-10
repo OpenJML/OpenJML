@@ -775,7 +775,7 @@ public class JavaCompiler {
         JavaFileObject prev = log.useSource(filename);
 
         try {
-            tree = parse(filename); // DRC - changed this so the endPositionTable is set -- FIXME review this
+            tree = parse(filename); // OPENJML - changed this so the endPositionTable is set -- FIXME review this
 //            tree = parse(filename, filename.getCharContent(false));
 //        } catch (IOException e) {
 //            log.error("error.reading.file", filename, JavacFileManager.getMessage(e));

@@ -426,10 +426,11 @@ public class JmlEnter extends Enter {
                 } else {
                     // OK - there is a specification matching the binary class
                     specsClass.sym = c;
-//                    Env<AttrContext> localenv = classEnv(specsClass, ownerenv);
-//                    typeEnvs.put(c,localenv);
-//                    specsClass.env = localenv;
-//                    specs.combineSpecs(c,null,specsClass);
+                    Env<AttrContext> localenv = classEnv(specsClass, ownerenv);
+                    typeEnvs.put(c,localenv);
+                    specsClass.env = localenv;
+                    specs.combineSpecs(c,null,specsClass);
+                    matchClassesForBinary(localenv, flatname.toString()+"$", specsClass.defs, unmatchedTypesList, javasource);
                 }
             }
             if (c == null) {
@@ -565,10 +566,16 @@ public class JmlEnter extends Enter {
                 csym = ClassReader.instance(context).classExists(names.fromString(flatname));
                 flatname = flatname + "$";
             } else if (env.tree instanceof JmlClassDecl) {
-                String s = ((JmlClassDecl)env.tree).sym.flatname + "$";
-                flatname = s + that.name.toString();
-                csym = ClassReader.instance(context).classExists(names.fromString(flatname));
-                flatname = flatname + "$";
+                JmlClassDecl cd = (JmlClassDecl)env.tree;
+                if (that.name == cd.name) { 
+                    flatname = cd.sym.flatname.toString();// + "$";
+                    csym = ClassReader.instance(context).classExists(((JmlClassDecl)env.tree).sym.flatname);
+                    flatname = flatname + "$";
+                } else {
+                    flatname = cd.sym.flatname.toString() + "$" + that.name.toString();
+                    csym = ClassReader.instance(context).classExists(names.fromString(flatname));
+                    flatname = flatname + "$";
+                }
             }
             specstree = thattree;
             specstree.sym = csym;
@@ -590,7 +597,7 @@ public class JmlEnter extends Enter {
                 JavaFileObject source = thattree.source();
                 that.defs = matchClasses(that.defs, specstree.defs, source == null ? null : source.toString());
             } else {
-                specstree.defs = matchClassesForBinary(null, flatname, specstree.defs, unmatched, thattree.source().toString());
+                specstree.defs = matchClassesForBinary(env, flatname, specstree.defs, unmatched, thattree.source().toString());
             }
         }
         if (csym == null) { 
@@ -776,5 +783,4 @@ public class JmlEnter extends Enter {
         super.main(trees);
     }
     
-
 }

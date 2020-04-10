@@ -1873,6 +1873,20 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                             jmltree.defs = jmltree.defs.tail;
                         }
                     }
+                    for (JCTree t : jmltree.defs) {
+                        if (t instanceof JmlClassDecl) {
+                            ClassSymbol cs = ((JmlClassDecl)t).sym;
+                            if (cs == null) continue;
+                            // OPENJML - Type parameters are not resolved/entered
+                            List<Symbol.TypeVariableSymbol> tp = cs.getTypeParameters();
+                            if (tp != null && !tp.isEmpty()) continue;
+                            // OPENJML - these do not work yet
+                            if (cs.toString().endsWith("Subset")) continue;
+                            if (cs.toString().endsWith("UnicodeBlock")) continue;
+                            if (cs.toString().endsWith("Arn.Builder")) continue;
+                            complete(cs);
+                        }
+                    }
                 }
             }
             
