@@ -476,7 +476,7 @@ public class Enter extends JCTree.Visitor {
      *  @param trees      The list of trees to be processed.
      *  @param c          The class symbol to be processed.
      */
-    public void complete(List<JCCompilationUnit> trees, /*@ nullable */ ClassSymbol c) { // DRC - added nullable
+    public void complete(List<JCCompilationUnit> trees, /*@ nullable */ ClassSymbol c) { // OPENJML - added nullable
         annotate.enterStart();
         ListBuffer<ClassSymbol> prevUncompleted = uncompleted;
         if (memberEnter.completionEnabled) uncompleted = new ListBuffer<ClassSymbol>();

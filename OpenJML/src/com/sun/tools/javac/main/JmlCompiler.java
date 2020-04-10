@@ -393,7 +393,19 @@ public class JmlCompiler extends JavaCompiler {
                     // specscu.defs is empty if nothing was declared or if all class declarations were removed because of errors
                     if (ok) {
                         for (JCTree d: speccu.defs) {
-                            if (d instanceof JmlClassDecl) todo.append(((JmlClassDecl)d).env);
+                            if (d instanceof JmlClassDecl) {
+                                JmlClassDecl jd = (JmlClassDecl)d;
+                                Env<AttrContext> outerEnv = jd.env;
+                                todo.append(outerEnv);
+//                                for (JCTree dd: jd.defs) { // TODO: Needs full recursiveness, not just the next level
+//                                    if (dd instanceof JmlClassDecl) {
+//                                        JmlClassDecl jdd = (JmlClassDecl)dd;
+//                                        if (jdd.env == null) jdd.env = enter.classEnv(jdd, outerEnv);
+//                                        jdd.specsDecl = jdd;
+//                                        todo.append(jdd.env);
+//                                    }
+//                                }
+                            }
                         }
                     }
 //                    memberEnter.enterSpecsForBinaryClasses(csymbol,List.<JCTree>of(speccu));

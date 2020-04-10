@@ -51,6 +51,7 @@ import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.TypeInitializerClauseExtension.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import org.osgi.framework.Bundle;
+import org.w3c.dom.Element;
 
 import com.sun.tools.classfile.Annotation;
 import com.sun.tools.javac.code.Attribute;
@@ -1742,7 +1743,9 @@ public class JmlSpecs {
                     }
                 } else if (t instanceof JmlMethodDecl) {
                     JmlMethodDecl md = (JmlMethodDecl)t;
-                    tspecs.methods.put(md.sym, md.methodSpecsCombined );
+                    if (md.specsDecl == null) md.specsDecl = md;
+                    if (md.methodSpecsCombined == null) md.methodSpecsCombined = new JmlSpecs.MethodSpecs(md);
+                    if (md.sym != null) tspecs.methods.put(md.sym, md.methodSpecsCombined );
                 } else if (t instanceof JmlVariableDecl) {
                     JmlVariableDecl md = (JmlVariableDecl)t;
                     tspecs.fields.put(md.sym, md.fieldSpecsCombined );
@@ -1751,6 +1754,13 @@ public class JmlSpecs {
                 } else if (t instanceof JmlTypeClause) {
                     tspecs.clauses.add((JmlTypeClause)t);
                     tt = null;
+//                } else if (t instanceof JmlClassDecl) {
+//                    JmlClassDecl cd = (JmlClassDecl)t;
+//                    if (cd.sym == null) {
+//                        String nm = specClassDecl.sym.flatname + "." + cd.name.toString();
+//                        cd.sym = ClassReader.instance(context).classExists(names.fromString(nm));
+//                        if (cd.sym != null) combineSpecs(cd.sym, cd, cd.specsDecl == null ? cd : cd.specsDecl);
+//                    }
                 }
                 if (tt != null) newlist.add(tt);
             }
