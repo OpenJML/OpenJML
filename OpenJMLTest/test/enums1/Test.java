@@ -23,11 +23,11 @@ public class Test {
     
     //@ pure
     public void m5d(EEE e) {
-        //@ assume (\forall EEE ee; ee != null ==> (\exists int i; 0<=i && i<EEE._JMLvalues.length; EEE._JMLvalues[i] == ee)); // FIXME - failig
+        //@ assume (\forall EEE ee; ee != null ==> (\exists \bigint i; 0<=i && i<EEE._JMLvalues.length; EEE._JMLvalues[i] == ee)); // FIXME - failig
         EEE[] ev = EEE.values();
-        //@ assume (\forall EEE ee; ee != null ==> (\exists int i; 0<=i && i<ev.length; ev[i] == ee)); // FIXME - failig
+        //@ assume (\forall EEE ee; ee != null ==> (\exists \bigint i; 0<=i && i<ev.length; ev[i] == ee)); // FIXME - failig
         //@ show ev, EEE._JMLvalues, ev[0], EEE._JMLvalues[0];
-        //@ assert (\forall EEE ee; ee != null ==> (\exists int i; 0<=i && i<ev.length; ev[i] == ee)); // FIXME - failig
+        //@ assert (\forall EEE ee; ee != null ==> (\exists \bigint i; 0<=i && i<ev.length; ev[i] == ee)); // FIXME - failig
     }
     
 }
