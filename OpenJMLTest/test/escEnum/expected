@@ -1,0 +1,22 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m(TestEnum.EE) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m(TestEnum.EE) with prover !!!! - no warnings
+Completed proving methods in Test
+Proving methods in TestEnum
+Starting proof of TestEnum.TestEnum() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TestEnum.TestEnum() with prover !!!! - no warnings
+Proving methods in TestEnum.EE
+Starting proof of TestEnum.EE.EE() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TestEnum.EE.EE() with prover !!!! - no warnings
+Completed proving methods in TestEnum.EE
+Completed proving methods in TestEnum

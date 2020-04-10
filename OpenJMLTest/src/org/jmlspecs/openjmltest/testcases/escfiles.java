@@ -521,6 +521,21 @@ public class escfiles extends EscBase {
     }
     
     @Test
+    public void escStrings() {
+        helpTF("escStrings","-method=m1","-show");
+    }
+    
+    @Test
+    public void escEnum() {
+        helpTF("escEnum");
+    }
+    
+    @Test
+    public void testEscLoop() {
+        helpTF("escLoop");
+    }
+
+    @Test
     public void testEscLoopModifies() {
         helpTF("escLoopModifies");
     }
