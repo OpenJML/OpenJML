@@ -10,6 +10,7 @@ import org.junit.Test;
     I made tests to reproduce them and test the fixes.  I leave
     them here just to make sure they do not reappear, though mostly
     they are simple situations. */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class bugs extends TCBase {
 
     static String testspecpath = "$A"+z+"$B"+z+"$SY";

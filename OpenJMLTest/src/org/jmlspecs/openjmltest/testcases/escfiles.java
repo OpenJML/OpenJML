@@ -15,6 +15,7 @@ import java.util.List;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Assume;
+import org.junit.FixMethodOrder;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +38,7 @@ import org.junit.runners.Parameterized.Parameters;
  * </UL>
  */
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class escfiles extends EscBase {
 

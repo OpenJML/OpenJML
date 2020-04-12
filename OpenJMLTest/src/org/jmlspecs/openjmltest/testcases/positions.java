@@ -37,6 +37,7 @@ import com.sun.tools.javac.util.Log;
 // character is wanted. It is often the same as the start position, but in some case not; for example,
 // for a binary operation, the preferred position is the location of the operator.
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class positions extends JmlTestCase {
 

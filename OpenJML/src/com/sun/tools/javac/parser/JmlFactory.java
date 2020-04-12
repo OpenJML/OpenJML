@@ -83,15 +83,15 @@ public class JmlFactory extends ParserFactory {
         return p;
     }
     
-    /** Generates a new parser that will parse the given input;
-     * the parser will parse JML annotations and javadoc
-     * comments, keeping a line map and end positions;
-     * the beginning of the parse must not be within a JML annotation.
-     * @param input the characters to parse
-     * @return the new parser
-     */
-    public JmlParser newParser(CharSequence input) {
-        return newParser(input,true,true,true,false);
-    }
+//    /** Generates a new parser that will parse the given input;
+//     * the parser will parse JML annotations and javadoc
+//     * comments, keeping a line map and end positions;
+//     * the beginning of the parse must not be within a JML annotation.
+//     * @param input the characters to parse
+//     * @return the new parser
+//     */
+//    public JmlParser newParser(CharSequence input) {
+//        return newParser(input,true,true,true,false);
+//    }
 
 }

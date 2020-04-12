@@ -976,12 +976,6 @@ public class JmlTree {
         /** This is a specification file, belonging to a Java class file (no java source) */
         public static final int SPEC_FOR_BINARY = 6;
 
-        /** This is a specification file but there is no Java source or binary file */
-        //public static final int SPEC_ALONE = ?;
-        
-//        static public boolean isJava(int mode) { return (mode & 1) != 0; }
-//        
-//        static public boolean isSpec(int mode) { return (mode & 2) != 0; }
         
         static public boolean isForSource(int mode) { return (mode & 4) == 0; }
         

@@ -14,6 +14,7 @@ import com.sun.tools.javac.tree.JCTree.*;
  *
  */
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class compilationUnit extends ParseBase {
 
     @Override

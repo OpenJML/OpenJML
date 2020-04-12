@@ -16,6 +16,7 @@ import org.junit.rules.TestName;
 /** Tests running the tool as if from the command-line (for typechecking);
  * includes erroneous command-line argument combinations and combinations
  * of class, source, and specs paths. */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class compiler {
     
     @Rule
@@ -101,7 +102,7 @@ public class compiler {
         actualOutput = removeNotes(actualOutput);
         
         if (print) System.out.println("EXPECTING: " + output[0]);
-//        print = true;
+        print = true;
         if (print) System.out.println("ACTUAL OUT: " + actualOutput);
         if (print) System.out.println("ACTUAL ERR: " + errOutput);
         if (output.length <= 1 && errOutput.length() == 0 && !actualOutput.startsWith("Note:")) errOutput = actualOutput;

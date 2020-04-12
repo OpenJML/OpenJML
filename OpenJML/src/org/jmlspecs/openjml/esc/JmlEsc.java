@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import javax.tools.JavaFileObject;
+
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.IAPI;
 import org.jmlspecs.openjml.JmlOption;
@@ -70,9 +72,7 @@ public class JmlEsc extends JmlTreeScanner {
         }
         return instance;
     }
-    
-//    public IAPI.IProofResultListener proofResultListener = null;
-    
+
     /** The compilation context, needed to get common tools, but unique to this compilation run*/
     @NonNull Context context;
 
@@ -109,32 +109,31 @@ public class JmlEsc extends JmlTreeScanner {
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
         this.assertionAdder = new JmlAssertionAdder(context, true, false);
         try {
+            // FIXME - would prefer for esc to just translate the methods that are to be proved
             // We convert the whole tree first
-        	assertionAdder.convert(tree); // get at the converted tree through the map
-        	// And then we walk the tree to see which items are to be proved
-        	tree.accept(this);
+            assertionAdder.convert(tree); // get at the converted tree through the map
+            // And then we walk the tree to see which items are to be proved
+            tree.accept(this);
         } catch (PropagatedException | Main.JmlCanceledException e) {
-        	// Canceled
-    		Main.instance(context).canceled = true;
-    		count(IProverResult.ERROR);
-    		throw e;
+            // Canceled
+            Main.instance(context).canceled = true;
+            count(IProverResult.ERROR);
+            throw e;
         } catch (Exception e) {
-            // No further error messages needed - FIXME - is this true?
             count(IProverResult.ERROR);
             String info = "";
             if (tree instanceof JCClassDecl) info = "class " + ((JCClassDecl)tree).name.toString();
             if (tree instanceof JCCompilationUnit) info = "compilation unit " + (((JCCompilationUnit)tree).sourcefile.toString());
-            log.error("jml.internal","Should not be catching an exception in JmlEsc.check: "+ e.toString() + " while translating " + info);
-            e.printStackTrace();
-        } catch (Throwable e) {
-            // No further error messages needed - FIXME - is this true?
-            count(IProverResult.ERROR);
-            String info = "";
-            if (tree instanceof JCClassDecl) info = "class " + ((JCClassDecl)tree).name.toString();
-            if (tree instanceof JCCompilationUnit) info = "compilation unit " + (((JCCompilationUnit)tree).sourcefile.toString());
-            log.error("jml.internal","Should not be catching a Java error in JmlEsc.check: "+ e.toString() + " while translating " + info);
+            log.error("jml.internal","Should not be catching a " + e.getClass().getName() + " in JmlEsc.check: "+ e.toString() + " while translating " + info);
             e.printStackTrace();
         }
+    }
+    
+    @Override
+    public void visitTopLevel(JCCompilationUnit node) {
+        JavaFileObject p = log.useSource(node.sourcefile);
+        super.visitTopLevel(node);
+        log.useSource(p);
     }
     
     /** Visit a class definition */
@@ -154,13 +153,15 @@ public class JmlEsc extends JmlTreeScanner {
             scan(node.extending);
             scan(node.implementing);
             JCTree[] arr = node.defs.toArray(new JCTree[node.defs.size()]);
-            Arrays.sort(arr, new java.util.Comparator<JCTree>() { public int compare(JCTree o, JCTree oo) { 
-                Name n = o instanceof JCClassDecl ? ((JCClassDecl)o).name : o instanceof JCMethodDecl ? ((JCMethodDecl)o).getName() : null;
-                Name nn = oo instanceof JCClassDecl ? ((JCClassDecl)oo).name : oo instanceof JCMethodDecl ? ((JCMethodDecl)oo).getName() : null;
-                return n == nn ? 0 : n == null ? -1 : nn == null ? 1 : n.toString().compareToIgnoreCase(nn.toString());
-            	} });
+            Arrays.sort(arr, new java.util.Comparator<JCTree>() { 
+                public int compare(JCTree o, JCTree oo) { 
+                    Name n = o instanceof JCClassDecl ? ((JCClassDecl)o).name : o instanceof JCMethodDecl ? ((JCMethodDecl)o).getName() : null;
+                    Name nn = oo instanceof JCClassDecl ? ((JCClassDecl)oo).name : oo instanceof JCMethodDecl ? ((JCMethodDecl)oo).getName() : null;
+                    return n == nn ? 0 : n == null ? -1 : nn == null ? 1 : n.toString().compareToIgnoreCase(nn.toString());
+                } 
+                });
             for (JCTree d: arr) {
-            	scan(d);
+                scan(d);
             }
         } else {
             super.visitClassDef(node);
@@ -189,19 +190,15 @@ public class JmlEsc extends JmlTreeScanner {
             return;
         }
 
-        IProverResult res = null;
         if (decl.body == null) return; // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent
         if (!(decl instanceof JmlMethodDecl)) {
-            JCDiagnostic d = (log.factory().warning(log.currentSource(), decl.pos(), "jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + utils.qualifiedMethodSig(decl.sym)));
+            JCDiagnostic d = log.factory().warning(log.currentSource(), decl.pos(), "jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + utils.qualifiedMethodSig(decl.sym));
             log.report(d);
-            //log.warning(decl.pos(),"jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + utils.qualifiedMethodSig(decl.sym)); //$NON-NLS-2$
-            res = new ProverResult("",ProverResult.ERROR,decl.sym).setOtherInfo(d);
             return;
         }
         JmlMethodDecl methodDecl = (JmlMethodDecl)decl;
 
-        // Do any nested classes and methods first (which will recursively call
-        // this method)
+        // Do any nested classes and methods first (which will recursively call visitMethodDef)
         super.visitMethodDef(methodDecl);
 
         if (skip(methodDecl)) {
@@ -216,7 +213,7 @@ public class JmlEsc extends JmlTreeScanner {
 
         Main.instance(context).pushOptions(decl.mods);
         try {
-    	    res = doMethod(methodDecl);
+            doMethod(methodDecl);
         } catch (PropagatedException e) {
             IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
             if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult("",IProverResult.CANCELLED,methodDecl.sym));
@@ -251,7 +248,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     public IProverResult markMethodSkipped(JmlMethodDecl methodDecl, String reason) {
-        if (JmlOption.isOption(context, JmlOption.SKIPPED)) utils.progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$ //$NON-NLS-2$
+        if (JmlOption.isOption(context, JmlOption.SKIPPED)) utils.progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$
         
         // FIXME - this is all a duplicate from MethodProverSMT
         IProverResult.IFactory factory = new IProverResult.IFactory() {
@@ -284,7 +281,7 @@ public class JmlEsc extends JmlTreeScanner {
         return proverToUse;
     }
     
-    // FIXME _ need synchronizatipon on this field
+    // FIXME _ need synchronization on this field
     MethodProverSMT currentMethodProver = null;
 
     public void abort() {
@@ -304,7 +301,6 @@ public class JmlEsc extends JmlTreeScanner {
         utils.progress(0,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
         long methodStart = System.currentTimeMillis();
         log.resetRecord();
-//        int prevErrors = log.nerrors;
 
         IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
         if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult(proverToUse,IProverResult.RUNNING,methodDecl.sym));
@@ -352,10 +348,6 @@ public class JmlEsc extends JmlTreeScanner {
                     );
             count(res.result(), methodDecl.sym);
             
-//            if (log.nerrors != prevErrors) {
-//                res = new ProverResult(proverToUse,IProverResult.ERROR,methodDecl.sym);
-//            }
-
         } catch (Main.JmlCanceledException | PropagatedException e) {
             res = new ProverResult(proverToUse,ProverResult.CANCELLED,methodDecl.sym); // FIXME - I think two ProverResult.CANCELLED are being reported
            // FIXME - the following will throw an exception because progress checks whether the operation is cancelled
@@ -472,9 +464,5 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
 //    // FIXME - move these away from being globals
-//    
-//    static public IProverResult mostRecentProofResult = null;
-    
-    
 }
 

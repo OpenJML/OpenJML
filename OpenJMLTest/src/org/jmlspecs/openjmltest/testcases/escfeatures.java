@@ -36,6 +36,7 @@ import org.junit.runners.Parameterized.Parameters;
  * </UL>
  */
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class escfeatures extends EscBase {
 

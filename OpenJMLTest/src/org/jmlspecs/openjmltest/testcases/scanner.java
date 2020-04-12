@@ -25,6 +25,7 @@ import static org.junit.Assert.*;
 // TODO - should test unicode, especially with multiple backslashes
 // TODO - should test errPos for error tokens (is endPos set?)
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class scanner extends JmlTestCase {
 
     final static JmlTokenKind EJML = ENDJMLCOMMENT;

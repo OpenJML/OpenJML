@@ -18,6 +18,7 @@ import org.junit.runners.Parameterized.Parameters;
  * @author David Cok
  *
  */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class escCounterexamples extends EscBase {
 

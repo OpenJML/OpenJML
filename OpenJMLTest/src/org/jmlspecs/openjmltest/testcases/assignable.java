@@ -4,6 +4,7 @@ import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
 
 /** Tests the parsing and type-checking of assignable clauses */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class assignable extends TCBase {
 
     @Override

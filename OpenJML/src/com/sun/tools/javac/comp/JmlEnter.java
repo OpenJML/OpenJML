@@ -172,8 +172,6 @@ public class JmlEnter extends Enter {
         JavaFileObject prevSource = log.useSource(tree.sourcefile);
         try {
             
-        // Already set: toplevel, sourcefile, specsCompilationUnit, 
-        // Need to set: topLevelEnv
         if (!(tree instanceof JmlCompilationUnit)) {
             log.warning("jml.internal.notsobad","Encountered an unexpected JCCompilationUnit instead of a JmlCompilationUnit in JmlEnter.visitTopeLevel");
             super.visitTopLevel(tree);
@@ -221,26 +219,26 @@ public class JmlEnter extends Enter {
         if (jmltree.specsCompilationUnit != null && jmltree.mode != JmlCompilationUnit.SPEC_FOR_BINARY) {
             tree.defs = matchClasses(tree.defs, jmltree.specsCompilationUnit.defs, tree.sourcefile.toString());
         } else {
-            specscu.defs = matchClassesForBinary(specTopEnv, owner, specscu.defs, null, tree.sourcefile.toString());
+//            specscu.defs = matchClassesForBinary(specTopEnv, owner, specscu.defs, null, tree.sourcefile.toString());
         }
 
         // Then do all the regular Java registering of packages and types
         super.visitTopLevel(jmltree);
 
         // Checking that the specs and the java source declare the same package 
-        if (jmltree.specsCompilationUnit != null && jmltree.specsCompilationUnit != jmltree) {
-
-            if (specscu.packge != jmltree.packge) {
-                // FIXME - use jml.mismatched.package
-                int pos = specscu.getPackageName()==null ? specscu.pos : specscu.getPackageName().pos;
-                utils.error(specscu.sourcefile,pos,
-                        "jml.mismatched.package",
-                        "The package in " + specscu.sourcefile.getName() + " is " + (specscu.pid == null ? "<default>" : specscu.pid.toString()),"package in .java file: " + jmltree.packge.toString());
-                String s = utils.locationString(pos, specscu.sourcefile);
-                utils.error(jmltree.getSourceFile(), jmltree.getPackageName().pos,"jml.associated.decl.cf",s);
-            }
-//            specscu.packge = jmltree.packge;
-        }
+//        if (jmltree.specsCompilationUnit != null && jmltree.specsCompilationUnit != jmltree) {
+//
+//            if (specscu.packge != jmltree.packge) {
+//                // FIXME - use jml.mismatched.package
+//                int pos = specscu.getPackageName()==null ? specscu.pos : specscu.getPackageName().pos;
+//                utils.error(specscu.sourcefile,pos,
+//                        "jml.mismatched.package",
+//                        "The package in " + specscu.sourcefile.getName() + " is " + (specscu.pid == null ? "<default>" : specscu.pid.toString()),"package in .java file: " + jmltree.packge.toString());
+//                String s = utils.locationString(pos, specscu.sourcefile);
+//                utils.error(jmltree.getSourceFile(), jmltree.getPackageName().pos,"jml.associated.decl.cf",s);
+//            }
+////            specscu.packge = jmltree.packge;
+//        }
         if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"  completed entering " + jmltree.sourcefile.getName());
 
         } finally {
@@ -430,7 +428,7 @@ public class JmlEnter extends Enter {
                     typeEnvs.put(c,localenv);
                     specsClass.env = localenv;
                     specs.combineSpecs(c,null,specsClass);
-                    matchClassesForBinary(localenv, flatname.toString()+"$", specsClass.defs, unmatchedTypesList, javasource);
+                    specsClass.defs = matchClassesForBinary(localenv, flatname.toString()+"$", specsClass.defs, unmatchedTypesList, javasource);
                 }
             }
             if (c == null) {
@@ -489,8 +487,7 @@ public class JmlEnter extends Enter {
             Env<AttrContext> prevEnvME = JmlMemberEnter.instance(context).env;
             JmlMemberEnter.instance(context).env = env;
             JmlMemberEnter.instance(context).importHelper(specs);
-//            super.memberEnter(specs, env);  // Does not do members for binary classes
-//            env = specs.topLevelEnv;
+
             ListBuffer<JCTree> newlist = null;
             for (JCTree d: specs.defs) {
                 if (!(d instanceof JmlClassDecl)) continue;
@@ -516,10 +513,11 @@ public class JmlEnter extends Enter {
             if (newlist != null) specs.defs = newlist.toList();
             JmlMemberEnter.instance(context).env = prevEnvME;
         }
+        
+        // Add in any top-level classes that are in JML specs
         for (JCTree cd: specs.defs) {
             if (!(cd instanceof JmlClassDecl)) continue;
             JmlClassDecl jcd = (JmlClassDecl)cd;
-            //JmlSpecs.instance(context).putSpecs(jcd.sym, new JmlSpecs.TypeSpecs(jcd));
             if (utils.isJML(jcd.mods)) {
                 // A class declared within JML - so it is supposed to be a model class with a unique name
                 // FIXME - check that name is not already used by a real Java class
@@ -527,7 +525,6 @@ public class JmlEnter extends Enter {
                 // We have the source code for this so we want to enter this as a source-based class
                 classEnter(cd,env);
             }
-            // FIXME - need to handle any secondary classes and nested classes as well
         }
         env = prevEnv;
         return true;
@@ -559,17 +556,17 @@ public class JmlEnter extends Enter {
         ClassSymbol csym = null;
         String flatname = null;
         if (isSpecForBinary) {
+            JCTree.JCExpression pid = env.toplevel.pid;
+            String packagePrefix = pid == null ? "" : (pid.toString() + ".");
             if (env.tree instanceof JmlCompilationUnit) {
-                String s = ((JmlCompilationUnit)env.tree).packge.toString();
-                if (!s.isEmpty()) s = s + ".";
-                flatname = s + that.name.toString();
+                flatname = packagePrefix + that.name.toString();
                 csym = ClassReader.instance(context).classExists(names.fromString(flatname));
                 flatname = flatname + "$";
             } else if (env.tree instanceof JmlClassDecl) {
                 JmlClassDecl cd = (JmlClassDecl)env.tree;
                 if (that.name == cd.name) { 
-                    flatname = cd.sym.flatname.toString();// + "$";
-                    csym = ClassReader.instance(context).classExists(((JmlClassDecl)env.tree).sym.flatname);
+                    flatname = packagePrefix + cd.name.toString();
+                    csym = ClassReader.instance(context).classExists(names.fromString(flatname));
                     flatname = flatname + "$";
                 } else {
                     flatname = cd.sym.flatname.toString() + "$" + that.name.toString();
@@ -583,6 +580,7 @@ public class JmlEnter extends Enter {
         } else {
             jmltree = thattree;
             specstree = thattree.specsDecl;
+            if (specstree == null) specstree = thattree.specsDecl= thattree;
         }
 
         

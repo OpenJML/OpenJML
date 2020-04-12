@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import com.sun.tools.javac.main.Option;
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class deprecation extends TCBase {
 
     String opt = Option.DEPRECATION.name();

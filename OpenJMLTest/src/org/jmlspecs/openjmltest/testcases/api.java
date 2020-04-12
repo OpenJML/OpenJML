@@ -61,6 +61,7 @@ import com.sun.tools.javac.util.Name;
 
 
 /** Tests the API class */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class api extends JmlTestCase {
     
     @Rule

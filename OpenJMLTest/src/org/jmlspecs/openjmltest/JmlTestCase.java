@@ -55,6 +55,7 @@ import com.sun.tools.javac.util.Options;
  * @author David Cok
  *
  */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public abstract class JmlTestCase {
 
     // This value is for running tests, so we can presume the current directory is .../OpenJML/OpenJMLTest
