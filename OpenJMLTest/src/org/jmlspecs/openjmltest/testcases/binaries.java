@@ -4,6 +4,7 @@ import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Ignore;
 import org.junit.Test;
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class binaries extends TCBase {
 
     @Override

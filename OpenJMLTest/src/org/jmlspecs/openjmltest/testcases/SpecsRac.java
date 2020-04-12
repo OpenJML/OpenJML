@@ -36,6 +36,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class SpecsRac extends RacBase {
 

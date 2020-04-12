@@ -1350,14 +1350,16 @@ public class JmlSpecs {
         }
         
         // TODO - comment - only partially fills in the class
-        public TypeSpecs(JmlClassDecl decl) {
-            this.file = decl.source();
-            this.decl = decl;
-            this.modifiers = decl.mods;
-            this.clauses = decl.typeSpecs != null ? decl.typeSpecs.clauses
-                    : new ListBuffer<JmlTree.JmlTypeClause>();
-            this.decls = decl.typeSpecs != null ? decl.typeSpecs.decls
-                    : new ListBuffer<JmlTypeClauseDecl>();
+        public TypeSpecs(JmlClassDecl specdecl) {
+            this.file = specdecl.source();
+            this.decl = specdecl; // FIXME ??? - use for the Java decl?
+            this.refiningSpecDecls = specdecl;
+            this.modifiers = specdecl.mods;
+            this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
+            //for (JCTree t: specdecl.defs) if (t instanceof JmlTypeClause) this.clauses.add((JmlTypeClause)t);
+            this.decls = new ListBuffer<JmlTree.JmlTypeClauseDecl>();
+            //for (JCTree t: specdecl.defs) if (t instanceof JmlTypeClauseDecl) this.decls.add((JmlTypeClauseDecl)t);
+            specdecl.typeSpecs = this;
         }
         
 //        // Use when there is no spec for the type symbol (but records the fact
@@ -1681,29 +1683,17 @@ public class JmlSpecs {
      * stored specs structure.
      */
     public JmlSpecs.TypeSpecs combineSpecs(ClassSymbol sym, /*@ nullable */ JmlClassDecl javaClassDecl, /*@ nullable */  JmlClassDecl specClassDecl) {
-        JmlSpecs.TypeSpecs tspecs = new TypeSpecs(sym);
-        putSpecs(sym, tspecs);
-        tspecs.csymbol = sym;
-        tspecs.decl = specClassDecl;
-        tspecs.refiningSpecDecls = specClassDecl;
-        if (specClassDecl != null) {
-            tspecs.modifiers = specClassDecl.mods;
-            tspecs.file = specClassDecl.source();
-        } else {
-            tspecs.modifiers = null;
-            if (javaClassDecl != null) tspecs.file = javaClassDecl.source();
-        }
-        tspecs.defaultNullity = defaultNullity(sym);
-
-        // tspecs is to be the combinedSpecs
-        // It already has: 
-        //      csymbol, 
-        //      refiningSpecDecls
-        //      file
-        // Also, if tspecs.decl is non-null, it already has tspecs.decl.typeSpecs == tspecs;
-        // Not set here:
-        //      modelFieldMethods
-        //      checkInvariantDecl, checkStaticInvariantDecl (RAC related)
+        JmlSpecs.TypeSpecs tspecs = new TypeSpecs(specClassDecl);
+//        tspecs.csymbol = sym;
+//        tspecs.decl = specClassDecl; // FIXME - javaCLassDecl?
+//        tspecs.refiningSpecDecls = specClassDecl;
+//        if (specClassDecl != null) {
+//            tspecs.modifiers = specClassDecl.mods;
+//            tspecs.file = specClassDecl.source();
+//        } else {
+//            tspecs.modifiers = null;
+//            if (javaClassDecl != null) tspecs.file = javaClassDecl.source();
+//        }
 
         if (tspecs.decl != null && specClassDecl != tspecs.decl ) {
             log.getWriter(WriterKind.NOTICE).println("PRECONDITION FALSE IN COMBINESPECS " + sym + " " + (specClassDecl != null) + " " + (tspecs.decl != null));
@@ -1766,6 +1756,8 @@ public class JmlSpecs {
             }
             specClassDecl.defs = newlist.toList();
         }
+        putSpecs(sym, tspecs);
+        tspecs.defaultNullity = defaultNullity(sym); // Must be after putSpecs
         return tspecs;
     }
     

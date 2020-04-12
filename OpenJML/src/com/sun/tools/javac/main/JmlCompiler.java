@@ -104,10 +104,9 @@ public class JmlCompiler extends JavaCompiler {
      */
     protected JmlCompiler(Context context) {
         super(context);
-        //shouldStopPolicy = CompileState.GENERATE;
         this.context = context;
         this.utils = Utils.instance(context);
-        this.verbose = utils.jmlverbose >= Utils.JMLVERBOSE;
+        this.verbose |= utils.jmlverbose >= Utils.JMLVERBOSE; // Only used in JavaCompiler
         this.resolver = JmlResolve.instance(context);
     }
     
@@ -134,11 +133,9 @@ public class JmlCompiler extends JavaCompiler {
      * However, see the FIXME below regarding adding the .java file into an empty specs list.
      * </UL>
      * <p>
-     * THis method is eventually called for (1) source files specified on the command-line,
+     * This method is eventually called for (1) source files specified on the command-line,
      * through Enter.main and (2) classes referenced in other files that need to be compiled
      */
-    // TODO - when called from JavaCompiler.complete it seems that the end position information is not recorded
-    // in the way that happens when called from JavaCompiler.parse.  Is this a problem in the Javac compiler?
     @Override
     public JCCompilationUnit parse(JavaFileObject fileobject, CharSequence content) {
         // TODO: Use a TaskEvent and a TaskListener here?
@@ -153,7 +150,9 @@ public class JmlCompiler extends JavaCompiler {
             if (fileobject.getKind() == JavaFileObject.Kind.SOURCE) { // A .java file
                 jmlcu.mode = JmlCompilationUnit.JAVA_SOURCE_PARTIAL;
                 JavaFileObject specsFile = JmlSpecs.instance(context).findSpecs(jmlcu,true);
-                if (specsFile != null && Utils.ifSourcesEqual(specsFile, jmlcu.getSourceFile())) {
+                if (specsFile == null) {
+                    jmlcu.specsCompilationUnit = null;
+                } else if (Utils.ifSourcesEqual(specsFile, jmlcu.getSourceFile())) {
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("The java file is its own specs for " + specsFile);
                     jmlcu.specsCompilationUnit = jmlcu;
                 } else {
@@ -172,14 +171,14 @@ public class JmlCompiler extends JavaCompiler {
                     JmlCompilationUnit jcu = jmlcu.specsCompilationUnit;
                     if (jcu != cu) {
                         jcu.mode = JmlCompilationUnit.SPEC_FOR_SOURCE;
-                        // Insert import statements
+                        // Add import statements from specs file into the .java file
                         // FIXME - This is not the best solution - since it adds imports to the Java compilation unit, which may make it invalid
                         Map<String,JCImport> map = new HashMap<String,JCImport>();
                         ListBuffer<JCTree> extras = new ListBuffer<JCTree>();
-                        for (JCImport imp: jmlcu.getImports()) map.put(imp.qualid.toString(),imp);
+                        for (JCImport imp: jmlcu.getImports()) map.put(imp.qualid.toString(),imp); // Imports from the java file
                         for (JCImport def: jcu.getImports()) {
                             JCImport imp = map.get(def.qualid.toString());
-                            if (imp == null) extras.add(def);
+                            if (imp == null) extras.add(def); // 'extras' holds imports from specs file that were not in the java file
                         }
                         cu.defs = cu.defs.appendList(extras);
                     }
@@ -206,17 +205,17 @@ public class JmlCompiler extends JavaCompiler {
                     "JmlCompiler.parse expects to receive objects of type JmlCompilationUnit, but it found a " 
                             + cu.getClass() + " instead, for source " + cu.getSourceFile().toUri().getPath());
         }
-        try {
-            if (!onlyJML && cu.endPositions != null) { // FIXME - is this ever non-null? and why only of we are in the mode of parsing multiple files
-                JavaFileObject prev = log.useSource(fileobject);
-                log.setEndPosTable(fileobject,cu.endPositions);
-                log.useSource(prev);
-            }
-        } catch (Exception e) {
-        	// End-position table set twice - so far just encountered this when a class name is used but is not defined in the file by that name
-            // Also happens if there is a .jml file on the command-line with no corresponding .java file - hence the !onlyJML guard above.
-            log.error("jml.file.class.mismatch",fileobject.getName());
-        }
+//        try {
+//            if (!onlyJML && cu.endPositions != null) { // FIXME - is this ever non-null? and why only of we are in the mode of parsing multiple files
+//                JavaFileObject prev = log.useSource(fileobject);
+//                log.setEndPosTable(fileobject,cu.endPositions);
+//                log.useSource(prev);
+//            }
+//        } catch (Exception e) {
+//        	// End-position table set twice - so far just encountered this when a class name is used but is not defined in the file by that name
+//            // Also happens if there is a .jml file on the command-line with no corresponding .java file - hence the !onlyJML guard above.
+//            log.error("jml.file.class.mismatch",fileobject.getName());
+//        }
         return cu;
     }
     
@@ -235,14 +234,17 @@ public class JmlCompiler extends JavaCompiler {
         /*@Nullable*/ JmlCompilationUnit speccu = parseSingleFile(f);
         if (speccu != null) {
             Symbol.PackageSymbol p = typeSymbol.packge();
-            speccu.packge = p;
-            if (true || !typeSymbol.toString().equals("Array")) {
-                speccu.packge = (Symbol.PackageSymbol)typeSymbol.outermostClass().getEnclosingElement();
-                if (p != speccu.packge) {
-                    log.warning("jml.message","Unexpected change in package");
-                }
+            String specpid = speccu.pid == null ? "unnamed package" : speccu.pid.toString();
+            if (!p.toString().equals(specpid)) {
+                utils.error(speccu.sourcefile,speccu.pid == null ? 1 : speccu.pid.pos,
+                        "jml.mismatched.package",
+                        specpid,
+                        p.toString());
+                speccu = null;
+            } else {
+                speccu.packge = p;
             }
-        }
+         }
         return speccu;
     }
     
@@ -267,10 +269,6 @@ public class JmlCompiler extends JavaCompiler {
             } else {
                 return null;
             }
-//        } catch (IllegalStateException e) {
-//            // This happens when the .java ana .jml files are not on the paths correctly, and the .jml file is parsed twice
-//            // FIXME _ I think an error message has already been given
-//            return null;
         } finally {
             inSequence = false;
         }
@@ -314,7 +312,6 @@ public class JmlCompiler extends JavaCompiler {
         
         // Don't load specs over again
         if (JmlSpecs.instance(context).get(csymbol) != null) return;
- //       if (csymbol.toString().equals("java.lang.Object")) Utils.stop();
         
         // FIXME - need to figure out what the environment should be
 
@@ -332,7 +329,7 @@ public class JmlCompiler extends JavaCompiler {
                 JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csymbol);
                 if (tspecs == null) {
                     // Note: classes and interfaces may be entered in this queue multiple times. The check for specs at the beginning of this method
-                    // does not prevent unloaded classes from begin added to the queue more than once, because the specs are not loaded until completeBinaryEnterTodo
+                    // does not prevent unloaded classes from being added to the queue more than once, because the specs are not loaded until completeBinaryEnterTodo
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("QUEUING BINARY ENTER " + csymbol);
                     binaryEnterTodo.prepend(csymbol);
                 }
@@ -356,40 +353,29 @@ public class JmlCompiler extends JavaCompiler {
     
     // FIXME - do we really need this deferred processing?
     public void completeBinaryEnterTodo() {
+        JmlSpecs specs = JmlSpecs.instance(context);
         while (!binaryEnterTodo.isEmpty()) {
             ClassSymbol csymbol = binaryEnterTodo.remove();
             if (csymbol.type instanceof Type.ErrorType) {
                 continue; // A bad type causes crashes later on
             }
-            if (JmlSpecs.instance(context).get(csymbol) != null) continue;
+            if (specs.get(csymbol) != null) continue;
             
             // Record default specs just to show they are in process
             // If there are actual specs, they will be recorded later
             // We do this, in combination with the check above, to avoid recursive loops
             ((JmlEnter)enter).recordEmptySpecs(csymbol);
             csymbol.flags_field |= UNATTRIBUTED;
-//
-//            Env<AttrContext> myEnv = enter.getEnv(csymbol);
-//            if (myEnv != null) {
-//                CompileState stat = CompileStates.instance(context).get(myEnv);
-//                if (stat.isAfter(CompileState.ATTR)) {
-//                    CompileStates.instance(context).put(myEnv,CompileState.ATTR);
-//                }
-//            }
             
             JmlCompilationUnit speccu = parseSpecs(csymbol);
             if (speccu != null) {
-//                csymbol.flags_field |= Flags.UNATTRIBUTED;
 
                 if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
                 else speccu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
 
-                //if (speccu.sourcefile.toString().contains("File")) Utils.stop();
                 nestingLevel++;
                 try {
                     boolean ok = ((JmlEnter)enter).binaryEnter(speccu);
- //                   ((JmlEnter)enter).binaryEnvs.add(speccu);
-                    
                     // specscu.defs is empty if nothing was declared or if all class declarations were removed because of errors
                     if (ok) {
                         for (JCTree d: speccu.defs) {
@@ -397,14 +383,16 @@ public class JmlCompiler extends JavaCompiler {
                                 JmlClassDecl jd = (JmlClassDecl)d;
                                 Env<AttrContext> outerEnv = jd.env;
                                 todo.append(outerEnv);
-//                                for (JCTree dd: jd.defs) { // TODO: Needs full recursiveness, not just the next level
-//                                    if (dd instanceof JmlClassDecl) {
-//                                        JmlClassDecl jdd = (JmlClassDecl)dd;
-//                                        if (jdd.env == null) jdd.env = enter.classEnv(jdd, outerEnv);
-//                                        jdd.specsDecl = jdd;
-//                                        todo.append(jdd.env);
-//                                    }
-//                                }
+                                //specs.combineSpecs(jd.sym, jd, jd); // This is a repeat of the top-level definitions
+                                for (JCTree dd: jd.defs) { // TODO: Needs full recursiveness, not just the next level
+                                    if (dd instanceof JmlClassDecl) {
+                                        JmlClassDecl jdd = (JmlClassDecl)dd;
+                                        if (jdd.env == null) jdd.env = enter.classEnv(jdd, outerEnv);
+                                        jdd.specsDecl = jdd;
+                                        todo.append(jdd.env);
+                                        specs.combineSpecs(jdd.sym, jdd, jdd);
+                                    }
+                                }
                             }
                         }
                     }
@@ -439,23 +427,8 @@ public class JmlCompiler extends JavaCompiler {
         
         if (envs.isEmpty()) {
         	if (utils.esc) context.get(Main.IProgressListener.class).report(1,"Operation not performed because of parse or type errors");
-//        	try {
-//				Thread.sleep(10000);
-//			} catch (InterruptedException e) {
-//			}
         	return results;
         }
-
-//        JmlConstantFolder cf = new JmlConstantFolder(context);
-//        for (Env<AttrContext> env: envs) {
-//            try {
-//                new JmlPretty(new java.io.PrintWriter(System.out),true).print(env.tree);
-//                env.tree = cf.translate(env.tree);
-//                new JmlPretty(new java.io.PrintWriter(System.out),true).print(env.tree);
-//            } catch (java.io.IOException e) {
-//                log.warning("jml.internal", e.toString());
-//            }
-//        }
         
         JmlUseSubstitutions subst = new JmlUseSubstitutions(context);
         for (Env<AttrContext> env: envs) {
@@ -471,7 +444,7 @@ public class JmlCompiler extends JavaCompiler {
             // Stop here
             return results; // Empty list - do nothing more
         } else if (utils.esc) {
-            JmlEsc esc = JmlEsc.instance(context); // FIXME - get this once at initialization? or does that mess up reportCOunts?
+            JmlEsc esc = JmlEsc.instance(context);
         	try {
                 esc.initCounts();
         	    for (Env<AttrContext> env: envs) esc(env);
@@ -512,63 +485,56 @@ public class JmlCompiler extends JavaCompiler {
     // FIXME - why might it return null, and should we stop if it does?
     @Override
     public Queue<Env<AttrContext>> attribute(Queue<Env<AttrContext>> envs) {
-        boolean rerunForTesting = false;
         ListBuffer<Env<AttrContext>> results = new ListBuffer<>();
         while (!envs.isEmpty()) {
-            if (rerunForTesting) Log.noWrite = true;
             Env<AttrContext> env = attribute(envs.remove());
-            if (rerunForTesting) Log.noWrite = false;
                 
             if (env != null) results.append(env);
         }
         ((JmlAttr)attr).completeTodo();
         
-        if (rerunForTesting)  {
-            if (results != null) {
-                ListBuffer<JCCompilationUnit> list = new ListBuffer<JCCompilationUnit>();
-                ListBuffer<Env<AttrContext>> list2 = new ListBuffer<Env<AttrContext>>();
-
-                for (Env<AttrContext> env: results.toList()) {
-                    if (env.tree instanceof JmlClassDecl) {
-                        JmlClassDecl d = (JmlClassDecl)env.tree;
-                        if (d.name.toString().contains("TestG")) Utils.stop();
-                        if (d.sym != null && d.sym.flatname.toString().startsWith("java.")) continue;
-                    }
-                    if (!list.contains(env.toplevel)) {
-                        list.add(env.toplevel);
-                        list2.add(env);
-                    }
-                }
-                JmlClearTypes.clear(context, list2.toList());
-                com.sun.tools.javac.processing.JavacProcessingEnvironment.cleanTrees(list.toList());
-                JavaCompiler delegateCompiler =
-                        processAnnotations(
-                            enterTreesIfNeeded(list.toList()),
-                            List.<String>nil());
-
-                    //delegateCompiler.compile2(compilePolicy);  // DRC - passed in the argument, to make it more convenient to use in derived classes
-                    ListBuffer<Env<AttrContext>> results2 = new ListBuffer<>();
-                    while (!envs.isEmpty()) {
-                        Env<AttrContext> env = attribute(envs.remove());
-                            
-                        if (env != null) results2.append(env);
-                    }
-                    ((JmlAttr)attr).completeTodo();
-
-            }
-        }
+//        // TODO: Review the following
+//        if (rerunForTesting)  {
+//            if (results != null) {
+//                ListBuffer<JCCompilationUnit> list = new ListBuffer<JCCompilationUnit>();
+//                ListBuffer<Env<AttrContext>> list2 = new ListBuffer<Env<AttrContext>>();
+//
+//                for (Env<AttrContext> env: results.toList()) {
+//                    if (env.tree instanceof JmlClassDecl) {
+//                        JmlClassDecl d = (JmlClassDecl)env.tree;
+//                        if (d.sym != null && d.sym.flatname.toString().startsWith("java.")) continue;
+//                    }
+//                    if (!list.contains(env.toplevel)) {
+//                        list.add(env.toplevel);
+//                        list2.add(env);
+//                    }
+//                }
+//                JmlClearTypes.clear(context, list2.toList());
+//                com.sun.tools.javac.processing.JavacProcessingEnvironment.cleanTrees(list.toList());
+//                JavaCompiler delegateCompiler =
+//                        processAnnotations(
+//                            enterTreesIfNeeded(list.toList()),
+//                            List.<String>nil());
+//
+//                    //delegateCompiler.compile2(compilePolicy);  // OPENJML - passed in the argument, to make it more convenient to use in derived classes
+//                    ListBuffer<Env<AttrContext>> results2 = new ListBuffer<>();
+//                    while (!envs.isEmpty()) {
+//                        Env<AttrContext> env = attribute(envs.remove());
+//                            
+//                        if (env != null) results2.append(env);
+//                    }
+//                    ((JmlAttr)attr).completeTodo();
+//
+//            }
+//        }
 
         return stopIfError(CompileState.ATTR, results);
     }
-
-    
-    // FIXME - the following control flow is a bit convoluted and needsd to be explained and cleaned up
 
     /** Overridden to remove binary/spec entries from the list of Envs after processing */
     @Override
     protected void flow(Env<AttrContext> env, Queue<Env<AttrContext>> results) {
         if (env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
-//            unconditionallyStop = true;
 //            // FIXME - not sure why this is needed for rac but causes esc tests to fail
             if (utils.rac) CompileStates.instance(context).put(env,CompileState.FLOW);
             return;
@@ -576,17 +542,16 @@ public class JmlCompiler extends JavaCompiler {
         super.flow(env,results);
     }
     
-    // FIXME - this design prevents flow from running on spec files - we want actually to stop after the spec files are processed
     @Override
     protected boolean shouldStop(CompileState cs) {
-        if (unconditionallyStop) { 
-            unconditionallyStop = false; 
-            return true; 
-        }
+//        if (unconditionallyStop) { 
+//            unconditionallyStop = false; 
+//            return true; 
+//        }
         return super.shouldStop(cs);
     }
 
-    protected boolean unconditionallyStop = false;
+//    protected boolean unconditionallyStop = false;
     
     /** Overridden simply to do a sanity check that annotation processing does not produce a JavaCompiler instead of a JmlCompiler. */
     @Override
@@ -633,23 +598,6 @@ public class JmlCompiler extends JavaCompiler {
             that.sym.appendAttributes(List.<Attribute.Compound>of(ac));
         }
 
-
-//        if (!JmlCompilationUnit.isJava(((JmlCompilationUnit)env.toplevel).mode)) {
-//            // TODO - explain why we remove these from the symbol tables
-//            if (env.tree instanceof JCClassDecl) {
-//                Symbol c = ((JCClassDecl)env.tree).sym;
-//                //((JmlEnter)enter).remove(c);
-//            } else if (env.toplevel instanceof JCCompilationUnit) {
-//                for (JCTree t : ((JCCompilationUnit)env.toplevel).defs) {
-//                    if (t instanceof JCClassDecl) ((JmlEnter)enter).remove(((JCClassDecl)t).sym);
-//                }
-//            } else {
-//                // This is a bug, but we can probably get by with just not instrumenting
-//                // whatever this is.
-//                log.warning("jml.internal.notsobad","Did not expect to encounter this option in JmlCompiler.rac: " + env.tree.getClass());
-//            }
-//            return null;
-//        }
         // Note that if env.tree is a class, we translate just that class.  
         // We have to adjust the toplevel tree accordingly.  Presumably other
         // class declarations in the compilation unit will be translated on 
@@ -753,9 +701,9 @@ public class JmlCompiler extends JavaCompiler {
         JmlInfer infer;        
         String currentFile = env.toplevel.sourcefile.getName();
         
-        if(InferenceType.valueOf(JmlOption.value(context, org.jmlspecs.openjml.ext.OptionsInfer.INFER))==InferenceType.POSTCONDITIONS){
+        if (InferenceType.valueOf(JmlOption.value(context, org.jmlspecs.openjml.ext.OptionsInfer.INFER))==InferenceType.POSTCONDITIONS){
             infer = JmlInferPostConditions.instance(context);
-        }else{
+        } else {
             // NOT DONE YET!
             log.error("jml.internal","Precondition inference is not available yet.");
             return;
@@ -763,7 +711,7 @@ public class JmlCompiler extends JavaCompiler {
 
         infer.check(env.tree);
         
-        if((infer.persistContracts || infer.weaveContracts) && env.tree instanceof JmlClassDecl){
+        if ((infer.persistContracts || infer.weaveContracts) && env.tree instanceof JmlClassDecl){
             infer.flushContracts(currentFile, (JmlClassDecl)env.tree);
         }
     }

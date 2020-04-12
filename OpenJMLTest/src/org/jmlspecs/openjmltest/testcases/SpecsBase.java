@@ -104,6 +104,7 @@ import com.sun.tools.javac.util.Log;
 // more so as more spec files are added, you can turn them off with the dotests
 // flag.
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class SpecsBase extends TCBase {
 

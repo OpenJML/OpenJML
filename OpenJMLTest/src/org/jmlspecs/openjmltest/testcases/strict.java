@@ -7,6 +7,7 @@ import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class strict extends TCBase {
 
     String opt = JmlOption.LANG.optionName();

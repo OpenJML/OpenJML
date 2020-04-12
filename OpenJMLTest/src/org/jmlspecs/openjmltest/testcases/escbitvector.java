@@ -12,6 +12,7 @@ import org.junit.runners.ParameterizedWithNames;
 // FIXME - need to test when inline is in .jml
 // FIXME - need to test when inline is in .jml for a binary class
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class escbitvector extends EscBase {
 

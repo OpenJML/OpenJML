@@ -78,7 +78,7 @@ import static com.sun.tools.javac.util.JCDiagnostic.DiagnosticFlag.*;
  */
 public class JavaCompiler {
     /** The context key for the compiler. */
-    public static final Context.Key<JavaCompiler> compilerKey = // DRC - changed from protected to public
+    public static final Context.Key<JavaCompiler> compilerKey = // OPENJML - changed from protected to public
         new Context.Key<JavaCompiler>();
 
     /** Get the JavaCompiler instance for this context. */
@@ -136,7 +136,7 @@ public class JavaCompiler {
         /** Do nothing in the second compile phase
          * (presumably a derived class is doing something)
          */
-        SKIP,                               // DRC - added
+        SKIP,                               // OPENJML - added
 
         /**
          * Just attribute the parse trees.
@@ -584,7 +584,7 @@ public class JavaCompiler {
         return shouldStop(cs) ? new ListBuffer<T>() : queue;
     }
 
-    public <T> List<T> stopIfError(CompileState cs, List<T> list) { // DRC - made public, not final
+    public <T> List<T> stopIfError(CompileState cs, List<T> list) { // OPENJML - made public, not final
         return shouldStop(cs) ? List.<T>nil() : list;
     }
 
@@ -882,8 +882,8 @@ public class JavaCompiler {
      */
     public void compile2(CompilePolicy compPolicy) { // DRC - changed from private to public
         try {
-            switch (compPolicy) { // DRC - changed this - investigate (FIXME)
-            case SKIP:   // DRC - added for the convenience of derived classes defining new compile policy options
+            switch (compPolicy) { // OPENJML - changed this - investigate (FIXME)
+            case SKIP:   // OPENJML - added for the convenience of derived classes defining new compile policy options
                 break;
                     
             case ATTR_ONLY:
@@ -1223,7 +1223,7 @@ public class JavaCompiler {
      * Note that attributing classes may cause additional files to be
      * parsed and entered via the SourceCompleter.
      * Attribution of the entries in the list does not stop if any errors occur.
-     * @returns a list of environments for attributd classes.
+     * @returns a list of environments for attributed classes.
      */
     public Queue<Env<AttrContext>> attribute(Queue<Env<AttrContext>> envs) {
         ListBuffer<Env<AttrContext>> results = new ListBuffer<>();

@@ -5,6 +5,7 @@ import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
 
 // FIXME - needs documentation and more tests
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class arith extends TCBase {
 
     static String testspecpath = "$A"+z+"$B"+z+"$SY";

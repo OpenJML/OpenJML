@@ -4,6 +4,7 @@ import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
 
 /** These tests check the use of spec_protected, spec_public and the Java visibility modifiers */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class access extends TCBase {
 
     @Override
