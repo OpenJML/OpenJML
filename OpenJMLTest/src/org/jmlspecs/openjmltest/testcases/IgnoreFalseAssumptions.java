@@ -10,6 +10,7 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class IgnoreFalseAssumptions extends BlockJUnit4ClassRunner {
     
     public IgnoreFalseAssumptions(Class<?> klass) throws InitializationError {

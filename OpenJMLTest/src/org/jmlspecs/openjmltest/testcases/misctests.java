@@ -7,6 +7,7 @@ import org.junit.Test;
 // Tests that the models are present
 // TODO : lots more tests of models
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class misctests {
 
     @Test

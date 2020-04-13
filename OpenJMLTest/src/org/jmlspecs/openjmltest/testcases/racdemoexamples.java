@@ -29,6 +29,7 @@ import org.junit.Test;
  * </UL>
  */
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class racdemoexamples extends RacBase {
 
     @Override

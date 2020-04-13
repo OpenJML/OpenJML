@@ -1,15 +1,12 @@
 package org.jmlspecs.openjmltest.testcases;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.ParameterizedWithNames;
-import org.junit.runners.Parameterized.Parameters;
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class escstrings extends EscBase {
     

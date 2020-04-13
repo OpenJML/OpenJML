@@ -42,6 +42,7 @@ import static org.junit.Assert.*;
  * checking the node type and position.
  * @author David Cok
  */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @org.junit.runner.RunWith(IgnoreFalseAssumptions.class)
 public class expressions extends ParseBase {
 

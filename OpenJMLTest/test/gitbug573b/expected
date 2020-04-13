@@ -1,7 +1,4 @@
-warning: There is no java file on the sourcepath corresponding to the given jml file: test/gitbug573b/pckg/A.jml
-test/gitbug573b/pckg/A.jml:3: error: This type declaration (pckg.A) is not matched by a binary class
-public class A {
-       ^
+error: There is no java or binary file on the sourcepath corresponding to the given jml file: test/gitbug573b/pckg/A.jml
+Stopping because of parsing errors
 Operation not performed because of parse or type errors
 1 error
-1 warning

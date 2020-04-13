@@ -3,6 +3,7 @@ package org.jmlspecs.openjmltest.testcases;
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class QueryPure extends TCBase {
 
     @Override

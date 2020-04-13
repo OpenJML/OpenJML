@@ -19,6 +19,7 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -159,8 +160,13 @@ class ClassCollector extends JmlTreeScanner {
     @Override
     public void visitAssignop(JCTree.JCAssignOp tree) {
         JCTree.Tag op = tree.getTag();
-        if (op == JCTree.Tag.BITAND_ASG ||  op == JCTree.Tag.BITOR_ASG  || op == JCTree.Tag.BITXOR_ASG  
-            || op == JCTree.Tag.SL_ASG || op == JCTree.Tag.SR_ASG || op == JCTree.Tag.USR_ASG    ) {
+        if (useBV) {
+            // skip
+        } else if (op == JCTree.Tag.BITAND_ASG ||  op == JCTree.Tag.BITOR_ASG  || op == JCTree.Tag.BITXOR_ASG) {  
+            if (tree.type.getTag() != TypeTag.BOOLEAN && Types.instance(context).unboxedTypeOrType(tree.type).getTag() != TypeTag.BOOLEAN) {
+                useBV = true;
+            }
+        } else if (op == JCTree.Tag.SL_ASG || op == JCTree.Tag.SR_ASG || op == JCTree.Tag.USR_ASG    ) {
             useBV = true;
         }
         super.visitAssignop(tree);

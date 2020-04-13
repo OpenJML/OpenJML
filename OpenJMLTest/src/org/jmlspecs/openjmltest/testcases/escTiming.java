@@ -5,6 +5,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 // FIXME- parameterize
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class escTiming extends EscBase {
 
     public escTiming() { super("-custom",null); } // FIXME - do on all combinations

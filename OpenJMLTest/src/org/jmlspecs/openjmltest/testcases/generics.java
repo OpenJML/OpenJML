@@ -4,6 +4,7 @@ import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class generics extends TCBase {
 
     // TODO - review
@@ -85,7 +86,7 @@ public class generics extends TCBase {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
         addMockFile("$A/java/util/Collection.jml","public interface Collection<Z> extends java.lang.Iterable<Z> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
-                ,"/$A/java/util/Collection.jml:1: This type declaration (Collection) is not matched by a binary class",8
+                ,"/$A/java/util/Collection.jml:1: Specification package does not match Java package: unnamed package vs. java.util",2
                 );
     }
 

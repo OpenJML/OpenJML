@@ -11,6 +11,7 @@ import org.junit.runners.ParameterizedWithNames;
 
 import java.util.function.Function;
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class esclambdas extends EscBase {
 

@@ -10,6 +10,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.ParameterizedWithNames;
 import org.junit.runners.Parameterized.Parameters;
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class escnewBoxing extends EscBase {
 

@@ -144,7 +144,6 @@ public class JmlCompiler extends JavaCompiler {
         if (inSequence) {
             return cu;
         }
-        boolean onlyJML = false;
         if (cu instanceof JmlCompilationUnit) {
             JmlCompilationUnit jmlcu = (JmlCompilationUnit)cu;
             if (fileobject.getKind() == JavaFileObject.Kind.SOURCE) { // A .java file
@@ -195,9 +194,10 @@ public class JmlCompiler extends JavaCompiler {
                     javacu.mode = JmlCompilationUnit.JAVA_SOURCE_PARTIAL;
                     cu = javacu;
                 } else {
-                    log.warning("jml.no.java.file",jmlcu.sourcefile);
+                    log.error("jml.no.java.file",jmlcu.sourcefile);
                     jmlcu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
-                    onlyJML = true;
+                    // Don't continue because this error causes too many problems, includincg crashing
+                    JmlOption.setOption(context,JmlOption.STOPIFERRORS, true);
                 }
             }
         } else {
@@ -205,17 +205,6 @@ public class JmlCompiler extends JavaCompiler {
                     "JmlCompiler.parse expects to receive objects of type JmlCompilationUnit, but it found a " 
                             + cu.getClass() + " instead, for source " + cu.getSourceFile().toUri().getPath());
         }
-//        try {
-//            if (!onlyJML && cu.endPositions != null) { // FIXME - is this ever non-null? and why only of we are in the mode of parsing multiple files
-//                JavaFileObject prev = log.useSource(fileobject);
-//                log.setEndPosTable(fileobject,cu.endPositions);
-//                log.useSource(prev);
-//            }
-//        } catch (Exception e) {
-//        	// End-position table set twice - so far just encountered this when a class name is used but is not defined in the file by that name
-//            // Also happens if there is a .jml file on the command-line with no corresponding .java file - hence the !onlyJML guard above.
-//            log.error("jml.file.class.mismatch",fileobject.getName());
-//        }
         return cu;
     }
     

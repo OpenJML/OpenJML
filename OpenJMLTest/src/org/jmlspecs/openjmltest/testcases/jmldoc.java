@@ -14,6 +14,7 @@ import static org.junit.Assert.*;
  * jmldoc entry point on external java files.
  * @author David Cok
  */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class jmldoc {
     @Rule
     public TestName name = new TestName();
