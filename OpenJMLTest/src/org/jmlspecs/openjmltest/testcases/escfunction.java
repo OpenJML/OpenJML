@@ -13,6 +13,7 @@ import org.junit.runners.Parameterized.Parameters;
 
 import com.sun.tools.javac.util.Options;
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class escfunction extends EscBase {
 

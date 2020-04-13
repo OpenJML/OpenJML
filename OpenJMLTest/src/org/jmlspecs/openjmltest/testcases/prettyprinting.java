@@ -19,6 +19,7 @@ import com.sun.tools.javac.util.Log;
  * output formatting does not have to precisely match the input (unless
  * precise is set true, which it currently is).
  */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class prettyprinting extends ParseBase {
 
     boolean precise = true;

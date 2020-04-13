@@ -35,6 +35,7 @@ import org.junit.runners.ParameterizedWithNames;
  * </UL>
  */
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 @Ignore
 public class escfilesTrace extends EscBase {

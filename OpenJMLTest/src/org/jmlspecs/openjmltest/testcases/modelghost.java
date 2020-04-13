@@ -15,6 +15,7 @@ import org.junit.runners.Parameterized.Parameters;
  * @author David R. Cok
  *
  */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class modelghost extends TCBase {
 

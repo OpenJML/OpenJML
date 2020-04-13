@@ -39,6 +39,7 @@ import org.junit.runners.Parameterized.Parameters;
  */
 
 @Ignore
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class escnonpublic extends EscBase {
     

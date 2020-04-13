@@ -8,6 +8,7 @@ import org.junit.runners.ParameterizedWithNames;
 
 // Tests the rules about which visibility of identifiers can be used in specification constructs
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class escvisibility1 extends EscBase {
 

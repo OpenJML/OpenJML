@@ -9,6 +9,7 @@ import org.junit.Test;
  * @author David R. Cok
  *
  */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class redundant extends TCBase {
 
     // FIXME - what about redundantly keywords

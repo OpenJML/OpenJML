@@ -8,6 +8,7 @@ import org.junit.runners.ParameterizedWithNames;
 
 // Tests the rules about which specification cases are enforced by a method's implementation
 
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class escvisibility extends EscBase {
 

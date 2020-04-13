@@ -34,6 +34,7 @@ import org.junit.runners.Ignorable;
  */
 
 // @RunWith(Ignorable.class)
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class racnonpublic extends RacBase {
 
 	boolean nonpublicPresent;

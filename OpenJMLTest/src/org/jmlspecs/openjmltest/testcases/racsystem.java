@@ -18,6 +18,7 @@ import org.junit.runners.Parameterized.Parameters;
  * put the new system classes (in jdkbin) in the bootclasspath ahead of the regular
  * java classes.
  */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class racsystem extends RacBase {
 
 //    String option;

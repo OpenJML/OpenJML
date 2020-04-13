@@ -10,6 +10,7 @@ import org.junit.Test;
  * @author David R. Cok
  *
  */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class racreadable extends RacBase {
 
     /** Sets the classpath used for these tests.  The bin in the classpath

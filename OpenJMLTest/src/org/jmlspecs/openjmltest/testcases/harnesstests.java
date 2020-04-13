@@ -4,6 +4,7 @@ import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
 
 /** Does some rough tests of the TCBase test harness */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class harnesstests extends TCBase {
 
     @Override

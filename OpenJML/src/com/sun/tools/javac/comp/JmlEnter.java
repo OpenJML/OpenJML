@@ -191,6 +191,8 @@ public class JmlEnter extends Enter {
         } else {
             specscu = jmltree.specsCompilationUnit;
         }
+
+        
         String owner;
         
         {
@@ -221,9 +223,18 @@ public class JmlEnter extends Enter {
         } else {
 //            specscu.defs = matchClassesForBinary(specTopEnv, owner, specscu.defs, null, tree.sourcefile.toString());
         }
+        
+        if (jmltree.mode == JmlCompilationUnit.SPEC_FOR_BINARY) {
+            checkForUnmatched(specscu);
+        }
 
         // Then do all the regular Java registering of packages and types
         super.visitTopLevel(jmltree);
+
+        if (jmltree.mode == JmlCompilationUnit.SPEC_FOR_SOURCE) {
+            checkForUnmatched(specscu);
+        }
+        
 
         // Checking that the specs and the java source declare the same package 
 //        if (jmltree.specsCompilationUnit != null && jmltree.specsCompilationUnit != jmltree) {
@@ -244,6 +255,36 @@ public class JmlEnter extends Enter {
         } finally {
             log.useSource(prevSource);
         }
+    }
+
+
+    public void checkForUnmatched(JmlCompilationUnit jmltree) {
+        String pack = jmltree.pid == null ? "" : (jmltree.pid.toString() + ".");
+        ListBuffer<JCTree> newlist = new ListBuffer<>();
+        boolean removed = false;
+        for (JCTree d : jmltree.defs) {
+            if (d instanceof JmlClassDecl) {
+                JmlClassDecl cd = (JmlClassDecl)d;
+                if (!utils.isJML(cd.mods)) { 
+                    String cdn = pack + cd.name.toString();
+                    try {
+                        if (ClassReader.instance(context).loadClass(names.fromString(cdn)) == null) {
+                            utils.error(jmltree.sourcefile, cd.pos,
+                                    "jml.unmatched.type",cdn);
+                            removed = true;
+                            continue;
+                        }
+                    } catch (CompletionFailure ex) {
+                        utils.error(jmltree.sourcefile, cd.pos,
+                                "jml.unmatched.type",cdn);
+                        removed = true;
+                        continue;
+                    }
+                }
+            }
+            newlist.add(d);
+        }
+        if (removed) jmltree.defs = newlist.toList();
     }
 
 
@@ -464,12 +505,14 @@ public class JmlEnter extends Enter {
         ListBuffer<Type> ts = new ListBuffer<Type>();
         for (List<T> l = trees; l.nonEmpty(); l = l.tail) {
             T clazz = l.head; 
-//            if (specTopEnv != null && clazz instanceof JmlClassDecl && utils.isJML(((JmlClassDecl)clazz).mods)) { // FIXME - also must not be an inner class
-//                env = specTopEnv;
-//            }
-            Type t = classEnter(clazz, env);
-            if (t != null) {
-                ts.append(t);
+            Type t = null;
+            try {
+                t = classEnter(clazz, env);
+                if (t != null) {
+                    ts.append(t);
+                }
+            } catch (Exception e) {
+                log.error(clazz,"jml.message", "Catastrophic failure during processing of input file");
             }
         }
         return ts.toList();

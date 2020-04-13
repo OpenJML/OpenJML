@@ -12,6 +12,7 @@ import org.junit.runners.ParameterizedWithNames;
  * @author David R. Cok
  *
  */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class esclocation extends EscBase {
 

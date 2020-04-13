@@ -381,10 +381,7 @@ public class compiler {
                             "-noPurityCheck",
                             "test/testNoSource/A.jml"
                           },1,1
-                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSource/A.jml" + eol + 
-                          "test/testNoSource/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
-                          "public class A {}" + eol +
-                          "       ^" + eol
+                          ,"error: There is no java or binary file on the sourcepath corresponding to the given jml file: test/testNoSource/A.jml" + eol 
                           );
     }
 
@@ -400,10 +397,7 @@ public class compiler {
                             "-noPurityCheck",
                             "test/testNoErrors/A.jml"
                           },1,1
-                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoErrors/A.jml" + eol +
-                          "test/testNoErrors/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
-                          "public class A {}" + eol +
-                          "       ^" + eol
+                          ,"error: There is no java or binary file on the sourcepath corresponding to the given jml file: test/testNoErrors/A.jml" + eol
                           );
     }
 
@@ -419,10 +413,7 @@ public class compiler {
                           ,"test/testNoSourceParseError/A.jml:4: error: illegal start of expression" + eol +
                            "int i = ;" + eol +
                            "        ^" + eol +
-                           "warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSourceParseError/A.jml" + eol + 
-                           "test/testNoSourceParseError/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
-                           "public class A {" + eol +
-                           "       ^" + eol 
+                           "error: There is no java or binary file on the sourcepath corresponding to the given jml file: test/testNoSourceParseError/A.jml" + eol
                           );
     }
 
@@ -435,10 +426,7 @@ public class compiler {
                             "-noPurityCheck",
                             "test/testNoSourceTypeError/A.jml"
                           },1,1
-                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSourceTypeError/A.jml" + eol +
-                           "test/testNoSourceTypeError/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
-                           "public class A {" + eol +
-                           "       ^" + eol 
+                          ,"error: There is no java or binary file on the sourcepath corresponding to the given jml file: test/testNoSourceTypeError/A.jml" + eol
                            );
     }
 
@@ -452,7 +440,7 @@ public class compiler {
                             "-noPurityCheck",
                             "test/testNoSourceWithClass/A.jml"
                           },1,1
-                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSourceWithClass/A.jml" + eol 
+                          ,"error: There is no java or binary file on the sourcepath corresponding to the given jml file: test/testNoSourceWithClass/A.jml" + eol 
                           );
     }
 
@@ -460,33 +448,35 @@ public class compiler {
     @Test
     public void testJML6nowarn() throws Exception {
         helper(new String[]
-                          { "-classpath","../OpenJML/runtime"+z+"test/testNoSourceWithClass",
-                            "-sourcepath"," ",
-                            "-specspath","../OpenJML/runtime"+z+"test/testNoSourceWithClass",
-                            "-no-purityCheck","-nowarn",
-                            "test/testNoSourceWithClass/A.jml"
-                          },1,1
-                          ,"test/testNoSourceWithClass/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
-                          "public class A {" + eol +
-                          "       ^" + eol
-                          );
+                                { "-classpath","../OpenJML/runtime",
+                                  "-sourcepath","test/testNoErrors",
+                                  "-specspath","../OpenJML/runtime",
+                                  "-lang=jml",
+                                  "-extensions=X","-nowarn", // Ignored when strict
+                                  "test/testNoErrors/A.jml"
+                                },0,0
+                                ,""
+                                );
     }
 
-    /** Checks that -Werror turns warnings into errors */
+    /** Checks that -Werror turns warnings into errors cf. testExtension1*/
     @Test
     public void testJML6Werror() throws Exception {
         helper(new String[]
-                          { "-classpath","../OpenJML/runtime"+z+"test/testNoSourceWithClass",
-                            "-sourcepath"," ",
-                            "-specspath","../OpenJML/runtime"+z+"test/testNoSourceWithClass",
-                            "-no-purityCheck","-Werror",
-                            "test/testNoSourceWithClass/A.jml"
-                          },1,1
-                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSourceWithClass/A.jml" + eol +
-                           "error: warnings found and -Werror specified" + eol + 
-                           "test/testNoSourceWithClass/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
-                           "public class A {" + eol +
-                           "       ^" + eol);
+                                { "-classpath","../OpenJML/runtime",
+                                  "-sourcepath","test/testNoErrors",
+                                  "-specspath","../OpenJML/runtime",
+                                  "-lang=jml",
+                                  "-extensions=X","-Werror", // Ignored when strict
+                                  "test/testNoErrors/A.jml"
+                                },1,0
+                                ,"$SPECS/specs/java/util/stream/Stream.jml:$STRL: warning: The /count construct is an OpenJML extension to JML and not allowed under -lang=jml\n"
+                                +"            //@ loop_invariant i == /count && 0 <= i <= values.length;\n"
+                                +"                                    ^\n"
+                                +"error: warnings found and -Werror specified"+eol
+                                +"1 error"+eol
+                                +"1 warning"+eol
+                                );
     }
 
     /** Tests using source path but including java spec files - may encounter
