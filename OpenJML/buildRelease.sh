@@ -38,8 +38,9 @@ RB=releaseBuilds
 DATE=`date +%Y%m%d`
 BRANCH=`git rev-parse --abbrev-ref HEAD`
 ##BRANCH=`git branch | grep '*' | sed 's/* //'`
-echo Branch = ${BRANCH}, Date = ${DATE}
-if [ "${BRANCH}" = "master" ]; then VERSION=$DATE ; else VERSION=${BRANCH}-${DATE}; fi
+NUM=`cat ../OpenJMLFeature/feature.xml | grep version | grep -v xml | head -1 | sed -e 's/      version=//' -e 's/\"//g'`
+echo Branch = ${BRANCH}, VersionNumber = ${NUM}, Date = ${DATE}
+if [ "${BRANCH}" = "master" ]; then VERSION=${NUM}-$DATE ; else VERSION=${BRANCH}-${DATE}; fi
 
 NAME=openjml-${VERSION}.zip
 
