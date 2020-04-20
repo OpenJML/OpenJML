@@ -3159,7 +3159,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected void addAxioms(DiagnosticPosition pos, TypeSymbol basecsym, ListBuffer<JCStatement> stats, JCExpression receiver) {
         if (rac) return;
         java.util.List<ClassSymbol> parents = utils.parents(basecsym, true);
-        
         // Iterate through parent classes and interfaces, assuming relevant axioms
         ListBuffer<JCStatement> prevStats = currentStatements;
         JCExpression prevThisExpr = currentThisExpr;
@@ -3204,7 +3203,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             currentThisExpr = prevThisExpr;
             checkAccessEnabled = pv;
         }
-
     }
     
     public void addRepresentsAxioms(TypeSymbol clsym, Symbol varsym, JCTree that, JCExpression translatedSelector) {
@@ -11773,15 +11771,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCExpression rhs = that.getRightOperand();
                     lhs = convertExpr(lhs);
                     Type boxed = types.boxedTypeOrType(lhs.type);
-                    JCExpression olhs = lhs;
-                    lhs = utils.convertToString(M,syms,lhs,boxed);
-                    if (lhs != olhs) visitApply((JCMethodInvocation)lhs);
-                    lhs = eresult;
+                    lhs = addImplicitConversion(lhs, boxed, lhs);
+//                    JCExpression olhs = lhs;
+//                    lhs = utils.convertToString(M,syms,lhs,boxed);
+//                    if (lhs != olhs) visitApply((JCMethodInvocation)lhs);
+//                    lhs = eresult;
                     rhs = convertExpr(rhs);
                     boxed = types.boxedTypeOrType(rhs.type);
-                    rhs = utils.convertToString(M,syms,rhs,boxed);
-                    if (rhs instanceof JCMethodInvocation) visitApply((JCMethodInvocation)rhs);
-                    rhs = eresult;
+                    rhs = addImplicitConversion(rhs, boxed, rhs);
+//                    JCExpression rhsn = utils.convertToString(M,syms,rhs,boxed);
+//                    if (rhsn instanceof JCMethodInvocation) {
+//                        visitApply((JCMethodInvocation)rhsn);
+//                        rhsn = eresult;
+//                    }
+//                    rhs = rhsn;//M.at(rhs).Conditional(treeutils.makeNotNull(rhs.pos, rhsn), rhsn, treeutils.makeStringLiteral(rhs.pos, "null"));
                     result = eresult = M.at(that).JmlMethodInvocation(concatKind,lhs,rhs).setType(that.type);
                     if (!rac && splitExpressions) result = eresult = newTemp(eresult);
                 }

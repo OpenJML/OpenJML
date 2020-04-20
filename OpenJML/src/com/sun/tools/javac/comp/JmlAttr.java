@@ -3675,7 +3675,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         currentClauseType = null;
         boolean saved = isRefining;
         isRefining = false;
-        if (tree.statements != null) attribStats(tree.statements,env);
+        if (tree.statements != null) {
+            jmlresolve.setAllowJML(false);
+            attribStats(tree.statements,env);
+            jmlresolve.setAllowJML(true);
+        }
         try {
             for (JCIdent id: tree.exports) {
                 attribExpr(id, env);
@@ -6074,6 +6078,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         JavaFileObject prevSource = null;
         IJmlClauseKind savedType = currentClauseType;
+        boolean isReplacementType = that.jmltype;
+        boolean prev = ((JmlResolve)rs).setAllowJML(utils.isJML(that.mods) || isReplacementType);
         try {
             if (that.source() != null) prevSource = log.useSource(that.source());
 
@@ -6087,11 +6093,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             attribAnnotationTypes(that.mods.annotations,env); annotate.flush(); 
             for (JCAnnotation a: that.mods.annotations) a.type = a.annotationType.type;
 
-            boolean prev = false;
-            boolean isReplacementType = that.jmltype;
-            if (utils.isJML(that.mods) || isReplacementType) {
-                prev = ((JmlResolve)rs).setAllowJML(true);
-            }
             if (utils.isJML(that.mods)) {
                 currentClauseType = declClause; // FIXME - could be model, if it matters
             }
@@ -6141,7 +6142,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             that.mods = originalMods; 
             if (!that.type.isErroneous()) checkVarMods(that);
             that.mods = newMods;
-            if (utils.isJML(that.mods)) prev = ((JmlResolve)rs).setAllowJML(prev);
 
             if (((JmlClassDecl)enclosingClassEnv.tree).sym.isInterface()) {
                 if (isModel(that.mods)) {
@@ -6160,6 +6160,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 that.init = null;
             }
         } finally {
+            ((JmlResolve)rs).setAllowJML(prev);
             if (prevSource != null) log.useSource(prevSource);
             currentClauseType = savedType;
         }
@@ -6181,6 +6182,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (that instanceof JmlLambda) {
             JmlLambda jmlthat = (JmlLambda) that;
             if (jmlthat.jmlType != null) {
+                boolean prev = jmlresolve.setAllowJML(true);
                 if (that.type.isErroneous()) {
                     attribTree(jmlthat.jmlType, env, new ResultInfo(TYP, syms.objectType));
                 } else {
@@ -6192,6 +6194,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         that.type = t;
                     }
                 }
+                jmlresolve.setAllowJML(prev);
             }
         } else {
             // FIXME _ ERROR

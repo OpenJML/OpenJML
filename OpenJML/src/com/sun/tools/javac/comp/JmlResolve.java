@@ -118,6 +118,17 @@ public class JmlResolve extends Resolve {
     protected boolean symbolOK(Scope.Entry e) {
         return allowJML || !utils.isJML(e.sym.flags_field);
     }
+    
+    public Symbol resolveQualifiedMethod(DiagnosticPosition pos, Env<AttrContext> env,
+            Symbol location, Type site, Name name, List<Type> argtypes,
+            List<Type> typeargtypes) {
+        boolean isJML = utils.isJML(site.tsym.flags());
+        boolean prev = setAllowJML(isJML || allowJML());
+        Symbol s =  super.resolveQualifiedMethod(pos, env, location, site, name, argtypes, typeargtypes);
+        setAllowJML(prev);
+        return s;
+    }
+
 
      
 //     // A hook method added into Resolve.findMethod to avoid replication of

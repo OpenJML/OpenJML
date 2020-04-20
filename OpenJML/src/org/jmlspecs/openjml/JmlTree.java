@@ -295,8 +295,7 @@ public class JmlTree {
          * @return the resulting JCIdent
          */
         public JCIdent Ident(String name) {
-            Names n = Names.instance(context);
-            return Ident(n.fromString(name));
+            return Ident(Names.instance(context).fromString(name));
         }
         
         /** Convenience method to create a Name from a string

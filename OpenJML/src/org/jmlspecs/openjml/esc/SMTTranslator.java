@@ -1704,7 +1704,7 @@ public class SMTTranslator extends JmlTreeScanner {
         if (tag == TypeTag.NONE || tag == TypeTag.UNKNOWN){ // Do these first because they are also primitive types
             if (t instanceof JmlType) {
                 JmlType jt = (JmlType)t;
-                if (jt.jmlTypeTag() == JmlTokenKind.BSBIGINT) return intSort; 
+                if (jt.jmlTypeTag() == JmlTokenKind.BSBIGINT) return useBV ? bv32Sort : intSort; 
                 if (jt.jmlTypeTag() == JmlTokenKind.BSREAL) { addReal(); return realSort; }
                 if (jt.jmlTypeTag() == JmlTokenKind.BSTYPEUC) return jmlTypeSort;
             }
