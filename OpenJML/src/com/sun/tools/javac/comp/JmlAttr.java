@@ -5108,7 +5108,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // FIXME - this needs to be expanded to include real and bigint and
             // arrays of such
             JmlTokenKind t = ((JmlPrimitiveTypeTree)tree.clazz).token;
+            boolean prev = jmlresolve.setAllowJML(true);  // OPENJML - should check whether the cast is within JML annotation
             Type clazztype = attribType(tree.clazz, env);
+            jmlresolve.setAllowJML(prev);
             if (t == JmlTokenKind.BSTYPEUC) {
                 chk.validate(tree.clazz, env);
                 Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
@@ -5128,6 +5130,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 result = tree.type = clazztype;
             }
         } else {
+            boolean prev = jmlresolve.setAllowJML(true);  // OPENJML - should check whether the cast is within JML annotation
+            attribType(tree.clazz, env);
+            jmlresolve.setAllowJML(prev);
             super.visitTypeCast(tree);
         }
     }

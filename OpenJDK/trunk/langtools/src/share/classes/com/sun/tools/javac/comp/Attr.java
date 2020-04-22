@@ -3109,7 +3109,8 @@ public class Attr extends JCTree.Visitor {
     }
 
     public void visitTypeCast(final JCTypeCast tree) {
-        Type clazztype = attribType(tree.clazz, env);
+        Type clazztype = tree.clazz.type;  //@// OPENJML - slight refactoring to accommodate JmlAttr.visitTypeCast
+        if (clazztype == null) clazztype = attribType(tree.clazz, env);
         chk.validate(tree.clazz, env, false);
         //a fresh environment is required for 292 inference to work properly ---
         //see Infer.instantiatePolymorphicSignatureInstance()
