@@ -26,6 +26,7 @@ import org.jmlspecs.openjml.API;
 import org.jmlspecs.openjml.Factory;
 import org.jmlspecs.openjml.IAPI;
 import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
@@ -303,7 +304,7 @@ public class api extends JmlTestCase {
             check("","");
             s = s.replace('\\','/');
             Path path = FileSystems.getDefault().getPath("test/testPP/A.java");
-            String expect = new String(Files.readAllBytes(path));
+            String expect = new String(Files.readAllBytes(path)).replace("\n",Strings.eol);
             compareStrings(expect,s);
         } catch (Exception e) {
             System.out.println(e);
@@ -553,7 +554,7 @@ public class api extends JmlTestCase {
         start(true);
         try {
             String prog = "\npublic class A {//@ ensures \\forall int i; i > 0; i < 0;\n void m(){}}";
-            String result = "\npublic class A {\n    /*@\n      ensures \\forall int i; i > 0; i < 0; \n   */\n\n  void m() {\n  }\n}";
+            String result = Strings.eol + "public class A {"+Strings.eol+"    /*@"+Strings.eol+"      ensures \\forall int i; i > 0; i < 0; "+Strings.eol+"   */"+Strings.eol+Strings.eol+"  void m() {"+Strings.eol+"  }"+Strings.eol+"}";
             String s = parseAndPrettyPrintString3(prog);
             check("","");
             compareStrings(result,s);

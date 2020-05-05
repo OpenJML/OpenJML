@@ -353,7 +353,12 @@ public class JmlSpecs {
         // differently in development vs. deployed mode
         
         // This option applies for running the IDE in the development environment
-        Bundle specs = Platform.getBundle("org.jmlspecs.Specs");
+        Bundle specs = null;
+        try {
+            specs = Platform.getBundle("org.jmlspecs.Specs");
+        } catch (Exception e) {
+            // On windows an exception can be thrown
+        }
         if (specs != null) {
         	String pp = specs.getLocation();
         	if (verbose) noticeWriter.println("Specs location: " + pp);
