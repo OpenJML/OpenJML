@@ -5,6 +5,8 @@
  */
 package com.sun.tools.javac.comp;
 
+import static com.sun.tools.javac.code.Kinds.MTH;
+
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
@@ -17,6 +19,7 @@ import org.jmlspecs.openjml.ext.StateExpressions;
 import org.jmlspecs.openjml.vistors.IJmlVisitor;
 
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Lint;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -655,6 +658,32 @@ public class JmlFlow extends Flow  {
                 super.visitIdent(that);
             }
         }
+        
+        public void visitVarDef(JCVariableDecl tree) {
+            super.visitVarDef(tree);
+            if (tree.init == null) {
+                if (tree.type.toString().startsWith("org.jmlspecs.lang")) {
+                    letInit(tree.pos(), tree.sym);
+                }
+            }
+//            Lint lintPrev = lint;
+//            lint = lint.augment(tree.sym);
+//            try{
+//                boolean track = trackable(tree.sym);
+//                if (track && tree.sym.owner.kind == MTH) {
+//                    newVar(tree);
+//                }
+//                if (tree.init != null) {
+//                    scanExpr(tree.init);
+//                    if (track) {
+//                        letInit(tree.pos(), tree.sym);
+//                    }
+//                }
+//            } finally {
+//                lint = lintPrev;
+//            }
+        }
+
 
         @Override
         public void visitJmlSetComprehension(JmlSetComprehension that) {

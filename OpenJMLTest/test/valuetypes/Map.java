@@ -1,8 +1,8 @@
 //@ pure
 public class Map<K,V> {
     
-    //@ ensures map.<K,V>empty().isEmpty();
-    //@ ensures map.<K,V>empty().size() == 0;
+    //@ ensures new java.util.Map<K,V>().isEmpty();
+    //@ ensures new java.util.Map<K,V>().size() == 0;
     //@ model public static <K,V> void newMapIsEmpty() {}
     
     //@ ensures !s.containsKey(k) ==> s.put(k,v).size() == 1 + s.size();

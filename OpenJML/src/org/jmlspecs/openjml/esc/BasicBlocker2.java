@@ -503,8 +503,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     }
 
     // FIXME - document
-    protected JCIdent newArrayIncarnation(Type componentType, int usePosition) {
-        JCIdent id = getArrayIdent(componentType,usePosition);
+    protected JCIdent newArrayIncarnation(Type indexType, Type componentType, int usePosition) {
+        JCIdent id = getArrayIdent(indexType,componentType,usePosition);
         id = newArrayIdentIncarnation((VarSymbol)id.sym,usePosition);
         return id;
     }
@@ -705,26 +705,52 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * the given component type; this VarSymbol is unique to the type (within
      * this instance of BasicBlocker2).
      */
-    protected VarSymbol getArrayBaseSym(Type componentType) {
-        String s = ARRAY_BASE_NAME + encodeType(componentType);
-        VarSymbol vsym = arrayBaseSym.get(s);
-        if (vsym == null) {
-            Name n = names.fromString(s);
-            Type t = new ArrayType(componentType,syms.arrayClass);
-            vsym = new VarSymbol(0,n,t,null); // null -> No owner
-            vsym.pos = 0;
-            arrayBaseSym.put(s,vsym);
+    protected VarSymbol getArrayBaseSym(Type indexType, Type componentType) {
+        if (JmlTypes.instance(context).isAnyIntegral(indexType)) {
+            String s = ARRAY_BASE_NAME + encodeType(componentType);
+            VarSymbol vsym = arrayBaseSym.get(s);
+            if (vsym == null) {
+                Name n = names.fromString(s);
+                Type t = new ArrayType(componentType,syms.arrayClass);
+                vsym = new VarSymbol(0,n,t,null); // null -> No owner
+                vsym.pos = 0;
+                arrayBaseSym.put(s,vsym);
+            }
+            return vsym;
+        } else {
+            String s = ARRAY_BASE_NAME + encodeType(indexType) + "_" + encodeType(componentType);
+            VarSymbol vsym = arrayBaseSym.get(s);
+            if (vsym == null) {
+                Name n = names.fromString(s);
+                Type t = new Array2Type(indexType,componentType);
+                vsym = new VarSymbol(0,n,t,null); // null -> No owner
+                vsym.pos = 0;
+                arrayBaseSym.put(s,vsym);
+            }
+            return vsym;
         }
-        return vsym;
+    }
+    
+    public static class Array2Type extends Type {
+        public Type indexType;
+        public Type componentType;
+        public Array2Type(Type i, Type c) { super(null); indexType = i; componentType = c; }
+        @Override
+        public TypeTag getTag() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+        public String toString() {
+            return "map<"+encodeType(indexType)+","+encodeType(componentType)+">";
+        }
     }
 
     /** Return an identifier for the heap array that manages the given component type. */
-    protected JCIdent getArrayIdent(Type componentType, int pos) {
-        VarSymbol vsym = getArrayBaseSym(componentType);
+    protected JCIdent getArrayIdent(Type indexType, Type componentType, int pos) {
+        VarSymbol vsym = getArrayBaseSym(indexType, componentType);
         return newIdentUse(vsym,pos);
     }
     
-   
     
     // FIXME - review the following with havoc \everything in mind.
     /** Returns the initial VarMap of the given block; the returned map is a combination
@@ -1057,7 +1083,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 {
                     scan(that.args.get(0));
                     JCExpression arg = result;
-                    JCExpression argarrays = getArrayIdent(syms.objectType,that.pos);
+                    JCExpression argarrays = getArrayIdent(syms.intType, syms.objectType,that.pos);
                     that.args = com.sun.tools.javac.util.List.<JCExpression>of(arg,argarrays);
                     result = that;
                     break;
@@ -1212,10 +1238,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         } else if (storeref instanceof JCArrayAccess) { // Array Access
             JCArrayAccess aa = (JCArrayAccess)storeref;
             int sp = storeref.pos;
-            JCIdent arr = getArrayIdent(aa.type,aa.pos);
+            JCIdent arr = getArrayIdent(syms.intType,aa.type,aa.pos);
             JCExpression ex = aa.indexed;
             JCExpression index = aa.index;
-            JCIdent nid = newArrayIncarnation(aa.type,sp);
+            JCIdent nid = newArrayIncarnation(syms.intType,aa.type,sp);
             
             scan(ex); ex = result;
             scan(index); index = result;
@@ -1234,12 +1260,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         } else if (storeref instanceof JmlStoreRefArrayRange) { // Array Access
             int sp = storeref.pos;
             JmlStoreRefArrayRange aa = (JmlStoreRefArrayRange)storeref;
+            Type indexType = JmlTypes.instance(context).indexType(aa.expression.type);
             if (aa.lo == aa.hi && aa.lo != null) {
                 // Single element
-                JCIdent arr = getArrayIdent(aa.type,aa.pos);
+                JCIdent arr = getArrayIdent(indexType,aa.type,aa.pos);
                 JCExpression ex = aa.expression;
                 JCExpression index = aa.lo;
-                JCIdent nid = newArrayIncarnation(aa.type,sp);
+                JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
                 
                 scan(ex); ex = result;
                 scan(index); index = result;
@@ -1267,8 +1294,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 }
                 if (aa.lo == null && aa.hi == null) {
                     // Entire array
-                    JCIdent arr = getArrayIdent(aa.type,aa.pos);
-                    JCIdent nid = newArrayIncarnation(aa.type,sp);
+                    JCIdent arr = getArrayIdent(indexType,aa.type,aa.pos);
+                    JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
 
                     scan(ex); ex = result;
 
@@ -1282,8 +1309,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 } else {
                     // First havoc entire array
                     // Range of array
-                    JCIdent arr = getArrayIdent(aa.type,aa.pos);
-                    JCIdent nid = newArrayIncarnation(aa.type,sp);
+                    JCIdent arr = getArrayIdent(indexType,aa.type,aa.pos);
+                    JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
 
                     scan(ex); ex = result;
 
@@ -1725,7 +1752,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         JCExpression indexed = result;
         scan(that.index);
         JCExpression index = result;
-        JCIdent arr = getArrayIdent(that.type,that.pos);
+        JCIdent arr = getArrayIdent(JmlTypes.instance(context).indexType(that.indexed.type),that.type,that.pos);
         if (that instanceof JmlBBArrayAccess) {
             that.indexed = indexed;
             that.index = index;
@@ -1776,10 +1803,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             newExpr = newid;
         } else if (left instanceof JCArrayAccess) {
             Type ctype = left.type;
-            JCIdent arr = getArrayIdent(ctype,right.pos);
+            Type indexType = JmlTypes.instance(context).indexType(((JCArrayAccess)left).indexed.type);
+            JCIdent arr = getArrayIdent(indexType,ctype,right.pos);
             JCExpression ex = ((JCArrayAccess)left).indexed;
             JCExpression index = ((JCArrayAccess)left).index;
-            JCIdent nid = newArrayIncarnation(right.type,sp);
+            JCIdent nid = newArrayIncarnation(indexType,right.type,sp);
             
             scan(ex); ex = result;
             scan(index); index = result;

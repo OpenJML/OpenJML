@@ -1033,6 +1033,11 @@ public class SMTTranslator extends JmlTreeScanner {
                 if (id.sym != null && id.sym.owner instanceof Symbol.ClassSymbol && !Utils.instance(context).isJMLStatic(id.sym) && !id.sym.name.toString().equals("this")) {
                     // The name is a non-static field of a class, so the sort is an SMT Array
                     sort = F.createSortExpression(arraySym,convertSort(id.sym.owner.type),sort);
+                } else if (id.type instanceof BasicBlocker2.Array2Type) {
+                    sort = convertSort(((BasicBlocker2.Array2Type)id.type).componentType);
+                    ISort index = convertSort(((BasicBlocker2.Array2Type)id.type).indexType);
+                    sort = F.createSortExpression(arraySym,index,sort);
+                    sort = F.createSortExpression(arraySym,refSort,sort);
                 } else if (nm.startsWith(arrays_)) {
                     // FIXME - review modeling of arrays
                     sort = convertSort(((Type.ArrayType)id.type).getComponentType());
@@ -1140,6 +1145,11 @@ public class SMTTranslator extends JmlTreeScanner {
         if (t.getTag() == TypeTag.BOT) t = syms.objectType;
         if (t.getTag() == TypeTag.ARRAY) {
             Type comptype = ((Type.ArrayType)t).getComponentType();
+            IExpr e = jmlTypeSymbol(comptype);
+            return F.fcn(F.symbol("_makeJMLArrayType"),e);
+        }
+        if (jmltypes.isArray(t)) { // JML arraylike built-in types
+            Type comptype = jmltypes.elemtype(t);
             IExpr e = jmlTypeSymbol(comptype);
             return F.fcn(F.symbol("_makeJMLArrayType"),e);
         }
@@ -1710,6 +1720,10 @@ public class SMTTranslator extends JmlTreeScanner {
             }
             // FIXME - errors
             return refSort; // FIXME - just something
+        } else if (t instanceof BasicBlocker2.Array2Type) {
+            return refSort;
+        } else if (jmltypes.isArray(t) && !(t instanceof Type.ArrayType)) {
+            return refSort;
         } else if (utils.isExtensionValueType(t) && !t.isParameterized()) {
             addSort(t);
             return sortSymbol(t);

@@ -240,6 +240,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     final public Type JMLValuesType;
     final public Type JMLIterType;
     final public Type JMLSetType;
+    final public Type JMLArrayLike;
+    final public Type JMLIntArrayLike;
+    final public Type JMLPrimitive;
     
     // The following fields are stacked as the environment changes as one
     // visits down the tree.
@@ -341,6 +344,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         JMLSetType = createClass(Strings.jmlSpecsPackage + ".JMLSetType").type;
         JMLValuesType = createClass(Strings.jmlSpecsPackage + ".JMLList").type;
+        JMLArrayLike = createClass(Strings.jmlSpecsPackage + ".IJmlArrayLike").type;
+        JMLIntArrayLike = createClass(Strings.jmlSpecsPackage + ".IJmlIntArrayLike").type;
+        JMLPrimitive = createClass(Strings.jmlSpecsPackage + ".IJmlPrimitive").type;
         JMLIterType = createClass("java.util.Iterator").type;
         Lock = syms.objectType;
         LockSet = JMLSetType;
@@ -4775,11 +4781,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Type owntype = types.createErrorType(tree.type);
             Type atype = attribExpr(tree.indexed, env);
             Type t = attribExpr(tree.index, env);
-            if (types.isArray(atype))
-                owntype = types.elemtype(atype);
+            if (jmltypes.isArray(atype))
+                owntype = jmltypes.elemtype(atype);
             else if (!atype.hasTag(ERROR))
                 log.error(tree.pos(), "array.req.but.found", atype);
-            if (!jmltypes.isAnyIntegral(t) && !t.isErroneous()) {
+            if (jmltypes.isIntArray(atype) && !jmltypes.isAnyIntegral(t) && !t.isErroneous()) {
                 log.error(tree.pos(), "jml.message", "Expected an integral type as an index, not " + t.toString());
             }
             if ((pkind() & VAR) == 0) owntype = types.capture(owntype);
@@ -5063,11 +5069,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // determined type to tree.type, particularly if an error occurs,
                 // so we fill it in
                 if (tree.type == null) tree.type = result;
-                if (jmlresolve.allowJML() && tree.sym == syms.lengthVar) {
-                    // FIXME - we want the type to be \bigint, but the symbol does not match
-                    // FIXME - this mismatch causes crashes in code generation in RAC
-                    if (!utils.rac) result = tree.type = jmltypes.BIGINT;
-                }
             }
         }
         Type saved = result;

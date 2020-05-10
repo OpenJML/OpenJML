@@ -11193,34 +11193,43 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addJavaCheck(aa,e,Label.POSSIBLY_NULL_DEREFERENCE,Label.UNDEFINED_NULL_DEREFERENCE,"java.lang.NullPointerException");
 
             JCExpression index = convertExpr(aa.index);
-            index = addImplicitConversion(index,syms.intType,index);
-            e = treeutils.makeBinary(index.pos, JCTree.Tag.GE, index, treeutils.zero);
-            addJavaCheck(aa,e,Label.POSSIBLY_NEGATIVEINDEX,Label.UNDEFINED_NEGATIVEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
-            
-            JCFieldAccess newfa = treeutils.makeLength(array,array);
-            e = treeutils.makeBinary(index.pos, JCTree.Tag.GT, newfa, index);
-            addJavaCheck(aa,e,Label.POSSIBLY_TOOLARGEINDEX,Label.UNDEFINED_TOOLARGEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
-            
-            JCArrayAccess newfaa = M.at(that.pos).Indexed(array,index);
-            newfaa.setType(that.type);
-            // FIXME - test this 
-            if(!infer){
-                checkAccess(assignableClauseKind, that, aa, newfaa, currentThisExpr, currentThisExpr);
+            if (array.type instanceof Type.ArrayType) {
+                index = addImplicitConversion(index,syms.intType,index);
+                e = treeutils.makeBinary(index.pos, JCTree.Tag.GE, index, treeutils.zero);
+                addJavaCheck(aa,e,Label.POSSIBLY_NEGATIVEINDEX,Label.UNDEFINED_NEGATIVEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
+
+                JCFieldAccess newfa = treeutils.makeLength(array,array);
+                e = treeutils.makeBinary(index.pos, JCTree.Tag.GT, newfa, index);
+                addJavaCheck(aa,e,Label.POSSIBLY_TOOLARGEINDEX,Label.UNDEFINED_TOOLARGEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
+
+                JCArrayAccess newfaa = M.at(that.pos).Indexed(array,index);
+                newfaa.setType(that.type);
+                // FIXME - test this 
+                if(!infer){
+                    checkAccess(assignableClauseKind, that, aa, newfaa, currentThisExpr, currentThisExpr);
+                }
+            } else if (jmltypes.isIntArray(array.type)){
+                index = addImplicitConversion(index,jmltypes.BIGINT,index);
             }
 
             JCExpression rhs = convertExpr(that.rhs);
             rhs = addImplicitConversion(rhs,that.lhs.type,rhs);
 
-            if (javaChecks && !((Type.ArrayType)array.type).getComponentType().isPrimitive()) {
+            if (javaChecks && jmltypes.isArray(array.type) && !jmltypes.elemtype(array.type).isPrimitive()) {
                 if (esc) {
                     JCExpression rhstype = treeutils.makeTypeof(rhs);
-                    JmlMethodInvocation lhselemtype = treeutils.makeJmlMethodInvocation(array,elemtypeKind,jmltypes.TYPE, 
-                            treeutils.makeTypeof(array));
+                    JCExpression lhselemtype;
+                    if (array.type instanceof Type.ArrayType) { 
+                        lhselemtype = treeutils.makeJmlMethodInvocation(array,elemtypeKind,jmltypes.TYPE, 
+                                treeutils.makeTypeof(array));
+                    } else {
+                        lhselemtype = treeutils.makeTypelc(treeutils.makeType(array.pos, jmltypes.elemtype(array.type)));
+                    }
                     JCExpression sta = treeutils.makeSubtype(array,rhstype,lhselemtype);
                     JCExpression rhsnull = treeutils.makeEqNull(rhs.pos, rhs);
                     addJavaCheck(that,treeutils.makeOr(sta.pos,rhsnull,sta),
                             Label.POSSIBLY_BAD_ARRAY_ASSIGNMENT,Label.POSSIBLY_BAD_ARRAY_ASSIGNMENT,"java.lang.ArrayStoreException");
-                } else if (rac) {
+                    } else if (rac) {
                     // FIXME - I don't think this is checkable
 //                    JCExpression rhstype = treeutils.makeTypeof(rhs);
 //                    JCExpression lhselemtype = treeutils.makeJmlMethodInvocation(array,JmlToken.BSELEMTYPE,jmltypes.TYPE, 
@@ -11256,6 +11265,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             changeState();
         }
     }
+    
     
     
     // OK
@@ -12690,27 +12700,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        checkAccess(JmlTokenKind.ACCESSIBLE, that.indexed, that.indexed, indexed, currentThisId, currentThisId);
 
         JCExpression index = convertExpr(that.index);
-        index = addImplicitConversion(index,syms.intType,index);
-        neg: {
+        if (that.indexed.type instanceof Type.ArrayType) {
+            index = addImplicitConversion(index,syms.intType,index);
             // TODO: Also bigint?
             Number n = integralLiteral(index);
             if (n != null && n.longValue() >= 0) {
                 addStat(comment(index,"Constant index is non-negative: " + n.longValue(),log.currentSourceFile()));
-                break neg;
+            } else {
+                JCExpression compare = treeutils.makeBinary(that.index.pos, JCTree.Tag.LE,
+                        treeutils.intleSymbol,
+                        treeutils.makeIntLiteral(that.index.pos, 0), 
+                        index);
+                addJavaCheck(that,compare,Label.POSSIBLY_NEGATIVEINDEX,Label.UNDEFINED_NEGATIVEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
             }
-            JCExpression compare = treeutils.makeBinary(that.index.pos, JCTree.Tag.LE,
-                    treeutils.intleSymbol,
-                    treeutils.makeIntLiteral(that.index.pos, 0), 
-                    index);
-            addJavaCheck(that,compare,Label.POSSIBLY_NEGATIVEINDEX,Label.UNDEFINED_NEGATIVEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
+            JCExpression length = treeutils.makeLength(that.indexed,indexed);
+            {
+                JCExpression compare = treeutils.makeBinary(that.pos, JCTree.Tag.GT, treeutils.intgtSymbol, length, 
+                        index); // We use GT to preserve the textual order of the subexpressions
+                addJavaCheck(that,compare,Label.POSSIBLY_TOOLARGEINDEX,Label.UNDEFINED_TOOLARGEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
+            }
         }
         
-        JCExpression length = treeutils.makeLength(that.indexed,indexed);
-        {
-            JCExpression compare = treeutils.makeBinary(that.pos, JCTree.Tag.GT, treeutils.intgtSymbol, length, 
-                    index); // We use GT to preserve the textual order of the subexpressions
-            addJavaCheck(that,compare,Label.POSSIBLY_TOOLARGEINDEX,Label.UNDEFINED_TOOLARGEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
-        }
 
 
         if (pureCopy && !(that instanceof JmlBBArrayAccess)) {
@@ -17518,6 +17528,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         methodDecl = null;
                     } else {
                         if (stat != null) addStat(stat);
+                    }
+                    if (stat != null && esc && !(that.type instanceof Type.ArrayType) && jmltypes.isArray(that.type)) {
+                        addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeNotNull(that.pos, treeutils.makeIdent(that.pos, that.sym)));
                     }
                     checkAccessEnabled = pv;
                 }

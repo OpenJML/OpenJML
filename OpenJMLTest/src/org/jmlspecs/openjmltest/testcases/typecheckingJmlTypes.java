@@ -33,6 +33,18 @@ public class typecheckingJmlTypes extends TCBase {
         helpTC(" class A { void m() { //@ ghost \\bigint b = 0; ghost \\bigint bb = b + b; set bb = b-b; set bb = b*b; set bb = b/b; \n}}");
     }
 
+    @Test public void testArrayType() {
+        helpTC(" class A { void m() { //@ ghost array<Object> b; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}");
+    }
+
+    @Test public void testIntsetType() {
+        helpTC(" class A { void m() { //@ ghost intset b; ghost \\bigint i = 0; ghost boolean o = b[i];  set b[i] = true; \n}}");
+    }
+
+    @Test public void testIntmapType() {
+        helpTC(" class A { void m() { //@ ghost intmap<Object> b ; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}");
+    }
+
     @Test public void testMapType() {
         helpTC(" class A { //@ ghost map<string,string> b ; \n}");
     }

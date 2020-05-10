@@ -17,7 +17,10 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.OperatorSymbol;
 import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.comp.JmlEnter;
+import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.jvm.ByteCodes;
+import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
@@ -199,6 +202,50 @@ public class JmlTypes extends Types {
         if (t == BIGINT) return true;
         t = unboxedTypeOrType(t);
         return isIntegral(t);
+    }
+    
+    public boolean isArray(Type t) {
+        boolean b = super.isArray(t);
+        if (!b && t.isReference()) {
+            Type arrayLikeType = JmlAttr.instance(context).JMLArrayLike;
+            return isSubtype(t, arrayLikeType);
+        }
+        return b;
+    }
+    
+    public boolean isIntArray(Type t) {
+        boolean b = super.isArray(t);
+        if (!b && t.isReference()) {
+            Type arrayLikeType = JmlAttr.instance(context).JMLIntArrayLike;
+            return isSubtype(t, arrayLikeType);
+        }
+        return b;
+    }
+    
+    public Type elemtype(Type t) {
+        Type elemtype = super.elemtype(t);
+        if (elemtype != null || !isArray(t)) return elemtype;
+        List<Type> args = t.getTypeArguments();
+        int n = args.length();
+        String tt = t.tsym.toString().substring("org.jmlspecs.lang.".length());
+        if (n == 0) {
+            if (tt.equals("string")) return syms.charType;
+            return syms.booleanType; // intset
+        } else if (n == 1) {
+            if (tt.equals("array")) return args.head;
+            if (tt.equals("intmap")) return args.head;
+            if (tt.equals("seq")) return args.head;
+            return syms.booleanType; // set
+        } else {
+            return args.last();    // map
+        }
+    }
+    
+    public Type indexType(Type t) {
+        if (t instanceof Type.ArrayType) return syms.intType;
+        if (isIntArray(t)) return BIGINT;
+        List<Type> args = t.getTypeArguments();
+        return args.head;
     }
     
     /** Overrides Types.isConvertible with functionality for JML primitive types. */
