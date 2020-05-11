@@ -3802,10 +3802,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (utils.isJMLStatic(vd.sym) && isFinal(vd.sym)) {
                     alreadyDiscoveredFields.add(vd.sym);
                     Symbol sym = vd.sym;
-                    if (sym != null && sym.owner instanceof ClassSymbol) {
-                        JCFieldAccess newfa;
-                        if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(def.pos, treeutils.makeType(def.pos, sym.owner.type), sym);
-                        else newfa = treeutils.makeSelect(def.pos, currentThisExpr, sym);
+                    if (sym.owner instanceof ClassSymbol) {
+                        JCFieldAccess newfa = treeutils.makeSelect(def.pos, treeutils.makeType(def.pos, sym.owner.type), sym);
                         addFinalStaticField(newfa);
                     }
 //                    JCExpression e = vd.init;

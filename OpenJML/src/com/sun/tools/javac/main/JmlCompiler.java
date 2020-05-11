@@ -323,6 +323,19 @@ public class JmlCompiler extends JavaCompiler {
                     binaryEnterTodo.prepend(csymbol);
                 }
 
+                for (Symbol t: csymbol.getEnclosedElements()) {
+                    if (t.isPrivate()) continue;
+                    if (t instanceof ClassSymbol) {
+                        //if (((ClassSymbol)t).getTypeParameters().size() != 0) continue; // FIXME - crashes on type parameters
+                        loadSpecsForBinary(env, (ClassSymbol)t);  // FIXME - env is not necessarily the tree for the classSymbol
+                    }
+                }
+
+                if (tspecs == null) {
+                    binaryEnterTodo.prepend(csymbol);
+                }
+
+
             } finally {
                 nestingLevel --;
             }
