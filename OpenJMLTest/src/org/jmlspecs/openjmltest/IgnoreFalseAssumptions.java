@@ -1,4 +1,4 @@
-package org.jmlspecs.openjmltest.testcases;
+package org.jmlspecs.openjmltest;
 
 import org.junit.Ignore;
 import org.junit.internal.AssumptionViolatedException;
@@ -10,13 +10,16 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
-@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
+// This is a JUnit4 runner that turns tests with false assumptions into 
+// ignored tests (like using @Ignore); normally false assumptions result in
+// valid tests
 public class IgnoreFalseAssumptions extends BlockJUnit4ClassRunner {
     
     public IgnoreFalseAssumptions(Class<?> klass) throws InitializationError {
         super(klass);
     }
 
+    @SuppressWarnings("restriction")
     @Override
     protected void runChild(final FrameworkMethod method, RunNotifier notifier) {
         Description description= describeChild(method);
