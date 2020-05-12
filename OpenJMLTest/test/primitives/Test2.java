@@ -2,16 +2,13 @@
 //@ pure immutable nullable_by_default
 abstract class testcol<T> implements IJmlPrimitiveType {
 	
-	//@ axiom (\forall T t;; !testcol.<T>empty().contains(t));
-	//@ axiom (\forall testcol<T> c; (\forall T t;; c.add(t).contains(t)));
-	//@ axiom (\forall testcol<T> c; (\forall T t, tt; t != tt; c.add(t).contains(tt) == c.contains(tt)));
-
 	//@ model public \bigint size;
 	
 	//@ public normal_behavior
 	//@   ensures \result.size() == 0;
+    //@   ensures (\forall S t;; !\result.contains(t));
 	//@ skipesc
-	//@ model public static <S> testcol<S> empty();
+	//@ model public static helper function <S> testcol<S> empty();
 		
 	//@ public normal_behavior
 	//@   ensures \result == size;
@@ -20,6 +17,8 @@ abstract class testcol<T> implements IJmlPrimitiveType {
 	
 	//@ public normal_behavior
 	//@   ensures \result.size == \old(size) + 1;
+    //@   ensures \result.contains(t);
+    //@   ensures \forall T tt; t != tt; \result.contains(tt) == this.contains(tt);
 	//@ helper function
 	abstract public testcol<T> add(T t);
 	

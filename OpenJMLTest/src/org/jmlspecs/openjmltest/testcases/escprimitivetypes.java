@@ -29,10 +29,12 @@ public class escprimitivetypes extends EscBase {
                 +"  public void m1(int i) {\n"
                 +"    //@ ghost \\bigint ii = i; set ii = ii*2;\n"
                 +"    //@ ghost intset a;\n"
+                +"    //@ set a[ii] = false;\n"
                 +"    //@ ghost intset b = a;\n"
                 +"    //@ set a[ii] = true;\n"
                 +"    //@ assert a[ii+1] == b[ii+1];\n"
                 +"    //@ assert a[ii] == true;\n"
+                +"    //@ assert b[ii] == false;\n"
                 +"  }\n"
                 +"}"
                 );
@@ -46,10 +48,12 @@ public class escprimitivetypes extends EscBase {
                 +"  //@ requires o != oo;\n"
                 +"  public void m1(Object o,Object oo) {\n"
                 +"    //@ ghost set<Object> a;\n"
+                +"    //@ set a[o] = false;\n"
                 +"    //@ ghost set<Object> b = a;\n"
                 +"    //@ set a[o] = true;\n"
                 +"    //@ assert a[oo] == b[oo];\n"
                 +"    //@ assert a[o] == true;\n"
+                +"    //@ assert b[o] == false;\n"
                 +"  }\n"
                 +"}"
                 );
@@ -60,33 +64,58 @@ public class escprimitivetypes extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  public void m1(int i, Object o) {\n"
+                +"  public void m1(int i, Object o, Object oo) {\n"
+                +"    //@ assume o != oo;\n"
                 +"    //@ ghost \\bigint ii = i; set ii = ii*2;\n"
                 +"    //@ ghost intmap<Object> a;\n"
+                +"    //@ set a[ii] = oo;\n"
                 +"    //@ ghost intmap<Object> b = a;\n"
                 +"    //@ set a[ii] = o;\n"
                 +"    //@ assert a[ii+1] == b[ii+1];\n"
                 +"    //@ assert a[ii] == o;\n"
+                +"    //@ assert b[ii] == oo;\n"
                 +"  }\n"
-                
-               
-                 
                 +"}"
                 );
     }
     
     @Test
     public void testArray() {
+        main.addOptions("-method=m1","-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  public void m1(int i, Object o) {\n"
+                +"  public void m1(int i, Object o, Object oo) {\n"
+                +"    //@ assume o != oo;\n"
                 +"    //@ ghost \\bigint ii = i; set ii = ii*2;\n"
-                +"    //@ ghost array<Object> a;\n"
+                +"    //@ ghost array<Object> a; \n"
+                +"    //@ set a[ii] = oo;\n"
                 +"    //@ ghost array<Object> b = a;\n"
                 +"    //@ set a[ii] = o;\n"
                 +"    //@ assert a[ii+1] == b[ii+1];\n"
                 +"    //@ assert a[ii] == o;\n"
+                +"    //@ assert b[ii] == oo;\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testArrayPut() {
+        main.addOptions("-method=m1","-show");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m1(int i, Object o, Object oo) {\n"
+                +"    //@ assume o != oo;\n"
+                +"    //@ ghost \\bigint ii = i; set ii = ii*2;\n"
+                +"    //@ ghost array<Object> a; \n"
+                +"    //@ set a = a.put(ii,oo);\n"
+                +"    //@ ghost array<Object> b = a;\n"
+                +"    //@ set a = a.put(ii,o);\n"
+                +"    //@ assert a[ii+1] == b[ii+1];\n"
+                +"    //@ assert a[ii] == o;\n"
+                +"    //@ assert b[ii] == oo;\n"
                 +"  }\n"
                 +"}"
                 );
@@ -98,11 +127,32 @@ public class escprimitivetypes extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  public void m1(int i, Object o) {\n"
+                +"  public void m1(int i, Object o, Object oo) {\n"
+                +"    //@ assume o != oo;\n"
                 +"    //@ ghost \\bigint ii = i; set ii = ii*2; assume ii >= 0; \n"
                 +"    //@ ghost seq<Object> a;\n"
+                +"    //@ set a[ii] = oo;\n"
                 +"    //@ ghost seq<Object> b = a;\n"
                 +"    //@ set a[ii] = o;\n"
+                +"    //@ assert a[ii+1] == b[ii+1];\n"
+                +"    //@ assert a[ii] == o;\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testseqPut() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m1(int i, Object o, Object oo) {\n"
+                +"    //@ assume o != oo;\n"
+                +"    //@ ghost \\bigint ii = i; set ii = ii*2; assume ii >= 0; \n"
+                +"    //@ ghost seq<Object> a;\n"
+                +"    //@ set a = a.put(ii,oo);\n"
+                +"    //@ ghost seq<Object> b = a;\n"
+                +"    //@ set a = a.put(ii,o);\n"
                 +"    //@ assert a[ii+1] == b[ii+1];\n"
                 +"    //@ assert a[ii] == o;\n"
                 +"  }\n"
@@ -118,17 +168,33 @@ public class escprimitivetypes extends EscBase {
                 +"  public void m1(Object o, Object oo, Object ooo) {\n"
                 +"    //@ assume oo != ooo;\n"
                 +"    //@ ghost map<Object,Object> a;\n"
-                +"    //@ assume a.get(oo) == ooo;\n"
+                +"    //@ set a[oo] = ooo;\n"
                 +"    //@ ghost map<Object,Object> b = a;\n"
                 +"    //@ assert a.get(ooo) == b.get(ooo);\n"
-                +"    //@ set a = a.put(oo,o);\n"
+                +"    //@ set a[oo] = o;\n"
                 +"    //@ assert a.get(ooo) == b.get(ooo);\n"
                 +"    //@ assert a.get(oo) == o;\n"
                 +"    //@ assert b.get(oo) == ooo;\n"
-                +"    //@ set a[oo] = o;\n"
-                +"    //@ assert a[ooo] == b[ooo];\n"
-                +"    //@ assert a[oo] == o;\n"
-                +"    //@ assert b[oo] == ooo;\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testmapPut() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m1(Object o, Object oo, Object ooo) {\n"
+                +"    //@ assume oo != ooo;\n"
+                +"    //@ ghost map<Object,Object> a;\n"
+                +"    //@ set a = a.put(oo,o);\n"
+                +"    //@ ghost map<Object,Object> b = a;\n"
+                +"    //@ assert a.get(ooo) == b.get(ooo);\n"
+                +"    //@ set a = a.put(oo,oo);\n"
+                +"    //@ assert a.get(ooo) == b.get(ooo);\n"
+                +"    //@ assert a.get(oo) == oo;\n"
+                +"    //@ assert b.get(oo) == o;\n"
                 +"  }\n"
                 +"}"
                 );
@@ -139,13 +205,36 @@ public class escprimitivetypes extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  public void m1(int i, char c) {\n"
+                +"  public void m1(int i, char c, char cc) {\n"
+                +"    //@ assume c != cc; \n"
                 +"    //@ ghost \\bigint ii = i; set ii = ii*2; assume ii >= 0; \n"
                 +"    //@ ghost string a;\n"
+                +"    //@ set a[ii] = cc;\n"
                 +"    //@ ghost string b = a;\n"
                 +"    //@ set a[ii] = c;\n"
                 +"    //@ assert a[ii+1] == b[ii+1];\n"
                 +"    //@ assert a[ii] == c;\n"
+                +"    //@ assert b[ii] == cc;\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    @Test
+    public void teststringPut() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m1(int i, char c, char cc) {\n"
+                +"    //@ assume c != cc; \n"
+                +"    //@ ghost \\bigint ii = i; set ii = ii*2; assume ii >= 0; \n"
+                +"    //@ ghost string a;\n"
+                +"    //@ set a = a.put(ii,cc);\n"
+                +"    //@ ghost string b = a;\n"
+                +"    //@ set a = a.put(ii,c);\n"
+                +"    //@ assert a[ii+1] == b[ii+1];\n"
+                +"    //@ assert a[ii] == c;\n"
+                +"    //@ assert b[ii] == cc;\n"
                 +"  }\n"
                 +"}"
                 );
