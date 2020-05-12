@@ -44,6 +44,7 @@ import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.requiresClause
 import org.jmlspecs.openjml.ext.CallableClauseExtension;
 import org.jmlspecs.openjml.ext.EndStatement;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
+import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
 import org.jmlspecs.openjml.vistors.JmlTreeScanner;
@@ -17528,7 +17529,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (stat != null) addStat(stat);
                     }
                     if (stat != null && esc && !(that.type instanceof Type.ArrayType) && jmltypes.isArray(that.type)) {
-                        addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeNotNull(that.pos, treeutils.makeIdent(that.pos, that.sym)));
+                        JCExpression inv = getInvariantAll(that, that.type, treeutils.makeIdent(that.pos, that.sym));
+                        if (inv != null) inv.type = syms.booleanType; else inv = treeutils.trueLit;
+                        addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeAnd(that.pos,treeutils.makeNotNull(that.pos, treeutils.makeIdent(that.pos, that.sym)),inv));
                     }
                     checkAccessEnabled = pv;
                 }

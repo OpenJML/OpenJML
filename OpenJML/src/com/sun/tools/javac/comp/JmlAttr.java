@@ -58,6 +58,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import javax.lang.model.type.TypeKind;
+import javax.swing.text.html.parser.Element;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
@@ -747,6 +748,39 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (tree.lhs instanceof JCIdent && ((JCIdent)tree.lhs).sym.owner.kind == Kinds.MTH) return;
             log.error(tree.pos,"jml.no.assign.in.pure");
         }
+        if (tree.lhs instanceof JCArrayAccess && jmltypes.isSubtype(((JCArrayAccess)tree.lhs).indexed.type, JMLArrayLike)) {
+            JCArrayAccess aa = (JCArrayAccess)tree.lhs;
+            JCExpression ex = ((JCArrayAccess)tree.lhs).indexed;
+            if (ex instanceof JCIdent) {
+                //Change ex[i] = v to ex = ex.put(i,v);
+                Symbol sym = null;
+                java.util.List<Symbol> sys = ex.type.tsym.getEnclosedElements();
+                for (Symbol e: sys) {
+                    if ("put".equals(e.name.toString())) { sym = e; break; }
+                }
+                if (sym == null) {
+                    log.error(tree.pos,"jml.message","Could not find a 'put' method for " + ex.type.toString());
+//                    JCExpression method = jmlMaker.Select(ex, names.fromString("put"));
+//                    // TODO: DO we need method.type set?
+//                    List<JCExpression> args = List.<JCExpression>of(aa.index, tree.rhs);
+//                    JCMethodInvocation app = jmlMaker.Apply(List.<JCExpression>nil(), method, args);
+//                    attribExpr(app.meth,env);
+//                    app.type = ex.type;
+//                    tree.lhs = ex;
+//                    tree.rhs = app;
+                } else {
+                    JCExpression method = jmlMaker.Select(ex, sym);
+                    // TODO: DO we need method.type set?
+                    List<JCExpression> args = List.<JCExpression>of(aa.index, tree.rhs);
+                    JCExpression app = jmlMaker.Apply(List.<JCExpression>nil(), method, args);
+                    app.type = ex.type;
+                    tree.lhs = ex;
+                    tree.rhs = app;
+                }
+            } else {
+                log.error(tree.pos, "jml.message", "Assignment not premitted for indexed immutable JML primitives");
+            }
+        }
         if (tree.lhs.type instanceof JmlListType) {
             JmlListType lhst = (JmlListType)tree.lhs.type;
             if (!(tree.rhs.type instanceof JmlListType)) {
@@ -788,6 +822,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // The following checks that the assignment is local (the symbol being assigned is owned by the method)
             if (tree.lhs instanceof JCIdent && ((JCIdent)tree.lhs).sym.owner.kind == Kinds.MTH) return;
             log.error(tree.pos,"jml.no.assign.in.pure");
+        }
+        if (tree.lhs instanceof JCArrayAccess && ((JCArrayAccess)tree.lhs).indexed.type instanceof org.jmlspecs.lang.IJmlArrayLike) {
+            log.error(tree.pos, "jml.message", "Assign operation not premitted for indexed immutable JML primitives");
         }
         if (currentSecretContext != null) checkWritable(tree.lhs);
     }

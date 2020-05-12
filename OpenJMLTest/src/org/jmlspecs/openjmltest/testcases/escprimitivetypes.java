@@ -34,11 +34,7 @@ public class escprimitivetypes extends EscBase {
                 +"    //@ assert a[ii+1] == b[ii+1];\n"
                 +"    //@ assert a[ii] == true;\n"
                 +"  }\n"
-                
-               
-                 
                 +"}"
-//                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m11a",9
                 );
     }
     
@@ -76,7 +72,6 @@ public class escprimitivetypes extends EscBase {
                
                  
                 +"}"
-//                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m11a",9
                 );
     }
     
@@ -231,6 +226,26 @@ public class escprimitivetypes extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1",19
                 );
+    }
+    
+    @Test
+    public void testX() {
+        //main.addOptions("-method=m1","-show");
+        helpTCX("tt.TestJava","package tt; \n"
+                                +"public class TestJava { \n"
+                                
+                                +"  public void m1(Object o, Object oo, Object ooo) {\n"
+                                +"    //@ assume o != oo; \n"
+                                +"    //@ ghost map<Object,Object> a; \n"
+                                +"    //@ set a[ooo] = o;\n"
+                                +"    //@ ghost map<Object,Object> b = a;\n"
+                                +"    //@ set a[ooo] = oo;\n"
+                                +"    //@ assert b[ooo] == o;\n"
+                                +"    //@ assert a[ooo] == oo;\n"
+                                +"  }\n"
+                                +"}"
+                                );
+        
     }
 
 }
