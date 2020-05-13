@@ -1,5 +1,14 @@
 #! /bin/bash
-## 
+##  This script takes a release number (x.y.z format).
+##  It changes to the directory containing this file
+##  then does a git checkout on all the pieces of the release to be sure that 
+##    the working tree is current with the release tag
+##  Then builds the release
+##  Then pushes all changes to origin
+##  Then uploads 
+##      - the release files to sourceforge
+##      - the Eclipse GUI files to sourceforge
+
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 REFBRANCH=`git rev-parse --abbrev-ref HEAD`
@@ -31,7 +40,7 @@ git checkout -B "$REL"
 #git checkout -B "$REL"
 cd ../OpenJML/OpenJML
 
-## FIXME - make platform independent - Eclipse does not set path
+## FIXME - make platform independent - Eclipse does not set $PATH
 if [ -e ~/apps/ant ]; then
   ~/apps/ant -f build-bash.xml release
 elif [ -e /opt/local/bin/ant ]; then

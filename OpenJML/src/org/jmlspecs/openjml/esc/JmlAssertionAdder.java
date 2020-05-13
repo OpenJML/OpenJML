@@ -8376,6 +8376,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!inlineSpecs) {
                 if (addMethodAxioms) assertCalledMethodPrecondition(that, calleeMethodSym, extendedArgs);
 
+//                JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(calleeMethodSym);
+//                makeAndSaveNewMethodName(calleeMethodSym, resultType,
+//                        calleeIsFunction, calleeSpecs,
+//                        calleeSpecs.decl != null ? calleeSpecs.decl.pos : that.pos, newParamTypes);
                 JCExpression e = makeDeterminismCall(that, calleeMethodSym, newThisExpr,
                         extendedArgs);
                 if (!calleeMethodSym.isConstructor() && calleeMethodSym.getReturnType().isReference()) {
@@ -9884,8 +9888,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (utils.isJMLStatic(calleeMethodSym) && extendedArgs.isEmpty()) {
                 // Should be a constant
                 return null; // FIXME
-            } else {
+            } else if (newCalleeSym != null) {
                 return treeutils.makeMethodInvocation(that,null,newCalleeSym,extendedArgs);
+            } else {
+                return null; // FIXME
             }
     }
 

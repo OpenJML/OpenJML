@@ -302,6 +302,10 @@ public class JavacParser implements Parser {
         S.nextToken();
         token = S.token();
     }
+    
+    public void syncToken() {
+        token = S.token();
+    }
 
     protected boolean peekToken(Filter<TokenKind> tk) {
         return peekToken(0, tk);

@@ -831,13 +831,13 @@ public class escall3 extends EscBase {
                 +"  }\n"
                 
                 +"  //@ requires t != null;\n"
-                +"  //@ requires i != 0;\n"
+                +"  //@ requires i != 0 && i != -1;\n"
                 +"  public void m3(TestJava t, int i) {\n"
                 +"    t.f /= i ;\n"
                 +"  }\n"
 
                 +"  //@ requires t != null;\n"
-                +"  //@ requires i != 0;\n"
+                +"  //@ requires i != 0 && i != -1;\n"
                 +"  //@ assignable \\everything;\n" 
                 +"  public void m3good(TestJava t, int i) {\n"
                 +"    t.f /= i ;\n"

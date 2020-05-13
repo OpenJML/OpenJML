@@ -1,9 +1,9 @@
 Proving methods in dmz2.Cash
 Starting proof of dmz2.Cash.Cash(int) with prover !!!!
-..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:47: warning: The prover cannot establish an assertion (Assignable) in method Cash:  THIS.my_loaded
+..\..\OpenJMLDemo\src\dmz2\Cash.java:47: warning: The prover cannot establish an assertion (Assignable) in method Cash:  THIS.my_loaded
     my_loaded = false;
               ^
-..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:44: warning: Associated declaration
+..\..\OpenJMLDemo\src\dmz2\Cash.java:44: warning: Associated declaration
   //@ assignable amount, loaded;
       ^
 Completed proof of dmz2.Cash.Cash(int) with prover !!!! - with warnings
@@ -16,10 +16,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of dmz2.Cash.loaded() with prover !!!! - no warnings
 Starting proof of dmz2.Cash.setLoaded() with prover !!!!
-..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:77: warning: The prover cannot establish an assertion (Assignable) in method setLoaded:  THIS.my_loaded
+..\..\OpenJMLDemo\src\dmz2\Cash.java:77: warning: The prover cannot establish an assertion (Assignable) in method setLoaded:  THIS.my_loaded
     my_loaded = true;
               ^
-..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:75: warning: Associated declaration
+..\..\OpenJMLDemo\src\dmz2\Cash.java:75: warning: Associated declaration
   //@ assignable loaded;
       ^
 Completed proof of dmz2.Cash.setLoaded() with prover !!!! - with warnings
@@ -42,10 +42,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of dmz2.DebitCard.lastCash() with prover !!!! - no warnings
 Starting proof of dmz2.DebitCard.convert(int) with prover !!!!
-..\..\OpenJMLDemoNonPublic\src\dmz2\DebitCard.java:90: warning: The prover cannot establish an assertion (Precondition) in method convert
+..\..\OpenJMLDemo\src\dmz2\DebitCard.java:90: warning: The prover cannot establish an assertion (Precondition) in method convert
     my_last_cash = new Cash(the_amount);
                    ^
-..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:41: warning: Associated declaration
+..\..\OpenJMLDemo\src\dmz2\Cash.java:41: warning: Associated declaration
   //@ requires 0 < the_amount;
       ^
 Completed proof of dmz2.DebitCard.convert(int) with prover !!!! - with warnings

@@ -10,7 +10,7 @@ OpenJML is kept at sourceforge (see www.openjml.org, www.jmlspecs.org,
 sourceforge.net/projects/jmlspecs/, and
 http://jmlspecs.svn.sourceforge.net/viewvc/jmlspecs/OpenJML/ ); documentation
 about OpenJML is available at http://www.openjml.org.
-Currently OpenJML is consistent with Java 1.7.
+Currently OpenJML is consistent with Java 1.8.
 
 The OpenJML tool is a 
 - JML syntax and semantics checker

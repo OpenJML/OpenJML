@@ -212,7 +212,7 @@ public class compilationUnit extends ParseBase {
         checkMessages();
     }
     
-    //  @Test - the form in testRefining1() is now required
+    //  @Test -
     public void testRefining2() {
         checkCompilationUnit("class A { void m() { /*@        recommends true else NullPointerException; ensures true; */ m(); }}",
               JmlCompilationUnit.class, 0,0,99,

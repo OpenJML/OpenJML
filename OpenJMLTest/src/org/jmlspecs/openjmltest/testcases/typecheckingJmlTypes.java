@@ -1,6 +1,6 @@
 package org.jmlspecs.openjmltest.testcases;
 
-import org.jmlspecs.openjmltest.TCBase;
+import org.jmlspecs.openjmltest.*;
 import org.junit.Test;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
@@ -10,6 +10,7 @@ public class typecheckingJmlTypes extends TCBase {
     public void setUp() throws Exception {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
+        useSystemSpecs = true; // Needed to be able to resolve b[] = x as a .put call
         super.setUp();
     }
 
@@ -45,12 +46,24 @@ public class typecheckingJmlTypes extends TCBase {
         helpTC(" class A { void m() { //@ ghost intmap<Object> b ; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}");
     }
 
-    @Test public void testMapType() {
-        helpTC(" class A { //@ ghost map<string,string> b ; \n}");
+    @Test public void testSeqType() {
+        helpTC(" class A { void m() { //@ ghost seq<Object> b ; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}");
     }
 
-    public void testMap2Type() {
-        helpTC(" class A { //@ ghost map<Object,Object> b ; \n}");
+    @Test public void testMapType() {
+        helpTC(" class A { void m() {  //@ ghost map<string,string> b ;   ghost string o ; set b[o] = o; ghost string bb = b[o]; \n}}");
+    }
+
+    @Test public void testMap2Type() {
+        helpTC(" class A { void m() { //@ ghost map<Object,Object> b ;  ghost Object o = new Object(); set b[o] = o; ghost Object bb = b[o]; \n}}");
+    }
+
+    @Test public void testSetType() {
+        helpTC(" class A { void m() {  //@ ghost set<Object> b ; ghost Object o = new Object(); set b[o] = true; ghost boolean bb = b[o]; \n}}");
+    }
+
+    @Test public void testStringType() {
+        helpTC(" class A { void m() {  //@ ghost string b ; ghost char c = 'a'; set b[c] = 'b'; ghost char bb = b[c]; \n}}");
     }
 
     

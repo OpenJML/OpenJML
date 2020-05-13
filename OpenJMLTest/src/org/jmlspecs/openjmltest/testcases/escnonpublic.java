@@ -43,7 +43,7 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(ParameterizedWithNames.class)
 public class escnonpublic extends EscBase {
     
-    String dir = "../../OpenJMLDemoNonPublic/";
+    String dir = "../../OpenJMLDemo/";
 
     boolean enableSubexpressions = false;
     
@@ -166,7 +166,7 @@ public class escnonpublic extends EscBase {
     
     @Test
     public void escSokoban() { // FIXME
-        //helpTCF("../../../OpenJMLDemoNonPublic/src/sokoban/Game.java","test/sokoban","-classpath","test/sokoban","-progress","-escMaxWarnings=10","-method=main","-show");
+        //helpTCF("../../OpenJMLDemo/src/sokoban/Game.java","test/sokoban","-classpath","test/sokoban","-progress","-escMaxWarnings=10","-method=main","-show");
         helpTCF(dir + "src/sokoban/src",dir + "src/sokoban/src","-progress","-timeout=120");
     }
 

@@ -77,7 +77,7 @@ public class escfilesTrace extends EscBase {
     	escOnFiles(sourceDirname,outDir,opts);
     }
 
-    String OpenJMLDemoNonPublicPath = "../../OpenJMLDemoNonPublic";
+    String OpenJMLDemoNonPublicPath = "../OpenJMLDemo";
 
     @Test 
     public void testDMZCashTrace() {

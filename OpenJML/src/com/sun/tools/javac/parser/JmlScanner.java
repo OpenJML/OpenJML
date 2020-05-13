@@ -197,7 +197,8 @@ public class JmlScanner extends Scanner {
      *            the new value of the keyword mode, returning the old mode
      */
     public boolean setJmlKeyword(boolean j) {
-        if (jmlkeyword != j && !savedTokens.isEmpty()) {
+        boolean b = jmltokenizer.setJmlKeyword(j);
+        if (b != j) {
             rescan();
 //            if (j) {
 //                // Should turn identifiers into JML tokens, where appropriate
@@ -218,9 +219,6 @@ public class JmlScanner extends Scanner {
 //                }
 //            }
         }
-        jmltokenizer.setJmlKeyword(j);
-        boolean b = jmlkeyword;
-        jmlkeyword = j;
         return b;
     }
     

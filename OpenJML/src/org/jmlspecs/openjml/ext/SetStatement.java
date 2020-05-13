@@ -69,6 +69,7 @@ public class SetStatement extends JmlExtension.Statement {
             boolean saved = parser.setInJmlDeclaration(true);
             try {
                 JCStatement t = parser.parseJavaStatement();
+                if (!scanner.setJmlKeyword(true)) parser.syncToken();
                 //          if (!(t instanceof JCExpressionStatement)) {
                 //          parser.jmlerror(t.getStartPosition(),
                 //                  parser.getEndPos(t),

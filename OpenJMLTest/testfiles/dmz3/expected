@@ -84,10 +84,10 @@ Completed proof of dmz3.GiftCard.setBalance(int) with prover !!!! - no warnings
 Completed proving methods in dmz3.GiftCard
 Proving methods in dmz3.SingleUseGiftCard
 Starting proof of dmz3.SingleUseGiftCard.SingleUseGiftCard(dmz3.Cash) with prover !!!!
-..\..\OpenJMLDemoNonPublic\src\dmz3\SingleUseGiftCard.java:40: warning: The prover cannot establish an assertion (Assignable) in method SingleUseGiftCard:  THIS.my_used
+..\..\OpenJMLDemo\src\dmz3\SingleUseGiftCard.java:40: warning: The prover cannot establish an assertion (Assignable) in method SingleUseGiftCard:  THIS.my_used
     my_used = false;
             ^
-..\..\OpenJMLDemoNonPublic\src\dmz3\SingleUseGiftCard.java:37: warning: Associated declaration
+..\..\OpenJMLDemo\src\dmz3\SingleUseGiftCard.java:37: warning: Associated declaration
   //@ assignable balance, the_cash.loaded;
       ^
 Completed proof of dmz3.SingleUseGiftCard.SingleUseGiftCard(dmz3.Cash) with prover !!!! - with warnings

@@ -36,7 +36,7 @@ import com.sun.tools.javac.util.Options;
 public abstract class RacBase extends JmlTestCase {
 	
 	public final static String OpenJMLDemoPath = "../../OpenJMLDemo";
-	public final static String OpenJMLNonPublicDemoPath = "../../OpenJMLDemoNonPublic";
+	public final static String OpenJMLNonPublicDemoPath = OpenJMLDemoPath;
 	
     protected String testspecpath1 = "$A"+z+"$B";
     protected String testspecpath;
