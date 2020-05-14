@@ -124,6 +124,14 @@ public class expressions extends ParseBase {
         return dd.noSource();
     }
     
+    // Each bit of source text (in this series of tests, each must be a
+    // JML expression) is parsed into a tree of nodes. The expected data
+    // for each expression is a preorder (node, left subtree, right subtree)
+    // of the tree, giving the node class, the start position, the preferred
+    // position and the end position for each node. The positions are 
+    // character counts beginning with 0; the end position is one beyond
+    // the end of the substring.
+    
     @Test
     public void testBug2() {
     	helpExpr("equals(\\result.multiply(val).add(remainder(val)))"

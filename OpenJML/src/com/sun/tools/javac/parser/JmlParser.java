@@ -2959,7 +2959,7 @@ public class JmlParser extends JavacParser {
      *         next in the token string
      */
     @Override
-    protected JCModifiers modifiersOpt(JCModifiers partial) {
+    public JCModifiers modifiersOpt(JCModifiers partial) {
         if (partial == null) {
             partial = pushBackModifiers;
             pushBackModifiers = null;
@@ -3000,7 +3000,7 @@ public class JmlParser extends JavacParser {
      *            the character position
      * @return the annotation expression
      */
-    protected/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlTokenKind jt,
+    public/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlTokenKind jt,
             int position, int endpos) {
         Class<?> c = jt.annotationType;
         if (c == null) return null;
@@ -3036,7 +3036,7 @@ public class JmlParser extends JavacParser {
      *            input modifiers and annotations
      * @return combined modifiers and annotations
      */
-    protected JCModifiers jmlModifiersOpt(JCModifiers partial) {
+    public JCModifiers jmlModifiersOpt(JCModifiers partial) {
         ListBuffer<JCAnnotation> annotations = new ListBuffer<JCAnnotation>();
         if (partial != null) annotations.appendList(partial.annotations);
         int pos = Position.NOPOS;

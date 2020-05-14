@@ -45,13 +45,13 @@ public class racnonpublic extends RacBase {
         setUpForFiles();
         super.setUp();
 //        Assert.fail();
-        Assume.assumeTrue( new File(OpenJMLNonPublicDemoPath).exists() );
+        Assume.assumeTrue( new File(OpenJMLDemoPath).exists() );
     }
 
 
     @Test
     public void racSokoban() {
-        String dir = OpenJMLNonPublicDemoPath + "/src/sokoban/src";
+        String dir = OpenJMLDemoPath + "/src/sokoban/src";
         expectedExit = 0;
         expectedRACExit = 1;
         helpTCF(dir,dir,"Game","-cp",dir,"-progress");
@@ -59,7 +59,7 @@ public class racnonpublic extends RacBase {
 
     @Test
     public void racSokoban2() {
-        String dir = OpenJMLNonPublicDemoPath + "/src/sokoban2/src";
+        String dir = OpenJMLDemoPath + "/src/sokoban2/src";
         expectedExit = 0;
         expectedRACExit = 1;
         ignoreNotes = true;
@@ -68,7 +68,7 @@ public class racnonpublic extends RacBase {
 
     @Test
     public void racSokoban3() {
-        String dir = OpenJMLNonPublicDemoPath + "/src/sokoban3/src";
+        String dir = OpenJMLDemoPath + "/src/sokoban3/src";
         expectedExit = 0;
         expectedRACExit = 1;
         ignoreNotes = true;
@@ -77,7 +77,7 @@ public class racnonpublic extends RacBase {
 
     @Test
     public void racSokoban3Bug() {  // FIXME - currently the expected result says too big for a try statement, but originally it had a crash
-        String dir = OpenJMLNonPublicDemoPath + "/src/sokoban3/src";
+        String dir = OpenJMLDemoPath + "/src/sokoban3/src";
         expectedExit = 1;
         runrac = false;
         expectedRACExit = 0;
