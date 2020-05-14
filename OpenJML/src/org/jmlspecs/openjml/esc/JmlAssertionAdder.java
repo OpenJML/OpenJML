@@ -3303,6 +3303,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                                        addAssume(that,Label.IMPLICIT_ASSUME,e);
                                         //result = eresult = id;
                                         JCExpression r = convertExpr(rep.expression);
+                                        r = addImplicitConversion(r, rep.ident.type, r);
                                         JCExpression e = treeutils.makeSelect(that.pos, translatedSelector, varsym);
                                         if (inOldEnv) {
                                             JmlMethodInvocation ee = treeutils.makeJmlMethodInvocation(that.pos(),oldKind, e.type, e, oldenv);
