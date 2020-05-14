@@ -684,13 +684,13 @@ public class expressions extends ParseBase {
         helpExpr("(\\let int i=1+2, boolean b = i==i;   i + 1 ) ",
                 JCParens.class, 0, 0, 44,
                 LetExpr.class, 1, 1, 42,
-                JmlVariableDecl.class,6,10, 16, // TODO - or 15?
+                JmlVariableDecl.class,6,10, 15,
                 JCModifiers.class, 6,6,6,
                 JCPrimitiveTypeTree.class, 6,6,9,
                 JCBinary.class, 12,13,15,
                 JCLiteral.class, 12,12,13,
                 JCLiteral.class, 14,14,15,
-                JmlVariableDecl.class, 17,25,34, // TODO - OR 33?
+                JmlVariableDecl.class, 17,25,33,
                 JCModifiers.class, 17,17,17,
                 JCPrimitiveTypeTree.class, 17,17,24,
                 JCBinary.class, 29,30,33,

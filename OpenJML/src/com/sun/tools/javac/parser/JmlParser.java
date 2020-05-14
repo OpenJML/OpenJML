@@ -3796,13 +3796,13 @@ public class JmlParser extends JavacParser {
 
     @Override
     public JCExpression variableInitializer() {
-        S.setJmlKeyword(false);
+//        S.setJmlKeyword(false);
         try {
             return super.variableInitializer();
         } finally {
             // We should be looking at a comma or a semicolon or a right brace,
             // so we are not too late to set this
-            S.setJmlKeyword(true);
+//            S.setJmlKeyword(true);
         }
     }
 
