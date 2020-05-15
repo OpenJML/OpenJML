@@ -8334,7 +8334,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         resultSym = (VarSymbol) resultId.sym;
                         resultExpr = resultId;
                         boolean nn;  // Not sure this is giving the correct nullity
-                        if (mspecs.decl != null) nn = attr.isNonNull(mspecs.decl.mods);
+                        if (types.isSubtype(resultType, attr.JMLPrimitive)) nn = true;
+                        else if (mspecs.decl != null) nn = attr.isNonNull(mspecs.decl.mods);
                         else nn = specs.isNonNull(calleeMethodSym.owner);
                         addNullnessAllocationTypeCondition(that, resultSym, nn, false, false);
                     } else {

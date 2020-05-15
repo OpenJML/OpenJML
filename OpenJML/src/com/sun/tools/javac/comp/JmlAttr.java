@@ -347,7 +347,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JMLValuesType = createClass(Strings.jmlSpecsPackage + ".JMLList").type;
         JMLArrayLike = createClass(Strings.jmlSpecsPackage + ".IJmlArrayLike").type;
         JMLIntArrayLike = createClass(Strings.jmlSpecsPackage + ".IJmlIntArrayLike").type;
-        JMLPrimitive = createClass(Strings.jmlSpecsPackage + ".IJmlPrimitive").type;
+        JMLPrimitive = createClass(Strings.jmlSpecsPackage + ".IJmlPrimitiveType").type;
         JMLIterType = createClass("java.util.Iterator").type;
         Lock = syms.objectType;
         LockSet = JMLSetType;
