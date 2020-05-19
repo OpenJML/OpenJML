@@ -5099,7 +5099,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (tc instanceof JmlTypeClauseInitializer && 
                         (tc.modifiers.flags & Flags.STATIC) == 0) {
                     JmlTypeClauseInitializer tci = (JmlTypeClauseInitializer)tc;
-                    addStat( comment(methodDecl,"Instance initializer",null));
+                    addStat( comment(methodDecl,"Instance initializer: " + classDecl.sym,null));
                     if (tci.specs != null) for (JmlSpecificationCase cs: tci.specs.cases) {
                         // FIXME - visibility?
                         JCExpression pre = null;
@@ -12881,6 +12881,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     selected = currentThisExpr;
                     s = vsym;
                     eee = treeutils.makeSelect(that.pos, currentThisExpr, vsym);
+                    addAssume(that, Label.IMPLICIT_ASSUME, treeutils.makeNotNull(that.pos, eee));
                 }
             } else if (!utils.isJMLStatic(s) && that.selected instanceof JCIdent && !localVariables.containsKey(((JCIdent)that.selected).sym)) {
                 JCIdent id = (JCIdent)that.selected;
@@ -12914,6 +12915,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
                         // continue
                     } else if (!utils.isPrimitiveType(selected.type)) {
+                        // Check that the field is not null, if it is declared non_null
                         JCFieldAccess e = M.at(that).Select(selected,that.name);
                         e.sym = s;
                         e.type = that.type;
@@ -12924,7 +12926,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCExpression nl = treeutils.makeNullLiteral(that.pos);
                         treeutils.copyEndPosition(nl,ee);
                         JCExpression nonnull = treeutils.makeNeqObject(that.pos, ee, nl);
-                        if (methodDecl.sym.isConstructor() && !utils.isJMLStatic(that.sym) && (s.owner == methodDecl.sym.owner) && currentThisExpr != null) { // FIXME - needs review
+                        if (methodDecl.sym.isConstructor() && !utils.isJMLStatic(that.sym) && (s.owner == methodDecl.sym.owner) && currentThisExpr != null && !inInvariantFor) { // FIXME - needs review
+                            // If the method being translated is a constructor and the field in question is not static
+                            // and the object being dereferenced is indeed the object being constructed, then the 
+                            // field is allowed to be null, because the construction is in progress
                             JCExpression ne = treeutils.makeNeqObject(that.pos,currentThisExpr, selected);
                             nonnull = treeutils.makeImplies(nonnull.pos, ne, nonnull);
                         }
@@ -15387,6 +15392,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        }
     }
     
+    protected boolean inInvariantFor = false;
     protected boolean inOldEnv = false;
     // OK
     // These are special JML fcn-like calls (e.g. \old, \nonnullelements, ...)
@@ -15693,14 +15699,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             case invariantForID:
             {
+                boolean saved = inInvariantFor;
+                inInvariantFor = true;
                 JCExpression res = null;
-                for (JCExpression arg: that.args) {
-                    JCExpression a = treeutils.isATypeTree(arg)? null : convertJML(arg, condition, this.isPostcondition);
-                    JCExpression e = getInvariantAll(that,arg.type,a);
-                    res = e == null ? res : res == null ? e : treeutils.makeAnd(that, res, e);
+                try {
+                    for (JCExpression arg: that.args) {
+                        JCExpression a = treeutils.isATypeTree(arg)? null : convertJML(arg, condition, this.isPostcondition);
+                        JCExpression e = getInvariantAll(that,arg.type,a);
+                        res = e == null ? res : res == null ? e : treeutils.makeAnd(that, res, e);
+                    }
+                    if (res == null) res = treeutils.trueLit;
+                    result = eresult = res;
+                } finally {
+                    inInvariantFor = saved;
                 }
-                if (res == null) res = treeutils.trueLit;
-                result = eresult = res;
                 break;
             }
             case bigintMathID:
