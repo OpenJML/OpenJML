@@ -957,7 +957,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (useJmlModifier && isJml) {
                 for (JmlTokenKind t: JmlTokenKind.values()) {
                     if (t.annotationType != null && t.annotationType.toString().substring("interface ".length()).equals(s)) {
-                        print("/*@ " + t.internedName() + " */");
+                        if (s.endsWith("Model")) {
+                            print(t.internedName());
+                        } else {
+                            print("/*@ " + t.internedName() + " */");
+                        }
                         return;
                     }
                 }
@@ -1199,6 +1203,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlMethodDecl(JmlMethodDecl that) {
+        boolean isModelMethod = that.mods.annotations.stream().anyMatch(annotation ->
+                annotation.type.tsym.getQualifiedName().toString().equals("org.jmlspecs.annotation.Model"));
         // FIXME //@? model?
         if (that.methodSpecsCombined != null) {
             that.methodSpecsCombined.cases.accept(this);
@@ -1209,13 +1215,26 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         // We need the following to get the combined annotations
         // but we don't want both?
         // if (that.methodSpecsCombined != null) that.methodSpecsCombined.mods.accept(this);
-        
+
         // Do some shenanigans with sourceOuput to get default constructors printed
         boolean wasSourceOutput = sourceOutput;
         if (that.name == that.name.table.names.init &&
                 sourceOutput) sourceOutput = false;
-
+        if (isModelMethod) {
+            try {
+                print("/*@");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         visitMethodDef(that);
+        if (isModelMethod) {
+            try {
+                print("@*/");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         sourceOutput = wasSourceOutput;
     }
 
