@@ -102,7 +102,7 @@ public class compiler {
         actualOutput = removeNotes(actualOutput);
         
         if (print) System.out.println("EXPECTING: " + output[0]);
-        print = true;
+        print = false;
         if (print) System.out.println("ACTUAL OUT: " + actualOutput);
         if (print) System.out.println("ACTUAL ERR: " + errOutput);
         if (output.length <= 1 && errOutput.length() == 0 && !actualOutput.startsWith("Note:")) errOutput = actualOutput;

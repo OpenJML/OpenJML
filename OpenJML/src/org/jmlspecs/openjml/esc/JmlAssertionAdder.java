@@ -15568,11 +15568,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 int p = arg.pos;
                                 // replace \nonnullelements(arg) with (\let temp0 = arg; temp0 != null && (\forall int temp; 0 <= temp && temp < temp0.length; temp0[temp] != null);
                                 Name nm0 = names.fromString("__JMLtemp" + (uniqueCount++));
-                                JCVariableDecl vd0 = treeutils.makeVariableDecl(nm0, arg.type, arg, p);
-                                JCExpression id0 = treeutils.makeIdent(p,  vd0.sym);
+                                JCExpression id0;
+                                if (splitExpressions) {
+                                    JCVariableDecl vd0 = treeutils.makeVariableDecl(nm0, arg.type, convertExpr(arg), p);
+                                    addStat(vd0);
+                                    id0 = treeutils.makeIdent(p,  vd0.sym);
+                                } else {
+                                    // FIXME - this is probably wrong - no conversion of arg
+                                    JCVariableDecl vd0 = treeutils.makeVariableDecl(nm0, arg.type, arg, p);
+                                    id0 = treeutils.makeIdent(p,  vd0.sym);
+                                }
                                 
                                 // FIXME _ for now don't use a let: there are problems translating it
-                                id0 = arg;
+                                //id0 = arg;
                                 
                                 Name nm = names.fromString("__JMLtemp" + (uniqueCount++));
                                 JCVariableDecl vd = treeutils.makeVariableDecl(nm, syms.intType, null, p);
