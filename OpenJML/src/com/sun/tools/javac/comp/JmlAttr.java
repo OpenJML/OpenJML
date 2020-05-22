@@ -5048,6 +5048,38 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return null;
     }
     
+    protected long flags(Symbol sym) { // OPENJML - added to permit some overriding
+        if (!jmlresolve.allowJML) return sym.flags();
+        JmlSpecs specs = JmlSpecs.instance(context);
+        JCTree.JCModifiers mods = null;
+        if (sym instanceof Symbol.VarSymbol) {
+            JmlSpecs.FieldSpecs f = specs.getSpecs((Symbol.VarSymbol)sym);
+            if (f != null) mods = f.mods;
+        } else if (sym instanceof Symbol.MethodSymbol) {
+            JmlSpecs.MethodSpecs f = specs.getSpecs((Symbol.MethodSymbol)sym);
+            if (f != null) mods = f.mods;
+        } else if (sym instanceof Symbol.ClassSymbol) {
+            JmlSpecs.TypeSpecs f = specs.getSpecs((Symbol.ClassSymbol)sym);
+            if (f != null) mods = f.modifiers;
+        }
+
+        if (jmlresolve.specPublicSym == null) {
+            jmlresolve.specPublicSym = tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PUBLIC);
+        }
+        if (jmlresolve.specProtectedSym == null) {
+            jmlresolve.specProtectedSym = tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PROTECTED);
+        }
+
+        boolean isSpecPublic = utils.findMod(mods,jmlresolve.specPublicSym) != null;
+        if (isSpecPublic) return Flags.PUBLIC;
+
+        if ((sym.flags() & Flags.PROTECTED) != 0) return 0;
+        boolean isSpecProtected = utils.findMod(mods,jmlresolve.specProtectedSym) != null;
+        if (isSpecProtected) return Flags.PROTECTED; // TODO - Is not necessarily protected accessible
+        return 0;
+    }
+
+    
     
     /** Attributes a member select expression (e.g. a.b); also makes sure
      * that the type of the selector (before the dot) will be attributed;

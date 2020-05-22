@@ -3384,6 +3384,11 @@ public class Attr extends JCTree.Visitor {
         env.info.selectSuper = selectSuperPrev;
         result = checkId(tree, site, sym, env, resultInfo);
     }
+    
+    protected long flags(Symbol sym) { // OPENJML - added to permit some overriding
+        return sym.flags();
+    }
+    
     //where
         /** Determine symbol referenced by a Select expression,
          *
@@ -3444,7 +3449,7 @@ public class Attr extends JCTree.Visitor {
                     log.error(pos, "type.var.cant.be.deref");
                     return syms.errSymbol;
                 } else {
-                    Symbol sym2 = (sym.flags() & Flags.PRIVATE) != 0 ?
+                    Symbol sym2 = (flags(sym) & Flags.PRIVATE) != 0 ? // OPENJML - adjusted to permit some overriding
                         rs.new AccessError(env, site, sym) :
                                 sym;
                     rs.accessBase(sym2, pos, location, site, name, true);

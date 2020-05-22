@@ -198,12 +198,12 @@ public class JmlResolve extends Resolve {
     /** A cache of the symbol for the spec_public annotation class, created on
      * demand.
      */
-    private ClassSymbol specPublicSym = null;
+    public ClassSymbol specPublicSym = null;
 
     /** A cache of the symbol for the spec_protected annotation class, created on
      * demand.
      */
-    private ClassSymbol specProtectedSym = null;
+    public ClassSymbol specProtectedSym = null;
 
     /** This class is overridden in order to allow access according to the rules
      * for spec_public and spec_protected.
