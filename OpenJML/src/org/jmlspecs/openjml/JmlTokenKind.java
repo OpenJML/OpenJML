@@ -98,8 +98,8 @@ public enum JmlTokenKind implements ITokenKind {
 //    JMLDECL("jml declaration"), // not a scannable token
 //    IN("in"),
 //    MAPS("maps"),
-    INITIALIZER("initializer"),
-    STATIC_INITIALIZER("static_initializer"),
+//    INITIALIZER("initializer"),
+//    STATIC_INITIALIZER("static_initializer"),
 //    MONITORS_FOR("monitors_for"),
 //    READABLE("readable"),
 //    WRITABLE("writable"),

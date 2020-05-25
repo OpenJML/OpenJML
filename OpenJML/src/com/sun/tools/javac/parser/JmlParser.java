@@ -5,6 +5,7 @@
 package com.sun.tools.javac.parser;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.*;
+import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
 import static org.jmlspecs.openjml.JmlTokenKind.*;
 
 import java.io.PrintStream;
@@ -1124,10 +1125,8 @@ public class JmlParser extends JavacParser {
         if (!(S.jml())) return false;
         if (possibleKeyword.kind == TokenKind.IDENTIFIER) {
             return Extensions.instance(context).findTM(0,possibleKeyword.name().toString(),false) instanceof IJmlClauseKind.TypeClause;
-        } else {
-            ITokenKind jt = possibleKeyword.ikind;
-            return (jt == JmlTokenKind.INITIALIZER || jt == JmlTokenKind.STATIC_INITIALIZER);
         }
+        return false;
     }
     
     /** Returns non-null if the token introduces a new JML kind of class
@@ -1163,7 +1162,7 @@ public class JmlParser extends JavacParser {
                                                // pushBackModifiers
             int pos = pos();
             JmlTokenKind jt = jmlTokenKind();
-            if (jt != null && !isJmlTypeToken(jt) && currentMethodSpecs != null && !startOfMethodSpecs(token) && jt != INITIALIZER && jt != STATIC_INITIALIZER) {
+            if (jt != null && !isJmlTypeToken(jt) && currentMethodSpecs != null && !startOfMethodSpecs(token)) {
                 log.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + jt.internedName() + " clause (ignored)");
                 currentMethodSpecs = null;
             }
@@ -1179,7 +1178,7 @@ public class JmlParser extends JavacParser {
                     continue;
                 } else if (startOfTypeSpec(token)) {
                     JCTree tc = parseTypeSpecs(mods);
-                    if (tc instanceof JmlTypeClause && currentMethodSpecs != null && jt != INITIALIZER && jt != STATIC_INITIALIZER) {
+                    if (tc instanceof JmlTypeClause && currentMethodSpecs != null) {
                         log.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + ((JmlTypeClause)tc).clauseType.name() + " clause (ignored)");
                         currentMethodSpecs = null;
                     }
@@ -1406,14 +1405,14 @@ public class JmlParser extends JavacParser {
 //                appendIfNotNull(list,parseReadableWritable(mods, jt));
 //            } else if (jt == monnitorsforClause) {
 //                appendIfNotNull(list,parseMonitorsFor(mods));
-            } else if (jt == INITIALIZER || jt == STATIC_INITIALIZER) {
-                //@ FIXME - modifiers?
-//                JmlTypeClauseInitializer initializer = jmlF.at(pos()).JmlTypeClauseInitializer(jt,mods);
-//                //@ FIXME - parse failure?
-//                initializer.specs = currentMethodSpecs;
-                currentMethodSpecs = null;
-//                list.append(to(initializer));
-                nextToken();
+//            } else if (jt == INITIALIZER || jt == STATIC_INITIALIZER) {
+//                //@ FIXME - modifiers?
+////                JmlTypeClauseInitializer initializer = jmlF.at(pos()).JmlTypeClauseInitializer(jt,mods);
+////                //@ FIXME - parse failure?
+////                initializer.specs = currentMethodSpecs;
+//                currentMethodSpecs = null;
+////                list.append(to(initializer));
+//                nextToken();
             } else {
                 jmlerror(pos(), endPos(),
                         "jml.illegal.token.for.declaration", jt.internedName());
@@ -2178,7 +2177,12 @@ public class JmlParser extends JavacParser {
             boolean exampleSection) {
         JmlTokenKind also = null;
         JmlTokenKind ijt = jmlTokenKind();
-        if (ijt == ALSO || token.ikind == TokenKind.ELSE) {
+        IJmlClauseKind ext = null;
+        if (S.jml() && token.kind == TokenKind.IDENTIFIER) {
+            String id = token.name().toString();
+            ext = Extensions.instance(context).findSM(0,id,false);
+        }
+        if (ext == alsoClause || ext == elseClause || ijt == ALSO || token.ikind == TokenKind.ELSE) {
             if (!isNone(mods)) {
                 jmlerror(mods.getStartPosition(), endPos(),
                         "jml.no.mods.allowed", ijt.internedName());
@@ -2191,7 +2195,7 @@ public class JmlParser extends JavacParser {
         }
         boolean code = false;
         int codePos = 0;
-        if (jmlTokenKind() == JmlTokenKind.FEASIBLE_BEHAVIOR) return null;
+        if (ext == feasibleBehaviorClause || jmlTokenKind() == JmlTokenKind.FEASIBLE_BEHAVIOR) return null;
         if (jmlTokenKind() == JmlTokenKind.CODE) {
             codePos = pos();
             code = true;
@@ -2201,7 +2205,9 @@ public class JmlParser extends JavacParser {
         boolean bb = log.currentSourceFile().toString().contains("Stream.jml");
         JmlTokenKind jt = jmlTokenKind();
         int pos = pos();
-        if (jt == JmlTokenKind.BEHAVIOR || jt == JmlTokenKind.NORMAL_BEHAVIOR
+        if (ext == behaviorClause || ext == normalBehaviorClause ||ext == exceptionalBehaviorClause
+                || (ext == abruptBehaviorClause || inModelProgram)
+                || jt == JmlTokenKind.BEHAVIOR || jt == JmlTokenKind.NORMAL_BEHAVIOR
                 || jt == JmlTokenKind.EXCEPTIONAL_BEHAVIOR
                 || (jt == JmlTokenKind.ABRUPT_BEHAVIOR && inModelProgram)) {
             if (exampleSection) {
@@ -2209,14 +2215,15 @@ public class JmlParser extends JavacParser {
                         jt.internedName());
             }
             nextToken();
-        } else if (jt == JmlTokenKind.EXAMPLE || jt == JmlTokenKind.NORMAL_EXAMPLE
+        } else if (ext == exampleClause || ext == normalExampleClause || ext == exceptionalExampleClause
+                || jt == JmlTokenKind.EXAMPLE || jt == JmlTokenKind.NORMAL_EXAMPLE
                 || jt == JmlTokenKind.EXCEPTIONAL_EXAMPLE) {
             if (!exampleSection) {
                 log.warning(pos(), "jml.example.keyword", "must",
                         jt.internedName());
             }
             nextToken();
-        } else if (jt == MODEL_PROGRAM) {
+        } else if (ext == modelprogramClause || jt == MODEL_PROGRAM) {
             nextToken(); // skip over the model_program token
 
 //            JCBlock stat = parseModelProgramBlock();
