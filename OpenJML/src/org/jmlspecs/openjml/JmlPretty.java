@@ -15,6 +15,7 @@ import org.jmlspecs.annotation.NonNull;
 
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
+import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
 import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.RecommendsClause;
@@ -555,12 +556,12 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 modOrCodeOrBehavior = true;
             }
             if (that.code) {
-                print(JmlTokenKind.CODE.internedName());
+                print(MethodSimpleClauseExtensions.codeID);
                 print(" ");
                 modOrCodeOrBehavior = true;
             }
-            if (that.token == JmlTokenKind.MODEL_PROGRAM) {
-                print(that.token.internedName());
+            if (that.token == MethodSimpleClauseExtensions.modelprogramClause) {
+                print(MethodSimpleClauseExtensions.modelprogramID);
                 print(" ");
                 that.block.accept(this);
                 return;
@@ -568,7 +569,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (that.token == null) {
                 // lightweight
             } else {
-                print(that.token.internedName());
+                print(that.token.keyword);
                 if (that.name != null) {
                     print(" ");
                     print(that.name);

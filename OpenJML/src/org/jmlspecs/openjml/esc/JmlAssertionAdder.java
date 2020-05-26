@@ -41,6 +41,7 @@ import static org.jmlspecs.openjml.ext.FrameExpressions.*;
 import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
 import static org.jmlspecs.openjml.ext.Operators.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.requiresClauseKind;
+import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
 import org.jmlspecs.openjml.ext.CallableClauseExtension;
 import org.jmlspecs.openjml.ext.EndStatement;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
@@ -8615,12 +8616,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     elseExpression = treeutils.falseLit;
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
                         if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
-                        if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue; // exceptional behavior clauses are not used for pure functions within JML expressions
+                        if (translatingJML && cs.token == exceptionalBehaviorClause) continue; // exceptional behavior clauses are not used for pure functions within JML expressions
                         if (mpsym != calleeMethodSym && cs.code) continue;
                         if (cs.block != null) hasAModelProgram = true;
                         numCases++;
-                        if (cs.token != JmlTokenKind.NORMAL_BEHAVIOR) allCasesNormal = false;
-                        if (cs.token == JmlTokenKind.NORMAL_BEHAVIOR) someCasesNormal = true;
+                        if (cs.token != normalBehaviorClause) allCasesNormal = false;
+                        if (cs.token == normalBehaviorClause) someCasesNormal = true;
                         preconditionDetail2++;
                         anyVisibleSpecCases = true;
                         JCExpression preId = null; // JCIdent or JCLiteral
@@ -8918,7 +8919,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                         for (JmlSpecificationCase cs : calleeSpecs.cases) {
                           if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
-                          if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
+                          if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
                           if (mpsym != calleeMethodSym && cs.code) continue;
                           JavaFileObject prev = log.useSource(cs.source());
                           JCExpression pre = calleePreconditions.get(cs);
@@ -9210,7 +9211,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
                       if (mpsym != calleeMethodSym && cs.code) continue;
                       if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
-                      if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
+                      if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
                       JCExpression pre = convertCopy(calleePreconditions.get(cs));
                       if (treeutils.isFalseLit(pre)) continue;
                       JavaFileObject prev = log.useSource(cs.source());
@@ -9357,7 +9358,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 notImplemented(clause.keyword + " clause containing ",e, clause.source());
                             }
                         }
-                        if (useDefault && !translatingJML && cs.token != JmlTokenKind.MODEL_PROGRAM && cs.block == null && !inliningCall) {
+                        if (useDefault && !translatingJML && cs.token != modelprogramClause && cs.block == null && !inliningCall) {
                             log.warning(cs,"jml.internal","Unexpected absence of an assignable clause after desugaring: " + mpsym.owner + " " + mpsym.toString());
                         }
                       } finally {
@@ -9574,7 +9575,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
                         if (cs.block != null) hasModelProgramBlocks = true;
                         if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
-                        if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
+                        if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
                         if (mpsym != calleeMethodSym && cs.code) continue;
                         ListBuffer<JCStatement> ensuresStats = new ListBuffer<JCStatement>();
                         ListBuffer<JCStatement> exsuresStats = new ListBuffer<JCStatement>();
@@ -10196,7 +10197,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 LinkedList<ListBuffer<JCStatement>> temptt = markBlock();
                 for (JmlSpecificationCase cs : calleeSpecs.cases) {
                     if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
-                    if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
+                    if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
                     if (mpsym != calleeMethodSym && cs.code) continue;
 
                     if (cs.block != null && !localVariables.isEmpty()) {
@@ -18308,7 +18309,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 for (JmlSpecificationCase cs : calleeSpecs.cases) {
                     if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
                     //if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
-                    if (cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
+                    if (cs.token == exceptionalBehaviorClause) continue;
                     // FIXME - will need to add OLD and FORALL clauses in here
                     if (cs.code && mpsym.owner != msym.owner) continue;
                     

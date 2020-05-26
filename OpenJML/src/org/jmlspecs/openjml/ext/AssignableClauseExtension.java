@@ -59,7 +59,7 @@ public class AssignableClauseExtension extends JmlExtension.MethodClause {
     public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             assignableClauseKind, accessibleClause, capturesClause }; }
     
-    public static class LocationSetClauseType extends IJmlClauseKind.MethodClause {
+    public static class LocationSetClauseType extends IJmlClauseKind.MethodSpecClause {
         public LocationSetClauseType() { super(null); }
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }

@@ -41,7 +41,7 @@ public class MethodDeclClauseExtension extends JmlExtension.MethodClause  {
     public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             oldClause, forallClause }; }
     
-    public static class MethodClauseDeclType extends IJmlClauseKind.MethodClause {
+    public static class MethodClauseDeclType extends IJmlClauseKind.MethodSpecClause {
         public MethodClauseDeclType(String keyword) { super(keyword); }
         @Override
         public 

@@ -2069,18 +2069,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected void handleCase(JmlSpecificationCase parent, JmlMethodDecl decl,
             ListBuffer<JmlSpecificationCase> newlist, JmlSpecificationCase cse,
             ListBuffer<JmlMethodClause> pr, JCModifiers mods) {
-        if (cse.token == JmlTokenKind.MODEL_PROGRAM) {
+        if (cse.token == modelprogramClause) {
             newlist.append(cse);  // FIXME - check that model programs are only at the outer level
             return;
         }
         if (parent == null) {
             JmlTree.Maker jmlF = (JmlTree.Maker)make;
-            JmlTokenKind t = cse.token;
-            if (t == JmlTokenKind.NORMAL_BEHAVIOR || t == JmlTokenKind.NORMAL_EXAMPLE) {
+            IJmlClauseKind t = cse.token;
+            if (t == normalBehaviorClause || t == normalExampleClause) {
                 JmlMethodClauseSignals cl = jmlF.at(cse.pos).JmlMethodClauseSignals(signalsID, signalsClauseKind,null,falseLit);
                 cl.sourcefile = cse.sourcefile;
                 pr.append(cl);
-            } else if (t == JmlTokenKind.EXCEPTIONAL_BEHAVIOR || t == JmlTokenKind.EXCEPTIONAL_EXAMPLE) {
+            } else if (t == exceptionalBehaviorClause || t == exceptionalExampleClause) {
                 JmlMethodClauseExpr cl = jmlF.at(cse.pos).JmlMethodClauseExpr(ensuresID, ensuresClauseKind,falseLit);
                 cl.sourcefile = cse.sourcefile;
                 pr.append(cl);
@@ -2137,7 +2137,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 continue;
             }
             if (exlist != null) {
-                JmlSpecificationCase scase = jmlMaker.JmlSpecificationCase(decl.mods,false,JmlTokenKind.BEHAVIOR,null,exlist.toList(),null);
+                JmlSpecificationCase scase = jmlMaker.JmlSpecificationCase(decl.mods,false,behaviorClause,null,exlist.toList(),null);
                 newlist.append(scase);
                 exlist = null;
                 signalsOnly = null;
@@ -2148,17 +2148,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 return deNest(prefix,((JmlMethodClauseGroup)m).cases, parent,decl, mods);
             }
             if (t == ensuresClauseKind) {
-                if (parent.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR || parent.token == JmlTokenKind.EXCEPTIONAL_EXAMPLE) {
+                if (parent.token == exceptionalBehaviorClause || parent.token == exceptionalExampleClause) {
                     log.error(m.pos,"jml.misplaced.clause","Ensures","exceptional");
                     continue;
                 }
             } else if (t == signalsClauseKind) {
-                if (parent.token == JmlTokenKind.NORMAL_BEHAVIOR || parent.token == JmlTokenKind.NORMAL_EXAMPLE) {
+                if (parent.token == normalBehaviorClause || parent.token == normalExampleClause) {
                     log.error(m.pos,"jml.misplaced.clause","Signals","normal");
                     continue;
                 }
             } else if (t == signalsOnlyClauseKind) {
-                if (parent.token == JmlTokenKind.NORMAL_BEHAVIOR || parent.token == JmlTokenKind.NORMAL_EXAMPLE) {
+                if (parent.token == normalBehaviorClause || parent.token == normalExampleClause) {
                     log.error(m.pos,"jml.misplaced.clause","Signals_only","normal");
                     continue;
                 }
@@ -2223,7 +2223,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             prefix.append(m);
         }
         if (exlist != null) {
-            JmlSpecificationCase scase = jmlMaker.JmlSpecificationCase(decl.mods,false,JmlTokenKind.BEHAVIOR,null,exlist.toList(),null);
+            JmlSpecificationCase scase = jmlMaker.JmlSpecificationCase(decl.mods,false,behaviorClause,null,exlist.toList(),null);
             newlist.append(scase);
             exlist = null;
             signalsOnly = null;
@@ -6634,7 +6634,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (kind == ensuresClauseKind ||
                 kind == signalsClauseKind ||
                 kind == signalsOnlyClauseKind) return false;
-        if (kind instanceof IJmlClauseKind.MethodClause) return true;
+        if (kind instanceof IJmlClauseKind.MethodSpecClause) return true;
         return false;
     }
     

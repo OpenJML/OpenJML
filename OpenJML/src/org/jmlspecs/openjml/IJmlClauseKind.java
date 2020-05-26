@@ -273,6 +273,10 @@ public abstract class IJmlClauseKind {
         }
     }
     
+    public static abstract class MethodSpecClause extends MethodClause {
+        public MethodSpecClause(String keyword) { super(keyword); }
+    }
+    
     public static abstract class Statement extends IJmlClauseKind{
         public Statement(String keyword) { super(keyword); }
         public boolean oldNoLabelAllowed() { return true; }

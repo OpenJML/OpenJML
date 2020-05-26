@@ -41,6 +41,7 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
 import org.jmlspecs.openjml.vistors.JmlTreeCopier;
 
@@ -1048,7 +1049,7 @@ public class JmlSpecs {
 
             JmlMethodClauseSignals sig = M.at(pos).JmlMethodClauseSignals(signalsID, signalsClauseKind, null, JmlTreeUtils.instance(context).falseLit);
             JCModifiers csm = M.at(pos).Modifiers(mods.flags & Flags.AccessFlags);
-            JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false,JmlTokenKind.BEHAVIOR,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig),null);
+            JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false, MethodSimpleClauseExtensions.behaviorClause,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig),null);
             mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
             return mspecs;
             // FIXME - this case should happen only if parent constructors are pure and have no signals clause
@@ -1137,7 +1138,7 @@ public class JmlSpecs {
             } else {
                 break xx;
             }
-            JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false,JmlTokenKind.BEHAVIOR,null,clauses,null);
+            JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false, MethodSimpleClauseExtensions.behaviorClause,null,clauses,null);
             mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
             mspecs.mods.annotations = addPureAnnotation(pos, mspecs.mods.annotations);
             return mspecs;
@@ -1171,7 +1172,7 @@ public class JmlSpecs {
         if (decl == null) clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,clpa,cl);
         else clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(cl);
         JCModifiers csm = M.at(pos).Modifiers(mods.flags & Flags.AccessFlags);
-        JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase(csm, false, JmlTokenKind.BEHAVIOR,null,clauses,null);
+        JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase(csm, false, MethodSimpleClauseExtensions.behaviorClause,null,clauses,null);
         mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
         if (decl == null) mspecs.cases.deSugared = mspecs.cases;
         return mspecs;
