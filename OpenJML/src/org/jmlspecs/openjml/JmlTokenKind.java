@@ -105,19 +105,19 @@ public enum JmlTokenKind implements ITokenKind {
 //    WRITABLE("writable"),
     
     // These are related to specification cases
-    ALSO("also"),  // Keep this one first
-    NORMAL_BEHAVIOR("normal_behavior"),
-    BEHAVIOR("behavior"),
-    EXCEPTIONAL_BEHAVIOR("exceptional_behavior"),
-    FEASIBLE_BEHAVIOR("feasible_behavior"),
-    ABRUPT_BEHAVIOR("abrupt_behavior"),
-    NORMAL_EXAMPLE("normal_example"),
-    EXAMPLE("example"),
-    EXCEPTIONAL_EXAMPLE("exceptional_example"),
-    MODEL_PROGRAM("model_program"),
-    IMPLIES_THAT("implies_that"),
-    FOR_EXAMPLE("for_example"),
-    CODE("code"),  // Keep this one last
+//    ALSO("also"),  // Keep this one first
+//    NORMAL_BEHAVIOR("normal_behavior"),
+//    BEHAVIOR("behavior"),
+//    EXCEPTIONAL_BEHAVIOR("exceptional_behavior"),
+//    FEASIBLE_BEHAVIOR("feasible_behavior"),
+//    ABRUPT_BEHAVIOR("abrupt_behavior"),
+//    NORMAL_EXAMPLE("normal_example"),
+//    EXAMPLE("example"),
+//    EXCEPTIONAL_EXAMPLE("exceptional_example"),
+//    MODEL_PROGRAM("model_program"),
+//    IMPLIES_THAT("implies_that"),
+//    FOR_EXAMPLE("for_example"),
+//      CODE("code"),  // Keep this one last
     
     // These are the method clause types
 //    REQUIRES("requires"),   // Keep this one first
@@ -330,8 +330,8 @@ public enum JmlTokenKind implements ITokenKind {
         }
     }
     
-    /** This is the set of tokens that can occur at the beginning of a specification case */
-    public final static EnumSet<JmlTokenKind> specCaseTokens = EnumSet.range(ALSO,CODE);
+//    /** This is the set of tokens that can occur at the beginning of a specification case */
+//    public final static EnumSet<JmlTokenKind> specCaseTokens = EnumSet.range(CODE,CODE);
     
     static {
         

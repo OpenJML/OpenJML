@@ -36,7 +36,7 @@ public class SignalsOnlyClauseExtension extends JmlExtension.MethodClause {
     public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
             signalsOnlyClauseKind }; }
     
-    public static final IJmlClauseKind signalsOnlyClauseKind = new IJmlClauseKind.MethodClause(signalsOnlyID) {
+    public static final IJmlClauseKind signalsOnlyClauseKind = new IJmlClauseKind.MethodSpecClause(signalsOnlyID) {
         @Override
         public boolean oldNoLabelAllowed() { return false; }
         @Override

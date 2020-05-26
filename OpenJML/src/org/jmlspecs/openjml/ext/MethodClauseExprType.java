@@ -14,7 +14,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 
-public class MethodClauseExprType extends IJmlClauseKind.MethodClause {
+public class MethodClauseExprType extends IJmlClauseKind.MethodSpecClause {
     
     public MethodClauseExprType(String keyword) {
         super(keyword);
