@@ -34,6 +34,14 @@ public class LineAnnotationClauses extends JmlExtension.LineAnnotation {
     public static final String forbidID = "forbid";
     public static final String ignoreID = "ignore";
     public static final String nowarnID = "nowarn";
+    public static final IJmlClauseKind allowClauseKind = new ExceptionLineAnnotationKind(allowID);
+    public static final IJmlClauseKind forbidClauseKind = new ExceptionLineAnnotationKind(forbidID);
+    public static final IJmlClauseKind ignoreClauseKind = new ExceptionLineAnnotationKind(ignoreID);
+    
+    // We use ExceptionnLineAnnotationKind for nowarn annotations in order to share the scan method,
+    // even though it is handled differently and does not hold a list of exceptions
+    public static final IJmlClauseKind nowarnClauseKind = new ExceptionLineAnnotationKind(nowarnID);
+    
     
     public static class ExceptionLineAnnotationKind extends IJmlClauseKind.LineAnnotationKind {
         public ExceptionLineAnnotationKind(String keyword) { super(keyword); }
@@ -111,16 +119,6 @@ public class LineAnnotationClauses extends JmlExtension.LineAnnotation {
         }
         
     }
-    
-    public static final IJmlClauseKind allowClauseKind = new ExceptionLineAnnotationKind(allowID);
-    
-    public static final IJmlClauseKind forbidClauseKind = new ExceptionLineAnnotationKind(forbidID);
-    
-    public static final IJmlClauseKind ignoreClauseKind = new ExceptionLineAnnotationKind(ignoreID);
-    
-    // We use ExceptionnLineAnnotationKind for nowarn annotations in order to share the scan method,
-    // even though it is handled differently and does not hold a list of exceptions
-    public static final IJmlClauseKind nowarnClauseKind = new ExceptionLineAnnotationKind(nowarnID);
     
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }

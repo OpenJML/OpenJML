@@ -40,11 +40,13 @@ public class SignalsClauseExtension extends JmlExtension.MethodClause {
     public void register() {
         Extensions.typeMethodClauses.put("exsures",signalsClauseKind);
         Extensions.statementMethodClauses.put("exsures",signalsClauseKind);
+        Extensions.allKinds.put("exsures",signalsClauseKind);
         Extensions.typeMethodClauses.put("throws",signalsClauseKind);
         Extensions.statementMethodClauses.put("throws",signalsClauseKind);
+        Extensions.allKinds.put("throws",signalsClauseKind);
     }
     
-    public static final IJmlClauseKind signalsClauseKind = new IJmlClauseKind.MethodSpecClause(signalsID) {
+    public static final IJmlClauseKind signalsClauseKind = new IJmlClauseKind.MethodSpecClauseKind(signalsID) {
         @Override
         public boolean oldNoLabelAllowed() { return true; }
         @Override

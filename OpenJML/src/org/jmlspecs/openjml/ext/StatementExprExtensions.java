@@ -38,6 +38,9 @@ public class StatementExprExtensions extends JmlExtension.Statement {
     
     @Override
     public void register() {
+        Extensions.allKinds.put("decreases",loopdecreasesClause);
+        Extensions.allKinds.put("decreasing",loopdecreasesClause);
+        Extensions.allKinds.put("maintaining",loopinvariantClause);
         Extensions.statementMethodClauses.put("decreases",loopdecreasesClause);
         Extensions.statementMethodClauses.put("decreasing",loopdecreasesClause);
         Extensions.statementMethodClauses.put("maintaining",loopinvariantClause);

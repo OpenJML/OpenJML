@@ -51,7 +51,7 @@ public class FrameExpressions extends ExpressionExtension {
         return null;
     }
     
-    public static class FrameExpression extends IJmlClauseKind.Expression {
+    public static class FrameExpression extends IJmlClauseKind.ExpressionKind {
         public FrameExpression(String keyword) { super(keyword); }
         @Override
         public JCExpression parse(JCModifiers mods, String keyword,

@@ -40,7 +40,7 @@ public class MethodConditionalClauseExtension extends JmlExtension.MethodClause 
     public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             durationClause, measuredbyClause, workingspaceClause}; }
     
-    public static class MethodConditionalClauseType extends IJmlClauseKind.MethodSpecClause {
+    public static class MethodConditionalClauseType extends IJmlClauseKind.MethodSpecClauseKind {
         public MethodConditionalClauseType(String keyword) { super(keyword); }
 
         @Override

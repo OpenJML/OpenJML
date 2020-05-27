@@ -63,7 +63,7 @@ public class Operators extends JmlExtension {
 
     static public JmlTokenKind[] tokens() { return null; }
 
-    public static class Operator extends IJmlClauseKind.Singleton {
+    public static class Operator extends IJmlClauseKind.SingletonKind {
         public Operator(String name) { super(name); }
         
         @Override

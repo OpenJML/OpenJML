@@ -69,7 +69,7 @@ public class MethodSimpleClauseExtensions extends JmlExtension.MethodClause {
             normalExampleClause, exceptionalExampleClause, forExampleClause, exampleClause, impliesThatClause, 
             }; }
     
-    public static class MethodKeywordClauseType extends IJmlClauseKind.MethodClause {
+    public static class MethodKeywordClauseType extends IJmlClauseKind.MethodClauseKind {
         public MethodKeywordClauseType(String keyword) { super(keyword); }
         @Override
         public 
@@ -92,6 +92,7 @@ public class MethodSimpleClauseExtensions extends JmlExtension.MethodClause {
     }
     
     public void synonym(String s, IJmlClauseKind t) {
+        Extensions.allKinds.put(s,t);
         Extensions.typeMethodClauses.put(s,t);
         Extensions.statementMethodClauses.put(s,t);
     }

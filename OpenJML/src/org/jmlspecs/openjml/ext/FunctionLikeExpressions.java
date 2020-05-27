@@ -77,7 +77,7 @@ public class FunctionLikeExpressions extends ExpressionExtension {
     }
 
     public static final String elemtypeID = "\\elemtype";
-    public static final IJmlClauseKind elemtypeKind = new IJmlClauseKind.FunctionLikeExpression(elemtypeID) {
+    public static final IJmlClauseKind elemtypeKind = new IJmlClauseKind.FunctionLikeExpressionKind(elemtypeID) {
 
         @Override
         public Type typecheck(JmlAttr attr, JCTree tr, Env<AttrContext> localEnv) {
@@ -112,7 +112,7 @@ public class FunctionLikeExpressions extends ExpressionExtension {
     };
 
     public static final String typeofID = "\\typeof";
-    public static final IJmlClauseKind typeofKind = new IJmlClauseKind.FunctionLikeExpression(typeofID) {
+    public static final IJmlClauseKind typeofKind = new IJmlClauseKind.FunctionLikeExpressionKind(typeofID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             JmlMethodInvocation tree = (JmlMethodInvocation)expr;
@@ -128,7 +128,7 @@ public class FunctionLikeExpressions extends ExpressionExtension {
     };
 
     public static final String distinctID = "\\distinct";
-    public static final IJmlClauseKind distinctKind = new IJmlClauseKind.FunctionLikeExpression(distinctID) {
+    public static final IJmlClauseKind distinctKind = new IJmlClauseKind.FunctionLikeExpressionKind(distinctID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             // The result is boolean.
@@ -185,7 +185,7 @@ public class FunctionLikeExpressions extends ExpressionExtension {
     };
 
     public static final String isInitializedID = "\\isInitialized";
-    public static final IJmlClauseKind isInitializedKind = new IJmlClauseKind.FunctionLikeExpression(isInitializedID) {
+    public static final IJmlClauseKind isInitializedKind = new IJmlClauseKind.FunctionLikeExpressionKind(isInitializedID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             // The argument is a type that is a reference type; the result is boolean
@@ -207,7 +207,7 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         }        
     };
 
-    public static class OneArgExpression extends IJmlClauseKind.FunctionLikeExpression {
+    public static class OneArgExpression extends IJmlClauseKind.FunctionLikeExpressionKind {
         public OneArgExpression(String name) { super(name); }
         
         @Override
@@ -223,7 +223,7 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         }        
     };
 
-    public static class AnyArgExpressions extends IJmlClauseKind.FunctionLikeExpression {
+    public static class AnyArgExpressions extends IJmlClauseKind.FunctionLikeExpressionKind {
         public AnyArgExpressions(String name) { super(name); }
         
         // Unless overridden this returns the type of the first argument as the expression type

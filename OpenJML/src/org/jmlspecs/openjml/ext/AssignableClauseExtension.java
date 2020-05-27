@@ -50,6 +50,7 @@ public class AssignableClauseExtension extends JmlExtension.MethodClause {
     }
     
     public void synonym(String s, IJmlClauseKind t) {
+        Extensions.allKinds.put(s,t);
         Extensions.typeMethodClauses.put(s,t);
         Extensions.statementMethodClauses.put(s,t);
     }
@@ -59,7 +60,7 @@ public class AssignableClauseExtension extends JmlExtension.MethodClause {
     public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             assignableClauseKind, accessibleClause, capturesClause }; }
     
-    public static class LocationSetClauseType extends IJmlClauseKind.MethodSpecClause {
+    public static class LocationSetClauseType extends IJmlClauseKind.MethodSpecClauseKind {
         public LocationSetClauseType() { super(null); }
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }

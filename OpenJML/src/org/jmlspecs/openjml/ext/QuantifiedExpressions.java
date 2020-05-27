@@ -55,7 +55,7 @@ public class QuantifiedExpressions extends ExpressionExtension {
         return null;
     }
     
-    public static class QuantifiedExpression extends IJmlClauseKind.Expression {
+    public static class QuantifiedExpression extends IJmlClauseKind.ExpressionKind {
         public QuantifiedExpression(String keyword) { super(keyword); }
 
         @Override

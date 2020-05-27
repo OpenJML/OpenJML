@@ -74,7 +74,7 @@ public class MiscExpressions extends ExpressionExtension {
     }
 
     public static final String typelcID = "\\type";
-    public static final IJmlClauseKind typelcKind = new IJmlClauseKind.Expression(typelcID) {
+    public static final IJmlClauseKind typelcKind = new IJmlClauseKind.ExpressionKind(typelcID) {
 
         @Override
         public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
@@ -180,7 +180,7 @@ public class MiscExpressions extends ExpressionExtension {
     };
 
     public static final String bsmaxID = "\\max";
-    public static final IJmlClauseKind bsmaxKind = new IJmlClauseKind.Expression(bsmaxID) {
+    public static final IJmlClauseKind bsmaxKind = new IJmlClauseKind.ExpressionKind(bsmaxID) {
 
         @Override
         public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind kind, JmlParser parser) {
@@ -227,7 +227,7 @@ public class MiscExpressions extends ExpressionExtension {
         }
     };
 
-    public static class LabelExpression extends IJmlClauseKind.Expression {
+    public static class LabelExpression extends IJmlClauseKind.ExpressionKind {
         public LabelExpression(String keyword) { super(keyword); }
 
         @Override
