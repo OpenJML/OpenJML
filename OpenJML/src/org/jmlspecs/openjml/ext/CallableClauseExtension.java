@@ -35,7 +35,7 @@ public class CallableClauseExtension extends JmlExtension.MethodClause {
     public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
             callableClause }; }
     
-    public static final IJmlClauseKind callableClause = new IJmlClauseKind.MethodSpecClause(callableID) {
+    public static final IJmlClauseKind callableClause = new IJmlClauseKind.MethodSpecClauseKind(callableID) {
         @Override
         public boolean oldNoLabelAllowed() { return false; }
         @Override

@@ -50,7 +50,7 @@ public class Functional extends ExpressionExtension {
         super(context);
     }
     
-    static public class FunctionalKinds extends IJmlClauseKind.FunctionLikeExpression {
+    static public class FunctionalKinds extends IJmlClauseKind.FunctionLikeExpressionKind {
         public FunctionalKinds(String keyword) {
             super(keyword);
         }

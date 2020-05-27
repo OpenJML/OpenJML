@@ -421,8 +421,8 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
 
             if (t.kind == TokenKind.IDENTIFIER && jmlkeyword) {
                 String id = t.name().toString();
-                IJmlClauseKind lak = org.jmlspecs.openjml.Extensions.lineAnnotations.get(id);
-                if (lak!= null) {
+                IJmlClauseKind lak = org.jmlspecs.openjml.Extensions.allKinds.get(id);
+                if (lak instanceof IJmlClauseKind.LineAnnotationKind) {
                     scanLineAnnotation(reader.bp, id, lak);
                     continue;
                 }

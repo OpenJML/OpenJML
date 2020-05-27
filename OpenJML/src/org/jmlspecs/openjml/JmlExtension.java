@@ -85,11 +85,11 @@ public abstract class JmlExtension {
     public static abstract class LineAnnotation extends JmlExtension.Statement {
         public void register(Context context) {
             super.register(context);
-            IJmlClauseKind[] cTypes = clauseTypesA();
-            for (IJmlClauseKind t: cTypes) {
-                Extensions.lineAnnotations.put(t.name(), t);
-            }
-            //register();
+//            IJmlClauseKind[] cTypes = clauseTypesA();
+//            for (IJmlClauseKind t: cTypes) {
+//                Extensions.lineAnnotations.put(t.name(), t);
+//            }
+//            //register();
         }
     }
 

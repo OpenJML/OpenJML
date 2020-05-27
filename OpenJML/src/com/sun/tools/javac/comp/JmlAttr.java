@@ -3518,7 +3518,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         Env<AttrContext> localEnv = env;
         
         if (tree.kind != null) {
-            if (!(tree.kind instanceof IJmlClauseKind.Expression)) {
+            if (!(tree.kind instanceof IJmlClauseKind.ExpressionKind)) {
                 log.error(tree,"jml.message","Expected a " + tree.kind.name() + "to be a IJmlClauseKind.Expression");
                 result = tree.type = syms.errType;
             } else {
@@ -6602,7 +6602,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (kind == ensuresClauseKind ||
                 kind == signalsClauseKind ||
                 kind == signalsOnlyClauseKind) return false;
-        if (kind instanceof IJmlClauseKind.MethodSpecClause) return true;
+        if (kind instanceof IJmlClauseKind.MethodSpecClauseKind) return true;
         return false;
     }
     

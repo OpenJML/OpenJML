@@ -20,16 +20,20 @@ import java.util.jar.JarFile;
 
 import org.eclipse.core.runtime.Platform;
 import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlExtension.MethodClause;
 import org.jmlspecs.openjml.ext.*;
 import org.osgi.framework.Bundle;
 
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Types;
+import com.sun.tools.javac.parser.JmlToken;
+import com.sun.tools.javac.parser.Tokens.Token;
+import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Name;
 
-/** This class manages extensions. It finds them at application startup, and
+/** This class manages classes that define extensions. It finds them at application startup, and
  * creates instances of individual extension classes for compilation contexts.
  * This class is a tool in the compiler tool chain, though without a
  * corresponding OpenJDK tool to mimic. This class is not expected to be
@@ -43,8 +47,6 @@ public class Extensions {
     protected /*@ non_null */ Context context;
 
     //@ public constraint context == \old(context);
-    
-    protected static Utils utils;
     
     /** A constructor for the class; this class should not be
      * instantiated directly by users - use instance instead to get a
@@ -94,30 +96,29 @@ public class Extensions {
         return e;
     }
     
-    public @Nullable IJmlClauseKind findK(int pos, String token, boolean complain) {
-        return allKinds.get(token);
+    public static @Nullable IJmlClauseKind findKeyword(Token token) {
+        String id = token instanceof JmlToken ? ((JmlToken)token).jmlkind.internedName() : token.toString();
+        return allKinds.get(id);
     }
     
-    // Finds a type or method clause type for the given keyword
-    public @Nullable IJmlClauseKind findTM(int pos, String keyword, boolean complain) {
-        IJmlClauseKind e = typeMethodClauses.get(keyword);
-        if (e == null) {
-            // ERROR needed
-        }
-        return e;
+    // Finds a type or method clause kind for the given keyword
+    public @Nullable IJmlClauseKind findTM(String keyword) {
+        IJmlClauseKind ext = allKinds.get(keyword);
+        if (ext instanceof IJmlClauseKind.TypeClause || ext instanceof IJmlClauseKind.MethodClauseKind) return ext;
+        return null;
     }
     
-    // Finds a statement or method clause type for the given keyword
-    public @Nullable IJmlClauseKind findSM(int pos, String keyword, boolean complain) {
-        IJmlClauseKind e = statementMethodClauses.get(keyword);
-        if (e == null) {
-            // ERROR needed
-        }
-        return e;
+    // Finds a statement or method clause kind for the given keyword
+    public @Nullable IJmlClauseKind findSM(String keyword) {
+        IJmlClauseKind ext = allKinds.get(keyword);
+        if (ext instanceof IJmlClauseKind.IStatementKind || ext instanceof IJmlClauseKind.MethodClauseKind) return ext;
+        return null;
     }
     
     
-    /** Last resort list of classes that add extensions to the Parser */
+    /** Last resort list of classes that add extensions to the Parser.
+     *  Typically these are found by listing all the classes in
+     *  the org.jmlspecs.openjml.ext package */  // TODO - check this list
     static Class<?>[] extensions = { FunctionLikeExpressions.class, 
             // Expressions
             Arithmetic.class, 
@@ -182,7 +183,7 @@ public class Extensions {
     static public Map<String,JmlExtension.ClassLike> classLike = new HashMap<>();
     static public Map<String,IJmlClauseKind> typeMethodClauses = new HashMap<>();
     static public Map<String,IJmlClauseKind> statementMethodClauses = new HashMap<>();
-    static public Map<String,IJmlClauseKind> lineAnnotations = new HashMap<>();
+    //static public Map<String,IJmlClauseKind> lineAnnotations = new HashMap<>();
     static public Map<String,IJmlClauseKind> expressionKinds = new HashMap<>();
     static public Map<String,IJmlClauseKind> allKinds = new HashMap<>();
 
@@ -257,7 +258,7 @@ public class Extensions {
                 try {
                     IJmlClauseKind kind = (IJmlClauseKind)f.get(null);
                     if (kind != null) allKinds.put(kind.name(), kind);
-                    if (kind instanceof IJmlClauseKind.Expression) expressionKinds.put(kind.name(), kind);
+                    if (kind instanceof IJmlClauseKind.ExpressionKind) expressionKinds.put(kind.name(), kind);
                 } catch (IllegalAccessException e) {
                     // Error - this should nnever happen
                 }
@@ -375,6 +376,7 @@ public class Extensions {
         String path = packageName.replace('.', '/');
         ArrayList<String> foundClassNames = new ArrayList<String>();
         int methodThatWorked = -1;
+        String prefix = "jar:file:";
         
         // This approach works in the development environment
         Enumeration<URL> resources = classLoader.getResources(path);
@@ -384,14 +386,11 @@ public class Extensions {
             JarFile jar = null;
             try {
                 String n = resource.toString().replace('\\', '/');
-                String prefix = "jar:file:";
                 if (n.startsWith(prefix)) {
                     int k = n.indexOf("!");
                     if (k < 0) continue;
                     jar = new JarFile(n.substring(prefix.length(),k));
                     Enumeration<JarEntry> entries = jar.entries();
-//                    JarEntry je = jar.getJarEntry(path);
-//                    System.out.println("JE: " + je.getName());
                     // Really would like to iterate over the directory named
                     // by 'path', instead of over every entry in the jar file
                     while (entries.hasMoreElements()) {
@@ -404,9 +403,10 @@ public class Extensions {
                             name = name.substring(0,k);
                             //System.out.println("FOUND1 " + name);
                             foundClassNames.add(name);
-                            methodThatWorked = 1;
                         }
                     }
+                    methodThatWorked = 1;
+
                 } else {
 
                     File dir = new File(resource.getFile());
@@ -420,8 +420,8 @@ public class Extensions {
                         name = name.substring(0,k);
                         //System.out.println("FOUND2 " + name);
                         foundClassNames.add(name);
-                        methodThatWorked = 2;
                     }
+                    methodThatWorked = 2;
                 }
             } catch (Exception e) {
                 // Just continue - this method does not work
@@ -444,8 +444,8 @@ public class Extensions {
                     if (k > 0) pn = pn.substring(0,k);
                     //System.out.println("FOUND3 " + pn);
                     foundClassNames.add(pn);
-                    methodThatWorked = 3;
                 }
+                methodThatWorked = 3;
             } catch (Throwable e) {
                 // This will happen if we are not in a plug-in
             }
@@ -464,6 +464,7 @@ public class Extensions {
                     if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).getWriter(Log.WriterKind.NOTICE).println("Failed to register " + cl.getName());
                 }
             }
+
         } else {
         
             for (String name: foundClassNames) {

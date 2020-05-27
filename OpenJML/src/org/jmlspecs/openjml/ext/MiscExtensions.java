@@ -63,7 +63,7 @@ public class MiscExtensions extends JmlExtension {
 
     static public JmlTokenKind[] tokens() { return null; }
 
-    public static class NoTypeMisc extends IJmlClauseKind.Singleton {
+    public static class NoTypeMisc extends IJmlClauseKind.SingletonKind {
         public NoTypeMisc(String name) { super(name); }
         
         @Override
@@ -72,7 +72,7 @@ public class MiscExtensions extends JmlExtension {
         }
     };
 
-    public static class NotImplemented extends IJmlClauseKind.Singleton {
+    public static class NotImplemented extends IJmlClauseKind.SingletonKind {
         public NotImplemented(String name) { super(name); }
         
         @Override
@@ -89,7 +89,7 @@ public class MiscExtensions extends JmlExtension {
     };
 
     public static final String notspecifiedID = "\\not_specified";
-    public static final IJmlClauseKind notspecifiedKind = new IJmlClauseKind.Singleton(notspecifiedID) {
+    public static final IJmlClauseKind notspecifiedKind = new IJmlClauseKind.SingletonKind(notspecifiedID) {
         // \not_specified can be used in place of an expression, so it needs to return a type. We use an error type
         // so that no error messages are propagated
         @Override

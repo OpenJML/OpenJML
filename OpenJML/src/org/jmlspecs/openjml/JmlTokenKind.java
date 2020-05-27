@@ -316,7 +316,7 @@ public enum JmlTokenKind implements ITokenKind {
     public final static Set<IJmlClauseKind> methodClauseTokens = new HashSet<>();
     static {
         for (IJmlClauseKind ct: Extensions.typeMethodClauses.values()) {
-            if (ct instanceof IJmlClauseKind.MethodClause) methodClauseTokens.add(ct);
+            if (ct instanceof IJmlClauseKind.MethodClauseKind) methodClauseTokens.add(ct);
         }
     }
     

@@ -96,6 +96,7 @@ public class StatementLocationsExtension extends JmlExtension.Statement {
     }
     
     public void synonym(String s, IJmlClauseKind t) {
+        Extensions.allKinds.put(s,t);
         Extensions.statementMethodClauses.put(s,t);
     }
     

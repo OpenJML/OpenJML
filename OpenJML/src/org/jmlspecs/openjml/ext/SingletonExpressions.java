@@ -53,7 +53,7 @@ public class SingletonExpressions extends ExpressionExtension {
     }
     
     public static final String resultID ="\\result";
-    public static final IJmlClauseKind resultKind = new IJmlClauseKind.SingletonExpression(resultID) {
+    public static final IJmlClauseKind resultKind = new IJmlClauseKind.SingletonExpressionKind(resultID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
@@ -82,7 +82,7 @@ public class SingletonExpressions extends ExpressionExtension {
 
     
     public static final String elseID = "\\else";
-    public static final IJmlClauseKind elseKind = new IJmlClauseKind.SingletonExpression(elseID) {
+    public static final IJmlClauseKind elseKind = new IJmlClauseKind.SingletonExpressionKind(elseID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
@@ -97,7 +97,7 @@ public class SingletonExpressions extends ExpressionExtension {
     };
     
     public static final String countID = "\\count";
-    public static final IJmlClauseKind countKind = new IJmlClauseKind.SingletonExpression(countID) {
+    public static final IJmlClauseKind countKind = new IJmlClauseKind.SingletonExpressionKind(countID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
@@ -120,7 +120,7 @@ public class SingletonExpressions extends ExpressionExtension {
     public static final IJmlClauseKind indexKind = countKind;
     
     public static final String valuesID = "\\values";
-    public static final IJmlClauseKind valuesKind = new IJmlClauseKind.SingletonExpression(valuesID) {
+    public static final IJmlClauseKind valuesKind = new IJmlClauseKind.SingletonExpressionKind(valuesID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
@@ -146,11 +146,11 @@ public class SingletonExpressions extends ExpressionExtension {
     };
     
     public static final String informalCommentID = "(*...*)";
-    public static final IJmlClauseKind informalCommentKind = new IJmlClauseKind.SingletonExpression(informalCommentID) {
+    public static final IJmlClauseKind informalCommentKind = new IJmlClauseKind.SingletonExpressionKind(informalCommentID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            return Symtab.instance(context).booleanType;
+            return Symtab.instance(attr.context).booleanType;
         }
 
         @Override
@@ -160,7 +160,7 @@ public class SingletonExpressions extends ExpressionExtension {
     };
     
     public static final String exceptionID = "\\exception";
-    public static final IJmlClauseKind exceptionKind = new IJmlClauseKind.SingletonExpression(exceptionID) {
+    public static final IJmlClauseKind exceptionKind = new IJmlClauseKind.SingletonExpressionKind(exceptionID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
@@ -184,7 +184,7 @@ public class SingletonExpressions extends ExpressionExtension {
     };
     
     public static final String locksetID = "\\lockset";
-    public static final IJmlClauseKind locksetKind = new IJmlClauseKind.SingletonExpression(locksetID) {
+    public static final IJmlClauseKind locksetKind = new IJmlClauseKind.SingletonExpressionKind(locksetID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
             return attr.JMLSetType;
@@ -208,7 +208,8 @@ public class SingletonExpressions extends ExpressionExtension {
     }
     
     public void register(Context context) {
-        Extensions.expressionKinds.put("\\index", countKind);
+        Extensions.allKinds.put("\\index", countKind);
+        //Extensions.expressionKinds.put("\\index", countKind);
     }
 }
 
