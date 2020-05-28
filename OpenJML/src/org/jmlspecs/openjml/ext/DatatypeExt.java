@@ -140,12 +140,6 @@ public class DatatypeExt extends ClassLike {
         
     }
 
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() {
-        return null;
-    }
-    
     static public class JmlDatatypeDecl extends JmlClassDecl {
         
         public List<Pair<Name,List<JCVariableDecl> >> constructors;

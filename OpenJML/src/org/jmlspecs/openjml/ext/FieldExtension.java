@@ -2,6 +2,8 @@ package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.code.Kinds.VAL;
 
+import org.jmlspecs.openjml.JmlExtension;
+
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.Attr;
 import com.sun.tools.javac.comp.AttrContext;
@@ -18,7 +20,7 @@ import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
  *  Note that this extension is rarely needed because regular classes
  *  can include model fields defined in JML.
  */
-public abstract class FieldExtension {
+public abstract class FieldExtension extends JmlExtension {
 
     abstract Type typecheck(JmlAttr attr, Env<AttrContext> env, JCFieldAccess tree);
     

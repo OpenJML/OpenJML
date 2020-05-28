@@ -33,10 +33,10 @@ public class StatementLocationsExtension extends JmlExtension.Statement {
     
     public static final IJmlClauseKind loopwritesStatement = new LocationSetStatementType(loopwritesID);
     
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            havocStatement, loopwritesStatement }; }
+    public void register() {
+        synonym("loop_assigns",loopwritesStatement);
+        synonym("loop_modifies",loopwritesStatement);
+    }
     
     public static class LocationSetStatementType extends IJmlClauseKind.Statement {
         public LocationSetStatementType(String keyword) { super(keyword); }
@@ -90,14 +90,4 @@ public class StatementLocationsExtension extends JmlExtension.Statement {
             return null;
         }
     }
-    public void register() {
-        synonym("loop_assigns",loopwritesStatement);
-        synonym("loop_modifies",loopwritesStatement);
-    }
-    
-    public void synonym(String s, IJmlClauseKind t) {
-        Extensions.allKinds.put(s,t);
-        Extensions.statementMethodClauses.put(s,t);
-    }
-    
 }

@@ -1,6 +1,5 @@
 package org.jmlspecs.openjml.ext;
 
-import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlOption;
 

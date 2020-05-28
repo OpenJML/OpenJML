@@ -61,13 +61,11 @@ public class MethodSimpleClauseExtensions extends JmlExtension.MethodClause {
         @Override public String name() { return "jml declaration"; }
     };
     
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            specGroupStartClause, specGroupEndClause, modelprogramClause, alsoClause, elseClause, codeClause,
-            normalBehaviorClause, exceptionalBehaviorClause, behaviorClause, feasibleBehaviorClause, abruptBehaviorClause,
-            normalExampleClause, exceptionalExampleClause, forExampleClause, exampleClause, impliesThatClause, 
-            }; }
+    public void register() {
+        synonym("normal_behaviour",normalBehaviorClause);
+        synonym("exceptional_behaviour",exceptionalBehaviorClause);
+        synonym("behaviour",behaviorClause);
+    }
     
     public static class MethodKeywordClauseType extends IJmlClauseKind.MethodClauseKind {
         public MethodKeywordClauseType(String keyword) { super(keyword); }
@@ -84,18 +82,5 @@ public class MethodSimpleClauseExtensions extends JmlExtension.MethodClause {
             return null;
         }
     }
-    
-    public void register() {
-        synonym("normal_behaviour",normalBehaviorClause);
-        synonym("exceptional_behaviour",exceptionalBehaviorClause);
-        synonym("behaviour",behaviorClause);
-    }
-    
-    public void synonym(String s, IJmlClauseKind t) {
-        Extensions.allKinds.put(s,t);
-        Extensions.typeMethodClauses.put(s,t);
-        Extensions.statementMethodClauses.put(s,t);
-    }
-
     
 }

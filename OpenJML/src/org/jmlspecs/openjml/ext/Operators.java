@@ -55,13 +55,6 @@ import com.sun.tools.javac.util.Name;
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
 public class Operators extends JmlExtension {
-    Context context;
-    
-    public Operators(Context context) {
-        this.context = context;
-    }
-
-    static public JmlTokenKind[] tokens() { return null; }
 
     public static class Operator extends IJmlClauseKind.SingletonKind {
         public Operator(String name) { super(name); }
@@ -123,12 +116,5 @@ public class Operators extends JmlExtension {
     public static final String endjmlcommentID = "@*/";
     public static final IJmlClauseKind endjmlcommentKind = new Operator(endjmlcommentID);
 
-    
-    @Override
-    public IJmlClauseKind[] clauseTypesA() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
 }
 

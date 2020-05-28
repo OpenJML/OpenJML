@@ -33,11 +33,6 @@ import com.sun.tools.javac.util.Name;
 public class TypeMonitorsForClauseExtension extends JmlExtension.TypeClause {
 
     public static final String monitorsforID = "monitors_for";
-
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            monitorsforClause}; }
     
     public static final IJmlClauseKind monitorsforClause = new IJmlClauseKind.TypeClause(monitorsforID) {
         public boolean oldNoLabelAllowed() { return false; }

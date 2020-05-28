@@ -157,14 +157,6 @@ public class Functional extends ExpressionExtension {
     static public final IJmlClauseKind readsExprKind = new FunctionalKinds("\\reads");
     static public final IJmlClauseKind writesExprKind = new FunctionalKinds("\\writes");
     
-    @Override
-    public IJmlClauseKind[] clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() {
-        return new IJmlClauseKind[] { requiresExprKind, ensuresExprKind, readsExprKind, writesExprKind};
-    }
-    
-    
-    // FIXME - get rid of the following two methods
 
     @Override
     public void checkParse(JmlParser parser, JmlMethodInvocation e) {

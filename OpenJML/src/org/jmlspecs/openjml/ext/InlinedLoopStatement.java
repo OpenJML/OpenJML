@@ -45,11 +45,6 @@ public class InlinedLoopStatement extends JmlExtension.Statement implements IJml
     
     public static final String inlinedloopID = "inlined_loop";
     
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            inlinedLoopStatement }; }
-    
     public List<JmlStatementLoop> loopSpecs;
 
     @Override

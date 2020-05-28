@@ -45,13 +45,6 @@ public class QuantifiedExpressions extends ExpressionExtension {
     public QuantifiedExpressions(Context context) {
         super(context);
     }
-
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() {
-        // TODO Auto-generated method stub
-        return null;
-    }
     
     public static class QuantifiedExpression extends IJmlClauseKind.ExpressionKind {
         public QuantifiedExpression(String keyword) { super(keyword); }

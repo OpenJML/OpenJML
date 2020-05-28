@@ -18,8 +18,6 @@ public abstract class ModifierExtension {
         return false;
     }
     
-    public static void register(Context context) {}
-    
     /** Returns the keyword representing the modifier, or null if there is none (only an annotation) */
     public abstract @Nullable String jmlKeyword();
     

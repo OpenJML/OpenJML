@@ -854,7 +854,9 @@ public class JmlParser extends JavacParser {
 //                    inJmlDeclaration = prev;
 //                    needSemi = false;
 
-                if (methodClauseTokens.contains(jtoken)) {
+                IJmlClauseKind ext = Extensions.findKeyword(token);
+                if (ext instanceof IJmlClauseKind.MethodClauseKind) {
+                //if (methodClauseTokens.contains(jtoken)) {
                     st = parseRefining(pos,jtoken);
                     needSemi = false;
 

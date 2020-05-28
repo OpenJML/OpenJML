@@ -55,13 +55,6 @@ import com.sun.tools.javac.util.Name;
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
 public class MiscExtensions extends JmlExtension {
-    Context context;
-    
-    public MiscExtensions(Context context) {
-        this.context = context;
-    }
-
-    static public JmlTokenKind[] tokens() { return null; }
 
     public static class NoTypeMisc extends IJmlClauseKind.SingletonKind {
         public NoTypeMisc(String name) { super(name); }
@@ -131,13 +124,5 @@ public class MiscExtensions extends JmlExtension {
     public static final String bsrepID = "\\rep";
     public static final IJmlClauseKind bsrepKind = new NoTypeMisc(bsrepID);
 
-    
-    
-    @Override
-    public IJmlClauseKind[] clauseTypesA() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
 }
 

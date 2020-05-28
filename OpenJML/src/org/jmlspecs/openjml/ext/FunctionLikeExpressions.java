@@ -57,13 +57,6 @@ public class FunctionLikeExpressions extends ExpressionExtension {
     }
 
     @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public void checkParse(JmlParser parser, JmlMethodInvocation e) {
         //        checkOneArg(parser,e);
     }

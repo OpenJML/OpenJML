@@ -37,12 +37,6 @@ public class TypeRWClauseExtension extends JmlExtension.TypeClause {
     
     public static final IJmlClauseKind writableClause = new RWClauseType(writableID);
 
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            readableClause, writableClause}; }
-    
-
     public static class RWClauseType extends IJmlClauseKind.TypeClause {
         public RWClauseType(String keyword) { super(keyword); }
         public boolean oldNoLabelAllowed() { return false; }

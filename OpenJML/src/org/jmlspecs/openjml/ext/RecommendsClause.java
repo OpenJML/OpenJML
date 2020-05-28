@@ -117,9 +117,4 @@ public class RecommendsClause extends JmlExtension.MethodClause {
         }
 
     }
-
-    @Override
-    public IJmlClauseKind[] clauseTypesA() {
-        return new IJmlClauseKind[] { recommendsClauseKind };
-    }
 }
