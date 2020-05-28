@@ -43,8 +43,6 @@ public class SingletonExpressions extends ExpressionExtension {
         this.jmltypes = JmlTypes.instance(context);
     }
 
-    static public JmlTokenKind[] tokens() { return null; }
-
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
     public static IJmlClauseKind[] clauseTypes() {

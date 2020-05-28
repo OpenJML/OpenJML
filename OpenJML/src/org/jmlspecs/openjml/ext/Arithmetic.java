@@ -55,10 +55,6 @@ abstract public class Arithmetic extends ExpressionExtension {
         this.intType = Symtab.instance(context).intType;
     }
     
-    static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
-//            JmlTokenKind.BSBIGINT_MATH, JmlTokenKind.BSJAVAMATH, JmlTokenKind.BSSAFEMATH
-            }; }
-    
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
     public static IJmlClauseKind[] clauseTypes() {

@@ -25,8 +25,8 @@ public class MatchExt extends ExpressionExtension {
         super(context);
     }
 
-    static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
-            JmlTokenKind.MATCH }; }
+//    static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
+//            JmlTokenKind.MATCH }; }
     
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }

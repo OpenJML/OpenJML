@@ -157,8 +157,6 @@ public class Functional extends ExpressionExtension {
     static public final IJmlClauseKind readsExprKind = new FunctionalKinds("\\reads");
     static public final IJmlClauseKind writesExprKind = new FunctionalKinds("\\writes");
     
-    static public JmlTokenKind[] tokens() { return null; }
-    
     @Override
     public IJmlClauseKind[] clauseTypesA() { return clauseTypes(); }
     public static IJmlClauseKind[] clauseTypes() {

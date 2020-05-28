@@ -56,14 +56,6 @@ public class FunctionLikeExpressions extends ExpressionExtension {
 
     }
 
-    static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
-//            JmlTokenKind.BSELEMTYPE, JmlTokenKind.BSTYPEOF,
-//            JmlTokenKind.BSOLD, JmlTokenKind.BSPAST, JmlTokenKind.BSPRE, JmlTokenKind.BSNOWARN, JmlTokenKind.BSNOWARNOP,
-//            JmlTokenKind.BSPOST, JmlTokenKind.BSASSIGNS,
-//            JmlTokenKind.BSWARN, JmlTokenKind.BSWARNOP,
-//            JmlTokenKind.BSBIGINT_MATH, JmlTokenKind.BSSAFEMATH, JmlTokenKind.BSJAVAMATH
-    }; }
-
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
     public static IJmlClauseKind[] clauseTypes() {

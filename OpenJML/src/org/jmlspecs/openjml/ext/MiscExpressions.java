@@ -59,8 +59,6 @@ public class MiscExpressions extends ExpressionExtension {
         super(context);
     }
 
-    static public JmlTokenKind[] tokens() { return null; }
-
     @Override
     public IJmlClauseKind[] clauseTypesA() { return clauseTypes(); }
     public static IJmlClauseKind[] clauseTypes() {
