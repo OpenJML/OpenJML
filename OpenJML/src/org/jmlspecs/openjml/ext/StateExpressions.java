@@ -43,8 +43,6 @@ public class StateExpressions extends ExpressionExtension {
         super(context);
     }
 
-    static public JmlTokenKind[] tokens() { return null; }
-
     @Override
     public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
     public static IJmlClauseKind[] clauseTypes() {
@@ -90,7 +88,7 @@ public class StateExpressions extends ExpressionExtension {
             Type t = null;
             if (tree.token == BSPRE) {
                 // pre
-                if (!attr.preTokens.contains(currentClauseType) && !currentClauseType.preAllowed()) {
+                if (!currentClauseType.preAllowed()) {
                     log.error(tree.pos+1, "jml.misplaced.old", "\\pre token", currentClauseType.name());
                     t = syms.errType;
                 }
@@ -98,13 +96,19 @@ public class StateExpressions extends ExpressionExtension {
                 // old with no label
                 if (attr.currentClauseType == null) {
                     // OK
-                } else if (!attr.oldNoLabelTokens.contains(currentClauseType) && (currentClauseType == null || !currentClauseType.oldNoLabelAllowed())) {
+                } else if (!currentClauseType.oldNoLabelAllowed() && currentClauseType != MethodSimpleClauseExtensions.declClause) {
+                    log.error(tree.pos+1, "jml.misplaced.old", "\\old token with no label", currentClauseType.name());
+                    t = syms.errType;
+                } else if (currentClauseType == MethodSimpleClauseExtensions.declClause && localEnv.enclMethod == null) {
                     log.error(tree.pos+1, "jml.misplaced.old", "\\old token with no label", currentClauseType.name());
                     t = syms.errType;
                 }
             } else {
                 // old with label
-                if (!attr.preTokens.contains(currentClauseType) && (currentClauseType == null || !currentClauseType.preOrOldWithLabelAllowed())) {
+                if (!currentClauseType.preOrOldWithLabelAllowed() && currentClauseType != MethodSimpleClauseExtensions.declClause) {
+                    attr.log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", currentClauseType.name());
+                    t = syms.errType;
+                } else if (currentClauseType == MethodSimpleClauseExtensions.declClause && localEnv.enclMethod == null) {
                     attr.log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", currentClauseType.name());
                     t = syms.errType;
                 }

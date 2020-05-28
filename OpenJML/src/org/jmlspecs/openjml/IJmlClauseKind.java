@@ -453,4 +453,9 @@ public abstract class IJmlClauseKind {
         public ModifierKind(String keyword) { super(keyword); }
     }
 
+    
+    public static abstract class ClassLikeKind extends IJmlClauseKind {
+        public ClassLikeKind(String keyword) { super(keyword); }
+    }
+
 }

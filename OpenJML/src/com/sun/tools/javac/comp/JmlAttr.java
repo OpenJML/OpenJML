@@ -3527,9 +3527,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
         } else {
             log.error(tree, "jml.message", "This sort of ExpressionExtension is obsolete: " + token.internedName());
-            ExpressionExtension ext = (ExpressionExtension)Extensions.instance(context).findE(tree.pos,token.internedName(),true);
-            Type ttt = ext.typecheck(this,tree,localEnv);
-            result = check(tree, ttt, VAL, resultInfo);
+//            ExpressionExtension ext = (ExpressionExtension)Extensions.instance(context).findE(tree.pos,token.internedName(),true);
+//            Type ttt = ext.typecheck(this,tree,localEnv);
+//            result = check(tree, ttt, VAL, resultInfo);
+            result = null; // FIXME - an error type?
         }
     }
     

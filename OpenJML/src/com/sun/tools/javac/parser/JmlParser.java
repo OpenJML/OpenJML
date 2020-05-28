@@ -26,6 +26,8 @@ import org.jmlspecs.openjml.ext.SingletonExpressions;
 
 import static org.jmlspecs.openjml.ext.ReachableStatement.*;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
+import org.jmlspecs.openjml.ext.MatchExt;
+
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
@@ -3359,16 +3361,20 @@ public class JmlParser extends JavacParser {
                         }
                     } else {
                         String id = token instanceof JmlToken ? ((JmlToken)token).jmlkind.internedName() : token.toString();
-                        ExpressionExtension ne = (ExpressionExtension)Extensions.instance(context).findE(pos(),id,false);
-                        if (ne == null) {
+                        if (id.equals("match")) {
+                            return new MatchExt(context).parse(this, typeArgs);
+                        } else {
+//                        ExpressionExtension ne = (ExpressionExtension)Extensions.instance(context).findE(pos(),id,false);
+//                        if (true || ne == null) {
                             jmlerror(p, endPos(), "jml.bad.type.expression",
                                     "( token " + token
                                     + " in JmlParser.term3())");
                             //                        jmlerror(p, endPos(), "jml.no.such.extension",
                             //                                jt.internedName());
                             return jmlF.at(p).Erroneous();
-                        } else {
-                            return ne.parse(this, typeArgs);
+//                        } else {
+//                            return ne.parse(this, typeArgs);
+//                        }
                         }
                     }
                 }

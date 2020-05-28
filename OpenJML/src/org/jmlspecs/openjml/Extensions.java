@@ -75,26 +75,26 @@ public class Extensions {
      * @param complain if true and failed to create an Extension instance, an error is issued
      * @return an instance of a ExpressionExtension object, or null if unrecoverable error
      */
-    public @Nullable JmlExtension findE(int pos, String token, boolean complain) {
-        JmlExtension e = extensionInstances.get(token);
-        if (e == null) {
-            Class<? extends JmlExtension> c = extensionClasses.get(token);
-            if (c == null) {
-                if (complain) Log.instance(context).error(pos,"jml.failure.to.create.JmlExtension",token);
-                return null;
-            }
-            try {
-                Constructor<? extends JmlExtension> constructor = c.getDeclaredConstructor(Context.class);
-                JmlExtension instance = constructor.newInstance(context);
-                extensionInstances.put(token,instance);
-                e = instance;
-            } catch (Exception ee) {
-                if (complain) Log.instance(context).error(pos,"jml.failure.to.create.ExpressionExtension",token);
-                return null;
-            }
-        }
-        return e;
-    }
+//    public @Nullable JmlExtension findE(int pos, String token, boolean complain) {
+//        JmlExtension e = extensionInstances.get(token);
+//        if (e == null) {
+//            Class<? extends JmlExtension> c = extensionClasses.get(token);
+//            if (c == null) {
+//                if (complain) Log.instance(context).error(pos,"jml.failure.to.create.JmlExtension",token);
+//                return null;
+//            }
+//            try {
+//                Constructor<? extends JmlExtension> constructor = c.getDeclaredConstructor(Context.class);
+//                JmlExtension instance = constructor.newInstance(context);
+//                extensionInstances.put(token,instance);
+//                e = instance;
+//            } catch (Exception ee) {
+//                if (complain) Log.instance(context).error(pos,"jml.failure.to.create.ExpressionExtension",token);
+//                return null;
+//            }
+//        }
+//        return e;
+//    }
     
     public static @Nullable IJmlClauseKind findKeyword(Token token) {
         String id = token instanceof JmlToken ? ((JmlToken)token).jmlkind.internedName() : token.toString();
@@ -177,14 +177,14 @@ public class Extensions {
     }
     
     /** A map from token name to the extension class that implements the token */
-    static protected Map<String,Class<? extends JmlExtension>> extensionClasses = new HashMap<>();
-    protected Map<String,JmlExtension> extensionInstances = new HashMap<>();
+//    static protected Map<String,Class<? extends JmlExtension>> extensionClasses = new HashMap<>();
+//    protected Map<String,JmlExtension> extensionInstances = new HashMap<>();
 
     static public Map<String,JmlExtension.ClassLike> classLike = new HashMap<>();
     static public Map<String,IJmlClauseKind> typeMethodClauses = new HashMap<>();
     static public Map<String,IJmlClauseKind> statementMethodClauses = new HashMap<>();
     //static public Map<String,IJmlClauseKind> lineAnnotations = new HashMap<>();
-    static public Map<String,IJmlClauseKind> expressionKinds = new HashMap<>();
+    //static public Map<String,IJmlClauseKind> expressionKinds = new HashMap<>();
     static public Map<String,IJmlClauseKind> allKinds = new HashMap<>();
 
     static protected Map<String,Class<? extends FieldExtension>> fieldClasses = new HashMap<>();
@@ -249,42 +249,42 @@ public class Extensions {
 //                }
 //            }
 //        }
-        int mask = Flags.FINAL|Flags.STATIC|Flags.PUBLIC;
-        for (Field f: cc.getDeclaredFields()) {
-            int mods = f.getModifiers();
-            // Look for final static public fields with type IJmlClauseKind
-            if ((mods & mask) != mask) continue;
-            if (IJmlClauseKind.class.isAssignableFrom(f.getType())) {
-                try {
-                    IJmlClauseKind kind = (IJmlClauseKind)f.get(null);
-                    if (kind != null) allKinds.put(kind.name(), kind);
-                    if (kind instanceof IJmlClauseKind.ExpressionKind) expressionKinds.put(kind.name(), kind);
-                } catch (IllegalAccessException e) {
-                    // Error - this should nnever happen
-                }
-            }
-        }
+//        int mask = Flags.FINAL|Flags.STATIC|Flags.PUBLIC;
+//        for (Field f: cc.getDeclaredFields()) {
+//            int mods = f.getModifiers();
+//            // Look for final static public fields with type IJmlClauseKind
+//            if ((mods & mask) != mask) continue;
+//            if (IJmlClauseKind.class.isAssignableFrom(f.getType())) {
+//                try {
+//                    IJmlClauseKind kind = (IJmlClauseKind)f.get(null);
+//                    if (kind != null) allKinds.put(kind.name(), kind);
+////                    if (kind instanceof IJmlClauseKind.ExpressionKind) expressionKinds.put(kind.name(), kind);
+//                } catch (IllegalAccessException e) {
+//                    // Error - this should nnever happen
+//                }
+//            }
+//        }
         if (ExpressionExtension.class.isAssignableFrom(cc)) {
-            @SuppressWarnings("unchecked")
-            Class<ExpressionExtension> c = (Class<ExpressionExtension>)cc;
-            JmlTokenKind[] tokens;
-            try {
-                Method m = c.getMethod("tokens");
-                tokens = (JmlTokenKind[])m.invoke(null);
-                if (tokens != null) for (JmlTokenKind t: tokens) {
-                    extensionClasses.put(t.internedName(), c);
-                    //clauseTypes.put(t.name(), t);
-                }
-                m = c.getMethod("clauseTypes");
-                if (m != null) {
-                    IJmlClauseKind[] kinds = (IJmlClauseKind[])m.invoke(null);
-                    if (kinds != null) for (IJmlClauseKind t: kinds) {
-                        expressionKinds.put(t.name(), t);
-                    }
-                }
-            } catch (Exception e) {
-                return false;
-            }
+//            @SuppressWarnings("unchecked")
+//            Class<ExpressionExtension> c = (Class<ExpressionExtension>)cc;
+//            JmlTokenKind[] tokens;
+//            try {
+//                Method m = c.getMethod("tokens");
+//                tokens = (JmlTokenKind[])m.invoke(null);
+//                if (tokens != null) for (JmlTokenKind t: tokens) {
+//                    extensionClasses.put(t.internedName(), c);
+//                    //clauseTypes.put(t.name(), t);
+//                }
+//                m = c.getMethod("clauseTypes");
+//                if (m != null) {
+//                    IJmlClauseKind[] kinds = (IJmlClauseKind[])m.invoke(null);
+//                    if (kinds != null) for (IJmlClauseKind t: kinds) {
+//                        expressionKinds.put(t.name(), t);
+//                    }
+//                }
+//            } catch (Exception e) {
+//                return false;
+//            }
             return true;
         } else if (FieldExtension.class.isAssignableFrom(cc)) {
             @SuppressWarnings("unchecked")

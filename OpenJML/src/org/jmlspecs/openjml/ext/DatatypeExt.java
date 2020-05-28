@@ -14,6 +14,9 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.comp.AttrContext;
+import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.Tokens.Comment;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
@@ -36,7 +39,8 @@ import com.sun.tools.javac.util.Pair;
 public class DatatypeExt extends ClassLike {
 
     public static final String name = "datatype";
-
+    public final IJmlClauseKind dataTypeKind = new DatatypeKind();
+    
     @Override
     public String name() {
         return name;
@@ -116,6 +120,24 @@ public class DatatypeExt extends ClassLike {
         
         // No upper or lower bounds on type parameters
         // Primitive types allowed
+    }
+    
+    public class DatatypeKind extends IJmlClauseKind.ClassLikeKind {
+        public DatatypeKind() { super(name); }
+
+        @Override
+        public JmlDatatypeDecl parse(JCModifiers mods, String keyword,
+                IJmlClauseKind clauseKind, JmlParser parser) {
+            // TODO Auto-generated method stub
+            return DatatypeExt.this.parse(parser, mods);
+        }
+
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+        
     }
 
     @Override
