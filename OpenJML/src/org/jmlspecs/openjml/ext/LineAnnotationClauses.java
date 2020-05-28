@@ -120,11 +120,6 @@ public class LineAnnotationClauses extends JmlExtension.LineAnnotation {
         
     }
     
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            allowClauseKind, forbidClauseKind, ignoreClauseKind, nowarnClauseKind }; }
-    
     public static class ExceptionLineAnnotation extends IJmlClauseKind.LineAnnotationKind.LineAnnotation {
         java.util.List<JCTree.JCExpression> exceptionTypes = new java.util.LinkedList<>();
 

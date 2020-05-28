@@ -25,11 +25,6 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 
 public class TypeInClauseExtension extends JmlExtension.TypeClause {
-
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            inClause}; }
     
     public static final String inID = "in";
     

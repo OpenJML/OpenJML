@@ -49,11 +49,6 @@ public class ReachableStatement extends JmlExtension.Statement {
 
     public static final IJmlClauseKind haltClause = new ExprStatementType(haltID);
 
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            reachableClause, unreachableClause, splitClause, haltClause }; }
-    
     public static class ExprStatementType extends IJmlClauseKind.Statement {
         public ExprStatementType(String keyword) { super(keyword); }
         public boolean oldNoLabelAllowed() { return true; }

@@ -39,11 +39,4 @@ public class MethodExprClauseExtensions extends JmlExtension.MethodClause {
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
     };
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            requiresClauseKind, ensuresClauseKind, divergesClause, whenClause,
-            continuesClause, breaksClause, returnsClause}; }
-    
 }

@@ -313,22 +313,22 @@ public enum JmlTokenKind implements ITokenKind {
     /** This is a set of all of the tokens that begin method specification clauses,
      * defined so that it is quick and easy to test for a given token.
      */
-    public final static Set<IJmlClauseKind> methodClauseTokens = new HashSet<>();
-    static {
-        for (IJmlClauseKind ct: Extensions.typeMethodClauses.values()) {
-            if (ct instanceof IJmlClauseKind.MethodClauseKind) methodClauseTokens.add(ct);
-        }
-    }
+//    public final static Set<IJmlClauseKind> methodClauseTokens = new HashSet<>();
+//    static {
+//        for (IJmlClauseKind ct: Extensions.typeMethodClauses.values()) {
+//            if (ct instanceof IJmlClauseKind.MethodClauseKind) methodClauseTokens.add(ct);
+//        }
+//    }
     
     /** This is a set of all of the tokens that begin JML statements in the body of a method,
      * defined so that it is quick and easy to test for a given token.
      */
-    public final static Set<IJmlClauseKind> methodStatementTokens = new HashSet<>();
-    static {
-        for (IJmlClauseKind ct: Extensions.statementMethodClauses.values()) {
-            if (ct instanceof IJmlClauseKind.Statement) methodStatementTokens.add(ct);
-        }
-    }
+//    public final static Set<IJmlClauseKind> methodStatementTokens = new HashSet<>();
+//    static {
+//        for (IJmlClauseKind ct: Extensions.statementMethodClauses.values()) {
+//            if (ct instanceof IJmlClauseKind.Statement) methodStatementTokens.add(ct);
+//        }
+//    }
     
 //    /** This is the set of tokens that can occur at the beginning of a specification case */
 //    public final static EnumSet<JmlTokenKind> specCaseTokens = EnumSet.range(CODE,CODE);

@@ -43,13 +43,6 @@ public class StateExpressions extends ExpressionExtension {
         super(context);
     }
 
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
     public static class StateExpression extends IJmlClauseKind.ExpressionKind {
         public StateExpression(String keyword) { super(keyword); }
         @Override

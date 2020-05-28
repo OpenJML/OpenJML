@@ -31,19 +31,10 @@ public class StatementExprExtensions extends JmlExtension.Statement {
     public static final IJmlClauseKind loopdecreasesClause = new StatementExprType(loopdecreasesID);
     
     @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            assertClause, checkClause, assumeClause, useClause, commentClause, hencebyClause,
-            loopinvariantClause, loopdecreasesClause }; }
-    
-    @Override
     public void register() {
-        Extensions.allKinds.put("decreases",loopdecreasesClause);
-        Extensions.allKinds.put("decreasing",loopdecreasesClause);
-        Extensions.allKinds.put("maintaining",loopinvariantClause);
-        Extensions.statementMethodClauses.put("decreases",loopdecreasesClause);
-        Extensions.statementMethodClauses.put("decreasing",loopdecreasesClause);
-        Extensions.statementMethodClauses.put("maintaining",loopinvariantClause);
+        synonym("decreases",loopdecreasesClause);
+        synonym("decreasing",loopdecreasesClause);
+        synonym("maintaining",loopinvariantClause);
     }
     
 }

@@ -42,13 +42,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
 
     public static final String representsID = "represents";
     //public static final String capturedID = "captured";
-    
-
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            representsClause}; }
-    
+        
     public static final IJmlClauseKind representsClause = new IJmlClauseKind.TypeClause(representsID) {
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }

@@ -3471,17 +3471,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         pureEnvironment = prev;
     }
     
-    // These are the annotation types in which \pre and \old with a label can be used (e.g. assert)
-    public Set<IJmlClauseKind> preTokens = JmlTokenKind.methodStatementTokens;
-    
-    // These are the annotation, method and type spec clause types in which \old without a label can be used
-    public Set<IJmlClauseKind> oldNoLabelTokens = JmlTokenKind.methodStatementTokens;
-    {
-        Set<IJmlClauseKind> t = new HashSet<>();
-        t.addAll(oldNoLabelTokens);
-        t.addAll(Utils.asSet(ensuresClauseKind,signalsClauseKind,constraintClause,durationClause,workingspaceClause,declClause)); // FIXME - double check JMLDECL
-        oldNoLabelTokens = t;
-    }
+//    // These are the annotation types in which \pre and \old with a label can be used (e.g. assert)
+//    public Set<IJmlClauseKind> preTokens = JmlTokenKind.methodStatementTokens;
+//    
+//    // These are the annotation, method and type spec clause types in which \old without a label can be used
+//    public Set<IJmlClauseKind> oldNoLabelTokens = JmlTokenKind.methodStatementTokens;
+//    {
+//        Set<IJmlClauseKind> t = new HashSet<>();
+//        t.addAll(oldNoLabelTokens);
+//        t.addAll(Utils.asSet(ensuresClauseKind,signalsClauseKind,constraintClause,durationClause,workingspaceClause,declClause)); // FIXME - double check JMLDECL
+//        oldNoLabelTokens = t;
+//    }
 
     public void visitJmlTuple(JmlTuple tree) {
         ListBuffer<Type> types = new ListBuffer<>();
@@ -5134,7 +5134,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
                 result = tree.type = check(tree, t, VAL, resultInfo);
             } else {
-                super.visitSelect(tree);
+                  super.visitSelect(tree);
                 // The super call does not always call check... (which assigns the
                 // determined type to tree.type, particularly if an error occurs,
                 // so we fill it in

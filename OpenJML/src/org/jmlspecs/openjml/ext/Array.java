@@ -25,8 +25,6 @@ import com.sun.tools.javac.util.Name;
  */
 public class Array extends FieldExtension {
 
-    public static void register(Context context) {}
-
     static public String[] ids() { return new String[]{
             "array"}; }
     

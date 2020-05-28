@@ -39,16 +39,10 @@ public class SetStatement extends JmlExtension.Statement {
 
     public static final String setID = "set";
     public static final String debugID = "debug";
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            setClause, debugClause }; }
-    
+   
     public static final IJmlClauseKind setClause = new JmlStatementType(setID);
     
-    public static final IJmlClauseKind debugClause = new JmlStatementType(debugID) {
-    };
+    public static final IJmlClauseKind debugClause = new JmlStatementType(debugID);
     
 
     public static class JmlStatementType extends IJmlClauseKind.Statement {

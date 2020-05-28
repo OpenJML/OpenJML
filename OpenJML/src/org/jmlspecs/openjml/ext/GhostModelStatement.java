@@ -45,15 +45,8 @@ public class GhostModelStatement extends JmlExtension.Statement {
     public static final String ghostID = "ghost";
     public static final String modelID = "model";
     
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            ghostDeclaration, modelDeclaration }; }
-    
     public static final IJmlClauseKind ghostDeclaration = new JmlDeclarationType(ghostID);
-    
-    public static final IJmlClauseKind modelDeclaration = new JmlDeclarationType(modelID) {
-    };
+    public static final IJmlClauseKind modelDeclaration = new JmlDeclarationType(modelID);
     
 
     public static class JmlDeclarationType extends IJmlClauseKind.Statement {

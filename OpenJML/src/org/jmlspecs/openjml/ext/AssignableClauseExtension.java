@@ -49,17 +49,6 @@ public class AssignableClauseExtension extends JmlExtension.MethodClause {
         synonym("reads",accessibleClause);
     }
     
-    public void synonym(String s, IJmlClauseKind t) {
-        Extensions.allKinds.put(s,t);
-        Extensions.typeMethodClauses.put(s,t);
-        Extensions.statementMethodClauses.put(s,t);
-    }
-    
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            assignableClauseKind, accessibleClause, capturesClause }; }
-    
     public static class LocationSetClauseType extends IJmlClauseKind.MethodSpecClauseKind {
         public LocationSetClauseType(String keyword) { super(keyword); }
         public boolean oldNoLabelAllowed() { return false; }

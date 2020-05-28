@@ -14,11 +14,6 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 
 public class TypeMapsClauseExtension extends JmlExtension.TypeClause {
-
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            mapsClause}; }
     
     public static final String mapsID = "maps";
     

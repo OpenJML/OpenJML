@@ -35,11 +35,6 @@ public class MethodConditionalClauseExtension extends JmlExtension.MethodClause 
     public static final IJmlClauseKind measuredbyClause = new MethodConditionalClauseType(measuredbyID) {
     };
     
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[]  clauseTypes() { return new IJmlClauseKind[]{
-            durationClause, measuredbyClause, workingspaceClause}; }
-    
     public static class MethodConditionalClauseType extends IJmlClauseKind.MethodSpecClauseKind {
         public MethodConditionalClauseType(String keyword) { super(keyword); }
 

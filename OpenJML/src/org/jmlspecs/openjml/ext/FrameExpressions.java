@@ -42,13 +42,6 @@ public class FrameExpressions extends ExpressionExtension {
         super(context);
     }
 
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
     public static class FrameExpression extends IJmlClauseKind.ExpressionKind {
         public FrameExpression(String keyword) { super(keyword); }
         @Override

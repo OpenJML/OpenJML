@@ -36,11 +36,6 @@ public class MethodDeclClauseExtension extends JmlExtension.MethodClause  {
         public boolean isPreconditionClause() { return true; }
     };
     
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            oldClause, forallClause }; }
-    
     public static class MethodClauseDeclType extends IJmlClauseKind.MethodSpecClauseKind {
         public MethodClauseDeclType(String keyword) { super(keyword); }
         @Override

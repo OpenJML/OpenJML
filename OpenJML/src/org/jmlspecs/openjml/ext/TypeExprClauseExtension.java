@@ -27,11 +27,6 @@ import com.sun.tools.javac.util.Context;
 
 public class TypeExprClauseExtension extends JmlExtension.TypeClause {
 
-    @Override
-    public IJmlClauseKind[]  clauseTypesA() { return clauseTypes(); }
-    public static IJmlClauseKind[] clauseTypes() { return new IJmlClauseKind[]{
-            invariantClause, constraintClause, axiomClause, initiallyClause}; }
-    
     public static final String invariantID = "invariant";
     public static final String constraintID = "constraint";
     public static final String axiomID = "axiom";
