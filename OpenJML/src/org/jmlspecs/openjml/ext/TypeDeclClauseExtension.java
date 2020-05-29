@@ -22,7 +22,7 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 
-public class TypeDeclClauseExtension extends JmlExtension.TypeClause {
+public class TypeDeclClauseExtension extends JmlExtension {
 
     public static final String typedeclID = "type declaration";
     //public static final String capturedID = "captured";

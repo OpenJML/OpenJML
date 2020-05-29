@@ -28,7 +28,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
-public class TypeRWClauseExtension extends JmlExtension.TypeClause {
+public class TypeRWClauseExtension extends JmlExtension {
 
     public static final String readableID = "readable";
     public static final String writableID = "writable";

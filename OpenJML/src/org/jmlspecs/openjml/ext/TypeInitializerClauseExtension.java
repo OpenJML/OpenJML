@@ -33,7 +33,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
-public class TypeInitializerClauseExtension extends JmlExtension.TypeClause {
+public class TypeInitializerClauseExtension extends JmlExtension {
 
     public static final String initializerID = "initializer";
     public static final String staticinitializerID = "static_initializer";

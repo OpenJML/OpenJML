@@ -4,7 +4,7 @@ import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 
-public class StatementExprExtensions extends JmlExtension.Statement {
+public class StatementExprExtensions extends JmlExtension {
     
     public static final String assertID = "assert";
     public static final String checkID = "check";

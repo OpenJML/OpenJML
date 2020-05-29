@@ -24,7 +24,7 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class TypeInClauseExtension extends JmlExtension.TypeClause {
+public class TypeInClauseExtension extends JmlExtension {
     
     public static final String inID = "in";
     

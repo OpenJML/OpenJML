@@ -16,7 +16,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 
-public class MethodConditionalClauseExtension extends JmlExtension.MethodClause {
+public class MethodConditionalClauseExtension extends JmlExtension {
 
     public static final String durationID = "duration";
     public static final String workingspaceID = "working_space";

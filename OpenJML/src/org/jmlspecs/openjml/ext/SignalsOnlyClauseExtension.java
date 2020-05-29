@@ -27,7 +27,7 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class SignalsOnlyClauseExtension extends JmlExtension.MethodClause {
+public class SignalsOnlyClauseExtension extends JmlExtension {
 
     public static final String signalsOnlyID = "signals_only";
     

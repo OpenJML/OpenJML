@@ -3,7 +3,7 @@ package org.jmlspecs.openjml.ext;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 
-public class MethodExprClauseExtensions extends JmlExtension.MethodClause {
+public class MethodExprClauseExtensions extends JmlExtension {
     
     public static final String requiresID = "requires";
     public static final String ensuresID = "ensures";

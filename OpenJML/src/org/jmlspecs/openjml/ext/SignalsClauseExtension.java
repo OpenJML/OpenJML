@@ -28,7 +28,7 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Name;
 
-public class SignalsClauseExtension extends JmlExtension.MethodClause {
+public class SignalsClauseExtension extends JmlExtension {
     
     public static final String signalsID = "signals";
     

@@ -18,7 +18,7 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class MethodSimpleClauseExtensions extends JmlExtension.MethodClause {
+public class MethodSimpleClauseExtensions extends JmlExtension {
     
     public static final String normalBehaviorID = "normal_behavior";
     public static final String exceptionalBehaviorID = "exceptional_behavior";

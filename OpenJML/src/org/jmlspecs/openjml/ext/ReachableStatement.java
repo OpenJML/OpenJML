@@ -34,7 +34,7 @@ import com.sun.tools.javac.util.Context;
  * @author David Cok
  *
  */
-public class ReachableStatement extends JmlExtension.Statement {
+public class ReachableStatement extends JmlExtension {
 
     public static final String reachableID = "reachable";
     public static final String unreachableID = "unreachable";

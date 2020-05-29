@@ -20,15 +20,11 @@ import java.util.jar.JarFile;
 
 import org.eclipse.core.runtime.Platform;
 import org.jmlspecs.annotation.Nullable;
-import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
-import org.jmlspecs.openjml.JmlExtension.MethodClause;
 import org.jmlspecs.openjml.ext.*;
 import org.osgi.framework.Bundle;
 
-import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.parser.JmlToken;
 import com.sun.tools.javac.parser.Tokens.Token;
-import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
@@ -67,58 +63,38 @@ public class Extensions {
         return instance;
     }
     
-    /** Returns a (derived instance of) ExpressionExtension if there is one associated
-     * with the given token.  Returns null if there is no
-     * extension for the given token.
-     * @param pos the position of the token, for error reporting
-     * @param token the extension token
-     * @param complain if true and failed to create an Extension instance, an error is issued
-     * @return an instance of a ExpressionExtension object, or null if unrecoverable error
-     */
-//    public @Nullable JmlExtension findE(int pos, String token, boolean complain) {
-//        JmlExtension e = extensionInstances.get(token);
-//        if (e == null) {
-//            Class<? extends JmlExtension> c = extensionClasses.get(token);
-//            if (c == null) {
-//                if (complain) Log.instance(context).error(pos,"jml.failure.to.create.JmlExtension",token);
-//                return null;
-//            }
-//            try {
-//                Constructor<? extends JmlExtension> constructor = c.getDeclaredConstructor(Context.class);
-//                JmlExtension instance = constructor.newInstance(context);
-//                extensionInstances.put(token,instance);
-//                e = instance;
-//            } catch (Exception ee) {
-//                if (complain) Log.instance(context).error(pos,"jml.failure.to.create.ExpressionExtension",token);
-//                return null;
-//            }
-//        }
-//        return e;
-//    }
+    // NOTE: The set of extensions is stored in allKinds and is independent 
+    // of context.
     
+    /** Finds the clause kind for the given token, if any */
     public static @Nullable IJmlClauseKind findKeyword(Token token) {
         String id = token instanceof JmlToken ? ((JmlToken)token).jmlkind.internedName() : token.toString();
         return allKinds.get(id);
     }
     
-    // Finds a type or method clause kind for the given keyword
-    public @Nullable IJmlClauseKind findTM(String keyword) {
+    /** Finds the clause kind for the given keyword, if any */
+    public static @Nullable IJmlClauseKind findKeyword(Name name) {
+        String id = name.toString();
+        return allKinds.get(id);
+    }
+    
+    /** Finds a type or method clause kind for the given keyword, if any */
+    public static @Nullable IJmlClauseKind findTM(String keyword) {
         IJmlClauseKind ext = allKinds.get(keyword);
         if (ext instanceof IJmlClauseKind.TypeClause || ext instanceof IJmlClauseKind.MethodClauseKind) return ext;
         return null;
     }
     
-    // Finds a statement or method clause kind for the given keyword
-    public @Nullable IJmlClauseKind findSM(String keyword) {
+    /** Finds a statement or method clause kind for the given keyword, if any */
+    public static @Nullable IJmlClauseKind findSM(String keyword) {
         IJmlClauseKind ext = allKinds.get(keyword);
         if (ext instanceof IJmlClauseKind.IStatementKind || ext instanceof IJmlClauseKind.MethodClauseKind) return ext;
         return null;
     }
     
-    
     /** Last resort list of classes that add extensions to the Parser.
      *  Typically these are found by listing all the classes in
-     *  the org.jmlspecs.openjml.ext package */  // TODO - check this list
+     *  the org.jmlspecs.openjml.ext package */  // TODO - fix this list
     static Class<?>[] extensions = { FunctionLikeExpressions.class, 
             // Expressions
             Arithmetic.class, 
@@ -153,40 +129,19 @@ public class Extensions {
             TypeMonitorsForClauseExtension.class, 
             TypeRepresentsClauseExtension.class, 
             TypeRWClauseExtension.class, 
+            
+            // Class-like data types
+            DatatypeExt.class,
+            
+            // Field-like extensions
+            ArrayFieldExtension.class,
+            
             };
-
-    public @Nullable FieldExtension findField(int pos, String token, boolean complain) {
-        FieldExtension e = fieldInstances.get(token);
-        if (e == null) {
-            Class<? extends FieldExtension> c = fieldClasses.get(token);
-            if (c == null) {
-                if (complain) Log.instance(context).error(pos,"jml.message","Failed to create a field extension object for " + token);
-                return null;
-            }
-            try {
-                Constructor<? extends FieldExtension> constructor = c.getDeclaredConstructor();
-                FieldExtension instance = constructor.newInstance();
-                fieldInstances.put(token,instance);
-                e = instance;
-            } catch (Exception ee) {
-                if (complain) Log.instance(context).error(pos,"jml.message","Failed to create a field extension object for " + token);
-                return null;
-            }
-        }
-        return e;
-    }
     
-    static public Map<String,JmlExtension.ClassLike> classLike = new HashMap<>();
-//    static public Map<String,IJmlClauseKind> typeMethodClauses = new HashMap<>();
-//    static public Map<String,IJmlClauseKind> statementMethodClauses = new HashMap<>();
     static public Map<String,IJmlClauseKind> allKinds = new HashMap<>();
 
-    static protected Map<String,Class<? extends FieldExtension>> fieldClasses = new HashMap<>();
-
-    protected Map<String,FieldExtension> fieldInstances = new HashMap<>();
-    
     // This static method runs through all the extension classes and adds
-    // appropriate information to the HashMaps above, so extensions can be 
+    // appropriate information to the HashMap above, so extensions can be 
     // looked up at runtime. The extension classes include the predefined
     // package org.jmlspecs.openjml.ext and any classes or packages given in the
     // extensions option.
@@ -232,31 +187,15 @@ public class Extensions {
         }
     }
     
-    private static final int mods = Flags.PUBLIC | Flags.STATIC | Flags.FINAL;
     public static boolean registerClass(Context context, Class<?> cce) {
         if (!JmlExtension.class.isAssignableFrom(cce)) return false; // Extension classes must inherit from JmlExtensionn
         @SuppressWarnings("unchecked")
         Class<? extends JmlExtension> cc = (Class<? extends JmlExtension>)cce;
-        if (FieldExtension.class.isAssignableFrom(cce)) {
-            @SuppressWarnings("unchecked")
-            Class<? extends FieldExtension> c = (Class<? extends FieldExtension>)cce;
-            try {
-                Method m = c.getMethod("ids");
-                String[] ids = (String[])m.invoke(null);
-                for (String t: ids) {
-                    fieldClasses.put(t, c);
-                }
-            } catch (Exception e) {
-                return false;
-            }
-        }
-        {
-            try {
-                cc.getConstructor().newInstance().register(context);
-            } catch (Exception e) {
-                return false;
-            }
+        try {
+            cc.getConstructor().newInstance().register(context);
             return true;
+        } catch (Exception e) {
+            return false;
         }
     }
     

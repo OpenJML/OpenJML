@@ -32,7 +32,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
-public class ChooseClause extends JmlExtension.Statement {
+public class ChooseClause extends JmlExtension {
     
     public static final String chooseID = "choose";
     

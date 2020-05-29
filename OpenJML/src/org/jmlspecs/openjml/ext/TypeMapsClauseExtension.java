@@ -13,7 +13,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 
-public class TypeMapsClauseExtension extends JmlExtension.TypeClause {
+public class TypeMapsClauseExtension extends JmlExtension {
     
     public static final String mapsID = "maps";
     

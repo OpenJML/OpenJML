@@ -23,7 +23,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class MethodDeclClauseExtension extends JmlExtension.MethodClause  {
+public class MethodDeclClauseExtension extends JmlExtension  {
 
     public static final String oldID = "old";
     public static final String forallID = "forall";
