@@ -1,0 +1,12 @@
+Proving methods in Dzmz
+Starting proof of Dzmz.Dzmz() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Dzmz.Dzmz() with prover !!!! - no warnings
+Starting proof of Dzmz.main(java.lang.String[]) with prover !!!!
+test/Dzmz/Dzmz.java:4: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method main
+        int z = x % y;
+                  ^
+Completed proof of Dzmz.main(java.lang.String[]) with prover !!!! - with warnings
+Completed proving methods in Dzmz
+1 warning

@@ -1,0 +1,8 @@
+OUT:
+test/Dzmz/Dzmz.java:4: JML Division by zero
+        int z = x % y;
+                  ^
+
+ERR:
+Exception in thread "main" java.lang.ArithmeticException: / by zero
+	at Dzmz.main(Dzmz.java:4)
