@@ -70,6 +70,7 @@ import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.ext.ArrayFieldExtension.JmlField;
 import org.jmlspecs.openjml.ext.AssignableClauseExtension;
 import org.jmlspecs.openjml.ext.CallableClauseExtension;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
@@ -84,7 +85,6 @@ import org.jmlspecs.openjml.ext.SignalsClauseExtension;
 import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
-import org.jmlspecs.openjml.ext.FieldExtension;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
 import org.jmlspecs.openjml.vistors.IJmlVisitor;
 import org.jmlspecs.openjml.vistors.JmlTreeCopier;
@@ -5112,8 +5112,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             result = tree.type = check(tree, t, VAL, resultInfo);
         } else {
-            FieldExtension fext = Extensions.instance(context).findField(tree.pos, tree.name.toString(), false);
-            if (fext != null && this.jmlresolve.allowJML()) {
+            IJmlClauseKind fext = Extensions.findKeyword(tree.name);
+            if (fext instanceof JmlField && this.jmlresolve.allowJML()) {
                 Type t = attribExpr(tree.selected, env, Type.noType); // Any type is allowed
                 Type atype = tree.selected.type;
                 if (atype instanceof Type.ArrayType) { 

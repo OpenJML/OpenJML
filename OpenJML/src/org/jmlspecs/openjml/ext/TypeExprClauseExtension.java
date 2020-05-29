@@ -25,7 +25,7 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 
-public class TypeExprClauseExtension extends JmlExtension.TypeClause {
+public class TypeExprClauseExtension extends JmlExtension {
 
     public static final String invariantID = "invariant";
     public static final String constraintID = "constraint";

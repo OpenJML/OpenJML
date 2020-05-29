@@ -30,7 +30,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
-public class TypeMonitorsForClauseExtension extends JmlExtension.TypeClause {
+public class TypeMonitorsForClauseExtension extends JmlExtension {
 
     public static final String monitorsforID = "monitors_for";
     

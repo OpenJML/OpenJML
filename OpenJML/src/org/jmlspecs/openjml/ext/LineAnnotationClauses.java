@@ -1,34 +1,26 @@
 package org.jmlspecs.openjml.ext;
 
-import java.util.List;
-
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.IJmlLineAnnotation;
 import org.jmlspecs.openjml.JmlExtension;
-import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.Nowarns;
-import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
 import org.jmlspecs.openjml.JmlTree.JmlFactory;
+import org.jmlspecs.openjml.Nowarns;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
-import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlTokenizer;
 import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 
-public class LineAnnotationClauses extends JmlExtension.LineAnnotation {
+public class LineAnnotationClauses extends JmlExtension {
 
     public static final String allowID = "allow";
     public static final String forbidID = "forbid";

@@ -20,7 +20,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.Visitor;
 
-public class RecommendsClause extends JmlExtension.MethodClause {
+public class RecommendsClause extends JmlExtension {
     
     public static final String recommendsID = "recommends";
     

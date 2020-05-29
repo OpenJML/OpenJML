@@ -38,7 +38,7 @@ import com.sun.tools.javac.util.List;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class InlinedLoopStatement extends JmlExtension.Statement implements IJmlLoop {
+public class InlinedLoopStatement extends JmlExtension implements IJmlLoop {
 
     public boolean isSplit() { return false; }
     public void setSplit(boolean s) {}

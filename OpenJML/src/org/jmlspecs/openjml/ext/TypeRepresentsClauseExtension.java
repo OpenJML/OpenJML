@@ -38,7 +38,7 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 
-public class TypeRepresentsClauseExtension extends JmlExtension.TypeClause {
+public class TypeRepresentsClauseExtension extends JmlExtension {
 
     public static final String representsID = "represents";
     //public static final String capturedID = "captured";

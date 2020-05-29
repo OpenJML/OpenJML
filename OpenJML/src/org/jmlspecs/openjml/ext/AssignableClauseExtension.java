@@ -23,7 +23,7 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class AssignableClauseExtension extends JmlExtension.MethodClause {
+public class AssignableClauseExtension extends JmlExtension {
     
     public static final String assignableID = "assignable";
     public static final String accessibleID = "accessible";

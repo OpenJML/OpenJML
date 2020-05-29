@@ -40,7 +40,7 @@ import com.sun.tools.javac.util.ListBuffer;
  */// TODO: This extension is inappropriately named at present.  However, I expect that this 
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
-public class GhostModelStatement extends JmlExtension.Statement {
+public class GhostModelStatement extends JmlExtension {
 
     public static final String ghostID = "ghost";
     public static final String modelID = "model";

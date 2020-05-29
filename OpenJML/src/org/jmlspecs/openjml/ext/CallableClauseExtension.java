@@ -26,7 +26,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class CallableClauseExtension extends JmlExtension.MethodClause {
+public class CallableClauseExtension extends JmlExtension {
 
     public static final String callableID = "callable";
     
