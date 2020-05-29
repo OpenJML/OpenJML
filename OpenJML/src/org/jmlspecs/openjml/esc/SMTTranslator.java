@@ -2332,7 +2332,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     }
                     args.add(lhs);
                     args.add(F.numeral(1L<<i));
-                    args2.add(F.fcn(F.symbol("+"), lhs, F.fcn(F.symbol("*"), F.numeral(1L<<32)), F.numeral(1L<<32)));
+                    args2.add(F.fcn(F.symbol("+"), lhs, F.fcn(F.symbol("*"), F.numeral(1L<<32), F.numeral(1L<<32)) ));
                     args2.add(F.numeral(1L<<i));
                     result = F.fcn(F.symbol("ite"), F.fcn(F.symbol(">="), lhs, F.numeral(0)), 
                             F.fcn(F.symbol("div"), args),  // LHS / (1<<SHIFT)
