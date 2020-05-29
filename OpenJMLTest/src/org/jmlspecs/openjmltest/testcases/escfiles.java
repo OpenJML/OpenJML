@@ -877,6 +877,12 @@ public class escfiles extends EscBase {
     }
     
     @Test
+    public void Dzmz() {
+        expectedExit = 0;
+        helpTF("Dzmz");
+    }
+
+    @Test
     public void refining() {
         expectedExit = 0;
         helpTF("refining");

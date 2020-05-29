@@ -64,6 +64,8 @@ public class MethodSimpleClauseExtensions extends JmlExtension {
     public void register() {
         synonym("normal_behaviour",normalBehaviorClause);
         synonym("exceptional_behaviour",exceptionalBehaviorClause);
+        synonym("abrupt_behaviour",abruptBehaviorClause);
+        synonym("feasible_behaviour",feasibleBehaviorClause);
         synonym("behaviour",behaviorClause);
     }
     

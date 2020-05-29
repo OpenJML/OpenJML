@@ -121,6 +121,14 @@ public class racfiles extends RacBase {
         expectedExit = 0;
         helpTCF("test/sv_rac_mod","test/sv_rac_mod","sv_rac/Decimal");
     }
+    
+    @Test
+    public void Dzmz() {
+        expectedRACExit = 1;
+        helpTCF("test/Dzmz","test/Dzmz","Dzmz","-racJavaChecks");
+    }
+
+
 
     @Test
     public void testbigint() {
