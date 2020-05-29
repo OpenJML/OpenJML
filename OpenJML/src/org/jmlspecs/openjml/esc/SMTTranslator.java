@@ -2283,15 +2283,14 @@ public class SMTTranslator extends JmlTreeScanner {
             	    long i = ((Number)((JCLiteral)tree.rhs).getValue()).longValue();
                     args = new LinkedList<IExpr>();
                     args.add(lhs);
-                    int mx;
                     if (tree.lhs.type == syms.intType) {
-                        mx = 32;
+                        i = i&31;
                     } else if (tree.lhs.type == syms.longType) {
-                        mx = 64;
+                        i = i&63;
                     } else {
                         // ERROR
                     }
-                    args.add(F.numeral(1<<i));
+                    args.add(F.numeral(1L<<i));
                     result = F.fcn(F.symbol("*"), args);
             	} else {
             		notImplBV(tree, "Bit-operation " + op);
@@ -2304,15 +2303,14 @@ public class SMTTranslator extends JmlTreeScanner {
                     long i = ((Number)((JCLiteral)tree.rhs).getValue()).longValue();
                     args = new LinkedList<IExpr>();
                     args.add(lhs);
-                    int mx;
                     if (tree.lhs.type == syms.intType) {
-                        mx = 32;
+                        i = i&31;
                     } else if (tree.lhs.type == syms.longType) {
-                        mx = 64;
+                        i = i&63;
                     } else {
                         // ERROR
                     }
-                    args.add(F.numeral(1<<i));
+                    args.add(F.numeral(1L<<i));
                     result = F.fcn(F.symbol("div"), args);
                 } else {
                     notImplBV(tree, "Bit-operation " + op);
@@ -2325,21 +2323,20 @@ public class SMTTranslator extends JmlTreeScanner {
                     long i = ((Number)((JCLiteral)tree.rhs).getValue()).longValue();
                     args = new LinkedList<IExpr>();
                     List<IExpr> args2 = new LinkedList<IExpr>();
-                    int mx = 0;
                     if (tree.lhs.type == syms.intType) {
-                        mx = 32;
+                        i = i&31;
                     } else if (tree.lhs.type == syms.longType) {
-                        mx = 64;
+                        i = i&63;
                     } else {
                         // ERROR
                     }
                     args.add(lhs);
-                    args.add(F.numeral(1<<i));
+                    args.add(F.numeral(1L<<i));
                     args2.add(F.fcn(F.symbol("+"), lhs, F.fcn(F.symbol("*"), F.numeral(1L<<32)), F.numeral(1L<<32)));
-                    args2.add(F.numeral(1<<i));
+                    args2.add(F.numeral(1L<<i));
                     result = F.fcn(F.symbol("ite"), F.fcn(F.symbol(">="), lhs, F.numeral(0)), 
-                            F.fcn(F.symbol("div"), args), 
-                            F.fcn(F.symbol("div"), args2));
+                            F.fcn(F.symbol("div"), args),  // LHS / (1<<SHIFT)
+                            F.fcn(F.symbol("div"), args2)); // (LHS + (1<<64)) / (1<<SHIFT)
                 } else {
                     notImplBV(tree, "Bit-operation " + op);
                 }

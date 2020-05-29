@@ -12023,7 +12023,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 else if (shift) {
                     Type tt = unboxedType(that.rhs.type);
                     if (!tt.equals(syms.longType)) tt = syms.intType; 
-                    rhs = addImplicitConversion(rhs,syms.intType,rhs); // FIXME - what is tt used for?
+                    rhs = addImplicitConversion(rhs,tt,rhs);
                 }
                 else rhs = addImplicitConversion(rhs,that.type,rhs);
             }

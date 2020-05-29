@@ -2348,4 +2348,28 @@ public class escnew extends EscBase {
     }
 
 
+    @Test 
+    public void testLongShift() {
+        main.addOptions("-code-math=java");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+
+                +"  public void m1(long x) {\n" 
+                +"     //@ assume 0 <= x <= 3000000000L;\n"
+                +"     int y = (int)x;\n"
+                +"     long yy = y < 0 ? (y-Integer.MAX_VALUE-Integer.MAX_VALUE) : y;\n"
+                +"     int z = (int)(x>>32);\n"
+                +"     long w = (((long)z)<<32) + yy;\n"
+                +"     int zz = (int)(x>>>32);\n"
+                +"     long ww = (((long)zz)<<32) + yy;\n"
+                +"     //@ show x, y, z, zz, w, ww;\n"
+                +"     //@ assert w == x;\n"
+                +"     //@ assert ww == x;\n"
+                +"  }\n"
+                
+                +"}"
+                );
+    }
+
+
 }
