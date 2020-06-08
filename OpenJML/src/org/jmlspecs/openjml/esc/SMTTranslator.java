@@ -853,8 +853,8 @@ public class SMTTranslator extends JmlTreeScanner {
             addCommand(smt,"(define-fun |#min16#| () Int (- 32768))");
             addCommand(smt,"(define-fun |#max32#| () Int 2147483647)");
             addCommand(smt,"(define-fun |#min32#| () Int (- 2147483648))");
-            addCommand(smt,"(define-fun |#max64#| () Int (- (* 2147483648 2147483648 2) 1))");
-            addCommand(smt,"(define-fun |#min64#| () Int (- (* 2147483648 2147483648 2)))");
+            addCommand(smt,"(define-fun |#max64#| () Int (- (* 2147483648 4294967296) 1))");
+            addCommand(smt,"(define-fun |#min64#| () Int (- (* 2147483648 4294967296)))");
         }
         
         // Predicates to check for over/underflow - note different predicates for BV vs. Int arithmetic
@@ -2190,12 +2190,12 @@ public class SMTTranslator extends JmlTreeScanner {
                 else {
                     // div truncates towards minus infinity, java / truncates towards 0
                     // lhs / rhs ===  lhs >= 0 ? lhs div rhs : (-lhs) div (-rhs)
-                    result = F.fcn(F.symbol("ite"), 
-                            F.fcn(F.symbol(">="),  args.get(0), zero), 
-                            F.fcn(F.symbol("div"), args),
-                            F.fcn(F.symbol("div"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1)))
-                            );
-                    //result = F.fcn(F.symbol("|#cdiv#|"), args);
+//                    result = F.fcn(F.symbol("ite"), 
+//                            F.fcn(F.symbol(">="),  args.get(0), zero), 
+//                            F.fcn(F.symbol("div"), args),
+//                            F.fcn(F.symbol("div"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1)))
+//                            );
+                    result = F.fcn(F.symbol("|#cdiv#|"), args);
                 }
                 break;
             case MOD:
