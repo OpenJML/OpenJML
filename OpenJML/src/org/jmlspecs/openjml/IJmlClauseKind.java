@@ -449,8 +449,41 @@ public abstract class IJmlClauseKind {
 
     }
     
-    public static abstract class ModifierKind extends IJmlClauseKind {
-        public ModifierKind(String keyword) { super(keyword); }
+    public static class ModifierKind extends IJmlClauseKind {
+        public String fullAnnotation;
+        public boolean strict;
+        
+        public ModifierKind(String keyword, boolean strict) {
+            super(keyword);
+            this.strict = strict;
+            String annotation = keyword;
+            while (true) {
+                int i = annotation.indexOf("_");
+                if (i < 0 || i >= annotation.length()-1) break;
+                char c = annotation.charAt(i+1);
+                char uc = Character.toUpperCase(c);
+                annotation = annotation.replace(annotation.substring(i,i+2), String.valueOf(uc));
+            }
+            char c = annotation.charAt(0);
+            this.fullAnnotation = "org.jmlspecs.annotation." + c + annotation.substring(1);
+        }
+        
+        public ModifierKind(String keyword, boolean strict, String annotation) { 
+            super(keyword); 
+            this.strict = strict;
+            this.fullAnnotation = annotation.contains(".") ? annotation : ("org.jmlspecs.annotation." + annotation);
+        }
+
+        @Override
+        public JCTree parse(JCModifiers mods, String keyword,
+                IJmlClauseKind clauseKind, JmlParser parser) {
+            return null;
+        }
+
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
+            return null;
+        }
     }
 
     

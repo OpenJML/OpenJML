@@ -65,6 +65,7 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.IJmlClauseKind.LineAnnotationKind;
+import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
@@ -5258,7 +5259,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** A map from token to ClassSymbol, valid for tokens that have annotation equivalents. */
     public EnumMap<JmlTokenKind,ClassSymbol> tokenToAnnotationSymbol = new EnumMap<JmlTokenKind,ClassSymbol>(JmlTokenKind.class);
-
+    public Map<ModifierKind,ClassSymbol> modToAnnotationSymbol = new HashMap<>();
+    
     /** A Name for the fully-qualified name of the package that the JML annotations are defined in. */
     public Name annotationPackageName;
     
@@ -5286,6 +5288,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 tokenToAnnotationSymbol.put(t,sym);
             }
         }
+        for (IJmlClauseKind kk: Extensions.allKinds.values()) {
+            if (!(kk instanceof ModifierKind)) continue;
+            ModifierKind k = (ModifierKind)kk;
+            ClassSymbol sym = ClassReader.instance(context).enterClass(names.fromString(k.fullAnnotation));
+            modToAnnotationSymbol.put(k,sym);
+        }
+
+            
 //        JmlTokenKind t = JmlTokenKind.CAPTURED;
 //        {
 //            String s = t.annotationType.getName();
@@ -5338,6 +5348,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (a != null && b != null) {
             JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)b).sourcefile);
             log.error(b.pos(),"jml.conflicting.modifiers",ta.internedName(),tb.internedName());
+            log.useSource(prev);
+            return true;
+        }
+        return false;
+    }
+    
+    public boolean checkForConflict(JCModifiers mods, ModifierKind ta, ModifierKind tb) {
+        JCTree.JCAnnotation a,b;
+        a = utils.findMod(mods,modToAnnotationSymbol.get(ta));
+        b = utils.findMod(mods,modToAnnotationSymbol.get(tb));
+        if (a != null && b != null) {
+            JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)b).sourcefile);
+            log.error(b.pos(),"jml.conflicting.modifiers",ta.keyword,tb.keyword);
             log.useSource(prev);
             return true;
         }

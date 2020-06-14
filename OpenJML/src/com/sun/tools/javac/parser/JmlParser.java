@@ -16,6 +16,7 @@ import java.util.Map;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.IJmlClauseKind.MethodSpecClauseKind;
+import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.AssignableClauseExtension;
 import org.jmlspecs.openjml.ext.DatatypeExt.JmlDatatypeDecl;
@@ -118,6 +119,10 @@ public class JmlParser extends JavacParser {
     /** End position of current token */
     public int endPos() {
         return token.endPos;
+    }
+    
+    public boolean isJmlModifier() {
+        return token.kind == IDENTIFIER && Extensions.findKeyword(token.name()) instanceof ModifierKind;
     }
     
     public JmlTokenKind jmlTokenKind() {
@@ -2993,7 +2998,7 @@ public class JmlParser extends JavacParser {
             pushBackModifiers = null;
         }
         partial = super.modifiersOpt(partial);
-        while (token.kind == CUSTOM) {
+        while (token.kind == CUSTOM || isJmlModifier()) {
             partial = jmlModifiersOpt(partial);
             if (token.kind == CUSTOM) break;
             partial = super.modifiersOpt(partial);
@@ -3056,8 +3061,23 @@ public class JmlParser extends JavacParser {
             pos = partial.pos;
         }
         JmlTokenKind j;
-        while ((j = jmlTokenKind()) != null) {
-            if (JmlTokenKind.modifiers.contains(j)) {
+        while ((j = jmlTokenKind()) != null || isJmlModifier()) {
+            if (isJmlModifier()) {
+                last = endPos();
+                ModifierKind mk = (ModifierKind)Extensions.findKeyword(token.name());
+                JCAnnotation a = tokenToAnnotationAST(mk.fullAnnotation, pos(), last);
+                if (a != null) {
+                    annotations.append(a);
+                    if (pos == Position.NOPOS) pos = a.getStartPosition();
+                }
+                // a is null if no annotation is defined for the modifier;
+                // we just silently ignore that situation
+                // (this is true at the moment for math annotations, but could
+                // also be true for a modifier someone forgot)
+                if (mk.strict && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
+                    log.warning(pos(),"jml.not.strict",j.internedName());  // FIXME - probably wrong position
+                }
+            } else if (JmlTokenKind.modifiers.contains(j)) {
                 last = endPos();
                 JCAnnotation a = tokenToAnnotationAST(j, pos(), last);  // FIXME -is position correct?
                 if (a != null) {
