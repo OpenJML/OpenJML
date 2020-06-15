@@ -40,6 +40,7 @@ import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.Modifiers;
 
 import com.sun.tools.javac.code.Attribute.Compound;
 import com.sun.tools.javac.code.Flags;
@@ -1939,7 +1940,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         boolean wasStatic = (flags&Flags.STATIC) != 0;
         if ((env.enclClass.mods.flags & INTERFACE) != 0  && utils.isJML(tree.mods)) {
             // FIXME - but the @Instance declaration might be in the .jml file
-            boolean isInstance = JmlAttr.instance(context).findMod(tree.mods,JmlTokenKind.INSTANCE) != null;
+            boolean isInstance = JmlAttr.instance(context).findMod(tree.mods, Modifiers.INSTANCE) != null;
             if (isInstance && !wasStatic) tree.mods.flags &= ~Flags.STATIC;
         }
         boolean prev = resolve.allowJML();
@@ -2048,7 +2049,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         boolean wasStatic = (flags&Flags.STATIC) != 0;
         if ((parent.flags() & INTERFACE) != 0  && utils.isJML(specstree.mods)) {
             // FIXME - but the @Instance declaration might be in the .jml file
-            boolean isInstance = JmlAttr.instance(context).findMod(specstree.mods,JmlTokenKind.INSTANCE) != null;
+            boolean isInstance = JmlAttr.instance(context).findMod(specstree.mods, Modifiers.INSTANCE) != null;
             if (isInstance && !wasStatic) specstree.mods.flags &= ~Flags.STATIC;
         }
         if (specs.getSpecs(specstree.sym) != null) log.warning("jml.internal","Expected null field specs here: " + specstree.sym.owner + "." + specstree.sym);

@@ -54,6 +54,7 @@ import org.jmlspecs.openjml.ext.MethodConditionalClauseExtension;
 import org.jmlspecs.openjml.ext.MethodDeclClauseExtension;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExtensions;
+import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.jmlspecs.openjml.ext.ReachableStatement;
 import org.jmlspecs.openjml.ext.SetStatement;
@@ -8192,7 +8193,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             nestedCallLocation = that;
 
             JmlMethodSpecs mspecs = specs.getDenestedSpecs(calleeMethodSym);
-            boolean inliningCall = mspecs != null && mspecs.decl != null && mspecs.decl.mods != null && attr.findMod(mspecs.decl.mods,JmlTokenKind.INLINE) != null;
+            boolean inliningCall = mspecs != null && mspecs.decl != null && mspecs.decl.mods != null && attr.findMod(mspecs.decl.mods,Modifiers.INLINE) != null;
    
             // Collect all the methods overridden by the method being called, including the method itself
             Type rt = dynamicTypes.get(convertedReceiver);

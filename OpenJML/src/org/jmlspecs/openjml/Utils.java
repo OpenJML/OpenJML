@@ -35,6 +35,7 @@ import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.IInJML;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.strongarm.JDKListUtils;
 
 import com.sun.tools.javac.code.Flags;
@@ -392,7 +393,7 @@ public class Utils {
         // JML field marked as instance.
         if ((csym.flags() & Flags.INTERFACE) != 0) {
             // TODO - should cleanup this reference to JmlAttr from Utils
-            if (JmlAttr.instance(context).findMod(mods,JmlTokenKind.INSTANCE) != null) return false;
+            if (JmlAttr.instance(context).findMod(mods,Modifiers.INSTANCE) != null) return false;
             if ((mods.flags & STATIC) == 0 || (mods.flags & Utils.JMLINSTANCE) != 0) return false;
         } 
         return ((mods.flags & Flags.STATIC) != 0);
