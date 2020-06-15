@@ -145,10 +145,7 @@ public class Extensions {
     // looked up at runtime. The extension classes include the predefined
     // package org.jmlspecs.openjml.ext and any classes or packages given in the
     // extensions option.
-    public static boolean registered = false; // FIXME - only works for one context
     public static void register(Context context) {
-        if (registered) return;
-        registered = true;
         Package p = Package.getPackage("org.jmlspecs.openjml.ext");
         try {
             registerPackage(context,p);

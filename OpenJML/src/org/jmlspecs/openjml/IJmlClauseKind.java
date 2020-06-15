@@ -465,7 +465,7 @@ public abstract class IJmlClauseKind {
                 annotation = annotation.replace(annotation.substring(i,i+2), String.valueOf(uc));
             }
             char c = annotation.charAt(0);
-            this.fullAnnotation = "org.jmlspecs.annotation." + c + annotation.substring(1);
+            this.fullAnnotation = "org.jmlspecs.annotation." + Character.toUpperCase(c) + annotation.substring(1);
         }
         
         public ModifierKind(String keyword, boolean strict, String annotation) { 

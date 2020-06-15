@@ -956,7 +956,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (utils.rac) utils.commentKeys.add("RAC"); 
         if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) utils.commentKeys.add("STRICT"); 
         utils.commentKeys.add("OPENJML"); 
-        JmlSpecs.instance(context).initializeSpecsPath();
 
         if (JmlOption.isOption(context,JmlOption.INTERNALRUNTIME)) appendRuntime(context);
         
@@ -993,6 +992,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         
         Extensions.register(context);
+        JmlSpecs.instance(context).initializeSpecsPath();
         return true;
 }
     
