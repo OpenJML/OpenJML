@@ -14,6 +14,7 @@ import java.util.Map;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.*;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
@@ -2945,13 +2946,13 @@ public class JmlTree {
      * declarations (FIXME _ local class?)
      */
     public static class JmlStatementDecls extends JmlAbstractStatement {
-        public JmlTokenKind token;
+        public ModifierKind token;
         public List<JCTree.JCStatement> list;
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlStatementDecls(int pos, List<JCTree.JCStatement> list) {
             this.pos = pos;
-            this.token = JmlTokenKind.GHOST;
+            this.token = Modifiers.GHOST;
             this.list = list;
         }
     

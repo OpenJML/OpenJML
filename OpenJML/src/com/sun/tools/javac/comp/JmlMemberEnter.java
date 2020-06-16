@@ -22,6 +22,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.JavaFileObject.Kind;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
@@ -145,7 +146,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         this.jmlF = JmlTree.Maker.instance(context);
         this.syms = Symtab.instance(context);
         this.specs = JmlSpecs.instance(context);
-        this.modelName = names.fromString(JmlTokenKind.MODEL.internedName());
+        this.modelName = names.fromString(Modifiers.MODEL.keyword);
         this.log = Log.instance(context);
     }
 
@@ -475,8 +476,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
     // FIXME _ not currently used
     public void checkForGhostModel(JCModifiers mods, JavaFileObject source, DiagnosticPosition pos) {
-        JmlAnnotation a = utils.findMod(mods, JmlTokenKind.MODEL);
-        if (a == null) a = utils.findMod(mods, JmlTokenKind.GHOST);
+        JmlAnnotation a = utils.findMod(mods, Modifiers.MODEL);
+        if (a == null) a = utils.findMod(mods, Modifiers.GHOST);
         if (!utils.isJML(mods)) {
             if (a != null) utils.error(source, pos, "jml.ghost.model.on.java");
         } else {
@@ -558,8 +559,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (matchSym == null) {
             if (!utils.isJML(specsVarDecl.mods)) {
                 // We are going to discard this declaration because of the error, so we do extra checking
-                JmlAnnotation a = ((JmlAttr)attr).findMod(specsVarDecl.mods,JmlTokenKind.GHOST);
-                if (a == null) a = ((JmlAttr)attr).findMod(specsVarDecl.mods,JmlTokenKind.MODEL);
+                JmlAnnotation a = ((JmlAttr)attr).findMod(specsVarDecl.mods,Modifiers.GHOST);
+                if (a == null) a = ((JmlAttr)attr).findMod(specsVarDecl.mods,Modifiers.MODEL);
                 if (a != null) {
                     utils.error(specsVarDecl.sourcefile, a.pos(),"jml.ghost.model.on.java",specsVarDecl.name);
                 }
@@ -579,8 +580,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (prevMatch != null && prevMatch != specsVarDecl) {
             // DO extra checking since we are discarding this declaration
             if (!utils.isJML(specsVarDecl.mods)) {
-                JmlAnnotation a = ((JmlAttr)attr).findMod(specsVarDecl.mods,JmlTokenKind.GHOST);
-                if (a == null) a = ((JmlAttr)attr).findMod(specsVarDecl.mods,JmlTokenKind.MODEL);
+                JmlAnnotation a = ((JmlAttr)attr).findMod(specsVarDecl.mods,Modifiers.GHOST);
+                if (a == null) a = ((JmlAttr)attr).findMod(specsVarDecl.mods,Modifiers.MODEL);
                 if (a != null) {
                     utils.error(specsVarDecl.sourcefile, a.pos(),"jml.ghost.model.on.java",specsVarDecl.name);
                 }
@@ -674,8 +675,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            combinedSpecs.cases.decl = specsMethodDecl;
 //            specsMethodDecl.methodSpecsCombined = combinedSpecs;
 
-            JmlAnnotation a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,JmlTokenKind.GHOST);
-            if (a == null) a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,JmlTokenKind.MODEL);
+            JmlAnnotation a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,Modifiers.GHOST);
+            if (a == null) a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,Modifiers.MODEL);
             boolean classIsModel = ((JmlAttr)attr).isModel(javaDecl.getModifiers()); // FIXME - should really be recursive
             if (!utils.isJML(specsMethodDecl.mods)) {
                 // Method is not (directly) in a JML declaration. So it should not have ghost or model annotations
@@ -698,12 +699,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
         // The matches map holds any previous matches found - all to specification declarations
         JCTree prevMatch = matchesSoFar.get(matchSym);
-        if ((matchSym.flags() & Flags.GENERATEDCONSTR) != 0 && prevMatch instanceof JmlMethodDecl && utils.findMod(((JmlMethodDecl)prevMatch).mods, JmlTokenKind.MODEL) == null)  prevMatch = null;
+        if ((matchSym.flags() & Flags.GENERATEDCONSTR) != 0 && prevMatch instanceof JmlMethodDecl && utils.findMod(((JmlMethodDecl)prevMatch).mods, Modifiers.MODEL) == null)  prevMatch = null;
         if (prevMatch != null) {
             // DO extra checking since we are discarding this declaration because it is already matched
             if (!utils.isJML(specsMethodDecl.mods)) {
-                JmlAnnotation a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,JmlTokenKind.GHOST);
-                if (a == null) a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,JmlTokenKind.MODEL);
+                JmlAnnotation a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,Modifiers.GHOST);
+                if (a == null) a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,Modifiers.MODEL);
                 if (a != null) {
                     utils.error(specsMethodDecl.sourcefile, a.pos(),"jml.ghost.model.on.java",specsMethodDecl.name);
                 }
@@ -826,13 +827,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         
         utils.setJML(m.mods);
         utils.setJML(ms.mods);
-        JCAnnotation a = tokenToAnnotationAST(JmlTokenKind.HELPER);
+        JCAnnotation a = modToAnnotationAST(Modifiers.HELPER);
         m.mods.annotations = m.mods.annotations.append(a);
         ms.mods.annotations = ms.mods.annotations.append(a);
-        a = tokenToAnnotationAST(JmlTokenKind.PURE);
+        a = modToAnnotationAST(Modifiers.PURE);
         m.mods.annotations = m.mods.annotations.append(a);
         ms.mods.annotations = ms.mods.annotations.append(a);
-        a = tokenToAnnotationAST(JmlTokenKind.MODEL);
+        a = modToAnnotationAST(Modifiers.MODEL);
         m.mods.annotations = m.mods.annotations.append(a);
         ms.mods.annotations = ms.mods.annotations.append(a);
         
@@ -845,13 +846,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // of the OpenJDK processing, we just use the AST instead.
         JmlAttr attr = JmlAttr.instance(context);
         Map<Name,JmlVariableDecl> modelMethodNames = new HashMap<>();
-        Symbol modelSym = attr.tokenToAnnotationSymbol.get(JmlTokenKind.MODEL);
+        Symbol modelSym = attr.modToAnnotationSymbol.get(Modifiers.MODEL);
         if (specstree != null) for (JCTree decl: specstree.defs) {  // FIXME - should specstree ever be null
             if (decl instanceof JmlMethodDecl) {
                 if (!utils.rac) continue;
                 JmlMethodDecl md = (JmlMethodDecl)decl;
                 if (!md.isJML() || md.body != null) continue;
-                boolean isModel = utils.findMod(md.mods,JmlTokenKind.MODEL)!= null;
+                boolean isModel = utils.findMod(md.mods,Modifiers.MODEL)!= null;
                 if (!isModel) continue;
                 if ((md.mods.flags & Flags.DEFAULT) != 0 || (md.mods.flags & Flags.ABSTRACT) == 0) {
                     JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
@@ -918,8 +919,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         mr.pos = modelVarDecl.pos;
         utils.setJML(mr.mods);
         int endpos = modelVarDecl.getEndPosition(log.getSource(modelVarDecl.sourcefile).getEndPosTable());
-        mr.mods.annotations = List.<JCAnnotation>of(utils.tokenToAnnotationAST(JmlTokenKind.MODEL,modelVarDecl.pos,endpos),
-                                                    utils.tokenToAnnotationAST(JmlTokenKind.PURE,modelVarDecl.pos,endpos)
+        mr.mods.annotations = List.<JCAnnotation>of(utils.modToAnnotationAST(Modifiers.MODEL,modelVarDecl.pos,endpos),
+                                                    utils.modToAnnotationAST(Modifiers.PURE,modelVarDecl.pos,endpos)
                 );
         JmlSpecs.FieldSpecs fspecs = specs.getSpecs(modelVarDecl.sym);
         JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);
@@ -1222,7 +1223,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
         if (match == null) {
             if (complain && (specMethod.mods.flags & Flags.GENERATEDCONSTR) == 0 && !inModelTypeDeclaration
-                    && utils.findMod(specMethod.mods,JmlTokenKind.MODEL) == null) {
+                    && utils.findMod(specMethod.mods,Modifiers.MODEL) == null) {
                 log.error(specMethod.pos(),"jml.no.method.match",
                     csym.flatName() + "." + mtemp);
             }
@@ -1974,7 +1975,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             // In the case of a JML ghost variable that is a field of an interface, the default is static and not final
             // (unless explicitly specified final)
             // FIXME _ the following is not robust because annotations are not attributed yet - test these as well
-            boolean isInstance = utils.findMod(tree.mods,JmlTokenKind.INSTANCE) != null;
+            boolean isInstance = utils.findMod(tree.mods,Modifiers.INSTANCE) != null;
             //boolean isGhost = JmlAttr.instance(context).findMod(tree.mods,JmlToken.GHOST) != null;
             //boolean isModel = JmlAttr.instance(context).findMod(tree.mods,JmlToken.MODEL) != null;
             if (isInstance && !wasStatic) tree.sym.flags_field &= ~Flags.STATIC;  // FIXME - this duplicates JmlCheck
@@ -1995,17 +1996,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
     
     /** Creates a JCAnnotation tree (without position, source, or type information) from a token; has limited use */
-    protected JmlTree.JmlAnnotation tokenToAnnotationAST(JmlTokenKind jt) {
-        Class<?> c = jt.annotationType;
-        if (c == null) {
-            log.warning("jml.internal","Expected annotation type to be defined when calling tokenToAnnotationAST");
-            return null;
-        }
+    protected JmlTree.JmlAnnotation modToAnnotationAST(ModifierKind jt) {
         // FIXME - this is also repeated code and repeated fixed strings
-        JCExpression t = jmlF.Ident(names.fromString("org"));
-        t = jmlF.Select(t, names.fromString("jmlspecs"));
-        t = jmlF.Select(t, names.fromString("annotation"));
-        t = jmlF.Select(t, names.fromString(c.getSimpleName()));
+        JCExpression t = utils.nametree(Position.NOPOS,jt.fullAnnotation);
         JmlTree.JmlAnnotation ann = jmlF.Annotation(t, List.<JCExpression>nil());
         return ann;
     }
@@ -2014,8 +2007,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     protected void enterSpecsForBinaryFields(ClassSymbol parent, JmlVariableDecl specstree) {
         Name nm = specstree.name;
         boolean isJML = utils.isJML(specstree.mods);
-        boolean isModel = isJML && utils.findMod(specstree.mods, JmlTokenKind.MODEL) != null;
-        boolean isGhost = isJML && utils.findMod(specstree.mods, JmlTokenKind.GHOST) != null;
+        boolean isModel = isJML && utils.findMod(specstree.mods, Modifiers.MODEL) != null;
+        boolean isGhost = isJML && utils.findMod(specstree.mods, Modifiers.GHOST) != null;
 
         Scope.Entry e = parent.members().lookup(nm); // Presume there is just one declaration with a matching name, 
                                                      // or at least, that the first one to match is the one we want.
@@ -2060,7 +2053,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             // In the case of a JML ghost variable that is a field of an interface, the default is static and not final
             // (unless explicitly specified final)
             // FIXME _ the following is not robust because annotations are not attributed yet - test these as well
-            boolean isInstance = utils.findMod(specstree.mods,JmlTokenKind.INSTANCE) != null;
+            boolean isInstance = utils.findMod(specstree.mods,Modifiers.INSTANCE) != null;
             if (isInstance && !wasStatic) specstree.sym.flags_field &= ~Flags.STATIC;  // FIXME - this duplicates JmlCheck
             if (!wasFinal) vsym.flags_field &= ~FINAL; 
         }

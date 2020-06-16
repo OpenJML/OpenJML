@@ -133,7 +133,7 @@ public class QuantifiedExpressions extends ExpressionExtension {
                 JCModifiers mods = decl.getModifiers();
                 if (attr.utils.hasOnly(mods,0)!=0) log.error(mods.pos,"jml.no.java.mods.allowed","quantified expression");
                 attr.attribAnnotationTypes(mods.annotations,env);
-                attr.allAllowed(mods.annotations, JmlTokenKind.typeModifiers, "quantified expression");
+                attr.allAllowed(mods.annotations, attr.typeModifiers, "quantified expression");
                 attr.utils.setExprLocal(mods);
 //                if (utils.hasAny(mods,Flags.STATIC)) {
 //                    log.error(that.pos,

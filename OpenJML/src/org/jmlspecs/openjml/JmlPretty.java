@@ -12,7 +12,7 @@ import java.io.Writer;
 import java.util.Iterator;
 
 import org.jmlspecs.annotation.NonNull;
-
+import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
@@ -956,12 +956,18 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 tree.annotationType.toString();
             boolean isJml = s.startsWith(Strings.jmlAnnotationPackage);
             if (useJmlModifier && isJml) {
-                for (JmlTokenKind t: JmlTokenKind.values()) {
-                    if (t.annotationType != null && t.annotationType.toString().substring("interface ".length()).equals(s)) {
-                        print("/*@ " + t.internedName() + " */");
+                for (IJmlClauseKind k : Extensions.allKinds.values()) {
+                    if (k instanceof ModifierKind && ((ModifierKind)k).fullAnnotation.equals(s)) {
+                        print("/*@ " + ((ModifierKind)k).keyword + " */");
                         return;
                     }
                 }
+//                for (JmlTokenKind t: JmlTokenKind.values()) {
+//                    if (t.annotationType != null && t.annotationType.toString().substring("interface ".length()).equals(s)) {
+//                        print("/*@ " + t.internedName() + " */");
+//                        return;
+//                    }
+//                }
                 super.visitAnnotation(tree);
             } else if (!useFullAnnotationTypeName && isJml) {
                     s = s.substring(Strings.jmlAnnotationPackage.length()+1); // +1 for the extra period

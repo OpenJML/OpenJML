@@ -2478,7 +2478,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Returns true if the given symbol has a Model annotation */
     public boolean isModel(Symbol symbol) {
-        return symbol.attribute(attr.tokenToAnnotationSymbol.get(JmlTokenKind.MODEL))!=null; // FIXME - need to get this from the spec
+        return symbol.attribute(attr.modToAnnotationSymbol.get(Modifiers.MODEL))!=null; // FIXME - need to get this from the spec
     }
     
     public boolean hasStatic(JCModifiers mods) {
@@ -2779,7 +2779,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 if (!isConstructor || isPost) doit = true; // pre and postcondition case
                                 if (isConstructor ) {
                                     if (clauseIsStatic) doit = true;
-                                    if (utils.findMod(classDecl.mods, JmlTokenKind.CAPTURED) != null) doit = true;
+                                    if (utils.findMod(classDecl.mods, Modifiers.CAPTURED) != null) doit = true;
                                     // FIXME - should not use erasure here, but pasrameterized dtypes do not seem to work
                                     // properly even if ctype is obtrained by collecting super classes and super interfaces of basetype
                                     boolean b = !types.isAssignable(types.erasure(basetype),types.erasure(ctype));
@@ -9932,7 +9932,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!utils.isJMLStatic(calleeMethodSym)) {
             ntrArgs = ntrArgs.prepend(newThisExpr);
         }
-        if (!attr.hasAnnotation(calleeMethodSym,JmlTokenKind.FUNCTION) && !useNamesForHeap) {
+        if (!attr.hasAnnotation(calleeMethodSym,Modifiers.FUNCTION) && !useNamesForHeap) {
             JCExpression heap = treeutils.makeIdent(that.pos,heapSym);
             ntrArgs = ntrArgs.prepend(heap); // only if heap dependent
         }
@@ -17470,13 +17470,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 that.type = jmltypes.repSym((JmlType)that.type).type;
                 that.sym.type = that.type;
             }
-            if (specs.fieldSpecHasAnnotation(that.sym, JmlTokenKind.SPEC_PUBLIC) != null) {
+            if (specs.fieldSpecHasAnnotation(that.sym, Modifiers.SPEC_PUBLIC) != null) {
                 that.mods.flags &= ~Flags.AccessFlags;
                 that.mods.flags |= Flags.PUBLIC;
                 that.sym.flags_field  &= ~Flags.AccessFlags;
                 that.sym.flags_field |= Flags.PUBLIC;
             }
-            if (specs.fieldSpecHasAnnotation(that.sym, JmlTokenKind.SPEC_PROTECTED) != null) {
+            if (specs.fieldSpecHasAnnotation(that.sym, Modifiers.SPEC_PROTECTED) != null) {
                 that.mods.flags &= ~Flags.AccessFlags;
                 that.mods.flags |= Flags.PROTECTED;
                 that.sym.flags_field  &= ~Flags.AccessFlags;

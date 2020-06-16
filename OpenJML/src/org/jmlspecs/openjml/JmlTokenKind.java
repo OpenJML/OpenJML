@@ -54,39 +54,39 @@ public enum JmlTokenKind implements ITokenKind {
 //    CAPTURED("captured",org.jmlspecs.annotation.Captured.class),
 
     // These are modifiers
-    PURE("pure",org.jmlspecs.annotation.Pure.class), // Keep this one the first of the modifiers (see the modifiers Map below)
-    CODE_JAVA_MATH("code_java_math",org.jmlspecs.annotation.CodeJavaMath.class),
-    CODE_SAFE_MATH("code_safe_math",org.jmlspecs.annotation.CodeSafeMath.class),
-    CAPTURED("captured",org.jmlspecs.annotation.Captured.class),
-    EXTRACT("extract",org.jmlspecs.annotation.Extract.class),
-    GHOST("ghost",org.jmlspecs.annotation.Ghost.class),
-    IMMUTABLE("immutable",org.jmlspecs.annotation.Immutable.class), // FIXME - this is an extension - comment
-    INSTANCE("instance",org.jmlspecs.annotation.Instance.class),
-    MODEL("model",org.jmlspecs.annotation.Model.class),
-    NONNULL("non_null",org.jmlspecs.annotation.NonNull.class),
-    NULLABLE("nullable",org.jmlspecs.annotation.Nullable.class),
-    NULLABLE_BY_DEFAULT("nullable_by_default",org.jmlspecs.annotation.NullableByDefault.class),
-    NON_NULL_BY_DEFAULT("non_null_by_default",org.jmlspecs.annotation.NonNullByDefault.class), // TODO: In some code, but not in JML
-    FUNCTION("function",org.jmlspecs.annotation.Function.class),
-    HELPER("helper",org.jmlspecs.annotation.Helper.class),
-    UNINITIALIZED("uninitialized",org.jmlspecs.annotation.Uninitialized.class),
-    MONITORED("monitored",org.jmlspecs.annotation.Monitored.class),
-    OPTIONS(null,org.jmlspecs.annotation.Options.class),
-    PEER("peer",org.jmlspecs.annotation.Peer.class),
-    READONLY("readonly",org.jmlspecs.annotation.Readonly.class),
-    REP("rep",org.jmlspecs.annotation.Rep.class),
-    SKIP_ESC("skipesc",org.jmlspecs.annotation.SkipEsc.class),
-    SKIP_RAC("skiprac",org.jmlspecs.annotation.SkipRac.class),
-    SPEC_BIGINT_MATH("spec_bigint_math",org.jmlspecs.annotation.SpecBigintMath.class),
-    SPEC_JAVA_MATH("spec_java_math",org.jmlspecs.annotation.SpecJavaMath.class),
-    SPEC_SAFE_MATH("spec_safe_math",org.jmlspecs.annotation.SpecSafeMath.class),
-    SPEC_PUBLIC("spec_public",org.jmlspecs.annotation.SpecPublic.class),
-    SPEC_PROTECTED("spec_protected",org.jmlspecs.annotation.SpecProtected.class),
-    CODE_BIGINT_MATH("code_bigint_math",org.jmlspecs.annotation.CodeBigintMath.class), // Keep this one the last of the standard modifiers (see the modifiers Map below)
-        // Anything between CODE_BIGINT_MATH and LAST is automatically considered an OpenJML extension
-    QUERY("query",org.jmlspecs.annotation.Query.class),  // FIXME - this is an extension - comment
-    SECRET("secret",org.jmlspecs.annotation.Secret.class),  // FIXME - this is an extension - comment
-    INLINE("inline",org.jmlspecs.annotation.Inline.class), // FIXME - This is an extension
+//    PURE("pure",org.jmlspecs.annotation.Pure.class), // Keep this one the first of the modifiers (see the modifiers Map below)
+//    CODE_JAVA_MATH("code_java_math",org.jmlspecs.annotation.CodeJavaMath.class),
+//    CODE_SAFE_MATH("code_safe_math",org.jmlspecs.annotation.CodeSafeMath.class),
+//    CAPTURED("captured",org.jmlspecs.annotation.Captured.class),
+//    EXTRACT("extract",org.jmlspecs.annotation.Extract.class),
+//    GHOST("ghost",org.jmlspecs.annotation.Ghost.class),
+//    IMMUTABLE("immutable",org.jmlspecs.annotation.Immutable.class), // FIXME - this is an extension - comment
+//    INSTANCE("instance",org.jmlspecs.annotation.Instance.class),
+//    MODEL("model",org.jmlspecs.annotation.Model.class),
+//    NONNULL("non_null",org.jmlspecs.annotation.NonNull.class),
+//    NULLABLE("nullable",org.jmlspecs.annotation.Nullable.class),
+//    NULLABLE_BY_DEFAULT("nullable_by_default",org.jmlspecs.annotation.NullableByDefault.class),
+//    NON_NULL_BY_DEFAULT("non_null_by_default",org.jmlspecs.annotation.NonNullByDefault.class), // TODO: In some code, but not in JML
+//    FUNCTION("function",org.jmlspecs.annotation.Function.class),
+//    HELPER("helper",org.jmlspecs.annotation.Helper.class),
+//    UNINITIALIZED("uninitialized",org.jmlspecs.annotation.Uninitialized.class),
+//    MONITORED("monitored",org.jmlspecs.annotation.Monitored.class),
+//    OPTIONS(null,org.jmlspecs.annotation.Options.class),
+//    PEER("peer",org.jmlspecs.annotation.Peer.class),
+//    READONLY("readonly",org.jmlspecs.annotation.Readonly.class),
+//    REP("rep",org.jmlspecs.annotation.Rep.class),
+//    SKIP_ESC("skipesc",org.jmlspecs.annotation.SkipEsc.class),
+//    SKIP_RAC("skiprac",org.jmlspecs.annotation.SkipRac.class),
+//    SPEC_BIGINT_MATH("spec_bigint_math",org.jmlspecs.annotation.SpecBigintMath.class),
+//    SPEC_JAVA_MATH("spec_java_math",org.jmlspecs.annotation.SpecJavaMath.class),
+//    SPEC_SAFE_MATH("spec_safe_math",org.jmlspecs.annotation.SpecSafeMath.class),
+//    SPEC_PUBLIC("spec_public",org.jmlspecs.annotation.SpecPublic.class),
+//    SPEC_PROTECTED("spec_protected",org.jmlspecs.annotation.SpecProtected.class),
+//    CODE_BIGINT_MATH("code_bigint_math",org.jmlspecs.annotation.CodeBigintMath.class), // Keep this one the last of the standard modifiers (see the modifiers Map below)
+//        // Anything between CODE_BIGINT_MATH and LAST is automatically considered an OpenJML extension
+//    QUERY("query",org.jmlspecs.annotation.Query.class),  // FIXME - this is an extension - comment
+//    SECRET("secret",org.jmlspecs.annotation.Secret.class),  // FIXME - this is an extension - comment
+//    INLINE("inline",org.jmlspecs.annotation.Inline.class), // FIXME - This is an extension
     LAST("_",null), // This is a fake entry that is the end of the standard+extension modifiers list
     
     
@@ -119,7 +119,7 @@ public enum JmlTokenKind implements ITokenKind {
     BSASSIGNS("\\assigns"),
 
 //    BSPEER("\\peer"),
-    BSREADONLY("\\readonly"),
+//    BSREADONLY("\\readonly"),
 //    BSREP("\\rep"),
     
     
@@ -197,18 +197,16 @@ public enum JmlTokenKind implements ITokenKind {
     /** This is a set of all the modifier tokens, defined so that it is quick
      * and easy to test if a token is a modifier.
      */
-    public final static EnumSet<JmlTokenKind> modifiers = EnumSet.range(PURE,LAST);  // BSREADONLY added below
+    public final static EnumSet<JmlTokenKind> modifiers = EnumSet.range(LAST,LAST);  // BSREADONLY added below
     
-    public final static EnumSet<JmlTokenKind> extensions = EnumSet.range(CODE_BIGINT_MATH, LAST);
-    static {
-        extensions.remove(CODE_BIGINT_MATH); // This is not an extension - it marks the last of non-extensions
-        extensions.remove(LAST); // Not real - just marks the end of any extensions
-    }
+//    public final static EnumSet<JmlTokenKind> extensions = EnumSet.range(CODE_BIGINT_MATH, LAST);
+//    static {
+//        extensions.remove(CODE_BIGINT_MATH); // This is not an extension - it marks the last of non-extensions
+//        extensions.remove(LAST); // Not real - just marks the end of any extensions
+//    }
     
     public final static EnumSet<JmlTokenKind> jmloperators = EnumSet.range(EQUIVALENCE, LOCK_LE);
     
-    /** This is a set of the modifiers that may be used to characterize a type. */
-    public final static JmlTokenKind[] typeModifiers = new JmlTokenKind[]{NULLABLE,NONNULL,BSREADONLY};
     
     
     static {
@@ -232,7 +230,7 @@ public enum JmlTokenKind implements ITokenKind {
             allTokens.put(s, t);
         }
 
-        modifiers.add(BSREADONLY);
+//        modifiers.add(BSREADONLY);
         // the LAST token is fake and doesn't really need to be in the modifiers set
         modifiers.remove(LAST);
 }

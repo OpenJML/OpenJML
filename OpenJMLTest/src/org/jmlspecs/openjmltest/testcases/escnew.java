@@ -2316,7 +2316,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testConcat() {
-        main.addOptions("-method=m2","-show");
+        //main.addOptions("-method=m2","-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 

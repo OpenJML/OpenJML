@@ -8,6 +8,7 @@ package com.sun.tools.javac.comp;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.Modifiers;
 
 import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.code.Flags;
@@ -229,10 +230,10 @@ public class JmlResolve extends Resolve {
         }
 
         if (specPublicSym == null) {
-            specPublicSym = attr.tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PUBLIC);
+            specPublicSym = attr.modToAnnotationSymbol.get(Modifiers.SPEC_PUBLIC);
         }
         if (specProtectedSym == null) {
-            specProtectedSym = attr.tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PROTECTED);
+            specProtectedSym = attr.modToAnnotationSymbol.get(Modifiers.SPEC_PROTECTED);
         }
 
         boolean isSpecPublic = utils.findMod(mods,specPublicSym) != null;

@@ -45,8 +45,8 @@ public class GhostModelStatement extends JmlExtension {
     public static final String ghostID = "ghost";
     public static final String modelID = "model";
     
-    public static final IJmlClauseKind ghostDeclaration = new JmlDeclarationType(ghostID);
-    public static final IJmlClauseKind modelDeclaration = new JmlDeclarationType(modelID);
+   // public static final IJmlClauseKind ghostDeclaration = new JmlDeclarationType(ghostID);
+   // public static final IJmlClauseKind modelDeclaration = new JmlDeclarationType(modelID);
     
 
     public static class JmlDeclarationType extends IJmlClauseKind.Statement {
@@ -58,7 +58,7 @@ public class GhostModelStatement extends JmlExtension {
             int pp = parser.pos();
             int pe = parser.endPos();
             
-            JCAnnotation a = parser.tokenToAnnotationAST(clauseType == ghostDeclaration ? JmlTokenKind.GHOST :  JmlTokenKind.MODEL, pp, pe);
+            JCAnnotation a = null; // parser.tokenToAnnotationAST(clauseType == ghostDeclaration ? JmlTokenKind.GHOST :  JmlTokenKind.MODEL, pp, pe);
             parser.nextToken();
             boolean saved = parser.setInJmlDeclaration(true);
             try {

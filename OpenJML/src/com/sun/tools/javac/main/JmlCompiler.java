@@ -19,6 +19,7 @@ import java.util.Set;
 import javax.annotation.processing.Processor;
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlClearTypes;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
@@ -35,6 +36,7 @@ import org.jmlspecs.openjml.Main.Cmd;
 import org.jmlspecs.openjml.Main.IProgressListener;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
+import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.sa.MethodDependencies;
 import org.jmlspecs.openjml.strongarm.InferenceType;
 import org.jmlspecs.openjml.strongarm.JmlInfer;
@@ -588,7 +590,7 @@ public class JmlCompiler extends JavaCompiler {
             JmlTree.Maker M = JmlTree.Maker.instance(context);
             JCClassDecl that = (JCClassDecl)tree;
             
-            if (((JmlAttr)attr).hasAnnotation(that.sym,JmlTokenKind.SKIP_RAC)) {
+            if (((JmlAttr)attr).hasAnnotation(that.sym,Modifiers.SKIPRAC)) {
                 utils.progress(1,1,"Skipping RAC of " + that.name.toString() + " (SkipRac annotation)");
                 return env;
             }

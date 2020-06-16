@@ -115,8 +115,10 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testOnlyModelClass2() {
-        helpTCF("A.java","public class A {}\n public model class B{}",
-                "/A.java:2: class, interface, or enum expected", 9);
+        helpTCF("A.java","public class A {}\n public model class B{}"
+                ,"/A.java:2: class B is public, should be declared in a file named B.java", 15
+                ,"/A.java:2: A Java declaration (not within a JML annotation) may not be either ghost or model", 15
+                );
     }
 
     @Test public void testOnlyModelClass3() {
