@@ -33,60 +33,7 @@ public enum JmlTokenKind implements ITokenKind {
     ENDJMLCOMMENT("<JMLEND>"),
     
     // These are statement types
-//    ASSUME("assume"),  // Keep this one first of the method statement tokens
-//    ASSERT("assert"),
-//    COMMENT("comment"), // For comments in BasicBlock programs
-//    HAVOC("havoc"), // Just used in ESC
-//    DEBUG("debug"),
-//    END("end"),
-//    SET("set"),
-//    SHOW("show"),
-//    USE("use"),
-//    DECREASES("decreases"),
-//    LOOP_DECREASES("loop_decreases"),
-//    INLINED_LOOP("inlined_loop"),
-//    LOOP_INVARIANT("loop_invariant"),
-//    LOOP_MODIFIES("loop_modifies"),
-//    HENCE_BY("hence_by"),
     REFINING("refining"),
-//    REACHABLE("reachable"),
-//    UNREACHABLE("unreachable"), // Keep this one last of the method statement tokens
-//    CAPTURED("captured",org.jmlspecs.annotation.Captured.class),
-
-    // These are modifiers
-//    PURE("pure",org.jmlspecs.annotation.Pure.class), // Keep this one the first of the modifiers (see the modifiers Map below)
-//    CODE_JAVA_MATH("code_java_math",org.jmlspecs.annotation.CodeJavaMath.class),
-//    CODE_SAFE_MATH("code_safe_math",org.jmlspecs.annotation.CodeSafeMath.class),
-//    CAPTURED("captured",org.jmlspecs.annotation.Captured.class),
-//    EXTRACT("extract",org.jmlspecs.annotation.Extract.class),
-//    GHOST("ghost",org.jmlspecs.annotation.Ghost.class),
-//    IMMUTABLE("immutable",org.jmlspecs.annotation.Immutable.class), // FIXME - this is an extension - comment
-//    INSTANCE("instance",org.jmlspecs.annotation.Instance.class),
-//    MODEL("model",org.jmlspecs.annotation.Model.class),
-//    NONNULL("non_null",org.jmlspecs.annotation.NonNull.class),
-//    NULLABLE("nullable",org.jmlspecs.annotation.Nullable.class),
-//    NULLABLE_BY_DEFAULT("nullable_by_default",org.jmlspecs.annotation.NullableByDefault.class),
-//    NON_NULL_BY_DEFAULT("non_null_by_default",org.jmlspecs.annotation.NonNullByDefault.class), // TODO: In some code, but not in JML
-//    FUNCTION("function",org.jmlspecs.annotation.Function.class),
-//    HELPER("helper",org.jmlspecs.annotation.Helper.class),
-//    UNINITIALIZED("uninitialized",org.jmlspecs.annotation.Uninitialized.class),
-//    MONITORED("monitored",org.jmlspecs.annotation.Monitored.class),
-//    OPTIONS(null,org.jmlspecs.annotation.Options.class),
-//    PEER("peer",org.jmlspecs.annotation.Peer.class),
-//    READONLY("readonly",org.jmlspecs.annotation.Readonly.class),
-//    REP("rep",org.jmlspecs.annotation.Rep.class),
-//    SKIP_ESC("skipesc",org.jmlspecs.annotation.SkipEsc.class),
-//    SKIP_RAC("skiprac",org.jmlspecs.annotation.SkipRac.class),
-//    SPEC_BIGINT_MATH("spec_bigint_math",org.jmlspecs.annotation.SpecBigintMath.class),
-//    SPEC_JAVA_MATH("spec_java_math",org.jmlspecs.annotation.SpecJavaMath.class),
-//    SPEC_SAFE_MATH("spec_safe_math",org.jmlspecs.annotation.SpecSafeMath.class),
-//    SPEC_PUBLIC("spec_public",org.jmlspecs.annotation.SpecPublic.class),
-//    SPEC_PROTECTED("spec_protected",org.jmlspecs.annotation.SpecProtected.class),
-//    CODE_BIGINT_MATH("code_bigint_math",org.jmlspecs.annotation.CodeBigintMath.class), // Keep this one the last of the standard modifiers (see the modifiers Map below)
-//        // Anything between CODE_BIGINT_MATH and LAST is automatically considered an OpenJML extension
-//    QUERY("query",org.jmlspecs.annotation.Query.class),  // FIXME - this is an extension - comment
-//    SECRET("secret",org.jmlspecs.annotation.Secret.class),  // FIXME - this is an extension - comment
-//    INLINE("inline",org.jmlspecs.annotation.Inline.class), // FIXME - This is an extension
     LAST("_",null), // This is a fake entry that is the end of the standard+extension modifiers list
     
     
@@ -97,19 +44,7 @@ public enum JmlTokenKind implements ITokenKind {
     METHOD("method"),
     
     // These are various tokens related to JML expressions
-//    BSEXCEPTION("\\exception"), // This is for internal use only, so it is before \result
-//    BSRESULT("\\result"), // Keep this one the first of the backslash tokens
-//    BSEVERYTHING("\\everything"),
-//    BSLOCKSET("\\lockset"),
-//    BSCOUNT("\\count"), // New version of \index
-//    BSINDEX("\\index"), // Obsolete in favor of \count
-//    BSVALUES("\\values"),
-//    BSNOTHING("\\nothing"),
-//    BSSAME("\\same"),
     MATCH("match"),
-//    BSNOTSPECIFIED("\\not_specified"),
-
-//    BSCONCAT("\\concat"),
     BSREQUIRES("\\requires"),
     BSREADS("\\reads"),
     BSWRITES("\\writes"),
@@ -118,10 +53,6 @@ public enum JmlTokenKind implements ITokenKind {
     BSPRE("\\pre"), // overloaded both \post-like and \old-like
     BSASSIGNS("\\assigns"),
 
-//    BSPEER("\\peer"),
-//    BSREADONLY("\\readonly"),
-//    BSREP("\\rep"),
-    
     
     // These are JML type literals
     BSTYPEUC("\\TYPE"),
@@ -192,18 +123,7 @@ public enum JmlTokenKind implements ITokenKind {
     
     /** This is a map from string to token for all of the tokens, and includes defined synonyms. */
     public final static Map<String,JmlTokenKind> allTokens = new HashMap<>();
-    public final static Map<String,String> synonyms = new HashMap<>();
     
-    /** This is a set of all the modifier tokens, defined so that it is quick
-     * and easy to test if a token is a modifier.
-     */
-    public final static EnumSet<JmlTokenKind> modifiers = EnumSet.range(LAST,LAST);  // BSREADONLY added below
-    
-//    public final static EnumSet<JmlTokenKind> extensions = EnumSet.range(CODE_BIGINT_MATH, LAST);
-//    static {
-//        extensions.remove(CODE_BIGINT_MATH); // This is not an extension - it marks the last of non-extensions
-//        extensions.remove(LAST); // Not real - just marks the end of any extensions
-//    }
     
     public final static EnumSet<JmlTokenKind> jmloperators = EnumSet.range(EQUIVALENCE, LOCK_LE);
     
@@ -211,27 +131,11 @@ public enum JmlTokenKind implements ITokenKind {
     
     static {
         
-        // Synonyms
-        
-//        synonyms.put("behaviour","behavior");
-//        synonyms.put("exceptional_behaviour","exceptional_behavior");
-//        synonyms.put("normal_behaviour","normal_behavior");
-//        synonyms.put("abrupt_behaviour","abrupt_behavior");
-
         for (JmlTokenKind t: EnumSet.range(BSREQUIRES,BSBIGINT)) {
             backslashTokens.put(t.internedName(),t);
         }
         for (JmlTokenKind t: JmlTokenKind.values()) {
             allTokens.put(t.internedName(),t);
         }
-        for (String s: synonyms.keySet()) {
-            String ss = synonyms.get(s);
-            JmlTokenKind t = allTokens.get(ss);
-            allTokens.put(s, t);
-        }
-
-//        modifiers.add(BSREADONLY);
-        // the LAST token is fake and doesn't really need to be in the modifiers set
-        modifiers.remove(LAST);
-}
+    }
 }

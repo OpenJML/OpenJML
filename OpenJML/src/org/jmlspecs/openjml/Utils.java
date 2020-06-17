@@ -56,6 +56,7 @@ import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.jvm.ClassReader;
+import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -1182,7 +1183,7 @@ public class Utils {
 //        }
         JmlTree.Maker F = JmlTree.Maker.instance(context);
 //        Names names = Names.instance(context);
-        JCExpression p = nametree(position, jt.fullAnnotation);
+        JCExpression p = nametree(position, endpos,jt.fullAnnotation,null);
 //        JCFieldAccess t = (F.at(position).Select(p, names.fromString(c.getSimpleName())));
         JCAnnotation ann = (F.at(position).Annotation(p,
                 com.sun.tools.javac.util.List.<JCExpression> nil()));
@@ -1207,13 +1208,15 @@ public class Utils {
         return ann;
     }
     
-    public JCExpression nametree(int position, String s) {
+    public JCExpression nametree(int position, int endpos, String s, JmlParser parser) {
         String[] nms = s.split("\\.");
         JmlTree.Maker F = JmlTree.Maker.instance(context);
         Names names = Names.instance(context);
         JCExpression tree = F.at(position).Ident(nms[0]);
+        if (parser != null) parser.storeEnd(tree,endpos);
         for (int i = 1; i<nms.length; i++) {
             tree = F.at(position).Select(tree, names.fromString(nms[i]));
+            if (parser != null) parser.storeEnd(tree,endpos);
         }
         return tree;
     }

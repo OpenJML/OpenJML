@@ -871,7 +871,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             VarSymbol vsym = vdecl.sym;
             
             JCTree.JCReturn returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(vdecl.pos,vdecl.sym.type));
-            JCTree.JCThrow throwStatement = jmlF.Throw(jmlF.NewClass(null, List.<JCExpression>nil(), utils.nametree(decl.pos,Strings.jmlSpecsPackage + ".NoModelFieldMethod"), List.<JCExpression>nil(), null));
+            JCTree.JCThrow throwStatement = jmlF.Throw(jmlF.NewClass(null, List.<JCExpression>nil(), utils.nametree(decl.pos,-1,Strings.jmlSpecsPackage + ".NoModelFieldMethod",null), List.<JCExpression>nil(), null));
             
             modelMethodNames.put(vsym.name,vdecl);
             JmlMethodDecl mr = makeModelFieldMethod(vdecl,tsp);
@@ -1998,7 +1998,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     /** Creates a JCAnnotation tree (without position, source, or type information) from a token; has limited use */
     protected JmlTree.JmlAnnotation modToAnnotationAST(ModifierKind jt) {
         // FIXME - this is also repeated code and repeated fixed strings
-        JCExpression t = utils.nametree(Position.NOPOS,jt.fullAnnotation);
+        JCExpression t = utils.nametree(Position.NOPOS,Position.NOPOS,jt.fullAnnotation,null);
         JmlTree.JmlAnnotation ann = jmlF.Annotation(t, List.<JCExpression>nil());
         return ann;
     }
