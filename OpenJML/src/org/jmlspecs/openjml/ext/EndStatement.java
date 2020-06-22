@@ -41,9 +41,11 @@ public class EndStatement extends JmlExtension {
 
     public static final String endID = "end";
     public static final String beginID = "begin";
+    public static final String refiningID = "refining";
     
     public static final IJmlClauseKind beginClause = new SimpleStatement(beginID);
     public static final IJmlClauseKind endClause = new SimpleStatement(endID);
+    public static final IJmlClauseKind refiningClause = new SimpleStatement(refiningID);
 
     public static class SimpleStatement extends IJmlClauseKind.Statement {
         public SimpleStatement(String id) { super(id); }

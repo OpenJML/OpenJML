@@ -173,7 +173,7 @@ public class JmlScanner extends Scanner {
      * within expressions). jmlkeyword is always set to true at the beginning of
      * JML comments.
      */
-    protected boolean       jmlkeyword = true;
+//    protected boolean       jmlkeyword = true;
 
     /** Set to true internally while the scanner is within a JML comment */
     public boolean       jml() {
@@ -197,9 +197,9 @@ public class JmlScanner extends Scanner {
      *            the new value of the keyword mode, returning the old mode
      */
     public boolean setJmlKeyword(boolean j) {
-        boolean b = jmltokenizer.setJmlKeyword(j);
-        if (b != j) {
-            rescan();
+//        boolean b = jmltokenizer.setJmlKeyword(j);
+//        if (b != j) {
+//            rescan();
 //            if (j) {
 //                // Should turn identifiers into JML tokens, where appropriate
 //                for (Token k: savedTokens) {
@@ -218,14 +218,14 @@ public class JmlScanner extends Scanner {
 //                    }
 //                }
 //            }
-        }
-        return b;
+//        }
+        return false;
     }
     
-    /** current value of the keyword mode */
-    public boolean jmlKeywordMode() {
-        return jmlkeyword;
-    }
+//    /** current value of the keyword mode */
+//    public boolean jmlKeywordMode() {
+//        return jmlkeyword;
+//    }
     
     /**
      * Creates a new scanner, but you should use JmlFactory.newScanner() to get

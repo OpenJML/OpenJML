@@ -423,15 +423,15 @@ public class JmlParser extends JavacParser {
      */
     @Override
     List<JCTree> classOrInterfaceBody(Name className, boolean isInterface) {
-        boolean savedJmlKeyword = S.jmlkeyword;
+//        boolean savedJmlKeyword = S.jmlkeyword;
         JmlMethodSpecs savedMethodSpecs = currentMethodSpecs;
         currentMethodSpecs = null;
-        S.setJmlKeyword(true);
+//        S.setJmlKeyword(true);
         try {
             return super.classOrInterfaceBody(className, isInterface);
         } finally {
             currentMethodSpecs = savedMethodSpecs;
-            S.setJmlKeyword(savedJmlKeyword);
+//            S.setJmlKeyword(savedJmlKeyword);
             rescan();
         }
 
@@ -557,14 +557,15 @@ public class JmlParser extends JavacParser {
             if (anyext != null) {
                 IJmlClauseKind ext = Extensions.findSM(id);
                 if (ext != null) {
-                    if (ext instanceof IJmlClauseKind.MethodClauseKind) {
-                        JCStatement s = parseRefining(pos(), null);
-                        return List.<JCStatement>of(s);
+                    JCStatement s;
+                    if (ext instanceof IJmlClauseKind.MethodClauseKind
+                            || ext == EndStatement.refiningClause) {
+                        s = parseRefining(pos(), ext);
                     } else {
-                        JCStatement s = (JCStatement)ext.parse(null, id, ext, this);
-                        //                    JCStatement s = parseStatement();
-                        return List.<JCStatement>of(s);
+                        s = (JCStatement)ext.parse(null, id, ext, this);
                     }
+                    if (s == null) return List.<JCStatement>nil();
+                    return List.<JCStatement>of(s);
                 }
                 IJmlClauseKind cl = Extensions.findKeyword(token);
                 if (cl instanceof IJmlClauseKind.ClassLikeKind) {
@@ -693,12 +694,12 @@ public class JmlParser extends JavacParser {
                 IJmlClauseKind ext = Extensions.findKeyword(token);
                 if (ext instanceof IJmlClauseKind.MethodClauseKind) {
                 //if (methodClauseTokens.contains(jtoken)) {
-                    st = parseRefining(pos,jtoken);
+                    st = parseRefining(pos,ext);
                     needSemi = false;
 
-                } else if (jtoken == JmlTokenKind.REFINING) {
+                } else if (ext == EndStatement.refiningClause) {
                     S.setJmlKeyword(true);
-                    st = parseRefining(pos,jtoken);
+                    st = parseRefining(pos,ext);
                     needSemi = false;
 
 //                } else if (inModelProgram && jtoken == JmlTokenKind.CHOOSE) {
@@ -781,10 +782,10 @@ public class JmlParser extends JavacParser {
         return stt;
     }
     
-    JCStatement parseRefining(int pos, JmlTokenKind jt) {
+    JCStatement parseRefining(int pos, IJmlClauseKind jt) {
         JmlStatementSpec ste;
         ListBuffer<JCIdent> exports = new ListBuffer<>();
-        if (jt == JmlTokenKind.REFINING) {
+        if (jt == EndStatement.refiningClause) {
             nextToken();
             IJmlClauseKind ext = methodSpecKeywordS(0);
             if (ext == alsoClause) { // jmlTokenKind() == JmlTokenKind.ALSO) {
@@ -1554,14 +1555,14 @@ public class JmlParser extends JavacParser {
         {
             boolean isBrace = token.kind == TokenKind.LBRACE;
             if (isBrace || token.kind==TokenKind.BANG) {
-                boolean b = S.jmlkeyword;
+//                boolean b = S.jmlkeyword;
                 try {
                     // We need to be in non-JML mode so that we don't interpret 
-                    S.setJmlKeyword(false);
+//                    S.setJmlKeyword(false);
                     nextToken();
                     replacementType = super.unannotatedType();
                 } finally {
-                    S.setJmlKeyword(b);
+//                    S.setJmlKeyword(b);
                     if (isBrace) accept(TokenKind.RBRACE);
                     if (token.ikind != JmlTokenKind.ENDJMLCOMMENT) {
                         log.error(token.pos,"jml.bad.construct","JML construct");
@@ -2316,12 +2317,12 @@ public class JmlParser extends JavacParser {
                 // something other than a declaration?
                 // Also setJmlKeyword back to true
                 S.setJmlKeyword(false);
-            } else if (j == CONSTRUCTOR | j == METHOD | j == FIELD) {
-                // FIXME - do we want to save this anywhere; check that it
-                // matches the declaration; check that it is not used on
-                // something other than a declaration?
-                // Also setJmlKeyword back to true
-                S.setJmlKeyword(false);
+//            } else if (j == CONSTRUCTOR | j == METHOD | j == FIELD) {
+//                // FIXME - do we want to save this anywhere; check that it
+//                // matches the declaration; check that it is not used on
+//                // something other than a declaration?
+//                // Also setJmlKeyword back to true
+//                S.setJmlKeyword(false);
             } else {
                 // Not a modifier
                 break;
@@ -3173,7 +3174,7 @@ public class JmlParser extends JavacParser {
         while (token.ikind != ENDJMLCOMMENT && token.kind != EOF)
             nextToken();
         S.setJmlKeyword(false);
-        S.setJml(false);
+        S.setJml(false); // Shouldn't the scanner set this appropriately?
         inJmlDeclaration = false;
         if (token.kind != EOF) nextToken();
     }

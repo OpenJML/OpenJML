@@ -33,15 +33,15 @@ public enum JmlTokenKind implements ITokenKind {
     ENDJMLCOMMENT("<JMLEND>"),
     
     // These are statement types
-    REFINING("refining"),
-    LAST("_",null), // This is a fake entry that is the end of the standard+extension modifiers list
+    //REFINING("refining"),
+    //LAST("_",null), // This is a fake entry that is the end of the standard+extension modifiers list
     
     
     
-    // Other misc
-    CONSTRUCTOR("constructor"),
-    FIELD("field"),
-    METHOD("method"),
+//    // Other misc
+//    CONSTRUCTOR("constructor"),
+//    FIELD("field"),
+//    METHOD("method"),
     
     // These are various tokens related to JML expressions
     MATCH("match"),
