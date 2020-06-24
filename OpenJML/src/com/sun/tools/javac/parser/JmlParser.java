@@ -456,7 +456,7 @@ public class JmlParser extends JavacParser {
     }
     
     /** Attach loop specifications to their parent loop statement */
-    protected List<JCStatement> collectLoopSpecs(List<JCStatement> stats) {
+    public List<JCStatement> collectLoopSpecs(List<JCStatement> stats) {
         ListBuffer<JCStatement> newstats = new ListBuffer<>();
         ListBuffer<JmlStatementLoop> loopspecs = new ListBuffer<>();
         JmlStatementExpr split = null;
@@ -543,7 +543,7 @@ public class JmlParser extends JavacParser {
         each variable declared.
         */
     @Override  // TODO - needs review
-    protected List<JCStatement> blockStatement() {
+    public List<JCStatement> blockStatement() {
         while (true) {
             // If we are in a JML comment and this first token is an identifier
             // registered as marking a JML statement or statement annotation,
@@ -560,7 +560,8 @@ public class JmlParser extends JavacParser {
                     JCStatement s;
                     if (ext instanceof IJmlClauseKind.MethodClauseKind
                             || ext == EndStatement.refiningClause) {
-                        s = parseRefining(pos(), ext);
+                        s = (JCStatement)EndStatement.refiningClause.parse(null, id, ext, this);
+                        //s = parseRefining(pos(), ext);
                     } else {
                         s = (JCStatement)ext.parse(null, id, ext, this);
                     }
