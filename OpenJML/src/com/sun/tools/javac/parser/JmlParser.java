@@ -2576,10 +2576,10 @@ public class JmlParser extends JavacParser {
 //                    // FIXME - ignoring these type modifiers for now
 //                    return term3();
 
-                case BSLET:
-                    nextToken();
-                    return parseLet(p);
-                    
+//                case BSLET:
+//                    nextToken();
+//                    return parseLet(p);
+//                    
                 case INFORMAL_COMMENT: {
                     // TODO - move to a parser
                     String content = S.chars();
@@ -2815,39 +2815,6 @@ public class JmlParser extends JavacParser {
     
     protected boolean inLocalOrAnonClass = false;
 
-    /**
-     * Parses: <identifier> <expression>
-     * 
-     * @param pos
-     *            character position of the lbl token
-     * @param jmlToken
-     *            either the LBLPOS or LBLNEG token
-     * @return a JmlLblExpression
-     */
-    
-    public JCExpression parseLet(int pos) {
-        ListBuffer<JCVariableDecl> vdefs = new ListBuffer<JCVariableDecl>();
-        do {
-            int pm = pos();
-            JCModifiers mods = jmlF.Modifiers(0); // FIXME - there are some modifiers allowed?
-            if (mods.pos == -1) {
-                mods.pos = pm;
-                storeEnd(mods,pm);
-            }
-            JCExpression type = parseType();
-            int p = pos();
-            Name name = ident();
-            JCVariableDecl decl = variableDeclaratorRest(pos,mods,type,name,true,null);
-            decl.pos = p;
-            if (decl.init == null) toP(decl);
-            vdefs.add(decl);
-            if (token.kind != COMMA) break;
-            accept(COMMA);
-        } while (true);
-        accept(SEMI);
-        JCExpression expr = parseExpression();
-        return toP(jmlF.at(pos).LetExpr(vdefs.toList(),expr));
-    }
 
     /** Parses: "{" [ <modifiers> ] <type> <identifier> "|" <expression> "}" */
     public JCExpression parseSetComprehension(JCExpression type) {

@@ -233,7 +233,45 @@ public class QuantifiedExpressions extends ExpressionExtension {
     public static final String qminID = "\\min";
     public static final IJmlClauseKind qminKind = new QuantifiedExpression(qminID);
     public static final String letID = "\\let";
-    public static final IJmlClauseKind letKind = new QuantifiedExpression(letID);
+    public static final IJmlClauseKind letKind = new QuantifiedExpression(letID) {
+        /**
+         * Parses: <identifier> <expression>
+         * 
+         * @param pos
+         *            character position of the lbl token
+         * @param jmlToken
+         *            either the LBLPOS or LBLNEG token
+         * @return a JmlLblExpression
+         */
+        
+        public JCExpression parse(JCModifiers mods, String keyword,
+                IJmlClauseKind clauseType, JmlParser parser) {
+            init(parser);
+            ListBuffer<JCVariableDecl> vdefs = new ListBuffer<JCVariableDecl>();
+            int pos = parser.pos();
+            parser.nextToken();
+            do {
+                int pm = parser.pos();
+                mods = parser.jmlF.Modifiers(0L);
+                {
+                    mods.pos = pm;
+                    parser.storeEnd(mods,pm);
+                }
+                JCExpression type = parser.parseType();
+                int p = parser.pos();
+                Name name = parser.ident();
+                JCVariableDecl decl = parser.variableDeclaratorRest(p,mods,type,name,true,null);
+                decl.pos = p;
+                if (decl.init == null) toP(decl);
+                vdefs.add(decl);
+                if (parser.token().kind != COMMA) break;
+                parser.accept(COMMA);
+            } while (true);
+            parser.accept(SEMI);
+            JCExpression expr = parser.parseExpression();
+            return toP(parser.jmlF.at(pos).LetExpr(vdefs.toList(),expr));
+        }
+    };
 
     // FIXME - eventually remove these
     

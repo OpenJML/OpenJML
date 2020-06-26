@@ -45,13 +45,13 @@ public enum JmlTokenKind implements ITokenKind {
     
     // These are various tokens related to JML expressions
     MATCH("match"),
-    BSREQUIRES("\\requires"),
-    BSREADS("\\reads"),
-    BSWRITES("\\writes"),
-    BSENSURES("\\ensures"),
-    BSLET("\\let"),
+//    BSREQUIRES("\\requires"),
+//    BSREADS("\\reads"),
+//    BSWRITES("\\writes"),
+//    BSENSURES("\\ensures"),
+//    BSLET("\\let"),
     BSPRE("\\pre"), // overloaded both \post-like and \old-like
-    BSASSIGNS("\\assigns"),
+//    BSASSIGNS("\\assigns"),
 
     
     // These are JML type literals
@@ -131,7 +131,7 @@ public enum JmlTokenKind implements ITokenKind {
     
     static {
         
-        for (JmlTokenKind t: EnumSet.range(BSREQUIRES,BSBIGINT)) {
+        for (JmlTokenKind t: EnumSet.range(BSPRE,BSBIGINT)) {
             backslashTokens.put(t.internedName(),t);
         }
         for (JmlTokenKind t: JmlTokenKind.values()) {

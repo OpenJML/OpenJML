@@ -46,6 +46,7 @@ import org.jmlspecs.openjml.ext.CallableClauseExtension;
 import org.jmlspecs.openjml.ext.EndStatement;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
+import org.jmlspecs.openjml.ext.Functional;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
 import org.jmlspecs.openjml.vistors.JmlTreeScanner;
@@ -15861,6 +15862,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 break;
             }
+
+            case Functional.bsrequiresID:
+            case Functional.bsensuresID:
+            case Functional.bsreadsID:
+            case Functional.bswritesID:
+            {
+                ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+                for (JCExpression arg : that.args) {
+                    JCExpression ex = convertExpr(arg);
+                    newargs.add(ex);
+                }
+                result = eresult = M.at(that.pos).JmlMethodInvocation(that.token, newargs.toList());
+                eresult.type = syms.booleanType;
+                if (splitExpressions) result = eresult = newTemp(eresult);
+                eresult.type = syms.booleanType;
+                break;
+            }
+
             case bsmaxID :
             case reachID :
             case spaceID :
@@ -15916,22 +15935,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // FIXME - not implemented
             //    throw new JmlNotImplementedException(that,that.kind.name());
 
-            case BSREQUIRES:
-            case BSENSURES:
-            case BSREADS:
-            case BSWRITES:
-            {
-                ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
-                for (JCExpression arg : that.args) {
-                    JCExpression ex = convertExpr(arg);
-                    newargs.add(ex);
-                }
-                result = eresult = M.at(that.pos).JmlMethodInvocation(that.token, newargs.toList());
-                eresult.type = syms.booleanType;
-                if (splitExpressions) result = eresult = newTemp(eresult);
-                eresult.type = syms.booleanType;
-                break;
-            }
 
             default:
                 Log.instance(context).error("esc.internal.error","Unknown token in JmlAssertionAdder: " + that.token.internedName());

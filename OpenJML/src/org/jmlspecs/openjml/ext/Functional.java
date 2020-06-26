@@ -96,14 +96,14 @@ public class Functional extends ExpressionExtension {
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             JmlMethodInvocation tree = (JmlMethodInvocation)expr;
-            JmlTokenKind token = tree.token;
+            IJmlClauseKind kind = tree.kind;
             JmlTypes jmltypes = JmlTypes.instance(context);
             {
                     // Arbitrary number of arguments. The first argument
                     // is a Functional interface; the rest have to agree
                     // with its formal arguments.
                     if (tree.args.size() == 0) {
-                        error(tree, token.toString() + " must have at least one argument");
+                        error(tree, kind.name() + " must have at least one argument");
                     }
                     ListBuffer<Type> argtypesBuf = new ListBuffer<>();
                     attr.attribArgs(tree.args, localEnv, argtypesBuf);
@@ -113,14 +113,14 @@ public class Functional extends ExpressionExtension {
                         error(tree.args.head, "Argument is not a functional");
                     } else {
                         int nn = msym.params().size() + 1;
-                        if (token == JmlTokenKind.BSENSURES) ++nn;
+                        if (kind == ensuresExprKind) ++nn;
                         if (nn != tree.args.size()) {
                             error(tree, "jml.message", "Expected " + nn + " arguments, not " + tree.args.size());
                         }
                         Iterator<Type> iter = argtypesBuf.iterator(); iter.next();
                         Iterator<VarSymbol> viter = msym.params().iterator();
                         int n = 1;
-                        if (token == JmlTokenKind.BSENSURES) {
+                        if (kind == ensuresExprKind) {
                             // Must match the return type
                             Type t = iter.next();
                             Type returnType = resolve(msym.getReturnType(), func);
@@ -139,7 +139,7 @@ public class Functional extends ExpressionExtension {
                             ++n;
                         }
                     }
-                    if (token == JmlTokenKind.BSREQUIRES || token == JmlTokenKind.BSENSURES) return Symtab.instance(context).booleanType;
+                    if (kind == requiresExprKind || kind == ensuresExprKind) return Symtab.instance(context).booleanType;
                     else return locset().type;
             }
         }
@@ -152,10 +152,14 @@ public class Functional extends ExpressionExtension {
         }
 
     };
-    static public final IJmlClauseKind requiresExprKind = new FunctionalKinds("\\requires");
-    static public final IJmlClauseKind ensuresExprKind = new FunctionalKinds("\\ensures");
-    static public final IJmlClauseKind readsExprKind = new FunctionalKinds("\\reads");
-    static public final IJmlClauseKind writesExprKind = new FunctionalKinds("\\writes");
+    static public final String bsrequiresID = "\\requires";
+    static public final String bsensuresID = "\\ensures";
+    static public final String bsreadsID = "\\reads";
+    static public final String bswritesID = "\\writes";
+    static public final IJmlClauseKind requiresExprKind = new FunctionalKinds(bsrequiresID);
+    static public final IJmlClauseKind ensuresExprKind = new FunctionalKinds(bsensuresID);
+    static public final IJmlClauseKind readsExprKind = new FunctionalKinds(bsreadsID);
+    static public final IJmlClauseKind writesExprKind = new FunctionalKinds(bswritesID);
     
 
     @Override
@@ -169,6 +173,10 @@ public class Functional extends ExpressionExtension {
             Env<AttrContext> env) {
         // TODO Auto-generated method stub
         return null;
+    }
+    
+    public void register() {
+        synonym("\\assigns",writesExprKind);
     }
 
 }

@@ -31,6 +31,7 @@ import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.ReachableStatement.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
+import static org.jmlspecs.openjml.ext.Functional.*;
 import org.jmlspecs.openjml.ext.EndStatement;
 import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
@@ -1132,6 +1133,18 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     result = that;
                     break;
                 } 
+                case bsrequiresID:
+                case bsensuresID:
+                case bsreadsID:
+                case bswritesID:
+                {
+                    scan(that.typeargs);
+                    scan(that.meth);
+                    if (that.meth != null) that.meth = result;
+                    scanList(that.args);
+                    result = that;
+                    break;
+                } 
                 default:
                     log.error(that.pos, "esc.internal.error", "No implementation for this kind of Jml node in BasicBlocker2: " + that.kind.name());
                     
@@ -1144,18 +1157,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     scan(that.args.get(1));
                     JCExpression rhs = result;
                     that.args = com.sun.tools.javac.util.List.<JCExpression>of(lhs,rhs);
-                    result = that;
-                    break;
-                } 
-                case BSREQUIRES:
-                case BSENSURES:
-                case BSREADS:
-                case BSWRITES:
-                {
-                    scan(that.typeargs);
-                    scan(that.meth);
-                    if (that.meth != null) that.meth = result;
-                    scanList(that.args);
                     result = that;
                     break;
                 } 
