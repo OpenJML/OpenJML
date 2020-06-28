@@ -30,7 +30,7 @@ datatype NN<T> {
     ;
     
     int length() {
-       return match (this) {
+       return \match (this) {
          case Empty() -> 0;
          case Cons(_,t) -> 1+ t.length();
        };

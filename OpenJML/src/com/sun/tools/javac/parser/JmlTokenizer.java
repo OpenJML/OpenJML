@@ -84,15 +84,15 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     /** A mode of the scanner that determines whether end of jml comment tokens are returned */
     public boolean returnEndOfCommentTokens = true;
     
-    /**
-     * When jml is true, then (non-backslash) JML keywords are recognized if
-     * jmlkeyword is true and are considered identifiers if jmlkeyword is false; this is set by the
-     * parser according to whether non-backslash JML tokens should be recognized
-     * in the current parser state (e.g. such tokens are not recognized while
-     * within expressions). jmlkeyword is always set to true at the beginning of
-     * JML comments.
-     */
-    protected boolean       jmlkeyword = true;
+//    /**
+//     * When jml is true, then (non-backslash) JML keywords are recognized if
+//     * jmlkeyword is true and are considered identifiers if jmlkeyword is false; this is set by the
+//     * parser according to whether non-backslash JML tokens should be recognized
+//     * in the current parser state (e.g. such tokens are not recognized while
+//     * within expressions). jmlkeyword is always set to true at the beginning of
+//     * JML comments.
+//     */
+//    protected boolean       jmlkeyword = true;
 
     /**
      * The style of comment, either CommentStyle.LINE or
@@ -104,10 +104,6 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
      * and null if the next token is a Java token */
     @Nullable public JmlTokenKind   jmlTokenKind;
     @Nullable public IJmlClauseKind jmlTokenClauseKind;
-
-    
-    private JmlToken jmlToken; // FIXME - does this need to be a field?
-
 
     /**
      * Creates a new tokenizer, for JML and Java tokens.<P>
@@ -163,16 +159,16 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         return jml;
     }
 
-    /**
-     * Sets the keyword mode, returning the old value
-     * 
-     * @param j the new value of the keyword mode
-     */
-    public boolean setJmlKeyword(boolean j) {
-        boolean t = jmlkeyword;
-        jmlkeyword = j;
-        return t;
-    }
+//    /**
+//     * Sets the keyword mode, returning the old value
+//     * 
+//     * @param j the new value of the keyword mode
+//     */
+//    public boolean setJmlKeyword(boolean j) {
+//        boolean t = jmlkeyword;
+//        jmlkeyword = j;
+//        return t;
+//    }
     
     /** The current set of conditional keys used by the tokenizer.
      */
@@ -334,7 +330,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             // We initialize state and proceed to process the comment as JML text
             jmlcommentstyle = style;
             jml = true;
-            jmlkeyword = true;
+//            jmlkeyword = true;
         }
         return null; // Tell the caller to ignore the comment - that is, to not consider it a regular comment
     }
@@ -407,7 +403,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             
             if (!jml) {
                 if (jmlTokenClauseKind == Operators.endjmlcommentKind) {
-                    jmlToken = new JmlToken(jmlTokenKind, jmlTokenClauseKind, t);
+                    JmlToken jmlToken = new JmlToken(jmlTokenKind, jmlTokenClauseKind, t);
                     // if initialJml == true and now the token is ENDJMLCOMMENT, then we had 
                     // an empty comment. We don't return a token in that case.
                     if (!returnEndOfCommentTokens || !initialJml) continue; // Go get next token
@@ -419,7 +415,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 }
             }
 
-            if (t.kind == TokenKind.IDENTIFIER && jmlkeyword) {
+            if (t.kind == TokenKind.IDENTIFIER && jml && !inLineAnnotation) {
                 String id = t.name().toString();
                 IJmlClauseKind lak = org.jmlspecs.openjml.Extensions.allKinds.get(id);
                 if (lak instanceof IJmlClauseKind.LineAnnotationKind) {
@@ -552,12 +548,16 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             super.scanFractionAndSuffix(pos);
         }
     }
+    
+    private boolean inLineAnnotation = false;
 
     /** This method presumes the NOWARN token has been read and handles the names
      * within the nowarn, reading through the terminating semicolon or end of JML comment
      */
     public void scanLineAnnotation(int pos, String id, IJmlClauseKind ckind) {
+        inLineAnnotation = true;
         ((IJmlClauseKind.LineAnnotationKind)ckind).scan(pos, id, ckind, this);
+        inLineAnnotation = false;
     }
 
     /**
@@ -631,8 +631,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
 
     /**
      * Called to find identifiers and keywords when a character that can start a
-     * Java identifier has been scanned. We override so that when jml and
-     * jmlkeyword are true,
+     * Java identifier has been scanned. We override so that when jml is true,
      * we can convert identifiers to JML keywords, including converting assert
      * to the JML assert keyword.
      * Sets tk, name, jmlTokenKind
@@ -642,10 +641,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         super.scanIdent(); // Sets tk and name
         jmlTokenKind = null;
         jmlTokenClauseKind = null;
-        if (jml && tk == TokenKind.ASSERT) {
-            tk = TokenKind.IDENTIFIER;
-        }
-        if (!jml || !jmlkeyword) {
+        if (!jml) {
             return;
         }
         if (tk == TokenKind.IDENTIFIER) {
@@ -654,12 +650,6 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             if (s.endsWith("_redundantly")) {
                 s = s.substring(0, s.length() - "_redundantly".length());
                 name = Names.instance(context).fromString(s);
-            }
-            JmlTokenKind tt = JmlTokenKind.allTokens.get(s);
-            if (tt != null) {
-                jmlTokenKind = tt;
-                jmlTokenClauseKind = Extensions.allKinds.get(s);
-                return; 
             }
         } else if (tk == TokenKind.ASSERT) {
             tk = TokenKind.IDENTIFIER;
@@ -832,7 +822,6 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     protected void jmlError(int pos, String key, Object... args) {
         log.error(new DiagnosticPositionSE(pos,pos),key,args);
         tk = TokenKind.ERROR;
-        jmlToken = null;
         jmlTokenKind = null;
         jmlTokenClauseKind = null;
         errPos(pos);
@@ -847,7 +836,6 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         // the other jmlError method
         log.error(new DiagnosticPositionSE(pos,endpos-1),key,args);
         tk = TokenKind.ERROR;
-        jmlToken = null;
         errPos(pos);
     }
     

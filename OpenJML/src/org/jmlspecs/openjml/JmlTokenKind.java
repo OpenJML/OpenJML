@@ -44,7 +44,7 @@ public enum JmlTokenKind implements ITokenKind {
 //    METHOD("method"),
     
     // These are various tokens related to JML expressions
-    MATCH("match"),
+//    MATCH("match"),
 //    BSREQUIRES("\\requires"),
 //    BSREADS("\\reads"),
 //    BSWRITES("\\writes"),

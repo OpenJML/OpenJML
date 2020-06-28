@@ -42,7 +42,7 @@ public class LineAnnotationClauses extends JmlExtension {
         public void scan(int keywordPos, String keyword, IJmlClauseKind clauseKind, JmlTokenizer tokenizer) {
             Context context = tokenizer.context;
             JmlFactory M = JmlTree.Maker.instance(context);
-            boolean prev = tokenizer.setJmlKeyword(false);
+//            boolean prev = tokenizer.setJmlKeyword(false);
             java.util.List<JCExpression> exprs = new java.util.LinkedList<>();
             try {
                 int tokenPos = tokenizer.pos();
@@ -106,7 +106,7 @@ public class LineAnnotationClauses extends JmlExtension {
                     tokenizer.lineAnnotations.add(a);
                 }
             } finally {
-                tokenizer.setJmlKeyword(prev);
+//                tokenizer.setJmlKeyword(prev);
             }
         }
         
