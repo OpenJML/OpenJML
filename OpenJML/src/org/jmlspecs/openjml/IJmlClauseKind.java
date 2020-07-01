@@ -1,7 +1,15 @@
 package org.jmlspecs.openjml;
 
+import static com.sun.tools.javac.parser.Tokens.TokenKind.COMMA;
+import static com.sun.tools.javac.parser.Tokens.TokenKind.DOT;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.IDENTIFIER;
+import static com.sun.tools.javac.parser.Tokens.TokenKind.LPAREN;
+import static com.sun.tools.javac.parser.Tokens.TokenKind.NEW;
+import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
+import static com.sun.tools.javac.parser.Tokens.TokenKind.STAR;
+import static com.sun.tools.javac.parser.Tokens.TokenKind.SUPER;
+import static com.sun.tools.javac.parser.Tokens.TokenKind.THIS;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import java.lang.reflect.Constructor;
@@ -11,6 +19,7 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 import org.jmlspecs.openjml.JmlTree.JmlSource;
 
@@ -33,6 +42,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.Log.WriterKind;
@@ -486,5 +496,115 @@ public abstract class IJmlClauseKind {
     public static abstract class ClassLikeKind extends IJmlClauseKind {
         public ClassLikeKind(String keyword) { super(keyword); }
     }
+    
+    /**
+     * Parses a list of method-name; returns a possibly empty list; does not
+     * parse the terminating semicolon
+     */
+    public List<JmlMethodSig> parseMethodNameList() {
+        ListBuffer<JmlMethodSig> sigs = new ListBuffer<JmlMethodSig>();
+        while (true) {
+            JmlMethodSig m = parseMethodName();
+            if (m == null) {
+                parser.skipToCommaOrParenOrSemi();
+            } else {
+                sigs.append(m);
+            }
+            toP(m);
+            if (parser.token().kind != COMMA) break;
+            parser.nextToken();
+        }
+        return sigs.toList();
+    }
+
+    /** Parses a method-name */
+    public JmlMethodSig parseMethodName() {
+        int initpos = parser.pos();
+        int p = initpos;
+        Name n = null;
+        JCTree newType = null;
+        TokenKind tk = parser.token().kind;
+        if (tk == NEW) {
+            newType = parser.parseType();
+            // FIXME - check that it is a reference type
+        } else if (tk == IDENTIFIER) {
+            n = parser.ident();
+        } else if (tk == THIS) {
+            n = parser.names._this;
+            parser.nextToken();
+        } else if (tk == SUPER) {
+            n = parser.names._super;
+            parser.nextToken();
+        } else {
+            parser.jmlerror(parser.pos(), parser.endPos(), "jml.bad.construct",
+                    "constraint method");
+            return null;
+        }
+        JCExpression id = null;
+        if (newType == null) {
+            id = parser.jmlF.at(p).Ident(n);
+            boolean first = true;
+            tk = parser.token().kind;
+            while (tk == DOT) {
+                parser.nextToken();
+                tk = parser.token().kind;
+                p = parser.pos();
+                if (tk == IDENTIFIER) {
+                    n = parser.ident();
+                } else if (tk == THIS) {
+                    n = parser.names._this;
+                    parser.nextToken();
+                } else if (tk == STAR) {
+                    // * may only be the only thing after any dot, if it is
+                    // present
+                    if (!first) {
+                        parser.jmlerror(parser.pos(), parser.endPos(), "jml.expected",
+                                "identifier or this, since a * may only be used after the first dot");
+                    }
+                    n = parser.names.asterisk;
+                    parser.nextToken();
+                    if (parser.token().kind == DOT) {
+                        parser.jmlerror(parser.pos(), parser.endPos(), "jml.expected",
+                                "no dot, since a dot may not be used after a *");
+                    }
+                } else {
+                    parser.jmlerror(parser.pos(), parser.endPos(), "jml.expected",
+                            "identifier or this");
+                    break;
+                }
+                id = parser.jmlF.at(p).Select(id, n);
+                first = false;
+                if (n == parser.names.asterisk) {
+                    return parser.jmlF.at(initpos).JmlConstraintMethodSig(id, null);
+                }
+            }
+        }
+        ListBuffer<JCExpression> args = null;
+        if (parser.token().kind == LPAREN) {
+            args = new ListBuffer<JCExpression>();
+            parser.nextToken();
+            if (parser.token().kind != RPAREN) {
+                JCExpression arg = parser.parseType();
+                args.append(arg);
+                while (parser.token().kind == COMMA) {
+                    parser.nextToken();
+                    arg = parser.parseType();
+                    args.append(arg);
+                }
+                if (parser.token().kind != RPAREN) {
+                    parser.jmlerror(parser.pos(), parser.endPos(), "jml.expected",
+                            "comma or right parenthesis");
+                } else {
+                    parser.nextToken();
+                }
+            } else {
+                parser.nextToken(); // consume the RPAREN
+            }
+        }
+        return parser.jmlF.at(initpos).JmlConstraintMethodSig(id,
+                args == null ? null : args.toList());
+    }
+
+
 
 }

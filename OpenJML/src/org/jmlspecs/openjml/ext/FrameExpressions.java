@@ -102,7 +102,7 @@ public class FrameExpressions extends ExpressionExtension {
 //                return parser.syntaxError(p, null, "jml.no.typeargs.allowed", jt.internedName());
             }
             int pp = parser.pos();
-            List<JmlTree.JmlMethodSig> args = parser.parseMethodNameList();
+            List<JmlTree.JmlMethodSig> args = parseMethodNameList();
             // FIXME - not implemented
             return toP(parser.maker().at(p).Erroneous());
         }
