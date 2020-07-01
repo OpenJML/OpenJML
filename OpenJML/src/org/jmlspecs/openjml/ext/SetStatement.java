@@ -56,7 +56,6 @@ public class SetStatement extends JmlExtension {
             int pp = parser.pos();
             int pe = parser.endPos();
             
-            scanner.setJmlKeyword(false);
             parser.nextToken();
 //            JCExpression e = parser.parseExpression();
 //            JCStatement t = jmlF.Exec(e);

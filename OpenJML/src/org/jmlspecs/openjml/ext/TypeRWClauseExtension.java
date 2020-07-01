@@ -46,7 +46,6 @@ public class TypeRWClauseExtension extends JmlExtension {
         JmlTree.JmlTypeClauseConditional parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             int pp = parser.pos();
             init(parser);
-            scanner.setJmlKeyword(false);
             parser.nextToken(); // skip over readable/writable token; current token should now be the identifier
             Name n;
             JCExpression e;
@@ -69,7 +68,6 @@ public class TypeRWClauseExtension extends JmlExtension {
                     e = parser.parseExpression(); // read expression, advancinng scanner to token after expression
                 }
             }
-            scanner.setJmlKeyword(true);
             if (e.getTag() == JCTree.Tag.ERRONEOUS || parser.token().kind != SEMI) {
                 parser.skipThroughSemi();
             } else {

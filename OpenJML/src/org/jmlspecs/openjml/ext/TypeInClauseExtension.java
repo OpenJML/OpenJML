@@ -39,10 +39,8 @@ public class TypeInClauseExtension extends JmlExtension {
             if (!parser.isNone(mods))
                 error(mods, "jml.no.mods.allowed", inClause.name());
             init(parser);
-            scanner.setJmlKeyword(false);
             parser.nextToken(); // skip over the in token
             ListBuffer<JmlGroupName> list = parser.parseGroupNameList();
-            scanner.setJmlKeyword(true);
             parser.accept(SEMI);
             return parser.toP(parser.maker().at(pp).JmlTypeClauseIn(list.toList()));
         }

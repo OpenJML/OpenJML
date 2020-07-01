@@ -49,14 +49,12 @@ public class SignalsOnlyClauseExtension extends JmlExtension {
             int pp = parser.pos();
             int pe = parser.endPos();
             
-            scanner.setJmlKeyword(false);
             parser.nextToken();
 
             IJmlClauseKind jt = this;
             ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
 
             if (parser.jmlTokenClauseKind() == nothingKind) {
-                scanner.setJmlKeyword(true);
                 parser.nextToken();
                 if (parser.token().kind != SEMI) {
                     parser.syntaxError(parser.pos(), null, "jml.expected.semi.after.nothing");
@@ -65,11 +63,9 @@ public class SignalsOnlyClauseExtension extends JmlExtension {
                     parser.nextToken();
                 }
             } else if (parser.jmlTokenClauseKind() == notspecifiedKind) {
-                scanner.setJmlKeyword(true);
                 parser.syntaxError(parser.pos(), null, "jml.message", "\\not_specified is not permitted in a signals_only clause");
                 parser.skipThroughSemi();
             } else if (parser.token().kind == SEMI) {
-                scanner.setJmlKeyword(true);
                 parser.syntaxError(parser.pos(), null, "jml.use.nothing", keyword);
                 parser.nextToken();
             } else {
@@ -79,14 +75,12 @@ public class SignalsOnlyClauseExtension extends JmlExtension {
                     list.append(typ);
                     TokenKind tk = parser.token().kind;
                     if (tk == SEMI) {
-                        scanner.setJmlKeyword(true);
                         parser.nextToken();
                         break;
                     } else if (tk == COMMA) {
                         parser.nextToken();
                         continue;
                     } else if (typ instanceof JCErroneous) {
-                        scanner.setJmlKeyword(true);
                         parser.skipThroughSemi();
                         break;
                     } else if (parser.jmlTokenKind() == ENDJMLCOMMENT) {
@@ -96,7 +90,6 @@ public class SignalsOnlyClauseExtension extends JmlExtension {
                         continue;
                     }
                     // error
-                    scanner.setJmlKeyword(true);
                     parser.skipThroughSemi();
                     break;
                 }

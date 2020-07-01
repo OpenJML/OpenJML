@@ -43,7 +43,6 @@ public class CallableClauseExtension extends JmlExtension {
             init(parser);
             
             parser.warnNotImplemented(pp, keyword, "JmlParser");
-            scanner.setJmlKeyword(false);
             parser.nextToken();
 
             JmlStoreRefKeyword refkeyword = parser.parseOptStoreRefKeyword();
@@ -51,7 +50,6 @@ public class CallableClauseExtension extends JmlExtension {
             if (refkeyword == null) {
                 sigs = parser.parseMethodNameList();
             }
-            scanner.setJmlKeyword(true);
             int endpos = parser.pos();
             parser.accept(SEMI);
             JmlMethodClauseCallable ec;

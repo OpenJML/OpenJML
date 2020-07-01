@@ -54,13 +54,11 @@ public class StatementLocationsExtension extends JmlExtension {
             int pp = parser.pos();
             int pe = parser.endPos();
             
-            scanner.setJmlKeyword(false);
             parser.nextToken();
 
             ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
             if (parser.token().kind == SEMI) {
                 parser.syntaxError(parser.pos(), null, "jml.use.nothing.assignable"); // FIXME - fix to use keyword
-                scanner.setJmlKeyword(true);
                 parser.nextToken(); // skip over the SEMI
             } else {
                 list = parser.parseStoreRefList(false);
@@ -69,7 +67,6 @@ public class StatementLocationsExtension extends JmlExtension {
                 } else if (parser.jmlTokenKind() == ENDJMLCOMMENT) {
                     parser.syntaxError(parser.pos(), null, "jml.missing.semi");
                 }
-                scanner.setJmlKeyword(true);
                 if (parser.token().kind != SEMI) {
                     // error already reported
                     parser.skipThroughSemi();

@@ -37,10 +37,8 @@ public class MethodClauseExprType extends IJmlClauseKind.MethodSpecClauseKind {
         int pp = parser.pos();
         int pe = parser.endPos();
         
-        scanner.setJmlKeyword(false);
         parser.nextToken();
         JCExpression e = parser.parsePredicateOrNotSpecified();
-        scanner.setJmlKeyword(true);
         if (scanner.token().kind != SEMI) {
             parser.syntaxError(parser.pos(), null, "jml.invalid.expression.or.missing.semi");
             parser.skipThroughSemi();

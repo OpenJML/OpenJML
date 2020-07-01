@@ -415,24 +415,15 @@ public class JmlParser extends JavacParser {
         }
     }
     
-    /**
-     * This override is needed in order to manage the value of S.jmlKeyword. In
-     * parsing a class body, the value starts out true; however, the value might
-     * be false on entering this method if we are parsing the class body of an
-     * anonymous class expression.
-     */
     @Override
     List<JCTree> classOrInterfaceBody(Name className, boolean isInterface) {
-//        boolean savedJmlKeyword = S.jmlkeyword;
         JmlMethodSpecs savedMethodSpecs = currentMethodSpecs;
         currentMethodSpecs = null;
-//        S.setJmlKeyword(true);
         try {
             return super.classOrInterfaceBody(className, isInterface);
         } finally {
             currentMethodSpecs = savedMethodSpecs;
-//            S.setJmlKeyword(savedJmlKeyword);
-            rescan();
+            //rescan();
         }
 
     }
@@ -649,20 +640,19 @@ public class JmlParser extends JavacParser {
                 if (clauseType instanceof IJmlClauseKind.Statement) {
                     st = (JmlAbstractStatement)clauseType.parse(null,id,clauseType,this);
                     needSemi = false; // OK for set // FIXME - not sure this is needed
-                    S.setJmlKeyword(true);
                     if (!needSemi) { // TODO - when nwe get rid of all keywords, this block can be deleted
-                        // If we do not need a semicolon yet (e.g. because we already
-                        // parsed it or because the statement does not end with one,
-                        // then the scanner has already scanned the next symbol,
-                        // with setJmlKeyword having been (potentially) false.
-                        // So we need to do the following conversion.
-                        if (token.kind == IDENTIFIER && S.jml()) {
-                            JmlTokenKind tt = JmlTokenKind.allTokens.get(S.chars());
-                            IJmlClauseKind tk = Extensions.allKinds.get(S.chars());
-                            if (tt != null) {
-                                S.setToken(new JmlToken(tt, tk, null, pos(), endPos()));
-                            }
-                        }
+//                        // If we do not need a semicolon yet (e.g. because we already
+//                        // parsed it or because the statement does not end with one,
+//                        // then the scanner has already scanned the next symbol,
+//                        // with setJmlKeyword having been (potentially) false.
+//                        // So we need to do the following conversion.
+//                        if (token.kind == IDENTIFIER && S.jml()) {
+//                            JmlTokenKind tt = JmlTokenKind.allTokens.get(S.chars());
+//                            IJmlClauseKind tk = Extensions.allKinds.get(S.chars());
+//                            if (tt != null) {
+//                                S.setToken(new JmlToken(tt, tk, null, pos(), endPos()));
+//                            }
+//                        }
                     } else if (token.ikind == ENDJMLCOMMENT) {
                         log.warning(pos()-2, "jml.missing.semi", jtoken);
                     } else if (token.kind != SEMI) {
@@ -684,7 +674,7 @@ public class JmlParser extends JavacParser {
                 }
             }
         }
-        if (token.kind == CUSTOM) {
+        if (false && token.kind == CUSTOM) {
             boolean needSemi = true;
             if (jtoken != JmlTokenKind.ENDJMLCOMMENT) {
                 pos = pos();
@@ -699,20 +689,9 @@ public class JmlParser extends JavacParser {
                     needSemi = false;
 
                 } else if (ext == EndStatement.refiningClause) {
-                    S.setJmlKeyword(true);
                     st = parseRefining(pos,ext);
                     needSemi = false;
 
-//                } else if (inModelProgram && jtoken == JmlTokenKind.CHOOSE) {
-//                    st = parseChoose();
-//                    return toP(st); // FIXME - is this the correct end position?
-//                } else if (inModelProgram && jtoken == JmlTokenKind.CHOOSE_IF) {
-//                    st = parseChooseIf();
-//                    return toP(st); // FIXME - is this the correct end position?
-//                } else if (inModelProgram && jtoken == JmlTokenKind.INVARIANT) {
-//                    JCTree t = parseInvariantInitiallyAxiom(null);
-//                    st = jmlF.JmlModelProgramStatement(t);
-//                    return st;
                 } else if (inModelProgram
                         && (spc = parseSpecificationCase(null, false)) != null) {
                     st = jmlF.JmlModelProgramStatement(spc);
@@ -749,20 +728,19 @@ public class JmlParser extends JavacParser {
                 JCStatement stt = super.parseStatement();
                 return stt;
             }
-            S.setJmlKeyword(true);
             if (!needSemi) {
-                // If we do not need a semicolon yet (e.g. because we already
-                // parsed it or because the statement does not end with one,
-                // then the scanner has already scanned the next symbol,
-                // with setJmlKeyword having been (potentially) false.
-                // So we need to do the following conversion.
-                if (token.kind == IDENTIFIER && S.jml()) {
-                    JmlTokenKind tt = JmlTokenKind.allTokens.get(S.chars());
-                    IJmlClauseKind tk = Extensions.allKinds.get(S.chars());
-                    if (tt != null) {
-                        S.setToken(new JmlToken(tt, tk, null, pos(), endPos()));
-                    }
-                }
+//                // If we do not need a semicolon yet (e.g. because we already
+//                // parsed it or because the statement does not end with one,
+//                // then the scanner has already scanned the next symbol,
+//                // with setJmlKeyword having been (potentially) false.
+//                // So we need to do the following conversion.
+//                if (token.kind == IDENTIFIER && S.jml()) {
+//                    JmlTokenKind tt = JmlTokenKind.allTokens.get(S.chars());
+//                    IJmlClauseKind tk = Extensions.allKinds.get(S.chars());
+//                    if (tt != null) {
+//                        S.setToken(new JmlToken(tt, tk, null, pos(), endPos()));
+//                    }
+//                }
             } else if (token.ikind == ENDJMLCOMMENT) {
                 log.warning(pos()-2, "jml.missing.semi", jtoken);
             	
@@ -967,7 +945,6 @@ public class JmlParser extends JavacParser {
                 currentVariableDecl = mostRecentVarDecl;
                 break loop;
             }
-            if (S.jml()) S.setJmlKeyword(true);
             JCModifiers mods = modifiersOpt(); // Gets anything that is in
                                                // pushBackModifiers
             int pos = pos();
@@ -1219,7 +1196,6 @@ public class JmlParser extends JavacParser {
             jmlerror(mods.getStartPosition(), mods.getPreferredPosition(),
                     getEndPos(mods), "jml.no.mods.allowed",
                     mapsClause.name());
-        S.setJmlKeyword(false);
         nextToken(); // skip over the maps token
         JCExpression e = parseMapsTarget();
         ListBuffer<JmlGroupName> glist;
@@ -1227,12 +1203,10 @@ public class JmlParser extends JavacParser {
             jmlerror(pos(), endPos(), "jml.expected",
                     "an \\into token here, or the maps target is ill-formed");
             glist = new ListBuffer<JmlGroupName>();
-            S.setJmlKeyword(true);
             skipThroughSemi();
         } else {
             nextToken();
             glist = parseGroupNameList();
-            S.setJmlKeyword(true);
             if (token.kind != TokenKind.SEMI) {
                 jmlerror(pos(), endPos(), "jml.bad.construct",
                         "maps clause");
@@ -1285,10 +1259,8 @@ public class JmlParser extends JavacParser {
     public JmlTypeClauseIn parseIn(int pos, JCModifiers mods) {
         if (!isNone(mods))
             jmlerror(pos, "jml.no.mods.allowed", inClause.name());
-        S.setJmlKeyword(false);
         nextToken(); // skip over the in token
         ListBuffer<JmlGroupName> list = parseGroupNameList();
-        S.setJmlKeyword(true);
         accept(SEMI);
         return toP(jmlF.at(pos).JmlTypeClauseIn(list.toList()));
     }
@@ -1297,10 +1269,8 @@ public class JmlParser extends JavacParser {
     /** Parses a constraint clause */
     public JmlTypeClauseConstraint parseConstraint(JCModifiers mods) {
         int pos = pos();
-        S.setJmlKeyword(false);
         nextToken();
         JCExpression e = parseExpression();
-        S.setJmlKeyword(true);
         List<JmlMethodSig> sigs = null;
         boolean notlist = false;
         if (token.kind == FOR) {
@@ -1343,7 +1313,6 @@ public class JmlParser extends JavacParser {
      * parse the terminating semicolon
      */
     public List<JmlMethodSig> parseMethodNameList() {
-        S.setJmlKeyword(false);
         ListBuffer<JmlMethodSig> sigs = new ListBuffer<JmlMethodSig>();
         while (true) {
             JmlMethodSig m = parseMethodName();
@@ -1356,7 +1325,6 @@ public class JmlParser extends JavacParser {
             if (token.kind != COMMA) break;
             nextToken();
         }
-        S.setJmlKeyword(true);
         return sigs.toList();
     }
 
@@ -1448,7 +1416,6 @@ public class JmlParser extends JavacParser {
     /** Parse a monitors_for clause */
     public JmlTypeClauseMonitorsFor parseMonitorsFor(JCModifiers mods) {
         int p = pos();
-        S.setJmlKeyword(false);
         nextToken();
         List<JCExpression> elist = List.<JCExpression>nil();
         Name n;
@@ -1468,7 +1435,6 @@ public class JmlParser extends JavacParser {
             }
         }
         JCTree.JCIdent id = to(jmlF.at(identPos).Ident(n));
-        S.setJmlKeyword(true);
         if (token.kind != SEMI) {
             skipThroughSemi();
         } else {
@@ -1556,14 +1522,11 @@ public class JmlParser extends JavacParser {
         {
             boolean isBrace = token.kind == TokenKind.LBRACE;
             if (isBrace || token.kind==TokenKind.BANG) {
-//                boolean b = S.jmlkeyword;
                 try {
                     // We need to be in non-JML mode so that we don't interpret 
-//                    S.setJmlKeyword(false);
                     nextToken();
                     replacementType = super.unannotatedType();
                 } finally {
-//                    S.setJmlKeyword(b);
                     if (isBrace) accept(TokenKind.RBRACE);
                     if (token.ikind != JmlTokenKind.ENDJMLCOMMENT) {
                         log.error(token.pos,"jml.bad.construct","JML construct");
@@ -1887,7 +1850,6 @@ public class JmlParser extends JavacParser {
         JmlMethodClause res = null;
         String keyword = null;
         if (token().kind == IDENTIFIER) keyword = token().name().toString();
-        //if (token().kind == IDENTIFIER && S.jml() && S.jmlKeywordMode()) keyword = token().name().toString();
         if (keyword != null) {
             IJmlClauseKind clauseType = Extensions.findTM(keyword);
             if (clauseType instanceof MethodSpecClauseKind) {
@@ -1897,25 +1859,11 @@ public class JmlParser extends JavacParser {
             }
         }
         JmlTokenKind jt = jmlTokenKind();
-        S.setJmlKeyword(false);
         if (jt != null && res == null)
             switch (jt) {
                 case SPEC_GROUP_START:
-                    S.setJmlKeyword(true);
                     res = getSpecificationGroup();
                     break;
-
-//                case CONTINUES:
-//                case BREAKS:
-//                case RETURNS:
-//                    if (!inModelProgram) {
-//                        jmlerror(pos(), endPos(),
-//                                "jml.misplaced.modelprogram.statement",
-//                                jt.toString());
-//                    }
-//                    res = parseExprClause();
-//                    // FIXME _ continues, breaks may have an optional label
-//                    break;
 
                 default:
                     // For any other token we just exit this loop,
@@ -1924,9 +1872,7 @@ public class JmlParser extends JavacParser {
 
             }
         if (res != null) res.sourcefile = log.currentSourceFile();
-        S.setJmlKeyword(true); // Just in case, but it is too late, since the
-        // token after the semicolon is already read
-        rescan();
+//        rescan();
         return res;
     }
 
@@ -2316,14 +2262,6 @@ public class JmlParser extends JavacParser {
                 // FIXME - do we want to save this anywhere; check that it
                 // matches the declaration; check that it is not used on
                 // something other than a declaration?
-                // Also setJmlKeyword back to true
-                S.setJmlKeyword(false);
-//            } else if (j == CONSTRUCTOR | j == METHOD | j == FIELD) {
-//                // FIXME - do we want to save this anywhere; check that it
-//                // matches the declaration; check that it is not used on
-//                // something other than a declaration?
-//                // Also setJmlKeyword back to true
-//                S.setJmlKeyword(false);
             } else {
                 // Not a modifier
                 break;
@@ -2921,14 +2859,7 @@ public class JmlParser extends JavacParser {
 
     @Override
     public JCExpression variableInitializer() {
-//        S.setJmlKeyword(false);
-        try {
-            return super.variableInitializer();
-        } finally {
-            // We should be looking at a comma or a semicolon or a right brace,
-            // so we are not too late to set this
-//            S.setJmlKeyword(true);
-        }
+        return super.variableInitializer();
     }
 
     /**
@@ -3141,7 +3072,6 @@ public class JmlParser extends JavacParser {
     public void skipThroughEndOfJML() {
         while (token.ikind != ENDJMLCOMMENT && token.kind != EOF)
             nextToken();
-        S.setJmlKeyword(false);
         S.setJml(false); // Shouldn't the scanner set this appropriately?
         inJmlDeclaration = false;
         if (token.kind != EOF) nextToken();

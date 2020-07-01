@@ -165,16 +165,6 @@ public class JmlScanner extends Scanner {
     /** A mode of the scanner that determines whether end of jml comment tokens are returned */
     public boolean returnEndOfCommentTokens = true;
     
-    /**
-     * When jml is true, then (non-backslash) JML keywords are recognized if
-     * jmlkeyword is true and not if jmlkeyword is false; this is set by the
-     * parser according to whether non-backslash JML tokens should be recognized
-     * in the current parser state (e.g. such tokens are not recognized while
-     * within expressions). jmlkeyword is always set to true at the beginning of
-     * JML comments.
-     */
-//    protected boolean       jmlkeyword = true;
-
     /** Set to true internally while the scanner is within a JML comment */
     public boolean       jml() {
         return jmltokenizer.jml;
@@ -190,42 +180,6 @@ public class JmlScanner extends Scanner {
         jmltokenizer.setJml(j);
     }
 
-    /**
-     * Sets the keyword mode
-     * 
-     * @param j
-     *            the new value of the keyword mode, returning the old mode
-     */
-    public boolean setJmlKeyword(boolean j) {
-//        boolean b = jmltokenizer.setJmlKeyword(j);
-//        if (b != j) {
-//            rescan();
-//            if (j) {
-//                // Should turn identifiers into JML tokens, where appropriate
-//                for (Token k: savedTokens) {
-//                    if (k.kind == TokenKind.IDENTIFIER) {
-//                        Log.instance(context).getWriter(WriterKind.NOTICE).println("JmlKeyword mode changed while token buffer has lookahead");
-//                    }
-//                }
-//            } else {
-//                // Should turn identifier-like JML tokens into identifiers
-//                for ( int i = 0; i < savedTokens.size(); i++) {
-//                    Token k = savedTokens.get(i);
-//                    if (k instanceof JmlToken && k.kind == TokenKind.IDENTIFIER && ((NamedToken)k).name.charAt(0) != '\\') {
-//                        Log.instance(context).getWriter(WriterKind.NOTICE).println("JmlKeyword mode changed while token buffer has lookahead");
-//                        new NamedToken(k.toString());
-//                        break;
-//                    }
-//                }
-//            }
-//        }
-        return false;
-    }
-    
-//    /** current value of the keyword mode */
-//    public boolean jmlKeywordMode() {
-//        return jmlkeyword;
-//    }
     
     /**
      * Creates a new scanner, but you should use JmlFactory.newScanner() to get

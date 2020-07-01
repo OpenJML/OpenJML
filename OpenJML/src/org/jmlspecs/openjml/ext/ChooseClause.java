@@ -55,7 +55,6 @@ public class ChooseClause extends JmlExtension {
             int pp = parser.pos();
             int pe = parser.endPos();
             init(parser);
-            scanner.setJmlKeyword(false);
             parser.nextToken(); // skip over choose token
             ListBuffer<JCBlock> orBlocks = new ListBuffer<JCBlock>();
             JCBlock elseBlock = null;

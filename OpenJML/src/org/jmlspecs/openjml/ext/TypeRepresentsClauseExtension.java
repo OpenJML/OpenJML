@@ -51,7 +51,6 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
         JmlTypeClauseRepresents parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             int pp = parser.pos();
-            scanner.setJmlKeyword(false);
             parser.nextToken();
             JCExpression id = parser.parseStoreRef(true);
             boolean suchThat;
@@ -77,7 +76,6 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
                 parser.skipToSemi();
                 suchThat = false;
             }
-            scanner.setJmlKeyword(true);
             Maker M = parser.maker().at(pp);
             if (e == null) { // skip
                 e = parser.maker().Erroneous();
@@ -111,7 +109,6 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
 //        JmlVariableDecl parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
 //            init(parser);
 //            int pp = parser.pos();
-//            scanner.setJmlKeyword(false);
 //            parser.nextToken();
 //            Name className = Names.instance(context).fromString("");
 //            List<JCTree> decls = parser.classOrInterfaceBodyDeclaration(className,false);

@@ -40,11 +40,9 @@ public class TypeDeclClauseExtension extends JmlExtension {
             int pp = parser.pos();
             int pe = parser.endPos();
             
-            scanner.setJmlKeyword(false);
             parser.nextToken();
 
             JCExpression e = parser.parseExpression();
-            scanner.setJmlKeyword(true);
             if (parser.token().kind != SEMI) {
                 parser.jmlerror(parser.pos(), parser.endPos(), "jml.bad.construct",
                         keyword + " declaration");

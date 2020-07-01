@@ -84,16 +84,6 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     /** A mode of the scanner that determines whether end of jml comment tokens are returned */
     public boolean returnEndOfCommentTokens = true;
     
-//    /**
-//     * When jml is true, then (non-backslash) JML keywords are recognized if
-//     * jmlkeyword is true and are considered identifiers if jmlkeyword is false; this is set by the
-//     * parser according to whether non-backslash JML tokens should be recognized
-//     * in the current parser state (e.g. such tokens are not recognized while
-//     * within expressions). jmlkeyword is always set to true at the beginning of
-//     * JML comments.
-//     */
-//    protected boolean       jmlkeyword = true;
-
     /**
      * The style of comment, either CommentStyle.LINE or
      * CommentStyle.BLOCK, set prior to the scanner calling processComment()
@@ -158,17 +148,6 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     public boolean jml() {
         return jml;
     }
-
-//    /**
-//     * Sets the keyword mode, returning the old value
-//     * 
-//     * @param j the new value of the keyword mode
-//     */
-//    public boolean setJmlKeyword(boolean j) {
-//        boolean t = jmlkeyword;
-//        jmlkeyword = j;
-//        return t;
-//    }
     
     /** The current set of conditional keys used by the tokenizer.
      */
@@ -330,7 +309,6 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             // We initialize state and proceed to process the comment as JML text
             jmlcommentstyle = style;
             jml = true;
-//            jmlkeyword = true;
         }
         return null; // Tell the caller to ignore the comment - that is, to not consider it a regular comment
     }
@@ -365,8 +343,6 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         // JmlScanner enters with this relevant global state:
         //   jml - true if we are currently within a JML comment
         //   jmlcommentstyle - (if jml is true) the kind of comment block (LINE or BLOCK) we are in
-        //   jmlkeyword - (if jml is true) whether to translate non-backslash 
-        //                keywords as JML keywords or as Java identifiers
         // Responds with updates to that state as well as to
         //   jmlToken, jmlTokenKind, bp, ch, endPos, tk, name
         boolean initialJml = jml;

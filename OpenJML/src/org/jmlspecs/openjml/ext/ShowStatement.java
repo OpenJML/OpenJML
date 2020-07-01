@@ -60,7 +60,6 @@ public class ShowStatement extends JmlExtension {
             }
             
             
-            scanner.setJmlKeyword(false);
             parser.nextToken();
 
             ListBuffer<JCExpression> expressions = new ListBuffer<>();
@@ -83,7 +82,6 @@ public class ShowStatement extends JmlExtension {
             }
             JmlStatementShow st = toP(parser.maker().at(pp).JmlStatementShow(showClause,expressions.toList()));
             wrapup(st, clauseType, false);
-            scanner.setJmlKeyword(true);
             if (parser.token().kind == TokenKind.SEMI) {
                 parser.accept(TokenKind.SEMI);
             } else if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {

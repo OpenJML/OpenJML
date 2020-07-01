@@ -42,7 +42,6 @@ public class TypeMonitorsForClauseExtension extends JmlExtension {
         JmlTree.JmlTypeClauseMonitorsFor parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             int pp = parser.pos();
             init(parser);
-            scanner.setJmlKeyword(false);
             parser.nextToken();
             List<JCExpression> elist = List.<JCExpression>nil();
             Name n;
@@ -62,7 +61,6 @@ public class TypeMonitorsForClauseExtension extends JmlExtension {
                 }
             }
             JCTree.JCIdent id = parser.to(parser.maker().at(identPos).Ident(n));
-            scanner.setJmlKeyword(true);
             if (parser.token().kind != SEMI) {
                 parser.skipThroughSemi();
             } else {

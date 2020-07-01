@@ -54,7 +54,6 @@ public class SignalsClauseExtension extends JmlExtension {
             init(parser);
             
             
-            scanner.setJmlKeyword(false);
             parser.nextToken();
 
             JCExpression e;
@@ -91,7 +90,6 @@ public class SignalsClauseExtension extends JmlExtension {
                     }
                 }
             }
-            scanner.setJmlKeyword(true);
             JCTree.JCVariableDecl var = parser.maker().at(t.pos).VarDef(
                     parser.maker().at(t.pos).Modifiers(0), ident, t, null);
             parser.storeEnd(var, rpos);

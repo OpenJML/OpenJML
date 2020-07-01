@@ -65,7 +65,6 @@ public class EndStatement extends JmlExtension {
             int pp = parser.pos();
             int pe = parser.endPos();
 
-            scanner.setJmlKeyword(false);
             parser.nextToken();
 
             JmlStatement st = toP(parser.maker().at(pp).JmlStatement(clauseType, null));
@@ -91,7 +90,6 @@ public class EndStatement extends JmlExtension {
 //            int pp = parser.pos();
 //            int pe = parser.endPos();
 //
-//            scanner.setJmlKeyword(false);
 //            parser.nextToken();
 //
 //            JmlStatement st = toP(jmlF.at(pp).JmlStatement(endClause, null));

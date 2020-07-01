@@ -53,7 +53,6 @@ public class TypeExprClauseExtension extends JmlExtension {
             int pp = parser.pos();
             int pe = parser.endPos();
             
-            scanner.setJmlKeyword(false);
             
             if (clauseType == constraintClause) {
                 JmlTree.JmlTypeClauseConstraint tcl = parser.parseConstraint(mods);
@@ -62,7 +61,6 @@ public class TypeExprClauseExtension extends JmlExtension {
             } else {
                 parser.nextToken();
                 JCExpression e = parser.parseExpression();
-                scanner.setJmlKeyword(true);
                 if (parser.token().kind != SEMI) {
                     parser.jmlerror(parser.pos(), parser.endPos(), "jml.bad.construct",
                             keyword + " declaration");

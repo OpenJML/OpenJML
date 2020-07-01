@@ -42,7 +42,6 @@ public class MethodDeclClauseExtension extends JmlExtension  {
         public 
         JmlMethodClauseDecl parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
-            this.scanner.setJmlKeyword(true); // Could still have a JML modifier
             // TODO: Warning if mods is not null or empty
             mods = parser.maker().Modifiers(0L);
             
@@ -56,7 +55,6 @@ public class MethodDeclClauseExtension extends JmlExtension  {
             JCModifiers mods2 = parser.modifiersOpt();
             Utils.instance(context).setJML(mods2);
             Utils.instance(context).setJMLTop(mods2);
-            scanner.setJmlKeyword(false);
             JCExpression t = parser.parseType();
             boolean prev = parser.setInJmlDeclaration(true); // allows non-ghost declarations
             ListBuffer<JCTree.JCVariableDecl> decls = parser.variableDeclarators(mods2, t,
@@ -64,7 +62,6 @@ public class MethodDeclClauseExtension extends JmlExtension  {
             parser.setInJmlDeclaration(prev);
             JmlMethodClauseDecl res = parser.to(parser.maker().at(pp)
                     .JmlMethodClauseDecl(keyword, clauseType, decls.toList()));
-            scanner.setJmlKeyword(true);
             if (parser.token().kind == SEMI) {
                 parser.nextToken();
             } else {
