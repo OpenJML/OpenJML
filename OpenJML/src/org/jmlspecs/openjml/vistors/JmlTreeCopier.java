@@ -147,6 +147,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 //                copy(that.methodSpecsCombined.mods,p),
 //                copy(that.methodSpecsCombined.cases,p));
         copy.type = that.type;
+        copy.isInitializer = that.isInitializer;
         return copy;
     }
 

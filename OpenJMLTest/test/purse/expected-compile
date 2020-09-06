@@ -10,10 +10,10 @@
 ../../OpenJMLDemo/src/openjml/purse/Card.java:113: Note: Not implemented for runtime assertion checking: constraint clause containing quantifier variable inside a \old or \pre expression: i
 	                     \old(payed[i]) != null ==> \old(payed[i]) == payed[i]);
 	                                ^
-../../OpenJMLDemo/src/openjml/purse/Card.java:291: Note: Not implemented for runtime assertion checking: signals clause containing quantifier variable inside a \old or \pre expression: i
+../../OpenJMLDemo/src/openjml/purse/Card.java:288: Note: Not implemented for runtime assertion checking: signals clause containing quantifier variable inside a \old or \pre expression: i
 	          (\forall int i; 0 <= i && i < loaded.length; loaded[i] == \old(loaded[i]));
 	                                                                                ^
-../../OpenJMLDemo/src/openjml/purse/Card.java:333: Note: Not implemented for runtime assertion checking: signals clause containing quantifier variable inside a \old or \pre expression: i
+../../OpenJMLDemo/src/openjml/purse/Card.java:330: Note: Not implemented for runtime assertion checking: signals clause containing quantifier variable inside a \old or \pre expression: i
 	          (\forall int i; 0 <= i && i < payed.length; payed[i] == \old(payed[i]));
 	                                                                             ^
 ../../OpenJMLDemo/src/openjml/purse/Terminal.java:119: Note: Not implemented for runtime assertion checking: ensures clause containing quantifier variable inside a \old or \pre expression: i
@@ -34,9 +34,9 @@
 ../../OpenJMLDemo/src/openjml/purse/Card.java:113: Note: Not implemented for runtime assertion checking: constraint clause containing quantifier variable inside a \old or \pre expression: i
 	                     \old(payed[i]) != null ==> \old(payed[i]) == payed[i]);
 	                                ^
-../../OpenJMLDemo/src/openjml/purse/Card.java:291: Note: Not implemented for runtime assertion checking: signals clause containing quantifier variable inside a \old or \pre expression: i
+../../OpenJMLDemo/src/openjml/purse/Card.java:288: Note: Not implemented for runtime assertion checking: signals clause containing quantifier variable inside a \old or \pre expression: i
 	          (\forall int i; 0 <= i && i < loaded.length; loaded[i] == \old(loaded[i]));
 	                                                                                ^
-../../OpenJMLDemo/src/openjml/purse/Card.java:333: Note: Not implemented for runtime assertion checking: signals clause containing quantifier variable inside a \old or \pre expression: i
+../../OpenJMLDemo/src/openjml/purse/Card.java:330: Note: Not implemented for runtime assertion checking: signals clause containing quantifier variable inside a \old or \pre expression: i
 	          (\forall int i; 0 <= i && i < payed.length; payed[i] == \old(payed[i]));
 	                                                                             ^

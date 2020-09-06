@@ -275,6 +275,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         JmlMethodDecl r = (JmlMethodDecl)result;
         r.defaultValue = translate(that.defaultValue); // Should be in visitMethodDef - TODO
         r.methodSpecsCombined = that.methodSpecsCombined;
+        r.isInitializer = that.isInitializer;
         if (that.methodSpecsCombined != null) {
             //r.methodSpecsCombined = new JmlSpecs.MethodSpecs(
             r.methodSpecsCombined.mods = translate(that.methodSpecsCombined.mods);

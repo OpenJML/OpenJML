@@ -1230,6 +1230,7 @@ public class JmlTree {
                                         // valid after attribution
         
         public boolean usedBitVectors = false;
+        public boolean isInitializer = false;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         public JmlMethodDecl(JCModifiers mods, Name name, JCExpression restype,  // FIXME - backdoor use - should not be public

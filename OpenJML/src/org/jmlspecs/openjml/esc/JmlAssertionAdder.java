@@ -2669,6 +2669,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         TypeSymbol basecsym = basetype.tsym;
         if (basetype.isPrimitive()) return;
         if (!translatingJML) clearInvariants();
+        if (methodDecl.isInitializer) return;
         if (methodDecl.sym.isConstructor() && assume && types.isSameType(methodDecl.sym.type, basetype)) {
             return;
         }
@@ -17634,6 +17635,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     null, //body,
                                     null,
                                     msym);
+                    methodDecl.isInitializer = true;
                 }
 
 //                boolean pv = checkAccessEnabled;
