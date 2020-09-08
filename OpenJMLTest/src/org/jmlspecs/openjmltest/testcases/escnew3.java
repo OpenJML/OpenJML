@@ -865,9 +865,9 @@ public class escnew3 extends EscBase {
         
     }
     
-    @Ignore // FIXME - fix up label scoping
-    @Test
-    public void testBadLabel() {
+    @Test // Can reuse labels but not nest them
+    public void testLabelScopeBad() {
+        expectedExit = 1;
         helpTCX("tt.TestJava",
                                 "package tt; \n"
                               + "public class TestJava { \n"
@@ -884,7 +884,33 @@ public class escnew3 extends EscBase {
                               + "     //@ assert \\old(k,c) == 12;\n"
                               + "    }\n"
                               + "}"
-                               );
+                              ,"/tt/TestJava.java:5: There is no label named a", 24 
+                              ,"/tt/TestJava.java:9: label b already in use", 26
+                              );
+                      
+        
+    }
+
+    @Test // Can reuse labels but not nest them
+    public void testLabelScope() {
+        helpTCX("tt.TestJava",
+                                "package tt; \n"
+                              + "public class TestJava { \n"
+                              + "  public int k;\n"
+                              + "  public void m() {\n"
+                              + "     int x = 100;\n"
+                              + "     d:{}\n"
+                              + "     x = 101;\n"
+                              + "     //@ assert 100 == \\old(x,d);\n" // 100
+                              + "     d:{}\n"
+                              + "     x = 102;\n"
+                              + "     //@ assert 101 == \\old(x,d);\n" // 101
+                              + "     d:{}\n"
+                              + "     x = 103;\n"
+                              + "     //@ assert 102 == \\old(x,d);\n" // 102
+                              + "    }\n"
+                              + "}"
+                              );
                       
         
     }
@@ -939,7 +965,7 @@ public class escnew3 extends EscBase {
         
     }
 
-    @Test @Ignore
+    @Test // @Ignore
     public void testIfNoBrace2() {
         helpTCX("tt.TestJava",
                                 "package tt; \n"

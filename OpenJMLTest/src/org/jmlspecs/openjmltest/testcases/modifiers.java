@@ -1191,7 +1191,7 @@ public class modifiers extends TCBase {
                 );
     }
     
-    @Test  @Ignore // Eventually a clear error message, but too many cacading messages to check.
+    @Test @Ignore // FIXME  - Eventually a clear error message, but too many cacading messages to check.
     public void testBadModifiers2() {
         helpTCF("A.java","package tt; \n"
                 +"public class A { \n"

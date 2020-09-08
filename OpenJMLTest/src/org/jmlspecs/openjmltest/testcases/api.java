@@ -1420,7 +1420,7 @@ public class api extends JmlTestCase {
     
     // FIXME _ also test various solvers
     
-    @Test @Ignore  // FIXME - this broke
+    @Test // FIXME - crashes
     public void testESC() {
         testESC("");
     }

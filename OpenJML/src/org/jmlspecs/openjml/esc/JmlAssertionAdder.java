@@ -900,7 +900,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
             }
-            
+
+            if ((infer || esc)) {
+                // THIS is an id that is a proxy for the this object on which a method is called;
+                // we need to distinguish it from uses of 'this' in the text
+                // FIXME - should make this NonNull
+                this.explicitThisId = makeThisId(classDecl.pos,classDecl.sym);
+                this.currentThisExpr = this.explicitThisId;
+            } else { // rac
+                // For RAC we use the actual 'this'   FIXME - not sure about this design - perhaps just need to be cautious about what is translated and what is not
+                this.explicitThisId = treeutils.makeIdent(classDecl.pos, classDecl.thisSymbol);
+                this.currentThisExpr = this.explicitThisId;
+            }
+
+            // Declare the alloc and isAlloc fields
+            if (allocSym == null) {
+                allocSym = treeutils.makeVarSymbol(0, names.fromString(Strings.allocName), syms.intType, classDecl.pos);
+                allocSym.owner = classDecl.sym;
+                isAllocSym = treeutils.makeVarSymbol(0, names.fromString(Strings.isAllocName), syms.booleanType, classDecl.pos);;
+                isAllocSym.owner = classDecl.sym;
+            }
+                        
             if ((infer || esc) && (isConstructor || !utils.isJMLStatic(methodDecl.sym))) {
                 addStat(comment(methodDecl,"Declaration of THIS",null));
                 currentStatements = initialStatements;  // FIXME - an unnecessary assignment I think
@@ -968,28 +988,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 heapSym = d.sym;
                 initialStatements.add(d);
             }
-            
-            // Declare the alloc and isAlloc fields
-            if (allocSym == null) {
-                allocSym = treeutils.makeVarSymbol(0, names.fromString(Strings.allocName), syms.intType, classDecl.pos);
-                allocSym.owner = classDecl.sym;
-                isAllocSym = treeutils.makeVarSymbol(0, names.fromString(Strings.isAllocName), syms.booleanType, classDecl.pos);;
-                isAllocSym.owner = classDecl.sym;
-
-            }
-            
-            if ((infer || esc)) {
-                // THIS is an id that is a proxy for the this object on which a method is called;
-                // we need to distinguish it from uses of 'this' in the text
-                // FIXME - should make this NonNull
-                this.explicitThisId = makeThisId(classDecl.pos,classDecl.sym);
-                this.currentThisExpr = this.explicitThisId;
-            } else { // rac
-                // For RAC we use the actual 'this'   FIXME - not sure about this design - perhaps just need to be cautious about what is translated and what is not
-                this.explicitThisId = treeutils.makeIdent(classDecl.pos, classDecl.thisSymbol);
-                this.currentThisExpr = this.explicitThisId;
-            }
-
             
             boolean callingSuper = false;
             boolean callingThis = false;

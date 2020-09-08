@@ -58,8 +58,8 @@ public class racsystem extends RacBase {
                 
                 ,"Exception in thread \"main\" org.jmlspecs.utils.JmlAssertionError: File.refines-spec:77: JML precondition is false"
                 ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:63)"
-                ,"\tat java.io.File.compareTo(File.java:1)"
-                ,"\tat tt.TestJava.m(TestJava.java:5)"
+                ,"\tat java.io.File.compareTo(File.java:2093)"
+                ,"\tat tt.TestJava.m(TestJava.java:6)"
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
                 );
     }

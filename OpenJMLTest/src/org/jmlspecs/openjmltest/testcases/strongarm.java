@@ -18,7 +18,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.ParameterizedWithNames;
 import org.junit.runners.Parameterized.Parameters;
 
-@Ignore
+@Ignore // FIXME - Strongarm is broken - disabling tests
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class strongarm extends StrongarmBase {

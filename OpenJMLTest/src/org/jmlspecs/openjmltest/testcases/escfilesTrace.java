@@ -37,7 +37,7 @@ import org.junit.runners.ParameterizedWithNames;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
-@Ignore
+// @Ignore
 public class escfilesTrace extends EscBase {
 
     boolean enableSubexpressions = false;
@@ -87,7 +87,7 @@ public class escfilesTrace extends EscBase {
 
 
 
-    @Test @Ignore // Ignoring for now because the output is too volatile, even if correct - lots of paths that can be found in various orders
+    @Test // @Ignore // Ignoring for now because the output is too volatile, even if correct - lots of paths that can be found in various orders
     public void testDemoPaths() {
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Paths.java","test/escDemoPaths","-subexpressions","-progress");

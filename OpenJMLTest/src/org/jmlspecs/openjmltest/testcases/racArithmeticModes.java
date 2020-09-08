@@ -97,18 +97,18 @@ public class racArithmeticModes extends RacBase {
                 );
     }
 
-    @Ignore // FIXME - need a check on assignment
+    @Ignore // FIXME - cannot do code in math mode
     @Test public void testNegMath2() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "int j = Integer.MAX_VALUE; int k = -j; \nSystem.out.println(k + \" END\"); \n" +
                 "int i = Integer.MIN_VALUE; int kk = -i; \nSystem.out.println(kk + \" END\");} \n" +
                 "}"
                 ,"-2147483647 END"
-                ,"2147483648 END"
+                ,"-2147483648 END"
                 );
     }
 
-    @Ignore // FIXME - need a check on assignment
+    @Ignore // FIXME - cannot do code in math mode
     @Test public void testNegMathLong() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "long j = Long.MAX_VALUE; long k = -j; \nSystem.out.println(k + \" END\"); \n" +

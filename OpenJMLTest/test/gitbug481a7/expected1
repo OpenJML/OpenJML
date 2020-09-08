@@ -1,0 +1,130 @@
+Proving methods in org.apache.commons.math3.linear.ArrayFieldVector
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,int) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(int,T) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[]) (excluded by skipesc)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,T[]) (excluded by skipesc)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],boolean) (excluded by skipesc)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,T[],boolean) (excluded by skipesc)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],int,int) (excluded by skipesc)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,T[],int,int) (excluded by skipesc)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>) (excluded by skipesc)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>) (excluded by skipesc)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,boolean) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,org.apache.commons.math3.linear.ArrayFieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,org.apache.commons.math3.linear.FieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,T[]) (excluded by skipesc)
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,T[]) with prover !!!!
+test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:351: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ArrayFieldVector:  overflow in int sum
+        data = MathArrays.buildArray(field, v1Data.length + v2.length);
+                                                          ^
+test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:352: warning: The prover cannot establish an assertion (Precondition) in method ArrayFieldVector
+        System.arraycopy(v1Data, 0, data, 0, v1Data.length);
+                        ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:314: warning: Associated declaration
+    public static native void arraycopy(/*@nullable*/ Object src,
+                              ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:150: warning: Precondition conjunct is false: src == null || dest == null
+      @    requires src == null || dest == null;
+                                ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:156: warning: Precondition conjunct is false: (dest instanceof byte[])
+                 (dest instanceof byte[]) &&
+                 ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:212: warning: Precondition conjunct is false: destPos + length <= ((Object[])dest).length
+    @                && destPos + length <= ((Object[])dest).length;
+                                         ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:223: warning: Precondition conjunct is false: destPos + length <= ((int[])dest).length
+    @                && destPos + length <= ((int[])dest).length;
+                                         ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:234: warning: Precondition conjunct is false: destPos + length <= ((long[])dest).length
+    @                && destPos + length <= ((long[])dest).length;
+                                         ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:245: warning: Precondition conjunct is false: destPos + length <= ((char[])dest).length
+    @                && destPos + length <= ((char[])dest).length;
+                                         ^
+test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:353: warning: The prover cannot establish an assertion (Precondition) in method ArrayFieldVector
+        System.arraycopy(v2, 0, data, v1Data.length, v2.length);
+                        ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:314: warning: Associated declaration
+    public static native void arraycopy(/*@nullable*/ Object src,
+                              ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:150: warning: Precondition conjunct is false: src == null || dest == null
+      @    requires src == null || dest == null;
+                                ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:155: warning: Precondition conjunct is false: (src instanceof byte[])
+           requires (src instanceof byte[]) &&
+                    ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:209: warning: Precondition conjunct is false: (dest instanceof Object[])
+                 (dest instanceof Object[]) &&
+                 ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:221: warning: Precondition conjunct is false: (dest instanceof int[])
+                 (dest instanceof int[]) &&
+                 ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:231: warning: Precondition conjunct is false: (src instanceof long[])
+        requires (src instanceof long[]) &&
+                 ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:242: warning: Precondition conjunct is false: (src instanceof char[])
+        requires (src instanceof char[]) &&
+                 ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,T[]) with prover !!!! - with warnings
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],org.apache.commons.math3.linear.ArrayFieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],org.apache.commons.math3.linear.FieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],T[]) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,T[],T[]) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.getField() (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.copy() (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.add(org.apache.commons.math3.linear.FieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.add(org.apache.commons.math3.linear.ArrayFieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.subtract(org.apache.commons.math3.linear.FieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.subtract(org.apache.commons.math3.linear.ArrayFieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.mapAdd(T) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.mapAddToSelf(T) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.mapSubtract(T) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.mapSubtractToSelf(T) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.mapMultiply(T) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.mapMultiplyToSelf(T) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.mapDivide(T) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.mapDivideToSelf(T) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.mapInv() (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.mapInvToSelf() (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ebeMultiply(org.apache.commons.math3.linear.FieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ebeMultiply(org.apache.commons.math3.linear.ArrayFieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ebeDivide(org.apache.commons.math3.linear.FieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ebeDivide(org.apache.commons.math3.linear.ArrayFieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.getData() (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.getDataRef() (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.dotProduct(org.apache.commons.math3.linear.FieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.dotProduct(org.apache.commons.math3.linear.ArrayFieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.projection(org.apache.commons.math3.linear.FieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.projection(org.apache.commons.math3.linear.ArrayFieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.outerProduct(org.apache.commons.math3.linear.FieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.outerProduct(org.apache.commons.math3.linear.ArrayFieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.getEntry(int) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.getDimension() (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.append(org.apache.commons.math3.linear.FieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.append(org.apache.commons.math3.linear.ArrayFieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.append(T) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.getSubVector(int,int) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.setEntry(int,T) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.setSubVector(int,org.apache.commons.math3.linear.FieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.set(int,org.apache.commons.math3.linear.ArrayFieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.set(T) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.toArray() (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.checkVectorDimensions(org.apache.commons.math3.linear.FieldVector<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.checkVectorDimensions(int) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>,int,int) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>,int,int) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>,int,int) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>,int,int) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.equals(java.lang.Object) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.hashCode() (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.checkIndex(int) (excluded by -method)
+Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.checkIndices(int,int) (excluded by -method)
+Completed proving methods in org.apache.commons.math3.linear.ArrayFieldVector
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+17 warnings

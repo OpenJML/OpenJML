@@ -193,7 +193,7 @@ public class prettyprinting extends ParseBase {
         );
     }
     
-    @Test @Ignore
+    @Test // @Ignore
     public void testMethodStatements2() {
         precise = false; // TODO
         helpPP(

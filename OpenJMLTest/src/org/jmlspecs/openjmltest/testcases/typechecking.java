@@ -747,25 +747,26 @@ public class typechecking extends TCBase {
         helpTCF("A.java","public class A { //@ requires 1+\\same; \n boolean m(double i) { return false; }\n}",
                 "/A.java:1: bad operand types for binary operator '+'\n  first type:  int\n  second type: boolean",32);
     }
-    @Ignore
-    @Test public void testSame2() {  // FIXME - should not allow \same inside expressions
+    @Ignore // FIXME - should not allow \same inside expressions
+    @Test public void testSame2() { 
         helpTCF("A.java","public class A { //@ requires i; also requires !\\same; \n boolean m(boolean i) { return false; }\n}"
                 );
     }
     
-    @Ignore
-    @Test public void testSame3() { // FIXME - should not allow \same without previous preconditions
+    @Ignore // FIXME - should not allow \same without previous preconditions
+    @Test public void testSame3() {
         helpTCF("A.java","public class A { //@ requires \\same; \n boolean m(double i) { return false; }\n}"
                 );
     }
     
-    @Ignore
+    @Ignore // FIXME - semantics of \same
     @Test public void testSame4() {
         helpTCF("A.java","public class A { //@ ensures \\same; \n boolean m(double i) { return false; }\n}"
                 ,"/A.java:1: A \\same token may only be used in requires clauses",30
                 );
     }
-    
+
+    // FIXME
 //    @Test public void testLockCompare() {
 //        expectedExit = 0;
 //        helpTCF("A.java","public class A { Object o,oo; //@ invariant o < oo; \n }"
@@ -778,6 +779,7 @@ public class typechecking extends TCBase {
                 );
     }
     
+    // FIXME
 //    @Test public void testLockCompare1() {
 //        expectedExit = 0;
 //        helpTCF("A.java","public class A { Object o,oo; //@ invariant o <= oo; \n }"

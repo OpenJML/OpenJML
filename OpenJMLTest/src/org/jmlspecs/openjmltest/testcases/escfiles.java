@@ -191,7 +191,7 @@ public class escfiles extends EscBase {
     }
 
 
-    @Test @Ignore // FIXME - order of errors is too non-deterministic
+    @Test // @Ignore // FIXME - order of errors is too non-deterministic
     public void testBag() {
         expectedExit = 0;
         helpTCF("test/bag","test/bag");
@@ -203,20 +203,20 @@ public class escfiles extends EscBase {
         helpTCF("test/bagModified","test/bagModified");
     }
 
-    @Test @Ignore // FIXME - hangs up sometimes with some solvers; takes a while with others - comment out while we are doing repeated testing
+    @Test // @Ignore // FIXME - hangs up sometimes with some solvers; takes a while with others - comment out while we are doing repeated testing
     public void testLoopExercises() {
         expectedExit = 0;
         helpTCF("test/loopExercises","test/loopExercises");
     }
 
-    @Test @Ignore  // FIXME - CVC4 crashes
+    @Test // @Ignore  // FIXME - CVC4 crashes
     public void testPurseCard() {
         if ("cvc4".equals(solver)) fail();
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/purse","test/purse","-timeout=15");
     }
 
-    @Test @Ignore // FIXME - CVC4 crashes
+    @Test // @Ignore // FIXME - CVC4 crashes
     public void testPurseCardMod() {
         if ("cvc4".equals(solver)) fail();
         expectedExit = 0;
@@ -237,7 +237,7 @@ public class escfiles extends EscBase {
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/BeanCan.java","test/demoBeancan","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-code-math=bigint","-spec-math=bigint","-checkFeasibility=precondition,exit");
     }
 
-    @Test @Ignore // FIXME - stuck or just long?
+    @Test // @Ignore // FIXME - stuck or just long?
     public void testECU() {
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecuesc","-classpath",OpenJMLDemoPath + "/src/openjml/ecudemo");
@@ -375,8 +375,8 @@ public class escfiles extends EscBase {
     }
 
 
-// FIXME - there is a problem with instantiating the model field or the getter functions, such that my_dollars differs from dollars()
-    @Test  @Ignore
+//  @Ignore  // FIXME - there is a problem with instantiating the model field or the getter functions, such that my_dollars differs from dollars()
+    @Test 
     public void testCashAmount() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
@@ -414,7 +414,7 @@ public class escfiles extends EscBase {
         helpTF("escVector","-code-math=java");
     }
 
-    @Test @Ignore // FIXME - make this work by carrying information about variables into the first cycle of a loop
+    @Test // @Ignore // FIXME - make this work by carrying information about variables into the first cycle of a loop
     public void testDMZLoop() {
         expectedExit = 0;
         helpTF("escDMZLoop","-method=findMax");
@@ -511,13 +511,13 @@ public class escfiles extends EscBase {
     }
 
 
-    @Test @Ignore // FIXME - long running, probably because of the logic
+    @Test // @Ignore // FIXME - long running, probably because of the logic
     public void testEscDiverges() {
         helpTF("escDiverges","-nonnullByDefault");  // Needs at least AUFNIRA
     }
 
 
-    @Test @Ignore // FIXME - long running, probably because of the logic
+    @Test // @Ignore // FIXME - long running, probably because of the logic
     public void testEscDiverges2() {
         helpTF("escDiverges2","-nonnullByDefault");  // Needs at least AUFNIRA
     }
@@ -808,7 +808,7 @@ public class escfiles extends EscBase {
     
 
     
-    @Test @Ignore // FIXME - ignore for now, because it slways times out.
+    @Test // @Ignore // FIXME - ignore for now, because it slways times out.
     public void testEscRawding() {
         helpTF("escRawding","-specspath=test/escRawding","-code-math=safe");
     }

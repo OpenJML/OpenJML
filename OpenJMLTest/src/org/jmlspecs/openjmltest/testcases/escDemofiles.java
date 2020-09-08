@@ -101,8 +101,8 @@ public class escDemofiles extends EscBase {
         helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/BinarySearch.java","test/demoBinarySearch","-progress","-noInternalSpecs","-logic=AUFNIRA");
     }
 
-    @Ignore
-    @Test // FIXME: Fails because of inadequate specs and use of \created
+    @Ignore  // FIXME: Fails because of inadequate specs and use of \created
+    @Test
     public void testCustomer() {
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/Customer.java","test/demoCustomer","-progress","-noInternalSpecs");

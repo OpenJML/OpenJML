@@ -1,0 +1,8 @@
+Proving methods in C
+Starting proof of C.C() with prover !!!!
+test/sfbug404/C.java:2: warning: The prover cannot establish an assertion (NullField) in method C
+private java.util.Hashtable<String,String> m;
+                                           ^
+Completed proof of C.C() with prover !!!! - with warnings
+Completed proving methods in C
+1 warning

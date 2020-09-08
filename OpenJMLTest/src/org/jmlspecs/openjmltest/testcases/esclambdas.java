@@ -136,7 +136,7 @@ public class esclambdas extends EscBase {
     }
     
     
-    @Test @Ignore // FIXME - not working yet
+    @Test // @Ignore // FIXME - not working yet
     public void testIdentity() {
         helpTCX("tt.TestJava","package tt;  import java.util.function.Function;\n"
                                 +"public class TestJava { \n"
@@ -153,7 +153,7 @@ public class esclambdas extends EscBase {
                                 );
                     }
 
-    @Test @Ignore // FIXME - not working yet
+    @Test // @Ignore // FIXME - not working yet
     public void testIdentity2() {
         helpTCX("tt.TestJava","package tt; import java.util.function.Function;\n"
                                 +"public class TestJava { \n"

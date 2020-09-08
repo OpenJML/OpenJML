@@ -4,13 +4,13 @@ import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Ignore;
 import org.junit.Test;
 
-// FIXME- parameterize
+// FIXME- should these report untaken branches?
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class escTiming extends EscBase {
 
-    public escTiming() { super("-custom",null); } // FIXME - do on all combinations
-    
-    public void test() {}  // Dummy to preclude JUnit error messages 
+    public escTiming() {
+        super(null, "z3_4_3");
+    }
     
     @Override
     public void setUp() throws Exception {
@@ -21,8 +21,7 @@ public class escTiming extends EscBase {
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
     }
 
-    // FIXME - Disabled - takes about 5 minutes
-    @Test @Ignore
+    @Test
     public void testTimingIf() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public abstract class TestJava { \n"
@@ -134,40 +133,39 @@ public class escTiming extends EscBase {
                 +"  //@ ensures \\result == 0 ;\n"
                 +"  abstract int q(int i, int j);\n"
                 +"}\n"
-                ,"/tt/TestJava.java:7: warning: else branch apparently never taken in method f1(int)",9
-                ,"/tt/TestJava.java:9: warning: else branch apparently never taken in method f1(int)",9
-                ,"/tt/TestJava.java:16: warning: else branch apparently never taken in method f1a(int)",9
-                ,"/tt/TestJava.java:18: warning: else branch apparently never taken in method f1a(int)",9
-                ,"/tt/TestJava.java:20: warning: else branch apparently never taken in method f1a(int)",9
-                ,"/tt/TestJava.java:27: warning: else branch apparently never taken in method f2(int)",9
-                ,"/tt/TestJava.java:29: warning: else branch apparently never taken in method f2(int)",9
-                ,"/tt/TestJava.java:31: warning: else branch apparently never taken in method f2(int)",9
-                ,"/tt/TestJava.java:33: warning: else branch apparently never taken in method f2(int)",9
-                ,"/tt/TestJava.java:40: warning: else branch apparently never taken in method f2a(int)",9
-                ,"/tt/TestJava.java:42: warning: else branch apparently never taken in method f2a(int)",9
-                ,"/tt/TestJava.java:44: warning: else branch apparently never taken in method f2a(int)",9
-                ,"/tt/TestJava.java:46: warning: else branch apparently never taken in method f2a(int)",9
-                ,"/tt/TestJava.java:54: warning: else branch apparently never taken in method f3(int)",9
-                ,"/tt/TestJava.java:56: warning: else branch apparently never taken in method f3(int)",9
-                ,"/tt/TestJava.java:58: warning: else branch apparently never taken in method f3(int)",9
-                ,"/tt/TestJava.java:60: warning: else branch apparently never taken in method f3(int)",9
-                ,"/tt/TestJava.java:62: warning: else branch apparently never taken in method f3(int)",9
-                ,"/tt/TestJava.java:69: warning: else branch apparently never taken in method f3a(int)",9
-                ,"/tt/TestJava.java:71: warning: else branch apparently never taken in method f3a(int)",9
-                ,"/tt/TestJava.java:73: warning: else branch apparently never taken in method f3a(int)",9
-                ,"/tt/TestJava.java:75: warning: else branch apparently never taken in method f3a(int)",9
-                ,"/tt/TestJava.java:77: warning: else branch apparently never taken in method f3a(int)",9
-                ,"/tt/TestJava.java:85: warning: else branch apparently never taken in method f4(int)",9
-                ,"/tt/TestJava.java:87: warning: else branch apparently never taken in method f4(int)",9
-                ,"/tt/TestJava.java:89: warning: else branch apparently never taken in method f4(int)",9
-                ,"/tt/TestJava.java:91: warning: else branch apparently never taken in method f4(int)",9
-                ,"/tt/TestJava.java:93: warning: else branch apparently never taken in method f4(int)",9
-                ,"/tt/TestJava.java:95: warning: else branch apparently never taken in method f4(int)",9
+//                ,"/tt/TestJava.java:7: warning: else branch apparently never taken in method f1(int)",9
+//                ,"/tt/TestJava.java:9: warning: else branch apparently never taken in method f1(int)",9
+//                ,"/tt/TestJava.java:16: warning: else branch apparently never taken in method f1a(int)",9
+//                ,"/tt/TestJava.java:18: warning: else branch apparently never taken in method f1a(int)",9
+//                ,"/tt/TestJava.java:20: warning: else branch apparently never taken in method f1a(int)",9
+//                ,"/tt/TestJava.java:27: warning: else branch apparently never taken in method f2(int)",9
+//                ,"/tt/TestJava.java:29: warning: else branch apparently never taken in method f2(int)",9
+//                ,"/tt/TestJava.java:31: warning: else branch apparently never taken in method f2(int)",9
+//                ,"/tt/TestJava.java:33: warning: else branch apparently never taken in method f2(int)",9
+//                ,"/tt/TestJava.java:40: warning: else branch apparently never taken in method f2a(int)",9
+//                ,"/tt/TestJava.java:42: warning: else branch apparently never taken in method f2a(int)",9
+//                ,"/tt/TestJava.java:44: warning: else branch apparently never taken in method f2a(int)",9
+//                ,"/tt/TestJava.java:46: warning: else branch apparently never taken in method f2a(int)",9
+//                ,"/tt/TestJava.java:54: warning: else branch apparently never taken in method f3(int)",9
+//                ,"/tt/TestJava.java:56: warning: else branch apparently never taken in method f3(int)",9
+//                ,"/tt/TestJava.java:58: warning: else branch apparently never taken in method f3(int)",9
+//                ,"/tt/TestJava.java:60: warning: else branch apparently never taken in method f3(int)",9
+//                ,"/tt/TestJava.java:62: warning: else branch apparently never taken in method f3(int)",9
+//                ,"/tt/TestJava.java:69: warning: else branch apparently never taken in method f3a(int)",9
+//                ,"/tt/TestJava.java:71: warning: else branch apparently never taken in method f3a(int)",9
+//                ,"/tt/TestJava.java:73: warning: else branch apparently never taken in method f3a(int)",9
+//                ,"/tt/TestJava.java:75: warning: else branch apparently never taken in method f3a(int)",9
+//                ,"/tt/TestJava.java:77: warning: else branch apparently never taken in method f3a(int)",9
+//                ,"/tt/TestJava.java:85: warning: else branch apparently never taken in method f4(int)",9
+//                ,"/tt/TestJava.java:87: warning: else branch apparently never taken in method f4(int)",9
+//                ,"/tt/TestJava.java:89: warning: else branch apparently never taken in method f4(int)",9
+//                ,"/tt/TestJava.java:91: warning: else branch apparently never taken in method f4(int)",9
+//                ,"/tt/TestJava.java:93: warning: else branch apparently never taken in method f4(int)",9
+//                ,"/tt/TestJava.java:95: warning: else branch apparently never taken in method f4(int)",9
                 );
     }
 
-    // Disabled - takes about 7 minutes
-    @Test @Ignore
+    @Test
     public void testTimingSwitch() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public abstract class TestJava { \n"
@@ -1018,91 +1016,91 @@ public class escTiming extends EscBase {
                 +"  //@ ensures \\result >= 0 && \\result < 10;\n"
                 +"  abstract int p(int i, int j);\n"
                 +"}"
-                ,"/tt/TestJava.java:17: warning: Switch case apparently never taken in method m1(int)",7
-                ,"/tt/TestJava.java:18: warning: Switch case apparently never taken in method m1(int)",7
-                ,"/tt/TestJava.java:37: warning: Switch case apparently never taken in method m2(int)",7
-                ,"/tt/TestJava.java:38: warning: Switch case apparently never taken in method m2(int)",7
-                ,"/tt/TestJava.java:52: warning: Switch case apparently never taken in method m2(int)",7
-                ,"/tt/TestJava.java:53: warning: Switch case apparently never taken in method m2(int)",7
-                ,"/tt/TestJava.java:71: warning: Switch case apparently never taken in method m3(int)",7
-                ,"/tt/TestJava.java:72: warning: Switch case apparently never taken in method m3(int)",7
-                ,"/tt/TestJava.java:86: warning: Switch case apparently never taken in method m3(int)",7
-                ,"/tt/TestJava.java:87: warning: Switch case apparently never taken in method m3(int)",7
-                ,"/tt/TestJava.java:100: warning: Switch case apparently never taken in method m3(int)",7
-                ,"/tt/TestJava.java:101: warning: Switch case apparently never taken in method m3(int)",7
-                ,"/tt/TestJava.java:119: warning: Switch case apparently never taken in method m4(int)",7
-                ,"/tt/TestJava.java:120: warning: Switch case apparently never taken in method m4(int)",7
-                ,"/tt/TestJava.java:134: warning: Switch case apparently never taken in method m4(int)",7
-                ,"/tt/TestJava.java:135: warning: Switch case apparently never taken in method m4(int)",7
-                ,"/tt/TestJava.java:148: warning: Switch case apparently never taken in method m4(int)",7
-                ,"/tt/TestJava.java:149: warning: Switch case apparently never taken in method m4(int)",7
-                ,"/tt/TestJava.java:152: warning: Switch case apparently never taken in method m4(int)",7
-                ,"/tt/TestJava.java:163: warning: Switch case apparently never taken in method m4(int)",7
-                ,"/tt/TestJava.java:181: warning: Switch case apparently never taken in method m4a(int)",7
-                ,"/tt/TestJava.java:182: warning: Switch case apparently never taken in method m4a(int)",7
-                ,"/tt/TestJava.java:196: warning: Switch case apparently never taken in method m4a(int)",7
-                ,"/tt/TestJava.java:197: warning: Switch case apparently never taken in method m4a(int)",7
-                ,"/tt/TestJava.java:210: warning: Switch case apparently never taken in method m4a(int)",7
-                ,"/tt/TestJava.java:211: warning: Switch case apparently never taken in method m4a(int)",7
-                ,"/tt/TestJava.java:214: warning: Switch case apparently never taken in method m4a(int)",7
-                ,"/tt/TestJava.java:225: warning: Switch case apparently never taken in method m4a(int)",7
-                ,"/tt/TestJava.java:248: warning: Switch case apparently never taken in method m4b(int)",7
-                ,"/tt/TestJava.java:249: warning: Switch case apparently never taken in method m4b(int)",7
-                ,"/tt/TestJava.java:263: warning: Switch case apparently never taken in method m4b(int)",7
-                ,"/tt/TestJava.java:264: warning: Switch case apparently never taken in method m4b(int)",7
-                ,"/tt/TestJava.java:277: warning: Switch case apparently never taken in method m4b(int)",7
-                ,"/tt/TestJava.java:278: warning: Switch case apparently never taken in method m4b(int)",7
-                ,"/tt/TestJava.java:281: warning: Switch case apparently never taken in method m4b(int)",7
-                ,"/tt/TestJava.java:292: warning: Switch case apparently never taken in method m4b(int)",7
-                ,"/tt/TestJava.java:318: warning: Switch case apparently never taken in method m4c(int)",7
-                ,"/tt/TestJava.java:319: warning: Switch case apparently never taken in method m4c(int)",7
-                ,"/tt/TestJava.java:333: warning: Switch case apparently never taken in method m4c(int)",7
-                ,"/tt/TestJava.java:334: warning: Switch case apparently never taken in method m4c(int)",7
-                ,"/tt/TestJava.java:347: warning: Switch case apparently never taken in method m4c(int)",7
-                ,"/tt/TestJava.java:348: warning: Switch case apparently never taken in method m4c(int)",7
-                ,"/tt/TestJava.java:351: warning: Switch case apparently never taken in method m4c(int)",7
-                ,"/tt/TestJava.java:362: warning: Switch case apparently never taken in method m4c(int)",7
-                ,"/tt/TestJava.java:390: warning: Switch case apparently never taken in method m4d(int)",7
-                ,"/tt/TestJava.java:391: warning: Switch case apparently never taken in method m4d(int)",7
-                ,"/tt/TestJava.java:405: warning: Switch case apparently never taken in method m4d(int)",7
-                ,"/tt/TestJava.java:406: warning: Switch case apparently never taken in method m4d(int)",7
-                ,"/tt/TestJava.java:419: warning: Switch case apparently never taken in method m4d(int)",7
-                ,"/tt/TestJava.java:420: warning: Switch case apparently never taken in method m4d(int)",7
-                ,"/tt/TestJava.java:423: warning: Switch case apparently never taken in method m4d(int)",7
-                ,"/tt/TestJava.java:434: warning: Switch case apparently never taken in method m4d(int)",7
-                ,"/tt/TestJava.java:464: warning: Switch case apparently never taken in method m5(int)",7
-                ,"/tt/TestJava.java:465: warning: Switch case apparently never taken in method m5(int)",7
-                ,"/tt/TestJava.java:479: warning: Switch case apparently never taken in method m5(int)",7
-                ,"/tt/TestJava.java:480: warning: Switch case apparently never taken in method m5(int)",7
-                ,"/tt/TestJava.java:493: warning: Switch case apparently never taken in method m5(int)",7
-                ,"/tt/TestJava.java:494: warning: Switch case apparently never taken in method m5(int)",7
-                ,"/tt/TestJava.java:497: warning: Switch case apparently never taken in method m5(int)",7
-                ,"/tt/TestJava.java:508: warning: Switch case apparently never taken in method m5(int)",7
-                ,"/tt/TestJava.java:521: warning: Switch case apparently never taken in method m5(int)",7
-                ,"/tt/TestJava.java:522: warning: Switch case apparently never taken in method m5(int)",7
-                ,"/tt/TestJava.java:540: warning: Switch case apparently never taken in method m5a(int)",7
-                ,"/tt/TestJava.java:541: warning: Switch case apparently never taken in method m5a(int)",7
-                ,"/tt/TestJava.java:555: warning: Switch case apparently never taken in method m5a(int)",7
-                ,"/tt/TestJava.java:556: warning: Switch case apparently never taken in method m5a(int)",7
-                ,"/tt/TestJava.java:569: warning: Switch case apparently never taken in method m5a(int)",7
-                ,"/tt/TestJava.java:570: warning: Switch case apparently never taken in method m5a(int)",7
-                ,"/tt/TestJava.java:573: warning: Switch case apparently never taken in method m5a(int)",7
-                ,"/tt/TestJava.java:584: warning: Switch case apparently never taken in method m5a(int)",7
-                ,"/tt/TestJava.java:597: warning: Switch case apparently never taken in method m5a(int)",7
-                ,"/tt/TestJava.java:598: warning: Switch case apparently never taken in method m5a(int)",7
-                ,"/tt/TestJava.java:601: warning: Switch case apparently never taken in method m5a(int)",7
-                ,"/tt/TestJava.java:620: warning: Switch case apparently never taken in method m5b(int)",7
-                ,"/tt/TestJava.java:621: warning: Switch case apparently never taken in method m5b(int)",7
-                ,"/tt/TestJava.java:635: warning: Switch case apparently never taken in method m5b(int)",7
-                ,"/tt/TestJava.java:636: warning: Switch case apparently never taken in method m5b(int)",7
-                ,"/tt/TestJava.java:649: warning: Switch case apparently never taken in method m5b(int)",7
-                ,"/tt/TestJava.java:650: warning: Switch case apparently never taken in method m5b(int)",7
-                ,"/tt/TestJava.java:653: warning: Switch case apparently never taken in method m5b(int)",7
-                ,"/tt/TestJava.java:664: warning: Switch case apparently never taken in method m5b(int)",7
-                ,"/tt/TestJava.java:677: warning: Switch case apparently never taken in method m5b(int)",7
-                ,"/tt/TestJava.java:678: warning: Switch case apparently never taken in method m5b(int)",7
-                ,"/tt/TestJava.java:681: warning: Switch case apparently never taken in method m5b(int)",7
-                                                                                                                    
+//                ,"/tt/TestJava.java:17: warning: Switch case apparently never taken in method m1(int)",7
+//                ,"/tt/TestJava.java:18: warning: Switch case apparently never taken in method m1(int)",7
+//                ,"/tt/TestJava.java:37: warning: Switch case apparently never taken in method m2(int)",7
+//                ,"/tt/TestJava.java:38: warning: Switch case apparently never taken in method m2(int)",7
+//                ,"/tt/TestJava.java:52: warning: Switch case apparently never taken in method m2(int)",7
+//                ,"/tt/TestJava.java:53: warning: Switch case apparently never taken in method m2(int)",7
+//                ,"/tt/TestJava.java:71: warning: Switch case apparently never taken in method m3(int)",7
+//                ,"/tt/TestJava.java:72: warning: Switch case apparently never taken in method m3(int)",7
+//                ,"/tt/TestJava.java:86: warning: Switch case apparently never taken in method m3(int)",7
+//                ,"/tt/TestJava.java:87: warning: Switch case apparently never taken in method m3(int)",7
+//                ,"/tt/TestJava.java:100: warning: Switch case apparently never taken in method m3(int)",7
+//                ,"/tt/TestJava.java:101: warning: Switch case apparently never taken in method m3(int)",7
+//                ,"/tt/TestJava.java:119: warning: Switch case apparently never taken in method m4(int)",7
+//                ,"/tt/TestJava.java:120: warning: Switch case apparently never taken in method m4(int)",7
+//                ,"/tt/TestJava.java:134: warning: Switch case apparently never taken in method m4(int)",7
+//                ,"/tt/TestJava.java:135: warning: Switch case apparently never taken in method m4(int)",7
+//                ,"/tt/TestJava.java:148: warning: Switch case apparently never taken in method m4(int)",7
+//                ,"/tt/TestJava.java:149: warning: Switch case apparently never taken in method m4(int)",7
+//                ,"/tt/TestJava.java:152: warning: Switch case apparently never taken in method m4(int)",7
+//                ,"/tt/TestJava.java:163: warning: Switch case apparently never taken in method m4(int)",7
+//                ,"/tt/TestJava.java:181: warning: Switch case apparently never taken in method m4a(int)",7
+//                ,"/tt/TestJava.java:182: warning: Switch case apparently never taken in method m4a(int)",7
+//                ,"/tt/TestJava.java:196: warning: Switch case apparently never taken in method m4a(int)",7
+//                ,"/tt/TestJava.java:197: warning: Switch case apparently never taken in method m4a(int)",7
+//                ,"/tt/TestJava.java:210: warning: Switch case apparently never taken in method m4a(int)",7
+//                ,"/tt/TestJava.java:211: warning: Switch case apparently never taken in method m4a(int)",7
+//                ,"/tt/TestJava.java:214: warning: Switch case apparently never taken in method m4a(int)",7
+//                ,"/tt/TestJava.java:225: warning: Switch case apparently never taken in method m4a(int)",7
+//                ,"/tt/TestJava.java:248: warning: Switch case apparently never taken in method m4b(int)",7
+//                ,"/tt/TestJava.java:249: warning: Switch case apparently never taken in method m4b(int)",7
+//                ,"/tt/TestJava.java:263: warning: Switch case apparently never taken in method m4b(int)",7
+//                ,"/tt/TestJava.java:264: warning: Switch case apparently never taken in method m4b(int)",7
+//                ,"/tt/TestJava.java:277: warning: Switch case apparently never taken in method m4b(int)",7
+//                ,"/tt/TestJava.java:278: warning: Switch case apparently never taken in method m4b(int)",7
+//                ,"/tt/TestJava.java:281: warning: Switch case apparently never taken in method m4b(int)",7
+//                ,"/tt/TestJava.java:292: warning: Switch case apparently never taken in method m4b(int)",7
+//                ,"/tt/TestJava.java:318: warning: Switch case apparently never taken in method m4c(int)",7
+//                ,"/tt/TestJava.java:319: warning: Switch case apparently never taken in method m4c(int)",7
+//                ,"/tt/TestJava.java:333: warning: Switch case apparently never taken in method m4c(int)",7
+//                ,"/tt/TestJava.java:334: warning: Switch case apparently never taken in method m4c(int)",7
+//                ,"/tt/TestJava.java:347: warning: Switch case apparently never taken in method m4c(int)",7
+//                ,"/tt/TestJava.java:348: warning: Switch case apparently never taken in method m4c(int)",7
+//                ,"/tt/TestJava.java:351: warning: Switch case apparently never taken in method m4c(int)",7
+//                ,"/tt/TestJava.java:362: warning: Switch case apparently never taken in method m4c(int)",7
+//                ,"/tt/TestJava.java:390: warning: Switch case apparently never taken in method m4d(int)",7
+//                ,"/tt/TestJava.java:391: warning: Switch case apparently never taken in method m4d(int)",7
+//                ,"/tt/TestJava.java:405: warning: Switch case apparently never taken in method m4d(int)",7
+//                ,"/tt/TestJava.java:406: warning: Switch case apparently never taken in method m4d(int)",7
+//                ,"/tt/TestJava.java:419: warning: Switch case apparently never taken in method m4d(int)",7
+//                ,"/tt/TestJava.java:420: warning: Switch case apparently never taken in method m4d(int)",7
+//                ,"/tt/TestJava.java:423: warning: Switch case apparently never taken in method m4d(int)",7
+//                ,"/tt/TestJava.java:434: warning: Switch case apparently never taken in method m4d(int)",7
+//                ,"/tt/TestJava.java:464: warning: Switch case apparently never taken in method m5(int)",7
+//                ,"/tt/TestJava.java:465: warning: Switch case apparently never taken in method m5(int)",7
+//                ,"/tt/TestJava.java:479: warning: Switch case apparently never taken in method m5(int)",7
+//                ,"/tt/TestJava.java:480: warning: Switch case apparently never taken in method m5(int)",7
+//                ,"/tt/TestJava.java:493: warning: Switch case apparently never taken in method m5(int)",7
+//                ,"/tt/TestJava.java:494: warning: Switch case apparently never taken in method m5(int)",7
+//                ,"/tt/TestJava.java:497: warning: Switch case apparently never taken in method m5(int)",7
+//                ,"/tt/TestJava.java:508: warning: Switch case apparently never taken in method m5(int)",7
+//                ,"/tt/TestJava.java:521: warning: Switch case apparently never taken in method m5(int)",7
+//                ,"/tt/TestJava.java:522: warning: Switch case apparently never taken in method m5(int)",7
+//                ,"/tt/TestJava.java:540: warning: Switch case apparently never taken in method m5a(int)",7
+//                ,"/tt/TestJava.java:541: warning: Switch case apparently never taken in method m5a(int)",7
+//                ,"/tt/TestJava.java:555: warning: Switch case apparently never taken in method m5a(int)",7
+//                ,"/tt/TestJava.java:556: warning: Switch case apparently never taken in method m5a(int)",7
+//                ,"/tt/TestJava.java:569: warning: Switch case apparently never taken in method m5a(int)",7
+//                ,"/tt/TestJava.java:570: warning: Switch case apparently never taken in method m5a(int)",7
+//                ,"/tt/TestJava.java:573: warning: Switch case apparently never taken in method m5a(int)",7
+//                ,"/tt/TestJava.java:584: warning: Switch case apparently never taken in method m5a(int)",7
+//                ,"/tt/TestJava.java:597: warning: Switch case apparently never taken in method m5a(int)",7
+//                ,"/tt/TestJava.java:598: warning: Switch case apparently never taken in method m5a(int)",7
+//                ,"/tt/TestJava.java:601: warning: Switch case apparently never taken in method m5a(int)",7
+//                ,"/tt/TestJava.java:620: warning: Switch case apparently never taken in method m5b(int)",7
+//                ,"/tt/TestJava.java:621: warning: Switch case apparently never taken in method m5b(int)",7
+//                ,"/tt/TestJava.java:635: warning: Switch case apparently never taken in method m5b(int)",7
+//                ,"/tt/TestJava.java:636: warning: Switch case apparently never taken in method m5b(int)",7
+//                ,"/tt/TestJava.java:649: warning: Switch case apparently never taken in method m5b(int)",7
+//                ,"/tt/TestJava.java:650: warning: Switch case apparently never taken in method m5b(int)",7
+//                ,"/tt/TestJava.java:653: warning: Switch case apparently never taken in method m5b(int)",7
+//                ,"/tt/TestJava.java:664: warning: Switch case apparently never taken in method m5b(int)",7
+//                ,"/tt/TestJava.java:677: warning: Switch case apparently never taken in method m5b(int)",7
+//                ,"/tt/TestJava.java:678: warning: Switch case apparently never taken in method m5b(int)",7
+//                ,"/tt/TestJava.java:681: warning: Switch case apparently never taken in method m5b(int)",7
+//                                                                                                                    
                 );
     }
 }

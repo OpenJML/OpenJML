@@ -2932,7 +2932,7 @@ public class racnew extends RacBase {
         );
     }
     
-    @Ignore    // FIXME - assignable turned off for RAC
+    // @Ignore    // FIXME - assignable turned off for RAC
     @Test public void testAssignable3() {
         helpTCX("tt.A","package tt; public class A {\n"
                 +"  static public int j=0,k;\n"

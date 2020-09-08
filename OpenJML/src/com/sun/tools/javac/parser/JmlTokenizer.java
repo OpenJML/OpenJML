@@ -162,9 +162,13 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         saved_ch = reader.ch;
     }
     
-    public void restoreReaderState() {
+    public boolean restoreReaderState(boolean backup) {
         reader.bp = saved_bp;
         reader.ch = saved_ch;
+        if (backup) {
+            setReaderState(saved_bp-2);
+        }
+        return backup;
     }
     
     public void setReaderState(int bp) {
@@ -209,7 +213,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         // ch is not EOI; the last character of the input will be an EOI
         
         // Set the scanner to the beginning of the comment being processed
-        // pos() points to the first / of the comment sequence (or to the
+        // pos points to the first / of the comment sequence (or to the
         // last character of the unicode sequence for that /)
         setReaderState(pos);
         
@@ -227,11 +231,11 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             if (ch == '-') {
                 skippingTokens = !skippingTokens;
                 scanChar();
-                restoreReaderState();
+                restoreReaderState(false);
                 return null;
             }
             // Skip to the end of the comment - treat as non-JML
-            restoreReaderState();
+            if (cleanup(commentStart, endPos, style)) return null;
             return super.processComment(pos, endPos, style);
         }
 
@@ -241,7 +245,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             if (ch != '+' && ch != '-') {
                 // Not a valid JML comment (ch is not @ or + or -), so just return
                 // Restart after the comment we are currently processing
-                restoreReaderState();
+                if (cleanup(commentStart, endPos, style)) return null;
                 return super.processComment(pos, endPos, style);
             }
             
@@ -257,7 +261,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 // To be backward compatible at the moment,
                 // quit for //-@, process the comment if //+@
                 if (isplus) break;
-                restoreReaderState();
+                restoreReaderState(false);
                 return super.processComment(pos, endPos, style);
             }
             if (isplus) someplus = true;
@@ -267,7 +271,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             if (!Character.isJavaIdentifierStart(ch)) {
                 // Not a valid JML comment - just return
                 // Restart after the comment
-                restoreReaderState();
+                if (cleanup(commentStart, endPos, style)) return null;
                 return super.processComment(pos, endPos, style);
             }
             // Check for keys
@@ -279,7 +283,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 if (isplus) foundplus = true;
                 else {
                     // negative key found - return - ignore comment for JML
-                    restoreReaderState();
+                    if (cleanup(commentStart, endPos, style)) return null;
                     return super.processComment(pos, endPos, style);
                 }
             }
@@ -287,7 +291,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         if (!foundplus && someplus) {
             // There were plus keys but not the key we were looking for, so ignore JML comment
             // Restart after the comment
-            restoreReaderState();
+            if (cleanup(commentStart, endPos, style)) return null;
             return super.processComment(pos, endPos, style);
         }
 
@@ -311,6 +315,21 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
             jml = true;
         }
         return null; // Tell the caller to ignore the comment - that is, to not consider it a regular comment
+    }
+
+    public boolean cleanup(int commentStart, int endPos, CommentStyle style) {
+        if (jml && jmlcommentstyle == CommentStyle.LINE && style == CommentStyle.BLOCK) {
+            do {
+                char cch = scanChar();
+                if (cch == '\r' || cch == '\n') {
+                    log.error(commentStart, "jml.message", "Java block comment must terminate within the JML line comment");
+                }
+            } while (reader.bp < endPos);
+        }
+        if (restoreReaderState(jml && jmlcommentstyle == CommentStyle.BLOCK && style == CommentStyle.BLOCK)) {
+            return true;
+        }
+        return false;
     }
     
     /**

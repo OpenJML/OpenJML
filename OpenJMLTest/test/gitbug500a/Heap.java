@@ -25,7 +25,11 @@ public class Heap implements PriorityQueue {
     }
 
     /*@
-    private model pure non_null JMLObjectBag computeQueue() {
+    private normal_behavior
+      requires elems != null && elems.length > 0;
+      requires 0 <= numElems <= elems.length;
+      requires (\forall int i; 0 <= i < numElems; elems[i] != null);
+    private model pure helper non_null JMLObjectBag computeQueue() {
 	JMLObjectBag bag = new JMLObjectBag();
 	for (int i= 0; i < numElems; i++)
 	    bag = bag.insert(elems[i]);

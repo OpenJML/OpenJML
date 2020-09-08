@@ -22,6 +22,11 @@ import com.sun.tools.javac.util.Options;
 
 import static org.junit.Assert.*;
 
+import java.util.Locale;
+
+import javax.tools.Diagnostic;
+import javax.tools.JavaFileObject;
+
 // TODO - should test unicode, especially with multiple backslashes
 // TODO - should test errPos for error tokens (is endPos set?)
 
@@ -128,7 +133,7 @@ public class scanner extends JmlTestCase {
     
     /** Test some unicode */
     @Test public void testSomeUnicode() {
-        helpScanner("\\u0041\\u0020\\u0041",
+        helpScanner("\\u0041\\u0020\\u0041",  // A space A
                 new TokenKind[]{IDENTIFIER,IDENTIFIER},
                 new int[]{5,11,17,18});  // Current behavior but wrong - BUG - FIXME
                 //new int[]{0,6,12,18}); // This is what it should be
@@ -141,11 +146,15 @@ public class scanner extends JmlTestCase {
                 null);  
     }
 
-    /** Test some unicode  - multiple backslash*/
-    @Ignore    // FIXME - understand correct unicode behavior here
+    // FIXME - Java tokenizer recovery from bad character is not robust
+    /** Test some unicode  - first backslash is an error and ignored */
     @Test public void testSomeUnicode3() {
-        helpScanner("\\\\u0041 A",new ITokenKind[]{ERROR,IDENTIFIER,IDENTIFIER},
-                new int[]{0,1,2,7,8,9});  
+        helpScanner(
+                "\\\\u0041 A",
+                new ITokenKind[]{ERROR,IDENTIFIER,IDENTIFIER},
+                new int[]{0,6,6,7,8,9},
+                1);
+                checkMessages("/TEST.java:1: illegal character: '\\'",1);  
     }
     
     /** This tests that the test harness records if not enough tokens are listed */
@@ -223,40 +232,6 @@ public class scanner extends JmlTestCase {
                 new int[]{0,8,9,16,17,21});
     }
     
-//    /** Tests that JML keywords are found in a JML comment */
-//    @Test public void testJmlKeywordsInJml() {
-//        helpScanner("/*@requires ensures pure */",
-//                new ITokenKind[]{REQUIRES,ENSURES,PURE,EJML,},
-//                new int[]{3,11,12,19,20,24,25,27});
-//    }
-//    
-//    /** Tests that JML keywords are found in a JML comment */
-//    @Test public void testJmlKeywordsInJmlA() {
-//        helpScanner("//@requires ensures pure \n ",
-//                new ITokenKind[]{REQUIRES,ENSURES,PURE,EJML,EOF},
-//                new int[]{3,11,12,19,20,24,25,26,26,26});  // FIXME - review postion of EOF
-//    }
-//    
-//    /** Tests that JML keywords are found in a JML comment with nowarn */
-//    @Test public void testJmlKeywordsInJmlWithNoWarn() {
-//        helpScanner("/*@nowarn A; nowarn B,requires,C; requires ensures pure */",
-//                new ITokenKind[]{REQUIRES,ENSURES,PURE,EJML,},
-//                new int[]{34,42,43,50,51,55,56,58});
-//    }
-//    
-//    /** Tests that JML keywords are not found in a Java comment */
-//    @Test public void testJmlKeywordsNotInJavaComment() {
-//        helpScanner("/* requires */ /*@requires */",
-//                new ITokenKind[]{REQUIRES,EJML,},
-//                new int[]{18,26,27,29});
-//    }
-//    
-//    /** Tests that JML keywords are not found after a JML comment ends */
-//    @Test public void testJmlKeywordsAfterJml() {
-//        helpScanner("/*@requires */requires ensures pure",
-//                new ITokenKind[]{REQUIRES,EJML,IDENTIFIER,IDENTIFIER,IDENTIFIER,},
-//                new int[]{3,11,12,14,14,22,23,30,31,35});
-//    }
     
     /** Tests JML operators */
     @Test public void testOperators() {
@@ -366,135 +341,136 @@ public class scanner extends JmlTestCase {
                 new int[]{});
     }
 
-//    /** Test a mismatched comment ending */
-//    @Test public void testMisMatchedJMLComment() {
-//        helpScanner("//@*/ requires",
-//                new ITokenKind[]{STAR,SLASH,REQUIRES,EOF},
-//                null);
-//    }
-//
-//    /** Test an empty JML line comment */
-//    @Test public void testEmptyJMLComment() {
-//        helpScanner("//\n//@requires",
-//                new ITokenKind[]{REQUIRES,EOF},
-//                null);
-//    }
-//
-//    /** Test an embedded JML comment */
-//    @Test public void testEmbeddedJMLComment() {
-//        helpScanner("//@requires //@ requires",
-//                new ITokenKind[]{REQUIRES,REQUIRES,EOF},
-//                null);
-//    }
-//
-//    /** Test an embedded JML comment */
-//    @Test public void testEmbeddedJMLComment3() {
-//        helpScanner("/*@requires /*@ requires */ requires */ public",
-//                new ITokenKind[]{REQUIRES,REQUIRES,EJML,IDENTIFIER,STAR,SLASH,PUBLIC,EOF},
-//                null);
-//    }
-//
-//    /** Test an embedded JML comment */
-//    @Test public void testEmbeddedJMLComment4() {
-//        helpScanner("/*@requires //@ requires  \n requires */ public",
-//                new ITokenKind[]{REQUIRES,REQUIRES,REQUIRES,EJML,PUBLIC,EOF},
-//                null);
-//    }
-//
-//    /** Test an embedded JML comment */
-//    @Test public void testEmbeddedJMLComment2() {
-//        helpScanner("/*@requires //@ requires */ public",
-//                new ITokenKind[]{REQUIRES,REQUIRES,EJML,PUBLIC,EOF},
-//                null);
-//    }
-//
-//    /** Test an embedded JML comment */
-//    @Test public void testEmbeddedJMLComment5() {
-//        helpScanner("//@requires /*@ requires\n requires */ requires",
-//                new ITokenKind[]{REQUIRES,REQUIRES,EJML,IDENTIFIER,STAR, SLASH,IDENTIFIER,EOF},
-//                null);
-//    }
-//
-//    /** Test an embedded Java comment */
-//    @Test public void testEmbeddedJavaComment() {
-//        helpScanner("//@requires // requires",
-//                new ITokenKind[]{REQUIRES,EOF},
-//                null);
-//    }
-//
-//    /** Test an embedded JML comment */
-//    @Test public void testEmbeddedJavaComment2() {
-//        helpScanner("//@requires /* requires */ ensures ",
-//                new ITokenKind[]{REQUIRES,ENSURES,EOF},
-//                null);
-//    }
-//
-//    /** Test an embedded JML comment */
-//    @Ignore    // TODO: DO we really want this style of embedded comment to work?
-//    @Test public void testEmbeddedJavaComment3() { 
-//        helpScanner("//@requires /* requires ensures \n signals */ modifies ",
-//                new ITokenKind[]{REQUIRES,ASSIGNABLE,EOF},
-//                new int[]{3,11,45,53,54,54});
-//    }
-//
-//    /** Test an embedded Java comment */
-//    @Test public void testEmbeddedJavaComment4() {
-//        helpScanner("/*@requires // modifies \n ensures */ signals ",
-//                new ITokenKind[]{REQUIRES,ENSURES,EJML,IDENTIFIER,EOF},
-//                new int[]{3,11,26,33,34,36,37,44,44,44}); // FIXME - check position of EOF
-//    }
-//
-//    /** Test an embedded Java comment */
-//    @Ignore   // TODO: DO we really want this style of embedded comment to work?
-//    @Test public void testEmbeddedJavaComment6() {
-//        helpScanner("/*@requires /* modifies \n ensures */ requires */ signals ",
-//                new ITokenKind[]{REQUIRES,IDENTIFIER,STAR,SLASH,IDENTIFIER,EOF},
-//                null);
-//    }
-//
-//    @Test public void testLineComment1() {
-//        helpScanner("//@ requires",new ITokenKind[]{REQUIRES,EOF},null);
-//    }
-//
-//    // NOTE: The scanner absorbs ending whitespace into the EOF.
-//    @Test public void testLineComment2() {
-//        helpScanner("//@ requires\n",new ITokenKind[]{REQUIRES,EOF},null);
-//    }
-//
-//    /** Test that a line comment ends with a NL character */
-//    @Test public void testLineComment3() {
-//        helpScanner("//@ requires\n ",
-//                new ITokenKind[]{REQUIRES,EJML},
-//                new int[]{4,12,12,13});
-//    }
-//
-//    /** Test that a line comment ends with a CR character */
-//    @Test public void testLineComment4() {
-//        helpScanner("//@ requires\r ",
-//                new ITokenKind[]{REQUIRES,EJML},
-//                null);
-//    }
-//
-//    /** Test that a line comment ends with a CR NL combination */
-//    @Test public void testLineComment5() {
-//        helpScanner("//@ requires\r\n",
-//                new ITokenKind[]{REQUIRES,EJML},
-//                null);
-//    }
-//
-//    /** Test that JML identifiers are not found after a JML line comment ends*/
-//    @Test public void testLineComment6() {
-//        helpScanner("//@ requires\nrequires",
-//                new ITokenKind[]{REQUIRES,EJML,IDENTIFIER},
-//                null);
-//    }
-//    
-//    /** Test that an @ at the end of a line comment is found */
-//    @Test public void testLineComment7() {
-//        helpScanner("//@ requires @\n ",
-//                new ITokenKind[]{REQUIRES,MONKEYS_AT,EJML},
-//                null);
-//    }
+    /** Test a mismatched comment ending */
+    @Test public void testMisMatchedJMLComment() {
+        helpScanner("//@*/ requires",
+                new ITokenKind[]{STAR,SLASH,IDENTIFIER,EOF},
+                null);
+    }
+
+    /** Test an empty line comment */
+    @Test public void testEmptyComment() {
+        helpScanner("//\n//@requires",
+                new ITokenKind[]{IDENTIFIER,EOF},
+                null);
+    }
+
+    /** Test an embedded JML comment */
+    @Test public void testEmbeddedJMLComment() {
+        helpScanner("//@requires //@ requires",
+                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EOF},
+                null);
+    }
+
+    /** Test an embedded JML comment */
+    @Test public void testEmbeddedJMLComment3() {
+        helpScanner("/*@requires /*@ requires */ public   */ public",
+                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML,PUBLIC,STAR,SLASH,PUBLIC,EOF},
+                new int[] {3,11,16,24,25,27,28,34,37,38,38,39,40,46,46,46});
+    }
+
+    /** Test an embedded JML comment */
+    @Test public void testEmbeddedJMLComment4() {
+        helpScanner("/*@requires //@ requires  \n requires */ public",
+                new ITokenKind[]{IDENTIFIER,IDENTIFIER,IDENTIFIER,EJML,PUBLIC,EOF},
+                new int[] {3,11,16,24,28,36,37,39,40,46,46,46});
+    }
+
+    /** Test an embedded JML comment */
+    @Test public void testEmbeddedJMLComment2() {
+        helpScanner("/*@requires //@ requires */ public",
+                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML,PUBLIC,EOF},
+                null);
+    }
+
+    /** Test an embedded JML comment */
+    @Test public void testEmbeddedJMLComment5() {
+        helpScanner("//@requires /*@ requires\n public   */ public  ",
+                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML,PUBLIC,STAR, SLASH,PUBLIC,EOF},
+                null);
+    }
+
+    /** Test an embedded Java comment */
+    @Test public void testEmbeddedJavaComment() {
+        helpScanner("//@requires // requires",
+                new ITokenKind[]{IDENTIFIER,EOF},
+                null);
+    }
+
+    /** Test an embedded JML comment */
+    @Test public void testEmbeddedJavaComment2() {
+        helpScanner("//@requires /* requires */ ensures ",
+                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EOF},
+                new int[] {3,11,27,34,34,34});
+    }
+
+    /** Test an embedded JML comment */
+    // @Ignore    // TODO: DO we really want this style of embedded comment to work?
+    @Test public void testEmbeddedJavaComment3() { 
+        helpScanner("//@requires /* requires ensures \n signals */ modifies ",
+                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EOF},
+                new int[]{3,11,45,53,53,53},
+                1);
+        checkMessages("/TEST.java:1: Java block comment must terminate within the JML line comment",13);
+    }
+
+    /** Test an embedded Java comment */
+    @Test public void testEmbeddedJavaComment4() {
+        helpScanner("/*@requires // modifies \n ensures */ signals ",
+                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML,IDENTIFIER,EOF},
+                new int[]{3,11,26,33,34,36,37,44,44,44}); // FIXME - check position of EOF
+    }
+
+    /** Test an embedded Java comment (which ends a JML block comment) */
+    @Test public void testEmbeddedJavaComment6() {
+        helpScanner("/*@requires /* modifies \n ensures */ ensures */ signals ",
+                new ITokenKind[]{IDENTIFIER,EJML,IDENTIFIER,STAR,SLASH,IDENTIFIER,EOF},
+                new int[]{3,11,34,36,37,44,45,46,46,47,48,55,55,55});
+    }
+
+    @Test public void testLineComment1() {
+        helpScanner("//@ requires",new ITokenKind[]{IDENTIFIER,EOF},null);
+    }
+
+    // NOTE: The scanner absorbs ending whitespace into the EOF.
+    @Test public void testLineComment2() {
+        helpScanner("//@ requires\n",new ITokenKind[]{IDENTIFIER,EOF},null);
+    }
+
+    /** Test that a line comment ends with a NL character */
+    @Test public void testLineComment3() {
+        helpScanner("//@ requires\n ",
+                new ITokenKind[]{IDENTIFIER,EJML},
+                new int[]{4,12,12,13});
+    }
+
+    /** Test that a line comment ends with a CR character */
+    @Test public void testLineComment4() {
+        helpScanner("//@ requires\r ",
+                new ITokenKind[]{IDENTIFIER,EJML},
+                null);
+    }
+
+    /** Test that a line comment ends with a CR NL combination */
+    @Test public void testLineComment5() {
+        helpScanner("//@ requires\r\n",
+                new ITokenKind[]{IDENTIFIER,EJML},
+                null);
+    }
+
+    /** Test that JML identifiers are not found after a JML line comment ends*/
+    @Test public void testLineComment6() {
+        helpScanner("//@ requires\nrequires",
+                new ITokenKind[]{IDENTIFIER,EJML,IDENTIFIER},
+                null);
+    }
+    
+    /** Test that an @ at the end of a line comment is found */
+    @Test public void testLineComment7() {
+        helpScanner("//@ requires @\n ",
+                new ITokenKind[]{IDENTIFIER,MONKEYS_AT,EJML},
+                null);
+    }
     
     /** Test an empty line comment */
     @Test public void testLineComment8() {

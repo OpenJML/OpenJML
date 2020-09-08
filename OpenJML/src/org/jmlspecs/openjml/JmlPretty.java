@@ -1061,6 +1061,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlChoose(JmlChoose that) {
         try { // FIXME - this needs testing
             align();
+            boolean save = useJMLComments;
+            if (useJMLComments) print ("/*@ ");
+            useJMLComments = false;
             print(that.keyword);
             println();
             indent();
@@ -1083,6 +1086,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 align();
                 that.elseBlock.accept(this);
             }
+            if (save) print (" */");
+            useJMLComments = save;
             println();
             undent();
         

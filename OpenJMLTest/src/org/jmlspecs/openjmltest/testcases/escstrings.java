@@ -347,7 +347,7 @@ public class escstrings extends EscBase {
     }
 
     /** Tests String concatenation */
-    @Test @Ignore  // FIXME - need more semantics of concat and equals
+    @Test // @Ignore  // FIXME - need more semantics of concat and equals
     public void testStringConcat2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -369,7 +369,7 @@ public class escstrings extends EscBase {
     }
 
     /** Tests String concatenation */
-    @Test @Ignore // FIXME - need more semantics of concat and equals
+    @Test // @Ignore // FIXME - need more semantics of concat and equals
     public void testStringConcat2a() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"

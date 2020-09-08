@@ -128,7 +128,7 @@ public class esc extends EscBase {
     }
 
     @Test
-    @Ignore // FIXME - needs more builtin invariants to accomplish the proofs
+//    @Ignore // FIXME - needs more builtin invariants to accomplish the proofs
     public void testForEachA() {
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
 
@@ -254,7 +254,7 @@ public class esc extends EscBase {
     }
 
     @Test
-    @Ignore // Needs more builtin invariants to help the prover along
+//    @Ignore // Needs more builtin invariants to help the prover along
     public void testForEach3() {
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
 
@@ -304,7 +304,7 @@ public class esc extends EscBase {
                 );
     }
 
-    @Test @Ignore // FIXME - timesout
+    @Test // @Ignore // FIXME - timesout
     public void testForEach2a1() {
         main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
@@ -324,7 +324,7 @@ public class esc extends EscBase {
         );
     }
 
-    @Test @Ignore // FIXME - timesout
+    @Test // @Ignore // FIXME - timesout
     public void testForEach2a2() {
         main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
@@ -355,7 +355,7 @@ public class esc extends EscBase {
 
         );
     }
-    @Test @Ignore // FIXME - timesout
+    @Test // @Ignore // FIXME - timesout
     public void testForEach2a2a() {
         main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
@@ -1772,7 +1772,7 @@ public class esc extends EscBase {
                 );
     }
 
-    @Ignore // FIXME - rejuvenate dead branch detection some time
+//    @Ignore // FIXME - rejuvenate dead branch detection some time
     @Test
     public void testDeadBranch() {
         helpTCX("tt.TestJava",
@@ -2283,7 +2283,7 @@ public class esc extends EscBase {
     // TODO - more tests needed, and with specs
 
     @Test
-    @Ignore // FIXME - having difficulty with index limit
+//    @Ignore // FIXME - having difficulty with index limit
     public void testForeachSpecs() {
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
                 + "  public void inst(int[] a) { \n" + "    boolean b = false;\n"
@@ -2377,7 +2377,7 @@ public class esc extends EscBase {
     }
 
     @Test
-    @Ignore // FIXME - need to sort out loop invariants for while loops with
+//    @Ignore // FIXME - need to sort out loop invariants for while loops with
             // side effects
     public void testWhileSpecs2() {
         helpTCX("tt.TestJava",

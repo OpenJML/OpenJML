@@ -90,7 +90,6 @@ public class SFBugs extends EscBase {
         helpTCF("test/sfbug399","test/sfbug399", "-cp", "test/sfbug399", "-esc","-progress");
     }
     
-    @Ignore // very long running
     @Test public void sfbug404() {
         helpTCF("test/sfbug404","test/sfbug404", "-cp", "test/sfbug404", "-esc","-progress","-logic=AUFNIRA");
     }
@@ -107,12 +106,12 @@ public class SFBugs extends EscBase {
         helpTCF("test/sfbug410","test/sfbug410", "-cp", "test/sfbug410", "-esc","-progress");
     }
     
-    @Ignore // Can be very long running
+    // @Ignore // Can be very long running
     @Test public void sfbug414() {
         expectedExit = 0;
         helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "-esc","-progress","-logic=AUFNIRA","-escMaxWarnings=5");
     }
-    @Ignore // Can be very long running because it uses floating point
+
     @Test public void gitbug257() {
         expectedExit = 0;
         helpTCF("test/gitbug257","test/gitbug257", "-cp", "test/gitbug257", "-esc", "-progress", "-logic=AUFNIRA");
@@ -174,7 +173,7 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug459","test/gitbug459", "-cp", "test/gitbug459", "-esc");
     }
     
-    @Ignore // FIXME - needs all the model classes - and they need cleaning up
+    // @Ignore // FIXME - needs all the model classes - and they need cleaning up
     @Test public void gitbug461() {
         expectedExit = 0;
     }
@@ -214,18 +213,19 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug455","test/gitbug455", "-cp", "test/gitbug455", "-esc");
     }
     
-    @Ignore // Cannot reproduce the issue until the error's reporter gets back to us
+    @Ignore // FIXME - needs ability to specify/reason about derived classes
     @Test public void gitbug446() {
         expectedExit = 0;
         helpTCF("test/gitbug446","test/gitbug446", "-cp", "test/gitbug446", "-esc");
     }
     
+    @Ignore // FIXME - syntax for model programs not settled
     @Test public void gitbug445() {
         expectedExit = 1;
         helpTCG();
     }
     
-    @Ignore // FIXME - model specs
+    @Ignore // FIXME - syntax for model programs not settled
     @Test public void gitbug445a() {
         helpTCG();
     }
@@ -315,12 +315,12 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
-    @Ignore
+    @Ignore // FIXME - times out
     @Test public void gitbug500a() {
         helpTCG();
     }
 
-    @Ignore
+    @Ignore // FIXME - times out
     @Test public void gitbug500b() {
         helpTCG();
     }
@@ -339,6 +339,7 @@ public class SFBugs extends EscBase {
         helpTCG("-code-math=java","-timeout=600"); // java math just to avoid overflow error messages
     }
 
+    @Ignore // times out
     @Test public void gitbug503a() {
         helpTCG("-code-math=java","-timeout=600"); // java math just to avoid overflow error messages
     }
@@ -399,20 +400,23 @@ public class SFBugs extends EscBase {
     }
 
     // Check everything in apache commons library!
-    @Test @Ignore public void gitbug481() {
+    // FIXME - Needs more specification to avoid the errors reported in the tests below
+
+    @Ignore // This checks everything - which times out - so the verification is broken up in other tests
+    @Test public void gitbug481() {
         expectedExit = 0;
         helpTCF("test/gitbug481b","test/gitbug481", "-cp", "test/gitbug481b","-progress");
     }
 
     // Just one method, but parse and typecheck all files first
-    @Ignore 
+    // @Ignore 
     @Test public void gitbug481c() {
         expectedExit = 0;
         helpTCF("test/gitbug481b","test/gitbug481c", "-cp", "test/gitbug481b","-method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry");
     }
 
     // Just one method in one file
-    @Ignore // FIXME - timeout
+    // @Ignore // FIXME - timeout
     @Test public void gitbug481b() {
         expectedExit = 0;
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481b", "-cp", "test/gitbug481b","-method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry","-no-staticInitWarning");
@@ -444,22 +448,19 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a3", "-cp", "test/gitbug481b","-method="+m3,"-no-staticInitWarning");
     }
 
-    @Ignore // FIXME - timeout
     @Test public void gitbug481a4() {
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a4", "-cp", "test/gitbug481b","-method="+m4,"-no-staticInitWarning");
     }
 
-    @Ignore // FIXME - timeout
     @Test public void gitbug481a5() {
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a5", "-cp", "test/gitbug481b","-method="+m5,"-no-staticInitWarning");
     }
 
-    @Ignore // FIXME - timeout
     @Test public void gitbug481a6() {
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a6", "-cp", "test/gitbug481b","-method="+m6,"-no-staticInitWarning");
     }
 
-    @Ignore // FIXME - timeout
+    // @Ignore // FIXME - timeout
     @Test public void gitbug481a7() {
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a7", "-cp", "test/gitbug481b","-method="+m7,"-no-staticInitWarning");
     }
@@ -468,12 +469,11 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a8", "-cp", "test/gitbug481b","-method="+m8,"-no-staticInitWarning");
     }
 
-    @Ignore // FIXME - timeout
     @Test public void gitbug481a9() {
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a9", "-cp", "test/gitbug481b","-method="+m9,"-no-staticInitWarning");
     }
 
-    @Ignore // FIXME - timeout
+    @Ignore // times out
     @Test public void gitbug481a10() {
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a10", "-cp", "test/gitbug481b","-method="+m10,"-no-staticInitWarning");
     }
@@ -592,7 +592,7 @@ public class SFBugs extends EscBase {
     }
     
     // Double operations (sqrt) not yet implemented
-    @Ignore
+    @Ignore // FIXME - times out
     @Test public void gitbug580() {
         expectedExit = 0;
         helpTCG();
@@ -675,6 +675,7 @@ public class SFBugs extends EscBase {
         helpTCG("-rac","-racCheckAssumptions","-racPreconditionEntry"); // RAC compile crash
     }
     
+    @Ignore // FIXME - times out -- double arithmetic?
     @Test
     public void gitbug601() {
         expectedExit = 0;
@@ -693,8 +694,9 @@ public class SFBugs extends EscBase {
         helpTCG("-Xmaxwarns=100","-quiet"); // Arguments are part of the test
     }
     
+    @Ignore   // FIXME requires implementation of \not_assigned
     @Test
-    public void gitbug604() {  // FIXME requires implementatino of \not_assigned
+    public void gitbug604() {
         expectedExit = 0;
         helpTCG("-code-math=safe","-method=AbsInterval.add");
     }
@@ -783,14 +785,16 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
+    @Ignore // Varying test output in trace
     @Test
-    public void gitbug626() { // Varying test output
+    public void gitbug626() {
         expectedExit = 0;
         helpTCG("-subexpressions");
     }
     
+    @Ignore // FIXME - Problem with fresh in loop bodies
     @Test
-    public void gitbug627() { // Problem with fresh in loop bodies
+    public void gitbug627() {
         expectedExit = 0;
         helpTCG();
     }
@@ -875,34 +879,16 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
-    @Test @Ignore // Z3 hangs kin some matching loop
+    @Test // @Ignore // Z3 hangs in some matching loop
     public void gitbug644() {
         expectedExit = 0;
         helpTCG();
     }
-    
+        
     @Test
-    public void gitbug644a() {
+    public void gitbug645() { // FIXME - needs to be RAC and to be fixed
         expectedExit = 0;
-        helpTCG();
-    }
-    
-    @Test
-    public void gitbug644b() {
-        expectedExit = 0;
-        helpTCG();
-    }
-    
-    @Test
-    public void gitbug644c() {
-        expectedExit = 0;
-        helpTCG();
-    }
-    
-    @Test
-    public void gitbug645() { // FIXME - needs to be RAC ad to be fixed
-        expectedExit = 0;
-        helpTCG();
+        helpTCG("-rac");
     }
     
     @Test
@@ -982,13 +968,13 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
-    @Test @Ignore // Complained of inifinte run time
+    @Test // FIXME -- nullpointer exception // @Ignore // Complained of infinite run time
     public void gitbug672() {
         expectedExit = 0;
         helpTCF("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/bidimap/TreeBidiMap.java","test/gitbug672","-timeout=1800","-no-staticInitWarning","-cp","test/gitbug672/commons-collections4-4.3-sources","-escMaxWarnings=1");
     }
     
-    @Test @Ignore // Complained of undefined symbols
+    @Test // FIXME -- MISMATCHED BLOCKS // @Ignore // Complained of undefined symbols
     public void gitbug671() {
         expectedExit = 0;
         helpTCF("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/set/ListOrderedSet.java","test/gitbug671","-timeout=1800","-no-staticInitWarning","-cp","test/gitbug672/commons-collections4-4.3-sources","-escMaxWarnings=1");
@@ -1006,7 +992,7 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
-    @Test   // FIXME - this seems to be a bug in Z3 having an inconsistent counterexample
+    @Test // FIXME - this seems to be a bug in Z3 having an inconsistent counterexample
     public void gitbug677() {
         expectedExit = 0;
         helpTCG("-code-math=safe");//,"-show","-method=calculateArea","-subexpressions","-ce"); // The problem manifests with safe math
