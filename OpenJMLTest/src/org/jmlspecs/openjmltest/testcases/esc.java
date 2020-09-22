@@ -130,55 +130,74 @@ public class esc extends EscBase {
     @Test
 //    @Ignore // FIXME - needs more builtin invariants to accomplish the proofs
     public void testForEachA() {
-        helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
+        helpTCX("tt.TestJava", "package tt; \n" 
+                + "public class TestJava { \n"
 
-                + "  public void m1() {\n" + "    long[] a = { 1,2,3,4};\n" + "    for (Long k: a) {\n"
+                + "  public void m1() {\n" 
+                + "    long[] a = { 1,2,3,4};\n" 
+                + "    for (Long k: a) {\n"
                 + "      //@ assert \\count >= 0;\n" // OK
                 + "      //@ assert \\count < a.length;\n" // OK
-                + "    }\n" + "  }\n"
+                + "    }\n" 
+                + "  }\n"
 
                 + "  public void m3() {\n" // Line 10
-                + "    long[] a = { 1,2,3,4};\n" + "    for (long k: a) {\n" + "      //@ assert \\count >= 1;\n" // BAD
-                + "    }\n" + "  }\n"
+                + "    long[] a = { 1,2,3,4};\n" 
+                + "    for (long k: a) {\n" 
+                + "      //@ assert \\count >= 1;\n" // BAD
+                + "    }\n" 
+                + "  }\n"
 
-                + "  public void m4() {\n" + "    long[] a = { 1};\n" + "    long[] b = { 1,2};\n"
-                + "    for (long k: a) {\n" + "      //@ ghost int i = \\count;\n" // OK
-                                                                                    // //
-                                                                                    // Line
-                                                                                    // 20
+                + "  public void m4() {\n" 
+                + "    long[] a = { 1};\n" 
+                + "    long[] b = { 1,2};\n"
+                + "    for (long k: a) {\n" 
+                + "      //@ ghost int i = \\count;\n" // OK
                 + "      //@ assert \\count >= 0;\n" // OK
-                + "      for (long kk: b) {\n" + "         //@ assert \\count < 2;\n" // OK
-                + "      }\n" + "      //@ assert \\count == i;\n" // OK
-                + "    }\n" + "  }\n"
+                + "      for (long kk: b) {\n" 
+                + "         //@ assert \\count < 2;\n" // OK
+                + "      }\n" 
+                + "      //@ assert \\count == i;\n" // OK
+                + "    }\n" 
+                + "  }\n"
 
-                + "  public void m5() {\n" + "    long[] a = { 1,2,3,4};\n" + "    long[] b = { 1,2};\n" // Line
-                                                                                                            // 30
-                + "    for (long k: a) {\n" + "      //@ ghost int i = \\count;\n" + "      for (long kk: b) {\n"
-                + "         //@ assert \\count == i;\n" // BAD
-                + "      }\n" + "    }\n" + "  }\n"
+                + "  public void m5() {\n" 
+                + "    long[] a = { 1,2,3,4};\n" 
+                + "    long[] b = { 1,2};\n" // Line 30
+                + "    for (long k: a) {\n" 
+                + "       //@ assert \\count == k-1;\n" // OK
+                + "    }\n" 
+                + "  }\n"
 
-                + "  public void m6() {\n" + "    long[] a = { 1,2,3,4};\n"
+                + "  public void m6() {\n" 
+                + "    long[] a = { 1,2,3,4};\n"
                 + "    //@ loop_invariant \\count >= 0 && \\count <= a.length;\n" // OK
                 + "    //@ decreases a.length - \\count;\n" // OK
-                + "    for (long k: a) {\n" + "    }\n" + "  }\n"
+                + "    for (long k: a) {\n" 
+                + "    }\n" // Line 40
+                + "  }\n"
 
-                + "  public void m6ld() {\n" + "    long[] a = { 1,2,3,4};\n"
+                + "  public void m6ld() {\n" 
+                + "    long[] a = { 1,2,3,4};\n"
                 + "    //@ loop_invariant \\count >= 0 && \\count <= a.length;\n" // OK
                 + "    //@ loop_decreases a.length - \\count;\n" // OK
-                + "    for (long k: a) {\n" + "    }\n" + "  }\n"
+                + "    for (long k: a) {\n" 
+                + "    }\n" 
+                + "  }\n"
 
-                + "  public void m7x() {\n" + "    long[] a = { 1,2,3,4};\n"
-                + "    //@ decreases a.length - \\count -1;\n" // 0 on last
-                                                                // iteration -
-                                                                // BAD
-                + "    for (long k: a) {\n" + "    }\n" + "  }\n" // Line 50
+                + "  public void m7x() {\n" 
+                + "    long[] a = { 1,2,3,4};\n" // Line 50
+                + "    //@ decreases a.length - \\count - 2;\n" // -1 on last iteration - BAD
+                + "    for (long k: a) {\n" 
+                + "    }\n" 
+                + "  }\n"
 
-                + "  public TestJava() {}\n" + "}"
+                + "  public TestJava() {}\n" 
+                + "}"
 
-                , "/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m3", 11,
-                "/tt/TestJava.java:34: warning: The prover cannot establish an assertion (Assert) in method m5", 14,
-                "/tt/TestJava.java:48: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method m7x",
-                5, "/tt/TestJava.java:47: warning: Associated declaration", 9);
+                , "/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m3", 11
+                , "/tt/TestJava.java:51: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method m7x", 9
+                );
     }
 
     @Test
@@ -254,25 +273,38 @@ public class esc extends EscBase {
     }
 
     @Test
-//    @Ignore // Needs more builtin invariants to help the prover along
+    @Ignore // Needs more builtin invariants to help the prover along and definition of \values
     public void testForEach3() {
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
 
-                + "  public void m1() {\n" + "    Integer[] a = { 1,2,3,4};\n"
-                + "    //@ loop_invariant \\values.size() == \\count;\n" + "    for (Integer k: a) {\n" + "    }\n"
+                + "  public void m1() {\n" 
+                + "    Integer[] a = { 1,2,3,4};\n"
+                + "    //@ loop_invariant \\values.size() == \\count;\n" 
+                + "    for (Integer k: a) {\n" 
+                + "    }\n"
                 + "  }\n"
 
-                + "  public void m2() {\n" + "    Integer[] a = { 1,2,3,4};\n"
-                + "    //@ loop_invariant \\values.size() == \\count;\n" + "    for (Integer k: a) {\n"
-                + "      //@ assert \\values.size() == \\count;\n" + "    }\n" + "  }\n"
+                + "  public void m2() {\n" 
+                + "    Integer[] a = { 1,2,3,4};\n"
+                + "    //@ loop_invariant \\values.size() == \\count;\n" 
+                + "    for (Integer k: a) {\n"
+                + "      //@ assert \\values.size() == \\count;\n" 
+                + "    }\n" 
+                + "  }\n"
 
-                + "  public void m3() {\n" + "    Integer[] a = { 1,2,3,4};\n" + "    for (Integer k: a) {\n"
-                + "      //@ assert \\values.size() == \\count;\n" + "    }\n" + "  }\n"
+                + "  public void m3() {\n" 
+                + "    Integer[] a = { 1,2,3,4};\n" 
+                + "    for (Integer k: a) {\n"
+                + "      //@ assert \\values.size() == \\count;\n" 
+                + "    }\n" 
+                + "  }\n"
 
                 + "  public TestJava() {}\n"
 
                 + "  public void m3a() {\n" // Line 23
-                + "    long[] a = { 1,2,3,4};\n" + "    for (long k: a) {\n" + "      //@ assert \\count >= 1;\n" // BAD
+                + "    long[] a = { 1,2,3,4};\n" 
+                + "    for (long k: a) {\n" 
+                + "      //@ assert \\count >= 1;\n" // BAD
                 + "    }\n" + "  }\n"
 
                 + "}"
@@ -324,7 +356,7 @@ public class esc extends EscBase {
         );
     }
 
-    @Test // @Ignore // FIXME - timesout
+    @Test
     public void testForEach2a2() {
         main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
@@ -333,15 +365,11 @@ public class esc extends EscBase {
                 + "  //@ public normal_behavior  ensures true;\n" 
                 + "  public void m2() {\n" // Line 10
                 + "    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
-                + "    //@ assert values.content.owner == values;\n"
                 + "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
-                + "    //@ assume values.content.owner == values;\n"
                 + "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
-                + "    //@ assume values.content.owner == values;\n" 
                 + "    Map.Entry<String,String> k; \n"
-                + "    //@ assert values.content.owner == values;\n"
                 + "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
-                + "    //@ loop_invariant values == v && values.content.owner == values; \n"
+                + "    //@ loop_invariant values == v; \n"
                 + "    for (; it.hasNext(); values.add(k) ) {\n"  // FIXME - why need k ! null below since implied by second conjunct
                 + "        k = it.next();  //@ assume k != null && \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
                         // FIXME - problems if we have erased type names
@@ -364,20 +392,14 @@ public class esc extends EscBase {
                 + "  //@ public normal_behavior  ensures true;\n" 
                 + "  public void m2a() {\n" // Line 26
                 + "    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
-                + "    //@ assert values.content.owner == values;\n"
                 + "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
-                + "    //@ assume values.content.owner == values;\n"
                 + "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
-                + "    //@ assume values.content.owner == values;\n" 
                 + "    Map.Entry<String,String> k;\n"
-                + "    //@ assert values.content.owner == values;\n"
                 + "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
-                + "    // @ loop_invariant values == v && values.content.owner == values; \n"
+                + "    // @ loop_invariant values == v; \n"
                 + "    if (it.hasNext()) {\n" 
-                + "        //@ assert values.content.owner == values;\n"
                 + "        k = it.next();  //@ assume k != null &&  \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
                                 // FIXME - problems if we have erased type names
-                + "        //@ assert values.content.owner == values;\n" 
                 + "        values.add(k); \n"
                                 // FIXME - problems if we have erased type names
                 + "    }\n" 
@@ -1772,7 +1794,7 @@ public class esc extends EscBase {
                 );
     }
 
-//    @Ignore // FIXME - rejuvenate dead branch detection some time
+    @Ignore // FIXME - rejuvenate dead branch detection some time
     @Test
     public void testDeadBranch() {
         helpTCX("tt.TestJava",
@@ -2283,13 +2305,19 @@ public class esc extends EscBase {
     // TODO - more tests needed, and with specs
 
     @Test
-//    @Ignore // FIXME - having difficulty with index limit
     public void testForeachSpecs() {
-        helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
-                + "  public void inst(int[] a) { \n" + "    boolean b = false;\n"
-                + "    //@ assume a != null && a.length > 2 && a[0] == 1;\n"
-                + "    //@ loop_invariant (\\forall int k; 0<=k && k < \\count; b ==> a[k] > 0);\n"
-                + "    for(int i: a) if (i > 0) b = true; \n" + "    //@ assert b ==> a[1] > 0;\n" + "  }\n" + "}");
+        helpTCX("tt.TestJava", 
+                  "package tt; import org.jmlspecs.annotation.*; \n" 
+                + "public class TestJava { \n"
+                + "  //@ requires \\nonnullelements(a);\n"
+                + "  public void inst(int[] a) { \n" 
+                + "    boolean b = false;\n"
+                + "    //@ assume a != null && a.length > 2 && a[1] == 1;\n"
+                + "    //@ loop_invariant b == \\exists int k; 0 <= k < \\count; a[k] > 0;\n"
+                + "    for(int i: a) if (i > 0) b = true; \n" 
+                + "    //@ assert b ==> a[1] > 0;\n" 
+                + "  }\n" 
+                + "}");
     }
 
     @Test
@@ -2377,21 +2405,15 @@ public class esc extends EscBase {
     }
 
     @Test
-//    @Ignore // FIXME - need to sort out loop invariants for while loops with
-            // side effects
     public void testWhileSpecs2() {
         helpTCX("tt.TestJava",
-                "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
-                        + "  public void insta() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (--i > 0) { } /*@ assert i == 0; */ }\n"
-                        + "  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i-- >0) { } /*@ assert i == 0; */ }\n"
-                        + "  public void instc() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (--i > 1) { } /*@ assert i == 0; */ }\n"
-                        + "}",
-                "/tt/TestJava.java:3: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",
-                96 // FIXME - should be OK
-                , "/tt/TestJava.java:3: warning: Associated declaration", 40,
-                "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopInvariantAfterLoop) in method instb",
-                95, "/tt/TestJava.java:4: warning: Associated declaration", 40,
-                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method instc", 101);
+                "package tt; import org.jmlspecs.annotation.*; \n" 
+              + "public class TestJava { \n"
+              + "  public void insta() { int i = 5; /*@ loop_invariant i> 0; decreases i; */ while (--i > 0) { } /*@ assert i == 0; */ }\n"
+              + "  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i-- > 0) { } /*@ assert i == -1; */ }\n"
+              + "  public void instc() { int i = 5; /*@ loop_invariant i> 1; decreases i; */ while (--i > 1) { } /*@ assert i == 1; */ }\n"
+              + "}"
+              );
     }
 
     @Test

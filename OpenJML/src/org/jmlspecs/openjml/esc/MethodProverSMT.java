@@ -191,9 +191,6 @@ public class MethodProverSMT {
             String os = Utils.identifyOS(context);
             String ex = null;
             ex = proverToUse.replace("z3_","z3-").replace('_','.');
-//            if (proverToUse.equals("z3_4_3")) ex = "z3-4.3.";
-//            if (proverToUse.equals("z3_4_5")) ex = "z3-4.5.";
-//            if (proverToUse.equals("z3_4_6")) ex = "z3-4.6.";
             
             if (loc != null && os != null && ex != null) {
                 exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + proverToUse;

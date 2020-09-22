@@ -92,6 +92,9 @@ public class TreeBidiMap<K extends Comparable<K>, V extends Comparable<V>>
             this.description = description;
         }
 
+        //@ also public code normal_behavior
+        //@   ensures \result == description;
+        //@ pure
         @Override
         public String toString() {
             return description;
@@ -103,10 +106,10 @@ public class TreeBidiMap<K extends Comparable<K>, V extends Comparable<V>>
     private transient Node<K, V>[] rootNode;
     private transient int nodeCount = 0;
     private transient int modifications = 0;
-    private transient Set<K> keySet;
-    private transient Set<V> valuesSet;
-    private transient Set<Map.Entry<K, V>> entrySet;
-    private transient Inverse inverse = null;
+    private transient /*@ nullable */ Set<K> keySet;
+    private transient /*@ nullable */ Set<V> valuesSet;
+    private transient /*@ nullable */ Set<Map.Entry<K, V>> entrySet;
+    private transient /*@ nullable */ Inverse inverse = null;
 
     //-----------------------------------------------------------------------
     /**
@@ -139,7 +142,7 @@ public class TreeBidiMap<K extends Comparable<K>, V extends Comparable<V>>
      */
 	    /*@ also
 	  @ public normal_behavior
-	@ ensures \result <0;
+	@ ensures \result >= 0;
 		  */
     @Override
     /*@ pure @*/ public int size() {

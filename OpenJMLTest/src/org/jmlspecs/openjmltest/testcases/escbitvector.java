@@ -50,7 +50,7 @@ public class escbitvector extends EscBase {
                 );
     }
     
-    // BV true, with precondition
+    // BV true, with precondition (sometimes times out)
     @Test 
     public void testBV2a() {
         main.addOptions("-escBV=true","-logic=ALL");

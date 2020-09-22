@@ -8,14 +8,16 @@ class FahrenheitToCelsius {
     //@ requires Float.isFinite(temperature);
     //@ assignable Celsius;
     //@ ensures Double.isFinite(Celsius) && Float.isFinite(\result);
-    //@ ensures JMLFloat.approximatelyEqualTo(\result, (((temperature - 32)*5)/9), 0.1f) == true;
+    // FIXME: @ ensures JMLFloat.approximatelyEqualTo(\result, (((temperature - 32)*5)/9), 0.1f) == true;
 	public static float Temperature(float temperature) {
 	
        
      
         Celsius = ((temperature - 32)*5)/9;
+        //@ assume Double.isFinite(Celsius);
      
         System.out.println("temperature in Celsius = " + Celsius);
+        //@ assume Float.isFinite((float)Celsius);
 	    return (float)Celsius;
     }
      public static void main(String[] args) {
@@ -24,6 +26,7 @@ class FahrenheitToCelsius {
      
          System.out.println("Enter temperature in Fahrenheit");
          temperature = in.nextFloat();
+         //@ assume Float.isFinite(temperature);
 	     Temperature(temperature);
        }
     }

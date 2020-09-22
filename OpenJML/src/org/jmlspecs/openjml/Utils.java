@@ -514,6 +514,29 @@ public class Utils {
         return null;
     }
 
+    public Symbol findStaticMember(TypeSymbol sym, String name) {
+        Name n = Names.instance(context).fromString(name);
+        for (Symbol s: sym.getEnclosedElements()) {
+            if (s.isStatic() && s.name.equals(n)) return s;
+        }
+        return null;
+    }
+
+    public Symbol findStaticMethod(TypeSymbol sym, String name, Type ...argtypes) {
+        Name n = Names.instance(context).fromString(name);
+        x: for (Symbol s: sym.getEnclosedElements()) {
+            if (s.isStatic() && s instanceof MethodSymbol && s.name.equals(n)) {
+                MethodSymbol ms = (MethodSymbol)s;
+                if (argtypes.length != ms.params.length()) continue;
+                for (int i=0; i< argtypes.length; i++) {
+                    if (!jmltypes.isSameType(argtypes[i], ms.params.get(i).type)) continue x;
+                }
+                return s;
+            }
+        }
+        return null;
+    }
+
     public Symbol findToString(TypeSymbol sym, boolean isPrimitive) {
         Name n = Names.instance(context).fromString("toString");
         int args = isPrimitive ? 1 : 0;

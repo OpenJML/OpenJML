@@ -182,6 +182,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
+    @Ignore // FIXME - times out
     @Test
     public void testModSafeZ() {
         Assume.assumeTrue(runLongArithmetic || !(options.contains("-escBV=true")||options.contains("-escBV=auto")));

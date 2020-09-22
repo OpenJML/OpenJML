@@ -10,8 +10,8 @@ import javax.swing.text.Segment;
  */
 public class StringBuilderDriver {
     
-    //TODO using shared objects like this violates the following invariant in CharSequence.jml (RAC)
-    //   //@ public instance invariant charArray.owner == this;
+
+
     
     //private static final char[] testCharArray = {'t', 'e', 's', 't'};
     //private static final String testString = "Test String";
@@ -179,7 +179,9 @@ public class StringBuilderDriver {
         //@ assert sb.stringLength <= sb.value.length;
         sb.trimToSize();
         StringBuilder sb1 = new StringBuilder();
+        //@ show sb1.count, sb1.capacity, sb1.value.length;
         sb1.append("sixteencharacter"); //capacity 16, count 16;
+        //@ show sb1.count, sb1.capacity, sb1.value.length;
         sb1.trimToSize();
     }
     

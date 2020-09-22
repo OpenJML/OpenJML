@@ -1,9 +1,8 @@
 //@ pure
 public class Map<K,V> {
     
-    //@ ensures new java.util.Map<K,V>().isEmpty();
-    //@ ensures new java.util.Map<K,V>().size() == 0;
-    //@ model public static <K,V> void newMapIsEmpty() {}
+    //@ ensures map<K,V>.empty().get(k) == null;
+    //@ model public static <K,V> void newMapIsEmpty(K k) {}
     
     //@ ensures !s.containsKey(k) ==> s.put(k,v).size() == 1 + s.size();
     //@ model public static <K,V> void putBumpsSize(map<K,V> s, K k, V v) {}

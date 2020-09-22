@@ -869,20 +869,20 @@ public class SMTTranslator extends JmlTreeScanner {
             addCommand(smt,"(define-fun |#isSubUnderflow64BV#| ((x |#BV64#|) (y |#BV64#|)) Bool (and (bvsle x |#zero64BV#|) (bvsge y |#zero64BV#|) (bvsgt (bvsub x y) |#zero64BV#|)))");
             addCommand(smt,"(define-fun |#isMulOverflow32BV#| ((x |#BV32#|) (y |#BV32#|)) Bool (let ((prod (bvmul x y))) (and (distinct y #x00000000) (= x (bvsdiv prod y)))))");
        } else {
-            addCommand(smt,"(define-fun |#isAddOverflow32#| ((x Int) (y Int)) Bool (> (+ x y) |#max32#|))");
-            addCommand(smt,"(define-fun |#isAddOverflow64#| ((x Int) (y Int)) Bool (> (+ x y) |#max64#|))");
-            addCommand(smt,"(define-fun |#isAddUnderflow32#| ((x Int) (y Int)) Bool (< (+ x y) |#min32#|))");
-            addCommand(smt,"(define-fun |#isAddUnderflow64#| ((x Int) (y Int)) Bool (< (+ x y) |#min64#|))");
-            addCommand(smt,"(define-fun |#isSubOverflow32#| ((x Int) (y Int)) Bool (> (- x y) |#max32#|))");
-            addCommand(smt,"(define-fun |#isSubOverflow64#| ((x Int) (y Int)) Bool (> (- x y) |#max64#|))");
-            addCommand(smt,"(define-fun |#isSubUnderflow32#| ((x Int) (y Int)) Bool (< (- x y) |#min32#|))");
-            addCommand(smt,"(define-fun |#isSubUnderflow64#| ((x Int) (y Int)) Bool (< (- x y) |#min64#|))");
-            addCommand(smt,"(define-fun |#isMulOverflow32#| ((x Int) (y Int)) Bool (let ((prod (* x y))) (or (> prod |#max32#|) (< prod |#min32#|))))");
+//            addCommand(smt,"(define-fun |#isAddOverflow32#| ((x Int) (y Int)) Bool (> (+ x y) |#max32#|))");
+//            addCommand(smt,"(define-fun |#isAddOverflow64#| ((x Int) (y Int)) Bool (> (+ x y) |#max64#|))");
+//            addCommand(smt,"(define-fun |#isAddUnderflow32#| ((x Int) (y Int)) Bool (< (+ x y) |#min32#|))");
+//            addCommand(smt,"(define-fun |#isAddUnderflow64#| ((x Int) (y Int)) Bool (< (+ x y) |#min64#|))");
+//            addCommand(smt,"(define-fun |#isSubOverflow32#| ((x Int) (y Int)) Bool (> (- x y) |#max32#|))");
+//            addCommand(smt,"(define-fun |#isSubOverflow64#| ((x Int) (y Int)) Bool (> (- x y) |#max64#|))");
+//            addCommand(smt,"(define-fun |#isSubUnderflow32#| ((x Int) (y Int)) Bool (< (- x y) |#min32#|))");
+//            addCommand(smt,"(define-fun |#isSubUnderflow64#| ((x Int) (y Int)) Bool (< (- x y) |#min64#|))");
+//            addCommand(smt,"(define-fun |#isMulOverflow32#| ((x Int) (y Int)) Bool (let ((prod (* x y))) (or (> prod |#max32#|) (< prod |#min32#|))))");
             addCommand(smt,"(define-fun |#isMul32ok#| ((x Int) (y Int)) Bool (let ((prod (* x y))) (and (<= |#min32#| prod ) (<= prod |#max32#|) )))");
             addCommand(smt,"(define-fun |#isMul64ok#| ((x Int) (y Int)) Bool (let ((prod (* x y))) (and (<= |#min64#| prod ) (<= prod |#max64#|) )))");
-            // Int arithmetic operations to do wrap-around operations
-            addCommand(smt,"(define-fun |#addWrap32#| ((x Int) (y Int)) Int (let ((sum (+ x y))) (ite (> sum |#max32#|) (- sum |#big32#|) (ite (< sum |#max32#|) (+ sum |#big32#|) sum)))))");
-            addCommand(smt,"(define-fun |#addWrap64#| ((x Int) (y Int)) Int (let ((sum (+ x y))) (ite (> sum |#max64#|) (- sum |#big64#|) (ite (< sum |#max64#|) (+ sum |#big64#|) sum)))))");
+//            // Int arithmetic operations to do wrap-around operations
+//            addCommand(smt,"(define-fun |#addWrap32#| ((x Int) (y Int)) Int (let ((sum (+ x y))) (ite (> sum |#max32#|) (- sum |#big32#|) (ite (< sum |#max32#|) (+ sum |#big32#|) sum)))))");
+//            addCommand(smt,"(define-fun |#addWrap64#| ((x Int) (y Int)) Int (let ((sum (+ x y))) (ite (> sum |#max64#|) (- sum |#big64#|) (ite (< sum |#max64#|) (+ sum |#big64#|) sum)))))");
             addCommand(smt,"(define-fun |#trunc32s#| ((x Int)) Int (let ((m (mod x |#big32#|))) (ite (<= m |#max32#|) m (- m |#big32#|) )))");
             addCommand(smt,"(define-fun |#trunc16s#| ((x Int)) Int (let ((m (mod x |#big16#|))) (ite (<= m |#max16#|) m (- m |#big16#|) )))");
             addCommand(smt,"(define-fun |#trunc8s#| ((x Int)) Int (let ((m (mod x |#big8#|))) (ite (<= m |#max8#|) m (- m |#big8#|) )))");

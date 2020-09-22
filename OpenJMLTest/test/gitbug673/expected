@@ -1,13 +1,32 @@
 Proving methods in FahrenheitToCelsius
-Skipping proof of FahrenheitToCelsius.FahrenheitToCelsius() (excluded by -method)
-Skipping proof of FahrenheitToCelsius.Temperature(float) (excluded by -method)
-Skipping proof of FahrenheitToCelsius.main(java.lang.String[]) (excluded by -method)
+Starting proof of FahrenheitToCelsius.FahrenheitToCelsius() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FahrenheitToCelsius.FahrenheitToCelsius() with prover !!!! - no warnings
+Starting proof of FahrenheitToCelsius.Temperature(float) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - at program exit : OK
+Completed proof of FahrenheitToCelsius.Temperature(float) with prover !!!! - no warnings
+Starting proof of FahrenheitToCelsius.main(java.lang.String[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - at program exit : OK
+Completed proof of FahrenheitToCelsius.main(java.lang.String[]) with prover !!!! - no warnings
 Completed proving methods in FahrenheitToCelsius
 Proving methods in FahrenheitToCelsius2
-Skipping proof of FahrenheitToCelsius2.FahrenheitToCelsius2() (excluded by -method)
+Starting proof of FahrenheitToCelsius2.FahrenheitToCelsius2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FahrenheitToCelsius2.FahrenheitToCelsius2() with prover !!!! - no warnings
 Starting proof of FahrenheitToCelsius2.Temperature2(double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of FahrenheitToCelsius2.Temperature2(double) with prover !!!! - no warnings
-Skipping proof of FahrenheitToCelsius2.main(java.lang.String[]) (excluded by -method)
+Starting proof of FahrenheitToCelsius2.main(java.lang.String[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - at program exit : OK
+Completed proof of FahrenheitToCelsius2.main(java.lang.String[]) with prover !!!! - no warnings
 Completed proving methods in FahrenheitToCelsius2

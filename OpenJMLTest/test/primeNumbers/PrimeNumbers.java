@@ -3,7 +3,7 @@
     public class PrimeNumbers
     {
 	private /*@ spec_public nullable@*/ int primeArray[];
-	//@ requires n >= 1;
+	//@ requires 1 <= n < Integer.MAX_VALUE;
 	//@ assignable primeArray;
 	//@ ensures primeArray != null;
 	//@ ensures primeArray.length == n;
@@ -14,8 +14,6 @@
           primeArray = new int[n];
           if (n >= 1)
           {
-             System.out.println("First "+n+" prime numbers are:");
-             System.out.println(2);
              primeArray[0] = 2;
           }
           //@ ghost int maxnumber = Integer.MAX_VALUE;
@@ -41,15 +39,13 @@
                   }
                   //@ assert num%j != 0;
               }
-              // @ assert status == 0 ==> (\exists int jj; 2 <= jj <= num/2; num%jj == 0);
+              //@ assert status == 0 ==> (\exists int jj; 2 <= jj <= num/2; num%jj == 0);
               //@ assert status != 0 ==> (\forall int jj; 2 <= jj <= num/2; num%jj != 0);
 
               if (status != 0)
               {
-                  //@ assert status != 0;
-                  primeArray[count -1] = num;
+                  primeArray[count-1] = num;
                   //@ assert (\forall int i; 2 <= i <= num/2; num%i != 0);
-//                  System.out.println("prime is : "+num);	
                   count++;
               }
               status = 1;

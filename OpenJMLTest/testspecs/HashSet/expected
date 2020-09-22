@@ -1,4 +1,9 @@
 Proving methods in TestHashSet
 Skipping proof of TestHashSet.TestHashSet() (excluded by -method)
 Skipping proof of TestHashSet.main(java.lang.String...) (excluded by skipesc)
+Starting proof of TestHashSet.esc(int) with prover !!!!
+Feasibility check - at program exit : OK
+Completed proof of TestHashSet.esc(int) with prover !!!! - no warnings
 Completed proving methods in TestHashSet
+Note: testspecs/HashSet/TestHashSet.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.

@@ -725,6 +725,15 @@ public class JmlEnter extends Enter {
                 classEnter(c, localEnv);
             }
         }
+        if (isSpecForBinary) {
+            Env<AttrContext> saved = env;
+            env = specstree.env;
+            for (JCTree t: specstree.defs) {
+                if (!(t instanceof JmlClassDecl)) continue;
+                visitClassDef((JmlClassDecl)t);
+            }
+            env = saved;
+        }
 
     }
     

@@ -46,7 +46,7 @@ public class SpecsEsc extends EscBase {
      * @param classname the fully qualified class to test
      */
     public SpecsEsc(String classname) {
-    	super("", "z3_4_3");  // FIXME - allow solvers
+        super("", "z3_4_3");  // FIXME - allow solvers
         this.classname = classname;
     }
 
@@ -66,26 +66,14 @@ public class SpecsEsc extends EscBase {
     protected boolean foundErrors;
     
     /** This test tests the file that is named as classname by the constructor */
-//    @Test
-//    public void testSpecificationFile() {
-//    	expectedExit = 0;
-//    	String subdir = "testspecs" + "/" + classname;
-//        for (File f: new File(subdir).listFiles()) {
-//        	if (f.getName().startsWith("Test")) {
-//        		break;
-//        	}
-//        }
-//    	escOnFiles(subdir,subdir,"-no-minQuant","-method=esc","-checkFeasibility=exit");
-//    }
-//    
     @Test
-    public void testSpecificationFileMQ() {
-    	expectedExit = 0;
-    	String subdir = "testspecs" + "/" + classname;
+    public void testSpecificationFile() {
+        expectedExit = 0;
+        String subdir = "testspecs" + "/" + classname;
         for (File f: new File(subdir).listFiles()) {
-        	if (f.getName().startsWith("Test")) {
-        		break;
-        	}
+            if (f.getName().startsWith("Test")) {
+                break;
+            }
         }
     	escOnFiles(subdir,subdir,"-method=esc","-checkFeasibility=exit");
     }
@@ -93,7 +81,11 @@ public class SpecsEsc extends EscBase {
     static public java.util.List<File> findAllFiles() {
         File dir = new File("testspecs");
         java.util.List<File> classes = new ArrayList<>();
-        for (File f: dir.listFiles()) if (f.isDirectory()) classes.add(f);
+        for (File f: dir.listFiles()) {
+            if (f.getName().endsWith("HashSet")) continue;
+            if (f.getName().endsWith("ArrayList")) continue;
+           if (f.isDirectory()) classes.add(f);
+        }
         System.out.println(classes.size() + " system specification classes found for esc testing");
         return classes;
     }

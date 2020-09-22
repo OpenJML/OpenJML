@@ -154,6 +154,7 @@ public class JmlTreeUtils {
     final public Symbol boolneSymbol;
     final public Symbol intminusSymbol;
     final public Symbol intplusSymbol;
+    final public Symbol intmultiplySymbol;
     final public Symbol intdivideSymbol;
     final public Symbol inteqSymbol;
     final public Symbol intneqSymbol;
@@ -165,6 +166,7 @@ public class JmlTreeUtils {
     final public Symbol longltSymbol;
     final public Symbol longminusSymbol;
     final public Symbol longplusSymbol;
+    final public Symbol longmultiplySymbol;
     final public Symbol longdivideSymbol;
     final public JCLiteral trueLit;
     final public JCLiteral falseLit;
@@ -218,6 +220,7 @@ public class JmlTreeUtils {
         boolneSymbol = findOpSymbol(JCTree.Tag.NE,syms.booleanType); 
         intminusSymbol = findOpSymbol(JCTree.Tag.MINUS,syms.intType); // subtract
         intplusSymbol = findOpSymbol(JCTree.Tag.PLUS,syms.intType); // binary add
+        intmultiplySymbol = findOpSymbol(JCTree.Tag.MUL,syms.intType);
         intdivideSymbol = findOpSymbol(JCTree.Tag.DIV,syms.intType);
         inteqSymbol = findOpSymbol(JCTree.Tag.EQ,syms.intType);
         intneqSymbol = findOpSymbol(JCTree.Tag.NE,syms.intType);
@@ -229,6 +232,7 @@ public class JmlTreeUtils {
         longeqSymbol = findOpSymbol(JCTree.Tag.EQ,syms.longType);
         longminusSymbol = findOpSymbol(JCTree.Tag.MINUS,syms.longType);
         longplusSymbol = findOpSymbol(JCTree.Tag.PLUS,syms.longType);
+        longmultiplySymbol = findOpSymbol(JCTree.Tag.MUL,syms.longType);
         longdivideSymbol = findOpSymbol(JCTree.Tag.DIV,syms.longType);
         trueLit = makeLit(0,syms.booleanType,1);
         falseLit = makeLit(0,syms.booleanType,0);

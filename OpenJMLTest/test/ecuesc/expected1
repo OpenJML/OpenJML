@@ -4,21 +4,15 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of LookupScale.LookupScale(int[]) with prover !!!! - no warnings
 Starting proof of LookupScale.LookupScale(int,int,int) with prover !!!!
-..\..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:18: warning: Validity is unknown - time or memory limit reached: : Aborted proof: timeout
-	LookupScale(int min, int max, int size) {
-	^
-Completed proof of LookupScale.LookupScale(int,int,int) with prover !!!! - TIMEOUT
+../../OpenJMLDemo/src/openjml/ecudemo/LookupScale.java:24: warning: The prover cannot establish an assertion (LoopInvariant) in method LookupScale
+		    loop_invariant (\forall int k; k>0 && k<i; this.values[k-1] <= this.values[k]);
+		    ^
+Completed proof of LookupScale.LookupScale(int,int,int) with prover !!!! - with warnings
 Starting proof of LookupScale.lookupValue(SensorValue) with prover !!!!
-..\..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:64: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method lookupValue
+../../OpenJMLDemo/src/openjml/ecudemo/LookupScale.java:64: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method lookupValue
 		fracPart = (v - this.values[intPart]) * 100 / (this.values[intPart+1] - this.values[intPart]);
 		                                            ^
-..\..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:59: warning: The prover cannot establish an assertion (Assert) in method lookupValue
-			//@ assert intPart == 0 || intPart == this.values.length-1;
-			    ^
-..\..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:39: warning: Validity is unknown - time or memory limit reached: : Aborted proof: timeout
-	public /*@ pure @*/ ScaleIndex lookupValue(SensorValue sv) {
-	                               ^
-Completed proof of LookupScale.lookupValue(SensorValue) with prover !!!! - TIMEOUT
+Completed proof of LookupScale.lookupValue(SensorValue) with prover !!!! - with warnings
 Completed proving methods in LookupScale
 Proving methods in SensorValue
 Starting proof of SensorValue.SensorValue(int,int,int) with prover !!!!
@@ -68,4 +62,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.main(java.lang.String[]) with prover !!!! - no warnings
 Completed proving methods in Test
-4 warnings
+2 warnings

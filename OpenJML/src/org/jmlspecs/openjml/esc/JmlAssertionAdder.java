@@ -3801,9 +3801,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         for (JCTree def : decl.defs) {
             if (def instanceof JmlVariableDecl) {
                 JmlVariableDecl vd = (JmlVariableDecl)def;
+                // FIXME - in testForeach2a1 vd.sym is null
                 if (!utils.jmlvisible(vd.sym, methodDecl.sym.owner, csym, vd.mods.flags, methodDecl.mods.flags)) continue;
 
-                if (utils.isJMLStatic(vd.sym) && isFinal(vd.sym)) {
+                if (utils.isJMLStatic(vd.mods,decl.sym) && isFinal(vd.sym)) {
                     alreadyDiscoveredFields.add(vd.sym);
                     Symbol sym = vd.sym;
                     if (sym.owner instanceof ClassSymbol) {
@@ -8103,6 +8104,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // the children see 'this' with the type of the child and see the combined specs accordingly
                     convertedReceiver = currentThisExpr;
                     receiverType = currentThisExpr.type;
+//                } else if (fa.selected instanceof JmlSingleton) {
+//                    JmlSingleton fas = (JmlSingleton)fa.selected;
+//                    receiverType = fas.type;
+//                    if (fas.kind == resultKind) {
+//                        convertedReceiver = M.at(fa.selected.pos).Ident(resultSym);
+//                    } else if (fas.kind == valuesKind) {
+//                        convertedReceiver = M.at(fa.selected.pos).Ident((VarSymbol)fas.info);
+//                    } else {
+//                        convertedReceiver = convertExpr(fas);
+//                    }
                 } else {
                     receiverType = fa.selected.type;
                     convertedReceiver = alreadyConverted ? fa.selected : convertExpr(fa.selected);
@@ -11782,30 +11793,36 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = eresult = treeutils.makeBinary(that.pos,optag,that.getOperator(),lhs,rhs);
         } else if (optag == JCTree.Tag.PLUS && that.type.equals(syms.stringType)) {
             if ((infer || esc)) {
-                Symbol s = utils.findMember(syms.stringType.tsym,"concat");
-                if (s == null) log.error(that,"jml.internal","Could not find the concat method");
-                else {
-                    JCMethodInvocation call;
+                Symbol s = utils.findStaticMember(syms.stringType.tsym,"concat");
+                if (s == null) {
+                    log.error(that,"jml.internal","Could not find the concat method");
+                } else {
+                    JCIdent id = M.Ident("String");
+                    id.sym = syms.stringType.tsym;
+                    id.type = syms.stringType;
                     JCExpression lhs = that.getLeftOperand();
                     JCExpression rhs = that.getRightOperand();
-                    lhs = convertExpr(lhs);
-                    Type boxed = types.boxedTypeOrType(lhs.type);
-                    lhs = addImplicitConversion(lhs, boxed, lhs);
-//                    JCExpression olhs = lhs;
-//                    lhs = utils.convertToString(M,syms,lhs,boxed);
-//                    if (lhs != olhs) visitApply((JCMethodInvocation)lhs);
-//                    lhs = eresult;
-                    rhs = convertExpr(rhs);
-                    boxed = types.boxedTypeOrType(rhs.type);
-                    rhs = addImplicitConversion(rhs, boxed, rhs);
-//                    JCExpression rhsn = utils.convertToString(M,syms,rhs,boxed);
-//                    if (rhsn instanceof JCMethodInvocation) {
-//                        visitApply((JCMethodInvocation)rhsn);
-//                        rhsn = eresult;
-//                    }
-//                    rhs = rhsn;//M.at(rhs).Conditional(treeutils.makeNotNull(rhs.pos, rhsn), rhsn, treeutils.makeStringLiteral(rhs.pos, "null"));
-                    result = eresult = M.at(that).JmlMethodInvocation(concatKind,lhs,rhs).setType(that.type);
-                    if (!rac && splitExpressions) result = eresult = newTemp(eresult);
+                    if (lhs.type != syms.stringType) {
+                        Type t = lhs.type;
+                        if (!lhs.type.isPrimitive()) t = syms.objectType;
+                        JCFieldAccess call = M.Select(id,names.fromString("valueOf"));
+                        call.sym = utils.findStaticMethod(syms.stringType.tsym,"valueOf", t);
+                        call.type = call.sym.type;
+                        lhs = M.at(that).Apply(null,call,List.<JCExpression>of(lhs)).setType(syms.stringType);
+                    }
+                    if (rhs.type != syms.stringType) {
+                        Type t = rhs.type;
+                        if (!rhs.type.isPrimitive()) t = syms.objectType;
+                        JCFieldAccess call = M.Select(id,names.fromString("valueOf"));
+                        call.sym = utils.findStaticMethod(syms.stringType.tsym,"valueOf", t);
+                        call.type = call.sym.type;
+                        rhs = M.at(that).Apply(null,call,List.<JCExpression>of(rhs)).setType(syms.stringType);
+                    }
+                    JCFieldAccess call = M.Select(id,names.fromString("concat"));
+                    call.sym = s;
+                    call.type = s.type;
+                    JCMethodInvocation m = M.at(that).Apply(null,call,List.<JCExpression>of(lhs,rhs)).setType(that.type);
+                    result = eresult = convertExpr(m);
                 }
                 return;
             } else { // rac and anything else
@@ -14375,24 +14392,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCBlock bl = popBlock(that);
         addStat(bl);
         if (splitInfo != null && splitInfo) continuation = Continuation.HALT;
-
-        // FIXME Need to add specifications; also index and values variables
-//        JCVariableDecl v = M.at(that.var.pos).VarDef(that.var.sym,null);
-//        v.setType(that.var.type);
-//        JCExpression e = scanExpr(that.expr);
-//        pushBlock();
-//        // Now havoc any variables changed in the loop
-//        {
-//            ListBuffer<JCExpression> targets = TargetFinder.findVars(that.getStatement(),null);
-//            TargetFinder.findVars(that.getExpression(),targets);
-//            // synthesize a modifies list
-//            JmlStatementHavoc st = M.at(that.body.pos).JmlHavocStatement(targets.toList());
-//            addStat(st);
-//        }
-//        scan(that.body);
-//        JCBlock b = popBlock(that.body.pos);
-//        addStat(M.at(that).ForeachLoop(v, e, b));
-        // result?
     }
     
     /** Declares the synthetic index variable for the loop, adding the declaration
@@ -16672,14 +16671,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
 
                 // FIXME - implement these
-//            case BSVALUES:
-//                if (that.info == null) {
-//                    log.error(that.pos,"esc.internal.error","No loop index found for this use of " + that.token.internedName());
-//                    result = null;
-//                } else {
-//                    result = newIdentUse((VarSymbol)that.info,that.pos);
-//                }
-//                break;
+        } else if (k == valuesKind) {
+                if (that.info == null) {
+                    log.error(that.pos,"esc.internal.error","No loop index found for this use of " + valuesKind.keyword);
+                    result = null;
+                } else {
+                    result = M.at(that.pos).Ident((VarSymbol)that.info);
+                }
             
 //            case BSLOCKSET:
 //            case BSSAME:

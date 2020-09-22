@@ -17,8 +17,8 @@
      
           int[][] transpose = new int[n][m];
           //@ assert \forall int i; 0 <= i < n; transpose[i] != null && transpose[i].length == m;
-          //@ assert \forall int e; 0<=e<n; \forall int k; 0 <= k < n; (e != k ==> transpose[e] != transpose[k]);
-          //@ assert \forall int e; 0<=e<n; (\forall int k; 0 <= k < m; transpose[e] != matrix[k]);
+          //@ assume \forall int e; 0<=e<n; \forall int k; 0 <= k < n; (e != k ==> transpose[e] != transpose[k]);
+          //@ assume \forall int e; 0<=e<n; (\forall int k; 0 <= k < m; transpose[e] != matrix[k]);
 
           //@ maintaining 0 <= c <= n;
           //@ maintaining \forall int i; 0<=i<c; (\forall int j; 0 <= j < m ; transpose[i][j] == matrix[j][i]);
@@ -48,10 +48,11 @@
           n = matrix[0].length;
      
           int[][] transpose = new int[n][m];
+          //@ assert transpose != null && transpose.length == n;
           //@ assert n > 0 ==> transpose[0] != null;
-          //@ assert n > 0 ==> transpose[0].length == n;
-          //@ assert \forall int i; 0 <= i < n; transpose[i] != null && transpose[i].length == m;
-          //@ assert \forall int e; 0<=e<n; \forall int k; 0 <= k < n; (e != k ==> transpose[e] != transpose[k]);
+          //@ assume n > 0 ==> transpose[0].length == n;
+          //@ assume \forall int i; 0 <= i < n; transpose[i] != null && transpose[i].length == m;
+          //@ assume \forall int e; 0<=e<n; \forall int k; 0 <= k < n; (e != k ==> transpose[e] != transpose[k]);
 
           //@ maintaining 0 <= d && d <= n;
           //@ maintaining (\forall int j, i; 0 <= j < matrix.length && 0 <= i < d; transpose[i][j] == matrix[j][i]);

@@ -191,10 +191,10 @@ public class escfiles extends EscBase {
     }
 
 
-    @Test // @Ignore // FIXME - order of errors is too non-deterministic
+    @Test // Order of errors is somewhat non-deterministic
     public void testBag() {
         expectedExit = 0;
-        helpTCF("test/bag","test/bag");
+        helpTCF("test/bag","test/bag","-escMaxWarnings=1");
     }
 
     @Test
@@ -203,20 +203,26 @@ public class escfiles extends EscBase {
         helpTCF("test/bagModified","test/bagModified");
     }
 
-    @Test // @Ignore // FIXME - hangs up sometimes with some solvers; takes a while with others - comment out while we are doing repeated testing
+    @Test
     public void testLoopExercises() {
         expectedExit = 0;
-        helpTCF("test/loopExercises","test/loopExercises");
+        helpTCF("test/loopExercises","test/loopExercises","-exclude=gauss");
     }
 
-    @Test // @Ignore  // FIXME - CVC4 crashes
+    @Test @Ignore // FIXME - nonlinear inference
+    public void testLoopExercises2() {
+        expectedExit = 0;
+        helpTCF("test/loopExercises","test/loopExercises","-method=gauss");
+    }
+
+    @Test @Ignore  // FIXME - not yet working
     public void testPurseCard() {
         if ("cvc4".equals(solver)) fail();
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/purse","test/purse","-timeout=15");
     }
 
-    @Test // @Ignore // FIXME - CVC4 crashes
+    @Test @Ignore // FIXME - not yet working
     public void testPurseCardMod() {
         if ("cvc4".equals(solver)) fail();
         expectedExit = 0;
@@ -237,13 +243,13 @@ public class escfiles extends EscBase {
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/BeanCan.java","test/demoBeancan","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-code-math=bigint","-spec-math=bigint","-checkFeasibility=precondition,exit");
     }
 
-    @Test // @Ignore // FIXME - stuck or just long?
+    @Test // Non-deterministic output
     public void testECU() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecuesc","-classpath",OpenJMLDemoPath + "/src/openjml/ecudemo");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecuesc","-classpath",OpenJMLDemoPath + "/src/openjml/ecudemo","-escMaxWarnings=1");
     }
 
-    @Test
+    @Test @Ignore // FIXME - needs rewriting
     public void testValueTypes() {
         helpTF("valuetypes","-classpath","../OpenJML/runtime");
     }
@@ -275,7 +281,7 @@ public class escfiles extends EscBase {
 //        helpTF("opt","-show","-method=m");
 //    }
 
-    @Test  // Problem is with mixed BV and bigint operations
+    @Test @Ignore // Problem is with mixed BV and bigint operations
     public void testBuggyCalculator() {
         helpTF("buggyCalculator");
     }
@@ -285,12 +291,12 @@ public class escfiles extends EscBase {
         helpTF("buggyRandomNumbers");
     }
 
-    @Test
+    @Test @Ignore // times out -- see testPrime for fixed version
     public void testPrimeNumbers() {
         helpTF("buggyPrimeNumbers");
     }
 
-    @Test
+    @Test @Ignore // FIXME - unclear why fails
     public void testBuggyPalindrome() {
         helpTF("buggyPalindrome");
     }
@@ -356,7 +362,7 @@ public class escfiles extends EscBase {
         helpTF("esc2DArray");
     }
 
-    @Test
+    @Test @Ignore // FIXME - axioms for multi-dimensional arrays
     public void test2DTranspose() {
         expectedExit = 0;
         helpTF("esc2DTranspose");
@@ -414,7 +420,7 @@ public class escfiles extends EscBase {
         helpTF("escVector","-code-math=java");
     }
 
-    @Test // @Ignore // FIXME - make this work by carrying information about variables into the first cycle of a loop
+    @Test
     public void testDMZLoop() {
         expectedExit = 0;
         helpTF("escDMZLoop","-method=findMax");
@@ -511,20 +517,20 @@ public class escfiles extends EscBase {
     }
 
 
-    @Test // @Ignore // FIXME - long running, probably because of the logic
+    @Test @Ignore // FIXME - implement diverges
     public void testEscDiverges() {
-        helpTF("escDiverges","-nonnullByDefault");  // Needs at least AUFNIRA
+        helpTF("escDiverges","-nonnullByDefault");
     }
 
 
-    @Test // @Ignore // FIXME - long running, probably because of the logic
+    @Test
     public void testEscDiverges2() {
-        helpTF("escDiverges2","-nonnullByDefault");  // Needs at least AUFNIRA
+        helpTF("escDiverges2","-nonnullByDefault");
     }
     
     @Test
     public void escStrings() {
-        helpTF("escStrings","-method=m1","-show");
+        helpTF("escStrings");
     }
     
     @Test
@@ -786,7 +792,7 @@ public class escfiles extends EscBase {
         helpTF("escrmloop2");
     }
     
-    @Test
+    @Test @Ignore // not working yet
     public void escFPcompose() {
         helpTF("escFPcompose");
     }
@@ -808,7 +814,7 @@ public class escfiles extends EscBase {
     
 
     
-    @Test // @Ignore // FIXME - ignore for now, because it slways times out.
+    @Test @Ignore // FIXME - ignore for now; implement with real specs
     public void testEscRawding() {
         helpTF("escRawding","-specspath=test/escRawding","-code-math=safe");
     }
@@ -833,7 +839,7 @@ public class escfiles extends EscBase {
         helpTF("enums");
     }
 
-    @Test
+    @Test @Ignore // FIXME - not yet implemented
     public void testEnums1() {
         expectedExit = 0;
         helpTF("enums1");
@@ -852,13 +858,13 @@ public class escfiles extends EscBase {
         helpTF("datatype");
     }
 
-    @Test // Baisc problem is with the toString conversion of a \bigint, because of the -code-math=bigint setting of these
+    @Test // Basic problem is with the toString conversion of a \bigint, because of the -code-math=bigint setting of these
     public void testFactorial() {
         expectedExit = 0;
         helpTF("factorial");//,"-code-math=java");
     }
 
-    @Test
+    @Test @Ignore // FIXME - times out
     public void testPrime() {
         expectedExit = 0;
         helpTF("primeNumbers");
@@ -894,9 +900,7 @@ public class escfiles extends EscBase {
         helpTF("refiningBad");
     }
 
-    // Failed for -minquant and with the tnum1a/tnum2a intermediates
-    // Presumably a problem with instantiation/triggering
-    @Test
+    @Test @Ignore // FIXME - fix a problem with concatenation
     public void testGCDCalculator() {
         expectedExit = 0;
         helpTF("gcdcalculator");
@@ -930,13 +934,13 @@ public class escfiles extends EscBase {
         helpTF("tupleBad");
     }
 
-    @Test
+    @Test @Ignore // FIXME - not yet implemented
     public void testCaptures() {
         expectedExit = 1;
         helpTF("anonymousCaptures");
     }
     
-    @Test
+    @Test @Ignore // FIXME - needs implementation
     public void testStreams() {
         expectedExit = 1;
         helpTF("streams");

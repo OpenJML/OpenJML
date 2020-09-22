@@ -50,7 +50,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
       @*/
     /*@ pure helper@*/AbstractStringBuilder(int capacity); //2
     
-    //@ ensures \result == stringLength;
+    //@ also ensures \result == stringLength;
     public /*@ pure @*/ int length(); //3
     
     //@ ensures \result == capacity;
@@ -103,7 +103,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
       @*/
     public void setLength(int newLength); //10
     
-    /*@ public normal_behavior //TODO precondition errors
+    /*@ also public normal_behavior //TODO precondition errors
       @   requires (0 < index && index < stringLength);
       @   assignable \nothing;
       @   ensures \result == value[index];
@@ -174,9 +174,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
     
     /*@ public normal_behavior
       @   requires str == null;
-      @   assignable value;
-      @   assignable stringLength;
-      @   assignable capacity;
+      @   assignable value, stringLength, capacity;
       @*/
     //-RAC@   ensures (\forall int i; 0 <= i && i < nullChars.length; value[\old(stringLength)+i] == nullChars[i]);
     //-RAC@   ensures stringLength == \old(stringLength) + nullChars.length;
@@ -184,11 +182,10 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
       @ also 
       @ public normal_behavior
       @   requires str != null;
-      @   assignable value;
-      @   assignable stringLength;
-      @   assignable capacity;
-      @   ensures (\forall int i; 0 <= i && i < str.length(); value[\old(stringLength)+i] == str.charAt(i));
+      @   assignable value, stringLength, capacity;
+      @   ensures (\forall int i; 0 <= i < str.length(); value[\old(stringLength)+i] == str.charAt(i));
       @   ensures stringLength == \old(stringLength) + str.length();
+      @   ensures count == \old(count) + str.length();
       @   ensures \result == this;
       @*/
     public AbstractStringBuilder append(/*@ nullable @*/ String str); //19
@@ -301,7 +298,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
       @*/
     public /*@ pure @*/ String substring(int start); //37
     
-    /*@ public normal_behavior //TODO - no feasible path to program exit
+    /*@ also public normal_behavior //TODO - no feasible path to program exit
       @   requires 0 <= start && start <= end && end <= capacity; 
       @   ensures \result.length() == end - start;
       @   ensures (\forall int i; 0 <= i && i < \result.length(); \result.charAt(i) == value[i + start]);

@@ -12,14 +12,12 @@ Feasibility check - end of preconditions : OK
 Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of Test541.set(int[],int,int,int) with prover !!!! - no warnings
-Starting proof of Test541.set1(int[],int,int,int) with prover !!!!
+Skipping proof of Test541.set1(int[],int,int,int) (excluded by skipesc)
+Starting proof of Test541.set1x(int[],int,int,int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test541.set1(int[],int,int,int) with prover !!!! - no warnings
-Starting proof of Test541.set2(int[],int,int,int) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of Test541.set2(int[],int,int,int) with prover !!!! - no warnings
+Completed proof of Test541.set1x(int[],int,int,int) with prover !!!! - no warnings
+Skipping proof of Test541.set2(int[],int,int,int) (excluded by skipesc)
 Starting proof of Test541.m(int[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -40,12 +38,7 @@ Feasibility check - after explicit assume statement : OK
 Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of Test541.kkk(int[],int,int,int) with prover !!!! - no warnings
-Starting proof of Test541.kkkbad(int[],int,int,int) with prover !!!!
-test/gitbug543/Test541.java:87: warning: The prover cannot establish an assertion (Assert) in method kkkbad
-        //@ assert  (\forall int k; 0<=k && k<length; buf[d+k] == src[s+k]);
-            ^
-Completed proof of Test541.kkkbad(int[],int,int,int) with prover !!!! - with warnings
+Skipping proof of Test541.kkkbad(int[],int,int,int) (excluded by skipesc)
 Completed proving methods in Test541
 Proving methods in I541
 Completed proving methods in I541
-1 warning

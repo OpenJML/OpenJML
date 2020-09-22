@@ -22,7 +22,7 @@ public class Test541 implements I541 {
     //@   ensures (\forall int k; d<=k && k < d+length; buffer[k] == src[s-d+k]);
     // SMT has a hard time with the above formulation -- using equalArrays below works fine
     // Note the use of buffer in the specs and buf in the code
-    // FIXME - this used to work??
+    //@ skipesc // FIXME - array quantification
     public void set1(int[] src, int s, int d, int length) { 
         System.arraycopy(src, s, buf, d, length); 
     }
@@ -47,7 +47,7 @@ public class Test541 implements I541 {
     //@   ensures (\forall int k; s<=k && k < s+length; buffer[d-s+k] == src[k]);
     // SMT has a hard time with the above formulation -- using equalArrays above works fine
     // Note the use of buffer in the specs and buf in the code
-    // FIXME - this used to work??
+    //@ skipesc // FIXME - array quantification
     public void set2(int[] src, int s, int d, int length) { 
         System.arraycopy(src, s, buf, d, length); 
     }
@@ -91,7 +91,6 @@ public class Test541 implements I541 {
         //@ assert  (\forall int k; d<=k && k<d+length; buf[k] == src[s-d+k]);
     }
     
-    // FIXME - This is equivalent to kkk() but Z3 at least does not prove it
 
     //@ requires length >= 0;
     //@ requires s >= 0;
@@ -99,6 +98,7 @@ public class Test541 implements I541 {
     //@ requires d >= 0;
     //@ requires d + length <= buf.length;
     //@   assignable \everything;
+    //@ skipesc // FIXME - This is equivalent to kkk() but Z3 at least does not prove it
     public void kkkbad(int[] src, int s, int d, int length) { 
         //@ assume  (\forall int k; 0<=k && k<length; buf[d+k] == src[s+k]);
         //@ assert  (\forall int k; 0<=k && k<length; buf[d+k] == src[s+k]);

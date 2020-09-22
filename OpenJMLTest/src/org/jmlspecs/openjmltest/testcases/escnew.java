@@ -2158,6 +2158,7 @@ public class escnew extends EscBase {
                 
                
                 +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method mm",13
                 );
     }
 
@@ -2316,33 +2317,32 @@ public class escnew extends EscBase {
 
     @Test 
     public void testConcat() {
-        //main.addOptions("-method=m2","-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
+                +"  //@ requires s1.length() + s2.length() <= Integer.MAX_VALUE;\n"
                 +"  public void m1(String s1, String s2) {\n" 
                 +"     String s = s1 + s2;\n"
                 +"     //@ assert s.length() == s1.length() + s2.length();\n"
                 +"  }\n"
                 
+                +"  //@ requires s1.length() < Integer.MAX_VALUE;\n"
                 +"  public void m2(String s1, String s2) {\n" 
                 +"     String s = s1 + String.valueOf('c');\n"
                 +"     //@ assert s.length() == s1.length() + 1;\n"
                 +"  }\n"
                 
+                +"  //@ requires s1.length() < Integer.MAX_VALUE;\n"
                 +"  public void m2a(String s1, String s2) {\n" 
                 +"     String s = s1 + Character.toString('c');\n"
                 +"     //@ assert s.length() == s1.length() + 1;\n"
                 +"  }\n"
                 
+                +"  //@ requires s1.length() < Integer.MAX_VALUE;\n"
                 +"  public void m3(String s1, String s2) {\n" 
                 +"     String s = s1 + 'c';\n"
                 +"     //@ assert s.length() == s1.length() + 1;\n"
                 +"  }\n"
-                
-                
-
-
                 +"}"
                 );
     }

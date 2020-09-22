@@ -14,19 +14,19 @@ public class buggyPalindrome
     
       //@ ghost int i_counter;
       //@ set i_counter = 0;
-      //@ maintaining i >= -1 && i < original.length(); 
-      //@ maintaining \forall int k; 0<=k & k<i_counter; reverse.charAt(k) == original.charAt(length-1-k);
+      //@ maintaining -1 <= i < original.length(); 
+      //@ maintaining \forall int k; 0<=k<i_counter; reverse.charAt(k) == original.charAt(length-1-k);
       //@ decreases i;
       //@ maintaining reverse != null && reverse instanceof String && i_counter == reverse.length();
       //@ maintaining i_counter + i + 1 == length;
       // @ maintaining \invariant_for(reverse);
       for (int i = length - 1; i >= 0; i--){
-          //@ assert \forall int k; 0<=k & k<i_counter; reverse.charAt(k) == original.charAt(length-1-k);
+          //@ assert \forall int k; 0<=k<i_counter; reverse.charAt(k) == original.charAt(length-1-k);
           //@ assert reverse.length() == i_counter;
          reverse = reverse + original.charAt(i);
          //@ assert reverse.length() == i_counter+1;
          //@ assert reverse.charAt(i_counter) == original.charAt(length-1-i_counter);
-         //@ assert \forall int k; 0<=k & k<=i_counter; reverse.charAt(k) == original.charAt(length-1-k);
+         //@ assert \forall int k; 0<=k<=i_counter; reverse.charAt(k) == original.charAt(length-1-k);
          // @ assert reverse.charAt(i_counter) == (original.charAt(reverse.length() - 1));
          //@ set i_counter = i_counter + 1;
        }

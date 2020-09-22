@@ -1,5 +1,5 @@
 // This example from DMZ on 10/23 - has a problem proving the loop invariant with the exists
-
+// Improved specs in other tests
 public class ESCTest {
   //@ requires the_array.length > 0;
   /*@ ensures (\forall int i; 0 <= i && i < the_array.length;

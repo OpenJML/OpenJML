@@ -1445,14 +1445,7 @@ public class api extends JmlTestCase {
                     null,
                     option,
                     "-no-purityCheck");
-//            if (option.equals("-custom")) {
-//                m.addOptions("openjml.defaultProver","yices");
-//            } else 
-            if (option.equals("-boogie")) {
-                m.addOptions("openjml.defaultProver","z3_4");
-            } else {
-                m.addOptions("openjml.defaultProver","z3_4");
-            }
+            m.addOptions("openjml.defaultProver","z3_4_3");
             JmlCompilationUnit jcu = m.parseString("A.java",program);
             int n = m.typecheck(jcu);
             assertTrue(n==0);

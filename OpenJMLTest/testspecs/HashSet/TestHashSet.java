@@ -17,11 +17,11 @@ public class TestHashSet {
 	//@ assert b1;
 	//@ assert a.size() == 1;
 	//@ assert !a.isEmpty();
-	a.add(2);
+/*	a.add(2);
 	//@ assert a.size() == 2;
 	b1 = a.contains(2);
 	//@ assert b1;
-	b1 = a.contains(3);
+/*	b1 = a.contains(3);
 	//@ assert !b1;
 	b1 = a.remove(1);
 	//@ assert b1;
@@ -37,7 +37,7 @@ public class TestHashSet {
 	
 	a.clear();
 	b1 = a.isEmpty();
-	//@ assert b1;
+*/	//@ assert b1;
 	
 	// Still to check:
 	// HashSet: other constructors

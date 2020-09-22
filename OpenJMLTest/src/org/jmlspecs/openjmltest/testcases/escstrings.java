@@ -169,139 +169,6 @@ public class escstrings extends EscBase {
                 );
     }
    
-    /** Tests String concatenation */
-    @Test
-    public void testStringConcatNoSpecs1() {
-        main.addOptions("-no-internalSpecs");
-        helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NonNullByDefault public class TestJava { \n"
-                
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
-                
-                +"  public void m(String s, String ss) {\n"
-                +"       boolean b = (s + ss) != null; //@ assert b;\n"
-                +"  }\n"
-                
-                +"  public TestJava() { t = new TestJava(); }"
-                +"}"
-                );
-    }
-   
-    /** Tests String concatenation */
-    @Test
-    public void testStringConcatNoSpecs1a() {
-        main.addOptions("-no-internalSpecs");
-        helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NonNullByDefault public class TestJava { \n"
-                
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
-                
-                +"  public void m(String s, String ss) {\n"
-                +"       //@ assert (s + ss) != null;\n"
-                +"  }\n"
-                
-                +"  public TestJava() { t = new TestJava(); }"
-                +"}"
-                );
-    }
-   
-    /** Tests String concatenation */
-    @Test
-    public void testStringConcatNoSpecs2() {
-        main.addOptions("-no-internalSpecs");
-        helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NonNullByDefault public class TestJava { \n"
-                
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
-                
-                +"  public void m(String s, String ss) {\n"
-                +"       boolean b = (s+ss).equals(s+ss); //@ assert b;\n"  // No specs, so not provable
-                +"  }\n"
-                
-                +"  public TestJava() { t = new TestJava(); }"
-                +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",45
-                );
-    }
-   
-    /** Tests String concatenation */
-    @Test
-    public void testStringConcatNoSpecs2a() {
-        main.addOptions("-no-internalSpecs");
-        helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NonNullByDefault public class TestJava { \n"
-                
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
-                
-                +"  public void m(String s, String ss) {\n"
-                +"       //@ assert (s+ss).equals(s+ss);\n"
-                +"  }\n"
-                
-                +"  public TestJava() { t = new TestJava(); }"
-                +"}"
-                ,anyorder(
-//                 seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",25)
-//                ,
-                seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12)
-                )
-                );
-    }
-   
-    /** Tests String concatenation */
-    @Test
-    public void testStringConcatNoSpecs3() {
-        main.addOptions("-no-internalSpecs");
-        helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NonNullByDefault public class TestJava { \n"
-                
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
-                
-                +"  public void m(String s, String ss) {\n"
-                +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // FIXME Should not hold necessarily
-                +"  }\n"
-                
-                +"  public TestJava() { t = new TestJava(); }"
-                +"}"
-//FIXME                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",46
-                );
-    }
-   
-    /** Tests String concatenation */
-    @Test
-    public void testStringConcatNoSpecs3a() {
-        main.addOptions("-no-internalSpecs");
-        helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NonNullByDefault public class TestJava { \n"
-                
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
-                
-                +"  public void m(String s, String ss) {\n"
-                +"       //@ assert (s + ss) == (s + ss); \n" // FIXME Should not hold necessarily
-                +"  }\n"
-                
-                +"  public TestJava() { t = new TestJava(); }"
-                +"}"
-// FIXME                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
-                );
-    }
    
     /** Tests String concatenation - whether the result in Java is non-null. */
     @Test
@@ -347,44 +214,36 @@ public class escstrings extends EscBase {
     }
 
     /** Tests String concatenation */
-    @Test // @Ignore  // FIXME - need more semantics of concat and equals
+    @Test
     public void testStringConcat2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
-                
                 +"  public void m(String s, String ss) {\n"
+                +"       //@ assume s.length() + ss.length() <= Integer.MAX_VALUE;\n"
                 +"       String sss = s + ss;\n"
                 +"       String s4 = s + ss;\n"
                 +"       //@ assert sss.equals(s4);\n"
                 +"  }\n"
                 
                 +"}" 
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",12
                 );
     }
 
     /** Tests String concatenation */
-    @Test // @Ignore // FIXME - need more semantics of concat and equals
+    @Test
     public void testStringConcat2a() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
-                
                 +"  public void m(String s, String ss) {\n"
+                +"       //@ assume s.length() + ss.length() <= Integer.MAX_VALUE;\n"
                 +"       //@ assert (s+ss).equals(s+ss);\n"
                 +"  }\n"
                 
                 +"}" 
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",19
                 );
     }
 
@@ -402,11 +261,11 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // FIXME Should not hold necessarily
+                +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // Should not hold necessarily
                 +"  }\n"
                 
                 +"}"
-// FIXME                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",46
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",46
                 );
     }
 
@@ -423,12 +282,12 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       //@ assert (s + ss) == (s + ss);\n" // FIXME Should not hold necessarily
+                +"       //@ assert (s + ss) == (s + ss);\n" // Should not hold necessarily
                 +"  }\n"
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-// FIXME                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
 

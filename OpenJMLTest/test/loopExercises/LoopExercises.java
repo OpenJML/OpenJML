@@ -24,21 +24,22 @@ public class LoopExercises {
 		}
 	
 	/*@ normal_behavior
-	  @ requires x >= 0;
-	  @ ensures \result == x*(x+1)/2;
+	  @ requires 0 <= x <= Integer.MAX_VALUE/3;
+	  @ ensures 2*\result == x*(x+1);
 	  @*/
 	public int gauss(int x) {
 		int result = 0;
 		int i = 1;
-                //@ assume i*(i+1)/2 == ((i-1)*i/2) + i;
-                //@ loop_invariant 1 <= i && i <= x + 1;
-                //@ loop_invariant i*(i+1)/2 == ((i-1)*i/2) + i;
-		//@ loop_invariant result == (i-1)*i/2;
+        //@ loop_invariant 1 <= i && i <= x + 1;
+		//@ loop_invariant 2*result == (i-1)*i;
 		//@ decreasing (x - i);
 		while (i <= x) {
 			result += i;
+            //@ assert 2*result == (i-1)*i + 2*i;
+	        //@ assume i*(i+1) == (i-1)*i + 2*i;
+            //@ assert 2*result == i*(i+1);
 			i++;
-                        //@ assume i*(i+1)/2 == ((i-1)*i/2) + i;
+            //@ assert 2*result == (i-1)*i;
 		}
 		return result;
 	}

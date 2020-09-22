@@ -382,14 +382,14 @@ abstract public class Arithmetic extends ExpressionExtension {
                 if (rewriter.useBV || rewriter.rac) {
                     if (newtype.getTag() == TypeTag.INT) {
                         // a = lhs * rhs ; b = a / lhs; c = lhs == 0 ; d = b == rhs; check = c || d = (lhs == 0) || (lhs*rhs)/lhs == rhs;
-                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), rewriter.convertCopy(lhs), rewriter.convertCopy(rhs));
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, rewriter.treeutils.intmultiplySymbol, rewriter.convertCopy(lhs), rewriter.convertCopy(rhs));
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.DIV, rewriter.treeutils.intdivideSymbol, a, rewriter.convertCopy(lhs));
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, rewriter.convertCopy(lhs), rewriter.treeutils.makeIntLiteral(p, 0));
                         JCExpression d = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, b, rewriter.convertCopy(rhs));
                         rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, 
                                 condition(rewriter, rewriter.treeutils.makeOr(p, c, d)), "int multiply overflow");
                     } else if (newtype.getTag() == TypeTag.LONG) {
-                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), rewriter.convertCopy(lhs), rewriter.convertCopy(rhs));
+                        JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, rewriter.treeutils.longmultiplySymbol, rewriter.convertCopy(lhs), rewriter.convertCopy(rhs));
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.DIV, rewriter.treeutils.longdivideSymbol, a, rewriter.convertCopy(lhs));
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, rewriter.convertCopy(lhs), rewriter.treeutils.makeLongLiteral(p, 0L));
                         JCExpression d = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, b, rewriter.convertCopy(rhs));
@@ -399,10 +399,10 @@ abstract public class Arithmetic extends ExpressionExtension {
                 } else if (smtPredefined) {
                     if (newtype.getTag() == TypeTag.INT) {
                         assertIt(rewriter, that, "int multiply overflow", 
-                            rewriter.treeutils.makeJmlMethodInvocation(that,"|#isMul32ok#|", syms.booleanType, lhs, rhs));
+                            rewriter.treeutils.makeJmlMethodInvocation(that,"|#mul32ok#|", syms.booleanType, lhs, rhs));
                     } else if (newtype.getTag() == TypeTag.LONG) {
                         assertIt(rewriter, that, "long multiply overflow", 
-                                rewriter.treeutils.makeJmlMethodInvocation(that,"|#isMul64ok#|", syms.booleanType, lhs, rhs));
+                                rewriter.treeutils.makeJmlMethodInvocation(that,"|#mul64ok#|", syms.booleanType, lhs, rhs));
                     }
                 } else {
                     if (newtype.getTag() == TypeTag.INT) {

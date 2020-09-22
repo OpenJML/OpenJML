@@ -1,7 +1,7 @@
 Proving methods in TestInteger
 Skipping proof of TestInteger.TestInteger() (excluded by -method)
 Skipping proof of TestInteger.main(java.lang.String...) (excluded by skipesc)
-Starting proof of TestInteger.esc(int) with prover !!!!
+Starting proof of TestInteger.esc(int,int,(@org.jmlspecs.annotation.NonNull :: java.lang.Integer)) with prover !!!!
 Feasibility check - at program exit : OK
-Completed proof of TestInteger.esc(int) with prover !!!! - no warnings
+Completed proof of TestInteger.esc(int,int,(@org.jmlspecs.annotation.NonNull :: java.lang.Integer)) with prover !!!! - no warnings
 Completed proving methods in TestInteger

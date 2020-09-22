@@ -37,7 +37,7 @@ import org.junit.runners.ParameterizedWithNames;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
-// @Ignore
+@Ignore // FIXME - improve and stabilize trace output
 public class escfilesTrace extends EscBase {
 
     boolean enableSubexpressions = false;
