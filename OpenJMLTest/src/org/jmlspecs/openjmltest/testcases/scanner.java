@@ -405,7 +405,6 @@ public class scanner extends JmlTestCase {
     }
 
     /** Test an embedded JML comment */
-    // @Ignore    // TODO: DO we really want this style of embedded comment to work?
     @Test public void testEmbeddedJavaComment3() { 
         helpScanner("//@requires /* requires ensures \n signals */ modifies ",
                 new ITokenKind[]{IDENTIFIER,IDENTIFIER,EOF},

@@ -13324,9 +13324,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // or if the charArray model field has been renamed
                 if (chs != null) {
                     JCExpression fa = M.at(id).Select(id, chs);
+                    JCExpression e = treeutils.makeNotNull(fa.pos,fa);
                     fa = treeutils.makeLength(id,fa);
-                    JCExpression e = treeutils.makeEquality(id.pos, fa, treeutils.makeIntLiteral(id,len));
-                    addAssume(that,Label.IMPLICIT_ASSUME,e);
+                    JCExpression ee = treeutils.makeEquality(id.pos, fa, treeutils.makeIntLiteral(id,len));
+                    addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeAnd(id.pos, e, ee));
                 }
 
                 // These assumptions are necessary so that String literals are
@@ -13334,15 +13335,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addInvariants(id,id.type,id,currentStatements,false,false,false,false,false,true,Label.INVARIANT_ENTRANCE,utils.qualifiedMethodSig(methodDecl.sym));
             
                 
-                if (chs != null && len > 0) {
-                    JCFieldAccess arr = treeutils.makeSelect(that.pos, id, chs);
-                    JCExpression z = treeutils.makeIntLiteral(that.pos, 0);
-                    JCExpression mm = treeutils.makeArrayElement(that.pos,arr,z);
-                    mm.type = syms.charType;
-                    JCExpression c = treeutils.makeCharLiteral(that.pos, str.charAt(0));
-                    JCExpression m = treeutils.makeEquality(that.pos, mm, c);
-                    JCStatement st = treeutils.makeAssume(that, Label.IMPLICIT_ASSUME, m);
-                    st.accept(this);
+                if (chs != null) {
+                    for (int k = 0; k < len; k++) {
+                        JCFieldAccess arr = treeutils.makeSelect(that.pos, id, chs);
+                        JCExpression z = treeutils.makeIntLiteral(that.pos, k);
+                        JCExpression mm = treeutils.makeArrayElement(that.pos,arr,z);
+                        mm.type = syms.charType;
+                        JCExpression c = treeutils.makeCharLiteral(that.pos, str.charAt(k));
+                        JCExpression m = treeutils.makeEquality(that.pos, mm, c);
+                        JCStatement st = treeutils.makeAssume(that, Label.IMPLICIT_ASSUME, m);
+                        st.accept(this);
+                    }
                 }
                 
             }

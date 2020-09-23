@@ -76,7 +76,7 @@ public class escJML extends EscBase {
                 );
     }
 
-    @Test // @Ignore // FIXME - this creates a huge VC
+    @Test
     public void testLBLboolean() { 
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

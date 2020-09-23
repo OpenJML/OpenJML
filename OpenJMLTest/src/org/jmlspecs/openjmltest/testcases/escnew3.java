@@ -965,7 +965,7 @@ public class escnew3 extends EscBase {
         
     }
 
-    @Test // @Ignore
+    @Test
     public void testIfNoBrace2() {
         helpTCX("tt.TestJava",
                                 "package tt; \n"

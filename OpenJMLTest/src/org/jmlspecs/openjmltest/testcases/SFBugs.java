@@ -106,7 +106,6 @@ public class SFBugs extends EscBase {
         helpTCF("test/sfbug410","test/sfbug410", "-cp", "test/sfbug410", "-esc","-progress");
     }
     
-    // @Ignore // Can be very long running
     @Test public void sfbug414() {
         expectedExit = 0;
         helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "-esc","-progress","-logic=AUFNIRA","-escMaxWarnings=5");
@@ -173,7 +172,6 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug459","test/gitbug459", "-cp", "test/gitbug459", "-esc");
     }
     
-    // @Ignore // FIXME - needs all the model classes - and they need cleaning up
     @Test public void gitbug461() {
         expectedExit = 0;
     }
@@ -409,14 +407,12 @@ public class SFBugs extends EscBase {
     }
 
     // Just one method, but parse and typecheck all files first
-    // @Ignore 
     @Test public void gitbug481c() {
         expectedExit = 0;
         helpTCF("test/gitbug481b","test/gitbug481c", "-cp", "test/gitbug481b","-method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry");
     }
 
     // Just one method in one file
-    // @Ignore // FIXME - timeout
     @Test public void gitbug481b() {
         expectedExit = 0;
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481b", "-cp", "test/gitbug481b","-method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry","-no-staticInitWarning");
@@ -881,7 +877,7 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
-    @Test // @Ignore // Z3 hangs in some matching loop
+    @Test
     public void gitbug644() {
         expectedExit = 0;
         helpTCG();

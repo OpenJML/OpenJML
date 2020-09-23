@@ -13,14 +13,14 @@ public class TestStrings {
     //@   ensures "ABC".equals(s) ==> \result == 1;
     //@   ensures "ABD".equals(s) ==> \result == 2;
     //@   ensures "DEF".equals(s) ==> \result == 3;
-    //@   ensures !("ABC".equals(s)|"ABD".equals(s)|"DEF".equals(s)) ==> \result == -1;
+    // @   ensures !("ABC".equals(s)|"ABD".equals(s)|"DEF".equals(s)) ==> \result == -1;
     //@ pure
     public static int m2(String s) {
         switch (s) {
-        case "ABC": return 1;
-        case "ABD": return 2;
+        case "ABC": /*@ assert "ABC".equals(s); */ return 1;
+        case "ABD": /*@ assert !"ABC".equals(s); */return 2;
         case "DEF": return 3;
-        default: return -1;
+        default: /*@ assert !"ABC".equals(s); */ return -1;
         }
     }
     

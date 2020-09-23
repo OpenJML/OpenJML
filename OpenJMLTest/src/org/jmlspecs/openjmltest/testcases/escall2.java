@@ -659,7 +659,7 @@ public class escall2 extends EscBase {
                 );
     }
     
-    @Test // @Ignore // FIXME - need a test to check type testing as part of condition
+    @Test
     public void testTypeCast() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"

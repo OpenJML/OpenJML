@@ -441,6 +441,11 @@ public class JmlTree {
             return (JmlImport)new JmlImport(qualid,staticImport,false).setPos(pos);
         }
         
+        @Override
+        public JmlCase Case(JCExpression pat, List<JCStatement> stats) {
+            return new JmlCase(pat,stats);
+        }
+        
         /** Creates a JML binary operation */
         @Override
         public JmlBinary JmlBinary(IJmlClauseKind t, JCTree.JCExpression left, JCTree.JCExpression right) {
@@ -2058,6 +2063,15 @@ public class JmlTree {
         
         public JmlSwitchStatement(JCExpression selector, List<JCCase> cases) {
             super(selector,cases);
+        }
+    }
+    
+    public static class JmlCase extends JCCase {
+        
+        public JCExpression check;
+        public JmlCase(JCExpression pat, List<JCStatement> stats) {
+            super(pat,stats);
+            check = null;
         }
     }
 

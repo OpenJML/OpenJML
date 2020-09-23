@@ -128,7 +128,6 @@ public class esc extends EscBase {
     }
 
     @Test
-//    @Ignore // FIXME - needs more builtin invariants to accomplish the proofs
     public void testForEachA() {
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { \n"
@@ -336,7 +335,6 @@ public class esc extends EscBase {
                 );
     }
 
-    @Test // @Ignore // FIXME - timesout
     public void testForEach2a1() {
         main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
@@ -383,7 +381,7 @@ public class esc extends EscBase {
 
         );
     }
-    @Test // @Ignore // FIXME - timesout
+    @Test
     public void testForEach2a2a() {
         main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 

@@ -1235,7 +1235,6 @@ public class escnew extends EscBase {
     }
 
     // FIXME - almost duplciate with escnew
-    // @Ignore // TODO - ignore until we model division better
     @Test public void testShortCircuitDup() {
         main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"

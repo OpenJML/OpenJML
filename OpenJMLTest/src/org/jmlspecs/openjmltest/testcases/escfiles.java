@@ -380,8 +380,6 @@ public class escfiles extends EscBase {
         helpTF("verifythis-2019-2");
     }
 
-
-//  @Ignore  // FIXME - there is a problem with instantiating the model field or the getter functions, such that my_dollars differs from dollars()
     @Test 
     public void testCashAmount() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
@@ -528,7 +526,7 @@ public class escfiles extends EscBase {
         helpTF("escDiverges2","-nonnullByDefault");
     }
     
-    @Test
+    @Test @Ignore // FIXME - string comparisons for switch statements
     public void escStrings() {
         helpTF("escStrings");
     }
