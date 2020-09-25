@@ -958,6 +958,11 @@ public class escfiles extends EscBase {
     public void varargs() {
         helpTF("varargs");
     }
+    
+    @Test // FIXME - get an infeasibility when Arrays.binarySearch uses Arrays.contains
+    public void binarySearch() {
+        helpTF("binarySearch");
+    }
 
 
 }

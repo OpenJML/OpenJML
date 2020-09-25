@@ -1,0 +1,11 @@
+Proving methods in BS
+Starting proof of BS.BS() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BS.BS() with prover !!!! - no warnings
+Starting proof of BS.binarySearch(int[],int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at reachable statement : OK
+Feasibility check - at program exit : OK
+Completed proof of BS.binarySearch(int[],int) with prover !!!! - no warnings
+Completed proving methods in BS

@@ -315,12 +315,12 @@ public class SFBugs extends EscBase {
 
     @Ignore // FIXME - times out
     @Test public void gitbug500a() {
-        helpTCG();
+        helpTCG("-solver-seed=242");
     }
 
     @Ignore // FIXME - times out
     @Test public void gitbug500b() {
-        helpTCG();
+        helpTCG("-solver-seed=242");
     }
 
     @Test public void gitbug500c() {
@@ -334,12 +334,11 @@ public class SFBugs extends EscBase {
     // FIXME - problem in 503 is that various subtests non-deterministically timeout
     // This seems particularly the case with A1 and A4, which have an extraneous template argument
     @Test public void gitbug503() {
-        helpTCG("-code-math=java","-timeout=600"); // java math just to avoid overflow error messages
+        helpTCG("-code-math=java","-timeout=600","-solver-seed=142"); // java math just to avoid overflow error messages
     }
 
-    @Ignore // times out
     @Test public void gitbug503a() {
-        helpTCG("-code-math=java","-timeout=600"); // java math just to avoid overflow error messages
+        helpTCG("-code-math=java","-timeout=600","-solver-seed=42"); // java math just to avoid overflow error messages
     }
 
     @Test public void gitbug535() {
@@ -471,15 +470,15 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a9", "-cp", "test/gitbug481b","-method="+m9,"-no-staticInitWarning");
     }
 
-    @Ignore // times out
+    @Ignore // FIXME - Out of memory
     @Test public void gitbug481a10() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a10", "-cp", "test/gitbug481b","-method="+m10,"-no-staticInitWarning");
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a10", "-cp", "test/gitbug481b","-method="+m10,"-no-staticInitWarning","-solver-seed=42");
     }
 
     @Ignore // FIXME - timeout
     @Test public void gitbug481arest() {
         expectedExit = 1;
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a", "-cp", "test/gitbug481b","-exclude="+all,"-no-staticInitWarning");
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a", "-cp", "test/gitbug481b","-exclude="+all,"-no-staticInitWarning","-solver-seed=142");
     }
 
     @Test public void gitbug482() {
@@ -589,8 +588,7 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
-    // Double operations (sqrt) not yet implemented
-    @Ignore // FIXME - times out
+    @Ignore // FIXME - times out --  Double operations (sqrt) not yet implemented
     @Test public void gitbug580() {
         expectedExit = 0;
         helpTCG();
