@@ -1160,7 +1160,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             if (b == null) log.error(that.pos(),"jml.internal","No continue block found to match this continue statement");  //$NON-NLS-1$//$NON-NLS-2$
             else replaceFollows(currentBlock,b);
         } else {
-            JCTree t = continueMap.get(that.label);
+            Name label2 = names.fromString("_$"+that.label.toString());
+            JCTree t = continueMap.get(label2);
             String blockName = blockNamePrefix(t.pos,LOOPCONTINUE);
             T b = blockLookup.get(blockName);
             if (b == null) log.error(that.pos(),"jml.internal","No continue block found to match this continue statement, with label ", that.label); //$NON-NLS-1$ //$NON-NLS-2$

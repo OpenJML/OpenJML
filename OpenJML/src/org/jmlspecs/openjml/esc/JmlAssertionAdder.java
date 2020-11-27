@@ -5558,9 +5558,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 stat.body = convert(that.body); 
                 result = stat;
             } else {
+                boolean isLoop = that.body instanceof IJmlLoop;
                 block = convertIntoBlock(that,that.body);
-                stat.body = block;
-                result = addStat(stat);
+                if (isLoop) {
+                    JCStatement s = block.stats.last();
+                    List<JCStatement> list = ((JCBlock)s).stats;
+                    int len = list.size();
+                    JCStatement ss = list.last();
+                    Name label2 = names.fromString("_$"+that.label.toString());
+                    JmlLabeledStatement stat2 = M.at(that).JmlLabeledStatement(label2, null, ss);
+                    ((JCBlock)s).stats = 
+                             len == 1?  List.<JCStatement>of(list.get(0), stat2)
+                             :List.<JCStatement>of(list.get(0), list.get(1), stat2);
+                    result = addStat(block);
+                    recordLabel(label2,stat2);
+                } else {
+                    stat.body = block;
+                    result = addStat(stat);
+                }
             }
         } finally {
 //            labelProperties.get(that.label).activeOldLists = null;

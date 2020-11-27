@@ -1,0 +1,10 @@
+Proving methods in Loop
+Starting proof of Loop.Loop() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Loop.Loop() with prover !!!! - no warnings
+Starting proof of Loop.m(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Loop.m(int) with prover !!!! - no warnings
+Completed proving methods in Loop

@@ -3,10 +3,12 @@ package org.jmlspecs.openjml.esc;
 import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCAssignOp;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.ListBuffer;
 
 /** This class is a tree walker that finds everything that is the target of
@@ -76,6 +78,12 @@ public class TargetFinder extends JmlTreeScanner {
                 op == JCTree.Tag.PREINC || op == JCTree.Tag.PREDEC)
             vars.add(that.getExpression());
     }
+    
+    public void visitAnnotation(JCAnnotation tree) {
+        //scan(tree.annotationType);
+        //scan(tree.args);
+    }
+
     
     // FIXME - also need targets of method calls, update statements of loops,
     // initialization statements of loops, specs of method calls

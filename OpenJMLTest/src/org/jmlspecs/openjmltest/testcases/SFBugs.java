@@ -333,10 +333,12 @@ public class SFBugs extends EscBase {
 
     // FIXME - problem in 503 is that various subtests non-deterministically timeout
     // This seems particularly the case with A1 and A4, which have an extraneous template argument
+    @Ignore // times out
     @Test public void gitbug503() {
         helpTCG("-code-math=java","-timeout=600","-solver-seed=142"); // java math just to avoid overflow error messages
     }
 
+    @Ignore // times out
     @Test public void gitbug503a() {
         helpTCG("-code-math=java","-timeout=600","-solver-seed=42"); // java math just to avoid overflow error messages
     }
@@ -1028,6 +1030,18 @@ public class SFBugs extends EscBase {
     public void gitbug688() {
         expectedExit = 0;
         helpTCG("-subexpressions");
+    }
+    
+    @Test @Ignore // Bug fixed, but the specs are not complete
+    public void gitbug710() {
+        expectedExit = 0;
+        helpTCF("test/gitbug710/java/util/IdentityHashMap.java", "test/gitbug710","-cp","test/gitbug710","-no-staticInitWarning","-timeout=300");
+    }
+    
+    @Test
+    public void gitbug711() {
+        expectedExit = 0;
+        helpTCG();
     }
     
     public void gitbug888() {

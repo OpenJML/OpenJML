@@ -53,7 +53,7 @@ public class escbitvector extends EscBase {
     // BV true, with precondition (sometimes times out)
     @Test 
     public void testBV2a() {
-        main.addOptions("-escBV=true","-logic=ALL");
+        main.addOptions("-escBV=true","-logic=ALL","-solver-seed=42");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

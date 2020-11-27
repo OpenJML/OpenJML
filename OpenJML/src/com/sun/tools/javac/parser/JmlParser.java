@@ -445,10 +445,15 @@ public class JmlParser extends JavacParser {
         ListBuffer<JCStatement> newstats = new ListBuffer<>();
         ListBuffer<JmlStatementLoop> loopspecs = new ListBuffer<>();
         JmlStatementExpr split = null;
+        JCLabeledStatement labeled = null;
         for (JCStatement s: stats) {
             String sss = s.toString();
             if (s instanceof JmlStatementLoop) {
                 loopspecs.add((JmlStatementLoop)s);
+                continue;
+            } else if (s instanceof JCLabeledStatement && ((JCLabeledStatement)s).body instanceof JmlStatementLoop) {
+                labeled = (JCLabeledStatement)s;
+                loopspecs.add((JmlStatementLoop)((JCLabeledStatement)s).body);
                 continue;
             }
             boolean isSplit = split != null;
@@ -489,6 +494,10 @@ public class JmlParser extends JavacParser {
                 if (s instanceof IJmlLoop) {
                     ((IJmlLoop)s).setLoopSpecs(loopspecs.toList());
                     loopspecs = new ListBuffer<>();
+                    if (labeled != null) {
+                        labeled.body = s;
+                        s = labeled;
+                    }
                 } else {
                     jmlerror(loopspecs.first().pos,
                             loopspecs.last().getEndPosition(endPosTable),
