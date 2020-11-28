@@ -437,7 +437,8 @@ public class JmlParser extends JavacParser {
      */
     @Override List<JCStatement> blockStatements() {
         List<JCStatement> stats = super.blockStatements();
-        return collectLoopSpecs(stats);
+        //return collectLoopSpecs(stats);
+        return stats;
     }
     
     /** Attach loop specifications to their parent loop statement */
@@ -558,6 +559,14 @@ public class JmlParser extends JavacParser {
                         //s = parseRefining(pos(), ext);
                     } else {
                         s = (JCStatement)ext.parse(null, id, ext, this);
+                        while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
+                        if (s instanceof JmlStatementLoop) {
+                            s = parseLoopWithSpecs((JmlStatementLoop)s, true);
+                        } else if (id.equals(EndStatement.beginID)) {
+                            log.error(s, "jml.message", "Improperly nested spec-end pair");
+                        } else if (id.equals(EndStatement.endID)) {
+                          log.error(s, "jml.message", "Improperly nested spec-end pair");
+                        }
                     }
                     if (s == null) return List.<JCStatement>nil();
                     return List.<JCStatement>of(s);
@@ -626,33 +635,43 @@ public class JmlParser extends JavacParser {
     public JCStatement parseJavaStatement() {
         return super.parseStatement();
     }
+
+    public JCStatement parseLoopWithSpecs(JmlStatementLoop firstSpec) {
+        return parseLoopWithSpecs(firstSpec, false);
+    }
+    public JCStatement parseLoopWithSpecs(JmlStatementLoop firstSpec, boolean block) {
+        JCStatement stt = block ? blockStatement().head : parseStatement();
+        if (stt instanceof IJmlLoop) {
+            IJmlLoop loop = (IJmlLoop)stt;
+            List<JmlStatementLoop> specs = loop.loopSpecs();
+            if (specs == null) {
+                specs = List.<JmlStatementLoop>of(firstSpec);
+            } else {
+                specs = specs.prepend(firstSpec);
+            }
+            loop.setLoopSpecs(specs);
+        } else {
+            log.error(firstSpec, "jml.message", "Loop specifications must immediately precede a loop statement");
+        }
+        return stt;
+    }
     
     /** Overridden to parse JML statements */
     @Override  // TODO - needs REVIEW
     public JCStatement parseStatement() {
         int pos = pos();
         JCStatement st;
-//        String reason = null;
-//        JmlTokenKind jtoken = jmlTokenKind();
         String id = null;
         if (S.jml()) {
             if (token.kind == TokenKind.IDENTIFIER) {
-//                boolean needSemi = true;
                 id = token.name().toString();
                 IJmlClauseKind clauseType = Extensions.findSM(id);
                 if (clauseType instanceof IJmlClauseKind.Statement) {
                     st = (JmlAbstractStatement)clauseType.parse(null,id,clauseType,this);
-//                    needSemi = false; // OK for set // FIXME - not sure this is needed
-//                    if (!needSemi) { 
-//                    } else if (token.ikind == ENDJMLCOMMENT) {
-//                        log.warning(pos()-2, "jml.missing.semi", jtoken);
-//                    } else if (token.kind != SEMI) {
-//                        jmlerror(pos(), endPos(), "jml.bad.construct", reason);
-//                        skipThroughSemi();
-//                    } else {
-//                        nextToken(); // skip the semicolon
-//                    }
                     while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
+                    if (st instanceof JmlStatementLoop) {
+                        st = parseLoopWithSpecs((JmlStatementLoop)st);
+                    }
                     return st;
                 } else if (clauseType instanceof IJmlClauseKind.MethodClauseKind) {
                     st = parseRefining(pos(),null);
@@ -695,6 +714,10 @@ public class JmlParser extends JavacParser {
                 }
                 nextToken();
             }
+        } else if (jt == EndStatement.beginClause) {
+            log.error(pos, "jml.message", "Improperly nested spec-end pair");
+        } else if (jt == EndStatement.endClause) {
+            log.error(pos, "jml.message", "Improperly nested spec-end pair");
         } else {
             log.warning(pos(),"jml.refining.required");
         }
@@ -735,12 +758,15 @@ public class JmlParser extends JavacParser {
                     stats.addAll(stat);
                 }
             }
+        } else if (stat.head instanceof JmlStatement && ((JmlStatement)stat.head).clauseType == EndStatement.beginClause) {
+            log.error(ste, "jml.message", "Improperly nested spec-end pair");
         } else if (stat.isEmpty()) {
             log.error(ste, "jml.message", "Statement specs found at the end of a block (or before an erroneous statement)");
         } else {
             stats.addAll(stat);
         }
-        ste.statements = collectLoopSpecs(stats.toList());
+        //ste.statements = collectLoopSpecs(stats.toList());
+        ste.statements = (stats.toList());
         return ste;
     }
     
@@ -755,7 +781,8 @@ public class JmlParser extends JavacParser {
             stat = super.parseStatementAsBlock();
         }
         if (stat != null) stats.add(stat);
-        List<JCStatement> statslist = collectLoopSpecs(stats.toList());
+        //List<JCStatement> statslist = collectLoopSpecs(stats.toList());
+        List<JCStatement> statslist = stats.toList();
         if (statslist.size() > 1) return F.at(statslist.head.pos).Block(0, statslist);
         return statslist.head;
     }

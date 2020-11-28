@@ -10,7 +10,10 @@ import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTokenKind;
+import org.jmlspecs.openjml.JmlTree.IJmlLoop;
+import org.jmlspecs.openjml.JmlTree.JmlIfStatement;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.JmlTree.JmlSwitchStatement;
 import org.jmlspecs.openjml.JmlTreeUtils;
 
 import com.sun.tools.javac.code.Type;
@@ -59,7 +62,7 @@ public class ReachableStatement extends JmlExtension {
         //   reachable <expr> : <expr> ; // The first <epxr> is a String literal, used as a message or identifier
         // FIXME - string literal is not used
         @Override
-        public JmlStatementExpr parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
+        public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             int pp = parser.pos();
             int pe = parser.endPos();
@@ -71,10 +74,8 @@ public class ReachableStatement extends JmlExtension {
             if (!noExpression) st.expression = JmlTreeUtils.instance(context).makeBooleanLiteral(pp,true);
             if (parser.token().kind == TokenKind.SEMI) {
                 parser.nextToken();
-                return st;
             } else if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
                 if (semiWarning) parser.jmlwarning(p-1, "jml.missing.semi", keyword);
-                return st;
             } else {
                 JCExpression opt = null;
                 JCExpression e = parser.parseExpression();
@@ -94,8 +95,23 @@ public class ReachableStatement extends JmlExtension {
                 } else {
                     parser.nextToken(); // skip over semicolon
                 }
-                return st;
             }
+            JCTree tree = st;
+            if (keyword.equals(splitID)) {
+                while (parser.jmlTokenClauseKind() == Operators.endjmlcommentKind) parser.nextToken();
+                JCStatement stt = parser.parseStatement();
+                if (stt instanceof JmlIfStatement) {
+                    ((JmlIfStatement)stt).split = true;
+                } else if (stt instanceof JmlSwitchStatement) {
+                    ((JmlSwitchStatement)stt).split = true;
+                } else if (stt instanceof IJmlLoop) {
+                    ((IJmlLoop)stt).setSplit(true);
+                } else {
+                    log.warning(stt, "jml.message", "Ignoring out of place split statement");
+                }
+                tree = stt;
+            }
+            return tree;
         }
 
         @Override

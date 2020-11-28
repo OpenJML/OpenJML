@@ -28,6 +28,7 @@ public class escCounterexamples extends EscBase {
 
     @Override
     public void setUp() throws Exception {
+        captureOutput = true;
         //noCollectDiagnostics = true;
         super.setUp();
         main.addOptions("-trace","-counterexample");
@@ -37,7 +38,6 @@ public class escCounterexamples extends EscBase {
     /** Tests an explicit assertion */
     @Test
     public void testCE1() {
-        print = true;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
