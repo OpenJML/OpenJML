@@ -170,18 +170,18 @@ public class EndStatement extends JmlExtension {
             if (begin != null) {
                 // Has a begin statement, so we read statement until an end
                 while (true) {
+                    if (parser.jmlTokenClauseKind() == EndStatement.endClause) {
+                        Extensions.findSM(endID).parse(mods, endID, endClause, parser);
+                        break;
+                    }
                     stat = parser.blockStatement();
                     if (stat.isEmpty()) {
                         log.error(begin, "jml.message", "Expected an 'end' statement to match the begin statement before the end of block");
-                        break;
-                    } else if (stat.get(0) instanceof JmlStatement && ((JmlStatement)stat.get(0)).clauseType == EndStatement.endClause) {
                         break;
                     } else {
                         stats.addAll(stat);
                     }
                 }
-//            } else if (stat.isEmpty()) {
-//                log.error(ste, "jml.message", "Statement specs found at the end of a block (or before an erroneous statement)");
             } else {
                 stat = parser.blockStatement();
                 if (stat == null || stat.isEmpty()) {

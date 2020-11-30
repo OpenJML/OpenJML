@@ -97,9 +97,9 @@ public class ReachableStatement extends JmlExtension {
                 }
             }
             JCTree tree = st;
-            if (keyword.equals(splitID)) {
+            if (keyword.equals(splitID) && st.expression == null) {
                 while (parser.jmlTokenClauseKind() == Operators.endjmlcommentKind) parser.nextToken();
-                JCStatement stt = parser.parseStatement();
+                JCStatement stt = parser.blockStatement().head;
                 if (stt instanceof JmlIfStatement) {
                     ((JmlIfStatement)stt).split = true;
                 } else if (stt instanceof JmlSwitchStatement) {
@@ -107,7 +107,7 @@ public class ReachableStatement extends JmlExtension {
                 } else if (stt instanceof IJmlLoop) {
                     ((IJmlLoop)stt).setSplit(true);
                 } else {
-                    log.warning(stt, "jml.message", "Ignoring out of place split statement");
+                    log.warning(st, "jml.message", "Ignoring out of place split statement");
                 }
                 tree = stt;
             }
