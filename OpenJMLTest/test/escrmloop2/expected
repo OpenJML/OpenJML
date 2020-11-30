@@ -1,13 +1,10 @@
 test/escrmloop2/Lemmas.java:47: warning: A refining statement is required for statement specifications in strict JML mode
           @ assignable \nothing;
             ^
-test/escrmloop2/Lemmas.java:48: error: Loop specifications must immediately precede a while or for statement
-          @ loop_invariant sa.compare(sa.suffixes[m], sa.suffixes[i]) > 0 && i+1 <= m && m <= j;
-            ^
-test/escrmloop2/Lemmas.java:46: error: Loop specifications must immediately precede a while or for statement
+test/escrmloop2/Lemmas.java:46: error: Loop specifications must immediately precede a loop statement
         /*@ decreases j - m;
             ^
 Continuing bravely despite parsing errors
 Operation not performed because of parse or type errors
-2 errors
+1 error
 1 warning

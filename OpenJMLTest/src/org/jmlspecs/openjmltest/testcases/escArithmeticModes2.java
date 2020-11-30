@@ -154,6 +154,7 @@ public class escArithmeticModes2 extends EscBase {
     @Test
     public void testModSafe() {
         Assume.assumeTrue(runLongArithmetic || !options.contains("-escBV=true"));
+        main.addOptions("-solver-seed=142");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeSafeMath @SpecSafeMath public class TestJava { \n"
                 +"  public void m() {\n"
