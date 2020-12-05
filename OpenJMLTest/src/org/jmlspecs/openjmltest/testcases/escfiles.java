@@ -377,7 +377,7 @@ public class escfiles extends EscBase {
     @Test
     public void testVT20192() {
         expectedExit = 0;
-        helpTF("verifythis-2019-2");
+        helpTF("verifythis-2019-2","-solver-seed=42");
     }
 
     @Test 
