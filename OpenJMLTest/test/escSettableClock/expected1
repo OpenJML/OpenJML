@@ -24,11 +24,11 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Clock.earlier(Clock) with prover !!!! - no warnings
 Starting proof of Clock.difference(Clock) with prover !!!!
-../../OpenJMLDemo/src/openjml/settableClock/Clock.java:163: warning: Feasibility is unknown - time or memory limit reached: : Aborted feasibility check: timeout
+../../OpenJMLDemo/src/openjml/settableClock/Clock.java:137: warning: Feasibility is unknown - time or memory limit reached: : Aborted feasibility check: timeout
   public /*@ pure */ int difference(final Clock the_other_clock) {
                          ^
 Method assertions are validatedtimeout
-../../OpenJMLDemo/src/openjml/settableClock/Clock.java:163: warning: Feasibility is unknown - time or memory limit reached: : Aborted feasibility check: timeout
+../../OpenJMLDemo/src/openjml/settableClock/Clock.java:137: warning: Feasibility is unknown - time or memory limit reached: : Aborted feasibility check: timeout
   public /*@ pure */ int difference(final Clock the_other_clock) {
                          ^
 Method assertions are validatedtimeout
