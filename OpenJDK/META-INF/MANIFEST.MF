@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: OpenJDK
 Bundle-SymbolicName: org.jmlspecs.openjml.OpenJDK;singleton:=true
-Bundle-Version: 0.8.14
+Bundle-Version: 0.8.50
 Bundle-Vendor: David R. Cok
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: com.sun.javadoc,

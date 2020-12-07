@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: OpenJML
 Bundle-SymbolicName: org.jmlspecs.openjml.OpenJML;singleton:=true
-Bundle-Version: 0.8.14
+Bundle-Version: 0.8.50
 Bundle-Vendor: David R. Cok
 Bundle-Localization: plugin
 Require-Bundle: org.jmlspecs.annotation;visibility:=reexport,
