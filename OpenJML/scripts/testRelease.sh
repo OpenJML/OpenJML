@@ -4,10 +4,10 @@
 ## This script runs tests on a release build.
 ## The working directory in running the script is expected to be the OpenJMLTest
 ## directory of the source tree and where the Eclipse test data is located
-## (i.e. where this file is kept)
+
 
 ## It tests a build with today's date - i.e. the build just created by
-## ./buildRelease
+## ./buildRelease.sh
 
 ## You should have the appropriate version of Java on your path
 
