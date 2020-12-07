@@ -40,28 +40,24 @@
 		description="creates a release build as a set of jars and a tar file with today's date embedded">
 
 		<echo message="Building release using java.home = ${openjml.jdk}"/>
-		<chmod file="buildRelease.sh" perm="ugo+x"/>
+		<chmod file="scripts/buildRelease.sh" perm="ugo+x"/>
 		<exec executable="C:/cygwin/bin/bash.exe" 
 			failonerror="true"
 			osfamily="windows">
-			<arg value="${basedir}/buildRelease.sh"/>
+			<arg value="${basedir}/scripts/buildRelease.sh"/>
             <env key="JAVA_HOME" value="${openjml.jdk}"/>
             <env key="PATH" value="${openjml.env.path}"/>
-			<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
 		</exec>
 		<exec executable="bash" 
 			failonerror="true"
 			osfamily="unix">
-			<arg value="${basedir}/buildRelease.sh"/>
+			<arg value="${basedir}/scripts/buildRelease.sh"/>
             <env key="JAVA_HOME" value="${openjml.jdk}"/>
             <env key="PATH" value="${openjml.env.path}"/>
-			<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
 		</exec>
 	</target>
 
 	<target name="test" depends="props" description="Runs the release tests on the release with today's date">
-		<echo message="Running tests ${openjml.localSetup} "/>
-
 		<chmod file="../OpenJMLTest/releaseTests/runTests" perm="ugo+x"/>
 		<chmod file="../OpenJMLTest/releaseTests/releaseTestHelper" perm="ugo+x"/>
 		<exec executable="${basedir}/../OpenJMLTest/releaseTests/runTests" 
@@ -69,7 +65,6 @@
 			failonerror="true">
             <env key="JAVA_HOME" value="${openjml.jdk}"/>
         	<env key="PATH" value="${openjml.env.path}"/>
-			<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
 		</exec>
 		<exec executable="C:/cygwin/bin/bash.exe" 
 			osfamily="windows"
@@ -77,7 +72,6 @@
 			<arg value="${basedir}/../OpenJMLTest/releaseTests/runTests"/>
             <env key="JAVA_HOME" value="${openjml.jdk}"/>
         	<env key="PATH" value="${openjml.env.path}"/>
-			<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
 		</exec>
 	</target>
 
@@ -105,16 +99,5 @@
         <delete dir="${basedir}/temp2" />
         <delete dir="${basedir}/../OpenJMLTest/temp-release" />
         <delete dir="${basedir}/tempjars" failonerror="false" />
-    </target>
-    
-    <target name="psf"
-        description="Generates the svn_commands file">
-        <exec executable="C:/cygwin/bin/bash.exe" 
-			osfamily="windows"
-            failonerror="true">
-            <arg value="${basedir}/convert-psf"/>
-            <arg value="OpenJML-projectSet.psf"/>
-            <arg value="svn_commands"/>
-            </exec>
     </target>
 </project>

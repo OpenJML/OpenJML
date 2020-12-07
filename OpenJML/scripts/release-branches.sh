@@ -10,6 +10,7 @@
 ##      - the Eclipse GUI files to sourceforge
 
 cd "$( dirname "${BASH_SOURCE[0]}" )"
+cd ..
 
 REFBRANCH=`git rev-parse --abbrev-ref HEAD`
 echo REFBRANCH is $REFBRANCH
