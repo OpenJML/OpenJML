@@ -1,4 +1,4 @@
-<project name="OpenJML" default="release-test" basedir=".">
+<project name="OpenJML" default="release-test" basedir="..">
 	
 	<condition property="isMac">
 	  <os family="mac" />
@@ -95,7 +95,7 @@
     
     <target name="clean-tests"
     description="Deletes all temp files and directories created in the process of building and testing releases (but not release builds themselves)">
-        <delete dir="${basedir}/../../OpenJMLTest/releaseTests/*/actual" />
+        <delete dir="${basedir}/../OpenJMLTest/releaseTests/*/actual" />
         <delete dir="${basedir}/temp2" />
         <delete dir="${basedir}/../OpenJMLTest/temp-release" />
         <delete dir="${basedir}/tempjars" failonerror="false" />
