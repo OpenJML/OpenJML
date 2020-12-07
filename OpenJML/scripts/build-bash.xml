@@ -40,7 +40,7 @@
 		description="creates a release build as a set of jars and a tar file with today's date embedded">
 
 		<echo message="Building release using java.home = ${openjml.jdk}"/>
-		<chmod file="scripts/buildRelease.sh" perm="ugo+x"/>
+		<chmod file="${basedir}/scripts/buildRelease.sh" perm="ugo+x"/>
 		<exec executable="C:/cygwin/bin/bash.exe" 
 			failonerror="true"
 			osfamily="windows">
@@ -95,7 +95,7 @@
     
     <target name="clean-tests"
     description="Deletes all temp files and directories created in the process of building and testing releases (but not release builds themselves)">
-        <delete dir="${basedir}/../OpenJMLTest/releaseTests/*/actual" />
+        <delete dir="${basedir}/../../OpenJMLTest/releaseTests/*/actual" />
         <delete dir="${basedir}/temp2" />
         <delete dir="${basedir}/../OpenJMLTest/temp-release" />
         <delete dir="${basedir}/tempjars" failonerror="false" />
