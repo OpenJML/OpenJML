@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.ant.AntLaunchConfigurationType">
-<booleanAttribute key="org.eclipse.ant.ui.DEFAULT_VM_INSTALL" value="true"/>
+<booleanAttribute key="org.eclipse.ant.ui.DEFAULT_VM_INSTALL" value="false"/>
 <stringAttribute key="org.eclipse.debug.core.ATTR_REFRESH_SCOPE" value="${workspace}"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/OpenJML/build-bash.xml"/>
+<listEntry value="/OpenJML/scripts/build-bash.xml"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>
 </listAttribute>
 <mapAttribute key="org.eclipse.debug.core.environmentVariables">
 <mapEntry key="ANNOTATIONS" value="${project_loc:JMLAnnotations}"/>
-<mapEntry key="ANT_HOME" value="C:\Users\dcok\.p2\pool\plugins\org.apache.ant_1.9.6.v201510161327"/>
+<mapEntry key="ANT_HOME" value="/Users/davidcok/.p2/pool/plugins/org.apache.ant_1.10.5.v20180808-0324"/>
 <mapEntry key="ROOT" value="${project_loc:OpenJML}/.."/>
 <mapEntry key="SPECS" value="${project_loc:Specs}"/>
 </mapAttribute>
@@ -23,7 +23,6 @@
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.eclipse.ant.internal.launching.remote.InternalAntRunner"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="OpenJML"/>
 <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.ant.ui.AntClasspathProvider"/>
-<stringAttribute key="org.eclipse.ui.externaltools.ATTR_ANT_TARGETS" value="release-test"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="${project_loc:OpenJML}/scripts/build-bash.xml"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${project_loc:OpenJML}"/>
 <stringAttribute key="process_factory_id" value="org.eclipse.ant.ui.remoteAntProcessFactory"/>

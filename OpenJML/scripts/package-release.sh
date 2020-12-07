@@ -3,7 +3,7 @@
 ECLIPSE_HOME=/Users/davidcok/eclipse/committers-2018-09/Eclipse.app/Contents/Eclipse/
 WORKSPACE=/Users/davidcok/cok/workspaces/OpenJML-workspaceA
 
-token=`cat github.token | head -n 1`
+token=`cat ~/github.token | head -n 1`
 
 ver=$1
 vsolver=$2
