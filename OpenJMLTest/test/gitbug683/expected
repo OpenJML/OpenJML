@@ -1,0 +1,14 @@
+Proving methods in Count
+Starting proof of Count.Count() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Count.Count() with prover !!!! - no warnings
+Starting proof of Count.counteq(int[],int,int,int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Count.counteq(int[],int,int,int,int) with prover !!!! - no warnings
+Starting proof of Count.count(int[],int,int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Count.count(int[],int,int,int) with prover !!!! - no warnings
+Completed proving methods in Count
