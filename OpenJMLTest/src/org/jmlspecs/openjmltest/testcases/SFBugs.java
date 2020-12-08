@@ -1015,6 +1015,12 @@ public class SFBugs extends EscBase {
     }
     
     @Test
+    public void gitbug685() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
     public void gitbug686() {
         expectedExit = 0;
         helpTCG();
@@ -1032,6 +1038,30 @@ public class SFBugs extends EscBase {
         helpTCG("-subexpressions");
     }
     
+    @Test
+    public void gitbug695() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug696() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug698() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test @Ignore // Will erroneously succeed until measured_by is implemented
+    public void gitbug705() {
+        expectedExit = 0;
+        helpTCG();
+    }
+
     @Test @Ignore // Bug fixed, but the specs are not complete
     public void gitbug710() {
         expectedExit = 0;

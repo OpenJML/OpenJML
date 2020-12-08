@@ -11323,6 +11323,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression lhs = that.lhs;
         JCExpression rhs = that.rhs;
         JCTree.Tag op = that.getTag().noAssignOp();
+        if (types.isSameType(that.type,syms.stringType)) {
+            JCExpression rhs1 = convertCopy(lhs);
+            JCBinary bin = treeutils.makeBinary(that.pos,op,rhs1,rhs);
+            bin.operator = that.operator;
+            JCAssign e = treeutils.makeAssign(that.pos,lhs,bin);
+            e.type = that.type;
+            visitAssign(e);
+            // TODO: Check mappings for trace and counterexample
+            return;
+        }
         boolean arith = op == JCTree.Tag.PLUS || op == JCTree.Tag.MINUS || op == JCTree.Tag.MUL || op == JCTree.Tag.DIV || op == JCTree.Tag.MOD;
         boolean lhsscanned = false;
         if (lhs instanceof JCIdent) {
