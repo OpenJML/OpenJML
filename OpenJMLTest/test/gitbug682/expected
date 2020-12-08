@@ -8,3 +8,13 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of bug.demo(int[]) with prover !!!! - no warnings
 Completed proving methods in bug
+Proving methods in Mismatched
+Starting proof of Mismatched.Mismatched() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Mismatched.Mismatched() with prover !!!! - no warnings
+Starting proof of Mismatched.mismatched(java.util.PriorityQueue<java.lang.Object>) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Mismatched.mismatched(java.util.PriorityQueue<java.lang.Object>) with prover !!!! - no warnings
+Completed proving methods in Mismatched
