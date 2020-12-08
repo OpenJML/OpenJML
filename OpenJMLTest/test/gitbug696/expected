@@ -1,0 +1,10 @@
+Proving methods in AddLoop
+Starting proof of AddLoop.AddLoop() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of AddLoop.AddLoop() with prover !!!! - no warnings
+Starting proof of AddLoop.AddLoop(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of AddLoop.AddLoop(int,int) with prover !!!! - no warnings
+Completed proving methods in AddLoop

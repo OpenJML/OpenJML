@@ -1,0 +1,61 @@
+Proving methods in ReverseArray
+Starting proof of ReverseArray.ReverseArray() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ReverseArray.ReverseArray() with prover !!!! - no warnings
+Starting proof of ReverseArray.reverse(char[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of ReverseArray.reverse(char[]) with prover !!!! - no warnings
+Starting proof of ReverseArray.main(java.lang.String[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ReverseArray.main(java.lang.String[]) with prover !!!! - no warnings
+Starting proof of ReverseArray.arr2str(char[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ReverseArray.arr2str(char[]) with prover !!!! - no warnings
+Completed proving methods in ReverseArray
+Proving methods in ReverseArrayWithAssume
+Starting proof of ReverseArrayWithAssume.ReverseArrayWithAssume() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ReverseArrayWithAssume.ReverseArrayWithAssume() with prover !!!! - no warnings
+Starting proof of ReverseArrayWithAssume.reverse(char[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - at program exit : OK
+Completed proof of ReverseArrayWithAssume.reverse(char[]) with prover !!!! - no warnings
+Starting proof of ReverseArrayWithAssume.main(java.lang.String[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ReverseArrayWithAssume.main(java.lang.String[]) with prover !!!! - no warnings
+Starting proof of ReverseArrayWithAssume.arr2str(char[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of ReverseArrayWithAssume.arr2str(char[]) with prover !!!! - no warnings
+Completed proving methods in ReverseArrayWithAssume

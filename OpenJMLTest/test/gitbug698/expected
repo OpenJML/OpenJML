@@ -1,0 +1,14 @@
+Proving methods in ListTest
+Starting proof of ListTest.getMylist() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ListTest.getMylist() with prover !!!! - no warnings
+Starting proof of ListTest.ListTest() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ListTest.ListTest() with prover !!!! - no warnings
+Starting proof of ListTest.addStringInList(java.lang.String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ListTest.addStringInList(java.lang.String) with prover !!!! - no warnings
+Completed proving methods in ListTest
