@@ -771,6 +771,10 @@ public class Utils {
         return isPrimitiveType(ct.type);
     }
 
+    public boolean isNonExtPrimitiveType(Type ct) {
+        return ct.isPrimitive() || jmltypes().isJmlType(ct);
+    }
+
     public boolean isPrimitiveType(Type ct) {
         return ct.isPrimitive() || jmltypes().isJmlType(ct) || isExtensionValueType(ct);
     }
