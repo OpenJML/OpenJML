@@ -1,10 +1,11 @@
 public final class A {
   //@ requires a >= 0 && a <= 10;
   //@ ensures \result == a + 1;
+  //@ pure
   public int add(int a) {
     return a + 1;
   }
-
+  
   public static void main(String[] args) {
     System.out.println(new A().add(10));
   }
