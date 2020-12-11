@@ -1,0 +1,11 @@
+Proving methods in Sum
+Starting proof of Sum.Sum() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Sum.Sum() with prover !!!! - no warnings
+Starting proof of Sum.sum(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of Sum.sum(int) with prover !!!! - no warnings
+Completed proving methods in Sum

@@ -944,6 +944,13 @@ public class SFBugs extends EscBase {
     }
     
     @Test
+    public void gitbug659() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    
+    @Test
     public void gitbug667() {
         expectedExit = 0;
         helpTCG();
@@ -994,6 +1001,12 @@ public class SFBugs extends EscBase {
     public void gitbug677() {
         expectedExit = 0;
         helpTCG("-code-math=safe");//,"-show","-method=calculateArea","-subexpressions","-ce"); // The problem manifests with safe math
+    }
+    
+    @Test @Ignore
+    public void gitbug678() {
+        expectedExit = 0;
+        helpTCG("-method=DoubleAbsolute","-show");
     }
     
     @Test
