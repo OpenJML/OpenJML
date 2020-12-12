@@ -8,3 +8,13 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TestJava.main(java.lang.String[]) with prover !!!! - no warnings
 Completed proving methods in TestJava
+Proving methods in Main
+Starting proof of Main.Main() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Main.Main() with prover !!!! - no warnings
+Starting proof of Main.m(java.lang.String[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Main.m(java.lang.String[]) with prover !!!! - no warnings
+Completed proving methods in Main

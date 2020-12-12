@@ -1,7 +1,6 @@
 public class Sum {
-  //@ requires 0 <= x < 1000;
+  //@ requires 0 <= x < Integer.MAX_VALUE/2;
   //@ ensures \result == 2*x;
-  //@ pure
   public static int sum(int x){
     int r;
     if (x==0) r = 0;

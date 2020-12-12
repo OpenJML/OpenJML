@@ -5,7 +5,7 @@ public class MaybeAddFixed {
     //@ requires a > 0;
     //@ requires b > 0;
     //@ ensures \result == a-b;
-    public static int add(int a, int b){
+    public /*@ pure */ static int add(int a, int b){
         return a-b;
     }
 

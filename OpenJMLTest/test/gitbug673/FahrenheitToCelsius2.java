@@ -6,7 +6,7 @@ class FahrenheitToCelsius2 {
 	/*@ spec_public */static double Celsius;
      
 	//@ requires Double.isFinite(temperature);
-    //@ assignable Celsius;
+    //@ assignable Celsius, System.out.outputText;
     // FIXME: @ ensures Double.isFinite(\result);
     // FIXME: @ ensures JMLFloat.approximatelyEqualTo(\result, (((temperature - 32)*5)/9), 0.1) == true;
     //@ ensures Math.abs(\result - (((temperature - 32)*5)/9)) <= 0.1;
