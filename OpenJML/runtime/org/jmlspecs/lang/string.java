@@ -2,7 +2,8 @@ package org.jmlspecs.lang;
 
 //@ immutable pure
 public class string implements IJmlPrimitiveType, IJmlIntArrayLike {
-    private String racValue;
+    //@ non_null 
+    public String racValue;
     
     private string(/*@ non_null*/String s) {
         racValue = s;
