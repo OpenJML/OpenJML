@@ -9,6 +9,7 @@ class TestJava {
 }
 
 class Main {
+    //@ requires java.io.PrintStream.eol == "\n";
     //@ requires System.out.outputText instanceof String; // FIXME - why is this not known
     //@ requires System.out.outputText.isEmpty();
     //@ ensures System.out.outputText.equals("foo\n");
