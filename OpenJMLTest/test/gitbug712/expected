@@ -1,0 +1,14 @@
+Proving methods in Alice
+Starting proof of Alice.Alice() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Alice.Alice() with prover !!!! - no warnings
+Starting proof of Alice.alice() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Alice.alice() with prover !!!! - no warnings
+Starting proof of Alice.alice2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Alice.alice2() with prover !!!! - no warnings
+Completed proving methods in Alice
