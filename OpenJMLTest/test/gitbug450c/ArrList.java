@@ -15,7 +15,7 @@ public class ArrList {
         theList.add(a);
     }
 
-    //@ assignable \nothing;
+    //@ assignable System.out.outputText;
     public static void main(String[] args) {
         ArrList al = new ArrList(1);
         System.out.println(al.theList.get(0));

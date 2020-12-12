@@ -15,10 +15,17 @@ public class JMLStringTest {
     //@ model public static void sizeLength(string s) {}
     
     //@ public normal_behavior
-    //@ ensures string.empty().isEmpty();
-    //@ ensures string.empty().length == 0;
-    //@ ensures string.string("").isEmpty();
-    //@ model public static void newStringIsEmpty() {}
+    public static void newStringIsEmpty() {
+        //@ ghost string r = string.empty();
+        //@ assert r.isEmpty();
+        //@ assert r.size() == 0;
+        //@ assert \invariant_for(r);
+        //@ set r = string.string("");
+        //@ assert r.isEmpty();
+        //@ assert r.length == 0;
+        //@ assert \invariant_for(r);
+        
+    }
     
     //@ public normal_behavior
     //@ ensures string.string("abc").length == 3;
@@ -76,5 +83,36 @@ public class JMLStringTest {
     //@   ensures string.string("abc") != string.string("def");
     //@ model public static void equalsOp() {}
 
-    
+    //@ model public static void conversion() {
+    // @   ghost string s1 = "abc";
+    // @   ghost string s2 = (string)"abc";
+    //@   ghost string s3 = "";
+    // @   assert s1 == s2;
+    // @   assert s1.length == 3;
+    //@   assert s3.length == 0;
+    // @   assert s1 != s3;
+    //@}
+
+    //@ model public static void conversion2(String s) {
+    //@   ghost string s1 = s;
+    //@   ghost string s2 = (string)s;
+    //@   ghost string s3 = string.string(s);
+    //@   assert s1 == s2;
+    //@   assert s1.length == s.length();
+    //@   assert s1 == s3;
+    //@   assert \invariant_for((string)s);
+    //@}
+
+    //@ model public static void conversionBad1(nullable String s, Object o) {
+    //@   ghost string s1 = s; // verification error
+    //@}
+
+    //@ model public static void conversionBad2(nullable String s, Object o) {
+    //@   ghost string s2 = (string)s; // verification error
+    //@}
+
+    //@ model public static void conversionBad3(nullable String s, Object o) {
+    //@   ghost string s3 = string.string(s); // verification error
+    //@}
+
 }
