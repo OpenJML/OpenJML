@@ -2665,6 +2665,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected void addInvariants(DiagnosticPosition pos, Type basetype, JCExpression receiver, ListBuffer<JCStatement> stats, boolean prepost, boolean isConstructor, boolean isSuper,
             boolean isHelper, boolean isPost, boolean assume, Label invariantLabel, Object ... invariantDescription) {
         TypeSymbol basecsym = basetype.tsym;
+        if (utils.isExtensionValueType(basetype)) {
+            JCExpression e = getInvariantAll(pos,basetype,receiver);
+            // e is null if there is no invariant (implicitly true)
+            if (e != null) addAssume(pos, Label.INVARIANT, e);
+            return;
+        }
         if (basetype.isPrimitive()) return;
         if (!translatingJML) clearInvariants();
         if (methodDecl.isInitializer) return;
@@ -4052,7 +4058,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         //for (Symbol vsym: preparams.keySet()) {
             Symbol vsym = v.sym;
             //JCIdent idd = preparams.get(vsym);
-            if (utils.isPrimitiveType(vsym.type)) continue;
+            if (utils.isNonExtPrimitiveType(vsym.type)) continue;
             JCIdent idd = treeutils.makeIdent(v.pos,v.sym);
             //JCIdent d = preparams.get(vsym);
             if (isHelper(methodDecl.sym) && v.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
@@ -10741,6 +10747,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         
+        if (utils.isExtensionValueType(annotatedNewtype)) {
+            // converting to a value type
+            if (types.isSameType(annotatedNewtype, utils.extensionValueType("string"))
+                    && types.isSameType(expr.type, syms.stringType)) {
+                // string.string(expr);
+                Type.ClassType t = utils.extensionValueType("string");
+                JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), t);
+                JCExpression e = treeutils.makeMethodInvocation(pos, ty, names.fromString("string"), expr);
+                convert(e);
+                return eresult;
+            }
+        }
+        
         // FIXME - change to utils.isPrimitiveType
         boolean isPrim = origtype.isPrimitive() && origtype.getTag() != TypeTag.BOT;
         boolean newIsPrim = newtype.isPrimitive() && newtype.getTag() != TypeTag.BOT;
@@ -12327,7 +12346,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Type argType = arg.type;
         JCTree newTypeTree = that.getType(); // the tree, not the Type
         JCTree clazz = convert(newTypeTree);
-        
+        if (types.isSameType(that.type, utils.extensionValueType("string"))) {
+            addImplicitConversion(that, that.type, that.expr);
+            return;
+        }
         if (rac && that.type.isPrimitive() && jmltypes.isJmlTypeOrRepType(argType)) {
             
             if (jmltypes.isSameTypeOrRep(that.type,origType)) {
@@ -12735,14 +12757,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // FIXME - for now we don't check undefinedness inside quantified expressions
         JCExpression ind = that.indexed;
         Symbol sym = null;
-        boolean doit = true;
+        boolean checkNull = true;
         if (ind instanceof JCFieldAccess) sym = ((JCFieldAccess)ind).sym;
         if (ind instanceof JCIdent) sym = ((JCIdent)ind).sym;
         if (sym instanceof VarSymbol) {
             VarSymbol vsym = (VarSymbol)sym;
-            doit = !(attr.isNonNull(vsym) && isModel(vsym));
+            checkNull = !(attr.isNonNull(vsym) && isModel(vsym));
         }
-        if (doit) {
+        if (types.isSubtype(that.indexed.type, attr.JMLPrimitive)) checkNull = false;
+        if (checkNull) {
             JCExpression nonnull = treeutils.makeNeqObject(that.indexed.pos, indexed, 
                     treeutils.makeNullLiteral(that.indexed.getEndPosition(log.currentSource().getEndPosTable())));
             addJavaCheck(that,nonnull,Label.POSSIBLY_NULL_DEREFERENCE,Label.UNDEFINED_NULL_DEREFERENCE,"java.lang.NullPointerException");

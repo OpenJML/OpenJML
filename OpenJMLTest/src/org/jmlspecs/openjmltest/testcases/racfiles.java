@@ -511,6 +511,12 @@ public class racfiles extends RacBase {
         expectedRACExit = 0;
         helpTCF("test/racRM2","test/racRM2","Main","-code-math=safe","-spec-math=bigint");
     }
+    
+    @Test @Ignore
+    public void valuestrings() {
+        expectedRACExit = 1;
+        helpTCF("test/valuestrings","test/valuestrings","Main");
+    }
 
 
 }
