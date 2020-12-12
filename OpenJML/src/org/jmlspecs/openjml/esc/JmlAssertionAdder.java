@@ -10746,6 +10746,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         
+        if (utils.isExtensionValueType(annotatedNewtype)) {
+            // converting to a value type
+            if (types.isSameType(annotatedNewtype, utils.extensionValueType("string"))
+                    && types.isSameType(expr.type, syms.stringType)) {
+                // string.string(expr);
+                Type.ClassType t = utils.extensionValueType("string");
+                JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), t);
+                JCExpression e = treeutils.makeMethodInvocation(pos, ty, names.fromString("string"), expr);
+                convert(e);
+                return eresult;
+            }
+        }
+        
         // FIXME - change to utils.isPrimitiveType
         boolean isPrim = origtype.isPrimitive() && origtype.getTag() != TypeTag.BOT;
         boolean newIsPrim = newtype.isPrimitive() && newtype.getTag() != TypeTag.BOT;
@@ -12332,7 +12345,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Type argType = arg.type;
         JCTree newTypeTree = that.getType(); // the tree, not the Type
         JCTree clazz = convert(newTypeTree);
-        
+        if (types.isSameType(that.type, utils.extensionValueType("string"))) {
+            addImplicitConversion(that, that.type, that.expr);
+            return;
+        }
         if (rac && that.type.isPrimitive() && jmltypes.isJmlTypeOrRepType(argType)) {
             
             if (jmltypes.isSameTypeOrRep(that.type,origType)) {

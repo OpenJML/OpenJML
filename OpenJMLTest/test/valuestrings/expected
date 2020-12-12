@@ -63,4 +63,46 @@ Starting proof of JMLStringTest.equalsOp() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLStringTest.equalsOp() with prover !!!! - no warnings
+Starting proof of JMLStringTest.conversion() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLStringTest.conversion() with prover !!!! - no warnings
+Starting proof of JMLStringTest.conversion2(java.lang.String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLStringTest.conversion2(java.lang.String) with prover !!!! - no warnings
+Starting proof of JMLStringTest.conversionBad1((@org.jmlspecs.annotation.Nullable :: java.lang.String),java.lang.Object) with prover !!!!
+test/valuestrings/JMLStringTest.java:107: warning: The prover cannot establish an assertion (Precondition) in method conversionBad1
+    //@   ghost string s1 = s; // verification error
+                            ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/org/jmlspecs/lang/string.jml:15: warning: Associated declaration
+    static public string string(/*@ non_null */String s);
+                         ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/org/jmlspecs/lang/string.jml:15: warning: Precondition conjunct is false: s != null
+    static public string string(/*@ non_null */String s);
+                                    ^
+Completed proof of JMLStringTest.conversionBad1((@org.jmlspecs.annotation.Nullable :: java.lang.String),java.lang.Object) with prover !!!! - with warnings
+Starting proof of JMLStringTest.conversionBad2((@org.jmlspecs.annotation.Nullable :: java.lang.String),java.lang.Object) with prover !!!!
+test/valuestrings/JMLStringTest.java:111: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method conversionBad2
+    //@   ghost string s2 = (string)s; // verification error
+                            ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/org/jmlspecs/lang/string.jml:15: warning: Associated declaration
+    static public string string(/*@ non_null */String s);
+                         ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/org/jmlspecs/lang/string.jml:15: warning: Precondition conjunct is false: s != null
+    static public string string(/*@ non_null */String s);
+                                    ^
+Completed proof of JMLStringTest.conversionBad2((@org.jmlspecs.annotation.Nullable :: java.lang.String),java.lang.Object) with prover !!!! - with warnings
+Starting proof of JMLStringTest.conversionBad3((@org.jmlspecs.annotation.Nullable :: java.lang.String),java.lang.Object) with prover !!!!
+test/valuestrings/JMLStringTest.java:115: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method conversionBad3
+    //@   ghost string s3 = string.string(s); // verification error
+                                         ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/org/jmlspecs/lang/string.jml:15: warning: Associated declaration
+    static public string string(/*@ non_null */String s);
+                         ^
+/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/org/jmlspecs/lang/string.jml:15: warning: Precondition conjunct is false: s != null
+    static public string string(/*@ non_null */String s);
+                                    ^
+Completed proof of JMLStringTest.conversionBad3((@org.jmlspecs.annotation.Nullable :: java.lang.String),java.lang.Object) with prover !!!! - with warnings
 Completed proving methods in JMLStringTest
+9 warnings

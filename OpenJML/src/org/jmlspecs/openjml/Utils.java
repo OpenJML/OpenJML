@@ -784,9 +784,12 @@ public class Utils {
     }
 
     public boolean isExtensionValueType(Type ct) {
-        if (ct instanceof Type.MethodType) return false;
-        if (ct.getTag() == TypeTag.BOT) return false;
+        if (!ct.isReference()) return false;
         return jmltypes().isSubtype(ct, interfaceForPrimitiveTypes());
+    }
+    
+    public Type.ClassType extensionValueType(String name) {
+        return (Type.ClassType)JmlAttr.instance(context).createClass(Strings.jmlSpecsPackage + "." + name).type;
     }
 
     // Includes self
