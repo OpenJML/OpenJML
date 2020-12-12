@@ -9,11 +9,13 @@ import static com.sun.tools.javac.tree.JCTree.Tag.APPLY;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTokenKind;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.Modifiers;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.tree.JCTree;
@@ -79,19 +81,29 @@ public class JmlCheck extends Check {
         return b;
     }
     
-//    // FIXME - the overriding method seems to do the same thing as the super method
-//    /** Overridden to avoid generic cast warnings in JML.
-//     */
-//    @Override
-//    protected Type checkCastable(DiagnosticPosition pos, Type found, Type req) {
-//        if (!isInJml) return super.checkCastable(pos,found,req);
-//        if (types.isCastable(found, req, castWarner(pos, found, req))) {
-//            return req;
-//        } else {
-//            basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
-//            return types.createErrorType(found);
-//        }
-//    }
+    /** Overridden to avoid generic cast warnings in JML.
+     */
+    @Override
+    protected Type checkCastable(DiagnosticPosition pos, Type found, Type req) {
+        Utils utils = Utils.instance(context);
+        if (found.isErroneous()) {
+            // continue
+        } else if (utils.isExtensionValueType(req)) {
+            // Checks legality of explicit casts
+            if (types.isSameType(found,req)) return req;
+            if (types.isSameType(req, utils.extensionValueType("string"))
+                    && types.isSameType(found, Symtab.instance(context).stringType)) {
+                return req;
+            }
+            basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
+            return types.createErrorType(found);
+        } else if (utils.isExtensionValueType(found) &&
+                !utils.isExtensionValueType(req)) {
+            basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
+            return types.createErrorType(found);
+        }
+        return super.checkCastable(pos,found,req);
+    }
     
     /** Overridden to avoid errors about static-ness of old variables in 
      * method specifications and to remove static from instance declarations.

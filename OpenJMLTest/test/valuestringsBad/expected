@@ -1,0 +1,17 @@
+test/valuestringsBad/JMLStringTestBad.java:5: error: illegal conversion: java.lang.Object to org.jmlspecs.lang.string
+    //@   ghost string s4 = o; // error
+                            ^
+test/valuestringsBad/JMLStringTestBad.java:9: error: incompatible types: Object cannot be converted to string
+    //@   ghost string s4 = (string)o; // error
+                                    ^
+test/valuestringsBad/JMLStringTestBad.java:13: error: illegal conversion: <nulltype> to org.jmlspecs.lang.string
+    //@   ghost string s5 = null; // error
+                            ^
+test/valuestringsBad/JMLStringTestBad.java:17: error: incompatible types: <null> cannot be converted to string
+    //@   ghost string s6 = (string)null; // error
+                                    ^
+test/valuestringsBad/JMLStringTestBad.java:25: error: incompatible types: string cannot be converted to Object
+    //@   ghost Object o1 = (Object)s1; // error
+                                    ^
+Operation not performed because of parse or type errors
+5 errors

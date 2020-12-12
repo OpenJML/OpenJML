@@ -1,4 +1,4 @@
-test/valuetypesErr/Arr.java:7: error: incompatible types: array<String> cannot be converted to array<Short>
+test/valuetypesErr/Arr.java:7: error: illegal conversion: org.jmlspecs.lang.array<java.lang.String> to org.jmlspecs.lang.array<java.lang.Short>
 //@ ghost array<Short> arx = args.array; // ERROR
                                  ^
 test/valuetypesErr/Arr.java:13: error: cannot find symbol

@@ -1290,6 +1290,12 @@ public class JmlTreeUtils {
         return call;
     }
     
+    public JCMethodInvocation makeMethodInvocation(DiagnosticPosition pos, JCExpression receiver, Name name, JCExpression ... nargs) {
+        Scope sc = receiver.type.tsym.members();
+        Symbol sym = sc.getElementsByName(name).iterator().next();
+        return makeMethodInvocation(pos, receiver, (MethodSymbol)sym, nargs);
+    }
+    
     /** Makes a Java method invocation using the given MethodSymbol, on the given receiver,
      * with the given arguments, at the given position; no varargs, no typeargs.
      */

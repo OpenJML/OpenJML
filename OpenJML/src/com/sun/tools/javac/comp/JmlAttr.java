@@ -16,6 +16,8 @@ import static com.sun.tools.javac.code.Kinds.MTH;
 import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.Kinds.VAL;
 import static com.sun.tools.javac.code.Kinds.VAR;
+import static com.sun.tools.javac.code.Kinds.kindName;
+import static com.sun.tools.javac.code.Kinds.kindNames;
 import static com.sun.tools.javac.code.TypeTag.ERROR;
 import static com.sun.tools.javac.code.TypeTag.FORALL;
 import static com.sun.tools.javac.code.TypeTag.METHOD;
@@ -5210,10 +5212,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             attribType(tree.clazz, env);
             jmlresolve.setAllowJML(prev);
             super.visitTypeCast(tree);
+//            if (utils.isExtensionValueType(tree.expr.type)
+//                    != utils.isExtensionValueType(tree.type)) {
+//                if (types.isSameType(tree.type, utils.extensionValueType("string"))
+//                        && types.isSameType(tree.expr.type, syms.stringType)) {
+//                    // OK
+//                } else {
+//                    log.error(tree.pos(), "jml.message",
+//                            "illegal conversion: " + tree.expr.type +
+//                            " to " + tree.clazz.type);
+//                    tree.type = types.createErrorType(tree.expr.type);
+//                }
+//            }
         }
     }
     
-    /** Attrbutes an array-element-range (a[1 .. 2]) store-ref expression */
+    /** Attributes an array-element-range (a[1 .. 2]) store-ref expression */
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
         if (that.lo != null) {
             Type t = attribExpr(that.lo,env);
@@ -6672,7 +6686,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public Type check(final JCTree tree, final Type found, final int ownkind, final ResultInfo resultInfo) {
         if (resultInfo.pt instanceof JmlListType) {
-            return tree.type = found;
+            return (tree.type = found);
+        }
+        if (utils.isExtensionValueType(resultInfo.pt)) {
+            if (types.isSameType(resultInfo.pt, utils.extensionValueType("string"))
+                    && types.isSameType(found, syms.stringType)) {
+                return (tree.type = found);
+            }
+            if (!types.isSameType(resultInfo.pt, found)) {
+                log.error(tree.pos(), "jml.message",
+                        "illegal conversion: " + found +
+                        " to " + resultInfo.pt);
+                return (tree.type = types.createErrorType(found));
+            }
         }
         return super.check(tree, found, ownkind, resultInfo);
     }         

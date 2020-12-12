@@ -828,7 +828,7 @@ public class escfiles extends EscBase {
     @Test
     public void testPrimitiveTypes() {
         expectedExit = 0;
-        helpTF("primitives");
+        helpTF("primitives","-show","-method=lemma2");
     }
 
     @Test
@@ -957,6 +957,17 @@ public class escfiles extends EscBase {
     @Test
     public void varargs() {
         helpTF("varargs");
+    }
+    
+    @Test
+    public void jmlstring() {
+        helpTF("valuestrings");
+    }
+    
+    @Test
+    public void jmlstringBad() {
+        expectedExit = 1;
+        helpTF("valuestringsBad");
     }
     
     @Test // FIXME - get an infeasibility when Arrays.binarySearch uses Arrays.contains
