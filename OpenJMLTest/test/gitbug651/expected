@@ -1,0 +1,15 @@
+Proving methods in B
+Starting proof of B.B() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of B.B() with prover !!!! - no warnings
+Starting proof of B.bad() with prover !!!!
+test/gitbug651/B.java:9: warning: The prover cannot establish an assertion (Postcondition) in method bad
+    public void bad() {
+                ^
+test/gitbug651/B.java:8: warning: Associated declaration
+    //@   ensures N == \old(N);  // BOGUS! This should not verify, but it does.
+          ^
+Completed proof of B.bad() with prover !!!! - with warnings
+Completed proving methods in B
+2 warnings
