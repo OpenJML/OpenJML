@@ -1,6 +1,10 @@
 //@ pure
 public class JMLStringTest {
 
+    public static void main(String ... args) {
+        newStringIsEmpty();
+        
+    }
     //@ public normal_behavior
     //@   ensures \invariant_for(s);
     //@   ensures s.length >= 0;
