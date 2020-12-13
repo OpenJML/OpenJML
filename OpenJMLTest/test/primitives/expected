@@ -1,5 +1,9 @@
 Proving methods in testtype
 Skipping proof of testtype.testtype() (excluded by skipesc)
+Starting proof of testtype.testtype() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of testtype.testtype() with prover !!!! - no warnings
 Completed proving methods in testtype
 Proving methods in Test
 Starting proof of Test.Test() with prover !!!!
@@ -14,10 +18,15 @@ Starting proof of Test.lemma2(testtype) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.lemma2(testtype) with prover !!!! - no warnings
-Starting proof of Test.m(testtype) with prover !!!!
+Skipping proof of Test.lemma2a(testtype) (excluded by skipesc)
+Starting proof of Test.lemma3(testtype) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.m(testtype) with prover !!!! - no warnings
+Completed proof of Test.lemma3(testtype) with prover !!!! - no warnings
+Starting proof of Test.m() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m() with prover !!!! - no warnings
 Completed proving methods in Test
 Proving methods in testcol
 Starting proof of testcol.testcol() with prover !!!!

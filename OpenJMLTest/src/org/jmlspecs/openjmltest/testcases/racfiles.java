@@ -512,10 +512,10 @@ public class racfiles extends RacBase {
         helpTCF("test/racRM2","test/racRM2","Main","-code-math=safe","-spec-math=bigint");
     }
     
-    @Test @Ignore
+    @Test @Ignore // FIXME - RAC Not yet working for programs using string
     public void valuestrings() {
         expectedRACExit = 1;
-        helpTCF("test/valuestrings","test/valuestrings","Main");
+        helpTCF("test/valuestrings","test/valuestrings","JmlStringTest");
     }
 
 
