@@ -3,42 +3,18 @@ Starting proof of Map.Map() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Map.Map() with prover !!!! - no warnings
-Starting proof of Map.<K,V>newMapIsEmpty() with prover !!!!
+Starting proof of Map.<K,V>newMapIsEmpty(K) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Map.<K,V>newMapIsEmpty() with prover !!!! - no warnings
-Starting proof of Map.<K,V>putBumpsSize(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!!
+Completed proof of Map.<K,V>newMapIsEmpty(K) with prover !!!! - no warnings
+Starting proof of Map.<K,V>putGet(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Map.<K,V>putBumpsSize(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!! - no warnings
-Starting proof of Map.<K,V>putDoesNotChangeSize(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!!
+Completed proof of Map.<K,V>putGet(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!! - no warnings
+Starting proof of Map.<K,V>putGet2(org.jmlspecs.lang.map<K,V>,K,V,K) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Map.<K,V>putDoesNotChangeSize(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!! - no warnings
-Starting proof of Map.<K,V>putRemove(org.jmlspecs.lang.map<K,V>,K,V,K) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of Map.<K,V>putRemove(org.jmlspecs.lang.map<K,V>,K,V,K) with prover !!!! - no warnings
-Starting proof of Map.<K,V>putRemoveA(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of Map.<K,V>putRemoveA(org.jmlspecs.lang.map<K,V>,K,V) with prover !!!! - no warnings
-Starting proof of Map.<K,V>keyset(org.jmlspecs.lang.map<K,V>,K) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of Map.<K,V>keyset(org.jmlspecs.lang.map<K,V>,K) with prover !!!! - no warnings
-Starting proof of Map.<K,V>putNoChange(org.jmlspecs.lang.map<K,V>,K) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of Map.<K,V>putNoChange(org.jmlspecs.lang.map<K,V>,K) with prover !!!! - no warnings
-Starting proof of Map.<K,V>addRemove(org.jmlspecs.lang.map<K,V>,K) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of Map.<K,V>addRemove(org.jmlspecs.lang.map<K,V>,K) with prover !!!! - no warnings
-Starting proof of Map.<K,V>addRemoveB(org.jmlspecs.lang.map<K,V>,K) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of Map.<K,V>addRemoveB(org.jmlspecs.lang.map<K,V>,K) with prover !!!! - no warnings
+Completed proof of Map.<K,V>putGet2(org.jmlspecs.lang.map<K,V>,K,V,K) with prover !!!! - no warnings
 Completed proving methods in Map
 Proving methods in Seq
 Starting proof of Seq.Seq() with prover !!!!

@@ -1,0 +1,25 @@
+test/gitbug639a/A.java:4: warning: A refining statement is required for statement specifications in strict JML mode
+        //@ ensures false;  // requires a refining statement
+            ^
+Proving methods in A
+Starting proof of A.A() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.A() with prover !!!! - no warnings
+Starting proof of A.main(java.lang.String[]) with prover !!!!
+Proof attempt for split A
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : infeasible
+test/gitbug639a/A.java:2: warning: There is no feasible path to program point at program exit in method A.main(java.lang.String[])
+    public static void main(String[] args) {
+                       ^
+Result of split A is INFEASIBLE
+Proof attempt for split B
+test/gitbug639a/A.java:4: warning: The prover cannot establish an assertion (Postcondition) in method main
+        //@ ensures false;  // requires a refining statement
+            ^
+Result of split B is POSSIBLY_SAT
+Composite result INFEASIBLE
+Completed proof of A.main(java.lang.String[]) with prover !!!! - INFEASIBLE
+Completed proving methods in A
+3 warnings

@@ -249,7 +249,7 @@ public class escfiles extends EscBase {
         helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecuesc","-classpath",OpenJMLDemoPath + "/src/openjml/ecudemo","-escMaxWarnings=1");
     }
 
-    @Test @Ignore // FIXME - needs rewriting
+    @Test
     public void testValueTypes() {
         helpTF("valuetypes","-classpath","../OpenJML/runtime");
     }
@@ -825,10 +825,10 @@ public class escfiles extends EscBase {
         helpTF("escPrivate");
     }
 
-    @Test
+    @Test  // FIXME - not yet working
     public void testPrimitiveTypes() {
         expectedExit = 0;
-        helpTF("primitives","-show","-method=lemma2");
+        helpTF("primitives");
     }
 
     @Test

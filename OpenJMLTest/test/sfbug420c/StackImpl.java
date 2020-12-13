@@ -6,7 +6,7 @@ public class StackImpl implements Stack {
 	private int[] internalStack;
 	/*@ spec_public */ private int stackCounter; //-RAC@ in count;
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked") //@ pure
 	public StackImpl() {
 		internalStack = new int[maxSize];
 		stackCounter = 0;
@@ -45,7 +45,7 @@ public class StackImpl implements Stack {
 				stackCounter--;
 		return true;
 	}
-	
+
 	public static void main(String[] args) {
 		Stack s = new StackImpl();
 		s.push(2);
