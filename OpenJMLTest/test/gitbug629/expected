@@ -1,0 +1,16 @@
+Proving methods in Node
+Starting proof of Node.Node() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Node.Node() with prover !!!! - no warnings
+Completed proving methods in Node
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.getLast(Node) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.getLast(Node) with prover !!!! - no warnings
+Completed proving methods in Test
