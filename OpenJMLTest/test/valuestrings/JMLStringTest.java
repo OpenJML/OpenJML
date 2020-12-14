@@ -5,6 +5,7 @@ public class JMLStringTest {
         newStringIsEmpty();
         
     }
+    
     //@ public normal_behavior
     //@   ensures \invariant_for(s);
     //@   ensures s.length >= 0;
@@ -22,13 +23,12 @@ public class JMLStringTest {
     public static void newStringIsEmpty() {
         //@ ghost string r = string.empty();
         //@ assert r.isEmpty();
-        //@ assert r.size() == 0;
-        //@ assert \invariant_for(r);
-        //@ set r = string.string("");
-        //@ assert r.isEmpty();
         //@ assert r.length == 0;
         //@ assert \invariant_for(r);
-        
+        // @ set r = string.string("");
+        // @ assert r.isEmpty();
+        // @ assert r.length == 0;
+        //@ assert \invariant_for(r);
     }
     
     //@ public normal_behavior
@@ -118,5 +118,6 @@ public class JMLStringTest {
     //@ model public static void conversionBad3(nullable String s, Object o) {
     //@   ghost string s3 = string.string(s); // verification error
     //@}
+     
 
 }

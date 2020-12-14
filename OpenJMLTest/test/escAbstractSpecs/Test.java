@@ -24,10 +24,10 @@ public class Test {
 		//@   ensures false;
 		//@ non_null
 		//@ abstract public String toString();
-		
 	}
 	
 	static public class BB extends B {
+		//@ represents theString = "a";
 		
 		@Override
 		public String toString() { return "a"; }

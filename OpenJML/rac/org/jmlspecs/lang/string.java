@@ -1,6 +1,6 @@
 package org.jmlspecs.lang;
 
-//@ immutable pure
+//@ immutable pure non_null_by_default
 public class string implements IJmlPrimitiveType, IJmlIntArrayLike {
 
     public String racValue;
@@ -9,9 +9,9 @@ public class string implements IJmlPrimitiveType, IJmlIntArrayLike {
         racValue = s;
     }
     
-    static public string string(/*@ non_null */ String s) {
-        return new string(s);
-    }
+//    static public string string(/*@ non_null */ String s) {
+//        return new string(s);
+//    }
 
     public static string empty() {
         return new string("");
@@ -21,5 +21,7 @@ public class string implements IJmlPrimitiveType, IJmlIntArrayLike {
         return racValue.isEmpty();
     }
     
+
+  
 
 }
