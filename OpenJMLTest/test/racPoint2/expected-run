@@ -4,7 +4,7 @@ Skipping a specification clause because it contains an uncompiled model method: 
 test/racPoint2/Point.java:145: JML precondition is false
     return Math.sqrt(my_x * my_x + my_y * my_y);
                     ^
-$SPECS/specs/java/lang/Math.jml:263: Associated declaration: test/racPoint2/Point.java:145: 
+$SPECS/specs/java/lang/Math.jml:264: Associated declaration: test/racPoint2/Point.java:145: 
     public static /*@ pure @*/ double sqrt(double a);
                                       ^
 

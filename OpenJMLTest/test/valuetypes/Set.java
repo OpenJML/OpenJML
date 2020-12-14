@@ -4,7 +4,7 @@
 public class Set<T> {
     
     //@ public normal_behavior
-    //@ ensures set.<T>set().empty();
+    //@ ensures set.<T>set().isEmpty();
     //@ model public static <T> void newSetIsEmpty() {}
     
     //@ public normal_behavior

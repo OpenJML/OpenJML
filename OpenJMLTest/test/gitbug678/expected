@@ -1,0 +1,7 @@
+Proving methods in DoubleABS
+Skipping proof of DoubleABS.DoubleABS() (excluded by -method)
+Starting proof of DoubleABS.DoubleAbsolute(java.lang.Double) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of DoubleABS.DoubleAbsolute(java.lang.Double) with prover !!!! - no warnings
+Completed proving methods in DoubleABS

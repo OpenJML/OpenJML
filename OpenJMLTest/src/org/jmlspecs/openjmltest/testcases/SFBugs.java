@@ -590,7 +590,7 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
-    @Ignore // FIXME - times out --  Double operations (sqrt) not yet implemented
+    @Ignore // FIXME -  Needs more double specs
     @Test public void gitbug580() {
         expectedExit = 0;
         helpTCG();
@@ -827,7 +827,7 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
-    @Test
+    @Test @Ignore  // Needs specs about double
     public void gitbug633() {
         Assume.assumeTrue(runLongTests); // FIXME - And not yet working either
         cpathAddition = ":../OpenJML/runtime";
@@ -1033,10 +1033,10 @@ public class SFBugs extends EscBase {
         helpTCG("-code-math=safe");//,"-show","-method=calculateArea","-subexpressions","-ce"); // The problem manifests with safe math
     }
     
-    @Test @Ignore
+    @Test
     public void gitbug678() {
         expectedExit = 0;
-        helpTCG("-method=DoubleAbsolute","-show");
+        helpTCG("-method=DoubleAbsolute");
     }
     
     @Test

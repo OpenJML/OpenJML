@@ -1,15 +1,15 @@
 public class DoubleABS{  
-    //@ requires num >= 0;
+    //@ requires !num.isNaN() && num >= 0;
     //@ ensures \result == num;
     //@ ensures \result >= 0;
 
     //@ also
 
-    //@ requires num < 0 && num >= -Double.MAX_VALUE;
+    //@ requires !num.isNaN() && num < 0;
     //@ ensures \result == -num; 
     //@ ensures \result >= 0;
     public /*@ pure @*/ Double DoubleAbsolute(Double num){
-        if(num >= 0)
+        if (num >= 0)
             return num;
         else
             return -num;
