@@ -368,7 +368,7 @@ public class escfiles extends EscBase {
         helpTF("esc2DTranspose");
     }
 
-    @Test
+    @Test @Ignore // FIXME - Specs need improvement
     public void testVT20191() {
         expectedExit = 0;
         helpTF("verifythis-2019-1","-checkFeasibility=none"); // FIXME - feasibility check times out
