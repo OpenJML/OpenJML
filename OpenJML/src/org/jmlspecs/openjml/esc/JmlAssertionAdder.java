@@ -14489,10 +14489,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (useDefaultModifies) {
             ListBuffer<JCExpression> targets = new ListBuffer<JCExpression>();
             if (list != null) for (JCTree t: list) {
-                TargetFinder.findVars(t,targets);
+                TargetFinder.findVars(t,targets,context);
             }
             for (JCTree t: trees) {
-                TargetFinder.findVars(t,targets);
+                TargetFinder.findVars(t,targets,context);
             }
             targets.add(treeutils.makeIdent(pos.getPreferredPosition(),indexStack.get(0).sym));
             // synthesize a modifies list

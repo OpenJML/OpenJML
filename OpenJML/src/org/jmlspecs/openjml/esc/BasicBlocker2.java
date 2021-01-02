@@ -1053,11 +1053,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 {
                     VarMap savedMap = currentMap;
                     try {
-                        //                if (that.args.size() == 1) {
-                        //                    currentMap = premap;
-                        //                    that.args.get(0).accept(this);
-                        //                } else 
-                        {
                             Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).name;
                             //JCIdent label = (JCIdent)that.args.get(1);
                             currentMap = labelmaps.get(label);
@@ -1071,14 +1066,15 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                                 currentMap = savedMap;
                             }
                             that.args.get(0).accept(this);
-                            that.args = com.sun.tools.javac.util.List.<JCExpression>of(that.args.get(0));
-                        }
-                        that.token = null;
-                        that.kind = sameKind; // A no-op -- reusing the JmlMethodInvocation node without any \old
                     } finally {
                         currentMap = savedMap;
                     }
                     break;
+                }
+                case sameID: {
+                    scanList(that.args);
+                    result = that;
+                    break;                        
                 }
                 case nonnullelementsID: 
                 {
@@ -1106,13 +1102,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     scan(that.typeargs);
                     scan(that.meth);
                     if (that.meth != null) that.meth = result;
-                    scanList(that.args);
-                    result = that;
-                    break;
-                } 
-                case sameID:
-                {
-                    // In this context, BSSAME is a noop
                     scanList(that.args);
                     result = that;
                     break;
@@ -1676,7 +1665,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             if (localVars.containsKey(vsym)) {
                 that.name = localVars.get(vsym).name;
             } else if (currentMap != null) { // FIXME - why would currentMap ever be null?
-                that.name = currentMap.getCurrentName(vsym);
+                Name newname = currentMap.getCurrentName(vsym);
+                if (that.name != vsym.name && newname != that.name) {
+                    log.warning(that, "jml.internal", "Double rewriting of ident: " + vsym.name + " " + that.name);
+                }
+                that.name = newname;
                 if (isDefined.add(that.name)) {
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Added " + vsym + " " + that.name);
                     addDeclaration(that);
@@ -2092,6 +2085,18 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
     // OK
     @Override public void visitBinary(JCBinary that) {
+//        if (that.lhs instanceof JCBinary && that.rhs instanceof JCBinary) {
+//            JCBinary lhsb = (JCBinary)that.lhs;
+//            JCBinary rhsb = (JCBinary)that.rhs;
+//            if (lhsb.rhs == rhsb.lhs) {
+//                lhsb.lhs = convertExpr(lhsb.lhs);
+//                lhsb.rhs = convertExpr(lhsb.rhs);
+//                rhsb.lhs = lhsb.rhs;
+//                rhsb.rhs = convertExpr(rhsb.rhs);
+//                result = that;
+//                return;
+//            }
+//        }
         that.lhs = convertExpr(that.lhs);
         that.rhs = convertExpr(that.rhs);
         result = that; 

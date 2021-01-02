@@ -1982,7 +1982,7 @@ public class SMTTranslator extends JmlTreeScanner {
             result = F.fcn(F.symbol(nonnullelements), newargs);
         } else if (that.kind == elemtypeKind) {
             result = F.fcn(F.symbol(arrayElemType), newargs);
-        } else if (that.kind == sameKind) {
+        } else if (that.kind == sameKind || that.kind == oldKind) { // old has already been translated
             result = newargs.get(0);
         } else if (that.kind == erasureKind) {
             result = F.fcn(F.symbol("erasure"), newargs);

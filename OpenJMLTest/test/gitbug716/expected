@@ -1,0 +1,12 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.merge((@org.jmlspecs.annotation.NonNull :: int)[],int,int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.merge((@org.jmlspecs.annotation.NonNull :: int)[],int,int,int) with prover !!!! - no warnings
+Completed proving methods in Test
