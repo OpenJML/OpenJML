@@ -1,4 +1,4 @@
-package org.junit.runners;
+package org.openjml.runners;
 
 import java.util.ArrayList;
 import java.util.Collections;

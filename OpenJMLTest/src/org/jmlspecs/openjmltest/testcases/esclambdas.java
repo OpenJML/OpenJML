@@ -7,7 +7,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.junit.runners.ParameterizedWithNames;
+import org.openjml.runners.ParameterizedWithNames;
 
 import java.util.function.Function;
 

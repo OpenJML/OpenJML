@@ -1,4 +1,4 @@
-package org.junit.runners;
+package org.openjml.runners;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
