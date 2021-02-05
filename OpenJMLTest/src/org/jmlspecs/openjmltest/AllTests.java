@@ -1,10 +1,9 @@
 package org.jmlspecs.openjmltest;
 
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.platform.suite.api.SelectPackages;
+import org.junit.jupiter.api.*;
 import org.junit.runner.RunWith;
-import org.junit.runners.*;
 import org.junit.runners.Suite.SuiteClasses;
+import org.openjml.runners.*;
 
 import junit.framework.TestSuite;
 
@@ -33,7 +32,9 @@ import org.jmlspecs.openjmltest.testcases.*;
 // The following runner works with the suite method to add all test case files
 // dynamically and explicitly sorts them
 @RunWith(org.junit.runners.AllTests.class)
-@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
+//@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(org.junit.jupiter.api.MethodOrderer.Alphanumeric.class)
+@org.junit.jupiter.api.parallel.Execution(org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT)
 public class AllTests {
     
     public static TestSuite suite() {

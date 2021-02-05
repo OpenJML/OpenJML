@@ -15,8 +15,8 @@ import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.ParameterizedWithNames;
 import org.junit.runners.Parameterized.Parameters;
+import org.openjml.runners.ParameterizedWithNames;
 
 @Ignore // FIXME - Strongarm is broken - disabling tests
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)

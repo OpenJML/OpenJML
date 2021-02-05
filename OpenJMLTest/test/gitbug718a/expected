@@ -1,0 +1,20 @@
+Proving methods in Rec
+Starting proof of Rec.Rec() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Rec.Rec() with prover !!!! - no warnings
+Starting proof of Rec.m(int) with prover !!!!
+test/gitbug718a/Rec.java:12: warning: The prover cannot establish an assertion (Assert) in method m
+  //@ assert countDown(25) == 0;
+      ^
+Completed proof of Rec.m(int) with prover !!!! - with warnings
+Starting proof of Rec.countDown(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Rec.countDown(int) with prover !!!! - no warnings
+Starting proof of Rec.countDownA(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Rec.countDownA(int) with prover !!!! - no warnings
+Completed proving methods in Rec
+1 warning
