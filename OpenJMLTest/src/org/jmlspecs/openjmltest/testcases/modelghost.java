@@ -7,8 +7,8 @@ import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.ParameterizedWithNames;
 import org.junit.runners.Parameterized.Parameters;
+import org.openjml.runners.ParameterizedWithNames;
 
 /** These tests check various improper declarations of model and ghost
  * methods and fields.

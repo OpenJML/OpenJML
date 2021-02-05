@@ -13,7 +13,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
-import org.junit.runners.ParameterizedWithNames;
+import org.openjml.runners.ParameterizedWithNames;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
@@ -1135,8 +1135,20 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
+    @Test @Ignore // FIXME: EXAMPLE SPECS NOT YET COMPLETE
+    public void gitbug717() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
     @Test @Ignore // FIXME: Specs not yet finished
     public void gitbug718() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug718a() {
         expectedExit = 0;
         helpTCG();
     }
