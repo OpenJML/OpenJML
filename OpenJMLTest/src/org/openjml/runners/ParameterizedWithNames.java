@@ -1,4 +1,4 @@
-package org.junit.runners;
+package org.openjml.runners;
 
 
 /** This class is a minor modification of org.junit.runners.Parameterized. The changes are (1) to log
@@ -26,6 +26,8 @@ import org.junit.internal.runners.model.EachTestNotifier;
 import org.junit.runner.Description;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.RunNotifier;
+import org.junit.runners.BlockJUnit4ClassRunner;
+import org.junit.runners.Suite;
 import org.junit.runners.Parameterized.Parameters;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;

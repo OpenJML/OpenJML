@@ -18,8 +18,8 @@ import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.*;
 import org.junit.runners.Parameterized.Parameters;
+import org.openjml.runners.*;
 
 /** These tests check running ESC on files in the file system, comparing the
  * output against expected files. These tests are a bit easier to create, since 

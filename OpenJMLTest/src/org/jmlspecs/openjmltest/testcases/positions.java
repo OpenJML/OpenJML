@@ -16,7 +16,7 @@ import org.junit.Rule;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
-import org.junit.runners.ParameterizedWithNames;
+import org.openjml.runners.ParameterizedWithNames;
 
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.ParserFactory;

@@ -12411,6 +12411,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (useBV) {
                     // skip
                 } else if (changePrecision == 1) {
+                    TypeTag ntag = that.type.getTag();
                     // change precision == 1 means that a higher precision value is being cast to a lower precision
                     // so we check the range of the argument
                     TypeTag otag = origType.getTag();
@@ -12465,11 +12466,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         case SHORT:
                         case CHAR:
                         case BYTE:
-                            emax = treeutils.makeBinary(that.pos, JCTree.Tag.LE, newexpr, 
+                            emax = treeutils.makeBinary(that.pos, JCTree.Tag.LE, arg, 
                                     treeutils.makeLit(that.pos, arg.type, Integer.valueOf((int)maxValue(that.pos,origType.getTag())))); // FIXME - here and below, INT but we need LONGr
                             emin = treeutils.makeBinary(that.pos, JCTree.Tag.LE,  
                                     treeutils.makeLit(that.pos, arg.type, Integer.valueOf((int)minValue(that.pos,origType.getTag()))),
-                                    newexpr);
+                                    arg);
                             break;
                         default:
                             log.error(that, "jml.internal", "Unimplemented case combination");

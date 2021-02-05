@@ -5,7 +5,7 @@ import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.ParameterizedWithNames;
+import org.openjml.runners.ParameterizedWithNames;
 
 //FIXME _ need to test when inline body is in separate file
 //FIXME _ need to test when inline body is in separate file that is not parsed on the command-line

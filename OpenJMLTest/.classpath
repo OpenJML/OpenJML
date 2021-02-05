@@ -2,12 +2,14 @@
 <classpath>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/OpenJML"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
 	<classpathentry kind="lib" path="libs/hamcrest-junit-2.0.0.0.jar"/>
 	<classpathentry kind="lib" path="libs/java-hamcrest-2.0.0.0.jar"/>
-	<classpathentry kind="lib" path="libs/apiguardian-api-1.1.0.jar"/>
-	<classpathentry kind="lib" path="libs/junit-jupiter-api-5.5.2.jar"/>
+	<classpathentry kind="src" path="src">
+		<attributes>
+			<attribute name="ignore_optional_problems" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/Users/davidcok/projects/OpenJMLA/OpenJML/OpenJMLTest/libs/junit-jupiter-api-5.5.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

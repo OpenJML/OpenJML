@@ -79,10 +79,10 @@ Starting proof of JMLStringTest.conversionBad1((@org.jmlspecs.annotation.Nullabl
 test/valuestrings/JMLStringTest.java:111: warning: The prover cannot establish an assertion (Precondition) in method conversionBad1
     //@   ghost string s1 = s; // verification error
                             ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/org/jmlspecs/lang/string.jml:17: warning: Associated declaration
+$SPECS/specs/org/jmlspecs/lang/string.jml:17: warning: Associated declaration
     static public string string(String s);
                          ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/org/jmlspecs/lang/string.jml:17: warning: Precondition conjunct is false: s != null
+$SPECS/specs/org/jmlspecs/lang/string.jml:17: warning: Precondition conjunct is false: s != null
     static public string string(String s);
                                        ^
 Completed proof of JMLStringTest.conversionBad1((@org.jmlspecs.annotation.Nullable :: java.lang.String),java.lang.Object) with prover !!!! - with warnings
@@ -90,10 +90,10 @@ Starting proof of JMLStringTest.conversionBad2((@org.jmlspecs.annotation.Nullabl
 test/valuestrings/JMLStringTest.java:115: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method conversionBad2
     //@   ghost string s2 = (string)s; // verification error
                             ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/org/jmlspecs/lang/string.jml:17: warning: Associated declaration
+$SPECS/specs/org/jmlspecs/lang/string.jml:17: warning: Associated declaration
     static public string string(String s);
                          ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/org/jmlspecs/lang/string.jml:17: warning: Precondition conjunct is false: s != null
+$SPECS/specs/org/jmlspecs/lang/string.jml:17: warning: Precondition conjunct is false: s != null
     static public string string(String s);
                                        ^
 Completed proof of JMLStringTest.conversionBad2((@org.jmlspecs.annotation.Nullable :: java.lang.String),java.lang.Object) with prover !!!! - with warnings
@@ -101,10 +101,10 @@ Starting proof of JMLStringTest.conversionBad3((@org.jmlspecs.annotation.Nullabl
 test/valuestrings/JMLStringTest.java:119: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method conversionBad3
     //@   ghost string s3 = string.string(s); // verification error
                                          ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/org/jmlspecs/lang/string.jml:17: warning: Associated declaration
+$SPECS/specs/org/jmlspecs/lang/string.jml:17: warning: Associated declaration
     static public string string(String s);
                          ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/org/jmlspecs/lang/string.jml:17: warning: Precondition conjunct is false: s != null
+$SPECS/specs/org/jmlspecs/lang/string.jml:17: warning: Precondition conjunct is false: s != null
     static public string string(String s);
                                        ^
 Completed proof of JMLStringTest.conversionBad3((@org.jmlspecs.annotation.Nullable :: java.lang.String),java.lang.Object) with prover !!!! - with warnings
