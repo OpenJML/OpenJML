@@ -4666,5 +4666,14 @@ public class esc extends EscBase {
                                  "  location: class tt.TestJava",29
                         );
     }
+    
+    @Test
+    public void testJMLDataGroup() {
+    	helpTCX("tt.C",
+    			"package tt; /*@ non_null_by_default */ public class C {\n"
+    			+ "    //@ public model JMLDataGroup g;\n"
+    			+ "}\n"
+    			);
+    }
 
 }

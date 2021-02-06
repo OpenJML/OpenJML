@@ -1,0 +1,35 @@
+test/gitbug718x1/test1.java:3: error: An initializer clause may not have annotations
+	public static final /*@ non_null readonly static_initializer @*/ int [] binarr = new int[]
+	                        ^
+test/gitbug718x1/test1.java:3: error: Invalid modifiers for an initializer clause: static final
+	public static final /*@ non_null readonly static_initializer @*/ int [] binarr = new int[]
+	^
+test/gitbug718x1/test1.java:13: error: non-static variable binarr cannot be referenced from a static context
+//@ public static invariant binarr.length > 0 && binarr.length==31;
+                            ^
+test/gitbug718x1/test1.java:13: error: non-static variable binarr cannot be referenced from a static context
+//@ public static invariant binarr.length > 0 && binarr.length==31;
+                                                 ^
+test/gitbug718x1/test1.java:14: error: An identifier with package visibility may not be used in a invariant clause with public visibility
+//@ public invariant binarr[0]==1 && \forall int j;0 <= j < binarr.length-2;binarr[j]==binarr[j+1]/2;
+                     ^
+test/gitbug718x1/test1.java:14: error: An identifier with package visibility may not be used in a invariant clause with public visibility
+//@ public invariant binarr[0]==1 && \forall int j;0 <= j < binarr.length-2;binarr[j]==binarr[j+1]/2;
+                                                            ^
+test/gitbug718x1/test1.java:14: error: An identifier with package visibility may not be used in a invariant clause with public visibility
+//@ public invariant binarr[0]==1 && \forall int j;0 <= j < binarr.length-2;binarr[j]==binarr[j+1]/2;
+                                                                            ^
+test/gitbug718x1/test1.java:14: error: An identifier with package visibility may not be used in a invariant clause with public visibility
+//@ public invariant binarr[0]==1 && \forall int j;0 <= j < binarr.length-2;binarr[j]==binarr[j+1]/2;
+                                                                                       ^
+test/gitbug718x1/test1.java:15: error: An identifier with package visibility may not be used in a invariant clause with public visibility
+//@ public invariant \forall int j;0 <= j < binarr.length-1;binarr[j] <= binarr[j+1];
+                                            ^
+test/gitbug718x1/test1.java:15: error: An identifier with package visibility may not be used in a invariant clause with public visibility
+//@ public invariant \forall int j;0 <= j < binarr.length-1;binarr[j] <= binarr[j+1];
+                                                            ^
+test/gitbug718x1/test1.java:15: error: An identifier with package visibility may not be used in a invariant clause with public visibility
+//@ public invariant \forall int j;0 <= j < binarr.length-1;binarr[j] <= binarr[j+1];
+                                                                         ^
+Operation not performed because of parse or type errors
+11 errors
