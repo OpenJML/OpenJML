@@ -3735,6 +3735,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else {
             if (JmlOption.isOption(context,JmlOption.STATIC_INIT_WARNING)) {
                 if (!hasStaticInitializer((ClassSymbol)convertedfa.sym.owner) && !convertedfa.sym.isEnum()
+                        && (convertedfa.sym.owner != attr.datagroupClass)
                         && (convertedfa.sym.flags() & Flags.PRIVATE) == 0) {
                     log.warning(convertedfa, "jml.message", "Use a static_initializer clause to specify the values of static final fields: " + utils.qualifiedName(convertedfa.sym));
                     if (utils.jmlverbose >= Utils.JMLVERBOSE) log.note(convertedfa, "jml.message", "Warned about a non-constant initialized static final field: " + st.toString());
@@ -8257,9 +8258,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             nodoTranslations =  nodoTranslations || isRecursive;
             if (!splitExpressions) nodoTranslations = true;
             boolean hasTypeArgs = calleeMethodSym.type instanceof Type.ForAll; 
-//            if (!useMethodAxioms && splitExpressions) {
-//                log.error(that, "jml.message", "Method calls in quantifier bodies must be 'function's: " + calleeMethodSym.toString());
-//            }
+            if (calleeIsConstructor && !localVariables.isEmpty()) {
+                log.error(that, "jml.message", "Quantifier bodies may not contain constructors: " + calleeMethodSym.toString());
+                throw new JmlInternalAbort();
+            }
             boolean addMethodAxioms = nodoTranslations && !calleeIsConstructor && !hasTypeArgs && !isSuperCall && !isThisCall;
 //            boolean addMethodAxioms = !rac && !calleeMethodSym.isConstructor() && !hasTypeArgs && !isSuperCall && !isThisCall && isPure(calleeMethodSym)
 //                    && (!calleeMethodSym.getReturnType().isReference() || translatingJML);
@@ -8409,7 +8411,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 newThisExpr = resultExpr;
                 // FIXME - what about newclass.encl
             }
-            
+                        
             if (!inlineSpecs) {
                 if (addMethodAxioms) assertCalledMethodPrecondition(that, calleeMethodSym, extendedArgs);
 

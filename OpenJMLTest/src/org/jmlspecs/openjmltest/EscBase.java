@@ -235,7 +235,48 @@ public abstract class EscBase extends JmlTestCase {
     	}
     }
 
-    public java.util.List<String> setupForFiles(String sourceDirname, String outDir, String ... opts) {
+    public void escOnFile(String sourceFilename, String outDir, String ... opts) {
+    	boolean print = false;
+    	try {
+    		new File(outDir).mkdirs();
+    		java.util.List<String> args = setupForFiles(sourceFilename, outDir, opts);
+    		String actCompile = outDir + "/actual";
+    		new File(actCompile).delete();
+    		PrintWriter pw = new PrintWriter(actCompile);
+    		int ex = -1;
+    		try {
+    			ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
+    		} finally {
+    			pw.close();
+    		}
+
+    		String diffs = outputCompare.compareFiles(outDir + "/expected", actCompile);
+    		int n = 0;
+    		while (diffs != null) {
+    			n++;
+    			String name = outDir + "/expected" + n;
+    			if (!new File(name).exists()) break;
+    			diffs = outputCompare.compareFiles(name, actCompile);
+    		}
+    		if (diffs != null) {
+    		    System.out.println("TEST DIFFERENCES: " + testname.getMethodName());
+    			System.out.println(diffs);
+    			fail("Files differ: " + diffs);
+    		}  
+    		if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex);
+    		new File(actCompile).delete();
+
+    	} catch (Exception e) {
+    		e.printStackTrace(System.out);
+    		fail("Exception thrown while processing test: " + e);
+    	} catch (AssertionError e) {
+    		throw e;
+    	} finally {
+    		// Should close open objects
+    	}
+    }
+
+    public java.util.List<String> setupForFiles(String sourceDirOrFilename, String outDir, String ... opts) {
         new File(outDir).mkdirs();
         java.util.List<String> args = new LinkedList<String>();
         args.add("-esc");
@@ -244,8 +285,8 @@ public abstract class EscBase extends JmlTestCase {
         args.add("-progress");
         args.add("-timeout=300");
         args.add("-code-math=java");
-        if (!new File(sourceDirname).isFile()) args.add("-dir");
-        args.add(sourceDirname);
+        if (!new File(sourceDirOrFilename).isFile()) args.add("-dir");
+        args.add(sourceDirOrFilename);
         if (solver != null) args.add("-prover="+solver);
         addOptionsToArgs(options,args);        
         args.addAll(Arrays.asList(opts));
