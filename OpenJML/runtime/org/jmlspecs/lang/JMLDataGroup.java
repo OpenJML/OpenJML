@@ -21,14 +21,10 @@
 package org.jmlspecs.lang;
 import org.jmlspecs.annotation.*;
 
-/** A type with one element, for use in declaring "data groups".
- *  Note that there is only one equivalence class of objects of this type;
- *  that is, all objects of this type are considered .equal to each other.
- *
- * @version $Revision: 1.4 $
- * @author Gary T. Leavens, based on an idea of Rustan Leino
+/** This type marks datagroups. It is always nullable and has no values other than null.
+ *  It is never part of an expression, only a datagroup that is part of a frame set.
  */
-public @Pure final class JMLDataGroup implements Cloneable {
+public @Pure final class JMLDataGroup {
 
     /** Initialize this object.
      * @see #IT
@@ -41,44 +37,45 @@ public @Pure final class JMLDataGroup implements Cloneable {
         //@ set owner = null;
     } 
 
-    /** The only object of this type.
-     */
-    public static final @NonNull JMLDataGroup IT = new JMLDataGroup();
+//    /** The only object of this type.
+//     */
+////    //@ non_null
+//    public static final @NonNull JMLDataGroup IT = new JMLDataGroup();
 
-    /** Return this object.
-     */
-    @NonNull
-    public Object clone() {
-        return this;
-    }
+//    /** Return this object.
+//     */
+//    @NonNull
+//    public Object clone() {
+//        return this;
+//    }
 
-    /** Test whether the given argument is a non-null object of type
-     *  JMLDataGroup.
-     */
-    /*@ also
-      @   public normal_behavior
-      @     ensures \result <==> oth != null && oth instanceof JMLDataGroup;
-      @*/
-    public boolean equals(@Nullable Object oth) {
-        return oth != null && oth instanceof JMLDataGroup;
-    } 
+//    /** Test whether the given argument is a non-null object of type
+//     *  JMLDataGroup.
+//     */
+//    /*@ also
+//      @   public normal_behavior
+//      @     ensures \result <==> oth != null && oth instanceof JMLDataGroup;
+//      @*/
+//    public boolean equals(@Nullable Object oth) {
+//        return oth != null && oth instanceof JMLDataGroup;
+//    } 
     
-    /** Return a hash code for this object.
-     */
-    public int hashCode() {
-        return 0;
-    }
+//    /** Return a hash code for this object.
+//     */
+//    public int hashCode() {
+//        return 0;
+//    }
 
-    /** Return a string representation of this object.
-     */
-    /*@ also
-      @   public normal_behavior
-      @     ensures \result != null
-      @          && (* result is a string representation of this *);
-      @*/
-    @NonNull
-    public String toString() {
-        return "JMLDataGroup.IT";
-    }
+//    /** Return a string representation of this object.
+//     */
+//    /*@ also
+//      @   public normal_behavior
+//      @     ensures \result != null
+//      @          && (* result is a string representation of this *);
+//      @*/
+//    @NonNull
+//    public String toString() {
+//        return "JMLDataGroup.IT";
+//    }
     
 }

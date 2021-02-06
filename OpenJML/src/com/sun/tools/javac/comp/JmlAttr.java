@@ -184,7 +184,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @NonNull final protected JCIdent utilsClassIdent;
     
     /** Cached value of the JMLDataGroup class */
-    @NonNull final protected ClassSymbol datagroupClass;
+    @NonNull final public ClassSymbol datagroupClass;
     
     /** The JmlSpecs instance for this context */
     @NonNull final protected JmlSpecs specs;
@@ -2893,6 +2893,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JavaFileObject old = log.useSource(tree.source);
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         try {
+            if (tree.modifiers != null && tree.modifiers.annotations != null && !tree.modifiers.annotations.isEmpty()) {
+                log.error(tree.modifiers.annotations.head.pos, "jml.message", "An initializer clause may not have annotations");
+                tree.modifiers.annotations = null;
+            }
+            long diff = 0;
+            if (tree.modifiers != null && (diff = tree.modifiers.flags & ~0x7) != 0) {
+                log.error(tree.modifiers.pos, "jml.message", "Invalid modifiers for an initializer clause: " + Flags.toString(diff));
+                tree.modifiers.flags &= 0x7;
+            }
             // FIXME - test declarations within specs
             Env<AttrContext> localEnv = localEnv(env,tree);
             localEnv.info.scope.owner =
@@ -6234,7 +6243,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (!that.type.isPrimitive()) {
                 JCAnnotation snullness;
                 ModifierKind nullness = specs.defaultNullity(enclosingClassEnv.enclClass.sym);
-                if ((snullness=utils.findMod(that.mods,nonnullAnnotationSymbol)) != null) { 
+                if (that.type.tsym == datagroupClass) {
+                    nullness = Modifiers.NULLABLE;
+                    Attribute.Compound a = new Attribute.Compound(nullableAnnotationSymbol.type,List.<Pair<MethodSymbol,Attribute>>nil());
+                    JCAnnotation an = jmlMaker.at(that).Annotation(a);
+                    an.type = an.annotationType.type;
+                    ((JmlTree.JmlAnnotation)an).sourcefile = that.sourcefile;
+                    that.mods.annotations = that.mods.annotations.append(an);
+                    // that.mods == fspecs.mods
+                    that.mods.flags |= Flags.FINAL; // JMLDataGroup declarations are implicitly final
+                    if (that.init != null) {
+                        log.error(that.init, "jml.message", "JMLDataGroup declarations may not have initializers");
+                    }
+                    //that.init = jmlMaker.at(that).Literal(TypeTag.BOT,null);
+                    //that.init.type = datagroupClass.type;
+                    snullness = an;
+                } else if ((snullness=utils.findMod(that.mods,nonnullAnnotationSymbol)) != null) { 
                     nullness = Modifiers.NON_NULL;
                 } else if ((snullness=utils.findMod(that.mods,nullableAnnotationSymbol)) != null || skipDefaultNullity) {
                     nullness = Modifiers.NULLABLE;
@@ -6253,6 +6277,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     Attribute.Compound a = new Attribute.Compound(s.type,List.<Pair<MethodSymbol,Attribute>>nil());
                     that.sym.appendAttributes(List.<Compound>of(a));
                 }
+                // TODO: Need to add the nullness annotation to that.mods.annotations
             }
             //        if (newMods != originalMods) for (JCAnnotation a: originalMods.annotations) { a.type = attribType(a,env); }
 
