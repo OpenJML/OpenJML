@@ -17,6 +17,7 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseIn;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
 
+import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
