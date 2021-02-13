@@ -1,6 +1,6 @@
 #! /bin/bash
 
-ECLIPSE_HOME=/Users/davidcok/eclipse/committers-2018-09/Eclipse.app/Contents/Eclipse/
+ECLIPSE_HOME=/Users/davidcok/eclipse-java8/committers-2019-12/Eclipse.app/Contents/Eclipse/
 WORKSPACE=/Users/davidcok/cok/workspaces/OpenJML-workspaceA
 
 token=`cat ~/github.token | head -n 1`
