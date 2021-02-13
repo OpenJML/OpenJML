@@ -1,0 +1,105 @@
+#
+# Copyright (c) 2015, 2020, Oracle and/or its affiliates. All rights reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+#
+# This code is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 only, as
+# published by the Free Software Foundation.  Oracle designates this
+# particular file as subject to the "Classpath" exception as provided
+# by Oracle in the LICENSE file that accompanied this code.
+#
+# This code is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# version 2 for more details (a copy is included in the LICENSE file that
+# accompanied this code).
+#
+# You should have received a copy of the GNU General Public License version
+# 2 along with this work; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+# Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+# or visit www.oracle.com if you need additional information or have any
+# questions.
+#
+
+# This spec file is used to compile a BUILD_JDK while cross compiling. The
+# BUILD_JDK runs on the build/host platform and is of the same version as
+# the main build.
+
+# First include the real base spec.gmk file
+include /Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/build/macosx-x86_64-server-release/spec.gmk
+
+CC := /usr/bin/clang
+CXX := /usr/bin/clang++
+# Ideally this should be probed by configure but that is tricky to implement,
+# and this should work in most cases.
+CPP := /usr/bin/clang -E
+LD := /usr/bin/clang
+LDCXX := /usr/bin/clang++
+AS := /usr/bin/clang -c
+NM := /usr/bin/nm
+AR := /usr/bin/ar
+OBJCOPY := 
+STRIP := /usr/bin/strip
+SYSROOT_CFLAGS := -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks
+SYSROOT_LDFLAGS := -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks
+
+# These directories should not be moved to BUILDJDK_OUTPUTDIR
+HOTSPOT_OUTPUTDIR := $(patsubst $(OUTPUTDIR)%,$(BUILDJDK_OUTPUTDIR)%,$(HOTSPOT_OUTPUTDIR))
+BUILDTOOLS_OUTPUTDIR := $(patsubst $(OUTPUTDIR)%,$(BUILDJDK_OUTPUTDIR)%,$(BUILDTOOLS_OUTPUTDIR))
+SUPPORT_OUTPUTDIR := $(patsubst $(OUTPUTDIR)%,$(BUILDJDK_OUTPUTDIR)%,$(SUPPORT_OUTPUTDIR))
+JDK_OUTPUTDIR := $(patsubst $(OUTPUTDIR)%,$(BUILDJDK_OUTPUTDIR)%,$(JDK_OUTPUTDIR))
+IMAGES_OUTPUTDIR := $(patsubst $(OUTPUTDIR)%,$(BUILDJDK_OUTPUTDIR)%,$(IMAGES_OUTPUTDIR))
+
+OPENJDK_BUILD_CPU_LEGACY := x86_64
+OPENJDK_BUILD_CPU_LEGACY_LIB := amd64
+OPENJDK_BUILD_LIBC := default
+OPENJDK_TARGET_CPU := x86_64
+OPENJDK_TARGET_CPU_ARCH := x86
+OPENJDK_TARGET_CPU_BITS := 64
+OPENJDK_TARGET_CPU_ENDIAN := little
+OPENJDK_TARGET_CPU_LEGACY := x86_64
+OPENJDK_TARGET_LIBC := default
+OPENJDK_TARGET_OS_INCLUDE_SUBDIR := darwin
+
+HOTSPOT_TARGET_OS := bsd
+HOTSPOT_TARGET_OS_TYPE := posix
+HOTSPOT_TARGET_CPU := x86_64
+HOTSPOT_TARGET_CPU_ARCH := x86
+HOTSPOT_TARGET_CPU_DEFINE := AMD64
+HOTSPOT_TARGET_LIBC := default
+
+CFLAGS_JDKLIB :=        -I$(SUPPORT_OUTPUTDIR)/modules_include/java.base       -I$(SUPPORT_OUTPUTDIR)/modules_include/java.base/$(OPENJDK_TARGET_OS_INCLUDE_SUBDIR)       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/java.base/share/native/libjava       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/java.base/unix/native/libjava       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/hotspot/share/include       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/hotspot/os/posix/include         -DMAC_OS_X_VERSION_MIN_REQUIRED=10120         -mmacosx-version-min=10.12.0 -DLIBC=default -D_ALLBSD_SOURCE -D_DARWIN_UNLIMITED_SELECT -DMACOSX -DNDEBUG        -Wall -Wextra -Wformat=2 -Wpointer-arith -Wsign-compare -Wreorder           -Wunused-function -Wundef -Wunused-value -Woverloaded-virtual         -fmacro-prefix-map=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/=  -std=c99           -D_LITTLE_ENDIAN -DARCH='"x86_64"'       -Dx86_64 -D_LP64=1           
+CXXFLAGS_JDKLIB :=        -I$(SUPPORT_OUTPUTDIR)/modules_include/java.base       -I$(SUPPORT_OUTPUTDIR)/modules_include/java.base/$(OPENJDK_TARGET_OS_INCLUDE_SUBDIR)       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/java.base/share/native/libjava       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/java.base/unix/native/libjava       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/hotspot/share/include       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/hotspot/os/posix/include         -DMAC_OS_X_VERSION_MIN_REQUIRED=10120         -mmacosx-version-min=10.12.0 -DLIBC=default -D_ALLBSD_SOURCE -D_DARWIN_UNLIMITED_SELECT -DMACOSX -DNDEBUG        -Wall -Wextra -Wformat=2 -Wpointer-arith -Wsign-compare -Wreorder           -Wunused-function -Wundef -Wunused-value -Woverloaded-virtual         -fmacro-prefix-map=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/=          -std=c++14                -D_LITTLE_ENDIAN -DARCH='"x86_64"'       -Dx86_64 -D_LP64=1           
+LDFLAGS_JDKLIB :=         -mmacosx-version-min=10.12.0          -L$(SUPPORT_OUTPUTDIR)/modules_libs/java.base         -L$(SUPPORT_OUTPUTDIR)/modules_libs/java.base/server -dynamiclib -compatibility_version 1.0.0 -current_version 1.0.0        
+CFLAGS_JDKEXE :=        -I$(SUPPORT_OUTPUTDIR)/modules_include/java.base       -I$(SUPPORT_OUTPUTDIR)/modules_include/java.base/$(OPENJDK_TARGET_OS_INCLUDE_SUBDIR)       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/java.base/share/native/libjava       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/java.base/unix/native/libjava       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/hotspot/share/include       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/hotspot/os/posix/include         -DMAC_OS_X_VERSION_MIN_REQUIRED=10120         -mmacosx-version-min=10.12.0 -DLIBC=default -D_ALLBSD_SOURCE -D_DARWIN_UNLIMITED_SELECT -DMACOSX -DNDEBUG        -Wall -Wextra -Wformat=2 -Wpointer-arith -Wsign-compare -Wreorder           -Wunused-function -Wundef -Wunused-value -Woverloaded-virtual         -fmacro-prefix-map=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/=  -std=c99           -D_LITTLE_ENDIAN -DARCH='"x86_64"'       -Dx86_64 -D_LP64=1    -fPIE
+CXXFLAGS_JDKEXE :=        -I$(SUPPORT_OUTPUTDIR)/modules_include/java.base       -I$(SUPPORT_OUTPUTDIR)/modules_include/java.base/$(OPENJDK_TARGET_OS_INCLUDE_SUBDIR)       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/java.base/share/native/libjava       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/java.base/unix/native/libjava       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/hotspot/share/include       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/hotspot/os/posix/include         -DMAC_OS_X_VERSION_MIN_REQUIRED=10120         -mmacosx-version-min=10.12.0 -DLIBC=default -D_ALLBSD_SOURCE -D_DARWIN_UNLIMITED_SELECT -DMACOSX -DNDEBUG        -Wall -Wextra -Wformat=2 -Wpointer-arith -Wsign-compare -Wreorder           -Wunused-function -Wundef -Wunused-value -Woverloaded-virtual         -fmacro-prefix-map=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/=          -std=c++14                -D_LITTLE_ENDIAN -DARCH='"x86_64"'       -Dx86_64 -D_LP64=1    -fPIE
+LDFLAGS_JDKEXE :=         -mmacosx-version-min=10.12.0            
+
+JVM_CFLAGS := -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -D_GNU_SOURCE       -pipe -fno-rtti -fno-exceptions         -fvisibility=hidden -fno-strict-aliasing -fno-omit-frame-pointer -flimit-debug-info -mno-omit-leaf-frame-pointer -mstack-alignment=16 -std=c++14        -DMAC_OS_X_VERSION_MIN_REQUIRED=10120         -mmacosx-version-min=10.12.0 -DLIBC=default  -D_ALLBSD_SOURCE -D_DARWIN_C_SOURCE -D_XOPEN_SOURCE        -Wall -Wextra -Wformat=2 -Wpointer-arith -Wsign-compare -Wreorder           -Wunused-function -Wundef -Wunused-value -Woverloaded-virtual  -fPIC -fmacro-prefix-map=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/=        -DVM_LITTLE_ENDIAN -D_LP64=1     
+JVM_LDFLAGS :=  -mno-omit-leaf-frame-pointer -mstack-alignment=16         -fPIC -mmacosx-version-min=10.12.0 -Wl,-rpath,@loader_path/. -Wl,-rpath,@loader_path/..                          
+JVM_ASFLAGS := -x assembler-with-cpp -mno-omit-leaf-frame-pointer -mstack-alignment=16 
+JVM_LIBS := -lm
+
+FDLIBM_CFLAGS := -ffp-contract=off
+
+INTERIM_LANGTOOLS_ARGS := $(subst $(OUTPUTDIR),$(BUILDJDK_OUTPUTDIR),$(INTERIM_LANGTOOLS_ARGS))
+
+# The compiler for the build platform is likely not warning compatible with the official
+# compiler.
+WARNINGS_AS_ERRORS := false
+DISABLE_WARNING_PREFIX := 
+
+# Save speed and disk space by not enabling debug symbols for the buildjdk
+ENABLE_DEBUG_SYMBOLS := false
+
+JVM_VARIANTS := server
+JVM_VARIANT_MAIN := server
+JVM_FEATURES_server := cds compiler1 compiler2 g1gc serialgc
+
+# Some users still set EXTRA_*FLAGS on the make command line. Must
+# make sure to override that when building buildjdk.
+override EXTRA_CFLAGS :=
+override EXTRA_CXXFLAGS :=
+override EXTRA_LDFLAGS :=
