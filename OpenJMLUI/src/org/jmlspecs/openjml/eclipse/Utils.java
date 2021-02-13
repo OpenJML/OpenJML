@@ -206,6 +206,7 @@ public class Utils {
             } else {
                 String loc = null;
                 URL url = FileLocator.toFileURL(specsBundle.getResource(emptyString));
+                url = new URL(url.toString().replaceAll(" ","%20"));
                 File root = new File(url.toURI());
                 loc = root.getAbsolutePath();
                 loc = loc.replace("\\", "/");  //$NON-NLS-1$//$NON-NLS-2$
@@ -247,6 +248,7 @@ public class Utils {
                 } else {
                     URL url = FileLocator.toFileURL(selfBundle.getResource(Strings.slash));
                     if (url != null) {
+                        url = new URL(url.toString().replaceAll(" ","%20"));
                         File root = new File(url.toURI());
                         if (Options.uiverboseness)
                             Log.log("Self bundle found " + root + Strings.space //$NON-NLS-1$
