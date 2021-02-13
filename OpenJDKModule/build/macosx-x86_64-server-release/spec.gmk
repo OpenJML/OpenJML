@@ -1,0 +1,957 @@
+#
+# Copyright (c) 2011, 2021, Oracle and/or its affiliates. All rights reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+#
+# This code is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 only, as
+# published by the Free Software Foundation.  Oracle designates this
+# particular file as subject to the "Classpath" exception as provided
+# by Oracle in the LICENSE file that accompanied this code.
+#
+# This code is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# version 2 for more details (a copy is included in the LICENSE file that
+# accompanied this code).
+#
+# You should have received a copy of the GNU General Public License version
+# 2 along with this work; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+# Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+# or visit www.oracle.com if you need additional information or have any
+# questions.
+#
+
+# Configured Sat Feb 13 15:51:10 EST 2021 to build
+# for target system macosx-x86_64
+#   (called x86_64-apple-darwin20.2.0 by autoconf)
+# on build system macosx-x86_64
+#   (called x86_64-apple-darwin20.2.0 by autoconf)
+# using 'configure '
+
+# The command line given to configure.
+CONFIGURE_COMMAND_LINE:=
+# The current directory when configure was run
+CONFIGURE_START_DIR:=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule
+
+# A self-referential reference to this file.
+SPEC:=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/build/macosx-x86_64-server-release/spec.gmk
+
+# Path to autoconf if overriden by the user, to be used by "make reconfigure"
+AUTOCONF := 
+
+# SPACE and COMMA are defined in MakeBase.gmk, but they are also used in
+# some definitions here, and are needed if MakeBase.gmk is not included before
+# this file.
+X:=
+SPACE:=$(X) $(X)
+COMMA:=,
+
+# What make to use for main processing, after bootstrapping top-level Makefile.
+MAKE := /usr/bin/make
+
+# Make sure all shell commands are executed with the C locale
+export LC_ALL := C
+
+# The default make arguments
+MAKE_ARGS = $(MAKE_LOG_FLAGS) -r -R -I $(TOPDIR)/make/common SPEC=$(SPEC) \
+    MAKE_LOG_FLAGS="$(MAKE_LOG_FLAGS)" $(MAKE_LOG_VARS)
+
+OUTPUT_SYNC_SUPPORTED:=false
+OUTPUT_SYNC:=
+
+# Override the shell with bash
+BASH:=/bin/bash
+BASH_ARGS:= -o pipefail -e
+SHELL:=$(BASH) $(BASH_ARGS)
+
+# The "human readable" name of this configuration
+CONF_NAME:=macosx-x86_64-server-release
+
+# The built jdk will run in this target system.
+OPENJDK_TARGET_OS:=macosx
+OPENJDK_TARGET_OS_TYPE:=unix
+OPENJDK_TARGET_OS_ENV:=macosx
+OPENJDK_TARGET_OS_UPPERCASE:=MACOSX
+
+OPENJDK_TARGET_CPU:=x86_64
+OPENJDK_TARGET_CPU_ARCH:=x86
+OPENJDK_TARGET_CPU_BITS:=64
+OPENJDK_TARGET_CPU_ENDIAN:=little
+
+OPENJDK_TARGET_LIBC:=default
+
+COMPILE_TYPE:=native
+
+# Legacy support
+OPENJDK_TARGET_CPU_LEGACY:=x86_64
+OPENJDK_TARGET_CPU_LEGACY_LIB:=amd64
+OPENJDK_TARGET_CPU_OSARCH:=x86_64
+OPENJDK_TARGET_OS_INCLUDE_SUBDIR:=darwin
+
+HOTSPOT_TARGET_OS := bsd
+HOTSPOT_TARGET_OS_TYPE := posix
+
+HOTSPOT_TARGET_CPU := x86_64
+HOTSPOT_TARGET_CPU_ARCH := x86
+HOTSPOT_TARGET_CPU_DEFINE := AMD64
+
+HOTSPOT_TARGET_LIBC := default
+
+OPENJDK_TARGET_BUNDLE_PLATFORM:=osx-x64
+JDK_ARCH_ABI_PROP_NAME := 
+
+# We are building on this build system.
+# When not cross-compiling, it is the same as the target.
+OPENJDK_BUILD_OS:=macosx
+OPENJDK_BUILD_OS_TYPE:=unix
+OPENJDK_BUILD_OS_ENV:=macosx
+
+OPENJDK_BUILD_CPU:=x86_64
+OPENJDK_BUILD_CPU_ARCH:=x86
+OPENJDK_BUILD_CPU_BITS:=64
+OPENJDK_BUILD_CPU_ENDIAN:=little
+
+OPENJDK_BUILD_LIBC:=default
+
+OPENJDK_BUILD_OS_INCLUDE_SUBDIR:=darwin
+
+# Target platform value in ModuleTarget class file attribute.
+OPENJDK_MODULE_TARGET_PLATFORM:=macos-amd64
+
+# OS_* properties in release file
+RELEASE_FILE_OS_NAME:=Darwin
+RELEASE_FILE_OS_ARCH:=x86_64
+RELEASE_FILE_LIBC:=default
+
+SOURCE_DATE := updated
+ENABLE_REPRODUCIBLE_BUILD := false
+
+LIBM:=-lm
+LIBDL:=-ldl 
+
+WINENV_ROOT := 
+WINENV_PREFIX := 
+
+ifneq ($(findstring windows.wsl, macosx), )
+  # Tell WSL to convert PATH between linux and windows
+  export WSLENV := PATH/l
+else ifeq (macosx, windows.msys2)
+  # Prohibit msys2 from attemping any path wrangling
+  export MSYS2_ARG_CONV_EXCL := "*"
+endif
+
+# Save the original path before replacing it with the Visual Studio tools
+ORIGINAL_PATH := /usr/local/opt/openjdk/bin:/Library/Frameworks/Python.framework/Versions/3.9/bin:/Users/davidcok/.gem/ruby/2.6.0/bin:/Users/davidcok/mybin:/Users/davidcok/mybin/solvers/mac:/Users/davidcok/.opam/4.11.1/bin:/usr/local/opt/llvm@10/bin:/usr/local/opt/llvm@8/bin:/Library/Frameworks/Python.framework/Versions/3.6/bin:/Users/davidcok/mybin:/Users/davidcok/.opam/system/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/usr/local/share/dotnet:~/.dotnet/tools:/Library/Apple/usr/bin:/opt/local/bin:/opt/local/sbin
+
+ifeq (clang, microsoft)
+  # The Visual Studio toolchain needs the PATH to be adjusted to include
+  # Visual Studio tools.
+  export PATH := :$(PATH)
+endif
+
+SYSROOT_CFLAGS := -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks
+SYSROOT_LDFLAGS := -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks
+
+# The top-level directory of the source repository
+TOPDIR:=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule
+# Usually the top level directory, but could be something else if a custom
+# root is defined.
+WORKSPACE_ROOT:=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule
+IMPORT_MODULES_CLASSES:=
+IMPORT_MODULES_CMDS:=
+IMPORT_MODULES_LIBS:=
+IMPORT_MODULES_CONF:=
+IMPORT_MODULES_LEGAL:=
+IMPORT_MODULES_MAN:=
+IMPORT_MODULES_SRC:=
+IMPORT_MODULES_MAKE:=
+
+COPYRIGHT_YEAR:=2021
+HOTSPOT_BUILD_TIME:=
+
+# Platform naming variables
+LAUNCHER_NAME:=openjdk
+PRODUCT_NAME:=OpenJDK
+PRODUCT_SUFFIX:=Runtime Environment
+JDK_RC_PLATFORM_NAME:=Platform
+JDK_RC_NAME:=OpenJDK Platform
+COMPANY_NAME:=N/A
+HOTSPOT_VM_DISTRO:=OpenJDK
+MACOSX_BUNDLE_NAME_BASE=OpenJDK
+MACOSX_BUNDLE_ID_BASE=net.java.openjdk-internal
+MACOSX_BUNDLE_BUILD_VERSION=0
+USERNAME:=davidcok
+VENDOR_URL:=https://openjdk.java.net/
+VENDOR_URL_BUG:=https://bugreport.java.com/bugreport/
+VENDOR_URL_VM_BUG:=https://bugreport.java.com/bugreport/crash.jsp
+
+# New (JEP-223) version information
+
+## Building blocks of the version string
+# First three version numbers, with well-specified meanings (numerical)
+VERSION_FEATURE := 17
+VERSION_INTERIM := 0
+VERSION_UPDATE := 0
+VERSION_PATCH := 0
+VERSION_EXTRA1 := 0
+VERSION_EXTRA2 := 0
+VERSION_EXTRA3 := 0
+# The pre-release identifier (string)
+VERSION_PRE := internal
+# The build number (numerical)
+VERSION_BUILD := 0
+# Optional build information (string)
+VERSION_OPT := adhoc.davidcok.OpenJDKModule
+
+## Composite variables
+# The version number as a dot separated sequence of numbers, e.g. 9.0.1
+VERSION_NUMBER := 17
+# VERSION_NUMBER but always with exactly 4 positions, with 0 for empty positions.
+VERSION_NUMBER_FOUR_POSITIONS := 17.0.0.0
+# The complete version string, with additional build information
+VERSION_STRING := 17-internal+0-adhoc.davidcok.OpenJDKModule
+# The short version string, without trailing zeroes and just PRE, if present.
+VERSION_SHORT := 17-internal
+# The Java specification version. It usually equals the feature version number.
+VERSION_SPECIFICATION := 17
+# A GA version is defined by the PRE string being empty. Rather than testing for
+# that, this variable defines it with true/false.
+VERSION_IS_GA := false
+
+# Version date
+VERSION_DATE := 2021-09-14
+
+# Vendor version string
+VENDOR_VERSION_STRING := 
+
+# Class-file version
+VERSION_CLASSFILE_MAJOR := 61
+VERSION_CLASSFILE_MINOR := 0
+
+JDK_SOURCE_TARGET_VERSION := 17
+
+# Convenience CFLAGS settings for passing version information into native programs.
+VERSION_CFLAGS := \
+    -DVERSION_FEATURE=$(VERSION_FEATURE) \
+    -DVERSION_INTERIM=$(VERSION_INTERIM) \
+    -DVERSION_UPDATE=$(VERSION_UPDATE) \
+    -DVERSION_PATCH=$(VERSION_PATCH) \
+    -DVERSION_EXTRA1=$(VERSION_EXTRA1) \
+    -DVERSION_EXTRA2=$(VERSION_EXTRA2) \
+    -DVERSION_EXTRA3=$(VERSION_EXTRA3) \
+    -DVERSION_PRE='"$(VERSION_PRE)"' \
+    -DVERSION_BUILD=$(VERSION_BUILD) \
+    -DVERSION_OPT='"$(VERSION_OPT)"' \
+    -DVERSION_NUMBER='"$(VERSION_NUMBER)"' \
+    -DVERSION_STRING='"$(VERSION_STRING)"' \
+    -DVERSION_SHORT='"$(VERSION_SHORT)"' \
+    -DVERSION_SPECIFICATION='"$(VERSION_SPECIFICATION)"' \
+    -DVERSION_DATE='"$(VERSION_DATE)"' \
+    -DVENDOR_VERSION_STRING='"$(VENDOR_VERSION_STRING)"' \
+    -DVERSION_CLASSFILE_MAJOR=$(VERSION_CLASSFILE_MAJOR) \
+    -DVERSION_CLASSFILE_MINOR=$(VERSION_CLASSFILE_MINOR) \
+    #
+
+ifneq ($(COMPANY_NAME),)
+  # COMPANY_NAME is set to "N/A" in make/conf/branding.conf by default,
+  # but can be customized with the '--with-vendor-name' configure option.
+  # Only export "VENDOR" to the build if COMPANY_NAME contains a real value.
+  # Otherwise the default value for VENDOR, which is used to set the "java.vendor"
+  # and "java.vm.vendor" properties is hard-coded into the source code (i.e. in
+  # VersionProps.java.template in the jdk for "java.vendor" and
+  # vm_version.cpp in the VM for "java.vm.vendor")
+  ifneq ($(COMPANY_NAME), N/A)
+    VERSION_CFLAGS += -DVENDOR='"$(COMPANY_NAME)"'
+  endif
+endif
+
+# Only export VENDOR_URL, VENDOR_URL_BUG and VENDOR_VM_URL_BUG to the build if
+# they are not empty. Otherwise, default values which are defined in the sources
+# will be used.
+ifneq ($(VENDOR_URL),)
+  VERSION_CFLAGS += -DVENDOR_URL='"$(VENDOR_URL)"'
+endif
+ifneq ($(VENDOR_URL_BUG),)
+  VERSION_CFLAGS += -DVENDOR_URL_BUG='"$(VENDOR_URL_BUG)"'
+endif
+ifneq ($(VENDOR_URL_VM_BUG),)
+  VERSION_CFLAGS += -DVENDOR_URL_VM_BUG='"$(VENDOR_URL_VM_BUG)"'
+endif
+
+# Different naming strings generated from the above information.
+RUNTIME_NAME=$(PRODUCT_NAME) $(PRODUCT_SUFFIX)
+
+# How to compile the code: release, fastdebug or slowdebug
+DEBUG_LEVEL:=release
+HOTSPOT_DEBUG_LEVEL:=product
+
+# Which JVM variants to build (space-separated list)
+JVM_VARIANTS := server
+JVM_VARIANT_MAIN := server
+
+# Lists of features per variant. Only relevant for the variants listed in
+# JVM_VARIANTS.
+JVM_FEATURES_server := aot cds compiler1 compiler2 dtrace epsilongc g1gc graal jfr jni-check jvmci jvmti management nmt parallelgc serialgc services shenandoahgc vm-structs zgc
+JVM_FEATURES_client := 
+JVM_FEATURES_core := 
+JVM_FEATURES_minimal := 
+JVM_FEATURES_zero := 
+JVM_FEATURES_custom := 
+
+# Used for make-time verifications
+VALID_JVM_FEATURES := aot cds compiler1 compiler2 dtrace epsilongc g1gc graal jfr jni-check jvmci jvmti link-time-opt management minimal nmt opt-size parallelgc serialgc services shenandoahgc static-build vm-structs zero zgc
+VALID_JVM_VARIANTS := server client minimal core zero custom
+
+# Allow overriding the default hotspot library path
+HOTSPOT_OVERRIDE_LIBPATH := 
+
+# Control use of precompiled header in hotspot libjvm build
+USE_PRECOMPILED_HEADER := true
+
+# Only build headless support or not
+ENABLE_HEADLESS_ONLY := false
+
+ENABLE_LINKTIME_GC := false
+
+# Ship debug symbols (e.g. pdbs on Windows)
+SHIP_DEBUG_SYMBOLS := 
+
+ENABLE_FULL_DOCS := true
+
+# JDK_OUTPUTDIR specifies where a working jvm is built.
+# You can run $(JDK_OUTPUTDIR)/bin/java
+
+OUTPUTDIR := /Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/build/macosx-x86_64-server-release
+# Colon left out to be able to override IMAGES_OUTPUTDIR for bootcycle-images
+SUPPORT_OUTPUTDIR=$(OUTPUTDIR)/support
+BUILDTOOLS_OUTPUTDIR=$(OUTPUTDIR)/buildtools
+
+HOTSPOT_OUTPUTDIR=$(OUTPUTDIR)/hotspot
+JDK_OUTPUTDIR=$(OUTPUTDIR)/jdk
+IMAGES_OUTPUTDIR=$(OUTPUTDIR)/images
+BUNDLES_OUTPUTDIR=$(OUTPUTDIR)/bundles
+TESTMAKE_OUTPUTDIR=$(OUTPUTDIR)/test-make
+MAKESUPPORT_OUTPUTDIR=$(OUTPUTDIR)/make-support
+
+# This does not get overridden in a bootcycle build
+CONFIGURESUPPORT_OUTPUTDIR:=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/build/macosx-x86_64-server-release/configure-support
+BUILDJDK_OUTPUTDIR=$(OUTPUTDIR)/buildjdk
+
+BUILD_FAILURE_HANDLER := false
+
+ENABLE_GENERATE_CLASSLIST := true
+
+EXCLUDE_TRANSLATIONS := 
+
+BUILD_MANPAGES := true
+
+BUILD_CDS_ARCHIVE := true
+
+ALLOW_ABSOLUTE_PATHS_IN_OUTPUT := false
+
+# The boot jdk to use. This is overridden in bootcycle-spec.gmk. Make sure to keep
+# it in sync.
+BOOT_JDK:=/usr/local/Cellar/openjdk/15.0.1/libexec/openjdk.jdk/Contents/Home
+
+BUILD_JDK:=$(JDK_OUTPUTDIR)
+CREATE_BUILDJDK:=false
+EXTERNAL_BUILDJDK:=false
+
+# When compiling Java source to be run by the boot jdk
+# use these extra flags, eg -source 6 -target 6
+BOOT_JDK_SOURCETARGET:=-source 15 -target 15 -Xlint:-options
+
+# Information about the build system
+NUM_CORES:=16
+MEMORY_SIZE:=32768
+ENABLE_JAVAC_SERVER:=true
+# Store javac server synchronization files here, and
+# the javac server log files.
+JAVAC_SERVER_DIR=$(MAKESUPPORT_OUTPUTDIR)/javacservers
+
+# Number of parallel jobs to use for compilation
+JOBS?=16
+TEST_JOBS?=0
+
+# Default make target
+DEFAULT_MAKE_TARGET:=exploded-image
+DEFAULT_LOG:=
+
+FREETYPE_TO_USE:=bundled
+FREETYPE_LIBS:=
+FREETYPE_CFLAGS:=
+FONTCONFIG_CFLAGS:=
+CUPS_CFLAGS:=
+ALSA_LIBS:=
+ALSA_CFLAGS:=
+LIBFFI_LIBS:=
+LIBFFI_CFLAGS:=
+ENABLE_LIBFFI_BUNDLING:=false
+LIBFFI_LIB_FILE:=
+GRAALUNIT_LIB := 
+FILE_MACRO_CFLAGS := -fmacro-prefix-map=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/=
+
+STATIC_LIBS_CFLAGS := -DSTATIC_BUILD=1 -ffunction-sections -fdata-sections       -DJNIEXPORT='__attribute__((visibility("hidden")))'
+
+JMH_CORE_JAR := 
+JMH_GENERATOR_JAR := 
+JMH_JOPT_SIMPLE_JAR := 
+JMH_COMMONS_MATH_JAR := 
+JMH_VERSION := 
+
+GTEST_FRAMEWORK_SRC := 
+
+# Source file for cacerts
+CACERTS_FILE=
+
+# Enable unlimited crypto policy
+UNLIMITED_CRYPTO=true
+
+GCOV_ENABLED=false
+JCOV_ENABLED=false
+JCOV_HOME=
+JCOV_INPUT_JDK=
+JCOV_FILTERS=
+
+# AddressSanitizer
+export ASAN_ENABLED:=no
+export DEVKIT_LIB_DIR:=
+ifeq ($(ASAN_ENABLED), yes)
+  export ASAN_OPTIONS=handle_segv=0 detect_leaks=0
+  ifneq ($(DEVKIT_LIB_DIR),)
+    export LD_LIBRARY_PATH:=$(LD_LIBRARY_PATH):$(DEVKIT_LIB_DIR)
+  endif
+endif
+
+# Necessary additional compiler flags to compile X11
+X_CFLAGS:=
+X_LIBS:=
+
+# The lowest required version of macosx
+MACOSX_VERSION_MIN=10.12.0
+# The highest allowed version of macosx
+MACOSX_VERSION_MAX=
+
+# The macosx code signing identity to use
+MACOSX_CODESIGN_IDENTITY=openjdk_codesign
+
+# Toolchain type: gcc, clang, xlc, microsoft...
+TOOLCHAIN_TYPE:=clang
+TOOLCHAIN_VERSION := 12.4
+CC_VERSION_NUMBER := 12.0.0
+CXX_VERSION_NUMBER := 12.0.0
+
+# Legacy support
+HOTSPOT_TOOLCHAIN_TYPE := gcc
+
+# Option used to tell the compiler whether to create 32- or 64-bit executables
+COMPILER_TARGET_BITS_FLAG:=-m
+COMPILER_SUPPORTS_TARGET_BITS_FLAG=true
+
+# Option used to pass a command file to the compiler
+COMPILER_COMMAND_FILE_FLAG:=@
+
+# Option for specifying a file which saves the binder commands
+# produced by the link step (for debugging, currently AIX only)
+COMPILER_BINDCMD_FILE_FLAG:=
+
+CC_OUT_OPTION:=-o$(SPACE)
+LD_OUT_OPTION:=-o$(SPACE)
+AR_OUT_OPTION:=-r -cs$(SPACE)
+
+# Flags used for overriding the default opt setting for a C/C++ source file.
+C_O_FLAG_HIGHEST_JVM:=-O3
+C_O_FLAG_HIGHEST:=-O3
+C_O_FLAG_HI:=-O3
+C_O_FLAG_NORM:=-O2
+C_O_FLAG_NONE:=-O0
+C_O_FLAG_SIZE:=-Os
+CXX_O_FLAG_HIGHEST_JVM:=-O3
+CXX_O_FLAG_HIGHEST:=-O3
+CXX_O_FLAG_HI:=-O3
+CXX_O_FLAG_NORM:=-O2
+CXX_O_FLAG_NONE:=-O0
+CXX_O_FLAG_SIZE:=-Os
+
+C_FLAG_DEPS:=-MMD -MF
+CXX_FLAG_DEPS:=-MMD -MF
+
+DISABLE_WARNING_PREFIX := -Wno-
+CFLAGS_WARNINGS_ARE_ERRORS:=-Werror
+DISABLED_WARNINGS := unknown-warning-option unused-parameter unused
+DISABLED_WARNINGS_C := 
+DISABLED_WARNINGS_CXX := 
+
+# A global flag (true or false) determining if native warnings are considered errors.
+WARNINGS_AS_ERRORS := true
+
+CFLAGS_CCACHE:=
+ADLC_LANGSTD_CXXFLAGS=-std=c++14
+ADLC_LDFLAGS=
+
+# Tools that potentially need to be cross compilation aware.
+CC :=   /usr/bin/clang
+
+# CFLAGS used to compile the jdk native libraries (C-code)
+CFLAGS_JDKLIB:=       -I$(SUPPORT_OUTPUTDIR)/modules_include/java.base       -I$(SUPPORT_OUTPUTDIR)/modules_include/java.base/$(OPENJDK_TARGET_OS_INCLUDE_SUBDIR)       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/java.base/share/native/libjava       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/java.base/unix/native/libjava       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/hotspot/share/include       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/hotspot/os/posix/include         -DMAC_OS_X_VERSION_MIN_REQUIRED=10120         -mmacosx-version-min=10.12.0 -DLIBC=default -D_ALLBSD_SOURCE -D_DARWIN_UNLIMITED_SELECT -DMACOSX -DNDEBUG        -Wall -Wextra -Wformat=2 -Wpointer-arith -Wsign-compare -Wreorder           -Wunused-function -Wundef -Wunused-value -Woverloaded-virtual         -fmacro-prefix-map=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/=  -std=c99          -m64  -D_LITTLE_ENDIAN -DARCH='"x86_64"'       -Dx86_64 -D_LP64=1           
+CXXFLAGS_JDKLIB:=       -I$(SUPPORT_OUTPUTDIR)/modules_include/java.base       -I$(SUPPORT_OUTPUTDIR)/modules_include/java.base/$(OPENJDK_TARGET_OS_INCLUDE_SUBDIR)       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/java.base/share/native/libjava       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/java.base/unix/native/libjava       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/hotspot/share/include       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/hotspot/os/posix/include         -DMAC_OS_X_VERSION_MIN_REQUIRED=10120         -mmacosx-version-min=10.12.0 -DLIBC=default -D_ALLBSD_SOURCE -D_DARWIN_UNLIMITED_SELECT -DMACOSX -DNDEBUG        -Wall -Wextra -Wformat=2 -Wpointer-arith -Wsign-compare -Wreorder           -Wunused-function -Wundef -Wunused-value -Woverloaded-virtual         -fmacro-prefix-map=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/=          -std=c++14               -m64  -D_LITTLE_ENDIAN -DARCH='"x86_64"'       -Dx86_64 -D_LP64=1           
+
+# CFLAGS used to compile the jdk native launchers (C-code)
+CFLAGS_JDKEXE:=       -I$(SUPPORT_OUTPUTDIR)/modules_include/java.base       -I$(SUPPORT_OUTPUTDIR)/modules_include/java.base/$(OPENJDK_TARGET_OS_INCLUDE_SUBDIR)       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/java.base/share/native/libjava       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/java.base/unix/native/libjava       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/hotspot/share/include       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/hotspot/os/posix/include         -DMAC_OS_X_VERSION_MIN_REQUIRED=10120         -mmacosx-version-min=10.12.0 -DLIBC=default -D_ALLBSD_SOURCE -D_DARWIN_UNLIMITED_SELECT -DMACOSX -DNDEBUG        -Wall -Wextra -Wformat=2 -Wpointer-arith -Wsign-compare -Wreorder           -Wunused-function -Wundef -Wunused-value -Woverloaded-virtual         -fmacro-prefix-map=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/=  -std=c99          -m64  -D_LITTLE_ENDIAN -DARCH='"x86_64"'       -Dx86_64 -D_LP64=1    -fPIE
+CXXFLAGS_JDKEXE:=       -I$(SUPPORT_OUTPUTDIR)/modules_include/java.base       -I$(SUPPORT_OUTPUTDIR)/modules_include/java.base/$(OPENJDK_TARGET_OS_INCLUDE_SUBDIR)       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/java.base/share/native/libjava       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/java.base/unix/native/libjava       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/hotspot/share/include       -I/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/src/hotspot/os/posix/include         -DMAC_OS_X_VERSION_MIN_REQUIRED=10120         -mmacosx-version-min=10.12.0 -DLIBC=default -D_ALLBSD_SOURCE -D_DARWIN_UNLIMITED_SELECT -DMACOSX -DNDEBUG        -Wall -Wextra -Wformat=2 -Wpointer-arith -Wsign-compare -Wreorder           -Wunused-function -Wundef -Wunused-value -Woverloaded-virtual         -fmacro-prefix-map=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/=          -std=c++14               -m64  -D_LITTLE_ENDIAN -DARCH='"x86_64"'       -Dx86_64 -D_LP64=1    -fPIE
+
+FDLIBM_CFLAGS := -ffp-contract=off
+JVM_CFLAGS := -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -D_GNU_SOURCE       -pipe -fno-rtti -fno-exceptions         -fvisibility=hidden -fno-strict-aliasing -fno-omit-frame-pointer -flimit-debug-info -mno-omit-leaf-frame-pointer -mstack-alignment=16 -std=c++14        -DMAC_OS_X_VERSION_MIN_REQUIRED=10120         -mmacosx-version-min=10.12.0 -DLIBC=default  -D_ALLBSD_SOURCE -D_DARWIN_C_SOURCE -D_XOPEN_SOURCE        -Wall -Wextra -Wformat=2 -Wpointer-arith -Wsign-compare -Wreorder           -Wunused-function -Wundef -Wunused-value -Woverloaded-virtual  -fPIC -fmacro-prefix-map=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/=        -DVM_LITTLE_ENDIAN -D_LP64=1     -m64 
+JVM_LDFLAGS :=  -mno-omit-leaf-frame-pointer -mstack-alignment=16         -fPIC -mmacosx-version-min=10.12.0 -Wl,-rpath,@loader_path/. -Wl,-rpath,@loader_path/..                  -m64         
+JVM_ASFLAGS := -x assembler-with-cpp -mno-omit-leaf-frame-pointer -mstack-alignment=16 -m64 
+JVM_LIBS := -lm
+
+# These flags might contain variables set by a custom extension that is included later.
+EXTRA_CFLAGS = -m64 
+EXTRA_CXXFLAGS = -m64 
+EXTRA_LDFLAGS = -m64 
+EXTRA_ASFLAGS = 
+
+CXX :=   /usr/bin/clang++
+
+CPP := /usr/bin/clang -E
+
+# The linker can be gcc or ld on unix systems, or link.exe on windows systems.
+LD := /usr/bin/clang
+
+# Linker used by the jaotc tool for AOT compilation.
+LD_JAOTC:=/usr/bin/ld
+
+# Xcode SDK path
+SDKROOT:=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk
+
+# LDFLAGS used to link the jdk native libraries (C-code)
+LDFLAGS_JDKLIB:=        -mmacosx-version-min=10.12.0  -m64         -L$(SUPPORT_OUTPUTDIR)/modules_libs/java.base         -L$(SUPPORT_OUTPUTDIR)/modules_libs/java.base/server -dynamiclib -compatibility_version 1.0.0 -current_version 1.0.0        
+JDKLIB_LIBS:=-ljava -ljvm
+
+# LDFLAGS used to link the jdk native launchers (C-code)
+LDFLAGS_JDKEXE:=        -mmacosx-version-min=10.12.0  -m64           
+JDKEXE_LIBS:=
+
+# LDFLAGS specific to C++ linking.
+LDFLAGS_CXX_JDK:=  
+
+# Sometimes a different linker is needed for c++ libs
+LDCXX := /usr/bin/clang++
+# The flags for linking libstdc++ linker.
+LIBCXX:=
+
+# Compiler and linker flags used when building native tests
+LDFLAGS_TESTEXE:=-L$(SUPPORT_OUTPUTDIR)/modules_libs/java.base         -L$(SUPPORT_OUTPUTDIR)/modules_libs/java.base/server
+
+# BUILD_CC/BUILD_LD is a compiler/linker that generates code that is runnable on the
+# build platform.
+BUILD_CC :=  /usr/bin/clang
+BUILD_CXX :=  /usr/bin/clang++
+BUILD_LD := /usr/bin/clang
+BUILD_LDCXX := /usr/bin/clang++
+BUILD_AS := /usr/bin/clang -c
+BUILD_AR := /usr/bin/ar
+BUILD_NM := /usr/bin/nm
+BUILD_OBJCOPY:=
+BUILD_STRIP:=/usr/bin/strip
+BUILD_SYSROOT_CFLAGS:=-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks
+BUILD_SYSROOT_LDFLAGS:=-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks
+
+AS := /usr/bin/clang -c
+
+# AR is used to create a static library (is ar in unix, lib.exe in windows)
+AR := /usr/bin/ar
+ARFLAGS:=
+
+NM:=/usr/bin/nm
+GNM:=/usr/bin/nm
+STRIP:=/usr/bin/strip
+OBJDUMP:=/usr/bin/objdump
+CXXFILT:=/usr/bin/c++filt
+
+LIPO:=/usr/bin/lipo
+INSTALL_NAME_TOOL:=/usr/bin/install_name_tool
+
+# Options to linker to specify a mapfile.
+# (Note absence of := assignment, because we do not want to evaluate the macro body here)
+SET_SHARED_LIBRARY_MAPFILE=-Wl,-exported_symbols_list,$1
+
+#
+# Options for generating debug symbols
+COMPILE_WITH_DEBUG_SYMBOLS := true
+COPY_DEBUG_SYMBOLS := true
+ZIP_EXTERNAL_DEBUG_SYMBOLS := false
+
+CFLAGS_DEBUG_SYMBOLS:=-g
+ASFLAGS_DEBUG_SYMBOLS:=-g
+
+#
+# Compress (or not) jars
+COMPRESS_JARS=false
+
+# Options to linker to specify the library name.
+# (Note absence of := assignment, because we do not want to evaluate the macro body here)
+SET_SHARED_LIBRARY_NAME=-Wl,-install_name,@rpath/$1
+
+SHARED_LIBRARY_FLAGS=-dynamiclib -compatibility_version 1.0.0 -current_version 1.0.0
+
+# Set origin using the linker, ie use the relative path to the dependent library to find the dependees.
+# (Note absence of := assignment, because we do not want to evaluate the macro body here)
+SET_SHARED_LIBRARY_ORIGIN=-Wl,-rpath,@loader_path$(or $1,/.)
+SET_EXECUTABLE_ORIGIN=-Wl,-rpath,@loader_path$(or $1,/.)
+
+# Different OS:es have different ways of naming shared libraries.
+# The SHARED_LIBRARY macro takes "verify" as and argument and returns:
+#    "libverify.so" or "libverify.dylib" or "verify.dll" depending on platform.
+# (Note absence of := assignment, because we do not want to evaluate the macro body here)
+SHARED_LIBRARY=lib$1.dylib
+STATIC_LIBRARY=lib$1.a
+LIBRARY_PREFIX:=lib
+SHARED_LIBRARY_SUFFIX:=.dylib
+STATIC_LIBRARY_SUFFIX:=.a
+EXECUTABLE_SUFFIX:=
+OBJ_SUFFIX:=.o
+STATIC_BUILD:=false
+
+STRIPFLAGS:=-S
+
+JAVA_FLAGS:= -Duser.language=en -Duser.country=US  -XX:+UnlockDiagnosticVMOptions -XX:-VerifySharedSpaces -XX:SharedArchiveFile=/Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/build/macosx-x86_64-server-release/configure-support/classes.jsa -Xshare:auto 
+JAVA_FLAGS_BIG:= -Xms64M -Xmx1600M
+JAVA_FLAGS_SMALL:= -XX:+UseSerialGC -Xms32M -Xmx512M -XX:TieredStopAtLevel=1
+BUILDJDK_JAVA_FLAGS_SMALL:=-Xms32M -Xmx512M -XX:TieredStopAtLevel=1
+JAVA_TOOL_FLAGS_SMALL:= -J-XX:+UseSerialGC -J-Xms32M -J-Xmx512M -J-XX:TieredStopAtLevel=1
+
+# The *_CMD variables are defined separately to be easily overridden in bootcycle-spec.gmk
+# for bootcycle-images build. Make sure to keep them in sync. Do not use the *_CMD
+# versions of the variables directly.
+JAVA_CMD:=/usr/local/Cellar/openjdk/15.0.1/libexec/openjdk.jdk/Contents/Home/bin/java
+JAVAC_CMD:=/usr/local/Cellar/openjdk/15.0.1/libexec/openjdk.jdk/Contents/Home/bin/javac
+JAVADOC_CMD:=/usr/local/Cellar/openjdk/15.0.1/libexec/openjdk.jdk/Contents/Home/bin/javadoc
+JAR_CMD:=/usr/local/Cellar/openjdk/15.0.1/libexec/openjdk.jdk/Contents/Home/bin/jar
+JLINK_CMD := $(JDK_OUTPUTDIR)/bin/jlink
+JMOD_CMD := $(JDK_OUTPUTDIR)/bin/jmod
+# These variables are meant to be used. They are defined with = instead of := to make
+# it possible to override only the *_CMD variables.
+JAVA = $(JAVA_CMD) $(JAVA_FLAGS_BIG) $(JAVA_FLAGS)
+JAVA_SMALL = $(JAVA_CMD) $(JAVA_FLAGS_SMALL) $(JAVA_FLAGS)
+JAVAC = $(JAVAC_CMD)
+JAVADOC = $(JAVADOC_CMD)
+JAR = $(JAR_CMD)
+JLINK = $(JLINK_CMD)
+JMOD = $(JMOD_CMD) $(JAVA_TOOL_FLAGS_SMALL)
+
+BUILD_JAVA_FLAGS := -Xms64M -Xmx1600M
+BUILD_JAVA= $(BUILD_JDK)/bin/java $(BUILD_JAVA_FLAGS)
+BUILD_JAVAC= $(BUILD_JDK)/bin/javac
+BUILD_JAR= $(BUILD_JDK)/bin/jar
+
+DOCS_REFERENCE_JAVADOC := 
+
+# Interim langtools modules and arguments
+INTERIM_LANGTOOLS_BASE_MODULES := java.compiler jdk.compiler jdk.javadoc
+INTERIM_LANGTOOLS_MODULES := $(addsuffix .interim, $(INTERIM_LANGTOOLS_BASE_MODULES))
+INTERIM_LANGTOOLS_ADD_EXPORTS := \
+    --add-exports java.base/sun.reflect.annotation=jdk.compiler.interim \
+    --add-exports java.base/jdk.internal.jmod=jdk.compiler.interim \
+    --add-exports java.base/jdk.internal.misc=jdk.compiler.interim \
+    --add-exports java.base/sun.invoke.util=jdk.compiler.interim \
+    --add-exports java.base/jdk.internal.javac=java.compiler.interim \
+    --add-exports java.base/jdk.internal.javac=jdk.compiler.interim \
+    #
+INTERIM_LANGTOOLS_MODULES_COMMA := $(strip $(subst $(SPACE),$(COMMA),$(strip \
+    $(INTERIM_LANGTOOLS_MODULES))))
+INTERIM_LANGTOOLS_ARGS := \
+    --limit-modules java.base,jdk.zipfs,$(INTERIM_LANGTOOLS_MODULES_COMMA) \
+    --add-modules $(INTERIM_LANGTOOLS_MODULES_COMMA) \
+    --module-path $(BUILDTOOLS_OUTPUTDIR)/interim_langtools_modules \
+    --patch-module java.base=$(BUILDTOOLS_OUTPUTDIR)/gensrc/java.base.interim \
+    $(INTERIM_LANGTOOLS_ADD_EXPORTS) \
+    #
+JAVAC_MAIN_CLASS = -m jdk.compiler.interim/com.sun.tools.javac.Main
+JAVADOC_MAIN_CLASS = -m jdk.javadoc.interim/jdk.javadoc.internal.tool.Main
+
+# You run the new javac using the boot jdk with $(BOOT_JDK)/bin/java $(NEW_JAVAC) ...
+# Use = assignment to be able to override in bootcycle-spec.gmk
+NEW_JAVAC   = $(INTERIM_LANGTOOLS_ARGS) $(JAVAC_MAIN_CLASS)
+NEW_JAVADOC = $(INTERIM_LANGTOOLS_ARGS) $(JAVADOC_MAIN_CLASS)
+
+JLINK_KEEP_PACKAGED_MODULES:=true
+
+RCFLAGS := 
+
+# Tools adhering to a minimal and common standard of posix compliance.
+AWK:=/opt/local/bin/gawk
+BASENAME:=/usr/bin/basename
+CAT:=/bin/cat
+CCACHE:=
+# CD is going away, but remains to cater for legacy makefiles.
+CD:=cd
+CHMOD:=/bin/chmod
+CODESIGN:=
+CP:=/bin/cp
+CUT:=/usr/bin/cut
+DATE:=/bin/date
+DIFF:=/usr/bin/diff
+DIRNAME:=/usr/bin/dirname
+DSYMUTIL:=/usr/bin/dsymutil
+FIND:=/usr/bin/find
+FIND_DELETE:=-delete
+FLOCK:=
+ECHO:=echo
+EGREP:=/usr/bin/grep -E
+FGREP:=/usr/bin/grep -F
+GREP:=/usr/bin/grep
+GZIP:=/usr/bin/gzip
+HEAD:=/usr/bin/head
+LS:=/bin/ls
+LN:=/bin/ln
+MIG:=/usr/bin/mig
+MKDIR:=/bin/mkdir
+MV:=/bin/mv
+NICE:=/usr/bin/nice
+PANDOC:=/usr/local/bin/pandoc
+PATCH:=/usr/bin/patch
+PRINTF:=printf
+READLINK:=/usr/bin/readlink
+RM:=/bin/rm -f
+RMDIR:=/bin/rmdir
+SED:=/usr/bin/sed
+SH:=/bin/sh
+SORT:=/usr/bin/sort
+TAR:=/usr/bin/tar
+TAIL:=/usr/bin/tail
+TEE:=/usr/bin/tee
+TIME:=time
+IS_GNU_TIME:=no
+TR:=/usr/bin/tr
+TOUCH:=/usr/bin/touch
+WC:=/usr/bin/wc
+XARGS:=/usr/bin/xargs
+ZIPEXE:=/usr/bin/zip
+UNZIP:=/usr/bin/unzip
+MT:=
+RC:=
+DUMPBIN:=
+PATHTOOL:=
+WSLPATH:=@WSLPATH@
+LDD:=
+OTOOL:=/usr/bin/otool
+READELF:=
+EXPR:=/bin/expr
+FILE:=/usr/bin/file
+DOT:=/opt/local/bin/dot
+HG:=
+GIT:=/usr/bin/git
+OBJCOPY:=
+SETFILE:=/usr/bin/SetFile
+XATTR:=/usr/bin/xattr
+JT_HOME:=
+JIB_HOME:=
+XCODEBUILD=/usr/bin/xcodebuild
+DTRACE := /usr/sbin/dtrace
+FIXPATH := 
+FIXPATH_BASE := 
+ULIMIT:=ulimit
+
+TAR_TYPE:=bsd
+TAR_INCLUDE_PARAM:=I
+TAR_SUPPORTS_TRANSFORM:=false
+
+# Build setup
+ENABLE_AOT:=true
+USE_EXTERNAL_LIBJPEG:=false
+USE_EXTERNAL_LIBGIF:=false
+USE_EXTERNAL_LIBZ:=true
+LIBZ_CFLAGS:=
+LIBZ_LIBS:=-lz
+LIBZIP_CAN_USE_MMAP:=true
+MSVCR_DLL:=
+VCRUNTIME_1_DLL:=
+MSVCP_DLL:=
+UCRT_DLL_DIR:=
+ENABLE_PANDOC:=true
+PANDOC_MARKDOWN_FLAG:=markdown-smart
+
+####################################################
+#
+# INSTALLATION
+#
+
+# Common prefix for all installed files. Defaults to /usr/local,
+# but /opt/myjdk is another common version.
+INSTALL_PREFIX=/usr/local
+
+# Directories containing architecture-dependent files should be relative to exec_prefix
+INSTALL_EXECPREFIX=${prefix}
+
+# java,javac,javap etc are installed here.
+INSTALL_BINDIR=${exec_prefix}/bin
+
+# Read only architecture-independent data
+INSTALL_DATADIR=${datarootdir}
+
+# Root of above.
+INSTALL_DATAROOTDIR=${prefix}/share
+
+# Doc files, other than info and man.
+INSTALL_DOCDIR=${datarootdir}/doc/${PACKAGE_TARNAME}
+
+# Html documentation
+INSTALL_HTMLDIR=${docdir}
+
+# Installing C header files, JNI headers for example.
+INSTALL_INCLUDEDIR=${prefix}/include
+
+# Installing library files....
+INSTALL_INCLUDEDIR=${exec_prefix}/lib
+
+# Executables that other programs run.
+INSTALL_LIBEXECDIR=${exec_prefix}/libexec
+
+# Locale-dependent but architecture-independent data, such as message catalogs.
+INSTALL_LOCALEDIR=${datarootdir}/locale
+
+# Modifiable single-machine data
+INSTALL_LOCALSTATEDIR=${prefix}/var
+
+# Man pages
+INSTALL_MANDIR=${datarootdir}/man
+
+# Modifiable architecture-independent data.
+INSTALL_SHAREDSTATEDIR=${prefix}/com
+
+# Read-only single-machine data
+INSTALL_SYSCONFDIR=${prefix}/etc
+
+####################################################
+#
+# Libraries
+#
+
+USE_EXTERNAL_LCMS:=false
+LCMS_CFLAGS:=
+LCMS_LIBS:=
+
+USE_EXTERNAL_HARFBUZZ:=false
+HARFBUZZ_CFLAGS:=
+HARFBUZZ_LIBS:=
+
+USE_EXTERNAL_LIBPNG:=false
+PNG_LIBS:=
+PNG_CFLAGS:=
+
+####################################################
+#
+# Misc
+#
+
+INCLUDE_SA=true
+INCLUDE_GRAAL=true
+INCLUDE_JVMCI=true
+
+OS_VERSION_MAJOR:=20
+OS_VERSION_MINOR:=2
+OS_VERSION_MICRO:=0
+
+# Images directory definitions
+JDK_IMAGE_SUBDIR:=jdk
+JRE_IMAGE_SUBDIR:=jre
+JCOV_IMAGE_SUBDIR := jdk-jcov
+
+# Colon left out to be able to override output dir for bootcycle-images
+JDK_IMAGE_DIR=$(IMAGES_OUTPUTDIR)/$(JDK_IMAGE_SUBDIR)
+JRE_IMAGE_DIR=$(IMAGES_OUTPUTDIR)/$(JRE_IMAGE_SUBDIR)
+JCOV_IMAGE_DIR = $(IMAGES_OUTPUTDIR)/$(JCOV_IMAGE_SUBDIR)
+
+# Test image, as above
+TEST_IMAGE_SUBDIR:=test
+TEST_IMAGE_DIR=$(IMAGES_OUTPUTDIR)/$(TEST_IMAGE_SUBDIR)
+
+# Symbols image
+SYMBOLS_IMAGE_SUBDIR:=symbols
+SYMBOLS_IMAGE_DIR=$(IMAGES_OUTPUTDIR)/$(SYMBOLS_IMAGE_SUBDIR)
+
+# Interim image
+INTERIM_JMODS_DIR := $(SUPPORT_OUTPUTDIR)/interim-jmods
+INTERIM_IMAGE_DIR := $(SUPPORT_OUTPUTDIR)/interim-image
+
+# Docs image
+DOCS_JDK_IMAGE_SUBDIR := docs
+DOCS_JDK_IMAGE_DIR = $(IMAGES_OUTPUTDIR)/$(DOCS_JDK_IMAGE_SUBDIR)
+DOCS_JAVASE_IMAGE_SUBDIR := docs-javase
+DOCS_JAVASE_IMAGE_DIR = $(IMAGES_OUTPUTDIR)/$(DOCS_JAVASE_IMAGE_SUBDIR)
+DOCS_REFERENCE_IMAGE_SUBDIR := docs-reference
+DOCS_REFERENCE_IMAGE_DIR = $(IMAGES_OUTPUTDIR)/$(DOCS_REFERENCE_IMAGE_SUBDIR)
+# Output docs directly into image
+DOCS_OUTPUTDIR := $(DOCS_JDK_IMAGE_DIR)
+
+# Static libs image
+STATIC_LIBS_IMAGE_SUBDIR := static-libs
+STATIC_LIBS_IMAGE_DIR := $(IMAGES_OUTPUTDIR)/$(STATIC_LIBS_IMAGE_SUBDIR)
+
+# Graal builder image
+GRAAL_BUILDER_IMAGE_SUBDIR := graal-builder-jdk
+GRAAL_BUILDER_IMAGE_DIR := $(IMAGES_OUTPUTDIR)/$(GRAAL_BUILDER_IMAGE_SUBDIR)
+
+# Macosx bundles directory definitions
+JDK_MACOSX_BUNDLE_SUBDIR=jdk-bundle
+JRE_MACOSX_BUNDLE_SUBDIR=jre-bundle
+JDK_MACOSX_BUNDLE_SUBDIR_SIGNED=jdk-bundle-signed
+JRE_MACOSX_BUNDLE_SUBDIR_SIGNED=jre-bundle-signed
+JDK_MACOSX_BUNDLE_DIR=$(IMAGES_OUTPUTDIR)/$(JDK_MACOSX_BUNDLE_SUBDIR)
+JRE_MACOSX_BUNDLE_DIR=$(IMAGES_OUTPUTDIR)/$(JRE_MACOSX_BUNDLE_SUBDIR)
+JDK_MACOSX_BUNDLE_DIR_SIGNED=$(IMAGES_OUTPUTDIR)/$(JDK_MACOSX_BUNDLE_SUBDIR_SIGNED)
+JRE_MACOSX_BUNDLE_DIR_SIGNED=$(IMAGES_OUTPUTDIR)/$(JRE_MACOSX_BUNDLE_SUBDIR_SIGNED)
+JDK_MACOSX_BUNDLE_TOP_DIR=jdk-$(VERSION_NUMBER).jdk
+JRE_MACOSX_BUNDLE_TOP_DIR=jre-$(VERSION_NUMBER).jre
+JDK_MACOSX_CONTENTS_SUBDIR=$(JDK_MACOSX_BUNDLE_TOP_DIR)/Contents
+JRE_MACOSX_CONTENTS_SUBDIR=$(JRE_MACOSX_BUNDLE_TOP_DIR)/Contents
+JDK_MACOSX_CONTENTS_DIR=$(JDK_MACOSX_BUNDLE_DIR)/$(JDK_MACOSX_CONTENTS_SUBDIR)
+JRE_MACOSX_CONTENTS_DIR=$(JRE_MACOSX_BUNDLE_DIR)/$(JRE_MACOSX_CONTENTS_SUBDIR)
+
+# Bundle names
+BASE_NAME := $(VERSION_SHORT)+$(VERSION_BUILD)_$(OPENJDK_TARGET_BUNDLE_PLATFORM)
+ifeq ($(DEBUG_LEVEL), fastdebug)
+  DEBUG_PART := -debug
+else ifneq ($(DEBUG_LEVEL), release)
+  DEBUG_PART := -$(DEBUG_LEVEL)
+endif
+ifeq ($(OPENJDK_TARGET_OS), windows)
+  JDK_BUNDLE_EXTENSION := zip
+else
+  JDK_BUNDLE_EXTENSION := tar.gz
+endif
+JDK_BUNDLE_NAME := jdk-$(BASE_NAME)_bin$(DEBUG_PART).$(JDK_BUNDLE_EXTENSION)
+JRE_BUNDLE_NAME := jre-$(BASE_NAME)_bin$(DEBUG_PART).$(JDK_BUNDLE_EXTENSION)
+JDK_SYMBOLS_BUNDLE_NAME := jdk-$(BASE_NAME)_bin$(DEBUG_PART)-symbols.tar.gz
+TEST_DEMOS_BUNDLE_NAME := jdk-$(BASE_NAME)_bin-tests-demos$(DEBUG_PART).tar.gz
+TEST_BUNDLE_NAME := jdk-$(BASE_NAME)_bin-tests$(DEBUG_PART).tar.gz
+DOCS_JDK_BUNDLE_NAME := jdk-$(BASE_NAME)_doc-api-spec$(DEBUG_PART).tar.gz
+DOCS_JAVASE_BUNDLE_NAME := javase-$(BASE_NAME)_doc-api-spec$(DEBUG_PART).tar.gz
+DOCS_REFERENCE_BUNDLE_NAME := jdk-reference-$(BASE_NAME)_doc-api-spec$(DEBUG_PART).tar.gz
+STATIC_LIBS_BUNDLE_NAME := jdk-$(BASE_NAME)_bin-static-libs$(DEBUG_PART).tar.gz
+JCOV_BUNDLE_NAME := jdk-jcov-$(BASE_NAME)_bin$(DEBUG_PART).$(JDK_BUNDLE_EXTENSION)
+
+JDK_BUNDLE := $(BUNDLES_OUTPUTDIR)/$(JDK_BUNDLE_NAME)
+JRE_BUNDLE :=  $(BUNDLES_OUTPUTDIR)/$(JRE_BUNDLE_NAME)
+JDK_SYMBOLS_BUNDLE :=  $(BUNDLES_OUTPUTDIR)/$(JDK_SYMBOLS_BUNDLE_NAME)
+TEST_DEMOS_BUNDLE := $(BUNDLES_OUTPUTDIR)/$(TEST_DEMOS_BUNDLE_NAME)
+TEST_BUNDLE :=  $(BUNDLES_OUTPUTDIR)/$(TEST_BUNDLE_NAME)
+DOCS_JDK_BUNDLE :=  $(BUNDLES_OUTPUTDIR)/$(DOCS_JDK_BUNDLE_NAME)
+DOCS_JAVASE_BUNDLE :=  $(BUNDLES_OUTPUTDIR)/$(DOCS_JAVASE_BUNDLE_NAME)
+DOCS_REFERENCE_BUNDLE :=  $(BUNDLES_OUTPUTDIR)/$(DOCS_REFERENCE_BUNDLE_NAME)
+JCOV_BUNDLE := $(BUNDLES_OUTPUTDIR)/$(JCOV_BUNDLE_NAME)
+
+# This macro is called to allow inclusion of closed source counterparts.
+# Unless overridden in closed sources, it expands to nothing.
+# Usage: This function is called in an open makefile, with the following
+# argument:
+# $1 the name of the makefile
+define IncludeCustomExtension
+endef
+
+# Include the custom-spec.gmk file if it exists
+-include $(dir /Users/davidcok/projects/OpenJMLB/OpenJML/OpenJDKModule/build/macosx-x86_64-server-release/spec.gmk)/custom-spec.gmk
