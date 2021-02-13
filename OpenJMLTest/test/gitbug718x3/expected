@@ -1,0 +1,13 @@
+test/gitbug718x3/test3.java:29: error: Quantifier bodies may not contain constructors: test3()
+		//@ assert \exists int j; 0 <= j < test.binarr.length; k/(new test3()).binarr[j]==1;
+		                                                          ^
+Proving methods in test3
+Starting proof of test3.test() with prover !!!!
+error: ESC could not be attempted because of a failure in typechecking or AST transformation: test
+Completed proof of test3.test() with prover !!!! - ERROR
+Starting proof of test3.test3() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of test3.test3() with prover !!!! - no warnings
+Completed proving methods in test3
+2 errors

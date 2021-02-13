@@ -1,0 +1,10 @@
+Proving methods in Swap
+Starting proof of Swap.Swap() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Swap.Swap() with prover !!!! - no warnings
+Starting proof of Swap.<T>swap(int,int,T[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Swap.<T>swap(int,int,T[]) with prover !!!! - no warnings
+Completed proving methods in Swap
