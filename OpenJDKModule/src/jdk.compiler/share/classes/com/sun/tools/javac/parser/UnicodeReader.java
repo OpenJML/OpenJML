@@ -47,7 +47,7 @@ public class UnicodeReader {
      * Buffer containing characters from source file. May contain extraneous characters
      * beyond this.length.
      */
-    private final char[] buffer;
+    protected final char[] buffer; // OPENJML - private to protected
 
     /**
      * Length of meaningful content in buffer.
@@ -57,20 +57,20 @@ public class UnicodeReader {
     /**
      * Character buffer index of character currently being observed.
      */
-    private int position;
+    protected int position; // OPENJML - private to protected
 
     /**
      * Number of characters combined to provide character currently being observed. Typically
      * one, but may be more when combinations of surrogate pairs and unicode escape sequences
      * are read.
      */
-    private int width;
+    protected int width; // OPENJML - private to protected
 
     /**
      * Character currently being observed. If a surrogate pair is read then will be the high
      * member of the pair.
      */
-    private char character;
+    protected char character; // OPENJML - private to protected
 
     /**
      * Codepoint of character currently being observed. Typically equivalent to the character
@@ -147,7 +147,7 @@ public class UnicodeReader {
             width++;
         }
     }
-
+    
     /**
      * Fetches the next 16-bit character from the buffer. If an unicode escape
      * is detected then converts the unicode escape to a character.

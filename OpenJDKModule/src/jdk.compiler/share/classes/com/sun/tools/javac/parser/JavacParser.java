@@ -85,6 +85,11 @@ public class JavacParser implements Parser {
     /** The scanner used for lexical analysis.
      */
     protected Lexer S;
+    
+    /** Returns the scanner being used by the parser */
+    public Scanner getScanner() {  // OPENJML - added
+        return (Scanner)S;
+    }
 
     /** The factory to be used for abstract syntax tree construction.
      */
@@ -534,7 +539,7 @@ public class JavacParser implements Parser {
         return endPosTable.to(t);
     }
 
-    protected <T extends JCTree> T toP(T t) {
+    public <T extends JCTree> T toP(T t) { // OPENJML - TEMP protected to public
         return endPosTable.toP(t);
     }
 

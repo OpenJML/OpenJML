@@ -90,6 +90,8 @@ public abstract class AbstractLog {
         return source;
     }
 
+    public JCDiagnostic.Factory factory() { return diags; } // OPENJML - added
+
     /** Report an error, unless another error was already reported at same
      *  source position.
      *  @param key    The key for the localized error message.
