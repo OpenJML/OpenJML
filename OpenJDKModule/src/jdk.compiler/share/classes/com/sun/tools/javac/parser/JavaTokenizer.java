@@ -77,7 +77,7 @@ public class JavaTokenizer extends UnicodeReader {
     /**
      * The log to be used for error reporting. Copied from scanner factory.
      */
-    private final Log log;
+    protected final Log log; // OPENJML - private to protected
 
     /**
      * The token factory. Copied from scanner factory.
@@ -660,7 +660,7 @@ public class JavaTokenizer extends UnicodeReader {
     /**
      * Read an identifier. (Spec. 3.8)
      */
-    private void scanIdent() {
+    protected void scanIdent() { // OPENJML - private to protected
         putThenNext();
 
         do {
@@ -735,7 +735,7 @@ public class JavaTokenizer extends UnicodeReader {
      *
      * @return true if ch can be part of an operator.
      */
-    private boolean isSpecial(char ch) {
+    protected boolean isSpecial(char ch) { // OPENJML - private to protected
         switch (ch) {
         case '!': case '%': case '&': case '*': case '?':
         case '+': case '-': case ':': case '<': case '=':
@@ -751,7 +751,7 @@ public class JavaTokenizer extends UnicodeReader {
     /**
      * Read longest possible sequence of special characters and convert to token.
      */
-    private void scanOperator() {
+    protected void scanOperator() { // OPENJML - private to protected
         while (true) {
             put();
             TokenKind newtk = tokens.lookupKind(sb.toString());
@@ -768,6 +768,10 @@ public class JavaTokenizer extends UnicodeReader {
                 break;
             }
         }
+    }
+    
+    protected boolean checkInitialCommentChar(char c, CommentStyle style) { // OPENJML - added
+    	return false;
     }
 
     /**
@@ -915,6 +919,9 @@ public class JavaTokenizer extends UnicodeReader {
                     next();
 
                     if (accept('/')) { // (Spec. 3.7)
+                    	if (isAvailable()) {
+                    		if (checkInitialCommentChar(get(), CommentStyle.LINE)) break;
+                    	}
                         skipToEOLN();
 
                         if (isAvailable()) {
@@ -934,6 +941,10 @@ public class JavaTokenizer extends UnicodeReader {
                         } else {
                             style = CommentStyle.BLOCK;
                         }
+                    	if (isAvailable()) {
+                    		if (checkInitialCommentChar(get(),CommentStyle.BLOCK)) break;
+                    	}
+
 
                         if (!isEmpty) {
                             while (isAvailable()) {

@@ -48,7 +48,7 @@ public class Scanner implements Lexer {
 
     /** The token, set by nextToken().
      */
-    private Token token;
+    protected Token token; // OPENJML - private to protected
 
     /** The previous token, set by nextToken().
      */
@@ -56,9 +56,9 @@ public class Scanner implements Lexer {
 
     /** Buffer of saved tokens (used during lookahead)
      */
-    private List<Token> savedTokens = new ArrayList<>();
+    protected List<Token> savedTokens = new ArrayList<>(); // OPENJML - private to protected
 
-    private JavaTokenizer tokenizer;
+    protected JavaTokenizer tokenizer; // OPENJML - private to protected
 
     /**
      * Create a scanner from the input array.  This method might

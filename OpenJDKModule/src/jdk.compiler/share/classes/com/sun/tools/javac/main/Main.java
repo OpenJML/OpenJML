@@ -119,6 +119,7 @@ public class Main {
      * @param name the name of this tool
      */
     public Main(String name) {
+    	System.out.println("Starting Main: " + name);
         this.ownName = name;
     }
 
@@ -130,6 +131,7 @@ public class Main {
     public Main(String name, PrintWriter out) {
         this.ownName = name;
         this.stdOut = this.stdErr = out;
+    	System.out.println("Starting Main2: " + name);
     }
 
     /**

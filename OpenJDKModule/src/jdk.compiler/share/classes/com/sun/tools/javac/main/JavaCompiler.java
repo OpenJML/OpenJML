@@ -622,7 +622,8 @@ public class JavaCompiler {
      *  @param content      The characters to be parsed.
      */
     protected JCCompilationUnit parse(JavaFileObject filename, CharSequence content) {
-        long msec = now();
+    	//System.out.println(filename.getName());
+    	long msec = now();
         JCCompilationUnit tree = make.TopLevel(List.nil());
         if (content != null) {
             if (verbose) {
@@ -640,6 +641,7 @@ public class JavaCompiler {
             if (verbose) {
                 log.printVerbose("parsing.done", Long.toString(elapsed(msec)));
             }
+        	//System.out.println("DONE ");
         }
 
         tree.sourcefile = filename;
