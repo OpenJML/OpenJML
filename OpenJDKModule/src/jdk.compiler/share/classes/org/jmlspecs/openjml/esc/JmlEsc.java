@@ -359,9 +359,9 @@ public class JmlEsc extends JmlTreeScanner {
         } catch (Throwable e) {
             JCDiagnostic d;
             if (e instanceof SMTTranslator.JmlBVException) {
-                d = log.factory().create(JCDiagnostic.DiagnosticType.ERROR, log.currentSource(), methodDecl, "jml.message", "Proof aborted because bit-vector operations are not supported. Use option -escBV=true");
+            	d = utils.errorDiag(log.currentSource(), methodDecl, "jml.message", "Proof aborted because bit-vector operations are not supported. Use option -escBV=true");
             } else {
-                d = log.factory().create(JCDiagnostic.DiagnosticType.ERROR,log.currentSource(), null, "jml.internal","Prover aborted with exception: " + e.toString());
+            	d = utils.errorDiag(log.currentSource(), null, "jml.message", "jml.internal", "Prover aborted with exception: " + e.toString());
                 e.printStackTrace(System.out);
             }
             log.report(d);

@@ -249,8 +249,8 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 // Old -style //+@ or //-@ comments
                 
                 if (Options.instance(context).isSet("-Xlint:deprecation")) {
-                    log.warning(new DiagnosticPositionSE(commentStart,plusPosition, position()),
-                    		JCDiagnostic.Factory.instance(context).warningKey("jml.deprecated.conditional.annotation"));
+                    Utils.instance(context).warning(commentStart,plusPosition, position(),
+                    		"jml.deprecated.conditional.annotation");
                 }
 
                 // To be backward compatible at the moment,
@@ -799,7 +799,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     /** Records a lexical error (no valid token) at a single character position,
      * the resulting token is an ERROR token. */
     protected void jmlError(int pos, String key, Object... args) {
-        log.error(new DiagnosticPositionSE(pos,pos), JCDiagnostic.Factory.instance(context).errorKey(key,args));
+        Utils.instance(context).error(pos,pos, key,args);
         tk = TokenKind.ERROR;
         jmlTokenKind = null;
         jmlTokenClauseKind = null;
@@ -813,7 +813,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         // FIXME - the endPos -1 is not unicode friendly - and actually we'd like to adjust the
         // positions of pos and endpos to correspond to appropriate unicode boundaries, here and in
         // the other jmlError method
-        log.error(new DiagnosticPositionSE(pos,endpos-1), JCDiagnostic.Factory.instance(context).errorKey(key,args));
+        Utils.instance(context).error(pos,endpos, key,args);
         tk = TokenKind.ERROR;
         errPos(pos);
     }
@@ -827,48 +827,6 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         return position();
     }
     
-    /** A derived class of DiagnosticPosition that allows for straightforward setting of the
-     * various positions associated with an error message.
-     */
-    // FIXME - comment on relationship to unicode characters
-    static public class DiagnosticPositionSE implements DiagnosticPosition {
-        protected int begin;
-        protected int preferred;
-        protected int end; // The end character, NOT ONE CHARACTER BEYOND
-        
-        public DiagnosticPositionSE(int begin, int end) {
-            this.begin = begin;
-            this.preferred = begin;
-            this.end = end;
-        }
-        
-        public DiagnosticPositionSE(int begin, int preferred, int end) {
-            this.begin = begin;
-            this.preferred = preferred;
-            this.end = end;
-        }
-        
-        @Override
-        public JCTree getTree() {
-            return null;
-        }
-
-        @Override
-        public int getStartPosition() {
-            return begin;
-        }
-
-        @Override
-        public int getPreferredPosition() {
-            return preferred;
-        }
-
-        @Override
-        public int getEndPosition(EndPosTable endPosTable) {
-            return end;// FIXME
-        }
-        
-    }
     
 //    public BasicComment<UnicodeReader> makeJavaComment(int pos, int endPos, CommentStyle style) {
 //        char[] buf = reader.getRawCharacters(pos, endPos);

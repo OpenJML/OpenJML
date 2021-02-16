@@ -262,7 +262,7 @@ public class MethodProverSMT {
         String exec = pickProverExec(proverToUse);
         if (exec == null || exec.trim().isEmpty()) {
             //log.error("esc.no.exec",proverToUse); //$NON-NLS-1$
-            JCDiagnostic d = log.factory().create(JCDiagnostic.DiagnosticType.ERROR,log.currentSource(), null, "esc.no.exec",proverToUse);
+            JCDiagnostic d = utils.errorDiag(log.currentSource(), null,"esc.no.exec",proverToUse);
             log.report(d);
             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null).setOtherInfo(d);
         }
@@ -298,13 +298,13 @@ public class MethodProverSMT {
         // newBlock is the translated version of the method body, for a given split
         JCBlock newblock = translatedMethod.getBody();
         if (newblock == null) {
-            JCDiagnostic d = log.factory().create(JCDiagnostic.DiagnosticType.ERROR,log.currentSource(), null, "esc.no.typechecking",methodDecl.name.toString());
+            JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "esc.no.typechecking", methodDecl.name.toString());
             log.report(d);
             //log.error("esc.no.typechecking",methodDecl.name.toString()); //$NON-NLS-1$
             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null).setOtherInfo(d);
         }
         
-        if (printPrograms) {
+        if (printPrograms) { 
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
             log.getWriter(WriterKind.NOTICE).println(separator);
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
@@ -393,7 +393,7 @@ public class MethodProverSMT {
                 throw e;
             } catch (Exception e) {
                 //log.error("jml.internal", "Failed to convert to SMT: " + e);
-                JCDiagnostic d = log.factory().create(JCDiagnostic.DiagnosticType.WARNING,log.currentSource(), null, "jml.internal", "Failed to convert to SMT: " + e);
+                JCDiagnostic d = utils.warningDiag(log.currentSource(), null, "jml.internal", "Failed to convert to SMT: " + e);
                 log.report(d);
                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,new Date()).setOtherInfo(d);
             }
@@ -403,7 +403,7 @@ public class MethodProverSMT {
             solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
             if (solver == null) { 
             	//log.error("jml.solver.failed.to.start",exec);
-                JCDiagnostic d = log.factory().create(JCDiagnostic.DiagnosticType.ERROR,log.currentSource(), null, "jml.solver.failed.to.start",exec);
+                JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.solver.failed.to.start",exec);
                 log.report(d);
         		return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
             } else {
@@ -416,7 +416,7 @@ public class MethodProverSMT {
             		//log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
             	    solver.exit();
             	    solver = null;
-                    JCDiagnostic d = log.factory().create(JCDiagnostic.DiagnosticType.ERROR,log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), e.toString());
+                    JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), e.toString());
                     log.report(d);
             		return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
             	} finally {
@@ -455,7 +455,7 @@ public class MethodProverSMT {
                         msg += "\n>>>" + s;
                     } catch (Exception e) {}  // skip
                 }
-                JCDiagnostic d = log.factory().create(JCDiagnostic.DiagnosticType.ERROR,log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), msg);
+                JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), msg);
                 log.report(d);
                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
             }
@@ -530,7 +530,7 @@ public class MethodProverSMT {
                             } catch (Exception e) {
                                 // Not sure there is anything to worry about, but just in case
                                 //log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
-                                JCDiagnostic d = log.factory().create(JCDiagnostic.DiagnosticType.ERROR,log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), e.toString());
+                                JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), e.toString());
                                 log.report(d);
                                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
                             } finally {
@@ -572,7 +572,7 @@ public class MethodProverSMT {
                         } else if (solverResponse.isError()) {
                             if (usePushPop) solver.exit();
                             //log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
-                            JCDiagnostic d = log.factory().create(JCDiagnostic.DiagnosticType.ERROR,log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse));
+                            JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse));
                             log.report(d);
                             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
                         } else if (solverResponse.equals(smt.smtConfig.responseFactory.unknown())) {
@@ -627,7 +627,7 @@ public class MethodProverSMT {
                     if (solverResponse.isError()) {
                         solver.exit();
                         //log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
-                        JCDiagnostic d = log.factory().create(JCDiagnostic.DiagnosticType.ERROR,log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse));
+                        JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse));
                         log.report(d);
                         return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
                     }
@@ -743,7 +743,7 @@ public class MethodProverSMT {
 
                     if (solverResponse.isError()) {
                         //log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
-                        JCDiagnostic d = log.factory().create(JCDiagnostic.DiagnosticType.ERROR,log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse));
+                        JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse));
                         log.report(d);
                         return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
                     }

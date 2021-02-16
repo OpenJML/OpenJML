@@ -150,7 +150,7 @@ abstract public class Arithmetic extends ExpressionExtension {
         //attr.attribTypes(tree.typeargs, env);
         int n = tree.args.size();
         if (n != 1) {
-            error(tree.pos(),"jml.one.arg",token.internedName(),n);
+            utils.error(tree.pos,"jml.one.arg",token.internedName(),n);
         }
         Type t = syms.errType;
         if (n > 0) {

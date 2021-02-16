@@ -87,7 +87,7 @@ public class MiscExpressions extends ExpressionExtension {
                 }
                 if (parser.token().kind != RPAREN) {
                     if (!(e instanceof JCErroneous))
-                        parser.jmlerror(parser.pos(), parser.endPos(),
+                        utils.error(parser.pos(), parser.endPos(),
                                 "jml.bad.bstype.expr");
                     parser.skipThroughRightParen();
                 } else

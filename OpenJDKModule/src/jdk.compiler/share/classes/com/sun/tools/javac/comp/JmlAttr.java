@@ -6472,14 +6472,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
     }
     
-    public void jmlerror(int begin, int end, String key, Object... args) {
-        utils.error(new JmlTokenizer.DiagnosticPositionSE(begin,end-1),key,convertErrorArgs(args));
-    }
-
-    public void jmlerror(DiagnosticPosition tree, String key, Object... args) {
-        utils.error(new JmlTokenizer.DiagnosticPositionSE(tree.getPreferredPosition(),tree.getEndPosition(log.currentSource().getEndPosTable())),key,convertErrorArgs(args));
-    }
-    
+//    public void jmlerror(int begin, int end, String key, Object... args) {
+//        utils.error(new Utils.DiagnosticPositionSE(begin,end-1),key,convertErrorArgs(args));
+//    }
+//
+//    public void jmlerror(DiagnosticPosition tree, String key, Object... args) {
+//        utils.error(new Utils.DiagnosticPositionSE(tree.getPreferredPosition(),tree.getEndPosition(log.currentSource().getEndPosTable())),key,convertErrorArgs(args));
+//    }
+//    
     public Object[] convertErrorArgs(Object[] args) {
         Object[] out = new Object[args.length];
         for (int i=0; i<args.length; i++) {

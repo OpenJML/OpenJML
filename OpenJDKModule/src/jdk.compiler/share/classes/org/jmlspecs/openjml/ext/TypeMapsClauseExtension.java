@@ -46,14 +46,14 @@ public class TypeMapsClauseExtension extends JmlExtension {
         public JmlTypeClauseMaps parseMaps(int pos, JCModifiers mods,
                 ListBuffer<JCTree> list) {
             if (!parser.isNone(mods))
-                parser.jmlerror(mods.getStartPosition(), mods.getPreferredPosition(),
+                utils.error(mods.getStartPosition(), mods.getPreferredPosition(),
                         parser.getEndPos(mods), "jml.no.mods.allowed",
                         mapsClause.name());
             parser.nextToken(); // skip over the maps token
             JCExpression e = parseMapsTarget();
             ListBuffer<JmlGroupName> glist;
             if (parser.jmlTokenClauseKind() != intoKind) {
-                parser.jmlerror(parser.pos(), parser.endPos(), "jml.expected",
+                utils.error(parser.pos(), parser.endPos(), "jml.expected",
                         "an \\into token here, or the maps target is ill-formed");
                 glist = new ListBuffer<JmlGroupName>();
                 parser.skipThroughSemi();
@@ -61,7 +61,7 @@ public class TypeMapsClauseExtension extends JmlExtension {
                 parser.nextToken();
                 glist = parser.parseGroupNameList();
                 if (parser.token().kind != TokenKind.SEMI) {
-                    parser.jmlerror(parser.pos(), parser.endPos(), "jml.bad.construct",
+                    utils.error(parser.pos(), parser.endPos(), "jml.bad.construct",
                             "maps clause");
                     parser.skipThroughSemi();
                 } else {
@@ -75,7 +75,7 @@ public class TypeMapsClauseExtension extends JmlExtension {
         public JCExpression parseMapsTarget() {
             int p = parser.pos();
             if (parser.token().kind != IDENTIFIER) {
-                parser.jmlerror(parser.pos(), parser.endPos(), "jml.expected", "an identifier");
+                utils.error(parser.pos(), parser.endPos(), "jml.expected", "an identifier");
                 parser.skipThroughSemi();
                 return toP(parser.jmlF.at(p).Erroneous());
             }
@@ -92,7 +92,7 @@ public class TypeMapsClauseExtension extends JmlExtension {
                 } else if (parser.token().kind == IDENTIFIER) {
                     n = parser.ident();
                 } else {
-                    parser.jmlerror(parser.pos(), parser.endPos(), "jml.ident.or.star.after.dot");
+                    utils.error(parser.pos(), parser.endPos(), "jml.ident.or.star.after.dot");
                     parser.skipThroughSemi();
                     return toP(parser.jmlF.at(p).Erroneous());
                 }
@@ -100,7 +100,7 @@ public class TypeMapsClauseExtension extends JmlExtension {
                 // It is null to denote a wildcard selector
                 result = parser.to(parser.jmlF.at(p).Select(result, n));
             } else if (!(result instanceof JmlStoreRefArrayRange)) {
-                parser.jmlerror(parser.pos(), parser.endPos(), "jml.expected",
+                utils.error(parser.pos(), parser.endPos(), "jml.expected",
                         "a . to select a field");
                 parser.skipThroughSemi();
                 return parser.to(parser.jmlF.at(p).Erroneous());

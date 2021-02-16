@@ -80,7 +80,7 @@ public class TypeExprClauseExtension extends JmlExtension {
                 parser.nextToken();
                 JCExpression e = parser.parseExpression();
                 if (parser.token().kind != SEMI) {
-                    parser.jmlerror(parser.pos(), parser.endPos(), "jml.bad.construct",
+                    utils.error(parser.pos(), parser.endPos(), "jml.bad.construct",
                             keyword + " declaration");
                     parser.skipThroughSemi();
                 } else {
@@ -127,7 +127,7 @@ public class TypeExprClauseExtension extends JmlExtension {
             tcl.notlist = notlist;
             tcl.source = log.currentSourceFile();
             if (parser.token().kind != SEMI) {
-                parser.jmlerror(parser.pos(), parser.endPos(), "jml.bad.construct",
+                utils.error(parser.pos(), parser.endPos(), "jml.bad.construct",
                         "constraint declaration");
                 parser.skipThroughSemi();
             } else {

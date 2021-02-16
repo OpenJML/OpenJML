@@ -154,8 +154,7 @@ public abstract class IJmlClauseKind {
      * the begin position.
      */
     public void error(int begin, int end, String key, Object... args) {
-        log.error(new JmlTokenizer.DiagnosticPositionSE(begin, end - 1), 
-        		errorKey(key, args)); // TODO - not unicode friendly
+        utils.error(begin, end, key, args); // TODO - not unicode friendly
     }
 
     /** Writes a warning message to the log, using the given DiagnosticPosition
@@ -175,8 +174,7 @@ public abstract class IJmlClauseKind {
      * the begin position.
      */
     public void warning(int begin, int end, String key, Object... args) {
-        log.warning(new JmlTokenizer.DiagnosticPositionSE(begin, end - 1), 
-        		warningKey(key, args)); // TODO - not unicode friendly
+        utils.warning(begin, end, key, args); // TODO - not unicode friendly
     }
 
     /** Writes an informational message to the log's noticeWriter (as with
@@ -556,7 +554,7 @@ public abstract class IJmlClauseKind {
             n = parser.names._super;
             parser.nextToken();
         } else {
-            parser.jmlerror(parser.pos(), parser.endPos(), "jml.bad.construct",
+            utils.error(parser.pos(), parser.endPos(), "jml.bad.construct",
                     "constraint method");
             return null;
         }
@@ -578,17 +576,17 @@ public abstract class IJmlClauseKind {
                     // * may only be the only thing after any dot, if it is
                     // present
                     if (!first) {
-                        parser.jmlerror(parser.pos(), parser.endPos(), "jml.expected",
+                        utils.error(parser.pos(), parser.endPos(), "jml.expected",
                                 "identifier or this, since a * may only be used after the first dot");
                     }
                     n = parser.names.asterisk;
                     parser.nextToken();
                     if (parser.token().kind == DOT) {
-                        parser.jmlerror(parser.pos(), parser.endPos(), "jml.expected",
+                        utils.error(parser.pos(), parser.endPos(), "jml.expected",
                                 "no dot, since a dot may not be used after a *");
                     }
                 } else {
-                    parser.jmlerror(parser.pos(), parser.endPos(), "jml.expected",
+                    utils.error(parser.pos(), parser.endPos(), "jml.expected",
                             "identifier or this");
                     break;
                 }
@@ -612,7 +610,7 @@ public abstract class IJmlClauseKind {
                     args.append(arg);
                 }
                 if (parser.token().kind != RPAREN) {
-                    parser.jmlerror(parser.pos(), parser.endPos(), "jml.expected",
+                    utils.error(parser.pos(), parser.endPos(), "jml.expected",
                             "comma or right parenthesis");
                 } else {
                     parser.nextToken();
