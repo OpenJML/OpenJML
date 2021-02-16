@@ -96,7 +96,7 @@ public class Attr extends JCTree.Visitor {
 
     final Names names;
     final Log log;
-    final Symtab syms;
+    public final Symtab syms; // OPENJML - package to public
     final Resolve rs;
     final Operators operators;
     final Infer infer;
@@ -104,11 +104,11 @@ public class Attr extends JCTree.Visitor {
     final DeferredAttr deferredAttr;
     final Check chk;
     final Flow flow;
-    final MemberEnter memberEnter;
+    public final MemberEnter memberEnter; // OPENJML - package to public
     final TypeEnter typeEnter;
     final TreeMaker make;
     final ConstFold cfolder;
-    final Enter enter;
+    public final Enter enter; // OPENJML - package to public
     final Target target;
     final Types types;
     final Preview preview;
@@ -235,7 +235,7 @@ public class Attr extends JCTree.Visitor {
      *  @param ownkind  The computed kind of the tree
      *  @param resultInfo  The expected result of the tree
      */
-    Type check(final JCTree tree,
+    public Type check(final JCTree tree, // OPENJML - package to public
                final Type found,
                final KindSelector ownkind,
                final ResultInfo resultInfo) {
@@ -489,13 +489,13 @@ public class Attr extends JCTree.Visitor {
     }
 
 
-    class ResultInfo {
+    public class ResultInfo { // OPENJML - package to public
         final KindSelector pkind;
         final Type pt;
         final CheckContext checkContext;
         final CheckMode checkMode;
 
-        ResultInfo(KindSelector pkind, Type pt) {
+        public ResultInfo(KindSelector pkind, Type pt) { // OPENJML - package to public
             this(pkind, pt, chk.basicHandler, CheckMode.NORMAL);
         }
 
@@ -644,7 +644,7 @@ public class Attr extends JCTree.Visitor {
 
     /** Visitor argument: the currently expected attribution result.
      */
-    ResultInfo resultInfo;
+    public ResultInfo resultInfo; // OPENJML - package to public
 
     /** Visitor result: the computed type.
      */
@@ -659,7 +659,7 @@ public class Attr extends JCTree.Visitor {
      *  @param env     The environment visitor argument.
      *  @param resultInfo   The result info visitor argument.
      */
-    Type attribTree(JCTree tree, Env<AttrContext> env, ResultInfo resultInfo) {
+    public Type attribTree(JCTree tree, Env<AttrContext> env, ResultInfo resultInfo) { // OPENJML - pacakge to public
         Env<AttrContext> prevEnv = this.env;
         ResultInfo prevResult = this.resultInfo;
         try {
@@ -829,7 +829,7 @@ public class Attr extends JCTree.Visitor {
     /**
      * Attribute the type references in a list of annotations.
      */
-    void attribAnnotationTypes(List<JCAnnotation> annotations,
+    public void attribAnnotationTypes(List<JCAnnotation> annotations, // OPENJML package to public
                                Env<AttrContext> env) {
         for (List<JCAnnotation> al = annotations; al.nonEmpty(); al = al.tail) {
             JCAnnotation a = al.head;

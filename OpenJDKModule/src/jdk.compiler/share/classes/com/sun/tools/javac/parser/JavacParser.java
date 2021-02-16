@@ -106,7 +106,7 @@ public class JavacParser implements Parser {
     private Preview preview;
 
     /** The name table. */
-    private Names names;
+    public Names names; // OPENJML - private to public
 
     /** End position mappings container */
     protected final AbstractEndPosTable endPosTable;
@@ -531,11 +531,11 @@ public class JavacParser implements Parser {
         endPosTable.setErrorEndPos(errPos);
     }
 
-    protected void storeEnd(JCTree tree, int endpos) {
+    public void storeEnd(JCTree tree, int endpos) { // OPENJML - protected to public
         endPosTable.storeEnd(tree, endpos);
     }
 
-    protected <T extends JCTree> T to(T t) {
+    public <T extends JCTree> T to(T t) { // OPENJML - protected to public
         return endPosTable.to(t);
     }
 
@@ -1990,7 +1990,7 @@ public class JavacParser implements Parser {
 
     /** Arguments = "(" [Expression { COMMA Expression }] ")"
      */
-    List<JCExpression> arguments() {
+    public List<JCExpression> arguments() {  // OPENJML - package to public
         ListBuffer<JCExpression> args = new ListBuffer<>();
         if (token.kind == LPAREN) {
             nextToken();
@@ -3329,7 +3329,7 @@ public class JavacParser implements Parser {
      *  @param reqInit  Is an initializer always required?
      *  @param dc       The documentation comment for the variable declarations, or null.
      */
-    JCVariableDecl variableDeclaratorRest(int pos, JCModifiers mods, JCExpression type, Name name,
+    public JCVariableDecl variableDeclaratorRest(int pos, JCModifiers mods, JCExpression type, Name name, // OPENJML - pacakge to public
                                   boolean reqInit, Comment dc, boolean localDecl, boolean compound) {
         type = bracketsOpt(type);
         JCExpression init = null;

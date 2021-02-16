@@ -2454,7 +2454,7 @@ public class ClassReader {
         }
     }
 
-    protected ClassSymbol enterClass(Name name) {
+    public ClassSymbol enterClass(Name name) { // OPENJML - protected to public
         return syms.enterClass(currentModule, name);
     }
 

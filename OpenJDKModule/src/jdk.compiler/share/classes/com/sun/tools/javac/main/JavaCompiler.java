@@ -593,7 +593,7 @@ public class JavaCompiler {
         return shouldStop(cs) ? new ListBuffer<T>() : queue;
     }
 
-    protected final <T> List<T> stopIfError(CompileState cs, List<T> list) {
+    protected <T> List<T> stopIfError(CompileState cs, List<T> list) { // OPENJML - removed final
         return shouldStop(cs) ? List.nil() : list;
     }
 

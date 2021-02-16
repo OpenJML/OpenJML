@@ -19,6 +19,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.ext.*;
 
 import com.sun.tools.javac.parser.JmlToken;
 import com.sun.tools.javac.parser.Tokens.Token;
@@ -66,77 +67,77 @@ public class Extensions {
     // NOTE: The set of extensions is stored in allKinds and is independent 
     // of context.
     
-//    /** Finds the clause kind for the given token, if any */
-//    public static @Nullable IJmlClauseKind findKeyword(Token token) {
-//        String id = token instanceof JmlToken ? ((JmlToken)token).jmlkind.internedName() : token.toString();
-//        return allKinds.get(id);
-//    }
-//    
-//    /** Finds the clause kind for the given keyword, if any */
-//    public static @Nullable IJmlClauseKind findKeyword(Name name) {
-//        String id = name.toString();
-//        return allKinds.get(id);
-//    }
-//    
-//    /** Finds a type or method clause kind for the given keyword, if any */
-//    public static @Nullable IJmlClauseKind findTM(String keyword) {
-//        IJmlClauseKind ext = allKinds.get(keyword);
-//        if (ext instanceof IJmlClauseKind.TypeClause || ext instanceof IJmlClauseKind.MethodClauseKind) return ext;
-//        return null;
-//    }
-//    
-//    /** Finds a statement or method clause kind for the given keyword, if any */
-//    public static @Nullable IJmlClauseKind findSM(String keyword) {
-//        IJmlClauseKind ext = allKinds.get(keyword);
-//        if (ext instanceof IJmlClauseKind.IStatementKind || ext instanceof IJmlClauseKind.MethodClauseKind) return ext;
-//        return null;
-//    }
-//    
-//    /** Last resort list of classes that add extensions to the Parser.
-//     *  Typically these are found by listing all the classes in
-//     *  the org.jmlspecs.openjml.ext package */  // TODO - fix this list
-//    static Class<?>[] extensions = { FunctionLikeExpressions.class, 
-//            // Expressions
-//            Arithmetic.class, 
-//            FunctionLikeExpressions.class, 
-//            //Erasure.class, 
-//            //Key.class, 
-//            ProgramLocation.class, 
-//            
-//            // Modifiers
-//            PureModifier.class,
-//            
-//            // Method clauses
-//            AssignableClauseExtension.class, 
-//            CallableClauseExtension.class, 
-//            MethodExprClauseExtensions.class, 
-//            MethodDeclClauseExtension.class, 
-//            SignalsClauseExtension.class, 
-//            SignalsOnlyClauseExtension.class, 
-//            ChooseClause.class, 
-//            
-//            // Statements
-//            EndStatement.class, 
-//            InlinedLoopStatement.class, 
-//            ReachableStatement.class, 
-//            SetStatement.class, 
-//            StatementExprExtensions.class, 
-//            
-//            // Type Clauses
-//            TypeExprClauseExtension.class, 
-//            TypeInClauseExtension.class, 
-//            TypeMapsClauseExtension.class, 
-//            TypeMonitorsForClauseExtension.class, 
-//            TypeRepresentsClauseExtension.class, 
-//            TypeRWClauseExtension.class, 
-//            
-//            // Class-like data types
-//            DatatypeExt.class,
-//            
-//            // Field-like extensions
-//            ArrayFieldExtension.class,
-//            
-//            };
+    /** Finds the clause kind for the given token, if any */
+    public static @Nullable IJmlClauseKind findKeyword(Token token) {
+        String id = token instanceof JmlToken ? ((JmlToken)token).jmlkind.internedName() : token.toString();
+        return allKinds.get(id);
+    }
+    
+    /** Finds the clause kind for the given keyword, if any */
+    public static @Nullable IJmlClauseKind findKeyword(Name name) {
+        String id = name.toString();
+        return allKinds.get(id);
+    }
+    
+    /** Finds a type or method clause kind for the given keyword, if any */
+    public static @Nullable IJmlClauseKind findTM(String keyword) {
+        IJmlClauseKind ext = allKinds.get(keyword);
+        if (ext instanceof IJmlClauseKind.TypeClause || ext instanceof IJmlClauseKind.MethodClauseKind) return ext;
+        return null;
+    }
+    
+    /** Finds a statement or method clause kind for the given keyword, if any */
+    public static @Nullable IJmlClauseKind findSM(String keyword) {
+        IJmlClauseKind ext = allKinds.get(keyword);
+        if (ext instanceof IJmlClauseKind.IStatementKind || ext instanceof IJmlClauseKind.MethodClauseKind) return ext;
+        return null;
+    }
+    
+    /** Last resort list of classes that add extensions to the Parser.
+     *  Typically these are found by listing all the classes in
+     *  the org.jmlspecs.openjml.ext package */  // TODO - fix this list
+    static Class<?>[] extensions = { FunctionLikeExpressions.class, 
+            // Expressions
+            Arithmetic.class, 
+            FunctionLikeExpressions.class, 
+            //Erasure.class, 
+            //Key.class, 
+            ProgramLocation.class, 
+            
+            // Modifiers
+            PureModifier.class,
+            
+            // Method clauses
+            AssignableClauseExtension.class, 
+            CallableClauseExtension.class, 
+            MethodExprClauseExtensions.class, 
+            MethodDeclClauseExtension.class, 
+            SignalsClauseExtension.class, 
+            SignalsOnlyClauseExtension.class, 
+            ChooseClause.class, 
+            
+            // Statements
+            EndStatement.class, 
+            InlinedLoopStatement.class, 
+            ReachableStatement.class, 
+            SetStatement.class, 
+            StatementExprExtensions.class, 
+            
+            // Type Clauses
+            TypeExprClauseExtension.class, 
+            TypeInClauseExtension.class, 
+            TypeMapsClauseExtension.class, 
+            TypeMonitorsForClauseExtension.class, 
+            TypeRepresentsClauseExtension.class, 
+            TypeRWClauseExtension.class, 
+            
+            // Class-like data types
+            DatatypeExt.class,
+            
+            // Field-like extensions
+            ArrayFieldExtension.class,
+            
+            };
     
     static public Map<String,IJmlClauseKind> allKinds = new HashMap<>();
 
