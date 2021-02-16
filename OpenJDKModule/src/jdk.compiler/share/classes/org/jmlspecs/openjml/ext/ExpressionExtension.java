@@ -73,39 +73,6 @@ abstract public class ExpressionExtension extends JmlExtension {
     
     public JCExpression parse(String keyword, IJmlClauseKind clauseType, JmlParser parser) { return null; }
     
-    /** Writes an error message to the log, using the given DiagnosticPosition
-     * (typically gotten from tree.pos()), 
-     * a key (as in the file org.jmlspecs.openjml.messages.properties)
-     * and arguments for that key
-     * @param pos the DiagnosticPosition used to identify the relevant location in the source file
-     * @param key the resource key holding the error message
-     * @param args (non-null) arguments for the key - there must be at least as many arguments as there are place-holders in the key string
-     */
-    public void error(DiagnosticPosition pos, String key, Object ... args) {
-        Log.instance(context).error(pos,
-        		Log.instance(context).factory().errorKey(key,args));
-    }
-    
-    /** Writes a warning message to the log, using the given DiagnosticPosition
-     * (typically gotten from tree.pos()), a key (as in the file org.jmlspecs.openjml.messages.resources)
-     * and arguments for that key
-     * @param pos the DiagnosticPosition used to identify the relevant location in the source file
-     * @param key the resource key holding the error message
-     * @param args (non-null) arguments for the key - there must be at least as many arguments as there are place-holders in the key string
-     */
-    public void warning(DiagnosticPosition pos, String key, Object ... args) {
-        Log.instance(context).warning(pos,
-        		Log.instance(context).factory().warningKey(key,args));
-    }
-    
-    /** Writes an informational message to the log's noticeWriter (as with
-     * println).  To be used for informational or debugging information.
-     * @param msg the String to write
-     */
-    public void info(@NonNull String msg) {
-        Log.instance(context).getWriter(WriterKind.NOTICE).println(msg);
-    }
-    
     /** Sets the end position of the given tree node to be the end position of
      * the previously scanned token.
      * @param <T> the type of the node being set
@@ -179,13 +146,13 @@ abstract public class ExpressionExtension extends JmlExtension {
 
     public void checkOneArg(JmlParser parser, JmlMethodInvocation e) {
         if (e.args.size() != 1) {
-            parser.jmlerror(e.pos, parser.getEndPos(e), "jml.one.arg", e.token.internedName());
+            utils.error(e.pos, parser.getEndPos(e), "jml.one.arg", e.token.internedName());
         }
     }
 
     public void checkNoArgs(JmlParser parser, JmlMethodInvocation e) {
         if (e.args.size() != 0) {
-            parser.jmlerror(e.pos, parser.getEndPos(e), "jml.no.args.allowed", e.token.internedName());
+            utils.error(e.pos, parser.getEndPos(e), "jml.no.args.allowed", e.token.internedName());
         }
     }
 

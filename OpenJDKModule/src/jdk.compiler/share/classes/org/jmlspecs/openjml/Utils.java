@@ -58,6 +58,8 @@ import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlScanner;
+import com.sun.tools.javac.parser.JmlTokenizer;
+import com.sun.tools.javac.tree.EndPosTable;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -68,6 +70,7 @@ import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.util.BasicDiagnosticFormatter.BasicConfiguration.SourcePosition;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.DiagnosticSource;
 import com.sun.tools.javac.util.JCDiagnostic;
@@ -1497,6 +1500,30 @@ public class Utils {
     // - Position.NOPOS for an absent int position
     // - null for an absent DiagnosticPosition position
     
+    public JCDiagnostic.Error errorKey(String key, Object ... args) {
+    	return JCDiagnostic.Factory.instance(context).errorKey(key, args);
+    }
+    
+    public JCDiagnostic.Warning warningKey(String key, Object ... args) {
+    	return JCDiagnostic.Factory.instance(context).warningKey(key, args);
+    }
+    
+    public JCDiagnostic.Note noteKey(String key, Object ... args) {
+    	return JCDiagnostic.Factory.instance(context).noteKey(key, args);
+    }
+    
+    public JCDiagnostic errorDiag(DiagnosticSource sp, DiagnosticPosition pos, String key, Object ...args) {
+        return JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.ERROR, sp, pos, key, args);
+    }
+    
+    public JCDiagnostic warningDiag(DiagnosticSource sp, DiagnosticPosition pos, String key, Object ...args) {
+        return JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING, sp, pos, key, args);
+    }
+    
+    public JCDiagnostic noteDiag(DiagnosticSource sp, DiagnosticPosition pos, String key, Object ...args) {
+        return JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.NOTE, sp, pos, key, args);
+    }
+    
     public void error(String key, Object ... args) {
         log.error(JCDiagnostic.Factory.instance(context).errorKey(key, args));
     }
@@ -1505,6 +1532,18 @@ public class Utils {
         log.error(pos, JCDiagnostic.Factory.instance(context).errorKey(key, args));
     }
 
+    public void error(int begin, int end, String key, Object... args) {
+        this.error(
+                new DiagnosticPositionSE(begin, end - 1), // FIXME - really the -1
+                key, args);// TODO - not unicode friendly
+    }
+    
+    public void error(int begin, int preferred, int end, String key, Object... args) {
+        this.error(
+                new DiagnosticPositionSE(begin, preferred, end - 1), // FIXME - really the -1 ?
+                key, args);// TODO - not unicode friendly
+    }
+    
     public void error(DiagnosticPosition pos, String key, Object ... args) {
         log.error(null, pos, JCDiagnostic.Factory.instance(context).errorKey(key, args));
     }
@@ -1525,6 +1564,18 @@ public class Utils {
         log.warning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
     }
 
+    public void warning(int begin, int end, String key, Object... args) {
+        this.warning(
+                new DiagnosticPositionSE(begin, end - 1), // FIXME - really the -1
+                key, args);// TODO - not unicode friendly
+    }
+    
+    public void warning(int begin, int preferred, int end, String key, Object... args) {
+        this.error(
+                new DiagnosticPositionSE(begin, preferred, end - 1), // FIXME - really the -1
+                key, args);// TODO - not unicode friendly
+    }
+    
     public void warning(DiagnosticPosition pos, String key, Object ... args) {
         log.warning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
     }
@@ -1539,5 +1590,47 @@ public class Utils {
         log.note(pos, JCDiagnostic.Factory.instance(context).noteKey(key, args));
     }
 
+    /** A derived class of DiagnosticPosition that allows for straightforward setting of the
+     * various positions associated with an error message.
+     */
+    // FIXME - comment on relationship to unicode characters
+    static public class DiagnosticPositionSE implements DiagnosticPosition {
+        protected int begin;
+        protected int preferred;
+        protected int end; // The end character, NOT ONE CHARACTER BEYOND
+        
+        public DiagnosticPositionSE(int begin, int end) {
+            this.begin = begin;
+            this.preferred = begin;
+            this.end = end;
+        }
+        
+        public DiagnosticPositionSE(int begin, int preferred, int end) {
+            this.begin = begin;
+            this.preferred = preferred;
+            this.end = end;
+        }
+        
+        @Override
+        public JCTree getTree() {
+            return null;
+        }
+
+        @Override
+        public int getStartPosition() {
+            return begin;
+        }
+
+        @Override
+        public int getPreferredPosition() {
+            return preferred;
+        }
+
+        @Override
+        public int getEndPosition(EndPosTable endPosTable) {
+            return end;// FIXME
+        }
+        
+    }
 
 }

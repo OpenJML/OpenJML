@@ -118,11 +118,11 @@ public class EndStatement extends JmlExtension {
                 parser.nextToken();
                 IJmlClauseKind ext = parser.methodSpecKeywordS(0);
                 if (ext == alsoClause) { // jmlTokenKind() == JmlTokenKind.ALSO) {
-                    parser.jmlerror(parser.pos(), parser.endPos(), "jml.invalid.also");
+                    utils.error(parser.pos(), parser.endPos(), "jml.invalid.also");
                     parser.nextToken();
                 }
                 if (ext == elseClause) { //token.ikind == TokenKind.ELSE) {
-                    parser.jmlerror(parser.pos(), parser.endPos(), "jml.invalid.also"); // FIXME - should warn about else
+                    utils.error(parser.pos(), parser.endPos(), "jml.invalid.also"); // FIXME - should warn about else
                     parser.nextToken();
                 }
                 if (parser.token().kind == TokenKind.COLON) { 
@@ -133,7 +133,7 @@ public class EndStatement extends JmlExtension {
                         exports.add(parser.jmlF.at(pos).Ident(parser.ident()));
                     }
                     if (parser.token().kind != TokenKind.SEMI) {
-                        parser.jmlerror(pos,parser.endPos(), "jml.message", "Expected a comma or semicolon here");
+                        utils.error(pos,parser.endPos(), "jml.message", "Expected a comma or semicolon here");
                     }
                     parser.nextToken();
                 }
@@ -143,7 +143,7 @@ public class EndStatement extends JmlExtension {
                 //}
             }
             if (!parser.isNone(mods)) {
-                parser.jmlerror(mods.getStartPosition(),
+                utils.error(mods.getStartPosition(),
                         parser.getEndPos(mods),
                         "jml.no.mods.in.refining");
             }
@@ -151,7 +151,7 @@ public class EndStatement extends JmlExtension {
             JmlMethodSpecs specs = parser.parseMethodSpecs(mods);
             for (JmlSpecificationCase c : specs.cases) {
                 if (!parser.isNone(c.modifiers)) {
-                    parser.jmlerror(c.modifiers.getStartPosition(),
+                    utils.error(c.modifiers.getStartPosition(),
                             parser.getEndPos(c.modifiers),
                             "jml.no.mods.in.refining");
                     c.modifiers = parser.jmlF.Modifiers(0);

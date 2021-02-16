@@ -225,13 +225,13 @@ public class JmlParser extends JavacParser {
         }
         boolean importIsInJml = S.jml();
         if (!modelImport && importIsInJml) {
-            jmlerror(p, endPos(), "jml.import.no.model");
+            utils.error(p, endPos(), "jml.import.no.model");
             modelImport = true;
         }
         JCTree t = super.importDeclaration();
         ((JmlImport) t).isModel = modelImport;
         if (modelImport && !importIsInJml) {
-            jmlerror(p, t.getEndPosition(endPosTable), "jml.illformed.model.import");
+        	utils.error(p, t.getEndPosition(endPosTable), "jml.illformed.model.import");
         }
         while (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) {
             nextToken();
@@ -309,7 +309,7 @@ public class JmlParser extends JavacParser {
                 }
                 int p = pos();
                 int ep = endPos();
-                jmlerror(p, ep,
+                utils.error(p, ep,
                         "jml.unexpected.or.misspelled.jml.token",
                             token == null ? jmlTokenKind().internedName() : S.chars() );
                 
@@ -509,7 +509,7 @@ public class JmlParser extends JavacParser {
                         s = labeled;
                     }
                 } else {
-                    jmlerror(loopspecs.first().pos,
+                	utils.error(loopspecs.first().pos,
                             loopspecs.last().getEndPosition(endPosTable),
                             "jml.loop.spec.misplaced");
                     loopspecs.clear();
@@ -518,7 +518,7 @@ public class JmlParser extends JavacParser {
             newstats.add(s);
         }
         if (!loopspecs.isEmpty()) {
-            jmlerror(loopspecs.first().pos,
+        	utils.error(loopspecs.first().pos,
                     loopspecs.last().getEndPosition(endPosTable),
                     "jml.loop.spec.misplaced");
             loopspecs.clear();
@@ -704,11 +704,11 @@ public class JmlParser extends JavacParser {
             nextToken();
             IJmlClauseKind ext = methodSpecKeywordS(0);
             if (ext == alsoClause) { // jmlTokenKind() == JmlTokenKind.ALSO) {
-                jmlerror(pos(), endPos(), "jml.invalid.also");
+            	utils.error(pos(), endPos(), "jml.invalid.also");
                 nextToken();
             }
             if (ext == elseClause) {
-                jmlerror(pos(), endPos(), "jml.invalid.also"); // FIXME - should warn about else
+            	utils.error(pos(), endPos(), "jml.invalid.also"); // FIXME - should warn about else
                 nextToken();
             }
             if (token.kind == TokenKind.COLON) { 
@@ -719,7 +719,7 @@ public class JmlParser extends JavacParser {
                     exports.add(jmlF.at(pos()).Ident(ident()));
                 }
                 if (token.kind != TokenKind.SEMI) {
-                    jmlerror(pos(),endPos(), "jml.message", "Expected a comma or semicolon here");
+                	utils.error(pos(),endPos(), "jml.message", "Expected a comma or semicolon here");
                 }
                 nextToken();
             }
@@ -734,7 +734,7 @@ public class JmlParser extends JavacParser {
         JmlMethodSpecs specs = parseMethodSpecs(mods);
         for (JmlSpecificationCase c : specs.cases) {
             if (!isNone(c.modifiers)) {
-                jmlerror(c.modifiers.getStartPosition(),
+            	utils.error(c.modifiers.getStartPosition(),
                         getEndPos(c.modifiers),
                         "jml.no.mods.in.refining");
                 c.modifiers = jmlF.Modifiers(0);
@@ -945,7 +945,7 @@ public class JmlParser extends JavacParser {
                 list.append(tc);
                 continue;
             } else if (S.jml() && id != null && Extensions.findSM(id) != null && !"set".equals(id)) {
-                jmlerror(pos(), endPos(),
+            	utils.error(pos(), endPos(),
                         "jml.illegal.token.for.declaration", id);
                 skipThroughSemi();
                 break;
@@ -1097,7 +1097,7 @@ public class JmlParser extends JavacParser {
             } else if (startOfMethodSpecs(token)) {
                 currentMethodSpecs = parseMethodSpecs(mods);
             } else {
-                jmlerror(pos(), endPos(),
+            	utils.error(pos(), endPos(),
                         "jml.illegal.token.for.declaration", jt.internedName());
                 skipThroughSemi();
                 break;
@@ -1122,7 +1122,7 @@ public class JmlParser extends JavacParser {
 //    /** Parses an in clause */
 //    public JmlTypeClauseIn parseIn(int pos, JCModifiers mods) {
 //        if (!isNone(mods))
-//            jmlerror(pos, "jml.no.mods.allowed", inClause.name());
+//            utils.error(pos, "jml.no.mods.allowed", inClause.name());
 //        nextToken(); // skip over the in token
 //        ListBuffer<JmlGroupName> list = parseGroupNameList();
 //        accept(SEMI);
@@ -1140,12 +1140,12 @@ public class JmlParser extends JavacParser {
 //        int identPos = pos();
 //        ITokenKind tk = token.kind;
 //        if (tk != IDENTIFIER) {
-//            jmlerror(pos(), endPos(), "jml.expected", "an identifier");
+//            utils.error(pos(), endPos(), "jml.expected", "an identifier");
 //            n = names.asterisk; // place holder for an error situation
 //        } else {
 //            n = ident(); // Advances to next token
 //            if (token.kind != TokenKind.EQ && jmlTokenKind() != JmlTokenKind.LEFT_ARROW) {
-//                jmlerror(pos(), endPos(), "jml.expected",
+//                utils.error(pos(), endPos(), "jml.expected",
 //                        "an = or <- token");
 //            } else {
 //                nextToken();
@@ -1224,7 +1224,7 @@ public class JmlParser extends JavacParser {
         accept(LPAREN);
         ListBuffer<JCExpression> list = parseStoreRefList(false);
         if (token.kind != RPAREN) {
-            jmlerror(pos(), endPos(), "log.expected", "right parenthesis");
+        	utils.error(pos(), endPos(), "log.expected", "right parenthesis");
             skipThroughRightParen();
         } else {
             nextToken();
@@ -1299,7 +1299,7 @@ public class JmlParser extends JavacParser {
         IJmlClauseKind ext = methodSpecKeyword(0);
         if (ext == feasibleBehaviorClause) {
             if (!isNone(mods))
-                jmlerror(pos(), endPos(), "jml.no.mods.allowed",
+            	utils.error(pos(), endPos(), "jml.no.mods.allowed",
                         ext.keyword);
             nextToken();
             mods = modifiersOpt();
@@ -1315,7 +1315,7 @@ public class JmlParser extends JavacParser {
         }
         if (ext == impliesThatClause) {
             if (!isNone(mods))
-                jmlerror(pos(), endPos(), "jml.no.mods.allowed",
+            	utils.error(pos(), endPos(), "jml.no.mods.allowed",
                         ext.keyword);
             nextToken();
             mods = modifiersOpt();
@@ -1331,7 +1331,7 @@ public class JmlParser extends JavacParser {
         }
         if (ext == forExampleClause) {
             if (!isNone(mods))
-                jmlerror(mods.getStartPosition(),
+            	utils.error(mods.getStartPosition(),
                         getEndPos(mods),
                         "jml.no.mods.allowed", ext.keyword);
             nextToken();
@@ -1381,7 +1381,7 @@ public class JmlParser extends JavacParser {
         IJmlClauseKind ext = methodSpecKeyword(0);
         if (ext == alsoClause || ext == elseClause) { //  || ijt == ALSO || token.ikind == TokenKind.ELSE) {
             if (!isNone(mods)) {
-                jmlerror(mods.getStartPosition(), endPos(),
+            	utils.error(mods.getStartPosition(), endPos(),
                         "jml.no.mods.allowed", ext.keyword);
                 mods = null;
             }
@@ -1430,7 +1430,7 @@ public class JmlParser extends JavacParser {
             //            spc.sourcefile = log.currentSourceFile();
             //            return spc;
             //        } else if (jt == null && S.jml() && also != null) {
-            //            jmlerror(pos(), endPos(), "jml.invalid.keyword.in.spec",
+            //            utils.error(pos(), endPos(), "jml.invalid.keyword.in.spec",
             //                    S.chars());
             //            skipThroughSemi();
             //            // Call it lightweight
@@ -1534,7 +1534,7 @@ public class JmlParser extends JavacParser {
         //} while (jmlTokenKind() == ALSO || token.ikind == TokenKind.ELSE);
         if (jmlTokenKind() == ENDJMLCOMMENT) nextToken();
         if (jmlTokenKind() != SPEC_GROUP_END) {
-            jmlerror(pos(), endPos(), "jml.invalid.spec.group.end");
+        	utils.error(pos(), endPos(), "jml.invalid.spec.group.end");
             while (jmlTokenKind() != JmlTokenKind.ENDJMLCOMMENT && token.kind != EOF)
                 nextToken();
             if (token.kind != EOF) nextToken();
@@ -1702,7 +1702,7 @@ public class JmlParser extends JavacParser {
                         e = toP(jmlF.at(dotpos).Select(e, (Name) null));
                         if (token.kind != COMMA && token.kind != SEMI
                                 && token.kind != RPAREN) {
-                            jmlerror(pos(), endPos(), "jml.not.after.star");
+                        	utils.error(pos(), endPos(), "jml.not.after.star");
                             skipToCommaOrSemi();
                         }
                         break;
@@ -1712,9 +1712,9 @@ public class JmlParser extends JavacParser {
                         continue;
                     } else {
                         if (strictId)
-                            jmlerror(pos(), endPos(), "jml.expected.id");
+                        	utils.error(pos(), endPos(), "jml.expected.id");
                         else
-                            jmlerror(pos(), endPos(),
+                        	utils.error(pos(), endPos(),
                                     "jml.ident.or.star.after.dot");
                         skipToCommaOrSemi();
                         break;
@@ -1770,7 +1770,7 @@ public class JmlParser extends JavacParser {
 //            nextToken();
 //            return s;  // FIXME
         }
-        jmlerror(p, endPos(), "jml.bad.store.ref");
+        utils.error(p, endPos(), "jml.bad.store.ref");
         skipToCommaOrSemi();
         return null;
     }
@@ -1791,7 +1791,7 @@ public class JmlParser extends JavacParser {
             nextToken(); // move past the LBRACKET
             if (token.kind == STAR) {
                 if (strictId) {
-                    jmlerror(pos(), endPos(), "jml.no.star.in.strict.mode");
+                	utils.error(pos(), endPos(), "jml.no.star.in.strict.mode");
                 }
                 nextToken();
                 if (token.kind == RBRACKET) {
@@ -1799,7 +1799,7 @@ public class JmlParser extends JavacParser {
                     t = toP(jmlF.at(t.pos).JmlStoreRefArrayRange(t, null, null));
                     continue;
                 } else {
-                    jmlerror(pos(), endPos(), "jml.expected.rbracket.star");
+                	utils.error(pos(), endPos(), "jml.expected.rbracket.star");
                     skipToCommaOrSemi();
                     break;
                 }
@@ -1827,13 +1827,13 @@ public class JmlParser extends JavacParser {
                         t = to(jmlF.at(t.pos).JmlStoreRefArrayRange(t, lo, hi));
                         nextToken();
                     } else {
-                        jmlerror(pos(), endPos(), "jml.expected.rbracket");
+                    	utils.error(pos(), endPos(), "jml.expected.rbracket");
                         skipToCommaOrSemi();
                         break;
                     }
                     continue;
                 } else {
-                    jmlerror(pos(), endPos(),
+                	utils.error(pos(), endPos(),
                             "jml.invalid.expression.succeeding.token");
                     skipToCommaOrSemi();
                     break;
@@ -1872,7 +1872,7 @@ public class JmlParser extends JavacParser {
             partial = pushBackModifiers;
             pushBackModifiers = null;
         } else if (pushBackModifiers != null) {
-            jmlerror(
+        	utils.error(
                     pos(),
                     endPos(),
                     "jml.internal.notsobad",
@@ -1979,7 +1979,7 @@ public class JmlParser extends JavacParser {
             nextToken();
             return t;
         } else {
-            jmlerror(pos(), endPos(), "jml.expected", "JML type token");
+        	utils.error(pos(), endPos(), "jml.expected", "JML type token");
             JCPrimitiveTypeTree t = to(F.at(pos()).TypeIdent(
                     typetag(TokenKind.VOID)));
             nextToken();
@@ -1993,7 +1993,7 @@ public class JmlParser extends JavacParser {
     public Name ident() {
         if (token.kind == CUSTOM) {
             if (((JmlToken)token).jmlkind == JmlTokenKind.ENDJMLCOMMENT) {
-                jmlerror(pos(),endPos(),"jml.end.instead.of.ident");
+            	utils.error(pos(),endPos(),"jml.end.instead.of.ident");
                 nextToken();
                 return names.error;
             } else {
@@ -2152,14 +2152,14 @@ public class JmlParser extends JavacParser {
             if (id.charAt(0) == '\\') {
                 IJmlClauseKind kind = Extensions.findKeyword(token);
                 if (kind == null && !id.equals("\\locset")) { // and we have a leading \
-                    jmlerror(p, endPos(), "jml.message", "Unknown backslash identifier: " + id);
+                	utils.error(p, endPos(), "jml.message", "Unknown backslash identifier: " + id);
                     return jmlF.at(p).Erroneous();
                 } else if (kind instanceof IJmlClauseKind.ExpressionKind) {
                     if (kind instanceof IJmlClauseKind.ExpressionKind) {
                         JCExpression tt = ((IJmlClauseKind.ExpressionKind)kind).parse(null, id, kind, this);
                         return term3Rest(tt, typeArgs);
                     } else {
-                        jmlerror(p, endPos(), "jml.message",
+                    	utils.error(p, endPos(), "jml.message",
                                 "Token " + id + " does not introduce an expression");
                         return jmlF.at(p).Erroneous();
                     }
@@ -2218,7 +2218,7 @@ public class JmlParser extends JavacParser {
                             JCExpression tt = ((IJmlClauseKind.ExpressionKind)kind).parse(null, token.toString(), kind, this);
                             return term3Rest(tt, typeArgs);
                         } else {
-                            jmlerror(p, endPos(), "jml.message",
+                        	utils.error(p, endPos(), "jml.message",
                                     "Token " + token + " does not introduce an expression");
                             return jmlF.at(p).Erroneous();
                         }
@@ -2229,10 +2229,10 @@ public class JmlParser extends JavacParser {
                         } else {
 //                        ExpressionExtension ne = (ExpressionExtension)Extensions.instance(context).findE(pos(),id,false);
 //                        if (true || ne == null) {
-                            jmlerror(p, endPos(), "jml.bad.type.expression",
+                        	utils.error(p, endPos(), "jml.bad.type.expression",
                                     "( token " + token
                                     + " in JmlParser.term3())");
-                            //                        jmlerror(p, endPos(), "jml.no.such.extension",
+                            //                        utils.error(p, endPos(), "jml.no.such.extension",
                             //                                jt.internedName());
                             return jmlF.at(p).Erroneous();
 //                        } else {
@@ -2797,68 +2797,10 @@ public class JmlParser extends JavacParser {
     public JCErroneous syntaxError(int pos, List<JCTree> errs, String key,
             Object... args) {
         setErrorEndPos(pos);
-        reportSyntaxError(pos, Log.instance(context).factory().errorKey(key, args));
+        reportSyntaxError(pos, utils.errorKey(key, args));
         return toP(F.at(pos).Erroneous(errs));
     }
 
-    // FIXME - do we need to set errorEndPos in the following?
-
-//    /** Creates an error message for which the source is a single character */
-//    public void jmlerror(int pos, String key, Object... args) {
-//        utils.error(pos, key, args);
-//    }
-//
-//    /** Creates a warning message for which the source is a single character */
-//    public void jmlwarning(int pos, String key, Object... args) {
-//        utils.warning(pos, key, args);
-//    }
-
-    /**
-     * Creates an error message for which the source is a range of characters,
-     * from begin up to and not including end; the identified line is that of
-     * the begin position.
-     */
-    public void jmlerror(int begin, int end, String key, Object... args) {
-        utils.error(new JmlTokenizer.DiagnosticPositionSE(begin, end - 1), key,
-                args); // TODO - not unicode friendly
-    }
-
-    /**
-     * Creates a warning message for which the source is a range of characters,
-     * from begin up to and not including end; the identified line is that of
-     * the begin position.
-     */
-    public void jmlwarning(int begin, int end, String key, Object... args) {
-        utils.warning(new JmlTokenizer.DiagnosticPositionSE(begin, end - 1), key,
-                args); // TODO - not unicode friendly
-    }
-
-    /**
-     * Creates an error message for which the source is a range of characters,
-     * from begin up to and not including end; it also specifies a preferred
-     * location to highlight if the output format can only identify a single
-     * location; the preferred location is also the line that is identified.
-     */
-    public void jmlerror(int begin, int preferred, int end, String key,
-            Object... args) {
-        utils.error(
-                new JmlTokenizer.DiagnosticPositionSE(begin, preferred, end - 1),
-                key, args);// TODO - not unicode friendly
-    }
-    
-    /**
-     * Creates a warning message for which the source is a range of characters,
-     * from begin up to and not including end; it also specifies a preferred
-     * location to highlight if the output format can only identify a single
-     * location; the preferred location is also the line that is identified.
-     */
-    public void jmlwarning(int begin, int preferred, int end, String key,
-            Object... args) {
-        utils.warning(
-                new JmlTokenizer.DiagnosticPositionSE(begin, preferred, end - 1),
-                key, args);// TODO - not unicode friendly
-    }
-    
     // Just to make the visibility public
     public List<JCTypeParameter> typeParametersOpt() {
         return super.typeParametersOpt();

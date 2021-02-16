@@ -65,7 +65,7 @@ public class MethodConditionalClauseExtension extends JmlExtension {
             if (parser.token().kind == SEMI) {
                 parser.nextToken();
             } else {
-                parser.jmlerror(parser.pos(), parser.endPos(), "jml.bad.construct",
+                utils.error(parser.pos(), parser.endPos(), "jml.bad.construct",
                         keyword + " specification");
                 parser.skipThroughSemi();
             }
