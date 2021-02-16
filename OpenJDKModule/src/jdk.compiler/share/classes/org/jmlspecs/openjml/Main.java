@@ -156,17 +156,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** True if compilation has been canceled, by setting this field in some exception handler. */
     public boolean canceled = false;
     
-    public static boolean useJML = false;
-    
     public Utils utils;
-    
-    static public java.util.function.Supplier<IProgressListener> progressListener;
-    
-    /** The diagListener provided when an instance of Main is constructed.
-     * The listener will be notified when any diagnostic is generated.
-     */
-    @Nullable
-    protected DiagnosticListener<? extends JavaFileObject> diagListener;
     
     /** Instances of this class are used to abruptly terminate long-running
      * JML operations.
@@ -444,6 +434,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                         JavaFileManager fileManager = context.get(JavaFileManager.class);
                         if (fileManager != null)
                             fileManager.close();
+                    } catch (IOException ex) {
+                    	compiler.bugMessage(ex);
                     }
 
                     errorcode = result.exitCode;

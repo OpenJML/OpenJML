@@ -198,7 +198,6 @@ public class Extensions {
         } catch (Exception e) {
             return false;
         }
-    	return true;
     }
     
     // This method finds all the classes in a given package that are OpenJML

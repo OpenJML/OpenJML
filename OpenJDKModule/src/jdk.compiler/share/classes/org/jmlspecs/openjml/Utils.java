@@ -1498,7 +1498,7 @@ public class Utils {
     // - null for an absent DiagnosticPosition position
     
     public void error(String key, Object ... args) {
-        log.error(log.factory().errorKey(key, args));
+        log.error(JCDiagnostic.Factory.instance(context).errorKey(key, args));
     }
 
     public void error(int pos, String key, Object ... args) {
@@ -1518,7 +1518,7 @@ public class Utils {
     }
 
     public void warning(String key, Object ... args) {
-        log.warning(log.factory().warningKey(key, args));
+        log.warning(JCDiagnostic.Factory.instance(context).warningKey(key, args));
     }
 
     public void warning(int pos, String key, Object ... args) {
