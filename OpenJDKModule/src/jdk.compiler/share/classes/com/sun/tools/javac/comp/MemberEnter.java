@@ -157,7 +157,7 @@ public class MemberEnter extends JCTree.Visitor {
     /** Enter field and method definitions and process import
      *  clauses, catching any completion failure exceptions.
      */
-    protected void memberEnter(JCTree tree, Env<AttrContext> env) {
+    public void memberEnter(JCTree tree, Env<AttrContext> env) { // OPENJML - protected to public
         Env<AttrContext> prevEnv = this.env;
         try {
             this.env = env;

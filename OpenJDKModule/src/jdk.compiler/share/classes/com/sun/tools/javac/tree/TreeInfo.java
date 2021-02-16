@@ -1112,7 +1112,7 @@ public class TreeInfo {
         }
     }
 
-    static Tree.Kind tagToKind(JCTree.Tag tag) {
+    static public Tree.Kind tagToKind(JCTree.Tag tag) { // OPENJML - package to public
         switch (tag) {
         // Postfix expressions
         case POSTINC:           // _ ++

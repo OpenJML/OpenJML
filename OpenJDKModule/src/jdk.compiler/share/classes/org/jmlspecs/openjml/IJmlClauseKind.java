@@ -17,6 +17,9 @@ import java.lang.reflect.Constructor;
 import java.util.function.Function;
 
 import org.jmlspecs.openjml.Extensions;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
+import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 
 //import org.jmlspecs.annotation.NonNull;
 //import org.jmlspecs.annotation.Nullable;
@@ -27,11 +30,13 @@ import org.jmlspecs.openjml.Extensions;
 //import org.jmlspecs.openjml.JmlTree.JmlSource;
 //
 import com.sun.tools.javac.code.Kinds;
+import com.sun.tools.javac.code.Kinds.KindSelector;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.Attr;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlToken;
 import com.sun.tools.javac.parser.JmlTokenizer;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
@@ -109,16 +114,19 @@ public abstract class IJmlClauseKind {
     //@ public constraint context == \old(context);
 
     /** The parser in use, set when clause instances are being created */
-    protected /*@ non_null */ JavacParser parser; // FIXME JmlParser
+    protected /*@ non_null */ JmlParser parser;
     
     /** The scanner in use, set when clause instances are being created */
-    protected /*@ non_null */ Scanner scanner; // FIXME JmlScanner
+    protected /*@ non_null */ JmlScanner scanner;
     
     /** The symbol table, set when the context is set */
     protected Symtab syms;
     
     /** Set when the context is set */
     protected Log log;
+    
+    /** Set when the context is set */
+    protected Utils utils;
     
     public com.sun.tools.javac.util.JCDiagnostic.Error errorKey(String key, Object ... args) {
     	return log.factory().errorKey(key,args);
@@ -198,14 +206,15 @@ public abstract class IJmlClauseKind {
      * badly formed input, the method is required to return null and to 
      * recover as best it can.  [ FIXME - return JCErroneous?]
      */
-    abstract public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, /*Jml*/Parser parser);
+    abstract public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser);
     
-    protected void init(/*Jml*/JavacParser parser) {
+    protected void init(JmlParser parser) {
         Context c = this.context ;// FIXME = parser.context;
         this.syms = Symtab.instance(c);
         this.log = Log.instance(c);
         this.parser = parser;
         this.scanner = parser.getScanner();
+        this.utils = Utils.instance(context);
     }
 
     protected void wrapup(JCTree statement, IJmlClauseKind clauseType, boolean parseSemicolon) {
@@ -246,20 +255,19 @@ public abstract class IJmlClauseKind {
     /** Derived classes implement this method to do any typechecking of the tree, which should have
      * a dynamic type corresponding to the kind of the tree; returns the type of the result, or Type.noType.
      */
-    abstract public Type typecheck(Attr attr, JCTree tree, Env<AttrContext> env);
-    //abstract public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env);
+    abstract public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env);
     
-//    /** returns true if strict adherence to JML is required (language option is jml) */
-//    public boolean requireStrictJML() {
-//        return JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
-//    }
-//    
-//    /** Issue warning if strictness is required -- e.g. call this if an extension is being used */
-//    public void strictCheck(JmlParser parser, JCTree e) {
-//        if (requireStrictJML()) {
-//            Log.instance(context).warning(e.pos(),"jml.not.strict",name());
-//        }
-//    }
+    /** returns true if strict adherence to JML is required (language option is jml) */
+    public boolean requireStrictJML() {
+        return JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
+    }
+    
+    /** Issue warning if strictness is required -- e.g. call this if an extension is being used */
+    public void strictCheck(JmlParser parser, JCTree e) {
+        if (requireStrictJML()) {
+            utils.warning(e,"jml.not.strict",name());
+        }
+    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////// 
     
@@ -271,7 +279,7 @@ public abstract class IJmlClauseKind {
         public boolean preAllowed() { return !isPreconditionClause(); }
         public boolean isPreconditionClause() { return false; }
         @Override
-        public void init(/*Jml*/JavacParser parser) {
+        public void init(JmlParser parser) {
             super.init(parser);
         }
     }
@@ -290,7 +298,7 @@ public abstract class IJmlClauseKind {
         public boolean preOrOldWithLabelAllowed() { return true; }
         public boolean preAllowed() { return true; }
         @Override
-        public void init(/*Jml*/JavacParser parser) {
+        public void init(JmlParser parser) {
             super.init(parser);
         }
     }
@@ -301,12 +309,12 @@ public abstract class IJmlClauseKind {
 
         @Override
         public JCTree parse(JCModifiers mods, String keyword,
-                IJmlClauseKind clauseType, /*Jml*/Parser parser) {
+                IJmlClauseKind clauseType, JmlParser parser) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public Type typecheck(Attr attr, JCTree expr, Env<AttrContext> env) {
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
             throw new UnsupportedOperationException();
         }
 
@@ -321,7 +329,7 @@ public abstract class IJmlClauseKind {
             public IJmlClauseKind clauseKind;
             public IJmlClauseKind clauseKind() { return clauseKind; }
             abstract public java.util.List<JCExpression> exprs();
-            abstract public Type typecheck(Attr attr, Env<AttrContext> env);
+            abstract public Type typecheck(JmlAttr attr, Env<AttrContext> env);
         }
     }
     
@@ -329,7 +337,7 @@ public abstract class IJmlClauseKind {
     public static abstract class TypeClause extends IJmlClauseKind {
         public TypeClause(String keyword) { super(keyword); }
         @Override
-        public void init(/*Jml*/JavacParser parser) {
+        public void init(JmlParser parser) {
             super.init(parser);
         }
     }
@@ -337,13 +345,13 @@ public abstract class IJmlClauseKind {
     /** A base class for JML extensions that do not fit into other categories */
     public static abstract class Misc extends IJmlClauseKind {
         public Misc(String keyword) { super(keyword); }
-        abstract public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, /*Jml*/Parser parser);
+        abstract public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser);
     }
     
     /** A base class for JML extensions that are kinds of expressions */
     public static abstract class ExpressionKind extends IJmlClauseKind {
         public ExpressionKind(String keyword) { super(keyword); }
-        abstract public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, /*Jml*/Parser parser);
+        abstract public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser);
     }
     
     /** This class is used for JML expressions that have a standard function-call
@@ -358,8 +366,8 @@ public abstract class IJmlClauseKind {
          * must implement checkParse(), to do any additional checking,
          * such as that the number of arguments is correct.
          */
-        public JCExpression parse(JCModifiers mods, String name, IJmlClauseKind kind, /*Jml*/Parser parser) {
-/*            init(parser);
+        public JCExpression parse(JCModifiers mods, String name, IJmlClauseKind kind, JmlParser parser) {
+            init(parser);
             int startx = parser.pos();
             JmlTokenKind jt = parser.jmlTokenKind();
             parser.nextToken();
@@ -374,149 +382,147 @@ public abstract class IJmlClauseKind {
                 checkParse(parser,t);
                 return parser.primarySuffix(t, null);
             }
-            */ return null;
         }
         
-//        abstract public void checkParse(/*Jml*/Parser parser, JmlMethodInvocation e);
-//
-//        /** A helper method that can be called in a derived class's implementation
-//         * of checkParse() -- this method applies the given function to the number of
-//         * arguments and emits an error message if the function returns false.
-//         */
-//        public void checkNumberArgs(/*Jml*/Parser parser, JmlMethodInvocation e, Function<Integer,Boolean> f, String key, Object ... messageArgs) {
-//            if (!f.apply(e.args.size())) {
-//                error(e.pos, parser.getEndPos(e), key, messageArgs);
-//            }
-//        }
-//
-//        /** A helper method that can be called in a derived class's implementation
-//         * of checkParse() -- for the case of exactly one argument.
-//         */
-//        public void checkOneArg(/*Jml*/Parser parser, JmlMethodInvocation e) {
-//            checkNumberArgs(parser, e, (n)->(n==1), "jml.one.arg", e.kind.name());
-//        }
-//        
-//        public void typecheckHelper(Attr attr, List<JCExpression> args, Env<AttrContext> localEnv) {
-//            ListBuffer<Type> argTypes = new ListBuffer<>();
-//            Attr.ResultInfo resultInfo = attr.new ResultInfo(Kinds.VAL, Type.noType );
-//            for (JCExpression e: args) {
-//                Type t = attr.attribExpr(e, localEnv);
-//                t = attr.check(e, t, Kinds.VAL, resultInfo );
-//                argTypes.add(t);
-//            }
-//        }
+        abstract public void checkParse(JmlParser parser, JmlMethodInvocation e);
+
+        /** A helper method that can be called in a derived class's implementation
+         * of checkParse() -- this method applies the given function to the number of
+         * arguments and emits an error message if the function returns false.
+         */
+        public void checkNumberArgs(JmlParser parser, JmlMethodInvocation e, Function<Integer,Boolean> f, String key, Object ... messageArgs) {
+            if (!f.apply(e.args.size())) {
+                error(e.pos, parser.getEndPos(e), key, messageArgs);
+            }
+        }
+
+        /** A helper method that can be called in a derived class's implementation
+         * of checkParse() -- for the case of exactly one argument.
+         */
+        public void checkOneArg(JmlParser parser, JmlMethodInvocation e) {
+            checkNumberArgs(parser, e, (n)->(n==1), "jml.one.arg", e.kind.name());
+        }
+        
+        public void typecheckHelper(JmlAttr attr, List<JCExpression> args, Env<AttrContext> localEnv) {
+            ListBuffer<Type> argTypes = new ListBuffer<>();
+            Attr.ResultInfo resultInfo = attr.new ResultInfo(KindSelector.VAL, Type.noType );
+            for (JCExpression e: args) {
+                Type t = attr.attribExpr(e, localEnv);
+                t = attr.check(e, t, KindSelector.VAL, resultInfo );
+                argTypes.add(t);
+            }
+        }
        
     }
     
-//    /** This class is used for JML items that are just a keyword but
-//     * are not expressions or other categories themselves.
-//     */
-//    public static abstract class SingletonKind extends IJmlClauseKind.Misc {
-//        
-//        public SingletonKind(String name) { super(name); }
-//        
-//        @Override
-//        public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, /*Jml*/Parser parser) {
-//            init(parser);
-//            IJmlClauseKind jt = parser.jmlTokenClauseKind();
-//            int p = parser.pos();
-//            String stringRep = parser.getScanner().chars();
-//            parser.nextToken();
-//            if (parser.token().kind == TokenKind.LPAREN) {
-//                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.name());
-//            } else {
-//                JmlSingleton e = parser.maker().at(p).JmlSingleton(jt);
-//                e.kind = this;
-//                checkParse(parser,e,stringRep);
-//                return e;
-//            }
-//        }
-//        
-//        /** A method meant to be overridden in derived classes to do any
-//         * additional checking -- typically none for a singleton.
-//         */
-//        public void checkParse(/*Jml*/Parser parser, JmlSingleton e, String rep) {}
-//
-//    }
-//    /** This class is used for kinds of JML expressions that are just a keyword with
-//     * no parenthesized argument list
-//     */
-//    public static abstract class SingletonExpressionKind extends ExpressionKind {
-//        
-//        public SingletonExpressionKind(String name) { super(name); }
-//        
-//        @Override
-//        public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, /*Jml*/Parser parser) {
-//            init(parser);
-//            IJmlClauseKind jt = parser.jmlTokenClauseKind();
-//            int p = parser.pos();
-//            String stringRep = parser.getScanner().chars();
-//            parser.nextToken();
-//            if (parser.token().kind == TokenKind.LPAREN) {
-//                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.name());
-//            } else {
-//                JmlSingleton e = parser.maker().at(p).JmlSingleton(jt);
-//                e.kind = this;
-//                checkParse(parser,e,stringRep);
-//                return e;
-//            }
-//        }
-//        
-//        /** A method meant to be overridden in derived classes to do any
-//         * additional checking -- typically none for a singleton.
-//         */
-//// FIXME        public void checkParse(JmlParser parser, JmlSingleton e, String rep) {}
-//
-//    }
-//    
-//    public static class ModifierKind extends IJmlClauseKind {
-//        public String fullAnnotation;
-//        public boolean strict;
-//        
-//        public ModifierKind(String keyword, boolean strict) {
-//            super(keyword);
-//            this.strict = strict;
-//            String annotation = keyword;
-//            while (true) {
-//                int i = annotation.indexOf("_");
-//                if (i < 0 || i >= annotation.length()-1) break;
-//                char c = annotation.charAt(i+1);
-//                char uc = Character.toUpperCase(c);
-//                annotation = annotation.replace(annotation.substring(i,i+2), String.valueOf(uc));
-//            }
-//            char c = annotation.charAt(0);
-//            this.fullAnnotation = "org.jmlspecs.annotation." + Character.toUpperCase(c) + annotation.substring(1);
-//        }
-//        
-//        public ModifierKind(String keyword, boolean strict, String annotation) { 
-//            super(keyword); 
-//            this.strict = strict;
-//            this.fullAnnotation = annotation.contains(".") ? annotation : ("org.jmlspecs.annotation." + annotation);
-//        }
-//
-//        @Override
-//        public JCTree parse(JCModifiers mods, String keyword,
-//                IJmlClauseKind clauseKind, /*Jml*/Parser parser) {
-//            return null;
-//        }
-//
-//        @Override
-//        public Type typecheck(Attr attr, JCTree tree, Env<AttrContext> env) {
-//            return null;
-//        }
-//    }
-//
-//    
-//    public static abstract class ClassLikeKind extends IJmlClauseKind {
-//        public ClassLikeKind(String keyword) { super(keyword); }
-//    }
+    /** This class is used for JML items that are just a keyword but
+     * are not expressions or other categories themselves.
+     */
+    public static abstract class SingletonKind extends IJmlClauseKind.Misc {
+        
+        public SingletonKind(String name) { super(name); }
+        
+        @Override
+        public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
+            init(parser);
+            IJmlClauseKind jt = parser.jmlTokenClauseKind();
+            int p = parser.pos();
+            String stringRep = parser.getScanner().chars();
+            parser.nextToken();
+            if (parser.token().kind == TokenKind.LPAREN) {
+                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.name());
+            } else {
+                JmlSingleton e = parser.maker().at(p).JmlSingleton(jt);
+                e.kind = this;
+                checkParse(parser,e,stringRep);
+                return e;
+            }
+        }
+        
+        /** A method meant to be overridden in derived classes to do any
+         * additional checking -- typically none for a singleton.
+         */
+        public void checkParse(JmlParser parser, JmlSingleton e, String rep) {}
+
+    }
+    /** This class is used for kinds of JML expressions that are just a keyword with
+     * no parenthesized argument list
+     */
+    public static abstract class SingletonExpressionKind extends ExpressionKind {
+        
+        public SingletonExpressionKind(String name) { super(name); }
+        
+        @Override
+        public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
+            init(parser);
+            IJmlClauseKind jt = parser.jmlTokenClauseKind();
+            int p = parser.pos();
+            String stringRep = parser.getScanner().chars();
+            parser.nextToken();
+            if (parser.token().kind == TokenKind.LPAREN) {
+                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.name());
+            } else {
+                JmlSingleton e = parser.maker().at(p).JmlSingleton(jt);
+                e.kind = this;
+                checkParse(parser,e,stringRep);
+                return e;
+            }
+        }
+        
+        /** A method meant to be overridden in derived classes to do any
+         * additional checking -- typically none for a singleton.
+         */
+        public void checkParse(JmlParser parser, JmlSingleton e, String rep) {}
+
+    }
+    
+    public static class ModifierKind extends IJmlClauseKind {
+        public String fullAnnotation;
+        public boolean strict;
+        
+        public ModifierKind(String keyword, boolean strict) {
+            super(keyword);
+            this.strict = strict;
+            String annotation = keyword;
+            while (true) {
+                int i = annotation.indexOf("_");
+                if (i < 0 || i >= annotation.length()-1) break;
+                char c = annotation.charAt(i+1);
+                char uc = Character.toUpperCase(c);
+                annotation = annotation.replace(annotation.substring(i,i+2), String.valueOf(uc));
+            }
+            char c = annotation.charAt(0);
+            this.fullAnnotation = "org.jmlspecs.annotation." + Character.toUpperCase(c) + annotation.substring(1);
+        }
+        
+        public ModifierKind(String keyword, boolean strict, String annotation) { 
+            super(keyword); 
+            this.strict = strict;
+            this.fullAnnotation = annotation.contains(".") ? annotation : ("org.jmlspecs.annotation." + annotation);
+        }
+
+        @Override
+        public JCTree parse(JCModifiers mods, String keyword,
+                IJmlClauseKind clauseKind, JmlParser parser) {
+            return null;
+        }
+
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
+            return null;
+        }
+    }
+
+    
+    public static abstract class ClassLikeKind extends IJmlClauseKind {
+        public ClassLikeKind(String keyword) { super(keyword); }
+    }
     
     /**
      * Parses a list of method-name; returns a possibly empty list; does not
      * parse the terminating semicolon
-     *//*
+     */
     public List<JmlMethodSig> parseMethodNameList() {
-    	/*
         ListBuffer<JmlMethodSig> sigs = new ListBuffer<JmlMethodSig>();
         while (true) {
             JmlMethodSig m = parseMethodName();
@@ -530,9 +536,9 @@ public abstract class IJmlClauseKind {
             parser.nextToken();
         }
         return sigs.toList();
-    }*/
+    }
 
-    /** Parses a method-name *//*
+    /** Parses a method-name */
     public JmlMethodSig parseMethodName() {
         int initpos = parser.pos();
         int p = initpos;
@@ -619,7 +625,5 @@ public abstract class IJmlClauseKind {
         return parser.jmlF.at(initpos).JmlConstraintMethodSig(id,
                 args == null ? null : args.toList());
     }
-*/
-
 
 }

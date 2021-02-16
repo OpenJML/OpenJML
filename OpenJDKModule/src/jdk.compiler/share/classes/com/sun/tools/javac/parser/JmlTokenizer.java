@@ -15,13 +15,13 @@ import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 //import org.jmlspecs.openjml.IJmlLineAnnotation;
 import org.jmlspecs.openjml.JmlTokenKind;
-//import org.jmlspecs.openjml.Nowarns;
-//import org.jmlspecs.openjml.Utils;
-//import org.jmlspecs.openjml.ext.LineAnnotationClauses;
-//import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
-//import org.jmlspecs.openjml.ext.MiscExtensions;
-//import org.jmlspecs.openjml.ext.Operators;
-//import org.jmlspecs.openjml.ext.SingletonExpressions;
+import org.jmlspecs.openjml.Nowarns;
+import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.LineAnnotationClauses;
+import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
+import org.jmlspecs.openjml.ext.MiscExtensions;
+import org.jmlspecs.openjml.ext.Operators;
+import org.jmlspecs.openjml.ext.SingletonExpressions;
 
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
 import com.sun.tools.javac.parser.Tokens.Token;
@@ -52,10 +52,6 @@ import com.sun.tools.javac.util.Options;
  I'm not sure the behavior of unicode with multiple backslashes is correct
  */
 
-class Nowarns {
-	public void addItem(DiagnosticSource file, int pos, String label) {}	
-} // FIXME
-
 // FIXME - turn off jml when an exception happens?
 /**
  * This class is an extension of the JDK scanner that scans JML constructs as
@@ -73,8 +69,6 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     /** The compilation context with which this instance was created */
     public Context         context;
 
-    public class ExceptionLineAnnotation {}
-    
     /** A temporary reference to the instance of the nowarn collector for the context. */
     /*@ non_null */ public Nowarns nowarns;
     public java.util.List<ExceptionLineAnnotation> lineAnnotations = new java.util.LinkedList<>();

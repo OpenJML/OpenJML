@@ -76,11 +76,11 @@ public class Main {
 
     /** The writer to use for normal output.
      */
-    PrintWriter stdOut;
+    public PrintWriter stdOut; // OPENJML - package to public
 
     /** The writer to use for diagnostic output.
      */
-    PrintWriter stdErr;
+    public PrintWriter stdErr; // OPENJML - package to public
 
     /** The log to use for diagnostic output.
      */
@@ -423,7 +423,7 @@ public class Main {
 
     /** Print a message reporting an internal error.
      */
-    void bugMessage(Throwable ex) {
+    protected void bugMessage(Throwable ex) { // OPENJML - package to protected
         log.printLines(PrefixKind.JAVAC, "msg.bug", JavaCompiler.version());
         ex.printStackTrace(log.getWriter(WriterKind.NOTICE));
     }
