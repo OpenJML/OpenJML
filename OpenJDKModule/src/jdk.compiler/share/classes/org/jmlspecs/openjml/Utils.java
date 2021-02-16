@@ -69,6 +69,7 @@ import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.DiagnosticSource;
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
@@ -77,6 +78,7 @@ import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.PropagatedException;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticFlag;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.JCDiagnostic.SimpleDiagnosticPosition;
 import com.sun.tools.javac.util.JCDiagnostic.Warning;
@@ -894,8 +896,8 @@ public class Utils {
         JavaFileObject prev = null;
         if (source != null) prev = log().useSource(source);
         try {
-            JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log().currentSource(), pos, "empty", "");
-            String msg = diag.noSource().replace("Note: ", "");
+            JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(DiagnosticSource.NO_SOURCE, pos, "empty", "");
+            String msg = diag.toString().replace("Note: ", "");
             return msg;
         } finally {
             if (source != null) log().useSource(prev);
@@ -1487,6 +1489,14 @@ public class Utils {
         return true;
     }
     
+    // The following are wrappers for calls to log, to output errors, warnings and notes through a 
+    // common mechanism. The wrappers are handy because Log itself does not expose all the 
+    // needed combinations of arguments. Note that you can use 
+    // - null for an absent DiagnosticFlag
+    // - DiagnosticSource.NO_SOURCE for an absent DiagnosticSource, but the default DIagnosticSource is the current log.currentSource()
+    // - Position.NOPOS for an absent int position
+    // - null for an absent DiagnosticPosition position
+    
     public void error(String key, Object ... args) {
         log.error(log.factory().errorKey(key, args));
     }
@@ -1496,7 +1506,15 @@ public class Utils {
     }
 
     public void error(DiagnosticPosition pos, String key, Object ... args) {
-        log.error(pos, JCDiagnostic.Factory.instance(context).errorKey(key, args));
+        log.error(null, pos, JCDiagnostic.Factory.instance(context).errorKey(key, args));
+    }
+
+    public void error(DiagnosticFlag flag, DiagnosticPosition pos, String key, Object ... args) {
+        log.error(flag, pos, JCDiagnostic.Factory.instance(context).errorKey(key, args));
+    }
+
+    public void error(DiagnosticFlag flag, int pos, String key, Object ... args) {
+        log.error(flag, pos, JCDiagnostic.Factory.instance(context).errorKey(key, args));
     }
 
     public void warning(String key, Object ... args) {

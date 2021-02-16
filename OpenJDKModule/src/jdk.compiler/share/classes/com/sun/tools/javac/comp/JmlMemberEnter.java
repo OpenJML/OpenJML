@@ -48,6 +48,7 @@ import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Lint;
 import com.sun.tools.javac.code.Scope;
+import com.sun.tools.javac.code.Scope.WriteableScope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.CompletionFailure;
@@ -72,6 +73,7 @@ import com.sun.tools.javac.util.Assert;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.FatalError;
 import com.sun.tools.javac.util.JCDiagnostic;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticFlag;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -158,6 +160,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         });
     }
     
+    public static JmlMemberEnter instance(Context context) {
+        return (JmlMemberEnter)MemberEnter.instance(context);
+    }
+
+    
     /** Overridden simply to catch null first arguments.  The super class will crash
      * but the first argument may be null if we continue after parsing with
      * input files that contain parse errors.
@@ -189,9 +196,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             if (specscu != null) {
                 Env<AttrContext> specenv = specscu.topLevelEnv;
                 if (specenv == null) specenv = env;
-                if (specenv != env) importAll(tree.pos, reader.enterPackage(names.java_lang), specenv);
+                if (specenv != env) importAll(tree.pos, syms.enterPackage(null, names.java_lang), specenv);
                 super.memberEnter(specscu, specenv);
-                importAll(tree.pos, reader.enterPackage(names.fromString(Strings.jmlSpecsPackage)), specenv);
+                importAll(tree.pos, syms.enterPackage(null, names.fromString(Strings.jmlSpecsPackage)), specenv);
             }
         }
     }
@@ -200,256 +207,257 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     public int modeOfFileBeingChecked = 0;
     
     protected JmlClassDecl currentClass = null;
-    
-    @Override
-    protected void finishClass(JCClassDecl tree, Env<AttrContext> env) {
-        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
-        JmlClassDecl jtree = (JmlClassDecl)tree;
-        JavaFileObject prevSource = log.useSource(jtree.source());;
-        JmlClassDecl prevClass = currentClass;
-        currentClass = (JmlClassDecl)tree;
-        int prevMode = modeOfFileBeingChecked;  // FIXME _ suspect this is not accurate
-        int nowmode = modeOfFileBeingChecked = ((JmlCompilationUnit)env.toplevel).mode;
-        boolean prevAllowJML = resolve.allowJML();
-        if (jtree.isJML()) resolve.setAllowJML(true);
-        
-        boolean isSpecForBinary = jtree.toplevel != null && jtree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY;
-        
-        // Adjust the members of jtree - if there is a separate specs file, then remove any JML declarations in the Java file and 
-        // replace them with JML declaratinos from the specs file
-        
-        boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
-        boolean prevEntering = noEntering;
-        if (!isSpecForBinary) {
-            ListBuffer<JCTree> defs = new ListBuffer<>();
-            if (jtree.specsDecl != jtree) {
-                for (JCTree t: jtree.defs) {
-                    if (t instanceof JmlMethodDecl) { 
-                        if (!utils.isJML(((JmlMethodDecl)t).mods)) defs.add(t);
-                        // else omit it
-                    } else if (t instanceof JmlVariableDecl) {
-                        if (!utils.isJML(((JmlVariableDecl)t).mods)) defs.add(t);
-                        // else omit it
-                    } else if (t instanceof JmlClassDecl) {
-                        defs.add(t);
-                    } else if (t instanceof JmlTypeClause) {
-                        // omit
-                    } else {
-                        defs.add(t);
-                    }
-                }
-                if (jtree.specsDecl != null) for (JCTree t: jtree.specsDecl.defs) {
-                    if (t instanceof JmlMethodDecl) { 
-                        if (utils.isJML(((JmlMethodDecl)t).mods)) { defs.add(t);  }
-                    } else if (t instanceof JmlVariableDecl) {
-                        if (utils.isJML(((JmlVariableDecl)t).mods)) { defs.add(t);  }
-                    }
-                }
-                jtree.defs = defs.toList();
-                dojml = true;
-                JmlCheck.instance(context).noDuplicateWarn = false;
-                ListBuffer<JCTree> remove = null;
-                for (JCTree t: jtree.defs) {
-                    if (t instanceof JmlSource) log.useSource(((JmlSource)t).source());
-                    memberEnter(t,env); // FIXME - do something special for enums
-                    if (t instanceof JCVariableDecl && ((JCVariableDecl)t).sym == null) {
-                        if (remove == null) remove = new ListBuffer<>();
-                        remove.add(t);
-                    }
-                    if (t instanceof JCMethodDecl && ((JCMethodDecl)t).sym == null) {
-                        if (remove == null) remove = new ListBuffer<>();
-                        remove.add(t);
-                    }
-                }
-                if (remove != null) {
-                    for (JCTree t: remove) {
-                        jtree.defs = Utils.remove(jtree.defs, t);
-                        if (jtree.specsDecl !=null) jtree.specsDecl.defs = Utils.remove(jtree.specsDecl.defs, t);
-                    }
-                }
-////                boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
-////                if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = false;
-////                if (isSpecForBinary) dojml = true;
-////                super.finishClass(tree, env);
-////                if (isSpecForBinary) dojml = false;
-////                if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = prevChk;
+
+    // FIXME
+//    @Override
+//    protected void finishClass(JCClassDecl tree, Env<AttrContext> env) {
+//        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
+//        JmlClassDecl jtree = (JmlClassDecl)tree;
+//        JavaFileObject prevSource = log.useSource(jtree.source());;
+//        JmlClassDecl prevClass = currentClass;
+//        currentClass = (JmlClassDecl)tree;
+//        int prevMode = modeOfFileBeingChecked;  // FIXME _ suspect this is not accurate
+//        int nowmode = modeOfFileBeingChecked = ((JmlCompilationUnit)env.toplevel).mode;
+//        boolean prevAllowJML = resolve.allowJML();
+//        if (jtree.isJML()) resolve.setAllowJML(true);
+//        
+//        boolean isSpecForBinary = jtree.toplevel != null && jtree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY;
+//        
+//        // Adjust the members of jtree - if there is a separate specs file, then remove any JML declarations in the Java file and 
+//        // replace them with JML declaratinos from the specs file
+//        
+//        boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
+//        boolean prevEntering = noEntering;
+//        if (!isSpecForBinary) {
+//            ListBuffer<JCTree> defs = new ListBuffer<>();
+//            if (jtree.specsDecl != jtree) {
+//                for (JCTree t: jtree.defs) {
+//                    if (t instanceof JmlMethodDecl) { 
+//                        if (!utils.isJML(((JmlMethodDecl)t).mods)) defs.add(t);
+//                        // else omit it
+//                    } else if (t instanceof JmlVariableDecl) {
+//                        if (!utils.isJML(((JmlVariableDecl)t).mods)) defs.add(t);
+//                        // else omit it
+//                    } else if (t instanceof JmlClassDecl) {
+//                        defs.add(t);
+//                    } else if (t instanceof JmlTypeClause) {
+//                        // omit
+//                    } else {
+//                        defs.add(t);
+//                    }
 //                }
-            } else {
-                super.finishClass(jtree, env);
-            }
-            // Now create symbols for all of the Java and JML methods and fields
-            // This operation will report any duplicates
-
-        }
-        
-        if (isSpecForBinary) {
-            jtree.specsDecl = jtree;
-            // Here we add the JML declarations to the class
-            log.useSource(jtree.source());
-            JCTree first = jtree.defs.head;
-            if (first != null) {
-                if (first instanceof JmlMethodDecl) {
-                    if ((((JmlMethodDecl)first).mods.flags & Flags.GENERATEDCONSTR) != 0) {
-                        jtree.defs = Utils.remove(jtree.defs,first);
-                    }
-                }
-            }
-            for (JCTree t: jtree.defs) {
-                boolean jml = false;
-                boolean skip = false;
-                if (t instanceof JmlMethodDecl) { 
-                    if (utils.isJML(((JmlMethodDecl)t).mods)) jml = true;
-                    // else omit it
-                } else if (t instanceof JmlVariableDecl) {
-                    if (utils.isJML(((JmlVariableDecl)t).mods)) jml = true;
-                    // else omit it
-                } else if (t instanceof JmlClassDecl) {
-                    if (utils.isJML(((JmlClassDecl)t).mods)) jml = true;
-                } else {
-                    skip = true;
-                }
-                
-                // Now create symbols for the JML methods and fields
-                // We need to call memberEnter on Java declarations in the specs file to be
-                // sure that method types and annotations are processed. However they will
-                // then be reported as duplicates, so we turn off duplicate warnings
-                // FIXME - however, then erroneous unmatched java declarations will be added to the class and silently accepted.
-                
-                if (!skip) {
-                    JmlCheck jmlcheck = JmlCheck.instance(context);
-                    boolean pre = jmlcheck.noDuplicateWarn;
-                    jmlcheck.noDuplicateWarn = !jml;
-                    noEntering = !jml && !utils.isJML(jtree); // FIXME - does this really need to be recursive?
-                    memberEnter(t,env); // FIXME - do something special for enums
-                    jmlcheck.noDuplicateWarn = pre;
-                }
-            }
-        }
-        noEntering = prevEntering;
-        JmlCheck.instance(context).noDuplicateWarn = prevChk;
-        
-
-        if (utils.isJML(tree.mods)) resolve.setAllowJML(prevAllowJML);
-        
-        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("    MEMBER ENTER FINISHING CLASS " + tree.sym.fullname);
-        // This is the case of a java source file, with a possibly-null
-        // specification file.  Besides entering all the Java
-        // field and method and initializer(?) members in the usual way (done above in the super call), 
-        // we need to:
-        //  connect specifications of Java members with the members
-        //  enter ghost and model fields, methods, initializers, along with
-        //      their specifications
-
-        ClassSymbol csym = jtree.sym;
-        
-        boolean prevInSpecFile = inSpecFile;
-
-        inSpecFile = jtree.source() == null ? false : jtree.source().getKind() != Kind.SOURCE;  // should always be false (?)
-
-        currentClass = prevClass;
-
-        // Now go through everything in the specifications, finding the
-        // JML fields and methods.  These need to be entered.
-
-        prevAllowJML = resolve.allowJML();
-        boolean prevInModel = inModelTypeDeclaration;
-        try {
-            JmlClassDecl specsDecl = jtree.specsDecl;
-            if (specsDecl == null) {
-                if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("FINISHING CLASS - NO SPECS " + tree.sym.fullname);
-                checkTypeMatch(jtree,jtree); // Still need to check modifiers
-                return;
-            }
-
-            if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("FINISHING CLASS - JML PHASE " + tree.sym.fullname);
-            
-            // First we scan through the Java parts of the spec file
-            // Various checks happen in the appropriate visitMethods
-            
-            boolean isModel = JmlAttr.instance(context).isModel(specsDecl.mods) || JmlAttr.instance(context).implementationAllowed;
-            inModelTypeDeclaration = isModel;
-            
-            log.useSource(specsDecl.source());
-            // TODO : need to do something to distinguish hand created parse trees
-            inSpecFile = specsDecl.source() == null ? false : specsDecl.source().getKind() != Kind.SOURCE; // Could be a Java file in the specs sequence
-            prevClass = currentClass;
-            currentClass = jtree;
-            
-            // Misc checks on the Java declarations
-            for (JCTree that: specsDecl.defs) {
-                if (that instanceof JCTree.JCBlock) {
-                    if (inSpecFile && currentMethod == null && !utils.isJML(currentClass.mods)) {
-                        // initializer block is not allowed in a specification, unless it is a model class
-                        log.error(that.pos,"jml.initializer.block.allowed");
-                    }
-                } else if (that instanceof JmlVariableDecl) {
-                    // FIXME - anything here - or for other cases?
-                }
-            }
-
-            resolve.setAllowJML(true);
-            
-            
-            // At this point, all java and spec members are entered
-            // We still need to connect specs of fields and methods with their Java counterparts
-
-            // FIXME - what about blocks
-
-            // First for Java fields and methods
-            
-            matchStuff(jtree, jtree.sym, env, specsDecl);
-            
-            // Now we fill in the convenience fields - we could not do this
-            // earlier without prematurely overwriting what might be in the
-            // Java file and used as part of the specs seqeuence
-
-            // Also fill in default method specs for anything that does not have them
-            // FIXME - same for other kinds of fields? Or should we just interpret absence as default everywhere?
-            
-            // First for Java fields and methods
-            
-            for (JCTree t: jtree.defs) {
-                if (t instanceof JmlVariableDecl) {
-                    JmlVariableDecl v = (JmlVariableDecl)t;
-                    v.fieldSpecsCombined = specs.getSpecs(v.sym);
-                } else if (t instanceof JmlMethodDecl) {
-                    JmlMethodDecl m = (JmlMethodDecl)t;
-                    MethodSpecs ms;
-                    if (m.specsDecl == null) {
-                        ms = specs.defaultSpecs(m);
-                        annotateLater(tree.mods.annotations, methodEnv((JmlMethodDecl)t, env), m.sym, tree.pos());
-                    } else {
-                        ms = new MethodSpecs(m.specsDecl);
-                    }
-                    m.methodSpecsCombined = ms;
-                    JmlSpecs.instance(context).putSpecs(m.sym, ms);
-                }
-            }
-            
-            // FIXME = use a visitor to be more O-O ?
-            // FIXME - unify this method with the near duplicate below
-
-            checkFinalTypeSpecs(specs.get(csym));
-
-        } finally {
-            inSpecFile = prevInSpecFile;
-            inModelTypeDeclaration = prevInModel;
-            addRacMethods(tree.sym,env);
-            resolve.setAllowJML(prevAllowJML);
-            log.useSource(prevSource);
-            if (utils.jmlverbose >= Utils.JMLDEBUG) {
-                noticeWriter.println("FINISHING CLASS - COMPLETE " + tree.sym.fullname);
-                noticeWriter.println("   SCOPE IS " + tree.sym.members());
-            }
-            modeOfFileBeingChecked = prevMode;
-            currentClass = prevClass;
-        }
-    }
+//                if (jtree.specsDecl != null) for (JCTree t: jtree.specsDecl.defs) {
+//                    if (t instanceof JmlMethodDecl) { 
+//                        if (utils.isJML(((JmlMethodDecl)t).mods)) { defs.add(t);  }
+//                    } else if (t instanceof JmlVariableDecl) {
+//                        if (utils.isJML(((JmlVariableDecl)t).mods)) { defs.add(t);  }
+//                    }
+//                }
+//                jtree.defs = defs.toList();
+//                dojml = true;
+//                JmlCheck.instance(context).noDuplicateWarn = false;
+//                ListBuffer<JCTree> remove = null;
+//                for (JCTree t: jtree.defs) {
+//                    if (t instanceof JmlSource) log.useSource(((JmlSource)t).source());
+//                    memberEnter(t,env); // FIXME - do something special for enums
+//                    if (t instanceof JCVariableDecl && ((JCVariableDecl)t).sym == null) {
+//                        if (remove == null) remove = new ListBuffer<>();
+//                        remove.add(t);
+//                    }
+//                    if (t instanceof JCMethodDecl && ((JCMethodDecl)t).sym == null) {
+//                        if (remove == null) remove = new ListBuffer<>();
+//                        remove.add(t);
+//                    }
+//                }
+//                if (remove != null) {
+//                    for (JCTree t: remove) {
+//                        jtree.defs = Utils.remove(jtree.defs, t);
+//                        if (jtree.specsDecl !=null) jtree.specsDecl.defs = Utils.remove(jtree.specsDecl.defs, t);
+//                    }
+//                }
+//////                boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
+//////                if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = false;
+//////                if (isSpecForBinary) dojml = true;
+//////                super.finishClass(tree, env);
+//////                if (isSpecForBinary) dojml = false;
+//////                if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = prevChk;
+////                }
+//            } else {
+//                super.finishClass(jtree, env);
+//            }
+//            // Now create symbols for all of the Java and JML methods and fields
+//            // This operation will report any duplicates
+//
+//        }
+//        
+//        if (isSpecForBinary) {
+//            jtree.specsDecl = jtree;
+//            // Here we add the JML declarations to the class
+//            log.useSource(jtree.source());
+//            JCTree first = jtree.defs.head;
+//            if (first != null) {
+//                if (first instanceof JmlMethodDecl) {
+//                    if ((((JmlMethodDecl)first).mods.flags & Flags.GENERATEDCONSTR) != 0) {
+//                        jtree.defs = Utils.remove(jtree.defs,first);
+//                    }
+//                }
+//            }
+//            for (JCTree t: jtree.defs) {
+//                boolean jml = false;
+//                boolean skip = false;
+//                if (t instanceof JmlMethodDecl) { 
+//                    if (utils.isJML(((JmlMethodDecl)t).mods)) jml = true;
+//                    // else omit it
+//                } else if (t instanceof JmlVariableDecl) {
+//                    if (utils.isJML(((JmlVariableDecl)t).mods)) jml = true;
+//                    // else omit it
+//                } else if (t instanceof JmlClassDecl) {
+//                    if (utils.isJML(((JmlClassDecl)t).mods)) jml = true;
+//                } else {
+//                    skip = true;
+//                }
+//                
+//                // Now create symbols for the JML methods and fields
+//                // We need to call memberEnter on Java declarations in the specs file to be
+//                // sure that method types and annotations are processed. However they will
+//                // then be reported as duplicates, so we turn off duplicate warnings
+//                // FIXME - however, then erroneous unmatched java declarations will be added to the class and silently accepted.
+//                
+//                if (!skip) {
+//                    JmlCheck jmlcheck = JmlCheck.instance(context);
+//                    boolean pre = jmlcheck.noDuplicateWarn;
+//                    jmlcheck.noDuplicateWarn = !jml;
+//                    noEntering = !jml && !utils.isJML(jtree); // FIXME - does this really need to be recursive?
+//                    memberEnter(t,env); // FIXME - do something special for enums
+//                    jmlcheck.noDuplicateWarn = pre;
+//                }
+//            }
+//        }
+//        noEntering = prevEntering;
+//        JmlCheck.instance(context).noDuplicateWarn = prevChk;
+//        
+//
+//        if (utils.isJML(tree.mods)) resolve.setAllowJML(prevAllowJML);
+//        
+//        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("    MEMBER ENTER FINISHING CLASS " + tree.sym.fullname);
+//        // This is the case of a java source file, with a possibly-null
+//        // specification file.  Besides entering all the Java
+//        // field and method and initializer(?) members in the usual way (done above in the super call), 
+//        // we need to:
+//        //  connect specifications of Java members with the members
+//        //  enter ghost and model fields, methods, initializers, along with
+//        //      their specifications
+//
+//        ClassSymbol csym = jtree.sym;
+//        
+//        boolean prevInSpecFile = inSpecFile;
+//
+//        inSpecFile = jtree.source() == null ? false : jtree.source().getKind() != Kind.SOURCE;  // should always be false (?)
+//
+//        currentClass = prevClass;
+//
+//        // Now go through everything in the specifications, finding the
+//        // JML fields and methods.  These need to be entered.
+//
+//        prevAllowJML = resolve.allowJML();
+//        boolean prevInModel = inModelTypeDeclaration;
+//        try {
+//            JmlClassDecl specsDecl = jtree.specsDecl;
+//            if (specsDecl == null) {
+//                if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("FINISHING CLASS - NO SPECS " + tree.sym.fullname);
+//                checkTypeMatch(jtree,jtree); // Still need to check modifiers
+//                return;
+//            }
+//
+//            if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("FINISHING CLASS - JML PHASE " + tree.sym.fullname);
+//            
+//            // First we scan through the Java parts of the spec file
+//            // Various checks happen in the appropriate visitMethods
+//            
+//            boolean isModel = JmlAttr.instance(context).isModel(specsDecl.mods) || JmlAttr.instance(context).implementationAllowed;
+//            inModelTypeDeclaration = isModel;
+//            
+//            log.useSource(specsDecl.source());
+//            // TODO : need to do something to distinguish hand created parse trees
+//            inSpecFile = specsDecl.source() == null ? false : specsDecl.source().getKind() != Kind.SOURCE; // Could be a Java file in the specs sequence
+//            prevClass = currentClass;
+//            currentClass = jtree;
+//            
+//            // Misc checks on the Java declarations
+//            for (JCTree that: specsDecl.defs) {
+//                if (that instanceof JCTree.JCBlock) {
+//                    if (inSpecFile && currentMethod == null && !utils.isJML(currentClass.mods)) {
+//                        // initializer block is not allowed in a specification, unless it is a model class
+//                        log.error(that.pos,"jml.initializer.block.allowed");
+//                    }
+//                } else if (that instanceof JmlVariableDecl) {
+//                    // FIXME - anything here - or for other cases?
+//                }
+//            }
+//
+//            resolve.setAllowJML(true);
+//            
+//            
+//            // At this point, all java and spec members are entered
+//            // We still need to connect specs of fields and methods with their Java counterparts
+//
+//            // FIXME - what about blocks
+//
+//            // First for Java fields and methods
+//            
+//            matchStuff(jtree, jtree.sym, env, specsDecl);
+//            
+//            // Now we fill in the convenience fields - we could not do this
+//            // earlier without prematurely overwriting what might be in the
+//            // Java file and used as part of the specs seqeuence
+//
+//            // Also fill in default method specs for anything that does not have them
+//            // FIXME - same for other kinds of fields? Or should we just interpret absence as default everywhere?
+//            
+//            // First for Java fields and methods
+//            
+//            for (JCTree t: jtree.defs) {
+//                if (t instanceof JmlVariableDecl) {
+//                    JmlVariableDecl v = (JmlVariableDecl)t;
+//                    v.fieldSpecsCombined = specs.getSpecs(v.sym);
+//                } else if (t instanceof JmlMethodDecl) {
+//                    JmlMethodDecl m = (JmlMethodDecl)t;
+//                    MethodSpecs ms;
+//                    if (m.specsDecl == null) {
+//                        ms = specs.defaultSpecs(m);
+//                        annotate.annotateLater(tree.mods.annotations, methodEnv((JmlMethodDecl)t, env), m.sym, tree.pos());
+//                    } else {
+//                        ms = new MethodSpecs(m.specsDecl);
+//                    }
+//                    m.methodSpecsCombined = ms;
+//                    JmlSpecs.instance(context).putSpecs(m.sym, ms);
+//                }
+//            }
+//            
+//            // FIXME = use a visitor to be more O-O ?
+//            // FIXME - unify this method with the near duplicate below
+//
+//            checkFinalTypeSpecs(specs.get(csym));
+//
+//        } finally {
+//            inSpecFile = prevInSpecFile;
+//            inModelTypeDeclaration = prevInModel;
+//            addRacMethods(tree.sym,env);
+//            resolve.setAllowJML(prevAllowJML);
+//            log.useSource(prevSource);
+//            if (utils.jmlverbose >= Utils.JMLDEBUG) {
+//                noticeWriter.println("FINISHING CLASS - COMPLETE " + tree.sym.fullname);
+//                noticeWriter.println("   SCOPE IS " + tree.sym.members());
+//            }
+//            modeOfFileBeingChecked = prevMode;
+//            currentClass = prevClass;
+//        }
+//    }
     
     protected boolean noEntering = false;
     
     /** Returns true if there is a duplicate, whether or not it was warned about */
-    protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, Scope enclScope) {
+    protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, WriteableScope enclScope) {
         boolean was = ((JmlCheck)chk).noDuplicateWarn;
         if (m.isConstructor() && (m.flags() & Utils.JMLBIT) != 0 && m.params().isEmpty()) {
             ((JmlCheck)chk).noDuplicateWarn = true;
@@ -612,8 +620,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     localEnv = env.dup(specsVarDecl, env.info.dup());
                     localEnv.info.staticLevel++;
                 }
-                annotateLater(specsVarDecl.mods.annotations, localEnv, matchSym, specsVarDecl.pos());
-                typeAnnotate(specsVarDecl.vartype, env, matchSym, specsVarDecl.pos());
+                annotate.annotateLater(specsVarDecl.mods.annotations, localEnv, matchSym, specsVarDecl.pos());
+// FIXME                typeAnnotate(specsVarDecl.vartype, env, matchSym, specsVarDecl.pos());
             }
         }
 
@@ -1051,7 +1059,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             }
             // FIXME - this is needed, but it is using the environment from the java class, not the 
             // spec class, and so it is using the import statements in the .java file, not those in the .jml file
-            attr.attribAnnotationTypes(specsClassDecl.mods.annotations, baseEnv(javaDecl,env));  // FIXME - this is done later; is it needed here?
+// FIXME            attr.attribAnnotationTypes(specsClassDecl.mods.annotations, baseEnv(javaDecl,env));  // FIXME - this is done later; is it needed here?
 
             JavaFileObject prev = log.useSource(specsClassDecl.source());
             checkSameAnnotations(javaDecl.mods,specsClassDecl.mods,javaDecl.source());
@@ -1151,9 +1159,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            if (chk.checkUnique(tree.pos(), m, enclScope)) {
 //                enclScope.enter(m);
 //            }
-            annotateLater(tree.mods.annotations, localEnv, mtemp, tree.pos()); // FIXME - is this the right position
+            annotate.annotateLater(tree.mods.annotations, localEnv, mtemp, tree.pos()); // FIXME - is this the right position
             if (tree.defaultValue != null)
-                annotateDefaultValueLater(tree.defaultValue, localEnv, mtemp);
+                annotate.annotateDefaultValueLater(tree.defaultValue, localEnv, mtemp, tree);
         }
 
         MethodSymbol match = null;
@@ -1215,7 +1223,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         
         if (msym == null && match != null) {
             tree.sym = match;
-            if (localEnv != null) localEnv.info.scope.owner = match;
+// FIXME            if (localEnv != null) localEnv.info.scope.owner = match;
             for (List<JCVariableDecl> l = tree.params; l.nonEmpty(); l = l.tail) {
                 JCVariableDecl param = l.head;
                 param.sym.owner = match;
@@ -1582,7 +1590,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (env == null) {
             log.error("jml.internal","Unexpected NULL ENV in JmlMemberEnter.addAnnotations" + sym);
         }
-        annotateLaterConditional(mods.annotations, env, sym, mods.pos()); // FIXME - is this an OK position?
+        annotate.annotateLater(mods.annotations, env, sym, mods.pos()); // FIXME - used to be annotateLaterConditional
     }
 
     
@@ -1607,59 +1615,60 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      * @param localEnv
      * @param s
      */
-    // MAINTENANCE - modified from MemberEnter.annotateLater  // FIXME - currently the same as in the super class
-    void annotateLaterConditional(final List<JCAnnotation> annotations,
-            final Env<AttrContext> localEnv,
-            final Symbol s,
-            final DiagnosticPosition deferPos) {
-        if (annotations.isEmpty()) return;
-        if (s.kind != PCK) {
-            s.resetAnnotations(); // mark Annotations as incomplete for now
-        }
-        annotate.normal(new Annotate.Worker() {
-            @Override
-            public String toString() {
-                return "annotate " + annotations + " onto " + s + " in " + s.owner;
-            }
-
-            @Override
-            public void run() {
-//                Assert.check(s.kind == PCK || s.annotationsPendingCompletion()); // Removed check - why?
-                JavaFileObject prev = log.useSource(localEnv.toplevel.sourcefile);
-                DiagnosticPosition prevLintPos =
-                    deferPos != null
-                    ? deferredLintHandler.setPos(deferPos)
-                    : deferredLintHandler.immediate();
-                Lint prevLint = deferPos != null ? null : chk.setLint(lint);
-                try {
-                    if (!(s.hasAnnotations() &&
-                        annotations.nonEmpty())) 
-                        actualEnterAnnotations(annotations, localEnv, s);
-//                    else if (!(annotations.head.type instanceof Type.ErrorType) )
-//                        log.error(annotations.head.pos,
-//                                  "already.annotated",
-//                                  kindName(s), s);
-                } finally {
-                    if (prevLint != null)
-                        chk.setLint(prevLint);
-                    deferredLintHandler.setPos(prevLintPos);
-                    log.useSource(prev);
-                }
-            }
-        });
-
-        annotate.validate(new Annotate.Worker() { //validate annotations
-            @Override
-            public void run() {
-                JavaFileObject prev = log.useSource(localEnv.toplevel.sourcefile);
-                try {
-                    chk.validateAnnotations(annotations, s);
-                } finally {
-                    log.useSource(prev);
-                }
-            }
-        });
-    }
+    // FIXME
+//    // MAINTENANCE - modified from MemberEnter.annotateLater  // FIXME - currently the same as in the super class
+//    void annotateLaterConditional(final List<JCAnnotation> annotations,
+//            final Env<AttrContext> localEnv,
+//            final Symbol s,
+//            final DiagnosticPosition deferPos) {
+//        if (annotations.isEmpty()) return;
+//        if (s.kind != PCK) {
+//            s.resetAnnotations(); // mark Annotations as incomplete for now
+//        }
+//        annotate.normal(new Annotate.Worker() {
+//            @Override
+//            public String toString() {
+//                return "annotate " + annotations + " onto " + s + " in " + s.owner;
+//            }
+//
+//            @Override
+//            public void run() {
+////                Assert.check(s.kind == PCK || s.annotationsPendingCompletion()); // Removed check - why?
+//                JavaFileObject prev = log.useSource(localEnv.toplevel.sourcefile);
+//                DiagnosticPosition prevLintPos =
+//                    deferPos != null
+//                    ? deferredLintHandler.setPos(deferPos)
+//                    : deferredLintHandler.immediate();
+//                Lint prevLint = deferPos != null ? null : chk.setLint(lint);
+//                try {
+//                    if (!(s.hasAnnotations() &&
+//                        annotations.nonEmpty())) 
+//                        actualEnterAnnotations(annotations, localEnv, s);
+////                    else if (!(annotations.head.type instanceof Type.ErrorType) )
+////                        log.error(annotations.head.pos,
+////                                  "already.annotated",
+////                                  kindName(s), s);
+//                } finally {
+//                    if (prevLint != null)
+//                        chk.setLint(prevLint);
+//                    deferredLintHandler.setPos(prevLintPos);
+//                    log.useSource(prev);
+//                }
+//            }
+//        });
+//
+//        annotate.validate(new Annotate.Worker() { //validate annotations
+//            @Override
+//            public void run() {
+//                JavaFileObject prev = log.useSource(localEnv.toplevel.sourcefile);
+//                try {
+//                    chk.validateAnnotations(annotations, s);
+//                } finally {
+//                    log.useSource(prev);
+//                }
+//            }
+//        });
+//    }
 
     
 //    annotate.later(new Annotate.Annotator() {
@@ -1749,7 +1758,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
     // This is a duplicate of super.vistMethodDef -- with some stuff elided for handling specs of binarys
     public void visitMethodDefBinary(JCMethodDecl tree) {
-        Scope enclScope = enter.enterScope(env);
+        WriteableScope enclScope = enter.enterScope(env);
         MethodSymbol m = new MethodSymbol(0, tree.name, null, enclScope.owner);
         m.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, m, tree);
         tree.sym = m;
@@ -1808,13 +1817,14 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         }
         ((JmlCheck)chk).noDuplicateWarn = prevCheck;
 
-        annotateLater(tree.mods.annotations, localEnv, m, tree.pos());
-        // Visit the signature of the method. Note that
-        // TypeAnnotate doesn't descend into the body.
-        typeAnnotate(tree, localEnv, m, tree.pos());
-
-        if (tree.defaultValue != null)
-            annotateDefaultValueLater(tree.defaultValue, localEnv, m);
+        // FIXME
+//        annotateLater(tree.mods.annotations, localEnv, m, tree.pos());
+//        // Visit the signature of the method. Note that
+//        // TypeAnnotate doesn't descend into the body.
+//        typeAnnotate(tree, localEnv, m, tree.pos());
+//
+//        if (tree.defaultValue != null)
+//            annotateDefaultValueLater(tree.defaultValue, localEnv, m);
     }
 
     
@@ -1854,58 +1864,58 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      * there is never a need - all expressions are static.  However, I have not
      * done the same for super.  (TODO)
      */
-    @Override
+//    @Override  // FIXME
     public void complete(Symbol sym) throws CompletionFailure {
         
-        JmlResolve jresolve = JmlResolve.instance(context);
-        boolean prevAllowJML = jresolve.setAllowJML(utils.isJML(sym.flags()));
-        try {
-            Env<AttrContext> env = enter.typeEnvs.get(sym.type.tsym);
-            if (env == null) {
-                log.error("jml.internal","JmlMemberEnter.complete called with a null env, presumably from a binary class, which should not be the argument of this complete call: " + sym);
-                return;
-            }
-            super.complete(sym); // FIXME - not sure this should be called for binary classes
-            // If this is a specification file then remove any automatically generated constructor
-            if (env.tree instanceof JmlClassDecl) {
-                JmlClassDecl jmltree = (JmlClassDecl)env.tree;
-                if (jmltree.toplevel != null && jmltree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY && !utils.isJML(jmltree)) {
-                    if (jmltree.defs.head instanceof JmlMethodDecl) {
-                        JmlMethodDecl md = (JmlMethodDecl)jmltree.defs.head;
-                        if ((md.getModifiers().flags & Flags.GENERATEDCONSTR) != 0) {
-                            jmltree.defs = jmltree.defs.tail;
-                        }
-                    }
-                    for (JCTree t : jmltree.defs) {
-                        if (t instanceof JmlClassDecl) {
-                            ClassSymbol cs = ((JmlClassDecl)t).sym;
-                            if (cs == null) continue;
-                            // OPENJML - Type parameters are not resolved/entered
-                            List<Symbol.TypeVariableSymbol> tp = cs.getTypeParameters();
-                            if (tp != null && !tp.isEmpty()) continue;
-                            // OPENJML - these do not work yet
-                            //if (cs.toString().endsWith("Subset")) continue;
-                            //if (cs.toString().endsWith("UnicodeBlock")) continue;
-                            //if (cs.toString().endsWith("Arn.Builder")) continue;
-                            complete(cs);
-                        }
-                    }
-                }
-            }
-            
-            // FIXME - this might already be done?
-            // If this is an interface, enter symbol for this into
-            // current scope.
-            ClassSymbol c = (ClassSymbol)sym;
-            if ((c.flags_field & INTERFACE) == INTERFACE) {
-                VarSymbol thisSym =
-                        new VarSymbol(FINAL | HASINIT, Names.instance(context)._this, c.type, c);
-                thisSym.pos = Position.FIRSTPOS;
-                env.info.scope.enter(thisSym);
-            }
-        } finally {
-            jresolve.setAllowJML(prevAllowJML);
-        }
+//        JmlResolve jresolve = JmlResolve.instance(context);
+//        boolean prevAllowJML = jresolve.setAllowJML(utils.isJML(sym.flags()));
+//        try {
+//            Env<AttrContext> env = enter.typeEnvs.get(sym.type.tsym);
+//            if (env == null) {
+//                log.error("jml.internal","JmlMemberEnter.complete called with a null env, presumably from a binary class, which should not be the argument of this complete call: " + sym);
+//                return;
+//            }
+//            super.complete(sym); // FIXME - not sure this should be called for binary classes
+//            // If this is a specification file then remove any automatically generated constructor
+//            if (env.tree instanceof JmlClassDecl) {
+//                JmlClassDecl jmltree = (JmlClassDecl)env.tree;
+//                if (jmltree.toplevel != null && jmltree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY && !utils.isJML(jmltree)) {
+//                    if (jmltree.defs.head instanceof JmlMethodDecl) {
+//                        JmlMethodDecl md = (JmlMethodDecl)jmltree.defs.head;
+//                        if ((md.getModifiers().flags & Flags.GENERATEDCONSTR) != 0) {
+//                            jmltree.defs = jmltree.defs.tail;
+//                        }
+//                    }
+//                    for (JCTree t : jmltree.defs) {
+//                        if (t instanceof JmlClassDecl) {
+//                            ClassSymbol cs = ((JmlClassDecl)t).sym;
+//                            if (cs == null) continue;
+//                            // OPENJML - Type parameters are not resolved/entered
+//                            List<Symbol.TypeVariableSymbol> tp = cs.getTypeParameters();
+//                            if (tp != null && !tp.isEmpty()) continue;
+//                            // OPENJML - these do not work yet
+//                            //if (cs.toString().endsWith("Subset")) continue;
+//                            //if (cs.toString().endsWith("UnicodeBlock")) continue;
+//                            //if (cs.toString().endsWith("Arn.Builder")) continue;
+//                            complete(cs);
+//                        }
+//                    }
+//                }
+//            }
+//            
+//            // FIXME - this might already be done?
+//            // If this is an interface, enter symbol for this into
+//            // current scope.
+//            ClassSymbol c = (ClassSymbol)sym;
+//            if ((c.flags_field & INTERFACE) == INTERFACE) {
+//                VarSymbol thisSym =
+//                        new VarSymbol(FINAL | HASINIT, Names.instance(context)._this, c.type, c);
+//                thisSym.pos = Position.FIRSTPOS;
+//                env.info.scope.enter(thisSym);
+//            }
+//        } finally {
+//            jresolve.setAllowJML(prevAllowJML);
+//        }
 
     }
     
@@ -1984,7 +1994,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         }
     }
     
-    protected void visitFieldDefHelper(JCVariableDecl tree, VarSymbol v, Scope enclScope) {
+    protected void visitFieldDefHelper(JCVariableDecl tree, VarSymbol v, WriteableScope enclScope) {
         if (chk.checkUnique(tree.pos(), v, enclScope)) {
             chk.checkTransparentVar(tree.pos(), v, enclScope);
             if (!noEntering) enclScope.enter(v);
@@ -1994,7 +2004,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             tree.sym = v;
         }
     }
-
     
     /** Creates a JCAnnotation tree (without position, source, or type information) from a token; has limited use */
     protected JmlTree.JmlAnnotation modToAnnotationAST(ModifierKind jt) {
@@ -2154,28 +2163,37 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     // FIXME - REVIEW
 
 
-    @Override
     protected void importHelper(JCCompilationUnit tree) {
-        // Import-on-demand java.lang.
-        importAll(tree.pos, reader.enterPackage(names.java_lang), env);
-        importAll(tree.pos, reader.enterPackage(names.fromString(Strings.jmlSpecsPackage)), env);
+        // Import-on-demand java.lang.   // FIXME - module
+        importAll(tree.pos, syms.enterPackage(null, names.java_lang), env);
+        importAll(tree.pos, syms.enterPackage(null, names.fromString(Strings.jmlSpecsPackage)), env);
 
         // Process all import clauses.
         memberEnter(tree.defs, env);
     }
-    
-    @Override
+
+    // FIXME
     protected void importAll(int pos,
             final TypeSymbol tsym,
             Env<AttrContext> env) {
-        if (tsym.kind == PCK && tsym.members().elems == null && !tsym.exists()) {
-            // If we can't find org.jmlspecs.lang, exit immediately.
-            if (((PackageSymbol)tsym).fullname.toString().equals(Strings.jmlSpecsPackage)) {
-                JCDiagnostic msg = JCDiagnostic.Factory.instance(context).fragment("fatal.err.no." + Strings.jmlSpecsPackage);
-                throw new FatalError(msg);
-            }
-        }
-        super.importAll(pos, tsym, env);
+//        if (tsym.kind == PCK && tsym.members().elems == null && !tsym.exists()) {
+//            // If we can't find org.jmlspecs.lang, exit immediately.
+//            if (((PackageSymbol)tsym).fullname.toString().equals(Strings.jmlSpecsPackage)) {
+//                JCDiagnostic msg = JCDiagnostic.Factory.instance(context).fragment("fatal.err.no." + Strings.jmlSpecsPackage);
+//                throw new FatalError(msg);
+//            }
+//        }
+//        // FIXME - taken from Java8 implementation -- how are imports handled now?
+//        if (tsym.kind == PCK && !tsym.exists()) {
+//            // If we can't find java.lang, exit immediately.
+//            if (((PackageSymbol)tsym).fullname.equals(names.java_lang)) {
+//                JCDiagnostic msg = Log.instance(context).factory().fragment("fatal.err.no.java.lang");
+//                throw new FatalError(msg);
+//            } else {
+//                utils.error(DiagnosticFlag.RESOLVE_ERROR, pos, "doesnt.exist", tsym);
+//            }
+//        }
+//// FIXME        super.importAll(null, tsym, env);
     }
 
 

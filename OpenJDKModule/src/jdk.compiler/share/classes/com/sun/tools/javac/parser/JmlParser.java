@@ -215,9 +215,10 @@ public class JmlParser extends JavacParser {
     //@ ensures \result == null || \result instanceof JCTree.JCImport;
     //@ nullable
     @Override
-    protected JCTree importDeclaration(JCModifiers mods) {
+    protected JCTree importDeclaration() {
         int p = pos();
         boolean modelImport = false;
+        JCModifiers mods = modifiersOpt();
         for (JCAnnotation a: mods.annotations) {
             if (a.annotationType.toString().equals("org.jmlspecs.annotation.Model")) { modelImport = true; }
             else utils.error(a.pos, "jml.no.mods.on.import");
@@ -227,7 +228,7 @@ public class JmlParser extends JavacParser {
             jmlerror(p, endPos(), "jml.import.no.model");
             modelImport = true;
         }
-        JCTree t = super.importDeclaration(mods);
+        JCTree t = super.importDeclaration();
         ((JmlImport) t).isModel = modelImport;
         if (modelImport && !importIsInJml) {
             jmlerror(p, t.getEndPosition(endPosTable), "jml.illformed.model.import");
@@ -246,18 +247,23 @@ public class JmlParser extends JavacParser {
     @Override
     JCAnnotation annotation(int pos, JCTree.Tag kind) {
         JCAnnotation a = super.annotation(pos, kind);
-        ((JmlTree.JmlAnnotation)a).sourcefile = log.currentSourceFile();
+        ((JmlTree.JmlAnnotation)a).sourcefile = currentSourceFile();
         return a;
     }
     
     /** OpenJML overrides in order to parse and insert replacement types for formal parameters */
     @Override
-    protected JCVariableDecl formalParameter(boolean lambdaParameter) {
+    protected JCVariableDecl formalParameter(boolean lambdaParameter, boolean recordComponent) {
         replacementType = null;
-        JmlVariableDecl param = (JmlVariableDecl)super.formalParameter(lambdaParameter);
+        JmlVariableDecl param = (JmlVariableDecl)super.formalParameter(lambdaParameter, recordComponent);
         insertReplacementType(param,replacementType);
         replacementType = null;
         return param;
+    }
+    
+    /** Overridden to increase visibility */
+    public List<JCVariableDecl> formalParameters() {
+        return super.formalParameters();
     }
 
 
@@ -274,7 +280,7 @@ public class JmlParser extends JavacParser {
      * @return a JCStatement that is a declaration
      */
     @Override
-    protected JCStatement classOrInterfaceOrEnumDeclaration(JCModifiers mods, Comment dc) {
+    protected JCStatement classOrRecordOrInterfaceOrEnumDeclaration(JCModifiers mods, Comment dc) {
         boolean prevInJmlDeclaration = inJmlDeclaration;
         JCStatement s;
         try {
@@ -291,7 +297,7 @@ public class JmlParser extends JavacParser {
                 // a better error message than we otherwise get, for misspelled
                 // JML modifiers. However, the test above replicates tests in
                 // the super method and may become obsolete.
-                s = super.classOrInterfaceOrEnumDeclaration(mods, dc);
+                s = super.classOrRecordOrInterfaceOrEnumDeclaration(mods, dc);
 
             } else {
                 if (inJmlDeclaration && token.kind == IDENTIFIER) {
@@ -414,11 +420,11 @@ public class JmlParser extends JavacParser {
     }
     
     @Override
-    List<JCTree> classOrInterfaceBody(Name className, boolean isInterface) {
+    List<JCTree> classInterfaceOrRecordBody(Name className, boolean isInterface, boolean isRecord) {
         JmlMethodSpecs savedMethodSpecs = currentMethodSpecs;
         currentMethodSpecs = null;
         try {
-            return super.classOrInterfaceBody(className, isInterface);
+            return super.classInterfaceOrRecordBody(className, isInterface, isRecord);
         } finally {
             currentMethodSpecs = savedMethodSpecs;
         }
@@ -585,7 +591,7 @@ public class JmlParser extends JavacParser {
             if (!(token instanceof JmlToken) && anyext == null) {
                 JCExpression replacementType = null;
                 if (token.kind == TokenKind.BANG) {  // TODO - is this still part of extended JML?
-                    replacementType = unannotatedType();
+                    replacementType = unannotatedType(false);
                 }
                 boolean inJml = S.jml();
                 List<JCStatement> stats = super.blockStatement();
@@ -613,12 +619,12 @@ public class JmlParser extends JavacParser {
                 if (S.jml()) utils.setJML(mods); // Added this to mark declarations in JML annotations
                 if (token.kind == INTERFACE ||
                         token.kind == CLASS ||
-                        allowEnums && token.kind == ENUM) {
-                    return List.of(classOrInterfaceOrEnumDeclaration(mods, dc));
+                        token.kind == ENUM) {
+                    return List.of(classOrRecordOrInterfaceOrEnumDeclaration(mods, dc));
                 } else {
                     JCExpression t = parseType();
                     ListBuffer<JCStatement> stats =
-                            variableDeclarators(mods, t, new ListBuffer<JCStatement>());
+                            variableDeclarators(mods, t, new ListBuffer<JCStatement>(), false); // FIXME - is false correcct?
                     // A "LocalVariableDeclarationStatement" subsumes the terminating semicolon
                     storeEnd(stats.last(), token.endPos);
                     accept(SEMI);
@@ -867,8 +873,8 @@ public class JmlParser extends JavacParser {
      * of a class or interface.
      */
     @Override
-    public List<JCTree> classOrInterfaceBodyDeclaration(Name className,
-            boolean isInterface) {
+    public List<JCTree> classOrInterfaceOrRecordBodyDeclaration(Name className,
+            boolean isInterface, boolean isRecord) {
 
         ListBuffer<JCTree> list = new ListBuffer<JCTree>();
         loop: while (token.ikind != TokenKind.RBRACE) {
@@ -955,20 +961,20 @@ public class JmlParser extends JavacParser {
                     boolean prevInJmlDeclaration = inJmlDeclaration;
                     inJmlDeclaration = true;
                     if (token.kind == TokenKind.BANG) {
-                        replacementType = unannotatedType();
+                        replacementType = unannotatedType(false);
                         inJmlDeclaration = false;
                         startsInJml = false;
                     }
                     if (token.kind == TokenKind.SEMI && currentMethodSpecs != null) {
-                        log.error(token.pos, "jml.message", "Method specs preceding an empty declaration are ignored");
+                        utils.error(token.pos, "jml.message", "Method specs preceding an empty declaration are ignored");
                         currentMethodSpecs = null;
                     }
                     IJmlClauseKind.ClassLikeKind cl =  null;
                     if ((cl = isJmlClassLike(token)) != null) {
                         t = List.<JCTree>of(cl.parse(mods, cl.keyword, cl, this));
                     } else {
-                        t = super.classOrInterfaceBodyDeclaration(
-                                className, isInterface);
+                        t = super.classOrInterfaceOrRecordBodyDeclaration(
+                                className, isInterface, isRecord);
                         if (isInterface && t.head instanceof JmlMethodDecl) {
                             JmlMethodDecl md = (JmlMethodDecl)t.head;
                             if (utils.findMod(md.mods,Modifiers.MODEL)!= null
@@ -986,8 +992,8 @@ public class JmlParser extends JavacParser {
                     }
                     // no longer in JML
                     // FIXME - attach doc comment?
-                    t = super.classOrInterfaceBodyDeclaration(
-                            className, isInterface);
+                    t = super.classOrInterfaceOrRecordBodyDeclaration(
+                            className, isInterface, isRecord);
                 }
                 if (!inJmlDeclaration) {
                     for (JCTree tr : t) {
@@ -1229,7 +1235,7 @@ public class JmlParser extends JavacParser {
     public JCExpression replacementType;
     
     @Override
-    public JCExpression unannotatedType() {
+    public JCExpression unannotatedType(boolean allowVar) {
         JCExpression replacementType = null;
         {
             boolean isBrace = token.kind == TokenKind.LBRACE;
@@ -1237,11 +1243,11 @@ public class JmlParser extends JavacParser {
                 try {
                     // We need to be in non-JML mode so that we don't interpret 
                     nextToken();
-                    replacementType = super.unannotatedType();
+                    replacementType = super.unannotatedType(allowVar);
                 } finally {
                     if (isBrace) accept(TokenKind.RBRACE);
                     if (token.ikind != JmlTokenKind.ENDJMLCOMMENT) {
-                        log.error(token.pos,"jml.bad.construct","JML construct");
+                        utils.error(token.pos,"jml.bad.construct","JML construct");
                     }
                     skipThroughEndOfJML();
                 }
@@ -1250,7 +1256,7 @@ public class JmlParser extends JavacParser {
                 }
             }
         }
-        JCExpression type = super.unannotatedType();
+        JCExpression type = super.unannotatedType(allowVar);
         this.replacementType = replacementType;
         return type;
     }
@@ -2151,7 +2157,7 @@ public class JmlParser extends JavacParser {
                 } else if (kind instanceof IJmlClauseKind.ExpressionKind) {
                     if (kind instanceof IJmlClauseKind.ExpressionKind) {
                         JCExpression tt = ((IJmlClauseKind.ExpressionKind)kind).parse(null, id, kind, this);
-                        return primaryTrailers(tt, typeArgs);
+                        return term3Rest(tt, typeArgs);
                     } else {
                         jmlerror(p, endPos(), "jml.message",
                                 "Token " + id + " does not introduce an expression");
@@ -2210,7 +2216,7 @@ public class JmlParser extends JavacParser {
                     if (kind != null) {
                         if (kind instanceof IJmlClauseKind.ExpressionKind) {
                             JCExpression tt = ((IJmlClauseKind.ExpressionKind)kind).parse(null, token.toString(), kind, this);
-                            return primaryTrailers(tt, typeArgs);
+                            return term3Rest(tt, typeArgs);
                         } else {
                             jmlerror(p, endPos(), "jml.message",
                                     "Token " + token + " does not introduce an expression");
@@ -2276,7 +2282,7 @@ public class JmlParser extends JavacParser {
                     } else {
                         t = toP(jmlF.at(pos).JmlTuple(tuple));
                     }
-                    return primaryTrailers(t, null);
+                    return term3Rest(t, null);
                 }
             }
         }
@@ -2284,17 +2290,9 @@ public class JmlParser extends JavacParser {
         return eee;
     }
 
-    public JCExpression primarySuffix(JCExpression t, List<JCExpression> typeArgs) {
-        if (S.jml() && token.kind == MONKEYS_AT) {
-            accept(MONKEYS_AT);
-            int pp = pos();
-            Name label = ident();
-            JCIdent id = this.maker().at(pp).Ident(label);
-            JmlMethodInvocation tt = toP(this.maker().at(t).JmlMethodInvocation(oldKind, List.<JCExpression>of(t,id)));
-            return tt;
-        }
-        JCExpression e = super.primarySuffix(t,typeArgs);
-        return e;
+    /** Public wrapper for the benefit of extension clients */
+    public JCExpression primaryTrailers(JCExpression t, List<JCExpression> typeArgs) {
+        return term3Rest(t, typeArgs);
     }
 
     public JCExpression trailingAt(JCExpression t, int p) {
@@ -2311,122 +2309,130 @@ public class JmlParser extends JavacParser {
 
 
     
-    protected boolean inCreator = false;
+//    protected boolean inCreator = false;
 
 
-    // MAINTENANCE ISSUE:
-    // This is a copy from JavacParser, so we can add in parseSetComprehension
-    JCExpression creator(int newpos, List<JCExpression> typeArgs) {
-    	List<JCAnnotation> newAnnotations = typeAnnotationsOpt();
-    	
-        switch (token.kind) {
-            case BYTE:
-            case SHORT:
-            case CHAR:
-            case INT:
-            case LONG:
-            case FLOAT:
-            case DOUBLE:
-            case BOOLEAN:
-                if (typeArgs == null) {
-                	if (newAnnotations.isEmpty()) {
-                		return arrayCreatorRest(newpos, basicType());
-                	} else {
-                		return arrayCreatorRest(newpos, toP(F.at(newAnnotations.head.pos).AnnotatedType(newAnnotations, basicType())));
-                	}
-                }
-                break;
-            default:
-        }
-        JCExpression t = qualident(true);
-        int oldmode = mode;
-        mode = TYPE;
-        boolean diamondFound = false;
-        int lastTypeargsPos = -1;
-        if (token.kind == LT) {
-            checkGenerics();
-            lastTypeargsPos = token.pos;
-            t = typeArguments(t,true);
-            diamondFound = (mode & DIAMOND) != 0;
-        }
-        while (token.kind == DOT) {
-        	if (diamondFound) {
-        		// cannot select after diamond
-        		illegal();
-        	}
-            int pos = token.pos;
-            nextToken();
-            List<JCAnnotation> tyannos = typeAnnotationsOpt();
-            t = toP(F.at(pos).Select(t, ident()));
-            
-            if (tyannos != null && tyannos.nonEmpty()) {
-            	t = toP(F.at(tyannos.head.pos).AnnotatedType(tyannos, t));
-            }
-            
-            if (token.kind == LT) {
-                checkGenerics();
-                lastTypeargsPos = token.pos;
-                t = typeArguments(t,true);
-                diamondFound = (mode & DIAMOND) != 0;
-            }
-        }
-        mode = oldmode;
-        if (token.kind == LBRACKET || token.kind == MONKEYS_AT) {
-            // handle type annotations for non primitive arrays
-            if (newAnnotations.nonEmpty()) {
-            	t = insertAnnotationsToMostInner(t, newAnnotations, false);
-            }
-            
-            JCExpression e = arrayCreatorRest(newpos, t);
-            if (diamondFound) {
-            	reportSyntaxError(lastTypeargsPos, "cannot.create.array.with.diamond");
-            	return toP(F.at(newpos).Erroneous(List.of(e)));
-            }
-            if (typeArgs != null) {
-                int pos = newpos;
-                if (!typeArgs.isEmpty() && typeArgs.head.pos != Position.NOPOS) {
-                    // note: this should always happen but we should
-                    // not rely on this as the parser is continuously
-                    // modified to improve error recovery.
-                    pos = typeArgs.head.pos;
-                }
-                setErrorEndPos(S.prevToken().endPos);
-                JCErroneous err = F.at(newpos).Erroneous(typeArgs.prepend(e));
-                reportSyntaxError(err, "cannot.create.array.with.type.arguments");
-                return toP(err);
-            }
-            return e;
-        } else if (token.kind == LPAREN) {
-          boolean prev = inLocalOrAnonClass;
-          inLocalOrAnonClass = true;
-          try {
-            JCNewClass newClass = classCreatorRest(newpos, null, typeArgs, t);
-            if (newClass.def != null) {
-            	assert newClass.def.mods.annotations.isEmpty();
-            	if (newAnnotations.nonEmpty()) {
-            		newClass.def.mods.pos = earlier(newClass.def.mods.pos, newAnnotations.head.pos);
-            		newClass.def.mods.annotations = newAnnotations;
-            	}
-            } else {
-            	// handle type annotations for instantiations
-            	if (newAnnotations.nonEmpty()) {
-            		t = insertAnnotationsToMostInner(t, newAnnotations, false);
-            		newClass.clazz = t;
-            	}
-            }
-            return newClass;
-          } finally {
-                inLocalOrAnonClass = prev;
-          }
-        } else if (token.kind == LBRACE) {
-            return parseSetComprehension(t);
-        } else {
-            syntaxError(pos(), null, "expected3", "\'(\'", "\'{\'", "\'[\'");
-            t = toP(F.at(newpos).NewClass(null, typeArgs, t,
-                    List.<JCExpression> nil(), null));
-            return toP(F.at(newpos).Erroneous(List.<JCTree> of(t)));
-        }
+//    // MAINTENANCE ISSUE:
+//    // This is a copy from JavacParser, so we can add in parseSetComprehension
+//    JCExpression creator(int newpos, List<JCExpression> typeArgs) {
+//    	List<JCAnnotation> newAnnotations = typeAnnotationsOpt();
+//    	
+//        switch (token.kind) {
+//            case BYTE:
+//            case SHORT:
+//            case CHAR:
+//            case INT:
+//            case LONG:
+//            case FLOAT:
+//            case DOUBLE:
+//            case BOOLEAN:
+//                if (typeArgs == null) {
+//                	if (newAnnotations.isEmpty()) {
+//                		return arrayCreatorRest(newpos, basicType());
+//                	} else {
+//                		return arrayCreatorRest(newpos, toP(F.at(newAnnotations.head.pos).AnnotatedType(newAnnotations, basicType())));
+//                	}
+//                }
+//                break;
+//            default:
+//        }
+//        JCExpression t = qualident(true);
+//        int oldmode = mode;
+//        mode = TYPE;
+//        boolean diamondFound = false;
+//        int lastTypeargsPos = -1;
+//        if (token.kind == LT) {
+//            checkGenerics();
+//            lastTypeargsPos = token.pos;
+//            t = typeArguments(t,true);
+//            diamondFound = (mode & DIAMOND) != 0;
+//        }
+//        while (token.kind == DOT) {
+//        	if (diamondFound) {
+//        		// cannot select after diamond
+//        		illegal();
+//        	}
+//            int pos = token.pos;
+//            nextToken();
+//            List<JCAnnotation> tyannos = typeAnnotationsOpt();
+//            t = toP(F.at(pos).Select(t, ident()));
+//            
+//            if (tyannos != null && tyannos.nonEmpty()) {
+//            	t = toP(F.at(tyannos.head.pos).AnnotatedType(tyannos, t));
+//            }
+//            
+//            if (token.kind == LT) {
+//                checkGenerics();
+//                lastTypeargsPos = token.pos;
+//                t = typeArguments(t,true);
+//                diamondFound = (mode & DIAMOND) != 0;
+//            }
+//        }
+//        mode = oldmode;
+//        if (token.kind == LBRACKET || token.kind == MONKEYS_AT) {
+//            // handle type annotations for non primitive arrays
+//            if (newAnnotations.nonEmpty()) {
+//            	t = insertAnnotationsToMostInner(t, newAnnotations, false);
+//            }
+//            
+//            JCExpression e = arrayCreatorRest(newpos, t);
+//            if (diamondFound) {
+//            	reportSyntaxError(lastTypeargsPos, "cannot.create.array.with.diamond");
+//            	return toP(F.at(newpos).Erroneous(List.of(e)));
+//            }
+//            if (typeArgs != null) {
+//                int pos = newpos;
+//                if (!typeArgs.isEmpty() && typeArgs.head.pos != Position.NOPOS) {
+//                    // note: this should always happen but we should
+//                    // not rely on this as the parser is continuously
+//                    // modified to improve error recovery.
+//                    pos = typeArgs.head.pos;
+//                }
+//                setErrorEndPos(S.prevToken().endPos);
+//                JCErroneous err = F.at(newpos).Erroneous(typeArgs.prepend(e));
+//                reportSyntaxError(err, "cannot.create.array.with.type.arguments");
+//                return toP(err);
+//            }
+//            return e;
+//        } else if (token.kind == LPAREN) {
+//          boolean prev = inLocalOrAnonClass;
+//          inLocalOrAnonClass = true;
+//          try {
+//            JCNewClass newClass = classCreatorRest(newpos, null, typeArgs, t);
+//            if (newClass.def != null) {
+//            	assert newClass.def.mods.annotations.isEmpty();
+//            	if (newAnnotations.nonEmpty()) {
+//            		newClass.def.mods.pos = earlier(newClass.def.mods.pos, newAnnotations.head.pos);
+//            		newClass.def.mods.annotations = newAnnotations;
+//            	}
+//            } else {
+//            	// handle type annotations for instantiations
+//            	if (newAnnotations.nonEmpty()) {
+//            		t = insertAnnotationsToMostInner(t, newAnnotations, false);
+//            		newClass.clazz = t;
+//            	}
+//            }
+//            return newClass;
+//          } finally {
+//                inLocalOrAnonClass = prev;
+//          }
+//        } else if (token.kind == LBRACE) {
+//            return parseSetComprehension(t);
+//        } else {
+//            syntaxError(pos(), null, "expected3", "\'(\'", "\'{\'", "\'[\'");
+//            t = toP(F.at(newpos).NewClass(null, typeArgs, t,
+//                    List.<JCExpression> nil(), null));
+//            return toP(F.at(newpos).Erroneous(List.<JCTree> of(t)));
+//        }
+//    }
+    
+    @Override
+    protected JCExpression moreCreator(Token token, JCExpression type) {
+    	if (token.kind == LBRACE) return parseSetComprehension(type);
+    	else return null;
     }
+
+
     
     protected boolean inLocalOrAnonClass = false;
 
@@ -2510,12 +2516,12 @@ public class JmlParser extends JavacParser {
     /** Overridden in order to absorb the pushBackModifiers */
     @Override
     public <T extends ListBuffer<? super JCVariableDecl>> T variableDeclarators(
-            JCModifiers mods, JCExpression type, T vdefs) {
+            JCModifiers mods, JCExpression type, T vdefs, boolean localDecl) {
         if (pushBackModifiers != null && isNone(mods)) {
             mods = pushBackModifiers;
             pushBackModifiers = null;
         }
-        T list = super.variableDeclarators(mods,type,vdefs);
+        T list = super.variableDeclarators(mods,type,vdefs,localDecl);
         if (replacementType != null) {
             for (Object decl: list) insertReplacementType(decl,replacementType);
             replacementType = null;
@@ -2526,12 +2532,12 @@ public class JmlParser extends JavacParser {
     @Override
     protected <T extends ListBuffer<? super JCVariableDecl>> T variableDeclaratorsRest(
             int pos, JCModifiers mods, JCExpression type, Name name,
-            boolean reqInit, Comment dc, T vdefs) {
+            boolean reqInit, Comment dc, T vdefs, boolean localDecl) {
         if (S.jml()) reqInit = false; // In type checking we check this more
                                     // thoroughly
         // Here we just allow having no initializer
         return super.variableDeclaratorsRest(pos, mods, type, name, reqInit,
-                dc, vdefs);
+                dc, vdefs, localDecl);
     }
 
     @Override
@@ -2588,67 +2594,81 @@ public class JmlParser extends JavacParser {
         }
     }
     
-    // MAINTENANCE ISSUE - (Almost) Duplicated from JavacParser.java in order to track
-    // Jml tokens
-    protected JCExpression term2Rest(JCExpression tt, int minprec) {
-        boolean bad = tt instanceof JCErroneous;
-        JCExpression t = tt;
-        JCExpression[] odStack = newOdStack();
-        Token[] opStack = newOpStack();
-
-        // optimization, was odStack = new Tree[...]; opStack = new Tree[...];
-        int top = 0;
-        odStack[0] = t;
-        int startPos = token.pos;
-        Token topOp = Tokens.DUMMY;
-        while (prec(S.token().ikind) >= precFactor*minprec) { // FIXME - lookahead token - presumes scanner is just one token ahead
-            opStack[top] = topOp;
-            top++;
-            topOp = S.token();
-            JmlTokenKind topOpJmlToken = jmlTokenKind();
-            IJmlClauseKind topOpKind = jmlTokenClauseKind();
-            nextToken(); // S.jmlToken() changes
-            odStack[top] = (topOp.kind == INSTANCEOF) ? parseType() : term3();
-            // odStack[top] is the next argument; token is the operator after that, as in [topOp] arg [token]
-            // if the precedence of [topOp] is lower than the precedence of [token] we have to read more before constructing expressions
-            int p;
-            while (top > 0 && (p=prec(topOp.ikind)) >= prec(token.ikind)) {
-                if (topOp.kind == CUSTOM) { // <:
-                    JCExpression e = jmlF.at(topOp.pos).JmlBinary(topOpKind, odStack[top - 1],
-                            odStack[top]);
-                    storeEnd(e, getEndPos(odStack[top]));
-                    odStack[top - 1] = e;
-                } else {
-                    odStack[top - 1] = makeOp(topOp.pos, topOp.kind, odStack[top - 1],
-                        odStack[top]);
-                }
-                top--;
-                topOp = opStack[top];
-                if (p == precFactor*TreeInfo.ordPrec && prec(token.ikind) < precFactor*TreeInfo.ordPrec) {
-                    odStack[top] = chain(odStack[top]);
-                }
-            }
-        }
-        odStack[top] = chain(odStack[top]);
-        
-        Assert.check(top == 0);
-        t = odStack[0];
-
-        if (t.hasTag(JCTree.Tag.PLUS)) {
-            t = foldStrings(t);
-// FIXME: The following code is present in JavacParser.term2Rest. However, it turns noinn-string
-// string expressions into string expressions. Can't be correct.
-//            if (t != null) {
-//                t = toP(F.at(startPos).Literal(TypeTag.CLASS, t.toString()));
+//    // MAINTENANCE ISSUE - (Almost) Duplicated from JavacParser.java in order to track
+//    // Jml tokens
+//    protected JCExpression term2Rest(JCExpression tt, int minprec) {
+//        boolean bad = tt instanceof JCErroneous;
+//        JCExpression t = tt;
+//        JCExpression[] odStack = newOdStack();
+//        Token[] opStack = newOpStack();
+//
+//        // optimization, was odStack = new Tree[...]; opStack = new Tree[...];
+//        int top = 0;
+//        odStack[0] = t;
+//        int startPos = token.pos;
+//        Token topOp = Tokens.DUMMY;
+//        while (prec(S.token().ikind) >= precFactor*minprec) { // FIXME - lookahead token - presumes scanner is just one token ahead
+//            opStack[top] = topOp;
+//            top++;
+//            topOp = S.token();
+//            JmlTokenKind topOpJmlToken = jmlTokenKind();
+//            IJmlClauseKind topOpKind = jmlTokenClauseKind();
+//            nextToken(); // S.jmlToken() changes
+//            odStack[top] = (topOp.kind == INSTANCEOF) ? parseType() : term3();
+//            // odStack[top] is the next argument; token is the operator after that, as in [topOp] arg [token]
+//            // if the precedence of [topOp] is lower than the precedence of [token] we have to read more before constructing expressions
+//            int p;
+//            while (top > 0 && (p=prec(topOp.ikind)) >= prec(token.ikind)) {
+//                if (topOp.kind == CUSTOM) { // <:
+//                    JCExpression e = jmlF.at(topOp.pos).JmlBinary(topOpKind, odStack[top - 1],
+//                            odStack[top]);
+//                    storeEnd(e, getEndPos(odStack[top]));
+//                    odStack[top - 1] = e;
+//                } else {
+//                    odStack[top - 1] = F.at(topOp.pos).Binary(optag(topOp.kind), odStack[top - 1], odStack[top]);
+//                }
+//                top--;
+//                topOp = opStack[top];
+//                if (p == precFactor*TreeInfo.ordPrec && prec(token.ikind) < precFactor*TreeInfo.ordPrec) {
+//                    odStack[top] = chain(odStack[top]);
+//                }
 //            }
-        }
-
-        odStackSupply.add(odStack);
-        opStackSupply.add(opStack);
-        if (bad) return tt;
-        return t;
-    }
+//        }
+//        odStack[top] = chain(odStack[top]);
+//        
+//        Assert.check(top == 0);
+//        t = odStack[0];
+//
+//        if (t.hasTag(JCTree.Tag.PLUS)) {
+//            t = foldStrings(t);
+//// FIXME: The following code is present in JavacParser.term2Rest. However, it turns noinn-string
+//// string expressions into string expressions. Can't be correct.
+////            if (t != null) {
+////                t = toP(F.at(startPos).Literal(TypeTag.CLASS, t.toString()));
+////            }
+//        }
+//
+//        odStackSupply.add(odStack);
+//        opStackSupply.add(opStack);
+//        if (bad) return tt;
+//        return t;
+//    }
     
+    protected JCExpression makeOp(int pos,
+    		Token opToken,
+    		JCExpression od1,
+    		JCExpression od2)
+    {
+    	if (opToken.kind == CUSTOM) { // <:
+    		IJmlClauseKind ck = jmlTokenClauseKind(token);
+    		JCExpression e = jmlF.at(pos).JmlBinary(ck, od1, od2);
+    		storeEnd(e, getEndPos(od2));
+    		return e;
+    	} else {
+    		return super.makeOp(pos, opToken, od1, od2);
+    	}
+    }
+
     public JCExpression chain(JCExpression e) {
         JCExpression fe = e;
         if (!(fe instanceof JCBinary)) return fe;

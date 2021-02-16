@@ -62,7 +62,7 @@ public class FrameExpressions extends ExpressionExtension {
             JmlMethodInvocation t = toP(parser.maker().at(pp).JmlMethodInvocation(jt, args));
             t.startpos = p;
             t.kind = this;
-            return parser.primarySuffix(t, null);
+            return parser.primaryTrailers(t, null); // FIXME - was perimarySUffix
         }
 
         @Override

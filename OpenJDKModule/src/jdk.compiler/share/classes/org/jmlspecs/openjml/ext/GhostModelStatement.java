@@ -67,7 +67,7 @@ public class GhostModelStatement extends JmlExtension {
                 parser.utils.setJML(mods);
                 JCExpression t = parser.parseType();
                 ListBuffer<JCStatement> stats =
-                        parser.variableDeclarators(mods, t, new ListBuffer<JCStatement>());
+                        parser.variableDeclarators(mods, t, new ListBuffer<JCStatement>(), false); // FIXME - no local decl?
                 // A "LocalVariableDeclarationStatement" subsumes the terminating semicolon
                 parser.storeEnd(stats.last(), parser.token().endPos);
                 parser.accept(SEMI);

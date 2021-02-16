@@ -92,7 +92,9 @@ import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 
 import com.sun.source.tree.IdentifierTree;
 import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.code.Scope.*;
 import com.sun.tools.javac.code.Attribute.Compound;
+import com.sun.tools.javac.code.Kinds.KindSelector;
 import com.sun.tools.javac.code.Symbol.BindingSymbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.CompletionFailure;
@@ -655,18 +657,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         Env<AttrContext> prevEnclosingMethodEnv = enclosingMethodEnv;
         
         // FIXME - what about initializer blocks - they also need an old environment
+        // FIXME - this overlaps too much with the superclass method
         
-        if (env.info.scope.owner.kind == TYP) {
+        if (env.info.scope.owner.kind == TYP || env.info.scope.owner.kind == ERR) {
            // FIXME - if we are in a spec source file that is not Java, we may not have one of these - error
             super.visitBlock(tree);
             JmlSpecs.MethodSpecs msp = JmlSpecs.instance(context).getSpecs(env.enclClass.sym,tree);
             //if (attribSpecs && sp != null) {
             if (msp != null) {
                 JmlMethodSpecs sp = msp.cases;
-                Env<AttrContext> localEnv = localEnv(env,tree);
-                localEnv.info.scope.owner =
-                    new MethodSymbol(tree.flags | BLOCK, names.empty, null,
-                                     env.info.scope.owner);
+                Symbol fakeOwner =
+                        new MethodSymbol(tree.flags | BLOCK |
+                            env.info.scope.owner.flags() & STRICTFP, names.empty, null,
+                            env.info.scope.owner);
+                final Env<AttrContext> localEnv =
+                        env.dup(tree, env.info.dup(env.info.scope.dupUnshared(fakeOwner)));
                 if (isStatic(tree.flags)) localEnv.info.staticLevel++;
                 //boolean prev = attribSpecs;
                 //attribSpecs = true;
@@ -1090,6 +1095,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return currentClauseType != null;  // Returns true if in JML clause 
     }
     
+    boolean noBodyOK = false;
+    @Override
+    public boolean requireBody() {
+    	return !noBodyOK;
+    }
+    
     /** This is overridden in order to do correct checking of whether a method body is
      * present or not.
      */
@@ -1143,7 +1154,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // because it is a model declaration or it is in a specification file.
             boolean isJavaFile = jmethod.sourcefile != null && jmethod.sourcefile.getKind() == JavaFileObject.Kind.SOURCE;
             boolean isJmlDecl = utils.isJML(m.mods);
-            relax = isJmlDecl || !isJavaFile;
+            boolean noBodyOKSaved = noBodyOK;
+            noBodyOK = isJmlDecl || !isJavaFile;
             boolean prevAllowJML = jmlresolve.allowJML();
             if (isJmlDecl) prevAllowJML = jmlresolve.setAllowJML(true);
 //            boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
@@ -1151,6 +1163,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             super.visitMethodDef(m);
 //            ((JmlCheck)chk).noDuplicateWarn = prevChk;
 //            if (JmlOption.isOption(context, JmlOption.STRICT)) checkClauseOrder(jmethod.methodSpecsCombined);
+            noBodyOK = noBodyOKSaved;
             if (isJmlDecl) jmlresolve.setAllowJML(prevAllowJML);
             if (jmethod.methodSpecsCombined != null) { // FIXME - should we get the specs to check from JmlSpecs?
                 if (m.body == null) {
@@ -2281,45 +2294,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Env<AttrContext> env,
             VarSymbol v,
             boolean onlyWarning) {
-
-        if (env.tree instanceof JmlQuantifiedExpr) return;
-        //      System.err.println(v + " " + ((v.flags() & STATIC) != 0) + " " +
-        //      tree.pos + " " + v.pos + " " +
-        //      Resolve.isStatic(env));//DEBUG
-
-        //      A forward reference is diagnosed if the declaration position
-        //      of the variable is greater than the current tree position
-        //      and the tree and variable definition occur in the same class
-        //      definition.  Note that writes don't count as references.
-        //      This check applies only to class and instance
-        //      variables.  Local variables follow different scope rules,
-        //      and are subject to definite assignment checking.
-        if ((env.info.enclVar == v || v.pos > tree.pos) &&
-                v.owner.kind == TYP &&
-                (env.tree.getTag() != null && enclosingInitEnv(env) != null) &&  // FIXME - this line used to be a check for canOwnInitializer, which was only used here and defined in Attr.java
-                v.owner == env.info.scope.owner.enclClass() &&
-                ((v.flags() & STATIC) != 0) == Resolve.isStatic(env) &&
-                (!env.tree.hasTag(ASSIGN) ||
-                        TreeInfo.skipParens(((JCAssign) env.tree).lhs) != tree)) {
-            String suffix = (env.info.enclVar == v) ?
-                    "self.ref" : "forward.ref";
-            if (!onlyWarning || isStaticEnumField(v)) {
-                // DRC - changed the following line to avoid complaints about forward references from invariants
-                if (currentClauseType == null || currentClauseType == declClause) {
-                	utils.error(tree.pos(), "illegal.forward.ref");
-                }
-            } else if (useBeforeDeclarationWarning) {
-            	utils.warning(tree.pos(), suffix, v);
-            }
-        }
-
-        v.getConstValue(); // ensure initializer is evaluated
-
-        checkEnumInitializer(tree, env, v);
-
+    	
+    	boolean allowForwardRefSaved = allowForwardRef;
+    	allowForwardRef = !(currentClauseType == null || currentClauseType == declClause);
+    	super.checkInit(tree,env,v,onlyWarning);
+    	allowForwardRef = allowForwardRefSaved;
     }
     
-    protected void checkEnumInitializer(JCTree tree, Env<AttrContext> env, VarSymbol v) { // DRCok - private to protected
+    protected void checkEnumInitializer(JCTree tree, Env<AttrContext> env, VarSymbol v) {
         if (isStaticEnumField(v)) {
             if (currentClauseType != null) return;  // ASWemahy reference enums in specificatinos.  FIXME: always? everywhere?  interaction with JLS restriction?
         }
@@ -2649,7 +2631,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         Set<TypeSymbol> annotated = new HashSet<TypeSymbol>();
         for (List<JCAnnotation> al = annotations; al.nonEmpty(); al = al.tail) {
             JCAnnotation a = al.head;
-            Attribute.Compound c = annotate.enterAnnotation(a,
+            Attribute.Compound c = annotate.attributeAnnotation(a,
                                                             syms.annotationType,
                                                             env);
             if (c == null) continue;
@@ -2888,10 +2870,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 tree.modifiers.flags &= 0x7;
             }
             // FIXME - test declarations within specs
-            Env<AttrContext> localEnv = localEnv(env,tree);
-            localEnv.info.scope.owner =
+            Symbol fakeOwner =
                 new MethodSymbol(Flags.PRIVATE | BLOCK, names.empty, null,
                                  env.info.scope.owner);
+            final Env<AttrContext> localEnv =
+                    env.dup(tree, env.info.dup(env.info.scope.dupUnshared(fakeOwner)));
             if (tree.clauseType == staticinitializerClause) localEnv.info.staticLevel++;
             if (tree.specs != null) attribStat(tree.specs,localEnv);
         } finally {
@@ -3001,10 +2984,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     public Env<AttrContext> envForClause(JmlTypeClause tree, Symbol owner) {
         Env<AttrContext> localEnv = env.dupto(new AttrContextEnv(tree, env.info.dup()));
-        localEnv.info.scope = new Scope.DelegatedScope(env.info.scope);
-        localEnv.info.scope.owner = owner;
-        //localEnv.info.lint = lint; // FIXME - what about lint?
-        if ((tree.modifiers.flags & STATIC) != 0) // ||(env.enclClass.sym.flags() & INTERFACE) != 0) // FIXME - what about interfaces
+        if ((tree.modifiers.flags & STATIC) != 0 ||
+                ((env.enclClass.sym.flags() & INTERFACE) != 0 && env.enclMethod == null))
             localEnv.info.staticLevel++;
         return localEnv;
     }
@@ -3524,7 +3505,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 result = tree.type = syms.errType;
             } else {
                 Type ttt = tree.kind.typecheck(this, tree, localEnv);
-                result = check(tree, ttt, VAL, resultInfo);
+                result = check(tree, ttt, KindSelector.VAL, resultInfo);
             }
         } else {
         	utils.error(tree, "jml.message", "This sort of ExpressionExtension is obsolete: " + token.internedName());
@@ -3632,11 +3613,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Block is a static or instance initializer;
             // let the owner of the environment be a freshly
             // created BLOCK-method.
-            Env<AttrContext> localEnv =
-                env.dup(tree, env.info.dup(env.info.scope.dupUnshared()));
-            localEnv.info.scope.owner =
+            Symbol fakeOwner =
                 new MethodSymbol(BLOCK, names.empty, null, // FIXME - or'd other flags with BLOCK
                                  env.info.scope.owner);
+            final Env<AttrContext> localEnv =
+                    env.dup(tree, env.info.dup(env.info.scope.dupUnshared(fakeOwner)));
             //if ((tree.mods.flags & STATIC) != 0) localEnv.info.staticLevel++;
 
             attribStats(tree.defs,localEnv);
@@ -4077,8 +4058,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         Env<AttrContext> localEnv;
         // We can't use a delegated scope - they are used for variable initializers
         // and don;'t accept any new variable declarations.
-        Scope sco = env.info.scope;
-        while (sco instanceof Scope.DelegatedScope) sco = ((Scope.DelegatedScope)sco).next;
+        Scope.WriteableScope sco = env.info.scope;
+// FIXME        while (sco instanceof Scope.DelegatedScope) sco = ((Scope.DelegatedScope)sco).next;
 
         long flags = 0L;
         if (sco.owner.kind != MTH) {
@@ -4086,11 +4067,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // let the owner of the environment be a freshly
             // created BLOCK-method.
             
+            Symbol fakeOwner =
+                new MethodSymbol(flags | BLOCK, names.empty, null, sco.owner);
             localEnv =
-                env.dup(tree, env.info.dup(sco.dupUnshared()));
-            localEnv.info.scope.owner =
-                new MethodSymbol(flags | BLOCK, names.empty, null,
-                                 sco.owner);
+                    env.dup(tree, env.info.dup(sco.dupUnshared(fakeOwner)));
             if ((flags & STATIC) != 0) localEnv.info.staticLevel++;
         } else {
             // Create a new local environment with a local scope.
@@ -6112,11 +6092,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	finally {
     		loopEnv.info.scope.leave();
     	}
-    	if (!breaksOutOf(tree, tree.body)) {
-    		//include condition's body when false after the while, if cannot get out of the loop
-    		condBindings.bindingsWhenFalse.forEach(env.info.scope::enter);
-    		condBindings.bindingsWhenFalse.forEach(BindingSymbol::preserveBinding);
-    	}
+    	// FIXME - not sure where this came from
+//    	if (!breaksOutOf(tree, tree.body)) {
+//    		//include condition's body when false after the while, if cannot get out of the loop
+//    		condBindings.bindingsWhenFalse.forEach(env.info.scope::enter);
+//    		condBindings.bindingsWhenFalse.forEach(BindingSymbol::preserveBinding);
+//    	}
     }
 
     public void visitJmlWhileLoop(JmlWhileLoop that) {
@@ -6175,7 +6156,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // But JML has the case of an anonymous class that occurs in a class
         // specification (e.g. an invariant), or in a method clause (so it is
         // owned by the method)
-        if ((env.info.scope.owner.kind & (VAR | MTH)) == 0 && tree.sym == null) {
+        if (!env.info.scope.owner.kind.matches(KindSelector.VAL_MTH) && tree.sym == null) {
             enter.classEnter(tree, env);
         }
         super.visitClassDef(tree);
@@ -6694,14 +6675,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     public MethodSymbol makeInitializerMethodSymbol(long flags, Env<AttrContext> env) {
         JCTree tree = null;
-        Env<AttrContext> localEnv =
-                env.dup(tree, env.info.dup(env.info.scope.dupUnshared()));
-        MethodSymbol msym = new MethodSymbol(flags | BLOCK |
+        MethodSymbol fakeOwner = new MethodSymbol(flags | BLOCK |
                 env.info.scope.owner.flags() & STRICTFP, names.empty, new Type.JCVoidType(),
                 env.info.scope.owner);
-        localEnv.info.scope.owner = msym;
+        Env<AttrContext> localEnv =
+                env.dup(tree, env.info.dup(env.info.scope.dupUnshared(fakeOwner)));
         if ((flags & STATIC) != 0) localEnv.info.staticLevel++;
-        return msym;
+        return fakeOwner;
     }
     
     public boolean interpretInPreState(DiagnosticPosition pos, IJmlClauseKind kind) {

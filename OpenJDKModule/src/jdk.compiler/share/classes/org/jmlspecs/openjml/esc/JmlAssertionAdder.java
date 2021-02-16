@@ -2063,8 +2063,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (rac) {
             JCExpression racarg = null;
             if (args != null && args.length > 0 && args[0] instanceof JCExpression) { racarg = (JCExpression)args[0]; args = new Object[0]; }
-            JCDiagnostic diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING, log.currentSource(), codepos, "rac." + label, args);
-            String msg = (showRacSource? diag.toString() : diag.noSource()).replace("warning: ", "");
+            String msg;
+            if (showRacSource) {
+            	JCDiagnostic diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING, log.currentSource(), codepos, "rac." + label, args);
+            	msg = diag.toString();
+            } else {
+            	JCDiagnostic diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING, DiagnosticSource.NO_SOURCE, codepos, "rac." + label, args);
+            	msg = diag.toString().replace("warning: ", "");
+            }
             JCExpression emsg;
             if (racarg != null) {
                 int k = msg.indexOf(JmlTree.eol);
@@ -2083,12 +2089,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 emsg = treeutils.makeStringLiteral(translatedExpr.pos,msg);
             }
             if (associatedPos != null) {
-                diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING,
-                        new DiagnosticSource(associatedSource != null ? associatedSource : log.currentSourceFile(),null), 
-                        associatedPos, 
-                        Utils.testingMode || !showRacSource ? "jml.associated.decl" : "jml.associated.decl.cf",
-                                utils.locationString(codepos.getPreferredPosition()));
-                String msg2 = JmlTree.eol + (showRacSource? diag.toString() : diag.noSource()).replace("warning: ", "");
+                String msg2;
+                if (showRacSource) {
+                    JCDiagnostic diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING,
+                            new DiagnosticSource(associatedSource != null ? associatedSource : log.currentSourceFile(),null), 
+                            associatedPos, 
+                            Utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
+                                    utils.locationString(codepos.getPreferredPosition()));
+                	msg2 = JmlTree.eol + diag.toString().replace("warning: ", "");
+                } else {
+                    JCDiagnostic diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING,
+                            DiagnosticSource.NO_SOURCE, 
+                            associatedPos, 
+                            "jml.associated.decl",
+                                    utils.locationString(codepos.getPreferredPosition()));
+                	msg2 = JmlTree.eol + diag.toString().replace("warning: ", "");
+                }
                 emsg = treeutils.makeUtilsMethodCall(emsg.pos, "concat", emsg, treeutils.makeStringLiteral(translatedExpr.pos,msg2));
             }
             JCStatement stt;

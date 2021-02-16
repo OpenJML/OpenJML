@@ -120,7 +120,7 @@ public class QuantifiedExpressions extends ExpressionExtension {
             JmlQuantifiedExpr q = toP(parser.maker().at(pos).JmlQuantifiedExpr(this, decls.toList(),
                     range, pred));
             q.triggers = triggers;
-            return parser.primarySuffix(q, null);
+            return parser.primaryTrailers(q, null); // FIXME - was primarySuffix
         }
 
         @Override

@@ -41,7 +41,9 @@ public class JmlTreeMatch extends JmlTreeScanner {
         this.context = context;
     }
     
-    public static class NoMatchException extends RuntimeException {}
+    public static class NoMatchException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
+    }
     
     JCTree top;
     JCTree originalTop;

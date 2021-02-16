@@ -48,7 +48,7 @@ public class MatchExt extends ExpressionExtension {
                 boolean saved = parser.underscoreOK;
                 parser.underscoreOK = true;
                 JCExpression id = toP(parser.jmlF.at(parser.token().pos).Ident(parser.ident())); // FIXME -  - is the position OK
-                JCExpression caseExpression = parser.primarySuffix(id,List.<JCExpression>nil());
+                JCExpression caseExpression = parser.primaryTrailers(id,List.<JCExpression>nil()); // FIXME was primaraySuffix
                 parser.underscoreOK = saved;
                 parser.accept(TokenKind.ARROW);
                 JCExpression value = parser.parseExpression();
