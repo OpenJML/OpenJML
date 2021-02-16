@@ -95,7 +95,7 @@ public class Attr extends JCTree.Visitor {
     protected static final Context.Key<Attr> attrKey = new Context.Key<>();
 
     final Names names;
-    final Log log;
+    public final Log log; // OPENJML - package to public
     public final Symtab syms; // OPENJML - package to public
     final Resolve rs;
     final Operators operators;
@@ -1480,7 +1480,7 @@ public class Attr extends JCTree.Visitor {
         result = null;
     }
 
-    private boolean breaksOutOf(JCTree loop, JCTree body) {
+    protected boolean breaksOutOf(JCTree loop, JCTree body) { // OPENJML private to protected
         preFlow(body);
         return flow.breaksOutOf(env, loop, body, make);
     }

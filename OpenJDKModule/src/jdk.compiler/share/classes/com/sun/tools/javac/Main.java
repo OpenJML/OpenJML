@@ -47,8 +47,6 @@ public class Main {
      *      just retained for historical compatibility
      */
     public static void main(String[] args) throws Exception {
-    	System.out.println("Starting Old Main: ");
-        //org.jmlspecs.openjml.Main.main(args); // OPENJML
         System.exit(compile(args));
     }
 
@@ -61,7 +59,6 @@ public class Main {
      * javac, see the man page for details.
      */
     public static int compile(String[] args) {
-    	System.out.println("Starting compile: ");
         com.sun.tools.javac.main.Main compiler =
             new com.sun.tools.javac.main.Main("javac");
         return compiler.compile(args).exitCode;

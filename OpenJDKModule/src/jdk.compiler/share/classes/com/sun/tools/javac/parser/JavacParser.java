@@ -2003,7 +2003,7 @@ public class JavacParser implements Parser {
 
     /** Arguments = "(" [Expression { COMMA Expression }] ")"
      */
-    public List<JCExpression> arguments() {  // OPENJML - package to public
+    public List<JCExpression> arguments() { // OPENJML - package to public
         ListBuffer<JCExpression> args = new ListBuffer<>();
         if (token.kind == LPAREN) {
             nextToken();

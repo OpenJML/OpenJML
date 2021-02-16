@@ -147,36 +147,36 @@ public class Extensions {
     // package org.jmlspecs.openjml.ext and any classes or packages given in the
     // extensions option.
     public static void register(Context context) {
-//        Package p = Package.getPackage("org.jmlspecs.openjml.ext");
-//        try {
-//            registerPackage(context,p);
-//        } catch (java.io.IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) return;
-//        String exts = JmlOption.value(context, JmlOption.EXTENSIONS);
-//        if (exts == null || exts.isEmpty()) return;
-//        for (String extname : exts.split(",")) {
-//            try {
-//                Class<?> cl = Class.forName(extname);
-//                if (cl == null || !registerClass(context,cl)) {
-//                    Log.instance(context).error("jml.extension.failed", extname, "Improperly formed extension");
-//                }
-//                continue;
-//            } catch (ClassNotFoundException e) {
-//                // OK - go on to see if it is a package
-//            }
-//            try {
-//                p = Package.getPackage(extname);
-//                if (p != null) {
-//                    registerPackage(context,p);
-//                } else {
-//                    Log.instance(context).error("jml.extension.failed", extname,"No such package found");
-//                }
-//            } catch (Exception e) {
-//                Log.instance(context).error("jml.extension.failed", extname, e.toString());
-//            }
-//        }
+        Package p = Package.getPackage("org.jmlspecs.openjml.ext");
+        try {
+            registerPackage(context,p);
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+        }
+        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) return;
+        String exts = JmlOption.value(context, JmlOption.EXTENSIONS);
+        if (exts == null || exts.isEmpty()) return;
+        for (String extname : exts.split(",")) {
+            try {
+                Class<?> cl = Class.forName(extname);
+                if (cl == null || !registerClass(context,cl)) {
+                    Log.instance(context).error("jml.extension.failed", extname, "Improperly formed extension");
+                }
+                continue;
+            } catch (ClassNotFoundException e) {
+                // OK - go on to see if it is a package
+            }
+            try {
+                p = Package.getPackage(extname);
+                if (p != null) {
+                    registerPackage(context,p);
+                } else {
+                    Log.instance(context).error("jml.extension.failed", extname,"No such package found");
+                }
+            } catch (Exception e) {
+                Log.instance(context).error("jml.extension.failed", extname, e.toString());
+            }
+        }
     }
     
     /** Register all the classes in the given package, as found by findClasses() */
@@ -189,15 +189,15 @@ public class Extensions {
     }
     
     public static boolean registerClass(Context context, Class<?> cce) {
-//        if (!JmlExtension.class.isAssignableFrom(cce)) return false; // Extension classes must inherit from JmlExtensionn
-//        @SuppressWarnings("unchecked")
-//        Class<? extends JmlExtension> cc = (Class<? extends JmlExtension>)cce;
-//        try {
-//            cc.getConstructor().newInstance().register(context);
-//            return true;
-//        } catch (Exception e) {
-//            return false;
-//        }
+        if (!JmlExtension.class.isAssignableFrom(cce)) return false; // Extension classes must inherit from JmlExtensionn
+        @SuppressWarnings("unchecked")
+        Class<? extends JmlExtension> cc = (Class<? extends JmlExtension>)cce;
+        try {
+            cc.getConstructor().newInstance().register(context);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     	return true;
     }
     
