@@ -58,12 +58,12 @@ public class MemberEnter extends JCTree.Visitor {
 
     private final Enter enter;
     private final Log log;
-    private final Check chk;
-    private final Attr attr;
+    public final Check chk; // OPENJML - private to public
+    public final Attr attr; // OPENJML - private to public
     private final Symtab syms;
     private final Annotate annotate;
-    private final Types types;
-    private final DeferredLintHandler deferredLintHandler;
+    public final Types types; // OPENJML - private to public
+    public final DeferredLintHandler deferredLintHandler; // OPENJML - private to public
 
     public static MemberEnter instance(Context context) {
         MemberEnter instance = context.get(memberEnterKey);
@@ -250,10 +250,17 @@ public class MemberEnter extends JCTree.Visitor {
         return localEnv;
     }
 
+    // OPENJML extracted from the method below in order to override
+    public boolean visitVarDefIsStatic(JCVariableDecl tree, Env<AttrContext> env) {
+        return ((tree.mods.flags & STATIC) != 0 ||
+                ((env.info.scope.owner.flags() & INTERFACE) != 0  && env.enclMethod == null));
+    }
+
     public void visitVarDef(JCVariableDecl tree) {
         Env<AttrContext> localEnv = env;
-        if ((tree.mods.flags & STATIC) != 0 ||
-            (env.info.scope.owner.flags() & INTERFACE) != 0) {
+        if (visitVarDefIsStatic(tree,env)) {  // OPENJML
+//        if ((tree.mods.flags & STATIC) != 0 ||
+//            (env.info.scope.owner.flags() & INTERFACE) != 0) {
             localEnv = env.dup(tree, env.info.dup());
             localEnv.info.staticLevel++;
         }

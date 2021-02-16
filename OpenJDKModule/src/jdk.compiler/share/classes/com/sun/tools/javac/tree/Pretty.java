@@ -1247,7 +1247,7 @@ public class Pretty extends JCTree.Visitor {
         }
     }
 
-    public String operatorName(JCTree.Tag tag) {
+    public static String operatorName(JCTree.Tag tag) { // OPENJML - made static
         switch(tag) {
             case POS:     return "+";
             case NEG:     return "-";

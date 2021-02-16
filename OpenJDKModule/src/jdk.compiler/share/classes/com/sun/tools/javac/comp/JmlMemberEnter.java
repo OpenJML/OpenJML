@@ -539,13 +539,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         Name id = specsVarDecl.name;
         VarSymbol matchSym = null;
         if (true || !sameTree) {
-            Scope.Entry entry = csym.members().lookup(id);
-            while (entry != null && entry.sym != null) {
-                if (entry.sym instanceof VarSymbol && entry.sym.name == id) {
-                    matchSym = (VarSymbol)entry.sym;
+            var entries = csym.members().getSymbolsByName(id);
+            for (Symbol sy: entries) {
+                if (sy instanceof VarSymbol && sy.name == id) {
+                    matchSym = (VarSymbol)sy;
                     break;
                 }
-                entry = entry.next();
             }
         } else {
             matchSym = specsVarDecl.sym;
@@ -663,7 +662,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
         MethodSymbol matchSym = false ? specsMethodDecl.sym : matchMethod(specsMethodDecl,csym,env,false);
         if (matchSym != null && matchSym.owner != csym && !sameTree) {
-            log.warning("jml.message", "Unexpected location (ASD): " + csym);
+            utils.warning("jml.message", "Unexpected location (ASD): " + csym);
             matchSym = specsMethodDecl.sym;
         }
         
@@ -918,7 +917,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         mr.mods.flags |= Utils.JMLADDED;   // FIXME - why?
         mr.pos = modelVarDecl.pos;
         utils.setJML(mr.mods);
-        int endpos = modelVarDecl.getEndPosition(log.getSource(modelVarDecl.sourcefile).getEndPosTable());
+        JavaFileObject p = log.useSource(modelVarDecl.sourcefile);
+        int endpos = modelVarDecl.getEndPosition(log.currentSource().getEndPosTable());
+        log.useSource(p);
         mr.mods.annotations = List.<JCAnnotation>of(utils.modToAnnotationAST(Modifiers.MODEL,modelVarDecl.pos,endpos),
                                                     utils.modToAnnotationAST(Modifiers.PURE,modelVarDecl.pos,endpos)
                 );
@@ -1001,13 +1002,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         boolean isInterface = (javaFlags & Flags.INTERFACE) != 0;
         long diffs = (javaFlags ^ specFlags)&(isInterface? Flags.InterfaceVarFlags : Flags.VarFlags);
         if (diffs != 0) {
-            log.error(specField.pos(),"jml.mismatched.field.modifiers", specField.name, javaSym.enclClass().getQualifiedName()+"."+javaSym.name,Flags.toString(diffs));  // FIXME - test this
+            utils.error(specField.pos(),"jml.mismatched.field.modifiers", specField.name, javaSym.enclClass().getQualifiedName()+"."+javaSym.name,Flags.toString(diffs));  // FIXME - test this
         }
 
         // check for no initializer
         if (specField.getInitializer() != null && specField != javaField &&
                 !utils.isJML(specField.mods) && !specField.sym.owner.isEnum()) {
-            log.error(specField.getInitializer().pos(),"jml.no.initializer.in.specs",javaSym.enclClass().getQualifiedName()+"."+javaSym.name);
+            utils.error(specField.getInitializer().pos(),"jml.no.initializer.in.specs",javaSym.enclClass().getQualifiedName()+"."+javaSym.name);
         }
         
         // Match in the types is checked in JmlAttr.checkVarMods
@@ -1044,7 +1045,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 if ((Flags.ABSTRACT & matchf & ~specf) != 0 && isInterface) diffs &= ~Flags.ABSTRACT; 
                 if ((Flags.STATIC & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.STATIC; 
                 if ((Flags.FINAL & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.FINAL; 
-                if (diffs != 0) log.error(specsClassDecl.pos(),"jml.mismatched.modifiers", specsClassDecl.name, javaClassSym.fullname, Flags.toString(diffs));  // FIXME - test this
+                if (diffs != 0) utils.error(specsClassDecl.pos(),"jml.mismatched.modifiers", specsClassDecl.name, javaClassSym.fullname, Flags.toString(diffs));  // FIXME - test this
                 // FIXME - how can we tell where in which specs file the mismatched modifiers are
                 // SHould probably check this in the combining step
             }
@@ -1062,7 +1063,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             List<Type> t = ((Type.ClassType)javaClassSym.type).getTypeArguments();
             List<JCTypeParameter> specTypes = specsClassDecl.typarams;
             if (t.size() != specTypes.size()) {
-                log.error(specsClassDecl.pos(),"jml.mismatched.type.arguments",javaClassSym.fullname,javaClassSym.type.toString());
+                utils.error(specsClassDecl.pos(),"jml.mismatched.type.arguments",javaClassSym.fullname,javaClassSym.type.toString());
             }
             // FIXME - check that the names and bounds are the same
         }
@@ -1086,7 +1087,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 if ((Flags.STATIC & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.STATIC; 
                 if ((Flags.FINAL & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.FINAL; 
                 if ((diffs & Flags.FINAL) != 0 && javaClassSym.isAnonymous()) diffs &= ~Flags.FINAL;
-                if (diffs != 0) log.error(specsClassDecl.pos(),"jml.mismatched.modifiers", specsClassDecl.name, javaClassSym.fullname, Flags.toString(diffs));  // FIXME - test this
+                if (diffs != 0) utils.error(specsClassDecl.pos(),"jml.mismatched.modifiers", specsClassDecl.name, javaClassSym.fullname, Flags.toString(diffs));  // FIXME - test this
             }
             // FIXME - check that both are Enum; check that both are Annotation
             checkSameAnnotations(javaClassSym,specsClassDecl.mods,prev); // FIXME - is prev the java source?
@@ -1095,7 +1096,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             List<Type> t = ((Type.ClassType)javaClassSym.type).getTypeArguments();
             List<JCTypeParameter> specTypes = specsClassDecl.typarams;
             if (t.size() != specTypes.size()) {
-                log.error(specsClassDecl.pos(),"jml.mismatched.type.arguments",javaClassSym.fullname,javaClassSym.type.toString());
+                utils.error(specsClassDecl.pos(),"jml.mismatched.type.arguments",javaClassSym.fullname,javaClassSym.type.toString());
             }
             // FIXME - check that the names and bounds are the same
         }
@@ -1224,7 +1225,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (match == null) {
             if (complain && (specMethod.mods.flags & Flags.GENERATEDCONSTR) == 0 && !inModelTypeDeclaration
                     && utils.findMod(specMethod.mods,Modifiers.MODEL) == null) {
-                log.error(specMethod.pos(),"jml.no.method.match",
+                utils.error(specMethod.pos(),"jml.no.method.match",
                     csym.flatName() + "." + mtemp);
             }
         } else {
@@ -1439,7 +1440,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     if ((matchf & specf & Flags.ANONCONSTR)!= 0 && isEnum) { diffs &= ~2; specMethodDecl.mods.flags |= 2; } // enum constructors can have differences
                     if (diffs != 0 && !(match.isConstructor() && diffs == 3)) {
                         // FIXME - hide this case for now because of default constructors in binary files
-                        log.error(specMethodDecl.pos(),"jml.mismatched.method.modifiers", specMethodDecl.name, match.toString(), Flags.toString(diffs));
+                        utils.error(specMethodDecl.pos(),"jml.mismatched.method.modifiers", specMethodDecl.name, match.toString(), Flags.toString(diffs));
                     }
                 }
             }
@@ -1494,7 +1495,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     // FIXME - avoud the probloem for now.
                     if (!(specReturnType instanceof Type.TypeVar) && specReturnType.getTypeArguments().isEmpty()
                             && (!(specReturnType instanceof Type.ArrayType) || !(((Type.ArrayType)specReturnType).elemtype instanceof Type.TypeVar)) )
-                        log.error(specMethodDecl.restype.pos(),"jml.mismatched.return.type",
+                        utils.error(specMethodDecl.restype.pos(),"jml.mismatched.return.type",
                                 match.enclClass().fullname + "." + match.toString(),
                                 specReturnType, javaReturnType);
                 }
@@ -1506,7 +1507,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     JCTree.JCVariableDecl javaparam = javaMatch.getParameters().get(i);
                     JCTree.JCVariableDecl jmlparam = specMethodDecl.params.get(i);
                     if (!javaparam.name.equals(jmlparam.name)) {
-                        log.error(jmlparam.pos(),"jml.mismatched.param.names",i,
+                        utils.error(jmlparam.pos(),"jml.mismatched.param.names",i,
                                 match.enclClass().fullname + "." + match.toString(),
                                 javaparam.name, jmlparam.name);
                     }
@@ -1517,7 +1518,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     Symbol.VarSymbol javasym = match.getParameters().get(i);
                     JCTree.JCVariableDecl jmlparam = specMethodDecl.params.get(i);
                     if (!javasym.name.equals(jmlparam.name)) {
-                        log.error(jmlparam.pos(),"jml.mismatched.param.names",i,
+                        utils.error(jmlparam.pos(),"jml.mismatched.param.names",i,
                                 match.enclClass().fullname + "." + match.toString(),
                                 javasym.name, jmlparam.name);
                     }
@@ -1531,7 +1532,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     && match.owner == javaClassSymbol   // FIXME - this is here to avoid errors on methods of anonymous classes within specifications within a .jml file - it might not be fully robust
                     // FIXME - should test other similar locations - e.g. model classes, model methods, methods within local class declarations in model methods or methods of model classes
                     && (specMethodDecl.mods.flags & (Flags.GENERATEDCONSTR|Flags.SYNTHETIC)) == 0) {
-                log.error(specMethodDecl.body.pos(),"jml.no.body.allowed",match.enclClass().fullname + "." + match.toString());
+                utils.error(specMethodDecl.body.pos(),"jml.no.body.allowed",match.enclClass().fullname + "." + match.toString());
             }
 
 
@@ -1586,11 +1587,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
     
     VarSymbol findVarMatch(ClassSymbol csym, Name name) {
-        Scope.Entry e = csym.members().lookup(name);  // FIXME - can have variables and methods with the same name
-        while (e.sym != null && !(e.sym instanceof VarSymbol)) {
-            e = e.next();
+        var e = csym.members().getSymbolsByName(name);  // FIXME - can have variables and methods with the same name
+        for (Symbol sy: e) {
+        	if (sy instanceof VarSymbol) return (VarSymbol)sy;
         }
-        return (VarSymbol)e.sym;
+        return null;
     }
     
     
@@ -1962,7 +1963,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             return;
         }
         Symbol sym = tree.sym;
-        if (specs.getSpecs(tree.sym) != null) log.warning("jml.internal","Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
+        if (specs.getSpecs(tree.sym) != null) utils.warning("jml.internal","Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
         JmlVariableDecl jtree = (JmlVariableDecl)tree;
         
         // FIXME - the following duplicates setting the specs with matchAndSetFieldSpecs - but if there is a source file, this comes first
@@ -1970,7 +1971,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (fspecs == null) fspecs = new JmlSpecs.FieldSpecs(jtree); // Does not include any in or maps clauses
         jtree.fieldSpecsCombined = fspecs; 
         specs.putSpecs(tree.sym,fspecs);
-        if (sym.kind == Kinds.VAR && sym.owner.kind == TYP && (sym.owner.flags_field & INTERFACE) != 0
+        if (sym.kind == VAR && sym.owner.kind == TYP && (sym.owner.flags_field & INTERFACE) != 0
                 && utils.isJML(tree.mods)) {
             // In the case of a JML ghost variable that is a field of an interface, the default is static and not final
             // (unless explicitly specified final)
@@ -2010,11 +2011,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         boolean isModel = isJML && utils.findMod(specstree.mods, Modifiers.MODEL) != null;
         boolean isGhost = isJML && utils.findMod(specstree.mods, Modifiers.GHOST) != null;
 
-        Scope.Entry e = parent.members().lookup(nm); // Presume there is just one declaration with a matching name, 
+        Iterator<Symbol> e = parent.members().getSymbolsByName(nm).iterator(); // Presume there is just one declaration with a matching name, 
                                                      // or at least, that the first one to match is the one we want.
-        Symbol.VarSymbol vsym = e.sym instanceof Symbol.VarSymbol ? (Symbol.VarSymbol)e.sym : null;
-        specstree.sym = vsym;
-        if (vsym == null) {
+        Symbol.VarSymbol vsym = null;
+        if (e.hasNext()) {
+        	Symbol s = e.next();
+            vsym = s instanceof Symbol.VarSymbol ? (Symbol.VarSymbol)s : null;
+            specstree.sym = vsym;
             // There is no match of a declaration in the specs file to the Java class
             // isJML --> OK, but it should be model or ghost (which is checked in JmlAttr.checkVarMods)
             // !isJML --> error - but we treat it as model or ghost
@@ -2031,7 +2034,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             } finally {
                 env = prevenv;
             }
-            if (specstree.sym == null) log.error(specstree, "jml.internal", "Failed to set a variable declaration symbol as expected");
+            if (specstree.sym == null) utils.error(specstree, "jml.internal", "Failed to set a variable declaration symbol as expected");
             JmlSpecs.instance(context).putSpecs(specstree.sym, specstree.fieldSpecsCombined);
             vsym = specstree.sym;
         }
@@ -2045,10 +2048,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             boolean isInstance = JmlAttr.instance(context).findMod(specstree.mods, Modifiers.INSTANCE) != null;
             if (isInstance && !wasStatic) specstree.mods.flags &= ~Flags.STATIC;
         }
-        if (specs.getSpecs(specstree.sym) != null) log.warning("jml.internal","Expected null field specs here: " + specstree.sym.owner + "." + specstree.sym);
+        if (specs.getSpecs(specstree.sym) != null) utils.warning("jml.internal","Expected null field specs here: " + specstree.sym.owner + "." + specstree.sym);
         specs.putSpecs(specstree.sym,new JmlSpecs.FieldSpecs(specstree)); // This specs only has modifiers - field spec clauses are added later (FIXME - where? why not here?)
 
-        if (vsym.kind == Kinds.VAR && vsym.owner.kind == TYP && (vsym.owner.flags_field & INTERFACE) != 0
+        if (vsym.kind == VAR && vsym.owner.kind == TYP && (vsym.owner.flags_field & INTERFACE) != 0
                 && isJML) {
             // In the case of a JML ghost variable that is a field of an interface, the default is static and not final
             // (unless explicitly specified final)
@@ -2168,7 +2171,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (tsym.kind == PCK && tsym.members().elems == null && !tsym.exists()) {
             // If we can't find org.jmlspecs.lang, exit immediately.
             if (((PackageSymbol)tsym).fullname.toString().equals(Strings.jmlSpecsPackage)) {
-                JCDiagnostic msg = diags.fragment("fatal.err.no." + Strings.jmlSpecsPackage);
+                JCDiagnostic msg = JCDiagnostic.Factory.instance(context).fragment("fatal.err.no." + Strings.jmlSpecsPackage);
                 throw new FatalError(msg);
             }
         }

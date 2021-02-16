@@ -35,6 +35,8 @@ import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
  *
  */
 public class JmlCheck extends Check {
+	
+	public Context context;
 
     /** Creates a new instance - but use instance(), not this constructor, in order to
      * get the unique instance for the current compilation context.
@@ -42,6 +44,7 @@ public class JmlCheck extends Check {
      */
     protected JmlCheck(@NonNull Context context) {
         super(context);
+        this.context = context;
     }
     
     /** Registers a singleton factory for JmlCheck against the checkKey, so that there is
@@ -110,7 +113,7 @@ public class JmlCheck extends Check {
      */
     @Override
     long checkFlags(DiagnosticPosition pos, long flags, Symbol sym, JCTree tree) {
-        if (sym.kind == Kinds.ERR) return flags;
+        if (sym.kind == Kinds.Kind.ERR) return flags;
         if (staticOldEnv) flags &= ~Flags.STATIC;
         long k = super.checkFlags(pos,flags,sym,tree);
         if (staticOldEnv) { k |= Flags.STATIC; }

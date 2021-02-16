@@ -1930,7 +1930,7 @@ public class Attr extends JCTree.Visitor {
         matchBindings = matchBindingsComputer.conditional(tree, condBindings, trueBindings, falseBindings);
     }
     //where
-        private boolean isBooleanOrNumeric(Env<AttrContext> env, JCExpression tree) {
+        protected boolean isBooleanOrNumeric(Env<AttrContext> env, JCExpression tree) { // OPENJML - private to protected
             switch (tree.getTag()) {
                 case LITERAL: return ((JCLiteral)tree).typetag.isSubRangeOf(DOUBLE) ||
                               ((JCLiteral)tree).typetag == BOOLEAN ||
@@ -5268,7 +5268,7 @@ public class Attr extends JCTree.Visitor {
     }
 
     /** Finish the attribution of a class. */
-    private void attribClassBody(Env<AttrContext> env, ClassSymbol c) {
+    protected void attribClassBody(Env<AttrContext> env, ClassSymbol c) { // OPENJML - private to protected
         JCClassDecl tree = (JCClassDecl)env.tree;
         Assert.check(c == tree.sym);
 

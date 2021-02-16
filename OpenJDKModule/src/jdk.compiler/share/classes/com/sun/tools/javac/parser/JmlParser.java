@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 
+import javax.tools.JavaFileObject;
+
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.IJmlClauseKind.MethodSpecClauseKind;
@@ -55,6 +57,7 @@ import com.sun.tools.javac.util.Assert;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.Position;
@@ -98,12 +101,12 @@ public class JmlParser extends JavacParser {
     protected JmlParser(ParserFactory fac, Lexer S, boolean keepDocComments) {
         super(fac, S, keepDocComments, true, true); // true = keepLineMap, keepEndPositions
         if (!(S instanceof JmlScanner)) {
-            log.error("jml.internal",
+            utils.error("jml.internal",
                     "S expected to be a JmlScanner in JmlParser");
             throw new JmlInternalError("Expected a JmlScanner for a JmlParser");
         }
         if (!(F instanceof JmlTree.Maker)) {
-            log.error("jml.internal",
+        	utils.error("jml.internal",
                     "F expected to be a JmlTree.Maker in JmlParser");
             throw new JmlInternalError(
                     "Expected a JmlTree.Maker for a JmlParser");
@@ -175,7 +178,7 @@ public class JmlParser extends JavacParser {
     public JCTree.JCCompilationUnit parseCompilationUnit() {
         JCTree.JCCompilationUnit u = super.parseCompilationUnit();
         if (!(u instanceof JmlCompilationUnit)) {
-            log.error(
+        	utils.error(
                 "jml.internal",
                 "JmlParser.compilationUnit expects to receive objects of type JmlCompilationUnit, but it found a "
                             + u.getClass()
@@ -217,7 +220,7 @@ public class JmlParser extends JavacParser {
         boolean modelImport = false;
         for (JCAnnotation a: mods.annotations) {
             if (a.annotationType.toString().equals("org.jmlspecs.annotation.Model")) { modelImport = true; }
-            else jmlerror(a.pos, "jml.no.mods.on.import");
+            else utils.error(a.pos, "jml.no.mods.on.import");
         }
         boolean importIsInJml = S.jml();
         if (!modelImport && importIsInJml) {
@@ -465,18 +468,18 @@ public class JmlParser extends JavacParser {
             } else if (s instanceof IJmlLoop) {
                 ((IJmlLoop)s).setSplit(isSplit);
             } else if (isSplit) {
-                log.warning(split, "jml.message", "Ignoring out of place split statement");
+            	utils.warning(split, "jml.message", "Ignoring out of place split statement");
             }
             split = s instanceof JmlStatementExpr && ((JmlStatementExpr)s).clauseType == splitClause && ((JmlStatementExpr)s).expression == null
                     ? (JmlStatementExpr)s : null;
             if (split != null) continue;
 
             if (s instanceof JmlStatement && ((JmlStatement)s).clauseType == EndStatement.endClause) {
-                log.error(s, "jml.message", "Improperly nested spec-end pair");
+            	utils.error(s, "jml.message", "Improperly nested spec-end pair");
                 continue;
             }
             if (s instanceof JmlStatement && ((JmlStatement)s).clauseType == EndStatement.beginClause) {
-                log.error(s, "jml.message", "Improperly nested spec-end pair");
+            	utils.error(s, "jml.message", "Improperly nested spec-end pair");
                 continue;
             }
             // This case allows grandfathering an assignable statement as a loop_modifies statement
@@ -485,7 +488,7 @@ public class JmlParser extends JavacParser {
                 JmlMethodClauseStoreRef sa = (JmlMethodClauseStoreRef)s;
                 JmlStatementLoop sloop = jmlF.at(sa.pos).JmlStatementLoopModifies(StatementLocationsExtension.loopwritesStatement, sa.list);
                 if (!loopspecs.isEmpty()) {
-                    log.warning(s.pos, "jml.message", "Use 'loop_writes' keyword instead of '" + sa.keyword + "' in loop specifications");
+                    utils.warning(s.pos, "jml.message", "Use 'loop_writes' keyword instead of '" + sa.keyword + "' in loop specifications");
                     loopspecs.add(sloop);
                     continue;
                 }
@@ -515,7 +518,7 @@ public class JmlParser extends JavacParser {
             loopspecs.clear();
         }
         if (split != null) {
-            log.warning(split, "jml.message", "Ignoring out of place split statement");
+        	utils.warning(split, "jml.message", "Ignoring out of place split statement");
         }
         return newstats.toList();
     }
@@ -563,9 +566,9 @@ public class JmlParser extends JavacParser {
                         if (s instanceof JmlStatementLoop) {
                             s = parseLoopWithSpecs((JmlStatementLoop)s, true);
                         } else if (id.equals(EndStatement.beginID)) {
-                            log.error(s, "jml.message", "Improperly nested spec-end pair");
+                        	utils.error(s, "jml.message", "Improperly nested spec-end pair");
                         } else if (id.equals(EndStatement.endID)) {
-                          log.error(s, "jml.message", "Improperly nested spec-end pair");
+                        	utils.error(s, "jml.message", "Improperly nested spec-end pair");
                         }
                     }
                     if (s == null) return List.<JCStatement>nil();
@@ -597,7 +600,7 @@ public class JmlParser extends JavacParser {
                         } else if (s instanceof JCClassDecl || s instanceof JmlAbstractStatement || s instanceof JCSkip) {
                             // OK
                         } else if (!inJmlDeclaration && !inModelProgram && !inLocalOrAnonClass) { // FIXME - unsure of this test
-                            jmlerror(s.pos, "jml.expected.decl.or.jml");
+                            utils.error(s.pos, "jml.expected.decl.or.jml");
                         }
                     }
                 }
@@ -651,7 +654,7 @@ public class JmlParser extends JavacParser {
             }
             loop.setLoopSpecs(specs);
         } else {
-            log.error(firstSpec, "jml.message", "Loop specifications must immediately precede a loop statement");
+        	utils.error(firstSpec, "jml.message", "Loop specifications must immediately precede a loop statement");
         }
         return stt;
     }
@@ -680,7 +683,7 @@ public class JmlParser extends JavacParser {
                     clauseType = assertClause;
                     st = (JCStatement)clauseType.parse(null,id,clauseType,this);
                 } else {
-                    log.error(pos, "jml.message", "Unexpected statement type: " + id);
+                	utils.error(pos, "jml.message", "Unexpected statement type: " + id);
                 }
             }
         }
@@ -715,11 +718,11 @@ public class JmlParser extends JavacParser {
                 nextToken();
             }
         } else if (jt == EndStatement.beginClause) {
-            log.error(pos, "jml.message", "Improperly nested spec-end pair");
+        	utils.error(pos, "jml.message", "Improperly nested spec-end pair");
         } else if (jt == EndStatement.endClause) {
-            log.error(pos, "jml.message", "Improperly nested spec-end pair");
+        	utils.error(pos, "jml.message", "Improperly nested spec-end pair");
         } else {
-            log.warning(pos(),"jml.refining.required");
+        	utils.warning(pos(),"jml.refining.required");
         }
         JCModifiers mods = modifiersOpt();
         JmlMethodSpecs specs = parseMethodSpecs(mods);
@@ -737,10 +740,10 @@ public class JmlParser extends JavacParser {
 
         List<JCStatement> stat = blockStatement();
         if (stat == null || stat.isEmpty()) {
-            log.error(ste, "jml.message", "Statement specs found at the end of a block (or before an erroneous statement)");
+        	utils.error(ste, "jml.message", "Statement specs found at the end of a block (or before an erroneous statement)");
             return null;
         } else if (stat.head instanceof JmlAbstractStatement && stat.head.toString() == EndStatement.beginID) {
-            log.error(stat.head, "jml.message", "Statement specs may not precede a JML statement clause");
+        	utils.error(stat.head, "jml.message", "Statement specs may not precede a JML statement clause");
             return stat.head;
         }
         ListBuffer<JCStatement> stats = new ListBuffer<>();
@@ -750,7 +753,7 @@ public class JmlParser extends JavacParser {
             while (true) {
                 stat = blockStatement();
                 if (stat.isEmpty()) {
-                    log.error(begin, "jml.message", "Expected an 'end' statement to match the begin statement before the end of block");
+                    utils.error(begin, "jml.message", "Expected an 'end' statement to match the begin statement before the end of block");
                     break;
                 } else if (stat.get(0) instanceof JmlStatement && ((JmlStatement)stat.get(0)).clauseType == EndStatement.endClause) {
                     break;
@@ -759,9 +762,9 @@ public class JmlParser extends JavacParser {
                 }
             }
         } else if (stat.head instanceof JmlStatement && ((JmlStatement)stat.head).clauseType == EndStatement.beginClause) {
-            log.error(ste, "jml.message", "Improperly nested spec-end pair");
+        	utils.error(ste, "jml.message", "Improperly nested spec-end pair");
         } else if (stat.isEmpty()) {
-            log.error(ste, "jml.message", "Statement specs found at the end of a block (or before an erroneous statement)");
+        	utils.error(ste, "jml.message", "Statement specs found at the end of a block (or before an erroneous statement)");
         } else {
             stats.addAll(stat);
         }
@@ -883,7 +886,7 @@ public class JmlParser extends JavacParser {
             int pos = pos();
             JmlTokenKind jt = jmlTokenKind();
             if (jt != null && !isJmlTypeToken(jt) && currentMethodSpecs != null && !startOfMethodSpecs(token)) {
-                log.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + jt.internedName() + " clause (ignored)");
+                utils.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + jt.internedName() + " clause (ignored)");
                 currentMethodSpecs = null;
             }
             IJmlClauseKind ct = null;
@@ -899,7 +902,7 @@ public class JmlParser extends JavacParser {
                 } else if (startOfTypeSpec(token)) {
                     JCTree tc = parseTypeSpecs(mods);
                     if (tc instanceof JmlTypeClause && currentMethodSpecs != null) {
-                        log.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + ((JmlTypeClause)tc).clauseType.name() + " clause (ignored)");
+                        utils.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + ((JmlTypeClause)tc).clauseType.name() + " clause (ignored)");
                         currentMethodSpecs = null;
                     }
                     if (tc instanceof JmlTypeClauseIn
@@ -909,7 +912,7 @@ public class JmlParser extends JavacParser {
                             ((JmlTypeClauseIn) tree).parentVar = mostRecentVarDecl;
                         }
                         if (mostRecentVarDecl == null) {
-                            log.error(tree.pos(), "jml.misplaced.var.spec",
+                            utils.error(tree.pos(), "jml.misplaced.var.spec",
                                     ((JmlTypeClause) tree).keyword);
                         } else {
                             if (mostRecentVarDecl.fieldSpecs == null) {
@@ -924,7 +927,7 @@ public class JmlParser extends JavacParser {
                     }
                     continue;
                 } else if (utils.findMod(mods,Modifiers.MODEL) == null && utils.findMod(mods,Modifiers.GHOST) == null) {
-                    log.error(token.pos, "jml.illegal.token.for.declaration", id);
+                	utils.error(token.pos, "jml.illegal.token.for.declaration", id);
                     skipThroughSemi();
                     continue;
                 }
@@ -978,7 +981,7 @@ public class JmlParser extends JavacParser {
                 } else {
 
                     if (token.kind == TokenKind.SEMI && currentMethodSpecs != null) {
-                        log.error(token.pos, "jml.message", "Method specs preceding an empty declaration are ignored");
+                    	utils.error(token.pos, "jml.message", "Method specs preceding an empty declaration are ignored");
                         currentMethodSpecs = null;
                     }
                     // no longer in JML
@@ -991,7 +994,7 @@ public class JmlParser extends JavacParser {
                         JCTree ttr = tr;
                         if (tr instanceof JmlClassDecl) {
                             if (currentMethodSpecs != null) {
-                                log.error(tr.pos, "jml.message", "Method specs may not precede a class declaration");
+                            	utils.error(tr.pos, "jml.message", "Method specs may not precede a class declaration");
                                 currentMethodSpecs = null;
                             }
                             JmlClassDecl d = (JmlClassDecl) tr;
@@ -1002,7 +1005,7 @@ public class JmlParser extends JavacParser {
                         } else if (tr instanceof JmlMethodDecl) {
                             JmlMethodDecl d = (JmlMethodDecl) tr;
                             if (startsInJml) utils.setJML(d.mods);
-                            d.sourcefile = log.currentSourceFile();
+                            d.sourcefile = currentSourceFile();
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                             attach(d, dc);
                             d.cases = currentMethodSpecs;
@@ -1023,7 +1026,7 @@ public class JmlParser extends JavacParser {
 
                         } else if (tr instanceof JmlVariableDecl) {
                             if (currentMethodSpecs != null) {
-                                log.error(tr.pos, "jml.message", "Method specs may not precede a variable declaration");
+                            	utils.error(tr.pos, "jml.message", "Method specs may not precede a variable declaration");
                                 currentMethodSpecs = null;
                             }
                             JmlVariableDecl d = (JmlVariableDecl) tr;
@@ -1033,13 +1036,13 @@ public class JmlParser extends JavacParser {
                             } else {
                                 if (startsInJml) utils.setJML(d.mods);  // FIXME - should this be executed even when there is a replacement type?
                             }
-                            d.sourcefile = log.currentSourceFile();
+                            d.sourcefile = currentSourceFile();
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                             attach(d, dc);
                             currentVariableDecl = d;
                         } else {
                             if (currentMethodSpecs != null) {
-                                log.error(tr.pos, "jml.message", "Method specs that do not precede a method declaration are ignored");
+                            	utils.error(tr.pos, "jml.message", "Method specs that do not precede a method declaration are ignored");
                                 currentMethodSpecs = null;
                             }
                             ttr = null;
@@ -1050,7 +1053,7 @@ public class JmlParser extends JavacParser {
                 } else if (t.head instanceof JmlMethodDecl) {
                     JmlMethodDecl d = (JmlMethodDecl) t.head;
                     if (startsInJml) utils.setJML(d.mods);
-                    d.sourcefile = log.currentSourceFile();
+                    d.sourcefile = currentSourceFile();
                     attach(d, dc);
                     d.cases = currentMethodSpecs;
                     if (currentMethodSpecs != null) {
@@ -1066,7 +1069,7 @@ public class JmlParser extends JavacParser {
                         ((JmlTypeClauseIn) tree).parentVar = mostRecentVarDecl;
                     }
                     if (mostRecentVarDecl == null) {
-                        log.error(tree.pos(), "jml.misplaced.var.spec",
+                    	utils.error(tree.pos(), "jml.misplaced.var.spec",
                                 ((JmlTypeClause) tree).keyword);
                     } else {
                         if (mostRecentVarDecl.fieldSpecs == null) {
@@ -1400,7 +1403,7 @@ public class JmlParser extends JavacParser {
             //                || (jt == JmlTokenKind.ABRUPT_BEHAVIOR && inModelProgram)) 
         {
             if (exampleSection) {
-                log.warning(pos(), "jml.example.keyword", "must not",
+            	utils.warning(pos(), "jml.example.keyword", "must not",
                         ext.keyword);
             }
             nextToken();
@@ -1408,7 +1411,7 @@ public class JmlParser extends JavacParser {
             //                || jt == JmlTokenKind.EXAMPLE || jt == JmlTokenKind.NORMAL_EXAMPLE
             //                || jt == JmlTokenKind.EXCEPTIONAL_EXAMPLE) {
             if (!exampleSection) {
-                log.warning(pos(), "jml.example.keyword", "must",
+            	utils.warning(pos(), "jml.example.keyword", "must",
                         ext.keyword);
             }
             nextToken();
@@ -1427,7 +1430,7 @@ public class JmlParser extends JavacParser {
             //            // Call it lightweight
         } else {
             ext = null;
-            if (code) log.warning(codePos, "jml.misplaced.code");
+            if (code) utils.warning(codePos, "jml.misplaced.code");
             // lightweight
         }
 
@@ -1456,7 +1459,7 @@ public class JmlParser extends JavacParser {
 
         if (clauses.size() == 0 && stat == null) {
             if (ext != null && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
-                jmlerror(pos, "jml.empty.specification.case");
+                utils.error(pos, "jml.empty.specification.case");
             }
             if (ext == null && also == null && !code) return null;
         }
@@ -1465,14 +1468,14 @@ public class JmlParser extends JavacParser {
                 ext, also, clauses.toList(), stat);
         j.name = specCaseName;
         storeEnd(j, j.clauses.isEmpty() ? pos + 1 : getEndPos(j.clauses.last()));
-        j.sourcefile = log.currentSourceFile();
+        j.sourcefile = currentSourceFile();
         return j;
     }
 
     /** Issues a warning that the named construct is parsed and ignored */
     public void warnNotImplemented(int pos, String construct, String location) {
         if (JmlOption.isOption(context, JmlOption.SHOW_NOT_IMPLEMENTED))
-            log.warning(pos, "jml.unimplemented.construct", construct, location);
+        	utils.warning(pos, "jml.unimplemented.construct", construct, location);
     }
 
     public JCBlock parseModelProgramBlock() {
@@ -1576,8 +1579,12 @@ public class JmlParser extends JavacParser {
                     break;
 
             }
-        if (res != null) res.sourcefile = log.currentSourceFile();
+        if (res != null) res.sourcefile = currentSourceFile();
         return res;
+    }
+    
+    JavaFileObject currentSourceFile() {
+    	return Log.instance(context).currentSourceFile();
     }
 
     /** Parses either a \\not_specified token or a JML expression */
@@ -1716,7 +1723,7 @@ public class JmlParser extends JavacParser {
             if (e instanceof JCIdent) {
                 if (((JCIdent) e).name == names._this
                         || ((JCIdent) e).name == names._super) {
-                    log.error(e.pos(), "jml.naked.this.super");
+                    utils.error(e.pos(), "jml.naked.this.super");
                     // A standalone this or super is not allowed. We state the
                     // error but the parse tree is this.* or super.*
                     e = to(jmlF.at(e.pos).Select(e, (Name) null));
@@ -1804,7 +1811,7 @@ public class JmlParser extends JavacParser {
                         nextToken();
                     } else if (token.kind == RBRACKET) {
                         if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
-                            log.warning(rbracketPos,"jml.not.strict","storeref with implied end-of-range (a[i..])");
+                        	utils.warning(rbracketPos,"jml.not.strict","storeref with implied end-of-range (a[i..])");
                         }
                         // OK - missing hi end implies end of array
                     } else {
@@ -1893,7 +1900,7 @@ public class JmlParser extends JavacParser {
         JCExpression t = utils.nametree(position,endpos,annName,this);
         JCAnnotation ann = to(F.at(position).Annotation(t,
                 List.<JCExpression> nil()));
-        ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
+        ((JmlTree.JmlAnnotation)ann).sourcefile = currentSourceFile();
         storeEnd(ann, endpos);
         return ann;
     }
@@ -1929,7 +1936,7 @@ public class JmlParser extends JavacParser {
                 // (this is true at the moment for math annotations, but could
                 // also be true for a modifier someone forgot)
                 if (!mk.strict && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
-                    log.warning(pos(),"jml.not.strict",mk.keyword);  // FIXME - probably wrong position
+                	utils.warning(pos(),"jml.not.strict",mk.keyword);  // FIXME - probably wrong position
                 }
             } else if (j == ENDJMLCOMMENT) {
                 // skip over
@@ -2646,16 +2653,17 @@ public class JmlParser extends JavacParser {
         JCExpression fe = e;
         if (!(fe instanceof JCBinary)) return fe;
         JCBinary be = (JCBinary)e;
-        if (be.opcode == JCTree.Tag.LT || be.opcode == JCTree.Tag.LE) {
+        JCTree.Tag tag = be.getTag();
+        if (tag == JCTree.Tag.LT || tag == JCTree.Tag.LE) {
             ListBuffer<JCBinary> args = new ListBuffer<JCBinary>();
             while (true) {
                 args.prepend(be);
                 fe = be.lhs;
                 if (!(fe instanceof JCBinary)) break;
                 be = (JCBinary)fe;
-                if (!(be.opcode == JCTree.Tag.LT || be.opcode == JCTree.Tag.LE)) {
-                    if (be.opcode == JCTree.Tag.GT || be.opcode == JCTree.Tag.GE) {
-                        jmlwarning(be.pos,"jml.message","Cannot chain comparisons that are in different directions");
+                if (!(tag == JCTree.Tag.LT || tag == JCTree.Tag.LE)) {
+                    if (tag == JCTree.Tag.GT || tag == JCTree.Tag.GE) {
+                        utils.warning(be.pos,"jml.message","Cannot chain comparisons that are in different directions");
                     } else {
                         break;
                     }
@@ -2665,16 +2673,16 @@ public class JmlParser extends JavacParser {
             if (args.size() == 1) return e;
             e = jmlF.at(e.pos).JmlChained(args.toList());
             return e;
-        } else if (be.opcode == JCTree.Tag.GT || be.opcode == JCTree.Tag.GE) {
+        } else if (tag == JCTree.Tag.GT || tag == JCTree.Tag.GE) {
             ListBuffer<JCBinary> args = new ListBuffer<JCBinary>();
             while (true) {
                 args.prepend(be);
                 fe = be.lhs;
                 if (!(fe instanceof JCBinary)) break;
                 be = (JCBinary)fe;
-                if (!(be.opcode == JCTree.Tag.GT || be.opcode == JCTree.Tag.GE)) {
-                    if (be.opcode == JCTree.Tag.LT || be.opcode == JCTree.Tag.LE) {
-                        jmlwarning(be.pos,"jml.message","Cannot chain comparisons that are in different directions");
+                if (!(tag == JCTree.Tag.GT || tag== JCTree.Tag.GE)) {
+                    if (tag == JCTree.Tag.LT || tag == JCTree.Tag.LE) {
+                        utils.warning(be.pos,"jml.message","Cannot chain comparisons that are in different directions");
                     } else {
                         break;
                     }
@@ -2769,21 +2777,21 @@ public class JmlParser extends JavacParser {
     public JCErroneous syntaxError(int pos, List<JCTree> errs, String key,
             Object... args) {
         setErrorEndPos(pos);
-        reportSyntaxError(pos, key, args);
+        reportSyntaxError(pos, Log.instance(context).factory().errorKey(key, args));
         return toP(F.at(pos).Erroneous(errs));
     }
 
     // FIXME - do we need to set errorEndPos in the following?
 
-    /** Creates an error message for which the source is a single character */
-    public void jmlerror(int pos, String key, Object... args) {
-        log.error(new JmlTokenizer.DiagnosticPositionSE(pos, pos), key, args);
-    }
-
-    /** Creates a warning message for which the source is a single character */
-    public void jmlwarning(int pos, String key, Object... args) {
-        log.warning(new JmlTokenizer.DiagnosticPositionSE(pos, pos), key, args);
-    }
+//    /** Creates an error message for which the source is a single character */
+//    public void jmlerror(int pos, String key, Object... args) {
+//        utils.error(pos, key, args);
+//    }
+//
+//    /** Creates a warning message for which the source is a single character */
+//    public void jmlwarning(int pos, String key, Object... args) {
+//        utils.warning(pos, key, args);
+//    }
 
     /**
      * Creates an error message for which the source is a range of characters,
@@ -2791,7 +2799,7 @@ public class JmlParser extends JavacParser {
      * the begin position.
      */
     public void jmlerror(int begin, int end, String key, Object... args) {
-        log.error(new JmlTokenizer.DiagnosticPositionSE(begin, end - 1), key,
+        utils.error(new JmlTokenizer.DiagnosticPositionSE(begin, end - 1), key,
                 args); // TODO - not unicode friendly
     }
 
@@ -2801,7 +2809,7 @@ public class JmlParser extends JavacParser {
      * the begin position.
      */
     public void jmlwarning(int begin, int end, String key, Object... args) {
-        log.warning(new JmlTokenizer.DiagnosticPositionSE(begin, end - 1), key,
+        utils.warning(new JmlTokenizer.DiagnosticPositionSE(begin, end - 1), key,
                 args); // TODO - not unicode friendly
     }
 
@@ -2813,7 +2821,7 @@ public class JmlParser extends JavacParser {
      */
     public void jmlerror(int begin, int preferred, int end, String key,
             Object... args) {
-        log.error(
+        utils.error(
                 new JmlTokenizer.DiagnosticPositionSE(begin, preferred, end - 1),
                 key, args);// TODO - not unicode friendly
     }
@@ -2826,7 +2834,7 @@ public class JmlParser extends JavacParser {
      */
     public void jmlwarning(int begin, int preferred, int end, String key,
             Object... args) {
-        log.warning(
+        utils.warning(
                 new JmlTokenizer.DiagnosticPositionSE(begin, preferred, end - 1),
                 key, args);// TODO - not unicode friendly
     }

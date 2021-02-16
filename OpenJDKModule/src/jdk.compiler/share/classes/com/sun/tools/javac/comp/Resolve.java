@@ -2297,14 +2297,23 @@ public class Resolve {
         Symbol bestSoFar = typeNotFound;
         for (Symbol s : scope.getSymbolsByName(name)) {
             Symbol sym = loadClass(env, s.flatName(), recoveryLoadClass);
+            if (!symbolOK(sym)) continue; // OPENJML added to allow derived class to disallow symbols
             if (bestSoFar.kind == TYP && sym.kind == TYP &&
-                bestSoFar != sym)
-                return new AmbiguityError(bestSoFar, sym);
-            else
-                bestSoFar = bestOf(bestSoFar, sym);
+                    bestSoFar != sym)
+                    return new AmbiguityError(bestSoFar, sym);
+                else
+                    bestSoFar = bestOf(bestSoFar, sym);
         }
         return bestSoFar;
     }
+    
+    /** This hook method is added so that derived classes can add their
+     * own spin on whether the entry may be returned as the result of the lookup.
+     */
+    protected boolean symbolOK(Symbol e) { // OPENJML - added this hook method
+        return true;
+    }
+
 
     Symbol findTypeVar(Env<AttrContext> currentEnv, Env<AttrContext> originalEnv, Name name, boolean staticOnly) {
         for (Symbol sym : currentEnv.info.scope.getSymbolsByName(name)) {
@@ -3874,7 +3883,7 @@ public class Resolve {
         logResolveError(error, tree.pos(), env.enclClass.sym, env.enclClass.type, null, null, null);
     }
     //where
-    private void logResolveError(ResolveError error,
+    protected void logResolveError(ResolveError error, // OPENJML - private to protected
             DiagnosticPosition pos,
             Symbol location,
             Type site,
