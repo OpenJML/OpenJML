@@ -75,7 +75,7 @@ public class ReachableStatement extends JmlExtension {
             if (parser.token().kind == TokenKind.SEMI) {
                 parser.nextToken();
             } else if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
-                if (semiWarning) parser.jmlwarning(p-1, "jml.missing.semi", keyword);
+                if (semiWarning) utils.warning(p-1, "jml.missing.semi", keyword);
             } else {
                 JCExpression opt = null;
                 JCExpression e = parser.parseExpression();
@@ -89,9 +89,9 @@ public class ReachableStatement extends JmlExtension {
                 }
 
                 if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
-                    if (semiWarning) parser.jmlwarning(p-2, "jml.missing.semi", keyword);
+                    if (semiWarning) utils.warning(p-2, "jml.missing.semi", keyword);
                 } else if (parser.token().kind != TokenKind.SEMI) {
-                    parser.jmlerror(p, "jml.missing.semi", keyword);
+                    utils.error(p, "jml.missing.semi", keyword);
                 } else {
                     parser.nextToken(); // skip over semicolon
                 }

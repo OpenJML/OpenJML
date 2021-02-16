@@ -15,8 +15,11 @@ import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.comp.Resolve.RecoveryLoadClass;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.Pretty;
+import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
@@ -116,8 +119,8 @@ public class JmlResolve extends Resolve {
      * JML symbols when we are not in a JML context.
      */
     @Override
-    protected boolean symbolOK(Scope.Entry e) {
-        return allowJML || !utils.isJML(e.sym.flags_field);
+    protected boolean symbolOK(Symbol e) {
+        return allowJML || !utils.isJML(e.flags_field);
     }
     
     public Symbol resolveQualifiedMethod(DiagnosticPosition pos, Env<AttrContext> env,
@@ -152,9 +155,9 @@ public class JmlResolve extends Resolve {
      * @return the unique symbol corresponding to this class
      */
     @Override
-    public Symbol loadClass(Env<AttrContext> env, Name name) {
+    public Symbol loadClass(Env<AttrContext> env, Name name, RecoveryLoadClass recoveryLoadClass) {
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("BINARY LOADING STARTING " + name );
-        Symbol s = super.loadClass(env, name);
+        Symbol s = super.loadClass(env, name, recoveryLoadClass);
         // Here s can be a type or a package or not exist 
         // s may not exist because it is being tested whether such a type exists
         // (rather than a package) and is a legitimate workflow in this
@@ -169,8 +172,8 @@ public class JmlResolve extends Resolve {
         }
 
         JmlMemberEnter memberEnter = (JmlMemberEnter)JmlMemberEnter.instance(context);
-        boolean completion = memberEnter.completionEnabled;
-        memberEnter.completionEnabled = true;
+//        boolean completion = memberEnter.completionEnabled;
+//        memberEnter.completionEnabled = true;
         // FIXME - explain why we need completion enabled
 
         try {
@@ -178,11 +181,11 @@ public class JmlResolve extends Resolve {
             JmlSpecs.TypeSpecs tsp = specs.get((ClassSymbol)s);
             if (tsp == null) {
 
-                if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   LOADING SPECS FOR (BINARY) CLASS " + name);
+                utils.note(true, "   LOADING SPECS FOR (BINARY) CLASS " + name);
                 // Cannot set jmlcompiler in the constructor because we get a circular initialization problem.
                 if (jmlcompiler == null) jmlcompiler = ((JmlCompiler)JmlCompiler.instance(context));
                 jmlcompiler.loadSpecsForBinary(env,(ClassSymbol)s);
-                if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
+                utils.note(true,"   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
 // FIXME - the following happens routinely - it is not an error apparenetly, but some explanation or understanding is needed
 //                if (specs.get((ClassSymbol)s) == null) 
 //                    log.getWriter(WriterKind.NOTICE).println("(Internal error) POSTCONDITION PROBLEM - no typeSpecs stored for " + s);
@@ -191,7 +194,7 @@ public class JmlResolve extends Resolve {
             }
             return s;
         } finally {
-            memberEnter.completionEnabled = completion;
+//            memberEnter.completionEnabled = completion;
         }
     }
 
@@ -256,10 +259,40 @@ public class JmlResolve extends Resolve {
         }
         return false;
     }
+    
+    // FIXME - this is copied from old OpenJDK -- there must be a better way in the current framework
+    // FIXME - and there must be a better way to get an operator name than using the Pretty printer
+    Symbol.OperatorSymbol resolveOperator(DiagnosticPosition pos, JCTree.Tag optag,
+    		Env<AttrContext> env, List<Type> argtypes) {
+    	MethodResolutionContext prevResolutionContext = currentResolutionContext;
+    	try {
+    		currentResolutionContext = new MethodResolutionContext();
+    		Name name = names.fromString(Pretty.operatorName(optag));
+    		return (Symbol.OperatorSymbol)lookupMethod(env, pos, syms.predefClass, currentResolutionContext,
+    				new BasicLookupHelper(name, syms.predefClass.type, argtypes, null, MethodResolutionPhase.BOX) {
+    			@Override
+    			Symbol doLookup(Env<AttrContext> env, MethodResolutionPhase phase) {
+    				return findMethod(env, site, name, argtypes, typeargtypes,
+    						phase.isBoxingRequired(),
+    						phase.isVarargsRequired());
+    			}
+    			@Override
+    			Symbol access(Env<AttrContext> env, DiagnosticPosition pos, Symbol location, Symbol sym) {
+    				return accessMethod(sym, pos, env.enclClass.sym.type, name,
+    						false, argtypes, null);
+    			}
+    		});
+    	} finally {
+    		currentResolutionContext = prevResolutionContext;
+    	}
+    }
 
-    /** This is declared in order to provide public visibility */
-    public Symbol resolveUnaryOperator(DiagnosticPosition pos, JCTree.Tag optag, Env<AttrContext> env, Type arg) {
-        return super.resolveUnaryOperator(pos,optag,env,arg);
+    public Symbol.OperatorSymbol resolveUnaryOperator(DiagnosticPosition pos, JCTree.Tag optag, Env<AttrContext> env, Type arg) {
+        return resolveOperator(pos,optag,env,List.of(arg));
+    }
+
+    public Symbol.OperatorSymbol resolveBinaryOperator(DiagnosticPosition pos, JCTree.Tag optag, Env<AttrContext> env, Type arg, Type arg2) {
+        return resolveOperator(pos,optag,env,List.of(arg,arg2));
     }
 
     // TODO - explain while we need to silence errors
@@ -285,13 +318,12 @@ public class JmlResolve extends Resolve {
             List<Type> typeargtypes,
             Scope sc,
             Symbol bestSoFar,
-            boolean allowBoxing,
             boolean useVarargs,
             boolean operator,
             boolean abstractok) {
-        for (Symbol s : sc.getElementsByName(name, new JmlLookupFilter(abstractok))) {
+        for (Symbol s : sc.getSymbolsByName(name, new JmlLookupFilter(abstractok))) {
             bestSoFar = selectBest(env, site, argtypes, typeargtypes, s,
-                    bestSoFar, allowBoxing, useVarargs, operator);
+                    bestSoFar, useVarargs, operator);
         }
         return bestSoFar;
     }

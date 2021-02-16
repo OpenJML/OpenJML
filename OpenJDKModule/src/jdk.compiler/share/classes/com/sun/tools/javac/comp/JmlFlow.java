@@ -1250,7 +1250,7 @@ public class JmlFlow extends Flow  {
     @Override 
     public void analyzeTree(Env<AttrContext> env, TreeMaker make) {
         new JmlAliveAnalyzer().analyzeTree(env, make);
-        new JmlAssignAnalyzer().analyzeTree(env);
+        new JmlAssignAnalyzer().analyzeTree(env, make);
         new JmlFlowAnalyzer().analyzeTree(env, make);
         new CaptureAnalyzer().analyzeTree(env, make);
     }

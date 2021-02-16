@@ -174,7 +174,7 @@ public class JmlEnter extends Enter {
         try {
             
         if (!(tree instanceof JmlCompilationUnit)) {
-            log.warning("jml.internal.notsobad","Encountered an unexpected JCCompilationUnit instead of a JmlCompilationUnit in JmlEnter.visitTopeLevel");
+            utils.warning("jml.internal.notsobad","Encountered an unexpected JCCompilationUnit instead of a JmlCompilationUnit in JmlEnter.visitTopeLevel");
             super.visitTopLevel(tree);
             return;
         }
@@ -269,7 +269,7 @@ public class JmlEnter extends Enter {
                 if (!utils.isJML(cd.mods)) { 
                     String cdn = pack + cd.name.toString();
                     try {
-                        if (ClassReader.instance(context).loadClass(names.fromString(cdn)) == null) {
+                        if (ClassReader.instance(context).enterClass(names.fromString(cdn)) == null) {
                             utils.error(jmltree.sourcefile, cd.pos,
                                     "jml.unmatched.type",cdn);
                             removed = true;
@@ -441,7 +441,7 @@ public class JmlEnter extends Enter {
             ClassSymbol c;
             try {
                 // The following just returns the symbol if the class is already loaded or known
-                c = reader.loadClass(flatname);
+                c = reader.enterClass(flatname);
             } catch (CompletionFailure eee) {
                 c = null;
             }
@@ -513,7 +513,7 @@ public class JmlEnter extends Enter {
                     ts.append(t);
                 }
             } catch (Exception e) {
-                log.error(clazz,"jml.message", "Catastrophic failure during processing of input file");
+                utils.error(clazz,"jml.message", "Catastrophic failure during processing of input file");
             }
         }
         return ts.toList();
@@ -581,7 +581,7 @@ public class JmlEnter extends Enter {
     @Override
     protected void duplicateClass(DiagnosticPosition pos, ClassSymbol c) {
         if (((JmlCheck)chk).noDuplicateWarn) return;
-        log.error(pos, "duplicate.class", c.fullname);
+        utils.error(pos, "duplicate.class", c.fullname);
     }
 
 
@@ -778,7 +778,7 @@ public class JmlEnter extends Enter {
             JCTree.JCTypeParameter specTV = specTypeDeclaration.typarams.get(i);
             TypeVar javaTV = (TypeVar)((ClassType)csym.type).getTypeArguments().get(i);
             if (specTV.name != javaTV.tsym.name) {
-                log.error(specTV.pos(),"jml.mismatched.type.parameter.name", specTypeDeclaration.name, csym.fullname, specTV.name, javaTV.tsym.name);
+                utils.error(specTV.pos(),"jml.mismatched.type.parameter.name", specTypeDeclaration.name, csym.fullname, specTV.name, javaTV.tsym.name);
                 result = false;
             } 
             // classEnter will set the type of the Type Variable, but it sets it to 
@@ -798,23 +798,23 @@ public class JmlEnter extends Enter {
         //log.noticeWriter.println(" LOCAL ENV NOW " + localEnv);
     }
 
- 
-    /** This overrides the parent class method so that we allow file names
-     * with spec extensions, not just .java 
-     * 
-     * @param c the class the file is associated with
-     * @param env the Env object representing the filename 
-     */
-    @Override
-    public boolean classNameMatchesFileName(ClassSymbol c, // OPENJML - changed from private to public
-            Env<AttrContext> env) {
-        JavaFileObject jfo = env.toplevel.sourcefile;
-        if (jfo.getKind() == JavaFileObject.Kind.SOURCE) return super.classNameMatchesFileName(c, env);
-        String classname = c.name.toString();
-        // FIXME: Actually we are loose in our comparison
-        String filename = jfo.getName();
-        return filename.endsWith(classname + Strings.specsSuffix); // FIXME - what if classname is just the tail of the filename
-    }
+ // FIXME ?
+//    /** This overrides the parent class method so that we allow file names
+//     * with spec extensions, not just .java 
+//     * 
+//     * @param c the class the file is associated with
+//     * @param env the Env object representing the filename 
+//     */
+//    @Override
+//    public boolean classNameMatchesFileName(ClassSymbol c, // OPENJML - changed from private to public
+//            Env<AttrContext> env) {
+//        JavaFileObject jfo = env.toplevel.sourcefile;
+//        if (jfo.getKind() == JavaFileObject.Kind.SOURCE) return super.classNameMatchesFileName(c, env);
+//        String classname = c.name.toString();
+//        // FIXME: Actually we are loose in our comparison
+//        String filename = jfo.getName();
+//        return filename.endsWith(classname + Strings.specsSuffix); // FIXME - what if classname is just the tail of the filename
+//    }
 
     /** The net result of this call is that all classes, including secondary and nested classes (but not local classes)
      * defined in the given list of source code compilation units are created:
