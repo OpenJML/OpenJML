@@ -10,10 +10,10 @@ import java.util.Set;
 
 import org.jmlspecs.openjml.Main;
 
-//import org.eclipse.jdt.annotation.Nullable;
+import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
-//import org.jmlspecs.openjml.IJmlLineAnnotation;
+import org.jmlspecs.openjml.IJmlLineAnnotation;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
@@ -30,14 +30,12 @@ import com.sun.tools.javac.tree.EndPosTable;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.DiagnosticSource;
+import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.LayoutCharacters;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
-
-@interface Nullable {}
-@interface NonNull {}
 
 /* NOTE: (FIXME Review this now that Tokenizer has been refactored out) 
  * - oddities in the Scanner class
@@ -252,7 +250,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 
                 if (Options.instance(context).isSet("-Xlint:deprecation")) {
                     log.warning(new DiagnosticPositionSE(commentStart,plusPosition, position()),
-                    		log.factory().warningKey("jml.deprecated.conditional.annotation"));
+                    		JCDiagnostic.Factory.instance(context).warningKey("jml.deprecated.conditional.annotation"));
                 }
 
                 // To be backward compatible at the moment,
@@ -801,7 +799,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     /** Records a lexical error (no valid token) at a single character position,
      * the resulting token is an ERROR token. */
     protected void jmlError(int pos, String key, Object... args) {
-        log.error(new DiagnosticPositionSE(pos,pos),log.factory().errorKey(key,args));
+        log.error(new DiagnosticPositionSE(pos,pos), JCDiagnostic.Factory.instance(context).errorKey(key,args));
         tk = TokenKind.ERROR;
         jmlTokenKind = null;
         jmlTokenClauseKind = null;
@@ -815,7 +813,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         // FIXME - the endPos -1 is not unicode friendly - and actually we'd like to adjust the
         // positions of pos and endpos to correspond to appropriate unicode boundaries, here and in
         // the other jmlError method
-        log.error(new DiagnosticPositionSE(pos,endpos-1), log.factory().errorKey(key,args));
+        log.error(new DiagnosticPositionSE(pos,endpos-1), JCDiagnostic.Factory.instance(context).errorKey(key,args));
         tk = TokenKind.ERROR;
         errPos(pos);
     }

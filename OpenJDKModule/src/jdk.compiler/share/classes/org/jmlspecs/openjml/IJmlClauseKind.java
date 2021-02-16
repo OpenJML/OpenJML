@@ -21,19 +21,20 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 
-//import org.jmlspecs.annotation.NonNull;
-//import org.jmlspecs.annotation.Nullable;
-//import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
-//import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
-//import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
-//import org.jmlspecs.openjml.JmlTree.JmlSingleton;
-//import org.jmlspecs.openjml.JmlTree.JmlSource;
-//
+import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
+import org.jmlspecs.openjml.JmlTree.JmlSingleton;
+import org.jmlspecs.openjml.JmlTree.JmlSource;
+
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Kinds.KindSelector;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.Attr;
+import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -44,6 +45,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
@@ -64,8 +66,6 @@ import com.sun.tools.javac.util.Log.WriterKind;
  *
  */
 public abstract class IJmlClauseKind {
-	public static @interface NonNull {}
-	public static @interface Nullable {}
 
     public IJmlClauseKind(String keyword) {
         this.keyword = keyword;
@@ -129,11 +129,11 @@ public abstract class IJmlClauseKind {
     protected Utils utils;
     
     public com.sun.tools.javac.util.JCDiagnostic.Error errorKey(String key, Object ... args) {
-    	return log.factory().errorKey(key,args);
+    	return JCDiagnostic.Factory.instance(context).errorKey(key,args);
     }
     
     public com.sun.tools.javac.util.JCDiagnostic.Warning warningKey(String key, Object ... args) {
-    	return log.factory().warningKey(key,args);
+    	return JCDiagnostic.Factory.instance(context).warningKey(key,args);
     }
     
     /** Writes an error message to the log, using the given DiagnosticPosition
@@ -222,34 +222,33 @@ public abstract class IJmlClauseKind {
     }
     
     protected void wrapup(JCTree statement, IJmlClauseKind clauseType, boolean parseSemicolon, boolean requireSemicolon) {
-//        parser.toP(statement);
-//        if (statement instanceof JmlSource) {
-//            ((JmlSource)statement).setSource(Log.instance(context).currentSourceFile());
-//        }
-//        //ste.line = log.currentSource().getLineNumber(pos);
-//        if (!parseSemicolon) {
-//            // If we do not need a semicolon yet (e.g. because we already
-//            // parsed it or because the statement does not end with one,
-//            // then the scanner has already scanned the next symbol,
-//            // with setJmlKeyword having been (potentially) false.
-//            // So we need to do the following conversion.
-////            if (parser.token().kind == IDENTIFIER && scanner.jml()) {
-////                JmlTokenKind tt = JmlTokenKind.allTokens.get(scanner.chars());
-////                IJmlClauseKind tk = Extensions.allKinds.get(scanner.chars());
-////                if (tt != null) {
-////                    scanner.setToken(new JmlToken(tt, tk, null, parser.pos(), parser.endPos()));
-////                }
-////            }
-//        } else if (parser.token().ikind == ENDJMLCOMMENT) {
-//            // FIXME - why -2 here
-//            if (requireSemicolon) log.warning(parser.pos()-2, "jml.missing.semi", clauseType.name());
-//        } else if (parser.token().kind != SEMI) {
-//            error(parser.pos(), parser.endPos(), "jml.bad.construct", clauseType.name() + " statement");
-//            parser.skipThroughSemi();
-//        } else {
-//            parser.nextToken(); // advance to the token after the semi
-//        }
-
+        parser.toP(statement);
+        if (statement instanceof JmlSource) {
+            ((JmlSource)statement).setSource(Log.instance(context).currentSourceFile());
+        }
+        //ste.line = log.currentSource().getLineNumber(pos);
+        if (!parseSemicolon) {
+            // If we do not need a semicolon yet (e.g. because we already
+            // parsed it or because the statement does not end with one,
+            // then the scanner has already scanned the next symbol,
+            // with setJmlKeyword having been (potentially) false.
+            // So we need to do the following conversion.
+//            if (parser.token().kind == IDENTIFIER && scanner.jml()) {
+//                JmlTokenKind tt = JmlTokenKind.allTokens.get(scanner.chars());
+//                IJmlClauseKind tk = Extensions.allKinds.get(scanner.chars());
+//                if (tt != null) {
+//                    scanner.setToken(new JmlToken(tt, tk, null, parser.pos(), parser.endPos()));
+//                }
+//            }
+        } else if (parser.token().ikind == ENDJMLCOMMENT) {
+            // FIXME - was -2 here, why?
+            if (requireSemicolon) warning(parser.pos(), parser.endPos(), "jml.missing.semi", clauseType.name());
+        } else if (parser.token().kind != SEMI) {
+            error(parser.pos(), parser.endPos(), "jml.bad.construct", clauseType.name() + " statement");
+            parser.skipThroughSemi();
+        } else {
+            parser.nextToken(); // advance to the token after the semi
+        }
     }
     
     /** Derived classes implement this method to do any typechecking of the tree, which should have
@@ -625,5 +624,4 @@ public abstract class IJmlClauseKind {
         return parser.jmlF.at(initpos).JmlConstraintMethodSig(id,
                 args == null ? null : args.toList());
     }
-
 }

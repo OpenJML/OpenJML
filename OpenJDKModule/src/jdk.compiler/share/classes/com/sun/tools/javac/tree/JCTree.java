@@ -34,6 +34,7 @@ import javax.lang.model.type.TypeKind;
 import javax.tools.JavaFileObject;
 
 import com.sun.source.tree.*;
+import static com.sun.source.tree.CaseTree.*;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Directive.RequiresDirective;
 import com.sun.tools.javac.code.Scope.*;

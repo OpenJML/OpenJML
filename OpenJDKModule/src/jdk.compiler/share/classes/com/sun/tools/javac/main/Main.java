@@ -92,7 +92,7 @@ public class Main {
      */
     boolean apiMode;
 
-    private static final String ENV_OPT_NAME = "JDK_JAVAC_OPTIONS";
+    public static final String ENV_OPT_NAME = "JDK_JAVAC_OPTIONS"; // OPENJML - private to public
 
     /** Result codes.
      */
