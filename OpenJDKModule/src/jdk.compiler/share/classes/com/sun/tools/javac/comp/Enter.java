@@ -236,7 +236,7 @@ public class Enter extends JCTree.Visitor {
      *  where the local scope is for type variables, and the this and super symbol
      *  only, and members go into the class member scope.
      */
-    WriteableScope enterScope(Env<AttrContext> env) {
+    public WriteableScope enterScope(Env<AttrContext> env) { // OPENJML - package to public
         return (env.tree.hasTag(JCTree.Tag.CLASSDEF))
             ? ((JCClassDecl) env.tree).sym.members_field
             : env.info.scope;

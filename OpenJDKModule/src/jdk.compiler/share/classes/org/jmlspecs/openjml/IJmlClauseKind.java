@@ -380,7 +380,7 @@ public abstract class IJmlClauseKind {
                 t.startpos = startx;
                 t.token = jt; // FIXME - replace using jt with a kind
                 checkParse(parser,t);
-                return parser.primarySuffix(t, null);
+                return parser.primaryTrailers(t, null); // FIXME - was primarySuffix
             }
         }
         

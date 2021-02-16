@@ -61,7 +61,7 @@ public class MemberEnter extends JCTree.Visitor {
     public final Check chk; // OPENJML - private to public
     public final Attr attr; // OPENJML - private to public
     private final Symtab syms;
-    private final Annotate annotate;
+    public final Annotate annotate; // OPENJML - private to public
     public final Types types; // OPENJML - private to public
     public final DeferredLintHandler deferredLintHandler; // OPENJML - private to public
 
@@ -217,9 +217,10 @@ public class MemberEnter extends JCTree.Visitor {
             m.flags_field |= Flags.VARARGS;
 
         localEnv.info.scope.leave();
-        if (chk.checkUnique(tree.pos(), m, enclScope)) {
-        enclScope.enter(m);
-        }
+        visitMethodDefHelper(tree, m, enclScope); // OPENJML - replace next few lines to allow extending
+//        if (chk.checkUnique(tree.pos(), m, enclScope)) {
+//        	enclScope.enter(m);
+//        }
 
         annotate.annotateLater(tree.mods.annotations, localEnv, m, tree.pos());
         // Visit the signature of the method. Note that
@@ -304,6 +305,7 @@ public class MemberEnter extends JCTree.Visitor {
                 v.setLazyConstValue(initEnv(tree, initEnv), attr, tree);
             }
         }
+        visitFieldDefHelper(tree, v, enclScope); // OPENJML - added to allow overriding some functionality
         if (chk.checkUnique(tree.pos(), v, enclScope)) {
             chk.checkTransparentVar(tree.pos(), v, enclScope);
             enclScope.enter(v);
@@ -319,6 +321,28 @@ public class MemberEnter extends JCTree.Visitor {
 
         v.pos = tree.pos;
     }
+
+    // OPENJML - added to allow overriding some functionality
+    protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, WriteableScope enclScope) {
+        if (chk.checkUnique(tree.pos(), m, enclScope)) {
+            enclScope.enter(m);
+            return true;
+        } else {
+        	return false;
+        }
+    }
+
+    // OPENJML - added to allow overriding some functionality
+    protected void visitFieldDefHelper(JCVariableDecl tree, VarSymbol v, WriteableScope enclScope) {
+        if (chk.checkUnique(tree.pos(), v, enclScope)) {
+            chk.checkTransparentVar(tree.pos(), v, enclScope);
+            enclScope.enter(v);
+        } else if (v.owner.kind == MTH || (v.flags_field & (Flags.PRIVATE | Flags.FINAL | Flags.GENERATED_MEMBER | Flags.RECORD)) != 0) {
+            // if this is a parameter or a field obtained from a record component, enter it
+            enclScope.enter(v);
+        }
+    }
+
     // where
     void checkType(JCTree tree, Type type, Error errorKey) {
         if (!tree.type.isErroneous() && !types.isSameType(tree.type, type)) {

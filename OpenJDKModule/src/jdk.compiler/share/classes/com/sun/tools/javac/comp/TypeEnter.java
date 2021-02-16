@@ -456,7 +456,7 @@ public class TypeEnter implements Completer {
          *  @param tsym          The class or package the members of which are imported.
          *  @param env           The env in which the imported classes will be entered.
          */
-        private void importAll(JCImport imp,
+        public void importAll(JCImport imp, // OPENJML - private to public
                                final TypeSymbol tsym,
                                Env<AttrContext> env) {
             env.toplevel.starImportScope.importAll(types, tsym.members(), typeImportFilter, imp, cfHandler);

@@ -154,7 +154,7 @@ abstract public class ExpressionExtension extends JmlExtension {
             JmlMethodInvocation t = toP(parser.maker().at(pp).JmlMethodInvocation(jt, args));
             t.startpos = p;
             checkParse(parser,t);
-            return parser.primarySuffix(t, typeArgs);
+            return parser.primaryTrailers(t, typeArgs);// FIXME - was primarySuffix
         }
     }
     

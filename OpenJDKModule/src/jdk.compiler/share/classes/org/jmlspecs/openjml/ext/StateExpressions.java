@@ -11,6 +11,7 @@ import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import com.sun.tools.javac.code.Scope;
+import com.sun.tools.javac.code.Scope.WriteableScope;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
@@ -62,7 +63,7 @@ public class StateExpressions extends ExpressionExtension {
             JmlMethodInvocation t = toP(parser.maker().at(pp).JmlMethodInvocation(this, args));
             t.startpos = p;
             t.token = jt;
-            return parser.primarySuffix(t, null);
+            return parser.primaryTrailers(t, null); // FIXME - was primarySuffix
         }
 
         @Override
@@ -134,7 +135,7 @@ public class StateExpressions extends ExpressionExtension {
                 for (JmlQuantifiedExpr qexpr: attr.quantifiedExprs) {
 
                     qOldEnv = attr.envForExpr(qexpr,qOldEnv);
-                    Scope enclScope = attr.enter.enterScope(qOldEnv);
+                    WriteableScope enclScope = attr.enter.enterScope(qOldEnv);
 
                     for (JCVariableDecl decl: qexpr.decls) {
 
@@ -148,7 +149,7 @@ public class StateExpressions extends ExpressionExtension {
                 attr.attribExpr(tree.args.get(0), qOldEnv, Type.noType);
                 attr.attribTypes(tree.typeargs, qOldEnv);
                 t = tree.args.get(0).type;
-                Scope scope = qOldEnv.info.scope();
+                WriteableScope scope = qOldEnv.info.scope();
                 for (JmlQuantifiedExpr qexpr: attr.quantifiedExprs) {
                     scope = scope.leave();
                 }

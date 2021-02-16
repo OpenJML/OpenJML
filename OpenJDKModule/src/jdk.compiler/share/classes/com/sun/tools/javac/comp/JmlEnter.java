@@ -24,14 +24,19 @@ import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.CompletionFailure;
+import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.jvm.ClassReader;
+import com.sun.tools.javac.main.Option.PkgInfo;
+import com.sun.tools.javac.resources.CompilerProperties.Errors;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCPackageDecl;
 import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
@@ -197,21 +202,26 @@ public class JmlEnter extends Enter {
         String owner;
         
         {
+            JavaFileObject prev = log.useSource(tree.sourcefile);
+            boolean addEnv = false;
+            boolean isPkgInfo = tree.sourcefile.isNameCompatible("package-info",
+                                                                 JavaFileObject.Kind.SOURCE);
             // This if-else statement copied from Enter
-            if (specscu.pid != null) {
-                specscu.packge = reader.enterPackage(TreeInfo.fullName(specscu.pid));
-                owner = specscu.packge.flatName().toString() + ".";
-//                if (specscu.packageAnnotations.nonEmpty()
-//                        || pkginfoOpt == PkgInfo.ALWAYS
-//                        || specscu.docComments != null) {
-//                    if (specscu.packageAnnotations.nonEmpty()){
-//                        log.error(specscu.packageAnnotations.head.pos(),
-//                                  "pkg.annotations.sb.in.package-info.java");
-//                    }
-//                }
+            JCPackageDecl pd = tree.getPackage();
+            if (pd != null) {
+                tree.packge = pd.packge = syms.enterPackage(tree.modle, TreeInfo.fullName(pd.pid));
+                if (   pd.annotations.nonEmpty()
+                    || pkginfoOpt == PkgInfo.ALWAYS
+                    || tree.docComments != null) {
+                    if (isPkgInfo) {
+                        addEnv = true;
+                    } else if (pd.annotations.nonEmpty()) {
+                        log.error(pd.annotations.head.pos(),
+                                  Errors.PkgAnnotationsSbInPackageInfoJava);
+                    }
+                }
             } else {
-                specscu.packge = syms.unnamedPackage;
-                owner = "";
+                tree.packge = tree.modle.unnamedPackage;
             }
             specscu.packge.complete(); // Find all classes in package.
             specTopEnv = topLevelEnv(specscu);
@@ -441,7 +451,8 @@ public class JmlEnter extends Enter {
             ClassSymbol c;
             try {
                 // The following just returns the symbol if the class is already loaded or known
-                c = reader.enterClass(flatname);
+                c = syms.enterClass(env.toplevel.modle, flatname, syms.getPackage(null,names.fromString(owner)));
+                //c = syms.enterClass(flatname);
             } catch (CompletionFailure eee) {
                 c = null;
             }
@@ -522,7 +533,7 @@ public class JmlEnter extends Enter {
     // FIXME - document
     public boolean binaryEnter(JmlCompilationUnit specs) {
         Env<AttrContext> prevEnv = env;
-        ((JmlMemberEnter)JmlMemberEnter.instance(context)).modeOfFileBeingChecked = specs.mode;
+        JmlMemberEnter.instance(context).modeOfFileBeingChecked = specs.mode;
         env = specs.topLevelEnv;  // FIXME - is this ever nonnull?
         if (env == null) {
             
@@ -583,6 +594,13 @@ public class JmlEnter extends Enter {
         if (((JmlCheck)chk).noDuplicateWarn) return;
         utils.error(pos, "duplicate.class", c.fullname);
     }
+    
+    JCExpression findPackageDef(JCClassDecl that) {
+    	for (var tree: that.defs) {
+    		if (tree instanceof JCPackageDecl) return ((JCPackageDecl)tree).pid;
+    	}
+    	return null;
+    }
 
 
     @Override
@@ -600,21 +618,21 @@ public class JmlEnter extends Enter {
         ClassSymbol csym = null;
         String flatname = null;
         if (isSpecForBinary) {
-            JCTree.JCExpression pid = env.toplevel.pid;
+            JCExpression pid = findPackageDef(that);
             String packagePrefix = pid == null ? "" : (pid.toString() + ".");
             if (env.tree instanceof JmlCompilationUnit) {
                 flatname = packagePrefix + that.name.toString();
-                csym = ClassReader.instance(context).classExists(names.fromString(flatname));
+                csym = syms.enterClass(null,names.fromString(flatname));  // FIXME - here and below - modules
                 flatname = flatname + "$";
             } else if (env.tree instanceof JmlClassDecl) {
                 JmlClassDecl cd = (JmlClassDecl)env.tree;
                 if (that.name == cd.name) { 
                     flatname = packagePrefix + cd.name.toString();
-                    csym = ClassReader.instance(context).classExists(names.fromString(flatname));
+                    csym = syms.enterClass(null,names.fromString(flatname));
                     flatname = flatname + "$";
                 } else {
                     flatname = cd.sym.flatname.toString() + "$" + that.name.toString();
-                    csym = ClassReader.instance(context).classExists(names.fromString(flatname));
+                    csym = syms.enterClass(null,names.fromString(flatname));
                     flatname = flatname + "$";
                 }
             }
@@ -657,15 +675,15 @@ public class JmlEnter extends Enter {
             
             // Binary classes can come here if, for example, the class symbol was created by completing a package.
             // It 
-            
-            that.sym = csym;
-            csym.completer = memberEnter;
-            chk.checkFlags(thattree.pos(), thattree.mods.flags, csym, thattree); // Do not overwrite flags in the binary
-            csym.sourcefile = thattree.sourcefile;
-            //cs.members_field = new Scope(cs); // DO not overwrite the fields that are in the binary
-
-            Scope enclScope = enterScope(env);
-            enclScope.enter(csym);
+   // FIXME         
+//            that.sym = csym;
+//            csym.completer = memberEnter;
+//            chk.checkFlags(thattree.pos(), thattree.mods.flags, csym, thattree); // Do not overwrite flags in the binary
+//            csym.sourcefile = thattree.sourcefile;
+//            //cs.members_field = new Scope(cs); // DO not overwrite the fields that are in the binary
+//
+//            Scope enclScope = enterScope(env);
+//            enclScope.enter(csym);
 
         }
 

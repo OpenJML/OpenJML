@@ -70,7 +70,7 @@ public class JmlOptions extends Options {
     public void pushOptions(JCModifiers mods) {
     	Name optionName = Names.instance(context).fromString("org.jmlspecs.annotation.Options");
 
-        ((JmlOptions)JmlOptions.instance(context)).pushOptions();
+        JmlOptions.instance(context).pushOptions();
         JCAnnotation addedOptionsAnnotation = Utils.instance(context).findMod(mods, optionName);
         if (addedOptionsAnnotation != null) {
             List<JCExpression> exprs = addedOptionsAnnotation.getArguments();

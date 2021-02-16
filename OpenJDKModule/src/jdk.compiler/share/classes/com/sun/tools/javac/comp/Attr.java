@@ -1175,6 +1175,7 @@ public class Attr extends JCTree.Visitor {
                         log.error(tree.pos(),
                                   Errors.DefaultAllowedInIntfAnnotationMember);
                 }
+                if (requireBody()) // OPENJML - added for extension
                 if (isDefaultMethod || (tree.sym.flags() & (ABSTRACT | NATIVE)) == 0)
                     log.error(tree.pos(), Errors.MissingMethBodyOrDeclAbstract);
             } else if ((tree.sym.flags() & (ABSTRACT|DEFAULT|PRIVATE)) == ABSTRACT) {
@@ -1239,6 +1240,8 @@ public class Attr extends JCTree.Visitor {
             chk.setMethod(prevMethod);
         }
     }
+    
+    public boolean requireBody() { return true; } // OPENJML -- added for extension
 
     public void visitVarDef(JCVariableDecl tree) {
         // Local variables have not been entered yet, so we need to do it now:
@@ -2663,7 +2666,9 @@ public class Attr extends JCTree.Visitor {
                     resultInfo.checkContext.deferredAttrContext().mode == DeferredAttr.AttrMode.SPECULATIVE;
             boolean skipNonDiamondPath = false;
             // Check that class is not abstract
-            if (cdef == null && !isSpeculativeDiamondInferenceRound && // class body may be nulled out in speculative tree copy
+            if (cdef == null && 
+            		okAsEnum(clazztype) && // OPENJML - added - may not be the best implementation (because of using TimeUnit)
+            		!isSpeculativeDiamondInferenceRound && // class body may be nulled out in speculative tree copy
                 (clazztype.tsym.flags() & (ABSTRACT | INTERFACE)) != 0) {
                 log.error(tree.pos(),
                           Errors.AbstractCantBeInstantiated(clazztype.tsym));
@@ -2761,6 +2766,8 @@ public class Attr extends JCTree.Visitor {
         }
         chk.validate(tree.typeargs, localEnv);
     }
+
+    protected boolean okAsEnum(Type c) { return true; } // OPENJML _ added to allow overwriting
 
         // where
         private void visitAnonymousClassDefinition(JCNewClass tree, JCExpression clazz, Type clazztype,
@@ -3422,9 +3429,11 @@ public class Attr extends JCTree.Visitor {
             return lambdaEnv;
         }
 
+    protected boolean visitReferenceInJML() { return false; }   // OPENJML - added OpenJML callback
+
     @Override
     public void visitReference(final JCMemberReference that) {
-        if (pt().isErroneous() || (pt().hasTag(NONE) && pt() != Type.recoveryType)) {
+        if (pt().isErroneous() || (pt().hasTag(NONE) && pt() != Type.recoveryType && !visitReferenceInJML())) {   // OPENJML - added OpenJML callback
             if (pt().hasTag(NONE) && (env.info.enclVar == null || !env.info.enclVar.type.isErroneous())) {
                 //method reference only allowed in assignment or method invocation/cast context
                 log.error(that.pos(), Errors.UnexpectedMref);
@@ -4512,7 +4521,7 @@ public class Attr extends JCTree.Visitor {
          *  @param env     The current environment.
          *  @param v       The variable's symbol.
          */
-        private void checkInit(JCTree tree,
+        protected void checkInit(JCTree tree, // OPENJML - private to protected
                                Env<AttrContext> env,
                                VarSymbol v,
                                boolean onlyWarning) {
@@ -4534,7 +4543,7 @@ public class Attr extends JCTree.Visitor {
                 if (!onlyWarning || isStaticEnumField(v)) {
                     Error errkey = (initEnv.info.enclVar == v) ?
                                 Errors.IllegalSelfRef : Errors.IllegalForwardRef;
-                    log.error(tree.pos(), errkey);
+                    if (!allowForwardRef) log.error(tree.pos(), errkey); // OPENJML -added for extension
                 } else if (useBeforeDeclarationWarning) {
                     Warning warnkey = (initEnv.info.enclVar == v) ?
                                 Warnings.SelfRef(v) : Warnings.ForwardRef(v);
@@ -4546,6 +4555,8 @@ public class Attr extends JCTree.Visitor {
 
             checkEnumInitializer(tree, env, v);
         }
+        
+        boolean allowForwardRef = false; // OPENJML _ added for extension
 
         /**
          * Returns the enclosing init environment associated with this env (if any). An init env
@@ -4587,7 +4598,7 @@ public class Attr extends JCTree.Visitor {
          * @param v       The variable's symbol.
          * @jls 8.9 Enum Types
          */
-        private void checkEnumInitializer(JCTree tree, Env<AttrContext> env, VarSymbol v) {
+        protected void checkEnumInitializer(JCTree tree, Env<AttrContext> env, VarSymbol v) { // OPENJML - private to protected
             // JLS:
             //
             // "It is a compile-time error to reference a static field
@@ -4623,7 +4634,7 @@ public class Attr extends JCTree.Visitor {
         /** Is the given symbol a static, non-constant field of an Enum?
          *  Note: enum literals should not be regarded as such
          */
-        private boolean isStaticEnumField(VarSymbol v) {
+        protected boolean isStaticEnumField(VarSymbol v) { // OPENJML - private to protected
             return Flags.isEnum(v.owner) &&
                    Flags.isStatic(v) &&
                    !Flags.isConstant(v) &&

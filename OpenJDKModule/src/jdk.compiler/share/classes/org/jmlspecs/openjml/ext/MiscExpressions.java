@@ -109,7 +109,7 @@ public class MiscExpressions extends ExpressionExtension {
             }
             if (n > 0) {
                 JCExpression arg = expr.args.get(0);
-                attr.attribTree(arg, localEnv, attr.new ResultInfo(TYP, Type.noType));
+                attr.attribTree(arg, localEnv, attr.new ResultInfo(KindSelector.TYP, Type.noType));
                 if (!expr.javaType && arg.type.tsym.getTypeParameters().size() > 0 &&
                         !arg.type.isParameterized()) {
                     utils.error(tree,"jml.invalid.erasedtype",JmlPretty.write(arg));
