@@ -833,5 +833,4 @@ public class JCDiagnostic implements Diagnostic<JavaFileObject> {
             return true;
         }
     }
-    
 }

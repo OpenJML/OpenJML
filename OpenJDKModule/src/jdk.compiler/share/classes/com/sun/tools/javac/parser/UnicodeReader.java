@@ -147,7 +147,7 @@ public class UnicodeReader {
             width++;
         }
     }
-    
+
     /**
      * Fetches the next 16-bit character from the buffer. If an unicode escape
      * is detected then converts the unicode escape to a character.

@@ -549,7 +549,4 @@ public abstract class AbstractDiagnosticFormatter implements DiagnosticFormatter
             return super.visitCapturedType(t, locale);
         }
     };
-    
-    String noSource() { return toString(); } // OPENJML - added
-
 }
