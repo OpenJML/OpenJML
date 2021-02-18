@@ -242,6 +242,7 @@ public class SMT {
 		 * the commands map and all but the initial entry of commandExtensionPrefixes are 
 		 * ignored. 
 		 */
+		@SuppressWarnings("unchecked")
 		public /*@Nullable*/ ICommand.IFinder commandFinder = new ICommand.IFinder() {
 			@Override
 			public Class<? extends ICommand> findCommand(String name) {

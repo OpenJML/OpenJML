@@ -625,6 +625,7 @@ public class Utils {
 		}
 	}
 	
+    @SuppressWarnings("unchecked")
     public static <T> T[] cat(T[] ... arrays) {
         int n = 0;
         for (T[] a: arrays) n += a.length;
@@ -637,6 +638,7 @@ public class Utils {
         return r;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T[] cat(T[] aa, T ... rest) {
         int n = aa.length + rest.length;
         T[] r = (T[])Array.newInstance(aa[0].getClass(), n);
