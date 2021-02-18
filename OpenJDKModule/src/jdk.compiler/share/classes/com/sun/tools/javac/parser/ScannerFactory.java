@@ -77,8 +77,7 @@ public class ScannerFactory {
         if (input instanceof CharBuffer) {
             CharBuffer buf = (CharBuffer) input;
             if (keepDocComments)
-//                return new Scanner(this, new JmlTokenizer(this, buf));
-            return new Scanner(this, new JavadocTokenizer(this, buf));
+                return new Scanner(this, new JavadocTokenizer(this, buf));
             else
                 return new Scanner(this, buf);
         } else {
@@ -89,7 +88,6 @@ public class ScannerFactory {
 
     public Scanner newScanner(char[] input, int inputLength, boolean keepDocComments) {
         if (keepDocComments)
-            //return new Scanner(this, new JmlTokenizer(this, input, inputLength));
             return new Scanner(this, new JavadocTokenizer(this, input, inputLength));
         else
             return new Scanner(this, input, inputLength);
