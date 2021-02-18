@@ -876,6 +876,7 @@ public class Parser extends Lexer implements IParser {
 	 * with error messages if it fails; only part of the checking of the contents is
 	 * performed in this call (the rest is done in loadLogic).
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public /*@Nullable*/ ILogic parseLogic() throws ParserException {
 		ILexToken lp = parseLP();

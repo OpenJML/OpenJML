@@ -822,7 +822,7 @@ public class Solver_simplify extends Solver_test implements ISolver {
 		}
 
 		@Override
-		public String visit(IAttribute e) throws VisitorException {
+		public String visit(IAttribute<?> e) throws VisitorException {
 			// TODO Auto-generated method stub
 			return null;
 		}

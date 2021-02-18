@@ -472,11 +472,11 @@ public class Solver_z3_4_5b extends Solver_smt implements ISolver {
 //
 	@Override
 	public IResponse get_info(IKeyword key) {
-		solverProcess.badFormat = key.toString().equals(":reason-unknown");
+		SolverProcess.badFormat = key.toString().equals(":reason-unknown");
 		try {
 			return sendCommand(new org.smtlib.command.C_get_info(key));
 		} finally {
-			solverProcess.badFormat = false;
+			SolverProcess.badFormat = false;
 		}
 	}
 	
