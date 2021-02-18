@@ -254,7 +254,7 @@ public class MemberEnter extends JCTree.Visitor {
     // OPENJML extracted from the method below in order to override
     public boolean visitVarDefIsStatic(JCVariableDecl tree, Env<AttrContext> env) {
         return ((tree.mods.flags & STATIC) != 0 ||
-                ((env.info.scope.owner.flags() & INTERFACE) != 0  && env.enclMethod == null));
+                ((env.info.scope.owner.flags() & INTERFACE) != 0));
     }
 
     public void visitVarDef(JCVariableDecl tree) {
@@ -306,6 +306,7 @@ public class MemberEnter extends JCTree.Visitor {
             }
         }
         visitFieldDefHelper(tree, v, enclScope); // OPENJML - added to allow overriding some functionality
+/*
         if (chk.checkUnique(tree.pos(), v, enclScope)) {
             chk.checkTransparentVar(tree.pos(), v, enclScope);
             enclScope.enter(v);
@@ -313,6 +314,7 @@ public class MemberEnter extends JCTree.Visitor {
             // if this is a parameter or a field obtained from a record component, enter it
             enclScope.enter(v);
         }
+*/
 
         annotate.annotateLater(tree.mods.annotations, localEnv, v, tree.pos());
         if (!tree.isImplicitlyTyped()) {
