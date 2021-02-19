@@ -4,3 +4,9 @@
 /org/
 /sun/
 /javax/
+META-INF
+_the_parsed_props
+_the_props
+_the_props_exec.cmdline
+_the_props_exec.log
+module-info.java.extra
