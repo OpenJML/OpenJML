@@ -149,7 +149,7 @@ public class JmlOptions extends Options {
             negate = true;
             s = s.substring("-no".length());
         }
-        IOption o = JmlOption.find(s);
+        var o = JmlOption.find(s);
         while (o != null && o.synonym() != null) {
             s = o.synonym();
             if (s.startsWith("-no-")) {
@@ -189,8 +189,8 @@ public class JmlOptions extends Options {
                 }
             }
         } else if (!negate && o.hasArg()) {
-            if (o instanceof JmlOption && ((JmlOption)o).enabledDefault != null) {
-                res = ((JmlOption)o).enabledDefault;
+            if (o instanceof JmlOption && o.enabledDefault != null) {
+                res = o.enabledDefault;
             } else if (iter.hasNext()) {
                 res = iter.next();
                 if (res != null && res.length() > 1 && res.charAt(0) == '"' && s.charAt(res.length()-1) == '"') {

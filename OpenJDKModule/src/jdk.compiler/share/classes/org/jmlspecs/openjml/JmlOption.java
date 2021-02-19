@@ -24,10 +24,10 @@ import com.sun.tools.javac.util.Options;
  */
 // FIXME - best practice would use a resources file for all the help
 // information; javac loads its resources on demand
-public class JmlOption implements IOption {
+public class JmlOption {
 
     static public final Map<String,JmlOption> map = new HashMap<>();
-    static public final List<IOption> list = new ArrayList<>();
+    static public final List<JmlOption> list = new ArrayList<>();
 
 
     // Arguments: option as on CL; true=1 argument, false=0 args; help string
@@ -257,7 +257,7 @@ public class JmlOption implements IOption {
      * @param value the new value of the option
      * @return true if the option was previously enabled, false otherwise
      */
-    public static boolean setOption(Context context, IOption option, boolean value) {
+    public static boolean setOption(Context context, JmlOption option, boolean value) {
         boolean b = isOption(context,option.optionName());
         Options.instance(context).put(option.optionName(),value?"true":null);
         return b;
@@ -317,7 +317,6 @@ public class JmlOption implements IOption {
     }
 
     /** The name of the option, including any leading - sign
-     * @see org.jmlspecs.openjml.IOption#optionName()
      */
      //@ non_null
     public String optionName() { return name; }
@@ -378,7 +377,7 @@ public class JmlOption implements IOption {
     public static String helpInfo() {
         StringBuilder sb = new StringBuilder();
         sb.append("JML options:").append(Strings.eol);
-        for (IOption j : list) {
+        for (var j : list) {
             if (j.obsolete()) continue;
             sb.append("  ").append(j.optionName()).append(" ");
             // The count up to 26 is just to make for nice formatting
