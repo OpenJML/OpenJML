@@ -79,7 +79,7 @@ abstract public class Arithmetic extends ExpressionExtension {
         codeBigintMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".CodeBigintMath"));
     }
     
-    public static boolean rac;
+    public boolean rac;
     
     public IArithmeticMode defaultArithmeticMode(Symbol sym, boolean jml) {
         initModeSymbols();

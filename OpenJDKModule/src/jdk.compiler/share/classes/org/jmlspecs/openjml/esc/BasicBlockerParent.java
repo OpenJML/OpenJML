@@ -622,7 +622,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         if (classDecl.sym == null) {
             log.error("jml.internal","The class declaration in convertMethodBody appears not to be typechecked");
         }
-        this.terminationSym = (VarSymbol)assertionAdder.terminationSymbols.get(methodDecl);
+        this.terminationSym = assertionAdder.terminationSymbols.get(methodDecl);
         this.exceptionSym = assertionAdder.exceptionSymbols.get(methodDecl);
         this.blockLookup.clear();
         this.loopStack.clear();

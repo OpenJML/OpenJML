@@ -57,7 +57,7 @@ public class MethodProverBoogie extends MethodProverSMT {
             noticeWriter.println(JmlPretty.write(decl.body));
         }
 
-        JmlMethodDecl tree = (JmlMethodDecl)decl;
+        JmlMethodDecl tree = decl;
         JmlClassDecl currentClassDecl = (JmlClassDecl)JmlEnter.instance(context).getEnv((ClassSymbol)decl.sym.owner).tree;
 
         // Get the denested specs for the method - FIXME - when might they be null?

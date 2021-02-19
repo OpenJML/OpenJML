@@ -147,7 +147,7 @@ public class Extensions {
     // package org.jmlspecs.openjml.ext and any classes or packages given in the
     // extensions option.
     public static void register(Context context) {
-        Package p = Package.getPackage("org.jmlspecs.openjml.ext");
+        Package p = ClassLoader.getSystemClassLoader().getDefinedPackage("org.jmlspecs.openjml.ext");
         try {
             registerPackage(context,p);
         } catch (java.io.IOException e) {
@@ -167,7 +167,7 @@ public class Extensions {
                 // OK - go on to see if it is a package
             }
             try {
-                p = Package.getPackage(extname);
+                p = ClassLoader.getSystemClassLoader().getDefinedPackage(extname); // Package.getPackage(extname);
                 if (p != null) {
                     registerPackage(context,p);
                 } else {

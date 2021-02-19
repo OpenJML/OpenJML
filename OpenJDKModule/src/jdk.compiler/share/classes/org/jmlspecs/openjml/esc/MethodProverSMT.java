@@ -557,9 +557,9 @@ public class MethodProverSMT {
                                 :("Feasibility check - " + description + " : ");
                         boolean infeasible = solverResponse.equals(unsatResponse);
                         if (Utils.testingMode) fileLocation = loc;
-                        String msgOK = fileLocation + msg2 + "OK" + (utils.testingMode? "" : String.format(" [%4.2f secs]", duration));
+                        String msgOK = fileLocation + msg2 + "OK" + (Utils.testingMode? "" : String.format(" [%4.2f secs]", duration));
                         if (infeasible) {
-                            utils.progress(0,1,fileLocation + msg2 + "infeasible" + (utils.testingMode? "" : String.format(" [%4.2f secs]", duration)));
+                            utils.progress(0,1,fileLocation + msg2 + "infeasible" + (Utils.testingMode? "" : String.format(" [%4.2f secs]", duration)));
                             if (Strings.preconditionAssumeCheckDescription.equals(description)) {
                             	utils.warning(stat, "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
                                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
@@ -790,7 +790,7 @@ public class MethodProverSMT {
 
     public void populateConstantMap(SMT smt, ISolver solver, Map<JCTree,String> cemap,
             SMTTranslator smttrans, boolean methodIsStatic) {
-        addToConstantMap(smttrans.NULL,smt,solver,cemap);
+        addToConstantMap(SMTTranslator.NULL,smt,solver,cemap);
         if (!methodIsStatic) addToConstantMap(smttrans.thisSym.toString(),smt,solver,cemap);
 //        for (Type t : smttrans.javaTypes) {
 //            String s = smttrans.javaTypeSymbol(t).toString(); // FIXME - need official printer

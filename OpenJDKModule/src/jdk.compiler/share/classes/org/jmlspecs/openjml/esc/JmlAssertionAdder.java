@@ -1723,7 +1723,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     private Map<Symbol,Symbol> mapSymbols = new HashMap<Symbol,Symbol>();
     
-    protected @NonNull <T extends Symbol> T convertSymbol(T sym) {
+    @SuppressWarnings("unchecked")
+	protected @NonNull <T extends Symbol> T convertSymbol(T sym) {
         Symbol s = mapSymbols.get(sym);
         return s == null ? sym : (T)s;
     }
@@ -1746,7 +1747,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     /** Translates a block, but without adding the block to the statement list;
      * any side-effect statements are placed within the new block. */
-    protected @Nullable JCBlock convertBlock(@Nullable JCBlock block) {
+    @SuppressWarnings("finally")
+	protected @Nullable JCBlock convertBlock(@Nullable JCBlock block) {
         if (block == null) return null;
         ListBuffer<JCStatement> check = pushBlock();
         try {
@@ -1757,7 +1759,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
 
     /** Translates a list of statements, returning a block containing the translations */
-    protected JCBlock convertIntoBlock(DiagnosticPosition pos, List<JCStatement> stats) {
+    @SuppressWarnings("finally")
+	protected JCBlock convertIntoBlock(DiagnosticPosition pos, List<JCStatement> stats) {
         ListBuffer<JCStatement> check = pushBlock();
         try {
             scan(stats);
@@ -1770,7 +1773,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * (including any statements it spawns); if the statement is a block, then
      * the block's statements are translated, so there is not an excess nested
      * block. */
-    protected JCBlock convertIntoBlock(DiagnosticPosition pos, JCStatement stat) {
+    @SuppressWarnings("finally")
+	protected JCBlock convertIntoBlock(DiagnosticPosition pos, JCStatement stat) {
         ListBuffer<JCStatement> check = pushBlock();
         try {
             if (stat instanceof JCBlock) scan(((JCBlock)stat).stats); else scan(stat);
@@ -2177,7 +2181,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!treeutils.isTrueLit(predicate)) bin = treeutils.makeImplies(item.pos, predicate, bin);
             ListBuffer<JCStatement> prev = currentStatements;
             currentStatements = list;
-            JmlStatementExpr a = (JmlStatementExpr)addAssert(item, Label.ASSUME_CHECK, bin);
+            JmlStatementExpr a = addAssert(item, Label.ASSUME_CHECK, bin);
             a.description = description;
             a.source = (item instanceof JmlTree.JmlSource) ? ((JmlTree.JmlSource)item).source() : null;
             a.associatedPos = assumeCheckCount;
@@ -2241,7 +2245,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             Label label, 
             JCExpression lhs, 
             JCExpression rhs) {
-        return addAssume(pos,label,treeutils.makeBinary(pos.getPreferredPosition(),JCTree.Tag.EQ,lhs,rhs),null,null,null);
+        return addAssume(pos,label,treeutils.makeBinary(pos.getPreferredPosition(),JCTree.Tag.EQ,lhs,rhs),null,null,(Object[])null);
     }
     
     /** Creates an assumption, adding it to 'currentStatements' */
@@ -10300,8 +10304,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         } finally {
             resultExpr = savedResultExpr;
-            return localResult;
         }
+        return localResult;
     }
 
         // FIXME - what about type arguments
@@ -12462,9 +12466,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             break;
                         default:
                         	utils.error(that, "jml.internal", "Unimplemented case combination");
+                        	break;
                         case FLOAT: // FIXME - ignore for now
                         case DOUBLE:
                             emax = emin = treeutils.trueLit;
+                            break;
                             // Must be numeric to numeric - do numeric range checks
                             // FIXME - implement
                     }
@@ -12492,9 +12498,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             break;
                         default:
                         	utils.error(that, "jml.internal", "Unimplemented case combination");
+                        	break;
                         case FLOAT: // FIXME - ignore for now
                         case DOUBLE:
                             emax = emin = treeutils.trueLit;
+                            break;
                             // Must be numeric to numeric - do numeric range checks
                             // FIXME - implement
                     }
@@ -13539,7 +13547,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 for (JCStatement d : that.defs) {
                     convert(d);
                 }
-                JCExpression e = convertExpr((JCExpression)that.expr);
+                JCExpression e = convertExpr(that.expr);
                 addStat(treeutils.makeAssignStat(that.pos,treeutils.makeIdent(that.pos, dec.sym),e));
             } finally {
                 for (JCStatement st : that.defs) {
@@ -15778,7 +15786,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 result = eresult = M.at(that.pos).JmlMethodInvocation(distinctKind, newargs.toList());
                 eresult.type = syms.booleanType;
-                ((JmlMethodInvocation)that).kind = distinctKind;
+                that.kind = distinctKind;
                 break;
             }
             case invariantForID:
@@ -17149,7 +17157,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JmlVariableDecl decl = (JmlVariableDecl)st;
                     for (JCIdent id: that.exports) {
                         if (decl.name == id.name) {
-                            JmlVariableDecl ndecl = (JmlVariableDecl)M.at(st.pos).VarDef(decl.sym, null);
+                            JmlVariableDecl ndecl = M.at(st.pos).VarDef(decl.sym, null);
                             ndecl.fieldSpecs = decl.fieldSpecs;
                             ndecl.fieldSpecsCombined = decl.fieldSpecsCombined;
                             ndecl.ident = decl.ident;

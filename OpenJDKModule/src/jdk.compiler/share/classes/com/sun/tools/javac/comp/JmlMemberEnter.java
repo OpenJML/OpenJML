@@ -1739,7 +1739,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     
     public void visitMethodDef(JmlMethodDecl tree, ClassSymbol owner) {
         JmlMethodDecl prevMethod = currentMethod;
-        currentMethod = (JmlMethodDecl) tree;
+        currentMethod = tree;
         boolean prevAllowJml = resolve.allowJML();
         long flags = tree.mods.flags;
         boolean isJMLMethod = utils.isJML(flags);

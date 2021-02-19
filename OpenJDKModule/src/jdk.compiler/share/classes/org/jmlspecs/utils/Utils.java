@@ -77,7 +77,8 @@ public class Utils {
         try { c = Class.forName(exname); } catch (ClassNotFoundException e) { c = null; }
         if (c != null) {
             try {
-                Constructor<? extends Error> cc = ((Class<? extends Error>)c).getConstructor(String.class,String.class);
+                @SuppressWarnings("unchecked")
+				Constructor<? extends Error> cc = ((Class<? extends Error>)c).getConstructor(String.class,String.class);
                 if (cc != null) {
                     Error e = cc.newInstance(message,label);
                     e.fillInStackTrace();
