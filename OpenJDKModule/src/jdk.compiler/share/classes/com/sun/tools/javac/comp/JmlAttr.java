@@ -6511,7 +6511,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             return new RACCopy(context,decls,args,argsID,newids).copy(that,(Void)null);
         }
         
-        public <T extends JCTree> T copy(T tree, Void p) {
+        @SuppressWarnings("unchecked")
+		public <T extends JCTree> T copy(T tree, Void p) {
             if (tree == null) return null;
             if (!(tree instanceof JCIdent)) {
 
@@ -6585,7 +6586,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public static class RACCheck extends JmlTreeScanner {
         
-        public static class RCheckEx extends RuntimeException {}
+        public static class RCheckEx extends RuntimeException {
+			private static final long serialVersionUID = 1L;
+        }
         
         boolean checkInternal;
         List<JCVariableDecl> decls;

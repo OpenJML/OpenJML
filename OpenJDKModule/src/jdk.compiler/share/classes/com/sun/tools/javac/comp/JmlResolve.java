@@ -171,7 +171,7 @@ public class JmlResolve extends Resolve {
             return s; // loadClass can be called for a package
         }
 
-        JmlMemberEnter memberEnter = (JmlMemberEnter)JmlMemberEnter.instance(context);
+        JmlMemberEnter memberEnter = JmlMemberEnter.instance(context);
 //        boolean completion = memberEnter.completionEnabled;
 //        memberEnter.completionEnabled = true;
         // FIXME - explain why we need completion enabled

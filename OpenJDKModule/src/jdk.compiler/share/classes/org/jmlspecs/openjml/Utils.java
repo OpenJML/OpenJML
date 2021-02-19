@@ -1311,7 +1311,8 @@ public class Utils {
         }
     }
     
-    public static <T> java.util.Collection<T> asSet(T ... args) {
+	@SuppressWarnings("unchecked")
+	public static <T> java.util.Collection<T> asSet(T ... args) {
         return java.util.Arrays.asList(args);
     }
     

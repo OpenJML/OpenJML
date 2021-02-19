@@ -75,7 +75,8 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
         this.utils = Utils.instance(context);
     }
     
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public JCTree translate(JCTree tree) {
         if (exprHead != null && tree != null && matcher.matches(tree,exprHead)) {
             // If exprHead is non null and matches the current tree, then we replace it with

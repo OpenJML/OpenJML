@@ -1810,7 +1810,9 @@ public class SMTTranslator extends JmlTreeScanner {
     	utils.error(pos, "esc.not.implemented","Not yet supported feature in converting BasicPrograms to SMTLIB: " + msg);
     }
     
-    public static class JmlBVException extends RuntimeException {}
+    public static class JmlBVException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
+    }
     
     /** Issues an error message about bit-vector operations */
     public void notImplBV(DiagnosticPosition pos, String msg) {
@@ -2461,7 +2463,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     // FIXME - cast from double to integral
                 } else if (tagr.ordinal() == TypeTag.DOUBLE.ordinal() || tagr.ordinal() == TypeTag.FLOAT.ordinal()) {
                     // Cast to real FIXME - already done?
-                    Double d = new Double(v.toString());
+                    Double d = Double.valueOf(v.toString());
                     result = makeRealValue(d.doubleValue());
                 }
             } else {
@@ -2876,7 +2878,7 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override public void visitLetExpr(LetExpr that) { 
         
         Iterator<JCStatement> iter = that.defs.iterator();
-        result = doLet(iter,(JCExpression)that.expr);
+        result = doLet(iter,that.expr);
     }
     
     // We need to create nested let expressions because the SMT let expression
