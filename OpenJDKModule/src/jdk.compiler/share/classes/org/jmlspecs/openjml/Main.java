@@ -130,11 +130,11 @@ import com.sun.tools.javac.util.Options;
  * TODO - check and complete the documentation above
  */
 public class Main extends com.sun.tools.javac.main.Main {
-	
-	// FIXME - get rid of this when we figure out how to control the entry point of the jdk image 
-	public static boolean useJML = false;
     
-	/** An additional exit code, along with those in the super class */
+    // FIXME - get rid of this when we figure out how to control the entry point of the jdk image 
+    public static boolean useJML = false;
+    
+    /** An additional exit code, along with those in the super class */
     public static final int EXIT_CANCELED = -1;
 
     /** The compilation unit context associated with this instance of Main
@@ -218,7 +218,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         /** Sets the compilation context (passed on to listeners) */
         @Override
         public void setContext(Context context) {
-        	if (delegate!= null) delegate.setContext(context);
+            if (delegate!= null) delegate.setContext(context);
         }
     }
     
@@ -299,7 +299,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     
     /** Checks that the tool is being run with an adequate JVM - and exits abruptly if not */
     public void check() {
-    	// FIXME
+        // FIXME
     }
 
     /** The external entry point - simply calls execute(args) and exits with the
@@ -308,8 +308,8 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     //@ requires args != null && \nonnullelements(args);
     public static void main(String[] args) throws Exception {
-    	System.out.println("openjml main");
-    	useJML = true;
+        System.out.println("openjml main");
+        useJML = true;
         if (args.length > 0 && args[0].equals("-Xjdb")) {
             // Note: Copied directly from com.sun.tools.javac.Main and not tested
             String[] newargs = new String[args.length + 2];
@@ -418,7 +418,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                         if (fileManager != null)
                             fileManager.close();
                     } catch (IOException ex) {
-                    	compiler.bugMessage(ex);
+                        compiler.bugMessage(ex);
                     }
 
                     errorcode = result.exitCode;
@@ -541,7 +541,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         // overall initialization fails.
         // It is not the one used for the compilation
         // It does use Options
-    	Context context = new Context();
+        Context context = new Context();
         JavacMessages.instance(context).add(Strings.messagesJML);
         return Log.instance(context);
     }
@@ -562,7 +562,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         Main.Result exit = super.compile(args,context);
         return exit;
     }
-                
+
 //    // TODO _ document
 //    public java.util.List<String> computeDependencyClosure(java.util.List<String> files) {
 //        // fill out dependencies
@@ -660,7 +660,8 @@ public class Main extends com.sun.tools.javac.main.Main {
         // tool registration.
         // registering an additional source of JML-specific error messages
         JmlOptions.preRegister(context); // Must precede JavacMessages
-        JavacMessages.instance(context).add(Strings.messagesJML); 
+        JavacMessages.instance(context).add(Strings.messagesJML);
+        JmlOptions.JmlArguments.register(context);
         
         // These register JML versions of the various tools.  Some just
         // register factories in which no actual instances are created until 
@@ -774,7 +775,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
 
     public boolean setupOptions() {
-    	return JmlOptions.instance(context).setupOptions();
+        return JmlOptions.instance(context).setupOptions();
     }
 
     // FIXME - move this somewhere more appropriate?
@@ -783,7 +784,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     static protected void appendRuntime(Context context) {
         
         String jmlruntimePath = null;
-        
+       
         /** This property is just used in testing. */ // TODO - check this
         String sy = Options.instance(context).get(Strings.defaultRuntimeClassPath);
         if (sy != null) {
@@ -791,7 +792,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
 
         // Look for jmlruntime.jar in the classpath itself
-        
+       
         if (jmlruntimePath == null) {
             URL url = ClassLoader.getSystemResource(Strings.runtimeJarName);
             if (url != null) {
@@ -801,9 +802,9 @@ public class Main extends com.sun.tools.javac.main.Main {
                 }
             }
         }
-        
+       
         // Otherwise look for something in the same directory as something on the classpath
-        
+       
         String classpath = System.getProperty("java.class.path");
         if (jmlruntimePath == null) {
             String[] ss = classpath.split(java.io.File.pathSeparator);
@@ -830,13 +831,13 @@ public class Main extends com.sun.tools.javac.main.Main {
                 }
             }
         }
-        
+       
         // The above all presume some variation on the conventional installation
         // of the command-line tool.  In the development environment, those
         // presumptions do not hold.  So in that case we use the appropriate
         // bin directories directly. We make sure that we get both of them: 
         // the annotations and runtime utilties.
-        // This also takes care of the case in which the openjml.jar file is in 
+        // This also takes care of the case in which the openjml.jar file is in
         // the class path under a different name.
 
         if (jmlruntimePath == null) {
@@ -854,7 +855,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                         s = new File(s).getParentFile().getParentFile().getParent();
                     }
                     if (new File(s).exists()) {
-                    	jmlruntimePath = s;
+                        jmlruntimePath = s;
                     }
 
                     url = ClassLoader.getSystemResource(Strings.jmlSpecsPackage.replace('.','/'));
@@ -870,7 +871,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                             s = new File(s).getParentFile().getParentFile().getParent();
                         }
                         if (new File(s).exists() && !s.equals(jmlruntimePath)) {
-                        	jmlruntimePath = jmlruntimePath + java.io.File.pathSeparator + s;
+                            jmlruntimePath = jmlruntimePath + java.io.File.pathSeparator + s;
                         }
                     }
                 } catch (Exception e) {
@@ -878,16 +879,16 @@ public class Main extends com.sun.tools.javac.main.Main {
                 }
             }
         }
-        
+
         if (jmlruntimePath == null) {
-        	// This is for the case of running the GUI in the development environment
-        	String srt = System.getProperty(Strings.eclipseSpecsProjectLocation); // FIXME _ probably can replace this with finding a plugin
-        	srt = srt + "/../OpenJML/OpenJML/bin-runtime";
-        	File f = new File(srt);
-        	if (f.exists() && f.isDirectory()) {
-        		jmlruntimePath = srt;
-        	}
-        	
+            // This is for the case of running the GUI in the development environment
+            String srt = System.getProperty(Strings.eclipseSpecsProjectLocation); // FIXME _ probably can replace this with finding a plugin
+            srt = srt + "/../OpenJML/OpenJML/bin-runtime";
+            File f = new File(srt);
+            if (f.exists() && f.isDirectory()) {
+                jmlruntimePath = srt;
+            }
+
         }
 
         if (jmlruntimePath != null) {
@@ -901,13 +902,13 @@ public class Main extends com.sun.tools.javac.main.Main {
             Utils.instance(context).warning("jml.no.internal.runtime");
         }
     }
-    
+
     /** An Enum type that gives a choice of various tools to be executed. */
     public static enum Cmd {
-    	CHECK("check"), ESC("esc"), RAC("rac"), DEP("dep"), JMLDOC("doc"), COMPILE("compile"), INFER("infer");
+        CHECK("check"), ESC("esc"), RAC("rac"), DEP("dep"), JMLDOC("doc"), COMPILE("compile"), INFER("infer");
         String name;
         public String toString() { return name; }
         private Cmd(String name) { this.name = name; }
     }
-    
+
 }
