@@ -186,9 +186,6 @@ public class Utils {
     /** Max number of ESC warnings per method (set from an option) */
     public int maxWarnings = 1;
 
-    /** The set of keys that control the use of optional comments, set from options */
-    public Set<String> commentKeys = new HashSet<String>();
-
     /** A bit that indicates that a declaration was declared within a JML annotation (so that it should not be visible to Java) */
     final public static long JMLBIT = 1L << 60; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 

@@ -10,10 +10,8 @@ import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.requiresClause
 import static org.jmlspecs.openjml.ext.RecommendsClause.*;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
-import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Symtab;
@@ -21,11 +19,9 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.AttrContext;
-import com.sun.tools.javac.comp.DeferredAttr.DeferredType;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.Infer;
 import com.sun.tools.javac.comp.JmlAttr;
-import com.sun.tools.javac.comp.Attr.ResultInfo;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -34,7 +30,6 @@ import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
-import com.sun.tools.javac.util.Log;
 
 /** This class handles expression extensions that take an argument list of JCExpressions.
  * Even if there are constraints on the number of arguments, it
@@ -425,10 +420,10 @@ public class FunctionLikeExpressions extends ExpressionExtension {
             for (JCExpression arg: expr.args) {
                 if (arg instanceof JCLiteral) {
                     String key = ((JCLiteral)arg).getValue().toString();
-                    value = value && Utils.instance(context).commentKeys.contains(key);
+                    value = value && JmlOptions.instance(context).commentKeys.contains(key);
                 } else if (arg instanceof JCIdent) {
                     String key = ((JCIdent)arg).name.toString();
-                    value = value && Utils.instance(context).commentKeys.contains(key);
+                    value = value && JmlOptions.instance(context).commentKeys.contains(key);
                 } else {
                     utils.error(arg, "jml.message", "An argument to \\key must be an identifier or a string literal");
                     return parser.maker().at(pos).Erroneous();

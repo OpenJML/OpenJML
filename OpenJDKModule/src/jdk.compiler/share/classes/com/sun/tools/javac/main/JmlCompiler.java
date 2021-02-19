@@ -453,7 +453,7 @@ public class JmlCompiler extends JavaCompiler {
             JmlEsc esc = JmlEsc.instance(context);
         	try {
                 esc.initCounts();
-        	    for (Env<AttrContext> env: envs) esc(env);
+        	    for (Env<AttrContext> env: envs) esc(env); // Transforms and proves
         	} catch (PropagatedException e) {
         		// cancelation
         	} finally {
@@ -468,8 +468,8 @@ public class JmlCompiler extends JavaCompiler {
         } else if (utils.rac) {
             for (Env<AttrContext> env: envs) {
                 JCTree t = env.tree;
-                env = rac(env);
-                if (env == null) continue; // FIXME - error? just keep oroginal env?
+                env = rac(env); // Transforms tree in place (within the env)
+                if (env == null) continue; // Error reported; cocmntinue with other trees
                 
                 if (utils.jmlverbose >= Utils.JMLVERBOSE) 
                     context.get(Main.IProgressListener.class).report(2,"desugar " + todo.size() + " " + 
@@ -481,6 +481,7 @@ public class JmlCompiler extends JavaCompiler {
                 desugar(env, results);
             
         } else {
+        	// No JML operation. Continue with regular compiler processing
             for (Env<AttrContext> env: envs)
                 desugar(env, results);
         }

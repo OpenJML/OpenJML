@@ -14,15 +14,15 @@ import com.sun.tools.javac.parser.Tokens.TokenKind;
 /**
  * This class is an extension of the JDK Token class so that we can represent JML tokens
  * as a JDK Token.
- * 
+ *
  * @author David Cok
  */
 public class JmlToken extends Token {
 
     public JmlTokenKind jmlkind;
     public IJmlClauseKind jmlclausekind;
-    
-    /** Creates a JmlToken object, as either, if jmlkind is null, a Java token in a JMLToken wrapper or, 
+
+    /** Creates a JmlToken object, as either, if jmlkind is null, a Java token in a JMLToken wrapper or,
       * if jmlkind is not null, a JMlToken object for a JML construct.
       */
     public JmlToken(/*@ nullable */JmlTokenKind jmlkind, IJmlClauseKind jmlclausekind, TokenKind tk, int pos, int endPos) {
@@ -30,11 +30,15 @@ public class JmlToken extends Token {
         this.jmlkind = jmlkind;
         this.jmlclausekind = jmlclausekind;
     }
-    
+
+    /** Creates a JmlTOken that just wraps a Java Token */
     public JmlToken(Token javaToken) {
         this(null, null, javaToken);
     }
-    
+
+    /** Creates a JmlToken object, as either, if jmlkind is null, a Java token in a JMLToken wrapper or,
+     * if jmlkind is not null, a JMlToken object for a JML construct.
+     */
     public JmlToken(JmlTokenKind jmlkind, IJmlClauseKind jmlclausekind, Token javaToken) {
         super(jmlkind != null ? jmlkind : javaToken.kind, javaToken.pos, javaToken.endPos, javaToken.comments);
         this.jmlkind = jmlkind;
@@ -47,5 +51,4 @@ public class JmlToken extends Token {
     public String toString() {
         return ikind.toString();
     }
-    
 }
