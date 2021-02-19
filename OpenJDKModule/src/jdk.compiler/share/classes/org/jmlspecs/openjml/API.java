@@ -131,7 +131,7 @@ public class API implements IAPI {
         if (writer == null) {
             writer = new PrintWriter(System.out);
         }
-        main = new Main(Strings.applicationName,writer,listener);
+        main = new Main(Strings.applicationName,writer);
         this.diagListener = listener;
         // FIXME - handle options and args
     }

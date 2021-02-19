@@ -279,7 +279,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * Errors go to stderr.
      */
     public Main() throws java.io.IOException {
-        this(Strings.applicationName, new PrintWriter(System.err, true), null);
+        this(Strings.applicationName, new PrintWriter(System.err, true));
     }
 
     /**
@@ -293,22 +293,19 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @param args command-line options
      */
     public Main(/*@ non_null */String applicationName, 
-                /*@ non_null */PrintWriter out, 
-                @Nullable DiagnosticListener<? extends JavaFileObject> diagListener) 
+                /*@ non_null */PrintWriter out) 
         throws java.io.IOException {
         super(applicationName,out);
-        initialize(out,diagListener);
     }
     
-    protected void initialize( 
-                /*@ non_null */PrintWriter out, 
+    protected Context initialize(
                 @Nullable DiagnosticListener<? extends JavaFileObject> diagListener) {
         check(); // Aborts if the environment does not support OpenJML
-        this.stdOut = this.stdErr = out;
         this.diagListener = diagListener;
-        context = new Context();
-        log = uninitializedLog();
-        utils = Utils.instance(context);
+        this.context = new Context();
+        JavacFileManager.preRegister(this.context);
+        utils = Utils.instance(this.context);
+        return this.context;
     }
     
     public PrintWriter out() {
@@ -326,6 +323,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     //@ requires args != null && \nonnullelements(args);
     public static void main(String[] args) throws Exception {
+    	System.out.println("openjml main");
     	useJML = true;
         if (args.length > 0 && args[0].equals("-Xjdb")) {
             // Note: Copied directly from com.sun.tools.javac.Main and not tested
@@ -424,8 +422,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                     // are thrown away. That is also why we do the hack of saving
                     // the options to a private variable, just to be able to
                     // apply them in the compile() call below.
-                    Main compiler = new Main(Strings.applicationName, writer, diagListener);
-                    Context context = compiler.context();
+                    Main compiler = new Main(Strings.applicationName, writer);
+                    Context context = compiler.initialize(diagListener);
 
                     // MAINTENANCE: This section copied from the super class, so we can use the context jsut created
                     Result result = compiler.compile(args, context);
@@ -482,7 +480,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                 // are thrown away. That is also why we do the hack of saving
                 // the options to a private variable, just to be able to
                 // apply them in the compile() call below.
-                initialize(writer, diagListener);
+                initialize(diagListener);
                 // The following line does an end-to-end compile, in a fresh context
                 errorcode = compile(args).exitCode; // context and new options are created in here
                 if (errorcode > Result.CMDERR.exitCode || 
@@ -522,7 +520,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                 // are thrown away. That is also why we do the hack of saving
                 // the options to a private variable, just to be able to
                 // apply them in the compile() call below.
-                initialize(writer, diagListener);
+                initialize(diagListener);
                 setProofResultListener(prListener);  // FIXME - this is wiped away in the compile() below, along with the initialization just above???
                 prl = prListener;                    // FIXME - necessitating this end run with prl
                 
@@ -554,10 +552,11 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @return a Log instance to use
      */
     static protected Log uninitializedLog() {
-        Context context = new Context(); 
         // This is a temporary context just for logging error messages when
         // overall initialization fails.
-        // It is not the one used for the options and compilation
+        // It is not the one used for the compilation
+        // It does use Options
+    	Context context = new Context();
         JavacMessages.instance(context).add(Strings.messagesJML);
         return Log.instance(context);
     }
@@ -1051,6 +1050,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         // These have to be first in case there are error messages during 
         // tool registration.
         // registering an additional source of JML-specific error messages
+        JmlOptions.preRegister(context); // Must precede JavacMessages
         JavacMessages.instance(context).add(Strings.messagesJML); 
         
         // These register JML versions of the various tools.  Some just
@@ -1062,22 +1062,21 @@ public class Main extends com.sun.tools.javac.main.Main {
         // tools.
         // Any initialization of these tools that needs to be done based on 
         // options should be performed in setupOptions().
-        JmlOptions.preRegister(context);
-        JmlSpecs.preRegister(context); // registering the specifications repository
+//        JmlSpecs.preRegister(context); // registering the specifications repository
         JmlFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlParsers
         JmlScanner.JmlFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlScanners
         JmlTree.Maker.preRegister(context); // registering a JML-aware factory for generating JmlTree nodes
-        JmlCompiler.preRegister(context);
-        JmlEnter.preRegister(context);
-        JmlResolve.preRegister(context);
-        JmlFlow.preRegister(context);
-        JmlMemberEnter.preRegister(context);
-        JmlTypes.preRegister(context);
-        JmlAttr.preRegister(context);  // registering a JML-aware type checker
-        JmlCheck.preRegister(context);
+//        JmlCompiler.preRegister(context);
+ //       JmlEnter.preRegister(context);
+ //       JmlResolve.preRegister(context);
+//        JmlFlow.preRegister(context);
+//        JmlMemberEnter.preRegister(context);
+//        JmlTypes.preRegister(context);
+//        JmlAttr.preRegister(context);  // registering a JML-aware type checker
+//        JmlCheck.preRegister(context);
         JmlPretty.preRegister(context);
-        JmlDeferredAttr.preRegister(context); // registers when created
-        JmlOptions.JmlArguments.register(context);
+//        JmlDeferredAttr.preRegister(context); // registers when created
+//        JmlOptions.JmlArguments.register(context);
         // Extensions are registered after options are processed
     }
     
