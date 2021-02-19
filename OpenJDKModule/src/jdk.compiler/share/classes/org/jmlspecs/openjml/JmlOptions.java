@@ -48,26 +48,26 @@ import com.sun.tools.javac.util.Options;
 public class JmlOptions extends Options {
 
     protected Context context;
-    
+
     /** A stack of sets of options */
     protected Stack<LinkedHashMap<String,String>> stack = new Stack<>();
-    
+
     protected JmlOptions(Context context) {
         super(context);
         this.context = context;
-        defaults();
+        loadDefaults();
     }
-    
+
     public static void preRegister(Context context) {
         context.put(Options.optionsKey, new JmlOptions(context));
     }
-    
+
     public static JmlOptions instance(Context context) {
-    	return (JmlOptions)Options.instance(context);
+        return (JmlOptions)Options.instance(context);
     }
-    
+
     /** Loads the options map with all defaults for Jml options */
-    public void defaults() {
+    public void loadDefaults() {
         //System.out.println("SETTING DEFAULTS");
         for (JmlOption opt : JmlOption.map.values()) {
             Object d = opt.defaultValue();
@@ -75,14 +75,14 @@ public class JmlOptions extends Options {
             put(opt.optionName(),s);
         }
     }
-    
+
     /** This is a utility method to print out all of the JML help information */
     protected void helpJML(PrintWriter w) {
         w.print(JmlOption.helpInfo());
         w.flush();
     }
-    
-    /** This method scans the input sequence of command-line arguments, 
+
+    /** This method scans the input sequence of command-line arguments,
      * processing any that are recognized as JML options.  Those options
      * are registered in the Options map.  The String[] returned contains
      * all of the command-line arguments in the input, omitting those recognized
@@ -112,13 +112,14 @@ public class JmlOptions extends Options {
             }
         }
         options.put("compilePolicy", "simple");
+        // setupOptions is called to verify consistency after Java options are processed, in JmlArguments.validate
         return newargs.toArray(new String[newargs.size()]);
     }
-    
+
     /** Processes a single JML command-line option and any arguments.
      * Any non-JML argument is added to remainingArgs
      * Any JML but non-Java files are added to files
-     * 
+     *
      * @param args the full array of command-line arguments
      * @param i    the index of the argument to be processed
      * @param options the options object to be adjusted as JML options are found
@@ -134,15 +135,15 @@ public class JmlOptions extends Options {
         String arg = iter.next();
         if (arg == null) return; // Allow but remove null arguments
         if (arg.isEmpty()) {
-        	remainingArgs.add(arg);
-        	return;
+            remainingArgs.add(arg);
+            return;
         }
-        
+
         String s = arg;
         if (s.length() > 1 && s.charAt(0) == '"' && s.charAt(s.length()-1) == '"') {
             s = s.substring(1,s.length()-1);
         }
-        
+
         boolean negate = false;
         if (s.startsWith("-no-")) {
             negate = true;
@@ -167,11 +168,11 @@ public class JmlOptions extends Options {
                 if (o == null) {
                     // This is not a JML option. Might be misspelled or it might
                     // be a JDK option with an =, which JDK does not support.
-                	// But can't warn about it because in this design we are filtering out
-                	// JML options before Java options
-                	// warning(context, "jml.message", "Ignoring command-line argument " + args[i-1] + " which is either misspelled or is a JDK option using = to set an argument (which JDK does not support)");
-                	remainingArgs.add(arg);
-                	return;
+                    // But can't warn about it because in this design we are filtering out
+                    // JML options before Java options
+                    // warning(context, "jml.message", "Ignoring command-line argument " + args[i-1] + " which is either misspelled or is a JDK option using = to set an argument (which JDK does not support)");
+                    remainingArgs.add(arg);
+                    return;
                 } else if (res.isEmpty()) {
                     // JML option with a naked = sign
                     Object def = o.defaultValue();
@@ -275,13 +276,13 @@ public class JmlOptions extends Options {
                 }
             }
         }
-        
+
         if (o != null && o.equals(JmlOption.PROPERTIES)){
             Properties properties = System.getProperties();
             String file = JmlOption.value(context,JmlOption.PROPERTIES);
             if (file != null && !file.isEmpty()) {
                 try {
-                    Utils.readProps(properties,file);  
+                    Utils.readProps(properties,file);
                 } catch (java.io.IOException e) {
                     Utils.instance(context).note(false,"Failed to read property file " + file);
                 }
@@ -289,8 +290,8 @@ public class JmlOptions extends Options {
             }
         }
     }
-    
-    
+
+
     /** Sets options (first argument) from any relevant properties (second argument) */
     protected void setPropertiesFileOptions(Options opts, Properties properties){
         for (Map.Entry<Object,Object> p : properties.entrySet()) {
@@ -321,8 +322,8 @@ public class JmlOptions extends Options {
             }
         }
     }
-    
-    /** This method is called after options are read, but before compilation actually begins; 
+
+    /** This method is called after options are read, but before compilation actually begins;
      * requires tools to be registered, at least Log and Options
      * here any additional option checking or
      * processing can be performed, particularly checks that depend on multiple options.
@@ -337,16 +338,16 @@ public class JmlOptions extends Options {
 
         Options options = Options.instance(context);
         Utils utils = Utils.instance(context);
-        
+
         String t = options.get(JmlOption.JMLTESTING.optionName());
         Utils.testingMode =  ( t != null && !t.equals("false"));
         String benchmarkDir = options.get(JmlOption.BENCHMARKS.optionName());
         if (benchmarkDir != null) {
             new File(benchmarkDir).mkdir();
         }
-        
+
         utils.jmlverbose = Utils.NORMAL;
-        
+
         {
             // Automatically set verboseness to PROGRESS if we are debugging checkFeasibility.
             // So do this determination before we interpret the verboseness option.
@@ -354,7 +355,7 @@ public class JmlOptions extends Options {
             if (t != null) {
                 if (t.startsWith("debug") && utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
                 int k = t.indexOf(":");
-                if (k > 0) { 
+                if (k > 0) {
                     try {
                         MethodProverSMT.startFeasibilityCheck = Integer.parseInt(t.substring(k+1));
                     } catch (Exception e) {
@@ -363,7 +364,7 @@ public class JmlOptions extends Options {
                 }
             }
         }
-        
+
         String n = JmlOption.VERBOSENESS.optionName().trim();
         String levelstring = options.get(n);
         if (levelstring != null) {
@@ -381,9 +382,9 @@ public class JmlOptions extends Options {
         }
 
         if (utils.jmlverbose >= Utils.PROGRESS) {
-        	// FIXME - recview all this
+            // FIXME - recview all this
             // Why not let the progress listener decide what to print???
-            
+
             // We check for an existing delegate, because if someone is calling
             // OpenJML programmatically, they may have set one up already.
             // Note, though that this won't undo the setting, if verbosity is
@@ -397,14 +398,14 @@ public class JmlOptions extends Options {
                 }
             //}
         } else {
-        	Main.instance(context).progressDelegator.setDelegate(null);
+            Main.instance(context).progressDelegator.setDelegate(null);
         }
-        
+
         boolean b = JmlOption.isOption(context,JmlOption.USEJAVACOMPILER);
         if (b) {
             Utils.instance(context).warning("jml.message","The -java option is ignored unless it is the first command-line argument");
         }
-        
+
         Cmd cmd = Cmd.CHECK; // default
         String val = options.get(JmlOption.COMMAND.optionName());
         try {
@@ -419,7 +420,7 @@ public class JmlOptions extends Options {
         utils.check = cmd == Cmd.CHECK;
         utils.compile = cmd == Cmd.COMPILE;
         utils.infer   = cmd == Cmd.INFER;
-                
+
         val = options.get(JmlOption.ESC_BV.optionName());
         if (val == null || val.isEmpty()) {
             options.put(JmlOption.ESC_BV.optionName(),(String)JmlOption.ESC_BV.defaultValue());
@@ -437,22 +438,22 @@ public class JmlOptions extends Options {
             utils.warning("jml.message","Command-line argument error: Expected '" + JmlOption.langPlus + "', '" + JmlOption.langJML + "' or '" + JmlOption.langJavelyn + "' for -lang: " + val);
             options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
         }
-        
+
         String keysString = options.get(JmlOption.KEYS.optionName());
         utils.commentKeys = new HashSet<String>();
         if (keysString != null && !keysString.isEmpty()) {
             String[] keys = keysString.split(",");
             for (String k: keys) utils.commentKeys.add(k);
         }
-        
-        if (utils.esc) utils.commentKeys.add("ESC"); 
-        if (utils.rac) utils.commentKeys.add("RAC"); 
-        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) utils.commentKeys.add("STRICT"); 
-        utils.commentKeys.add("OPENJML"); 
+
+        if (utils.esc) utils.commentKeys.add("ESC");
+        if (utils.rac) utils.commentKeys.add("RAC");
+        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) utils.commentKeys.add("STRICT");
+        utils.commentKeys.add("OPENJML");
 
         // FIXME - can this be set later, so it is not called everytime the options are set/checked
         if (JmlOption.isOption(context,JmlOption.INTERNALRUNTIME)) Main.appendRuntime(context);
-        
+
         String limit = JmlOption.value(context,JmlOption.ESC_MAX_WARNINGS);
         if (limit == null || limit.isEmpty() || limit.equals("all")) {
             utils.maxWarnings = Integer.MAX_VALUE; // no limit is the default
@@ -465,39 +466,40 @@ public class JmlOptions extends Options {
                 utils.maxWarnings = Integer.MAX_VALUE;
             }
         }
-        
+
         String v = JmlOption.value(context, JmlOption.SHOW);
         if (v == null) options.put(JmlOption.SHOW.optionName(),"");
-        
+
         String check = JmlOption.value(context,JmlOption.FEASIBILITY);
         if (check == null || check.isEmpty() || check.equals(Strings.feas_default)) {
             options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_defaults);
-        } 
+        }
         if (check.equals(Strings.feas_all)) {
             options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls);
         } else if (check.startsWith(Strings.feas_debug)) {
             options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls+",debug");
             if (utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
-        } 
+        }
         String badString = Strings.isOK(check);
         if (badString != null) {
             utils.error("jml.message","Unexpected value as argument for -checkFeasibility: " + badString);
         }
-        
+
         Extensions.register(context);
-        JmlSpecs.instance(context).initializeSpecsPath();
+// FIXME - turn off for now        JmlSpecs.instance(context).initializeSpecsPath();
+        // dumpOptions();
         return true;
     }
-            
 
 
-    /** Adds additional options to those already present (which may change 
+
+    /** Adds additional options to those already present (which may change
      * previous settings). */
     public void addOptions(String... args) {
         processJmlArgs(args, Options.instance(context), null);
         setupOptions();
     }
-    
+
     /** Adds a custom option (not checked as a legitimate command-line option);
      * may have an argument after a = symbol */
     public void addUncheckedOption(String arg) {
@@ -506,20 +508,19 @@ public class JmlOptions extends Options {
             Options.instance(context).put(arg,"");
         } else {
             String value = arg.substring(k+1);
-            if (value.equals("false")) value = null; // FIXME - this line needed?
             Options.instance(context).put(arg.substring(0,k),value);
         }
     }
 
     // FIXME - the options popped and pushed should not be ones that have modifier/annotation equivalents
     // So no nonnullbydefault/nullablebydefault and code-math and spec-math
-    
+
     /** Pushes the current options on the option stack (cf. JmlOption), retaining a copy;
      * then adds the given modifiers to the current options.
      * @param mods
      */
     public void pushOptions(JCModifiers mods) {
-    	Name optionName = Names.instance(context).fromString("org.jmlspecs.annotation.Options");
+        Name optionName = Names.instance(context).fromString("org.jmlspecs.annotation.Options");
 
         JmlOptions.instance(context).pushOptions();
         JCAnnotation addedOptionsAnnotation = Utils.instance(context).findMod(mods, optionName);
@@ -532,9 +533,9 @@ public class JmlOptions extends Options {
             addOptions(opts);
         }
     }
-    
+
     /** Pushes a copy of the current options on the options stack, so the current state of the options can
-     * be reinstated by calling popOptions(); the options currently in effect are unchanged, but can be 
+     * be reinstated by calling popOptions(); the options currently in effect are unchanged, but can be
      * modified without affecting the pushed copy.
      */
     public void pushOptions() {
@@ -543,7 +544,7 @@ public class JmlOptions extends Options {
         newvalues.putAll(values);
         values = newvalues;
     }
-    
+
     /** Deletes the current copy of the options, replacing it with the set of options popped off the options stack;
      * throws an exception if the options stack is empty (because of more pops than pushes).
      */
@@ -551,27 +552,36 @@ public class JmlOptions extends Options {
         values = stack.pop();
         setupOptions();
     }
-    
-    /** We replace the Arguments tool in order to validate the JML options 
-     * when the Java options are validated (during the run-up to compilation 
+
+    /** Output all the options -- purely for debugging */
+    public void dumpOptions() {
+        new RuntimeException().printStackTrace(System.out);
+        System.out.println("JML Options:");
+        for (var s: values.entrySet()) {
+            System.out.println(s.getKey() + " : " + s.getValue());
+        }
+    }
+
+    /** We replace the Arguments tool in order to validate the JML options
+     * when the Java options are validated (during the run-up to compilation
      * in JavaCompiler).
      */
     public static class JmlArguments extends Arguments {
-    	private Context context;
-    	
-    	public static void register(Context context) {
-    		context.put(argsKey, new JmlArguments(context));
-    	}
-    	
-    	public JmlArguments(Context context) {
-    		super(context);
-    		this.context = context;
-    	}
-    	
+        private Context context;
+
+        public static void register(Context context) {
+            context.put(argsKey, new JmlArguments(context));
+        }
+
+        public JmlArguments(Context context) {
+            super(context);
+            this.context = context;
+        }
+
         @Override
-    	public boolean validate() {
-    		boolean b = super.validate();
-    		return JmlOptions.instance(context).setupOptions() && b;
-    	}
+        public boolean validate() {
+            boolean b = super.validate();
+            return JmlOptions.instance(context).setupOptions() && b;
+        }
     }
 }
