@@ -19,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
@@ -51,6 +52,9 @@ public class JmlOptions extends Options {
 
     /** A stack of sets of options */
     protected Stack<LinkedHashMap<String,String>> stack = new Stack<>();
+
+    /** The set of keys that control the use of optional comments, set in setupOptions() */
+    public Set<String> commentKeys = new HashSet<String>();
 
     protected JmlOptions(Context context) {
         super(context);
@@ -440,16 +444,16 @@ public class JmlOptions extends Options {
         }
 
         String keysString = options.get(JmlOption.KEYS.optionName());
-        utils.commentKeys = new HashSet<String>();
+        commentKeys = new HashSet<String>();
         if (keysString != null && !keysString.isEmpty()) {
             String[] keys = keysString.split(",");
-            for (String k: keys) utils.commentKeys.add(k);
+            for (String k: keys) commentKeys.add(k);
         }
 
-        if (utils.esc) utils.commentKeys.add("ESC");
-        if (utils.rac) utils.commentKeys.add("RAC");
-        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) utils.commentKeys.add("STRICT");
-        utils.commentKeys.add("OPENJML");
+        if (utils.esc) commentKeys.add("ESC");
+        if (utils.rac) commentKeys.add("RAC");
+        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) commentKeys.add("STRICT");
+        commentKeys.add("OPENJML");
 
         // FIXME - can this be set later, so it is not called everytime the options are set/checked
         if (JmlOption.isOption(context,JmlOption.INTERNALRUNTIME)) Main.appendRuntime(context);

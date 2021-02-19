@@ -16803,7 +16803,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void visitJmlStatement(JmlStatement that) {
         result = null;
         if (that.clauseType == SetStatement.debugClause) {
-            Set<String> keys = utils.commentKeys;
+            Set<String> keys = JmlOptions.instance(context).commentKeys;
             if (!keys.contains("DEBUG")) return;
         }
         if (that.clauseType == SetStatement.setClause || that.clauseType == SetStatement.debugClause) {

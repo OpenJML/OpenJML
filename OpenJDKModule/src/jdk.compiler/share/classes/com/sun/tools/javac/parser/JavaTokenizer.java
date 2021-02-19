@@ -558,7 +558,7 @@ public class JavaTokenizer extends UnicodeReader {
      *
      * @param pos  position of the first character in literal.
      */
-    private void scanFractionAndSuffix(int pos) {
+    protected void scanFractionAndSuffix(int pos) { // OPENJML - private to protected
         radix = 10;
         scanFraction(pos);
 
