@@ -316,6 +316,16 @@ public class JmlTree {
                 JCExpression extending,
                 List<JCExpression> implementing,
                 List<JCTree> defs) {
+        	return ClassDef(mods, name, typarams, extending, implementing,  List.<JCExpression>nil(), defs);
+        }
+        @Override
+        public JmlClassDecl ClassDef(JCModifiers mods,
+                Name name,
+                List<JCTypeParameter> typarams,
+                JCExpression extending,
+                List<JCExpression> implementing,
+                List<JCExpression> permitting,
+                List<JCTree> defs) {
             JmlClassDecl tree = new JmlClassDecl(mods,name,typarams,extending,implementing,defs,null);
             tree.pos = pos;
             tree.sourcefile = Log.instance(context).currentSourceFile();
@@ -1162,7 +1172,7 @@ public class JmlTree {
                 List<JCTypeParameter> typarams, JCExpression extending,
                 List<JCExpression> implementing, List<JCTree> defs,
                 ClassSymbol sym) {
-            super(mods, name, typarams, extending, implementing, null, defs, sym);
+            super(mods, name, typarams, extending, implementing, List.<JCExpression>nil(), defs, sym);
             specsDecl = null;
             typeSpecs = null;
         }

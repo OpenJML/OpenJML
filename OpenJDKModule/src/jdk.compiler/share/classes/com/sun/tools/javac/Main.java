@@ -47,7 +47,12 @@ public class Main {
      *      just retained for historical compatibility
      */
     public static void main(String[] args) throws Exception {
-        System.exit(compile(args));
+    	if (args.length > 0 && args[0].equals("-jml")) {
+    		String[] nargs = java.util.Arrays.copyOfRange(args,1,args.length);
+        	org.jmlspecs.openjml.Main.main(nargs);
+    	}
+    	else 
+    		System.exit(compile(args));
     }
 
     /** Programmatic interface to the Java Programming Language

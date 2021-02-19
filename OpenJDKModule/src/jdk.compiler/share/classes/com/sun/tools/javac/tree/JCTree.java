@@ -3144,6 +3144,13 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
                           JCExpression extending,
                           List<JCExpression> implementing,
                           List<JCTree> defs);
+        JCClassDecl ClassDef(JCModifiers mods,
+                Name name,
+                List<JCTypeParameter> typarams,
+                JCExpression extending,
+                List<JCExpression> implementing,
+                List<JCExpression> permitting,
+                List<JCTree> defs);
         JCMethodDecl MethodDef(JCModifiers mods,
                             Name name,
                             JCExpression restype,

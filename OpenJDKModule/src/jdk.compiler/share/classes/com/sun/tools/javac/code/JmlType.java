@@ -35,7 +35,7 @@ public class JmlType extends Type {
      * singleton for each new JML type */
     // package visibility
     JmlType(JmlTokenKind token, String fullyQualifiedClassName) {
-        super(null, null);
+        super(null, TypeMetadata.EMPTY);
         jmlTypeTag = token;
         fqName = fullyQualifiedClassName;
         this.id = null;
@@ -45,7 +45,7 @@ public class JmlType extends Type {
      * singleton for each new JML type */
     // package visibility
     JmlType(JmlTokenKind token, Name id, String fullyQualifiedClassName, TypeMetadata metadata) {
-        super(null, null);
+        super(null, TypeMetadata.EMPTY);
         jmlTypeTag = JmlTokenKind.PRIMITIVE_TYPE;
         fqName = fullyQualifiedClassName;
         this.id = id;
