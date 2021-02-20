@@ -1750,7 +1750,7 @@ public class JavacParser implements Parser {
                         case LONG: case FLOAT: case DOUBLE: case BOOLEAN: case VOID:
                             return ParensResult.CAST;
                         default:
-                            return analyzeParensHelper(S.token(lookahead + 1)); // DRC - inserted hook to allow overriding
+                            return analyzeParensHelper(S.token(lookahead + 1)); // OPENJML - inserted hook to allow overriding
                     }
                 case UNDERSCORE:
                 case ASSERT:
