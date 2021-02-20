@@ -9,7 +9,7 @@ import java.io.PrintStream;
 import java.util.Map;
 
 import org.jmlspecs.annotation.Nullable;
-import org.jmlspecs.openjml.vistors.JmlTreeScanner;
+import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
 import com.sun.tools.javac.parser.JavacParser.AbstractEndPosTable;
 import com.sun.tools.javac.tree.JCTree;

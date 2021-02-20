@@ -76,9 +76,6 @@ module jdk.compiler {
     exports com.sun.source.tree;
     exports com.sun.source.util;
     exports com.sun.tools.javac;
-    exports org.jmlspecs.openjml;
-    exports org.jmlspecs.annotation;
-    exports com.sun.tools.javac.main;
 
     exports com.sun.tools.doclint to
         jdk.javadoc;
@@ -98,9 +95,9 @@ module jdk.compiler {
         jdk.javadoc;
     exports com.sun.tools.javac.jvm to
         jdk.javadoc;
- //   exports com.sun.tools.javac.main to
- //       jdk.javadoc,
- //       jdk.jshell;
+    exports com.sun.tools.javac.main to
+        jdk.javadoc,
+        jdk.jshell;
     exports com.sun.tools.javac.model to
         jdk.javadoc;
     exports com.sun.tools.javac.parser to

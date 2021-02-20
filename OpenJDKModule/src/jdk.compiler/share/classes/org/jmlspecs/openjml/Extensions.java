@@ -34,6 +34,8 @@ import com.sun.tools.javac.util.Name;
  * derived.
  *  */
 public class Extensions {
+	@SuppressWarnings("unused")
+	private Extensions() {}
 	
 	public static @interface NonNull {}
 	public static @interface Nullable {}
@@ -69,8 +71,16 @@ public class Extensions {
     
     /** Finds the clause kind for the given token, if any */
     public static @Nullable IJmlClauseKind findKeyword(Token token) {
-        String id = token instanceof JmlToken ? ((JmlToken)token).jmlkind.internedName() : token.toString();
-        return allKinds.get(id);
+    	if (token instanceof JmlToken) {
+    		JmlToken jt = (JmlToken)token;
+    		if (jt.jmlclausekind == null) return jt.jmlclausekind;
+            String id = jt.jmlkind.internedName();
+            IJmlClauseKind k = allKinds.get(id);
+            jt.jmlclausekind = k;
+            return k;    		
+    	} else {
+            return allKinds.get(token.toString());
+    	}
     }
     
     /** Finds the clause kind for the given keyword, if any */

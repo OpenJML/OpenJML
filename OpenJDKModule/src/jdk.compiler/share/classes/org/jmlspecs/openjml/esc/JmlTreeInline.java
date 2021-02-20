@@ -9,7 +9,7 @@ import java.util.Map;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
-import org.jmlspecs.openjml.vistors.JmlTreeCopier;
+import org.jmlspecs.openjml.visitors.JmlTreeCopier;
 
 import com.sun.source.tree.*;
 import com.sun.tools.javac.tree.JCTree;

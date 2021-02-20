@@ -185,23 +185,26 @@ public class Utils {
     
     /** Max number of ESC warnings per method (set from an option) */
     public int maxWarnings = 1;
+    
+    // These are now overloaded -- FIXE - need a better solution
 
     /** A bit that indicates that a declaration was declared within a JML annotation (so that it should not be visible to Java) */
-    final public static long JMLBIT = 1L << 60; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
+    final public static long JMLBIT = 1L << 16; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
     /** A bit that indicates that a declaration was declared somewhere within a JML annotation, but not nested within a class or method body that is also in the JML annotation */
-    final public static long JMLBITTOP = 1L << 59; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
+    final public static long JMLBITTOP = 1L << 23; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
     /** A bit that indicates that JML instrumentation has been added .... FIXME */
-    final public static long JMLINSTRUMENTED = 1L << 61; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
+    final public static long JMLINSTRUMENTED = 1L << 19; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
     /** A bit that indicates that a variable is local to an expression */
-    final public static long JMLEXPRLOCAL = 1L << 62; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
+    final public static long JMLEXPRLOCAL = 1L << 21; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
     // FIXME - describe  - used to be the DEFAULT flag
-    final public static long JMLADDED = 1L << 58;
+    final public static long JMLADDED = 1L << 32;
     
-    final public static long JMLINSTANCE = 1L << 57;
+    // FIXME - needed? - var symbols only?
+    final public static long JMLINSTANCE = 1L << 36;
 
     /** Tests whether the JML flag is set in the given modifiers object
      * @param mods the instance of JCModifiers to test
@@ -1483,6 +1486,11 @@ public class Utils {
         }
         
         return true;
+    }
+    
+    /** Returns true if the JDK -deprecation option is set */
+    public boolean isDeprecationSet() {
+        return Options.instance(context).isSet("-Xlint:deprecation");
     }
     
     // The following are wrappers for calls to log, to output errors, warnings and notes through a 

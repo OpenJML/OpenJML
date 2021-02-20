@@ -5,7 +5,7 @@
 package org.jmlspecs.openjml;
 
 import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.vistors.JmlTreeVisitor;
+import org.jmlspecs.openjml.visitors.JmlTreeVisitor;
 
 import com.sun.source.tree.*;
 

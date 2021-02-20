@@ -86,9 +86,9 @@ import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
-import org.jmlspecs.openjml.vistors.IJmlVisitor;
-import org.jmlspecs.openjml.vistors.JmlTreeCopier;
-import org.jmlspecs.openjml.vistors.JmlTreeScanner;
+import org.jmlspecs.openjml.visitors.IJmlVisitor;
+import org.jmlspecs.openjml.visitors.JmlTreeCopier;
+import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
 import com.sun.source.tree.IdentifierTree;
 import com.sun.tools.javac.code.*;

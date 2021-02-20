@@ -2,7 +2,7 @@
  * This file is part of the OpenJML project. 
  * Author: David R. Cok
  */
-package org.jmlspecs.openjml.vistors;
+package org.jmlspecs.openjml.visitors;
 
 import org.jmlspecs.openjml.JmlTree.JmlNewClass;
 

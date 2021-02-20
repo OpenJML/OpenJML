@@ -1,9 +1,9 @@
 package org.jmlspecs.openjml.esc;
 
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
-import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.comp.JmlAttr;

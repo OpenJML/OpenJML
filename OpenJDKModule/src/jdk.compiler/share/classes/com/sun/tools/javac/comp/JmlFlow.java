@@ -17,7 +17,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.MiscExpressions;
 import org.jmlspecs.openjml.ext.StateExpressions;
-import org.jmlspecs.openjml.vistors.IJmlVisitor;
+import org.jmlspecs.openjml.visitors.IJmlVisitor;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Lint;

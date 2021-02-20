@@ -2,9 +2,8 @@ package org.jmlspecs.utils;
 
 import org.jmlspecs.annotation.*;
 
-/** This class is an interface for types within JML.  This could simply
- * encapsulate something like TypeMirror, but we want an implementation
- * that works on 1.5 as well.
+/** The runtime representation of the \TYPE type in JML.
+ * FIXME - why is it an interface?
  * 
  * @author David R. Cok
  *

@@ -33,7 +33,7 @@ import org.jmlspecs.openjml.esc.BoogieProgram.BoogieBlock;
 import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
 import org.jmlspecs.openjml.ext.StatementExprExtensions;
-import org.jmlspecs.openjml.vistors.JmlTreeScanner;
+import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;

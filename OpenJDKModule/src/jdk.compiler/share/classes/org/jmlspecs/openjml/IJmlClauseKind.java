@@ -321,6 +321,7 @@ public abstract class IJmlClauseKind {
          * A line annotation is captured by the scanner, not the parser,
          * and so is a bit of a different animal. */
         public static abstract class LineAnnotation {
+        	protected LineAnnotation() {}
             public int line;
             public int keywordPos;
             public IJmlClauseKind clauseKind;
