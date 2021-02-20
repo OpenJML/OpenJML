@@ -438,7 +438,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
     public String toString() {
         StringWriter s = new StringWriter();
         try {
-            new Pretty(s, false).printExpr(this);
+            Pretty.instance(s, false).printExpr(this);
         }
         catch (IOException e) {
             // should never happen, because StringWriter is defined
@@ -1557,7 +1557,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         public String toString() {
             StringWriter s = new StringWriter();
             try {
-                new Pretty(s, false).printStat(this);
+                Pretty.instance(s, false).printStat(this);
             }
             catch (IOException e) {
                 // should never happen, because StringWriter is defined

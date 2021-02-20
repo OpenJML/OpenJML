@@ -10,18 +10,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.JmlTree.JmlMatchExpression.MatchCase;
 
-import com.sun.source.tree.NewClassTree;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeTranslator;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCLambda;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.ListBuffer;
 
 /** This class translates a parse tree in-place, extending
@@ -126,8 +119,8 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
-    public void visitJmlCompilationUnit(JmlCompilationUnit that) {
-        visitTopLevel(that);
+    public void visitTopLevel(JCCompilationUnit that) {
+        super.visitTopLevel(that);
         JmlCompilationUnit r = (JmlCompilationUnit)result;
 //        r.parsedTopLevelModelTypes = translate(that.parsedTopLevelModelTypes);
         //r.specsSequence

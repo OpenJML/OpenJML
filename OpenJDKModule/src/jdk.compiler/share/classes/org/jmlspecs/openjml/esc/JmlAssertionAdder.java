@@ -5260,31 +5260,44 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitTopLevel(JCCompilationUnit that) {
-        // OpenJML should never call this, because JCCompilationUnit nodes should be
-        // replaced by JmlCompilationUnit nodes. We implement this just in case, but
-        // always produce a JmlCompilationUnit node
-        if (pureCopy) {
-          JmlCompilationUnit n = M.at(that).TopLevel(convert(that.defs));
-          n.docComments = that.docComments; // TODO: This needs to be remapped
-          n.endPositions = that.endPositions; // TODO: This needs to be remapped
-//          n.flags = that.flags;
-          //n.mode = that.mode;
-          n.lineMap = that.lineMap;
-          n.namedImportScope = that.namedImportScope;
-          n.packge = that.packge;
-          n.setType(that.type);
-          n.sourcefile = that.sourcefile;
-          n.starImportScope = that.starImportScope;
-          //n.specsCompilationUnit = that.specsCompilationUnit;
-          //n.specsTopLevelModelTypes = that.specsTopLevelModelTypes;
-          result = n;
-
-        }
-        if (translatingJML) {
-            error(that,"Unexpected call of JmlAssertionAdder.visitTopLevel while translating JML: " + that.getClass());
-            return;
-        }
-        error(that,"Unexpected call of JmlAssertionAdder.visitTopLevel: " + that.getClass());
+    	if (pureCopy) {
+    		JmlCompilationUnit n = M.at(that).TopLevel(convert(that.defs));
+    		n.docComments = that.docComments; // TODO: This needs to be remapped
+    		n.endPositions = that.endPositions; // TODO: This needs to be remapped
+    		//          n.flags = that.flags;
+    		//n.mode = that.mode;
+    		n.lineMap = that.lineMap;
+    		n.namedImportScope = that.namedImportScope;
+    		n.packge = that.packge;
+    		n.setType(that.type);
+    		n.sourcefile = that.sourcefile;
+    		n.starImportScope = that.starImportScope;
+    		//n.specsCompilationUnit = that.specsCompilationUnit;
+    		//n.specsTopLevelModelTypes = that.specsTopLevelModelTypes;
+    		result = n;
+    	} else if (translatingJML) {
+    		error(that,"Unexpected call of JmlAssertionAdder.visitTopLevel while translating JML: " + that.getClass());
+    		result = that;
+    	} else {
+    		JmlCompilationUnit jcu = (JmlCompilationUnit)that;
+    		List<JCTree> defs = convert(that.defs);
+    		JmlCompilationUnit n = M.at(that).TopLevel(defs);
+    		n.docComments = that.docComments; // FIXME: need to translate map
+    		n.endPositions = that.endPositions; // FIXME: need to convert map?
+    		//  n.flags = that.flags;
+    		n.pid = jcu.pid;
+    		n.mode = jcu.mode;
+    		n.lineMap = that.lineMap;
+    		n.namedImportScope = that.namedImportScope;
+    		n.packge = that.packge;
+    		n.setType(that.type);
+    		//n.parsedTopLevelModelTypes = that.parsedTopLevelModelTypes; // FIXME: need to convert
+    		n.sourcefile = that.sourcefile;
+    		n.starImportScope = that.starImportScope;
+    		n.specsCompilationUnit = jcu.specsCompilationUnit; // FIXME: need to convert
+    		//  n.specsTopLevelModelTypes = convert(that.specsTopLevelModelTypes);
+    		result = n;
+    	}
     }
 
     // OK
@@ -14037,31 +14050,31 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return bl;
     }
 
-    // OK
-    @Override
-    public void visitJmlCompilationUnit(JmlCompilationUnit that) {
-        if (translatingJML) {
-            error(that,"Unexpected call of JmlAssertionAdder.visitJmlCompilationUnit while translating JML: " + that.getClass());
-            return;
-        }
-
-        List<JCTree> defs = convert(that.defs);
-        JmlCompilationUnit n = M.at(that).TopLevel(defs);
-        n.docComments = that.docComments; // FIXME: need to translate map
-        n.endPositions = that.endPositions; // FIXME: need to convert map?
-//        n.flags = that.flags;
-        n.mode = that.mode;
-        n.lineMap = that.lineMap;
-        n.namedImportScope = that.namedImportScope;
-        n.packge = that.packge;
-        n.setType(that.type);
-//        n.parsedTopLevelModelTypes = that.parsedTopLevelModelTypes; // FIXME: need to convert
-        n.sourcefile = that.sourcefile;
-        n.starImportScope = that.starImportScope;
-        n.specsCompilationUnit = that.specsCompilationUnit; // FIXME: need to convert
-//        n.specsTopLevelModelTypes = convert(that.specsTopLevelModelTypes);
-        result = n;
-    }
+//    // OK
+//    @Override
+//    public void visitJmlCompilationUnit(JmlCompilationUnit that) {
+//        if (translatingJML) {
+//            error(that,"Unexpected call of JmlAssertionAdder.visitJmlCompilationUnit while translating JML: " + that.getClass());
+//            return;
+//        }
+//
+//        List<JCTree> defs = convert(that.defs);
+//        JmlCompilationUnit n = M.at(that).TopLevel(defs);
+//        n.docComments = that.docComments; // FIXME: need to translate map
+//        n.endPositions = that.endPositions; // FIXME: need to convert map?
+////        n.flags = that.flags;
+//        n.mode = that.mode;
+//        n.lineMap = that.lineMap;
+//        n.namedImportScope = that.namedImportScope;
+//        n.packge = that.packge;
+//        n.setType(that.type);
+////        n.parsedTopLevelModelTypes = that.parsedTopLevelModelTypes; // FIXME: need to convert
+//        n.sourcefile = that.sourcefile;
+//        n.starImportScope = that.starImportScope;
+//        n.specsCompilationUnit = that.specsCompilationUnit; // FIXME: need to convert
+////        n.specsTopLevelModelTypes = convert(that.specsTopLevelModelTypes);
+//        result = n;
+//    }
     
     //OK
     @Override

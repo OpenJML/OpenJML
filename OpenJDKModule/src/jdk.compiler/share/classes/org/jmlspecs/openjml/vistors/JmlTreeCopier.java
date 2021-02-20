@@ -111,17 +111,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
     
 
-    public JCTree visitJmlCompilationUnit(JmlCompilationUnit that, Void p) {
-        JmlCompilationUnit copy = (JmlCompilationUnit)super.visitCompilationUnit(that,p);
-        copy.sourcefile = that.sourcefile;
-        copy.specsCompilationUnit = that == that.specsCompilationUnit ? copy : copy(that.specsCompilationUnit);
-        copy.mode = that.mode;
-//        copy.parsedTopLevelModelTypes = that.parsedTopLevelModelTypes; // FIXME - copy
-//        copy.specsTopLevelModelTypes = that.specsTopLevelModelTypes;// FIXME - copy
-        copy.type = that.type;
-        return copy;
-    }
-    
     public JCTree visitJmlChoose(JmlChoose that, Void p) {
         JmlChoose copy = M.at(that.pos).JmlChoose(that.keyword, that.clauseType, copy(that.orBlocks), copy(that.elseBlock));
         return copy;
@@ -911,8 +900,16 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     public JCTree visitCompilationUnit(CompilationUnitTree node, Void p) {
-        return super.visitCompilationUnit(node,p).setType(((JCTree)node).type);
-        // FIXME - lots more stuff to copy: docCOmments, endPositions, flags, lineMap, namedImportScope, packge, sourcefile, starImportScope
+    	JmlCompilationUnit that = (JmlCompilationUnit)node;
+        JmlCompilationUnit copy = (JmlCompilationUnit)super.visitCompilationUnit(that,p);
+        copy.pid = copy(that.pid, p); // FIXME - point to the copied decl
+        copy.sourcefile = that.sourcefile;
+        copy.specsCompilationUnit = that == that.specsCompilationUnit ? copy : copy(that.specsCompilationUnit);
+        copy.mode = that.mode;
+//        copy.parsedTopLevelModelTypes = that.parsedTopLevelModelTypes; // FIXME - copy
+//        copy.specsTopLevelModelTypes = that.specsTopLevelModelTypes;// FIXME - copy
+        copy.type = that.type;
+        return copy;
     }
 
     public JCTree visitTry(TryTree node, Void p) {
