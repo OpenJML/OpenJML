@@ -654,7 +654,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (useJMLComments) print("//@ ");
             print(that.clauseType.name());
             print(" ");
-            printExpr(that.expression); // noPrecÍP
+            printExpr(that.expression);
             print(";");
         } catch (IOException e) { perr(that,e); }
     }
