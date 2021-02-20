@@ -26,7 +26,7 @@ import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
-import org.jmlspecs.openjml.vistors.JmlTreeScanner;
+import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;

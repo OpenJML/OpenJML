@@ -38,11 +38,7 @@ import org.jmlspecs.openjml.Main.IProgressListener;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.ext.Modifiers;
-//import org.jmlspecs.openjml.sa.MethodDependencies;
-//import org.jmlspecs.openjml.strongarm.InferenceType;
-//import org.jmlspecs.openjml.strongarm.JmlInfer;
-//import org.jmlspecs.openjml.strongarm.JmlInferPostConditions;
-import org.jmlspecs.openjml.vistors.JmlUseSubstitutions;
+import org.jmlspecs.openjml.visitors.JmlUseSubstitutions;
 
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;

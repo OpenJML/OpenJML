@@ -47,6 +47,7 @@ import com.sun.tools.javac.util.ListBuffer;
 // extension will be broken into individual extensions when type checking and
 // RAC and ESC translation are added.
 public class EndStatement extends JmlExtension {
+	private EndStatement() {}
 
     public static final String endID = "end";
     public static final String beginID = "begin";
@@ -116,7 +117,7 @@ public class EndStatement extends JmlExtension {
             ListBuffer<JCIdent> exports = new ListBuffer<>();
             if (clauseType == EndStatement.refiningClause) {
                 parser.nextToken();
-                IJmlClauseKind ext = parser.methodSpecKeywordS(0);
+                IJmlClauseKind ext = parser.methodSpecKeywordS();
                 if (ext == alsoClause) { // jmlTokenKind() == JmlTokenKind.ALSO) {
                     utils.error(parser.pos(), parser.endPos(), "jml.invalid.also");
                     parser.nextToken();

@@ -17,7 +17,7 @@ import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.esc.BasicProgramParent.BlockParent;
-import org.jmlspecs.openjml.vistors.JmlTreeScanner;
+import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 

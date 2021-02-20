@@ -46,7 +46,7 @@ import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
-import org.jmlspecs.openjml.vistors.JmlTreeCopier;
+import org.jmlspecs.openjml.visitors.JmlTreeCopier;
 
 import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
 import static org.jmlspecs.openjml.ext.SignalsClauseExtension.*;

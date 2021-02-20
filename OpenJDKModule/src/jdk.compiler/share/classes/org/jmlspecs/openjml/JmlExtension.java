@@ -9,6 +9,7 @@ import com.sun.tools.javac.util.Context;
 /** Any class that contains JML extensions to be registered in the keyword recognizer
  *  must implement this marker interface*/
 public abstract class JmlExtension {
+	protected JmlExtension() {}
 
     public Context context;
         

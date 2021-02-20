@@ -5,7 +5,7 @@ import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
-import org.jmlspecs.openjml.vistors.JmlTreeCopier;
+import org.jmlspecs.openjml.visitors.JmlTreeCopier;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Flags.Flag;

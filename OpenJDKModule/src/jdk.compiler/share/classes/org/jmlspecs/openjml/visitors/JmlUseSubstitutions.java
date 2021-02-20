@@ -1,4 +1,4 @@
-package org.jmlspecs.openjml.vistors;
+package org.jmlspecs.openjml.visitors;
 
 import java.util.HashMap;
 import java.util.Iterator;

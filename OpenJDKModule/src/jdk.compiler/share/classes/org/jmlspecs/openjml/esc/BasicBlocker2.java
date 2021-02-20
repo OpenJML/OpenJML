@@ -35,7 +35,7 @@ import static org.jmlspecs.openjml.ext.Functional.*;
 import org.jmlspecs.openjml.ext.EndStatement;
 import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
-import org.jmlspecs.openjml.vistors.JmlTreeScanner;
+import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;

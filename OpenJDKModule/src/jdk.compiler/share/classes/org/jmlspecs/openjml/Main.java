@@ -307,20 +307,25 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @param args the command-line arguments
      */
     //@ requires args != null && \nonnullelements(args);
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         System.out.println("openjml main");
         useJML = true;
         if (args.length > 0 && args[0].equals("-Xjdb")) {
-            // Note: Copied directly from com.sun.tools.javac.Main and not tested
-            String[] newargs = new String[args.length + 2];
-            Class<?> c = Class.forName("com.sun.tools.example.debug.tty.TTY");
-            Method method = c.getDeclaredMethod ("main", new Class<?>[] {args.getClass()});
-            method.setAccessible(true);
-            System.arraycopy(args, 1, newargs, 3, args.length - 1);
-            newargs[0] = "-connect";
-            newargs[1] = "com.sun.jdi.CommandLineLaunch:options=-esa -ea:com.sun.tools...";
-            newargs[2] = "org.jmlspecs.openjml.Main";
-            method.invoke(null, new Object[] { newargs });
+        	try {
+        		// Note: Copied directly from com.sun.tools.javac.Main and not tested
+        		String[] newargs = new String[args.length + 2];
+        		Class<?> c = Class.forName("com.sun.tools.example.debug.tty.TTY");
+        		Method method = c.getDeclaredMethod ("main", new Class<?>[] {args.getClass()});
+        		method.setAccessible(true);
+        		System.arraycopy(args, 1, newargs, 3, args.length - 1);
+        		newargs[0] = "-connect";
+        		newargs[1] = "com.sun.jdi.CommandLineLaunch:options=-esa -ea:com.sun.tools...";
+        		newargs[2] = "org.jmlspecs.openjml.Main";
+        		method.invoke(null, new Object[] { newargs });
+        	} catch (Exception e) {
+        		e.printStackTrace(System.out);
+        		System.exit(3);
+        	}
         } else {
             System.exit(execute(args, false));  // The boolean: true - errors to stdErr, false - errors to stdOut
         }

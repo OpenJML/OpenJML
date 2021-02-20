@@ -531,15 +531,15 @@ public class JavacParser implements Parser {
         endPosTable.setErrorEndPos(errPos);
     }
 
-    public void storeEnd(JCTree tree, int endpos) { // OPENJML - protected to public
+    protected void storeEnd(JCTree tree, int endpos) {
         endPosTable.storeEnd(tree, endpos);
     }
 
-    public <T extends JCTree> T to(T t) { // OPENJML - protected to public
+    protected <T extends JCTree> T to(T t) {
         return endPosTable.to(t);
     }
 
-    public <T extends JCTree> T toP(T t) { // OPENJML - TEMP protected to public
+    protected <T extends JCTree> T toP(T t) {
         return endPosTable.toP(t);
     }
 
@@ -1673,6 +1673,15 @@ public class JavacParser implements Parser {
         }
     }
 
+    protected ParensResult analyzeParensHelper(Token t, ParensResult defaultResult) { // OPENJML - extracted so it can be overridden
+        return defaultResult;
+    }
+    
+    protected ParensResult analyzeParensHelper2(int lookahead, Token t, ParensResult defaultResult) { // OPENJML - extracted so it can be overridden
+        return defaultResult;
+    }
+
+
     /**
      * If we see an identifier followed by a '&lt;' it could be an unbound
      * method reference or a binary expression. To disambiguate, look for a
@@ -1736,7 +1745,7 @@ public class JavacParser implements Parser {
                         case LONG: case FLOAT: case DOUBLE: case BOOLEAN: case VOID:
                             return ParensResult.CAST;
                         default:
-                            return defaultResult;
+                            return analyzeParensHelper(S.token(lookahead + 1), defaultResult); // OPENJML - inserted hook to allow overriding
                     }
                 case UNDERSCORE:
                 case ASSERT:
@@ -1836,7 +1845,7 @@ public class JavacParser implements Parser {
                     break;
                 default:
                     //this includes EOF
-                    return defaultResult;
+                    return analyzeParensHelper2(lookahead,S.token(lookahead), defaultResult); // DRC - added a hook for overriding
             }
         }
     }

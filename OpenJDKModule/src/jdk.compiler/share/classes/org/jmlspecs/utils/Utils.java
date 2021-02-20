@@ -24,6 +24,8 @@ import org.jmlspecs.utils.JmlAssertionError.Precondition;
  * ESC and RAC.  In RAC, these functions are executed to provide the built-in
  * functionality; in ESC, the specifications written here are used to provide
  * background predicate logic for built-in functionality. 
+ * 
+ * In particular, this class is part of the OpenJML runtime library to support RAC functionality.
  * @author David Cok
  */
 public class Utils {

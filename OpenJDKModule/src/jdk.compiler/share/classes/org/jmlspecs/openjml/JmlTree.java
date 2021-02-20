@@ -18,8 +18,8 @@ import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.*;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
-import org.jmlspecs.openjml.vistors.IJmlVisitor;
-import org.jmlspecs.openjml.vistors.JmlTreeVisitor;
+import org.jmlspecs.openjml.visitors.IJmlVisitor;
+import org.jmlspecs.openjml.visitors.JmlTreeVisitor;
 
 import static org.jmlspecs.openjml.ext.TypeRepresentsClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeInitializerClauseExtension.*;
@@ -82,7 +82,7 @@ import com.sun.tools.javac.util.Position;
 // FIXME - the start and end positions are gotten from TreeInfo, which does not work for JML nodes
 /** This class simply holds the classes which are JML-specific nodes of parse trees. */
 public class JmlTree {
-
+	protected JmlTree() {}
     /** Convert a tree to a pretty-printed string using the JmlPrettyPrinter; note that
      * this is not inherited by anyone, it is here as a utility method and needs
      * to be called by nodes of JmlTree. */
@@ -1446,7 +1446,9 @@ public class JmlTree {
      * special cases of other specific Java expressions)
      */
     abstract public static class JmlExpression extends JCTree.JCExpression {
-        @Override
+    	protected JmlExpression() {}
+
+    	@Override
         public String toString() {
             return JmlTree.toString(this);
         }
@@ -1479,6 +1481,7 @@ public class JmlTree {
      * need to behave like Skip statements.
      */
     public static abstract class JmlAbstractStatement extends JCTree.JCSkip {
+    	protected JmlAbstractStatement() {}
         
         public String toString() {
             return JmlTree.toString(this);
@@ -3206,7 +3209,9 @@ public class JmlTree {
      * part of a loop specification.
      */
     public static abstract class JmlStatementLoop extends JmlAbstractStatement implements JmlSource {
-        public IJmlClauseKind clauseType;
+    	protected JmlStatementLoop() {}
+
+    	public IJmlClauseKind clauseType;
         public boolean translated;
  
         /** The source file in which the statement sits (and the file to which pos and line correspond) */
