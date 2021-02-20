@@ -957,7 +957,7 @@ public class MethodProverSMT {
                             sp = toTrace.getStartPosition();
                             ep = toTrace.getEndPosition(log.currentSource().getEndPosTable());
                         } else if (origStat instanceof JCCase) {
-                            toTrace = ((JCCase)origStat).getExpression();
+                            toTrace = ((JCCase)origStat).getBody();
                             sp = origStat.getStartPosition();
                             // 8 is the length of "default:"
                             ep = toTrace == null ? sp + 8 : toTrace.getEndPosition(log.currentSource().getEndPosTable());
@@ -1329,7 +1329,7 @@ public class MethodProverSMT {
                         sp = toTrace.getStartPosition();
                         ep = toTrace.getEndPosition(log.currentSource().getEndPosTable());
                     } else if (origStat instanceof JCCase) {
-                        toTrace = ((JCCase)origStat).getExpression();
+                        toTrace = ((JCCase)origStat).getBody();
                         sp = origStat.getStartPosition();
                         // 8 is the length of "default:"
                         ep = toTrace == null ? sp + 8 : toTrace.getEndPosition(log.currentSource().getEndPosTable());

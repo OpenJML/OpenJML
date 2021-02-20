@@ -791,30 +791,34 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             JCExpression defaultCond = treeutils.falseLit;
             JmlTree.JmlStatementExpr defaultAsm = null;
             boolean fallthrough = false; // Nothing to fall through to the first case
-            for (JCCase caseStatement: cases) {
-                /*@ nullable */ JCExpression caseValue = caseStatement.getExpression();
-                List<JCStatement> stats = caseStatement.getStatements();
-                int casepos = caseStatement.getStartPosition();
+            for (JCCase caseItem: cases) {
+            	List<JCExpression> caseValues = caseItem.getExpressions();
+                List<JCStatement> stats = caseItem.getStatements();
+                int casepos = caseItem.getStartPosition();
                 
                 // create a block for this case test
-                T blockForTest = newBlock(caseValue == null ? CASEDEFAULT : CASETEST ,
-                        caseValue == null ? casepos: caseStatement.getStartPosition()); // FIXME - this is a meaningless distinction, goiven the assignment to casepos
+                T blockForTest = newBlock(caseValues.isEmpty() ? CASEDEFAULT : CASETEST , casepos);
                 blocks.add(blockForTest);
                 follows(switchStart,blockForTest);
                 
                 // create the case test, or null if this is the default case
-                JCIdent vdd = treeutils.makeIdent(caseValue == null ? Position.NOPOS : caseValue.getStartPosition(),vd.sym);
-                /*@ nullable */ JCExpression eq = caseValue == null ? null : treeutils.makeBinary(caseValue.getStartPosition(),JCTree.Tag.EQ,vdd,(caseValue));
-                if (caseValue != null && switchExpression.type == syms.stringType) {
-                    
-                    
+                JCExpression eqq = null;
+                if (switchExpression.type == syms.stringType) {
+                	// FIXME
+                	utils.error(casepos, "jml.message", "Switch on string is not yet implemented");
+                	eqq = treeutils.trueLit;
+                } else {
+                	for (JCExpression caseValue: caseValues) {
+                		JCIdent vdd = treeutils.makeIdent(caseValue == null ? Position.NOPOS : caseValue.getStartPosition(),vd.sym);
+                		JCExpression eq = treeutils.makeBinary(caseValue.getStartPosition(),JCTree.Tag.EQ,vdd,(caseValue));
+                		eqq = eqq == null ? eq : treeutils.makeOr(casepos, eqq, eq);
+                	}
                 }
-                JmlStatementExpr asm = addAssume(vdd.pos,
-                		Label.CASECONDITION,eq,blockForTest.statements);
+                JmlStatementExpr asm = addAssume(caseItem.pos,Label.CASECONDITION,eqq,blockForTest.statements);
                 
                 // continue to build up the default case test
-                if (caseValue == null) defaultAsm = asm; // remember the assumption for the default case
-                else defaultCond = treeutils.makeOr(caseValue.getStartPosition(),eq,defaultCond);
+                if (caseValues.isEmpty()) defaultAsm = asm; // remember the assumption for the default case
+                else defaultCond = treeutils.makeOr(caseItem.getStartPosition(),eqq,defaultCond);
 
                 // It is always safe for the value of 'fallthrough' to be true, 
                 // since processing of the blocks will take care of changing a
@@ -830,7 +834,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
                 } else {
                     // (possibly) falling through from the previous case
                     // since there is fall-through, the statements need to go in their own block
-                    T blockForStats = newBlock(CASEBODY,caseStatement.getStartPosition());
+                    T blockForStats = newBlock(CASEBODY,caseItem.getStartPosition());
                     blockForStats.statements.addAll(stats);
                     
                     follows(blockForTest,blockForStats);
