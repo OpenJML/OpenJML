@@ -130,11 +130,6 @@ public class JmlFlow extends Flow  {
         }
 
         @Override
-        public void visitJmlCompilationUnit(JmlCompilationUnit that) {
-            visitTopLevel(that);
-        }
-
-        @Override
         public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
             visitDoLoop(that);
         }
@@ -516,11 +511,6 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitJmlClassDecl(JmlClassDecl that) {
             visitClassDef(that);
-        }
-
-        @Override
-        public void visitJmlCompilationUnit(JmlCompilationUnit that) {
-            visitTopLevel(that);
         }
 
         @Override
@@ -929,11 +919,6 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitJmlClassDecl(JmlClassDecl that) {
             visitClassDef(that);
-        }
-
-        @Override
-        public void visitJmlCompilationUnit(JmlCompilationUnit that) {
-            visitTopLevel(that);
         }
 
         @Override

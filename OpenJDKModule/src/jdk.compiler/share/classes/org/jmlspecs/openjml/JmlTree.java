@@ -61,6 +61,7 @@ import com.sun.tools.javac.tree.JCTree.JCLambda;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
+import com.sun.tools.javac.tree.JCTree.JCPackageDecl;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCSwitch;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
@@ -230,10 +231,7 @@ public class JmlTree {
         /** Creates a JmlCompilationUnit */
         @Override
         public JmlCompilationUnit TopLevel(List<JCTree> defs) {
-            JmlCompilationUnit t = new JmlCompilationUnit(null,
-                    null,
-                    defs,
-                    null,null,null,null);
+            JmlCompilationUnit t = new JmlCompilationUnit(defs,null,null,null,null);
             t.pos = this.pos;
             return t;
         }
@@ -940,10 +938,12 @@ public class JmlTree {
         
         /** This list contains the parse tree of the specification file, if any, for this compilation unit. 
          *  This field may point to 'this' if the compilation unit is its own specs file. */
-        public /*@ nullable */ JmlCompilationUnit specsCompilationUnit = null;
+    	/*@ nullable */
+    	public JmlCompilationUnit specsCompilationUnit = null;
 
         /** The tree representing the package clause. */
-        public JCExpression pid; // TODO - this was removed from JCCompilationUnit since Java8 - what is used instead?
+        /*@ nullable */
+        public JCPackageDecl pid;
 
 //        /** This list contains the top-level model types declared in this compilation unit; this
 //         * is not necessarily all or even part of the top-level model types that the CUs specifications
@@ -1001,26 +1001,25 @@ public class JmlTree {
 //        static public boolean isFull(int mode) { return (mode & 8) == 0; }
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlCompilationUnit(List<JCAnnotation> packageAnnotations,
-                JCExpression pid,
-                List<JCTree> defs,
+        protected JmlCompilationUnit(List<JCTree> defs,
                 JavaFileObject sourcefile,
                 PackageSymbol packge,
                 NamedImportScope namedImportScope,
                 StarImportScope starImportScope) {
-//            super(packageAnnotations,pid,defs,sourcefile,packge,namedImportScope,starImportScope);
         	super(defs);
         	this.sourcefile = sourcefile;
         	this.packge = packge;
         	this.namedImportScope = namedImportScope;
         	this.starImportScope = starImportScope;
-        	this.pid = pid;
+            if (defs.length() > 0 && defs.head instanceof JCPackageDecl) {
+            	this.pid = (JCPackageDecl)defs.head;           	
+            }
         }
         
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlCompilationUnit(this); 
+                ((IJmlVisitor)v).visitTopLevel(this); 
             } else {
                 // unexpectedVisitor(this,v);
                 super.accept(v);
@@ -1030,7 +1029,7 @@ public class JmlTree {
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlCompilationUnit(this, d);
+                return ((JmlTreeVisitor<R,D>)v).visitCompilationUnit(this, d);
             } else {
                 // unexpectedVisitor(this,v);
                 return super.accept(v,d);

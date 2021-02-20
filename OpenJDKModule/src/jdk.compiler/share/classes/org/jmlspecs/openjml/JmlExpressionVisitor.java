@@ -55,6 +55,7 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     public R visitBreak(BreakTree node, P p)                                            { return shouldNotBeCalled(node); }
     public R visitCase(CaseTree node, P p)                                              { return shouldNotBeCalled(node); }
     public R visitCatch(CatchTree node, P p)                                            { return shouldNotBeCalled(node); }
+    public R visitCompilationUnit(CompilationUnitTree that, P p)                        { return shouldNotBeCalled(that); }
     public R visitContinue(ContinueTree node, P p)                                      { return shouldNotBeCalled(node); }
     public R visitDoWhileLoop(DoWhileLoopTree node, P p)                                { return shouldNotBeCalled(node); }
     public R visitExpressionStatement(ExpressionStatementTree node, P p)                { return shouldNotBeCalled(node); }
@@ -70,7 +71,6 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     public R visitSwitch(SwitchTree node, P p)                                          { return shouldNotBeCalled(node); }
     public R visitSynchronized(SynchronizedTree node, P p)                              { return shouldNotBeCalled(node); }
     public R visitThrow(ThrowTree node, P p)                                            { return shouldNotBeCalled(node); }
-    public R visitCompilationUnit(CompilationUnitTree node, P p)                        { return shouldNotBeCalled(node); }
     public R visitTry(TryTree node, P p)                                                { return shouldNotBeCalled(node); }
     public R visitParameterizedType(ParameterizedTypeTree node, P p)                    { return shouldNotBeCalled(node); }
     public R visitUnionType(UnionTypeTree node, P p)                                    { return shouldNotBeCalled(node); }
@@ -96,7 +96,6 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
 
     public R visitJmlChoose(JmlChoose that, P p)                                        { return shouldNotBeCalled(that); }
     public R visitJmlClassDecl(JmlClassDecl that, P p)                                  { return shouldNotBeCalled(that); }
-    public R visitJmlCompilationUnit(JmlCompilationUnit that, P p)                      { return shouldNotBeCalled(that); }
     public R visitJmlConstraintMethodSig(JmlMethodSig that, P p)                        { return shouldNotBeCalled(that); }  
     public R visitJmlDoWhileLoop(JmlDoWhileLoop that, P p)                              { return shouldNotBeCalled(that); }
     public R visitJmlEnhancedForLoop(JmlEnhancedForLoop that, P p)                      { return shouldNotBeCalled(that); }

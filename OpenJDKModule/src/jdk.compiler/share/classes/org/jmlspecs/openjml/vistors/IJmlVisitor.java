@@ -23,7 +23,6 @@ public interface IJmlVisitor extends IVisitor {
     public void visitJmlChained(JmlChained that)                   ;
     public void visitJmlChoose(JmlChoose that)                     ;
     public void visitJmlClassDecl(JmlClassDecl that)               ;
-    public void visitJmlCompilationUnit(JmlCompilationUnit that)   ;
     public void visitJmlMethodSig(JmlMethodSig that)               ;
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that)           ;
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that)   ;

@@ -1846,7 +1846,6 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     // These do not need to be implemented
     @Override public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }
     @Override public void visitImport(JCImport that)               { shouldNotBeCalled(that); }
-    @Override public void visitJmlCompilationUnit(JmlCompilationUnit that)   { shouldNotBeCalled(that); }
     @Override public void visitJmlImport(JmlImport that)                     { shouldNotBeCalled(that); }
     @Override public void visitMethodDef(JCMethodDecl that)        { shouldNotBeCalled(that); }
     @Override public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
@@ -2009,7 +2008,6 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         // visitJmlBBFieldAssignment - FIXME ?
         // visitJmlBinary - no new types - FIXME - subtype?
         // visitJmlClassDecl - FIXME - do specs also
-        // visitJmlCompilationUnit - just scan internal components
         // visitJmlConstraintMethodSig - FIXME ?
         // visitJmlDoWhileLoop - FIXME - scan specs
         // visitJmlEnhancedForLoop - FIXME - scan specs

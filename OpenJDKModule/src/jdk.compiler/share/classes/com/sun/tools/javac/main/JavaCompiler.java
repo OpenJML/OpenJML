@@ -782,7 +782,7 @@ public class JavaCompiler {
             return null;
         } else {
             try (BufferedWriter out = new BufferedWriter(outFile.openWriter())) {
-                new Pretty(out, true).printUnit(env.toplevel, cdef);
+                Pretty.instance(out, true).printUnit(env.toplevel, cdef);
                 if (verbose)
                     log.printVerbose("wrote.file", outFile.getName());
             }

@@ -6162,9 +6162,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         super.visitClassDef(tree);
 
     }
-    public void visitJmlCompilationUnit(JmlCompilationUnit that) {
-        visitTopLevel(that);
-    }
 
     @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {

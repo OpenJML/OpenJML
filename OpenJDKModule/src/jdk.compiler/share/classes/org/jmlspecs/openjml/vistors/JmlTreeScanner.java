@@ -19,11 +19,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMatchExpression.MatchCase;
 import com.sun.source.tree.LabeledStatementTree;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeScanner;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
-import com.sun.tools.javac.tree.JCTree.JCLambda;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
@@ -132,7 +128,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         }
     }
 
-    public void visitJmlCompilationUnit(JmlCompilationUnit that) {
+    public void visitTopLevel(JCCompilationUnit that) {
 //        scan(that.packageAnnotations);
 //        scan(that.pid); // package id
         scan(that.defs);
