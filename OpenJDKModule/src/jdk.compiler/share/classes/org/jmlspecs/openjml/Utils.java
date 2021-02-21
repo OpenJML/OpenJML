@@ -1526,11 +1526,11 @@ public class Utils {
     }
     
     public void error(String key, Object ... args) {
-        log.error(JCDiagnostic.Factory.instance(context).errorKey(key, args));
+        log().error(JCDiagnostic.Factory.instance(context).errorKey(key, args));
     }
 
     public void error(int pos, String key, Object ... args) {
-        log.error(pos, JCDiagnostic.Factory.instance(context).errorKey(key, args));
+        log().error(pos, JCDiagnostic.Factory.instance(context).errorKey(key, args));
     }
 
     public void error(int begin, int end, String key, Object... args) {
@@ -1546,23 +1546,23 @@ public class Utils {
     }
     
     public void error(DiagnosticPosition pos, String key, Object ... args) {
-        log.error(null, pos, JCDiagnostic.Factory.instance(context).errorKey(key, args));
+        log().error(null, pos, JCDiagnostic.Factory.instance(context).errorKey(key, args));
     }
 
     public void error(DiagnosticFlag flag, DiagnosticPosition pos, String key, Object ... args) {
-        log.error(flag, pos, JCDiagnostic.Factory.instance(context).errorKey(key, args));
+        log().error(flag, pos, JCDiagnostic.Factory.instance(context).errorKey(key, args));
     }
 
     public void error(DiagnosticFlag flag, int pos, String key, Object ... args) {
-        log.error(flag, pos, JCDiagnostic.Factory.instance(context).errorKey(key, args));
+        log().error(flag, pos, JCDiagnostic.Factory.instance(context).errorKey(key, args));
     }
 
     public void warning(String key, Object ... args) {
-        log.warning(JCDiagnostic.Factory.instance(context).warningKey(key, args));
+        log().warning(JCDiagnostic.Factory.instance(context).warningKey(key, args));
     }
 
     public void warning(int pos, String key, Object ... args) {
-        log.warning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
+        log().warning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
     }
 
     public void warning(int begin, int end, String key, Object... args) {
@@ -1578,17 +1578,17 @@ public class Utils {
     }
     
     public void warning(DiagnosticPosition pos, String key, Object ... args) {
-        log.warning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
+        log().warning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
     }
 
     public void note(boolean verboseOnly, String msg) {
     	if (!verboseOnly || Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE) {
-    		Log.instance(context).getWriter(WriterKind.NOTICE).println(msg);
+    		log().getWriter(WriterKind.NOTICE).println(msg);
     	}
     }
 
     public void note(DiagnosticPosition pos, String key, Object ... args) {
-        log.note(pos, JCDiagnostic.Factory.instance(context).noteKey(key, args));
+        log().note(pos, JCDiagnostic.Factory.instance(context).noteKey(key, args));
     }
 
     /** A derived class of DiagnosticPosition that allows for straightforward setting of the

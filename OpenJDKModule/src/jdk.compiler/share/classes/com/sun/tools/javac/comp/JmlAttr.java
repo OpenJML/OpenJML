@@ -179,13 +179,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @NonNull final public static String utilsClassName = org.jmlspecs.utils.Utils.class.getCanonicalName();
     
     /** Cached symbol of the org.jmlspecs.utils.Utils class */
-    @NonNull final public ClassSymbol utilsClass;
+    @NonNull public ClassSymbol utilsClass;
     
     /** Cached identifier of the org.jmlspecs.utils.Utils class */
-    @NonNull final protected JCIdent utilsClassIdent;
+    @NonNull protected JCIdent utilsClassIdent;
     
     /** Cached value of the JMLDataGroup class */
-    @NonNull final public ClassSymbol datagroupClass;
+    @NonNull public ClassSymbol datagroupClass;
     
     /** The JmlSpecs instance for this context */
     @NonNull final protected JmlSpecs specs;
@@ -213,19 +213,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @NonNull final public JmlResolve jmlresolve;
     
     /** An instance of the tree utility class */
-    @NonNull final public JmlTreeUtils treeutils;
+    @NonNull public JmlTreeUtils treeutils; // initialized later to avoid circular tool instantiations
 
     /** A Literal for a boolean true */
-    @NonNull final protected JCLiteral trueLit;
+    @NonNull protected JCLiteral trueLit;
     
     /** A Literal for a boolean false */
-    @NonNull final protected JCLiteral falseLit;
+    @NonNull protected JCLiteral falseLit;
     
     /** A Literal for a null constant */
-    @NonNull final protected JCLiteral nullLit;
+    @NonNull protected JCLiteral nullLit;
     
     /** A Literal for an int zero */
-    @NonNull final protected JCLiteral zeroLit;
+    @NonNull protected JCLiteral zeroLit;
     
     /** Cached value of the @NonNull annotation symbol */
     public ClassSymbol nonnullAnnotationSymbol = null;
@@ -241,14 +241,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // type tags are out of range, so we cannot use the usual
     // initType call to initialize them.
     // FIXME - may need to revisit this for boxing and unboxing
-    final public Type Lock;// = new Type(1003,null);
-    final public Type LockSet;// = new Type(1004,null);
-    final public Type JMLValuesType;
-    final public Type JMLIterType;
-    final public Type JMLSetType;
-    final public Type JMLArrayLike;
-    final public Type JMLIntArrayLike;
-    final public Type JMLPrimitive;
+    public Type Lock;// = new Type(1003,null);
+    public Type LockSet;// = new Type(1004,null);
+    public Type JMLValuesType;
+    public Type JMLIterType;
+    public Type JMLSetType;
+    public Type JMLArrayLike;
+    public Type JMLIntArrayLike;
+    public Type JMLPrimitive;
     
     // The following fields are stacked as the environment changes as one
     // visits down the tree.
@@ -329,7 +329,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         //this.classReader.init(syms);
         this.jmlcompiler = (JmlCompiler)JmlCompiler.instance(context);
         this.jmlresolve = (JmlResolve)super.rs;
-        this.treeutils = JmlTreeUtils.instance(context);
         
         // Caution, because of circular dependencies among constructors of the
         // various tools, it can happen that syms is not fully constructed at this
@@ -339,8 +338,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Stack trace is printed inside the constructor
             throw new JmlInternalError();
         }
-        initAnnotationNames(context);
 
+
+        this.resultName = names.fromString(Strings.resultVarString);
+        this.exceptionName = names.fromString(Strings.exceptionVarString);
+        
+
+    }
+    
+    public void init() {
+        this.treeutils = JmlTreeUtils.instance(context);
+        initAnnotationNames(context);
         utilsClass = createClass(utilsClassName);
         utilsClassIdent = jmlMaker.Ident(utilsClassName);
         utilsClassIdent.type = utilsClass.type;
@@ -356,15 +364,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JMLIterType = createClass("java.util.Iterator").type;
         Lock = syms.objectType;
         LockSet = JMLSetType;
-
-        this.resultName = names.fromString(Strings.resultVarString);
-        this.exceptionName = names.fromString(Strings.exceptionVarString);
-        
         trueLit = makeLit(syms.booleanType,1);
         falseLit = makeLit(syms.booleanType,0);
         nullLit = makeLit(syms.botType,null);
         zeroLit = makeLit(syms.intType,0);
-
     }
  
     /** Returns (creating if necessary) a class symbol for a given fully-qualified name */
@@ -5280,10 +5283,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                tokenToAnnotationSymbol.put(t,sym);
 //            }
 //        }
+        Name n = names.fromString("jdk.compiler");
+        Symbol.ModuleSymbol mod = null;
+        for (var m: Modules.instance(context).allModules()) {
+        	if (m.name == n) { mod = m; break; }
+        }
         for (IJmlClauseKind kk: Extensions.allKinds.values()) {
             if (!(kk instanceof ModifierKind)) continue;
             ModifierKind k = (ModifierKind)kk;
-            ClassSymbol sym = ClassReader.instance(context).enterClass(names.fromString(k.fullAnnotation));
+            ClassSymbol sym = syms.enterClass(mod, names.fromString(k.fullAnnotation));
             modToAnnotationSymbol.put(k,sym);
         }
 

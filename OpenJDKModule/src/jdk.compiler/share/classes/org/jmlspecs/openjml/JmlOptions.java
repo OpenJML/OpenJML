@@ -500,7 +500,7 @@ public class JmlOptions extends Options {
     /** Adds additional options to those already present (which may change
      * previous settings). */
     public void addOptions(String... args) {
-        processJmlArgs(args, Options.instance(context), null);
+        args = processJmlArgs(args, Options.instance(context), null);
         setupOptions();
     }
 

@@ -141,13 +141,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         super(context);
         this.context = context;
         this.utils = Utils.instance(context);
-        this.resolve = JmlResolve.instance(context);
+//        this.resolve = JmlResolve.instance(context);
         this.enter = (JmlEnter)JmlEnter.instance(context);
         this.names = Names.instance(context);
         this.org_jmlspecs_lang = names.fromString(Strings.jmlSpecsPackage);
         this.jmlF = JmlTree.Maker.instance(context);
         this.syms = Symtab.instance(context);
-        this.specs = JmlSpecs.instance(context);
+//        this.specs = JmlSpecs.instance(context);
         this.modelName = names.fromString(Modifiers.MODEL.keyword);
         this.log = Log.instance(context);
     }
@@ -458,28 +458,29 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     
     /** Returns true if there is a duplicate, whether or not it was warned about */
     protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, WriteableScope enclScope) {
-        boolean was = ((JmlCheck)chk).noDuplicateWarn;
-        if (m.isConstructor() && (m.flags() & Utils.JMLBIT) != 0 && m.params().isEmpty()) {
-            ((JmlCheck)chk).noDuplicateWarn = true;
-        }
-//        if (m.owner.isEnum() && m.toString().equals("valueOf(java.lang.String)")) {
+//        boolean was = ((JmlCheck)chk).noDuplicateWarn;
+//        if (m.isConstructor() && (m.flags() & Utils.JMLBIT) != 0 && m.params().isEmpty()) {
 //            ((JmlCheck)chk).noDuplicateWarn = true;
-//        }  // FIXME
-        if (chk.checkUnique(tree.pos(), m, enclScope)) {
-            if (!noEntering) {
-                if (tree.body == null && m.owner.isInterface() && utils.isJML(m.flags())) {
-                    m.flags_field |= (Flags.ABSTRACT | Utils.JMLADDED);
-                    m.enclClass().flags_field |= Utils.JMLADDED;
-                }
-                enclScope.enter(m);
-            }
-            ((JmlCheck)chk).noDuplicateWarn = was;
-            return true;
-        } else {
-            if (!((JmlCheck)chk).noDuplicateWarn) tree.sym = null;  // FIXME - this needs some testing
-            ((JmlCheck)chk).noDuplicateWarn = was;
-            return false;
-        }
+//        }
+////        if (m.owner.isEnum() && m.toString().equals("valueOf(java.lang.String)")) {
+////            ((JmlCheck)chk).noDuplicateWarn = true;
+////        }  // FIXME
+//        if (chk.checkUnique(tree.pos(), m, enclScope)) {
+//            if (!noEntering) {
+//                if (tree.body == null && m.owner.isInterface() && utils.isJML(m.flags())) {
+//                    m.flags_field |= (Flags.ABSTRACT | Utils.JMLADDED);
+//                    m.enclClass().flags_field |= Utils.JMLADDED;
+//                }
+//                enclScope.enter(m);
+//            }
+//            ((JmlCheck)chk).noDuplicateWarn = was;
+//            return true;
+//        } else {
+//            if (!((JmlCheck)chk).noDuplicateWarn) tree.sym = null;  // FIXME - this needs some testing
+//            ((JmlCheck)chk).noDuplicateWarn = was;
+//            return false;
+//        }
+    	return super.visitMethodDefHelper(tree, m, enclScope);
     }
 
     // FIXME _ not currently used
@@ -1715,22 +1716,21 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     
     @Override 
     public void visitMethodDef(JCMethodDecl tree) {
-        JmlMethodDecl prevMethod = currentMethod;
+        JmlMethodDecl prevMethod = currentMethod; // FIXME - why do we need to stack calls?
         currentMethod = (JmlMethodDecl) tree;
-        boolean prevAllowJml = resolve.allowJML();
-        long flags = tree.mods.flags;
-        boolean isJMLMethod = utils.isJML(flags);
+//        boolean prevAllowJml = resolve.allowJML();
+//        boolean isJMLMethod = utils.isJML(tree.mods);
         try {
-            boolean isSpecForBinary = modeOfFileBeingChecked == JmlCompilationUnit.SPEC_FOR_BINARY;
-            boolean isSpecFile = currentMethod.sourcefile == null || currentMethod.sourcefile.getKind() != JavaFileObject.Kind.SOURCE;
-//            boolean isClassModel = ((JmlAttr)attr).isModel(env.enclClass.mods);
-            if (isSpecFile && tree.sym != null) return; //Sometimes this is called when the method already is entered
-            if (isJMLMethod) resolve.setAllowJML(true);
+//            boolean isSpecForBinary = modeOfFileBeingChecked == JmlCompilationUnit.SPEC_FOR_BINARY;
+//            boolean isSpecFile = currentMethod.sourcefile == null || currentMethod.sourcefile.getKind() != JavaFileObject.Kind.SOURCE;
+////            boolean isClassModel = ((JmlAttr)attr).isModel(env.enclClass.mods);
+//            if (isSpecFile && tree.sym != null) return; //Sometimes this is called when the method already is entered
+//            if (isJMLMethod) resolve.setAllowJML(true);
             super.visitMethodDef(tree);
-//            if (!isSpecFile) super.visitMethodDef(tree);
-//            if (isSpecFile) visitMethodDefBinary(tree);
+////            if (!isSpecFile) super.visitMethodDef(tree);
+////            if (isSpecFile) visitMethodDefBinary(tree);
         } finally {
-            if (isJMLMethod) resolve.setAllowJML(prevAllowJml);
+//            if (isJMLMethod) resolve.setAllowJML(prevAllowJml);
             currentMethod = prevMethod;
         }
         
@@ -1936,73 +1936,75 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     @Override
     public boolean visitVarDefIsStatic(JCVariableDecl tree, Env<AttrContext> env) {
         boolean b = super.visitVarDefIsStatic(tree,env);
-        if (!isInJml && !utils.isJML(tree.mods)) return b; // FIXME - why isn't isInJml enough here - we need the second conjunct for ghost declarations in an interface
-        if ((tree.mods.flags & STATIC) != 0) return true;
-        
-        // In the case where we are in an interface but within a JML expression
-        // we can use type variables.
-        return false; // FIXME - improve this
+//        if (!isInJml && !utils.isJML(tree.mods)) return b; // FIXME - why isn't isInJml enough here - we need the second conjunct for ghost declarations in an interface
+//        if ((tree.mods.flags & STATIC) != 0) return true;
+//        
+//        // In the case where we are in an interface but within a JML expression
+//        // we can use type variables.
+//        return false; // FIXME - improve this
+        return b;
     }
 
 
     @Override
     public void visitVarDef(JCVariableDecl tree) {
-        long flags = tree.mods.flags;
-        boolean wasFinal = (flags&Flags.FINAL) != 0;
-        boolean wasStatic = (flags&Flags.STATIC) != 0;
-        if ((env.enclClass.mods.flags & INTERFACE) != 0  && utils.isJML(tree.mods)) {
-            // FIXME - but the @Instance declaration might be in the .jml file
-            boolean isInstance = JmlAttr.instance(context).findMod(tree.mods, Modifiers.INSTANCE) != null;
-            if (isInstance && !wasStatic) tree.mods.flags &= ~Flags.STATIC;
-        }
-        boolean prev = resolve.allowJML();
-        boolean isReplacementType = ((JmlVariableDecl)tree).jmltype;
-        
-        if (utils.isJML(tree.mods) || isReplacementType) resolve.setAllowJML(true);
-        
-//        boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
-//        ((JmlCheck)chk).noDuplicateWarn = false;
+//        long flags = tree.mods.flags;
+//        boolean wasFinal = (flags&Flags.FINAL) != 0;
+//        boolean wasStatic = (flags&Flags.STATIC) != 0;
+//        if ((env.enclClass.mods.flags & INTERFACE) != 0  && utils.isJML(tree.mods)) {
+//            // FIXME - but the @Instance declaration might be in the .jml file
+//            boolean isInstance = JmlAttr.instance(context).findMod(tree.mods, Modifiers.INSTANCE) != null;
+//            if (isInstance && !wasStatic) tree.mods.flags &= ~Flags.STATIC;
+//        }
+//        boolean prev = resolve.allowJML();
+//        boolean isReplacementType = ((JmlVariableDecl)tree).jmltype;
+//        
+//        if (utils.isJML(tree.mods) || isReplacementType) resolve.setAllowJML(true);
+//        
+////        boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
+////        ((JmlCheck)chk).noDuplicateWarn = false;
         JavaFileObject prevSource = log.useSource( ((JmlVariableDecl)tree).source());
         super.visitVarDef(tree);
         log.useSource(prevSource);
-//        ((JmlCheck)chk).noDuplicateWarn = prevChk;
-        if (utils.isJML(tree.mods)) resolve.setAllowJML(prev);
-        if (tree.sym == null) {
-            // A duplicate
-            env.enclClass.defs = List.filter(env.enclClass.defs,tree);
-            return;
-        }
-        Symbol sym = tree.sym;
-        if (specs.getSpecs(tree.sym) != null) utils.warning("jml.internal","Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
-        JmlVariableDecl jtree = (JmlVariableDecl)tree;
-        
-        // FIXME - the following duplicates setting the specs with matchAndSetFieldSpecs - but if there is a source file, this comes first
-        JmlSpecs.FieldSpecs fspecs = jtree.fieldSpecs;
-        if (fspecs == null) fspecs = new JmlSpecs.FieldSpecs(jtree); // Does not include any in or maps clauses
-        jtree.fieldSpecsCombined = fspecs; 
-        specs.putSpecs(tree.sym,fspecs);
-        if (sym.kind == VAR && sym.owner.kind == TYP && (sym.owner.flags_field & INTERFACE) != 0
-                && utils.isJML(tree.mods)) {
-            // In the case of a JML ghost variable that is a field of an interface, the default is static and not final
-            // (unless explicitly specified final)
-            // FIXME _ the following is not robust because annotations are not attributed yet - test these as well
-            boolean isInstance = utils.findMod(tree.mods,Modifiers.INSTANCE) != null;
-            //boolean isGhost = JmlAttr.instance(context).findMod(tree.mods,JmlToken.GHOST) != null;
-            //boolean isModel = JmlAttr.instance(context).findMod(tree.mods,JmlToken.MODEL) != null;
-            if (isInstance && !wasStatic) tree.sym.flags_field &= ~Flags.STATIC;  // FIXME - this duplicates JmlCheck
-            if (!wasFinal) sym.flags_field &= ~FINAL; 
-        }
+////        ((JmlCheck)chk).noDuplicateWarn = prevChk;
+//        if (utils.isJML(tree.mods)) resolve.setAllowJML(prev);
+//        if (tree.sym == null) {
+//            // A duplicate
+//            env.enclClass.defs = List.filter(env.enclClass.defs,tree);
+//            return;
+//        }
+//        Symbol sym = tree.sym;
+//        if (specs.getSpecs(tree.sym) != null) utils.warning("jml.internal","Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
+//        JmlVariableDecl jtree = (JmlVariableDecl)tree;
+//        
+//        // FIXME - the following duplicates setting the specs with matchAndSetFieldSpecs - but if there is a source file, this comes first
+//        JmlSpecs.FieldSpecs fspecs = jtree.fieldSpecs;
+//        if (fspecs == null) fspecs = new JmlSpecs.FieldSpecs(jtree); // Does not include any in or maps clauses
+//        jtree.fieldSpecsCombined = fspecs; 
+//        specs.putSpecs(tree.sym,fspecs);
+//        if (sym.kind == VAR && sym.owner.kind == TYP && (sym.owner.flags_field & INTERFACE) != 0
+//                && utils.isJML(tree.mods)) {
+//            // In the case of a JML ghost variable that is a field of an interface, the default is static and not final
+//            // (unless explicitly specified final)
+//            // FIXME _ the following is not robust because annotations are not attributed yet - test these as well
+//            boolean isInstance = utils.findMod(tree.mods,Modifiers.INSTANCE) != null;
+//            //boolean isGhost = JmlAttr.instance(context).findMod(tree.mods,JmlToken.GHOST) != null;
+//            //boolean isModel = JmlAttr.instance(context).findMod(tree.mods,JmlToken.MODEL) != null;
+//            if (isInstance && !wasStatic) tree.sym.flags_field &= ~Flags.STATIC;  // FIXME - this duplicates JmlCheck
+//            if (!wasFinal) sym.flags_field &= ~FINAL; 
+//        }
     }
     
     protected void visitFieldDefHelper(JCVariableDecl tree, VarSymbol v, WriteableScope enclScope) {
-        if (chk.checkUnique(tree.pos(), v, enclScope)) {
-            chk.checkTransparentVar(tree.pos(), v, enclScope);
-            if (!noEntering) enclScope.enter(v);
-        } else {
-            // A duplicate definition. It is not entered into the scope, but we
-            // give it its symbol so later processing does not crash.
-            tree.sym = v;
-        }
+//        if (chk.checkUnique(tree.pos(), v, enclScope)) {
+//            chk.checkTransparentVar(tree.pos(), v, enclScope);
+//            if (!noEntering) enclScope.enter(v);
+//        } else {
+//            // A duplicate definition. It is not entered into the scope, but we
+//            // give it its symbol so later processing does not crash.
+//            tree.sym = v;
+//        }
+    	super.visitFieldDefHelper(tree, v, enclScope);
     }
     
     /** Creates a JCAnnotation tree (without position, source, or type information) from a token; has limited use */

@@ -58,12 +58,12 @@ public class MemberEnter extends JCTree.Visitor {
 
     private final Enter enter;
     private final Log log;
-    public final Check chk; // OPENJML - private to public
-    public final Attr attr; // OPENJML - private to public
+    protected final Check chk; // OPENJML - private to protected
+    protected final Attr attr; // OPENJML - private to protected
     private final Symtab syms;
-    public final Annotate annotate; // OPENJML - private to public
-    public final Types types; // OPENJML - private to public
-    public final DeferredLintHandler deferredLintHandler; // OPENJML - private to public
+    protected final Annotate annotate; // OPENJML - private to protected
+    protected final Types types; // OPENJML - private to protected
+    protected final DeferredLintHandler deferredLintHandler; // OPENJML - private to protected
 
     public static MemberEnter instance(Context context) {
         MemberEnter instance = context.get(memberEnterKey);
@@ -177,6 +177,7 @@ public class MemberEnter extends JCTree.Visitor {
     }
 
     public void visitMethodDef(JCMethodDecl tree) {
+    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("MemberEnter:visitMethodDef " + tree.name ); 
         WriteableScope enclScope = enter.enterScope(env);
         MethodSymbol m = new MethodSymbol(0, tree.name, null, enclScope.owner);
         m.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, m, tree);
@@ -258,6 +259,7 @@ public class MemberEnter extends JCTree.Visitor {
     }
 
     public void visitVarDef(JCVariableDecl tree) {
+    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("MemberEnter:visitVarDef " + tree.name); 
         Env<AttrContext> localEnv = env;
         if (visitVarDefIsStatic(tree,env)) {  // OPENJML
 //        if ((tree.mods.flags & STATIC) != 0 ||
@@ -466,6 +468,7 @@ public class MemberEnter extends JCTree.Visitor {
     /** Default member enter visitor method: do nothing
      */
     public void visitTree(JCTree tree) {
+    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("MemberEnter:visitTree " + tree.getClass()); 
     }
 
     public void visitErroneous(JCErroneous tree) {
