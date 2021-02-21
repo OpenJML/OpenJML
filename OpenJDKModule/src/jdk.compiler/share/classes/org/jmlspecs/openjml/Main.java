@@ -38,6 +38,7 @@ import org.jmlspecs.openjml.esc.MethodProverSMT;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlCheck;
 import com.sun.tools.javac.comp.JmlDeferredAttr;
@@ -559,7 +560,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         this.context = context;
         register(context);
         setProofResultListener(prl);
-        JmlOptions.instance(context).processJmlArgs(args, Options.instance(context), null);
+        args = JmlOptions.instance(context).processJmlArgs(args, Options.instance(context), null);
         // Note that the Java option processing happens in compile method call below.
         // Those options are not read at the time of the register call,
         // but the register call has to happen before compile is called.
@@ -677,18 +678,18 @@ public class Main extends com.sun.tools.javac.main.Main {
         // tools.
         // Any initialization of these tools that needs to be done based on 
         // options should be performed in setupOptions().
-//        JmlSpecs.preRegister(context); // registering the specifications repository
+        JmlSpecs.preRegister(context); // registering the specifications repository
         JmlFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlParsers
         JmlScanner.JmlFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlScanners
         JmlTree.Maker.preRegister(context); // registering a JML-aware factory for generating JmlTree nodes
-//        JmlCompiler.preRegister(context);
- //       JmlEnter.preRegister(context);
- //       JmlResolve.preRegister(context);
+        JmlCompiler.preRegister(context);
+        JmlEnter.preRegister(context);
+        JmlResolve.preRegister(context);
 //        JmlFlow.preRegister(context);
-//        JmlMemberEnter.preRegister(context);
-//        JmlTypes.preRegister(context);
-//        JmlAttr.preRegister(context);  // registering a JML-aware type checker
-//        JmlCheck.preRegister(context);
+        JmlMemberEnter.preRegister(context);
+        JmlTypes.preRegister(context);
+        JmlAttr.preRegister(context);  // registering a JML-aware type checker
+        JmlCheck.preRegister(context);
         JmlPretty.preRegister(context);
 //        JmlDeferredAttr.preRegister(context); // registers when created
         // Extensions are registered after options are processed

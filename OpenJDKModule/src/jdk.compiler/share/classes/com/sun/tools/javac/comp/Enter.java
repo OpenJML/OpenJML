@@ -339,6 +339,7 @@ public class Enter extends JCTree.Visitor {
             } else {
                 tree.packge = tree.modle.unnamedPackage;
             }
+            if (org.jmlspecs.openjml.Main.useJML) System.out.println("P&M " + tree.packge + "  "+ tree.modle);
 
             Map<Name, PackageSymbol> visiblePackages = tree.modle.visiblePackages;
             Optional<ModuleSymbol> dependencyWithPackage =
@@ -392,6 +393,7 @@ public class Enter extends JCTree.Visitor {
 
     @Override
     public void visitClassDef(JCClassDecl tree) {
+    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("Visit ClassDef " + tree.name);
         Symbol owner = env.info.scope.owner;
         WriteableScope enclScope = enterScope(env);
         ClassSymbol c;
@@ -540,6 +542,7 @@ public class Enter extends JCTree.Visitor {
 
     @Override
     public void visitModuleDef(JCModuleDecl tree) {
+    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("Visit ModuleDecl " + Pretty.toSimpleString(tree.getName()));
         Env<AttrContext> moduleEnv = moduleEnv(tree, env);
         typeEnvs.put(tree.sym, moduleEnv);
         if (modules.isInModuleGraph(tree.sym)) {
@@ -568,6 +571,7 @@ public class Enter extends JCTree.Visitor {
      *  @param c          The class symbol to be processed or null to process all.
      */
     public void complete(List<JCCompilationUnit> trees, ClassSymbol c) {
+
         annotate.blockAnnotations();
         ListBuffer<ClassSymbol> prevUncompleted = uncompleted;
         if (typeEnter.completionEnabled) uncompleted = new ListBuffer<>();
@@ -581,7 +585,7 @@ public class Enter extends JCTree.Visitor {
                 while (uncompleted.nonEmpty()) {
                     ClassSymbol clazz = uncompleted.next();
                     if (c == null || c == clazz || prevUncompleted == null)
-                        clazz.complete();
+                        clazz.complete();   // OPENJML - record classes are filled out in this call
                     else
                         // defer
                         prevUncompleted.append(clazz);

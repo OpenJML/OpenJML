@@ -519,9 +519,9 @@ abstract public class Arithmetic extends ExpressionExtension {
                         JCExpression pos = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE, rewriter.treeutils.intleSymbol,  zero, rewriter.convertCopy(a));
                         JCExpression biglit = rewriter.treeutils.makeLongLiteral(p, (-2L)*Integer.MIN_VALUE);
                         JCExpression f = rewriter.treeutils.makeBinary(p, JCTree.Tag.MOD, 
-                                rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.longType), longbin, biglit);
+                                rewriter.treeutils.findBinOpSymbol(JCTree.Tag.MOD,syms.longType), longbin, biglit);
                         JCExpression fneg = rewriter.treeutils.makeBinary(p, JCTree.Tag.MOD, 
-                                rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.longType), rewriter.convertCopy(longbin), biglit);
+                                rewriter.treeutils.findBinOpSymbol(JCTree.Tag.MOD,syms.longType), rewriter.convertCopy(longbin), biglit);
                         JCExpression big = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.longltSymbol,  maxlitL, rewriter.convertCopy(f));
                         JCExpression small = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.longltSymbol,  rewriter.convertCopy(fneg), minlitL);
                         JCExpression sub = rewriter.treeutils.makeBinary(p, JCTree.Tag.MINUS, rewriter.treeutils.intminusSymbol,  rewriter.convertCopy(f), biglit);
@@ -551,9 +551,9 @@ abstract public class Arithmetic extends ExpressionExtension {
                                 rewriter.treeutils.makeLongLiteral(p, -2L),
                                 rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE));
                         JCExpression f = rewriter.treeutils.makeBinary(p, JCTree.Tag.MOD, 
-                                rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.longType), longbin, biglit);
+                                rewriter.treeutils.findBinOpSymbol(JCTree.Tag.MOD,syms.longType), longbin, biglit);
                         JCExpression fneg = rewriter.treeutils.makeBinary(p, JCTree.Tag.MOD, 
-                                        rewriter.treeutils.findOpSymbol(JCTree.Tag.MOD,syms.longType), 
+                                        rewriter.treeutils.findBinOpSymbol(JCTree.Tag.MOD,syms.longType), 
                                         rewriter.convertCopy(longbin), 
                                         biglit);
                         JCExpression big = rewriter.treeutils.makeBinary(p, JCTree.Tag.LT, rewriter.treeutils.longltSymbol,  maxlit, rewriter.convertCopy(f));

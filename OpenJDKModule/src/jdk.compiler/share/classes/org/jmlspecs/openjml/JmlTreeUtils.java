@@ -40,6 +40,7 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlResolve;
+import com.sun.tools.javac.comp.Operators;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
@@ -141,48 +142,48 @@ public class JmlTreeUtils {
     final public /*@ non_null */ JmlTree.Maker factory;
 
     // Cached values of all of these symbols
-    final public ClassSymbol utilsClass;
-    final public JCIdent utilsClassIdent;
-    final public OperatorSymbol andSymbol;
-    final public OperatorSymbol orSymbol;
-    final public OperatorSymbol intbitandSymbol;
-    final public OperatorSymbol longbitandSymbol;
-    final public OperatorSymbol bitandSymbol;
-    final public OperatorSymbol bitorSymbol;
-    final public OperatorSymbol notSymbol;
-    final public OperatorSymbol objecteqSymbol;
-    final public OperatorSymbol objectneSymbol;
-    final public OperatorSymbol booleqSymbol;
-    final public OperatorSymbol boolneSymbol;
-    final public OperatorSymbol intminusSymbol;
-    final public OperatorSymbol intplusSymbol;
-    final public OperatorSymbol intmultiplySymbol;
-    final public OperatorSymbol intdivideSymbol;
-    final public OperatorSymbol inteqSymbol;
-    final public OperatorSymbol intneqSymbol;
-    final public OperatorSymbol intgtSymbol;
-    final public OperatorSymbol intltSymbol;
-    final public OperatorSymbol intleSymbol;
-    final public OperatorSymbol longeqSymbol;
-    final public OperatorSymbol longleSymbol;
-    final public OperatorSymbol longltSymbol;
-    final public OperatorSymbol longminusSymbol;
-    final public OperatorSymbol longplusSymbol;
-    final public OperatorSymbol longmultiplySymbol;
-    final public OperatorSymbol longdivideSymbol;
-    final public JCLiteral trueLit;
-    final public JCLiteral falseLit;
-    final public JCLiteral zero;
-    final public JCLiteral longzero;
-    final public JCLiteral one;
-    final public JCLiteral longone;
-    final public JCLiteral nullLit;
-    final public JCLiteral maxIntLit;
+    public ClassSymbol utilsClass;  // Generated on demand
+    public JCIdent utilsClassIdent; // Generated on demand
+    public OperatorSymbol andSymbol;
+    public OperatorSymbol orSymbol;
+    public OperatorSymbol intbitandSymbol;
+    public OperatorSymbol longbitandSymbol;
+    public OperatorSymbol bitandSymbol;
+    public OperatorSymbol bitorSymbol;
+    public OperatorSymbol notSymbol;
+    public OperatorSymbol objecteqSymbol;
+    public OperatorSymbol objectneSymbol;
+    public OperatorSymbol booleqSymbol;
+    public OperatorSymbol boolneSymbol;
+    public OperatorSymbol intminusSymbol;
+    public OperatorSymbol intplusSymbol;
+    public OperatorSymbol intmultiplySymbol;
+    public OperatorSymbol intdivideSymbol;
+    public OperatorSymbol inteqSymbol;
+    public OperatorSymbol intneqSymbol;
+    public OperatorSymbol intgtSymbol;
+    public OperatorSymbol intltSymbol;
+    public OperatorSymbol intleSymbol;
+    public OperatorSymbol longeqSymbol;
+    public OperatorSymbol longleSymbol;
+    public OperatorSymbol longltSymbol;
+    public OperatorSymbol longminusSymbol;
+    public OperatorSymbol longplusSymbol;
+    public OperatorSymbol longmultiplySymbol;
+    public OperatorSymbol longdivideSymbol;
+    public JCLiteral trueLit;
+    public JCLiteral falseLit;
+    public JCLiteral zero;
+    public JCLiteral longzero;
+    public JCLiteral one;
+    public JCLiteral longone;
+    public JCLiteral nullLit;
+    public JCLiteral maxIntLit;
 
-    final public ClassSymbol assertionFailureClass;
-    final public Name resultName;
-    final public Name caughtException;
-    final public Name TYPEName;
+    //final public ClassSymbol assertionFailureClass;
+    public Name resultName;
+    public Name caughtException;
+    public Name TYPEName;
     
     /** Creates an instance in association with the given Context; 
      * do not call the constructor 
@@ -201,41 +202,39 @@ public class JmlTreeUtils {
         this.rs = JmlResolve.instance(context);
         this.syms = Symtab.instance(context);
         this.types = JmlTypes.instance(context);
-
-        ClassReader reader = ClassReader.instance(context);
-
-        Name utilsName = names.fromString(utilsClassQualifiedName); // flatname
-        this.utilsClass = reader.enterClass(utilsName);
-        utilsClassIdent = factory.Ident(utilsName);  // FIXME - should this be some sort of Qualified Ident - a simple Ident seems to work
-        utilsClassIdent.type = utilsClass.type; // ident containing flatname
-        utilsClassIdent.sym = utilsClassIdent.type.tsym;
-        andSymbol = findOpSymbol(JCTree.Tag.AND,syms.booleanType);
-        orSymbol = findOpSymbol(JCTree.Tag.OR,syms.booleanType);
-        intbitandSymbol = findOpSymbol(JCTree.Tag.BITAND,syms.intType);
-        longbitandSymbol = findOpSymbol(JCTree.Tag.BITAND,syms.longType);
-        bitandSymbol = findOpSymbol(JCTree.Tag.BITAND,syms.booleanType);
-        bitorSymbol = findOpSymbol(JCTree.Tag.BITOR,syms.booleanType);
-        notSymbol = findOpSymbol(JCTree.Tag.NOT,syms.booleanType);
-        objecteqSymbol = findOpSymbol(JCTree.Tag.EQ,syms.objectType);
-        objectneSymbol = findOpSymbol(JCTree.Tag.NE,syms.objectType);
-        booleqSymbol = findOpSymbol(JCTree.Tag.EQ,syms.booleanType);
-        boolneSymbol = findOpSymbol(JCTree.Tag.NE,syms.booleanType); 
-        intminusSymbol = findOpSymbol(JCTree.Tag.MINUS,syms.intType); // subtract
-        intplusSymbol = findOpSymbol(JCTree.Tag.PLUS,syms.intType); // binary add
-        intmultiplySymbol = findOpSymbol(JCTree.Tag.MUL,syms.intType);
-        intdivideSymbol = findOpSymbol(JCTree.Tag.DIV,syms.intType);
-        inteqSymbol = findOpSymbol(JCTree.Tag.EQ,syms.intType);
-        intneqSymbol = findOpSymbol(JCTree.Tag.NE,syms.intType);
-        intgtSymbol = findOpSymbol(JCTree.Tag.GT,syms.intType);
-        intltSymbol = findOpSymbol(JCTree.Tag.LT,syms.intType);
-        intleSymbol = findOpSymbol(JCTree.Tag.LE,syms.intType);
-        longleSymbol = findOpSymbol(JCTree.Tag.LE,syms.longType);
-        longltSymbol = findOpSymbol(JCTree.Tag.LT,syms.longType);
-        longeqSymbol = findOpSymbol(JCTree.Tag.EQ,syms.longType);
-        longminusSymbol = findOpSymbol(JCTree.Tag.MINUS,syms.longType);
-        longplusSymbol = findOpSymbol(JCTree.Tag.PLUS,syms.longType);
-        longmultiplySymbol = findOpSymbol(JCTree.Tag.MUL,syms.longType);
-        longdivideSymbol = findOpSymbol(JCTree.Tag.DIV,syms.longType);
+    }
+    
+    private Operators operators;
+    
+    public void init() {
+    	operators = Operators.instance(context);
+        andSymbol = findBinOpSymbol(JCTree.Tag.AND,syms.booleanType);
+        orSymbol = findBinOpSymbol(JCTree.Tag.OR,syms.booleanType);
+        intbitandSymbol = findBinOpSymbol(JCTree.Tag.BITAND,syms.intType);
+        longbitandSymbol = findBinOpSymbol(JCTree.Tag.BITAND,syms.longType);
+        bitandSymbol = findBinOpSymbol(JCTree.Tag.BITAND,syms.booleanType);
+        bitorSymbol = findBinOpSymbol(JCTree.Tag.BITOR,syms.booleanType);
+        notSymbol = findUnaryOpSymbol(JCTree.Tag.NOT,syms.booleanType);
+        objecteqSymbol = findBinOpSymbol(JCTree.Tag.EQ,syms.objectType);
+        objectneSymbol = findBinOpSymbol(JCTree.Tag.NE,syms.objectType);
+        booleqSymbol = findBinOpSymbol(JCTree.Tag.EQ,syms.booleanType);
+        boolneSymbol = findBinOpSymbol(JCTree.Tag.NE,syms.booleanType); 
+        intminusSymbol = findBinOpSymbol(JCTree.Tag.MINUS,syms.intType); // subtract
+        intplusSymbol = findBinOpSymbol(JCTree.Tag.PLUS,syms.intType); // binary add
+        intmultiplySymbol = findBinOpSymbol(JCTree.Tag.MUL,syms.intType);
+        intdivideSymbol = findBinOpSymbol(JCTree.Tag.DIV,syms.intType);
+        inteqSymbol = findBinOpSymbol(JCTree.Tag.EQ,syms.intType);
+        intneqSymbol = findBinOpSymbol(JCTree.Tag.NE,syms.intType);
+        intgtSymbol = findBinOpSymbol(JCTree.Tag.GT,syms.intType);
+        intltSymbol = findBinOpSymbol(JCTree.Tag.LT,syms.intType);
+        intleSymbol = findBinOpSymbol(JCTree.Tag.LE,syms.intType);
+        longleSymbol = findBinOpSymbol(JCTree.Tag.LE,syms.longType);
+        longltSymbol = findBinOpSymbol(JCTree.Tag.LT,syms.longType);
+        longeqSymbol = findBinOpSymbol(JCTree.Tag.EQ,syms.longType);
+        longminusSymbol = findBinOpSymbol(JCTree.Tag.MINUS,syms.longType);
+        longplusSymbol = findBinOpSymbol(JCTree.Tag.PLUS,syms.longType);
+        longmultiplySymbol = findBinOpSymbol(JCTree.Tag.MUL,syms.longType);
+        longdivideSymbol = findBinOpSymbol(JCTree.Tag.DIV,syms.longType);
         trueLit = makeLit(0,syms.booleanType,1);
         falseLit = makeLit(0,syms.booleanType,0);
         zero = makeLit(0,syms.intType,0);
@@ -245,12 +244,35 @@ public class JmlTreeUtils {
         nullLit = makeLit(0,syms.botType, null);
         maxIntLit = makeLit(0,syms.intType,Integer.MAX_VALUE);
 
-        assertionFailureClass = reader.enterClass(names.fromString(utilsClassQualifiedName+"$JmlAssertionFailure"));
+       // assertionFailureClass = reader.enterClass(names.fromString(utilsClassQualifiedName+"$JmlAssertionFailure"));
         
         this.resultName = attr.resultName;
         this.caughtException = names.fromString("_JML$$$caughtException");   // FIXME - do we need this?
         this.TYPEName = names.fromString("TYPE");
 
+    }
+    
+    JCIdent utilsClassIdent() {
+    	if (utilsClassIdent == null) {
+
+            Name utilsName = names.fromString(utilsClassQualifiedName); // flatname
+            utilsClassIdent = factory.Ident(utilsName);  // FIXME - should this be some sort of Qualified Ident - a simple Ident seems to work
+            utilsClassIdent.type = utilsClass().type; // ident containing flatname
+            utilsClassIdent.sym = utilsClassIdent.type.tsym;
+    		
+    	}
+    	return utilsClassIdent;
+    }
+    
+    ClassSymbol utilsClass() {
+    	if (utilsClass == null) {
+            ClassReader reader = ClassReader.instance(context);
+
+            Name utilsName = names.fromString(utilsClassQualifiedName); // flatname
+            utilsClass = reader.enterClass(utilsName);
+    		
+    	}
+    	return utilsClass;
     }
     
     /** This sets the end position of newnode to be the same as that of srcnode;
@@ -266,6 +288,11 @@ public class JmlTreeUtils {
             System.out.println();
         }
     }
+    
+    public OperatorSymbol findBinOpSymbol(JCTree.Tag optag, Type bothtype) {
+    	return findBinOpSymbol(optag, bothtype, bothtype);
+    }
+
 
     /** Finds the Symbol for the operator given an optag (e.g. JCTree.Tag.AND) and an
      * argument type.  Note that for object equality, the argument type must be
@@ -275,26 +302,24 @@ public class JmlTreeUtils {
      * @param argtype the argument type
      * @return the symbol of the operator
      */
-    public OperatorSymbol findOpSymbol(JCTree.Tag optag, Type argtype) {
-        Name opName = names.fromString(TreeInfo.tagToKind(optag).toString());
-        Iterator<Symbol> e = syms.predefClass.members().getSymbolsByName(opName).iterator();
-        //Type unboxedArgtype = unboxedType(argtype);
-        if (true) {// || unboxedArgtype == argtype) {
-            while (e.hasNext()) {
-            	Symbol sym = e.next();
-                MethodType mt = (MethodType)sym.type;
-                if (types.isSameType(mt.argtypes.head,argtype)) return (OperatorSymbol)sym;
-            }
-            if (argtype != syms.objectType && !argtype.isPrimitive()) return findOpSymbol(optag,syms.objectType);
-//        } else {
-//            argtype = unboxedArgtype;
-//            while (e != null && e.sym != null) {
-//                MethodType mt = (MethodType)e.sym.type;
-//                if (types.isSameType(mt.argtypes.head,argtype)) return e.sym;
-//                e = e.next();
-//            }
-        }
-        throw new JmlInternalError("The operation symbol " + opName + " for type " + argtype + " could not be resolved");
+    public OperatorSymbol findBinOpSymbol(JCTree.Tag optag, Type lhstype, Type rhstype) {
+    	try {
+        	OperatorSymbol sym = operators.resolveBinary(null, optag, lhstype, rhstype);
+    		if (sym != null) return sym;
+    	} catch (Exception e) {
+    		// fall through
+    	}
+		throw new JmlInternalError("The operation symbol " + Pretty.operatorName(optag) + " for type " + lhstype + " " + rhstype + " could not be resolved");
+    }
+    
+    public OperatorSymbol findUnaryOpSymbol(JCTree.Tag optag, Type argtype) {
+    	try {
+    		OperatorSymbol sym = operators.resolveUnary(null, optag, argtype);
+    		if (sym != null) return sym;
+    	} catch (Exception e) {
+    		// fall through
+    	}
+        throw new JmlInternalError("The operation symbol " + Pretty.operatorName(optag) + " for type " + argtype + " could not be resolved");
     }
     
     // FIXME - duplicated in JmlAssertionAdder
@@ -310,11 +335,11 @@ public class JmlTreeUtils {
         Name n = names.fromString(methodName);
         // Presumes there is just one method with the given name - no overloading
         // by argument type
-        Symbol ms = utilsClass.members().findFirst(n);
+        Symbol ms = utilsClass().members().findFirst(n);
         if (ms == null) {
             throw new JmlInternalError("Method " + methodName + " not found in Utils");
         }
-        JCFieldAccess m = factory.Select(utilsClassIdent,n);
+        JCFieldAccess m = factory.Select(utilsClassIdent(),n);
         m.pos = pos;
         m.sym = ms;
         m.type = m.sym.type;
@@ -645,7 +670,7 @@ public class JmlTreeUtils {
     public JCAssignOp makeAssignOp(int pos, JCTree.Tag op, JCExpression lhs, JCExpression rhs) {
         JCAssignOp asn = factory.at(pos).Assignop(op, lhs, rhs);
         asn.setType(lhs.type);
-        asn.operator = findOpSymbol(op.noAssignOp(),asn.lhs.type);
+        asn.operator = findBinOpSymbol(op.noAssignOp(),asn.lhs.type);
         return asn;
     }
 
@@ -733,14 +758,14 @@ public class JmlTreeUtils {
      */
     public JCExpression makeUnary(DiagnosticPosition pos, JCTree.Tag optag, JCExpression expr) {
         JCUnary e = factory.at(pos).Unary(optag,expr);
-        e.operator = findOpSymbol(optag,expr.type);
+        e.operator = findUnaryOpSymbol(optag,expr.type);
         e.type = e.operator.type.getReturnType();
         copyEndPosition(e,expr);
         return e;
     }
     public JCExpression makeUnary(int pos, JCTree.Tag optag, JCExpression expr) {
         JCUnary e = factory.at(pos).Unary(optag,expr);
-        e.operator = findOpSymbol(optag,expr.type);
+        e.operator = findUnaryOpSymbol(optag,expr.type);
         e.type = e.operator.type.getReturnType();
         copyEndPosition(e,expr);
         return e;
@@ -828,10 +853,11 @@ public class JmlTreeUtils {
      * @return the new node
      */
     public JCBinary makeBinary(DiagnosticPosition pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,optag,findOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
+        return makeBinary(pos,optag,findBinOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
     }
+    // FIXME - we need these to be the operator for the converted types
     public JCBinary makeBinary(int pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,optag,findOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
+        return makeBinary(pos,optag,findBinOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
     }
     
     public /*@ nullable */ String opname(Type t, JCTree.Tag tag) {
@@ -865,7 +891,7 @@ public class JmlTreeUtils {
         JCBinary tree = factory.at(pos).Binary(JCTree.Tag.EQ, lhs, rhs);
         Type t = lhs.type;
         if (t.isPrimitive() && TypeTag.SHORT.ordinal() >= t.getTag().ordinal()) t = syms.intType;   // Perhaps should just presume the types are the same
-        tree.operator = findOpSymbol(JCTree.Tag.EQ, t);
+        tree.operator = findBinOpSymbol(JCTree.Tag.EQ, t, t);
         tree.type = syms.booleanType;
         return tree;
     }

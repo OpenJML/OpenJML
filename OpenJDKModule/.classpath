@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry excluding="module-info.java" kind="src" path="src/java.compiler/share/classes"/>
-	<classpathentry kind="src" path="build/macosx-x86_64-server-release/support/gensrc/jdk.compiler"/>
-	<classpathentry excluding="module-info.java" kind="src" path="src/java.base/unix/classes"/>
-	<classpathentry excluding="module-info.java" kind="src" path="src/java.base/share/classes"/>
 	<classpathentry excluding="module-info.java" kind="src" path="src/jdk.compiler/share/classes"/>
+	<classpathentry kind="src" path="build/macosx-x86_64-server-release/support/gensrc/jdk.compiler"/>
+	<classpathentry excluding="module-info.java" kind="src" path="src/java.compiler/share/classes"/>
+	<classpathentry excluding="module-info.java" kind="src" path="src/java.base/share/classes"/>
+	<classpathentry excluding="module-info.java" kind="src" path="src/java.base/unix/classes"/>
+	<classpathentry excluding="module-info.java" kind="src" path="build/macosx-x86_64-server-release/support/gensrc/java.base"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -160,6 +160,12 @@ public class JmlOption {
     public static final JmlOption NO_RAC_JAVA_CHECKSX = new JmlOption("-noRacJavaChecks",false,false,"RAC: Disables explicit checking of Java language checks","-racJavaChecks=false",true);
 
 
+    static {
+        // FIXME - where did these come from - do we want them?
+        map.put("-nonnull",NONNULLBYDEFAULT);
+        map.put("-nullable",NULLABLEBYDEFAULT);
+    }
+
     /** Holds the name of the option, as it is used in the command-line,
      * including the leading '-' character.
      */
@@ -361,12 +367,6 @@ public class JmlOption {
     //@ nullable
     static public JmlOption find(/*@ non_null */ String s) {
         return map.get(s);
-    }
-
-    static {
-        // FIXME - where did these come from - do we want them?
-        map.put("-nonnull",NONNULLBYDEFAULT);
-        map.put("-nullable",NULLABLEBYDEFAULT);
     }
 
     /** Returns the JML command-line argument help information as a String

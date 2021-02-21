@@ -288,6 +288,7 @@ public class JmlSpecs {
      */
     public boolean appendInternalSpecs(boolean verbose, java.util.List<Dir> dirs) {
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
+        if (true) return true; // FIXME _ until we can include specs internally
        
         // Look for jmlspecs.jar file on the classpath
         // If present, use it.

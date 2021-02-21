@@ -11589,7 +11589,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             treeutils.copyEndPosition(b, that);
             b.setType(that.type);
             Type t = that.type.getTag().ordinal() < TypeTag.INT.ordinal() ? syms.intType : unboxedType(that.type);
-            b.operator = treeutils.findOpSymbol(tag == JCTree.Tag.PREDEC ? JCTree.Tag.MINUS : JCTree.Tag.PLUS , t);
+            b.operator = treeutils.findUnaryOpSymbol(tag == JCTree.Tag.PREDEC ? JCTree.Tag.MINUS : JCTree.Tag.PLUS , t);
             visitAssignopHelper(b,false);
         } else if (tag == JCTree.Tag.POSTDEC || tag == JCTree.Tag.POSTINC){
             JCExpression arg = convertExpr(that.getExpression());
@@ -11599,7 +11599,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             b.setType(that.type);
             TypeTag typetag = that.type.getTag();
             Type t = (typetag == TypeTag.INT || typetag == TypeTag.BYTE || typetag == TypeTag.SHORT || typetag == TypeTag.CHAR) ? syms.intType : unboxedType(that.type);
-            b.operator = treeutils.findOpSymbol(tag == JCTree.Tag.POSTDEC ? JCTree.Tag.MINUS : JCTree.Tag.PLUS, t);
+            b.operator = treeutils.findUnaryOpSymbol(tag == JCTree.Tag.POSTDEC ? JCTree.Tag.MINUS : JCTree.Tag.PLUS, t);
             visitAssignopHelper(b,true);
             saveMapping(that.getExpression(),eresult);
             result = eresult = id;

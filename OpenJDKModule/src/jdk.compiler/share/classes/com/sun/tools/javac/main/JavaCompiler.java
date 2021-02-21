@@ -676,6 +676,7 @@ public class JavaCompiler {
             JCTree.JCCompilationUnit t = parse(filename, readSource(filename));
             if (t.endPositions != null)
                 log.setEndPosTable(filename, t.endPositions);
+            if (org.jmlspecs.openjml.Main.useJML) System.out.println("file and module: " + filename + " " + t.modle); 
             return t;
         } finally {
             log.useSource(prev);
@@ -946,6 +947,7 @@ public class JavaCompiler {
                 todo.retainFiles(inputFiles);
             }
 
+            if (org.jmlspecs.openjml.Main.useJML) System.out.println("Files parsed - JavaCompiler");
             if (!CompileState.ATTR.isAfter(shouldStopPolicyIfNoError)) {
                 switch (compilePolicy) {
                 case ATTR_ONLY:
@@ -1031,6 +1033,8 @@ public class JavaCompiler {
             if (!filesSoFar.contains(fileObject)) {
                 filesSoFar.add(fileObject);
                 trees.append(parse(fileObject));
+                if (org.jmlspecs.openjml.Main.useJML) System.out.println("Parsed " + fileObject
+                		+ " " + trees.last().modle);
             }
         }
         return trees.toList();
@@ -1058,6 +1062,7 @@ public class JavaCompiler {
      * Also stores a list of all top level classes in rootClasses.
      */
     public List<JCCompilationUnit> enterTrees(List<JCCompilationUnit> roots) {
+    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("Entering trees");
         //enter symbols for all files
         if (!taskListener.isEmpty()) {
             for (JCCompilationUnit unit: roots) {

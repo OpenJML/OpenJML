@@ -109,6 +109,16 @@ public class JmlCompiler extends JavaCompiler {
         this.resolver = JmlResolve.instance(context);
     }
     
+    public void init() {
+        JmlAttr.instance(context).init();
+        org.jmlspecs.openjml.JmlTreeUtils.instance(context).init();
+    }
+    
+    public List<JCCompilationUnit> enterTrees(List<JCCompilationUnit> roots) {
+    	init();
+    	return super.enterTrees(roots);
+    }
+    
     /** A flag that controls whether to get specs during a parse or not (if false 
      * then do, if true then do not).  This should be left in a false state
      * after being used to preclude parsing specs.
@@ -147,7 +157,7 @@ public class JmlCompiler extends JavaCompiler {
             JmlCompilationUnit jmlcu = (JmlCompilationUnit)cu;
             if (fileobject.getKind() == JavaFileObject.Kind.SOURCE) { // A .java file
                 jmlcu.mode = JmlCompilationUnit.JAVA_SOURCE_PARTIAL;
-                JavaFileObject specsFile = JmlSpecs.instance(context).findSpecs(jmlcu,true);
+                JavaFileObject specsFile = jmlcu.getSourceFile(); // FIXME JmlSpecs.instance(context).findSpecs(jmlcu,true);
                 if (specsFile == null) {
                     jmlcu.specsCompilationUnit = null;
                 } else if (Utils.ifSourcesEqual(specsFile, jmlcu.getSourceFile())) {
@@ -296,6 +306,7 @@ public class JmlCompiler extends JavaCompiler {
      */  // FIXME - what should we use for env for non-public binary classes
     // FIXME - move this to JmlResolve
     public void loadSpecsForBinary(Env<AttrContext> env, ClassSymbol csymbol) {
+    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("LoadSpecsForBinary " + csymbol);
         // The binary Java class itself is already loaded - it is needed to produce the classSymbol itself
         
         // Don't load specs over again
@@ -368,7 +379,7 @@ public class JmlCompiler extends JavaCompiler {
             ((JmlEnter)enter).recordEmptySpecs(csymbol);
             csymbol.flags_field |= UNATTRIBUTED;
             
-            JmlCompilationUnit speccu = parseSpecs(csymbol);
+            JmlCompilationUnit speccu = null;//parseSpecs(csymbol);
             if (speccu != null) {
 
                 if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
