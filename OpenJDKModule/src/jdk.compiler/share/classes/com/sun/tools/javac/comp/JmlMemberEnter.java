@@ -201,6 +201,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 importAll(tree.pos, syms.enterPackage(null, names.fromString(Strings.jmlSpecsPackage)), specenv);
             }
         }
+        if (tree instanceof JmlMethodDecl) {
+        	
+        }
     }
 
     
@@ -453,7 +456,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            currentClass = prevClass;
 //        }
 //    }
-    
+        
     protected boolean noEntering = false;
     
     /** Returns true if there is a duplicate, whether or not it was warned about */
@@ -498,163 +501,163 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         Map<Symbol,JCTree> matches = new HashMap<Symbol,JCTree>();
         ListBuffer<JCTree> newlist = new ListBuffer<>();
         ListBuffer<JCTree> toadd = new ListBuffer<>();
-        ListBuffer<JCTree> toremove = new ListBuffer<>();
-        Env<AttrContext> prevEnv = this.env;
-        this.env = env;
-
-        for (JCTree specsMemberDecl: specsDecl.defs) {
-            if (specsMemberDecl instanceof JmlVariableDecl) {
-                JmlVariableDecl specsVarDecl = (JmlVariableDecl)specsMemberDecl;
-                boolean ok = matchAndSetFieldSpecs(jtree, csym, specsVarDecl, matches, jtree == specsDecl);
-                if (ok) {
-                    newlist.add(specsVarDecl); // FIXME - are we actually using newlist? should we?
-                } else {
-                    toremove.add(specsVarDecl); 
-                }
-            } else if (specsMemberDecl instanceof JmlMethodDecl) {
-                JmlMethodDecl specsMethodDecl = (JmlMethodDecl)specsMemberDecl;
-                boolean ok = matchAndSetMethodSpecs(jtree, csym, specsMethodDecl, env, matches, jtree == specsDecl);
-                if (!ok) {
-                    toremove.add(specsMethodDecl); 
-                }
-            } else {
-//                newlist.add(specsMemberDecl);
-            }
-        }
-        // The following is somewhat inefficient, but it is only called when there are errors
-        for (JCTree t: toremove.toList()) {
-            jtree.defs = Utils.remove(jtree.defs, t);
-        }
-
-        this.env = prevEnv;
-        matches.clear();
+//        ListBuffer<JCTree> toremove = new ListBuffer<>();
+//        Env<AttrContext> prevEnv = this.env;
+//        this.env = env;
+//
+//        for (JCTree specsMemberDecl: specsDecl.defs) {
+//            if (specsMemberDecl instanceof JmlVariableDecl) {
+//                JmlVariableDecl specsVarDecl = (JmlVariableDecl)specsMemberDecl;
+//                boolean ok = matchAndSetFieldSpecs(jtree, csym, specsVarDecl, matches, jtree == specsDecl);
+//                if (ok) {
+//                    newlist.add(specsVarDecl); // FIXME - are we actually using newlist? should we?
+//                } else {
+//                    toremove.add(specsVarDecl); 
+//                }
+//            } else if (specsMemberDecl instanceof JmlMethodDecl) {
+//                JmlMethodDecl specsMethodDecl = (JmlMethodDecl)specsMemberDecl;
+//                boolean ok = matchAndSetMethodSpecs(jtree, csym, specsMethodDecl, env, matches, jtree == specsDecl);
+//                if (!ok) {
+//                    toremove.add(specsMethodDecl); 
+//                }
+//            } else {
+////                newlist.add(specsMemberDecl);
+//            }
+//        }
+//        // The following is somewhat inefficient, but it is only called when there are errors
+//        for (JCTree t: toremove.toList()) {
+//            jtree.defs = Utils.remove(jtree.defs, t);
+//        }
+//
+//        this.env = prevEnv;
+//        matches.clear();
         return toadd.toList();
     }
 
-    /** Finds a Java declaration matching the given specsVarDecl in the given class.
-     * If javaDecl == null, then this is a match of specs to the members of a binary class symbol.
-     * If javaDec != null, then it is the Java class declaration
-     * <br>the matching symbol, if any, is returned 
-     * <br>if no match and specsVarDecl is not ghost or model, error message issued, null returned
-     * <br>if match is duplicate, error message issued, match returned
-     * <br>if non-duplicate match, and javaDecl defined, set javaDecl.specsDecl field
-     * <br>if non-duplicate match, set specs database
-     * <br>if non-duplicate match, set specsVarDecl.sym field
-     * */
-    protected boolean matchAndSetFieldSpecs(JmlClassDecl javaDecl, ClassSymbol csym, JmlVariableDecl specsVarDecl, Map<Symbol,JCTree> matchesSoFar, boolean sameTree) {
-        // Find any specsVarDecl counterpart in the javaDecl
-        // For fields it is sufficient to match by name
-//        if (specsVarDecl.name.toString().equals("configurationSizes")) Utils.stop();
-        Name id = specsVarDecl.name;
-        VarSymbol matchSym = null;
-        if (true || !sameTree) {
-            var entries = csym.members().getSymbolsByName(id);
-            for (Symbol sy: entries) {
-                if (sy instanceof VarSymbol && sy.name == id) {
-                    matchSym = (VarSymbol)sy;
-                    break;
-                }
-            }
-        } else {
-            matchSym = specsVarDecl.sym;
-        }
-        if (specsVarDecl.sym == null && matchSym != null && matchSym.pos == Position.NOPOS) {
-            matchSym.pos = specsVarDecl.pos;
-        }
-        
-        // matchsym == null ==> no match; otherwise matchSym is the matching symbol
-        
-        if (matchSym == null) {
-            if (!utils.isJML(specsVarDecl.mods)) {
-                // We are going to discard this declaration because of the error, so we do extra checking
-                JmlAnnotation a = ((JmlAttr)attr).findMod(specsVarDecl.mods,Modifiers.GHOST);
-                if (a == null) a = ((JmlAttr)attr).findMod(specsVarDecl.mods,Modifiers.MODEL);
-                if (a != null) {
-                    utils.error(specsVarDecl.sourcefile, a.pos(),"jml.ghost.model.on.java",specsVarDecl.name);
-                }
-                // Non-matching java declaration - an error
-                // FIXME - the check on the owner should really be recursive
-                if (!utils.isJML(csym.flags())) utils.error(specsVarDecl.sourcefile, specsVarDecl.pos(),"jml.no.var.match",specsVarDecl.name);
-                return false;
-            } else {
-                // Non-matching JML declaration
-                if (javaDecl != null) utils.error(specsVarDecl.sourcefile, specsVarDecl.pos(),"jml.internal","A JML declaration should have been matched, but was not");
-                return javaDecl == null;
-            }
-        }
-        
-        // The matches map holds any previous matches found - all to specification declarations
-        JCTree prevMatch = matchesSoFar.get(matchSym);
-        if (prevMatch != null && prevMatch != specsVarDecl) {
-            // DO extra checking since we are discarding this declaration
-            if (!utils.isJML(specsVarDecl.mods)) {
-                JmlAnnotation a = ((JmlAttr)attr).findMod(specsVarDecl.mods,Modifiers.GHOST);
-                if (a == null) a = ((JmlAttr)attr).findMod(specsVarDecl.mods,Modifiers.MODEL);
-                if (a != null) {
-                    utils.error(specsVarDecl.sourcefile, a.pos(),"jml.ghost.model.on.java",specsVarDecl.name);
-                }
-            }
-            // Previous match - give error
-            // duplicate already reported if the specs declaration is JML declaration
-            if (!utils.isJML(specsVarDecl.mods) && !sameTree) {
-                utils.errorAndAssociatedDeclaration(specsVarDecl.sourcefile, specsVarDecl.pos, ((JmlVariableDecl)prevMatch).sourcefile, prevMatch.pos,"jml.duplicate.var.match",specsVarDecl.name);
-            }
-            return false;
-        }
-
-        {
-            // New match - save it; also set the specs database
-            matchesSoFar.put(matchSym,  specsVarDecl);
-            JmlSpecs.FieldSpecs fieldSpecs = specsVarDecl.fieldSpecs;
-            if (fieldSpecs != null) JmlSpecs.instance(context).putSpecs(matchSym,fieldSpecs);
-            else {
-                fieldSpecs = new JmlSpecs.FieldSpecs(specsVarDecl);   // FIXME - what about lists of in clauses
-                specsVarDecl.fieldSpecs = fieldSpecs;
-                specs.putSpecs(matchSym,  fieldSpecs);
-            }
-            specsVarDecl.sym = matchSym;
-            specsVarDecl.type = matchSym.type;
-            if (!sameTree) {
-                // Copied from MemberEnter.visitVarDef
-                Env<AttrContext> localEnv = env;
-                if (visitVarDefIsStatic(specsVarDecl,env)) {
-                    localEnv = env.dup(specsVarDecl, env.info.dup());
-                    localEnv.info.staticLevel++;
-                }
-                annotate.annotateLater(specsVarDecl.mods.annotations, localEnv, matchSym, specsVarDecl.pos());
-// FIXME                typeAnnotate(specsVarDecl.vartype, env, matchSym, specsVarDecl.pos());
-            }
-        }
-
-        // If there is a Java AST, find the match and set the specsDecl field
-        
-        JmlVariableDecl javaMatch = null;
-        if (sameTree) {
-            javaMatch = specsVarDecl;
-        } else if (javaDecl != null) {
-            // TODO - is there a better way to find a declaration for a symbol?
-            for (JCTree t: javaDecl.defs) {
-                if (t instanceof JmlVariableDecl && ((JmlVariableDecl)t).sym == matchSym) {
-                    javaMatch = (JmlVariableDecl)t;
-                    break;
-                }
-            }
-            if (javaMatch == null) {
-                log.error("jml.internal", "Unexpected absent Java field declaration, without a matching symbol: " + matchSym);
-            } else if (javaMatch.specsDecl == null) {
-                javaMatch.specsDecl = specsVarDecl;
-                javaMatch.fieldSpecsCombined = specsVarDecl.fieldSpecs;
-            } else if (javaMatch.specsDecl != javaMatch && javaMatch != specsVarDecl) {
-                javaMatch = null;
-                log.error("jml.internal", "Unexpected duplicate Java field declaration, without a matching symbol: " + matchSym);
-            }
-        }
-        if (javaMatch != specsVarDecl) { // Check the match only if it is not a duplicate
-            checkFieldMatch(javaMatch,matchSym,specsVarDecl);
-            addAnnotations(matchSym,enter.getEnv(csym),specsVarDecl.mods);
-        }
-        return true;
-    }
+//    /** Finds a Java declaration matching the given specsVarDecl in the given class.
+//     * If javaDecl == null, then this is a match of specs to the members of a binary class symbol.
+//     * If javaDec != null, then it is the Java class declaration
+//     * <br>the matching symbol, if any, is returned 
+//     * <br>if no match and specsVarDecl is not ghost or model, error message issued, null returned
+//     * <br>if match is duplicate, error message issued, match returned
+//     * <br>if non-duplicate match, and javaDecl defined, set javaDecl.specsDecl field
+//     * <br>if non-duplicate match, set specs database
+//     * <br>if non-duplicate match, set specsVarDecl.sym field
+//     * */
+//    protected boolean matchAndSetFieldSpecs(JmlClassDecl javaDecl, ClassSymbol csym, JmlVariableDecl specsVarDecl, Map<Symbol,JCTree> matchesSoFar, boolean sameTree) {
+//        // Find any specsVarDecl counterpart in the javaDecl
+//        // For fields it is sufficient to match by name
+////        if (specsVarDecl.name.toString().equals("configurationSizes")) Utils.stop();
+//        Name id = specsVarDecl.name;
+//        VarSymbol matchSym = null;
+//        if (true || !sameTree) {
+//            var entries = csym.members().getSymbolsByName(id);
+//            for (Symbol sy: entries) {
+//                if (sy instanceof VarSymbol && sy.name == id) {
+//                    matchSym = (VarSymbol)sy;
+//                    break;
+//                }
+//            }
+//        } else {
+//            matchSym = specsVarDecl.sym;
+//        }
+//        if (specsVarDecl.sym == null && matchSym != null && matchSym.pos == Position.NOPOS) {
+//            matchSym.pos = specsVarDecl.pos;
+//        }
+//        
+//        // matchsym == null ==> no match; otherwise matchSym is the matching symbol
+//        
+//        if (matchSym == null) {
+//            if (!utils.isJML(specsVarDecl.mods)) {
+//                // We are going to discard this declaration because of the error, so we do extra checking
+//                JmlAnnotation a = ((JmlAttr)attr).findMod(specsVarDecl.mods,Modifiers.GHOST);
+//                if (a == null) a = ((JmlAttr)attr).findMod(specsVarDecl.mods,Modifiers.MODEL);
+//                if (a != null) {
+//                    utils.error(specsVarDecl.sourcefile, a.pos(),"jml.ghost.model.on.java",specsVarDecl.name);
+//                }
+//                // Non-matching java declaration - an error
+//                // FIXME - the check on the owner should really be recursive
+//                if (!utils.isJML(csym.flags())) utils.error(specsVarDecl.sourcefile, specsVarDecl.pos(),"jml.no.var.match",specsVarDecl.name);
+//                return false;
+//            } else {
+//                // Non-matching JML declaration
+//                if (javaDecl != null) utils.error(specsVarDecl.sourcefile, specsVarDecl.pos(),"jml.internal","A JML declaration should have been matched, but was not");
+//                return javaDecl == null;
+//            }
+//        }
+//        
+//        // The matches map holds any previous matches found - all to specification declarations
+//        JCTree prevMatch = matchesSoFar.get(matchSym);
+//        if (prevMatch != null && prevMatch != specsVarDecl) {
+//            // DO extra checking since we are discarding this declaration
+//            if (!utils.isJML(specsVarDecl.mods)) {
+//                JmlAnnotation a = ((JmlAttr)attr).findMod(specsVarDecl.mods,Modifiers.GHOST);
+//                if (a == null) a = ((JmlAttr)attr).findMod(specsVarDecl.mods,Modifiers.MODEL);
+//                if (a != null) {
+//                    utils.error(specsVarDecl.sourcefile, a.pos(),"jml.ghost.model.on.java",specsVarDecl.name);
+//                }
+//            }
+//            // Previous match - give error
+//            // duplicate already reported if the specs declaration is JML declaration
+//            if (!utils.isJML(specsVarDecl.mods) && !sameTree) {
+//                utils.errorAndAssociatedDeclaration(specsVarDecl.sourcefile, specsVarDecl.pos, ((JmlVariableDecl)prevMatch).sourcefile, prevMatch.pos,"jml.duplicate.var.match",specsVarDecl.name);
+//            }
+//            return false;
+//        }
+//
+//        {
+//            // New match - save it; also set the specs database
+//            matchesSoFar.put(matchSym,  specsVarDecl);
+//            JmlSpecs.FieldSpecs fieldSpecs = specsVarDecl.fieldSpecs;
+//            if (fieldSpecs != null) JmlSpecs.instance(context).putSpecs(matchSym,fieldSpecs);
+//            else {
+//                fieldSpecs = new JmlSpecs.FieldSpecs(specsVarDecl);   // FIXME - what about lists of in clauses
+//                specsVarDecl.fieldSpecs = fieldSpecs;
+//                specs.putSpecs(matchSym,  fieldSpecs);
+//            }
+//            specsVarDecl.sym = matchSym;
+//            specsVarDecl.type = matchSym.type;
+//            if (!sameTree) {
+//                // Copied from MemberEnter.visitVarDef
+//                Env<AttrContext> localEnv = env;
+//                if (visitVarDefIsStatic(specsVarDecl,env)) {
+//                    localEnv = env.dup(specsVarDecl, env.info.dup());
+//                    localEnv.info.staticLevel++;
+//                }
+//                annotate.annotateLater(specsVarDecl.mods.annotations, localEnv, matchSym, specsVarDecl.pos());
+//// FIXME                typeAnnotate(specsVarDecl.vartype, env, matchSym, specsVarDecl.pos());
+//            }
+//        }
+//
+//        // If there is a Java AST, find the match and set the specsDecl field
+//        
+//        JmlVariableDecl javaMatch = null;
+//        if (sameTree) {
+//            javaMatch = specsVarDecl;
+//        } else if (javaDecl != null) {
+//            // TODO - is there a better way to find a declaration for a symbol?
+//            for (JCTree t: javaDecl.defs) {
+//                if (t instanceof JmlVariableDecl && ((JmlVariableDecl)t).sym == matchSym) {
+//                    javaMatch = (JmlVariableDecl)t;
+//                    break;
+//                }
+//            }
+//            if (javaMatch == null) {
+//                log.error("jml.internal", "Unexpected absent Java field declaration, without a matching symbol: " + matchSym);
+//            } else if (javaMatch.specsDecl == null) {
+//                javaMatch.specsDecl = specsVarDecl;
+//                javaMatch.fieldSpecsCombined = specsVarDecl.fieldSpecs;
+//            } else if (javaMatch.specsDecl != javaMatch && javaMatch != specsVarDecl) {
+//                javaMatch = null;
+//                log.error("jml.internal", "Unexpected duplicate Java field declaration, without a matching symbol: " + matchSym);
+//            }
+//        }
+//        if (javaMatch != specsVarDecl) { // Check the match only if it is not a duplicate
+//            checkFieldMatch(javaMatch,matchSym,specsVarDecl);
+//            addAnnotations(matchSym,enter.getEnv(csym),specsVarDecl.mods);
+//        }
+//        return true;
+//    }
 
     /** Finds a Java method declaration matching the given specsMethodDecl in the given class
      * <br>returns false if the declaration is to be ignored because it is in error
@@ -1729,6 +1732,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             super.visitMethodDef(tree);
 ////            if (!isSpecFile) super.visitMethodDef(tree);
 ////            if (isSpecFile) visitMethodDefBinary(tree);
+
+            if (currentMethod.specsDecl == null) currentMethod.specsDecl = currentMethod; // FIXME - why is this not already set?
+            var ms = currentMethod.specsDecl.methodSpecsCombined;
+            currentMethod.specsDecl.sym = tree.sym;
+            if (tree.sym != null) JmlSpecs.instance(context).putSpecs(tree.sym, ms);
+
+
         } finally {
 //            if (isJMLMethod) resolve.setAllowJML(prevAllowJml);
             currentMethod = prevMethod;
@@ -1966,6 +1976,16 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JavaFileObject prevSource = log.useSource( ((JmlVariableDecl)tree).source());
         super.visitVarDef(tree);
         log.useSource(prevSource);
+        
+        if (tree.sym.owner instanceof ClassSymbol) {
+        	// local variables and parameters do not have entries in specs
+        	var fs = ((JmlVariableDecl)tree).specsDecl.fieldSpecs;
+        	((JmlVariableDecl)tree).specsDecl.sym = tree.sym;
+        	if (tree.sym != null) JmlSpecs.instance(context).putSpecs(tree.sym, fs);
+        }
+
+
+
 ////        ((JmlCheck)chk).noDuplicateWarn = prevChk;
 //        if (utils.isJML(tree.mods)) resolve.setAllowJML(prev);
 //        if (tree.sym == null) {
@@ -2046,7 +2066,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 env = prevenv;
             }
             if (specstree.sym == null) utils.error(specstree, "jml.internal", "Failed to set a variable declaration symbol as expected");
-            JmlSpecs.instance(context).putSpecs(specstree.sym, specstree.fieldSpecsCombined);
+//            JmlSpecs.instance(context).putSpecs(specstree.sym, specstree.fieldSpecsCombined);
             vsym = specstree.sym;
         }
         checkFieldMatch(null, specstree.sym, specstree);

@@ -154,21 +154,6 @@ public class JmlTokenizer extends JavadocTokenizer {
         return JmlOptions.instance(context).commentKeys;
     }
     
-
-    @Override
-    protected boolean checkInitialCommentChar(char c, CommentStyle style) {
-    	if (accept('#')) {
-    		if (style == CommentStyle.BLOCK) {
-    			// FIXME - error no # - block comment
-    			return false;
-    		}
-    		return false;
-    	}
-    	if (!(c == '@' || c == '+' || c == '-'))  return false; // Treat like a Java comment
-    	return true;
-    }
-
-
     /** Internal use only -- when true, tokens in Java code are skipped */
     protected boolean skippingTokens = false;
     
@@ -188,9 +173,11 @@ public class JmlTokenizer extends JavadocTokenizer {
         // comment characters.
         // It does not include line ending for line comments, so
         // an empty line comment can be just two characters.
-        if (!Main.useJML || noJML || style == CommentStyle.JAVADOC || endPos-pos <= 2) {
+        if (true || noJML || style == CommentStyle.JAVADOC || endPos-pos <= 2) {
             return super.processComment(pos,endPos,style);
         }
+        
+        
         
         // Skip the first two characters (the comment marker))
         int commentStart = pos;
@@ -198,7 +185,7 @@ public class JmlTokenizer extends JavadocTokenizer {
         next();
         next();
         
-        int ch = get(); // The @, or a + or - if there are keys, or something else if it is not a JML comment
+        int ch = get(); // The @ or #, or a + or - if there are keys, or something else if it is not a JML comment
         int plusPosition = position();
         if (ch == '#') {
         	// Inlined Java code, but only in line comments
@@ -275,7 +262,6 @@ public class JmlTokenizer extends JavadocTokenizer {
                 }
             }
         }
-        System.out.println("FOUND AN @?");
         if (!foundplus && someplus) {
             // There were plus keys but not the key we were looking for, so ignore JML comment
             // Restart after the comment
@@ -772,6 +758,10 @@ public class JmlTokenizer extends JavadocTokenizer {
     // Index of next character to be read
     public int pos() {
         return position();
+    }
+    
+    public String getCharacters(int p, int e) {
+    	return String.valueOf(getRawCharacters(p,e));
     }
     
     

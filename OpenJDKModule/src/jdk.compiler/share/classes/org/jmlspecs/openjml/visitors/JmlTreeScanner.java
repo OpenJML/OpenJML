@@ -421,10 +421,10 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         visitVarDef(that);
         if (scanMode == AST_SPEC_MODE) {
-            if (that.fieldSpecsCombined != null) {
-                scan(that.fieldSpecsCombined.mods);
-                scan(that.fieldSpecsCombined.list);
-            }
+//            if (that.fieldSpecsCombined != null) {
+//                scan(that.fieldSpecsCombined.mods);
+//                scan(that.fieldSpecsCombined.list);
+//            }
         }
         if (scanMode == AST_JML_MODE) {
             if (that.fieldSpecs != null) {

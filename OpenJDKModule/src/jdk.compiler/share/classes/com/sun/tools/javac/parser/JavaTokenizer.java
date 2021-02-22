@@ -769,10 +769,6 @@ public class JavaTokenizer extends UnicodeReader {
             }
         }
     }
-    
-    protected boolean checkInitialCommentChar(char c, CommentStyle style) { // OPENJML - added
-    	return false;
-    }
 
     /**
      * Read token (main entrypoint.)
@@ -919,9 +915,6 @@ public class JavaTokenizer extends UnicodeReader {
                     next();
 
                     if (accept('/')) { // (Spec. 3.7)
-                    	if (isAvailable()) {
-                    		if (checkInitialCommentChar(get(), CommentStyle.LINE)) break;
-                    	}
                         skipToEOLN();
 
                         if (isAvailable()) {
@@ -941,9 +934,6 @@ public class JavaTokenizer extends UnicodeReader {
                         } else {
                             style = CommentStyle.BLOCK;
                         }
-                    	if (isAvailable()) {
-                    		if (checkInitialCommentChar(get(),CommentStyle.BLOCK)) break;
-                    	}
 
 
                         if (!isEmpty) {
@@ -1113,6 +1103,7 @@ public class JavaTokenizer extends UnicodeReader {
      * @return new list with comment prepended to the existing list.
      */
     List<Comment> appendComment(List<Comment> comments, Comment comment) {
+    	if (comment == null) return comments; // OPENJML -- added so that comments could be ignored
         return comments == null ?
                 List.of(comment) :
                 comments.prepend(comment);

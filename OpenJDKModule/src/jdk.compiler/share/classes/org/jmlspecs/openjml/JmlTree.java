@@ -1381,7 +1381,6 @@ public class JmlTree {
         // FIXME - need some documentation of these fields
         public JmlVariableDecl specsDecl;
         public JmlSpecs.FieldSpecs fieldSpecs;
-        public JmlSpecs.FieldSpecs fieldSpecsCombined;
         public JavaFileObject sourcefile;
         public String docComment = null; // FIXME - why?
         public boolean jmltype = false; // if true, type is replaced and may be a model type
@@ -1397,7 +1396,6 @@ public class JmlTree {
             super(mods, name, vartype, init, sym);
             specsDecl = null;
             fieldSpecs = null;
-            fieldSpecsCombined = null;
             sourcefile = null;
         }
         

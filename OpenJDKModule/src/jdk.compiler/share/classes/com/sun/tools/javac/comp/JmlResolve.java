@@ -156,7 +156,7 @@ public class JmlResolve extends Resolve {
      */
     @Override
     public Symbol loadClass(Env<AttrContext> env, Name name, RecoveryLoadClass recoveryLoadClass) {
-        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("BINARY LOADING STARTING " + name );
+        utils.note(true,"BINARY LOADING STARTING " + name );
         Symbol s = super.loadClass(env, name, recoveryLoadClass);
         // Here s can be a type or a package or not exist 
         // s may not exist because it is being tested whether such a type exists
@@ -167,7 +167,7 @@ public class JmlResolve extends Resolve {
             return s;
         }
         if (!(s instanceof ClassSymbol)) {
-            if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("  Loaded a non-class " + name );
+            utils.note(true,"  Loaded a non-class " + name );
             return s; // loadClass can be called for a package
         }
 
@@ -181,11 +181,11 @@ public class JmlResolve extends Resolve {
             JmlSpecs.TypeSpecs tsp = specs.get((ClassSymbol)s);
             if (tsp == null) {
 
-                utils.note(true, "   LOADING SPECS FOR (BINARY) CLASS " + name);
+//                utils.note(true, "   LOADING SPECS FOR (BINARY) CLASS " + name);
                 // Cannot set jmlcompiler in the constructor because we get a circular initialization problem.
-                if (jmlcompiler == null) jmlcompiler = ((JmlCompiler)JmlCompiler.instance(context));
+                if (jmlcompiler == null) jmlcompiler = JmlCompiler.instance(context);
                 jmlcompiler.loadSpecsForBinary(env,(ClassSymbol)s);
-                utils.note(true,"   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
+//                utils.note(true,"   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
 // FIXME - the following happens routinely - it is not an error apparenetly, but some explanation or understanding is needed
 //                if (specs.get((ClassSymbol)s) == null) 
 //                    log.getWriter(WriterKind.NOTICE).println("(Internal error) POSTCONDITION PROBLEM - no typeSpecs stored for " + s);

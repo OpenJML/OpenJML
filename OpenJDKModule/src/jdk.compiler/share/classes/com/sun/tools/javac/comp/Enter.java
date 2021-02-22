@@ -339,7 +339,6 @@ public class Enter extends JCTree.Visitor {
             } else {
                 tree.packge = tree.modle.unnamedPackage;
             }
-            if (org.jmlspecs.openjml.Main.useJML) System.out.println("P&M " + tree.packge + "  "+ tree.modle);
 
             Map<Name, PackageSymbol> visiblePackages = tree.modle.visiblePackages;
             Optional<ModuleSymbol> dependencyWithPackage =
@@ -393,7 +392,6 @@ public class Enter extends JCTree.Visitor {
 
     @Override
     public void visitClassDef(JCClassDecl tree) {
-    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("Visit ClassDef " + tree.name);
         Symbol owner = env.info.scope.owner;
         WriteableScope enclScope = enterScope(env);
         ClassSymbol c;
@@ -513,7 +511,7 @@ public class Enter extends JCTree.Visitor {
     //where
         /** Does class have the same name as the file it appears in?
          */
-        private static boolean classNameMatchesFileName(ClassSymbol c,
+        protected boolean classNameMatchesFileName(ClassSymbol c, // OPENJML - private to protected, removed static
                                                         Env<AttrContext> env) {
             return env.toplevel.sourcefile.isNameCompatible(c.name.toString(),
                                                             JavaFileObject.Kind.SOURCE);
@@ -542,7 +540,6 @@ public class Enter extends JCTree.Visitor {
 
     @Override
     public void visitModuleDef(JCModuleDecl tree) {
-    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("Visit ModuleDecl " + Pretty.toSimpleString(tree.getName()));
         Env<AttrContext> moduleEnv = moduleEnv(tree, env);
         typeEnvs.put(tree.sym, moduleEnv);
         if (modules.isInModuleGraph(tree.sym)) {

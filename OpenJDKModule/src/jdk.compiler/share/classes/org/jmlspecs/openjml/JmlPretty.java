@@ -109,12 +109,12 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
      * @param source if true then put out compilable source
      * @return the resulting text
      */
-    static public String writeJava(JCTree tree, boolean source) { // FIXME - source is ignored
+    static public String writeJava(JCTree tree, boolean source) {
         try {
             // Here we use the Pretty constructor because we specifically
             // want only Java, not any JML
             StringWriter sw = new StringWriter();
-            tree.accept(new Pretty(sw,true));
+            tree.accept(new Pretty(sw,source));
             return sw.toString();
         } catch(Exception e) {}
         return "<Exception>";
@@ -1236,10 +1236,18 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         visitMethodDef(that);
         sourceOutput = wasSourceOutput;
     }
+    
+    boolean isJML(JCModifiers mods) {
+    	return (mods.flags & Utils.JMLBIT) != 0;
+    }
 
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-        // FIXME //@?
-        visitVarDef(that);
+        try {
+        	if (isJML(that.mods)) print("//@ ");
+        	visitVarDef(that);
+        } catch (Exception e) {
+        	perr(that,e);
+        }
     }
 
     @Override
@@ -1247,8 +1255,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         super.visitVarDef(that);
         if (!(that instanceof JmlVariableDecl)) return;
         JmlVariableDecl jmlthat = (JmlVariableDecl)that;
-        if (jmlthat.fieldSpecsCombined != null) printFieldSpecs(jmlthat.fieldSpecsCombined);
-        else if (jmlthat.fieldSpecs != null) printFieldSpecs(jmlthat.fieldSpecs);
+//        if (jmlthat.fieldSpecsCombined != null) printFieldSpecs(jmlthat.fieldSpecsCombined);
+        if (jmlthat.fieldSpecs != null) printFieldSpecs(jmlthat.fieldSpecs);
     }
 
     public void printFieldSpecs(JmlSpecs.FieldSpecs fspecs) {
