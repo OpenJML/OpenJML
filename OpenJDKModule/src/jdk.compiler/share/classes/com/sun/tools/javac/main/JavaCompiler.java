@@ -676,7 +676,6 @@ public class JavaCompiler {
             JCTree.JCCompilationUnit t = parse(filename, readSource(filename));
             if (t.endPositions != null)
                 log.setEndPosTable(filename, t.endPositions);
-            if (org.jmlspecs.openjml.Main.useJML) System.out.println("file and module: " + filename + " " + t.modle); 
             return t;
         } finally {
             log.useSource(prev);
@@ -1033,8 +1032,6 @@ public class JavaCompiler {
             if (!filesSoFar.contains(fileObject)) {
                 filesSoFar.add(fileObject);
                 trees.append(parse(fileObject));
-                if (org.jmlspecs.openjml.Main.useJML) System.out.println("Parsed " + fileObject
-                		+ " " + trees.last().modle);
             }
         }
         return trees.toList();

@@ -5395,7 +5395,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             v.sym = that.sym; // Keep same sym, or else we have to map them 
             v.docComment = null;
             v.fieldSpecs = null;
-            v.fieldSpecsCombined = null;
             v.sourcefile = null;
             v.specsDecl = null;
             result = v;
@@ -17172,7 +17171,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (decl.name == id.name) {
                             JmlVariableDecl ndecl = M.at(st.pos).VarDef(decl.sym, null);
                             ndecl.fieldSpecs = decl.fieldSpecs;
-                            ndecl.fieldSpecsCombined = decl.fieldSpecsCombined;
                             ndecl.ident = decl.ident;
                             ndecl.jmltype = decl.jmltype;
                             ndecl.mods = decl.mods;
@@ -17673,7 +17671,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             stat.sourcefile = that.sourcefile;
             stat.docComment = that.docComment;
             stat.fieldSpecs = that.fieldSpecs;  // TOOD: copy?
-            stat.fieldSpecsCombined = that.fieldSpecsCombined;// TODO: copy?
             stat.specsDecl = that.specsDecl; // TODO: copy? translate reference?
             if (!pureCopy) {
                 if (currentStatements == null) classDefs.add(stat);
@@ -17697,7 +17694,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             stat.sourcefile = that.sourcefile;
             stat.docComment = that.docComment;
             stat.fieldSpecs = that.fieldSpecs;
-            stat.fieldSpecsCombined = that.fieldSpecsCombined;
             stat.specsDecl = that.specsDecl;
 
             ListBuffer<JCStatement> check = pushBlock();

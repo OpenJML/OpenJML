@@ -302,7 +302,7 @@ public class API implements IAPI {
     @Override
     public int typecheck(@NonNull List<? extends JCCompilationUnit> list) throws IOException {
         Context context = context();
-        JmlCompiler jcomp = (JmlCompiler)JmlCompiler.instance(context);
+        JmlCompiler jcomp = JmlCompiler.instance(context);
         JmlTree.Maker maker = JmlTree.Maker.instance(context);
 //        for (JCCompilationUnit jcu: list) {
 //            for (JCTree t: jcu.defs) {
@@ -333,7 +333,7 @@ public class API implements IAPI {
      */
     @Override
     public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(@NonNull File... files) {
-        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context());
+        JmlCompiler c = JmlCompiler.instance(context());
         Log log = Log.instance(context());
         c.inSequence = false;
         Iterable<? extends JavaFileObject> fobjects = ((JavacFileManager)context().get(JavaFileManager.class)).getJavaFileObjects(files);
@@ -365,7 +365,7 @@ public class API implements IAPI {
      */
     @Override
     public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(@NonNull JavaFileObject... inputs) {
-        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context());
+        JmlCompiler c = JmlCompiler.instance(context());
         c.inSequence = false;
         ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
         for (JavaFileObject fileObject : inputs)
@@ -378,7 +378,7 @@ public class API implements IAPI {
      */
     @Override
     public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(@NonNull Collection<? extends JavaFileObject> inputs) {
-        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context());
+        JmlCompiler c = JmlCompiler.instance(context());
         c.inSequence = false;
         ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
         for (JavaFileObject fileObject : inputs)
@@ -400,7 +400,7 @@ public class API implements IAPI {
      */
     @Override
     public @NonNull JmlCompilationUnit parseSingleFile(@NonNull JavaFileObject jfo) {
-        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context());
+        JmlCompiler c = JmlCompiler.instance(context());
         c.inSequence = true; // Don't look for specs
         JmlCompilationUnit specscu = (JmlCompilationUnit)c.parse(jfo);
         c.inSequence = false;
@@ -413,7 +413,7 @@ public class API implements IAPI {
     @Override
     public @NonNull JmlCompilationUnit parseString(@NonNull String name, @NonNull String content) throws Exception {
         if (name == null || name.length() == 0) throw new IllegalArgumentException();
-        JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context());
+        JmlCompiler c = JmlCompiler.instance(context());
         JavaFileObject file = makeJFOfromString(name,content);
         c.inSequence = true;  // true so that no searching for spec files happens
         Iterable<? extends JavaFileObject> fobjects = List.<JavaFileObject>of(file);

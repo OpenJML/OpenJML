@@ -564,14 +564,14 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         visitVarDef(that);
         JmlVariableDecl r = (JmlVariableDecl)result;
-        if (that.fieldSpecsCombined == null) {
-            r.fieldSpecsCombined = null;
-        } else {
-            // r.fieldSpecsCombined.mods = ??? FIXME
-            // fieldSpecs???
-            r.fieldSpecsCombined.mods = that.fieldSpecsCombined.mods;
-            r.fieldSpecsCombined.list = translate(that.fieldSpecsCombined.list);
-        }
+//        if (that.fieldSpecsCombined == null) {
+//            r.fieldSpecsCombined = null;
+//        } else {
+//            // r.fieldSpecsCombined.mods = ??? FIXME
+//            // fieldSpecs???
+//            r.fieldSpecsCombined.mods = that.fieldSpecsCombined.mods;
+//            r.fieldSpecsCombined.list = translate(that.fieldSpecsCombined.list);
+//        }
         // FIXME - specsDecl, fieldSpecs, mods
         result = r;
         // Not translating: sourcefile, docComment, name, sym

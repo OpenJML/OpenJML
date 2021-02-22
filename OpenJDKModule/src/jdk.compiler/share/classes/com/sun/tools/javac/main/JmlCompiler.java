@@ -91,6 +91,10 @@ public class JmlCompiler extends JavaCompiler {
         });
     }
     
+    public static JmlCompiler instance(Context context) {
+    	return (JmlCompiler)JavaCompiler.instance(context);
+    }
+    
     /** Cached value of the class loader */
     protected JmlResolve resolver;
     
@@ -232,7 +236,7 @@ public class JmlCompiler extends JavaCompiler {
         /*@Nullable*/ JmlCompilationUnit speccu = parseSingleFile(f);
         if (speccu != null) {
             Symbol.PackageSymbol p = typeSymbol.packge();
-            String specpid = speccu.pid == null ? "unnamed package" : speccu.pid.toString();
+            String specpid = speccu.pid == null ? "unnamed package" : speccu.pid.getPackageName().toString();
             if (!p.toString().equals(specpid)) {
                 utils.error(speccu.sourcefile,speccu.pid == null ? 1 : speccu.pid.pos,
                         "jml.mismatched.package",
@@ -306,7 +310,6 @@ public class JmlCompiler extends JavaCompiler {
      */  // FIXME - what should we use for env for non-public binary classes
     // FIXME - move this to JmlResolve
     public void loadSpecsForBinary(Env<AttrContext> env, ClassSymbol csymbol) {
-    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("LoadSpecsForBinary " + csymbol);
         // The binary Java class itself is already loaded - it is needed to produce the classSymbol itself
         
         // Don't load specs over again
@@ -379,35 +382,37 @@ public class JmlCompiler extends JavaCompiler {
             ((JmlEnter)enter).recordEmptySpecs(csymbol);
             csymbol.flags_field |= UNATTRIBUTED;
             
-            JmlCompilationUnit speccu = null;//parseSpecs(csymbol);
+            
+            JmlCompilationUnit speccu = parseSpecs(csymbol);
             if (speccu != null) {
+            	speccu.modle = csymbol.packge().modle;
 
-                if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
-                else speccu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
+//                if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
+//                else speccu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
 
                 nestingLevel++;
                 try {
                     boolean ok = ((JmlEnter)enter).binaryEnter(speccu);
-                    // specscu.defs is empty if nothing was declared or if all class declarations were removed because of errors
-                    if (ok) {
-                        for (JCTree d: speccu.defs) {
-                            if (d instanceof JmlClassDecl) {
-                                JmlClassDecl jd = (JmlClassDecl)d;
-                                Env<AttrContext> outerEnv = jd.env;
-                                todo.append(outerEnv);
-                                //specs.combineSpecs(jd.sym, jd, jd); // This is a repeat of the top-level definitions
-                                for (JCTree dd: jd.defs) { // TODO: Needs full recursiveness, not just the next level
-                                    if (dd instanceof JmlClassDecl) {
-                                        JmlClassDecl jdd = (JmlClassDecl)dd;
-                                        if (jdd.env == null) jdd.env = enter.classEnv(jdd, outerEnv);
-                                        jdd.specsDecl = jdd;
-                                        todo.append(jdd.env);
-                                        specs.combineSpecs(jdd.sym, jdd, jdd);
-                                    }
-                                }
-                            }
-                        }
-                    }
+//                    // specscu.defs is empty if nothing was declared or if all class declarations were removed because of errors
+//                    if (ok) {
+//                        for (JCTree d: speccu.defs) {
+//                            if (d instanceof JmlClassDecl) {
+//                                JmlClassDecl jd = (JmlClassDecl)d;
+//                                Env<AttrContext> outerEnv = jd.env;
+//                                todo.append(outerEnv);
+//                                //specs.combineSpecs(jd.sym, jd, jd); // This is a repeat of the top-level definitions
+//                                for (JCTree dd: jd.defs) { // TODO: Needs full recursiveness, not just the next level
+//                                    if (dd instanceof JmlClassDecl) {
+//                                        JmlClassDecl jdd = (JmlClassDecl)dd;
+//                                        if (jdd.env == null) jdd.env = enter.classEnv(jdd, outerEnv);
+//                                        jdd.specsDecl = jdd;
+//                                        todo.append(jdd.env);
+//                                        //specs.combineSpecs(jdd.sym, jdd, jdd);
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
 //                    memberEnter.enterSpecsForBinaryClasses(csymbol,List.<JCTree>of(speccu));
                 } finally {
                     nestingLevel--;

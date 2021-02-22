@@ -190,7 +190,6 @@ public class JmlParser extends JavacParser {
             // This code sets that field in after the whole tree is parsed.
             JmlCompilationUnit jmlcu = (JmlCompilationUnit) u;
             setTopLevel(jmlcu,jmlcu.defs);
-            System.out.println(JmlPretty.write(u));
         }
         return u;
     }
@@ -292,6 +291,7 @@ public class JmlParser extends JavacParser {
                 if (!inJmlDeclaration) utils.setJML(mods);
                 inJmlDeclaration = true;
             }
+            if (org.jmlspecs.openjml.Main.useJML && s == null) System.out.println("CRIE " + inJmlDeclaration + " " + token);
             if (!inJmlDeclaration || token.kind == CLASS || token.kind == INTERFACE || token.kind == ENUM || (token.kind == IDENTIFIER && token.name() == names.record)) {
                 // The guard above is used because if it is false, we want to produce
                 // a better error message than we otherwise get, for misspelled
@@ -325,6 +325,9 @@ public class JmlParser extends JavacParser {
             }
         } finally {
             inJmlDeclaration = prevInJmlDeclaration;
+        }
+        if (org.jmlspecs.openjml.Main.useJML && s == null) {
+        	System.out.println("NULL RETURN " + S.tokenizer.position() + " " + ((JmlTokenizer)S.tokenizer).getCharacters(S.tokenizer.position()-10, S.tokenizer.position()+20));
         }
         return s;
     }
@@ -949,6 +952,8 @@ public class JmlParser extends JavacParser {
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                             attach(d, dc);
                             currentVariableDecl = d;
+                            currentVariableDecl.fieldSpecs = new JmlSpecs.FieldSpecs(currentVariableDecl);
+
                         } else {
                             if (currentMethodSpecs != null) {
                                 utils.error(tr.pos, "jml.message", "Method specs that do not precede a method declaration are ignored");
@@ -985,8 +990,7 @@ public class JmlParser extends JavacParser {
                             mostRecentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(
                                     mostRecentVarDecl);
                         }
-                        mostRecentVarDecl.fieldSpecs.list
-                        .append((JmlTypeClause) tree);
+                        mostRecentVarDecl.fieldSpecs.list.append((JmlTypeClause) tree);
                         currentVariableDecl = mostRecentVarDecl;
                     }
 

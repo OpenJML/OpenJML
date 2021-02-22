@@ -66,6 +66,9 @@ public interface JavaFileObject extends FileObject {
          * HTML files.  For example, regular files ending with {@code .html}.
          */
         HTML(".html"),
+        
+        /** jml files, for OpenJML */ // OPENJML - added
+        JML(".jml"), // OPENJML - added
 
         /**
          * Any other kind.

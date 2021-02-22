@@ -327,7 +327,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         this.classReader = ClassReader.instance(context);
         this.jmltypes = (JmlTypes)super.types;  // same as super.types
         //this.classReader.init(syms);
-        this.jmlcompiler = (JmlCompiler)JmlCompiler.instance(context);
+        this.jmlcompiler = JmlCompiler.instance(context);
         this.jmlresolve = (JmlResolve)super.rs;
         
         // Caution, because of circular dependencies among constructors of the
@@ -940,7 +940,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         // Check that every specification class declaration (e.g. class decl in a .jml file) has
         // Java modifiers that match the modifiers in the Java soursce or class file.
-        JmlClassDecl specsDecl = combinedTypeSpecs.refiningSpecDecls;
+        JmlClassDecl specsDecl = combinedTypeSpecs.decl;
         if (specsDecl != null) {
             // FIXME - no way to skip the loop if the specsDecl is the javaDecl
             

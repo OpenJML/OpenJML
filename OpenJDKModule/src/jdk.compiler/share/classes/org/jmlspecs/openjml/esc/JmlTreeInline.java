@@ -233,7 +233,7 @@ public class JmlTreeInline extends JmlTreeCopier {
         copy.sourcefile = that.sourcefile;
         copy.specsDecl = that.specsDecl; // FIXME - repoint to new reference?
         copy.fieldSpecs = (that.fieldSpecs);// FIXME - copy
-        copy.fieldSpecsCombined = (that.fieldSpecsCombined); // FIXME - need copy
+//        copy.fieldSpecsCombined = (that.fieldSpecsCombined); // FIXME - need copy
         copy.sym = that.sym;
         copy.type = that.type;
         return copy;
