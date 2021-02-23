@@ -5,8 +5,6 @@ import java.io.PrintWriter;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.annotation.Nullable;
 
 import com.sun.tools.javac.util.Options;
 
@@ -20,7 +18,7 @@ public class Factory {
          * @param listener destination of diagnostic output (null means use the writer)
          * @param args command-line options
     	 */
-    	@NonNull IAPI makeAPI(@Nullable PrintWriter w, @Nullable DiagnosticListener<JavaFileObject> listener, @Nullable Options options, String... args) throws Exception;
+    	/*@non_null*/ IAPI makeAPI(/*@nullable*/ PrintWriter w, /*@nullable*/ DiagnosticListener<JavaFileObject> listener, /*@nullable*/ Options options, String... args) throws Exception;
     }
     
     /** The default concrete API factory class */
@@ -30,18 +28,18 @@ public class Factory {
          * @param listener destination of diagnostic output (null means use the writer)
          * @param args command-line options
     	 */
-        public @NonNull IAPI makeAPI(@Nullable PrintWriter w, @Nullable DiagnosticListener<JavaFileObject> listener, @Nullable Options options, String... args) throws Exception {
+        public /*@non_null*/ IAPI makeAPI(/*@nullable*/ PrintWriter w, /*@nullable*/ DiagnosticListener<JavaFileObject> listener, /*@nullable*/ Options options, String... args) throws Exception {
             return new API(w,listener,options,args);
         }
     }
     
     /** The factory to use to generated API objects. */
-    public static @NonNull IAPIFactory apiFactory = new Factory.APIFactory();
+    public static /*@non_null*/ IAPIFactory apiFactory = new Factory.APIFactory();
     
     /** Creates a new IAPI object using the registered factory.
      * @param args command-line options
      */
-    static public @NonNull IAPI makeAPI(String ... args) throws Exception {
+    static public /*@non_null*/ IAPI makeAPI(String ... args) throws Exception {
         return apiFactory.makeAPI(null,null,null,args);
     }
 
@@ -50,7 +48,7 @@ public class Factory {
      * @param listener destination of diagnostic output (null means use the writer)
      * @param args command-line options
      */
-    static public @NonNull IAPI makeAPI(@Nullable PrintWriter w, @Nullable DiagnosticListener<JavaFileObject> listener, @Nullable Options options, String... args) throws Exception {
+    static public /*@non_null*/ IAPI makeAPI(/*@nullable*/ PrintWriter w, /*@nullable*/ DiagnosticListener<JavaFileObject> listener, /*@nullable*/ Options options, String... args) throws Exception {
         return apiFactory.makeAPI(w,listener,options,args);
     }
 

@@ -6,7 +6,6 @@ package org.jmlspecs.openjml.esc;
 
 import java.util.Map;
 
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
 import org.jmlspecs.openjml.visitors.JmlTreeCopier;
@@ -104,7 +103,7 @@ public class JmlTreeInline extends JmlTreeCopier {
     @Override
     public JCTree visitIdentifier(IdentifierTree node, Void p) {
         JCIdent oldid = (JCIdent)node;
-        @Nullable JCExpression newexpr = replacements == null ? null : replacements.get(oldid.sym);
+        /*@nullable*/ JCExpression newexpr = replacements == null ? null : replacements.get(oldid.sym);
         if (newexpr == null) {
             JCIdent id = (JCIdent)super.visitIdentifier(node,p).setType(((JCTree)node).type);
             id.sym = ((JCIdent)node).sym;
@@ -130,7 +129,7 @@ public class JmlTreeInline extends JmlTreeCopier {
     public JCTree visitJmlSingleton(JmlSingleton that, Void p) {
         // for substitution \result
         if (that.kind == SingletonExpressions.resultKind) {
-            @Nullable JCExpression newexpr = replacements.get(that.kind);
+            /*@nullable*/ JCExpression newexpr = replacements.get(that.kind);
             if (newexpr != null) return copy(newexpr);
             else return super.visitJmlSingleton(that,  p);
         } else {

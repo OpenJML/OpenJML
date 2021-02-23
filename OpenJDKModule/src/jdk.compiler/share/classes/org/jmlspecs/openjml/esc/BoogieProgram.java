@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
@@ -72,7 +71,7 @@ public class BoogieProgram extends BasicProgramParent<BoogieProgram.BoogieBlock>
     /** Returns the (mutable) list of background assertions that are part of this program
      * @return the program's background definitions
      */
-    @Pure
+    /*@pure*/
     public List<JCExpression> background() {
         return background;
     }

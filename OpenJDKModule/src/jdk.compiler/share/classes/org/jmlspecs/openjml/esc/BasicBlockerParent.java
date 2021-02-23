@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
@@ -117,13 +115,13 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     // Names for various basic blocks
     
     /** The prefix used for names of blocks */
-    public static final @NonNull String blockPrefix = "BL_"; //$NON-NLS-1$
+    public static final /*@non_null*/ String blockPrefix = "BL_"; //$NON-NLS-1$
     
     /** Standard name for the block that starts the body */
-    public static final @NonNull String BODY_BLOCK_NAME = "bodyBegin"; //$NON-NLS-1$
+    public static final /*@non_null*/ String BODY_BLOCK_NAME = "bodyBegin"; //$NON-NLS-1$
     
     /** Standard name for the starting block of the program (just has the preconditions) */
-    public static final @NonNull String START_BLOCK_NAME = "Start"; //$NON-NLS-1$
+    public static final /*@non_null*/ String START_BLOCK_NAME = "Start"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block for a finally block */
     public static final String FINALLY = "_finally"; //$NON-NLS-1$
@@ -211,28 +209,28 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     // class directly
     
     /** The compilation context */
-    @NonNull final protected Context context;
+    /*@non_null*/ final protected Context context;
     
     /** The log to which to send error, warning and notice messages */
-    @NonNull final protected Log log;
+    /*@non_null*/ final protected Log log;
     
     /** The Names table from the compilation context, initialized in the constructor */
-    @NonNull final protected Names names;
+    /*@non_null*/ final protected Names names;
   
     /** The specifications database for this compilation context, initialized in the constructor */
-    @NonNull final protected JmlSpecs specs;
+    /*@non_null*/ final protected JmlSpecs specs;
     
     /** The symbol table from the compilation context, initialized in the constructor */
-    @NonNull final protected Symtab syms;
+    /*@non_null*/ final protected Symtab syms;
     
     /** The JmlTreeUtils object, holding a bunch of tree-making utilities */
-    @NonNull final protected JmlTreeUtils treeutils;
+    /*@non_null*/ final protected JmlTreeUtils treeutils;
     
     /** The Utils object, holding a bunch of general utilities */
-    @NonNull final protected Utils utils;
+    /*@non_null*/ final protected Utils utils;
     
     /** The factory used to create AST nodes, initialized in the constructor */
-    final protected JmlTree.@NonNull Maker M;
+    final protected JmlTree./*@non_null*/ Maker M;
 
     // The following fields depend on the method being converted but
     // are otherwise fixed for the life of the object
@@ -285,7 +283,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * invoked by a derived class constructor.
      * @param context the compilation context
      */
-    protected BasicBlockerParent(@NonNull Context context) {
+    protected BasicBlockerParent(/*@non_null*/ Context context) {
         this.context = context;
         this.log = Log.instance(context);
         this.M = JmlTree.Maker.instance(context);
@@ -381,7 +379,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * 
      * @param block the block to process
      */
-    protected void processBlock(@NonNull T block) {
+    protected void processBlock(/*@non_null*/ T block) {
         if (block.preceders().isEmpty()) {
             // Delete any blocks that do not follow anything
             // This can happen for example if the block is an afterIf block
@@ -444,7 +442,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * 
      * @param b the block for which to initialize processing 
      */
-    protected void startBlock(@NonNull T b) {
+    protected void startBlock(/*@non_null*/ T b) {
         
         // Check that all preceding blocks are actually completed
         // This is defensive programming and should not actually be needed
@@ -482,7 +480,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     /** Allows derived classes to do any cleanup activity.
      * @param b the completed block
      */
-    protected void completeBlock(@NonNull T b) {
+    protected void completeBlock(/*@non_null*/ T b) {
         // remainingStatements should be null, but we don't bother to do the defensive check
         currentBlock = null;
     }
@@ -492,7 +490,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * @param before block that precedes after
      * @param after block that follows before
      */
-    protected void follows(@NonNull T before, @NonNull T after) {
+    protected void follows(/*@non_null*/ T before, /*@non_null*/ T after) {
         before.followers().add(after);
         after.preceders().add(before);
     }
@@ -502,7 +500,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * @param before block that precedes after
      * @param after list of blocks that follow before
      */
-    protected void follows(@NonNull T before, @NonNull List<T> after) {
+    protected void follows(/*@non_null*/ T before, /*@non_null*/ List<T> after) {
         for (T b: after) {
             before.followers().add(b);
             b.preceders().add(before);
@@ -514,7 +512,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * @param before block whose follow list is to be changed
      * @param after new following block
      */
-    protected void replaceFollows(@NonNull T before, @NonNull T after) {
+    protected void replaceFollows(/*@non_null*/ T before, /*@non_null*/ T after) {
         for (T b: before.followers()) {
             b.preceders().remove(before);
         }
@@ -527,7 +525,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * @param before
      * @param after
      */
-    protected void replaceFollows(@NonNull T before, List<T> after) {
+    protected void replaceFollows(/*@non_null*/ T before, List<T> after) {
         for (T b: before.followers()) {
             b.preceders().remove(before);
         }
@@ -562,7 +560,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * @param pos a position to associate with the JCIdent for the block
      * @return the new block
      */
-    protected @NonNull T newBlock(@NonNull String key, int pos) {
+    protected /*@non_null*/ T newBlock(/*@non_null*/ String key, int pos) {
         String name = blockName(pos,key);
         JCIdent id = treeutils.makeIdent(pos,name,syms.booleanType);
         T bb = newBlock(id);
@@ -582,7 +580,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * @param previousBlock the block that is giving up its followers
      * @return the new block
      */
-    protected @NonNull T newBlock(@NonNull String key, int pos, @NonNull T previousBlock) {
+    protected /*@non_null*/ T newBlock(/*@non_null*/ String key, int pos, /*@non_null*/ T previousBlock) {
         String name = blockName(pos,key);
         // See the comment in the newBlock(...) method above
         JCIdent id = treeutils.makeIdent(pos,name,syms.booleanType);
@@ -602,7 +600,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * @param pos a position to associate with the block
      * @return the new block
      */
-    protected T newBlockWithRest(@NonNull String key, int pos) {
+    protected T newBlockWithRest(/*@non_null*/ String key, int pos) {
         T b = newBlock(key,pos,currentBlock);// it gets all the followers of the current block
         b.statements.addAll(remainingStatements); // it gets all of the remaining statements
         remainingStatements.clear(); // empty
@@ -612,8 +610,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     /** A helper initialization routine for derived classes, called internally at
      * the start of converting a method body
      */
-    protected void initialize(@NonNull JCMethodDecl methodDecl, 
-           @NonNull JCClassDecl classDecl, @NonNull JmlAssertionAdder assertionAdder) {
+    protected void initialize(/*@non_null*/ JCMethodDecl methodDecl, 
+           /*@non_null*/ JCClassDecl classDecl, /*@non_null*/ JmlAssertionAdder assertionAdder) {
         this.methodDecl = (JmlMethodDecl)methodDecl;
         this.program = newProgram(context);
         this.program.methodDecl = methodDecl;
@@ -639,7 +637,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * from srcnode; the information is stored in the end-position table that
      * is part of log.currentSource(). No action happens if either argument is null.
      */
-    public void copyEndPosition(@Nullable JCTree newnode, @Nullable JCTree srcnode) {
+    public void copyEndPosition(/*@nullable*/ JCTree newnode, /*@nullable*/ JCTree srcnode) {
         EndPosTable z = log.currentSource().getEndPosTable();
         if (z != null && srcnode != null) { // srcnode can be null when processing a switch statement
             int end = srcnode.getEndPosition(z);

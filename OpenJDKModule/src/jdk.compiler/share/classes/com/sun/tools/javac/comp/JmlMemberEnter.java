@@ -21,7 +21,6 @@ import java.util.Map;
 import javax.tools.JavaFileObject;
 import javax.tools.JavaFileObject.Kind;
 
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
@@ -497,7 +496,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         }
     }  
     
-    protected List<JCTree> matchStuff(@Nullable JmlClassDecl jtree, ClassSymbol csym, Env<AttrContext> env, JmlClassDecl specsDecl) {
+    protected List<JCTree> matchStuff(/*@nullable*/ JmlClassDecl jtree, ClassSymbol csym, Env<AttrContext> env, JmlClassDecl specsDecl) {
         Map<Symbol,JCTree> matches = new HashMap<Symbol,JCTree>();
         ListBuffer<JCTree> newlist = new ListBuffer<>();
         ListBuffer<JCTree> toadd = new ListBuffer<>();
@@ -667,7 +666,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      * <br>if non-duplicate match, set specs database
      * <br>if non-duplicate match, set specsVarDecl.sym field
      * */
-    protected boolean matchAndSetMethodSpecs(@Nullable JmlClassDecl javaDecl, ClassSymbol csym, JmlMethodDecl specsMethodDecl, Env<AttrContext> env, Map<Symbol,JCTree> matchesSoFar, boolean sameTree) {
+    protected boolean matchAndSetMethodSpecs(/*@nullable*/ JmlClassDecl javaDecl, ClassSymbol csym, JmlMethodDecl specsMethodDecl, Env<AttrContext> env, Map<Symbol,JCTree> matchesSoFar, boolean sameTree) {
 
         // Find the counterpart to specsMethodDecl (from the .jml file) in the Java class declaration (javaDecl or csym)
         // Note that if the class is binary, javaDecl will be null, but csym will not
@@ -838,13 +837,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         
         utils.setJML(m.mods);
         utils.setJML(ms.mods);
-        JCAnnotation a = modToAnnotationAST(Modifiers.HELPER);
+        JCAnnotation a = utils.modToAnnotationAST(Modifiers.HELPER,0,1);
         m.mods.annotations = m.mods.annotations.append(a);
         ms.mods.annotations = ms.mods.annotations.append(a);
-        a = modToAnnotationAST(Modifiers.PURE);
+        a = utils.modToAnnotationAST(Modifiers.PURE,0,1);
         m.mods.annotations = m.mods.annotations.append(a);
         ms.mods.annotations = ms.mods.annotations.append(a);
-        a = modToAnnotationAST(Modifiers.MODEL);
+        a = utils.modToAnnotationAST(Modifiers.MODEL,0,1);
         m.mods.annotations = m.mods.annotations.append(a);
         ms.mods.annotations = ms.mods.annotations.append(a);
         
@@ -1433,7 +1432,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      * for both the method declaration and any parameter declarations;
      * does not do any semantic checks of whether the modifiers or annotations are allowed.
      */
-    public void checkMethodMatch(@Nullable JmlMethodDecl javaMatch, MethodSymbol match, JmlMethodDecl specMethodDecl, ClassSymbol javaClassSymbol) {
+    public void checkMethodMatch(/*@nullable*/ JmlMethodDecl javaMatch, MethodSymbol match, JmlMethodDecl specMethodDecl, ClassSymbol javaClassSymbol) {
         JavaFileObject prev = log.currentSourceFile();
         log.useSource(specMethodDecl.sourcefile); // All logged errors are with respect to positions in the jml file
         try {
@@ -2025,16 +2024,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            tree.sym = v;
 //        }
     	super.visitFieldDefHelper(tree, v, enclScope);
-    }
-    
-    /** Creates a JCAnnotation tree (without position, source, or type information) from a token; has limited use */
-    protected JmlTree.JmlAnnotation modToAnnotationAST(ModifierKind jt) {
-        // FIXME - this is also repeated code and repeated fixed strings
-        JCExpression t = utils.nametree(Position.NOPOS,Position.NOPOS,jt.fullAnnotation,null);
-        JmlTree.JmlAnnotation ann = jmlF.Annotation(t, List.<JCExpression>nil());
-        return ann;
-    }
-    
+    }    
     
     protected void enterSpecsForBinaryFields(ClassSymbol parent, JmlVariableDecl specstree) {
         Name nm = specstree.name;

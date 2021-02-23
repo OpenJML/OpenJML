@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.annotation.Pure;
 
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
@@ -38,7 +36,7 @@ import com.sun.tools.javac.util.Context;
 abstract public class BasicProgramParent<T extends BasicProgramParent.BlockParent<T>> {
 
     /** Cached value of the symbol table */
-    @NonNull final public Symtab syms;
+    /*@non_null*/ final public Symtab syms;
 
     /** Parent class constructor */
     public BasicProgramParent(Context context) {
@@ -63,7 +61,7 @@ abstract public class BasicProgramParent<T extends BasicProgramParent.BlockParen
     /** Returns this program's list of blocks 
      * @return this program's blocks
      */
-    @Pure @NonNull
+    /*@pure*/ /*@non_null*/
     public List<T> blocks() { return blocks; }
 
     /** The method declaration generating this program */
@@ -102,38 +100,38 @@ abstract public class BasicProgramParent<T extends BasicProgramParent.BlockParen
         /** Returns the id of the block
          * @return the block's id
          */
-        @Pure @NonNull
+        /*@pure*/ /*@non_null*/
         public JCIdent id() { return id; }
         
         /** The ordered list of statements in the block */
-        @NonNull protected List<JCStatement> statements = new LinkedList<JCStatement>();
+        /*@non_null*/ protected List<JCStatement> statements = new LinkedList<JCStatement>();
         
         /** Returns the block's statements
          * @return the block's statements
          */
-        @Pure @NonNull
+        /*@pure*/ /*@non_null*/
         public List<JCStatement> statements() { return statements; }
         
         /** The set of blocks that succeed this one */
-        @NonNull protected List<T> followers = new ArrayList<T>();
+        /*@non_null*/ protected List<T> followers = new ArrayList<T>();
         
         /** Returns the block's followers
          * @return the block's followers
          */
-        @Pure @NonNull
+        /*@pure*/ /*@non_null*/
         public List<T> followers() { return followers; }
         
         /** The set of blocks that precede this one */
-        @NonNull protected List<T> preceders = new ArrayList<T>();
+        /*@non_null*/ protected List<T> preceders = new ArrayList<T>();
         
         /** Returns the block's preceders
          * @return the block's preceders
          */
-        @Pure @NonNull
+        /*@pure*/ /*@non_null*/
         public List<T> preceders() { return preceders; }
         
         /** Generates a human-readable String representation of the block */
-        @Override // @NonNull
+        @Override // /*@non_null*/
         public String toString() {
             java.io.StringWriter s = new java.io.StringWriter();
             write(s);

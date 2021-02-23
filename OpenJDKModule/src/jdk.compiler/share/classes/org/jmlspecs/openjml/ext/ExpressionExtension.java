@@ -6,8 +6,6 @@ package org.jmlspecs.openjml.ext;
 
 import java.lang.reflect.Constructor;
 
-import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -106,7 +104,7 @@ abstract public class ExpressionExtension extends JmlExtension {
      * @return the AST for the expression
      */
     public JCExpression parse(JmlParser parser,
-            @Nullable List<JCExpression> typeArgs) {
+            /*@nullable*/ List<JCExpression> typeArgs) {
         this.parser = parser;
         JmlTokenKind jt = parser.jmlTokenKind();
         int p = parser.pos();
@@ -126,7 +124,7 @@ abstract public class ExpressionExtension extends JmlExtension {
     }
     
     public JCExpression parseNoArgs(JmlParser parser,
-            @Nullable List<JCExpression> typeArgs) {
+            /*@nullable*/ List<JCExpression> typeArgs) {
         this.parser = parser;
         JmlTokenKind jt = parser.jmlTokenKind();
         int p = parser.pos();

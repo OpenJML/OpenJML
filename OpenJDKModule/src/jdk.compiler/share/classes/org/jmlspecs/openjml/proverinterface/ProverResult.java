@@ -4,8 +4,6 @@
  */
 package org.jmlspecs.openjml.proverinterface;
 
-import org.jmlspecs.annotation.*;
-
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 
 import java.util.Date;
@@ -19,11 +17,11 @@ import java.util.List;
 public class ProverResult implements IProverResult {
 
     /** The result obtained on testing a logical assertion */
-    @Nullable @SpecPublic
+	/*@nullable*/ /*@spec_public*/
     public Kind result;
 
     /** Descriptor of the prover used */
-    @Nullable @SpecPublic
+	/*@nullable*/ /*@spec_public*/
     protected String prover;
     
     /** Time taken ( in secs) to compute this proof result */
@@ -32,19 +30,19 @@ public class ProverResult implements IProverResult {
     protected int episodes; // Number of different solver attempts that contributed to the duration
     
     /** Time at which the proof attempt started */
-    @NonNull
+    /*@non_null*/
     protected Date timestamp;
     
     /** The Method symbol of the target method of this proof attempt */
-    @NonNull
+    /*@non_null*/
     public MethodSymbol methodSymbol;
     
     /** Other information - user defined */
-    @Nullable
+    /*@nullable*/
     protected Object otherInfo;
     
     /** The details of the result produced by the prover, if any */
-    @Nullable
+    /*@nullable*/
     protected List<IProverResult.Item> details = null;
 
     /** Creates a mostly empty ProverResult object, with the prover
@@ -61,14 +59,14 @@ public class ProverResult implements IProverResult {
     /** Returns the category of result that the prover obtained
      * @return the category of result from the prover
      */
-    @Pure
+    /*@pure*/
     public Kind result() { return result; }
 
     /** Returns a descriptor of the prover used to generate the result
      * @return a descriptor of the prover
      */
-    @Pure
-    public @Nullable String prover() { return prover; }
+    /*@pure*/ /*@nullable*/
+    public String prover() { return prover; }
     
     /** The time to compute this result, in seconds */
     public double duration() { return duration; }
@@ -79,24 +77,24 @@ public class ProverResult implements IProverResult {
     public void accumulateDuration(double d) { duration += d; episodes++; }
     
     /** The method that was the target of this proof attempt */
-    @NonNull
+    /*@non_null*/
     public MethodSymbol methodSymbol() { return methodSymbol; }
     
     /** The time at which the computation of the result began */
-    @NonNull
+    /*@non_null*/
     public Date timestamp() { return timestamp; }
 
     /** Sets the time at which the computation of the result began */
     public void setTimestamp(Date d) { timestamp = d; }
     
     /** Returns the associated information object */
-    @Pure @Nullable
+    /*@pure*/ /*@nullable*/
     public Object otherInfo() { return otherInfo; }
     
     /** Sets the associated information object. */
     //@ assignable otherInfo;
     //@ ensures o == otherInfo();
-    public ProverResult setOtherInfo(@Nullable Object o) {
+    public ProverResult setOtherInfo(/*@nullable*/ Object o) {
         otherInfo = o;
         return this;
     }
@@ -108,7 +106,7 @@ public class ProverResult implements IProverResult {
     //@ assignable this.result;
     //@ ensures result() == r;
     @Override
-    public void result(@NonNull Kind r) { result = r; }
+    public void result(/*@non_null*/ Kind r) { result = r; }
 
     /** Returns true if the prover found a satisfying assignment 
      * @return true if the prover found a satisfying assignment
@@ -121,7 +119,7 @@ public class ProverResult implements IProverResult {
     /** The details of the result 
      * @return a list of Item objects giving more detail
      */
-    @NonNull public List<IProverResult.Item> details() {
+    /*@non_null*/ public List<IProverResult.Item> details() {
         return details;
     }
 
@@ -129,7 +127,7 @@ public class ProverResult implements IProverResult {
      * 
      * @param item the detail item to add
      */
-    public void add(IProverResult.@NonNull Item item) {
+    public void add(IProverResult./*@non_null*/ Item item) {
         if (details == null) details = new LinkedList<IProverResult.Item>();
         details.add(item);
     }
@@ -137,7 +135,7 @@ public class ProverResult implements IProverResult {
     /** Returns the counterexample information, if any available and if the
      * prover supports it
      */
-    @Nullable
+    /*@nullable*/
     public ICounterexample counterexample() {
         if (details == null) return null;
         for (IProverResult.Item i: details) {
@@ -152,7 +150,7 @@ public class ProverResult implements IProverResult {
      * prover
      * @return an object holding the core id information
      */
-    @Nullable
+    /*@nullable*/
     public ICoreIds coreIds() {
         if (details == null) return null;
         for (IProverResult.Item i: details) {

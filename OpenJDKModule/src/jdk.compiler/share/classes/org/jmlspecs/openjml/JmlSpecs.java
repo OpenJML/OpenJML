@@ -27,7 +27,6 @@ import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
 //import org.eclipse.core.runtime.Platform;
-import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
@@ -523,8 +522,8 @@ public class JmlSpecs {
             }
             Options options = Options.instance(context);
             noticeWriter.println("");
-            noticeWriter.println("sourcepath: " + options.get("-sourcepath"));
-            noticeWriter.println("classpath: " + options.get("-classpath"));
+            noticeWriter.println("sourcepath: " + options.get("--source-path"));
+            noticeWriter.println("classpath: " + options.get("--class-path"));
             noticeWriter.println("java.class.path: " + System.getProperty("java.class.path"));
             noticeWriter.flush();
         }
@@ -1298,7 +1297,7 @@ public class JmlSpecs {
         public ListBuffer<JmlTree.JmlTypeClauseDecl> decls;  // FIXME - get rid of this - these are all incorporated into the class itself
 
 //        /** All the model types directly declared in this type */
-//        @NonNull
+//        /*@non_null*/
 //        public ListBuffer<JmlTree.JmlClassDecl> modelTypes = new ListBuffer<JmlTree.JmlClassDecl>();  // FIXME - get rid of this
         
         /** Synthetic methods for model fields (these are also included in the clauses list) */
@@ -1462,7 +1461,7 @@ public class JmlSpecs {
             // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.
             // If neither one is present, then the logic here will give the
             // default as NONNULL.
-            JmlAnnotation a;
+//            JmlAnnotation a;
 //            if (JmlOption.isOption(context,JmlOption.NULLABLEBYDEFAULT)) {
 //                a = new JmlAnnotation(nullablebydefaultAnnotationSymbol.type, com.sun.tools.javac.util.List.<JCExpression>nil());
 //            } else if (JmlOption.isOption(context,JmlOption.NONNULLBYDEFAULT)) {

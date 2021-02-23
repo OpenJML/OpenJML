@@ -31,9 +31,6 @@ import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.annotation.Nullable;
-import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.openjml.esc.MethodProverSMT;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 
@@ -162,7 +159,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** The diagListener provided when an instance of Main is constructed.
      * The listener will be notified when any diagnostic is generated.
      */
-    @Nullable
+    /*@nullable*/
     protected DiagnosticListener<? extends JavaFileObject> diagListener;
     
     
@@ -182,7 +179,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         void worked(int ticks);
     }
 
-    @Nullable /** If nonnull, this listener is notified of progress messages */
+    /*@nullable*/ /** If nonnull, this listener is notified of progress messages */
     static public java.util.function.Supplier<IProgressListener> progressListener;
     
     /** The compilation Context only allows one instance to be registered for
@@ -208,11 +205,11 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         
         /** Returns true if there is a listener. */
-        @Pure
+        /*@pure*/
         public boolean hasDelegate() { return delegate != null; }
         
         /** Sets a listener, overriding previous setting; may be null to erase a listener. */
-        public void setDelegate(@Nullable IProgressListener d) {
+        public void setDelegate(/*@nullable*/ IProgressListener d) {
             delegate = d;
         }
         
@@ -285,7 +282,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
     
     protected Context initialize(
-                @Nullable DiagnosticListener<? extends JavaFileObject> diagListener) {
+                /*@nullable*/ DiagnosticListener<? extends JavaFileObject> diagListener) {
         check(); // Aborts if the environment does not support OpenJML
         this.diagListener = diagListener;
         this.context = new Context();
@@ -335,11 +332,11 @@ public class Main extends com.sun.tools.javac.main.Main {
     // TODO: Move these? Get them from Option?
     
     /** The option string for requesting help information */
-    @NonNull
+    /*@non_null*/
     final public static String helpOption = "-help";
     
     /** The option string for running jmldoc */
-    @NonNull
+    /*@non_null*/
     final public static String jmldocOption = "-doc";
 
     /** Invokes the compiler on the given command-line arguments; errors go to
@@ -387,7 +384,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @param args the command-line arguments
      * @return the exit code
      */
-    public static int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, @Nullable Options options, @NonNull String[] args) {
+    public static int execute(/*@non_null*/ PrintWriter writer, /*@nullable*/ DiagnosticListener<? extends JavaFileObject> diagListener, /*@nullable*/ Options options, /*@non_null*/ String[] args) {
         int errorcode = com.sun.tools.javac.main.Main.Result.ERROR.exitCode; // 1
         try {
             if (args == null) {
@@ -457,7 +454,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @param args
      * @return
      */
-    public int executeNS(@NonNull PrintWriter writer, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, @Nullable Options options, @NonNull String[] args) {
+    public int executeNS(/*@non_null*/ PrintWriter writer, /*@nullable*/ DiagnosticListener<? extends JavaFileObject> diagListener, /*@nullable*/ Options options, /*@non_null*/ String[] args) {
         int errorcode = com.sun.tools.javac.main.Main.Result.ERROR.exitCode; // 1
         try {
             if (args == null) {
@@ -497,7 +494,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     private IAPI.IProofResultListener prl;
     
     // TODO - needs review when API and Eclipse plugin are fixed
-    public int executeNS(@NonNull PrintWriter writer, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, IAPI.IProofResultListener prListener, @Nullable Options options, @NonNull String[] args) {
+    public int executeNS(/*@non_null*/ PrintWriter writer, /*@nullable*/ DiagnosticListener<? extends JavaFileObject> diagListener, IAPI.IProofResultListener prListener, /*@nullable*/ Options options, /*@non_null*/ String[] args) {
         int errorcode = com.sun.tools.javac.main.Main.Result.ERROR.exitCode; // 1
         try {
             if (args == null) {
@@ -638,7 +635,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
 
     /** Returns a reference to the API's compilation context. */
-    public @Nullable Context context() {
+    public /*@nullable*/ Context context() {
         return context;
     }
     
@@ -649,9 +646,9 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @param diagListener if not null, a listener that will receive reports
      *    of warnings and errors
      */
-    public static <S> void registerTools(@NonNull Context context, 
-            @NonNull PrintWriter out, 
-            @Nullable DiagnosticListener<S> diagListener) {
+    public static <S> void registerTools(/*@non_null*/ Context context, 
+            /*@non_null*/ PrintWriter out, 
+            /*@nullable*/ DiagnosticListener<S> diagListener) {
 
         // We register the output writer for the Log first so that it is
         // available if tool registration (or argument processing) needs the
@@ -720,7 +717,7 @@ public class Main extends com.sun.tools.javac.main.Main {
 //     * log mechanism. Any non-options in the args list (e.g. files) are 
 //     * warned about and ignored. 
 //     */
-//    public void initializeOptions(@Nullable Options options, @NonNull String... args) {
+//    public void initializeOptions(/*@nullable*/ Options options, /*@non_null*/ String... args) {
 //        initializingOptions = true;
 //        Options opts = Options.instance(context);
 //        if (options == null) {

@@ -20,7 +20,6 @@
 
 package org.jmlspecs.lang;
 
-import org.jmlspecs.annotation.*;
 
 
 /** A combination of JMLType and java.util.Iterator.
@@ -39,22 +38,22 @@ public interface JMLIterator<E> {
     /** Return a clone of this iterator.
      * This declaration makes the method public.
      */
-    @Query @NonNull
+    /*@ query non_null*/
     Object clone();
     
     //@ also public normal_behavior
     //@   ensures (o == this) ==> \result;
-    @Query
-    boolean equals(@Nullable Object o);
+    /*@query*/
+    boolean equals(/*@nullable*/ Object o);
 
     /** Returns true if there is a next element */
     //@ public normal_behavior
     //@   ensures \not_assigned(position);
-    @Query
+    /*@query*/
     boolean hasNext();
     
     //@ requires hasNext();
     //@ assignable position;
-    @Nullable E next();
+    /*@nullable*/ E next();
 
 }

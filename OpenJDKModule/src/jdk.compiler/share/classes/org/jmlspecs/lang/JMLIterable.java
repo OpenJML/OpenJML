@@ -1,5 +1,4 @@
 package org.jmlspecs.lang;
-import org.jmlspecs.annotation.*;
 
 /** This is the counterpart for model types to Iterable<E>.
  * @author DRCok
@@ -9,6 +8,6 @@ import org.jmlspecs.annotation.*;
 public interface JMLIterable<E> {
 
     //@ ensures \fresh(\result);
-    @NonNull
+    /*@non_null*/
     JMLIterator<E> iterator();
 }

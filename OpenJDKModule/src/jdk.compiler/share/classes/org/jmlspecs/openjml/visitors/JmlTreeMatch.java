@@ -6,7 +6,6 @@ package org.jmlspecs.openjml.visitors;
 
 import java.util.Map;
 
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;

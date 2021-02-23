@@ -9,7 +9,6 @@ import java.util.Collection;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
@@ -136,15 +135,15 @@ public class JmlEnter extends Enter {
     }
 
     /** The context in which this instance was created. */
-    @NonNull
+    /*@non_null*/
     final protected Context context;
 
 //    /** A cached value of the specs tool for this compilation context */
-//    @NonNull
+//    /*@non_null*/
 //    final protected JmlSpecs specs;
     
     /** A cached value of the Utils tool */
-    @NonNull
+    /*@non_null*/
     final protected Utils utils;
 
     /** Creates an instance of the JmlEnter tool in the given context; note that

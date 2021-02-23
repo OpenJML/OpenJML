@@ -6,7 +6,6 @@ package org.jmlspecs.openjml.visitors;
 
 import java.util.Map;
 
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlTree.*;
@@ -75,7 +74,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
     
     // FIXME - substitute can change node type
     /** Static method to create a copy of the given AST with the given factory */
-    public static <T extends JCTree> T substitute(JmlTree.Maker maker, @Nullable T that,
+    public static <T extends JCTree> T substitute(JmlTree.Maker maker, /*@nullable*/ T that,
             Map<Object,JCExpression> replacements) {
         return new JmlTreeSubstitute(maker.context,maker,replacements).copy(that,null);
     }
@@ -85,7 +84,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
     @Override
     public JCTree visitIdentifier(IdentifierTree node, Void p) {
         JCIdent oldid = (JCIdent)node;
-        @Nullable JCExpression newexpr = replacements.get(oldid.sym);
+        /*@nullable*/ JCExpression newexpr = replacements.get(oldid.sym);
         if (newexpr == null) {
             JCIdent id = (JCIdent)super.visitIdentifier(node,p).setType(((JCTree)node).type);
             id.sym = ((JCIdent)node).sym;
@@ -99,11 +98,11 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
     public JCTree visitJmlSingleton(JmlSingleton that, Void p) {
         // for substitution \result
         if (that.kind == resultKind) {
-            @Nullable JCExpression newexpr = replacements.get(resultID); // FIXME - nont sure about these - should be sym?
+            /*@nullable*/ JCExpression newexpr = replacements.get(resultID); // FIXME - nont sure about these - should be sym?
             if (newexpr != null) return copy(newexpr);
             else return super.visitJmlSingleton(that,  p);
         } else if (that.kind == countKind) {
-            @Nullable JCExpression newexpr = replacements.get(countID);
+            /*@nullable*/ JCExpression newexpr = replacements.get(countID);
             if (newexpr != null) return copy(newexpr);
             else return super.visitJmlSingleton(that,  p);
         } else {

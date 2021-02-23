@@ -9,9 +9,6 @@ import java.util.Map;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.annotation.Nullable;
-import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
@@ -44,16 +41,16 @@ public interface IAPI {
      * set of classes.
      * @return the version of this instance of OpenJML
      */
-    public @NonNull String version();
+    public /*@non_null*/ String version();
 
 
     /** The compilation context for this API object */
     //@ ensures \result == context;
-    @Pure
-    public @Nullable Context context();
+    /*@pure*/
+    public /*@nullable*/ Context context();
 
     /** The compiler object for this context. */
-    @Pure
+    /*@pure*/
     public Main main();
 
     /** A partial (abstract) implementation of a progress listener to hear
@@ -92,7 +89,7 @@ public interface IAPI {
      * unless they are explicitly chained).
      * @param p the listener
      */
-    public IProofResultListener setProofResultListener(@Nullable IProofResultListener p);
+    public IProofResultListener setProofResultListener(/*@nullable*/ IProofResultListener p);
 
     /** This method initializes the Options instance of the current compilation
      * context. If the options argument is not null, its content is used
@@ -104,7 +101,7 @@ public interface IAPI {
      * log mechanism. Any non-options in the args list (e.g. files) are 
      * warned about and ignored. 
      * */
-    public void initOptions(@Nullable Options options, @NonNull String ... args);
+    public void initOptions(/*@nullable*/ Options options, /*@non_null*/ String ... args);
     
     /** Adds additional command-line options to the current context. Any errors
      * are reported through the diagnostics Log.
@@ -122,7 +119,7 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @Nullable
+    public /*@nullable*/
     String getOption(String name);
 
     public void abort();
@@ -137,7 +134,7 @@ public interface IAPI {
      */
     //@ requires isOpen && args != null && \nonnullarguments(args);
     //@ ensures isOpen;
-    public int execute(@Nullable Options options, @NonNull String ... args);
+    public int execute(/*@nullable*/ Options options, /*@non_null*/ String ... args);
     
     /** Executes the command-line version of OpenJML, in a newly initialized
      * Main, with a new compilation context, returning the exit code.
@@ -148,11 +145,11 @@ public interface IAPI {
      * @param args the command-line arguments
      * @return the exit code (0 is success; other values are various kinds of errors)
      */
-    public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @Nullable Options options, @NonNull String ... args);
+    public int execute(/*@non_null*/ PrintWriter writer, /*@nullable*/ DiagnosticListener<JavaFileObject> diagListener, /*@nullable*/ Options options, /*@non_null*/ String ... args);
     
     /** Executes the jmldoc tool on the given command-line arguments. This is 
      * NOT CURRENTLY IMPLEMENTED and the API may change. */
-    public int jmldoc(@NonNull String... args);
+    public int jmldoc(/*@non_null*/ String... args);
     
     /** Does not change the ASTs except to delete all type and name resolution information,
      * so that typecheck() can be run again. This operation might be appropriate if an AST has 
@@ -177,7 +174,7 @@ public interface IAPI {
      * @return the number of errors encountered
      * @throws IOException
      */
-    public int typecheck(@NonNull JmlCompilationUnit... trees)
+    public int typecheck(/*@non_null*/ JmlCompilationUnit... trees)
             throws IOException;
 
     /** Enters and typechecks the provided already-parsed compilation unit ASTs.  The elements
@@ -192,7 +189,7 @@ public interface IAPI {
     //@ requires isOpen;
     //@ ensures isOpen;
     public int typecheck(
-            @NonNull Collection<? extends JmlCompilationUnit> trees)
+            /*@non_null*/ Collection<? extends JmlCompilationUnit> trees)
             throws java.io.IOException;
 
     /** Enters and typechecks the provided already-parsed compilation unit ASTs;
@@ -206,7 +203,7 @@ public interface IAPI {
      * @return the number of errors encountered
      * @throws IOException
      */
-    public int typecheck(@NonNull List<? extends JCCompilationUnit> list) throws IOException;
+    public int typecheck(/*@non_null*/ List<? extends JCCompilationUnit> list) throws IOException;
     
     /** Parses each java file and its specs returning a list of the ASTs for corresponding
      * java files; the spec files are automatically found according to JML rules; 
@@ -224,7 +221,7 @@ public interface IAPI {
     //@ ensures files.length == \result.size();
     //@ ensures (* output elements are non-null *);
     public /*@ non_null */ 
-    java.util.List<JmlCompilationUnit> parseFiles(@NonNull String... filenames);
+    java.util.List<JmlCompilationUnit> parseFiles(/*@non_null*/ String... filenames);
 
     /** Parses each java file and its specs returning a list of the ASTs for corresponding
      * java files; the spec files are automatically found according to JML rules; 
@@ -237,7 +234,7 @@ public interface IAPI {
      * @return a list of corresponding ASTs
      */
     public /*@ non_null */ 
-    java.util.List<JmlCompilationUnit> parseFiles(@NonNull Collection<? extends JavaFileObject> inputs);
+    java.util.List<JmlCompilationUnit> parseFiles(/*@non_null*/ Collection<? extends JavaFileObject> inputs);
     
     /** Parses each java file and its specs returning a list of the ASTs for corresponding
      * java files; the spec files are automatically found according to JML rules; 
@@ -256,7 +253,7 @@ public interface IAPI {
     //@ ensures (* output elements are non-null *);
     public /*@ non_null */
     java.util.List<JmlCompilationUnit> parseFiles(
-            @NonNull File... files);
+            /*@non_null*/ File... files);
 
     /** Parses each java file and its specs returning a list of the ASTs for corresponding
      * java files; the spec files are automatically found according to JML rules; 
@@ -273,7 +270,7 @@ public interface IAPI {
     //@ ensures isOpen;
     //@ ensures inputs.length == \result.size();
     //@ ensures (* output elements are non-null *);
-    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(@NonNull JavaFileObject... inputs);
+    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(/*@non_null*/ JavaFileObject... inputs);
     
     /** Produces a parse tree for a single file without any specifications; the
      * file may be either a .java or a .jml file.  The trees are not
@@ -284,8 +281,8 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull
-    JmlCompilationUnit parseSingleFile(@NonNull JavaFileObject jfo);
+    public /*@non_null*/
+    JmlCompilationUnit parseSingleFile(/*@non_null*/ JavaFileObject jfo);
 
     /** Produces a parse tree for a single file without any specifications; the
      * file may be either a .java or a specification file.  The trees are not
@@ -296,8 +293,8 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull
-    JmlCompilationUnit parseSingleFile(@NonNull String filename);
+    public /*@non_null*/
+    JmlCompilationUnit parseSingleFile(/*@non_null*/ String filename);
     
     /** Produces a parse tree for the given text; the text must represent a
      * compilation unit for a .java file or a specification file.  The name 
@@ -315,9 +312,9 @@ public interface IAPI {
     //@ requires name.length() > 0;
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull
-    JmlCompilationUnit parseString(@NonNull String name,
-            @NonNull String content) throws Exception;
+    public /*@non_null*/
+    JmlCompilationUnit parseString(/*@non_null*/ String name,
+            /*@non_null*/ String content) throws Exception;
 
     /** Parse input text as a Java/JML expression; the isJML parameter must
      * be true if the expression contains JML constructs; it is false if the
@@ -355,7 +352,7 @@ public interface IAPI {
      * @param jmlcu a Java source AST (not a specification AST)
      * @return the file object of the specifications
      */
-    public @Nullable
+    public /*@nullable*/
     JavaFileObject findSpecs(JmlCompilationUnit jmlcu);
 
     /** Attaches specifications to a Java source AST. The second argument may
@@ -366,7 +363,7 @@ public interface IAPI {
      * @param javaSource the Java source
      * @param specsSource the specifications AST to attach to the Java source. 
      */ // TODO: instead of or in addition to any existing specs?
-    public void attachSpecs(JmlCompilationUnit javaSource, @Nullable JmlCompilationUnit specsSource);
+    public void attachSpecs(JmlCompilationUnit javaSource, /*@nullable*/ JmlCompilationUnit specsSource);
     
     /** Creates a JavaFileObject instance from a pseudo filename and given content
      * @param name the name to give the 'file'
@@ -395,8 +392,8 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @Nullable
-    PackageSymbol getPackageSymbol(@NonNull String qualifiedName);
+    public /*@nullable*/
+    PackageSymbol getPackageSymbol(/*@non_null*/ String qualifiedName);
 
     /** Retrieves the symbol table entry for a given Class name, based on files already
      * parsed and present in the symbol table; value is not usaable unless
@@ -407,8 +404,8 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @Nullable
-    ClassSymbol getClassSymbol(@NonNull String qualifiedName);
+    public /*@nullable*/
+    ClassSymbol getClassSymbol(/*@non_null*/ String qualifiedName);
 
     /** Retrieves the symbol table entry for a given class name as a member
      * of the given class, based on files already
@@ -417,9 +414,9 @@ public interface IAPI {
      * @param name the (simple) name of the nested class
      * @return the class symbol or null if it is not found
      */
-    public @Nullable
-    ClassSymbol getClassSymbol(@NonNull ClassSymbol csym,
-            @NonNull String name);
+    public /*@nullable*/
+    ClassSymbol getClassSymbol(/*@non_null*/ ClassSymbol csym,
+            /*@non_null*/ String name);
 
     /** Retrieves the symbol table entry for a given method name as a member
      * of the given class, based on files already
@@ -430,9 +427,9 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @Nullable
-    MethodSymbol getMethodSymbol(@NonNull ClassSymbol csym,
-            @NonNull String name); // FIXME - need a way to handle multiple methods with the same name
+    public /*@nullable*/
+    MethodSymbol getMethodSymbol(/*@non_null*/ ClassSymbol csym,
+            /*@non_null*/ String name); // FIXME - need a way to handle multiple methods with the same name
 
     /** Retrieves the symbol table entry for a given variable name as a member
      * of the given class, based on files already
@@ -441,30 +438,30 @@ public interface IAPI {
      * @param name the (simple) name of the variable
      * @return the variable symbol or null if it is not found
      */
-    public @Nullable
-    VarSymbol getVarSymbol(@NonNull ClassSymbol csym,
-            @NonNull String name);
+    public /*@nullable*/
+    VarSymbol getVarSymbol(/*@non_null*/ ClassSymbol csym,
+            /*@non_null*/ String name);
 
     /** Returns the symbol for a class declaration (if type checked)
      * @param decl the type-checked ast node
      * @return the corresponding symbol
      */
-    public @Nullable
-    ClassSymbol getSymbol(@NonNull JmlClassDecl decl);
+    public /*@nullable*/
+    ClassSymbol getSymbol(/*@non_null*/ JmlClassDecl decl);
 
     /** Returns the symbol for a method declaration (if type checked)
      * @param decl the type-checked ast node
      * @return the corresponding symbol
      */
-    public @Nullable
-    MethodSymbol getSymbol(@NonNull JmlMethodDecl decl);
+    public /*@nullable*/
+    MethodSymbol getSymbol(/*@non_null*/ JmlMethodDecl decl);
 
     /** Returns the symbol for a variable declaration (if type checked)
      * @param decl the type-checked ast node
      * @return the corresponding symbol
      */
-    public @Nullable
-    VarSymbol getSymbol(@NonNull JmlVariableDecl decl);
+    public /*@nullable*/
+    VarSymbol getSymbol(/*@non_null*/ JmlVariableDecl decl);
 
     /** Returns the AST for a given class (not compilation unit)
      * 
@@ -473,8 +470,8 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull
-    JmlClassDecl getClassDecl(@NonNull String qualifiedName);
+    public /*@non_null*/
+    JmlClassDecl getClassDecl(/*@non_null*/ String qualifiedName);
 
     /** Returns the declaration (the AST) corresponding to the given
      * class, if there is one.
@@ -492,7 +489,7 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @Nullable
+    public /*@nullable*/
     JmlMethodDecl getMethodDecl(MethodSymbol msym);
 
     /** Returns the declaration (the AST) corresponding to the given
@@ -502,7 +499,7 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @Nullable
+    public /*@nullable*/
     JmlVariableDecl getVarDecl(VarSymbol vsym);
 
     // TODO: document
@@ -539,10 +536,10 @@ public interface IAPI {
 //     */
 //    //@ requires isOpen;
 //    //@ ensures isOpen;
-//    public @Nullable
+//    public /*@nullable*/
 //    IProverResult getProofResult(MethodSymbol msym);
 //
-//    public @Nullable Map<MethodSymbol,IProverResult> getProofResults();
+//    public /*@nullable*/ Map<MethodSymbol,IProverResult> getProofResults();
 
     /** Returns the type specs for the given class symbol
      * 
@@ -551,8 +548,8 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull
-    TypeSpecs getSpecs(@NonNull ClassSymbol sym);
+    public /*@non_null*/
+    TypeSpecs getSpecs(/*@non_null*/ ClassSymbol sym);
 
     /** Returns the type specs for the given class symbol,
      * including all inherited specs
@@ -563,7 +560,7 @@ public interface IAPI {
     //@ requires isOpen;
     //@ ensures isOpen;
     public java.util.List<TypeSpecs> getAllSpecs(
-            @NonNull ClassSymbol sym);
+            /*@non_null*/ ClassSymbol sym);
 
     /** Returns the specs for a given method
      * 
@@ -573,7 +570,7 @@ public interface IAPI {
     //@ requires isOpen;
     //@ ensures isOpen;
     public /*@ non_null */
-    JmlSpecs.MethodSpecs getSpecs(@NonNull MethodSymbol sym);
+    JmlSpecs.MethodSpecs getSpecs(/*@non_null*/ MethodSymbol sym);
 
     /** Returns the specs for a given method, including specs of all overridden
      * methods. Note that the names of parameters of various methods may be different,
@@ -585,7 +582,7 @@ public interface IAPI {
     //@ requires isOpen;
     //@ ensures isOpen;
     public java.util.List<JmlSpecs.MethodSpecs> getAllSpecs(
-            @NonNull MethodSymbol msym);
+            /*@non_null*/ MethodSymbol msym);
 
     // FIXME - should this be inherited specs; what about parameter name renaming?
     /** Returns the specs for a given method in denested form
@@ -595,8 +592,8 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull
-    JmlMethodSpecs getDenestedSpecs(@NonNull MethodSymbol sym);
+    public /*@non_null*/
+    JmlMethodSpecs getDenestedSpecs(/*@non_null*/ MethodSymbol sym);
 
     /** Returns the specs for a given field
      * 
@@ -605,8 +602,8 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull
-    FieldSpecs getSpecs(@NonNull VarSymbol sym);
+    public /*@non_null*/
+    FieldSpecs getSpecs(/*@non_null*/ VarSymbol sym);
 
     /** Returns a node factory for the current compilation context.
      * @return a node factory
@@ -625,8 +622,8 @@ public interface IAPI {
     // FIXME - allow the option of showing composite specs?
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull
-    String prettyPrint(@NonNull JCTree ast)
+    public /*@non_null*/
+    String prettyPrint(/*@non_null*/ JCTree ast)
             throws java.io.IOException;
 
     // FIXME - clarify the difference between the above and below call, and what prettyPrint of lists does.
@@ -639,8 +636,8 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull
-    String prettyPrintJML(@NonNull JCTree ast)
+    public /*@non_null*/
+    String prettyPrintJML(/*@non_null*/ JCTree ast)
             throws java.io.IOException;
 
     /** Prints out a list of parse trees, separated by the given separator String.
@@ -652,10 +649,10 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull
+    public /*@non_null*/
     String prettyPrint(
             /*@ non_null */ java.util.List<? extends JCTree> astlist,
-            @NonNull String sep) throws java.io.IOException;
+            /*@non_null*/ String sep) throws java.io.IOException;
 
     /** Closes this instance of the compiler, releasing internal memory;
      * no further use of the instance is permitted (and will likely result in

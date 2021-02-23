@@ -13,7 +13,6 @@ import java.util.Map;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.*;
@@ -929,8 +928,8 @@ public class JmlTree {
     public interface JmlSource {
         
         /** Returns the file object containing the source code for the AST node */
-        @Nullable JavaFileObject source();
-        @Nullable void setSource(JavaFileObject jfo);
+        /*@nullable*/ JavaFileObject source();
+        /*@nullable*/ void setSource(JavaFileObject jfo);
     }
     
     /** This class adds some JML specific information to the JCCompilationUnit toplevel node. */
@@ -1239,7 +1238,7 @@ public class JmlTree {
          * (set in JmlMemberEnter); set to self in the parser for 
          * methods in anonymous classes.
          */
-        @Nullable public JmlMethodDecl specsDecl; 
+        /*@nullable*/ public JmlMethodDecl specsDecl; 
 
         /** The final, combined specs from all sources (set in JmlMemberEnter);
          * set to self in parser for methods in anonymous classes */
@@ -1317,7 +1316,7 @@ public class JmlTree {
          * (set in JmlMemberEnter); set to self in the parser for 
          * methods in anonymous classes.
          */
-        @Nullable public JmlMethodDecl specsDecl; 
+        /*@nullable*/ public JmlMethodDecl specsDecl; 
 
         /** The final, combined specs from all sources (set in JmlMemberEnter);
          * set to self in parser for methods in anonymous classes */
@@ -3303,11 +3302,11 @@ public class JmlTree {
      */
     public static class JmlStoreRefArrayRange extends JmlExpression {
         public JCExpression expression;
-        public @Nullable JCExpression lo;
-        public @Nullable JCExpression hi;
+        public /*@nullable*/ JCExpression lo;
+        public /*@nullable*/ JCExpression hi;
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlStoreRefArrayRange(int pos, JCExpression expr, @Nullable JCExpression lo, @Nullable JCExpression hi) {
+        protected JmlStoreRefArrayRange(int pos, JCExpression expr, /*@nullable*/ JCExpression lo, /*@nullable*/ JCExpression hi) {
             this.pos = pos;
             this.expression = expr;
             this.lo = lo;
@@ -3465,7 +3464,7 @@ public class JmlTree {
         public JCTree.JCExpression expression;
         
         /** The list of method signatures to which the constraint applies */
-        public @Nullable List<JmlMethodSig> sigs;
+        public /*@nullable*/ List<JmlMethodSig> sigs;
         
         /** If true then the list is the method signatures to which the constraint does not apply (a JML extension)*/
         public boolean notlist = false;
@@ -4004,6 +4003,6 @@ public class JmlTree {
         /** The origin of the annotation, which may not be the same as the item being annotated;
          * if null, the annotation is inserted to make a default explicit.
          */
-        @Nullable public JavaFileObject sourcefile;
+        /*@nullable*/ public JavaFileObject sourcefile;
     }
 }

@@ -21,8 +21,6 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 
-import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
@@ -181,7 +179,7 @@ public abstract class IJmlClauseKind {
      * println).  To be used for informational or debugging information.
      * @param msg the String to write
      */
-    public void info(@NonNull String msg) {
+    public void info(/*@non_null*/ String msg) {
         log.getWriter(WriterKind.NOTICE).println(msg);
     }
     

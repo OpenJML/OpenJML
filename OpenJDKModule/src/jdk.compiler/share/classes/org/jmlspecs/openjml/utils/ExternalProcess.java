@@ -12,8 +12,6 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 
-import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.proverinterface.ProverException;
 
@@ -42,12 +40,12 @@ public class ExternalProcess implements IExternalProcess  {
         
         /** The string that will terminate reading the output, 
          * or null to read to end-of-file */
-        protected @Nullable String prompt;
+        protected /*@nullable*/ String prompt;
 
         /** Creates a class instance (but does not start it) for reading
          * the given input into the specified StringBuilder.
          */
-        public ThreadedReader(@NonNull Reader is, @Nullable String prompt, @NonNull StringBuilder output) {
+        public ThreadedReader(/*@non_null*/ Reader is, /*@nullable*/ String prompt, /*@non_null*/ StringBuilder output) {
             this.is = is;
             this.prompt = prompt;
             this.output = output;
@@ -114,7 +112,7 @@ public class ExternalProcess implements IExternalProcess  {
     protected String[] app;
     
     /** The string that terminates reading the output. */
-    protected @Nullable String prompt;
+    protected /*@nullable*/ String prompt;
 
     /** Creates an instance of the class, but does not start execution;
      *   The prompt string may be null (non-interactive) but
@@ -163,7 +161,7 @@ public class ExternalProcess implements IExternalProcess  {
      * @see org.jmlspecs.openjml.utils.IExternalProcess#prompt()
      */
     @Override
-    public @Nullable String prompt() { return prompt; }
+    public /*@nullable*/ String prompt() { return prompt; }
     
     /* (non-Javadoc)
      * @see org.jmlspecs.openjml.utils.IExternalProcess#start()

@@ -13,7 +13,6 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Iterator;
 
-import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
@@ -83,7 +82,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
      * @param tree the tree to print
      * @return the resulting text
      */
-    static public @NonNull String write(@NonNull JCTree tree) {
+    static public /*@non_null*/ String write(/*@non_null*/ JCTree tree) {
         return write(tree,true);
     }
 
@@ -93,7 +92,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
      * @param source if true then put out compilable source
      * @return the resulting text
      */
-    static public @NonNull String write(@NonNull JCTree tree, boolean source) {
+    static public /*@non_null*/ String write(/*@non_null*/ JCTree tree, boolean source) {
         StringWriter sw = new StringWriter();
         JmlPretty p = new JmlPretty(sw,source);
         p.width = 2;
