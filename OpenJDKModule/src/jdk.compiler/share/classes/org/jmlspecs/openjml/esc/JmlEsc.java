@@ -13,7 +13,6 @@ import java.util.regex.PatternSyntaxException;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.IAPI;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlOptions;
@@ -75,16 +74,16 @@ public class JmlEsc extends JmlTreeScanner {
     }
 
     /** The compilation context, needed to get common tools, but unique to this compilation run*/
-    @NonNull Context context;
+    /*@non_null*/ Context context;
 
     /** Used to obtain cached symbols, such as basic types */
-    @NonNull Symtab syms;
+    /*@non_null*/ Symtab syms;
     
     /** The tool to log problem reports */ 
-    @NonNull Log log;
+    /*@non_null*/ Log log;
     
     /** The OpenJML utilities object */
-    @NonNull Utils utils;
+    /*@non_null*/ Utils utils;
     
     /** true if compiler options are set to a verbose mode */
     boolean verbose;
@@ -184,7 +183,7 @@ public class JmlEsc extends JmlTreeScanner {
      * the translation mechanism.  
      */
     @Override
-    public void visitMethodDef(@NonNull JCMethodDecl decl) {
+    public void visitMethodDef(/*@non_null*/ JCMethodDecl decl) {
         if (decl.sym.isConstructor() && decl.sym.owner.isAnonymous()) {
             // Constructors for anonymous classes are not explicit. They are checked
             // in the course of instantiating the anonymous object.
@@ -289,7 +288,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     /** Do the actual work of proving the method */
-    protected IProverResult doMethod(@NonNull JmlMethodDecl methodDecl) {
+    protected IProverResult doMethod(/*@non_null*/ JmlMethodDecl methodDecl) {
         boolean printPrograms = this.verbose || JmlOption.includes(context, JmlOption.SHOW, "translated") || JmlOption.includes(context, JmlOption.SHOW, "program");
         
         if (skip(methodDecl)) {

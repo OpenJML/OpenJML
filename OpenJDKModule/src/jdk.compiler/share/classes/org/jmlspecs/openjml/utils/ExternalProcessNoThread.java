@@ -12,8 +12,6 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 
-import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.proverinterface.ProverException;
 
 import com.sun.tools.javac.util.Context;
@@ -30,9 +28,9 @@ public class ExternalProcessNoThread implements IExternalProcess {
     public Context context;
     public Log log;
     public String[] app;
-    public @Nullable String prompt;
+    public /*@nullable*/ String prompt;
     
-    public ExternalProcessNoThread(Context context, @Nullable String prompt, String[] app) {
+    public ExternalProcessNoThread(Context context, /*@nullable*/ String prompt, String[] app) {
         this.context = context;
         this.log = Log.instance(context);
         this.app = app;
@@ -137,7 +135,7 @@ public class ExternalProcessNoThread implements IExternalProcess {
      * should look for.  The string may not contain any CR/NL characters.
      * @return the prompt string
      */
-    public @NonNull String prompt() { return prompt; }
+    public /*@non_null*/ String prompt() { return prompt; }
     
     @Override
     public int readToCompletion() throws ProverException {

@@ -17,8 +17,6 @@ import java.util.Set;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlInternalError;
 import org.jmlspecs.openjml.JmlPretty;
@@ -141,7 +139,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //     * @param context the compilation context
 //     * @return a (unique for the context) BoogieBlocker instance
 //     */
-//    public static BoogieBlocker2 instance(@NonNull Context context) {
+//    public static BoogieBlocker2 instance(/*@non_null*/ Context context) {
 //        BoogieBlocker2 instance = context.get(key);
 //        // This is lazily initialized so that a derived class can preRegister to
 //        // replace this BoogieBlocker
@@ -192,10 +190,10 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     // Names for a bunch of synthetic variables 
     
     /** Standard name for the variable that represents the heap (which excludes local variables) */
-    public static final @NonNull String HEAP_VAR = "_heap__";
+    public static final /*@non_null*/ String HEAP_VAR = "_heap__";
     
     /** Standard name for the variable that tracks allocations */
-    public static final @NonNull String ALLOC_VAR = "_alloc__";
+    public static final /*@non_null*/ String ALLOC_VAR = "_alloc__";
     
     /** Prefix for assumptions defined in the basic block */
     public static final String ASSUMPTION_PREFIX = "assumption";
@@ -218,14 +216,14 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     
 
     /** Identifier of a synthesized object field holding the length of an array object, initialized in the constructor */
-    @NonNull protected JCIdent lengthIdent;
+    /*@non_null*/ protected JCIdent lengthIdent;
 
     /** Symbol of a synthesized object field holding the length of an array object, initialized in the constructor */
-    @NonNull protected VarSymbol lengthSym;
+    /*@non_null*/ protected VarSymbol lengthSym;
     
     /** A fixed id for 'this' of the method being translated (see currentThisId
      * for the 'this' of called methods). */
-    @NonNull protected JCIdent thisId;
+    /*@non_null*/ protected JCIdent thisId;
 
 
     // FIXME - document the following; check when initialized
@@ -290,7 +288,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
      * invoked by a derived class constructor.
      * @param context the compilation context
      */
-    protected Boogier(@NonNull Context context) {
+    protected Boogier(/*@non_null*/ Context context) {
         super(context);
 
         // This is the symbol to access the length of an array 
@@ -438,8 +436,8 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
      * @param classDecl the declaration of the containing class
      * @return the completed BasicProgram
      */
-    protected @NonNull BoogieProgram convertMethodBody(JCBlock block, @NonNull JCMethodDecl methodDecl, 
-            JmlMethodSpecs denestedSpecs, @NonNull JCClassDecl classDecl, @NonNull JmlAssertionAdder assertionAdder) {
+    protected /*@non_null*/ BoogieProgram convertMethodBody(JCBlock block, /*@non_null*/ JCMethodDecl methodDecl, 
+            JmlMethodSpecs denestedSpecs, /*@non_null*/ JCClassDecl classDecl, /*@non_null*/ JmlAssertionAdder assertionAdder) {
         
         initialize(methodDecl,classDecl,assertionAdder);
 //        JmlClassInfo classInfo = getClassInfo(classDecl.sym);
@@ -2112,7 +2110,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     } 
 
     /** A Map that caches class info for a given class symbol */
-    @NonNull protected Map<Symbol,JmlClassInfo> classInfoMap = new HashMap<Symbol,JmlClassInfo>();
+    /*@non_null*/ protected Map<Symbol,JmlClassInfo> classInfoMap = new HashMap<Symbol,JmlClassInfo>();
 
     /** Returns the jmlClassInfo structure for a class, computing and caching 
      * it if necessary.
@@ -2122,7 +2120,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
      */
     //@ modifies (* contents of the classInfoMap *);
     //@ ensures cls.sym != null <==> \result != null;
-    @Nullable JmlClassInfo getClassInfo(@NonNull JCClassDecl cls) {
+    /*@nullable*/ JmlClassInfo getClassInfo(/*@non_null*/ JCClassDecl cls) {
         JmlClassInfo mi = classInfoMap.get(cls.sym);
         if (mi == null) {
             mi = computeClassInfo(cls.sym);
@@ -2136,7 +2134,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
      * @param sym the Symbol for the class whose JmlClassInfo is wanted
      * @return the corresponding JmlClassInfo structure, null if sym is null
      */
-    @Nullable JmlClassInfo getClassInfo(@NonNull Symbol sym) {
+    /*@nullable*/ JmlClassInfo getClassInfo(/*@non_null*/ Symbol sym) {
         if (sym == null) return null;
         ClassSymbol csym = (ClassSymbol)sym;
         JmlClassInfo mi = classInfoMap.get(sym);
@@ -2154,7 +2152,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
      * @param qualifiedName the fully-qualified name of the class
      * @return the corresponding JmlClassInfo structure, null if sym is null
      */
-    @Nullable JmlClassInfo getClassInfo(@NonNull String qualifiedName) {
+    /*@nullable*/ JmlClassInfo getClassInfo(/*@non_null*/ String qualifiedName) {
 //        Name n = Names.instance(context).fromString(qualifiedName);
 //        Symbol sym = Symtab.instance(context).classes.get(n);
 //        return getClassInfo(sym);
@@ -2166,7 +2164,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
      * @param csym the ClassSymbol for which to get JmlClassInfo
      * @return the corresponding JmlClassInfo
      */
-    protected @Nullable JmlClassInfo computeClassInfo(@NonNull ClassSymbol csym) {
+    protected /*@nullable*/ JmlClassInfo computeClassInfo(/*@non_null*/ ClassSymbol csym) {
         TypeSpecs typeSpecs = specs.get(csym);
         if (typeSpecs == null) {  
             if (csym == syms.arrayClass) {
@@ -2255,15 +2253,15 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //    public static class Tracer extends JmlTreeScanner {
 //        
 //        /** The compilation context */
-//        @NonNull Context context;
+//        /*@non_null*/ Context context;
 //        
 //        /** The counterexample information */
-//        @NonNull ICounterexample ce;
+//        /*@non_null*/ ICounterexample ce;
 //        
 //        /** The log for output */
-//        @NonNull Log log;
+//        /*@non_null*/ Log log;
 //        
-//        @NonNull Writer w;
+//        /*@non_null*/ Writer w;
 //        
 //        /** A runtime exception used to jump up to a finally block in the visitor calling stack */
 //        private static class ReturnException extends RuntimeException {
@@ -2278,7 +2276,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //         * @param decl the method declaration 
 //         * @param s the counterexample information to translate
 //         */
-//        public String trace(@NonNull Context context, @NonNull JCMethodDecl decl, @NonNull ICounterexample s) {
+//        public String trace(/*@non_null*/ Context context, /*@non_null*/ JCMethodDecl decl, /*@non_null*/ ICounterexample s) {
 //            Tracer t = new Tracer(context,s);
 //            try {
 //                try {
@@ -2310,7 +2308,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //         * @param context the compilation context
 //         * @param s the counterexample information
 //         */
-//        protected Tracer(@NonNull Context context, @NonNull ICounterexample s) {
+//        protected Tracer(/*@non_null*/ Context context, /*@non_null*/ ICounterexample s) {
 //            this.context = context;
 //            ce = s;
 //            log = Log.instance(context);
@@ -2429,7 +2427,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
      * @param ce the counterexample information to translate
      * @param prover the prover from which the counterexample information came
      */
-//    public static String trace(@NonNull Context context, @NonNull BasicProgram program, @NonNull ICounterexample ce, IProver prover) {
+//    public static String trace(/*@non_null*/ Context context, /*@non_null*/ BasicProgram program, /*@non_null*/ ICounterexample ce, IProver prover) {
 //        String s = null;
 //        try {
 //            s = (new TracerBB(context)).trace(program,ce,prover);
@@ -2458,13 +2456,13 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //        boolean showSubexpressions;
 //        
 //        /** The log for output */
-//        @NonNull Log log;
+//        /*@non_null*/ Log log;
 //        
 //        /** The program being traced */
 //        BasicProgram program;
 //        
 //        /** The compilation context */
-//        @NonNull Context context;
+//        /*@non_null*/ Context context;
 //        
 //        Map<String,String> values;
 //        
@@ -2488,7 +2486,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //        /** The constructor for this class
 //         * @param context the compilation context
 //         */
-//        public TracerBB(@NonNull Context context) {
+//        public TracerBB(/*@non_null*/ Context context) {
 //            this.context = context;
 //            log = Log.instance(context);
 //            syms = Symtab.instance(context);
@@ -2497,7 +2495,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //        }
 //        
 //        // FIXME - DOCUMENT
-//        public static String trace(@NonNull Context context, @NonNull BasicProgram program, ICounterexample ce, IProver prover) {
+//        public static String trace(/*@non_null*/ Context context, /*@non_null*/ BasicProgram program, ICounterexample ce, IProver prover) {
 //            try {
 //                return new TracerBB(context).trace(program,ce,prover);
 //            } catch (IOException e) {
@@ -2507,7 +2505,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //        
 //        //@ ensures this.program != null && this.ce != null;
 //        //@ ensures this.program != program && this.ce != ce;
-//        public String trace(@NonNull BasicProgram program, ICounterexample ce, IProver prover) throws IOException {
+//        public String trace(/*@non_null*/ BasicProgram program, ICounterexample ce, IProver prover) throws IOException {
 //            this.ce = ce;
 //            this.program = program;
 //            this.prover = prover;

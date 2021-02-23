@@ -10,7 +10,6 @@ import java.util.Set;
 
 import org.jmlspecs.openjml.Main;
 
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.IJmlLineAnnotation;
@@ -90,14 +89,14 @@ public class JmlTokenizer extends JavadocTokenizer {
      * The style of comment, either CommentStyle.LINE or
      * CommentStyle.BLOCK, set prior to the scanner calling processComment()
      */
-    @Nullable protected CommentStyle  jmlcommentstyle;
+    /*@nullable*/ protected CommentStyle  jmlcommentstyle;
 
     /** Valid after nextToken() and contains token it read if it is a JML token
      * and null if the next token is a Java token */
-    @Nullable public JmlTokenKind   jmlTokenKind;
+    /*@nullable*/ public JmlTokenKind   jmlTokenKind;
 
     /** Valid after nextToken() and contains the token it read */
-	@Nullable public IJmlClauseKind jmlTokenClauseKind;
+	/*@nullable*/ public IJmlClauseKind jmlTokenClauseKind;
 
     /**
      * Creates a new tokenizer, for JML and Java tokens.<P>

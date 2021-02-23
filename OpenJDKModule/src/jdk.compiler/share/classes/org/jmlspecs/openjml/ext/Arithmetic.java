@@ -1,6 +1,5 @@
 package org.jmlspecs.openjml.ext;
 
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.IArithmeticMode;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -278,7 +277,7 @@ abstract public class Arithmetic extends ExpressionExtension {
         // Need to do this operation before any implicit conversions, because those conversions may convert
         // to bigint or real, which complicates this test
         if (optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD) {
-            @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs);
+            /*@nullable*/ JCExpression nonzero = rewriter.nonZeroCheck(that,rhs);
             if (nonzero != null) rewriter.addJavaCheck(that,nonzero,
                     Label.POSSIBLY_DIV0, Label.UNDEFINED_DIV0, "java.lang.ArithmeticException");
         }

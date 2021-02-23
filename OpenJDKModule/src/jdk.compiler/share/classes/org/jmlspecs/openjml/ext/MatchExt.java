@@ -1,6 +1,5 @@
 package org.jmlspecs.openjml.ext;
 
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlExpression;

@@ -4464,6 +4464,7 @@ public class Resolve {
                 return null;
 
             if (sym.kind == PCK) {
+            	new RuntimeException().printStackTrace();
                 JCDiagnostic details = inaccessiblePackageReason(env, sym.packge());
                 return diags.create(dkind, log.currentSource(),
                         pos, "package.not.visible", sym, details);
@@ -4481,6 +4482,7 @@ public class Resolve {
                 }
 
                 if (o.kind == PCK) {
+                	new RuntimeException().printStackTrace();
                     pos = tree.pos();
 
                     return diags.create(dkind, log.currentSource(),

@@ -23,8 +23,6 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
@@ -488,7 +486,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * evaluating; null indicates the current state; the value preLabel indicates
      * the pre-state, otherwise it is the JCIdent of the label in the \old statement
      */
-    @Nullable protected JCIdent oldenv;
+    /*@nullable*/ protected JCIdent oldenv;
     
     /** The \old label to use for the pre-state; note that the prestate is usually the
      * beginning of a method, but during translation of method call specs, it is is the state
@@ -1411,7 +1409,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * type;  but otherwise, it may only be either JCTree or JCExpression
      * (possibly JCStatement) */
     @SuppressWarnings("unchecked")
-    public @Nullable <T extends JCTree> T convert(@Nullable T tree) {
+    public /*@nullable*/ <T extends JCTree> T convert(/*@nullable*/ T tree) {
         if (tree == null) { result = null; return null; }
         scan(tree);
 
@@ -1423,7 +1421,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * statements onto 'currentStatements'; the same restrictions on T apply
      * as above.
      */
-    public @Nullable <T extends JCTree> List<T> convert(@Nullable List<T> trees) {
+    public /*@nullable*/ <T extends JCTree> List<T> convert(/*@nullable*/ List<T> trees) {
         if (trees==null) return null;
         ListBuffer<T> newlist = new ListBuffer<T>();
         for (T t: trees) {
@@ -1437,7 +1435,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * statements onto 'currentStatements'; the same restrictions on T apply
      * as above.
      */
-    public <T extends JCTree> java.util.List<T> convert(java.util.List<T> trees) {  // FIXME - should have @Nullable on argument and result as in the previous method declaration
+    public <T extends JCTree> java.util.List<T> convert(java.util.List<T> trees) {  // FIXME - should have /*@nullable*/ on argument and result as in the previous method declaration
         if (trees==null) return null;
         java.util.List<T> newlist = new LinkedList<T>();
         for (T t: trees) {
@@ -1446,7 +1444,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return newlist;
     }
     
-    protected @Nullable JCExpression convertAssignable(@Nullable JCExpression tree, JCExpression receiver, boolean isInJML, JavaFileObject itemSource) {
+    protected /*@nullable*/ JCExpression convertAssignable(/*@nullable*/ JCExpression tree, JCExpression receiver, boolean isInJML, JavaFileObject itemSource) {
         JavaFileObject prev = log.useSource(itemSource);
         try {
             return convertAssignable(tree,receiver,isInJML);
@@ -1460,7 +1458,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Returns a translation of an expression, possibly pushing additional
      * statements onto 'currentStatements'
      */
-    protected @Nullable JCExpression convertAssignable(@Nullable JCExpression tree, JCExpression receiver, boolean isInJML) {
+    protected /*@nullable*/ JCExpression convertAssignable(/*@nullable*/ JCExpression tree, JCExpression receiver, boolean isInJML) {
         // Normally this method is called on left-values, in which case tree is never just 'this'; if 'this' appears in the 
         // expression it is as a receiver and is replaced by the receiver.
         // But it also called to determine accessiblity, in which case it can be called on normal expressions,
@@ -1500,7 +1498,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Returns a translation of an expression, possibly pushing additional
      * statements onto 'currentStatements'
      */
-    public @Nullable JCExpression convertExpr(@Nullable JCExpression tree) {
+    public /*@nullable*/ JCExpression convertExpr(/*@nullable*/ JCExpression tree) {
         eresult = null; // Just so it is initialized in case assignment is forgotten
         if (tree != null) {
             super.scan(tree);
@@ -1515,7 +1513,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Returns a translation of a list of expression, possibly pushing additional
      * statements onto 'currentStatements'
      */
-    public @Nullable List<JCExpression> convertExprList(@Nullable List<? extends JCExpression> trees) {
+    public /*@nullable*/ List<JCExpression> convertExprList(/*@nullable*/ List<? extends JCExpression> trees) {
         if (trees==null) return null;
         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
         for (JCExpression t: trees) {
@@ -1533,7 +1531,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Does a pure copy of the tree; once convertCopy is called on a node, child
      * calls to convertExpr or convert will also be in pureCopy mode. */
-    public @Nullable <T extends JCTree> T convertCopy(@Nullable T tree) {
+    public /*@nullable*/ <T extends JCTree> T convertCopy(/*@nullable*/ T tree) {
         boolean savedCopy = pureCopy;
         boolean savedSplit = splitExpressions;
         pushBlock();
@@ -1628,7 +1626,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * When isPostcondition is true, then parameter variables are mapped to
      * the pre-state of the method, rather than to the current state.
      */
-    public @Nullable JCExpression convertJML(@Nullable JCTree that, JCExpression condition, boolean isPostcondition) {
+    public /*@nullable*/ JCExpression convertJML(/*@nullable*/ JCTree that, JCExpression condition, boolean isPostcondition) {
         if (that == null) return null;
         boolean savedp = this.isPostcondition;
         boolean savedt = this.translatingJML;
@@ -1662,13 +1660,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
 
     /** Begins JML scanning for a non-postcondition */
-    public @Nullable JCExpression convertJML(@Nullable JCExpression that) {
+    public /*@nullable*/ JCExpression convertJML(/*@nullable*/ JCExpression that) {
         return convertJML(that, treeutils.trueLit, false);
     }
 
     
     /** Applies convertJML to a list of nno-postcondition expressions, returning the new list. */
-    public @Nullable List<JCExpression> convertJML(@Nullable List<JCExpression> trees) {
+    public /*@nullable*/ List<JCExpression> convertJML(/*@nullable*/ List<JCExpression> trees) {
         if (trees==null) return null;
         else {
             ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
@@ -1680,7 +1678,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
-    public @Nullable JCExpression convertNoSplit(JCExpression expr) {
+    public /*@nullable*/ JCExpression convertNoSplit(JCExpression expr) {
         boolean saved = splitExpressions;
         try {
             splitExpressions = false;
@@ -1690,7 +1688,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
-    public @Nullable JCExpression convertNoSplit(JCExpression that, JCExpression condition, boolean isPostcondition) {
+    public /*@nullable*/ JCExpression convertNoSplit(JCExpression that, JCExpression condition, boolean isPostcondition) {
         if (that == null) return null;
         boolean savedp = this.isPostcondition;
         boolean savedt = this.translatingJML;
@@ -1724,7 +1722,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     private Map<Symbol,Symbol> mapSymbols = new HashMap<Symbol,Symbol>();
     
     @SuppressWarnings("unchecked")
-	protected @NonNull <T extends Symbol> T convertSymbol(T sym) {
+	protected /*@non_null*/ <T extends Symbol> T convertSymbol(T sym) {
         Symbol s = mapSymbols.get(sym);
         return s == null ? sym : (T)s;
     }
@@ -1748,7 +1746,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Translates a block, but without adding the block to the statement list;
      * any side-effect statements are placed within the new block. */
     @SuppressWarnings("finally")
-	protected @Nullable JCBlock convertBlock(@Nullable JCBlock block) {
+	protected /*@nullable*/ JCBlock convertBlock(/*@nullable*/ JCBlock block) {
         if (block == null) return null;
         ListBuffer<JCStatement> check = pushBlock();
         try {
@@ -1998,14 +1996,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * corresponding to the given Label.
      * Returns null if no assertion was added
      */
-    public @Nullable JmlStatementExpr addAssert(
+    public /*@nullable*/ JmlStatementExpr addAssert(
             boolean trace,
             DiagnosticPosition codepos, // FIXME _ document whether nullable and behavior
             Label label, 
             JCExpression translatedExpr, 
-            @Nullable DiagnosticPosition associatedPos, 
-            @Nullable JavaFileObject associatedSource, 
-            @Nullable JCExpression info,
+            /*@nullable*/ DiagnosticPosition associatedPos, 
+            /*@nullable*/ JavaFileObject associatedSource, 
+            /*@nullable*/ JCExpression info,
             Object ... args) {
         
         if (label != Label.ASSUME_CHECK && Strings.feasibilityContains(Strings.feas_debug,context)) { 
@@ -2262,8 +2260,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             DiagnosticPosition pos, 
             Label label, 
             JCExpression ex, 
-            @Nullable DiagnosticPosition associatedPos, 
-            @Nullable JavaFileObject associatedSource,
+            /*@nullable*/ DiagnosticPosition associatedPos, 
+            /*@nullable*/ JavaFileObject associatedSource,
             Object ... args) {
         return addAssume(pos,label,ex,associatedPos,associatedSource,null,args);
     }
@@ -2274,9 +2272,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             DiagnosticPosition pos, 
             Label label, 
             JCExpression translatedExpr, 
-            @Nullable DiagnosticPosition associatedPosition, 
-            @Nullable JavaFileObject associatedSource, 
-            @Nullable JCExpression info,
+            /*@nullable*/ DiagnosticPosition associatedPosition, 
+            /*@nullable*/ JavaFileObject associatedSource, 
+            /*@nullable*/ JCExpression info,
             Object ... args) {
         JmlStatementExpr stt = null;
         if ((infer || esc)) {
@@ -2518,7 +2516,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * RuntimeException; the catch block prints the given message; esc just
      * returns the given block
      */
-    public JCStatement wrapRuntimeException(DiagnosticPosition pos, JCStatement statement, String message, @Nullable JCBlock catchStats) {
+    public JCStatement wrapRuntimeException(DiagnosticPosition pos, JCStatement statement, String message, /*@nullable*/ JCBlock catchStats) {
         if (!rac) return statement;
         JCBlock block = statement instanceof JCBlock ? (JCBlock)statement : M.at(statement).Block(0L,List.<JCStatement>of(statement));
         if (isOnlyComment(block)) return statement;
@@ -2564,7 +2562,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * use in the catch block; the catch block prints the given message and
      * executes the given stats.
      */
-    public JCStatement wrapException(DiagnosticPosition pos, JCBlock block, JCVariableDecl exceptionDecl, @Nullable JCBlock catchStats) {
+    public JCStatement wrapException(DiagnosticPosition pos, JCBlock block, JCVariableDecl exceptionDecl, /*@nullable*/ JCBlock catchStats) {
         JCBlock bl = catchStats != null ? catchStats :  M.at(pos).Block(0, List.<JCStatement>nil());
         JCCatch catcher = M.at(pos).Catch(exceptionDecl,bl);
         return M.at(pos).Try(block,List.<JCCatch>of(catcher),null);
@@ -7376,7 +7374,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * @param baseThisSym
      * @param targetThisSym
      */
-    protected @Nullable
+    protected /*@nullable*/
     JCExpression checkAccess(IJmlClauseKind clauseType, DiagnosticPosition assignPosition, JCExpression orig, JCExpression storeref, JmlSpecificationCase specCase, JCExpression baseThisExpr, JCExpression targetThisExpr, boolean callee) {
         // If the storeref is a local identifier, then assignment is allowed
         if ((storeref instanceof JCIdent) && ((JCIdent)storeref).sym.owner instanceof Symbol.MethodSymbol) return treeutils.trueLit; 
@@ -11623,7 +11621,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         
         if (op == JCTree.Tag.DIV || op == JCTree.Tag.MOD) {
-            @Nullable JCExpression nonzero = nonZeroCheck(that,rhs);
+            /*@nullable*/ JCExpression nonzero = nonZeroCheck(that,rhs);
             if (javaChecks && nonzero != null) addAssert(that,Label.POSSIBLY_DIV0,nonzero);
         }
         // NOTE: In Java, a shift by 0 is a no-op (aside from type promotion of the lhs);
@@ -12226,7 +12224,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     /** Returns the AST for (rhs != 0), for the appropriate type */
-    public @Nullable JCExpression nonZeroCheck(JCTree that, JCExpression rhs) {
+    public /*@nullable*/ JCExpression nonZeroCheck(JCTree that, JCExpression rhs) {
         JCExpression nonzero;
         if (rhs instanceof JCLiteral) {
             Object value = ((JCLiteral)rhs).value;
@@ -16134,7 +16132,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return treeutils.makeAnd(p, treeutils.makeNotNull(p, arg), e);
     }
     
-    @Nullable JCExpression getInvariantAll(DiagnosticPosition pos, Type baseType, JCExpression obj) {
+    /*@nullable*/ JCExpression getInvariantAll(DiagnosticPosition pos, Type baseType, JCExpression obj) {
         JCExpression res = null;
         for (Type ty: parents(baseType,true)) {  // FIXME - make sure parents() works for TypeVar
             JCExpression e = getInvariant(pos, baseType, ty, obj);
@@ -16143,7 +16141,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return res;
     }
     
-    @Nullable JCExpression getInvariant(@NonNull DiagnosticPosition pos, @NonNull Type base, @NonNull Type t, @Nullable JCExpression obj) {
+    /*@nullable*/ JCExpression getInvariant(/*@non_null*/ DiagnosticPosition pos, /*@non_null*/ Type base, /*@non_null*/ Type t, /*@nullable*/ JCExpression obj) {
         if (!(t.tsym instanceof ClassSymbol)) return null;
         TypeSpecs tspecs = specs.getSpecs((ClassSymbol)t.tsym);
         JCExpression saved = currentThisExpr;
@@ -16580,8 +16578,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean lo_equal;
         boolean hi_equal;
         JCVariableDecl indexdef;
-        /*@Nullable*/JCVariableDecl lodef;
-        /*@Nullable*/JCVariableDecl hidef;
+        /*@nullable*/ JCVariableDecl lodef;
+        /*@nullable*/ JCVariableDecl hidef;
     }
     
 
@@ -19027,8 +19025,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// TODO Auto-generated method stub
 			return null;
 		}
-        
-        // FIXME - we use /*@ nullable */ java.util.List because @Nullable java.util.List gives an Eclipse IDE error -- why
         
     }
     

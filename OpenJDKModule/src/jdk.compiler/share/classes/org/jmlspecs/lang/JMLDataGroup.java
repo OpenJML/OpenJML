@@ -19,12 +19,11 @@
 
 
 package org.jmlspecs.lang;
-import org.jmlspecs.annotation.*;
 
 /** This type marks datagroups. It is always nullable and has no values other than null.
  *  It is never part of an expression, only a datagroup that is part of a frame set.
  */
-public @Pure final class JMLDataGroup {
+public /*@pure*/ final class JMLDataGroup {
 
     /** Initialize this object.
      * @see #IT

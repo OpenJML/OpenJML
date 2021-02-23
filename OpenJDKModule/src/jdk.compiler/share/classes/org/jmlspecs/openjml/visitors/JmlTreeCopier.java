@@ -6,7 +6,6 @@ package org.jmlspecs.openjml.visitors;
 
 import java.io.IOException;
 
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.*;
@@ -69,12 +68,12 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
     
     /** Static method to create a copy of the given AST with the given factory */
-    public static <T extends JCTree> T copy(JmlTree.Maker maker, @Nullable T that) {
+    public static <T extends JCTree> T copy(JmlTree.Maker maker, /*@nullable*/ T that) {
         return new JmlTreeCopier(maker.context,maker).copy(that,null);
     }
     
     /** Deep copy of a list of nodes */
-    public <T extends JCTree> ListBuffer<T> copy(@Nullable ListBuffer<T> trees, Void p) {
+    public <T extends JCTree> ListBuffer<T> copy(/*@nullable*/ ListBuffer<T> trees, Void p) {
         if (trees == null)
             return null;
         ListBuffer<T> lb = new ListBuffer<T>();

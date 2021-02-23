@@ -23,7 +23,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.Main.Cmd;
 import org.jmlspecs.openjml.Main.PrintProgressReporter;
 import org.jmlspecs.openjml.esc.MethodProverSMT;
@@ -97,7 +96,7 @@ public class JmlOptions extends Options {
      */
     //@ requires \nonnullelements(args);
     //@ ensures \result != null && \nonnullelements(\result);
-    String[] processJmlArgs(@NonNull String [] args, @NonNull Options options, ListBuffer<File> jmlfiles) {
+    String[] processJmlArgs(/*@non_null*/ String [] args, /*@non_null*/ Options options, ListBuffer<File> jmlfiles) {
         java.util.List<String> newargs = new ArrayList<String>();
         java.util.List<String> files = new ArrayList<String>();
         Iterator<String> iter = Arrays.asList(args).iterator();
@@ -135,7 +134,7 @@ public class JmlOptions extends Options {
     //@ requires (* elements of remainingArgs are non-null *);
     //@ requires 0<= i && i< args.length;
     //@ ensures \result > i;
-    void processJmlArg(Iterator<String> iter, @NonNull Options options, /*@ non_null */ java.util.List<String> remainingArgs, /*@ non_null */ java.util.List<String> files ) {
+    void processJmlArg(Iterator<String> iter, /*@non_null*/ Options options, /*@ non_null */ java.util.List<String> remainingArgs, /*@ non_null */ java.util.List<String> files ) {
         String arg = iter.next();
         if (arg == null) return; // Allow but remove null arguments
         if (arg.isEmpty()) {

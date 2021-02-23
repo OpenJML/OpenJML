@@ -7,7 +7,6 @@ package com.sun.tools.javac.comp;
 
 import static com.sun.tools.javac.tree.JCTree.Tag.APPLY;
 
-import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.Modifiers;
@@ -42,7 +41,7 @@ public class JmlCheck extends Check {
      * get the unique instance for the current compilation context.
      * @param context the compilation context this instance is for
      */
-    protected JmlCheck(@NonNull Context context) {
+    protected JmlCheck(/*@non_null*/ Context context) {
         super(context);
         this.context = context;
     }

@@ -1,6 +1,5 @@
 package org.jmlspecs.openjml.utils;
 
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.proverinterface.ProverException;
 
 /** This is an interface to the Java functionality to spawn external processes, 
@@ -55,8 +54,7 @@ public interface IExternalProcess {
      * should look for.
      * @return the prompt string
      */
-    public @Nullable
-    abstract String prompt();
+    public abstract String prompt();
 
     /** Starts the executable and the threads that read the executable's output;
      * the StringBuilders are reset to empty to start with. */

@@ -30,7 +30,6 @@ import java.util.regex.PatternSyntaxException;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.IInJML;
@@ -307,14 +306,14 @@ public class Utils {
      * @param symbol the symbol to check
      * @return true if there is a helper annotation
      */
-    public boolean isHelper(@NonNull Symbol symbol) {
+    public boolean isHelper(/*@non_null*/ Symbol symbol) {
         if (helperAnnotationSymbol == null) {
             helperAnnotationSymbol = createClassSymbol(Strings.helperAnnotation);
         }
         return symbol.attribute(helperAnnotationSymbol)!=null;
     }
     
-    public boolean isModel(@NonNull Symbol symbol) {
+    public boolean isModel(/*@non_null*/ Symbol symbol) {
         if (modelAnnotationSymbol == null) {
             modelAnnotationSymbol = createClassSymbol(Strings.modelAnnotation);
         }

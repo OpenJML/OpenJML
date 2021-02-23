@@ -10,8 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree;
 
@@ -100,7 +98,7 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
     /** Returns the (mutable) list of definitions that are part of this program
      * @return the program's definitions
      */
-    @Pure
+    /*@pure*/
     public List<Definition> definitions() {
         return definitions;
     }
@@ -113,7 +111,7 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
     /** Returns the (mutable) list of background assertions that are part of this program
      * @return the program's background assertions
      */
-    @Pure
+    /*@pure*/
     public List<JCExpression> background() {
         return background;
     }
@@ -123,13 +121,13 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
     public JCIdent assumeCheckVar;
     
     /** The identifier for the starting block - must match one of the blocks. */
-    @Pure @NonNull
+    /*@pure*/ /*@non_null*/
     public JCIdent startId() {
         return startId;
     }
     
     /** The starting block */
-    @Pure @NonNull
+    /*@pure*/ /*@non_null*/
     public BasicBlock startBlock() {
         // Almost always the first one, but just in case, we
         // start with the first but check them all

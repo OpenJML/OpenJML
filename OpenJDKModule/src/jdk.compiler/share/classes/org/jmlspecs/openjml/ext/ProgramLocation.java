@@ -4,8 +4,6 @@
  */
 package org.jmlspecs.openjml.ext;
 
-import org.jmlspecs.annotation.Pure;
-
 /** This class implements an extensible enum class holding values representing
  * the locations in a program that JML modifiers can appear.  Additional values
  * can be added by creating a new Program Location.  We use singletons
@@ -13,7 +11,7 @@ import org.jmlspecs.annotation.Pure;
  * 
  * @author David Cok
  */
-@Pure
+/*@pure*/
 public class ProgramLocation {
     /** A counter used to give a unique index to each instance of a ProgramLocation.
      * The index is used to be able to create efficient sets as arrays

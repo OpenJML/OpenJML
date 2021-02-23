@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.jmlspecs.annotation.NonNull;
-
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
@@ -71,7 +69,7 @@ public interface IProverResult {
     /** Sets the category of result produced by the prover */
     //@ assignable _result;
     //@ ensures r == result();
-    public void result(@NonNull Kind r);
+    public void result(/*@non_null*/ Kind r);
 
     /** True if the prover was able to produce a satisfying assignment 
      * @return true if there is a satisfying assignment

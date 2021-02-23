@@ -12,8 +12,6 @@ import java.util.Map;
 
 import javax.lang.model.type.TypeKind;
 
-import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
@@ -108,35 +106,35 @@ public class JmlTreeUtils {
     }
     
     /** The qualified name of the Utils class that contains runtime utility methods */
-    @NonNull final public static String utilsClassQualifiedName = org.jmlspecs.utils.Utils.class.getCanonicalName();
+    /*@non_null*/ final public static String utilsClassQualifiedName = org.jmlspecs.utils.Utils.class.getCanonicalName();
 
     /** The Context in which this object was constructed */ 
     //@ non_null
-    @NonNull final protected Context context;
+    /*@non_null*/ final protected Context context;
     
     /** The Attr tool for this context */
-    @NonNull final protected JmlAttr attr;
+    /*@non_null*/ final protected JmlAttr attr;
     
     /** The Log tool for this context */
-    @NonNull final protected Log log;
+    /*@non_null*/ final protected Log log;
     
     /** The symbol table from the compilation context, initialized in the constructor */
-    @NonNull final public Symtab syms;
+    /*@non_null*/ final public Symtab syms;
     
     /** The Names table from the compilation context, initialized in the constructor */
-    @NonNull final public Names names;
+    /*@non_null*/ final public Names names;
     
     /** The Utils tool for this context */
-    @NonNull final protected Utils utils;
+    /*@non_null*/ final protected Utils utils;
     
     /** The Resolve tool for this compilation context */
-    @NonNull final protected JmlResolve rs;
+    /*@non_null*/ final protected JmlResolve rs;
 
     /** The Types utilities object for this compilation context */
-    @NonNull final protected JmlTypes types;
+    /*@non_null*/ final protected JmlTypes types;
     
 //    /** The Env in which to do resolving */
-//    @NonNull protected Env<AttrContext> attrEnv;
+//    /*@non_null*/ protected Env<AttrContext> attrEnv;
         
     /** The factory used to create AST nodes, initialized in the constructor */
     final public /*@ non_null */ JmlTree.Maker factory;
@@ -1090,7 +1088,7 @@ public class JmlTreeUtils {
     /** Creates a new VarSymbol with the given name and type and modifier flags 
      * (and no owner);
      * the declaration position is 'pos'. */
-    public VarSymbol makeVarSymbol(long flags, @NonNull Name name, @NonNull Type type, int pos) {
+    public VarSymbol makeVarSymbol(long flags, /*@non_null*/ Name name, /*@non_null*/ Type type, int pos) {
         VarSymbol v = new VarSymbol(flags,name,type.baseType(),null); // FIXME - explain why baseType is needed
         v.pos = pos;
         return v;
@@ -1107,7 +1105,7 @@ public class JmlTreeUtils {
      * @param pos the pseudo source code location for the new node
      * @return a new JCVariableDecl node
      */
-    public JCVariableDecl makeVariableDecl(Name name, Type type, @Nullable JCExpression init, int pos) {
+    public JCVariableDecl makeVariableDecl(Name name, Type type, /*@nullable*/ JCExpression init, int pos) {
         VarSymbol vsym = new VarSymbol(0, name, type.baseType(), null);
         vsym.pos = pos;
         JCVariableDecl decl = factory.at(pos).VarDef(vsym,init);
@@ -1141,7 +1139,7 @@ public class JmlTreeUtils {
      * the declaration has no modifiers; position
      * is set to that of the init expression.
      */
-    public JCVariableDecl makeVariableDecl(VarSymbol var, @Nullable JCExpression init) {
+    public JCVariableDecl makeVariableDecl(VarSymbol var, /*@nullable*/ JCExpression init) {
         JCVariableDecl d = factory.VarDef(var,init);
         if (init != null) d.pos = init.pos;
         return d;
@@ -1156,7 +1154,7 @@ public class JmlTreeUtils {
      * @param init  the initialization expression for the new AST
      * @return the AST for the declaration
      */
-    public JCVariableDecl makeVarDef(Type type, Name name, Symbol owner, @NonNull JCExpression init) {
+    public JCVariableDecl makeVarDef(Type type, Name name, Symbol owner, /*@non_null*/ JCExpression init) {
         int modifierFlags = 0;
         // We use type.baseType() here to remove any constType in case the 
         // expression the type came from is a literal. This made the difference 
@@ -1169,13 +1167,13 @@ public class JmlTreeUtils {
         return d;
     }
 
-    public JCVariableDecl makeVarDefWithSym(VarSymbol v, @NonNull JCExpression init) {
+    public JCVariableDecl makeVarDefWithSym(VarSymbol v, /*@non_null*/ JCExpression init) {
         JCVariableDecl d = factory.VarDef(v,init);
         d.pos = v.pos;
         return d;
     }
 
-    public JCVariableDecl makeStaticVarDef(Type type, Name name, Symbol owner, @NonNull JCExpression init) {
+    public JCVariableDecl makeStaticVarDef(Type type, Name name, Symbol owner, /*@non_null*/ JCExpression init) {
         int modifierFlags = Flags.STATIC;
         // We use type.baseType() here to remove any constType in case the 
         // expression the type came from is a literal. This made the difference 

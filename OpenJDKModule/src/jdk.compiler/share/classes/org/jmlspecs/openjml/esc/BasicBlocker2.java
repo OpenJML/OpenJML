@@ -17,7 +17,6 @@ import java.util.Stack;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.BasicProgram;
@@ -169,45 +168,45 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // Names for a bunch of synthetic variables 
     
     /** Standard name for the variable that represents the heap (which excludes local variables) */
-    public static final @NonNull String HEAP_VAR = "_heap__"; // FIXME cf JmlAssertionAdder for same string
+    public static final /*@non_null*/ String HEAP_VAR = "_heap__"; // FIXME cf JmlAssertionAdder for same string
     
     //-----------------------------------------------------------------
     // Names for various basic blocks
     
     /** Standard name for the block that starts the body */
-    public static final @NonNull String BODY_BLOCK_NAME = "bodyBegin";
+    public static final /*@non_null*/ String BODY_BLOCK_NAME = "bodyBegin";
     
     /** Standard name for the starting block of the program (just has the preconditions) */
-    public static final @NonNull String START_BLOCK_NAME = "Start";
+    public static final /*@non_null*/ String START_BLOCK_NAME = "Start";
     
     // Other somewhat arbitrary identifier names or parts of names
     
     /** Prefix for the names of the N-dimensional arrays used to model Java's heap-based arrays */
-    public static final @NonNull String ARRAY_BASE_NAME = "arrays_";
+    public static final /*@non_null*/ String ARRAY_BASE_NAME = "arrays_";
     
     // THE FOLLOWING FIELDS ARE EXPECTED TO BE CONSTANT FOR THE LIFE OF THE OBJECT
     // They are either initialized in the constructor or initialized on first use
     
     /** General utilities */
-    final protected @NonNull Utils utils;
+    final protected /*@non_null*/ Utils utils;
     
     /** The factory used to create AST nodes, initialized in the constructor */
-    final protected JmlTree.@NonNull Maker factory;
+    final protected JmlTree./*@non_null*/ Maker factory;
 
     // Caution - the following are handy, but they are shared, so they won't
     // have proper position information - which is OK for esc at this point
     
     /** Holds an AST node for a boolean true literal, initialized in the constructor */
-    final protected @NonNull JCLiteral trueLiteral;
+    final protected /*@non_null*/ JCLiteral trueLiteral;
     
     /** Holds an AST node for a boolean false literal, initialized in the constructor */
-    final protected @NonNull JCLiteral falseLiteral;
+    final protected /*@non_null*/ JCLiteral falseLiteral;
     
     /** Identifier of a synthesized object field holding the length of an array object, initialized in the constructor */
-    final protected @NonNull JCIdent lengthIdent;
+    final protected /*@non_null*/ JCIdent lengthIdent;
 
     /** Symbol of a synthesized object field holding the length of an array object, initialized in the constructor */
-    final protected @NonNull VarSymbol lengthSym;
+    final protected /*@non_null*/ VarSymbol lengthSym;
     
     // THE FOLLOWING FIELDS ARE USED IN THE COURSE OF DOING THE WORK OF CONVERTING
     // TO BASIC BLOCKS.  They are fields of the class because they need to be
@@ -230,20 +229,20 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * rewritten value - or at least the value which designates the value of the
      * input JCTree.
      */
-    @NonNull final BiMap<JCTree,JCExpression> bimap = new BiMap<JCTree,JCExpression>();
+    /*@non_null*/ final BiMap<JCTree,JCExpression> bimap = new BiMap<JCTree,JCExpression>();
     
     // FIXME - document - I think this can go away
-    @NonNull final BiMap<JCTree,JCTree> pathmap = new BiMap<JCTree,JCTree>();
+    /*@non_null*/ final BiMap<JCTree,JCTree> pathmap = new BiMap<JCTree,JCTree>();
     
     /** A mapping from BasicBlock to the sym->incarnation map giving the map that
      * corresponds to the state at the exit of the BasicBlock.
      */
-    @NonNull final public Map<BasicBlock,VarMap> blockmaps = new HashMap<BasicBlock,VarMap>();
+    /*@non_null*/ final public Map<BasicBlock,VarMap> blockmaps = new HashMap<BasicBlock,VarMap>();
     
     /** A mapping from labels to the sym->incarnation map operative at the position
      * of the label.
      */
-    @NonNull final protected Map<Name,VarMap> labelmaps = new HashMap<Name,VarMap>();
+    /*@non_null*/ final protected Map<Name,VarMap> labelmaps = new HashMap<Name,VarMap>();
         
     /** Contains names for which a declaration has been issued. */
     final protected Set<Name> isDefined = new HashSet<Name>();
@@ -252,12 +251,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // (so they do not need initialization)
     
     /** The map from symbol to incarnation number in current use */
-    @NonNull public VarMap currentMap;
+    /*@non_null*/ public VarMap currentMap;
     
     /** The map immediately after declaration of method parameters; this is
         the mapping of variables to incarnations to use when in the scope of 
         a \pre (or an \old without a label) */
-    @NonNull protected VarMap premap;
+    /*@non_null*/ protected VarMap premap;
     
     /** The variable that keeps track of heap incarnations */
     protected JCIdent heapVar;
@@ -268,7 +267,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * there is an exceptional exit.
      * @param context the compilation context
      */
-    public BasicBlocker2(@NonNull Context context) {
+    public BasicBlocker2(/*@non_null*/ Context context) {
         super(context);
 
         // Since we are not registering a tool or reusing singleton tool
@@ -296,8 +295,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * on an exceptional exit from a previous use.
      */
     @Override
-    protected void initialize(@NonNull JCMethodDecl methodDecl, 
-            @NonNull JCClassDecl classDecl, @NonNull JmlAssertionAdder assertionAdder) {
+    protected void initialize(/*@non_null*/ JCMethodDecl methodDecl, 
+            /*@non_null*/ JCClassDecl classDecl, /*@non_null*/ JmlAssertionAdder assertionAdder) {
         super.initialize(methodDecl,classDecl,assertionAdder);
         this.arrayBaseSym.clear();
         this.localVars.clear();
@@ -539,7 +538,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @param b the completed block
      */
     @Override
-    protected void completeBlock(@NonNull BasicBlock b) {
+    protected void completeBlock(/*@non_null*/ BasicBlock b) {
         super.completeBlock(b);
         currentMap = null; // Defensive - so no inadvertent assignments
     }
@@ -553,8 +552,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @param classDecl the declaration of the containing class
      * @return the completed BasicProgram
      */
-    public @NonNull BasicProgram convertMethodBody(JCBlock block, @NonNull JmlMethodDecl methodDecl, 
-            JmlMethodSpecs denestedSpecs, @NonNull JmlClassDecl classDecl, @NonNull JmlAssertionAdder assertionAdder) {
+    public /*@non_null*/ BasicProgram convertMethodBody(JCBlock block, /*@non_null*/ JmlMethodDecl methodDecl, 
+            JmlMethodSpecs denestedSpecs, /*@non_null*/ JmlClassDecl classDecl, /*@non_null*/ JmlAssertionAdder assertionAdder) {
         initialize(methodDecl,classDecl,assertionAdder);
         
         // Get the set of field symbols mentioned in the method body
@@ -2221,7 +2220,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         /** Returns the name for a variable symbol as stored in this map, creating (and
          * storing) one if it is not present. */
-        public /*@NonNull*/ Name getCurrentName(VarSymbol vsym) {
+        public /*@non_null*/ Name getCurrentName(VarSymbol vsym) {
             Name s = mapname.get(vsym);
             if (vsym == syms.lengthVar) return vsym.name;
             if (s == null) {
@@ -2250,14 +2249,14 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         /** Returns the name for a type symbol as stored in this map; returns null
          * if no name is stored */
-        public /*@ Nullable */ Name getName(TypeSymbol vsym) {
+        public /*@ nullable */ Name getName(TypeSymbol vsym) {
             Name s = mapname.get(vsym);
             return s;
         }
         
         /** Returns the name for a type symbol as stored in this map, creating (and
          * storing) one if it is not present. */
-        public /*@NonNull*/ Name getCurrentName(TypeSymbol vsym) {
+        public /*@non_null*/ Name getCurrentName(TypeSymbol vsym) {
             Name s = mapname.get(vsym);
             if (s == null) {
                 s = encodedTypeName(vsym,0);

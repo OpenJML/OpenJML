@@ -59,8 +59,6 @@ import javax.lang.model.type.TypeKind;
 //import javax.swing.text.html.parser.Element;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.IJmlClauseKind.LineAnnotationKind;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
@@ -165,67 +163,67 @@ import com.sun.tools.javac.util.Position;
 public class JmlAttr extends Attr implements IJmlVisitor {
 
     /** This is the compilation context for which this is the unique instance */
-    @NonNull final public Context context;
+    /*@non_null*/ final public Context context;
     
     /** The Name version of resultVarString in the current context */
-    @NonNull final public Name resultName;
+    /*@non_null*/ final public Name resultName;
     
     /** The Name version of exceptionVarString in the current context */
-    @NonNull final public Name exceptionName;
+    /*@non_null*/ final public Name exceptionName;
 
     /** The fully-qualified name of the Utils class */
     // Use .class on the class name instead of a string so that an error happens if the class is renamed
     // This class is in the runtime library
-    @NonNull final public static String utilsClassName = org.jmlspecs.utils.Utils.class.getCanonicalName();
+    /*@non_null*/ final public static String utilsClassName = org.jmlspecs.utils.Utils.class.getCanonicalName();
     
     /** Cached symbol of the org.jmlspecs.utils.Utils class */
-    @NonNull public ClassSymbol utilsClass;
+    /*@non_null*/ public ClassSymbol utilsClass;
     
     /** Cached identifier of the org.jmlspecs.utils.Utils class */
-    @NonNull protected JCIdent utilsClassIdent;
+    /*@non_null*/ protected JCIdent utilsClassIdent;
     
     /** Cached value of the JMLDataGroup class */
-    @NonNull public ClassSymbol datagroupClass;
+    /*@non_null*/ public ClassSymbol datagroupClass;
     
     /** The JmlSpecs instance for this context */
-    @NonNull final protected JmlSpecs specs;
+    /*@non_null*/ final protected JmlSpecs specs;
     
     /** The Utils instance for this context */
-    @NonNull final public Utils utils;
+    /*@non_null*/ final public Utils utils;
 
     /** The Types instance for this context */
-    @NonNull final public JmlTypes jmltypes;
+    /*@non_null*/ final public JmlTypes jmltypes;
 
     /** The Names table from the compilation context, initialized in the constructor */
-    @NonNull
+    /*@non_null*/
     public final Names names;
     
     /** The tool used to read binary classes */
-    @NonNull final public ClassReader classReader;
+    /*@non_null*/ final public ClassReader classReader;
     
     /** The factory used to create AST nodes, initialized in the constructor */
-    @NonNull final public JmlTree.Maker jmlMaker;
+    /*@non_null*/ final public JmlTree.Maker jmlMaker;
     
     /** A JmlCompiler instance */
-    @NonNull final protected JmlCompiler jmlcompiler;
+    /*@non_null*/ final protected JmlCompiler jmlcompiler;
     
     /** A JmlResolve instance */
-    @NonNull final public JmlResolve jmlresolve;
+    /*@non_null*/ final public JmlResolve jmlresolve;
     
     /** An instance of the tree utility class */
-    @NonNull public JmlTreeUtils treeutils; // initialized later to avoid circular tool instantiations
+    /*@non_null*/ public JmlTreeUtils treeutils; // initialized later to avoid circular tool instantiations
 
     /** A Literal for a boolean true */
-    @NonNull protected JCLiteral trueLit;
+    /*@non_null*/ protected JCLiteral trueLit;
     
     /** A Literal for a boolean false */
-    @NonNull protected JCLiteral falseLit;
+    /*@non_null*/ protected JCLiteral falseLit;
     
     /** A Literal for a null constant */
-    @NonNull protected JCLiteral nullLit;
+    /*@non_null*/ protected JCLiteral nullLit;
     
     /** A Literal for an int zero */
-    @NonNull protected JCLiteral zeroLit;
+    /*@non_null*/ protected JCLiteral zeroLit;
     
     /** Cached value of the @NonNull annotation symbol */
     public ClassSymbol nonnullAnnotationSymbol = null;
@@ -4968,7 +4966,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     // Returns true if contextSym is contained (transitively) in the varSym datagroup
-    protected boolean isContainedInDatagroup(@Nullable VarSymbol varSym, @Nullable VarSymbol contextSym) {
+    protected boolean isContainedInDatagroup(/*@nullable*/ VarSymbol varSym, /*@nullable*/ VarSymbol contextSym) {
         if (varSym == contextSym) return true;
         JmlSpecs.FieldSpecs fspecs = specs.getSpecs(varSym);
         for (JmlTypeClause t: fspecs.list) {
@@ -5271,39 +5269,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void initAnnotationNames(Context context) {
         Names names = Names.instance(context);
         annotationPackageName = names.fromString(Strings.jmlAnnotationPackage);
-//        for (JmlTokenKind t: JmlTokenKind.modifiers) {
-//            if (t.annotationType == null) {
-//                // No class for this token, but we won't complain
-//                // The result is to silently ignore the token (TODO)
-//            } else {
-//                String s = t.annotationType.getName();
-//                Name n = names.fromString(s);
-//                tokenToAnnotationName.put(t,n);
-//                ClassSymbol sym = ClassReader.instance(context).enterClass(n);
-//                tokenToAnnotationSymbol.put(t,sym);
-//            }
-//        }
         Name n = names.fromString("jdk.compiler");
-        Symbol.ModuleSymbol mod = null;
-        for (var m: Modules.instance(context).allModules()) {
-        	if (m.name == n) { mod = m; break; }
-        }
+        Symbol.ModuleSymbol mod = syms.unnamedModule;
         for (IJmlClauseKind kk: Extensions.allKinds.values()) {
             if (!(kk instanceof ModifierKind)) continue;
             ModifierKind k = (ModifierKind)kk;
             ClassSymbol sym = syms.enterClass(mod, names.fromString(k.fullAnnotation));
             modToAnnotationSymbol.put(k,sym);
         }
-
-            
-//        JmlTokenKind t = JmlTokenKind.CAPTURED;
-//        {
-//            String s = t.annotationType.getName();
-//            Name n = names.fromString(s);
-//            tokenToAnnotationName.put(t,n);
-//            ClassSymbol sym = ClassReader.instance(context).enterClass(n);
-//            tokenToAnnotationSymbol.put(t,sym);
-//        }        
         annotationPackageSymbol = modToAnnotationSymbol.get(Modifiers.PURE).packge();
 
         nullablebydefaultAnnotationSymbol = modToAnnotationSymbol.get(Modifiers.NULLABLE_BY_DEFAULT);
@@ -5323,7 +5296,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         outer: for (JCTree.JCAnnotation a: annotations) {
             Symbol tsym = a.annotationType.type.tsym;
             for (ModifierKind c: allowed) {
-                if (tsym.equals(modToAnnotationSymbol.get(c))) continue outer; // Found it
+            	var asym = modToAnnotationSymbol.get(c);
+                if (tsym.equals(asym)) continue outer; // Found it
             }
             // a is not in the list, but before we complain, check that it is
             // one of our annotations

@@ -15,7 +15,6 @@ import java.util.Map;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.IJmlClauseKind.MethodSpecClauseKind;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
@@ -733,9 +732,9 @@ public class JmlParser extends JavacParser {
      * declarations. The field is reset to null when a method
      * declaration incorporates the specs.
      */
-    public @Nullable JmlMethodSpecs currentMethodSpecs = null;
+    public /*@nullable*/ JmlMethodSpecs currentMethodSpecs = null;
     /** The most recent field declaration within a class body. */
-    public @Nullable JmlVariableDecl currentVariableDecl = null;
+    public /*@nullable*/ JmlVariableDecl currentVariableDecl = null;
 
     /** Returns true if the argument is a possible beginning of a
      * method specs, after any modifiers */
