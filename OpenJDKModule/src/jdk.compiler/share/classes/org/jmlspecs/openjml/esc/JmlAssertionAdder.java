@@ -3272,7 +3272,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     Env<AttrContext> env = JmlEnter.instance(context).getEnv(clsym);
                     // We don't warn if the problem is that we just have a binary class and consequently no implementations of model fields
                     // FIXME - need some tests for these options - not sure the binary ones have any effect here???
-                    if (env != null && ((JmlCompilationUnit)env.toplevel).mode != JmlCompilationUnit.SPEC_FOR_BINARY) {
+                    if (env != null && env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.JML) {
                         String opt = JmlOption.value(context,JmlOption.RAC_MISSING_MODEL_FIELD_REP_SOURCE);
                         if ("skip".equals(opt)) {
                             throw new NoModelMethod("No represents clause for model field " + varsym);
@@ -5284,7 +5284,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     		n.endPositions = that.endPositions; // FIXME: need to convert map?
     		//  n.flags = that.flags;
     		n.pid = jcu.pid;
-    		n.mode = jcu.mode;
     		n.lineMap = that.lineMap;
     		n.namedImportScope = that.namedImportScope;
     		n.packge = that.packge;

@@ -200,7 +200,7 @@ public class JmlEnter extends Enter {
     		if (specJfo == null) specJfo = tree.sourcefile;
     		var speccu = (JmlCompilationUnit)tree;
     		if (!specJfo.toUri().equals(tree.sourcefile.toUri())) {
-    			speccu = JmlCompiler.instance(context).parseSingleFile(specJfo);
+    			speccu = (JmlCompilationUnit)JmlCompiler.instance(context).parse(specJfo);
     			var p = findPackageDef(tree);
     			var pp = findPackageDef(speccu);
     			String pn = p == null ? "<default package>" : Pretty.toSimpleString(p);
@@ -219,6 +219,7 @@ public class JmlEnter extends Enter {
     		jtree.specsCompilationUnit = speccu;
     		
     		super.visitTopLevel(tree);
+    		if (org.jmlspecs.openjml.Main.useJML) System.out.println("Completed visitTopLevel for " + tree.sourcefile);
     		
 //    		if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"entering " + jmltree.sourcefile.getName());
 //

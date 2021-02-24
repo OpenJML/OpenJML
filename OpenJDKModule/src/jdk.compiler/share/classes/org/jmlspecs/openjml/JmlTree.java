@@ -956,9 +956,9 @@ public class JmlTree {
 //         */
 //        public java.util.List<JmlClassDecl> specsTopLevelModelTypes = new java.util.LinkedList<JmlClassDecl>();
 
-        // FIXME - review the use of this value
-        /** The use to be made of this parse tree - one of the int constants below. */
-        public int mode = 0; // init to an unknown value
+//        // FIXME - review the use of this value
+//        /** The use to be made of this parse tree - one of the int constants below. */
+//        public int mode = 0; // init to an unknown value
         
         public Env<AttrContext> topLevelEnv;
         

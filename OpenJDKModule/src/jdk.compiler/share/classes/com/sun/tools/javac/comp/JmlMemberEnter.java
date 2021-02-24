@@ -800,15 +800,16 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     public void addRacMethods(ClassSymbol sym, Env<AttrContext> env) {
         if (!utils.rac) return;
         // We can't add methods to a binary class, can we?
-        if (((JmlCompilationUnit)env.toplevel).mode == JmlCompilationUnit.SPEC_FOR_BINARY) return;
+//        if (((JmlCompilationUnit)env.toplevel).mode == JmlCompilationUnit.SPEC_FOR_BINARY) return;
         
         if (sym.isAnonymous()) return;
         if (sym.isInterface()) return;  // FIXME - deal with interfaces.  ALso, no methods added to annotations
         JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get(sym);
         JCExpression vd = jmlF.Type(syms.voidType);
         JmlClassDecl jtree = (JmlClassDecl)env.tree;
-        JmlClassDecl specstree = jtree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY ? jtree : jtree.specsDecl;
-            
+//        JmlClassDecl specstree = jtree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY ? jtree : jtree.specsDecl;
+        JmlClassDecl specstree = jtree.specsDecl;
+        
         JmlTree.JmlMethodDecl m = jmlF.MethodDef(
                 jmlF.Modifiers(Flags.PUBLIC|Flags.SYNTHETIC),
                 names.fromString(org.jmlspecs.utils.Utils.invariantMethodString),
@@ -1746,25 +1747,25 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
 
     
-    public void visitMethodDef(JmlMethodDecl tree, ClassSymbol owner) {
-        JmlMethodDecl prevMethod = currentMethod;
-        currentMethod = tree;
-        boolean prevAllowJml = resolve.allowJML();
-        long flags = tree.mods.flags;
-        boolean isJMLMethod = utils.isJML(flags);
-        try {
-            boolean isSpecFile = currentMethod.sourcefile == null || currentMethod.sourcefile.getKind() != JavaFileObject.Kind.SOURCE;
-//            boolean isClassModel = ((JmlAttr)attr).isModel(env.enclClass.mods);
-            if (isSpecFile && tree.sym != null) return; //Sometimes this is called when the method already is entered
-            if (isJMLMethod) resolve.setAllowJML(true);
-            //super.visitMethodDef(tree);
-            visitMethodDefBinary(tree);
-        } finally {
-            if (isJMLMethod) resolve.setAllowJML(prevAllowJml);
-            currentMethod = prevMethod;
-        }
-        
-    }
+//    public void visitMethodDef(JCMethodDecl tree, ClassSymbol owner) {
+//        JmlMethodDecl prevMethod = currentMethod;
+//        currentMethod = (JmlMethodDecl)tree;
+//        boolean prevAllowJml = resolve.allowJML();
+//        long flags = tree.mods.flags;
+//        boolean isJMLMethod = utils.isJML(flags);
+//        try {
+//            boolean isSpecFile = currentMethod.sourcefile == null || currentMethod.sourcefile.getKind() != JavaFileObject.Kind.SOURCE;
+////            boolean isClassModel = ((JmlAttr)attr).isModel(env.enclClass.mods);
+//            if (isSpecFile && tree.sym != null) return; //Sometimes this is called when the method already is entered
+//            if (isJMLMethod) resolve.setAllowJML(true);
+//            super.visitMethodDef(tree);
+//            visitMethodDefBinary(tree);
+//        } finally {
+//            if (isJMLMethod) resolve.setAllowJML(prevAllowJml);
+//            currentMethod = prevMethod;
+//        }
+//    }
+
     // This is a duplicate of super.vistMethodDef -- with some stuff elided for handling specs of binarys
     public void visitMethodDefBinary(JCMethodDecl tree) {
         WriteableScope enclScope = enter.enterScope(env);

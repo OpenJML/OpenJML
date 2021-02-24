@@ -31,11 +31,10 @@ import org.jmlspecs.annotation.*;
  * @author Gary T. Leavens, David R. Cok
  * @see org.jmlspecs.models.JMLCollection
  * @see org.jmlspecs.models.JMLEqualsSet
- * @see org.jmlspecs.models.JMLValueSet
  * @see org.jmlspecs.models.JMLObjectSet
  */
 //+OPENJML@ immutable
-public @Pure interface JMLSetType<E> extends JMLIterable<E>
+public /*@pure*/ interface JMLSetType<E> extends JMLIterable<E>
 {
     
     //**************************** Observers **********************************
@@ -50,17 +49,17 @@ public @Pure interface JMLSetType<E> extends JMLIterable<E>
       @     ensures isEmpty() ==> !\result;
       @     //ensures !(elem instanceof E) ==> !\result; // illegal Java TODO
       @*/    
-    boolean has(@Nullable Object elem );  // TODO - should be contains?
+    boolean has(/*@nullable*/ Object elem );  // TODO - should be contains?
 
     //@ public normal_behavior
     //@    ensures s2 == null ==> !\result;
     //@    ensures !(s2 instanceof JMLSetType) ==> !\result; // TODO should be JMLSetType<E>
-    boolean equals(@Nullable Object s2);
+    boolean equals(/*@nullable*/ Object s2);
     
     //@ public normal_behavior
     //@   ensures (item == o) ==> (\result == true);
     //@   ensures ((item == null) != (o == null)) ==> (\result == false);
-    boolean elem_equals(@Nullable E item, @Nullable Object o);
+    boolean elem_equals(/*@nullable*/ E item, /*@nullable*/ Object o);
 
     // This invariant ties the definition of has to that of elem_equals and
     // imposes 'setness' on this object - no duplicate objects (measured by elem_equals)
@@ -92,7 +91,7 @@ public @Pure interface JMLSetType<E> extends JMLIterable<E>
       @      requires !isEmpty();
       @      ensures this.has(\result);
       @*/
-    @Nullable E choose();
+    /*@nullable*/ E choose();
 
     // ****************** building new JMLSetTypes **************************
 
@@ -109,7 +108,7 @@ public @Pure interface JMLSetType<E> extends JMLIterable<E>
       @   ensures  this.has(elem) ==> (this.int_size() == \result.int_size());
       @   ensures  !this.has(elem) ==> (this.int_size()+1 == \result.int_size());
       @*/
-    @NonNull JMLSetType<E> insert(@Nullable E elem);
+    /*@non_null*/ JMLSetType<E> insert(/*@nullable*/ E elem);
 
     /** Return a new array containing all the elements of this.
      */
@@ -127,6 +126,6 @@ public @Pure interface JMLSetType<E> extends JMLIterable<E>
     /*@  public normal_behavior
       @      ensures \fresh(\result);
       @*/  
-    @NonNull JMLIterator<E> iterator();
+    /*@non_null*/ JMLIterator<E> iterator();
 
 }
