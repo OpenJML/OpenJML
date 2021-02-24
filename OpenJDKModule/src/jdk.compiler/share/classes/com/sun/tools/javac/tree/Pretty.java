@@ -1322,6 +1322,8 @@ public class Pretty extends JCTree.Visitor {
             close(prec, ownprec);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } catch (Throwable e) {
+        	try { print("<Throwable> " + tree.getTag()); } catch (Exception ee) {}
         }
     }
 

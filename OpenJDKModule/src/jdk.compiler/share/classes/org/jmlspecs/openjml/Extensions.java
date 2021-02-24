@@ -23,6 +23,7 @@ import org.jmlspecs.openjml.ext.*;
 
 import com.sun.tools.javac.parser.JmlToken;
 import com.sun.tools.javac.parser.Tokens.Token;
+import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
@@ -78,8 +79,10 @@ public class Extensions {
             IJmlClauseKind k = allKinds.get(id);
             jt.jmlclausekind = k;
             return k;    		
+    	} else if (token.kind == TokenKind.IDENTIFIER){
+            return allKinds.get(token.name().toString());
     	} else {
-            return allKinds.get(token.toString());
+    		return null;
     	}
     }
     
@@ -108,34 +111,47 @@ public class Extensions {
      *  the org.jmlspecs.openjml.ext package */  // TODO - fix this list
     static Class<?>[] extensions = { FunctionLikeExpressions.class, 
             // Expressions
-            Arithmetic.class, 
-            FunctionLikeExpressions.class, 
+            Arithmetic.class,
+            FrameExpressions.class,
+            Functional.class,
+            FunctionLikeExpressions.class,
+            MiscExpressions.class,
+            QuantifiedExpressions.class,
+            SingletonExpressions.class,
+            StateExpressions.class,
             //Erasure.class, 
             //Key.class, 
             ProgramLocation.class, 
             
             // Modifiers
+            ModifierExtension.class,
             PureModifier.class,
             
             // Method clauses
             AssignableClauseExtension.class, 
             CallableClauseExtension.class, 
-            MethodExprClauseExtensions.class, 
+            ChooseClause.class, 
+            MethodConditionalClauseExtension.class,
             MethodDeclClauseExtension.class, 
+            MethodExprClauseExtensions.class, 
+            MethodSimpleClauseExtensions.class, 
             SignalsClauseExtension.class, 
             SignalsOnlyClauseExtension.class, 
-            ChooseClause.class, 
             
             // Statements
             EndStatement.class, 
+            GhostModelStatement.class,
             InlinedLoopStatement.class, 
             ReachableStatement.class, 
             SetStatement.class, 
+            ShowStatement.class,
             StatementExprExtensions.class, 
             
             // Type Clauses
+            TypeDeclClauseExtension.class, 
             TypeExprClauseExtension.class, 
             TypeInClauseExtension.class, 
+            TypeInitializerClauseExtension.class, 
             TypeMapsClauseExtension.class, 
             TypeMonitorsForClauseExtension.class, 
             TypeRepresentsClauseExtension.class, 
@@ -146,6 +162,10 @@ public class Extensions {
             
             // Field-like extensions
             ArrayFieldExtension.class,
+            
+            LineAnnotationClauses.class,
+            MatchExt.class,
+            StatementLocationsExtension.class,
             
             };
     
@@ -302,37 +322,37 @@ public class Extensions {
 //            }
 //        }
         ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
-//        if (foundClassNames.isEmpty()) {
-//            //System.out.println("LAST RESORT EXTENSION");
-//            // Last resort
-//            Log.instance(context).warning("jml.internal.notsobad","Last resort loading of extensions");
-//            for (Class<?> cl : extensions) {
-//                try {
-//                    registerClass(context,cl);
-//                    if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).getWriter(Log.WriterKind.NOTICE).println("Registered extensions using technique " + methodThatWorked);
-//                    classes.add(cl);
-//                } catch (Exception e) {
-//                    if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).getWriter(Log.WriterKind.NOTICE).println("Failed to register " + cl.getName());
-//                }
-//            }
-//
-//        } else {
-//        
-//            for (String name: foundClassNames) {
-//                String fullname = packageName + "." + name;
-//                try {
-//                    Class<?> c = Class.forName(fullname);
-//                    if (Modifier.isAbstract(c.getModifiers())) continue;
-//                    registerClass(context,c);
-//                    if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).getWriter(Log.WriterKind.NOTICE).println("Registered extensions using technique " + methodThatWorked);
-//                    classes.add(c);
-//                } catch (Exception e) {
-//                    // Just skip if there is any exception, such as a
-//                    // Class or Method not found.
-//                    if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).getWriter(Log.WriterKind.NOTICE).println("Failed to register " + fullname);
-//                }
-//            }
-//        }
+        if (foundClassNames.isEmpty()) {
+            //System.out.println("LAST RESORT EXTENSION");
+            // Last resort
+            Utils.instance(context).warning("jml.internal.notsobad","Last resort loading of extensions");
+            for (Class<?> cl : extensions) {
+                try {
+                    registerClass(context,cl);
+                    Utils.instance(context).note(true,"Registered extensions using technique " + methodThatWorked);
+                    classes.add(cl);
+                } catch (Exception e) {
+                	Utils.instance(context).note(true,"Failed to register " + cl.getName());
+                }
+            }
+
+        } else {
+        
+            for (String name: foundClassNames) {
+                String fullname = packageName + "." + name;
+                try {
+                    Class<?> c = Class.forName(fullname);
+                    if (Modifier.isAbstract(c.getModifiers())) continue;
+                    registerClass(context,c);
+                    Utils.instance(context).note(true,"Registered extensions using technique " + methodThatWorked);
+                    classes.add(c);
+                } catch (Exception e) {
+                    // Just skip if there is any exception, such as a
+                    // Class or Method not found.
+                	Utils.instance(context).note(true,"Failed to register " + fullname);
+                }
+            }
+        }
         return classes;
     }
     

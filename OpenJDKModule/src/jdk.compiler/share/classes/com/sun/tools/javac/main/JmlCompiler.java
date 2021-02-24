@@ -141,12 +141,18 @@ public class JmlCompiler extends JavaCompiler {
 //        if (fileobject == null) return null;
 //        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"parsing " + fileobject.toUri() );
 //        
-//        JCCompilationUnit cu = super.parse(fileobject,content);
-//        if (cu instanceof JmlCompilationUnit) return (JmlCompilationUnit)cu;
-//        log.error("jml.internal",
-//        		"JmlCompiler.parse expects to receive objects of type JmlCompilationUnit, but it found a " 
-//        				+ cu.getClass() + " instead, for source " + cu.getSourceFile().toUri().getPath());
-//        return null;
+//        try {
+//        	JCCompilationUnit cu = super.parse(fileobject,content);
+//        	if (cu instanceof JmlCompilationUnit) return (JmlCompilationUnit)cu;
+//        	log.error("jml.internal",
+//        			"JmlCompiler.parse expects to receive objects of type JmlCompilationUnit, but it found a " 
+//        					+ cu.getClass() + " instead, for source " + cu.getSourceFile().toUri().getPath());
+//        	return null;
+//        } catch (Exception e) {
+//        	Scanner S = getScanner();
+//        	S.tokenizer.getCharacters(S.tokenizer.position()-10, S.tokenizer.position()+50);
+//        	throw e;
+//        }
 //    }
     
     

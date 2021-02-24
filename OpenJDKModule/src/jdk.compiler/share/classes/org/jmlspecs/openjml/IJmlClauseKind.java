@@ -205,12 +205,12 @@ public abstract class IJmlClauseKind {
     abstract public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser);
     
     protected void init(JmlParser parser) {
-        Context c = this.context ;// FIXME = parser.context;
+        Context c = context = parser.context ;
         this.syms = Symtab.instance(c);
         this.log = Log.instance(c);
         this.parser = parser;
         this.scanner = parser.getScanner();
-        this.utils = Utils.instance(context);
+        this.utils = Utils.instance(c);
     }
 
     protected void wrapup(JCTree statement, IJmlClauseKind clauseType, boolean parseSemicolon) {

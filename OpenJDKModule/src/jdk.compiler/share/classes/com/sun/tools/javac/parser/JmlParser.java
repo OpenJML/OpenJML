@@ -45,6 +45,7 @@ import static org.jmlspecs.openjml.ext.TypeMapsClauseExtension.*;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.parser.Scanner;
 import com.sun.tools.javac.parser.Tokens.Comment;
 import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
@@ -167,6 +168,21 @@ public class JmlParser extends JavacParser {
     public JmlTree.Maker maker() {
         return jmlF;
     }
+    
+    protected JCTree checkForJmlDeclaration(JCModifiers mods, boolean checkForImports) {
+    	if (S.jml() && peekToken(TokenKind.IMPORT)) {
+        	if (checkForImports) {
+        		pushBackModifiers = mods;
+            	var t =  importDeclaration();
+        		return t;
+        	} else {
+        		utils.error(pos(),  "jml.message", "Misplaced import");
+        		skipThroughSemi();
+        	}
+    	}
+    	return null;
+    }
+
 
     /**
      * Parses a compilation unit using tokens from the scanner - generally the
@@ -174,6 +190,7 @@ public class JmlParser extends JavacParser {
      */
     @Override
     public JCTree.JCCompilationUnit parseCompilationUnit() {
+    	try {
         JCTree.JCCompilationUnit u = super.parseCompilationUnit();
         if (!(u instanceof JmlCompilationUnit)) {
             utils.error(
@@ -191,6 +208,11 @@ public class JmlParser extends JavacParser {
             setTopLevel(jmlcu,jmlcu.defs);
         }
         return u;
+    	} catch (Exception e) {
+           	var S = getScanner();
+        	System.out.println(((JmlTokenizer)S.tokenizer).getCharacters(S.tokenizer.position()-10, S.tokenizer.position()+50));
+    		throw e;
+    	}
     }
 
     /** Recursively sets the toplevel field of class declarations */
@@ -290,7 +312,6 @@ public class JmlParser extends JavacParser {
                 if (!inJmlDeclaration) utils.setJML(mods);
                 inJmlDeclaration = true;
             }
-            if (org.jmlspecs.openjml.Main.useJML && s == null) System.out.println("CRIE " + inJmlDeclaration + " " + token);
             if (!inJmlDeclaration || token.kind == CLASS || token.kind == INTERFACE || token.kind == ENUM || (token.kind == IDENTIFIER && token.name() == names.record)) {
                 // The guard above is used because if it is false, we want to produce
                 // a better error message than we otherwise get, for misspelled
@@ -304,6 +325,11 @@ public class JmlParser extends JavacParser {
                     if (cl instanceof IJmlClauseKind.ClassLikeKind) {
                         s = (JmlDatatypeDecl)cl.parse(mods,token.name().toString(),cl,this);
                     }
+                } else if (inJmlDeclaration && token.kind == IMPORT) {
+                    int p = pos();
+                	pushBackModifiers = mods;
+                	importDeclaration();
+                	utils.warning(p, pos(), "jml.message", "model imports not currently implemented");
                 } else {
                     int p = pos();
                     int ep = endPos();
@@ -1010,6 +1036,8 @@ public class JmlParser extends JavacParser {
                 break;
             }
         }
+        while (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) nextToken();
+        //if (org.jmlspecs.openjml.Main.useJML) System.out.println(JmlPretty.write(list.first()));
         return list.toList();
     }
 
@@ -2002,6 +2030,8 @@ public class JmlParser extends JavacParser {
             if (id.charAt(0) == '\\') {
                 IJmlClauseKind kind = Extensions.findKeyword(token);
                 if (kind == null && !id.equals("\\locset")) { // and we have a leading \
+                	System.out.println("BAD TOK " + token.getClass() + " " + token);
+                	System.out.println(Extensions.allKinds.keySet());
                     utils.error(p, endPos(), "jml.message", "Unknown backslash identifier: " + id);
                     return jmlF.at(p).Erroneous();
                 } else if (kind instanceof IJmlClauseKind.ExpressionKind) {
@@ -2459,14 +2489,16 @@ public class JmlParser extends JavacParser {
             // if the precedence of [topOp] is lower than the precedence of [token] we have to read more before constructing expressions
             int p;
             while (top > 0 && (p=prec(topOp.ikind)) >= prec(token.ikind)) {
-                if (topOp.kind == CUSTOM) { // <:
-                    JCExpression e = jmlF.at(topOp.pos).JmlBinary(topOpKind, odStack[top - 1],
-                            odStack[top]);
+//                if (topOp.kind == CUSTOM) { // <:
+//                    JCExpression e = jmlF.at(topOp.pos).JmlBinary(topOpKind, odStack[top - 1],
+//                            odStack[top]);
+//                    storeEnd(e, getEndPos(odStack[top]));
+//                    odStack[top - 1] = e;
+//                } else {
+                    var e = makeOp(topOp.pos, topOp, odStack[top - 1], odStack[top]);
                     storeEnd(e, getEndPos(odStack[top]));
                     odStack[top - 1] = e;
-                } else {
-                    odStack[top - 1] = F.at(topOp.pos).Binary(optag(topOp.kind), odStack[top - 1], odStack[top]);
-                }
+ //               }
                 top--;
                 topOp = opStack[top];
                 if (p == precFactor*TreeInfo.ordPrec && prec(token.ikind) < precFactor*TreeInfo.ordPrec) {
