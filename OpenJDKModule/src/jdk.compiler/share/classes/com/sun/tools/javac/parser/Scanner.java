@@ -114,6 +114,7 @@ public class Scanner implements Lexer {
         } else {
             token = tokenizer.readToken();
         }
+        //if (org.jmlspecs.openjml.Main.useJML) System.out.println("TOKEN " + token.pos + " " + token.endPos + " " + token);
     }
 
     public Token split() {

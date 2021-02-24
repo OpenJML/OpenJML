@@ -403,6 +403,7 @@ public class Tokens {
                 return buf.toList();
             }
         }
+        public String toString() { return this.kind.toString(); }
     }
 
     final static class NamedToken extends Token {
@@ -424,6 +425,8 @@ public class Tokens {
         public Name name() {
             return name;
         }
+        
+        public String toString() { return name.toString(); }
     }
 
     static class StringToken extends Token {
@@ -445,6 +448,9 @@ public class Tokens {
         public String stringVal() {
             return stringVal;
         }
+        
+        public String toString() { return stringVal(); }
+
     }
 
     final static class NumericToken extends StringToken {
@@ -466,6 +472,8 @@ public class Tokens {
         public int radix() {
             return radix;
         }
+        
+        public String toString() { return stringVal(); }
     }
 
     public static final Token DUMMY =

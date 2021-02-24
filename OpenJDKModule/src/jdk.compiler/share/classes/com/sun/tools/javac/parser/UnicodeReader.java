@@ -298,6 +298,7 @@ public class UnicodeReader {
         width = 0;
         wasBackslash = false;
         nextCodePoint();
+        //if (org.jmlspecs.openjml.Main.useJML)System.out.println("RESET " + pos + " " + position() + " " + (int)character + " " + character); 
     }
 
     /**
@@ -343,7 +344,7 @@ public class UnicodeReader {
      */
     protected char next() {
         nextCodePoint();
-
+    	//if (org.jmlspecs.openjml.Main.useJML)System.out.println(position() + " CHAR " + (int)character + " " + character);
         return character;
     }
 

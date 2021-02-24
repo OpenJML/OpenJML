@@ -57,6 +57,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.GT;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.IMPORT;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.LT;
 import static com.sun.tools.javac.tree.JCTree.Tag.*;
+import static com.sun.tools.javac.tree.JCTree.JCImport;
 import static com.sun.tools.javac.resources.CompilerProperties.Fragments.ImplicitAndExplicitNotAllowed;
 import static com.sun.tools.javac.resources.CompilerProperties.Fragments.VarAndExplicitNotAllowed;
 import static com.sun.tools.javac.resources.CompilerProperties.Fragments.VarAndImplicitNotAllowed;
@@ -3547,6 +3548,10 @@ public class JavacParser implements Parser {
             return t;
         }
     }
+    
+    protected JCTree checkForJmlDeclaration(JCModifiers mods, boolean checkForImports) {
+    	return null;
+    }
 
     /** CompilationUnit = [ { "@" Annotation } PACKAGE Qualident ";"] {ImportDeclaration} {TypeDeclaration}
      */
@@ -3587,6 +3592,8 @@ public class JavacParser implements Parser {
                 if (token.kind == EOF)
                     break;
             }
+            JCTree t = checkForJmlDeclaration(mods, checkForImports); // OPENJML - added
+            if (t != null) { defs.append(t); seenImport |= t instanceof JCImport; continue; } // OPENJML - added
             if (checkForImports && mods == null && token.kind == IMPORT) {
                 seenImport = true;
                 defs.append(importDeclaration());
@@ -4134,9 +4141,10 @@ public class JavacParser implements Parser {
             if (token.pos <= endPosTable.errorEndPos) {
                // error recovery
                skip(false, true, true, false);
-           }
+            }
         }
         accept(RBRACE);
+        //if (org.jmlspecs.openjml.Main.useJML) new RuntimeException().printStackTrace(System.out);
         return defs.toList();
     }
 

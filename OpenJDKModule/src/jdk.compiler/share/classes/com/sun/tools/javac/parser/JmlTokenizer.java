@@ -24,6 +24,7 @@ import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
 
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
+import com.sun.tools.javac.resources.CompilerProperties.Errors;
 import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.EndPosTable;
@@ -166,13 +167,14 @@ public class JmlTokenizer extends JavadocTokenizer {
     // to scan the contents of the comment.
     @Override
     protected Tokens.Comment processComment(int pos, int endPos, CommentStyle style) {
+        //if (org.jmlspecs.openjml.Main.useJML) System.out.println("COMMENT " + pos + " " + endPos);
         // endPos is one beyond the last character of the comment
 
         // The inclusive range pos to endPos-1 does include the opening and closing
         // comment characters.
         // It does not include line ending for line comments, so
         // an empty line comment can be just two characters.
-        if (true || noJML || style == CommentStyle.JAVADOC || endPos-pos <= 2) {
+        if (noJML || style == CommentStyle.JAVADOC || endPos-pos <= 2) {
             return super.processComment(pos,endPos,style);
         }
         
@@ -300,7 +302,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                 }
             } while (position() < endPos);
         }
-    	reset(endPos);
+    	if (endPos != position()) reset(endPos); // FIXME - do we ever need this?
     }
     
     /**
@@ -448,12 +450,14 @@ public class JmlTokenizer extends JavadocTokenizer {
                         // Unclosed informal expression
                     	Utils.instance(context).error(start,position(),"jml.unclosed.informal.expression");
                         break outer;
+                        // FIXME - check that we switch out of JML mode
                     }
                     if (jmlcommentstyle == CommentStyle.BLOCK && ch == '/') {
                         // Unclosed informal expression
                     	Utils.instance(context).error(start,position(),"jml.unclosed.informal.expression");
-                        reset(star); // backup and rescan to procdess end of comment
+                        reset(star); // backup and rescan to process end of comment
                         break outer;
+                        // FIXME - check that we switch out of JML mode - can we do without the reset?
                     }
                 } while (get() != ')');
                 accept(')') ;
@@ -541,14 +545,14 @@ public class JmlTokenizer extends JavadocTokenizer {
      */
     @Override
     protected void processLineTerminator(int pos, int endPos) {
+    	tk = null;
         if (jml) {
             if (jmlcommentstyle == CommentStyle.LINE) {
                 jml = false;
-                jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
-                jmlTokenClauseKind = Operators.endjmlcommentKind;
                 if (returnEndOfCommentTokens) {
-                    character = '@'; // Signals the end of comment to nextToken()
-                    reset(position()-1); // FIXME - not right for unicode
+                    tk = TokenKind.CUSTOM;
+                    jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
+                    jmlTokenClauseKind = Operators.endjmlcommentKind;
                 }
             } else {
                 // skip any whitespace followed by @ symbols
@@ -595,8 +599,10 @@ public class JmlTokenizer extends JavadocTokenizer {
      */
     @Override
     protected void scanOperator() {
+    	tk = null;
     	super.scanOperator();
-        if (jml && get() == '\\') {
+        if (!jml) return; // not in JML - so we scanned a regular Java operator
+        if (tk == null && get() == '\\') {
             // backslash identifiers get redirected here since a \ itself is an
             // error in pure Java - isSpecial does the trick
             int ep = position();
@@ -616,19 +622,21 @@ public class JmlTokenizer extends JavadocTokenizer {
                     tk = TokenKind.IDENTIFIER;
                     jmlTokenKind = null;
                     jmlTokenClauseKind = Extensions.allKinds.get(seq);
-
-                    //jmlError(ep, reader.bp, "jml.bad.backslash.token", seq);
-                    // token is set to ERROR
+                    if (jmlTokenClauseKind == null) {
+                    	jmlError(ep, position(), "jml.bad.backslash.token", seq); // sets ERROR token
+                    }
                 }
             } else {
-                Utils.instance(context).error(ep, position(), "jml.extraneous.backslash");
-                // token is set to ERROR
+                jmlError(ep, position(), "jml.extraneous.backslash"); // sets ERROR token
             }
             return;
         }
-        super.scanOperator();
-        if (!jml) return; // not in JML - so we scanned a regular Java operator
-        
+        if (tk == null) {
+            jmlError(position(), "jml.internal", "Internal preconditions violated when scanning for operators: " + get());
+            // sets ERROR token
+        	return;
+        }
+        // Now check if there is a longer JML operator
         TokenKind t = tk;
         if (tk == TokenKind.EQEQ) {
             if (accept('>')) {
@@ -637,6 +645,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                 jmlTokenClauseKind = Operators.impliesKind;
             }
         } else if (t == TokenKind.LTEQ) {
+            int k = position();
             if (accept('=')) {
                 // At the last = of <==
                 if (accept('>')) {
@@ -649,7 +658,6 @@ public class JmlTokenizer extends JavadocTokenizer {
                     jmlTokenClauseKind = Operators.reverseimpliesKind;
                 }
             } else if (accept('!')) {
-                int k = position(); // Last character of the !
                 if (accept('=')) {
                     if (accept('>')) {
                         tk = TokenKind.CUSTOM;
@@ -658,7 +666,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                     } else { // reset to the !
                         reset(k);
                     }
-                } else {
+                } else { // reset to the !
                     reset(k);
                 }
             }
@@ -717,21 +725,20 @@ public class JmlTokenizer extends JavadocTokenizer {
      */
     @Override
     protected void lexError(int pos, com.sun.tools.javac.util.JCDiagnostic.Error key) {
-    	String s = sb.toString();
-        if (s.length() == 2 && "illegal.dot".equals(key.code) && s.charAt(0) == '.' && s.charAt(1) == '.') {
-            tk = TokenKind.CUSTOM;
-            jmlTokenKind = JmlTokenKind.DOT_DOT;
-// FIXME            jmlTokenClauseKind = Operators.dotdotKind;
-        } else {
-            jmlError(pos, key.code, key.args);
-        }
+    	if (key != Errors.IllegalDot) {
+    		super.lexError(pos,  key);
+    	} else {
+    		tk = TokenKind.CUSTOM;
+    		jmlTokenKind = JmlTokenKind.DOT_DOT;
+    		jmlTokenClauseKind = Operators.dotdotKind;
+    	}
     }
 
 
     /** Records a lexical error (no valid token) at a single character position,
      * the resulting token is an ERROR token. */
     protected void jmlError(int pos, String key, Object... args) {
-        Utils.instance(context).error(pos,pos, key,args);
+        Utils.instance(context).error(pos, pos+1, key, args);
         tk = TokenKind.ERROR;
         jmlTokenKind = null;
         jmlTokenClauseKind = null;
@@ -742,10 +749,7 @@ public class JmlTokenizer extends JavadocTokenizer {
      * BUT NOT including endpos.
      */
     public void jmlError(int pos, int endpos, String key, Object... args) {
-        // FIXME - the endPos -1 is not unicode friendly - and actually we'd like to adjust the
-        // positions of pos and endpos to correspond to appropriate unicode boundaries, here and in
-        // the other jmlError method
-        Utils.instance(context).error(pos,endpos, key,args);
+        Utils.instance(context).error(pos, endpos, key, args);
         tk = TokenKind.ERROR;
         errPos(pos);
     }
@@ -754,20 +758,14 @@ public class JmlTokenizer extends JavadocTokenizer {
         return sb.toString();
     }
 
-    // Index of next character to be read
+    // Index of current character
     public int pos() {
         return position();
     }
     
+    /** Gets a segment of the input buffer as raw bytes (unescape or unicide interpretation) */
     public String getCharacters(int p, int e) {
     	return String.valueOf(getRawCharacters(p,e));
     }
     
-    
-//    public BasicComment<UnicodeReader> makeJavaComment(int pos, int endPos, CommentStyle style) {
-//        char[] buf = reader.getRawCharacters(pos, endPos);
-//        return new BasicComment<UnicodeReader>(new UnicodeReader(fac, buf, buf.length), style);
-//    }
-
-
 }
