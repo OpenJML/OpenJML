@@ -156,7 +156,6 @@ public class JmlResolve extends Resolve {
      */
     @Override
     public Symbol loadClass(Env<AttrContext> env, Name name, RecoveryLoadClass recoveryLoadClass) {
-        utils.note(true,"BINARY LOADING STARTING " + name );
         Symbol s = super.loadClass(env, name, recoveryLoadClass);
         // Here s can be a type or a package or not exist 
         // s may not exist because it is being tested whether such a type exists
@@ -171,17 +170,12 @@ public class JmlResolve extends Resolve {
             return s; // loadClass can be called for a package
         }
 
-        JmlMemberEnter memberEnter = JmlMemberEnter.instance(context);
-//        boolean completion = memberEnter.completionEnabled;
-//        memberEnter.completionEnabled = true;
-        // FIXME - explain why we need completion enabled
-
         try {
             JmlSpecs specs = JmlSpecs.instance(context);
             JmlSpecs.TypeSpecs tsp = specs.get((ClassSymbol)s);
             if (tsp == null) {
+                utils.note(false,"Loaded class " + name + ", about to read specs");
 
-//                utils.note(true, "   LOADING SPECS FOR (BINARY) CLASS " + name);
                 // Cannot set jmlcompiler in the constructor because we get a circular initialization problem.
                 if (jmlcompiler == null) jmlcompiler = JmlCompiler.instance(context);
                 jmlcompiler.loadSpecsForBinary(env,(ClassSymbol)s);
@@ -190,7 +184,7 @@ public class JmlResolve extends Resolve {
 //                if (specs.get((ClassSymbol)s) == null) 
 //                    log.getWriter(WriterKind.NOTICE).println("(Internal error) POSTCONDITION PROBLEM - no typeSpecs stored for " + s);
             } else {
-                if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
+                utils.note(true,"   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
             }
             return s;
         } finally {

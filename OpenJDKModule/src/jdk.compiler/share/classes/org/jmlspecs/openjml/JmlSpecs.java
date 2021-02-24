@@ -922,7 +922,7 @@ public class JmlSpecs {
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
         spec.csymbol = type;
         specsmap.put(type,spec);
-        utils.note(true,"Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
+        utils.note(false,"Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
     public void removeSpecs(ClassSymbol type) {
@@ -935,7 +935,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec) {
-        utils.note(true, "            Saving method specs for " + m.enclClass() + " " + m);
+        utils.note(false, "            Saving method specs for " + m.enclClass() + " " + m);
         getSpecs(m.enclClass()).methods.put(m,spec);
     }
     
@@ -958,7 +958,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
-    	utils.note(true,"            Saving field specs for " + m.enclClass() + " " + m);
+    	utils.note(false,"            Saving field specs for " + m.enclClass() + " " + m);
         specsmap.get(m.enclClass()).fields.put(m,spec);
     }
     

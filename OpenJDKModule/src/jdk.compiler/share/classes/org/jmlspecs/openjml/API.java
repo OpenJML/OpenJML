@@ -332,7 +332,6 @@ public class API implements IAPI {
     public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(/*@non_null*/ File... files) {
         JmlCompiler c = JmlCompiler.instance(context());
         Log log = Log.instance(context());
-        c.inSequence = false;
         Iterable<? extends JavaFileObject> fobjects = ((JavacFileManager)context().get(JavaFileManager.class)).getJavaFileObjects(files);
         ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
         for (JavaFileObject fileObject : fobjects) {
@@ -363,7 +362,6 @@ public class API implements IAPI {
     @Override
     public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(/*@non_null*/ JavaFileObject... inputs) {
         JmlCompiler c = JmlCompiler.instance(context());
-        c.inSequence = false;
         ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
         for (JavaFileObject fileObject : inputs)
             trees.add((JmlCompilationUnit)c.parse(fileObject));
@@ -376,7 +374,6 @@ public class API implements IAPI {
     @Override
     public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(/*@non_null*/ Collection<? extends JavaFileObject> inputs) {
         JmlCompiler c = JmlCompiler.instance(context());
-        c.inSequence = false;
         ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
         for (JavaFileObject fileObject : inputs)
             trees.add((JmlCompilationUnit)c.parse(fileObject));
@@ -398,9 +395,7 @@ public class API implements IAPI {
     @Override
     public /*@non_null*/ JmlCompilationUnit parseSingleFile(/*@non_null*/ JavaFileObject jfo) {
         JmlCompiler c = JmlCompiler.instance(context());
-        c.inSequence = true; // Don't look for specs
         JmlCompilationUnit specscu = (JmlCompilationUnit)c.parse(jfo);
-        c.inSequence = false;
         return specscu;
     }
 
@@ -412,7 +407,6 @@ public class API implements IAPI {
         if (name == null || name.length() == 0) throw new IllegalArgumentException();
         JmlCompiler c = JmlCompiler.instance(context());
         JavaFileObject file = makeJFOfromString(name,content);
-        c.inSequence = true;  // true so that no searching for spec files happens
         Iterable<? extends JavaFileObject> fobjects = List.<JavaFileObject>of(file);
         JmlCompilationUnit jcu = ((JmlCompilationUnit)c.parse(fobjects.iterator().next()));
         if (name.endsWith(".java")) jcu.specsCompilationUnit = jcu;

@@ -119,107 +119,35 @@ public class JmlCompiler extends JavaCompiler {
     }
     
     public List<JCCompilationUnit> enterTrees(List<JCCompilationUnit> roots) {
+    	// init must be called before the trees are entered because entering trees invokes
+    	// type resolution, which requires the init() call
+    	// (If we do this initialization during tool creation, we get circular instantiation)
     	init();
     	return super.enterTrees(roots);
     }
     
-    /** A flag that controls whether to get specs during a parse or not (if false 
-     * then do, if true then do not).  This should be left in a false state
-     * after being used to preclude parsing specs.
-     */
-    public boolean inSequence = false;
+//    /** A flag that controls whether to get specs during a parse or not (if false 
+//     * then do, if true then do not).  This should be left in a false state
+//     * after being used to preclude parsing specs.
+//     */
+//    public boolean inSequence = false;
     
-    /** This method is overridden in order to parse specification files along 
-     * with parsing a Java file.  Note that it is called directly from 
-     * JavaCompiler.complete and JavaCompiler.parse to do the actual parsing.
-     * Thus when parsing an individual file (such as a spec file) it is also 
-     * called (through parse).  Consequently we have to do this little trick 
-     * with the "inSequence" field to avoid trying to parse the specifications
-     * of specification files. 
-     * <P>
-     * <UL>
-     * <LI>If inSequence is false, then this method parses the given content and associated specs.
-     * The JmlCompilationUnit for the specs is assigned to the specsCompilationUnit field of the
-     * JmlCompilationUnit for the .java file.
-     * <LI>If inSequence is true, then this method parses just the given content.
-     * <LI>In either case a JmlCompilationUnit is returned.
-     * However, see the FIXME below regarding adding the .java file into an empty specs list.
-     * </UL>
-     * <p>
-     * This method is eventually called for (1) source files specified on the command-line,
-     * through Enter.main and (2) classes referenced in other files that need to be compiled
-     */
-    @Override
-    public JCCompilationUnit parse(JavaFileObject fileobject, CharSequence content) {
-        // TODO: Use a TaskEvent and a TaskListener here?
-        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"parsing " + fileobject.toUri() );
-        JCCompilationUnit cu = super.parse(fileobject,content);
-        if (inSequence) {
-            return cu;
-        }
-        if (cu instanceof JmlCompilationUnit) {
-            JmlCompilationUnit jmlcu = (JmlCompilationUnit)cu;
-            if (fileobject.getKind() == JavaFileObject.Kind.SOURCE) { // A .java file
-                jmlcu.mode = JmlCompilationUnit.JAVA_SOURCE_PARTIAL;
-                JavaFileObject specsFile = jmlcu.getSourceFile(); // FIXME JmlSpecs.instance(context).findSpecs(jmlcu,true);
-                if (specsFile == null) {
-                    jmlcu.specsCompilationUnit = null;
-                } else if (Utils.ifSourcesEqual(specsFile, jmlcu.getSourceFile())) {
-                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("The java file is its own specs for " + specsFile);
-                    jmlcu.specsCompilationUnit = jmlcu;
-                } else {
-                    jmlcu.specsCompilationUnit = parseSingleFile(specsFile);
-                }
-
-                if (jmlcu.specsCompilationUnit == null) {
-                    // If there are no specs, that means that not even the .java file is
-                    // on the specification path.  That may well be something to warn
-                    // about.  For now (and for the sake of the tests), we will be
-                    // helpful and add the .java file to the specs sequence despite it
-                    // not being on the specification path.
-                    // TODO log.warning("jml.no.specs",filename.getName());
-                    jmlcu.specsCompilationUnit = jmlcu;
-                } else {
-                    JmlCompilationUnit jcu = jmlcu.specsCompilationUnit;
-                    if (jcu != cu) {
-                        jcu.mode = JmlCompilationUnit.SPEC_FOR_SOURCE;
-                        // Add import statements from specs file into the .java file
-                        // FIXME - This is not the best solution - since it adds imports to the Java compilation unit, which may make it invalid
-                        Map<String,JCImport> map = new HashMap<String,JCImport>();
-                        ListBuffer<JCTree> extras = new ListBuffer<JCTree>();
-                        for (JCImport imp: jmlcu.getImports()) map.put(imp.qualid.toString(),imp); // Imports from the java file
-                        for (JCImport def: jcu.getImports()) {
-                            JCImport imp = map.get(def.qualid.toString());
-                            if (imp == null) extras.add(def); // 'extras' holds imports from specs file that were not in the java file
-                        }
-                        cu.defs = cu.defs.appendList(extras);
-                    }
-                }
-                
-                // FIXME - record dependencies
-            } else {
-                // Parsing a specification file
-                jmlcu.mode = JmlCompilationUnit.SPEC_FOR_SOURCE;
-                JavaFileObject javaFile = JmlSpecs.instance(context).findSpecs(jmlcu,false); // look for corresponding java file
-                JmlCompilationUnit javacu = parseSingleFile(javaFile);
-                if (javacu != null) {
-                    javacu.specsCompilationUnit = jmlcu; 
-                    javacu.mode = JmlCompilationUnit.JAVA_SOURCE_PARTIAL;
-                    cu = javacu;
-                } else {
-                    log.error("jml.no.java.file",jmlcu.sourcefile);
-                    jmlcu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
-                    // Don't continue because this error causes too many problems, includincg crashing
-                    JmlOption.setOption(context,JmlOption.STOPIFERRORS, true);
-                }
-            }
-        } else {
-            log.error("jml.internal",
-                    "JmlCompiler.parse expects to receive objects of type JmlCompilationUnit, but it found a " 
-                            + cu.getClass() + " instead, for source " + cu.getSourceFile().toUri().getPath());
-        }
-        return cu;
-    }
+//    /** 
+//     * This method is eventually called for (1) source files specified on the command-line,
+//     * through Enter.main and (2) classes referenced in other files that need to be compiled
+//     */
+//    @Override
+//    public JmlCompilationUnit parse(JavaFileObject fileobject, CharSequence content) {
+//        if (fileobject == null) return null;
+//        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"parsing " + fileobject.toUri() );
+//        
+//        JCCompilationUnit cu = super.parse(fileobject,content);
+//        if (cu instanceof JmlCompilationUnit) return (JmlCompilationUnit)cu;
+//        log.error("jml.internal",
+//        		"JmlCompiler.parse expects to receive objects of type JmlCompilationUnit, but it found a " 
+//        				+ cu.getClass() + " instead, for source " + cu.getSourceFile().toUri().getPath());
+//        return null;
+//    }
     
     
     /** Parses the specs for a class - used when we need the specs corresponding to a binary file;
@@ -233,63 +161,52 @@ public class JmlCompiler extends JavaCompiler {
     public JmlCompilationUnit parseSpecs(Symbol.TypeSymbol typeSymbol) {
         String typeName = typeSymbol.flatName().toString();
         JavaFileObject f = JmlSpecs.instance(context).findAnySpecFile(typeName);
-        /*@Nullable*/ JmlCompilationUnit speccu = parseSingleFile(f);
-        if (speccu != null) {
-            Symbol.PackageSymbol p = typeSymbol.packge();
-            String specpid = speccu.pid == null ? "unnamed package" : speccu.pid.getPackageName().toString();
-            if (!p.toString().equals(specpid)) {
-                utils.error(speccu.sourcefile,speccu.pid == null ? 1 : speccu.pid.pos,
-                        "jml.mismatched.package",
-                        specpid,
-                        p.toString());
-                speccu = null;
-            } else {
-                speccu.packge = p;
-            }
-         }
+        if (f == null) return null;
+        /*@Nullable*/ JmlCompilationUnit speccu = (JmlCompilationUnit)parse(f);
+        if (speccu == null) return null;
+        Symbol.PackageSymbol p = typeSymbol.packge();
+        String specpid = speccu.pid == null ? "unnamed package" : speccu.pid.getPackageName().toString();
+        if (!p.toString().equals(specpid)) {
+        	utils.error(speccu.sourcefile,speccu.pid == null ? 1 : speccu.pid.pos,
+        			"jml.mismatched.package",
+        			specpid,
+        			p.toString());
+        	speccu = null;
+        } else {
+        	speccu.packge = p;
+        }
         return speccu;
     }
     
-    /** Parses the given file as a JmlCompilationUnit (either Java source or JML specifications);
-     * does not seek any specification file. Retruns a best guess compilation unit if there are parse errors.
-     * @param f the file object to parse, if any
-     * @param javaCU the compilation unit that provoked this parsing, if any
-     * @return the possibly empty list of parsed compilation units, as ASTs; possibly returns null
-     */
-    //@ nullable
-    public JmlCompilationUnit parseSingleFile(/*@ nullable*/JavaFileObject f) {
-        inSequence = true;
-        try {
-            if (f != null) {
-                JCCompilationUnit result = parse(f);
-                if (result instanceof JmlCompilationUnit) {
-                    return (JmlCompilationUnit)result;
-                } else {
-                    log.error("jml.internal","The result of a parse is a JCCompilationUnit instead of a JmlCompilationUnit");
-                    return null;
-                }
-            } else {
-                return null;
-            }
-        } finally {
-            inSequence = false;
-        }
-    }
+//    /** Parses the given file as a JmlCompilationUnit (either Java source or JML specifications);
+//     * does not seek any specification file. Retruns a best guess compilation unit if there are parse errors.
+//     * @param f the file object to parse, if any
+//     * @param javaCU the compilation unit that provoked this parsing, if any
+//     * @return the possibly empty list of parsed compilation units, as ASTs; possibly returns null
+//     */
+//    //@ nullable
+//    public JmlCompilationUnit parseSingleFile(/*@ nullable*/JavaFileObject f) {
+//            if (f != null) {
+//                return (JmlCompilationUnit)parse(f);
+//            } else {
+//                return null;
+//            }
+//    }
     
-    /** Parses the list of file objects (using parse(fileobject)), returning a list of JmlCompilationUnits;
-     * parsing a source file will cause a search for and parsing of the specification file */
-    @Override
-    public List<JCCompilationUnit> parseFiles(Iterable<JavaFileObject> fileObjects) {
-        List<JCCompilationUnit> list = super.parseFiles(fileObjects);
-        for (JCCompilationUnit cu: list) {
-            JmlCompilationUnit jcu = (JmlCompilationUnit)cu;
-            // Note - can certainly have modes 2 and 6 at this point.
-            // FIXME - the setting and use of these modes needs review
-            if (jcu.mode != 2 && jcu.mode != 6) 
-                jcu.mode = JmlCompilationUnit.JAVA_SOURCE_FULL;  // FIXME - does this matter? is it right? there could be jml files on the command line
-        }
-        return list;
-    }
+//    /** Parses the list of file objects (using parse(fileobject)), returning a list of JmlCompilationUnits;
+//     * parsing a source file will cause a search for and parsing of the specification file */
+//    @Override
+//    public List<JCCompilationUnit> parseFiles(Iterable<JavaFileObject> fileObjects) {
+//        List<JCCompilationUnit> list = super.parseFiles(fileObjects);
+//        for (JCCompilationUnit cu: list) {
+//            JmlCompilationUnit jcu = (JmlCompilationUnit)cu;
+//            // Note - can certainly have modes 2 and 6 at this point.
+//            // FIXME - the setting and use of these modes needs review
+//            if (jcu.mode != 2 && jcu.mode != 6) 
+//                jcu.mode = JmlCompilationUnit.JAVA_SOURCE_FULL;  // FIXME - does this matter? is it right? there could be jml files on the command line
+//        }
+//        return list;
+//    }
     
     private int nestingLevel = 0;
 
@@ -505,11 +422,8 @@ public class JmlCompiler extends JavaCompiler {
     @Override
     public Queue<Env<AttrContext>> attribute(Queue<Env<AttrContext>> envs) {
         ListBuffer<Env<AttrContext>> results = new ListBuffer<>();
-        while (!envs.isEmpty()) {
-            Env<AttrContext> env = attribute(envs.remove());
-                
-            if (env != null) results.append(env);
-        }
+        while (!envs.isEmpty())
+            results.append(attribute(envs.remove()));
         ((JmlAttr)attr).completeTodo();
         
 //        // TODO: Review the following
@@ -594,7 +508,7 @@ public class JmlCompiler extends JavaCompiler {
             
             // The class named here must match that in org.jmlspecs.utils.Utils.isRACCompiled
             Name n = names.fromString("org.jmlspecs.annotation.RACCompiled");
-            ClassSymbol sym = ClassReader.instance(context).enterClass(n);
+            ClassSymbol sym = ClassReader.instance(context).enterClass(n); // FIXME use modToAnnotationSymbol
             Attribute.Compound ac = new Attribute.Compound(sym.type, List.<Pair<Symbol.MethodSymbol,Attribute>>nil());
             that.sym.appendAttributes(List.<Attribute.Compound>of(ac));
         }
@@ -687,8 +601,9 @@ public class JmlCompiler extends JavaCompiler {
      */ // FIXME - check that we always get classes, not CUs and adjust the logic accordingly
     protected void esc(Env<AttrContext> env) {
         // Only run ESC on source files
-        if (((JmlCompilationUnit)env.toplevel).mode != JmlCompilationUnit.JAVA_SOURCE_FULL) return;
-
+//        if (((JmlCompilationUnit)env.toplevel).mode != JmlCompilationUnit.JAVA_SOURCE_FULL) return;
+    	if (env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) return;
+    	
         JmlEsc esc = JmlEsc.instance(context); // FIXME - get this once at initialization?
         esc.check(env.tree);
 
