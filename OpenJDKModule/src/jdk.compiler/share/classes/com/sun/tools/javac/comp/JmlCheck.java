@@ -118,7 +118,7 @@ public class JmlCheck extends Check {
         if (staticOldEnv) { k |= Flags.STATIC; }
         if (tree instanceof JCTree.JCVariableDecl) {
             JCTree.JCVariableDecl d =(JCTree.JCVariableDecl) tree;
-            boolean isInstance = JmlAttr.instance(context).findMod(d.mods, Modifiers.INSTANCE) != null;
+            boolean isInstance = JmlAttr.instance(context).isInstance(d.mods);
             if (isInstance) k &= ~Flags.STATIC;
         }
         return k;

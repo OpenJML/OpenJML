@@ -140,13 +140,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         super(context);
         this.context = context;
         this.utils = Utils.instance(context);
-//        this.resolve = JmlResolve.instance(context);
+        this.resolve = JmlResolve.instance(context);
         this.enter = (JmlEnter)JmlEnter.instance(context);
         this.names = Names.instance(context);
         this.org_jmlspecs_lang = names.fromString(Strings.jmlSpecsPackage);
         this.jmlF = JmlTree.Maker.instance(context);
         this.syms = Symtab.instance(context);
-//        this.specs = JmlSpecs.instance(context);
+        this.specs = JmlSpecs.instance(context);
         this.modelName = names.fromString(Modifiers.MODEL.keyword);
         this.log = Log.instance(context);
     }
@@ -1937,26 +1937,27 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     @Override
     public boolean visitVarDefIsStatic(JCVariableDecl tree, Env<AttrContext> env) {
         boolean b = super.visitVarDefIsStatic(tree,env);
-//        if (!isInJml && !utils.isJML(tree.mods)) return b; // FIXME - why isn't isInJml enough here - we need the second conjunct for ghost declarations in an interface
-//        if ((tree.mods.flags & STATIC) != 0) return true;
-//        
-//        // In the case where we are in an interface but within a JML expression
-//        // we can use type variables.
-//        return false; // FIXME - improve this
+        if (!isInJml && !utils.isJML(tree.mods)) return b; // FIXME - why isn't isInJml enough here - we need the second conjunct for ghost declarations in an interface
+        if ((env.info.scope.owner.flags() & INTERFACE) != 0 &&
+        		utils.isJML(tree.mods) && ((JmlAttr)attr).isInstance(tree.mods)) return false;
+        if ((tree.mods.flags & STATIC) != 0) return true;
         return b;
     }
 
 
     @Override
     public void visitVarDef(JCVariableDecl tree) {
-//        long flags = tree.mods.flags;
-//        boolean wasFinal = (flags&Flags.FINAL) != 0;
-//        boolean wasStatic = (flags&Flags.STATIC) != 0;
-//        if ((env.enclClass.mods.flags & INTERFACE) != 0  && utils.isJML(tree.mods)) {
-//            // FIXME - but the @Instance declaration might be in the .jml file
-//            boolean isInstance = JmlAttr.instance(context).findMod(tree.mods, Modifiers.INSTANCE) != null;
-//            if (isInstance && !wasStatic) tree.mods.flags &= ~Flags.STATIC;
-//        }
+        long flags = tree.mods.flags;
+        boolean wasFinal = (flags&Flags.FINAL) != 0;
+        boolean wasStatic = (flags&Flags.STATIC) != 0;
+        if ((env.enclClass.mods.flags & INTERFACE) != 0  && utils.isJML(tree.mods)) {
+            // FIXME - but the @Instance declaration might be in the .jml file
+            boolean isInstance = JmlAttr.instance(context).isInstance(tree.mods);
+            if (isInstance && !wasStatic) {
+            	tree.mods.flags &= ~Flags.STATIC;
+            	if (tree.sym != null) tree.sym.flags_field = tree.sym.flags() & ~Flags.STATIC;
+            }
+        }
 //        boolean prev = resolve.allowJML();
 //        boolean isReplacementType = ((JmlVariableDecl)tree).jmltype;
 //        
@@ -1984,9 +1985,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            env.enclClass.defs = List.filter(env.enclClass.defs,tree);
 //            return;
 //        }
-//        Symbol sym = tree.sym;
-//        if (specs.getSpecs(tree.sym) != null) utils.warning("jml.internal","Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
-//        JmlVariableDecl jtree = (JmlVariableDecl)tree;
+        Symbol sym = tree.sym;
+        if (specs.getSpecs(tree.sym) != null) utils.warning("jml.internal","Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
+        JmlVariableDecl jtree = (JmlVariableDecl)tree;
 //        
 //        // FIXME - the following duplicates setting the specs with matchAndSetFieldSpecs - but if there is a source file, this comes first
 //        JmlSpecs.FieldSpecs fspecs = jtree.fieldSpecs;
@@ -1998,10 +1999,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            // In the case of a JML ghost variable that is a field of an interface, the default is static and not final
 //            // (unless explicitly specified final)
 //            // FIXME _ the following is not robust because annotations are not attributed yet - test these as well
-//            boolean isInstance = utils.findMod(tree.mods,Modifiers.INSTANCE) != null;
+//            boolean isInstance = ((JmlAttr)attr).isInstance(tree.mods);
 //            //boolean isGhost = JmlAttr.instance(context).findMod(tree.mods,JmlToken.GHOST) != null;
 //            //boolean isModel = JmlAttr.instance(context).findMod(tree.mods,JmlToken.MODEL) != null;
-//            if (isInstance && !wasStatic) tree.sym.flags_field &= ~Flags.STATIC;  // FIXME - this duplicates JmlCheck
+//            if (isInstance) tree.sym.flags_field &= ~Flags.STATIC;  // FIXME - this duplicates JmlCheck
 //            if (!wasFinal) sym.flags_field &= ~FINAL; 
 //        }
     }

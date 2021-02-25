@@ -256,6 +256,11 @@ public class MemberEnter extends JCTree.Visitor {
         return ((tree.mods.flags & STATIC) != 0 ||
                 ((env.info.scope.owner.flags() & INTERFACE) != 0));
     }
+    
+    protected static boolean isStatic(Env<AttrContext> env) {
+        return env.outer != null && env.info.staticLevel > env.outer.info.staticLevel;
+    }
+
 
     public void visitVarDef(JCVariableDecl tree) {
         Env<AttrContext> localEnv = env;

@@ -205,6 +205,15 @@ public class JmlParser extends JavacParser {
     			// compilation unit in which the declaration sits.
     			// This code sets that field in after the whole tree is parsed.
     			JmlCompilationUnit jmlcu = (JmlCompilationUnit) u;
+    			JCExpression p = utils.nametree(-1, -1, "org.jmlspecs.lang.*", this);
+    			JmlImport m = jmlF.Import(p,  false);
+    			m.isModel = true;
+    			if (jmlcu.defs.head instanceof JCPackageDecl) {
+    				JCTree t = jmlcu.defs.head;
+    				jmlcu.defs = jmlcu.defs.tail.prepend(m).prepend(t);
+    			} else {
+    				jmlcu.defs = jmlcu.defs.prepend(m);
+    			}
     			setTopLevel(jmlcu,jmlcu.defs);
     			jmlcu.sourceCU = jmlcu;
     		}
@@ -2535,7 +2544,7 @@ public class JmlParser extends JavacParser {
             JCExpression od2)
     {
         if (opToken.kind == CUSTOM) { // <:
-            IJmlClauseKind ck = jmlTokenClauseKind(token);
+            IJmlClauseKind ck = jmlTokenClauseKind(opToken);
             JCExpression e = jmlF.at(pos).JmlBinary(ck, od1, od2);
             storeEnd(e, getEndPos(od2));
             return e;
