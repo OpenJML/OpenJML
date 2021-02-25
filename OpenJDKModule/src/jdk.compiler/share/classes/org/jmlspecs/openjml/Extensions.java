@@ -329,12 +329,12 @@ public class Extensions {
             for (Class<?> cl : extensions) {
                 try {
                     registerClass(context,cl);
-                    Utils.instance(context).note(true,"Registered extensions using technique " + methodThatWorked);
                     classes.add(cl);
                 } catch (Exception e) {
                 	Utils.instance(context).note(true,"Failed to register " + cl.getName());
                 }
             }
+            methodThatWorked = 4;
 
         } else {
         
@@ -344,7 +344,6 @@ public class Extensions {
                     Class<?> c = Class.forName(fullname);
                     if (Modifier.isAbstract(c.getModifiers())) continue;
                     registerClass(context,c);
-                    Utils.instance(context).note(true,"Registered extensions using technique " + methodThatWorked);
                     classes.add(c);
                 } catch (Exception e) {
                     // Just skip if there is any exception, such as a
@@ -352,7 +351,9 @@ public class Extensions {
                 	Utils.instance(context).note(true,"Failed to register " + fullname);
                 }
             }
+            methodThatWorked = 5;
         }
+        Utils.instance(context).note(true,"Registered extensions using technique " + methodThatWorked);
         return classes;
     }
     

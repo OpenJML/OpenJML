@@ -284,6 +284,26 @@ public class JmlTree {
             tree.pos = pos;
             return tree;
         }
+        
+        @Override
+        public JCModifiers Modifiers(long flags, List<JCAnnotation> annotations) {
+        	return Modifiers(flags, annotations, new java.util.LinkedList<JmlToken>());
+        }
+ 
+        @Override
+        public JCModifiers Modifiers(JCModifiers mods, long flags, List<JCAnnotation> annotations) {
+        	return Modifiers(flags, annotations, mods == null ? new java.util.LinkedList<JmlToken>() : ((JmlModifiers)mods).jmlmods);
+        }
+        
+        public JmlModifiers Modifiers(long flags, List<JCAnnotation> annotations, java.util.List<JmlToken> jmlmods) {
+        	JmlModifiers m = new JmlModifiers(flags, annotations, jmlmods);
+        	m.pos = pos;
+        	return m;
+        }
+
+        public JmlModifiers Modifiers(long flags, java.util.List<JmlToken> jmlmods) {
+        	return Modifiers(flags, List.<JCAnnotation>nil(), jmlmods);
+        }
        
         /** Convenience method to create a JCIdent from a string
          * (use a Name if you have one, since this method creates a Name).
@@ -962,43 +982,10 @@ public class JmlTree {
         
         public Env<AttrContext> topLevelEnv;
         
-        /** An unspecified value. */
-        public static final int UNKNOWN = 0; 
+        public boolean isSpecs() { return sourceCU != this; }
+        public boolean forBinary() { return sourceCU != null; }
+        public JmlCompilationUnit sourceCU = null; // Set to self if a source file
         
-        // FIXME - the whole use of this mode needs reviewing
-        
-        // Properties are encoded as bits:
-        // Note that a specification file can be .java or not .java
-        //  1-bit  this is a file that can contain source code (i.e. has a .java suffix)
-        //  2-bit  this is a specification file
-        //  4-bit  the implementation is in a binary file, not a source file
-        //  8-bit  full typechecking is desired - FIXME - do away with this I think
-        
-        /** Process the java source fully, including method bodies and field initializers. */
-        public static final int JAVA_SOURCE_FULL = 1; 
-        
-        /** Process the java source for signatures and specifications only. */
-        public static final int JAVA_SOURCE_PARTIAL = 9;
-        
-        /** Process the java source for signatures and specifications only. */
-        public static final int JAVA_AS_SPEC_FOR_SOURCE = 3;
-        
-        /** Process the java source for signatures and specifications only. */
-        public static final int JAVA_AS_SPEC_FOR_BINARY = 7;
-        
-        /** This is a specification file for Java source */
-        public static final int SPEC_FOR_SOURCE = 2;
-        
-        /** This is a specification file, belonging to a Java class file (no java source) */
-        public static final int SPEC_FOR_BINARY = 6;
-
-        
-        static public boolean isForSource(int mode) { return (mode & 4) == 0; }
-        
-        static public boolean isForBinary(int mode) { return (mode & 4) != 0; }
-        
-//        static public boolean isFull(int mode) { return (mode & 8) == 0; }
-
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlCompilationUnit(List<JCTree> defs,
                 JavaFileObject sourcefile,
@@ -1075,7 +1062,57 @@ public class JmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
+    }
+    
+    public static class JmlModifiers extends JCModifiers {
+    	
+    	public java.util.List<JmlToken> jmlmods = new java.util.LinkedList<>();
+    	
+        public JmlModifiers(long flags, List<JCAnnotation> annotations, java.util.List<JmlToken> jmlmods) {
+    		super(flags, annotations);
+    		this.jmlmods.addAll(jmlmods);
+    	}
+    	
+    	public void add(JmlToken k) {
+    		this.jmlmods.add(k);
+    	}
+    	
+    	public boolean has(ModifierKind k) {
+    		for (var kk: jmlmods) {
+    			if (kk.jmlclausekind == k) return true;
+    		}
+    		return false;
+    	}
+    	
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitModifiers(this); 
+            } else {
+                // unexpectedVisitor(this,v);
+                super.accept(v);
+            }
+        }
 
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitModifiers(this, d);
+            } else {
+                // unexpectedVisitor(this,v);
+                return super.accept(v,d);
+            }
+        }
+        
+        @Override
+        public String toString() {
+        	StringBuilder sb = new StringBuilder();
+    		for (var kk: jmlmods) {
+    			sb.append(kk.toString());
+    			sb.append(" ");
+    		}
+            return sb.toString();
+        }    
     }
     
     /** This class represents model program choose and choose_if statements. */

@@ -652,9 +652,9 @@ public class JavaCompiler {
             taskListener.finished(e);
         }
         
-        if (org.jmlspecs.openjml.Main.useJML) {
-        	System.out.println(org.jmlspecs.openjml.JmlPretty.write(tree));
-        }
+//        if (org.jmlspecs.openjml.Main.useJML) {
+//        	System.out.println(org.jmlspecs.openjml.JmlPretty.write(tree));
+//        }
 
         return tree;
     }

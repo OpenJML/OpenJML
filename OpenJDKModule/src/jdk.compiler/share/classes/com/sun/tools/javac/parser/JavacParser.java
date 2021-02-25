@@ -29,6 +29,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.jmlspecs.openjml.JmlPretty;
+
 import com.sun.source.tree.CaseTree;
 import com.sun.source.tree.MemberReferenceTree.ReferenceMode;
 import com.sun.source.tree.ModuleTree.ModuleKind;
@@ -3208,7 +3210,7 @@ public class JavacParser implements Parser {
         if ((flags & (Flags.ModifierFlags | Flags.ANNOTATION)) == 0 && annotations.isEmpty())
             pos = Position.NOPOS;
 
-        JCModifiers mods = F.at(pos).Modifiers(flags, annotations.toList());
+        JCModifiers mods = F.at(pos).Modifiers(partial, flags, annotations.toList());
         if (pos != Position.NOPOS)
             storeEnd(mods, S.prevToken().endPos);
         return mods;
@@ -3592,8 +3594,12 @@ public class JavacParser implements Parser {
                 if (token.kind == EOF)
                     break;
             }
-            JCTree t = checkForJmlDeclaration(mods, checkForImports); // OPENJML - added
-            if (t != null) { defs.append(t); seenImport |= t instanceof JCImport; continue; } // OPENJML - added
+            JCTree t;
+            do {
+            	t = checkForJmlDeclaration(mods, checkForImports); // OPENJML - added
+            	if (t != null) { defs.append(t); seenImport |= (t instanceof JCImport); mods = null; } // OPENJML - added
+            } while (t != null); // OPENJML - added
+
             if (checkForImports && mods == null && token.kind == IMPORT) {
                 seenImport = true;
                 defs.append(importDeclaration());
@@ -3625,7 +3631,7 @@ public class JavacParser implements Parser {
                 JCTree def = typeDeclaration(mods, docComment);
                 if (def instanceof JCExpressionStatement)
                     def = ((JCExpressionStatement)def).expr;
-                defs.append(def);
+                defs.append(def); 
                 if (def instanceof JCClassDecl)
                     checkForImports = false;
                 mods = null;
@@ -4144,7 +4150,6 @@ public class JavacParser implements Parser {
             }
         }
         accept(RBRACE);
-        //if (org.jmlspecs.openjml.Main.useJML) new RuntimeException().printStackTrace(System.out);
         return defs.toList();
     }
 

@@ -170,15 +170,15 @@ public class JmlParser extends JavacParser {
     }
     
     protected JCTree checkForJmlDeclaration(JCModifiers mods, boolean checkForImports) {
-    	if (S.jml() && peekToken(TokenKind.IMPORT)) {
-        	if (checkForImports) {
-        		pushBackModifiers = mods;
-            	var t =  importDeclaration();
-        		return t;
-        	} else {
-        		utils.error(pos(),  "jml.message", "Misplaced import");
-        		skipThroughSemi();
-        	}
+    	if (S.jml() && checkForImports) {
+    		mods = modifiersOpt(mods);
+    		if (token.kind == TokenKind.IMPORT) {
+    			pushBackModifiers = mods;
+    			var t =  importDeclaration();
+    			return t;
+    		} else {
+    			pushBackModifiers = mods;
+    		}
     	}
     	return null;
     }
@@ -191,23 +191,24 @@ public class JmlParser extends JavacParser {
     @Override
     public JCTree.JCCompilationUnit parseCompilationUnit() {
     	try {
-        JCTree.JCCompilationUnit u = super.parseCompilationUnit();
-        if (!(u instanceof JmlCompilationUnit)) {
-            utils.error(
-                "jml.internal",
-                "JmlParser.compilationUnit expects to receive objects of type JmlCompilationUnit, but it found a "
-                            + u.getClass()
-                            + " instead, for source "
-                            + u.getSourceFile().toUri().getPath());
-        } else {
-            // JML class-like declarations at all levels of nesting
-            // include a field that holds the top-level
-            // compilation unit in which the declaration sits.
-            // This code sets that field in after the whole tree is parsed.
-            JmlCompilationUnit jmlcu = (JmlCompilationUnit) u;
-            setTopLevel(jmlcu,jmlcu.defs);
-        }
-        return u;
+    		JCTree.JCCompilationUnit u = super.parseCompilationUnit();
+    		if (!(u instanceof JmlCompilationUnit)) {
+    			utils.error(
+    					"jml.internal",
+    					"JmlParser.compilationUnit expects to receive objects of type JmlCompilationUnit, but it found a "
+    							+ u.getClass()
+    							+ " instead, for source "
+    							+ u.getSourceFile().toUri().getPath());
+    		} else {
+    			// JML class-like declarations at all levels of nesting
+    			// include a field that holds the top-level
+    			// compilation unit in which the declaration sits.
+    			// This code sets that field in after the whole tree is parsed.
+    			JmlCompilationUnit jmlcu = (JmlCompilationUnit) u;
+    			setTopLevel(jmlcu,jmlcu.defs);
+    			jmlcu.sourceCU = jmlcu;
+    		}
+    		return u;
     	} catch (Exception e) {
            	var S = getScanner();
         	System.out.println(((JmlTokenizer)S.tokenizer).getCharacters(S.tokenizer.position()-10, S.tokenizer.position()+50));
@@ -241,7 +242,11 @@ public class JmlParser extends JavacParser {
         JCModifiers mods = modifiersOpt();
         for (JCAnnotation a: mods.annotations) {
             if (a.annotationType.toString().equals("org.jmlspecs.annotation.Model")) { modelImport = true; }
-            else utils.error(a.pos, "jml.no.mods.on.import");
+            else utils.error(a.pos, "jml.no.mods.on.import"); // FIXME - source?
+        }
+        for (var t: ((JmlModifiers)mods).jmlmods) {
+            if (t.jmlclausekind == Modifiers.MODEL) modelImport = true; 
+            else utils.error(t.pos, t.endPos, "jml.no.mods.on.import"); // FIXME t.source
         }
         boolean importIsInJml = S.jml();
         if (!modelImport && importIsInJml) {
@@ -253,7 +258,7 @@ public class JmlParser extends JavacParser {
         if (modelImport && !importIsInJml) {
             utils.error(p, t.getEndPosition(endPosTable), "jml.illformed.model.import");
         }
-        while (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) {
+        while (jmlTokenClauseKind() == Operators.endjmlcommentKind) {
             nextToken();
         }
         return t;
@@ -329,7 +334,8 @@ public class JmlParser extends JavacParser {
                     int p = pos();
                 	pushBackModifiers = mods;
                 	importDeclaration();
-                	utils.warning(p, pos(), "jml.message", "model imports not currently implemented");
+                	utils.warning(p, pos(), "jml.message", "misplaced model import");
+                    s = jmlF.at(p).Exec(jmlF.at(p).Erroneous());
                 } else {
                     int p = pos();
                     int ep = endPos();
@@ -1798,43 +1804,39 @@ public class JmlParser extends JavacParser {
      */
     public JCModifiers jmlModifiersOpt(JCModifiers partial) {
         ListBuffer<JCAnnotation> annotations = new ListBuffer<JCAnnotation>();
+        java.util.List<JmlToken> jmlmods = new java.util.LinkedList<JmlToken>();
         if (partial != null) annotations.appendList(partial.annotations);
+        if (partial != null) jmlmods.addAll(((JmlModifiers)partial).jmlmods);
         int pos = Position.NOPOS;
         int last = Position.NOPOS;
         if (partial != null) {
             pos = partial.pos;
         }
-        JmlTokenKind j = null;
-        while (isJmlModifier() || (j = jmlTokenKind()) != null) {
-            if (isJmlModifier()) {
-                last = endPos();
-                ModifierKind mk = (ModifierKind)Extensions.findKeyword(token.name());
-                JCAnnotation a = tokenToAnnotationAST(mk.fullAnnotation, pos(), last);
-                if (a != null) {
-                    annotations.append(a);
-                    if (pos == Position.NOPOS) pos = a.getStartPosition();
-                }
-                // a is null if no annotation is defined for the modifier;
-                // we just silently ignore that situation
-                // (this is true at the moment for math annotations, but could
-                // also be true for a modifier someone forgot)
-                if (!mk.strict && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
-                    utils.warning(pos(),"jml.not.strict",mk.keyword);  // FIXME - probably wrong position
-                }
-            } else if (j == ENDJMLCOMMENT) {
-                // skip over
-            } else if (tokenIsId(constructorID,fieldID,methodID)) {
-                // FIXME - do we want to save this anywhere; check that it
-                // matches the declaration; check that it is not used on
-                // something other than a declaration?
-            } else {
-                // Not a modifier
-                break;
-            }
+        while (isJmlModifier()) {
+        	last = endPos();
+        	ModifierKind mk = (ModifierKind)Extensions.findKeyword(token);
+        	JmlToken jt = new JmlToken(mk, token);
+        	jmlmods.add(jt);
+        	jt.source = Log.instance(context).currentSourceFile();
+//        	JCAnnotation a = tokenToAnnotationAST(mk.fullAnnotation, pos(), last);
+//        	if (a != null) {
+//        		annotations.append(a);
+//        		if (pos == Position.NOPOS) pos = a.getStartPosition();
+//        	}
+        	// a is null if no annotation is defined for the modifier;
+        	// we just silently ignore that situation
+        	// (this is true at the moment for math annotations, but could
+        	// also be true for a modifier someone forgot)
+        	if (!mk.strict && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
+        		utils.warning(pos(),"jml.not.strict",mk.keyword);  // FIXME - probably wrong position
+        	}
             nextToken();
         }
-        JCModifiers mods = F.at(pos).Modifiers(
-                partial == null ? 0 : partial.flags, annotations.toList());
+        while (jmlTokenClauseKind() == Operators.endjmlcommentKind) {
+        	nextToken();
+        }
+        JCModifiers mods = jmlF.at(pos).Modifiers(
+                partial == null ? 0 : partial.flags, annotations.toList(), jmlmods);
         if (last != Position.NOPOS) storeEnd(mods, last);
         return mods;
     }

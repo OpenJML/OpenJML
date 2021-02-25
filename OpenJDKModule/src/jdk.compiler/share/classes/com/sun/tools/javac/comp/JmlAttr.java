@@ -42,7 +42,7 @@ import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import org.jmlspecs.openjml.ext.RecommendsClause;
 import static org.jmlspecs.openjml.ext.ShowStatement.*;
 import com.sun.tools.javac.main.JmlCompiler;
-
+import com.sun.tools.javac.parser.JmlToken;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -56,7 +56,6 @@ import java.util.Set;
 import java.util.Stack;
 
 import javax.lang.model.type.TypeKind;
-//import javax.swing.text.html.parser.Element;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.*;
@@ -916,7 +915,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 checkSameAnnotations(javaDecl.mods,specsModifiers,"class",classSymbol.toString()); 
             } else {
                 long flags = classSymbol.flags();
-                JCModifiers m = jmlMaker.Modifiers(flags, null); // FIXME - should check annotations
+                JCModifiers m = jmlMaker.Modifiers(flags); // FIXME - should check annotations
                 checkSameAnnotations(m,specsModifiers,"class",classSymbol.toString()); 
             }
             log.useSource(prev);
@@ -5306,6 +5305,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 log.error(a.pos,"jml.illegal.annotation",place);
                 log.useSource(prev);
             }
+        }
+    }
+    
+    public void allAllowed(java.util.List<JmlToken> jmlmods, ModifierKind[] allowed, String place) {
+        outer: for (JmlToken t: jmlmods) {
+            for (ModifierKind c: allowed) {
+            	if (t.jmlclausekind == c) continue outer; // Found it
+            }
+            JavaFileObject prev = log.useSource(t.source);
+            utils.error(t.pos,t.endPos,"jml.illegal.annotation",place);
+            log.useSource(prev);
         }
     }
     

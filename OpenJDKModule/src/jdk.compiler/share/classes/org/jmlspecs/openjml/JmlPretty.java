@@ -31,6 +31,7 @@ import static org.jmlspecs.openjml.ext.InlinedLoopStatement.*;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.parser.JmlParser;
+import com.sun.tools.javac.parser.JmlToken;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
@@ -979,17 +980,17 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     @Override
-    public void printAnnotations(List<JCAnnotation> trees) throws IOException {
-        for (List<JCAnnotation> l = trees; l.nonEmpty(); l = l.tail) {
-            printStat(l.head);
-            print(" ");
+    public void printModifiers(JCModifiers mods) throws IOException {
+        for (JmlToken t: ((JmlModifiers)mods).jmlmods) {
+        	print("/*@");
+        	print(t.toString());
+        	print ("*/ ");
         }
-        if (!trees.isEmpty()) { // This test is needed for example in quantified expressions
-            println();
-            align();
-        }
+        println();
+        align();
+        printAnnotations(mods.annotations);
     }
-
+    
     public void printStatementSpecs(List<JmlStatementLoop> loopspecs) throws IOException {
         if (loopspecs != null) {
             for (List<? extends JCTree> l = loopspecs; l.nonEmpty(); l = l.tail) {
@@ -1128,7 +1129,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             try { // The following should be in Pretty, but it only prints records as classes
                 println(); align();
                 printDocComment(that);
-                printAnnotations(that.mods.annotations);
+                printModifiers(that.mods);
                 printFlags(that.mods.flags & ~RECORD);
                 print("record " + that.name);
                 printBlock(that.defs);
