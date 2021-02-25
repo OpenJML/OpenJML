@@ -5389,6 +5389,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (mods == null) return null;
         return utils.findMod(mods,modToAnnotationSymbol.get(ta));
     }
+    
+    public boolean has(java.util.List<JmlToken> mods, ModifierKind ta) {
+    	for (var t: mods) if (t.jmlclausekind == ta) return true;
+    	return false;
+    }
 
     //@ nullable
     public JmlAnnotation findMod(/*@nullable*/JCModifiers mods, ModifierKind ta) {
@@ -5399,6 +5404,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Returns true if the given symbol has non_null or does not have nullable annotation */
     public boolean isNonNull(/*@ nullable */ JCModifiers mods) {
         if (mods != null) {
+        	if (has(((JmlModifiers)mods).jmlmods, Modifiers.NON_NULL)) return true;
+        	if (has(((JmlModifiers)mods).jmlmods, Modifiers.NULLABLE)) return false;
             List<JCAnnotation> list = mods.getAnnotations();
             if (list != null) for (JCAnnotation a: list) {
                 if (a.annotationType.type.tsym == nonnullAnnotationSymbol) return true;
@@ -5422,6 +5429,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @return true if the model modifier is present, false if not
      */
     public boolean isModel(/*@nullable*/JCModifiers mods) {
+    	if (has(((JmlModifiers)mods).jmlmods, Modifiers.MODEL)) return true;
         return findMod(mods,Modifiers.MODEL) != null;
     }
     
@@ -5430,6 +5438,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @return true if the modifier is present, false if not
      */
     public boolean isInstance(/*@nullable*/JCModifiers mods) {
+    	if (has(((JmlModifiers)mods).jmlmods, Modifiers.INSTANCE)) return true;
         return findMod(mods, Modifiers.INSTANCE) != null;
     }
     

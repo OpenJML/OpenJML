@@ -57,11 +57,7 @@ import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.comp.CompileStates.CompileState;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCImport;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -179,7 +175,28 @@ public class JmlCompiler extends JavaCompiler {
         			p.toString());
         	speccu = null;
         } else {
-        	speccu.packge = p;
+        	if (specpid.startsWith("java.")) {
+        		JCExpression pp = speccu.pid.getPackageName();
+        		while (pp instanceof JCFieldAccess && ((JCFieldAccess)pp).selected instanceof JCFieldAccess) {
+        			pp = ((JCFieldAccess)pp).selected;
+        		}
+        		JCFieldAccess fa = (JCFieldAccess)pp;
+        		Maker m = Maker.instance(context).at(fa.pos);
+        		fa.selected = m.Select(
+        				m.Ident(names.fromString("specs")),
+        				((JCIdent)fa.selected).name);
+        		specpid = specpid + ".*";
+        		JCTree t = m.Import(utils.nametree(pp.pos,  pp.pos, specpid, null), false);
+    			if (speccu.defs.head instanceof JCPackageDecl) {
+    				JCTree tt = speccu.defs.head;
+    				speccu.defs = speccu.defs.tail.prepend(t).prepend(tt);
+    			} else {
+    				speccu.defs = speccu.defs.prepend(t);
+    			}
+        		// FIXME speccu.packge ??
+        	} else {
+        		speccu.packge = p;
+        	}
         }
         return speccu;
     }
@@ -279,7 +296,7 @@ public class JmlCompiler extends JavaCompiler {
             JmlCompilationUnit speccu = parseSpecs(csymbol);
             if (speccu != null) {
             	speccu.sourceCU = null;
-            	speccu.modle = csymbol.packge().modle;
+            	speccu.modle = syms.unnamedModule; // csymbol.packge().modle;
 
 //                if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
 //                else speccu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;

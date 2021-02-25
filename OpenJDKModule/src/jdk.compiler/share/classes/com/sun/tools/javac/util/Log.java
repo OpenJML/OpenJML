@@ -691,6 +691,7 @@ public class Log extends AbstractLog {
      */
     @Override
     public void report(JCDiagnostic diagnostic) {
+    	//if (org.jmlspecs.openjml.Main.useJML) new RuntimeException().printStackTrace(System.out);
         diagnosticHandler.report(diagnostic);
      }
 
