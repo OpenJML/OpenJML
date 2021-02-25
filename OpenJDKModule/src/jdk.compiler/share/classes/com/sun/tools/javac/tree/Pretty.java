@@ -296,14 +296,19 @@ public class Pretty extends JCTree.Visitor {
         if ((flags & ANNOTATION) != 0) print("@");
     }
 
-    public void printAnnotations(List<JCAnnotation> trees) throws IOException {
-        for (List<JCAnnotation> l = trees; l.nonEmpty(); l = l.tail) {
+    public void printAnnotations(List<JCAnnotation> annotations) throws IOException {
+        for (List<JCAnnotation> l = annotations; l.nonEmpty(); l = l.tail) {
             printStat(l.head);
             println();
             align();
         }
     }
-
+    
+    public void printModifiers(JCModifiers mods) throws IOException {
+        printAnnotations(mods.annotations);
+        printFlags(mods.flags & ~INTERFACE & ~RECORD);
+    }
+    
     public void printTypeAnnotations(List<JCAnnotation> trees) throws IOException {
         for (List<JCAnnotation> l = trees; l.nonEmpty(); l = l.tail) {
             printExpr(l.head);
@@ -486,7 +491,7 @@ public class Pretty extends JCTree.Visitor {
     public void visitModuleDef(JCModuleDecl tree) {
         try {
             printDocComment(tree);
-            printAnnotations(tree.mods.annotations);
+            printModifiers(tree.mods);
             if (tree.getModuleType() == ModuleKind.OPEN) {
                 print("open ");
             }
@@ -589,8 +594,7 @@ public class Pretty extends JCTree.Visitor {
         try {
             println(); align();
             printDocComment(tree);
-            printAnnotations(tree.mods.annotations);
-            printFlags(tree.mods.flags & ~INTERFACE);
+            printModifiers(tree.mods);
             Name enclClassNamePrev = enclClassName;
             enclClassName = tree.name;
             if ((tree.mods.flags & INTERFACE) != 0) {
@@ -643,7 +647,7 @@ public class Pretty extends JCTree.Visitor {
                     sourceOutput) return;
             println(); align();
             printDocComment(tree);
-            printExpr(tree.mods);
+            printModifiers(tree.mods);
             printTypeParameters(tree.typarams);
             if (tree.name == tree.name.table.names.init) {
                 print(enclClassName != null ? enclClassName : tree.name);
@@ -732,7 +736,7 @@ public class Pretty extends JCTree.Visitor {
                     print(" */");
                 }
             } else {
-                printExpr(tree.mods);
+                printModifiers(tree.mods);
                 if ((tree.mods.flags & VARARGS) != 0) {
                     JCTree vartype = tree.vartype;
                     List<JCAnnotation> tas = null;
@@ -1590,7 +1594,7 @@ public class Pretty extends JCTree.Visitor {
 
     public void visitModifiers(JCModifiers mods) {
         try {
-            printAnnotations(mods.annotations);
+            printModifiers(mods);
             printFlags(mods.flags);
         } catch (IOException e) {
             throw new UncheckedIOException(e);

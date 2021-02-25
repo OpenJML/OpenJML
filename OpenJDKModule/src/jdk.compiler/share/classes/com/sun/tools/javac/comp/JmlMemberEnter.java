@@ -206,9 +206,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
 
     
-    public int modeOfFileBeingChecked = 0;
-    
-    protected JmlClassDecl currentClass = null;
+//    protected JmlClassDecl currentClass = null;
 
     // FIXME
 //    @Override
@@ -1525,7 +1523,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     }
                 }
 
-            } else if (JmlCompilationUnit.isForSource(modeOfFileBeingChecked)) {
+            } else {
                 for (int i = 0; i<match.getParameters().size(); i++) {
                     Symbol.VarSymbol javasym = match.getParameters().get(i);
                     JCTree.JCVariableDecl jmlparam = specMethodDecl.params.get(i);
@@ -1724,14 +1722,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        boolean prevAllowJml = resolve.allowJML();
 //        boolean isJMLMethod = utils.isJML(tree.mods);
         try {
-//            boolean isSpecForBinary = modeOfFileBeingChecked == JmlCompilationUnit.SPEC_FOR_BINARY;
-//            boolean isSpecFile = currentMethod.sourcefile == null || currentMethod.sourcefile.getKind() != JavaFileObject.Kind.SOURCE;
-////            boolean isClassModel = ((JmlAttr)attr).isModel(env.enclClass.mods);
-//            if (isSpecFile && tree.sym != null) return; //Sometimes this is called when the method already is entered
-//            if (isJMLMethod) resolve.setAllowJML(true);
             super.visitMethodDef(tree);
-////            if (!isSpecFile) super.visitMethodDef(tree);
-////            if (isSpecFile) visitMethodDefBinary(tree);
 
             if (currentMethod.specsDecl == null) currentMethod.specsDecl = currentMethod; // FIXME - why is this not already set?
             var ms = currentMethod.specsDecl.methodSpecsCombined;

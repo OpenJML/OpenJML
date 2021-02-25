@@ -235,7 +235,7 @@ public abstract class IJmlClauseKind {
 //                if (tt != null) {
 //                    scanner.setToken(new JmlToken(tt, tk, null, parser.pos(), parser.endPos()));
 //                }
-//            }
+//            }  FIXME - do we still need this?
         } else if (parser.token().ikind == ENDJMLCOMMENT) {
             // FIXME - was -2 here, why?
             if (requireSemicolon) warning(parser.pos(), parser.endPos(), "jml.missing.semi", clauseType.name());

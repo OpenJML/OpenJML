@@ -911,6 +911,14 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
+    public JCTree visitModifiers(JCModifiers node, Void p) {
+        var copy = (JmlModifiers)super.visitModifiers(node,p);
+        for (var t: ((JmlModifiers)node).jmlmods) {
+        	copy.add(t.copy());
+        }
+        return copy;
+    }
+
     public JCTree visitTry(TryTree node, Void p) {
         return super.visitTry(node,p).setType(((JCTree)node).type);
     }

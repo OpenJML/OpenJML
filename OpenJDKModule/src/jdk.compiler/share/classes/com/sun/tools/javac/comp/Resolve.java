@@ -2294,7 +2294,7 @@ public class Resolve {
      *  @param name      The type's name.
      */
     Symbol findGlobalType(Env<AttrContext> env, Scope scope, Name name, RecoveryLoadClass recoveryLoadClass) {
-        Symbol bestSoFar = typeNotFound;
+    	Symbol bestSoFar = typeNotFound;
         for (Symbol s : scope.getSymbolsByName(name)) {
             Symbol sym = loadClass(env, s.flatName(), recoveryLoadClass);
             if (!symbolOK(sym)) continue; // OPENJML added to allow derived class to disallow symbols
@@ -4495,6 +4495,7 @@ public class Resolve {
 
     JCDiagnostic inaccessiblePackageReason(Env<AttrContext> env, PackageSymbol sym) {
         //no dependency:
+
         if (!env.toplevel.modle.readModules.contains(sym.modle)) {
             //does not read:
             if (sym.modle != syms.unnamedModule) {

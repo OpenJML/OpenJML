@@ -371,6 +371,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             if (!jml) {
                 if (jmlTokenClauseKind == Operators.endjmlcommentKind) {
                     JmlToken jmlToken = new JmlToken(jmlTokenKind, jmlTokenClauseKind, t);
+                    // FIXME - source field?
                     // if initialJml == true and now the token is ENDJMLCOMMENT, then we had 
                     // an empty comment. We don't return a token in that case.
                     if (!returnEndOfCommentTokens || !initialJml) continue; // Go get next token
@@ -484,6 +485,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             }
             if (skippingTokens && t.kind != TokenKind.EOF) continue;
             return jmlTokenKind == null ? t : new JmlToken(jmlTokenKind, jmlTokenClauseKind, TokenKind.CUSTOM, pos, endPos);
+            // FIXME - source field?
         }
     }
     

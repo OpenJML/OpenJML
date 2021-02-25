@@ -584,6 +584,13 @@ public class TreeMaker implements JCTree.Factory {
         return tree;
     }
 
+    public JCModifiers Modifiers(JCModifiers mods, long flags, List<JCAnnotation> annotations) {
+        JCModifiers tree = new JCModifiers(flags, annotations);
+        boolean noFlags = (flags & (Flags.ModifierFlags | Flags.ANNOTATION)) == 0;
+        tree.pos = (noFlags && annotations.isEmpty()) ? Position.NOPOS : pos;
+        return tree;
+    }
+
     public JCModifiers Modifiers(long flags) {
         return Modifiers(flags, List.nil());
     }

@@ -183,37 +183,7 @@ public class JmlCompiler extends JavaCompiler {
         }
         return speccu;
     }
-    
-//    /** Parses the given file as a JmlCompilationUnit (either Java source or JML specifications);
-//     * does not seek any specification file. Retruns a best guess compilation unit if there are parse errors.
-//     * @param f the file object to parse, if any
-//     * @param javaCU the compilation unit that provoked this parsing, if any
-//     * @return the possibly empty list of parsed compilation units, as ASTs; possibly returns null
-//     */
-//    //@ nullable
-//    public JmlCompilationUnit parseSingleFile(/*@ nullable*/JavaFileObject f) {
-//            if (f != null) {
-//                return (JmlCompilationUnit)parse(f);
-//            } else {
-//                return null;
-//            }
-//    }
-    
-//    /** Parses the list of file objects (using parse(fileobject)), returning a list of JmlCompilationUnits;
-//     * parsing a source file will cause a search for and parsing of the specification file */
-//    @Override
-//    public List<JCCompilationUnit> parseFiles(Iterable<JavaFileObject> fileObjects) {
-//        List<JCCompilationUnit> list = super.parseFiles(fileObjects);
-//        for (JCCompilationUnit cu: list) {
-//            JmlCompilationUnit jcu = (JmlCompilationUnit)cu;
-//            // Note - can certainly have modes 2 and 6 at this point.
-//            // FIXME - the setting and use of these modes needs review
-//            if (jcu.mode != 2 && jcu.mode != 6) 
-//                jcu.mode = JmlCompilationUnit.JAVA_SOURCE_FULL;  // FIXME - does this matter? is it right? there could be jml files on the command line
-//        }
-//        return list;
-//    }
-    
+        
     private int nestingLevel = 0;
 
     /** Parses and enters specs for binary classes, given a ClassSymbol.  This is 
@@ -308,6 +278,7 @@ public class JmlCompiler extends JavaCompiler {
             
             JmlCompilationUnit speccu = parseSpecs(csymbol);
             if (speccu != null) {
+            	speccu.sourceCU = null;
             	speccu.modle = csymbol.packge().modle;
 
 //                if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;

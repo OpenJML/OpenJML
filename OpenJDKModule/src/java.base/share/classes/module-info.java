@@ -75,7 +75,6 @@
  * @since 9
  */
 module java.base {
-
     exports java.io;
     exports java.lang;
     exports java.lang.annotation;
