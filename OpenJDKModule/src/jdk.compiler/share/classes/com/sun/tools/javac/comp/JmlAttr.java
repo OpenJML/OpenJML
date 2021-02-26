@@ -827,9 +827,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (tree.lhs instanceof JCIdent && ((JCIdent)tree.lhs).sym.owner.kind == MTH) return;
             log.error(tree.pos,"jml.no.assign.in.pure");
         }
-        if (tree.lhs instanceof JCArrayAccess && ((JCArrayAccess)tree.lhs).indexed.type instanceof org.jmlspecs.lang.IJmlArrayLike) {
-            log.error(tree.pos, "jml.message", "Assign operation not premitted for indexed immutable JML primitives");
-        }
+        // FIXME - fix the test here - cannot reference org.jmlspecs.lang directly in the JDK compiler code
+        //if (tree.lhs instanceof JCArrayAccess && ((JCArrayAccess)tree.lhs).indexed.type instanceof org.jmlspecs.lang.IJmlArrayLike) {
+        //    log.error(tree.pos, "jml.message", "Assign operation not permitted for indexed immutable JML primitives");
+        //}
         if (currentSecretContext != null) checkWritable(tree.lhs);
     }
     
