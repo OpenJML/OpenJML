@@ -106,7 +106,7 @@ public class JmlTreeUtils {
     }
     
     /** The qualified name of the Utils class that contains runtime utility methods */
-    /*@non_null*/ final public static String utilsClassQualifiedName = org.jmlspecs.utils.Utils.class.getCanonicalName();
+    /*@non_null*/ final public static String utilsClassQualifiedName = "org.jmlspecs.utils.Utils";
 
     /** The Context in which this object was constructed */ 
     //@ non_null

@@ -127,6 +127,8 @@ module java.base {
     exports javax.security.auth.spi;
     exports javax.security.auth.x500;
     exports javax.security.cert;
+    exports org.jmlspecs.annotation;
+    exports org.jmlspecs.lang;
 
 
     // additional qualified exports may be inserted at build time
