@@ -173,7 +173,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The fully-qualified name of the Utils class */
     // Use .class on the class name instead of a string so that an error happens if the class is renamed
     // This class is in the runtime library
-    /*@non_null*/ final public static String utilsClassName = org.jmlspecs.utils.Utils.class.getCanonicalName();
+    /*@non_null*/ public static String utilsClassName = "org.jmlspecs.utils.Utils";
     
     /** Cached symbol of the org.jmlspecs.utils.Utils class */
     /*@non_null*/ public ClassSymbol utilsClass;
@@ -385,6 +385,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		super.attribClass(c);
     		return;
     	}
+    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("ATTRIBUTING CLASS " + c.flatname);
         boolean isUnattributed =  (c.flags_field & UNATTRIBUTED) != 0;
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-requested " + c + " specs="+(specs.get(c)!=null) + " env="+(enter.getEnv(c)!=null));
         
@@ -469,6 +470,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-complete " + c.fullname + " " + level);
             if (level == 0) completeTodo();
         }
+    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("DONE ATTRIBUTING CLASS " + c.flatname);
     }
     
     public void attribFieldSpecs(Env<AttrContext> env, ClassSymbol csym) {
@@ -526,7 +528,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prevIsInJmlDeclaration = isInJmlDeclaration;
         isInJmlDeclaration = isInJmlDeclaration || utils.isJML(c.flags());  // REMOVED implementationAllowed ||
         ((JmlCheck)chk).setInJml(isInJmlDeclaration);
-        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("ATTRIBUTING-BODY " + c.fullname + " " + (isInJmlDeclaration?"inJML":"notInJML") + " WAS " + (prevIsInJmlDeclaration?"inJML":"notInJML"));
+        utils.note(true, "ATTRIBUTING-BODY " + c.fullname + " " + (isInJmlDeclaration?"inJML":"notInJML") + " WAS " + (prevIsInJmlDeclaration?"inJML":"notInJML"));
 //        JavaFileObject prev = log.useSource(((JmlClassDecl)env.enclClass).toplevel.sourcefile);  // FIXME - no write for multiple source files
         try {
             // If the class is binary only, then we have not yet attributed the super/extending/implementing classes in the source AST for the specifications
@@ -563,6 +565,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // FIXME - do not need this is we can avoid having invariants in the class body
     @Override
     public Type attribStat(JCTree tree, Env<AttrContext> env) {
+
         //if (tree instanceof JmlTypeClause && relax) return null;
         return super.attribStat(tree,env);
     }
@@ -703,7 +706,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // not in an enclosing scope.  However, JML has the \old operator which gives
                 // access to the scope at method definition time from within other nestings.
                 boolean prevAllowJML = jmlresolve.setAllowJML(true);
-                JmlSpecs.MethodSpecs sp = ((JmlMethodDecl)env.enclMethod).methodSpecsCombined; //specs.getSpecs(env.enclMethod.sym);
+                JmlSpecs.MethodSpecs sp = specs.getSpecs(((JmlMethodDecl)env.enclMethod).sym);//((JmlMethodDecl)env.enclMethod).methodSpecsCombined; //specs.getSpecs(env.enclMethod.sym);
                 VarSymbol savedSecret = currentSecretContext;
                 VarSymbol savedQuery = currentQueryContext;
                 try {
@@ -1106,6 +1109,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override 
     public void visitMethodDef(JCMethodDecl m) {
+    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("ATTRIBUTING METHOD " + m.sym.owner + " " + m.sym);
+
 //        if (m.name.toString().equals("nonNullCheck") ){//&& m.sym.owner.toString().equals("java.lang.Object")) {
 //            log.getWriter(WriterKind.NOTICE).println(m.sym.owner + ":" + m.sym);
 //        }
@@ -1231,6 +1236,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             labelEnvs.clear();
             labelEnvs = prevLabelEnvs;
         }
+    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("DONE ATTRIBUTING METHOD " + m.sym.owner + " " + m.sym);
     }
     
     final static Map<IJmlClauseKind, int[]> stateTable = new HashMap<>();

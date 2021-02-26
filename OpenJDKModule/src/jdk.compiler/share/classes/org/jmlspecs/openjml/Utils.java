@@ -113,10 +113,18 @@ public class Utils {
     
     public Type interfaceForPrimitiveTypes;
     public Type interfaceForPrimitiveTypes() {
-    	if (interfaceForPrimitiveTypes == null) {
-            interfaceForPrimitiveTypes = ClassReader.instance(context).enterClass(Names.instance(context).fromString("org.jmlspecs.lang.IJmlPrimitiveType")).type;
+    	try {
+    		if (interfaceForPrimitiveTypes == null) {
+    			Names n = Names.instance(context);
+    			var pi = Symtab.instance(context).getPackagesForName(n.fromString("org.jmlspecs.lang")).iterator();
+        	    interfaceForPrimitiveTypes = Symtab.instance(context).enterClass(pi.next().modle,n.fromString("org.jmlspecs.lang.IJmlPrimitiveType")).type;
+    		}
+    		return interfaceForPrimitiveTypes;
+    	} finally {
+    		if (interfaceForPrimitiveTypes==null) {
+    			this.error("jml.internal", "Unsuccessful loading of org.jmlspecs.lang.IJmlPrimitiveType");
+    		}
     	}
-    	return interfaceForPrimitiveTypes;
     }
 
     /** The key to use to retrieve the instance of this class from the Context object. */
@@ -863,16 +871,14 @@ public class Utils {
         List<MethodSymbol> methods = new LinkedList<MethodSymbol>();
         if (isJMLStatic(m)) {
             methods.add(m); 
-//        } else if (m.toString().contains("toString")) {  // FIXME - experimental not inherit
-//            methods.add(m); 
         } else {
             for (ClassSymbol c: parents((ClassSymbol)m.owner, false)) {
-                for (Symbol mem: c.getEnclosedElements()) {
-                    if (mem instanceof MethodSymbol &&
-                            mem.name.equals(m.name) &&
-                            (mem ==m || m.overrides(mem, c, Types.instance(context), true))) {
-                        methods.add((MethodSymbol)mem);
-                    }
+               for (Symbol mem: c.members().getSymbols(
+            		   mem->(mem instanceof MethodSymbol &&
+            				   mem.name.equals(m.name) &&
+            				   (mem == m || m.overrides(mem, c, Types.instance(context), true)))
+            		   )) {
+            	   methods.add((MethodSymbol)mem);
                 }
             }
         }

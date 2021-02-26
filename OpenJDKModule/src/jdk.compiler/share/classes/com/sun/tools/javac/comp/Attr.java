@@ -675,7 +675,7 @@ public class Attr extends JCTree.Visitor {
             if (tree == breakTree &&
                     resultInfo.checkContext.deferredAttrContext().mode == AttrMode.CHECK) {
                 breakTreeFound(copyEnv(env));
-            }
+           }
             return result;
         } catch (CompletionFailure ex) {
             tree.type = syms.errType;
