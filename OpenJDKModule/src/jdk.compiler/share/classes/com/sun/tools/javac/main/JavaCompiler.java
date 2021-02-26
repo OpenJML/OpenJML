@@ -947,10 +947,10 @@ public class JavaCompiler {
                 classnames
             );
             
-            if (org.jmlspecs.openjml.Main.useJML) {
-            	System.out.println("STOPPING AFTER ENTER");
-            	todo.clear();
-            }
+//            if (org.jmlspecs.openjml.Main.useJML) {
+//            	System.out.println("STOPPING AFTER ENTER");
+//            	todo.clear();
+//            }
 
             // If it's safe to do so, skip attr / flow / gen for implicit classes
             if (taskListener.isEmpty() &&
