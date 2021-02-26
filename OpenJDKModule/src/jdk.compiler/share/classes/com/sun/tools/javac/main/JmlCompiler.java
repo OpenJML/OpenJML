@@ -175,7 +175,7 @@ public class JmlCompiler extends JavaCompiler {
         			p.toString());
         	speccu = null;
         } else {
-        	if (specpid.startsWith("java.")) {
+        	if (specpid.startsWith("java.") || specpid.startsWith("org.")) {
         		JCExpression pp = speccu.pid.getPackageName();
         		while (pp instanceof JCFieldAccess && ((JCFieldAccess)pp).selected instanceof JCFieldAccess) {
         			pp = ((JCFieldAccess)pp).selected;

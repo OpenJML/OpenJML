@@ -1986,7 +1986,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            return;
 //        }
         Symbol sym = tree.sym;
-        if (specs.getSpecs(tree.sym) != null) utils.warning("jml.internal","Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
+ //       if (specs.getSpecs(tree.sym) != null) utils.warning("jml.internal","Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
         JmlVariableDecl jtree = (JmlVariableDecl)tree;
 //        
 //        // FIXME - the following duplicates setting the specs with matchAndSetFieldSpecs - but if there is a source file, this comes first
@@ -2019,64 +2019,64 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     	super.visitFieldDefHelper(tree, v, enclScope);
     }    
     
-    protected void enterSpecsForBinaryFields(ClassSymbol parent, JmlVariableDecl specstree) {
-        Name nm = specstree.name;
-        boolean isJML = utils.isJML(specstree.mods);
-        boolean isModel = isJML && utils.findMod(specstree.mods, Modifiers.MODEL) != null;
-        boolean isGhost = isJML && utils.findMod(specstree.mods, Modifiers.GHOST) != null;
-
-        Iterator<Symbol> e = parent.members().getSymbolsByName(nm).iterator(); // Presume there is just one declaration with a matching name, 
-                                                     // or at least, that the first one to match is the one we want.
-        Symbol.VarSymbol vsym = null;
-        if (e.hasNext()) {
-        	Symbol s = e.next();
-            vsym = s instanceof Symbol.VarSymbol ? (Symbol.VarSymbol)s : null;
-            specstree.sym = vsym;
-            // There is no match of a declaration in the specs file to the Java class
-            // isJML --> OK, but it should be model or ghost (which is checked in JmlAttr.checkVarMods)
-            // !isJML --> error - but we treat it as model or ghost
-            if (!isJML) {
-                JavaFileObject prev = log.currentSourceFile();
-                log.useSource(specstree.source());
-                log.error(specstree.pos,"jml.no.var.match",nm.toString());
-                log.useSource(prev);
-            }
-            Env<AttrContext> prevenv = env;
-            try {
-                env = enter.typeEnvs.get(parent);
-                visitVarDef(specstree);
-            } finally {
-                env = prevenv;
-            }
-            if (specstree.sym == null) utils.error(specstree, "jml.internal", "Failed to set a variable declaration symbol as expected");
-//            JmlSpecs.instance(context).putSpecs(specstree.sym, specstree.fieldSpecsCombined);
-            vsym = specstree.sym;
-        }
-        checkFieldMatch(null, specstree.sym, specstree);
-        
-        long flags = specstree.mods.flags;
-        boolean wasFinal = (flags&Flags.FINAL) != 0;
-        boolean wasStatic = (flags&Flags.STATIC) != 0;
-        if ((parent.flags() & INTERFACE) != 0  && utils.isJML(specstree.mods)) {
-            // FIXME - but the @Instance declaration might be in the .jml file
-            boolean isInstance = JmlAttr.instance(context).findMod(specstree.mods, Modifiers.INSTANCE) != null;
-            if (isInstance && !wasStatic) specstree.mods.flags &= ~Flags.STATIC;
-        }
-        if (specs.getSpecs(specstree.sym) != null) utils.warning("jml.internal","Expected null field specs here: " + specstree.sym.owner + "." + specstree.sym);
-        specs.putSpecs(specstree.sym,new JmlSpecs.FieldSpecs(specstree)); // This specs only has modifiers - field spec clauses are added later (FIXME - where? why not here?)
-
-        if (vsym.kind == VAR && vsym.owner.kind == TYP && (vsym.owner.flags_field & INTERFACE) != 0
-                && isJML) {
-            // In the case of a JML ghost variable that is a field of an interface, the default is static and not final
-            // (unless explicitly specified final)
-            // FIXME _ the following is not robust because annotations are not attributed yet - test these as well
-            boolean isInstance = utils.findMod(specstree.mods,Modifiers.INSTANCE) != null;
-            if (isInstance && !wasStatic) specstree.sym.flags_field &= ~Flags.STATIC;  // FIXME - this duplicates JmlCheck
-            if (!wasFinal) vsym.flags_field &= ~FINAL; 
-        }
-        
-        
-    }
+//    protected void enterSpecsForBinaryFields(ClassSymbol parent, JmlVariableDecl specstree) {
+//        Name nm = specstree.name;
+//        boolean isJML = utils.isJML(specstree.mods);
+//        boolean isModel = isJML && utils.findMod(specstree.mods, Modifiers.MODEL) != null;
+//        boolean isGhost = isJML && utils.findMod(specstree.mods, Modifiers.GHOST) != null;
+//
+//        Iterator<Symbol> e = parent.members().getSymbolsByName(nm).iterator(); // Presume there is just one declaration with a matching name, 
+//                                                     // or at least, that the first one to match is the one we want.
+//        Symbol.VarSymbol vsym = null;
+//        if (e.hasNext()) {
+//        	Symbol s = e.next();
+//            vsym = s instanceof Symbol.VarSymbol ? (Symbol.VarSymbol)s : null;
+//            specstree.sym = vsym;
+//            // There is no match of a declaration in the specs file to the Java class
+//            // isJML --> OK, but it should be model or ghost (which is checked in JmlAttr.checkVarMods)
+//            // !isJML --> error - but we treat it as model or ghost
+//            if (!isJML) {
+//                JavaFileObject prev = log.currentSourceFile();
+//                log.useSource(specstree.source());
+//                log.error(specstree.pos,"jml.no.var.match",nm.toString());
+//                log.useSource(prev);
+//            }
+//            Env<AttrContext> prevenv = env;
+//            try {
+//                env = enter.typeEnvs.get(parent);
+//                visitVarDef(specstree);
+//            } finally {
+//                env = prevenv;
+//            }
+//            if (specstree.sym == null) utils.error(specstree, "jml.internal", "Failed to set a variable declaration symbol as expected");
+////            JmlSpecs.instance(context).putSpecs(specstree.sym, specstree.fieldSpecsCombined);
+//            vsym = specstree.sym;
+//        }
+//        checkFieldMatch(null, specstree.sym, specstree);
+//        
+//        long flags = specstree.mods.flags;
+//        boolean wasFinal = (flags&Flags.FINAL) != 0;
+//        boolean wasStatic = (flags&Flags.STATIC) != 0;
+//        if ((parent.flags() & INTERFACE) != 0  && utils.isJML(specstree.mods)) {
+//            // FIXME - but the @Instance declaration might be in the .jml file
+//            boolean isInstance = JmlAttr.instance(context).findMod(specstree.mods, Modifiers.INSTANCE) != null;
+//            if (isInstance && !wasStatic) specstree.mods.flags &= ~Flags.STATIC;
+//        }
+//        if (specs.getSpecs(specstree.sym) != null) utils.warning("jml.internal","Expected null field specs here (A): " + specstree.sym.owner + "." + specstree.sym);
+//        specs.putSpecs(specstree.sym,new JmlSpecs.FieldSpecs(specstree)); // This specs only has modifiers - field spec clauses are added later (FIXME - where? why not here?)
+//
+//        if (vsym.kind == VAR && vsym.owner.kind == TYP && (vsym.owner.flags_field & INTERFACE) != 0
+//                && isJML) {
+//            // In the case of a JML ghost variable that is a field of an interface, the default is static and not final
+//            // (unless explicitly specified final)
+//            // FIXME _ the following is not robust because annotations are not attributed yet - test these as well
+//            boolean isInstance = utils.findMod(specstree.mods,Modifiers.INSTANCE) != null;
+//            if (isInstance && !wasStatic) specstree.sym.flags_field &= ~Flags.STATIC;  // FIXME - this duplicates JmlCheck
+//            if (!wasFinal) vsym.flags_field &= ~FINAL; 
+//        }
+//        
+//        
+//    }
     
     // FIXME - ressurrect these checks and corresponding tests
 
