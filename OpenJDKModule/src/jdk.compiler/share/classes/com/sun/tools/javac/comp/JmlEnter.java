@@ -214,11 +214,11 @@ public class JmlEnter extends Enter {
     						"package in .java file: " + pn);
     			}
     		}
+    		jtree.specsCompilationUnit = speccu;
     		var declsToAdd = matchMembers(null, tree.defs, speccu.defs, speccu.sourcefile);
         	if (declsToAdd.size() != 0) {
         		tree.defs = tree.defs.appendList(declsToAdd);
         	}
-    		jtree.specsCompilationUnit = speccu;
     		
     		super.visitTopLevel(tree);
     		
@@ -368,7 +368,7 @@ public class JmlEnter extends Enter {
     			}
     		}
     	} else {
-			//boolean compare = (org.jmlspecs.openjml.Main.useJML && owner.toString().endsWith("Throwable"));
+			boolean compare = (org.jmlspecs.openjml.Main.useJML && owner != null && owner.toString().endsWith("Throwable"));
         	var matched = new java.util.HashSet<JCTree>();
     		for (var decl: javaDefs) {
     			if (decl instanceof JmlClassDecl) {
@@ -998,11 +998,11 @@ public class JmlEnter extends Enter {
     	JmlClassDecl jspec = jthat.specsDecl;
     	if (jspec == null) System.out.println("NULL SPEC FOR " + that.name);
     	
-		if (org.jmlspecs.openjml.Main.useJML && jthat.name.toString().equals("Throwable")) System.out.println("MATCHING_THROWABLE");
+		if (org.jmlspecs.openjml.Main.useJML && jthat.name.toString().equals("Throwable")) System.out.println("MATCHING_THROWABLE " + jspec.sourcefile + " " + jspec);
     	var declsToAdd = matchMembers(that, jthat.defs, jspec.defs, jspec.sourcefile);
     	if (declsToAdd.size() != 0) {
     		that.defs = that.defs.appendList(declsToAdd);
-    		if (org.jmlspecs.openjml.Main.useJML && jthat.name.toString().equals("Throwable")) {
+    		if (org.jmlspecs.openjml.Main.useJML && jthat.name.toString().equals("CharSequence")) {
     			System.out.println("EXPANDED " + that);
     		}
     	}

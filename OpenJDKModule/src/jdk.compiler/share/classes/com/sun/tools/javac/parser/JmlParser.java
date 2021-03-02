@@ -931,9 +931,9 @@ public class JmlParser extends JavacParser {
                                 className, isInterface, isRecord);
                         if (isInterface && t.head instanceof JmlMethodDecl) {
                             JmlMethodDecl md = (JmlMethodDecl)t.head;
-                            if (utils.findMod(md.mods,Modifiers.MODEL)!= null
+                            if (utils.hasMod(md.mods,Modifiers.MODEL)
                                     && (md.mods.flags & Flags.STATIC) == 0) {
-                                md.mods.flags |= Flags.DEFAULT; // FIXME - should be marking this as instance, not default
+                               // FIXME - ?  md.mods.flags |= Flags.DEFAULT; // FIXME - should be marking this as instance, not default
                             }
                         }
                     }

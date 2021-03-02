@@ -5316,7 +5316,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void allAllowed(List<JCTree.JCAnnotation> annotations, ModifierKind[] allowed, String place) {
         outer: for (JCTree.JCAnnotation a: annotations) {
         	checkAnnotationType(a); // FIXME - why might the annotation type be null?
-        	if (org.jmlspecs.openjml.Main.useJML && a.annotationType.type == null) System.out.println("ANNOT " + a.annotationType);
             Symbol tsym = a.annotationType.type.tsym;
             for (ModifierKind c: allowed) {
             	var asym = modToAnnotationSymbol.get(c);
@@ -6196,7 +6195,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
-    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("JMD " + that);
         visitMethodDef(that);
     }
     
