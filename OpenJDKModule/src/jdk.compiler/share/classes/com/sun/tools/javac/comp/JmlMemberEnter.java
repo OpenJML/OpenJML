@@ -1722,9 +1722,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        boolean prevAllowJml = resolve.allowJML();
 //        boolean isJMLMethod = utils.isJML(tree.mods);
         try {
-        	if (org.jmlspecs.openjml.Main.useJML && tree.name.toString().equals("standardThrowable")) {
-        		System.out.println(" VMD " + tree);
-        	}
             super.visitMethodDef(tree);
 
             if (currentMethod.specsDecl == null) currentMethod.specsDecl = currentMethod; // FIXME - why is this not already set?

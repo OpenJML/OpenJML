@@ -935,8 +935,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec) {
-        utils.note(false, "            Saving method specs for " + m.owner + "." + m + " " + spec);
-        if ((m.owner.toString()+"."+m.toString()).equals("java.util.Map.size()")) new RuntimeException().printStackTrace(System.out);
+        utils.note(true, "            Saving method specs for " + m.owner + "." + m + " " + spec);
         getSpecs(m.enclClass()).methods.put(m,spec);
     }
     
