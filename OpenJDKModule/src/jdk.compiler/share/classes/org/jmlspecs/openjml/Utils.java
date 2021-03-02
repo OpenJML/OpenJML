@@ -35,6 +35,7 @@ import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.IInJML;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlModifiers;
 import org.jmlspecs.openjml.ext.Modifiers;
 //import org.jmlspecs.openjml.strongarm.JDKListUtils;
 
@@ -57,6 +58,7 @@ import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlScanner;
+import com.sun.tools.javac.parser.JmlToken;
 import com.sun.tools.javac.parser.JmlTokenizer;
 import com.sun.tools.javac.tree.EndPosTable;
 import com.sun.tools.javac.tree.JCTree;
@@ -484,6 +486,13 @@ public class Utils {
         if (mods == null) return null;
         return findMod(mods,JmlAttr.instance(context).modToAnnotationSymbol.get(ta));
     }
+    
+    public boolean hasMod(JCModifiers mods, ModifierKind ta) {
+    	if (mods instanceof JmlModifiers) for (var t: ((JmlModifiers)mods).jmlmods) if (t.jmlclausekind == ta) return true;
+    	return findMod(mods, ta) != null;
+    }
+
+
 
     /** Finds whether a specified annotation is present in the given modifiers,
      * returning it if it is; this method requires that the annotations have

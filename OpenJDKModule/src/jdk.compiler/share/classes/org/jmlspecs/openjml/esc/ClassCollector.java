@@ -105,7 +105,7 @@ class ClassCollector extends JmlTreeScanner {
     @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
     	if (!doMethods) return;
-    	JmlSpecs.MethodSpecs ms = that.methodSpecsCombined;
+    	JmlSpecs.MethodSpecs ms = JmlSpecs.instance(context).getSpecs(that.sym);
     	scan(ms.mods);
         visitMethodDef(that);
         scan(ms.cases);
