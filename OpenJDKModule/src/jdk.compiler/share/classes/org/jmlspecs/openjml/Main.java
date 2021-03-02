@@ -35,14 +35,8 @@ import org.jmlspecs.openjml.esc.MethodProverSMT;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
-import com.sun.tools.javac.code.JmlTypes;
-import com.sun.tools.javac.comp.JmlAttr;
-import com.sun.tools.javac.comp.JmlCheck;
-import com.sun.tools.javac.comp.JmlDeferredAttr;
-import com.sun.tools.javac.comp.JmlEnter;
-import com.sun.tools.javac.comp.JmlFlow;
-import com.sun.tools.javac.comp.JmlMemberEnter;
-import com.sun.tools.javac.comp.JmlResolve;
+import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.comp.*;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.main.CommandLine;
 import com.sun.tools.javac.main.JavaCompiler;
@@ -675,6 +669,8 @@ public class Main extends com.sun.tools.javac.main.Main {
         // tools.
         // Any initialization of these tools that needs to be done based on 
         // options should be performed in setupOptions().
+        JmlTypes.preRegister(context);
+        JmlOperators.preRegister(context);
         JmlSpecs.preRegister(context); // registering the specifications repository
         JmlFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlParsers
         JmlScanner.JmlFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlScanners
@@ -684,7 +680,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         JmlResolve.preRegister(context);
 //        JmlFlow.preRegister(context);
         JmlMemberEnter.preRegister(context);
-        JmlTypes.preRegister(context);
         JmlAttr.preRegister(context);  // registering a JML-aware type checker
         JmlCheck.preRegister(context);
         JmlPretty.preRegister(context);

@@ -118,7 +118,7 @@ public class MiscExpressions extends ExpressionExtension {
             }
             Type t = attr.jmltypes.TYPE;
             if (expr.javaType) t = syms.classType;
-            attr.addTodo(attr.utilsClass);
+            attr.addTodo(attr.runtimeClass);
             return t;
         }
     };

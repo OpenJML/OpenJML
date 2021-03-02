@@ -810,7 +810,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         
         JmlTree.JmlMethodDecl m = jmlF.MethodDef(
                 jmlF.Modifiers(Flags.PUBLIC|Flags.SYNTHETIC),
-                names.fromString(org.jmlspecs.utils.Utils.invariantMethodString),
+                names.fromString("_JML$$$checkInvariant"),
                 vd,
                 List.<JCTypeParameter>nil(),
                 null,
@@ -824,7 +824,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (sym.getEnclosingElement() instanceof ClassSymbol && !sym.isStatic()) staticFlag = 0;
         JmlTree.JmlMethodDecl ms = jmlF.MethodDef(
                 jmlF.Modifiers(Flags.PUBLIC|staticFlag|Flags.SYNTHETIC),
-                names.fromString(org.jmlspecs.utils.Utils.staticinvariantMethodString),
+                names.fromString("_JML$$$checkStaticInvariant"),
                 vd,
                 List.<JCTypeParameter>nil(),
                 null,
@@ -1721,16 +1721,23 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         currentMethod = (JmlMethodDecl) tree;
 //        boolean prevAllowJml = resolve.allowJML();
 //        boolean isJMLMethod = utils.isJML(tree.mods);
+//        boolean p = org.jmlspecs.openjml.Main.useJML && currentMethod.name.toString().equals("size") && currentMethod.sym.owner.toString().contains("java.util.Map");
         try {
             super.visitMethodDef(tree);
 
             if (currentMethod.specsDecl == null) currentMethod.specsDecl = currentMethod; // FIXME - why is this not already set?
             var ms = currentMethod.specsDecl.methodSpecsCombined;
+            //var ms = new JmlSpecs.MethodSpecs(currentMethod.specsDecl);
+//            if (p) System.out.println(ms);
+//            if (p) System.out.println(currentMethod.specsDecl.cases);
             currentMethod.specsDecl.sym = tree.sym;
             if (tree.sym != null) JmlSpecs.instance(context).putSpecs(tree.sym, ms);
 
 
         } finally {
+//        	if (p) {
+//        		System.out.println("JME-VMD " + currentMethod + " " + currentMethod.sourcefile + " " + currentMethod.specsDecl.sourcefile );
+//        	}
 //            if (isJMLMethod) resolve.setAllowJML(prevAllowJml);
             currentMethod = prevMethod;
         }

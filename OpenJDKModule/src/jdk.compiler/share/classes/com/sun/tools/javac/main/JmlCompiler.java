@@ -175,28 +175,28 @@ public class JmlCompiler extends JavaCompiler {
         			p.toString());
         	speccu = null;
         } else {
-        	if (specpid.startsWith("java.") || specpid.startsWith("org.")) {
-        		JCExpression pp = speccu.pid.getPackageName();
-        		while (pp instanceof JCFieldAccess && ((JCFieldAccess)pp).selected instanceof JCFieldAccess) {
-        			pp = ((JCFieldAccess)pp).selected;
-        		}
-        		JCFieldAccess fa = (JCFieldAccess)pp;
-        		Maker m = Maker.instance(context).at(fa.pos);
-        		fa.selected = m.Select(
-        				m.Ident(names.fromString("specs")),
-        				((JCIdent)fa.selected).name);
-        		specpid = specpid + ".*";
-        		JCTree t = m.Import(utils.nametree(pp.pos,  pp.pos, specpid, null), false);
-    			if (speccu.defs.head instanceof JCPackageDecl) {
-    				JCTree tt = speccu.defs.head;
-    				speccu.defs = speccu.defs.tail.prepend(t).prepend(tt);
-    			} else {
-    				speccu.defs = speccu.defs.prepend(t);
-    			}
-        		// FIXME speccu.packge ??
-        	} else {
+//        	if (specpid.startsWith("java.") || specpid.startsWith("org.")) {
+//        		JCExpression pp = speccu.pid.getPackageName();
+//        		while (pp instanceof JCFieldAccess && ((JCFieldAccess)pp).selected instanceof JCFieldAccess) {
+//        			pp = ((JCFieldAccess)pp).selected;
+//        		}
+//        		JCFieldAccess fa = (JCFieldAccess)pp;
+//        		Maker m = Maker.instance(context).at(fa.pos);
+//        		fa.selected = m.Select(
+//        				m.Ident(names.fromString("specs")),
+//        				((JCIdent)fa.selected).name);
+//        		specpid = specpid + ".*";
+//        		JCTree t = m.Import(utils.nametree(pp.pos,  pp.pos, specpid, null), false);
+//    			if (speccu.defs.head instanceof JCPackageDecl) {
+//    				JCTree tt = speccu.defs.head;
+//    				speccu.defs = speccu.defs.tail.prepend(t).prepend(tt);
+//    			} else {
+//    				speccu.defs = speccu.defs.prepend(t);
+//    			}
+//        		// FIXME speccu.packge ??
+//        	} else {
         		speccu.packge = p;
-        	}
+//        	}
         }
         return speccu;
     }
@@ -242,7 +242,6 @@ public class JmlCompiler extends JavaCompiler {
                 if (tspecs == null) {
                     // Note: classes and interfaces may be entered in this queue multiple times. The check for specs at the beginning of this method
                     // does not prevent unloaded classes from being added to the queue more than once, because the specs are not loaded until completeBinaryEnterTodo
-                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("QUEUING BINARY ENTER " + csymbol);
                     binaryEnterTodo.prepend(csymbol);
                 }
 
@@ -296,10 +295,7 @@ public class JmlCompiler extends JavaCompiler {
             JmlCompilationUnit speccu = parseSpecs(csymbol);
             if (speccu != null) {
             	speccu.sourceCU = null;
-            	speccu.modle = syms.unnamedModule; // csymbol.packge().modle;
-
-//                if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
-//                else speccu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
+            	speccu.modle = csymbol.packge().modle;
 
                 nestingLevel++;
                 try {
@@ -332,7 +328,7 @@ public class JmlCompiler extends JavaCompiler {
         }
     }
     
-    /** Overridden in order to put out some information about stopping */
+    /** Overridden in order to put out some progress information about stopping */
     @Override
     public  <T> List<T> stopIfError(CompileState cs, List<T> list) {
         if (shouldStop(cs)) {
@@ -378,7 +374,7 @@ public class JmlCompiler extends JavaCompiler {
                 esc.initCounts();
         	    for (Env<AttrContext> env: envs) esc(env); // Transforms and proves
         	} catch (PropagatedException e) {
-        		// cancelation
+        		// cancelation - catch and continue
         	} finally {
                 String summary = esc.reportCounts();
                 if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode) utils.note(false,summary);
@@ -595,10 +591,9 @@ public class JmlCompiler extends JavaCompiler {
      */ // FIXME - check that we always get classes, not CUs and adjust the logic accordingly
     protected void esc(Env<AttrContext> env) {
         // Only run ESC on source files
-//        if (((JmlCompilationUnit)env.toplevel).mode != JmlCompilationUnit.JAVA_SOURCE_FULL) return;
     	if (env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) return;
     	
-        JmlEsc esc = JmlEsc.instance(context); // FIXME - get this once at initialization?
+        JmlEsc esc = JmlEsc.instance(context);
         esc.check(env.tree);
 
         return;

@@ -45,6 +45,7 @@ import static org.jmlspecs.openjml.ext.TypeMapsClauseExtension.*;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.code.Source.Feature;
 import com.sun.tools.javac.parser.Scanner;
 import com.sun.tools.javac.parser.Tokens.Comment;
 import com.sun.tools.javac.parser.Tokens.Token;
@@ -358,7 +359,7 @@ public class JmlParser extends JavacParser {
                 }
             }
             if (s instanceof JCClassDecl && (((JCClassDecl)s).mods.flags & Flags.ENUM) != 0) {
-                addImplicitEnumAxioms((JCClassDecl)s);
+//                addImplicitEnumAxioms((JCClassDecl)s); // FIXME - causes compile errors in module system
             }
             while (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) {
                 nextToken();
@@ -459,6 +460,12 @@ public class JmlParser extends JavacParser {
                 newdefs.add(axiom);
             }
             cd.defs = cd.defs.appendList(newdefs);
+        }
+        if (org.jmlspecs.openjml.Main.useJML) {
+        	System.out.println("ENUM " + cd.name);
+        	for (var t: cd.defs) {
+            	System.out.println("ENUMDEF " + JmlPretty.write(t));
+        	}
         }
     }
 
@@ -1748,7 +1755,9 @@ public class JmlParser extends JavacParser {
     public JCModifiers modifiersOpt() {
         JCModifiers partial = pushBackModifiers;
         pushBackModifiers = null;
-        return modifiersOpt(partial);
+        JCModifiers m = modifiersOpt(partial);
+        while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
+        return m;
     }
 
     /**
@@ -1782,7 +1791,7 @@ public class JmlParser extends JavacParser {
             pushBackModifiers = null;
         }
         partial = super.modifiersOpt(partial);
-        while (token.kind == CUSTOM || isJmlModifier()) {
+        while (S.jml() && (token.kind == CUSTOM || isJmlModifier())) {
             int lastPos = token.endPos;
             partial = jmlModifiersOpt(partial);
             storeEnd(partial, lastPos);
@@ -1827,11 +1836,11 @@ public class JmlParser extends JavacParser {
         	JmlToken jt = new JmlToken(mk, token);
         	jmlmods.add(jt);
         	jt.source = Log.instance(context).currentSourceFile();
-//        	JCAnnotation a = tokenToAnnotationAST(mk.fullAnnotation, pos(), last);
-//        	if (a != null) {
-//        		annotations.append(a);
-//        		if (pos == Position.NOPOS) pos = a.getStartPosition();
-//        	}
+        	JCAnnotation a = tokenToAnnotationAST(mk.fullAnnotation, pos(), last);
+        	if (a != null) {
+        		annotations.append(a);
+        		if (pos == Position.NOPOS) pos = a.getStartPosition();
+        	}
         	// a is null if no annotation is defined for the modifier;
         	// we just silently ignore that situation
         	// (this is true at the moment for math annotations, but could
@@ -2427,9 +2436,8 @@ public class JmlParser extends JavacParser {
     }
 
     /**
-     * This is overridden to try to get <:, <# and <=# with the right precedence
+     * This is overridden to assign JML operators the right precedence
      */
-    // FIXME - not sure this is really robust
     protected int prec(ITokenKind token) {
         if (token instanceof JmlTokenKind) {
             return jmlPrecedence((JmlTokenKind)token);
@@ -2437,7 +2445,7 @@ public class JmlParser extends JavacParser {
         return precFactor*super.prec(token);
     }
 
-    public static final int precFactor = 100;
+    public static final int precFactor = 1;
 
     public static int jmlPrecedence(JmlTokenKind tkind) {
         switch (tkind) {
@@ -2474,12 +2482,21 @@ public class JmlParser extends JavacParser {
                 return 1000;
         }
     }
+    
+    // MAINTENANCE ISSUE - (Almost) Duplicated from JavacParser.java in order to accommodate precedence of JML tokens
+    JCExpression term2() {
+        JCExpression t = term3();
+        if ((mode & EXPR) != 0 && prec(token.ikind) >= precFactor*TreeInfo.orPrec) {
+            selectExprMode();
+            return term2Rest(t, TreeInfo.orPrec);
+        } else {
+            return t;
+        }
+    }
 
-    // MAINTENANCE ISSUE - (Almost) Duplicated from JavacParser.java in order to track
-    // Jml tokens
-    protected JCExpression term2Rest(JCExpression tt, int minprec) {
-        boolean bad = tt instanceof JCErroneous;
-        JCExpression t = tt;
+
+    // MAINTENANCE ISSUE - (Almost) Duplicated from JavacParser.java in order to accommodate precedence of JML tokens
+    JCExpression term2Rest(JCExpression t, int minprec) {
         JCExpression[] odStack = newOdStack();
         Token[] opStack = newOpStack();
 
@@ -2488,54 +2505,116 @@ public class JmlParser extends JavacParser {
         odStack[0] = t;
         int startPos = token.pos;
         Token topOp = Tokens.DUMMY;
-        while (prec(S.token().ikind) >= precFactor*minprec) { // FIXME - lookahead token - presumes scanner is just one token ahead
+        while (prec(token.ikind) >= minprec) { // OPENJML
             opStack[top] = topOp;
-            top++;
-            topOp = S.token();
-            JmlTokenKind topOpJmlToken = jmlTokenKind();
-            IJmlClauseKind topOpKind = jmlTokenClauseKind();
-            nextToken(); // S.jmlToken() changes
-            odStack[top] = (topOp.kind == INSTANCEOF) ? parseType() : term3();
-            // odStack[top] is the next argument; token is the operator after that, as in [topOp] arg [token]
-            // if the precedence of [topOp] is lower than the precedence of [token] we have to read more before constructing expressions
+
+            if (token.kind == INSTANCEOF) {
+                int pos = token.pos;
+                nextToken();
+                int patternPos = token.pos;
+                JCModifiers mods = optFinal(0);
+                int typePos = token.pos;
+                JCExpression type = unannotatedType(false);
+                JCTree pattern;
+                if (token.kind == IDENTIFIER) {
+                    checkSourceLevel(token.pos, Feature.PATTERN_MATCHING_IN_INSTANCEOF);
+                    JCVariableDecl var = toP(F.at(token.pos).VarDef(mods, ident(), type, null));
+                    pattern = toP(F.at(patternPos).BindingPattern(var));
+                } else {
+                    checkNoMods(typePos, mods.flags & ~Flags.DEPRECATED);
+                    if (mods.annotations.nonEmpty()) {
+                        checkSourceLevel(mods.annotations.head.pos, Feature.TYPE_ANNOTATIONS);
+                        List<JCAnnotation> typeAnnos =
+                                mods.annotations
+                                    .map(decl -> {
+                                        JCAnnotation typeAnno = F.at(decl.pos)
+                                                                 .TypeAnnotation(decl.annotationType,
+                                                                                  decl.args);
+                                        endPosTable.replaceTree(decl, typeAnno);
+                                        return typeAnno;
+                                    });
+                        type = insertAnnotationsToMostInner(type, typeAnnos, false);
+                    }
+                    pattern = type;
+                }
+                odStack[top] = F.at(pos).TypeTest(odStack[top], pattern);
+            } else {
+                topOp = token;
+                nextToken();
+                top++;
+                odStack[top] = term3();
+            }
             int p;
-            while (top > 0 && (p=prec(topOp.ikind)) >= prec(token.ikind)) {
-//                if (topOp.kind == CUSTOM) { // <:
-//                    JCExpression e = jmlF.at(topOp.pos).JmlBinary(topOpKind, odStack[top - 1],
-//                            odStack[top]);
-//                    storeEnd(e, getEndPos(odStack[top]));
-//                    odStack[top - 1] = e;
-//                } else {
-                    var e = makeOp(topOp.pos, topOp, odStack[top - 1], odStack[top]);
-                    storeEnd(e, getEndPos(odStack[top]));
-                    odStack[top - 1] = e;
- //               }
+            while (top > 0 && (p=prec(topOp.ikind)) >= prec(token.ikind)) {  // OPENJML
+                odStack[top - 1] = makeOp(topOp.pos, topOp, odStack[top - 1], odStack[top]); // OPENJML
                 top--;
                 topOp = opStack[top];
                 if (p == precFactor*TreeInfo.ordPrec && prec(token.ikind) < precFactor*TreeInfo.ordPrec) {
-                    odStack[top] = chain(odStack[top]);
+                	odStack[top] = chain(odStack[top]);
                 }
             }
         }
-        odStack[top] = chain(odStack[top]);
-
         Assert.check(top == 0);
         t = odStack[0];
 
         if (t.hasTag(JCTree.Tag.PLUS)) {
             t = foldStrings(t);
-// FIXME: The following code is present in JavacParser.term2Rest. However, it turns noinn-string
-// string expressions into string expressions. Can't be correct.
-//            if (t != null) {
-//                t = toP(F.at(startPos).Literal(TypeTag.CLASS, t.toString()));
-//            }
         }
 
         odStackSupply.add(odStack);
         opStackSupply.add(opStack);
-        if (bad) return tt;
         return t;
     }
+    
+//    protected JCExpression term2Rest(JCExpression tt, int minprec) {
+//        boolean bad = tt instanceof JCErroneous;
+//        JCExpression t = tt;
+//        JCExpression[] odStack = newOdStack();
+//        Token[] opStack = newOpStack();
+//
+//        // optimization, was odStack = new Tree[...]; opStack = new Tree[...];
+//        int top = 0;
+//        odStack[0] = t;
+//        Token topOp = Tokens.DUMMY;
+//        while (prec(S.token().ikind) >= precFactor*minprec) { // FIXME - lookahead token - presumes scanner is just one token ahead
+//            opStack[top] = topOp;
+//            top++;
+//            topOp = S.token();
+//            nextToken(); // S.jmlToken() changes
+//            odStack[top] = (topOp.kind == INSTANCEOF) ? parseType() : term3();
+//            // odStack[top] is the next argument; token is the operator after that, as in [topOp] arg [token]
+//            // if the precedence of [topOp] is lower than the precedence of [token] we have to read more before constructing expressions
+//            int p;
+//            while (top > 0 && (p=prec(topOp.ikind)) >= prec(token.ikind)) {
+//            	var e = makeOp(topOp.pos, topOp, odStack[top - 1], odStack[top]);
+//            	storeEnd(e, getEndPos(odStack[top]));
+//            	odStack[top - 1] = e;
+//                top--;
+//                topOp = opStack[top];
+//                if (p == precFactor*TreeInfo.ordPrec && prec(token.ikind) < precFactor*TreeInfo.ordPrec) {
+//                    odStack[top] = chain(odStack[top]);
+//                }
+//            }
+//        }
+//        odStack[top] = chain(odStack[top]);
+//
+//        Assert.check(top == 0);
+//        t = odStack[0];
+//
+//        if (t.hasTag(JCTree.Tag.PLUS)) {
+//            t = foldStrings(t);
+//// FIXME: The following code is present in JavacParser.term2Rest. However, it turns noinn-string
+//// string expressions into string expressions. Can't be correct.
+////            if (t != null) {
+////                t = toP(F.at(startPos).Literal(TypeTag.CLASS, t.toString()));
+////            }
+//        }
+//
+//        odStackSupply.add(odStack);
+//        opStackSupply.add(opStack);
+//        if (bad) return tt;
+//        return t;
+//    }
 
     /** Creates a Java or JML binary operation, without type information */
     protected JCExpression makeOp(int pos,
@@ -2566,9 +2645,10 @@ public class JmlParser extends JavacParser {
                 fe = be.lhs;
                 if (!(fe instanceof JCBinary)) break;
                 be = (JCBinary)fe;
+                tag = be.getTag();
                 if (!(tag == JCTree.Tag.LT || tag == JCTree.Tag.LE)) {
                     if (tag == JCTree.Tag.GT || tag == JCTree.Tag.GE) {
-                        utils.warning(be.pos,"jml.message","Cannot chain comparisons that are in different directions");
+                        utils.error(be.pos,"jml.message","Cannot chain comparisons that are in different directions");
                     } else {
                         break;
                     }
@@ -2585,9 +2665,10 @@ public class JmlParser extends JavacParser {
                 fe = be.lhs;
                 if (!(fe instanceof JCBinary)) break;
                 be = (JCBinary)fe;
+                tag = be.getTag();
                 if (!(tag == JCTree.Tag.GT || tag== JCTree.Tag.GE)) {
                     if (tag == JCTree.Tag.LT || tag == JCTree.Tag.LE) {
-                        utils.warning(be.pos,"jml.message","Cannot chain comparisons that are in different directions");
+                        utils.error(be.pos,"jml.message","Cannot chain comparisons that are in different directions");
                     } else {
                         break;
                     }

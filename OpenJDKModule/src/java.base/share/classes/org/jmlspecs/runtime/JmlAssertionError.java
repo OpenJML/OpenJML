@@ -1,4 +1,4 @@
-package org.jmlspecs.utils;
+package org.jmlspecs.runtime;
 
 /** Error object that is thrown when any JML assertion failure is 
  * encountered (if exceptions are enabled using Utils.useExceptions)

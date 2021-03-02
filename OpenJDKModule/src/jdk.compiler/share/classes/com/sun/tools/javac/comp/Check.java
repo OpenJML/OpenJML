@@ -1510,10 +1510,6 @@ public class Check {
                     if (checkRaw)
                         checkRaw(tree, env);
                 } catch (CompletionFailure ex) {
-                	if (org.jmlspecs.openjml.Main.useJML) {
-                		System.out.println("VALIDATE-EX " + ex);
-                		ex.printStackTrace(System.out);
-                	}
                     completionError(tree.pos(), ex);
                 } finally {
                     this.checkRaw = prevCheckRaw;

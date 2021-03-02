@@ -142,8 +142,8 @@ public class TypeAnnotations {
      * This version only visits types in bodies, that is, field initializers,
      * top-level blocks, and method bodies, and should be called from Attr.
      */
-    public void organizeTypeAnnotationsBodies(JCClassDecl tree) {
-        new TypeAnnotationPositions(false).scan(tree);
+    public void organizeTypeAnnotationsBodies(JCClassDecl tree, boolean sigOnly) {
+        new TypeAnnotationPositions(sigOnly).scan(tree);
     }
 
     public enum AnnotationType { DECLARATION, TYPE, NONE, BOTH }
@@ -1249,7 +1249,7 @@ public class TypeAnnotations {
                 // Nothing to do for separateAnnotationsKinds if
                 // there are no annotations of either kind.
             } else if (tree.sym == null) {
-                Assert.error("Visiting tree node before memberEnter");
+                Assert.error("Visiting tree node before memberEnter: " + tree.name);
             } else if (tree.sym.getKind() == ElementKind.PARAMETER) {
                 // Parameters are handled in visitMethodDef or visitLambda.
             } else if (tree.sym.getKind() == ElementKind.FIELD) {

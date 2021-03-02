@@ -47,6 +47,8 @@ import com.sun.tools.javac.util.List;
 
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.openjml.JmlPretty;
+
 import java.util.*;
 
 import static com.sun.tools.javac.code.Flags.SYNTHETIC;
