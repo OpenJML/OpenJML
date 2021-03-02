@@ -935,7 +935,8 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec) {
-        utils.note(true, "            Saving method specs for " + m.enclClass() + " " + m);
+        utils.note(false, "            Saving method specs for " + m.owner + "." + m + " " + spec);
+        if ((m.owner.toString()+"."+m.toString()).equals("java.util.Map.size()")) new RuntimeException().printStackTrace(System.out);
         getSpecs(m.enclClass()).methods.put(m,spec);
     }
     
@@ -1644,8 +1645,9 @@ public class JmlSpecs {
     
     public boolean isPure(ClassSymbol symbol) {
         TypeSpecs tspecs = getSpecs(symbol);
+        if (tspecs == null) return false;
         // FIXME - the following will not find a pure annotation on the class in a .jml file.
-        if (tspecs != null && utils.findMod(tspecs.modifiers,pureAnnotationSymbol()) != null) return true;
+        if (utils.hasMod(tspecs.modifiers, Modifiers.PURE)) return true; 
         return false;
     }
     

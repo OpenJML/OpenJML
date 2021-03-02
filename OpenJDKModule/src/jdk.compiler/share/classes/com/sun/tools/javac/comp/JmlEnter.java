@@ -368,6 +368,7 @@ public class JmlEnter extends Enter {
     			}
     		}
     	} else {
+			//boolean compare = (org.jmlspecs.openjml.Main.useJML && owner.toString().endsWith("Throwable"));
         	var matched = new java.util.HashSet<JCTree>();
     		for (var decl: javaDefs) {
     			if (decl instanceof JmlClassDecl) {
@@ -397,16 +398,15 @@ public class JmlEnter extends Enter {
     				}
     			} else if (decl instanceof JmlMethodDecl) {
     				JmlMethodDecl javaDecl = (JmlMethodDecl)decl;
-					//compare = (org.jmlspecs.openjml.Main.useJML && javaDecl.name.toString().equals("get"));
 	    			//if (compare) System.out.println("MATCHING " + javaDecl + " " + javaDecl.sourcefile);
    				    x: {
     					for (var sdecl: specsDefs) {
     						if (!(sdecl instanceof JmlMethodDecl)) continue;
     						JmlMethodDecl specsDecl = (JmlMethodDecl)sdecl;
-    		    			//if (compare && "get".equals(specsDecl.name.toString())) System.out.println("TRYING " + specsDecl + " " + specsDecl.sourcefile);
+    		    			//if (compare) System.out.println("TRYING " + specsDecl.name);
     						boolean isSpecsJML = utils.isJML(specsDecl.mods);
     						if (matches(specsDecl,javaDecl)) {
-        		    			//if (compare) System.out.println("MATCHED " + specsDecl.hashCode() + " " + specsDecl);
+        		    			if (compare) System.out.println("MATCHED " + specsDecl.hashCode() + " " + specsDecl);
     							matched.add(specsDecl);
     							if (isSpecsJML) {
         							// A specification declaration matches a java declaration,
@@ -463,6 +463,7 @@ public class JmlEnter extends Enter {
     		}
     		x: for (var sdecl: specsDefs) {
     			if (matched.contains(sdecl)) continue;
+    			if (compare) System.out.println("UNMATCHED " + sdecl);
     			if (sdecl instanceof JmlClassDecl) {
     				var specDecl = (JmlClassDecl)sdecl;
     				if (utils.isJML(specDecl.mods)) {
@@ -486,6 +487,8 @@ public class JmlEnter extends Enter {
     			} else if (sdecl instanceof JmlMethodDecl) {
     				var specDecl = (JmlMethodDecl)sdecl;
     				if (utils.isJML(specDecl.mods)) {
+    					if (org.jmlspecs.openjml.Main.useJML && specDecl.name.toString().equals("standardThrowable"))
+    						System.out.println("UNMATCHED ADDING " + specDecl);
     					adds.add(sdecl);
     					specDecl.specsDecl = specDecl;
     				} else if ((owner.mods.flags & Flags.RECORD) == 0) { // FIXME - handle records
@@ -995,9 +998,13 @@ public class JmlEnter extends Enter {
     	JmlClassDecl jspec = jthat.specsDecl;
     	if (jspec == null) System.out.println("NULL SPEC FOR " + that.name);
     	
+		if (org.jmlspecs.openjml.Main.useJML && jthat.name.toString().equals("Throwable")) System.out.println("MATCHING_THROWABLE");
     	var declsToAdd = matchMembers(that, jthat.defs, jspec.defs, jspec.sourcefile);
     	if (declsToAdd.size() != 0) {
     		that.defs = that.defs.appendList(declsToAdd);
+    		if (org.jmlspecs.openjml.Main.useJML && jthat.name.toString().equals("Throwable")) {
+    			System.out.println("EXPANDED " + that);
+    		}
     	}
     	
 //    	List<JCTree> defs;
@@ -1066,6 +1073,11 @@ public class JmlEnter extends Enter {
             jthat.specsDecl.sym = that.sym;
             JmlSpecs.instance(context).putSpecs(that.sym, typeSpecs);
             
+    		if (org.jmlspecs.openjml.Main.useJML && jthat.name.toString().equals("Throwable")) {
+            for (Symbol s: that.sym.members().getSymbols()) {
+            	System.out.println("FINAL SYM " + s);
+            }
+    		}
             
 //            if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = pre;
 //            if (that.sym == null) {

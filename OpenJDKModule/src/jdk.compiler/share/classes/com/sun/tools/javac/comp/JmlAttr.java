@@ -1126,20 +1126,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         VarSymbol previousQueryContext = currentQueryContext;
         JavaFileObject prevSource = null;
         try {
-            if (jmethod.methodSpecsCombined == null) {
-                //log.getWriter(WriterKind.NOTICE).println("METHOD SPECS NOT COMBINED " + m.sym.owner + " " + m.sym);
+        	MethodSpecs ms = specs.getSpecs(m.sym);
+            if (ms == null) {
+                log.getWriter(WriterKind.NOTICE).println("METHOD SPECS NOT COMBINED " + m.sym.owner + " " + m.sym);
                         // The following line does happen with anonymous classes implementing an interface, with no constructor given
                         // but what about FINISHING SPEC CLASS
                 
                 // FIXME: this also causes the Java file's specs to be used when the specs AST has been set to null
-                jmethod.methodSpecsCombined = new JmlSpecs.MethodSpecs(jmethod); // BUG recovery?  FIXME - i think this happens with default constructors
-                specs.putSpecs(m.sym,jmethod.methodSpecsCombined);
+                ms = new JmlSpecs.MethodSpecs(jmethod); // BUG recovery?  FIXME - i think this happens with default constructors
+                jmethod.methodSpecsCombined = ms;
+                specs.putSpecs(m.sym,ms);
             }
 
             // Do this before we walk the method body
-            determineQueryAndSecret(jmethod,jmethod.methodSpecsCombined);
+            determineQueryAndSecret(jmethod,ms);
 
-            if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("ATTRIBUTING METHOD " + env.enclClass.sym + " " + m.sym);
             prevSource = log.useSource(jmethod.source());
             attribAnnotationTypes(m.mods.annotations,env); // This is needed at least for the spec files of binary classes
             annotate.flush();
@@ -1608,9 +1609,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 Env<AttrContext> prevEnv2 = env;
                 try {
                     env = localEnv;
-                    JmlSpecs.MethodSpecs sp = tree.methodSpecsCombined; // OR specs.getSpecs(env.enclMethod.sym); if we don't have a tree - FIXME
+                    JmlSpecs.MethodSpecs sp = specs.getSpecs(env.enclMethod.sym);
                     if (sp != null) sp.cases.accept(this);
-                    deSugarMethodSpecs(tree,tree.methodSpecsCombined);
+                    deSugarMethodSpecs(tree,sp);
                 } finally {
                     env = prevEnv2;
                     jmlresolve.setAllowJML(prevAllowJML);
@@ -3587,7 +3588,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         if (currentClauseType == representsClause) {
             if (!isHelper(msym)) {
-            	System.out.println("NOT A HELPER " + specs.getSpecs(msym));
                 utils.error(tree,"jml.helper.required.in.represents",msym.owner + "." + msym);
             }
         }
@@ -5542,7 +5542,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         java.util.ListIterator<MethodSymbol> iter = overrideList.listIterator(overrideList.size());
         while (iter.hasPrevious()) {
             MethodSymbol msym = iter.previous();
-            JmlMethodSpecs mspecs = specs.getDenestedSpecs(msym);
+            MethodSpecs mspecs = specs.getSpecs(msym);
             if (mspecs == null) {  // FIXME - observed to happen for in gitbug498 for JMLObjectBag.insert
                 // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
                 if (msym.toString().equals("size()") && msym.owner.toString().equals(Strings.jmlSpecsPackage + ".JMLList")) return true;
@@ -5580,12 +5580,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         MethodSpecs mspecs = specs.getSpecs(symbol);
         if (mspecs == null) {
             // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
-        	if (symbol.toString().contains("size") && org.jmlspecs.openjml.Main.useJML) System.out.println("NULLSPECS " + symbol);
             return false;
         }
-    	if (has(((JmlModifiers)mspecs.mods).jmlmods, Modifiers.HELPER)) return true;
-    	if (symbol.toString().contains("size")) System.out.println("ISHELPER " + mspecs);
-        return findMod(mspecs.mods,Modifiers.HELPER) != null || findMod(mspecs.mods,Modifiers.FUNCTION) != null;
+    	if (utils.hasMod((JmlModifiers)mspecs.mods, Modifiers.HELPER)) return true;
+    	if (utils.hasMod((JmlModifiers)mspecs.mods, Modifiers.FUNCTION)) return true;
+    	return false;
     }
     
     public boolean isGhost(VarSymbol symbol) {
