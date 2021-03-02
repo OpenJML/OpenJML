@@ -998,11 +998,10 @@ public class JmlEnter extends Enter {
     	JmlClassDecl jspec = jthat.specsDecl;
     	if (jspec == null) System.out.println("NULL SPEC FOR " + that.name);
     	
-		if (org.jmlspecs.openjml.Main.useJML && jthat.name.toString().equals("Throwable")) System.out.println("MATCHING_THROWABLE " + jspec.sourcefile + " " + jspec);
     	var declsToAdd = matchMembers(that, jthat.defs, jspec.defs, jspec.sourcefile);
     	if (declsToAdd.size() != 0) {
     		that.defs = that.defs.appendList(declsToAdd);
-    		if (org.jmlspecs.openjml.Main.useJML && jthat.name.toString().equals("CharSequence")) {
+    		if (org.jmlspecs.openjml.Main.useJML && jthat.name.toString().equals("String")) {
     			System.out.println("EXPANDED " + that);
     		}
     	}

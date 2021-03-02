@@ -5294,16 +5294,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         nullableAnnotationSymbol = modToAnnotationSymbol.get(Modifiers.NULLABLE);
     }
     
-    public void checkAnnotationType(JCTree.JCAnnotation a) {
-    	if (a.annotationType.type != null) return;
+    public boolean checkAnnotationType(JCTree.JCAnnotation a) {
+    	if (a.annotationType.type != null) return true;
     	String s = a.annotationType.toString();
     	for (var mod: modToAnnotationSymbol.entrySet()) {
     		if (mod.getKey().fullAnnotation.equals(s)) {
     			a.annotationType.type = mod.getValue().type;
     			if (a instanceof JmlAnnotation) utils.warning(((JmlAnnotation)a).sourcefile, a.pos, "jml.internal", "Had to lookup type of a annotation with null type: " + s);
-    			return;
+    			return true;
     		}
     	}
+    	if (a.toString().equals("@Deprecated")) return false; // FIXME - why is this not attributed
+    	if (a.toString().equals("@Override")) return false; // FIXME - why is this not attributed
+    	utils.error(((JmlAnnotation)a).sourcefile, a.pos, "jml.message", "Null annotation type: " + a );
+    	return false;
     }
     
     /** Checks that all of the JML annotations present in the first argument
@@ -5315,7 +5319,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     public void allAllowed(List<JCTree.JCAnnotation> annotations, ModifierKind[] allowed, String place) {
         outer: for (JCTree.JCAnnotation a: annotations) {
-        	checkAnnotationType(a); // FIXME - why might the annotation type be null?
+        	if (!checkAnnotationType(a)) return; // FIXME - why might the annotation type be null?
             Symbol tsym = a.annotationType.type.tsym;
             for (ModifierKind c: allowed) {
             	var asym = modToAnnotationSymbol.get(c);

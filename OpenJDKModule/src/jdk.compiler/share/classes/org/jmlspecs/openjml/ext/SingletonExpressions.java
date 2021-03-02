@@ -48,8 +48,13 @@ public class SingletonExpressions extends ExpressionExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
+            if (org.jmlspecs.openjml.Main.useJML && localEnv.enclMethod.restype != null) {
+            	System.out.println("ATTR-RESULT " + localEnv.enclMethod.name + " " + localEnv.enclMethod.type + " " + localEnv.enclMethod.restype + " " +  localEnv.enclMethod.restype.type);
+            	System.out.println("ENV " + attr.enclosingMethodEnv.hashCode() + " "  + attr.enclosingMethodEnv.enclMethod.hashCode() + " " + attr.enclosingMethodEnv.enclMethod.name);
+            	System.out.println("ENVV " + localEnv.hashCode() + " " + localEnv.enclMethod.hashCode() + " " + localEnv.enclMethod.name);
+            }
             syms = Symtab.instance(context);
-            JCTree.JCMethodDecl md = attr.enclosingMethodEnv.enclMethod;
+            JCTree.JCMethodDecl md = localEnv.enclMethod;
             JCTree res = md.getReturnType();
             Type t;
             if (res == null || (!res.type.isErroneous() && JmlTypes.instance(context).isSameType(res.type,syms.voidType))) {
@@ -67,6 +72,9 @@ public class SingletonExpressions extends ExpressionExtension {
                 Log.instance(context).error(that.pos+1, "jml.misplaced.result", attr.currentClauseType.name());
                 t = syms.errType;
             }
+            if (org.jmlspecs.openjml.Main.useJML) System.out.println("SINGLETON-RESULT TYPE " + t);
+            that.type = t;
+            new RuntimeException().printStackTrace(System.out);
             return t;
         }
     };

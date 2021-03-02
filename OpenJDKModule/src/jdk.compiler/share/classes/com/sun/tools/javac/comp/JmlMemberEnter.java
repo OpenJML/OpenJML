@@ -480,7 +480,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            ((JmlCheck)chk).noDuplicateWarn = was;
 //            return false;
 //        }
-    	return super.visitMethodDefHelper(tree, m, enclScope);
+    	boolean b = super.visitMethodDefHelper(tree, m, enclScope);
+        if (org.jmlspecs.openjml.Main.useJML && tree.name.toString().equals("byteArraysEqual")) {
+        	for (Symbol s: enclScope.getSymbols()) {
+        		System.out.println("JME_SCOPE " + s + " " + Utils.instance(context).isJML(s.flags()) + " " + Utils.instance(context).isJML(tree.mods));
+        	}
+        }
+        return b;
     }
 
     // FIXME _ not currently used

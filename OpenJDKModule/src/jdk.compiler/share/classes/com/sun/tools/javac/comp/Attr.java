@@ -669,13 +669,13 @@ public class Attr extends JCTree.Visitor {
                 result = argumentAttr.attribArg(tree, env);
             } else {
                 tree.accept(this);
-           }
+            }
             matchBindings = matchBindingsComputer.finishBindings(tree,
                                                                  matchBindings);
             if (tree == breakTree &&
                     resultInfo.checkContext.deferredAttrContext().mode == AttrMode.CHECK) {
                 breakTreeFound(copyEnv(env));
-           }
+            }
             return result;
         } catch (CompletionFailure ex) {
             tree.type = syms.errType;
@@ -2467,6 +2467,7 @@ public class Attr extends JCTree.Visitor {
 
             // Compute the result type.
             Type restype = mtype.getReturnType();
+
             if (restype.hasTag(WILDCARD))
                 throw new AssertionError(mtype);
 

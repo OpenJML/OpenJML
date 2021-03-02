@@ -1019,6 +1019,9 @@ public class Check {
             while (formals.head != last) {
                 JCTree arg = args.head;
                 Warner warn = convertWarner(arg.pos(), arg.type, nonInferred.head);
+                if (arg.type == null) {
+                	System.out.println("NULL ARGTYPE " + sym + " " + env.enclClass.name);
+                }
                 assertConvertible(arg, arg.type, formals.head, warn);
                 args = args.tail;
                 formals = formals.tail;
