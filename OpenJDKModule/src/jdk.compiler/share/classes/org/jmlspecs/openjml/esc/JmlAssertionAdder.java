@@ -1217,7 +1217,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (rac && JmlOption.isOption(context, JmlOption.RAC_PRECONDITION_ENTRY)) {
                 // precondition catch block
                 JCBlock tryBlock = M.at(methodDecl).Block(0, List.<JCStatement>of(outerTryStatement));
-                ClassSymbol preex = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.utils.JmlAssertionError$PreconditionEntry"));
+                ClassSymbol preex = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.runtime.JmlAssertionError$PreconditionEntry"));
                 JCVariableDecl ex = treeutils.makeVarDef(preex.type,names.fromString("_JML__ex"),methodDecl.sym,methodDecl.pos);
                 ListBuffer<JCStatement> check5 = pushBlock();
                 JCMethodInvocation m = treeutils.makeUtilsMethodCall(methodDecl.pos, "convertPrecondition", treeutils.makeIdent(methodDecl.pos,ex.sym));
@@ -2222,9 +2222,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCFieldAccess m;
         if (rac && label == Label.PRECONDITION && JmlOption.isOption(context, JmlOption.RAC_PRECONDITION_ENTRY)) {
             n = "PreconditionEntry";
-            m = findUtilsMethod(pos,org.jmlspecs.utils.Utils.ASSERTION_FAILURE_EX);
+            m = findUtilsMethod(pos,"assertionFailureE");
         } else {
-            m = findUtilsMethod(pos,org.jmlspecs.utils.Utils.ASSERTION_FAILURE);
+            m = findUtilsMethod(pos,"assertionFailureL");
         }
         JCExpression c = M.at(pos).Apply(null,m,List.<JCExpression>of(sp,treeutils.makeStringLiteral(0,n))).setType(syms.voidType);
         return M.at(pos).Exec(c);
@@ -2525,7 +2525,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCVariableDecl vd = treeutils.makeVarDef(syms.runtimeExceptionType, n, methodDecl.sym, p);
         JCIdent ex = treeutils.makeIdent(p,vd.sym);
         JCExpression str = treeutils.makeStringLiteral(p,message);
-        JCStatement st = methodCallUtilsStatement(pos,org.jmlspecs.utils.Utils.REPORT_EXCEPTION,str,ex);
+        JCStatement st = methodCallUtilsStatement(pos,"reportException",str,ex);
         JCBlock bl = M.at(pos).Block(0, 
                 st != null ? ( catchStats != null ? List.<JCStatement>of(st,catchStats) : List.<JCStatement>of(st))
                            : ( catchStats != null ? List.<JCStatement>of(catchStats) : List.<JCStatement>nil()));
@@ -12062,7 +12062,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 treeutils.copyEndPosition(eresult, that);
                 if (!rac && splitExpressions) result = eresult = newTemp(eresult);
                 return;
-            } else if (equality && maxJmlType.toString().equals("org.jmlspecs.utils.IJMLTYPE")) {
+            } else if (equality && maxJmlType.toString().equals("org.jmlspecs.runtime.IJMLTYPE")) {
                 lhs = addImplicitConversion(lhs,maxJmlType,lhs);
                 rhs = addImplicitConversion(rhs,maxJmlType,rhs);
                 if (rac) {

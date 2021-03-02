@@ -622,9 +622,9 @@ public class JavaCompiler {
      *  @param content      The characters to be parsed.
      */
     protected JCCompilationUnit parse(JavaFileObject filename, CharSequence content) {
-    	if (org.jmlspecs.openjml.Main.useJML) {
-    		System.out.println("Parsing " + filename);
-    	}
+//    	if (org.jmlspecs.openjml.Main.useJML) {
+//    		System.out.println("Parsing " + filename);
+//    	}
         long msec = now();
         JCCompilationUnit tree = make.TopLevel(List.nil());
         if (content != null) {
@@ -947,18 +947,12 @@ public class JavaCompiler {
                 classnames
             );
             
-//            if (org.jmlspecs.openjml.Main.useJML) {
-//            	System.out.println("STOPPING AFTER ENTER");
-//            	todo.clear();
-//            }
-
             // If it's safe to do so, skip attr / flow / gen for implicit classes
             if (taskListener.isEmpty() &&
                     implicitSourcePolicy == ImplicitSourcePolicy.NONE) {
                 todo.retainFiles(inputFiles);
             }
 
-            if (org.jmlspecs.openjml.Main.useJML) System.out.println("Files parsed - JavaCompiler");
             if (!CompileState.ATTR.isAfter(shouldStopPolicyIfNoError)) {
                 switch (compilePolicy) {
                 case ATTR_ONLY:
@@ -1071,7 +1065,6 @@ public class JavaCompiler {
      * Also stores a list of all top level classes in rootClasses.
      */
     public List<JCCompilationUnit> enterTrees(List<JCCompilationUnit> roots) {
-    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("Entering trees");
         //enter symbols for all files
         if (!taskListener.isEmpty()) {
             for (JCCompilationUnit unit: roots) {

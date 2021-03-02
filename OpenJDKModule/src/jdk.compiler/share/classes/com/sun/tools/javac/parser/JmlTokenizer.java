@@ -188,22 +188,22 @@ public class JmlTokenizer extends JavadocTokenizer {
         
         int ch = get(); // The @ or #, or a + or - if there are keys, or something else if it is not a JML comment
         int plusPosition = position();
-        if (ch == '#') {
-        	// Inlined Java code, but only in line comments
-        	// If the # is followed by -, then lines are skipped until another # comment
-        	// If the # is followed by white space, the content is tokenized
-            ch = next();
-            if (ch == ' ' || ch == '\t') {
-                if (!skippingTokens) return null; // Go on reading from this point in the comment
-                skippingTokens = false; // Stop skipping tokens
-                return null;
-            }
-            if (ch == '-') {
-                skippingTokens = true;
-                next();
-                return null;
-            }
-            // A non-JML comment
+        if (ch == '#') {  // FIXME - change this as it is used in Java library
+//        	// Inlined Java code, but only in line comments
+//        	// If the # is followed by -, then lines are skipped until another # comment
+//        	// If the # is followed by white space, the content is tokenized
+//            ch = next();
+//            if (ch == ' ' || ch == '\t') {
+//                if (!skippingTokens) return null; // Go on reading from this point in the comment
+//                skippingTokens = false; // Stop skipping tokens
+//                return null;
+//            }
+//            if (ch == '-') {
+//                skippingTokens = true;
+//                next();
+//                return null;
+//            }
+//            // A non-JML comment
             reset(endPos);
             return super.processComment(pos, endPos, style);
         }
@@ -258,7 +258,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                 if (isplus) foundplus = true;
                 else {
                     // negative key found - return - ignore JML comment
-                    cleanup(commentStart, endPos, style);
+                    reset(endPos);
                     return super.processComment(pos, endPos, style);
                 }
             }
@@ -273,6 +273,12 @@ public class JmlTokenizer extends JavadocTokenizer {
         // Either there were no optional keys or we found the right ones, so continue to process the comment
         
         while (accept('@')) {} // Gobble up all leading @s
+        if (!isOneOf(' ','\t')) {
+        	// Not a valid JML comment if there is not whitespace after the @.
+        	// This is to avoid processing commented out Annotations, like //@Injected or //@line
+        	reset(endPos);
+            return super.processComment(pos, endPos, style);
+        }
         
         if (jml) {
             // We are already in a JML comment - so we have an embedded comment.

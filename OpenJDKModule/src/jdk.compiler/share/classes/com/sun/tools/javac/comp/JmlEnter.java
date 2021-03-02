@@ -9,6 +9,7 @@ import java.util.Collection;
 
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
@@ -337,21 +338,23 @@ public class JmlEnter extends Enter {
         if (removed) jmltree.defs = newlist.toList();
     }
     
+    boolean compare = false;
+    
     public boolean matches(JCExpression jtype, JCExpression stype) {
-    	return Pretty.toSimpleString(jtype).equals(Pretty.toSimpleString(stype));
+    	return JmlPretty.write(jtype).equals(JmlPretty.write(stype));
     }
     
     public boolean matches(JmlMethodDecl specsDecl, JmlMethodDecl javaDecl) {
     	if (!specsDecl.name.equals(javaDecl.name)) return false;
     	if (specsDecl.params.size() != javaDecl.params.size()) return false;
-    	var jiter = specsDecl.params.iterator();
+    	var jiter = javaDecl.params.iterator();
     	var siter = specsDecl.params.iterator();
     	while (jiter.hasNext()) {
     		if (!matches(jiter.next().vartype, siter.next().vartype)) return false;
     	}
     	return true;
     }
-
+    
     public List<JCTree> matchMembers(/*@nullable*/ JCClassDecl owner, List<JCTree> javaDefs, List<JCTree> specsDefs, JavaFileObject javasource) {
     	ListBuffer<JCTree> adds = new ListBuffer<>();
     	if (javaDefs == specsDefs) {
@@ -373,7 +376,7 @@ public class JmlEnter extends Enter {
     					for (var sdecl: specsDefs) {
     						if (!(sdecl instanceof JmlClassDecl)) continue;
     						JmlClassDecl specsDecl = (JmlClassDecl)sdecl;
-    		    			boolean isSpecsJML = utils.isJML(specsDecl);
+    		    			boolean isSpecsJML = utils.isJML(specsDecl.mods);
     						if (specsDecl.name.equals(javaDecl.name)) {
     							matched.add(specsDecl);
     							if (isSpecsJML) {
@@ -381,68 +384,84 @@ public class JmlEnter extends Enter {
         							// but the specification declaration is in a JML annotation - error - but use it as a match anyway
         							utils.error(specsDecl.source(), specsDecl.pos,
         									"jml.duplicate.model",
-        									specsDecl.name,javasource);
+        									"type", specsDecl.name, javasource);
         							String s = utils.locationString(specsDecl.pos, specsDecl.source());
         							utils.error(javaDecl.source(), javaDecl.pos, "jml.associated.decl.cf", s);
     							}
     							javaDecl.specsDecl = specsDecl;
     							break x;
     						}
+    						// No specs found
     					}
     					javaDecl.specsDecl = javaDecl; // FIXME - should be default specs
     				}
     			} else if (decl instanceof JmlMethodDecl) {
     				JmlMethodDecl javaDecl = (JmlMethodDecl)decl;
-    				x: {
+					//compare = (org.jmlspecs.openjml.Main.useJML && javaDecl.name.toString().equals("get"));
+	    			//if (compare) System.out.println("MATCHING " + javaDecl + " " + javaDecl.sourcefile);
+   				    x: {
     					for (var sdecl: specsDefs) {
     						if (!(sdecl instanceof JmlMethodDecl)) continue;
     						JmlMethodDecl specsDecl = (JmlMethodDecl)sdecl;
-    		    			boolean isSpecsJML = utils.isJML(specsDecl);
+    		    			//if (compare && "get".equals(specsDecl.name.toString())) System.out.println("TRYING " + specsDecl + " " + specsDecl.sourcefile);
+    						boolean isSpecsJML = utils.isJML(specsDecl.mods);
     						if (matches(specsDecl,javaDecl)) {
+        		    			//if (compare) System.out.println("MATCHED " + specsDecl.hashCode() + " " + specsDecl);
     							matched.add(specsDecl);
     							if (isSpecsJML) {
         							// A specification declaration matches a java declaration,
         							// but the specification declaration is in a JML annotation - error - but use it as a match anyway
         							utils.error(specsDecl.source(), specsDecl.pos,
         									"jml.duplicate.model",
-        									specsDecl.name,javasource);
+        									"method",specsDecl.name,javasource);
         							String s = utils.locationString(specsDecl.pos, specsDecl.source());
         							utils.error(javaDecl.source(), javaDecl.pos, "jml.associated.decl.cf", s);
     							}
     							javaDecl.specsDecl = specsDecl;
     							break x;
     						}
+    						// No specs found
     					}
     					javaDecl.specsDecl = javaDecl; // FIXME - should be default specs
     				}
 
     			} else if (decl instanceof JmlVariableDecl) {
     				JmlVariableDecl javaDecl = (JmlVariableDecl)decl;
+    				// The parser inserts some implicit JML declarations, so a Java compilation unit
+    				// may already have some JML declarations.
+    				boolean isJavaJML = utils.isJML(javaDecl.mods);
     				x: {
     					for (var sdecl: specsDefs) {
     						if (!(sdecl instanceof JmlVariableDecl)) continue;
     						JmlVariableDecl specsDecl = (JmlVariableDecl)sdecl;
-    		    			boolean isSpecsJML = utils.isJML(specsDecl);
+    		    			boolean isSpecsJML = utils.isJML(specsDecl.mods);
     						if (specsDecl.name.equals(javaDecl.name)) {
     							matched.add(specsDecl);
-    							if (isSpecsJML) {
+    							if (isSpecsJML && !isJavaJML) {
         							// A specification declaration matches a java declaration,
         							// but the specification declaration is in a JML annotation - error - but use it as a match anyway
         							utils.error(specsDecl.source(), specsDecl.pos,
         									"jml.duplicate.model",
-        									specsDecl.name,javasource);
+        									"field",specsDecl.name,javasource);
+        							String s = utils.locationString(specsDecl.pos, specsDecl.source());
+        							utils.error(javaDecl.source(), javaDecl.pos, "jml.associated.decl.cf", s);
+    							} else if (!isSpecsJML && isJavaJML) {
+    								utils.warning(specsDecl.source(), specsDecl.pos,
+    										"jml.message",
+    										"This specification declaration should be in a JML comment to match the declaration in the Java file");
         							String s = utils.locationString(specsDecl.pos, specsDecl.source());
         							utils.error(javaDecl.source(), javaDecl.pos, "jml.associated.decl.cf", s);
     							}
     							javaDecl.specsDecl = specsDecl;
     							break x;
     						}
+    						// No specs found
     					}
     					javaDecl.specsDecl = javaDecl; // FIXME - should be default specs
     				}
     			}
     		}
-    		for (var sdecl: specsDefs) {
+    		x: for (var sdecl: specsDefs) {
     			if (matched.contains(sdecl)) continue;
     			if (sdecl instanceof JmlClassDecl) {
     				var specDecl = (JmlClassDecl)sdecl;
@@ -450,6 +469,16 @@ public class JmlEnter extends Enter {
     					adds.add(sdecl);
     					specDecl.specsDecl = specDecl;
     				} else {
+    		    		for (var sdecl2: specsDefs) {
+    		    			if (sdecl != sdecl2 && sdecl2 instanceof JmlVariableDecl && specDecl.name == ((JmlMethodDecl)sdecl2).name) {
+    	    					utils.error(specDecl.source(), sdecl.pos,
+    	    							"jml.duplicate.jml.class.decl",
+    	    							specDecl.name);
+    							String s = utils.locationString(sdecl2.pos, specDecl.source());
+    							utils.error(specDecl.source(), sdecl2.pos, "jml.associated.decl.cf", s);
+    		    				continue x;
+    		    			}
+    		    		}
     					utils.error(specDecl.source(), specDecl.pos,
     							"jml.orphan.jml.class.decl",
     							specDecl.name,javasource);
@@ -460,9 +489,21 @@ public class JmlEnter extends Enter {
     					adds.add(sdecl);
     					specDecl.specsDecl = specDecl;
     				} else if ((owner.mods.flags & Flags.RECORD) == 0) { // FIXME - handle records
-    					utils.error(specDecl.source(), specDecl.pos,
+    		    		for (var sdecl2: specsDefs) {
+    		    			if (sdecl != sdecl2 && sdecl2 instanceof JmlMethodDecl && matches(specDecl,(JmlMethodDecl)sdecl2)) {
+    	    					utils.error(specDecl.source(), sdecl.pos,
+    	    							"jml.duplicate.jml.method.decl",
+    	    							specDecl.name);
+    							String s = utils.locationString(sdecl2.pos, specDecl.source());
+    							utils.error(specDecl.source(), sdecl2.pos, "jml.associated.decl.cf", s);
+    		    				continue x;
+    		    			}
+    		    		}
+    					utils.warning(specDecl.source(), specDecl.pos,
     							"jml.no.method.match",
-    							specDecl.name,javasource);
+    							specDecl.name);
+						String s = utils.locationString(specDecl.pos, specDecl.source());
+						utils.warning(((JmlClassDecl)owner).sourcefile, owner.pos, "jml.associated.decl.cf", s);
     				}
     			} else if (sdecl instanceof JmlVariableDecl) {
     				var specDecl = (JmlVariableDecl)sdecl;
@@ -470,6 +511,16 @@ public class JmlEnter extends Enter {
     					adds.add(sdecl);
     					specDecl.specsDecl = specDecl;
     				} else if ((owner.mods.flags & Flags.RECORD) == 0) { // FIXME - handle records
+    		    		for (var sdecl2: specsDefs) {
+    		    			if (sdecl != sdecl2 && sdecl2 instanceof JmlVariableDecl && specDecl.name == ((JmlMethodDecl)sdecl2).name) {
+    	    					utils.error(specDecl.source(), sdecl.pos,
+    	    							"jml.duplicate.jml.var.decl",
+    	    							specDecl.name);
+    							String s = utils.locationString(sdecl2.pos, specDecl.source());
+    							utils.error(specDecl.source(), sdecl2.pos, "jml.associated.decl.cf", s);
+    		    				continue x;
+    		    			}
+    		    		}
     					utils.error(specDecl.source(), specDecl.pos,
     							"jml.no.var.match",
     							specDecl.name,javasource);
@@ -481,269 +532,269 @@ public class JmlEnter extends Enter {
     }
 
 
-    /** This routine matches class declarations in the specifications ('specsDefs' list) with Java declarations ('defs' list).
-     * Note that these may be top-level declarations in corresponding files; they may also be lists of nested declaration
-     * from corresponding nested locations. The composite list of declarations (to replace 'defs') is returned. Any duplicate
-     * orphan declarations are warned about. The returned 'defs' will omit duplicates and include any classes in JML specifications;
-     * thus this revised 'defs' list is the one to be submitted to 'classEnter'
-     */
-    public List<JCTree> matchClasses(List<JCTree> javaDefs, List<JCTree> specsDefs, JavaFileObject javasource) {
-        ListBuffer<JCTree> newdefs = new ListBuffer<JCTree>();
-//        if (defs !=  specsDefs) {
-//            for (JCTree tt: defs) { // Iterate over the Java classes 
-//                if (tt instanceof JmlTree.IInJML) {
-//                    if (((JmlTree.IInJML)tt).isJML()) continue;
-//                }
-//                newdefs.add(tt);
-//            }
-//        } else {
-//            newdefs.addAll(defs);
-//        }
-    	if (javaDefs == specsDefs) {
-    		for (JCTree javadef: javaDefs) {
-    			if (!(javadef instanceof JmlClassDecl)) continue;
-    			JmlClassDecl jjavadef = (JmlClassDecl)javadef;
-    			jjavadef.specsDecl = jjavadef;
-    		}
-    	} else {
-    		for (JCTree specDecl: specsDefs) {  // Iterate over the classes in the specification, to find the matching java declaration
-    			if (!(specDecl instanceof JmlClassDecl)) continue;
-    			JmlClassDecl specClassDecl = (JmlClassDecl)specDecl;
-    			boolean isSpecsJML = utils.isJML(specClassDecl.mods);
-    			if (isSpecsJML) continue; // FIXME - ignore model classes for now
-    			
-    			// The declaration 'specClassDecl' is in a specification file.
-    			// We need to find the Java declaration that it matches
-    			// There is supposed to be one, and there should only be one declaration in the specsDefs list
-    			// that matches a particular java declaration.
-    			// A Java declaration need not have a match
-    			Name name = specClassDecl.name;
-    			JmlClassDecl matched = null;
-    			for (JCTree javaDecl: javaDefs) { // Iterate over the list of Java declarations 
-    				if (!(javaDecl instanceof JmlClassDecl)) continue;
-    				JmlClassDecl jmlDecl = (JmlClassDecl)javaDecl;
-    				if (name.equals(jmlDecl.name)) {
-    					matched = jmlDecl;
-    					if (jmlDecl.specsDecl == null) {
-    						// No previous match, so far
-    						if (isSpecsJML) {
-    							// A specification declaration matches a java declaration,
-    							// but the specification declaration is in a JML annotation - error - but use it as a match anyway
-    							utils.error(specClassDecl.source(), specClassDecl.pos,
-    									"jml.duplicate.model",
-    									specClassDecl.name,javasource);
-    							String s = utils.locationString(specClassDecl.pos, specClassDecl.source());
-    							utils.error(jmlDecl.source(), jmlDecl.pos,"jml.associated.decl.cf",s);
-    							jmlDecl.specsDecl = specClassDecl; // Attach the specification to the matching Java AST
-//    						} else {
+//    /** This routine matches class declarations in the specifications ('specsDefs' list) with Java declarations ('defs' list).
+//     * Note that these may be top-level declarations in corresponding files; they may also be lists of nested declaration
+//     * from corresponding nested locations. The composite list of declarations (to replace 'defs') is returned. Any duplicate
+//     * orphan declarations are warned about. The returned 'defs' will omit duplicates and include any classes in JML specifications;
+//     * thus this revised 'defs' list is the one to be submitted to 'classEnter'
+//     */
+//    public List<JCTree> matchClasses(List<JCTree> javaDefs, List<JCTree> specsDefs, JavaFileObject javasource) {
+//        ListBuffer<JCTree> newdefs = new ListBuffer<JCTree>();
+////        if (defs !=  specsDefs) {
+////            for (JCTree tt: defs) { // Iterate over the Java classes 
+////                if (tt instanceof JmlTree.IInJML) {
+////                    if (((JmlTree.IInJML)tt).isJML()) continue;
+////                }
+////                newdefs.add(tt);
+////            }
+////        } else {
+////            newdefs.addAll(defs);
+////        }
+//    	if (javaDefs == specsDefs) {
+//    		for (JCTree javadef: javaDefs) {
+//    			if (!(javadef instanceof JmlClassDecl)) continue;
+//    			JmlClassDecl jjavadef = (JmlClassDecl)javadef;
+//    			jjavadef.specsDecl = jjavadef;
+//    		}
+//    	} else {
+//    		for (JCTree specDecl: specsDefs) {  // Iterate over the classes in the specification, to find the matching java declaration
+//    			if (!(specDecl instanceof JmlClassDecl)) continue;
+//    			JmlClassDecl specClassDecl = (JmlClassDecl)specDecl;
+//    			boolean isSpecsJML = utils.isJML(specClassDecl.mods);
+//    			if (isSpecsJML) continue; // FIXME - ignore model classes for now
+//    			
+//    			// The declaration 'specClassDecl' is in a specification file.
+//    			// We need to find the Java declaration that it matches
+//    			// There is supposed to be one, and there should only be one declaration in the specsDefs list
+//    			// that matches a particular java declaration.
+//    			// A Java declaration need not have a match
+//    			Name name = specClassDecl.name;
+//    			JmlClassDecl matched = null;
+//    			for (JCTree javaDecl: javaDefs) { // Iterate over the list of Java declarations 
+//    				if (!(javaDecl instanceof JmlClassDecl)) continue;
+//    				JmlClassDecl jmlDecl = (JmlClassDecl)javaDecl;
+//    				if (name.equals(jmlDecl.name)) {
+//    					matched = jmlDecl;
+//    					if (jmlDecl.specsDecl == null) {
+//    						// No previous match, so far
+//    						if (isSpecsJML) {
 //    							// A specification declaration matches a java declaration,
-//    							// but the declaration in the Java file is in a JML annotation, and the specification declaration is not
-//    							// Since if the specs declaration list is different than the Java declaration list, 
-//    							// any such JML annotated declarations are removed from the Java declaration list,
-//    							// this must be a case of a file containing two declarations with the same name, 
-//    							// one in a JML annotation and one not
-//    							// Issue and error and omit the JML declaration
-//    							newdefs = Utils.remove(newdefs, javaDecl);
-//    							if (defs !=  specsDefs) {
-//    								utils.error(javaDecl.source(), javaDecl.pos, "jml.internal", "Unexpected JML declaration in the Java file");
-//    							} else {
-//    								utils.error(javaDecl.source(), javaDecl.pos,"jml.duplicate.jml.class.decl", javaDecl.name);
-//    								utils.error(specClassDecl.source(), specClassDecl.pos,"jml.associated.decl.cf",
-//    										utils.locationString(javaDecl.pos, javaDecl.source()));
-//    							}
-//    						} else if (isJML && isSpecsJML) {
-//    							if (javaDecl != specClassDecl) {
-//    								// There are two declarations, both in JML annotations, with the same name
-//    								utils.error(javaDecl.source(), javaDecl.pos,"jml.duplicate.jml.class.decl", javaDecl.name);
-//    								utils.error(specClassDecl.source(), specClassDecl.pos,"jml.associated.decl.cf",
-//    										utils.locationString(javaDecl.pos, javaDecl.source()));
-//    								newdefs = Utils.remove(newdefs,specClassDecl);
-//    							} else {
-//    								// The two declarations are the same one - OK
-//    								javaDecl.specsDecl = specClassDecl;
-//    							}
-    						} else {
-    							// else OK match
-    							jmlDecl.specsDecl = specClassDecl; // Attach the specification to the matching Java AST
-    						}
-    					} else {  // Duplicate - warn and ignore
-//    						if (!isJML) {
-//    							// This less informational error message is here just to duplicate previous behavior (and the Java compiler) for Java duplicates
-//    							utils.error(specClassDecl.source(), specClassDecl.pos,"duplicate.class",specClassDecl.name);
+//    							// but the specification declaration is in a JML annotation - error - but use it as a match anyway
+//    							utils.error(specClassDecl.source(), specClassDecl.pos,
+//    									"jml.duplicate.model",
+//    									specClassDecl.name,javasource);
+//    							String s = utils.locationString(specClassDecl.pos, specClassDecl.source());
+//    							utils.error(jmlDecl.source(), jmlDecl.pos,"jml.associated.decl.cf",s);
+//    							jmlDecl.specsDecl = specClassDecl; // Attach the specification to the matching Java AST
+////    						} else {
+////    							// A specification declaration matches a java declaration,
+////    							// but the declaration in the Java file is in a JML annotation, and the specification declaration is not
+////    							// Since if the specs declaration list is different than the Java declaration list, 
+////    							// any such JML annotated declarations are removed from the Java declaration list,
+////    							// this must be a case of a file containing two declarations with the same name, 
+////    							// one in a JML annotation and one not
+////    							// Issue and error and omit the JML declaration
+////    							newdefs = Utils.remove(newdefs, javaDecl);
+////    							if (defs !=  specsDefs) {
+////    								utils.error(javaDecl.source(), javaDecl.pos, "jml.internal", "Unexpected JML declaration in the Java file");
+////    							} else {
+////    								utils.error(javaDecl.source(), javaDecl.pos,"jml.duplicate.jml.class.decl", javaDecl.name);
+////    								utils.error(specClassDecl.source(), specClassDecl.pos,"jml.associated.decl.cf",
+////    										utils.locationString(javaDecl.pos, javaDecl.source()));
+////    							}
+////    						} else if (isJML && isSpecsJML) {
+////    							if (javaDecl != specClassDecl) {
+////    								// There are two declarations, both in JML annotations, with the same name
+////    								utils.error(javaDecl.source(), javaDecl.pos,"jml.duplicate.jml.class.decl", javaDecl.name);
+////    								utils.error(specClassDecl.source(), specClassDecl.pos,"jml.associated.decl.cf",
+////    										utils.locationString(javaDecl.pos, javaDecl.source()));
+////    								newdefs = Utils.remove(newdefs,specClassDecl);
+////    							} else {
+////    								// The two declarations are the same one - OK
+////    								javaDecl.specsDecl = specClassDecl;
+////    							}
 //    						} else {
-    							utils.error(specClassDecl.source(), specClassDecl.pos, "jml.duplicate.jml.class.decl", specClassDecl.name);
-    							utils.error(specClassDecl.source(), jmlDecl.specsDecl.pos, "jml.associated.decl.cf",
-    									utils.locationString(specClassDecl.pos, specClassDecl.source()));
+//    							// else OK match
+//    							jmlDecl.specsDecl = specClassDecl; // Attach the specification to the matching Java AST
 //    						}
-//    						if (!isJML && utils.isJML(javaDecl.specsDecl.mods) && !isSpecsJML) javaDecl.specsDecl = specClassDecl;
-//    						newdefs = Utils.remove(newdefs, specClassDecl);
-    					}
-    					break;
-    				}
-    			}
-    			if (matched == null) {
-    				// This specification file is not matched, so it is like a
-    				// model class declaration. Pretend it is one.
-    				// If necessary, add information so that it appears to be declared in a JML annotation and as a model class
-    				// In any case, add it to the list of declarations to export
-
-    				if (!utils.isJML(specClassDecl.mods)) {
-    					utils.error(specClassDecl.source(), specClassDecl.pos,
-    							"jml.orphan.jml.class.decl",
-    							specClassDecl.name,javasource);
-    					utils.setJML(specClassDecl.mods);
-    					JCAnnotation x = utils.modToAnnotationAST(Modifiers.MODEL, specClassDecl.pos, specClassDecl.pos);
-    					boolean has = false;
-    					for (JCAnnotation a: specClassDecl.getModifiers().getAnnotations()) {
-    						// FIXME - this is an inadequate comparison
-    						if (((JCTree.JCFieldAccess)a.annotationType).name == ((JCTree.JCFieldAccess)x.annotationType).name) { has = true; break; }
-    					}
-    					if (!has) {
-    						specClassDecl.mods.annotations = specClassDecl.mods.getAnnotations().append(x);
-    					} else {
-    						utils.error(specClassDecl.source(), specClassDecl.pos, "jml.ghost.model.on.java");
-    					}
-    				}
-
-    				specClassDecl.specsDecl = specClassDecl; specClassDecl.env = null;
-    				newdefs.add(specClassDecl);
-    			}
-    		}
-    		for (JCTree javadef: javaDefs) {
-    			if (!(javadef instanceof JmlClassDecl)) continue;
-    			JmlClassDecl jjavadef = (JmlClassDecl)javadef;
-    			if (jjavadef.specsDecl == null) jjavadef.specsDecl = jjavadef;
-    		}
-
-        }
-        return javaDefs;
-    }
+//    					} else {  // Duplicate - warn and ignore
+////    						if (!isJML) {
+////    							// This less informational error message is here just to duplicate previous behavior (and the Java compiler) for Java duplicates
+////    							utils.error(specClassDecl.source(), specClassDecl.pos,"duplicate.class",specClassDecl.name);
+////    						} else {
+//    							utils.error(specClassDecl.source(), specClassDecl.pos, "jml.duplicate.jml.class.decl", specClassDecl.name);
+//    							utils.error(specClassDecl.source(), jmlDecl.specsDecl.pos, "jml.associated.decl.cf",
+//    									utils.locationString(specClassDecl.pos, specClassDecl.source()));
+////    						}
+////    						if (!isJML && utils.isJML(javaDecl.specsDecl.mods) && !isSpecsJML) javaDecl.specsDecl = specClassDecl;
+////    						newdefs = Utils.remove(newdefs, specClassDecl);
+//    					}
+//    					break;
+//    				}
+//    			}
+//    			if (matched == null) {
+//    				// This specification file is not matched, so it is like a
+//    				// model class declaration. Pretend it is one.
+//    				// If necessary, add information so that it appears to be declared in a JML annotation and as a model class
+//    				// In any case, add it to the list of declarations to export
+//
+//    				if (!utils.isJML(specClassDecl.mods)) {
+//    					utils.error(specClassDecl.source(), specClassDecl.pos,
+//    							"jml.orphan.jml.class.decl",
+//    							specClassDecl.name,javasource);
+//    					utils.setJML(specClassDecl.mods);
+//    					JCAnnotation x = utils.modToAnnotationAST(Modifiers.MODEL, specClassDecl.pos, specClassDecl.pos);
+//    					boolean has = false;
+//    					for (JCAnnotation a: specClassDecl.getModifiers().getAnnotations()) {
+//    						// FIXME - this is an inadequate comparison
+//    						if (((JCTree.JCFieldAccess)a.annotationType).name == ((JCTree.JCFieldAccess)x.annotationType).name) { has = true; break; }
+//    					}
+//    					if (!has) {
+//    						specClassDecl.mods.annotations = specClassDecl.mods.getAnnotations().append(x);
+//    					} else {
+//    						utils.error(specClassDecl.source(), specClassDecl.pos, "jml.ghost.model.on.java");
+//    					}
+//    				}
+//
+//    				specClassDecl.specsDecl = specClassDecl; specClassDecl.env = null;
+//    				newdefs.add(specClassDecl);
+//    			}
+//    		}
+//    		for (JCTree javadef: javaDefs) {
+//    			if (!(javadef instanceof JmlClassDecl)) continue;
+//    			JmlClassDecl jjavadef = (JmlClassDecl)javadef;
+//    			if (jjavadef.specsDecl == null) jjavadef.specsDecl = jjavadef;
+//    		}
+//
+//        }
+//        return javaDefs;
+//    }
  
-    public List<JCTree> matchFields(List<JCTree> javaDefs, List<JCTree> specsDefs, JavaFileObject javasource) {
-        ListBuffer<JCTree> newdefs = new ListBuffer<JCTree>();
-//        if (defs !=  specsDefs) {
-//            for (JCTree tt: defs) { // Iterate over the Java classes 
-//                if (tt instanceof JmlTree.IInJML) {
-//                    if (((JmlTree.IInJML)tt).isJML()) continue;
-//                }
-//                newdefs.add(tt);
-//            }
-//        } else {
-//            newdefs.addAll(defs);
-//        }
-    	if (javaDefs == specsDefs) {
-    		for (JCTree javadef: javaDefs) {
-    			if (!(javadef instanceof JmlVariableDecl)) continue;
-    			JmlVariableDecl jjavadef = (JmlVariableDecl)javadef;
-    			jjavadef.specsDecl = jjavadef;
-    		}
-    	} else {
-    		for (JCTree specDecl: specsDefs) {  // Iterate over the classes in the specification, to find the matching java declaration
-    			if (!(specDecl instanceof JmlVariableDecl)) continue;
-    			JmlVariableDecl specVarDecl = (JmlVariableDecl)specDecl;
-    			boolean isSpecsJML = utils.isJML(specVarDecl.mods);
-    			if (isSpecsJML) continue; // FIXME - ignore model/ghost fields for now
-    			
-    			// The declaration 'specClassDecl' is in a specification file.
-    			// We need to find the Java declaration that it matches
-    			// There is supposed to be one, and there should only be one declaration in the specsDefs list
-    			// that matches a particular java declaration.
-    			// A Java declaration need not have a match
-    			Name name = specVarDecl.name;
-    			JmlVariableDecl matched = null;
-    			for (JCTree javaDecl: javaDefs) { // Iterate over the list of Java declarations 
-    				if (!(javaDecl instanceof JmlVariableDecl)) continue;
-    				JmlVariableDecl jmlDecl = (JmlVariableDecl)javaDecl;
-    				if (name.equals(jmlDecl.name)) {
-    					matched = jmlDecl;
-    					if (jmlDecl.specsDecl == null) {
-    						// No previous match, so far
-    						if (isSpecsJML) {
-    							// A specification declaration matches a java declaration,
-    							// but the specification declaration is in a JML annotation - error - but use it as a match anyway
-    							utils.error(specVarDecl.source(), specVarDecl.pos,
-    									"jml.duplicate.model", // FIXME - duplicate field
-    									specVarDecl.name,javasource);
-    							String s = utils.locationString(specVarDecl.pos, specVarDecl.source());
-    							utils.error(jmlDecl.source(), jmlDecl.pos,"jml.associated.decl.cf",s);
-    							jmlDecl.specsDecl = specVarDecl; // Attach the specification to the matching Java AST
-//    						} else {
+//    public List<JCTree> matchFields(List<JCTree> javaDefs, List<JCTree> specsDefs, JavaFileObject javasource) {
+//        ListBuffer<JCTree> newdefs = new ListBuffer<JCTree>();
+////        if (defs !=  specsDefs) {
+////            for (JCTree tt: defs) { // Iterate over the Java classes 
+////                if (tt instanceof JmlTree.IInJML) {
+////                    if (((JmlTree.IInJML)tt).isJML()) continue;
+////                }
+////                newdefs.add(tt);
+////            }
+////        } else {
+////            newdefs.addAll(defs);
+////        }
+//    	if (javaDefs == specsDefs) {
+//    		for (JCTree javadef: javaDefs) {
+//    			if (!(javadef instanceof JmlVariableDecl)) continue;
+//    			JmlVariableDecl jjavadef = (JmlVariableDecl)javadef;
+//    			jjavadef.specsDecl = jjavadef;
+//    		}
+//    	} else {
+//    		for (JCTree specDecl: specsDefs) {  // Iterate over the classes in the specification, to find the matching java declaration
+//    			if (!(specDecl instanceof JmlVariableDecl)) continue;
+//    			JmlVariableDecl specVarDecl = (JmlVariableDecl)specDecl;
+//    			boolean isSpecsJML = utils.isJML(specVarDecl.mods);
+//    			if (isSpecsJML) continue; // FIXME - ignore model/ghost fields for now
+//    			
+//    			// The declaration 'specClassDecl' is in a specification file.
+//    			// We need to find the Java declaration that it matches
+//    			// There is supposed to be one, and there should only be one declaration in the specsDefs list
+//    			// that matches a particular java declaration.
+//    			// A Java declaration need not have a match
+//    			Name name = specVarDecl.name;
+//    			JmlVariableDecl matched = null;
+//    			for (JCTree javaDecl: javaDefs) { // Iterate over the list of Java declarations 
+//    				if (!(javaDecl instanceof JmlVariableDecl)) continue;
+//    				JmlVariableDecl jmlDecl = (JmlVariableDecl)javaDecl;
+//    				if (name.equals(jmlDecl.name)) {
+//    					matched = jmlDecl;
+//    					if (jmlDecl.specsDecl == null) {
+//    						// No previous match, so far
+//    						if (isSpecsJML) {
 //    							// A specification declaration matches a java declaration,
-//    							// but the declaration in the Java file is in a JML annotation, and the specification declaration is not
-//    							// Since if the specs declaration list is different than the Java declaration list, 
-//    							// any such JML annotated declarations are removed from the Java declaration list,
-//    							// this must be a case of a file containing two declarations with the same name, 
-//    							// one in a JML annotation and one not
-//    							// Issue and error and omit the JML declaration
-//    							newdefs = Utils.remove(newdefs, javaDecl);
-//    							if (defs !=  specsDefs) {
-//    								utils.error(javaDecl.source(), javaDecl.pos, "jml.internal", "Unexpected JML declaration in the Java file");
-//    							} else {
-//    								utils.error(javaDecl.source(), javaDecl.pos,"jml.duplicate.jml.class.decl", javaDecl.name);
-//    								utils.error(specClassDecl.source(), specClassDecl.pos,"jml.associated.decl.cf",
-//    										utils.locationString(javaDecl.pos, javaDecl.source()));
-//    							}
-//    						} else if (isJML && isSpecsJML) {
-//    							if (javaDecl != specClassDecl) {
-//    								// There are two declarations, both in JML annotations, with the same name
-//    								utils.error(javaDecl.source(), javaDecl.pos,"jml.duplicate.jml.class.decl", javaDecl.name);
-//    								utils.error(specClassDecl.source(), specClassDecl.pos,"jml.associated.decl.cf",
-//    										utils.locationString(javaDecl.pos, javaDecl.source()));
-//    								newdefs = Utils.remove(newdefs,specClassDecl);
-//    							} else {
-//    								// The two declarations are the same one - OK
-//    								javaDecl.specsDecl = specClassDecl;
-//    							}
-    						} else {
-    							// else OK match
-    							jmlDecl.specsDecl = specVarDecl; // Attach the specification to the matching Java AST
-    						}
-    					} else {  // Duplicate - warn and ignore
-//    						if (!isJML) {
-//    							// This less informational error message is here just to duplicate previous behavior (and the Java compiler) for Java duplicates
-//    							utils.error(specClassDecl.source(), specClassDecl.pos,"duplicate.class",specClassDecl.name);
+//    							// but the specification declaration is in a JML annotation - error - but use it as a match anyway
+//    							utils.error(specVarDecl.source(), specVarDecl.pos,
+//    									"jml.duplicate.model", // FIXME - duplicate field
+//    									specVarDecl.name,javasource);
+//    							String s = utils.locationString(specVarDecl.pos, specVarDecl.source());
+//    							utils.error(jmlDecl.source(), jmlDecl.pos,"jml.associated.decl.cf",s);
+//    							jmlDecl.specsDecl = specVarDecl; // Attach the specification to the matching Java AST
+////    						} else {
+////    							// A specification declaration matches a java declaration,
+////    							// but the declaration in the Java file is in a JML annotation, and the specification declaration is not
+////    							// Since if the specs declaration list is different than the Java declaration list, 
+////    							// any such JML annotated declarations are removed from the Java declaration list,
+////    							// this must be a case of a file containing two declarations with the same name, 
+////    							// one in a JML annotation and one not
+////    							// Issue and error and omit the JML declaration
+////    							newdefs = Utils.remove(newdefs, javaDecl);
+////    							if (defs !=  specsDefs) {
+////    								utils.error(javaDecl.source(), javaDecl.pos, "jml.internal", "Unexpected JML declaration in the Java file");
+////    							} else {
+////    								utils.error(javaDecl.source(), javaDecl.pos,"jml.duplicate.jml.class.decl", javaDecl.name);
+////    								utils.error(specClassDecl.source(), specClassDecl.pos,"jml.associated.decl.cf",
+////    										utils.locationString(javaDecl.pos, javaDecl.source()));
+////    							}
+////    						} else if (isJML && isSpecsJML) {
+////    							if (javaDecl != specClassDecl) {
+////    								// There are two declarations, both in JML annotations, with the same name
+////    								utils.error(javaDecl.source(), javaDecl.pos,"jml.duplicate.jml.class.decl", javaDecl.name);
+////    								utils.error(specClassDecl.source(), specClassDecl.pos,"jml.associated.decl.cf",
+////    										utils.locationString(javaDecl.pos, javaDecl.source()));
+////    								newdefs = Utils.remove(newdefs,specClassDecl);
+////    							} else {
+////    								// The two declarations are the same one - OK
+////    								javaDecl.specsDecl = specClassDecl;
+////    							}
 //    						} else {
-    							utils.error(specVarDecl.source(), specVarDecl.pos, "jml.duplicate.jml.class.decl", specVarDecl.name);
-    							utils.error(specVarDecl.source(), jmlDecl.specsDecl.pos, "jml.associated.decl.cf",
-    									utils.locationString(specVarDecl.pos, specVarDecl.source()));
+//    							// else OK match
+//    							jmlDecl.specsDecl = specVarDecl; // Attach the specification to the matching Java AST
 //    						}
-//    						if (!isJML && utils.isJML(javaDecl.specsDecl.mods) && !isSpecsJML) javaDecl.specsDecl = specClassDecl;
-//    						newdefs = Utils.remove(newdefs, specClassDecl);
-    					}
-    					break;
-    				}
-    			}
-    			if (matched == null) {
-    				// This specification declaration is not matched, so it is like a
-    				// model/ghost class declaration. Pretend it is one.
-    				// If necessary, add information so that it appears to be declared in a JML annotation and as a model class
-    				// In any case, add it to the list of declarations to export
-
-    				if (!utils.isJML(specVarDecl.mods)) {
-    					utils.error(specVarDecl.source(), specVarDecl.pos,
-    							"jml.orphan.jml.class.decl",
-    							specVarDecl.name,javasource);
-    					utils.setJML(specVarDecl.mods);
-    					JCAnnotation x = utils.modToAnnotationAST(Modifiers.GHOST, specVarDecl.pos, specVarDecl.pos);
-    					boolean has = false;
-    					for (JCAnnotation a: specVarDecl.getModifiers().getAnnotations()) {
-    						// FIXME - this is an inadequate comparison
-    						if (((JCTree.JCFieldAccess)a.annotationType).name == ((JCTree.JCFieldAccess)x.annotationType).name) { has = true; break; }
-    					}
-    					if (!has) {
-    						specVarDecl.mods.annotations = specVarDecl.mods.getAnnotations().append(x);
-    					} else {
-    						utils.error(specVarDecl.source(), specVarDecl.pos, "jml.ghost.model.on.java");
-    					}
-    				}
-
-    				specVarDecl.specsDecl = specVarDecl; // FIXME specVarDecl.env = null;
-    				newdefs.add(specVarDecl);
-    			}
-    		}
-        }
-        return javaDefs;
-    }
+//    					} else {  // Duplicate - warn and ignore
+////    						if (!isJML) {
+////    							// This less informational error message is here just to duplicate previous behavior (and the Java compiler) for Java duplicates
+////    							utils.error(specClassDecl.source(), specClassDecl.pos,"duplicate.class",specClassDecl.name);
+////    						} else {
+//    							utils.error(specVarDecl.source(), specVarDecl.pos, "jml.duplicate.jml.class.decl", specVarDecl.name);
+//    							utils.error(specVarDecl.source(), jmlDecl.specsDecl.pos, "jml.associated.decl.cf",
+//    									utils.locationString(specVarDecl.pos, specVarDecl.source()));
+////    						}
+////    						if (!isJML && utils.isJML(javaDecl.specsDecl.mods) && !isSpecsJML) javaDecl.specsDecl = specClassDecl;
+////    						newdefs = Utils.remove(newdefs, specClassDecl);
+//    					}
+//    					break;
+//    				}
+//    			}
+//    			if (matched == null) {
+//    				// This specification declaration is not matched, so it is like a
+//    				// model/ghost class declaration. Pretend it is one.
+//    				// If necessary, add information so that it appears to be declared in a JML annotation and as a model class
+//    				// In any case, add it to the list of declarations to export
+//
+//    				if (!utils.isJML(specVarDecl.mods)) {
+//    					utils.error(specVarDecl.source(), specVarDecl.pos,
+//    							"jml.orphan.jml.class.decl",
+//    							specVarDecl.name,javasource);
+//    					utils.setJML(specVarDecl.mods);
+//    					JCAnnotation x = utils.modToAnnotationAST(Modifiers.GHOST, specVarDecl.pos, specVarDecl.pos);
+//    					boolean has = false;
+//    					for (JCAnnotation a: specVarDecl.getModifiers().getAnnotations()) {
+//    						// FIXME - this is an inadequate comparison
+//    						if (((JCTree.JCFieldAccess)a.annotationType).name == ((JCTree.JCFieldAccess)x.annotationType).name) { has = true; break; }
+//    					}
+//    					if (!has) {
+//    						specVarDecl.mods.annotations = specVarDecl.mods.getAnnotations().append(x);
+//    					} else {
+//    						utils.error(specVarDecl.source(), specVarDecl.pos, "jml.ghost.model.on.java");
+//    					}
+//    				}
+//
+//    				specVarDecl.specsDecl = specVarDecl; // FIXME specVarDecl.env = null;
+//    				newdefs.add(specVarDecl);
+//    			}
+//    		}
+//        }
+//        return javaDefs;
+//    }
     
 
 //    /**

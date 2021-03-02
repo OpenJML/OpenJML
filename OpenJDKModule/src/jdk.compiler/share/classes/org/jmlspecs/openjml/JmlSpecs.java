@@ -1078,6 +1078,8 @@ public class JmlSpecs {
             JCModifiers csm = M.at(pos).Modifiers(mods.flags & Flags.AccessFlags);
             com.sun.tools.javac.util.List<JmlMethodClause> clauses;
             if (sym.name.equals(names.values)) {
+                clauses = com.sun.tools.javac.util.List.<JmlMethodClause>nil();
+
                 // Default specs for the values() method of an Enum
                 // public behavior
                 //    [requires true;]
@@ -1089,23 +1091,23 @@ public class JmlSpecs {
                 //    ensures \result.length == <number of elements in enum>
                 //    for the ith enum item    ensures _JMLvalues[i] == item   // TODO
                 
-                Name nv = names.fromString("_JMLvalues");
-                JCFieldAccess valf = treeutils.makeSelect(pos, treeutils.makeIdent(pos, sym.owner), nv);
-                valf.type = res.type;
-                for (Symbol s: sym.owner.getEnclosedElements()) {
-                    if (s.name == nv) {
-                        valf.sym = s;
-                    }
-                }
-                JCExpression fa = treeutils.makeArrayLength(pos, res); // \result.length
-                JCBinary len = M.at(pos).Binary(JCTree.Tag.EQ, fa, treeutils.makeIntLiteral(pos,count).setType(syms.intType));
-                len.operator = treeutils.inteqSymbol;
-                len.setType(syms.booleanType);  // len: // \result.length == [[count]]
-                JmlMethodClauseExpr enn = new JmlTree.JmlMethodClauseExpr(pos, ensuresID, ensuresClauseKind,len); // ensures \result.length == [[count]]
-                JCExpression val = treeutils.makeEqObject(pos, res, valf);
-                // ensures \result == <Enum>._JMLvalues;
-                JmlMethodClause cval = M.at(pos).JmlMethodClauseExpr(ensuresID, ensuresClauseKind,val);
-                clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,enn,clp,clpa,sig,cval);
+//                Name nv = names.fromString("_JMLvalues");
+//                JCFieldAccess valf = treeutils.makeSelect(pos, treeutils.makeIdent(pos, sym.owner), nv);
+//                valf.type = res.type;
+//                for (Symbol s: sym.owner.getEnclosedElements()) {
+//                    if (s.name == nv) {
+//                        valf.sym = s;
+//                    }
+//                }
+//                JCExpression fa = treeutils.makeArrayLength(pos, res); // \result.length
+//                JCBinary len = M.at(pos).Binary(JCTree.Tag.EQ, fa, treeutils.makeIntLiteral(pos,count).setType(syms.intType));
+//                len.operator = treeutils.inteqSymbol;
+//                len.setType(syms.booleanType);  // len: // \result.length == [[count]]
+//                JmlMethodClauseExpr enn = new JmlTree.JmlMethodClauseExpr(pos, ensuresID, ensuresClauseKind,len); // ensures \result.length == [[count]]
+//                JCExpression val = treeutils.makeEqObject(pos, res, valf);
+//                // ensures \result == <Enum>._JMLvalues;
+//                JmlMethodClause cval = M.at(pos).JmlMethodClauseExpr(ensuresID, ensuresClauseKind,val);
+//                clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,enn,clp,clpa,sig,cval);
                 // FIXME - need to add a helper, pure annotation
                 
             } else if (sym.name.equals(names.valueOf)) {

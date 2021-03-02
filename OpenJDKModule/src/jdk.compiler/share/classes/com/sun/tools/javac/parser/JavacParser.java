@@ -579,6 +579,7 @@ public class JavacParser implements Parser {
     }
 
     protected Name ident(boolean allowClass) {
+
         if (token.kind == IDENTIFIER) {
             Name name = token.name();
             nextToken();
@@ -4586,7 +4587,7 @@ public class JavacParser implements Parser {
      * first parses the type {@code String @A []} then inserts
      * a new array level with {@code @B} annotation.
      */
-    private JCExpression insertAnnotationsToMostInner(
+    protected JCExpression insertAnnotationsToMostInner( // OPENJML - private to protected
             JCExpression type, List<JCAnnotation> annos,
             boolean createNewLevel) {
         int origEndPos = getEndPos(type);

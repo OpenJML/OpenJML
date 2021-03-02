@@ -669,7 +669,7 @@ public class Attr extends JCTree.Visitor {
                 result = argumentAttr.attribArg(tree, env);
             } else {
                 tree.accept(this);
-            }
+           }
             matchBindings = matchBindingsComputer.finishBindings(tree,
                                                                  matchBindings);
             if (tree == breakTree &&
@@ -745,7 +745,7 @@ public class Attr extends JCTree.Visitor {
         Type result = attribTree(tree, env, statInfo);
         analyzer.analyzeIfNeeded(tree, analyzeEnv);
         attrRecover.doRecovery();
-        return result;
+    	return result;
     }
 
     /** Attribute a list of expressions, returning a list of types.
@@ -1230,7 +1230,8 @@ public class Attr extends JCTree.Visitor {
                 annotate.flush();
 
                 // Attribute method body.
-                attribStat(tree.body, localEnv);
+                if (attributeBody(localEnv))   // OPENJML
+                	attribStat(tree.body, localEnv);
             }
 
             localEnv.info.scope.leave();
@@ -4306,6 +4307,7 @@ public class Attr extends JCTree.Visitor {
                 } else {
                     // We are seeing a plain identifier as selector.
                     Symbol sym = rs.findIdentInType(pos, env, site, name, resultInfo.pkind);
+
                         sym = rs.accessBase(sym, pos, location, site, name, true);
                     return sym;
                 }
@@ -5384,11 +5386,15 @@ public class Attr extends JCTree.Visitor {
         }
         if (allowTypeAnnos) {
             // Correctly organize the positions of the type annotations
-            typeAnnotations.organizeTypeAnnotationsBodies(tree);
+            typeAnnotations.organizeTypeAnnotationsBodies(tree, !attributeBody(env));
 
             // Check type annotations applicability rules
             validateTypeAnnotations(tree, false);
         }
+    }
+    
+    protected boolean attributeBody(Env<AttrContext> env) {
+    	return true;
     }
         // where
         /** get a diagnostic position for an attribute of Type t, or null if attribute missing */

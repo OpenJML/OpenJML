@@ -2,6 +2,7 @@ package org.jmlspecs.utils;
 
 public class Utils {
 
+	public static final String RUNTIME = "org.jmlspecs.runtime";
     public static final String ASSERTION_FAILURE = "assertionFailureL"; // Must match the method name
     public static final String ASSERTION_FAILURE_EX = "assertionFailureE"; // Must match the method name
     public static final String REPORT_EXCEPTION = "reportException"; // must match method name

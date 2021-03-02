@@ -988,7 +988,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         }
         println();
         align();
-        printAnnotations(mods.annotations);
+        super.printModifiers(mods);
     }
     
     public void printStatementSpecs(List<JmlStatementLoop> loopspecs) throws IOException {

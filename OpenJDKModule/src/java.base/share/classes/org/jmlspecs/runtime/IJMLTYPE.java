@@ -1,4 +1,4 @@
-package org.jmlspecs.utils;
+package org.jmlspecs.runtime;
 
 
 /** The runtime representation of the \TYPE type in JML.

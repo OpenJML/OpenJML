@@ -129,6 +129,7 @@ module java.base {
     exports javax.security.cert;
     exports org.jmlspecs.annotation;
     exports org.jmlspecs.lang;
+    exports org.jmlspecs.runtime;
 
 
     // additional qualified exports may be inserted at build time
