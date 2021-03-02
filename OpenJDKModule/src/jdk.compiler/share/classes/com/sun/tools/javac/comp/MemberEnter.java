@@ -181,6 +181,10 @@ public class MemberEnter extends JCTree.Visitor {
         MethodSymbol m = new MethodSymbol(0, tree.name, null, enclScope.owner);
         m.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, m, tree);
         tree.sym = m;
+        
+        if (org.jmlspecs.openjml.Main.useJML && tree.name.toString().equals("byteArraysEqual")) {
+        	System.out.println("ME_VMD " + tree);
+        }
 
         //if this is a default method, add the DEFAULT flag to the enclosing interface
         if ((tree.mods.flags & DEFAULT) != 0) {
@@ -211,6 +215,10 @@ public class MemberEnter extends JCTree.Visitor {
             params.append(Assert.checkNonNull(param.sym));
         }
         m.params = params.toList();
+        if (org.jmlspecs.openjml.Main.useJML && tree.name.toString().equals("byteArraysEqual")) {
+        	System.out.println("ME_VMD-TYPES " + tree.params.head.type + " " + tree.params.tail.head.type + " " + tree.restype);
+        	System.out.println("ME_VMD-TYPEZ " + m.params.head.type + " " + m.params.tail.head.type + " " + m.type);
+        }
 
         // mark the method varargs, if necessary
         if (lastParam != null && (lastParam.mods.flags & Flags.VARARGS) != 0)
@@ -331,7 +339,10 @@ public class MemberEnter extends JCTree.Visitor {
 
     // OPENJML - added to allow overriding some functionality
     protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, WriteableScope enclScope) {
-        if (chk.checkUnique(tree.pos(), m, enclScope)) {
+        if (org.jmlspecs.openjml.Main.useJML && tree.name.toString().equals("byteArraysEqual")) {
+        	System.out.println("ME_VMDH " + m);
+        }
+       if (chk.checkUnique(tree.pos(), m, enclScope)) {
             enclScope.enter(m);
             return true;
         } else {

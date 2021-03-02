@@ -2810,8 +2810,7 @@ public class JmlTree {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlSingleton(this); 
             } else {
-                //System.out.println("A JmlSingleton expects an IJmlVisitor, not a " + v.getClass());
-                //super.accept(v);
+                v.visitTree(this);
             }
         }
 
@@ -2845,8 +2844,7 @@ public class JmlTree {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlSetComprehension(this); 
             } else {
-                //System.out.println("A JmlSetComprehension expects an IJmlVisitor, not a " + v.getClass());
-                // super.accept(v);
+                v.visitTree(this);
             }
         }
     
@@ -2906,7 +2904,6 @@ public class JmlTree {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlSpecificationCase(this); 
             } else {
-                //System.out.println("A JmlSpecificationCase expects an IJmlVisitor, not a " + v.getClass());
                 super.accept(v);
             }
         }
@@ -2916,7 +2913,6 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlSpecificationCase(this, d);
             } else {
-                //System.out.println("A JmlSpecificationCase expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);
             }
         }

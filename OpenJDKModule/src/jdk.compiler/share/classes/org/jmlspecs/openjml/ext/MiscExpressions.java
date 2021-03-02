@@ -145,7 +145,8 @@ public class MiscExpressions extends ExpressionExtension {
                     Log.instance(context).error(tree.pos+1, "jml.misplaced.token", name(), attr.currentClauseType == null ? "jml declaration" : attr.currentClauseType.name());
                 }
             }
-            return Symtab.instance(context).booleanType;
+            expr.type = Symtab.instance(context).booleanType;
+            return expr.type;
         }
     };
 

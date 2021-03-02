@@ -257,6 +257,7 @@ public class JmlTypes extends Types {
             if (s == BIGINT && repSym(BIGINT) == t.tsym) return true;
             if (s == REAL && isNumeric(t)) return true;
             if (s == REAL && repSym(REAL) == t.tsym) return true;
+            return false;
         }
         return super.isConvertible(t, s, warn);
     }

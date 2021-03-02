@@ -933,7 +933,7 @@ public class JmlParser extends JavacParser {
                             JmlMethodDecl md = (JmlMethodDecl)t.head;
                             if (utils.hasMod(md.mods,Modifiers.MODEL)
                                     && (md.mods.flags & Flags.STATIC) == 0) {
-                               // FIXME - ?  md.mods.flags |= Flags.DEFAULT; // FIXME - should be marking this as instance, not default
+                               md.mods.flags |= Flags.DEFAULT; // Mark a model method as DEFAULT, so subclasses are not required to have an implementation
                             }
                         }
                     }
