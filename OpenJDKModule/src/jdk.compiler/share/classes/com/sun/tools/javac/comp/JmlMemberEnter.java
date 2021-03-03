@@ -481,11 +481,16 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            return false;
 //        }
     	boolean b = super.visitMethodDefHelper(tree, m, enclScope);
-        if (org.jmlspecs.openjml.Main.useJML && tree.name.toString().equals("byteArraysEqual")) {
-        	for (Symbol s: enclScope.getSymbols()) {
-        		System.out.println("JME_SCOPE " + s + " " + Utils.instance(context).isJML(s.flags()) + " " + Utils.instance(context).isJML(tree.mods));
-        	}
-        }
+//        if (org.jmlspecs.openjml.Main.useJML) {
+//        	String n = tree.name.toString();
+//        	if (n.equals("initialHashtable") || m.owner.toString().contains("Hashtable")
+//        			) {
+//       
+//        	for (Symbol s: enclScope.getSymbols()) {
+//        		System.out.println("JME_SCOPE " + s + " " + s.owner + " " + Utils.instance(context).isJML(s.flags()));
+//        	}
+//        	}
+//        }
         return b;
     }
 

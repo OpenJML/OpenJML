@@ -273,7 +273,7 @@ public class JmlTokenizer extends JavadocTokenizer {
         // Either there were no optional keys or we found the right ones, so continue to process the comment
         
         while (accept('@')) {} // Gobble up all leading @s
-        if (!isOneOf(' ','\t')) {
+        if (!(isOneOf(' ','\t') || (style == CommentStyle.BLOCK && isOneOf('\n','\r')))) {
         	// Not a valid JML comment if there is not whitespace after the @.
         	// This is to avoid processing commented out Annotations, like //@Injected or //@line
         	reset(endPos);

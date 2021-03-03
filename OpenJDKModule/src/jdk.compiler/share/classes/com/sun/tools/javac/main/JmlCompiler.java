@@ -151,7 +151,6 @@ public class JmlCompiler extends JavaCompiler {
 //        }
 //    }
     
-    
     /** Parses the specs for a class - used when we need the specs corresponding to a binary file;
      * this may only be called for public top-level classes (the specs for non-public or
      * nested classes are part of the same file with the corresponding public class).
