@@ -678,6 +678,7 @@ public class JavaCompiler {
      *  @param filename     The name of the file to be parsed.
      */
     public JCTree.JCCompilationUnit parse(JavaFileObject filename) {
+    	//if (org.jmlspecs.openjml.Main.useJML) System.out.println("Parsing " + filename);
         JavaFileObject prev = log.useSource(filename);
         try {
             JCTree.JCCompilationUnit t = parse(filename, readSource(filename));

@@ -2362,6 +2362,7 @@ public class Attr extends JCTree.Visitor {
         // The types of the actual method type arguments.
         List<Type> typeargtypes = null;
 
+        if (tree.meth == null) System.out.println("APPLY " + tree);
         Name methName = TreeInfo.name(tree.meth);
 
         boolean isConstructorCall =

@@ -32,9 +32,10 @@ public class JmlOperators extends Operators {
     	if (op1.toString().equals("\\bigint") || op2.toString().equals("\\bigint")) { // FIXME - compare types directly?
     		JmlType BIGINT = JmlTypes.instance(context).BIGINT;
     		Name n = operatorName(tag);
+    		String nt = n + "(\\bigint,\\bigint)";
     		for (var s: syms.predefClass.members().getSymbolsByName(n, s -> s instanceof OperatorSymbol)) {
     			OperatorSymbol op = (OperatorSymbol)s;
-    			if (op.params.head.type == BIGINT) return op;
+    			if (op.toString().equals(nt)) return op;
     		}
     		return super.resolveBinary(pos,  tag,  BIGINT, BIGINT);
     	}

@@ -3316,6 +3316,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     
     public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
+    	//if (org.jmlspecs.openjml.Main.useJML) System.out.println("SPECCASE " + tree);
         JavaFileObject old = log.useSource(tree.sourcefile);
         Env<AttrContext> localEnv = null;
         Env<AttrContext> prevEnv = env;
@@ -5300,7 +5301,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	for (var mod: modToAnnotationSymbol.entrySet()) {
     		if (mod.getKey().fullAnnotation.equals(s)) {
     			a.annotationType.type = mod.getValue().type;
-    			if (a instanceof JmlAnnotation) utils.warning(((JmlAnnotation)a).sourcefile, a.pos, "jml.internal", "Had to lookup type of a annotation with null type: " + s);
+// FIXME    			if (a instanceof JmlAnnotation) utils.warning(((JmlAnnotation)a).sourcefile, a.pos, "jml.internal", "Had to lookup type of a annotation with null type: " + s);
     			return true;
     		}
     	}

@@ -2298,8 +2298,7 @@ public class JmlTree {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlMethodInvocation(this); 
             } else {
-                //System.out.println("A JmlVariableDecl expects an IJmlVisitor, not a " + v.getClass());
-                super.accept(v);
+                v.visitTree(this);
             }
         }
     
