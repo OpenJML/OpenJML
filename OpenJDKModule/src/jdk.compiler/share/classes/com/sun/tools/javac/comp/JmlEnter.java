@@ -341,7 +341,9 @@ public class JmlEnter extends Enter {
     boolean compare = false;
     
     public boolean matches(JCExpression jtype, JCExpression stype) {
-    	return JmlPretty.write(jtype).equals(JmlPretty.write(stype));
+    	String a = JmlPretty.write(jtype);
+    	String b = JmlPretty.write(stype);
+    	return a.equals(b) || a.endsWith(b) || b.endsWith(a);
     }
     
     public boolean matches(JmlMethodDecl specsDecl, JmlMethodDecl javaDecl) {
@@ -487,8 +489,8 @@ public class JmlEnter extends Enter {
     			} else if (sdecl instanceof JmlMethodDecl) {
     				var specDecl = (JmlMethodDecl)sdecl;
     				if (utils.isJML(specDecl.mods)) {
-    					if (org.jmlspecs.openjml.Main.useJML && specDecl.name.toString().equals("standardThrowable"))
-    						System.out.println("UNMATCHED ADDING " + specDecl);
+//    					if (org.jmlspecs.openjml.Main.useJML && specDecl.name.toString().equals("standardThrowable"))
+//    						System.out.println("UNMATCHED ADDING " + specDecl);
     					adds.add(sdecl);
     					specDecl.specsDecl = specDecl;
     				} else if ((owner.mods.flags & Flags.RECORD) == 0) { // FIXME - handle records
@@ -1001,9 +1003,9 @@ public class JmlEnter extends Enter {
     	var declsToAdd = matchMembers(that, jthat.defs, jspec.defs, jspec.sourcefile);
     	if (declsToAdd.size() != 0) {
     		that.defs = that.defs.appendList(declsToAdd);
-    		if (org.jmlspecs.openjml.Main.useJML && jthat.name.toString().equals("String")) {
-    			System.out.println("EXPANDED " + that);
-    		}
+//    		if (org.jmlspecs.openjml.Main.useJML && jthat.name.toString().equals("String")) {
+//    			System.out.println("EXPANDED " + that);
+//    		}
     	}
     	
 //    	List<JCTree> defs;
@@ -1071,12 +1073,6 @@ public class JmlEnter extends Enter {
             var typeSpecs = new JmlSpecs.TypeSpecs(jspec);
             jthat.specsDecl.sym = that.sym;
             JmlSpecs.instance(context).putSpecs(that.sym, typeSpecs);
-            
-    		if (org.jmlspecs.openjml.Main.useJML && jthat.name.toString().equals("Throwable")) {
-            for (Symbol s: that.sym.members().getSymbols()) {
-            	System.out.println("FINAL SYM " + s);
-            }
-    		}
             
 //            if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = pre;
 //            if (that.sym == null) {
