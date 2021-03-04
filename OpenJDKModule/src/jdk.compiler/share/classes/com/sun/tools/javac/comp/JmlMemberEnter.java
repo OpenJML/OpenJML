@@ -1976,14 +1976,15 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 ////        ((JmlCheck)chk).noDuplicateWarn = false;
         JavaFileObject prevSource = log.useSource( ((JmlVariableDecl)tree).source());
         super.visitVarDef(tree);
-        log.useSource(prevSource);
         
         if (tree.sym.owner instanceof ClassSymbol) {
         	// local variables and parameters do not have entries in specs
-        	var fs = ((JmlVariableDecl)tree).specsDecl.fieldSpecs;
+        	var jtree = (JmlVariableDecl)tree;
+        	var fs = jtree.specsDecl.fieldSpecs;
         	((JmlVariableDecl)tree).specsDecl.sym = tree.sym;
         	if (tree.sym != null) JmlSpecs.instance(context).putSpecs(tree.sym, fs);
         }
+        log.useSource(prevSource);
 
 
 
@@ -2016,7 +2017,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        }
     }
     
-    protected void visitFieldDefHelper(JCVariableDecl tree, VarSymbol v, WriteableScope enclScope) {
+    protected void visitFieldDefHelper(JCVariableDecl tree, VarSymbol v, WriteableScope enclScope, Env<AttrContext> env, List<JCAnnotation> annotations) {
 //        if (chk.checkUnique(tree.pos(), v, enclScope)) {
 //            chk.checkTransparentVar(tree.pos(), v, enclScope);
 //            if (!noEntering) enclScope.enter(v);
@@ -2025,7 +2026,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            // give it its symbol so later processing does not crash.
 //            tree.sym = v;
 //        }
-    	super.visitFieldDefHelper(tree, v, enclScope);
+       	if (tree.sym.owner instanceof ClassSymbol && tree != ((JmlVariableDecl)tree).specsDecl) {
+    		annotations = annotations.appendList(((JmlVariableDecl)tree).specsDecl.mods.annotations);
+    	}
+    	super.visitFieldDefHelper(tree, v, enclScope, env, annotations);
     }    
     
 //    protected void enterSpecsForBinaryFields(ClassSymbol parent, JmlVariableDecl specstree) {

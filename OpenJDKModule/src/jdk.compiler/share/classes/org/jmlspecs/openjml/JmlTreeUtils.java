@@ -301,12 +301,13 @@ public class JmlTreeUtils {
      * @return the symbol of the operator
      */
     public OperatorSymbol findBinOpSymbol(JCTree.Tag optag, Type lhstype, Type rhstype) {
-    	try {
+//    	try {
         	OperatorSymbol sym = operators.resolveBinary(null, optag, lhstype, rhstype);
     		if (sym != null) return sym;
-    	} catch (Exception e) {
-    		// fall through
-    	}
+//    	} catch (Exception e) {
+//    		System.out.println("FBOPSYM " + e);
+//    		// fall through
+//    	}
 		throw new JmlInternalError("The operation symbol " + Pretty.operatorName(optag) + " for type " + lhstype + " " + rhstype + " could not be resolved");
     }
     
@@ -315,6 +316,7 @@ public class JmlTreeUtils {
     		OperatorSymbol sym = operators.resolveUnary(null, optag, argtype);
     		if (sym != null) return sym;
     	} catch (Exception e) {
+    		System.out.println("FUOPSYM " + e);
     		// fall through
     	}
         throw new JmlInternalError("The operation symbol " + Pretty.operatorName(optag) + " for type " + argtype + " could not be resolved");

@@ -5388,10 +5388,10 @@ public class Attr extends JCTree.Visitor {
         }
         if (allowTypeAnnos) {
             // Correctly organize the positions of the type annotations
-            typeAnnotations.organizeTypeAnnotationsBodies(tree, !attributeBody(env));
+            typeAnnotations.organizeTypeAnnotationsBodies(tree, false);
 
             // Check type annotations applicability rules
-            validateTypeAnnotations(tree, false);
+            validateTypeAnnotations(tree, !attributeBody(env)); // OPENJML - allow skipping body
         }
     }
     

@@ -310,7 +310,7 @@ public class MemberEnter extends JCTree.Visitor {
                 v.setLazyConstValue(initEnv(tree, initEnv), attr, tree);
             }
         }
-        visitFieldDefHelper(tree, v, enclScope); // OPENJML - added to allow overriding some functionality
+        visitFieldDefHelper(tree, v, enclScope, localEnv, tree.mods.annotations); // OPENJML - added to allow overriding some functionality
 /*
         if (chk.checkUnique(tree.pos(), v, enclScope)) {
             chk.checkTransparentVar(tree.pos(), v, enclScope);
@@ -321,7 +321,6 @@ public class MemberEnter extends JCTree.Visitor {
         }
 */
 
-        annotate.annotateLater(tree.mods.annotations, localEnv, v, tree.pos());
         if (!tree.isImplicitlyTyped()) {
             annotate.queueScanTreeAndTypeAnnotate(tree.vartype, localEnv, v, tree.pos());
         }
@@ -340,7 +339,7 @@ public class MemberEnter extends JCTree.Visitor {
     }
 
     // OPENJML - added to allow overriding some functionality
-    protected void visitFieldDefHelper(JCVariableDecl tree, VarSymbol v, WriteableScope enclScope) {
+    protected void visitFieldDefHelper(JCVariableDecl tree, VarSymbol v, WriteableScope enclScope, Env<AttrContext> env, List<JCAnnotation> annotations) {
         if (chk.checkUnique(tree.pos(), v, enclScope)) {
             chk.checkTransparentVar(tree.pos(), v, enclScope);
             enclScope.enter(v);
@@ -348,6 +347,7 @@ public class MemberEnter extends JCTree.Visitor {
             // if this is a parameter or a field obtained from a record component, enter it
             enclScope.enter(v);
         }
+        annotate.annotateLater(annotations, env, v, tree.pos());
     }
 
     // where
