@@ -2465,7 +2465,6 @@ public class Attr extends JCTree.Visitor {
             Type mpt = newMethodTemplate(resultInfo.pt, argtypes, typeargtypes);
             localEnv.info.pendingResolutionPhase = null;
             Type mtype = attribTree(tree.meth, localEnv, new ResultInfo(kind, mpt, resultInfo.checkContext));
-
             // Compute the result type.
             Type restype = mtype.getReturnType();
 
@@ -2487,6 +2486,7 @@ public class Attr extends JCTree.Visitor {
         }
         chk.validate(tree.typeargs, localEnv);
     }
+    
     //where
         Type adjustMethodReturnType(Symbol msym, Type qualifierType, Name methodName, List<Type> argtypes, Type restype) {
             if (msym != null &&
@@ -5466,7 +5466,7 @@ public class Attr extends JCTree.Visitor {
         return types.capture(type);
     }
 
-    private void setSyntheticVariableType(JCVariableDecl tree, Type type) {
+    protected void setSyntheticVariableType(JCVariableDecl tree, Type type) { // OPENJML - private to protected
         if (type.isErroneous()) {
             tree.vartype = make.at(Position.NOPOS).Erroneous();
         } else {

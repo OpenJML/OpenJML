@@ -1957,7 +1957,7 @@ public final class System {
      */
     private static Properties createProperties(Map<String, String> initialProps) {
         Properties properties = new Properties(initialProps.size());
-        for (Map.Entry<String,String> entry : initialProps.entrySet()) {
+        for (var entry : initialProps.entrySet()) {
             String prop = entry.getKey();
             switch (prop) {
                 // Do not add private system properties to the Properties

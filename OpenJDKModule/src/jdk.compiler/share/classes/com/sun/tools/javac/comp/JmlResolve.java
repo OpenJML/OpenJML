@@ -17,6 +17,8 @@ import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.comp.Resolve.RecoveryLoadClass;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.JmlType;
+import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.Pretty;
 import com.sun.tools.javac.tree.TreeInfo;
@@ -320,6 +322,24 @@ public class JmlResolve extends Resolve {
                     bestSoFar, useVarargs, operator);
         }
         return bestSoFar;
+    }
+    
+    // This actually only works for a simple case: where all the arguments are BIGINT
+    @Override
+    protected boolean signatureMoreSpecific(List<Type> actuals, Env<AttrContext> env, Type site, Symbol m1, Symbol m2, boolean useVarargs) {
+    	JmlTypes jmltypes = JmlTypes.instance(context);
+    	x: {
+    		var m1types = m1.type.getParameterTypes().iterator();
+    		var m2types = m2.type.getParameterTypes().iterator();
+    		while (m1types.hasNext() && m2types.hasNext()) {
+    			var m1t = m1types.next();
+    			var m2t = m2types.next();
+    			if (!(m1t instanceof JmlType || m2t instanceof JmlType)) break x;
+    			if (!(m2t == jmltypes.BIGINT && (m1t == jmltypes.BIGINT || m1t.isIntegral()))) break x;
+    		}
+			if (!m1types.hasNext() && !m2types.hasNext()) return true;
+    	}
+    	return super.signatureMoreSpecific(actuals, env, site, m1, m2, useVarargs);
     }
 
     /** This class extends Resolve.LookupFilter to disallow using variables declared in

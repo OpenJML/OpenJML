@@ -685,14 +685,15 @@ public class Log extends AbstractLog {
         nwarnings++;
     }
 
+    static int count = 0;
     /**
      * Primary method to report a diagnostic.
      * @param diagnostic
      */
     @Override
     public void report(JCDiagnostic diagnostic) {
-    	//if (org.jmlspecs.openjml.Main.useJML && diagnostic.getKind() == JCDiagnostic.Kind.ERROR) new RuntimeException().printStackTrace(System.out);
         diagnosticHandler.report(diagnostic);
+//    	if (++count == 1 && org.jmlspecs.openjml.Main.useJML && diagnostic.getKind() == JCDiagnostic.Kind.ERROR) new RuntimeException().printStackTrace(System.out);
      }
 
     /**

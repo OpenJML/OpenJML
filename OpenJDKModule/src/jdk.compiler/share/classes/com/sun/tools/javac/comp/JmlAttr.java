@@ -5782,7 +5782,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             //attributing the for-each expression; we mimick this by attributing
             //the for-each expression first (against original scope).
             Type exprType = types.cvarUpperBound(attribExpr(tree.expr, loopEnv));
-            attribStat(tree.var, loopEnv);
             chk.checkNonVoid(tree.pos(), exprType);
             Type elemtype = types.elemtype(exprType); // perhaps expr is an array?
             if (elemtype == null) {
@@ -5801,6 +5800,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         : types.wildUpperBound(iterableParams.head);
                 }
             }
+            if (tree.var.isImplicitlyTyped()) {
+                Type inferredType = chk.checkLocalVarType(tree.var, elemtype, tree.var.name);
+                setSyntheticVariableType(tree.var, inferredType);
+            }
+            attribStat(tree.var, loopEnv);
             chk.checkType(tree.expr.pos(), elemtype, tree.var.sym.type);
             loopEnv.tree = tree; // before, we were not in loop!
             trForeachLoop(tree,tree.var.sym.type); // DRC - added
@@ -5983,8 +5987,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         }
         
-        stats.append(tree.var);
-        
         JCExpression cond = null;
         
         ListBuffer<JCStatement> bodystats = new ListBuffer<JCStatement>();
@@ -6049,7 +6051,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // FIXME - newvalue.type = ???
         }
         
-        bodystats.append(jmlMaker.Exec(jmlMaker.Assign(jmlMaker.Ident(tree.var),newvalue))); // t = newvalue;
+        bodystats.append(jmlMaker.VarDef(tree.var.mods, tree.var.name, tree.var.vartype, newvalue)); // t = newvalue;
         // FIXME - assign types
         bodystats.append(tree.body);
         

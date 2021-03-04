@@ -2818,7 +2818,9 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlSingleton(this,d); 
             } else {
-                System.out.println("A JmlSingleton expects a JmlTreeVisitor, not a " + v.getClass());
+            	//return (R)kind.typecheck((com.sun.tools.javac.comp.JmlAttr)((Attr)v).attr, this, (Env<AttrContext>)d);
+                System.out.println("A JmlSingleton expects a JmlTreeVisitor, not a " + v.getClass() + " " + this);
+                new RuntimeException().printStackTrace(System.out);
                 return null; //return super.accept(v,d);
             }
         }
