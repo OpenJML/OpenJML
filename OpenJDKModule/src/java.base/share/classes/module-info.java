@@ -397,7 +397,7 @@ module java.base {
     uses sun.util.locale.provider.LocaleDataMetaInfo;
     uses sun.util.resources.LocaleData.CommonResourceBundleProvider;
     uses sun.util.resources.LocaleData.SupplementaryResourceBundleProvider;
-    
+
     // Built-in service providers that are located via ServiceLoader
 
     provides java.nio.file.spi.FileSystemProvider with

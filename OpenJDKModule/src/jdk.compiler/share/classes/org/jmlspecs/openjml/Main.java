@@ -678,12 +678,12 @@ public class Main extends com.sun.tools.javac.main.Main {
         JmlCompiler.preRegister(context);
         JmlEnter.preRegister(context);
         JmlResolve.preRegister(context);
-//        JmlFlow.preRegister(context);
+        JmlFlow.preRegister(context);
         JmlMemberEnter.preRegister(context);
         JmlAttr.preRegister(context);  // registering a JML-aware type checker
         JmlCheck.preRegister(context);
         JmlPretty.preRegister(context);
-//        JmlDeferredAttr.preRegister(context); // registers when created
+        JmlDeferredAttr.preRegister(context); // registers when created
         // Extensions are registered after options are processed
     }
     

@@ -83,7 +83,7 @@ public class DeferredAttr extends JCTree.Visitor {
     protected static final Context.Key<DeferredAttr> deferredAttrKey = new Context.Key<>();
 
     final Annotate annotate;
-    final Attr attr;
+    public final Attr attr; // OPENJML - package to public
     final ArgumentAttr argumentAttr;
     final Check chk;
     final JCDiagnostic.Factory diags;

@@ -1730,7 +1730,7 @@ public class Resolve {
         }
     }
     //where
-    private boolean signatureMoreSpecific(List<Type> actuals, Env<AttrContext> env, Type site, Symbol m1, Symbol m2, boolean useVarargs) {
+    protected boolean signatureMoreSpecific(List<Type> actuals, Env<AttrContext> env, Type site, Symbol m1, Symbol m2, boolean useVarargs) { // OPENJML - private to protected
         noteWarner.clear();
         int maxLength = Math.max(
                             Math.max(m1.type.getParameterTypes().length(), actuals.length()),
@@ -2704,8 +2704,8 @@ public class Resolve {
     Symbol resolveIdent(DiagnosticPosition pos, Env<AttrContext> env,
                         Name name, KindSelector kind) {
         return accessBase(
-            findIdent(pos, env, name, kind),
-            pos, env.enclClass.sym.type, name, false);
+                findIdent(pos, env, name, kind),
+                pos, env.enclClass.sym.type, name, false);
     }
 
     /** Resolve an unqualified method identifier.
