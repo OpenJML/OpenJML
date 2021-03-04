@@ -935,7 +935,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec) {
-        utils.note(true, "            Saving method specs for " + m.owner + "." + m + " " + spec);
+        utils.note(true, "            Saving method specs for " + m.owner + "." + m );
         getSpecs(m.enclClass()).methods.put(m,spec);
     }
     

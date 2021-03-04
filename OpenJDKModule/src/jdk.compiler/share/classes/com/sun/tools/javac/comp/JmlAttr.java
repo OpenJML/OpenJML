@@ -423,6 +423,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (eee != null) { // FIXME - is null an error? is null for annotations like SpecPublic, for example, but no attribution is needed either, since there are no spec files.
                 JavaFileObject prevv = log.useSource(eee.toplevel.sourcefile);
                 try {
+                	attribAnnotationTypes(classSpecs.modifiers.annotations, eee);
                     super.attribClass(c); // No need to attribute the class itself if it was binary
                     c.flags_field &= ~UNATTRIBUTED;
                     attribFieldSpecs(eee,c);
@@ -482,6 +483,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     if (vdecl.sym != null) {  // FIXME - WHY WOULD THIS SYM EVER BE NULL?
                         FieldSpecs fspecs = specs.getSpecs(vdecl.sym);
                         if (fspecs != null) {
+                        	attribAnnotationTypes(fspecs.mods.annotations, env);
                             for (JmlTypeClause spec:  fspecs.list) {
                                 if (spec instanceof JmlTypeClauseIn) spec.accept(this);
                                 if (spec instanceof JmlTypeClauseMaps) spec.accept(this);
@@ -1103,6 +1105,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	return !noBodyOK;
     }
     
+    public void attribAnnotationTypes(List<JCAnnotation> annotations, // OPENJML package to public
+            Env<AttrContext> env) {
+    	super.attribAnnotationTypes(annotations, env);
+        for (JCAnnotation a : annotations) a.type = a.annotationType.type; // FIXME - why is this not needed in the Java compiler?
+    }
+    
     /** This is overridden in order to do correct checking of whether a method body is
      * present or not.
      */
@@ -1142,9 +1150,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             determineQueryAndSecret(jmethod,ms);
 
             prevSource = log.useSource(jmethod.source());
-            attribAnnotationTypes(m.mods.annotations,env); // This is needed at least for the spec files of binary classes
-            annotate.flush();
-            for (JCAnnotation a : m.mods.annotations) a.type = a.annotationType.type;  // It seems we need this, but it seems this should happen while walking the tree - FIXME
+            attribAnnotationTypes(ms.mods.annotations,env); // This is needed at least for the spec files of binary classes
             
             JmlSpecs.MethodSpecs mspecs = specs.getSpecs(m.sym);
             if (mspecs != null) { // FIXME - is mspecs allowed to be null?
@@ -2631,19 +2637,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
 
-    public void annotate(final List<JCAnnotation> annotations,
-            final Env<AttrContext> localEnv) {
-        Set<TypeSymbol> annotated = new HashSet<TypeSymbol>();
-        for (List<JCAnnotation> al = annotations; al.nonEmpty(); al = al.tail) {
-            JCAnnotation a = al.head;
-            Attribute.Compound c = annotate.attributeAnnotation(a,
-                                                            syms.annotationType,
-                                                            env);
-            if (c == null) continue;
-            if (!annotated.add(a.type.tsym))
-                log.error(a.pos, "duplicate.annotation");
-        }
-    }
+//    public void annotate(final List<JCAnnotation> annotations,
+//            final Env<AttrContext> localEnv) {
+//        Set<TypeSymbol> annotated = new HashSet<TypeSymbol>();
+//        for (List<JCAnnotation> al = annotations; al.nonEmpty(); al = al.tail) {
+//            JCAnnotation a = al.head;
+//            Attribute.Compound c = annotate.attributeAnnotation(a,
+//                                                            syms.annotationType,
+//                                                            env);
+////            if (c == null) continue;
+//            if (!annotated.add(a.type.tsym))
+//                log.error(a.pos, "duplicate.annotation");
+//        }
+//    }
 
     /** Attributes invariant, axiom, initially clauses */
     public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree) {
@@ -2663,7 +2669,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (tree.clauseType == invariantClause) {
                 jmlVisibility = -1;
                 attribAnnotationTypes(tree.modifiers.annotations,env);
-                annotate(tree.modifiers.annotations,env);
                 JCAnnotation a = findMod(tree.modifiers,Modifiers.SECRET);
                 jmlVisibility = tree.modifiers.flags & Flags.AccessFlags;
                 if (a != null) {
@@ -2921,7 +2926,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             // FIXME check that sym and represents are both secret or both not
             attribAnnotationTypes(tree.modifiers.annotations,env);
-            annotate(tree.modifiers.annotations,env);
             JCAnnotation a = findMod(tree.modifiers,Modifiers.SECRET);
             boolean representsIsSecret = a != null;
             if (a != null && a.args.size() != 0) {
@@ -5301,7 +5305,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	for (var mod: modToAnnotationSymbol.entrySet()) {
     		if (mod.getKey().fullAnnotation.equals(s)) {
     			a.annotationType.type = mod.getValue().type;
-// FIXME    			if (a instanceof JmlAnnotation) utils.warning(((JmlAnnotation)a).sourcefile, a.pos, "jml.internal", "Had to lookup type of a annotation with null type: " + s);
+    			if (a instanceof JmlAnnotation) utils.warning(((JmlAnnotation)a).sourcefile, a.pos, "jml.internal", "Had to lookup type of a annotation with null type: " + s);
     			return true;
     		}
     	}
@@ -6751,10 +6755,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     protected boolean attributeBody(Env<AttrContext> env) {
-    	if (false && org.jmlspecs.openjml.Main.useJML && !utils.rac) {
-    		String s = env.toplevel.packge.toString();
-    		if (s.startsWith("java.") || s.startsWith("javax.") || s.startsWith("com.sun") || s.startsWith("sun.tools")) return false;
-    	}
+//    	if (org.jmlspecs.openjml.Main.useJML && !utils.rac) {
+//    		String s = env.toplevel.packge.toString();
+//    		if (s.startsWith("java.") || s.startsWith("javax.") || s.startsWith("com.sun") || s.startsWith("sun.tools")) return false;
+//    	}
     	return true;
     }
 

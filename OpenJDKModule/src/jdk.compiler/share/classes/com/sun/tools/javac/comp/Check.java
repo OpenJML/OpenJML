@@ -3056,6 +3056,11 @@ public class Check {
     }
 
     public void validateTypeAnnotation(JCAnnotation a, boolean isTypeParameter) {
+    	if (a.type == null) {
+    		log.error(a.pos, "jml.internal", "Null annotation type");
+    		new RuntimeException().printStackTrace(System.out);
+    		return;
+    	}
         Assert.checkNonNull(a.type);
         validateAnnotationTree(a);
 
