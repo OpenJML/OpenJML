@@ -1836,11 +1836,11 @@ public class JmlParser extends JavacParser {
         	JmlToken jt = new JmlToken(mk, token);
         	jmlmods.add(jt);
         	jt.source = Log.instance(context).currentSourceFile();
-        	JCAnnotation a = tokenToAnnotationAST(mk.fullAnnotation, pos(), last);
-        	if (a != null) {
-        		annotations.append(a);
-        		if (pos == Position.NOPOS) pos = a.getStartPosition();
-        	}
+//        	JCAnnotation a = tokenToAnnotationAST(mk.fullAnnotation, pos(), last);
+//        	if (a != null) {
+//        		annotations.append(a);
+//        		if (pos == Position.NOPOS) pos = a.getStartPosition();
+//        	}
         	// a is null if no annotation is defined for the modifier;
         	// we just silently ignore that situation
         	// (this is true at the moment for math annotations, but could

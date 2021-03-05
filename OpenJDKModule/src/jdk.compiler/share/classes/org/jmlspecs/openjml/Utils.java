@@ -44,6 +44,7 @@ import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symtab;
@@ -323,11 +324,23 @@ public class Utils {
         return symbol.attribute(helperAnnotationSymbol)!=null;
     }
     
+    public boolean isModel(/*@non_null*/ ClassSymbol symbol) {
+    	return hasMod(JmlSpecs.instance(context).getSpecs(symbol).modifiers, Modifiers.MODEL);
+    }
+    
+    public boolean isModel(/*@non_null*/ MethodSymbol symbol) {
+    	return hasMod(JmlSpecs.instance(context).getSpecs(symbol).mods, Modifiers.MODEL);
+    }
+    
+    public boolean isModel(/*@non_null*/ VarSymbol symbol) {
+    	return hasMod(JmlSpecs.instance(context).getSpecs(symbol).mods, Modifiers.MODEL);
+    }
+    
     public boolean isModel(/*@non_null*/ Symbol symbol) {
-        if (modelAnnotationSymbol == null) {
-            modelAnnotationSymbol = createClassSymbol(Strings.modelAnnotation);
-        }
-        return symbol.attribute(modelAnnotationSymbol)!=null;
+    	if (symbol instanceof ClassSymbol) return isModel((ClassSymbol)symbol);
+    	if (symbol instanceof MethodSymbol) return isModel((MethodSymbol)symbol);
+    	if (symbol instanceof VarSymbol) return isModel((VarSymbol)symbol);
+    	return false;// This shoudl really be an error FIXME
     }
     
     public static String identifyOS(Context context) {

@@ -343,7 +343,7 @@ public class JmlEnter extends Enter {
     public boolean matches(JCExpression jtype, JCExpression stype) {
     	String a = JmlPretty.write(jtype);
     	String b = JmlPretty.write(stype);
-    	return a.equals(b) || a.endsWith(b) || b.endsWith(a);
+    	return a.equals(b) || a.endsWith("." + b) || b.endsWith("." + a);
     }
     
     public boolean matches(JmlMethodDecl specsDecl, JmlMethodDecl javaDecl) {

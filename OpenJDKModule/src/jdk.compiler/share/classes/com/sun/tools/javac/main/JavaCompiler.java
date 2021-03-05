@@ -622,9 +622,6 @@ public class JavaCompiler {
      *  @param content      The characters to be parsed.
      */
     protected JCCompilationUnit parse(JavaFileObject filename, CharSequence content) {
-//    	if (org.jmlspecs.openjml.Main.useJML) {
-//    		System.out.println("Parsing " + filename);
-//    	}
         long msec = now();
         JCCompilationUnit tree = make.TopLevel(List.nil());
         if (content != null) {
@@ -651,10 +648,6 @@ public class JavaCompiler {
             TaskEvent e = new TaskEvent(TaskEvent.Kind.PARSE, tree);
             taskListener.finished(e);
         }
-        
-//        if (org.jmlspecs.openjml.Main.useJML) {
-//        	System.out.println(org.jmlspecs.openjml.JmlPretty.write(tree));
-//        }
 
         return tree;
     }

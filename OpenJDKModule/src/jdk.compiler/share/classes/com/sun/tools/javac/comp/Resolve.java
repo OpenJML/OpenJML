@@ -324,7 +324,7 @@ public class Resolve {
         }
 
         boolean isAccessible = false;
-        switch ((short)(c.flags() & AccessFlags)) {
+        switch ((short)(flags(c) & AccessFlags)) {
             case PRIVATE:
                 isAccessible =
                     env.enclClass.sym.outermostClass() ==
@@ -399,6 +399,10 @@ public class Resolve {
     public boolean isAccessible(Env<AttrContext> env, Type site, Symbol sym) {
         return isAccessible(env, site, sym, false);
     }
+    
+    protected long flags(Symbol sym) { // OPENJML
+    	return sym.flags();
+    }
     public boolean isAccessible(Env<AttrContext> env, Type site, Symbol sym, boolean checkInner) {
         if (sym.name == names.init && sym.owner != site.tsym) return false;
 
@@ -413,7 +417,7 @@ public class Resolve {
             return true;
         }
 
-        switch ((short)(sym.flags() & AccessFlags)) {
+        switch ((short)(flags(sym) & AccessFlags)) { // OPENJML
         case PRIVATE:
             return
                 (env.enclClass.sym == sym.owner // fast special case
@@ -2196,6 +2200,7 @@ public class Resolve {
         if (symbolPackageVisible(env, sym)) {
             return new AccessError(env, null, sym);
         } else {
+        	if (org.jmlspecs.openjml.Main.useJML) System.out.println("INVISIBLE " + env.toplevel.modle + " " + sym.packge().modle + " " + (env.toplevel.modle == sym.packge().modle)); 
             return new InvisibleSymbolError(env, false, sym);
         }
     }
@@ -2299,10 +2304,10 @@ public class Resolve {
             Symbol sym = loadClass(env, s.flatName(), recoveryLoadClass);
             if (!symbolOK(sym)) continue; // OPENJML added to allow derived class to disallow symbols
             if (bestSoFar.kind == TYP && sym.kind == TYP &&
-                    bestSoFar != sym)
-                    return new AmbiguityError(bestSoFar, sym);
-                else
-                    bestSoFar = bestOf(bestSoFar, sym);
+                bestSoFar != sym)
+                return new AmbiguityError(bestSoFar, sym);
+            else
+                bestSoFar = bestOf(bestSoFar, sym);
         }
         return bestSoFar;
     }
@@ -2704,8 +2709,8 @@ public class Resolve {
     Symbol resolveIdent(DiagnosticPosition pos, Env<AttrContext> env,
                         Name name, KindSelector kind) {
         return accessBase(
-                findIdent(pos, env, name, kind),
-                pos, env.enclClass.sym.type, name, false);
+            findIdent(pos, env, name, kind),
+            pos, env.enclClass.sym.type, name, false);
     }
 
     /** Resolve an unqualified method identifier.

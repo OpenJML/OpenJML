@@ -568,7 +568,6 @@ public class Enter extends JCTree.Visitor {
      *  @param c          The class symbol to be processed or null to process all.
      */
     public void complete(List<JCCompilationUnit> trees, ClassSymbol c) {
-
         annotate.blockAnnotations();
         ListBuffer<ClassSymbol> prevUncompleted = uncompleted;
         if (typeEnter.completionEnabled) uncompleted = new ListBuffer<>();
