@@ -1249,7 +1249,7 @@ public class TypeAnnotations {
                 // Nothing to do for separateAnnotationsKinds if
                 // there are no annotations of either kind.
             } else if (tree.sym == null) {
-                Assert.error("Visiting tree node before memberEnter: " + tree.name);
+                Assert.error("Visiting tree node before memberEnter: " + tree + " " + ((org.jmlspecs.openjml.JmlTree.JmlVariableDecl)tree).sourcefile);
             } else if (tree.sym.getKind() == ElementKind.PARAMETER) {
                 // Parameters are handled in visitMethodDef or visitLambda.
             } else if (tree.sym.getKind() == ElementKind.FIELD) {

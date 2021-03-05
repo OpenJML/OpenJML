@@ -745,7 +745,7 @@ public class Attr extends JCTree.Visitor {
         Type result = attribTree(tree, env, statInfo);
         analyzer.analyzeIfNeeded(tree, analyzeEnv);
         attrRecover.doRecovery();
-    	return result;
+        return result;
     }
 
     /** Attribute a list of expressions, returning a list of types.
@@ -1438,11 +1438,13 @@ public class Attr extends JCTree.Visitor {
                     cs.appendInitTypeAttributes(tas);
                 }
             }
+// FIXME            postInitBlock(tree, localEnv); // OPENJML
         } else {
             // Create a new local environment with a local scope.
             Env<AttrContext> localEnv =
                 env.dup(tree, env.info.dup(env.info.scope.dup()));
             try {
+// FIXME            	preMethodBlock(localEnv);  // OPENJML
                 attribStats(tree.stats, localEnv);
             } finally {
                 localEnv.info.scope.leave();
@@ -1450,6 +1452,10 @@ public class Attr extends JCTree.Visitor {
         }
         result = null;
     }
+    
+    protected void postInitBlock(JCBlock tree, Env<AttrContext> env) {} // OPENJML
+    protected void preMethodBlock(Env<AttrContext> env) {} // OPENJML
+    
 
     public void visitDoLoop(JCDoWhileLoop tree) {
         attribStat(tree.body, env.dup(tree));

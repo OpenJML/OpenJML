@@ -693,7 +693,7 @@ public class Log extends AbstractLog {
     @Override
     public void report(JCDiagnostic diagnostic) {
         diagnosticHandler.report(diagnostic);
-//    	if (++count == 1 && org.jmlspecs.openjml.Main.useJML && diagnostic.getKind() == JCDiagnostic.Kind.ERROR) new RuntimeException().printStackTrace(System.out);
+    	//if (org.jmlspecs.openjml.Main.useJML && diagnostic.getKind() == JCDiagnostic.Kind.ERROR) new RuntimeException().printStackTrace(System.out);
      }
 
     /**

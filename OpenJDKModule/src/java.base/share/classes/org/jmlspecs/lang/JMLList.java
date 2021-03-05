@@ -1,7 +1,9 @@
 package org.jmlspecs.lang;
+import org.jmlspecs.annotation.*; // TODO - for now, needs for contents of .jml file
 
 // FIXME - needs a real implementation for RAC
 public class JMLList<E> {
+	private JMLList() { _size = 0; }
 
     public int _size;
     

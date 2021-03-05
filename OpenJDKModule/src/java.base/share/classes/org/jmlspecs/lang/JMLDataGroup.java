@@ -19,6 +19,7 @@
 
 
 package org.jmlspecs.lang;
+import org.jmlspecs.annotation.*; // TODO: Currently needed for the .jml specs
 
 /** This type marks datagroups. It is always nullable and has no values other than null.
  *  It is never part of an expression, only a datagroup that is part of a frame set.
@@ -29,11 +30,11 @@ public /*@pure*/ final class JMLDataGroup {
      * @see #IT
      */
     /*@ private normal_behavior
-      @   assignable owner;
-      @   ensures owner == null;
+      @   assignable __owner;
+      @   ensures __owner == null;
       @*/
     private JMLDataGroup() {
-        //@ set owner = null;
+        //@ set __owner = null;
     } 
 
 //    /** The only object of this type.

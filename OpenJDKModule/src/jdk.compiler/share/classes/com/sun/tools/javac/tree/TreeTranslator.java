@@ -456,6 +456,10 @@ public class TreeTranslator extends JCTree.Visitor {
         tree.underlyingType = translate(tree.underlyingType);
         result = tree;
     }
+    
+    public void visitModuleDef(JCModuleDecl tree) {
+    	result = tree; // TODO - Perhaps this needs translation of its component parts
+    }
 
     public void visitTree(JCTree tree) {
         throw new AssertionError(tree);

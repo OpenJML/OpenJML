@@ -15,6 +15,7 @@ import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.comp.Resolve.RecoveryLoadClass;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.JmlType;
@@ -194,67 +195,94 @@ public class JmlResolve extends Resolve {
         }
     }
 
-    // FIXME - I think these are cached elsewhere as well??
-    /** A cache of the symbol for the spec_public annotation class, created on
-     * demand.
-     */
-    public ClassSymbol specPublicSym = null;
-
-    /** A cache of the symbol for the spec_protected annotation class, created on
-     * demand.
-     */
-    public ClassSymbol specProtectedSym = null;
-
     /** This class is overridden in order to allow access according to the rules
      * for spec_public and spec_protected.
      */
-    @Override
-    public boolean isAccessible(Env<AttrContext> env, Type site, Symbol sym) {
-        if (super.isAccessible(env,site,sym)) return true;
-        if (!allowJML) return false;
-
-        // If not accessible and we are in JML, see if spec_public or spec_protected helps
-
-        JmlSpecs specs = JmlSpecs.instance(context);
-        JCTree.JCModifiers mods = null;
-        if (sym instanceof Symbol.VarSymbol) {
-            JmlSpecs.FieldSpecs f = specs.getSpecs((Symbol.VarSymbol)sym);
-            if (f != null) mods = f.mods;
-        } else if (sym instanceof Symbol.MethodSymbol) {
-            JmlSpecs.MethodSpecs f = specs.getSpecs((Symbol.MethodSymbol)sym);
-            if (f != null) mods = f.mods;
-        } else if (sym instanceof Symbol.ClassSymbol) {
-            JmlSpecs.TypeSpecs f = specs.getSpecs((Symbol.ClassSymbol)sym);
-            if (f != null) mods = f.modifiers;
-        }
-
-        if (specPublicSym == null) {
-            specPublicSym = attr.modToAnnotationSymbol.get(Modifiers.SPEC_PUBLIC);
-        }
-        if (specProtectedSym == null) {
-            specProtectedSym = attr.modToAnnotationSymbol.get(Modifiers.SPEC_PROTECTED);
-        }
-
-        boolean isSpecPublic = utils.findMod(mods,specPublicSym) != null;
-        if (isSpecPublic) {
-            long saved = sym.flags();
-            sym.flags_field |= Flags.PUBLIC;
-            boolean b = super.isAccessible(env,site,sym);
-            sym.flags_field = saved;
-            return b;
-        }
-
-        if ((sym.flags() & Flags.PROTECTED) != 0) return false;
-        boolean isSpecProtected = utils.findMod(mods,specProtectedSym) != null;
-        if (isSpecProtected) {
-            long saved = sym.flags_field;
-            sym.flags_field |= Flags.PROTECTED;
-            boolean b = super.isAccessible(env,site,sym);
-            sym.flags_field = saved;
-            return b;
-        }
-        return false;
+    protected long flags(Symbol sym) { // OPENJML
+    	return attr.flags(sym);
     }
+    
+//    @Override
+//    public boolean isAccessible(Env<AttrContext> env, TypeSymbol sym, boolean checkInner) {
+//        if (super.isAccessible(env,sym,checkInner)) return true;
+//        if (!allowJML) return false;
+//
+//        // If not accessible and we are in JML, see if spec_public or spec_protected helps
+//
+//        JmlSpecs specs = JmlSpecs.instance(context);
+//        JCTree.JCModifiers mods = null;
+//        if (sym instanceof Symbol.ClassSymbol) {
+//        	JmlSpecs.TypeSpecs f = specs.getSpecs((Symbol.ClassSymbol)sym);
+//        	if (f != null) mods = f.modifiers;
+//        }
+//
+//        boolean isSpecPublic = utils.hasMod(mods,Modifiers.SPEC_PUBLIC);
+//        if (isSpecPublic) {
+//        	return true;
+////        	long saved = sym.flags();
+////        	sym.flags_field |= Flags.PUBLIC;
+////        	boolean b = super.isAccessible(env,sym,checkInner);
+////        	sym.flags_field = saved;
+////        	return b;
+//        }
+//
+//        if ((sym.flags() & Flags.PROTECTED) != 0) return false; // Already is protected
+//        boolean isSpecProtected = utils.hasMod(mods,Modifiers.SPEC_PROTECTED);
+//        if (isSpecProtected) {
+//        	long saved = sym.flags_field;
+//        	sym.flags_field |= Flags.PROTECTED;
+//        	boolean b = super.isAccessible(env,sym,checkInner);
+//        	sym.flags_field = saved;
+//        	return b;
+//        }
+//        return false;
+//    }
+//
+//
+//    /** This class is overridden in order to allow access according to the rules
+//     * for spec_public and spec_protected.
+//     */
+//    @Override
+//    public boolean isAccessible(Env<AttrContext> env, Type site, Symbol sym, boolean checkInner) {
+//        if (super.isAccessible(env,site,sym,checkInner)) return true;
+//        if (!allowJML) return false;
+//
+//        // If not accessible and we are in JML, see if spec_public or spec_protected helps
+//
+//        JmlSpecs specs = JmlSpecs.instance(context);
+//        JCTree.JCModifiers mods = null;
+//        if (sym instanceof Symbol.VarSymbol) {
+//            JmlSpecs.FieldSpecs f = specs.getSpecs((Symbol.VarSymbol)sym);
+//            if (f != null) mods = f.mods;
+//        } else if (sym instanceof Symbol.MethodSymbol) {
+//            JmlSpecs.MethodSpecs f = specs.getSpecs((Symbol.MethodSymbol)sym);
+//            if (f != null) mods = f.mods;
+//        } else if (sym instanceof Symbol.ClassSymbol) {
+//            JmlSpecs.TypeSpecs f = specs.getSpecs((Symbol.ClassSymbol)sym);
+//            if (f != null) mods = f.modifiers;
+//        }
+//
+//        boolean isSpecPublic = utils.hasMod(mods,Modifiers.SPEC_PUBLIC);
+//        if (isSpecPublic) {
+//        	return true;
+////            long saved = sym.flags();
+////            sym.flags_field |= Flags.PUBLIC;
+////            boolean b = super.isAccessible(env,site,sym);
+////            sym.flags_field = saved;
+////            return b;
+//        }
+//
+//        if ((sym.flags() & Flags.PROTECTED) != 0) return false; // Already is protected
+//        boolean isSpecProtected = utils.hasMod(mods,Modifiers.SPEC_PROTECTED);
+//        if (isSpecProtected) {
+//            long saved = sym.flags_field;
+//            sym.flags_field |= Flags.PROTECTED;
+//            boolean b = super.isAccessible(env,site,sym);
+//            sym.flags_field = saved;
+//            return b;
+//        }
+//        return false;
+//    }
     
     // FIXME - this is copied from old OpenJDK -- there must be a better way in the current framework
     // FIXME - and there must be a better way to get an operator name than using the Pretty printer

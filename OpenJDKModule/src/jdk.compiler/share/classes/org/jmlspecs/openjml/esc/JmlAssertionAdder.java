@@ -12925,7 +12925,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             fa.pos = that.pos;
             fa.sym = null;
             eee = fa;
-        } else if (translatingJML && s instanceof VarSymbol && attr.isModel(s) && !convertingAssignable && !reps.contains(s)) {
+        } else if (translatingJML && s instanceof VarSymbol && utils.isModel(s) && !convertingAssignable && !reps.contains(s)) {
             selected = convertCopy(trexpr);
             boolean var = false;
             // FIXME - why must selected be a JCIdent here and below
@@ -13196,7 +13196,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // instead of just inlining the represents clause expression because
             // the model field/method may be overridden in derived classes.
 
-            if (attr.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable && !reps.contains(sym)) {
+            if (utils.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable && !reps.contains(sym)) {
 
                 // currentThisExpr is null if the symbol is static
                 TypeSymbol tsym = currentThisExpr != null ? currentThisExpr.type.tsym : (TypeSymbol)sym.owner; // FIXME - perhaps can always be sym.owner
@@ -13951,7 +13951,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (def instanceof JmlMethodDecl) {
                     JmlMethodDecl jdef = (JmlMethodDecl)def;
                     String nm = jdef.name.toString();
-                    if (attr.isModel(jdef.sym) && nm.startsWith(Strings.modelFieldMethodPrefix)) {
+                    if (utils.isModel(jdef.sym) && nm.startsWith(Strings.modelFieldMethodPrefix)) {
                         if ((jdef.mods.flags & Utils.JMLADDED) != 0) {
                             // We are presuming that all represents clauses are processed
                             // (as part of scanning the specs defs in visitJmlClassDecl)
