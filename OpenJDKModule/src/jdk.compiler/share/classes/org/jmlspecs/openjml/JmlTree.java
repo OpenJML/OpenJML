@@ -29,6 +29,7 @@ import static org.jmlspecs.openjml.ext.TypeDeclClauseExtension.*;
 import com.sun.source.tree.*;
 import static com.sun.source.tree.CaseTree.*;
 import com.sun.tools.javac.code.JmlType;
+import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Scope.NamedImportScope;
 import com.sun.tools.javac.code.Scope.StarImportScope;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
@@ -37,6 +38,7 @@ import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.parser.JmlToken;
@@ -48,6 +50,7 @@ import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCCase;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
 import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -226,6 +229,19 @@ public class JmlTree {
             //super.at(pos);
             return this;
         }
+        
+        protected Maker(JCCompilationUnit toplevel, Names names, Types types, Symtab syms) {
+        	super(toplevel, names, types, syms);
+        }
+
+        
+        /** Create a new tree maker for a given toplevel.
+         */
+        @Override
+        public TreeMaker forToplevel(JCCompilationUnit toplevel) {
+            return new JmlTree.Maker(toplevel, names, types, syms);
+        }
+
         
         /** Creates a JmlCompilationUnit */
         @Override

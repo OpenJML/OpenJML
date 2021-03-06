@@ -458,21 +458,21 @@ public class JmlFlow extends Flow  {
         /** This is overridden in order to handle JML method call-like features (e.g. \typeof) */
         @Override
         public void visitApply(JCMethodInvocation tree) {
-            if (tree.meth == null) {
-                IJmlClauseKind k = ((JmlMethodInvocation)tree).kind;
-                if (k == StateExpressions.oldKind || k == MiscExpressions.freshKind || k == MiscExpressions.allocKind) {
-                    scanExpr(tree.args.get(0)); // A second argument is just a label, and not a regular identifier
-                    // FIXME - where do we check that the label is in scope
-                } else {
-                    scanExprs(tree.args);
-                }
-            } else if (tree.meth.type == null) {
-                // FIXME - need to do this just because we don't have full attribution in trEnhancedForLoop
-                scanExpr(tree.meth);
-                scanExprs(tree.args);
-            } else {
+//            if (tree.meth == null) {
+//                IJmlClauseKind k = ((JmlMethodInvocation)tree).kind;
+//                if (k == StateExpressions.oldKind || k == MiscExpressions.freshKind || k == MiscExpressions.allocKind) {
+//                    scanExpr(tree.args.get(0)); // A second argument is just a label, and not a regular identifier
+//                    // FIXME - where do we check that the label is in scope
+//                } else {
+//                    scanExprs(tree.args);
+//                }
+//            } else if (tree.meth.type == null) {
+//                // FIXME - need to do this just because we don't have full attribution in trEnhancedForLoop
+//                scanExpr(tree.meth);
+//                scanExprs(tree.args);
+//            } else {
                 super.visitApply(tree);
-            }
+ //           }
         }
 
         @Override
@@ -560,6 +560,7 @@ public class JmlFlow extends Flow  {
         }
 
         public void visitJmlMatchExpression(JmlMatchExpression that) {
+        	System.out.println("visitJmlMatchExpression");
             scanExpr(that.expression);
             for (JmlMatchExpression.MatchCase c: that.cases) {
                 //scan(c.caseExpression);
@@ -635,28 +636,29 @@ public class JmlFlow extends Flow  {
         
         @Override
         public void visitIdent(JCIdent that) {
-            for (List<JCVariableDecl> list: quantDeclStack) {
-                for (JCVariableDecl decl: list) {
-                    if (decl.sym.equals(that.sym)) return;
-                }
-            }
-            if (utils == null) utils = Utils.instance(context);
-            if (utils.isJML(that.sym.flags()) && utils.isJMLTop(that.sym.flags()) && (that.sym.flags() & Flags.HASINIT) != 0) {
-                // Skip check for initialization -- this is a JML declaration with an initializer
-                // so includes old clauses in spec cases
-                referenced(that.sym);
-            } else {
+//            for (List<JCVariableDecl> list: quantDeclStack) {
+//                for (JCVariableDecl decl: list) {
+//                    if (decl.sym.equals(that.sym)) return;
+//                }
+//            }
+//            if (utils == null) utils = Utils.instance(context);
+//            if (utils.isJML(that.sym.flags()) && utils.isJMLTop(that.sym.flags()) && (that.sym.flags() & Flags.HASINIT) != 0) {
+//                // Skip check for initialization -- this is a JML declaration with an initializer
+//                // so includes old clauses in spec cases
+//                referenced(that.sym);
+//            } else {
                 super.visitIdent(that);
-            }
+//            }
         }
         
         public void visitVarDef(JCVariableDecl tree) {
             super.visitVarDef(tree);
-            if (tree.init == null) {
-                if (tree.type.toString().startsWith("org.jmlspecs.lang")) {
-                    letInit(tree.pos(), tree.sym);
-                }
-            }
+//            if (tree.init == null) {
+//                if (tree.type.toString().startsWith("org.jmlspecs.lang")) {
+//                    letInit(tree.pos(), tree.sym);
+//                }
+//            }
+            
 //            Lint lintPrev = lint;
 //            lint = lint.augment(tree.sym);
 //            try{
@@ -836,32 +838,32 @@ public class JmlFlow extends Flow  {
          */
         @Override
         public void moreClassDef(JCClassDecl tree) {
-            // Do nothing if the class is not attributed
-            if (tree.sym == null) return;
-            
-            // Do nothing if the class is already instrumented for RAC
-            if (Utils.instance(context).isInstrumented(tree.mods.flags)) return;
-            
-            // Do nothing if the class has no specs (i.e., is binary)
-            JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(tree.sym);
-            if (tspecs == null) return;
-            
-            JavaFileObject prev = Log.instance(context).currentSourceFile();
-            try {
-                // Do Flow processing on each JML clause of the class declaration
-                for (JmlTypeClause c : tspecs.clauses) {
-                    if (c instanceof JmlTypeClauseDecl) {
-                        JCTree d = ((JmlTypeClauseDecl)c).decl;
-                        Log.instance(context).useSource(c.source());
-                        if (c.modifiers != null && (c.modifiers.flags & Flags.SYNTHETIC) != 0) {
-                            continue;
-                        }
-                        d.accept(this);
-                    }
-                }
-            } finally {
-                Log.instance(context).useSource(prev);
-            }
+//            // Do nothing if the class is not attributed
+//            if (tree.sym == null) return;
+//            
+//            // Do nothing if the class is already instrumented for RAC
+//            if (Utils.instance(context).isInstrumented(tree.mods.flags)) return;
+//            
+//            // Do nothing if the class has no specs (i.e., is binary)
+//            JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(tree.sym);
+//            if (tspecs == null) return;
+//            
+//            JavaFileObject prev = Log.instance(context).currentSourceFile();
+//            try {
+//                // Do Flow processing on each JML clause of the class declaration
+//                for (JmlTypeClause c : tspecs.clauses) {
+//                    if (c instanceof JmlTypeClauseDecl) {
+//                        JCTree d = ((JmlTypeClauseDecl)c).decl;
+//                        Log.instance(context).useSource(c.source());
+//                        if (c.modifiers != null && (c.modifiers.flags & Flags.SYNTHETIC) != 0) {
+//                            continue;
+//                        }
+//                        d.accept(this);
+//                    }
+//                }
+//            } finally {
+//                Log.instance(context).useSource(prev);
+//            }
         }
     }
     
@@ -1235,8 +1237,8 @@ public class JmlFlow extends Flow  {
     @Override 
     public void analyzeTree(Env<AttrContext> env, TreeMaker make) {
         new JmlAliveAnalyzer().analyzeTree(env, make);
-        new JmlAssignAnalyzer().analyzeTree(env, make);
-        new JmlFlowAnalyzer().analyzeTree(env, make);
-        new CaptureAnalyzer().analyzeTree(env, make);
+        //new JmlAssignAnalyzer().analyzeTree(env, make); // FIXME
+        //new JmlFlowAnalyzer().analyzeTree(env, make);
+        //new CaptureAnalyzer().analyzeTree(env, make);
     }
 }

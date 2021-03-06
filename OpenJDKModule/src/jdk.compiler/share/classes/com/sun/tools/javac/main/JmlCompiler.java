@@ -298,7 +298,7 @@ public class JmlCompiler extends JavaCompiler {
 
                 nestingLevel++;
                 try {
-                    boolean ok = ((JmlEnter)enter).binaryEnter(speccu);
+                    ((JmlEnter)enter).binaryEnter(speccu);
 //                    // specscu.defs is empty if nothing was declared or if all class declarations were removed because of errors
 //                    if (ok) {
 //                        for (JCTree d: speccu.defs) {

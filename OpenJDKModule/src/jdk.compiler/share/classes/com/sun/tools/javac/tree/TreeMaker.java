@@ -71,12 +71,12 @@ public class TreeMaker implements JCTree.Factory {
     public JCCompilationUnit toplevel;
 
     /** The current name table. */
-    Names names;
+    public Names names; // OPENJML Package to public
 
-    Types types;
+    public Types types; // OPENJML Package to public
 
     /** The current symbol table. */
-    Symtab syms;
+    public  Symtab syms; // OPENJML Package to public
 
     /** Create a tree maker with null toplevel and NOPOS as initial position.
      */

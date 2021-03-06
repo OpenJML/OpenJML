@@ -565,6 +565,11 @@ public class Attr extends JCTree.Visitor {
         public MethodAttrInfo(CheckContext checkContext) {
             super(KindSelector.VAL, Infer.anyPoly, checkContext);
         }
+        
+        protected MethodAttrInfo(KindSelector pkind,
+                Type pt, CheckContext checkContext, CheckMode checkMode) {
+        	super(pkind, pt, checkContext, checkMode);
+        }
 
         @Override
         protected boolean needsArgumentAttr(JCTree tree) {
@@ -588,7 +593,7 @@ public class Attr extends JCTree.Visitor {
         }
 
         protected ResultInfo dup(CheckMode newMode) {
-            throw new IllegalStateException();
+            return new MethodAttrInfo(this.pkind, this.pt, this.checkContext, newMode); // throw new IllegalStateException();
         }
     }
 
@@ -1438,13 +1443,13 @@ public class Attr extends JCTree.Visitor {
                     cs.appendInitTypeAttributes(tas);
                 }
             }
-// FIXME            postInitBlock(tree, localEnv); // OPENJML
+            postInitBlock(tree, localEnv); // OPENJML
         } else {
             // Create a new local environment with a local scope.
             Env<AttrContext> localEnv =
                 env.dup(tree, env.info.dup(env.info.scope.dup()));
             try {
-// FIXME            	preMethodBlock(localEnv);  // OPENJML
+            	preMethodBlock(localEnv, tree);  // OPENJML
                 attribStats(tree.stats, localEnv);
             } finally {
                 localEnv.info.scope.leave();
@@ -1454,7 +1459,7 @@ public class Attr extends JCTree.Visitor {
     }
     
     protected void postInitBlock(JCBlock tree, Env<AttrContext> env) {} // OPENJML
-    protected void preMethodBlock(Env<AttrContext> env) {} // OPENJML
+    protected void preMethodBlock(Env<AttrContext> env, JCBlock tree) {} // OPENJML
     
 
     public void visitDoLoop(JCDoWhileLoop tree) {

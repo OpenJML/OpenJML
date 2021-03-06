@@ -742,11 +742,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     @Override
-    protected void preMethodBlock(Env<AttrContext> env) {
-        boolean prevAllowJML = jmlresolve.setAllowJML(true);
+    protected void preMethodBlock(Env<AttrContext> env, JCBlock tree) {
+    	boolean topMethodBodyBlock = env.enclMethod != null &&
+    			env.enclMethod.body == tree;
+    	if (!topMethodBodyBlock) return;
+    	
+    	// Scope is not duplicated
+    	enclosingMethodEnv = env.dup(env.tree,env.info.dupUnshared());
+
+    	//if (!isStatic(env.enclMethod.mods.flags)) {
+    	if (env.info.staticLevel == 0 && topMethodBodyBlock) {
+    		((JmlMethodDecl)env.enclMethod)._this = (VarSymbol)thisSym(tree.pos(),enclosingMethodEnv);
+    	}
+
+    	boolean prevAllowJML = jmlresolve.setAllowJML(true);
         JmlSpecs.MethodSpecs sp = specs.getSpecs(((JmlMethodDecl)env.enclMethod).sym);//((JmlMethodDecl)env.enclMethod).methodSpecsCombined; //specs.getSpecs(env.enclMethod.sym);
         VarSymbol savedSecret = currentSecretContext;
         VarSymbol savedQuery = currentQueryContext;
+    	var saved = this.env;
         try {
             currentSecretContext = sp.secretDatagroup;
             currentQueryContext = null;
@@ -756,13 +769,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //          log.getWriter(WriterKind.NOTICE).println("DISASTER-2 AWAITS: " + env.enclMethod.name);
 //          log.getWriter(WriterKind.NOTICE).println(env.enclMethod);
 //          }
-            if (sp != null && sp.cases != null) sp.cases.accept(this);
+            if (sp != null && sp.cases != null) {
+            	this.env = env;
+                deSugarMethodSpecs(((JmlMethodDecl)env.enclMethod),sp); // FIXME - needed?
+            	sp.cases.accept(this); // FIXME - use desugared?
+            }
 //          if (enclosingMethodEnv == null) {
 //          log.getWriter(WriterKind.NOTICE).println("DODGED-2: " + env.enclMethod.name);
-            deSugarMethodSpecs(((JmlMethodDecl)env.enclMethod),sp);
+//            deSugarMethodSpecs(((JmlMethodDecl)env.enclMethod),sp);
 
 //          }
         } finally {
+        	this.env = saved;
             currentSecretContext = savedSecret;
             currentQueryContext = savedQuery;
             jmlresolve.setAllowJML(prevAllowJML);
@@ -3192,6 +3210,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case "diverges":
             case "when":
             case "returns":
+            	//if (System.getenv("PRINT") != null) System.out.println("CLAUSE " + env.enclClass.sym + " " + env.enclMethod + " " + tree.sourcefile + " " + tree);
                 attribExpr(tree.expression, env, syms.booleanType);
                 break;
                 
@@ -3480,17 +3499,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // so it is not checked for specification cases that are part of a 
             // refining statement
             if (c.modifiers != null && tree.decl != null) { // tree.decl is null for initializers and refining statements
-                JCMethodDecl mdecl = enclosingMethodEnv.enclMethod;
+                JCMethodDecl mdecl = env.enclMethod;
                 long methodMod = jmlAccess(mdecl.mods);
                 long caseMod = c.modifiers.flags & Flags.AccessFlags;
-                if (methodMod == 0 && enclosingMethodEnv.enclClass.sym.isInterface()) methodMod = Flags.PUBLIC;
+                if (methodMod == 0 && env.enclClass.sym.isInterface()) methodMod = Flags.PUBLIC;
                 if (methodMod != caseMod && c.token != null) {
                     if (caseMod == Flags.PUBLIC ||
                             methodMod == Flags.PRIVATE ||
                             (caseMod == Flags.PROTECTED && methodMod == 0)) {
                         DiagnosticPosition p = c.modifiers.pos();
                         if (p.getPreferredPosition() == Position.NOPOS) p = tree.pos();
-                        if (!enclosingMethodEnv.enclMethod.name.toString().equals("clone")) {
+                        if (!env.enclMethod.name.toString().equals("clone")) {
                             JavaFileObject prevsource = log.useSource(c.source());
                             utils.warning(p,"jml.no.point.to.more.visibility");
                             log.useSource(prevsource);

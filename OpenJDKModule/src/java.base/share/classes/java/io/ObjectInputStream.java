@@ -1596,7 +1596,7 @@ public class ObjectInputStream
      * override security-sensitive non-final methods.  Returns TRUE if subclass
      * is "safe", FALSE otherwise.
      */
-    private static Boolean auditSubclass(Class<?> subcl) {
+    private static Boolean auditSubclass(final Class<?> subcl) {
         return AccessController.doPrivileged(
             new PrivilegedAction<Boolean>() {
                 public Boolean run() {
