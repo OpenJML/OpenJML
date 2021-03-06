@@ -408,7 +408,7 @@ public class ObjectStreamClass implements Serializable {
                 entry = th;
             }
             if (future.set(entry)) {
-                Caches.localDescs.put(key, new SoftReference<>(entry));
+                Caches.localDescs.put(key, new SoftReference<Object>(entry));
             } else {
                 // nested lookup call already set future
                 entry = future.get();
@@ -471,7 +471,7 @@ public class ObjectStreamClass implements Serializable {
             }
             if (interrupted) {
                 AccessController.doPrivileged(
-                    new PrivilegedAction<>() {
+                    new PrivilegedAction<Void>() { // OPENJML
                         public Void run() {
                             Thread.currentThread().interrupt();
                             return null;

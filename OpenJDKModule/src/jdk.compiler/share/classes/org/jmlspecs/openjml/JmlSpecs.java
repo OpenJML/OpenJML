@@ -1067,7 +1067,7 @@ public class JmlSpecs {
                     com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,nothingKind)));
             JmlMethodClauseSignals sig = M.at(pos).JmlMethodClauseSignals("signals", signalsClauseKind, null, JmlTreeUtils.instance(context).falseLit);
             JCExpression res = M.at(pos).JmlSingleton(SingletonExpressions.resultKind);
-            res.setType(((Type.MethodType)sym.type).restype);
+            res.setType(sym.type.asMethodType().restype); // sym.type might be a Type.ForAll
             JCBinary resnn = treeutils.makeNotNull(pos,res);
             JmlMethodClauseExpr en = M.at(pos).JmlMethodClauseExpr("ensures", ensuresClauseKind, resnn);
             List<Symbol> elems = sym.owner.getEnclosedElements();
@@ -1111,7 +1111,7 @@ public class JmlSpecs {
                 // FIXME - need to add a helper, pure annotation
                 
             } else if (sym.name.equals(names.valueOf)) {
-                // FIXME - add a disjunction of all possibilities?
+               // FIXME - add a disjunction of all possibilities?
                 // FIXME - might throw an exception?
                 // Default specifications:
                 //   ensures arg != null && \result != null;
@@ -1120,17 +1120,21 @@ public class JmlSpecs {
                 //   signals (NullPointerException) arg == null;
                 //   signals_only NullPointerException, IllegalArgumentException;
                 VarSymbol arg = sym.params().get(0); 
-                JCExpression argnn = treeutils.makeNotNull(pos,treeutils.makeIdent(pos, arg));
-                argnn = treeutils.makeAnd(pos, argnn, resnn);
-                en.expression = argnn;
-                JCExpression argnull = treeutils.makeEqNull(pos,treeutils.makeIdent(pos, arg));
-                sig.expression = argnull;
-                
-                Type npeType = ClassReader.instance(context).enterClass(names.fromString("java.lang.NullPointerException")).type;
-                JCVariableDecl vd = treeutils.makeVarDef(npeType, null, sym, pos);
-                sig = M.at(pos).JmlMethodClauseSignals(signalsID, signalsClauseKind, vd, argnull);
-                JmlMethodClauseSignalsOnly sigo = M.at(pos).JmlMethodClauseSignalsOnly(signalsOnlyID, signalsOnlyClauseKind, com.sun.tools.javac.util.List.<JCExpression>of(M.Type(npeType),M.Type(syms.illegalArgumentExceptionType)));
-                clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,clp,clpa,sig,sigo);
+                JmlMethodClauseSignalsOnly sigo = null;
+                if (arg.type.isReference()) {
+                    Type npeType = ClassReader.instance(context).enterClass(names.fromString("java.lang.NullPointerException")).type;
+                    JCVariableDecl vd = treeutils.makeVarDef(npeType, null, sym, pos);
+                	JCExpression argnn = treeutils.makeNotNull(pos,treeutils.makeIdent(pos, arg));
+                	JCExpression argnull = treeutils.makeEqNull(pos,treeutils.makeIdent(pos, arg));
+                	sig.expression = argnull;
+                    sig = M.at(pos).JmlMethodClauseSignals(signalsID, signalsClauseKind, vd, argnull);
+                    sigo = M.at(pos).JmlMethodClauseSignalsOnly(signalsOnlyID, signalsOnlyClauseKind, com.sun.tools.javac.util.List.<JCExpression>of(M.Type(npeType),M.Type(syms.illegalArgumentExceptionType)));
+                    JmlMethodClauseExpr req = M.at(pos).JmlMethodClauseExpr("requires", requiresClauseKind, argnn);
+                    clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(req,en,clp,clpa,sig,sigo);
+                    // FIXME - Illegal argument exception? What about user supplied valueOf methods?
+                } else {
+                    clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,clp,clpa);
+                }
             } else if (sym.name.equals(names.ordinal)) {
                 // int result - do not use non null clause (en)
                 JCBinary lo = treeutils.makeBinary(pos, JCTree.Tag.LE, treeutils.zero, res);
@@ -1207,20 +1211,20 @@ public class JmlSpecs {
 
     public com.sun.tools.javac.util.List<JCAnnotation> addPureAnnotation(int pos, com.sun.tools.javac.util.List<JCAnnotation> annots) {
         JmlTree.Maker F = JmlTree.Maker.instance(context);
-        JmlAnnotation pure = makePureAnnotation(pos, F);
+        JmlAnnotation pure = makePureAnnotation(pos, true, F);
         return annots.append(pure);
     }
     
-    public JmlAnnotation makePureAnnotation(int pos, JmlTree.Maker F) {
+    public JmlAnnotation makePureAnnotation(int pos, boolean withType, JmlTree.Maker F) {
         JmlAnnotation annot = makeAnnotation(pos, F, Modifiers.PURE);
-        annot.type = pureAnnotationSymbol().type;
+        if (withType) annot.type = annot.annotationType.type = pureAnnotationSymbol().type;
         return annot;
     }
 
     public com.sun.tools.javac.util.List<JCAnnotation> addModelAnnotation(int pos, com.sun.tools.javac.util.List<JCAnnotation> annots) {
         JmlTree.Maker F = JmlTree.Maker.instance(context);
         JmlAnnotation annot = makeAnnotation(pos, F, Modifiers.MODEL);
-        annot.type = modelAnnotationSymbol().type;
+        annot.type = annot.annotationType.type = modelAnnotationSymbol().type;
         return annots.append(annot);
     }
 

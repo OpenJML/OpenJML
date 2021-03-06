@@ -770,6 +770,7 @@ public class Resolve {
                                     List<Type> argtypes,
                                     List<Type> formals,
                                     Warner warn) {
+        	//if (System.getenv("PRINT") != null) System.out.println("ARGTYPES " + argtypes + " " + formals);
             //should we expand formals?
             boolean useVarargs = deferredAttrContext.phase.isVarargsRequired();
             JCTree callTree = treeForDiagnostics(env);
@@ -2758,6 +2759,7 @@ public class Resolve {
                                   DiagnosticPosition pos, Env<AttrContext> env,
                                   Symbol location, Type site, Name name, List<Type> argtypes,
                                   List<Type> typeargtypes) {
+    	if (System.getenv("PRINT") != null) System.out.println("LOOKING " + env.enclClass.sym + " " + env.enclMethod + " " + location + " " + site + " " + name + " " + argtypes);
         return lookupMethod(env, pos, location, resolveContext, new BasicLookupHelper(name, site, argtypes, typeargtypes) {
             @Override
             Symbol doLookup(Env<AttrContext> env, MethodResolutionPhase phase) {

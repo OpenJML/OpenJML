@@ -1884,6 +1884,7 @@ public class Flow {
                 !inits.isMember(sym.adr) &&
                 (sym.flags_field & CLASH) == 0) {
                     log.error(pos, errkey);
+                    new RuntimeException().printStackTrace(System.out);
                 inits.incl(sym.adr);
             }
         }
@@ -2176,6 +2177,7 @@ public class Flow {
             }
         }
         protected void initParam(JCVariableDecl def) {
+        	if (def.sym.adr < 0) log.error(def.pos, "jml.message", "INNITPARAM " + ((org.jmlspecs.openjml.JmlTree.JmlVariableDecl)def).sourcefile + " " + def);
             inits.incl(def.sym.adr);
             uninits.excl(def.sym.adr);
         }
