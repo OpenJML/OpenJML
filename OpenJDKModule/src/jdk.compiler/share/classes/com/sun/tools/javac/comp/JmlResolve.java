@@ -59,9 +59,6 @@ public class JmlResolve extends Resolve {
     /** Cached value of a org.jmlspecs.openjml.Utils object */
     final protected Utils utils;
     
-    /** Cached value of JmlCompiler, used for loading classes */
-    protected JmlCompiler jmlcompiler;
-    
     /** Cached value of JmlAttr, used for resolving annotations */
     final protected JmlAttr attr;
     
@@ -166,33 +163,17 @@ public class JmlResolve extends Resolve {
         // architecture.  Hence no warning or error is given.
         // This happens for example in the resolution of org.jmlspecs.annotation
         if (!s.exists()) {
+            //utils.note(true,"  Attempt to load " + name + " in module " + env.toplevel.modle + " but does not exist: " + s);
             return s;
         }
         if (!(s instanceof ClassSymbol)) {
-            utils.note(true,"  Loaded a non-class " + name );
+            utils.note(true,"  Loaded a non-class " + name + " module " + env.toplevel.modle);
             return s; // loadClass can be called for a package
         }
 
-        try {
-            JmlSpecs specs = JmlSpecs.instance(context);
-            JmlSpecs.TypeSpecs tsp = specs.get((ClassSymbol)s);
-            if (tsp == null) {
-                utils.note(false,"Loaded class " + name + ", about to read specs");
-
-                // Cannot set jmlcompiler in the constructor because we get a circular initialization problem.
-                if (jmlcompiler == null) jmlcompiler = JmlCompiler.instance(context);
-                jmlcompiler.loadSpecsForBinary(env,(ClassSymbol)s);
-//                utils.note(true,"   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
-// FIXME - the following happens routinely - it is not an error apparenetly, but some explanation or understanding is needed
-//                if (specs.get((ClassSymbol)s) == null) 
-//                    log.getWriter(WriterKind.NOTICE).println("(Internal error) POSTCONDITION PROBLEM - no typeSpecs stored for " + s);
-            } else {
-                utils.note(true,"   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
-            }
-            return s;
-        } finally {
-//            memberEnter.completionEnabled = completion;
-        }
+        // Cannot set jmlcompiler in the constructor because we get a circular initialization problem.
+        JmlCompiler.instance(context).requestSpecs((ClassSymbol)s);
+        return s;
     }
 
     /** This class is overridden in order to allow access according to the rules

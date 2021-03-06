@@ -299,12 +299,12 @@ public class TypeEnter implements Completer {
         protected abstract void runPhase(Env<AttrContext> env);
     }
 
-    private final ImportsPhase completeClass = new ImportsPhase();
+    public final ImportsPhase completeClass = new ImportsPhase(); // OPENJML - private to public
     private Phase topLevelPhase;
 
     /**Analyze import clauses.
      */
-    private final class ImportsPhase extends Phase {
+    public final class ImportsPhase extends Phase { // OPENJML - private to public
 
         public ImportsPhase() {
             super(CompletionCause.IMPORTS_PHASE, new HierarchyPhase());
@@ -332,7 +332,7 @@ public class TypeEnter implements Completer {
                 sym.owner.complete();
         }
 
-        private void resolveImports(JCCompilationUnit tree, Env<AttrContext> env) {
+        public void resolveImports(JCCompilationUnit tree, Env<AttrContext> env) { // OPENJML - private to public
             if (tree.starImportScope.isFilled()) {
                 // we must have already processed this toplevel
                 return;

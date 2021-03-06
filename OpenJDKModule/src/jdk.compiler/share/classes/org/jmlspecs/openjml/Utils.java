@@ -325,7 +325,7 @@ public class Utils {
     }
     
     public boolean isModel(/*@non_null*/ ClassSymbol symbol) {
-    	return hasMod(JmlSpecs.instance(context).getSpecs(symbol).modifiers, Modifiers.MODEL);
+    	return hasMod(JmlSpecs.instance(context).get(symbol).modifiers, Modifiers.MODEL);
     }
     
     public boolean isModel(/*@non_null*/ MethodSymbol symbol) {
@@ -500,11 +500,32 @@ public class Utils {
         return findMod(mods,JmlAttr.instance(context).modToAnnotationSymbol.get(ta));
     }
     
-    public boolean hasMod(JCModifiers mods, ModifierKind ta) {
-    	if (mods instanceof JmlModifiers) for (var t: ((JmlModifiers)mods).jmlmods) if (t.jmlclausekind == ta) return true;
-    	return findMod(mods, ta) != null;
+    public boolean hasMod(JCModifiers mods, ModifierKind... ata) {
+    	for (var ta: ata) {
+    		if (mods instanceof JmlModifiers) {
+    			for (var t: ((JmlModifiers)mods).jmlmods) {
+    				if (t.jmlclausekind == ta) return true;
+    			}
+    		}
+    		var a = findMod(mods, ta);
+    		if (a != null) return true;
+    	}
+    	return false;
     }
 
+    // FIXME - would prefer to issue a DiagnosticPosition
+    public int locMod(JCModifiers mods, ModifierKind... ata) {
+    	for (var ta: ata) {
+    		if (mods instanceof JmlModifiers) {
+    			for (var t: ((JmlModifiers)mods).jmlmods) if (t.jmlclausekind == ta) {
+    				return t.pos;
+    			}
+    		}
+    		var a = findMod(mods, ta);
+    		if (a != null) return a.pos;
+    	}
+    	return com.sun.tools.javac.util.Position.NOPOS;
+    }
 
 
     /** Finds whether a specified annotation is present in the given modifiers,
@@ -1659,6 +1680,14 @@ public class Utils {
             return end;// FIXME
         }
         
+    }
+    
+    public static boolean debug() {
+    	return System.getenv("PRINT")!=null;
+    }
+    
+    public static void dumpStack() {
+    	new RuntimeException().printStackTrace(System.out);
     }
 
 }

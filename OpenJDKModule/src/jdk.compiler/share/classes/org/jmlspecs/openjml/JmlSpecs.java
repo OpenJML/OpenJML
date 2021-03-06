@@ -891,13 +891,17 @@ public class JmlSpecs {
     public TypeSpecs get(TypeSymbol type) {
         return specsmap.get(type);
     }
+//    //@ nullable 
+//    public TypeSpecs getSpecs(TypeSymbol type) {
+//        return specsmap.get(type);
+//    }
     
     /** Retrieves the specifications for a given type, providing and registering
      * a default if one is not there
      * @param type the ClassSymbol of the type whose specs are wanted
      * @return the specifications
      */
-    public TypeSpecs getSpecs(ClassSymbol type) {
+    public TypeSpecs initializeAndGetSpecs(ClassSymbol type) {
         TypeSpecs t = specsmap.get(type);
         if (t == null) {
             specsmap.put(type, t=new TypeSpecs(type));
@@ -936,7 +940,7 @@ public class JmlSpecs {
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec) {
         utils.note(true, "            Saving method specs for " + m.owner + "." + m );
-        getSpecs(m.enclClass()).methods.put(m,spec);
+        initializeAndGetSpecs(m.enclClass()).methods.put(m,spec);
     }
     
     /** Adds the specs for a given initialization block to the database, overwriting anything
@@ -1250,7 +1254,7 @@ public class JmlSpecs {
 //        if (m.name.toString().equals("theString")) Utils.stop();
         ClassSymbol c = m.enclClass();
         if (c == null) return null; // This happens at least when m is the symbol for 'class' as in int.class
-        TypeSpecs t = getSpecs(c);
+        TypeSpecs t = specsmap.get(c);
         return t == null ? null : t.fields.get(m);
     }
     
@@ -1478,11 +1482,14 @@ public class JmlSpecs {
             return null;
         }
         
-        JCModifiers mods = JmlSpecs.instance(context).getSpecs(csymbol).decl.mods;
-        JCAnnotation a = utils.findMod(mods,attr.nullablebydefaultAnnotationSymbol);
-        if (a != null) return a;
-        a = utils.findMod(mods,attr.nonnullbydefaultAnnotationSymbol);
-        if (a != null) return a;
+        TypeSpecs tspecs = JmlSpecs.instance(context).get(csymbol);
+        if (tspecs != null) {
+        	JCModifiers mods = tspecs.decl.mods;
+        	JCAnnotation a = utils.findMod(mods,attr.nullablebydefaultAnnotationSymbol);
+        	if (a != null) return a;
+            a = utils.findMod(mods,attr.nonnullbydefaultAnnotationSymbol);
+            if (a != null) return a;
+        }
         Symbol owner = csymbol.owner;
         if (owner instanceof Symbol.PackageSymbol) owner = null;
         return defaultNullityAnnotation((Symbol.ClassSymbol)owner);
@@ -1647,9 +1654,8 @@ public class JmlSpecs {
     }
     
     public boolean isPure(ClassSymbol symbol) {
-        TypeSpecs tspecs = getSpecs(symbol);
+        TypeSpecs tspecs = get(symbol);
         if (tspecs == null) return false;
-        // FIXME - the following will not find a pure annotation on the class in a .jml file.
         if (utils.hasMod(tspecs.modifiers, Modifiers.PURE)) return true; 
         return false;
     }
@@ -1661,8 +1667,7 @@ public class JmlSpecs {
         }
         MethodSpecs mspecs = getSpecs(symbol);
         if (mspecs != null && utils.findMod(mspecs.mods,queryAnnotationSymbol) != null) return true;
-        TypeSpecs tspecs = getSpecs((Symbol.ClassSymbol)symbol.owner);
-        // FIXME - the following will not find a query annotation on the class in a .jml file.
+        TypeSpecs tspecs = get((Symbol.ClassSymbol)symbol.owner);
         if (tspecs != null && utils.findMod(tspecs.modifiers,queryAnnotationSymbol) != null) return true;
         return false;
     }

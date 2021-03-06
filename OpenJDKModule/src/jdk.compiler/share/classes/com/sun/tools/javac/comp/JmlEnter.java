@@ -548,7 +548,7 @@ public class JmlEnter extends Enter {
     
     // FIXME - document
     public void binaryEnter(JmlCompilationUnit speccu) {
-    	utils.note(false, "Entering declarations from specification file " + speccu.sourcefile);
+    	utils.note(true, "Entering declarations from specification file " + speccu.sourcefile);
 		var prev = log.useSource(speccu.sourcefile);
 		try {
 
@@ -564,6 +564,7 @@ public class JmlEnter extends Enter {
 
 			speccu.packge = p;
 			Env<AttrContext> env = topLevelEnv(speccu);
+            TypeEnter.instance(context).completeClass.resolveImports(speccu, env);
 
 			for (JCTree decl: speccu.defs) {
 				if (!(decl instanceof JmlClassDecl)) continue;
@@ -599,14 +600,27 @@ public class JmlEnter extends Enter {
             }
 			utils.note(true,  "Entering JML class: " + csym + " (owner: " + owner +")" );
 		} else {
+			// Found a matching binary class
+    		boolean matchIsJML = utils.isJML(csym.flags());
 			if (isJML) {
-				utils.error(jdecl, "jml.message", "This JML class declaration conflicts with an existing binary class with the same name: " + className + " (owner: " + owner +")");
+				if (matchIsJML) {
+		    		JmlSpecs.TypeSpecs jspecs = JmlSpecs.instance(context).get(csym);
+					utils.error(jdecl, "jml.message", "This JML class declaration conflicts with a previous JML class: " + jdecl.name + " (owner: " + csym +")");
+					utils.error(jspecs.decl, "jml.associated.decl.cf", utils.locationString(jdecl.pos, log.currentSourceFile()));
+				} else {
+					utils.error(jdecl, "jml.message", "This JML class declaration conflicts with an existing binary class with the same name: " + className + " (owner: " + owner +")");
+				}
 				return;
 			}
-			// Found a matching binary class
+			if (matchIsJML) {
+	    		JmlSpecs.TypeSpecs jspecs = JmlSpecs.instance(context).get(csym);
+				utils.error(jdecl, "jml.message", "This method declaration conflicts with a previous JML method: " + jdecl.name + " (owner: " + csym +")");
+				utils.error(jspecs.decl, "jml.associated.decl.cf", utils.locationString(jdecl.pos, log.currentSourceFile()));
+				return;
+			}
 			if (isGhostOrModel) {
-				// FIXME - use location of the modifier as the error point
-				utils.error(jdecl, "jml.message", "A Java class declaration must not be marked either ghost or model: " + className + " (owner: " + owner +")");
+				var pos = utils.locMod(jdecl.mods, Modifiers.GHOST, Modifiers.MODEL);
+				utils.error(pos, "jml.message", "A Java class declaration must not be marked either ghost or model: " + className + " (owner: " + owner +")");
 				return;
 			}
 			utils.note(true,  "Matched class: " + csym + " (owner: " + csym.owner +")" );
@@ -621,6 +635,15 @@ public class JmlEnter extends Enter {
 				binaryEnter(csym, (JmlClassDecl)t, localEnv);
 			}
 		}
+		
+		if (false && Utils.debug() && csym.flatName().toString().contains("Comparable")) {
+			var iter = csym.members().getSymbols().iterator();
+			while (iter.hasNext()) {
+				var s = iter.next();
+				System.out.println("BINARY ENTER: " + csym.flatName() + " has " + s + " " + s.owner + " " + s.isAbstract());
+			}
+		}
+
 		for (JCTree t: jdecl.defs) {
 			if (t instanceof JmlMethodDecl) {
 				binaryEnter(csym, (JmlMethodDecl)t, localEnv);
@@ -628,16 +651,11 @@ public class JmlEnter extends Enter {
 				binaryEnter(csym, (JmlVariableDecl)t, localEnv);
 			}
 		}
-//		if (System.getenv("PRINT") != null) {
-//			var iter = csym.members().getSymbols().iterator();
-//			while (iter.hasNext()) {
-//				System.out.println("BINARY ENTER: " + csym.flatName() + " has " + iter.next());
-//			}
-//		}
     }
     
     public MethodSymbol findMethod(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> env) {
-    	for (var a: mdecl.params) {
+    	boolean hasTypeParams = csym.getTypeParameters().length() != 0 || mdecl.typarams.length() != 0;
+    	if (!hasTypeParams) for (var a: mdecl.params) {
 			a.type = a.vartype.type = Attr.instance(context).attribType(a.vartype, env);
     	}
 		Symbol.MethodSymbol msym = null;
@@ -646,13 +664,23 @@ public class JmlEnter extends Enter {
     		var m = (MethodSymbol)iter.next();
     		if (m.params.length() != mdecl.params.length()) continue;
     		for (int i=0; i<m.params.length(); i++) {
-    			if (!types.isSameType(m.params.get(i).type,mdecl.params.get(i).type)) continue x;
+    			if (hasTypeParams) {
+    				// FIXME - When there are type parameters, the type resolution above is not working
+    				// so we fall back to string comparison -- a hack that only partially works
+    				// Probably has to do with getting the correct env
+    				//if (Utils.debug()) System.out.println("TYPES " + m.params.get(i).type.toString() + " " + mdecl.params.get(i).vartype.toString());
+    				if (!m.params.get(i).type.toString().equals(mdecl.params.get(i).vartype.toString())) continue x;
+    			}
+    			else if (!types.isSameType(m.params.get(i).type,mdecl.params.get(i).type)) continue x;
     		}
     		if (msym != null) {
-    			// This should never happen - two binary methods with the same signature
-    			utils.error(mdecl, "jml.message", "Unexpectedly found duplicate binary method symbols: " + msym + " vs. " + m);
+    			// It turns out that there sometimes are two method symbols with the same signature.
+    			// cf. AbstractStringBuilder, StringBuffer
+    			// So instead of doing this check, we just exit (via the return) on finding the first one.
+    			utils.note(mdecl, "jml.message", "Unexpectedly found duplicate binary method symbols: " + msym + " " + msym.isAbstract() + " " + m.isAbstract());
         	} else {
         		msym = m;
+        		return msym;
     		}
     	}
     	return msym;
@@ -662,7 +690,7 @@ public class JmlEnter extends Enter {
     	MemberEnter memberEnter = JmlMemberEnter.instance(context);
     	var saved = memberEnter.env;
     	memberEnter.env = env;
-    	memberEnter.visitMethodDef(tree);
+    	memberEnter.visitMethodDef(tree); // This also calls putSpecs
     	memberEnter.env = saved;
     	return tree.sym;
     }
@@ -682,24 +710,37 @@ public class JmlEnter extends Enter {
 				return;
 			}
 			// Enter the method in the parent class
-			msym = makeAndEnterMethodSym(mdecl, env);
-			utils.note(true,  "Entering JML method: " + msym + " (owner: " + csym + ")" );
+			msym = makeAndEnterMethodSym(mdecl, env); // Also calls putSpecs
+			utils.note(true,  "Entered JML method: " + msym + " (owner: " + csym + ")" );
     	} else {
 			// Found a matching binary method
+    		boolean matchIsJML = utils.isJML(msym.flags());
 			if (isJML) {
-				utils.error(mdecl, "jml.message", "This JML method declaration conflicts with an existing binary method with the same name: " + mdecl.name + " (owner: " + csym +")");
+				if (matchIsJML) {
+		    		JmlSpecs.MethodSpecs mspecs = JmlSpecs.instance(context).getSpecs(msym);
+					utils.error(mdecl, "jml.message", "This JML method declaration conflicts with a previous JML method: " + mdecl.name + " (owner: " + csym +")");
+					utils.error(mspecs.cases.decl, "jml.associated.decl.cf", utils.locationString(mdecl.pos, log.currentSourceFile()));
+				} else {
+					utils.error(mdecl, "jml.message", "This JML method declaration conflicts with an existing binary method with the same name: " + mdecl.name + " (owner: " + csym +")");
+				}
+				return;
+			}
+			if (matchIsJML) {
+	    		JmlSpecs.MethodSpecs mspecs = JmlSpecs.instance(context).getSpecs(msym);
+				utils.error(mdecl, "jml.message", "This method declaration conflicts with a previous JML method: " + mdecl.name + " (owner: " + csym +")");
+				utils.error(mspecs.cases.decl, "jml.associated.decl.cf", utils.locationString(mdecl.pos, log.currentSourceFile()));
 				return;
 			}
 			if (isGhostOrModel) {
-				// FIXME - use location of the modifier as the error point
-				utils.error(mdecl, "jml.message", "A Java method declaration must not be marked either ghost or model: " + mdecl.name + " (owner: " + csym +")");
+				var pos = utils.locMod(mdecl.mods, Modifiers.GHOST, Modifiers.MODEL);
+				utils.error(pos, "jml.message", "A Java method declaration must not be marked either ghost or model: " + mdecl.name + " (owner: " + csym +")");
 				return;
 			}
 			utils.note(true,  "Matched method: " + msym + " (owner: " + csym +")" );
+			var mspecs = new JmlSpecs.MethodSpecs(mdecl);
+			mdecl.sym = msym;
+			if (msym != null) JmlSpecs.instance(context).putSpecs(msym, mspecs);
     	}
-		var mspecs = new JmlSpecs.MethodSpecs(mdecl);
-		mdecl.sym = msym;
-		if (msym != null) JmlSpecs.instance(context).putSpecs(msym, mspecs);
     }
     
     public VarSymbol findVar(ClassSymbol csym, JmlVariableDecl vdecl) {
@@ -736,16 +777,29 @@ public class JmlEnter extends Enter {
 	        vsym = new VarSymbol(0, vdecl.name, vdecl.type, csym);
 	        vsym.flags_field = chk.checkFlags(vdecl.pos(), vdecl.mods.flags, vsym, vdecl);
 	        csym.members().enter(vsym);
-	        utils.note(true,  "Entering JML field: " + vdecl + " (owner: " + csym +")" );
+	        utils.note(true,  "Entered JML field: " + vsym + " (owner: " + csym +")" );
     	} else {
+			// Found a matching binary field
+    		boolean matchIsJML = utils.isJML(vsym.flags());
 			if (isJML) {
-				utils.error(vdecl, "jml.message", "This JML field declaration conflicts with an existing binary field with the same name: " + vdecl.name + " (owner: " + csym +")");
+				if (matchIsJML) {
+		    		JmlSpecs.FieldSpecs fspecs = JmlSpecs.instance(context).getSpecs(vsym);
+					utils.error(vdecl, "jml.message", "This JML field declaration conflicts with a previous JML field: " + vdecl.name + " (owner: " + csym +")");
+					utils.error(fspecs.decl, "jml.associated.decl.cf", utils.locationString(vdecl.pos, log.currentSourceFile()));
+				} else {
+					utils.error(vdecl, "jml.message", "This JML field declaration conflicts with an existing binary field with the same name: " + vdecl.name + " (owner: " + csym +")");
+				}
 				return;
 			}
-			// Found a matching binary field
+			if (matchIsJML) {
+	    		JmlSpecs.FieldSpecs fspecs = JmlSpecs.instance(context).getSpecs(vsym);
+				utils.error(vdecl, "jml.message", "This field declaration conflicts with a previous JML field: " + vdecl.name + " (owner: " + csym +")");
+				utils.error(fspecs.decl, "jml.associated.decl.cf", utils.locationString(vdecl.pos, log.currentSourceFile()));
+				return;
+			}
 			if (isGhostOrModel) {
-				// FIXME - use location of the modifier as the error point
-				utils.error(vdecl, "jml.message", "A Java field declaration must not be marked either ghost or model: " + vdecl.name + " (owner: " + csym +")");
+				var pos = utils.locMod(vdecl.mods, Modifiers.GHOST, Modifiers.MODEL);
+				utils.error(pos, "jml.message", "A Java field declaration must not be marked either ghost or model: " + vdecl.name + " (owner: " + csym +")");
 				return;
 			}
 			utils.note(true,  "Matched field: " + vsym + " (owner: " + csym +")" );

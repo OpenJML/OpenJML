@@ -391,13 +391,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // FIXME - can we make the following more efficient - this gets called a lot for classes already attributed
         /*@Nullable*/ JmlSpecs.TypeSpecs classSpecs = specs.get(c);  // Get null if there are none yet
         if (classSpecs == null) {
-            jmlcompiler.loadSpecsForBinary(env,c);
+            jmlcompiler.requestSpecs(c);
             classSpecs = specs.get(c);
             if (classSpecs == null) {
-                // loadSpecsForBinary should always result in a TypeSpecs for the
+                // requestSpecs should always result in a TypeSpecs for the
                 // class symbol, even if the TypeSpecs is empty
                 if (!(c.type instanceof Type.ErrorType)) utils.warning("jml.internal.notsobad","loadSpecsForBinary failed for class " + c);
-                c.complete(); // At least complete it
+                c.complete(); // At least complete it - FIXME - why?
             } 
         }
 
@@ -1582,7 +1582,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     utils.setJML(vd.mods);
                     vd.accept(this); // attribute it
                     queryDatagroup = vd.sym;
-                    specs.getSpecs(enclosingClassEnv.enclClass.sym).clauses.append(td);
+                    specs.initializeAndGetSpecs(enclosingClassEnv.enclClass.sym).clauses.append(td);
                 } else {
                     log.error(pos,"jml.no.such.field",datagroup);
                 }
@@ -5114,7 +5114,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JmlSpecs.MethodSpecs f = specs.getSpecs((Symbol.MethodSymbol)sym);
             if (f != null) mods = f.mods;
         } else if (sym instanceof Symbol.ClassSymbol) {
-            JmlSpecs.TypeSpecs f = specs.getSpecs((Symbol.ClassSymbol)sym);
+            JmlSpecs.TypeSpecs f = specs.get((Symbol.ClassSymbol)sym);
             if (f != null) mods = f.modifiers;
         }
 
@@ -5561,8 +5561,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @return true if the symbol has a model annotation, false otherwise
      */
     public boolean isModelClass(Symbol symbol) {  // FIXME
-    	TypeSpecs tspecs = specs.getSpecs((ClassSymbol)symbol);
-    	return isModel(tspecs.modifiers);
+    	TypeSpecs tspecs = specs.get((ClassSymbol)symbol);
+    	return tspecs != null && isModel(tspecs.modifiers);
     }
   
 //    /** Returns true if the given symbol has a pure annotation 
@@ -5684,7 +5684,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public boolean isImmutable(ClassSymbol symbol) {
-        TypeSpecs mspecs = specs.getSpecs(symbol);
+        TypeSpecs mspecs = specs.get(symbol);
         if (mspecs == null) {
             // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
             return false;

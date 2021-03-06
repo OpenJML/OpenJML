@@ -122,34 +122,6 @@ public class JmlCompiler extends JavaCompiler {
     	return super.enterTrees(roots);
     }
     
-//    /** A flag that controls whether to get specs during a parse or not (if false 
-//     * then do, if true then do not).  This should be left in a false state
-//     * after being used to preclude parsing specs.
-//     */
-//    public boolean inSequence = false;
-    
-//    /** 
-//     * This method is eventually called for (1) source files specified on the command-line,
-//     * through Enter.main and (2) classes referenced in other files that need to be compiled
-//     */
-//    @Override
-//    public JmlCompilationUnit parse(JavaFileObject fileobject, CharSequence content) {
-//        if (fileobject == null) return null;
-//        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"parsing " + fileobject.toUri() );
-//        
-//        try {
-//        	JCCompilationUnit cu = super.parse(fileobject,content);
-//        	if (cu instanceof JmlCompilationUnit) return (JmlCompilationUnit)cu;
-//        	log.error("jml.internal",
-//        			"JmlCompiler.parse expects to receive objects of type JmlCompilationUnit, but it found a " 
-//        					+ cu.getClass() + " instead, for source " + cu.getSourceFile().toUri().getPath());
-//        	return null;
-//        } catch (Exception e) {
-//        	Scanner S = getScanner();
-//        	S.tokenizer.getCharacters(S.tokenizer.position()-10, S.tokenizer.position()+50);
-//        	throw e;
-//        }
-//    }
     
     /** Parses the specs for a class - used when we need the specs corresponding to a binary file;
      * this may only be called for public top-level classes (the specs for non-public or
@@ -172,158 +144,126 @@ public class JmlCompiler extends JavaCompiler {
         			"jml.mismatched.package",
         			specpid,
         			p.toString());
-        	speccu = null;
-        } else {
-//        	if (specpid.startsWith("java.") || specpid.startsWith("org.")) {
-//        		JCExpression pp = speccu.pid.getPackageName();
-//        		while (pp instanceof JCFieldAccess && ((JCFieldAccess)pp).selected instanceof JCFieldAccess) {
-//        			pp = ((JCFieldAccess)pp).selected;
-//        		}
-//        		JCFieldAccess fa = (JCFieldAccess)pp;
-//        		Maker m = Maker.instance(context).at(fa.pos);
-//        		fa.selected = m.Select(
-//        				m.Ident(names.fromString("specs")),
-//        				((JCIdent)fa.selected).name);
-//        		specpid = specpid + ".*";
-//        		JCTree t = m.Import(utils.nametree(pp.pos,  pp.pos, specpid, null), false);
-//    			if (speccu.defs.head instanceof JCPackageDecl) {
-//    				JCTree tt = speccu.defs.head;
-//    				speccu.defs = speccu.defs.tail.prepend(t).prepend(tt);
-//    			} else {
-//    				speccu.defs = speccu.defs.prepend(t);
-//    			}
-//        		// FIXME speccu.packge ??
-//        	} else {
-        		speccu.packge = p;
-//        	}
+        	return null;
         }
+        speccu.packge = p;
+        speccu.modle = p.modle;
         return speccu;
     }
         
     private int nestingLevel = 0;
-
+    
     /** Parses and enters specs for binary classes, given a ClassSymbol.  This is 
      * called when a name is resolved to a binary type; the Java type itself is
      * loaded (and symbols entered) by the conventional Java means.  Here we need
      * to add to that by parsing the specs and entering any new declarations
-     * into the scope tables (via JmlEnter and JmlMemberEnter).  This method is
-     * also called when during type attribution a new unattributed type is found
-     * that does not have any specs associated with it.  We call this to get the
-     * specs.  If ever a Java file is loaded by conventional means and gets its
-     * source file through parsing, the specs will be obtained using parse()
-     * above.
+     * into the scope tables.
      * 
-     * @param env the environment representing the source for the given class;
-     *      may be null for a PUBLIC top-level class  
+     * Note that a class can be loaded (and then this method called to get specs) whenever
+     * a type is attributed, and txype attribution happens during spec loading, 
+     * so spec requests can be recursive, hence the todo list to avoid that.
+     * 
+     * If ever a Java file is loaded by conventional means and gets its
+     * source file through parsing, the specs will be obtained at that time, and not here.
+     * 
      * @param csymbol the class whose specs are wanted
-     */  // FIXME - what should we use for env for non-public binary classes
-    // FIXME - move this to JmlResolve
-    public void loadSpecsForBinary(Env<AttrContext> env, ClassSymbol csymbol) {
-        // The binary Java class itself is already loaded - it is needed to produce the classSymbol itself
-        
-        // Don't load specs over again
-        if (JmlSpecs.instance(context).get(csymbol) != null) return;
-        
-        // FIXME - need to figure out what the environment should be
+     */
+    public void requestSpecs(ClassSymbol csymbol) {
+    	// Requests for nested classes are changed to a request for their outermost class
+    	while (csymbol.owner instanceof ClassSymbol) csymbol = (ClassSymbol)csymbol.owner;
 
-        if (!binaryEnterTodo.contains(csymbol)) {
-            nestingLevel++;
-            try {
+    	JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get((ClassSymbol)csymbol);
+    	if (tsp == null) {
+    		utils.note(true, "Loaded class " + csymbol + ", about to request specs");
 
-                if (csymbol.getSuperclass() != Type.noType) loadSpecsForBinary(env, (ClassSymbol)csymbol.getSuperclass().tsym);
-                for (Type t: csymbol.getInterfaces()) {
-                    loadSpecsForBinary(env, (ClassSymbol)t.tsym);  // FIXME - env is not necessarily the tree for the classSymbol
-                }
+    		// The presence of specs is a marker of intention to load them
+    		// Actual specs are reloaded later on
+    		requestSpecsForParents(csymbol);
+    	} else {
+    		utils.note(true,"Loaded class " + csymbol + ", specs already loaded or in progress");
+    	}
 
-                // It can happen that the specs are loaded during the loading of the super class 
-                // since complete() may be called on the class in order to fetch its superclass
-                JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csymbol);
-                if (tspecs == null) {
-                    // Note: classes and interfaces may be entered in this queue multiple times. The check for specs at the beginning of this method
-                    // does not prevent unloaded classes from being added to the queue more than once, because the specs are not loaded until completeBinaryEnterTodo
-                    binaryEnterTodo.prepend(csymbol);
-                }
+    }
 
-                for (Symbol t: csymbol.getEnclosedElements()) {
-                    if (t.isPrivate()) continue;
-                    if (t instanceof ClassSymbol) {
-                        //if (((ClassSymbol)t).getTypeParameters().size() != 0) continue; // FIXME - crashes on type parameters
-                        loadSpecsForBinary(env, (ClassSymbol)t);  // FIXME - env is not necessarily the tree for the classSymbol
-                    }
-                }
+    private void requestSpecsForParents(ClassSymbol csymbol) {
+    	// The binary Java class itself is already loaded - it is needed to produce the classSymbol itself
 
-                if (tspecs == null) {
-                    binaryEnterTodo.prepend(csymbol);
-                }
+    	if (!binaryEnterTodo.contains(csymbol)) {
+    		nestingLevel++;
+    		try {
+    			// It can happen that the specs are loaded during the loading of the super class 
+    			// since complete() may be called on the class in order to fetch its superclass,
+    			// or during the loading of any other class that happens to mention the type.
+    			// So we recheck here, before reentering the class in the todo list
+    			// The presence of specs is a marker of intention to load, but not that they are yet loaded
+    			JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csymbol);
+    			if (tspecs != null) return;
 
+    			// Classes are prepended to the todo list in reverse order, so that parent classes
+    			// have specs read first.
 
-            } finally {
-                nestingLevel --;
-            }
-        }
+    			// Note that nested classes are specified in the same source file as their enclosing classes
+    			// Everything within a specification text file is loaded together
 
-        // This nesting level is used to be sure we queue up a whole set of 
-        // classes, do their 'enter' processing to record any types before we
-        // do their member processing to record all their members.  We need the
-        // types recorded so that we can look up types for the members (e.g. do
-        // method resolution).  This is the same two-phase processing as the
-        // Java handling uses, we just don't use the same todo list.
-        if (nestingLevel==0) completeBinaryEnterTodo();
-            
-     }
-    
+    			//                for (Symbol t: csymbol.getEnclosedElements()) {
+    			//                    if (t.isPrivate()) continue;
+    			//                    if (t instanceof ClassSymbol) {
+    			//                    	requestSpecsForParents((ClassSymbol)t);
+    			//                    }
+    			//                }
+
+        		utils.note(true, "Queueing specs request for " + csymbol);
+
+    			binaryEnterTodo.prepend(csymbol);
+
+    			for (Type t: csymbol.getInterfaces()) {
+    				requestSpecsForParents((ClassSymbol)t.tsym);
+    			}
+    			if (csymbol.getSuperclass() != Type.noType) { // Object has noType as a superclass
+    				requestSpecsForParents((ClassSymbol)csymbol.getSuperclass().tsym);
+    			}
+
+    		} finally {
+    			nestingLevel --;
+    		}
+    	}
+
+    	// This nesting level is used to be sure we do not start processing a class, 
+    	// say a superclass, before we have finished loading specs for a given class
+    	if (nestingLevel==0) completeBinaryEnterTodo();
+
+    }
+
     ListBuffer<ClassSymbol> binaryEnterTodo = new ListBuffer<ClassSymbol>();
     
-    // FIXME - do we really need this deferred processing?
-    public void completeBinaryEnterTodo() {
+    private void completeBinaryEnterTodo() {
         JmlSpecs specs = JmlSpecs.instance(context);
         while (!binaryEnterTodo.isEmpty()) {
             ClassSymbol csymbol = binaryEnterTodo.remove();
             if (csymbol.type instanceof Type.ErrorType) {
                 continue; // A bad type causes crashes later on
             }
+            
+            // Last check to see if specs are already present or in progress
             if (specs.get(csymbol) != null) continue;
             
-            // Record default specs just to show they are in process
-            // If there are actual specs, they will be recorded later
-            // We do this, in combination with the check above, to avoid recursive loops
-            ((JmlEnter)enter).recordEmptySpecs(csymbol);
-            csymbol.flags_field |= UNATTRIBUTED;
-            
-            
-            JmlCompilationUnit speccu = parseSpecs(csymbol);
-            if (speccu != null) {
-            	speccu.sourceCU = null;
-            	speccu.modle = csymbol.packge().modle;
-
                 nestingLevel++;
                 try {
-                    ((JmlEnter)enter).binaryEnter(speccu);
-//                    // specscu.defs is empty if nothing was declared or if all class declarations were removed because of errors
-//                    if (ok) {
-//                        for (JCTree d: speccu.defs) {
-//                            if (d instanceof JmlClassDecl) {
-//                                JmlClassDecl jd = (JmlClassDecl)d;
-//                                Env<AttrContext> outerEnv = jd.env;
-//                                todo.append(outerEnv);
-//                                //specs.combineSpecs(jd.sym, jd, jd); // This is a repeat of the top-level definitions
-//                                for (JCTree dd: jd.defs) { // TODO: Needs full recursiveness, not just the next level
-//                                    if (dd instanceof JmlClassDecl) {
-//                                        JmlClassDecl jdd = (JmlClassDecl)dd;
-//                                        if (jdd.env == null) jdd.env = enter.classEnv(jdd, outerEnv);
-//                                        jdd.specsDecl = jdd;
-//                                        todo.append(jdd.env);
-//                                        //specs.combineSpecs(jdd.sym, jdd, jdd);
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                    memberEnter.enterSpecsForBinaryClasses(csymbol,List.<JCTree>of(speccu));
+                    // Record default specs just to show they are in process
+                    // If there are actual specs, they will be recorded later
+                    // We do this, in combination with the check above, to avoid recursive loops
+                    ((JmlEnter)enter).recordEmptySpecs(csymbol);
+                    csymbol.flags_field |= UNATTRIBUTED;
+                    
+                    JmlCompilationUnit speccu = parseSpecs(csymbol);
+                    if (speccu != null) {
+                    	speccu.sourceCU = null; // Indicates a binary + specs file
+                    	((JmlEnter)enter).binaryEnter(speccu);
+                		utils.note(true, "Completed entering specs for " + csymbol);
+                   }
                 } finally {
                     nestingLevel--;
                 }
-            }
         }
     }
     
