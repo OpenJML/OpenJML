@@ -12,9 +12,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
-import org.jmlspecs.lang.Real;
-
+import org.jmlspecs.lang.*;
 
 /** 
  * This class contains utility methods used in internal translations for both
