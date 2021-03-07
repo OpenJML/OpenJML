@@ -108,7 +108,7 @@ import com.sun.tools.javac.util.Position;
  * @author David Cok
  */
 abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends BasicProgramParent<T>> extends JmlTreeScanner {
-
+	
     // THE FOLLOWING ARE ALL FIXED STRINGS
     
     //-----------------------------------------------------------------
@@ -208,9 +208,6 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     // Some are here for the benefit of derived classes and not used in this
     // class directly
     
-    /** The compilation context */
-    /*@non_null*/ final protected Context context;
-    
     /** The log to which to send error, warning and notice messages */
     /*@non_null*/ final protected Log log;
     
@@ -284,7 +281,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * @param context the compilation context
      */
     protected BasicBlockerParent(/*@non_null*/ Context context) {
-        this.context = context;
+    	super(context);
         this.log = Log.instance(context);
         this.M = JmlTree.Maker.instance(context);
         this.names = Names.instance(context);

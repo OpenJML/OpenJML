@@ -172,7 +172,7 @@ public class JmlResolve extends Resolve {
         }
 
         // Cannot set jmlcompiler in the constructor because we get a circular initialization problem.
-        JmlCompiler.instance(context).requestSpecs((ClassSymbol)s);
+        JmlEnter.instance(context).requestSpecs((ClassSymbol)s);
         return s;
     }
 

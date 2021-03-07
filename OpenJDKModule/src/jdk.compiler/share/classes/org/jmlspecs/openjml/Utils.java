@@ -333,7 +333,8 @@ public class Utils {
     }
     
     public boolean isModel(/*@non_null*/ VarSymbol symbol) {
-    	return hasMod(JmlSpecs.instance(context).getSpecs(symbol).mods, Modifiers.MODEL);
+    	var fs = JmlSpecs.instance(context).getSpecs(symbol);
+    	return fs != null && hasMod(fs.mods, Modifiers.MODEL);
     }
     
     public boolean isModel(/*@non_null*/ Symbol symbol) {

@@ -73,9 +73,6 @@ public class JmlEsc extends JmlTreeScanner {
         return instance;
     }
 
-    /** The compilation context, needed to get common tools, but unique to this compilation run*/
-    /*@non_null*/ Context context;
-
     /** Used to obtain cached symbols, such as basic types */
     /*@non_null*/ Symtab syms;
     
@@ -96,7 +93,7 @@ public class JmlEsc extends JmlTreeScanner {
     
     /** The JmlEsc constructor, which initializes all the tools and other fields. */
     public JmlEsc(Context context) {
-        this.context = context;
+        super(context);
         this.syms = Symtab.instance(context);
         this.log = Log.instance(context);
         this.utils = Utils.instance(context);
@@ -125,7 +122,7 @@ public class JmlEsc extends JmlTreeScanner {
             if (tree instanceof JCClassDecl) info = "class " + ((JCClassDecl)tree).name.toString();
             if (tree instanceof JCCompilationUnit) info = "compilation unit " + (((JCCompilationUnit)tree).sourcefile.toString());
             log.error("jml.internal","Should not be catching a " + e.getClass().getName() + " in JmlEsc.check: "+ e.toString() + " while translating " + info);
-            e.printStackTrace();
+            e.printStackTrace(System.out);
         }
     }
     

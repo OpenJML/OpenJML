@@ -7,6 +7,7 @@ package com.sun.tools.javac.comp;
 
 import static com.sun.tools.javac.code.Flags.DEFAULT;
 import static com.sun.tools.javac.code.Flags.SIGNATURE_POLYMORPHIC;
+import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 
 import java.util.Collection;
 
@@ -164,6 +165,10 @@ public class JmlEnter extends Enter {
         this.context = context;
         this.utils = Utils.instance(context);
 //        this.specs = JmlSpecs.instance(context);
+    }
+    
+    public static JmlEnter instance(Context context) {
+    	return (JmlEnter)Enter.instance(context);
     }
     
     /** The env (scope) to be used within specifications corresponding to the env for Java, as passed internally
@@ -629,7 +634,11 @@ public class JmlEnter extends Enter {
 		var tspecs = new JmlSpecs.TypeSpecs(jdecl);
 		if (csym != null) JmlSpecs.instance(context).putSpecs(csym, tspecs);
 		Env<AttrContext> localEnv = classEnv(jdecl, env);
-		// Do all nested classes first, so their names are known
+		TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localEnv);
+		((ClassType)csym.type).typarams_field = classEnter(jdecl.typarams, localEnv);
+        typeEnvs.put(csym, localEnv);
+
+        // Do all nested classes first, so their names are known
 		for (JCTree t: jdecl.defs) {
 			if (t instanceof JmlClassDecl) {
 				binaryEnter(csym, (JmlClassDecl)t, localEnv);
@@ -653,25 +662,47 @@ public class JmlEnter extends Enter {
 		}
     }
     
+    public boolean matchAsStrings(Type bin, JCExpression src) {
+    	String binstr = bin.toString();
+    	String srcstr = src.toString();
+		if (binstr.equals(srcstr)) return true;
+		if (binstr.endsWith("." + srcstr)) return true;
+		return false;
+    }
+    
     public MethodSymbol findMethod(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> env) {
     	boolean hasTypeParams = csym.getTypeParameters().length() != 0 || mdecl.typarams.length() != 0;
-    	if (!hasTypeParams) for (var a: mdecl.params) {
-			a.type = a.vartype.type = Attr.instance(context).attribType(a.vartype, env);
+    	if (!hasTypeParams) {
+    		Attr attr = Attr.instance(context);
+    		// FIXME mdecl.mods.annotations?
+        	if (mdecl.typarams != null) attr.attribTypeVariables(mdecl.typarams, env, true);
+        	if (mdecl.recvparam != null) attr.attribType(mdecl.recvparam, env);
+    		for (var a: mdecl.params) {
+    			a.type = a.vartype.type = attr.attribType(a.vartype, env);
+    		}
+        	if (mdecl.restype != null) attr.attribType(mdecl.restype, env);
+        	if (mdecl.thrown != null) attr.attribTypes(mdecl.thrown, env);
     	}
 		Symbol.MethodSymbol msym = null;
+		MethodSymbol first = null;
+		int count = 0;
 		var iter = csym.members().getSymbolsByName(mdecl.name, s->(s instanceof Symbol.MethodSymbol)).iterator();
     	x: while (iter.hasNext()) {
     		var m = (MethodSymbol)iter.next();
     		if (m.params.length() != mdecl.params.length()) continue;
+    		if (m.getTypeParameters().length() != mdecl.getTypeParameters().length()) continue;
+			first = m;
+			count++;
     		for (int i=0; i<m.params.length(); i++) {
     			if (hasTypeParams) {
     				// FIXME - When there are type parameters, the type resolution above is not working
     				// so we fall back to string comparison -- a hack that only partially works
     				// Probably has to do with getting the correct env
     				//if (Utils.debug()) System.out.println("TYPES " + m.params.get(i).type.toString() + " " + mdecl.params.get(i).vartype.toString());
-    				if (!m.params.get(i).type.toString().equals(mdecl.params.get(i).vartype.toString())) continue x;
+    				if (!matchAsStrings(m.params.get(i).type, mdecl.params.get(i).vartype)) continue x;
+    			} else {
+    				if (!types.isSameType(m.params.get(i).type,mdecl.params.get(i).type)) continue x;
     			}
-    			else if (!types.isSameType(m.params.get(i).type,mdecl.params.get(i).type)) continue x;
     		}
     		if (msym != null) {
     			// It turns out that there sometimes are two method symbols with the same signature.
@@ -683,6 +714,10 @@ public class JmlEnter extends Enter {
         		return msym;
     		}
     	}
+		if (msym == null && count == 1) {
+			utils.note(mdecl, "jml.message", "No match; using the unique candidate" + (!hasTypeParams?"": " (hasTypeParameters)"));
+			msym = first;
+		}
     	return msym;
     }
     
@@ -703,6 +738,9 @@ public class JmlEnter extends Enter {
 			// No corresponding binary method
     		if (!isJML) {
 				utils.error(mdecl, "jml.message", "There is no binary method to match this Java declaration in the specification file: " + mdecl.name + " (owner: " + csym +")");
+				for (var s: csym.members().getSymbolsByName(mdecl.name, s->(s instanceof MethodSymbol))) {
+					utils.note(false, "    " + csym + " has " + s);
+				}
 				return;
     		}
 			if (!isGhostOrModel) {
@@ -1073,7 +1111,136 @@ public class JmlEnter extends Enter {
     	if (!b) b = env.toplevel.sourcefile.isNameCompatible(c.name.toString(),
                 JavaFileObject.Kind.JML);
     	return b;
-}
+    }
 
+    private int nestingLevel = 0;
+    
+    /** Parses and enters specs for binary classes, given a ClassSymbol.  This is 
+     * called when a name is resolved to a binary type; the Java type itself is
+     * loaded (and symbols entered) by the conventional Java means.  Here we need
+     * to add to that by parsing the specs and entering any new declarations
+     * into the scope tables.
+     * 
+     * Note that a class can be loaded (and then this method called to get specs) whenever
+     * a type is attributed, and txype attribution happens during spec loading, 
+     * so spec requests can be recursive, hence the todo list to avoid that.
+     * 
+     * If ever a Java file is loaded by conventional means and gets its
+     * source file through parsing, the specs will be obtained at that time, and not here.
+     * 
+     * @param csymbol the class whose specs are wanted
+     */
+    public void requestSpecs(ClassSymbol csymbol) {
+    	// Requests for nested classes are changed to a request for their outermost class
+    	while (csymbol.owner instanceof ClassSymbol) csymbol = (ClassSymbol)csymbol.owner;
+
+    	JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get((ClassSymbol)csymbol);
+    	if (tsp == null) {
+    		utils.note(true, "Loaded class " + csymbol + ", about to request specs");
+
+    		// The presence of specs is a marker of intention to load them
+    		// Actual specs are reloaded later on
+    		requestSpecsForParents(csymbol);
+    	} else {
+    		utils.note(true,"Loaded class " + csymbol + ", specs already loaded or in progress");
+    	}
+
+    }
+
+    private void requestSpecsForParents(ClassSymbol csymbol) {
+    	// The binary Java class itself is already loaded - it is needed to produce the classSymbol itself
+
+    	if (!binaryEnterTodo.contains(csymbol)) {
+    		nestingLevel++;
+    		try {
+    			// It can happen that the specs are loaded during the loading of the super class 
+    			// since complete() may be called on the class in order to fetch its superclass,
+    			// or during the loading of any other class that happens to mention the type.
+    			// So we recheck here, before reentering the class in the todo list
+    			// The presence of specs is a marker of intention to load, but not that they are yet loaded
+    			JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csymbol);
+    			if (tspecs != null) return;
+
+    			// Classes are prepended to the todo list in reverse order, so that parent classes
+    			// have specs read first.
+
+    			// Note that nested classes are specified in the same source file as their enclosing classes
+    			// Everything within a specification text file is loaded together
+
+    			//                for (Symbol t: csymbol.getEnclosedElements()) {
+    			//                    if (t.isPrivate()) continue;
+    			//                    if (t instanceof ClassSymbol) {
+    			//                    	requestSpecsForParents((ClassSymbol)t);
+    			//                    }
+    			//                }
+
+        		utils.note(true, "Queueing specs request for " + csymbol);
+
+    			binaryEnterTodo.prepend(csymbol);
+
+    			for (Type t: csymbol.getInterfaces()) {
+    				requestSpecsForParents((ClassSymbol)t.tsym);
+    			}
+    			if (csymbol.getSuperclass() != Type.noType) { // Object has noType as a superclass
+    				requestSpecsForParents((ClassSymbol)csymbol.getSuperclass().tsym);
+    			}
+
+    		} finally {
+    			nestingLevel --;
+    		}
+    	}
+
+    	// This nesting level is used to be sure we do not start processing a class, 
+    	// say a superclass, before we have finished loading specs for a given class
+    	if (nestingLevel==0) completeBinaryEnterTodo();
+
+    }
+
+    ListBuffer<ClassSymbol> binaryEnterTodo = new ListBuffer<ClassSymbol>();
+    ListBuffer<JmlCompilationUnit> binaryAttrTodo = new ListBuffer<JmlCompilationUnit>();
+    
+    private void completeBinaryEnterTodo() {
+    	JmlSpecs specs = JmlSpecs.instance(context);
+    	while (!binaryEnterTodo.isEmpty()) {
+    		ClassSymbol csymbol = binaryEnterTodo.remove();
+    		if (csymbol.type instanceof Type.ErrorType) {
+    			continue; // A bad type causes crashes later on
+    		}
+
+    		// Last check to see if specs are already present or in progress
+    		if (specs.get(csymbol) != null) continue;
+
+    		nestingLevel++;
+    		try {
+    			// Record default specs just to show they are in process
+    			// If there are actual specs, they will be recorded later
+    			// We do this, in combination with the check above, to avoid recursive loops
+    			recordEmptySpecs(csymbol);
+    			csymbol.flags_field |= UNATTRIBUTED;
+
+    			JmlCompilationUnit speccu = JmlCompiler.instance(context).parseSpecs(csymbol);
+    			if (speccu != null) {
+    				speccu.sourceCU = null; // Indicates a binary + specs file
+    				binaryEnter(speccu);
+    				utils.note(true, "Completed entering specs for " + csymbol);
+    				binaryAttrTodo.add(speccu);
+    			}
+    		} finally {
+    			nestingLevel--;
+    		}
+        	while (!binaryAttrTodo.isEmpty() && binaryEnterTodo.isEmpty()) {
+        		JmlCompilationUnit cu = binaryAttrTodo.remove();
+        		for (var d: cu.defs) {
+        			if (d instanceof JmlClassDecl) {
+        				Attr.print = true;
+        				if (Utils.debug()) System.out.println("ATTRIBUTING " + ((JmlClassDecl)d).sym );
+        				Attr.instance(context).attribClass(((JmlClassDecl)d).sym);
+        				Attr.print = false;
+        				
+        			}
+        		}
+        	}
+    	}
+    }
     
 }

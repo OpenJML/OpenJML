@@ -640,6 +640,8 @@ public class API implements IAPI {
      * children. This condition is true of a AST produced by parsing, but is
      * not necessarily true of an AST produced by translation or other AST edits. */
     public static class Finder extends JmlTreeScanner {
+    	public Finder() { super(null); }
+    	
         /** Find the node within the given tree that encompasses the given
          * start and end position.
          * @param tree the root of the tree

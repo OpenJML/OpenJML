@@ -11,10 +11,7 @@ import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.RecommendsClause;
-import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
-import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.JmlTree.JmlMatchExpression.MatchCase;
 
 import com.sun.source.tree.LabeledStatementTree;
 import com.sun.tools.javac.tree.JCTree;
@@ -22,6 +19,8 @@ import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Context;
 
 /**
  * This class is used to construct visitors that walk a Java/JML parse tree. The
@@ -37,6 +36,7 @@ import com.sun.tools.javac.util.ListBuffer;
  */
 public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 
+	public final Context context;
     public static final int AST_JAVA_MODE = 0;
     public static final int AST_JML_MODE = 1;
     public static final int AST_SPEC_MODE = 2;
@@ -53,10 +53,16 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     public int scanMode;
     
     public JmlTreeScanner() {
+        this(null);
+    }
+    
+    public JmlTreeScanner(Context context) {
+        this.context = context;
         scanMode = AST_JML_MODE;
     }
     
-    public JmlTreeScanner(int mode) {
+    public JmlTreeScanner(Context context, int mode) {
+    	this.context = context;
         scanMode = mode;
     }
 
@@ -105,35 +111,41 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     }
 
     public void visitJmlClassDecl(JmlClassDecl that) {
-        if (scanMode == AST_SPEC_MODE) {
-            if (!that.isTypeChecked()) throw new RuntimeException("AST_SPEC_MODE requires that the Class be type-checked; class " + that.name + " is not.");
-        }
-        boolean isJML = (that.mods.flags & Utils.JMLBIT) != 0; // SHould use Utils.isJML(), but it needs a context value
-        if (!isJML || scanMode == AST_JML_MODE) visitClassDef(that);
-        if (scanMode == AST_SPEC_MODE) {
-            JmlSpecs.TypeSpecs ms = that.typeSpecs;
-            if (ms != null) {
-                scan(ms.modifiers);
-                scan(ms.clauses);
-                scan(ms.decls);
-            } else {
-                // FIXME - why does this happen: System.out.println("No specs found for " + that.name);
-            }
-        }
-        if (scanMode == AST_JML_MODE) {
-            JmlSpecs.TypeSpecs ms = that.typeSpecs;
-            // already done - scan(ms.modifiers);
-            if (ms != null) scan(ms.clauses);
-            if (ms != null) scan(ms.decls);
-        }
+    	var prev = context == null ? null : Log.instance(context).useSource( that.sourcefile);
+		try {
+	        if (scanMode == AST_SPEC_MODE) {
+	            if (!that.isTypeChecked()) throw new RuntimeException("AST_SPEC_MODE requires that the Class be type-checked; class " + that.name + " is not.");
+	        }
+	        boolean isJML = (that.mods.flags & Utils.JMLBIT) != 0; // SHould use Utils.isJML(), but it needs a context value
+	        if (!isJML || scanMode == AST_JML_MODE) visitClassDef(that);
+	        if (scanMode == AST_SPEC_MODE) {
+	            JmlSpecs.TypeSpecs ms = that.typeSpecs;
+	            if (ms != null) {
+	                scan(ms.modifiers);
+	                scan(ms.clauses);
+	                scan(ms.decls);
+	            } else {
+	                // FIXME - why does this happen: System.out.println("No specs found for " + that.name);
+	            }
+	        }
+	        if (scanMode == AST_JML_MODE) {
+	            JmlSpecs.TypeSpecs ms = that.typeSpecs;
+	            // already done - scan(ms.modifiers);
+	            if (ms != null) scan(ms.clauses);
+	            if (ms != null) scan(ms.decls);
+	        }
+		} finally {
+			if (context != null) Log.instance(context).useSource(prev);
+		}
     }
 
     public void visitTopLevel(JCCompilationUnit that) {
-//        scan(that.packageAnnotations);
-//        scan(that.pid); // package id
-        scan(that.defs);
-//        if (scanMode == AST_JML_MODE) scan(that.parsedTopLevelModelTypes);
-//        if (scanMode == AST_SPEC_MODE) scan(that.specsTopLevelModelTypes);
+    	var prev = context == null ? null : Log.instance(context).useSource( ((JmlCompilationUnit)that).sourcefile);
+		try {
+			super.visitTopLevel(that);
+		} finally {
+			if (context != null) Log.instance(context).useSource(prev);
+		}
     }
 
     public void visitJmlMethodSig(JmlMethodSig that) {
@@ -227,15 +239,20 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     }
 
     public void visitJmlMethodDecl(JmlMethodDecl that) {
-        if (scanMode == AST_SPEC_MODE) {
-            JmlSpecs.MethodSpecs ms = that.methodSpecsCombined;
-            scan(ms.mods);
-            scan(ms.cases);
-        }
-        if (scanMode == AST_JML_MODE) {
-            scan(that.cases);
-        }
-        visitMethodDef(that);
+    	var prev = context == null ? null : Log.instance(context).useSource(that.sourcefile);
+		try {
+	        if (scanMode == AST_SPEC_MODE) {
+	            JmlSpecs.MethodSpecs ms = that.methodSpecsCombined;
+	            scan(ms.mods);
+	            scan(ms.cases);
+	        }
+	        if (scanMode == AST_JML_MODE) {
+	            scan(that.cases);
+	        }
+	        visitMethodDef(that);
+		} finally {
+			if (context != null) Log.instance(context).useSource(prev);
+		}
     }
 
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
@@ -280,9 +297,14 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     }
 
     public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
-        scan(tree.modifiers);
-        scan(tree.clauses);
-        scan(tree.block);
+		var prev = context == null ? null : Log.instance(context).useSource(tree.sourcefile);
+		try {
+	        scan(tree.modifiers);
+	        scan(tree.clauses);
+	        scan(tree.block);
+		} finally {
+			if (context != null) Log.instance(context).useSource(prev);
+		}
     }
 
     public void visitJmlStatement(JmlStatement tree) {

@@ -38,6 +38,7 @@ public class JmlDebugTreePrinter extends JmlTreeScanner {
      * @param endPositions the map with the end position information, obtained from a suitable parser
      */
     public JmlDebugTreePrinter(PrintStream out, /*@nullable*/ AbstractEndPosTable endPositions) {
+    	super(null);
         this.out = out;
         this.endPositions = endPositions;
     }
