@@ -391,7 +391,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // FIXME - can we make the following more efficient - this gets called a lot for classes already attributed
         /*@Nullable*/ JmlSpecs.TypeSpecs classSpecs = specs.get(c);  // Get null if there are none yet
         if (classSpecs == null) {
-            jmlcompiler.requestSpecs(c);
+            JmlEnter.instance(context).requestSpecs(c);
             classSpecs = specs.get(c);
             if (classSpecs == null) {
                 // requestSpecs should always result in a TypeSpecs for the
@@ -1235,7 +1235,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            if (JmlOption.isOption(context, JmlOption.STRICT)) checkClauseOrder(jmethod.methodSpecsCombined);
             noBodyOK = noBodyOKSaved;
             if (isJmlDecl) jmlresolve.setAllowJML(prevAllowJML);
-            if (jmethod.methodSpecsCombined != null) { // FIXME - should we get the specs to check from JmlSpecs?
+            {
                 if (m.body == null) {
                     currentSecretContext = mspecs.secretDatagroup;
                     currentQueryContext = null;
@@ -1675,7 +1675,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 Env<AttrContext> prevEnv2 = env;
                 try {
                     env = localEnv;
-                    JmlSpecs.MethodSpecs sp = specs.getSpecs(env.enclMethod.sym);
+                    JmlSpecs.MethodSpecs sp = specs.getSpecs(tree.sym);
+                	if (Utils.debug()) System.out.println("ABOUT TO DO SPECS DIRECTLY " + tree.sym + " " + sp);
                     if (sp != null) sp.cases.accept(this);
                     deSugarMethodSpecs(tree,sp);
                 } finally {
@@ -2714,6 +2715,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     /** Attributes invariant, axiom, initially clauses */
     public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree) {
+    	if (Utils.debug()) System.out.println("ATTRIBUTING " + tree);
         boolean prev = pureEnvironment;
         pureEnvironment = true;
         JavaFileObject old = log.useSource(tree.source);
@@ -6683,6 +6685,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         List<JCVariableDecl> decls;
         
         public RACCheck(List<JCVariableDecl> decls) {
+        	super(null);
             this.decls = decls;
         }
         

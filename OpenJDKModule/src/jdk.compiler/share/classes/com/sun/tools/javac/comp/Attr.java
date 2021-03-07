@@ -657,6 +657,8 @@ public class Attr extends JCTree.Visitor {
 
     MatchBindings matchBindings = MatchBindingsComputer.EMPTY;
 
+    public static boolean print = false;
+    
     /** Visitor method: attribute a tree, catching any completion failure
      *  exceptions. Return the tree's type.
      *

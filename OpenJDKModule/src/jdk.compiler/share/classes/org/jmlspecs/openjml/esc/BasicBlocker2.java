@@ -2387,6 +2387,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         private Set<VarSymbol> syms = new HashSet<VarSymbol>();
         
         public GetSymbols() {
+        	super(null);
             scanMode = JmlTreeScanner.AST_SPEC_MODE;
         }
         

@@ -904,7 +904,7 @@ public class TypeEnter implements Completer {
         }
     }
 
-    private abstract class AbstractMembersPhase extends Phase {
+    abstract class AbstractMembersPhase extends Phase {
 
         public AbstractMembersPhase(CompletionCause completionCause, Phase next) {
             super(completionCause, next);
@@ -932,7 +932,7 @@ public class TypeEnter implements Completer {
             }
         }
 
-        void enterThisAndSuper(ClassSymbol sym, Env<AttrContext> env) {
+        public void enterThisAndSuper(ClassSymbol sym, Env<AttrContext> env) { // OPENJML - package to public
             ClassType ct = (ClassType)sym.type;
             // enter symbols for 'this' into current scope.
             VarSymbol thisSym =
@@ -985,7 +985,7 @@ public class TypeEnter implements Completer {
 
     /** Enter member fields and methods of a class
      */
-    private final class MembersPhase extends AbstractMembersPhase {
+    public final class MembersPhase extends AbstractMembersPhase { // OPENJML - private to public
 
         public MembersPhase() {
             super(CompletionCause.MEMBERS_PHASE, null);

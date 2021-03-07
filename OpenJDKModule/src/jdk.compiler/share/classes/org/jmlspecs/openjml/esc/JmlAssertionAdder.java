@@ -251,9 +251,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     // Constant items set in the constructor
     
-    /** The compilation context */
-    final protected Context context;
-    
     /** Cached value of the Log tool */
     final public Log log;
     
@@ -569,8 +566,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * @param fac true if the resulting AST is to be used for RAC, otherwise false
      */
     public JmlAssertionAdder(Context context, boolean esc, boolean rac, boolean infer) {
-
-        this.context = context;
+    	super(context);
         this.esc = esc;
         this.rac = rac;
         this.infer = infer;
@@ -1411,6 +1407,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @SuppressWarnings("unchecked")
     public /*@nullable*/ <T extends JCTree> T convert(/*@nullable*/ T tree) {
         if (tree == null) { result = null; return null; }
+        CheckTree.check(context,tree);
         scan(tree);
 
         saveMapping(tree, result);
@@ -19048,6 +19045,57 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Returns the file object for a given index */
     public JavaFileObject getFileByIndex(int i) {
         return intToJfo.get(i);
+    }
+    
+    public static class CheckTree extends JmlTreeScanner {
+    	public Utils utils;
+    	
+    	public CheckTree(Context context) {
+    		super(context);
+    		utils = Utils.instance(context);
+    	}
+    	
+    	public static void check(Context context, JCTree tree) {
+    		new CheckTree(context).scan(tree);
+    	}
+    	
+    	public void scan(JCTree tree) {
+    		JavaFileObject prev = null;
+    		if (tree instanceof JCExpression) {
+    			if ( ((JCExpression)tree).type == null) utils.note(tree, "jml.message", "Expression has no type: " + JmlPretty.write(tree));
+    		}
+    		if (tree instanceof JmlTypeClause) {
+    			if (context != null) prev = Log.instance(context).useSource(((JmlTypeClause)tree).source);
+    		}
+    		super.scan(tree);
+    		if (prev != null) Log.instance(context).useSource(prev);
+    	}
+    	
+    	public void visitCompilationUnit(JCCompilationUnit tree) {
+    		utils.note(false, "Checking " + tree.sourcefile);
+    		super.visitTopLevel(tree);
+    	}
+    	
+    	public void visitAnnotation(JCAnnotation tree) {
+    		if (tree.type == null)  utils.note(tree, "jml.message", "Annotation has no type: " + JmlPretty.write(tree));
+    		if (tree.annotationType.type == null)  utils.note(tree, "jml.message", "Annotation has no annotationType.type: " + JmlPretty.write(tree));
+    	}
+    	
+    	public void visitIdent(JCIdent tree) {
+    		if (tree.sym == null) utils.note(tree, "jml.message", "Ident has no sym: " + JmlPretty.write(tree));
+    		if (tree.sym != null && tree.sym.owner instanceof ClassSymbol && JmlSpecs.instance(context).get((ClassSymbol)tree.sym.owner) == null)  utils.error(tree, "jml.message", tree.sym.owner + " has no specs: "  + JmlPretty.write(tree));
+    		if (tree.sym != null && tree.sym.owner instanceof ClassSymbol && tree.sym instanceof MethodSymbol && JmlSpecs.instance(context).getSpecs((MethodSymbol)tree.sym) == null)  utils.error(tree, "jml.message", tree.sym + " has no specs: "  + JmlPretty.write(tree));
+    		if (tree.sym != null && tree.sym.owner instanceof ClassSymbol && tree.sym instanceof VarSymbol && JmlSpecs.instance(context).getSpecs((VarSymbol)tree.sym) == null)  utils.error(tree, "jml.message", tree.sym + " has no specs: "  + JmlPretty.write(tree));
+    		super.visitIdent(tree);
+    	}
+    	
+    	public void visitImport(JCImport tree) {
+    		// do nothing
+    	}
+    	
+    	public void visitPackageDef(JCPackageDecl tree) {
+    		// do nothing
+    	}
     }
     
 }
