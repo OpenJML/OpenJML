@@ -770,7 +770,6 @@ public class Resolve {
                                     List<Type> argtypes,
                                     List<Type> formals,
                                     Warner warn) {
-        	//if (System.getenv("PRINT") != null) System.out.println("ARGTYPES " + argtypes + " " + formals);
             //should we expand formals?
             boolean useVarargs = deferredAttrContext.phase.isVarargsRequired();
             JCTree callTree = treeForDiagnostics(env);

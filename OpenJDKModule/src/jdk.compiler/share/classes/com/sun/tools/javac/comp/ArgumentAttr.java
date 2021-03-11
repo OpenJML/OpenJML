@@ -358,7 +358,6 @@ public class ArgumentAttr extends JCTree.Visitor {
         @Override
         final public Type complete(DeferredType dt, ResultInfo resultInfo, DeferredAttrContext deferredAttrContext) {
             Assert.check(dt == this);
-            if (System.getenv("PRINT") != null) System.out.println("COMPLETE " + (deferredAttrContext.mode == AttrMode.SPECULATIVE) + " " + (resultInfo.pt == Type.recoveryType) + " " + deferredAttr.basicCompleter.getClass());
             if (deferredAttrContext.mode == AttrMode.SPECULATIVE) {
                 Type t = (resultInfo.pt == Type.recoveryType) ?
                         deferredAttr.basicCompleter.complete(dt, resultInfo, deferredAttrContext) :
@@ -712,8 +711,6 @@ public class ArgumentAttr extends JCTree.Visitor {
 
         @Override
         ResultInfo resultInfo(ResultInfo resultInfo) {
-        	if (System.getenv("PRINT") != null) System.out.println("RESINFO-A " + speculativeTree.getClass() + " " + speculativeTree + " " + speculativeTree.clazz);
-        	if (System.getenv("PRINT") != null) System.out.println("RESINFO-B " + resultInfo.getClass() + " " + resultInfo.pkind + " " + resultInfo.pt);
             return resultInfo.dup(attr.diamondContext(speculativeTree, speculativeTree.clazz.type.tsym, resultInfo.checkContext));
         }
 

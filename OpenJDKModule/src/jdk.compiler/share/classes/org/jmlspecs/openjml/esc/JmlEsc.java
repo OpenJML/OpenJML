@@ -20,6 +20,7 @@ import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.esc.JmlAssertionAdder.CheckTree;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
@@ -108,6 +109,7 @@ public class JmlEsc extends JmlTreeScanner {
         try {
             // FIXME - would prefer for esc to just translate the methods that are to be proved
             // We convert the whole tree first
+            CheckTree.check(context,tree);
             assertionAdder.convert(tree); // get at the converted tree through the map
             // And then we walk the tree to see which items are to be proved
             tree.accept(this);
@@ -326,9 +328,7 @@ public class JmlEsc extends JmlTreeScanner {
         
         IProverResult res = null;
         try {
-            if (JmlOption.isOption(context, JmlOption.BOOGIE)) {
-                res = new MethodProverBoogie(this).prove(methodDecl);
-            } else {
+        	{
                 currentMethodProver = new MethodProverSMT(this);
                 res = currentMethodProver.prove(methodDecl,proverToUse);
                 currentMethodProver = null;

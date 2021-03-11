@@ -237,8 +237,10 @@ public class JmlCompiler extends JavaCompiler {
     @Override
     public Queue<Env<AttrContext>> attribute(Queue<Env<AttrContext>> envs) {
         ListBuffer<Env<AttrContext>> results = new ListBuffer<>();
-        while (!envs.isEmpty())
+        while (!envs.isEmpty()) {
+        	if (Utils.debug()) System.out.println("JC-ATTRIB " + envs.peek().getClass() + " " + envs.peek().toplevel.sourcefile);
             results.append(attribute(envs.remove()));
+        }
         ((JmlAttr)attr).completeTodo();
         
 //        // TODO: Review the following

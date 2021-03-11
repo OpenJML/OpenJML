@@ -325,15 +325,15 @@ public class Utils {
     }
     
     public boolean isModel(/*@non_null*/ ClassSymbol symbol) {
-    	return hasMod(JmlSpecs.instance(context).get(symbol).modifiers, Modifiers.MODEL);
+    	return hasMod(JmlSpecs.instance(context).getLoadedSpecs(symbol).modifiers, Modifiers.MODEL);
     }
     
     public boolean isModel(/*@non_null*/ MethodSymbol symbol) {
-    	return hasMod(JmlSpecs.instance(context).getSpecs(symbol).mods, Modifiers.MODEL);
+    	return hasMod(JmlSpecs.instance(context).getLoadedSpecs(symbol).mods, Modifiers.MODEL);
     }
     
     public boolean isModel(/*@non_null*/ VarSymbol symbol) {
-    	var fs = JmlSpecs.instance(context).getSpecs(symbol);
+    	var fs = JmlSpecs.instance(context).getLoadedSpecs(symbol);
     	return fs != null && hasMod(fs.mods, Modifiers.MODEL);
     }
     

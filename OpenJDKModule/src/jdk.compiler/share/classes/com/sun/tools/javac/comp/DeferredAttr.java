@@ -597,6 +597,11 @@ public class DeferredAttr extends JCTree.Visitor {
                     }
                     super.scan(tree);
                 }
+                
+                @Override 
+                public void visitTree(JCTree tree) {
+                	// OPENJML ignoring, to bypass JML subtresss, instead of an Assertion error -- FIXME - might hide some errors
+                }
             }
 
             DeferredAttrDiagHandler(Log log, JCTree newTree) {

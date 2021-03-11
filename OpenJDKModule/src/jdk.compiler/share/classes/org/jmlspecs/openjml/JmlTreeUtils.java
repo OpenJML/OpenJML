@@ -335,15 +335,21 @@ public class JmlTreeUtils {
         Name n = names.fromString(methodName);
         // Presumes there is just one method with the given name - no overloading
         // by argument type
-        Symbol ms = utilsClass().members().findFirst(n);
-        if (ms == null) {
-            throw new JmlInternalError("Method " + methodName + " not found in Utils");
+        try {
+        	Symbol ms = utilsClass().members().findFirst(n);
+        	if (ms == null) {
+        		throw new JmlInternalError("Method " + methodName + " not found in Utils");
+        	}
+        	JCFieldAccess m = factory.Select(utilsClassIdent(),n);
+        	m.pos = pos;
+        	m.sym = ms;
+        	m.type = m.sym.type;
+            return m;
+        } catch (Exception e) {
+        	utils.error("jml.internal", "Exception on forming a call to " + methodName);
+        	e.printStackTrace(System.out);
+        	return null;
         }
-        JCFieldAccess m = factory.Select(utilsClassIdent(),n);
-        m.pos = pos;
-        m.sym = ms;
-        m.type = m.sym.type;
-        return m;
     }
     
     public Symbol getSym(JCTree tree) {
