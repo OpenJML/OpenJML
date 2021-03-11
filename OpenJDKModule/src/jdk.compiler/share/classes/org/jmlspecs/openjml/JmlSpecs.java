@@ -882,32 +882,39 @@ public class JmlSpecs {
     }
     
     
-    /** Retrieves the specifications for a given type, or null if no specs are
-     * present for this type
-     * @param type the ClassSymbol of the type whose specs are wanted
-     * @return the specifications, or null if there are none in the database
+    /** Retrieves the current stored specifications for the given type -- may be null if they have
+     * not yet been 'put', and may not be attributed
      */
     //@ nullable 
-    public TypeSpecs get(TypeSymbol type) {
+    public TypeSpecs getxx(ClassSymbol type) {
         return specsmap.get(type);
     }
-//    //@ nullable 
-//    public TypeSpecs getSpecs(TypeSymbol type) {
-//        return specsmap.get(type);
-//    }
     
-    /** Retrieves the specifications for a given type, providing and registering
-     * a default if one is not there
-     * @param type the ClassSymbol of the type whose specs are wanted
-     * @return the specifications
-     */
-    public TypeSpecs initializeAndGetSpecs(ClassSymbol type) {
-        TypeSpecs t = specsmap.get(type);
-        if (t == null) {
-            specsmap.put(type, t=new TypeSpecs(type));
-        }
-        return t;
+    public TypeSpecs getLoadedSpecs(ClassSymbol type) {
+    	if (status(type).less(SpecsStatus.SPECS_LOADED)) JmlEnter.instance(context).requestSpecs(type);
+    	return specsmap.get(type);
     }
+    
+    //@ nullable 
+    public TypeSpecs getSpecs(ClassSymbol type) {
+    	if (status(type).less(SpecsStatus.SPECS_ATTR)) {
+    		attr.attrSpecs(type);
+    	}
+        return getLoadedSpecs(type);
+    }
+    
+//    /** Retrieves the specifications for a given type, providing and registering
+//     * a default if one is not there
+//     * @param type the ClassSymbol of the type whose specs are wanted
+//     * @return the specifications
+//     */
+//    public TypeSpecs initializeAndGetSpecs(ClassSymbol type) {
+//        TypeSpecs t = specsmap.get(type);
+//        if (t == null) {
+//            specsmap.put(type, t=new TypeSpecs(type));
+//        }
+//        return t;
+//    }
     
     /** Deletes the specs for a given type, including all method and field
      * specs for that type.
@@ -926,6 +933,7 @@ public class JmlSpecs {
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
         spec.csymbol = type;
         specsmap.put(type,spec);
+        specsStatus.put(type, SpecsStatus.SPECS_LOADED);
         utils.note(true,"Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
@@ -939,8 +947,9 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec) {
+    	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) log.error("jml.internal", "Specs not yet loaded for " + m.owner + " on attempting to put " + m);
         utils.note(true, "            Saving method specs for " + m.owner + "." + m );
-        initializeAndGetSpecs(m.enclClass()).methods.put(m,spec);
+        getLoadedSpecs((ClassSymbol)m.owner).methods.put(m,spec);
     }
     
     /** Adds the specs for a given initialization block to the database, overwriting anything
@@ -962,21 +971,44 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
-    	utils.note(true,"            Saving field specs for " + m.enclClass() + " " + m);
-        specsmap.get(m.enclClass()).fields.put(m,spec);
+    	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) log.error("jml.internal", "Specs not yet loaded for " + m.owner + " on attempting to put " + m);
+    	utils.note(true,"            Saving field specs for " + m.owner + " " + m);
+        getLoadedSpecs((ClassSymbol)m.owner).fields.put(m,spec);
+        setStatus(m, SpecsStatus.SPECS_LOADED);
     }
     
-    /** Retrieves the specs for a given method
+    /** Retrieves the attributed specs for a given method, possibly default specs;
+     *  these will be attributed but not desugared specs.
      * @param m the MethodSymbol of the method whose specs are wanted
-     * @return the specs of the method, or null if none are present
+     * @return the specs of the method
      */
-    //@ nullable
+    //@ non_null
     public MethodSpecs getSpecs(MethodSymbol m) {
-        TypeSpecs t = specsmap.get(m.enclClass());
+    	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
+    	if (status(m).less(SpecsStatus.SPECS_ATTR)) attr.attrSpecs(m);
+        TypeSpecs t = specsmap.get(m.owner);
         return t == null ? null : t.methods.get(m);
     }
     
-    // TODO - document
+    /** Returns loaded specs: modifiers are present; specification cases may be present, 
+     * but are not necessarily attributed.
+     */
+    //@ non_null
+    public MethodSpecs getLoadedSpecs(MethodSymbol m) {
+    	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
+    	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) JmlEnter.instance(context).requestSpecs((ClassSymbol)m.owner);
+        TypeSpecs t = specsmap.get(m.owner);
+        return t == null ? null : t.methods.get(m);
+    }
+    
+    /** Returns precisely what is in the current specs data base -- may be null */
+    //@ nullable
+    public MethodSpecs get(MethodSymbol m) {
+        TypeSpecs t = specsmap.get(m.owner);
+        return t == null ? null : t.methods.get(m);
+    }
+    
+    /** Retrieves attributed, desugared specs */
     public JmlMethodSpecs getDenestedSpecs(MethodSymbol m) {
         MethodSpecs s = getSpecs(m);
         if (s == null) {
@@ -1251,22 +1283,45 @@ public class JmlSpecs {
      */
     //@ nullable
     public FieldSpecs getSpecs(VarSymbol m) {
-//        if (m.name.toString().equals("theString")) Utils.stop();
-        ClassSymbol c = m.enclClass();
+    	if (!(m.owner instanceof ClassSymbol)) return null;
+    	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - field " + m + " " + m.owner + " " + m.enclClass());
+        ClassSymbol c = m.enclClass(); // FIXME - should this be m.owner?
         if (c == null) return null; // This happens at least when m is the symbol for 'class' as in int.class
+    	if (status(m).less(SpecsStatus.SPECS_ATTR)) attr.attrSpecs(m);
         TypeSpecs t = specsmap.get(c);
+        return t == null ? null : t.fields.get(m);
+    }
+    
+    /** Returns precisely what is in the current specs data base -- may be null */
+    //@ nullable
+    public FieldSpecs get(VarSymbol m) {
+        TypeSpecs t = specsmap.get(m.owner);
+        return t == null ? null : t.fields.get(m);
+    }
+    
+   /** Retrieves the specs for a given field
+     * @param m the VarSymbol of the field whose specs are wanted
+     * @return the specs of the field, or null if none are present
+     */
+    //@ nullable
+    public FieldSpecs getLoadedSpecs(VarSymbol m) {
+    	if (!(m.owner instanceof ClassSymbol)) return null;
+    	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - field " + m + " " + m.owner + " " + m.enclClass());
+        ClassSymbol c = m.enclClass(); // FIXME - should this be m.owner?
+        if (c == null) return null; // This happens at least when m is the symbol for 'class' as in int.class
+        TypeSpecs t = getLoadedSpecs(c);
         return t == null ? null : t.fields.get(m);
     }
     
     /** Retrieves the specs for a given initializer block
      * @param sym the class in which the block resides
-     * @param m the JCBlock of the block whose specs are wanted
+     * @param m the JCBlock of the block whose specs are wantedTATUS
      * @return the specs of the block, or null if none are present
      */
     //@ nullable
     public MethodSpecs getSpecs(ClassSymbol sym, JCTree.JCBlock m) {
-        TypeSpecs t = specsmap.get(sym);
-        return t == null ? null : t.blocks.get(m);
+        TypeSpecs t = getSpecs(sym);
+        return t.blocks.get(m);
     }
    
     /** An ADT to hold the JML specifications for a Java class, including
@@ -1278,6 +1333,8 @@ public class JmlSpecs {
     public static class TypeSpecs {
         /** The Symbol for the type these specs belong to*/
         public ClassSymbol csymbol;
+        public Env<AttrContext> env;
+        public SpecsStatus status;
         
         
         /** The source file for the modifiers, not necessarily for the rest of the specs
@@ -1342,19 +1399,19 @@ public class JmlSpecs {
 //        // FIXME - comment
 //        public JmlMethodDecl checkStaticInvariantDecl;
         
-        /** A quite empty and unfinished TypeSpecs object for a given class,
-         * possibly but not necessarily one that has only specs and binary,
-         * but no Java source.
-         * @param symbol the class symbol for these specs
-         */
-        public TypeSpecs(ClassSymbol symbol) {
-            this.csymbol = symbol;
-            this.file = symbol.sourcefile;
-            this.decl = null;
-            this.modifiers = null;
-            this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
-            this.decls = new ListBuffer<JmlTree.JmlTypeClauseDecl>();
-        }
+//        /** A quite empty and unfinished TypeSpecs object for a given class,
+//         * possibly but not necessarily one that has only specs and binary,
+//         * but no Java source.
+//         * @param symbol the class symbol for these specs
+//         */
+//        public TypeSpecs(ClassSymbol symbol) {
+//            this.csymbol = symbol;
+//            this.file = symbol.sourcefile;
+//            this.decl = null;
+//            this.modifiers = null;
+//            this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
+//            this.decls = new ListBuffer<JmlTree.JmlTypeClauseDecl>();
+//        }
         
         // TODO - comment - only partially fills in the class - used for a binary file - I think everything is pretty much empty and null
         public TypeSpecs(ClassSymbol csymbol, JavaFileObject file, JCTree.JCModifiers mods, ListBuffer<JmlTree.JmlTypeClause> clauses) {
@@ -1364,9 +1421,11 @@ public class JmlSpecs {
             this.modifiers = mods;
             this.clauses = clauses != null ? clauses : new ListBuffer<JmlTypeClause>();
             this.decls = decls != null ? decls : new ListBuffer<JmlTypeClauseDecl>();
+            this.env = null;
+            this.status = SpecsStatus.SPECS_LOADED;
         }
         
-        public TypeSpecs(JmlClassDecl specdecl) {
+        public TypeSpecs(JmlClassDecl specdecl, Env<AttrContext> env) {
             this.file = specdecl.source();
             this.decl = specdecl;
             this.modifiers = specdecl.mods;
@@ -1375,6 +1434,8 @@ public class JmlSpecs {
             this.decls = new ListBuffer<JmlTree.JmlTypeClauseDecl>();
             //for (JCTree t: specdecl.defs) if (t instanceof JmlTypeClauseDecl) this.decls.add((JmlTypeClauseDecl)t);
             specdecl.typeSpecs = this;
+            this.env = env;
+            this.status = SpecsStatus.SPECS_LOADED;
         }
         
 //        // Use when there is no spec for the type symbol (but records the fact
@@ -1441,7 +1502,7 @@ public class JmlSpecs {
             }
         }
         
-        TypeSpecs spec = get(csymbol); // spec is null if the TypeSpecs are in the process of being initialized
+        TypeSpecs spec = getLoadedSpecs(csymbol); // spec is null if the TypeSpecs are in the process of being initialized
         if (spec == null || spec.defaultNullity == null) {
             ModifierKind t = null;
             if (csymbol.getAnnotationMirrors() != null) {
@@ -1482,7 +1543,7 @@ public class JmlSpecs {
             return null;
         }
         
-        TypeSpecs tspecs = JmlSpecs.instance(context).get(csymbol);
+        TypeSpecs tspecs = JmlSpecs.instance(context).getLoadedSpecs(csymbol);
         if (tspecs != null) {
         	JCModifiers mods = tspecs.decl.mods;
         	JCAnnotation a = utils.findMod(mods,attr.nullablebydefaultAnnotationSymbol);
@@ -1647,14 +1708,14 @@ public class JmlSpecs {
     
     /** Returns true if the given method symbol is annotated as Pure */
     public boolean isPure(MethodSymbol symbol) {
-        MethodSpecs mspecs = getSpecs(symbol);
+        MethodSpecs mspecs = getLoadedSpecs(symbol);
         if (mspecs != null && utils.findMod(mspecs.mods,pureAnnotationSymbol()) != null) return true;
         if (mspecs != null && utils.findMod(mspecs.mods,functionAnnotationSymbol()) != null) return true;
         return isPure((Symbol.ClassSymbol)symbol.owner);
     }
     
     public boolean isPure(ClassSymbol symbol) {
-        TypeSpecs tspecs = get(symbol);
+        TypeSpecs tspecs = getLoadedSpecs(symbol);
         if (tspecs == null) return false;
         if (utils.hasMod(tspecs.modifiers, Modifiers.PURE)) return true; 
         return false;
@@ -1665,22 +1726,22 @@ public class JmlSpecs {
         if (queryAnnotationSymbol == null) {
             queryAnnotationSymbol = utils.createClassSymbol(Strings.queryAnnotation);
         }
-        MethodSpecs mspecs = getSpecs(symbol);
+        MethodSpecs mspecs = getLoadedSpecs(symbol);
         if (mspecs != null && utils.findMod(mspecs.mods,queryAnnotationSymbol) != null) return true;
-        TypeSpecs tspecs = get((Symbol.ClassSymbol)symbol.owner);
+        TypeSpecs tspecs = getLoadedSpecs((Symbol.ClassSymbol)symbol.owner);
         if (tspecs != null && utils.findMod(tspecs.modifiers,queryAnnotationSymbol) != null) return true;
         return false;
     }
     
     public JCAnnotation fieldSpecHasAnnotation(VarSymbol sym, ModifierKind token) {
-        FieldSpecs fspecs = getSpecs(sym);
+        FieldSpecs fspecs = getLoadedSpecs(sym);
         if (fspecs == null) return null;
         Symbol annotationSymbol = attr.modToAnnotationSymbol.get(token);
         return utils.findMod(fspecs.mods,annotationSymbol);
     }
 
     public JCAnnotation methodSpecHasAnnotation(MethodSymbol sym, ModifierKind token) {
-        MethodSpecs mspecs = getSpecs(sym);
+        MethodSpecs mspecs = getLoadedSpecs(sym);
         if (mspecs == null) return null;
         Symbol annotationSymbol = attr.modToAnnotationSymbol.get(token);
         return utils.findMod(mspecs.mods,annotationSymbol);
@@ -1786,6 +1847,8 @@ public class JmlSpecs {
         public VarSymbol queryDatagroup;
         public VarSymbol secretDatagroup;
         public JmlMethodSpecs cases;
+        public Env<AttrContext> env;
+        public SpecsStatus status;
         
         public MethodSpecs(JmlMethodDecl m) { 
             this.mods = m.mods;
@@ -1796,6 +1859,8 @@ public class JmlSpecs {
                 cases = m.cases;
             }
             cases.decl = m;
+            env = null;
+            status = SpecsStatus.SPECS_LOADED;
         }
         
         public MethodSpecs(JCTree.JCModifiers mods, JmlMethodSpecs m) { 
@@ -1806,6 +1871,8 @@ public class JmlSpecs {
             } else {
                 cases = m;
             }
+            env = null;
+            status = SpecsStatus.SPECS_LOADED;
         }
         
         public String toString() {
@@ -1818,7 +1885,7 @@ public class JmlSpecs {
         
         /** Modifiers pertinent to this fields specifications */
         public JCTree.JCModifiers mods;
-        
+
         /** A list of the clauses pertinent to this field (e.g. in, maps) */
         public ListBuffer<JmlTree.JmlTypeClause> list = new ListBuffer<JmlTree.JmlTypeClause>();
         
@@ -1832,7 +1899,6 @@ public class JmlSpecs {
         public FieldSpecs(JmlVariableDecl decl) { 
             this.decl = decl;
             this.mods = decl.specsDecl == null ? decl.mods : decl.specsDecl.mods;
-            
         }
         
         @Override
@@ -1884,7 +1950,35 @@ public class JmlSpecs {
         }
         return f;
     }
+ 
+	Map<Symbol, SpecsStatus> specsStatus = new java.util.HashMap<>();
+	
+	public SpecsStatus status(Symbol sym) {
+		var s = specsStatus.get(sym);
+		return (s == null) ? SpecsStatus.NOT_LOADED : s;
+	}
+	
+	public void setStatus(Symbol sym, SpecsStatus status) {
+		specsStatus.put(sym, status);
+		if (sym instanceof ClassSymbol) {
+			TypeSpecs t = getxx((ClassSymbol)sym);
+			if (t != null) t.status = status;
+		}
+		if (sym instanceof MethodSymbol) {
+			MethodSpecs t = get((MethodSymbol)sym);
+			if (t != null) t.status = status;
+		}
+	}
 
-    
+    public static enum SpecsStatus {
+    	NOT_LOADED,
+    	QUEUED,
+    	SPECS_LOADED,
+    	SPECS_ATTR;
+    	
+    	public boolean less(SpecsStatus s) { return this.ordinal() < s.ordinal(); }
+    	
+    }
+    	
 }
 

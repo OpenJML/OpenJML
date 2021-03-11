@@ -813,7 +813,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         
         if (sym.isAnonymous()) return;
         if (sym.isInterface()) return;  // FIXME - deal with interfaces.  ALso, no methods added to annotations
-        JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get(sym);
+        JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).getLoadedSpecs(sym);
         JCExpression vd = jmlF.Type(syms.voidType);
         JmlClassDecl jtree = (JmlClassDecl)env.tree;
 //        JmlClassDecl specstree = jtree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY ? jtree : jtree.specsDecl;
@@ -1044,85 +1044,85 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
     
     
-    public void checkTypeMatch(JmlClassDecl javaDecl, JmlClassDecl specsClassDecl) {
-        
-        ClassSymbol javaClassSym = javaDecl.sym;
-        JmlSpecs.TypeSpecs combinedTypeSpecs = specs.get(javaClassSym);
-        
-        // If these are the same declaration we don't need to check 
-        // that the spec decl matches the java decl
-        //if (javaDecl == specsClassDecl) return;
-
-        // Check annotations
-        
-        if (javaDecl != specsClassDecl) {
-            // Check that modifiers are the same
-            long matchf = javaClassSym.flags();
-            long specf = combinedTypeSpecs.modifiers.flags;
-            long diffs = (matchf ^ specf)&Flags.ClassFlags; // Includes whether both are class or both are interface
-            if (diffs != 0) {
-                boolean isInterface = (matchf & Flags.INTERFACE) != 0;
-                boolean isEnum = (matchf & Flags.ENUM) != 0;
-                if ((Flags.ABSTRACT & matchf & ~specf) != 0 && isInterface) diffs &= ~Flags.ABSTRACT; 
-                if ((Flags.STATIC & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.STATIC; 
-                if ((Flags.FINAL & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.FINAL; 
-                if (diffs != 0) utils.error(specsClassDecl.pos(),"jml.mismatched.modifiers", specsClassDecl.name, javaClassSym.fullname, Flags.toString(diffs));  // FIXME - test this
-                // FIXME - how can we tell where in which specs file the mismatched modifiers are
-                // SHould probably check this in the combining step
-            }
-            // FIXME - this is needed, but it is using the environment from the java class, not the 
-            // spec class, and so it is using the import statements in the .java file, not those in the .jml file
-// FIXME            attr.attribAnnotationTypes(specsClassDecl.mods.annotations, baseEnv(javaDecl,env));  // FIXME - this is done later; is it needed here?
-
-            JavaFileObject prev = log.useSource(specsClassDecl.source());
-            checkSameAnnotations(javaDecl.mods,specsClassDecl.mods,javaDecl.source());
-            log.useSource(prev);
-            // FIXME - check that both are Enum; check that both are Annotation
-        }
-        if (specsClassDecl.source() == null || specsClassDecl.source().getKind() == JavaFileObject.Kind.SOURCE){
-            // This is already checked in enterTypeParametersForBinary (for binary classes)
-            List<Type> t = ((Type.ClassType)javaClassSym.type).getTypeArguments();
-            List<JCTypeParameter> specTypes = specsClassDecl.typarams;
-            if (t.size() != specTypes.size()) {
-                utils.error(specsClassDecl.pos(),"jml.mismatched.type.arguments",javaClassSym.fullname,javaClassSym.type.toString());
-            }
-            // FIXME - check that the names and bounds are the same
-        }
-    }
-    
-    public void checkTypeMatch(ClassSymbol javaClassSym, JmlClassDecl specsClassDecl) {
-        
-        // Check annotations
-        JmlSpecs.TypeSpecs combinedTypeSpecs = specs.get(javaClassSym);
-        JavaFileObject prev = log.useSource(specsClassDecl.source());
-        
-        {
-            // Check that modifiers are the same
-            long matchf = javaClassSym.flags();
-            long specf = combinedTypeSpecs.modifiers.flags;
-            long diffs = (matchf ^ specf)&Flags.ClassFlags; // Includes whether both are class or both are interface
-            if (diffs != 0) {
-                boolean isInterface = (matchf & Flags.INTERFACE) != 0;
-                boolean isEnum = (matchf & Flags.ENUM) != 0;
-                if ((Flags.ABSTRACT & matchf & ~specf) != 0 && isInterface) diffs &= ~Flags.ABSTRACT; 
-                if ((Flags.STATIC & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.STATIC; 
-                if ((Flags.FINAL & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.FINAL; 
-                if ((diffs & Flags.FINAL) != 0 && javaClassSym.isAnonymous()) diffs &= ~Flags.FINAL;
-                if (diffs != 0) utils.error(specsClassDecl.pos(),"jml.mismatched.modifiers", specsClassDecl.name, javaClassSym.fullname, Flags.toString(diffs));  // FIXME - test this
-            }
-            // FIXME - check that both are Enum; check that both are Annotation
-            checkSameAnnotations(javaClassSym,specsClassDecl.mods,prev); // FIXME - is prev the java source?
-        }
-        {
-            List<Type> t = ((Type.ClassType)javaClassSym.type).getTypeArguments();
-            List<JCTypeParameter> specTypes = specsClassDecl.typarams;
-            if (t.size() != specTypes.size()) {
-                utils.error(specsClassDecl.pos(),"jml.mismatched.type.arguments",javaClassSym.fullname,javaClassSym.type.toString());
-            }
-            // FIXME - check that the names and bounds are the same
-        }
-        log.useSource(prev);
-    }
+//    public void checkTypeMatch(JmlClassDecl javaDecl, JmlClassDecl specsClassDecl) {
+//        
+//        ClassSymbol javaClassSym = javaDecl.sym;
+//        JmlSpecs.TypeSpecs combinedTypeSpecs = specs.get(javaClassSym);
+//        
+//        // If these are the same declaration we don't need to check 
+//        // that the spec decl matches the java decl
+//        //if (javaDecl == specsClassDecl) return;
+//
+//        // Check annotations
+//        
+//        if (javaDecl != specsClassDecl) {
+//            // Check that modifiers are the same
+//            long matchf = javaClassSym.flags();
+//            long specf = combinedTypeSpecs.modifiers.flags;
+//            long diffs = (matchf ^ specf)&Flags.ClassFlags; // Includes whether both are class or both are interface
+//            if (diffs != 0) {
+//                boolean isInterface = (matchf & Flags.INTERFACE) != 0;
+//                boolean isEnum = (matchf & Flags.ENUM) != 0;
+//                if ((Flags.ABSTRACT & matchf & ~specf) != 0 && isInterface) diffs &= ~Flags.ABSTRACT; 
+//                if ((Flags.STATIC & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.STATIC; 
+//                if ((Flags.FINAL & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.FINAL; 
+//                if (diffs != 0) utils.error(specsClassDecl.pos(),"jml.mismatched.modifiers", specsClassDecl.name, javaClassSym.fullname, Flags.toString(diffs));  // FIXME - test this
+//                // FIXME - how can we tell where in which specs file the mismatched modifiers are
+//                // SHould probably check this in the combining step
+//            }
+//            // FIXME - this is needed, but it is using the environment from the java class, not the 
+//            // spec class, and so it is using the import statements in the .java file, not those in the .jml file
+//// FIXME            attr.attribAnnotationTypes(specsClassDecl.mods.annotations, baseEnv(javaDecl,env));  // FIXME - this is done later; is it needed here?
+//
+//            JavaFileObject prev = log.useSource(specsClassDecl.source());
+//            checkSameAnnotations(javaDecl.mods,specsClassDecl.mods,javaDecl.source());
+//            log.useSource(prev);
+//            // FIXME - check that both are Enum; check that both are Annotation
+//        }
+//        if (specsClassDecl.source() == null || specsClassDecl.source().getKind() == JavaFileObject.Kind.SOURCE){
+//            // This is already checked in enterTypeParametersForBinary (for binary classes)
+//            List<Type> t = ((Type.ClassType)javaClassSym.type).getTypeArguments();
+//            List<JCTypeParameter> specTypes = specsClassDecl.typarams;
+//            if (t.size() != specTypes.size()) {
+//                utils.error(specsClassDecl.pos(),"jml.mismatched.type.arguments",javaClassSym.fullname,javaClassSym.type.toString());
+//            }
+//            // FIXME - check that the names and bounds are the same
+//        }
+//    }
+//    
+//    public void checkTypeMatch(ClassSymbol javaClassSym, JmlClassDecl specsClassDecl) {
+//        
+//        // Check annotations
+//        JmlSpecs.TypeSpecs combinedTypeSpecs = specs.get(javaClassSym);
+//        JavaFileObject prev = log.useSource(specsClassDecl.source());
+//        
+//        {
+//            // Check that modifiers are the same
+//            long matchf = javaClassSym.flags();
+//            long specf = combinedTypeSpecs.modifiers.flags;
+//            long diffs = (matchf ^ specf)&Flags.ClassFlags; // Includes whether both are class or both are interface
+//            if (diffs != 0) {
+//                boolean isInterface = (matchf & Flags.INTERFACE) != 0;
+//                boolean isEnum = (matchf & Flags.ENUM) != 0;
+//                if ((Flags.ABSTRACT & matchf & ~specf) != 0 && isInterface) diffs &= ~Flags.ABSTRACT; 
+//                if ((Flags.STATIC & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.STATIC; 
+//                if ((Flags.FINAL & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.FINAL; 
+//                if ((diffs & Flags.FINAL) != 0 && javaClassSym.isAnonymous()) diffs &= ~Flags.FINAL;
+//                if (diffs != 0) utils.error(specsClassDecl.pos(),"jml.mismatched.modifiers", specsClassDecl.name, javaClassSym.fullname, Flags.toString(diffs));  // FIXME - test this
+//            }
+//            // FIXME - check that both are Enum; check that both are Annotation
+//            checkSameAnnotations(javaClassSym,specsClassDecl.mods,prev); // FIXME - is prev the java source?
+//        }
+//        {
+//            List<Type> t = ((Type.ClassType)javaClassSym.type).getTypeArguments();
+//            List<JCTypeParameter> specTypes = specsClassDecl.typarams;
+//            if (t.size() != specTypes.size()) {
+//                utils.error(specsClassDecl.pos(),"jml.mismatched.type.arguments",javaClassSym.fullname,javaClassSym.type.toString());
+//            }
+//            // FIXME - check that the names and bounds are the same
+//        }
+//        log.useSource(prev);
+//    }
     
     /** Find the method symbol in the class csym that corresponds to the method declared as specMethod;
      * if complain is true, then an error is reported if there is no match.

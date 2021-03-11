@@ -422,8 +422,8 @@ public class JmlFlow extends Flow  {
             if (Utils.instance(context).isInstrumented(tree.mods.flags)) return;
             
             // Do nothing if the class has no specs (i.e., is binary)
-            JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(tree.sym);
-            if (tspecs == null) return;
+//            JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(tree.sym);
+//            if (tspecs == null) return;
 
             // FIXME - it appears we are doing nothing here - so why this method?
             
@@ -1209,27 +1209,28 @@ public class JmlFlow extends Flow  {
             
             // Do nothing if the class is already instrumented for RAC
             if (Utils.instance(context).isInstrumented(tree.mods.flags)) return;
-            
-            // Do nothing if the class has no specs (i.e., is binary)
-            JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(tree.sym);
-            if (tspecs == null) return;
-            
-            JavaFileObject prev = Log.instance(context).currentSourceFile();
-            try {
-                // Do Flow processing on each JML clause of the class declaration
-                for (JmlTypeClause c : tspecs.clauses) {
-                    if (c instanceof JmlTypeClauseDecl) {
-                        JCTree d = ((JmlTypeClauseDecl)c).decl;
-                        Log.instance(context).useSource(c.source());
-                        if (c.modifiers != null && (c.modifiers.flags & Flags.SYNTHETIC) != 0) {
-                            continue;
-                        }
-                        d.accept(this);
-                    }
-                }
-            } finally {
-                Log.instance(context).useSource(prev);
-            }
+    
+            // FIXME - it seems we should do this flow processing, but will it muck up attributing specs on demand?
+//            // Do nothing if the class has no specs (i.e., is binary)
+//            JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).getSpecs(tree.sym);
+////            if (tspecs == null) return;
+//            
+//            JavaFileObject prev = Log.instance(context).currentSourceFile();
+//            try {
+//                // Do Flow processing on each JML clause of the class declaration
+//                for (JmlTypeClause c : tspecs.clauses) {
+//                    if (c instanceof JmlTypeClauseDecl) {
+//                        JCTree d = ((JmlTypeClauseDecl)c).decl;
+//                        Log.instance(context).useSource(c.source());
+//                        if (c.modifiers != null && (c.modifiers.flags & Flags.SYNTHETIC) != 0) {
+//                            continue;
+//                        }
+//                        d.accept(this);
+//                    }
+//                }
+//            } finally {
+//                Log.instance(context).useSource(prev);
+//            }
         }
     }
         

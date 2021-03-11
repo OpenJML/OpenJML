@@ -898,7 +898,7 @@ public class API implements IAPI {
      */
     @Override
     public /*@non_null*/ TypeSpecs getSpecs(/*@non_null*/ ClassSymbol sym) {
-        return JmlSpecs.instance(context()).get(sym);
+        return JmlSpecs.instance(context()).getSpecs(sym);
     }
     
     /* (non-Javadoc)
@@ -910,7 +910,7 @@ public class API implements IAPI {
         collectSuperTypes(sym,list);
         JmlSpecs specs = JmlSpecs.instance(context());
         java.util.List<TypeSpecs> tslist = new ArrayList<TypeSpecs>(list.size());
-        for (ClassSymbol c: list) tslist.add(specs.get(c));
+        for (ClassSymbol c: list) tslist.add(specs.getSpecs(c));
         return tslist;
     }
 

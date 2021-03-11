@@ -144,37 +144,38 @@ public class JmlResolve extends Resolve {
 //     }
 
 
-    /** This method overrides the superclass method in order to load spec files
-     * when a class is loaded.  If the superclass loads a method from source, then
-     * the specs are parsed at the same time that the source file is parsed.
-     * However, if the specs are loaded from binary, then the code here is needed
-     * to obtain and parse the specification files as well.
-     * 
-     * @param env the environment within which a class will be loaded (e.g. package or containing class)
-     * @param name the qualified name of the class to load
-     * @return the unique symbol corresponding to this class
-     */
-    @Override
-    public Symbol loadClass(Env<AttrContext> env, Name name, RecoveryLoadClass recoveryLoadClass) {
-        Symbol s = super.loadClass(env, name, recoveryLoadClass);
-        // Here s can be a type or a package or not exist 
-        // s may not exist because it is being tested whether such a type exists
-        // (rather than a package) and is a legitimate workflow in this
-        // architecture.  Hence no warning or error is given.
-        // This happens for example in the resolution of org.jmlspecs.annotation
-        if (!s.exists()) {
-            //utils.note(true,"  Attempt to load " + name + " in module " + env.toplevel.modle + " but does not exist: " + s);
-            return s;
-        }
-        if (!(s instanceof ClassSymbol)) {
-            utils.note(true,"  Loaded a non-class " + name + " module " + env.toplevel.modle);
-            return s; // loadClass can be called for a package
-        }
-
-        // Cannot set jmlcompiler in the constructor because we get a circular initialization problem.
-        JmlEnter.instance(context).requestSpecs((ClassSymbol)s);
-        return s;
-    }
+//    /** This method overrides the superclass method in order to load spec files
+//     * when a class is loaded.  If the superclass loads a method from source, then
+//     * the specs are parsed at the same time that the source file is parsed.
+//     * However, if the specs are loaded from binary, then the code here is needed
+//     * to obtain and parse the specification files as well.
+//     * 
+//     * @param env the environment within which a class will be loaded (e.g. package or containing class)
+//     * @param name the qualified name of the class to load
+//     * @return the unique symbol corresponding to this class
+//     */
+//    @Override
+//    public Symbol loadClass(Env<AttrContext> env, Name name, RecoveryLoadClass recoveryLoadClass) {
+//        Symbol s = super.loadClass(env, name, recoveryLoadClass);
+//        // Here s can be a type or a package or not exist 
+//        // s may not exist because it is being tested whether such a type exists
+//        // (rather than a package) and is a legitimate workflow in this
+//        // architecture.  Hence no warning or error is given.
+//        // This happens for example in the resolution of org.jmlspecs.annotation
+//        if (!s.exists()) {
+//            //utils.note(true,"  Attempt to load " + name + " in module " + env.toplevel.modle + " but does not exist: " + s);
+//            return s;
+//        }
+//        if (!(s instanceof ClassSymbol)) {
+//            utils.note(true,"  Loaded a non-class " + name + " module " + env.toplevel.modle);
+//            return s; // loadClass can be called for a package
+//        }
+//
+//        utils.note(true,"  Loaded class without specs: " + s);
+////        // Cannot set jmlcompiler in the constructor because we get a circular initialization problem.
+////        JmlEnter.instance(context).requestSpecs((ClassSymbol)s);
+//        return s;
+//    }
 
     /** This class is overridden in order to allow access according to the rules
      * for spec_public and spec_protected.

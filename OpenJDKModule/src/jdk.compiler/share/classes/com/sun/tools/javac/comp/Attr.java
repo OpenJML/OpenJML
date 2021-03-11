@@ -666,7 +666,7 @@ public class Attr extends JCTree.Visitor {
      *  @param env     The environment visitor argument.
      *  @param resultInfo   The result info visitor argument.
      */
-    public Type attribTree(JCTree tree, Env<AttrContext> env, ResultInfo resultInfo) { // OPENJML - pacakge to public
+    public Type attribTree(JCTree tree, Env<AttrContext> env, ResultInfo resultInfo) { // OPENJML - package to public
         Env<AttrContext> prevEnv = this.env;
         ResultInfo prevResult = this.resultInfo;
         try {
@@ -686,6 +686,8 @@ public class Attr extends JCTree.Visitor {
             return result;
         } catch (CompletionFailure ex) {
             tree.type = syms.errType;
+            if (org.jmlspecs.openjml.Utils.debug()) System.out.println("COMPLETION ERROR " + tree);
+            if (org.jmlspecs.openjml.Utils.debug()) ex.printStackTrace(System.out);
             return chk.completionError(tree.pos(), ex);
         } finally {
             this.env = prevEnv;
@@ -4913,6 +4915,12 @@ public class Attr extends JCTree.Visitor {
 
         if (!typeVar.getUpperBound().isErroneous()) {
             //fixup type-parameter bound computed in 'attribTypeVariables'
+        	if (org.jmlspecs.openjml.Utils.debug() && tree.bounds.head == null) {
+        		System.out.println("VISITTYPEPARAMETER " + tree + " " + typeVar + " " + log.currentSource() + " " + log.currentSourceFile());
+        		System.out.println("VISITTYPEPARAMETER2 " + tree.bounds);
+        		//org.jmlspecs.openjml.Utils.instance(((JmlAttr)this).context).note(tree, "jml.message", "Location");
+        		
+        	}
             typeVar.setUpperBound(checkIntersection(tree, tree.bounds));
         }
     }

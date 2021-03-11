@@ -4054,5 +4054,24 @@ public class JmlTree {
          * if null, the annotation is inserted to make a default explicit.
          */
         /*@nullable*/ public JavaFileObject sourcefile;
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitAnnotation(this); 
+            } else {
+                //System.out.println("A JmlNewClass expects an IJmlVisitor, not a " + v.getClass());
+                super.accept(v);
+            }
+        }
+    
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitAnnotation(this, d);
+            } else {
+                //System.out.println("A JmlNewClass expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
+            }
+        }
     }
 }
