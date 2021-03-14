@@ -834,6 +834,10 @@ public class JmlTreeUtils {
         JCBinary tree = factory.at(pos).Binary(optag, lhs, rhs);
         tree.operator = opSymbol;
         tree.type = tree.operator.type.getReturnType();
+        if (tree.type == null) {
+        	utils.note(true, "Unexpected null type: " + optag + " " + opSymbol + " " + tree);
+        	if (optag == JCTree.Tag.EQ || optag == JCTree.Tag.NE) tree.type = syms.booleanType; 
+        }
         //copyEndPosition(tree,rhs);
         return tree;
     }

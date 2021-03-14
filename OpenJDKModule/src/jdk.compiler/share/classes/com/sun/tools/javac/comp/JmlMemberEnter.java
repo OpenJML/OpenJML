@@ -1739,6 +1739,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             var ms = currentMethod.specsDecl.methodSpecsCombined = new JmlSpecs.MethodSpecs(currentMethod.specsDecl);
             currentMethod.specsDecl.sym = tree.sym;
             if (tree.sym != null) JmlSpecs.instance(context).putSpecs(tree.sym, ms);
+            ms.env = methodEnv(tree, env);
         } finally {
 //            if (isJMLMethod) resolve.setAllowJML(prevAllowJml);
             currentMethod = prevMethod;

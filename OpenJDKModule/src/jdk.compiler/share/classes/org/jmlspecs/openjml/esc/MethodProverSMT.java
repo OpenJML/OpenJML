@@ -248,9 +248,9 @@ public class MethodProverSMT {
         int prevErrors = log.nerrors;
 
         boolean print = jmlesc.verbose;
-        boolean printPrograms = jmlesc.verbose || JmlOption.includes(context, JmlOption.SHOW, "translated");
-        boolean printBB = jmlesc.verbose || JmlOption.includes(context, JmlOption.SHOW, "bb");
-        boolean printSMT = jmlesc.verbose || JmlOption.includes(context, JmlOption.SHOW, "smt");
+        boolean printPrograms = JmlOption.includes(context, JmlOption.SHOW, "translated");
+        boolean printBB = JmlOption.includes(context, JmlOption.SHOW, "bb");
+        boolean printSMT = JmlOption.includes(context, JmlOption.SHOW, "smt");
         
         JmlClassDecl currentClassDecl = utils.getOwner(methodDecl);
         

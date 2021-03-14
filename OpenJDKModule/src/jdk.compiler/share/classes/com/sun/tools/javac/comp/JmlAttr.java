@@ -506,6 +506,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected void attribClassBody(Env<AttrContext> env, ClassSymbol c) {
         Env<AttrContext> prevClassEnv = enclosingClassEnv;
         enclosingClassEnv = env;
+        if (Utils.debug() && c.toString().equals("java.lang.String")) System.out.println("ATTRCLASSBODY-JML" + c);
 
         // FIXME - for a binary class c, env.tree appears to be the tree of the specs
         // FIXME - why should we attribute the Java class body in the case of a binary class
@@ -1134,10 +1135,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override 
     public void visitMethodDef(JCMethodDecl m) {
+    	utils.note(true,  "Attributing method " + env.enclClass.sym + " " + m.name);
 
-//        if (m.name.toString().equals("nonNullCheck") ){//&& m.sym.owner.toString().equals("java.lang.Object")) {
-//            log.getWriter(WriterKind.NOTICE).println(m.sym.owner + ":" + m.sym);
-//        }
         // Setting relax to true keeps super.visitMethodDef from complaining
         // that a method declaration in a spec file does not have a body
         // FIXME - what else is relaxed?  We should do the check under the right conditions?
@@ -1197,7 +1196,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (m.body == null) {
                     currentSecretContext = mspecs.secretDatagroup;
                     currentQueryContext = null;
-                    checkMethodSpecsDirectly(jmethod);
+//                    checkMethodSpecsDirectly(jmethod);
                 }
                 // If the body is null, the specs are checked in visitBlock
                 //else deSugarMethodSpecs(jmethod,jmethod.methodSpecs);
@@ -1369,9 +1368,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if ((javaMethodTree.sym.flags() & SYNTHETIC) != 0) return;
         JavaFileObject prev = log.currentSourceFile();
         try {
-            JmlSpecs.MethodSpecs mspecs = specs.getSpecs(javaMethodTree.sym); //javaMethodTree.methodSpecsCombined;
+            JmlModifiers mods = specs.getSpecsModifiers(javaMethodTree.sym); //javaMethodTree.methodSpecsCombined;
+            if (mods == null) mods = (JmlModifiers)javaMethodTree.mods; // FIXME - this can happen for JML synthesized methods, such as are added for RAC - perhaps we should properly initialize the modifiers, but for now we just say they are OK
 
-            JCModifiers mods = mspecs.mods;
             boolean inJML = utils.isJML(mods);
             boolean classIsModel = isModelClass(javaMethodTree.sym.owner);
             boolean model = isModel(mods);
@@ -1407,7 +1406,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             
             // FIXME - this test is in the wrong place (NPE would happen above) and needs review inany case
-            if (mods == null) mods = javaMethodTree.mods; // FIXME - this can happen for JML synthesized methods, such as are added for RAC - perhaps we should properly initialize the modifiers, but for now we just say they are OK
 
             // Check that any annotations are allowed and no conflicting pairs occur
             if (!isConstructor) {
@@ -2714,6 +2712,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (isStatic) localEnv.info.staticLevel--;  // FIXME - move this to finally, but does not screw up the checks on the next line?
             checkTypeClauseMods(tree,tree.modifiers,tree.clauseType.name() + " clause",tree.clauseType);
 
+        } catch (Exception e) {
+        	utils.note(tree, "Exception occurred in attributing clause: " + tree);
+        	utils.note(tree, "    Env: " + env.enclClass.name + " " + (env.enclMethod==null?"<null method>": env.enclMethod.name));
+        	throw e;
         } finally {
             jmlVisibility = prevVisibility;
             currentSecretContext = previousSecretContext;
@@ -4688,6 +4690,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         long prevVisibility = jmlVisibility;
         IJmlClauseKind prevClauseType = currentClauseType; // FIXME _ why do we need to save this?
         try {
+        	if (Utils.debug() && tree.name.toString().equals("anObject")) {
+        		System.out.println("VIDENT " + env.enclMethod.name);
+        	}
 //            jmlVisibility = -1;
 //            currentClauseType = null;
             // Visiting the ident itself in the super class should not need the
@@ -4702,6 +4707,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         if ((tree.sym instanceof VarSymbol || tree.sym instanceof MethodSymbol)
                 && enclosingMethodEnv != null
+                && enclosingMethodEnv.enclMethod != null 
                 && enclosingMethodEnv.enclMethod.sym.isConstructor() 
                 && !utils.isJMLStatic(tree.sym) 
                 && tree.sym.owner == enclosingClassEnv.enclClass.sym
@@ -4752,12 +4758,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (sym.owner != null && sym.owner.kind == TYP) {
                     if (sym.kind == VAR) {
                         VarSymbol vsym = (VarSymbol)sym;
-                        FieldSpecs sp = specs.getSpecs(vsym);
+                        FieldSpecs sp = specs.getLoadedSpecs(vsym);
                         if (sp != null) mods = sp.mods;
                     }
                     if (sym.kind == MTH) {
-                        MethodSpecs sp = specs.getSpecs((MethodSymbol)sym);
-                        if (sp != null) mods = sp.mods;
+                        mods = specs.getSpecsModifiers((MethodSymbol)sym);
                     }
                 }
                 if (mods != null && utils.hasMod(mods,SPEC_PROTECTED)) {
@@ -6218,13 +6223,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (!env.info.scope.owner.kind.matches(KindSelector.VAL_MTH) && tree.sym == null) {
             enter.classEnter(tree, env);
         }
+        if (Utils.debug()) System.out.println("VISITING " + tree.name);
         super.visitClassDef(tree);
 
     }
 
     @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
-        visitMethodDef(that);
+    	try {
+    		visitMethodDef(that);
+    	} catch (Exception e) {
+    		utils.error(that, "jml.internal", "Exception while attributing method: " + that);
+    	}
     }
     
     public static class SpecialDiagnosticPosition extends com.sun.tools.javac.util.JCDiagnostic.SimpleDiagnosticPosition {
@@ -6774,38 +6784,78 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     } 
     
     @Override
-    protected boolean attributeBody(Env<AttrContext> env) {
+    protected boolean attributeBody(JCMethodDecl mdecl, Env<AttrContext> env) {
 //    	if (org.jmlspecs.openjml.Main.useJML && !utils.rac && !env.enclClass.sym.isAnnotationType()) {
 //    		String s = env.toplevel.packge.toString();
 //    		if (s.startsWith("java.") || s.startsWith("javax.") || s.startsWith("com.sun") || s.startsWith("sun.tools")) return false;
 //    	}
-    	return super.attributeBody(env);
+    	if (Utils.debug() && mdecl.name.toString().equals("equals") && mdecl.sym.owner.toString().equals("java.lang.String"))  {
+    		printEnv(env, "ATTRBODY");
+    	}
+    	specs.get(mdecl.sym).env = env;
+    	return super.attributeBody(mdecl,env);
+    }
+    
+    public void printEnv(Env<AttrContext> env, String mark) {
+		System.out.print("PRINTING ENV " + mark + ": ");
+		for (Symbol s: env.info.scope.getSymbols()) System.out.print(s + " " );
+		System.out.println("!!END");
     }
     
     public void attrSpecs(MethodSymbol msym) {
     	utils.note(true, "Attributing specs for " + msym.owner + " " + msym);
+    	if (Utils.debug() && msym.toString().contains("equals")) System.out.println("EQUALS-A");
+    	var savedClauseType = currentClauseType;
+    	currentClauseType = null;
+    	msym.owner.flags_field |= UNATTRIBUTED;
+    	attribClass((ClassSymbol)msym.owner);
+		var saved = this.env;
+    	if (Utils.debug() && msym.toString().contains("equals")) System.out.println("EQUALS-B");
         JmlSpecs.MethodSpecs sp = specs.getLoadedSpecs(msym);
-    	utils.note(true, "    Specs are " + sp);
-    	boolean prevAllowJML = jmlresolve.setAllowJML(true);
-        VarSymbol savedSecret = currentSecretContext;
-        VarSymbol savedQuery = currentQueryContext;
-    	var saved = this.env;
-        try {
-            currentSecretContext = sp.secretDatagroup;
-            currentQueryContext = null;
-            if (sp != null && sp.cases != null) {
-            	this.env = sp.env;
-                deSugarMethodSpecs(((JmlMethodDecl)env.enclMethod),sp); // FIXME - needed?
-            	sp.cases.accept(this); // FIXME - use desugared?
-            }
-        } finally {
-    		specs.setStatus(msym, JmlSpecs.SpecsStatus.SPECS_ATTR);
-        	this.env = saved;
-            currentSecretContext = savedSecret;
-            currentQueryContext = savedQuery;
-            jmlresolve.setAllowJML(prevAllowJML);
-        }
-    	utils.note(true, "    Attributed specs for " + msym.owner + " " + msym);
+        if (Utils.debug() && msym.toString().contains("equals")) printEnv(sp.env, "ATTRSPECS");
+    	if (Utils.debug() && msym.toString().contains("equals")) System.out.println("EQUALS-C");
+//    	this.env = typeEnvs.get((ClassSymbol)msym.owner);
+//    	visitMethodDef(sp.cases.decl);
+    	if (Utils.debug() && msym.toString().contains("equals")) System.out.println("EQUALS-D");
+    	try {
+    		utils.note(true, "    Specs are " + sp);
+    		var biter = msym.params.iterator();
+    		var viter = sp.cases.decl.params.iterator();
+    		while (viter.hasNext() && biter.hasNext()) {
+    			var sym = biter.next();
+    			var nm = viter.next().name;
+    			if (sym.name != nm) {
+    				sp.env.info.scope.remove(sym);
+        			sym.name = nm;
+        			sp.env.info.scope.enter(sym);
+    			}
+    		}
+    		boolean prevAllowJML = jmlresolve.setAllowJML(true);
+    		VarSymbol savedSecret = currentSecretContext;
+    		VarSymbol savedQuery = currentQueryContext;
+    		try {
+    			currentSecretContext = sp.secretDatagroup;
+    			currentQueryContext = null;
+    			if (sp != null && sp.cases != null) {
+    				this.env = sp.env;
+    				deSugarMethodSpecs(((JmlMethodDecl)env.enclMethod),sp); // FIXME - needed?
+    				sp.cases.accept(this); // FIXME - use desugared?
+    			}
+    		} finally {
+    			specs.setStatus(msym, JmlSpecs.SpecsStatus.SPECS_ATTR);
+    			this.env = saved;
+    			currentSecretContext = savedSecret;
+    			currentQueryContext = savedQuery;
+    			jmlresolve.setAllowJML(prevAllowJML);
+    		}
+    		utils.note(true, "    Attributed specs for " + msym.owner + " " + msym);
+    	} catch (Exception e) {
+    		utils.error(sp.cases.decl, "jml.internal", "Exception while attributing method specs: " + msym);
+    		e.printStackTrace(System.out);
+    	} finally {
+    		currentClauseType = savedClauseType;
+        	if (Utils.debug() && msym.toString().equals("equals")) System.out.println("EQUALS-E");
+    	}
     }
     
     public void attrSpecs(ClassSymbol csym) {

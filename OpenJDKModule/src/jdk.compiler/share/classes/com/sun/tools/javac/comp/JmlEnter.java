@@ -822,6 +822,17 @@ public class JmlEnter extends Enter {
 			mspecs.env = JmlMemberEnter.instance(context).methodEnv(mdecl,env);
 			if (msym != null) JmlSpecs.instance(context).putSpecs(msym, mspecs);
     	}
+    	if (msym != null) {
+    		for (int i=0; i<mdecl.params.length(); ++i) {
+    			mdecl.params.get(i).sym = msym.params.get(i);
+    			mdecl.params.get(i).type = msym.params.get(i).type;
+    		}
+    	}
+    	if (Utils.debug() && mdecl.name.toString().equals("equals") && mdecl.sym.owner.toString().equals("java.lang.String"))  {
+    		System.out.println("SETTING ENV-JMLENTER");
+    		for (Symbol s: env.info.scope.getSymbols()) System.out.print(s + " " );
+    		System.out.println("!!END");
+    	}
     }
     
     public VarSymbol findVar(ClassSymbol csym, JmlVariableDecl vdecl) {
@@ -1242,7 +1253,7 @@ public class JmlEnter extends Enter {
     	JmlSpecs specs = JmlSpecs.instance(context);
     	while (!binaryEnterTodo.isEmpty()) {
     		ClassSymbol csymbol = binaryEnterTodo.remove();
-    		if (Utils.debug()) System.out.println("CBETODO " + csymbol + " " + csymbol.type + " " + specs.status(csymbol));
+    		utils.note(true,"Dequeued to enter specs: " + csymbol + " " + specs.status(csymbol));
 //    		if (csymbol.type instanceof Type.ErrorType) {
 //        		if (Utils.debug()) System.out.println("CBETODO-ERR " + csymbol + " " + csymbol.type + " " + specs.status(csymbol));
 //        		continue; // A bad type causes crashes later on

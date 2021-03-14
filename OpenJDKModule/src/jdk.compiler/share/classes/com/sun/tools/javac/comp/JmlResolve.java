@@ -327,11 +327,17 @@ public class JmlResolve extends Resolve {
             boolean useVarargs,
             boolean operator,
             boolean abstractok) {
-        for (Symbol s : sc.getSymbolsByName(name, new JmlLookupFilter(abstractok))) {
-            bestSoFar = selectBest(env, site, argtypes, typeargtypes, s,
-                    bestSoFar, useVarargs, operator);
-        }
-        return bestSoFar;
+    	try {
+    		for (Symbol s : sc.getSymbolsByName(name, new JmlLookupFilter(abstractok))) {
+    			bestSoFar = selectBest(env, site, argtypes, typeargtypes, s,
+    					bestSoFar, useVarargs, operator);
+    		}
+    		return bestSoFar;
+    	} catch (Exception e) {
+    		utils.error("jml.internal", "Exception in findMethodInScope: " + site + " " + name + " " + argtypes + " <" + typeargtypes +">");
+    		e.printStackTrace(System.out);
+    		throw e;
+    	}
     }
     
     // This actually only works for a simple case: where all the arguments are BIGINT

@@ -1175,6 +1175,7 @@ public class Attr extends JCTree.Visitor {
             for (List<JCExpression> l = tree.thrown; l.nonEmpty(); l = l.tail)
                 chk.checkType(l.head.pos(), l.head.type, syms.throwableType);
 
+            attributeBody(tree, localEnv); // OPENJML - added
             if (tree.body == null) {
                 // Empty bodies are only allowed for
                 // abstract, native, or interface methods, or for methods
@@ -1239,8 +1240,7 @@ public class Attr extends JCTree.Visitor {
                 annotate.flush();
 
                 // Attribute method body.
-                if (attributeBody(localEnv))   // OPENJML
-                	attribStat(tree.body, localEnv);
+                attribStat(tree.body, localEnv);
             }
 
             localEnv.info.scope.leave();
@@ -3926,6 +3926,9 @@ public class Attr extends JCTree.Visitor {
         // Find operator.
         Symbol operator = tree.operator = operators.resolveBinary(tree, tree.getTag(), left, right);
         Type owntype = types.createErrorType(tree.type);
+        if (tree.getTag() == JCTree.Tag.EQ || tree.getTag() == JCTree.Tag.NE) {
+        	owntype = tree.type = syms.booleanType; // FIXME - improve handling of == != on JML types
+        } else 
         if (operator != operators.noOpSymbol &&
                 !left.isErroneous() &&
                 !right.isErroneous()) {
@@ -5412,11 +5415,11 @@ public class Attr extends JCTree.Visitor {
             typeAnnotations.organizeTypeAnnotationsBodies(tree, false);
 
             // Check type annotations applicability rules
-            validateTypeAnnotations(tree, !attributeBody(env)); // OPENJML - allow skipping body
+            validateTypeAnnotations(tree, false); // OPENJML - allow skipping body
         }
     }
     
-    protected boolean attributeBody(Env<AttrContext> env) {
+    protected boolean attributeBody(JCMethodDecl tree, Env<AttrContext> env) {
     	return true;
     }
         // where
