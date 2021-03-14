@@ -892,7 +892,13 @@ public class JmlSpecs {
     
     public TypeSpecs getLoadedSpecs(ClassSymbol type) {
     	if (status(type).less(SpecsStatus.SPECS_LOADED)) JmlEnter.instance(context).requestSpecs(type);
-    	return specsmap.get(type);
+    	var ts = specsmap.get(type);
+    	if (ts == null) {
+    		ts = new TypeSpecs(type, null, JmlTree.Maker.instance(context).Modifiers(type.flags()), new ListBuffer<>());
+            utils.note(true,"      inserting default class specs for " + type.flatname);
+    		specsmap.put(type,  ts);
+    	}
+    	return ts;
     }
     
     //@ nullable 
@@ -934,7 +940,7 @@ public class JmlSpecs {
         spec.csymbol = type;
         specsmap.put(type,spec);
         specsStatus.put(type, SpecsStatus.SPECS_LOADED);
-        utils.note(true,"Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
+        utils.note(true,"      Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
     public void removeSpecs(ClassSymbol type) {
@@ -988,6 +994,15 @@ public class JmlSpecs {
     	if (status(m).less(SpecsStatus.SPECS_ATTR)) attr.attrSpecs(m);
         TypeSpecs t = specsmap.get(m.owner);
         return t == null ? null : t.methods.get(m);
+    }
+    
+    /** Returns loaded specs: modifiers are present; specification cases may be present, 
+     * but are not necessarily attributed.
+     */
+    //@ non_null
+    public JmlTree.JmlModifiers getSpecsModifiers(MethodSymbol m) {
+    	MethodSpecs ms = getLoadedSpecs(m);
+    	return ms == null ? null : (JmlTree.JmlModifiers)ms.mods; // FIXME - can this ever be null?
     }
     
     /** Returns loaded specs: modifiers are present; specification cases may be present, 
@@ -1587,6 +1602,7 @@ public class JmlSpecs {
         }
             
         // Need the owning class - fields are owned by the class, but parameters and local variables are owned by the method
+        if (decl.sym == null) utils.error(decl, "jml.internal", "No sym value for declaration of " + decl);
         Symbol owner = decl.sym.owner;
         if (owner instanceof MethodSymbol) owner = owner.owner;
         Env<AttrContext> env = JmlEnter.instance(context).getEnv((Symbol.TypeSymbol)owner);
@@ -1639,7 +1655,7 @@ public class JmlSpecs {
         Attribute.Compound attr;
         if (symbol instanceof Symbol.VarSymbol && symbol.owner instanceof Symbol.ClassSymbol) {
             // Field
-            FieldSpecs fspecs = getSpecs((Symbol.VarSymbol)symbol);
+            FieldSpecs fspecs = getLoadedSpecs((Symbol.VarSymbol)symbol);
             if (fspecs == null) return false; // FIXME - we need private fields of binary classes that have no specs declared to be nullable
             if (fspecs != null && utils.findMod(fspecs.mods,nullableAnnotationSymbol) != null) return false;
             else if (fspecs != null && utils.findMod(fspecs.mods,nonnullAnnotationSymbol) != null) return true;
@@ -1664,7 +1680,7 @@ public class JmlSpecs {
             
         } else if (symbol instanceof Symbol.MethodSymbol) {
             // Method return value
-            MethodSpecs mspecs = getSpecs((Symbol.MethodSymbol)symbol);
+            MethodSpecs mspecs = getLoadedSpecs((Symbol.MethodSymbol)symbol);
             if (mspecs != null && utils.findMod(mspecs.mods,nullableAnnotationSymbol) != null) return false;
             else if (mspecs != null && utils.findMod(mspecs.mods,nonnullAnnotationSymbol) != null) return true;
             else return defaultNullity(csymbol) == Modifiers.NON_NULL;

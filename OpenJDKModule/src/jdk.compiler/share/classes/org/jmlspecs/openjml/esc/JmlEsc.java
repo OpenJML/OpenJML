@@ -20,7 +20,6 @@ import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
-import org.jmlspecs.openjml.esc.JmlAssertionAdder.CheckTree;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
@@ -107,9 +106,9 @@ public class JmlEsc extends JmlTreeScanner {
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
         this.assertionAdder = new JmlAssertionAdder(context, true, false);
         try {
+        	//org.jmlspecs.openjml.esc.JmlAssertionAdder.CheckTree.check(context,tree);
             // FIXME - would prefer for esc to just translate the methods that are to be proved
             // We convert the whole tree first
-            CheckTree.check(context,tree);
             assertionAdder.convert(tree); // get at the converted tree through the map
             // And then we walk the tree to see which items are to be proved
             tree.accept(this);

@@ -944,12 +944,12 @@ public class Utils {
     /** Creates the location prefix including the colon without any message;
      * 'pos' is the position in the file given by source or if source is null, by log.currentSource(). */
     public String locationString(DiagnosticPosition pos, /*@ nullable */ JavaFileObject source) {
-        // USE JCDiagnostic.NO_SOURCE ? FIXME
         JavaFileObject prev = null;
         if (source != null) prev = log().useSource(source);
         try {
+        	JavaFileObject jfo = source == null ? log().currentSourceFile() : source;
             JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(DiagnosticSource.NO_SOURCE, pos, "empty", "");
-            String msg = diag.toString().replace("Note: ", "");
+            String msg = diag.toString().replace("\n","").replace("Note: ", "");
             return msg;
         } finally {
             if (source != null) log().useSource(prev);
