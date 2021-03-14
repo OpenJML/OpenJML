@@ -141,7 +141,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         this.context = context;
         this.utils = Utils.instance(context);
         this.resolve = JmlResolve.instance(context);
-        this.enter = (JmlEnter)JmlEnter.instance(context);
+        this.enter = JmlEnter.instance(context);
         this.names = Names.instance(context);
         this.org_jmlspecs_lang = names.fromString(Strings.jmlSpecsPackage);
         this.jmlF = JmlTree.Maker.instance(context);

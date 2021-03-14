@@ -5965,12 +5965,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         {
             
             Name defempty = names.fromString("defaultEmpty");
-        	Type t = runtimeClass.type;
-        	var tt = jmlMaker.Type(t);
-        	var eee = jmlMaker.Select(tt, defempty);
+//        	Type t = runtimeClass.type;
+//        	var tt = jmlMaker.Type(t);
 //        	var eee = utils.nametree(Position.NOPOS, Position.NOPOS, "org.jmlspecs.runtime.Runtime.defaultEmpty", null);
         	
-            JCFieldAccess sel = (JCFieldAccess)eee; // jmlMaker.Select(jmlMaker.Type(utilsClass.type),defempty);
+            JCFieldAccess sel = jmlMaker.Select(jmlMaker.Type(runtimeClass.type),defempty);
             JCExpression e = jmlMaker.Apply(List.<JCExpression>of(jmlMaker.Type(boxedVarType)),sel,List.<JCExpression>nil()); 
             // FIXME e.type = ?
             // e:    Utils.<T'>defaultEmpty()
