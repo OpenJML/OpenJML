@@ -1189,7 +1189,7 @@ public class JmlEnter extends Enter {
     	// Requests for nested classes are changed to a request for their outermost class
     	while (csymbol.owner instanceof ClassSymbol) csymbol = (ClassSymbol)csymbol.owner;
 
-    	JmlSpecs.SpecsStatus tsp = JmlSpecs.instance(context).status((ClassSymbol)csymbol);
+    	JmlSpecs.SpecsStatus tsp = JmlSpecs.instance(context).status(csymbol);
     	if (tsp.less(JmlSpecs.SpecsStatus.QUEUED)) {
     		requestSpecsForSelfAndParents(csymbol);
     	} else {
