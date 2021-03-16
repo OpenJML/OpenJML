@@ -177,33 +177,33 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     
     public boolean dojml = false;
     
-    @Override
-    public void memberEnter(JCTree tree, Env<AttrContext> env) {
-        if (tree instanceof JmlTypeClause) return;
-        super.memberEnter(tree, env);
-        if (tree instanceof JmlCompilationUnit) {  // FIXME - this is also called with tree being a JmlClassDecl - then nothing is done; also part of the below is done already??
-            JmlCompilationUnit javacu = (JmlCompilationUnit)tree;
-            JmlCompilationUnit specscu = javacu.specsCompilationUnit;
-            // Normally, a Java CU has attached a specs CU, even if it is the same as itself.
-            // However, memberEnter is called when completing a class symbol to complete the package declaration
-            // in its top level environment; so for a model class in a specs compilation unit the toplevel is
-            // the specs compilation unit, which may have a null specscu field
-            
-            // FIXME - not sure this is what we want. We need the normal env (without model imports),
-            // and an env for the specs file (which may be either the .jml or .java file) that includes
-            // model imports org.jmlspecs.lang and model declarations.
-            if (specscu != null) {
-                Env<AttrContext> specenv = specscu.topLevelEnv;
-                if (specenv == null) specenv = env;
-                if (specenv != env) importAll(tree.pos, syms.enterPackage(null, names.java_lang), specenv);
-                super.memberEnter(specscu, specenv);
-                importAll(tree.pos, syms.enterPackage(null, names.fromString(Strings.jmlSpecsPackage)), specenv);
-            }
-        }
-    }
+//    @Override
+//    public void memberEnter(JCTree tree, Env<AttrContext> env) {
+//        if (tree instanceof JmlTypeClause) return;
+//        super.memberEnter(tree, env);
+//        if (tree instanceof JmlCompilationUnit) {  // FIXME - this is also called with tree being a JmlClassDecl - then nothing is done; also part of the below is done already??
+//            JmlCompilationUnit javacu = (JmlCompilationUnit)tree;
+//            JmlCompilationUnit specscu = javacu.specsCompilationUnit;
+//            // Normally, a Java CU has attached a specs CU, even if it is the same as itself.
+//            // However, memberEnter is called when completing a class symbol to complete the package declaration
+//            // in its top level environment; so for a model class in a specs compilation unit the toplevel is
+//            // the specs compilation unit, which may have a null specscu field
+//            
+//            // FIXME - not sure this is what we want. We need the normal env (without model imports),
+//            // and an env for the specs file (which may be either the .jml or .java file) that includes
+//            // model imports org.jmlspecs.lang and model declarations.
+//            if (specscu != null) {
+//                Env<AttrContext> specenv = specscu.topLevelEnv;
+//                if (specenv == null) specenv = env;
+//                if (specenv != env) importAll(tree.pos, syms.enterPackage(null, names.java_lang), specenv);
+//                super.memberEnter(specscu, specenv);
+//                importAll(tree.pos, syms.enterPackage(null, names.fromString(Strings.jmlSpecsPackage)), specenv);
+//            }
+//        }
+//    }
 
         
-    protected boolean noEntering = false;
+//    protected boolean noEntering = false;
     
     /**  FIXME: still true, useful?:Returns true if there is a duplicate, whether or not it was warned about */
     protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, WriteableScope enclScope, Env<AttrContext> localEnv) {
@@ -232,7 +232,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     	var st = specs.status(m.owner);
     	if (st != JmlSpecs.SpecsStatus.NOT_LOADED) {
     		// The check above is to avoid calling putSpecs during the processing of source files
-    		// FIXME - it presume that source files are completely processed before aspec files are queued
+    		// FIXME - it presumes that source files are completely processed before aspec files are queued
     		specs.putSpecs(m, new MethodSpecs((JmlMethodDecl)tree), localEnv);
     	}
     	boolean b = super.visitMethodDefHelper(tree, m, enclScope, localEnv);
@@ -1158,8 +1158,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     
     
      
-    /** Set in visitiMethodDef so that all chlidren can know which method they are part of */
-    JmlMethodDecl currentMethod = null;
+//    /** Set in visitiMethodDef so that all chlidren can know which method they are part of */
+//    JmlMethodDecl currentMethod = null;
     
 //    @Override 
 //    public void visitMethodDef(JCMethodDecl tree) {
@@ -1282,29 +1282,29 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
 
 
-    @Override
-    public void visitVarDef(JCVariableDecl tree) {
-        long flags = tree.mods.flags;
-        boolean wasFinal = (flags&Flags.FINAL) != 0;
-        boolean wasStatic = (flags&Flags.STATIC) != 0;
-        if ((env.enclClass.mods.flags & INTERFACE) != 0  && utils.isJML(tree.mods)) {
-            // FIXME - but the @Instance declaration might be in the .jml file
-            boolean isInstance = JmlAttr.instance(context).isInstance(tree.mods);
-            if (isInstance && !wasStatic) {
-            	tree.mods.flags &= ~Flags.STATIC;
-            	if (tree.sym != null) tree.sym.flags_field = tree.sym.flags() & ~Flags.STATIC;
-            }
-        }
-//        boolean prev = resolve.allowJML();
-//        boolean isReplacementType = ((JmlVariableDecl)tree).jmltype;
+//    @Override
+//    public void visitVarDef(JCVariableDecl tree) {
+//        long flags = tree.mods.flags;
+//        boolean wasFinal = (flags&Flags.FINAL) != 0;
+//        boolean wasStatic = (flags&Flags.STATIC) != 0;
+//        if ((env.enclClass.mods.flags & INTERFACE) != 0  && utils.isJML(tree.mods)) {
+//            // FIXME - but the @Instance declaration might be in the .jml file
+//            boolean isInstance = JmlAttr.instance(context).isInstance(tree.mods);
+//            if (isInstance && !wasStatic) {
+//            	tree.mods.flags &= ~Flags.STATIC;
+//            	if (tree.sym != null) tree.sym.flags_field = tree.sym.flags() & ~Flags.STATIC;
+//            }
+//        }
+////        boolean prev = resolve.allowJML();
+////        boolean isReplacementType = ((JmlVariableDecl)tree).jmltype;
+////        
+////        if (utils.isJML(tree.mods) || isReplacementType) resolve.setAllowJML(true);
+////        
+//////        boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
+//////        ((JmlCheck)chk).noDuplicateWarn = false;
+//        JavaFileObject prevSource = log.useSource( ((JmlVariableDecl)tree).source());
+//        super.visitVarDef(tree);
 //        
-//        if (utils.isJML(tree.mods) || isReplacementType) resolve.setAllowJML(true);
-//        
-////        boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
-////        ((JmlCheck)chk).noDuplicateWarn = false;
-        JavaFileObject prevSource = log.useSource( ((JmlVariableDecl)tree).source());
-        super.visitVarDef(tree);
-        
 //        if (tree.sym.owner instanceof ClassSymbol) {
 //        	// local variables and parameters do not have entries in specs
 //        	var jtree = (JmlVariableDecl)tree;
@@ -1312,21 +1312,21 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        	((JmlVariableDecl)tree).specsDecl.sym = tree.sym;
 //        	if (tree.sym != null) JmlSpecs.instance(context).putSpecs(tree.sym, fs);
 //        }
-        log.useSource(prevSource);
-
-
-
-////        ((JmlCheck)chk).noDuplicateWarn = prevChk;
-//        if (utils.isJML(tree.mods)) resolve.setAllowJML(prev);
-//        if (tree.sym == null) {
-//            // A duplicate
-//            env.enclClass.defs = List.filter(env.enclClass.defs,tree);
-//            return;
-//        }
-        Symbol sym = tree.sym;
- //       if (specs.getSpecs(tree.sym) != null) utils.warning("jml.internal","Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
-        JmlVariableDecl jtree = (JmlVariableDecl)tree;
-    }
+//        log.useSource(prevSource);
+//
+//
+//
+//////        ((JmlCheck)chk).noDuplicateWarn = prevChk;
+////        if (utils.isJML(tree.mods)) resolve.setAllowJML(prev);
+////        if (tree.sym == null) {
+////            // A duplicate
+////            env.enclClass.defs = List.filter(env.enclClass.defs,tree);
+////            return;
+////        }
+//        Symbol sym = tree.sym;
+// //       if (specs.getSpecs(tree.sym) != null) utils.warning("jml.internal","Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
+//        JmlVariableDecl jtree = (JmlVariableDecl)tree;
+//    }
     
     protected void visitFieldDefHelper(JCVariableDecl tree, VarSymbol v, WriteableScope enclScope, Env<AttrContext> env, List<JCAnnotation> annotations) {
        	if (tree.sym.owner instanceof ClassSymbol && tree != ((JmlVariableDecl)tree).specsDecl && null != ((JmlVariableDecl)tree).specsDecl) {
@@ -1420,44 +1420,44 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //    }
 
 
-    // Only used for binary enter
-
-    // Only used for entering binary classes
-    // FIXME - REVIEW
-
-
-    protected void importHelper(JCCompilationUnit tree) {
-        // Import-on-demand java.lang.   // FIXME - module
-        importAll(tree.pos, syms.enterPackage(null, names.java_lang), env);
-        importAll(tree.pos, syms.enterPackage(null, names.fromString(Strings.jmlSpecsPackage)), env);
-
-        // Process all import clauses.
-        memberEnter(tree.defs, env);
-    }
-
-    // FIXME
-    protected void importAll(int pos,
-            final TypeSymbol tsym,
-            Env<AttrContext> env) {
-//        if (tsym.kind == PCK && tsym.members().elems == null && !tsym.exists()) {
-//            // If we can't find org.jmlspecs.lang, exit immediately.
-//            if (((PackageSymbol)tsym).fullname.toString().equals(Strings.jmlSpecsPackage)) {
-//                JCDiagnostic msg = JCDiagnostic.Factory.instance(context).fragment("fatal.err.no." + Strings.jmlSpecsPackage);
-//                throw new FatalError(msg);
-//            }
-//        }
-//        // FIXME - taken from Java8 implementation -- how are imports handled now?
-//        if (tsym.kind == PCK && !tsym.exists()) {
-//            // If we can't find java.lang, exit immediately.
-//            if (((PackageSymbol)tsym).fullname.equals(names.java_lang)) {
-//                JCDiagnostic msg = Log.instance(context).factory().fragment("fatal.err.no.java.lang");
-//                throw new FatalError(msg);
-//            } else {
-//                utils.error(DiagnosticFlag.RESOLVE_ERROR, pos, "doesnt.exist", tsym);
-//            }
-//        }
-//// FIXME        super.importAll(null, tsym, env);
-    }
+//    // Only used for binary enter
+//
+//    // Only used for entering binary classes
+//    // FIXME - REVIEW
+//
+//
+//    protected void importHelper(JCCompilationUnit tree) {
+//        // Import-on-demand java.lang.   // FIXME - module
+//        importAll(tree.pos, syms.enterPackage(null, names.java_lang), env);
+//        importAll(tree.pos, syms.enterPackage(null, names.fromString(Strings.jmlSpecsPackage)), env);
+//
+//        // Process all import clauses.
+//        memberEnter(tree.defs, env);
+//    }
+//
+//    // FIXME
+//    protected void importAll(int pos,
+//            final TypeSymbol tsym,
+//            Env<AttrContext> env) {
+////        if (tsym.kind == PCK && tsym.members().elems == null && !tsym.exists()) {
+////            // If we can't find org.jmlspecs.lang, exit immediately.
+////            if (((PackageSymbol)tsym).fullname.toString().equals(Strings.jmlSpecsPackage)) {
+////                JCDiagnostic msg = JCDiagnostic.Factory.instance(context).fragment("fatal.err.no." + Strings.jmlSpecsPackage);
+////                throw new FatalError(msg);
+////            }
+////        }
+////        // FIXME - taken from Java8 implementation -- how are imports handled now?
+////        if (tsym.kind == PCK && !tsym.exists()) {
+////            // If we can't find java.lang, exit immediately.
+////            if (((PackageSymbol)tsym).fullname.equals(names.java_lang)) {
+////                JCDiagnostic msg = Log.instance(context).factory().fragment("fatal.err.no.java.lang");
+////                throw new FatalError(msg);
+////            } else {
+////                utils.error(DiagnosticFlag.RESOLVE_ERROR, pos, "doesnt.exist", tsym);
+////            }
+////        }
+////// FIXME        super.importAll(null, tsym, env);
+//    }
 
 
 }
