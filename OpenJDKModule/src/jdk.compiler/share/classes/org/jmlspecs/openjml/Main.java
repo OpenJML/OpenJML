@@ -275,7 +275,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         super(applicationName,out);
     }
     
-    protected Context initialize(
+    public Context initialize(
                 /*@nullable*/ DiagnosticListener<? extends JavaFileObject> diagListener) {
         check(); // Aborts if the environment does not support OpenJML
         this.diagListener = diagListener;
@@ -299,8 +299,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @param args the command-line arguments
      */
     //@ requires args != null && \nonnullelements(args);
-    public static void main(String[] args) {
-        System.out.println("openjml main");
+    public static void main(String... args) {
         useJML = true;
         if (args.length > 0 && args[0].equals("-Xjdb")) {
         	try {
@@ -339,7 +338,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @return     the exit code, as returned to the shell - 0 is success
      */
     //@ requires args != null && \nonnullelements(args);
-    public static int execute(String[] args) {
+    public static int execute(String... args) {
         if (args != null) {
             for (String a: args) {
                 if (jmldocOption.equals(a)) {
@@ -379,6 +378,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @return the exit code
      */
     public static int execute(/*@non_null*/ PrintWriter writer, /*@nullable*/ DiagnosticListener<? extends JavaFileObject> diagListener, /*@nullable*/ Options options, /*@non_null*/ String[] args) {
+    	JavaCompiler.versionRBName = "org.jmlspecs.openjml.version"; // Version string is read from version.properties
         int errorcode = com.sun.tools.javac.main.Main.Result.ERROR.exitCode; // 1
         try {
             if (args == null) {
@@ -548,7 +548,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     @Override
     public Main.Result compile(String[] args, Context context) {
-        this.context = context;
+        this.context = context; // FIXME - it is a problem if this changes the already stored context, as it was used for JavacFileManager and Utils
         register(context);
         setProofResultListener(prl);
         args = JmlOptions.instance(context).processJmlArgs(args, Options.instance(context), null);

@@ -3377,7 +3377,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Symbol owner = sym.owner;
         if (owner instanceof MethodSymbol) owner = owner.owner;
         if (!utils.isPrimitiveType(sym.type)) {
-            isNonNull = specs.isNonNull(sym, (Symbol.ClassSymbol)owner) ;
+            isNonNull = specs.isNonNull(sym) ;
         }
         return addNullnessAllocationTypeCondition(pos,sym,isNonNull,instanceBeingConstructed,true);
     }
@@ -3387,7 +3387,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Symbol owner = sym.owner;
         if (owner instanceof MethodSymbol) owner = owner.owner;
         if (!utils.isPrimitiveType(sym.type)) {
-            isNonNull = specs.isNonNull(sym, (Symbol.ClassSymbol)owner) ;
+            isNonNull = specs.isNonNull(sym) ;
         }
         return addNullnessAllocationTypeCondition(pos,sym,isNonNull,instanceBeingConstructed,false);
     }
@@ -3850,6 +3850,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JmlSpecs.TypeSpecs tspecs = specs.getSpecs(csym);
         if (tspecs == null) return; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
 
+/*
         for (JmlTypeClause clause : tspecs.decls) {
             try {
                 if (!(clause instanceof JmlTypeClauseDecl)) continue;
@@ -3866,6 +3867,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 notImplemented(clause.keyword + " clause containing ", e, clause.source());
             }
         }
+*/
     }
     
     protected void assumeStaticInvariants(ClassSymbol csym) {
@@ -4372,6 +4374,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         currentThisExpr = savedThis;
+/*
         for (JmlTypeClauseDecl dd: specs.getSpecs(classDecl.sym).decls) {
             JCTree tt = dd.decl;
             if (!(tt instanceof JCVariableDecl)) continue;
@@ -4383,6 +4386,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat(comment(dd,"Adding invariants for ghost field " + d.sym.flatName(),null));
             addRecInvariants(true,d,fa);
         }
+*/
         currentThisExpr = savedThis;
     }
     
@@ -4426,6 +4430,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         log.useSource(prevJFO);
         currentThisExpr = savedThis;
+/*
         for (JmlTypeClauseDecl dd: specs.getSpecs(classSym).decls) {
             JCTree tt = dd.decl;
             if (!(tt instanceof JCVariableDecl)) continue;
@@ -4437,6 +4442,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat(comment(dd,"Adding invariants for ghost field " + d.sym.flatName(),null));
             addRecInvariants(true,d,fa);
         }
+*/
         currentThisExpr = savedThis;
     }
     
@@ -4710,6 +4716,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
             currentThisExpr = savedThis;
+/*
             for (JmlTypeClauseDecl dd: specs.getSpecs(classDecl.sym).decls) {
                 JCTree tt = dd.decl;
                 if (!(tt instanceof JCVariableDecl)) continue;
@@ -4721,6 +4728,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addStat(comment(dd,"Adding exit invariants for " + d.sym,null));
                 addRecInvariants(false,d,fa);
             }
+*/
             currentThisExpr = savedThis;
         }
 
@@ -8572,7 +8580,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (s == null) {
                     JmlMethodSpecs defaults = JmlSpecs.instance(context).defaultSpecs(methodDecl, methodDecl.sym,methodDecl.pos).cases;
                     s = new JmlSpecs.MethodSpecs(methodDecl.mods,defaults);
-                    specs.putSpecs(calleeMethodSym, s);
+                    specs.putSpecs(calleeMethodSym, s, null); // FIXME - are these specs all attributed? Should we mark the specs status? will we actually need the specsEnv?
                     s.cases.deSugared = null;  
                 } else {
                     JmlMethodDecl decl = s.cases.decl;
@@ -11299,7 +11307,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // Need to check that the spec of the reference is subsumed in the spec of the type (that.type) inferred by type checking
                 checkCompatibleSpecs((JCLambda)rhs,rhs.type);
             } else {
-                if (specs.isNonNull(fa.sym,methodDecl.sym.enclClass())) {
+                if (specs.isNonNull(fa.sym)) {
                     JCExpression e = treeutils.makeNeqObject(fa.pos, rhs, treeutils.nullLit);
                     // FIXME - location of nnonnull declaration?
                     addAssert(that, Label.POSSIBLY_NULL_ASSIGNMENT, e);
@@ -13063,7 +13071,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 var = true;
             }
             if (s.owner instanceof ClassSymbol) {
-                if (specs.isNonNull(s,classDecl.sym) && s instanceof VarSymbol && !localVariables.containsKey(s)) {
+                if (specs.isNonNull(s) && s instanceof VarSymbol && !localVariables.containsKey(s)) {
                     if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
                         // continue
                     } else if (!utils.isPrimitiveType(selected.type)) {
@@ -13099,7 +13107,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             eee = (!var || convertingAssignable || !splitExpressions || rac) ? eee : newTemp(eee);
         }
         treeutils.copyEndPosition(result, that);
-        if (translatingJML && !pureCopy && s instanceof VarSymbol && specs.isNonNull(s) && !utils.isPrimitiveType(that.selected.type)) {
+        if (translatingJML && !pureCopy && s instanceof VarSymbol && !utils.isPrimitiveType(that.selected.type) && specs.isNonNull(s)) {
             JCExpression nn = treeutils.makeNeqObject(that.pos,eee,treeutils.nullLit);
             addToCondition(that.pos, nn);
         } else if (esc && splitExpressions && s.name == names._class) {
@@ -13389,7 +13397,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // static class field - add the qualified name
                 JCExpression typetree = treeutils.makeType(that.pos, sym.owner.type);
                 JCFieldAccess fa = treeutils.makeSelect(that.pos,typetree, sym);
-                if (!translatingJML && that.sym instanceof VarSymbol && that.sym.owner instanceof ClassSymbol && specs.isNonNull(sym, (ClassSymbol)sym.owner)) {
+                if (!translatingJML && that.sym instanceof VarSymbol && that.sym.owner instanceof ClassSymbol && specs.isNonNull(sym)) {
                     JCExpression e = treeutils.trueLit;
                     if (!utils.isPrimitiveType(fa.type)) e = treeutils.makeNotNull(that.pos, fa);
                     addAssume(that,Label.NULL_FIELD,e);
@@ -17612,13 +17620,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 that.type = jmltypes.repSym((JmlType)that.type).type;
                 that.sym.type = that.type;
             }
-            if (specs.fieldSpecHasAnnotation(that.sym, Modifiers.SPEC_PUBLIC) != null) {
+            if (specs.fieldSpecHasAnnotation(that.sym, Modifiers.SPEC_PUBLIC)) {
                 that.mods.flags &= ~Flags.AccessFlags;
                 that.mods.flags |= Flags.PUBLIC;
                 that.sym.flags_field  &= ~Flags.AccessFlags;
                 that.sym.flags_field |= Flags.PUBLIC;
             }
-            if (specs.fieldSpecHasAnnotation(that.sym, Modifiers.SPEC_PROTECTED) != null) {
+            if (specs.fieldSpecHasAnnotation(that.sym, Modifiers.SPEC_PROTECTED)) {
                 that.mods.flags &= ~Flags.AccessFlags;
                 that.mods.flags |= Flags.PROTECTED;
                 that.sym.flags_field  &= ~Flags.AccessFlags;
@@ -17675,7 +17683,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (init != null && !init.type.isPrimitive() 
                             && !utils.isPrimitiveType(init.type) 
                             && !isKnownNonNull(that.init) && !isKnownNonNull(init)
-                            && specs.isNonNull(that.sym,that.sym.enclClass())) {
+                            && specs.isNonNull(that.sym)) {
                         nn = treeutils.makeNeqObject(init.pos, init, treeutils.nullLit);
                         if (init instanceof JCLiteral) {
                             // FIXME - potential optimizations, but they need testing, particularly the second one
@@ -19137,7 +19145,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     	
     	public void visitIdent(JCIdent tree) {
     		if (tree.sym == null) utils.note(tree, "jml.message", "Ident has no sym: " + JmlPretty.write(tree));
-//    		if (tree.sym != null && tree.sym.owner instanceof ClassSymbol && JmlSpecs.instance(context).getxx((ClassSymbol)tree.sym.owner) == null)  utils.error(tree, "jml.message", tree.sym.owner + " has no specs: "  + JmlPretty.write(tree));
+//    		if (tree.sym != null && tree.sym.owner instanceof ClassSymbol && JmlSpecs.instance(context).get((ClassSymbol)tree.sym.owner) == null)  utils.error(tree, "jml.message", tree.sym.owner + " has no specs: "  + JmlPretty.write(tree));
 //    		if (tree.sym != null && tree.sym.owner instanceof ClassSymbol && tree.sym instanceof MethodSymbol && JmlSpecs.instance(context).getSpecs((MethodSymbol)tree.sym) == null)  utils.error(tree, "jml.message", tree.sym + " has no specs: "  + JmlPretty.write(tree));
 //    		if (tree.sym != null && tree.sym.owner instanceof ClassSymbol && tree.sym instanceof VarSymbol && JmlSpecs.instance(context).getSpecs((VarSymbol)tree.sym) == null)  utils.error(tree, "jml.message", tree.sym + " has no specs: "  + JmlPretty.write(tree));
     		super.visitIdent(tree);

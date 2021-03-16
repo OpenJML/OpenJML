@@ -1175,7 +1175,7 @@ public class Attr extends JCTree.Visitor {
             for (List<JCExpression> l = tree.thrown; l.nonEmpty(); l = l.tail)
                 chk.checkType(l.head.pos(), l.head.type, syms.throwableType);
 
-            attributeBody(tree, localEnv); // OPENJML - added
+            //saveMethodEnv(m, localEnv); // OPENJML - added
             if (tree.body == null) {
                 // Empty bodies are only allowed for
                 // abstract, native, or interface methods, or for methods
@@ -1250,6 +1250,8 @@ public class Attr extends JCTree.Visitor {
             chk.setMethod(prevMethod);
         }
     }
+    
+    protected void saveMethodEnv(MethodSymbol msym, Env<AttrContext> env) {}
     
     public boolean requireBody() { return true; } // OPENJML -- added for extension
 
@@ -4992,6 +4994,7 @@ public class Attr extends JCTree.Visitor {
             c.flags_field |= UNATTRIBUTED;
             Env<AttrContext> cenv = enter.classEnv(cd, env);
             typeEnvs.put(c, cenv);
+            if (org.jmlspecs.openjml.Utils.debug()) System.out.println("TYPEENVS-PUT-A " + c + " " + c.hashCode() + " " + (cenv!=null));
             attribClass(c);
             return owntype;
         }
@@ -5417,10 +5420,6 @@ public class Attr extends JCTree.Visitor {
             // Check type annotations applicability rules
             validateTypeAnnotations(tree, false); // OPENJML - allow skipping body
         }
-    }
-    
-    protected boolean attributeBody(JCMethodDecl tree, Env<AttrContext> env) {
-    	return true;
     }
         // where
         /** get a diagnostic position for an attribute of Type t, or null if attribute missing */

@@ -465,6 +465,7 @@ public class Enter extends JCTree.Visitor {
         // table, to be retrieved later in memberEnter and attribution.
         Env<AttrContext> localEnv = classEnv(tree, env);
         typeEnvs.put(c, localEnv);
+        if (org.jmlspecs.openjml.Utils.debug()) System.out.println("STORING ENV FOR CLASS " + c + " " + c.hashCode() + " " + (localEnv != null));
 
         // Fill out class fields.
         c.completer = Completer.NULL_COMPLETER; // do not allow the initial completer linger on.

@@ -217,7 +217,7 @@ public class MemberEnter extends JCTree.Visitor {
             m.flags_field |= Flags.VARARGS;
 
         localEnv.info.scope.leave();
-        visitMethodDefHelper(tree, m, enclScope); // OPENJML - replace next few lines to allow extending
+        visitMethodDefHelper(tree, m, enclScope, localEnv); // OPENJML - replace next few lines to allow extending
 //        if (chk.checkUnique(tree.pos(), m, enclScope)) {
 //        	enclScope.enter(m);
 //        }
@@ -329,7 +329,7 @@ public class MemberEnter extends JCTree.Visitor {
     }
 
     // OPENJML - added to allow overriding some functionality
-    protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, WriteableScope enclScope) {
+    protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, WriteableScope enclScope, Env<AttrContext> localEnv) {
        if (chk.checkUnique(tree.pos(), m, enclScope)) {
             enclScope.enter(m);
             return true;

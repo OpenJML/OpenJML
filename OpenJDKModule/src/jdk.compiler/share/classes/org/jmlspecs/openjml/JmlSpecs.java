@@ -28,20 +28,7 @@ import javax.tools.JavaFileObject;
 
 //import org.eclipse.core.runtime.Platform;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
-import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
-import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
-import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignals;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
-import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
@@ -99,7 +86,7 @@ import com.sun.tools.javac.util.Position;
  * per compilation Context, ensured by calling the preRegister
  * method.  The class provides methods for finding specification files, and it
  * maintains a database of specifications of types, methods, and fields.  
- * The specs are indexed by type 
+ * The specs are indexed by class 
  * as well as by method, so that obsolete specs can be readily discarded.
  * <P>
  * <B>Specification Paths</B>
@@ -886,7 +873,7 @@ public class JmlSpecs {
      * not yet been 'put', and may not be attributed
      */
     //@ nullable 
-    public TypeSpecs getxx(ClassSymbol type) {
+    public TypeSpecs get(ClassSymbol type) {
         return specsmap.get(type);
     }
     
@@ -894,14 +881,21 @@ public class JmlSpecs {
     	if (status(type).less(SpecsStatus.SPECS_LOADED)) JmlEnter.instance(context).requestSpecs(type);
     	var ts = specsmap.get(type);
     	if (ts == null) {
-    		ts = new TypeSpecs(type, null, JmlTree.Maker.instance(context).Modifiers(type.flags()), new ListBuffer<>());
+    		ts = new TypeSpecs(type, null, (JmlModifiers)JmlTree.Maker.instance(context).Modifiers(type.flags()), new ListBuffer<>());
             utils.note(true,"      inserting default class specs for " + type.flatname);
     		specsmap.put(type,  ts);
     	}
     	return ts;
     }
     
-    //@ nullable 
+    /** Returns loaded specs: modifiers are present; specification cases may be present, 
+     * but are not necessarily attributed.
+     */
+    //@ non_null
+    public JmlTree.JmlModifiers getSpecsModifiers(ClassSymbol m) {
+    	return getLoadedSpecs(m).modifiers;
+    }
+    
     public TypeSpecs getSpecs(ClassSymbol type) {
     	if (status(type).less(SpecsStatus.SPECS_ATTR)) {
     		attr.attrSpecs(type);
@@ -952,10 +946,12 @@ public class JmlSpecs {
      * @param m the MethodSymbol of the method whose specs are provided
      * @param spec the specs to associate with the method
      */
-    public void putSpecs(MethodSymbol m, MethodSpecs spec) {
+    public void putSpecs(MethodSymbol m, MethodSpecs spec, Env<AttrContext> specsEnv) {
+    	spec.msym = m;
     	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) log.error("jml.internal", "Specs not yet loaded for " + m.owner + " on attempting to put " + m);
         utils.note(true, "            Saving method specs for " + m.owner + "." + m );
-        getLoadedSpecs((ClassSymbol)m.owner).methods.put(m,spec);
+        spec.setEnv(specsEnv);
+        get((ClassSymbol)m.owner).methods.put(m,spec);
     }
     
     /** Adds the specs for a given initialization block to the database, overwriting anything
@@ -1027,16 +1023,17 @@ public class JmlSpecs {
     public JmlMethodSpecs getDenestedSpecs(MethodSymbol m) {
         MethodSpecs s = getSpecs(m);
         if (s == null) {
+        	// FIXME - recheck the conditions undere which this branch can be taken
             // This can happen when -no-internalSpecs is used, probably for a binary class, but it probably shouldn't - specs should be created when the class is laoded - FIXME
             // This can also happen for a method that has no JML declaration or specification in its static class,
             // but does inherit a method (and spec) from a parent class.
             s = defaultSpecs(null,m,1);  // FIXME - what position should be used
-            putSpecs(m,s);
+            putSpecs(m,s,s.specsEnv);
             s.cases.deSugared = s.cases;
             return s.cases;    // FIXME - this is not actually fully desugared, but we don't have a decl to call deSugarMethodSpecs
         }
         if (s.cases.deSugared == null) {
-            attr.deSugarMethodSpecs(s.cases.decl,s);
+            attr.deSugarMethodSpecs(s.cases.decl.sym,s);
         }
         return s.cases.deSugared;
     }
@@ -1328,6 +1325,16 @@ public class JmlSpecs {
         return t == null ? null : t.fields.get(m);
     }
     
+    public JmlModifiers getSpecsModifiers(VarSymbol vsym) {
+    	try {
+    		var sp = getLoadedSpecs(vsym);
+    		return sp == null ? null : sp.mods;
+    	} catch (Exception e) {
+    		utils.note(false,"Exception when calling getSpecsModifiers for " + vsym + " " + vsym.owner);
+    		throw e;
+    	}
+    }
+    
     /** Retrieves the specs for a given initializer block
      * @param sym the class in which the block resides
      * @param m the JCBlock of the block whose specs are wantedTATUS
@@ -1348,22 +1355,23 @@ public class JmlSpecs {
     public static class TypeSpecs {
         /** The Symbol for the type these specs belong to*/
         public ClassSymbol csymbol;
-        public Env<AttrContext> env;
         public SpecsStatus status;
+        public Env<AttrContext> specsEnv; // The env to use to typecheck the specs
         
         
         /** The source file for the modifiers, not necessarily for the rest of the specs
          * if these are the combined specs */
-        //@ nullable   // may be null if there are no specs
+        //@ nullable   // may be null if there are no specs or only default or inferred specs; only useful for modifiers and clauses and initializer blocks
         public JavaFileObject file;
 
-        /** The JmlClassDecl for the specification */ // FIXME - this is probably better used as the decl of the Java file, if any
-        //@ nullable   // may be null if there are no specs
-        public JmlClassDecl decl; // FIXME - with a spec sequence the specs from more than one
+        /** The JmlClassDecl for the specification; note that this is not particularly useful as specifications for
+         * individual member declarations may come from various places; this is only helpful for modifiers and clauses and initializer blocks
+         */
+        //@ nullable   // may be null if (a) the class is binary and there are no specs in any source file (so any specs are default or inferred)
+        public JmlClassDecl decl;
 
-        /** The JML modifiers of the class, as given in the COMBINED specification */
-        //@ nullable   // may be null if there are no specs // FIXME - no, at minimum these are the Java modifiers
-        public JCTree.JCModifiers modifiers;
+        /** The JML modifiers of the class, possibly combined from various locations */
+        public JmlModifiers modifiers;
 
         /** Caches the nullity for the associated class: if null, not yet determined;
          * otherwise, the result of considering explicit declarations, declarations
@@ -1376,12 +1384,7 @@ public class JmlSpecs {
         /*@ non_null */
         public ListBuffer<JmlTree.JmlTypeClause> clauses;
 
-        public ListBuffer<JmlTree.JmlTypeClauseDecl> decls;  // FIXME - get rid of this - these are all incorporated into the class itself
-
-//        /** All the model types directly declared in this type */
-//        /*@non_null*/
-//        public ListBuffer<JmlTree.JmlClassDecl> modelTypes = new ListBuffer<JmlTree.JmlClassDecl>();  // FIXME - get rid of this
-        
+        // FIXME - is this still used?
         /** Synthetic methods for model fields (these are also included in the clauses list) */
         /*@ non_null */
         public ListBuffer<JmlTree.JmlTypeClauseDecl> modelFieldMethods = new ListBuffer<JmlTree.JmlTypeClauseDecl>();
@@ -1409,60 +1412,44 @@ public class JmlSpecs {
         /*@ nullable */ // will be null if there is no static_initializer specification
         public JmlTypeClauseInitializer staticInitializerSpec = null;
         
-//        // FIXME - comment
-//        public JmlMethodDecl checkInvariantDecl;
-//        // FIXME - comment
-//        public JmlMethodDecl checkStaticInvariantDecl;
-        
-//        /** A quite empty and unfinished TypeSpecs object for a given class,
-//         * possibly but not necessarily one that has only specs and binary,
-//         * but no Java source.
-//         * @param symbol the class symbol for these specs
-//         */
-//        public TypeSpecs(ClassSymbol symbol) {
-//            this.csymbol = symbol;
-//            this.file = symbol.sourcefile;
-//            this.decl = null;
-//            this.modifiers = null;
-//            this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
-//            this.decls = new ListBuffer<JmlTree.JmlTypeClauseDecl>();
-//        }
-        
-        // TODO - comment - only partially fills in the class - used for a binary file - I think everything is pretty much empty and null
-        public TypeSpecs(ClassSymbol csymbol, JavaFileObject file, JCTree.JCModifiers mods, ListBuffer<JmlTree.JmlTypeClause> clauses) {
+       
+        // Only for the case in which there is no specification file -- that is, default or inferred specs
+        public TypeSpecs(ClassSymbol csymbol, JavaFileObject file, JmlModifiers mods, ListBuffer<JmlTree.JmlTypeClause> clauses) {
             this.file = file;
             this.csymbol = csymbol;
             this.decl = null;
             this.modifiers = mods;
             this.clauses = clauses != null ? clauses : new ListBuffer<JmlTypeClause>();
-            this.decls = decls != null ? decls : new ListBuffer<JmlTypeClauseDecl>();
-            this.env = null;
+            this.specsEnv = null;
             this.status = SpecsStatus.SPECS_LOADED;
         }
         
         public TypeSpecs(JmlClassDecl specdecl, Env<AttrContext> env) {
             this.file = specdecl.source();
             this.decl = specdecl;
-            this.modifiers = specdecl.mods;
+            this.modifiers = (JmlModifiers)specdecl.mods;
             this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
-            for (JCTree t: specdecl.defs) if (t instanceof JmlTypeClause) this.clauses.add((JmlTypeClause)t);
-            this.decls = new ListBuffer<JmlTree.JmlTypeClauseDecl>();
-            //for (JCTree t: specdecl.defs) if (t instanceof JmlTypeClauseDecl) this.decls.add((JmlTypeClauseDecl)t);
+            for (JCTree t: specdecl.defs) {
+            	if (t instanceof JmlTypeClauseInitializer) {
+            		if (Utils.isStatic(((JmlTypeClauseInitializer)t).modifiers.flags)) {
+            			staticInitializerSpec = (JmlTypeClauseInitializer)t;
+            		} else {
+            			initializerSpec = (JmlTypeClauseInitializer)t;
+            		}      		
+            	} else if (t instanceof JmlTypeClause) {
+            		this.clauses.add((JmlTypeClause)t);
+            	}
+            }
             specdecl.typeSpecs = this;
-            this.env = env;
+            this.specsEnv = env;
             this.status = SpecsStatus.SPECS_LOADED;
         }
         
-//        // Use when there is no spec for the type symbol (but records the fact
-//        // that we looked and could not find one)
-//        public TypeSpecs() {
-//            this.file = null;
-//            this.decl = null;
-//            this.modifiers = null;
-//            this.clauses = new ListBuffer<>();
-//            this.decls = new ListBuffer<>();
-//        }
+        public void setEnv(Env<AttrContext> env) {
+        	specsEnv = env;
+        }
         
+        // FIXME - what about modifiers, initializer clauses, blocks
         public String toString() {
             StringWriter s = new StringWriter();
             JmlPretty p = new JmlPretty(s, false);
@@ -1470,14 +1457,6 @@ public class JmlSpecs {
                 c.accept(p);
                 try { p.println(); } catch (IOException e) {} // it can't throw up, and ignore if it does
             }
-            for (JmlTree.JmlTypeClauseDecl c: decls) {
-                c.accept(p);
-                try { p.println(); } catch (IOException e) {} // it can't throw up, and ignore if it does
-            }
-//            if (modelTypes != null) for (JmlClassDecl c: modelTypes) {
-//                c.accept(p);
-//                try { p.println(); } catch (IOException e) {} // it can't throw up, and ignore if it does
-//            }
             return s.toString();
         }
     }
@@ -1489,12 +1468,12 @@ public class JmlSpecs {
      * computed, to avoid recompuation.
      * @param csymbol the class whose default nullity is to be determined; if
      *   null the default system nullity setting (per the command-line) is returned
-     * @return JmlToken.NULLABLE or JmlToken.NONNULL
+     * @return Modifiers.NULLABLE or Modifiers.NON_NULL
      */
     //@ ensures \result != null;
     public /*@non_null*/ ModifierKind defaultNullity(/*@ nullable*/ ClassSymbol csymbol) {
+    	ModifierKind t = null;
         if (csymbol == null) {
-            // FIXME - this is no longer true
             // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.
             // If neither one is present, then the logic here will give the
             // default as NONNULL.
@@ -1506,28 +1485,15 @@ public class JmlSpecs {
                 return Modifiers.NON_NULL;  // The default when nothing is specified
             }
         }
-        {
-            Env<AttrContext> env = JmlEnter.instance(context).getEnv(csymbol);
-            if (env != null) {
-                JCTree tree = env.tree;
-                if (tree != null && tree instanceof JmlClassDecl) {
-                    JmlClassDecl decl = (JmlClassDecl)tree;
-                    return isNonNull(decl) ? Modifiers.NON_NULL : Modifiers.NULLABLE;
-                }
-            }
-        }
         
-        TypeSpecs spec = getLoadedSpecs(csymbol); // spec is null if the TypeSpecs are in the process of being initialized
-        if (spec == null || spec.defaultNullity == null) {
-            ModifierKind t = null;
-            if (csymbol.getAnnotationMirrors() != null) {
-            	if (csymbol.attribute(attr.nullablebydefaultAnnotationSymbol) != null) {
-            		t = Modifiers.NULLABLE;
-            	} else if (csymbol.attribute(attr.nonnullbydefaultAnnotationSymbol) != null) {
-            		t = Modifiers.NON_NULL;
-            	}
-            } 
-            if (t == null) {
+        TypeSpecs spec = getLoadedSpecs(csymbol);
+        t = spec.defaultNullity;
+        if (t == null) {
+        	if (utils.hasMod(spec.modifiers, Modifiers.NULLABLE)) { 
+        		t = Modifiers.NULLABLE; 
+        	} else if (utils.hasMod(spec.modifiers, Modifiers.NON_NULL)) {
+        		t =  Modifiers.NON_NULL;
+        	} else {
                 Symbol sym = csymbol.owner; // The owner might be a package - currently no annotations for packages
                 if (sym instanceof ClassSymbol) {
                     t = defaultNullity((ClassSymbol)sym);
@@ -1537,46 +1503,46 @@ public class JmlSpecs {
             }
             spec.defaultNullity = t;
         }
-        return spec.defaultNullity;
+        return t;
     }
 
-    // Not complete
-    public /*@non_null*/ JCAnnotation defaultNullityAnnotation(/*@ nullable*/ ClassSymbol csymbol) {
-        if (csymbol == null) {
-            // FIXME - this is no longer true
-            // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.
-            // If neither one is present, then the logic here will give the
-            // default as NONNULL.
-//            JmlAnnotation a;
-//            if (JmlOption.isOption(context,JmlOption.NULLABLEBYDEFAULT)) {
-//                a = new JmlAnnotation(nullablebydefaultAnnotationSymbol.type, com.sun.tools.javac.util.List.<JCExpression>nil());
-//            } else if (JmlOption.isOption(context,JmlOption.NONNULLBYDEFAULT)) {
-//                return JmlToken.NONNULL;
-//            } else {
-//                return JmlToken.NONNULL;  // The default when nothing is specified
-//            }
-            return null;
-        }
-        
-        TypeSpecs tspecs = JmlSpecs.instance(context).getLoadedSpecs(csymbol);
-        if (tspecs != null) {
-        	JCModifiers mods = tspecs.decl.mods;
-        	JCAnnotation a = utils.findMod(mods,attr.nullablebydefaultAnnotationSymbol);
-        	if (a != null) return a;
-            a = utils.findMod(mods,attr.nonnullbydefaultAnnotationSymbol);
-            if (a != null) return a;
-        }
-        Symbol owner = csymbol.owner;
-        if (owner instanceof Symbol.PackageSymbol) owner = null;
-        return defaultNullityAnnotation((Symbol.ClassSymbol)owner);
-    }
+//    // Not complete
+//    public /*@non_null*/ JCAnnotation defaultNullityAnnotation(/*@ nullable*/ ClassSymbol csymbol) {
+//        if (csymbol == null) {
+//            // FIXME - this is no longer true
+//            // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.
+//            // If neither one is present, then the logic here will give the
+//            // default as NONNULL.
+////            JmlAnnotation a;
+////            if (JmlOption.isOption(context,JmlOption.NULLABLEBYDEFAULT)) {
+////                a = new JmlAnnotation(nullablebydefaultAnnotationSymbol.type, com.sun.tools.javac.util.List.<JCExpression>nil());
+////            } else if (JmlOption.isOption(context,JmlOption.NONNULLBYDEFAULT)) {
+////                return JmlToken.NONNULL;
+////            } else {
+////                return JmlToken.NONNULL;  // The default when nothing is specified
+////            }
+//            return null;
+//        }
+//        
+//        TypeSpecs tspecs = JmlSpecs.instance(context).getLoadedSpecs(csymbol);
+//        if (tspecs != null) {
+//        	JCModifiers mods = tspecs.decl.mods;
+//        	JCAnnotation a = utils.findMod(mods,attr.nullablebydefaultAnnotationSymbol);
+//        	if (a != null) return a;
+//            a = utils.findMod(mods,attr.nonnullbydefaultAnnotationSymbol);
+//            if (a != null) return a;
+//        }
+//        Symbol owner = csymbol.owner;
+//        if (owner instanceof Symbol.PackageSymbol) owner = null;
+//        return defaultNullityAnnotation((Symbol.ClassSymbol)owner);
+//    }
 
-    /** Caches the symbol for the org.jmlspecs.annotation.NonNull */
-    ClassSymbol nonnullAnnotationSymbol = null;
-    /** Caches the symbol for the org.jmlspecs.annotation.Nullable */
-    ClassSymbol nullableAnnotationSymbol = null;
-    ClassSymbol nullablebydefaultAnnotationSymbol = null;
-    ClassSymbol nonnullbydefaultAnnotationSymbol = null;
+//    /** Caches the symbol for the org.jmlspecs.annotation.NonNull */
+//    ClassSymbol nonnullAnnotationSymbol = null;
+//    /** Caches the symbol for the org.jmlspecs.annotation.Nullable */
+//    ClassSymbol nullableAnnotationSymbol = null;
+//    ClassSymbol nullablebydefaultAnnotationSymbol = null;
+//    ClassSymbol nonnullbydefaultAnnotationSymbol = null;
     
     /** Returns whether the given symbol is non-null (either explicitly or by
      * default); the second parameter is the enclosing class.
@@ -1586,113 +1552,115 @@ public class JmlSpecs {
      * @return true if the symbol is non-null explicitly or by default
      */
     public boolean isNonNull(Symbol symbol) {
-        return isNonNull(symbol,symbol.enclClass());
+        if (symbol instanceof VarSymbol) return isNonNull((VarSymbol)symbol);
+        if (symbol instanceof MethodSymbol) return isNonNull((MethodSymbol)symbol);
+        if (symbol instanceof ClassSymbol) return defaultNullity((ClassSymbol)symbol) == Modifiers.NON_NULL;
+        utils.error("jmllinternal", "Unexpected execution path in isNonNull");
+        return false;
+    }
+    
+    public boolean isNonNull(VarSymbol sym) {
+    	//utils.note(true, "ISNONNULL? " + sym + " " + sym.owner + " " + sym.owner.getClass() + " " + sym.enclClass());
+    	if (sym.owner instanceof ClassSymbol) {
+    		JmlModifiers mods = getSpecsModifiers(sym);
+        	if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
+        	if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
+        	return defaultNullity((ClassSymbol)sym.owner) == Modifiers.NON_NULL;
+    	} else {
+    		// Parameter or local variable
+    		// FIXME
+//        	if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
+//        	if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
+//        	return defaultNullity((ClassSymbol)sym.owner) == Modifiers.NON_NULL;
+    		return true;
+    	}
+    }
+    
+    public boolean isNonNull(MethodSymbol sym) {
+    	JmlModifiers mods = getSpecsModifiers(sym);
+    	if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
+    	if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
+    	return defaultNullity((ClassSymbol)sym.owner) == Modifiers.NON_NULL;
     }
     
     public boolean isNonNull(JmlVariableDecl decl) {
-        if (decl.type.isPrimitive()) return false;
-        makeAnnotationSymbols();
-        if (decl.specsDecl != null) {
-            // FIXME specsDecl should not be null - it should point back to decl at a minimum
-            if (utils.findMod(decl.specsDecl.mods, nullableAnnotationSymbol) != null) return false;
-            if (utils.findMod(decl.specsDecl.mods, nonnullAnnotationSymbol) != null) return true;
-        } else {
-            if (utils.findMod(decl.mods, nullableAnnotationSymbol) != null) return false;
-            if (utils.findMod(decl.mods, nonnullAnnotationSymbol) != null) return true;
-        }
-            
-        // Need the owning class - fields are owned by the class, but parameters and local variables are owned by the method
-        if (decl.sym == null) utils.error(decl, "jml.internal", "No sym value for declaration of " + decl);
-        Symbol owner = decl.sym.owner;
-        if (owner instanceof MethodSymbol) owner = owner.owner;
-        Env<AttrContext> env = JmlEnter.instance(context).getEnv((Symbol.TypeSymbol)owner);
-        if (env != null) {
-            JmlClassDecl cdecl = (JmlClassDecl)env.tree;
-            return isNonNull(cdecl);
-        } else {
-            return defaultNullity((ClassSymbol)owner) == Modifiers.NON_NULL;
-        }
+    	if (decl.sym.owner instanceof ClassSymbol) {
+    		return isNonNull(decl.sym);
+    	} else {
+    		// Local variable or parameter -- owned by method
+    		JmlModifiers mods = (JmlModifiers)decl.mods;
+        	if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
+        	if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
+        	return defaultNullity(decl.sym.enclClass()) == Modifiers.NON_NULL;
+    	}
     }
     
-    public boolean isNonNull(JmlClassDecl decl) { // FIXM E- change this to return the token that defines the nullity
-        makeAnnotationSymbols();
-        if (decl.specsDecl != null) {
-            if (utils.findMod(decl.specsDecl.mods, nullablebydefaultAnnotationSymbol) != null) return false;
-            if (utils.findMod(decl.specsDecl.mods, nonnullbydefaultAnnotationSymbol) != null) return true;
-        } else {
-            if (utils.findMod(decl.mods, nullablebydefaultAnnotationSymbol) != null) return false;
-            if (utils.findMod(decl.mods, nonnullbydefaultAnnotationSymbol) != null) return true;
-        }
-        Symbol parent = decl.sym.owner;
-        while (parent instanceof MethodSymbol) parent = parent.owner;
-        if (!(parent instanceof Symbol.ClassSymbol)) return defaultNullity(null) == Modifiers.NON_NULL;  // FIXME - is this OK for interfaces
-        if (Enter.instance(context).getEnv((Symbol.TypeSymbol)parent) == null) return defaultNullity(null) == Modifiers.NON_NULL;
-        JmlClassDecl encl = (JmlClassDecl)Enter.instance(context).getEnv((Symbol.TypeSymbol)parent).tree;
-        return isNonNull(encl);
+    public boolean isNonNull(JmlClassDecl decl) {
+    	return defaultNullity(decl.sym) == Modifiers.NON_NULL; 
     }
     
-    public void makeAnnotationSymbols() {
-        if (nonnullAnnotationSymbol == null) {
-            nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nonnullAnnotation));
-        }
-        if (nullableAnnotationSymbol == null) {
-            nullableAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nullableAnnotation));
-        }
-        if (nullablebydefaultAnnotationSymbol == null) {
-            nullablebydefaultAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nullablebydefaultAnnotation));
-        }
-        if (nonnullbydefaultAnnotationSymbol == null) {
-            nonnullbydefaultAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nonnullbydefaultAnnotation));
-        }
-    }
-    
-    public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
-        if (!(symbol instanceof MethodSymbol) && utils.isPrimitiveType(symbol.type)) return false;
-        if (JmlTypes.instance(context).isOnlyDataGroup(symbol.type)) return false;
-        
-        // TODO - perhaps cache these when the JmlSpecs class is created? (watch for circular tool creation)
-        makeAnnotationSymbols();
-        Attribute.Compound attr;
-        if (symbol instanceof Symbol.VarSymbol && symbol.owner instanceof Symbol.ClassSymbol) {
-            // Field
-            FieldSpecs fspecs = getLoadedSpecs((Symbol.VarSymbol)symbol);
-            if (fspecs == null) return false; // FIXME - we need private fields of binary classes that have no specs declared to be nullable
-            if (fspecs != null && utils.findMod(fspecs.mods,nullableAnnotationSymbol) != null) return false;
-            else if (fspecs != null && utils.findMod(fspecs.mods,nonnullAnnotationSymbol) != null) return true;
-            else if (symbol.name == names._this) return true;
-            else return defaultNullity((Symbol.ClassSymbol)symbol.owner) == Modifiers.NON_NULL;
-        } else if (symbol instanceof Symbol.VarSymbol && (symbol.owner == null || symbol.owner instanceof Symbol.MethodSymbol)) {
-            attr = symbol.attribute(nullableAnnotationSymbol);
-            if (attr != null) return false;
-            attr = symbol.attribute(nonnullAnnotationSymbol);
-            if (attr != null) return true;
-
-            // Method parameter or variable in body
-//            MethodSpecs mspecs = getSpecs((Symbol.MethodSymbol)symbol.owner);
-            // FIXME - not clear we are able to look up a particular parameter - which case do we use? don't want inherited specs?
-//            specs.cases.decl
+//    public void makeAnnotationSymbols() {
+//        if (nonnullAnnotationSymbol == null) {
+//            nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nonnullAnnotation));
+//        }
+//        if (nullableAnnotationSymbol == null) {
+//            nullableAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nullableAnnotation));
+//        }
+//        if (nullablebydefaultAnnotationSymbol == null) {
+//            nullablebydefaultAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nullablebydefaultAnnotation));
+//        }
+//        if (nonnullbydefaultAnnotationSymbol == null) {
+//            nonnullbydefaultAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nonnullbydefaultAnnotation));
+//        }
+//    }
+//    
+//    public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
+//        if (!(symbol instanceof MethodSymbol) && utils.isPrimitiveType(symbol.type)) return false;
+//        if (JmlTypes.instance(context).isOnlyDataGroup(symbol.type)) return false;
+//        
+//        // TODO - perhaps cache these when the JmlSpecs class is created? (watch for circular tool creation)
+//        makeAnnotationSymbols();
+//        Attribute.Compound attr;
+//        if (symbol instanceof Symbol.VarSymbol && symbol.owner instanceof Symbol.ClassSymbol) {
+//            // Field
+//            FieldSpecs fspecs = getLoadedSpecs((Symbol.VarSymbol)symbol);
+//            if (fspecs == null) return false; // FIXME - we need private fields of binary classes that have no specs declared to be nullable
+//            if (fspecs != null && utils.findMod(fspecs.mods,nullableAnnotationSymbol) != null) return false;
+//            else if (fspecs != null && utils.findMod(fspecs.mods,nonnullAnnotationSymbol) != null) return true;
+//            else if (symbol.name == names._this) return true;
+//            else return defaultNullity((Symbol.ClassSymbol)symbol.owner) == Modifiers.NON_NULL;
+//        } else if (symbol instanceof Symbol.VarSymbol && (symbol.owner == null || symbol.owner instanceof Symbol.MethodSymbol)) {
+//            attr = symbol.attribute(nullableAnnotationSymbol);
+//            if (attr != null) return false;
+//            attr = symbol.attribute(nonnullAnnotationSymbol);
+//            if (attr != null) return true;
+//
+//            // Method parameter or variable in body
+////            MethodSpecs mspecs = getSpecs((Symbol.MethodSymbol)symbol.owner);
+//            // FIXME - not clear we are able to look up a particular parameter - which case do we use? don't want inherited specs?
+////            specs.cases.decl
+////            if (mspecs != null && utils.findMod(mspecs.mods,nullableAnnotationSymbol) != null) return false;
+////            else if (mspecs != null && utils.findMod(mspecs.mods,nonnullAnnotationSymbol) != null) return true;
+//            // else return defaultNullity(csymbol) == JmlToken.NONNULL;
+//            
+//            // Need to distinguish the two cases. The following is correct for variables in the body
+//            return defaultNullity(csymbol) == Modifiers.NON_NULL;
+//            
+//        } else if (symbol instanceof Symbol.MethodSymbol) {
+//            // Method return value
+//            MethodSpecs mspecs = getLoadedSpecs((Symbol.MethodSymbol)symbol);
 //            if (mspecs != null && utils.findMod(mspecs.mods,nullableAnnotationSymbol) != null) return false;
 //            else if (mspecs != null && utils.findMod(mspecs.mods,nonnullAnnotationSymbol) != null) return true;
-            // else return defaultNullity(csymbol) == JmlToken.NONNULL;
-            
-            // Need to distinguish the two cases. The following is correct for variables in the body
-            return defaultNullity(csymbol) == Modifiers.NON_NULL;
-            
-        } else if (symbol instanceof Symbol.MethodSymbol) {
-            // Method return value
-            MethodSpecs mspecs = getLoadedSpecs((Symbol.MethodSymbol)symbol);
-            if (mspecs != null && utils.findMod(mspecs.mods,nullableAnnotationSymbol) != null) return false;
-            else if (mspecs != null && utils.findMod(mspecs.mods,nonnullAnnotationSymbol) != null) return true;
-            else return defaultNullity(csymbol) == Modifiers.NON_NULL;
-        } else {
-            // What else?
-            attr = symbol.attribute(nullableAnnotationSymbol);  // FIXME - the symbol might be 'THIS' which should always be non_null
-            if (attr != null) return false;
-            attr = symbol.attribute(nonnullAnnotationSymbol);
-            if (attr != null) return true;
-            return defaultNullity(csymbol) == Modifiers.NON_NULL;
-        }
-    }
+//            else return defaultNullity(csymbol) == Modifiers.NON_NULL;
+//        } else {
+//            // What else?
+//            attr = symbol.attribute(nullableAnnotationSymbol);  // FIXME - the symbol might be 'THIS' which should always be non_null
+//            if (attr != null) return false;
+//            attr = symbol.attribute(nonnullAnnotationSymbol);
+//            if (attr != null) return true;
+//            return defaultNullity(csymbol) == Modifiers.NON_NULL;
+//        }
+//    }
     
     /** Caches the symbol for a Pure annotation, which is computed on demand. */
     private ClassSymbol pureAnnotationSymbol = null;
@@ -1702,149 +1670,57 @@ public class JmlSpecs {
 
     // FIXME - these are also computed in JmlAttr
     protected ClassSymbol pureAnnotationSymbol() {
-        if (pureAnnotationSymbol == null) {
-            pureAnnotationSymbol = utils.createClassSymbol(Strings.pureAnnotation);
-        }
-        return pureAnnotationSymbol;
+    	if (pureAnnotationSymbol == null) {
+    		pureAnnotationSymbol = utils.createClassSymbol(Strings.pureAnnotation);
+    	}
+    	return pureAnnotationSymbol;
     }
-    
+
     protected ClassSymbol modelAnnotationSymbol() {
-        if (modelAnnotationSymbol == null) {
-            modelAnnotationSymbol = utils.createClassSymbol(Strings.modelAnnotation);
-        }
-        return modelAnnotationSymbol;
+    	if (modelAnnotationSymbol == null) {
+    		modelAnnotationSymbol = utils.createClassSymbol(Strings.modelAnnotation);
+    	}
+    	return modelAnnotationSymbol;
     }
-    
+
     protected ClassSymbol functionAnnotationSymbol() {
-        if (functionAnnotationSymbol == null) {
-            functionAnnotationSymbol = utils.createClassSymbol(Strings.functionAnnotation);
-        }
-        return functionAnnotationSymbol;
+    	if (functionAnnotationSymbol == null) {
+    		functionAnnotationSymbol = utils.createClassSymbol(Strings.functionAnnotation);
+    	}
+    	return functionAnnotationSymbol;
     }
     
     /** Returns true if the given method symbol is annotated as Pure */
     public boolean isPure(MethodSymbol symbol) {
-        MethodSpecs mspecs = getLoadedSpecs(symbol);
-        if (mspecs != null && utils.findMod(mspecs.mods,pureAnnotationSymbol()) != null) return true;
-        if (mspecs != null && utils.findMod(mspecs.mods,functionAnnotationSymbol()) != null) return true;
+    	JmlModifiers mods = getSpecsModifiers(symbol);
+    	if (utils.hasMod(mods,  Modifiers.PURE)) return true; 
+    	if (utils.hasMod(mods,  Modifiers.FUNCTION)) return true; 
         return isPure((Symbol.ClassSymbol)symbol.owner);
     }
     
     public boolean isPure(ClassSymbol symbol) {
-        TypeSpecs tspecs = getLoadedSpecs(symbol);
-        if (tspecs == null) return false;
-        if (utils.hasMod(tspecs.modifiers, Modifiers.PURE)) return true; 
+        if (utils.hasMod(getSpecsModifiers(symbol), Modifiers.PURE)) return true;
+// FIXME - unbounded recursive?        if (symbol.enclClass() != null) return isPure(symbol.enclClass());
         return false;
     }
     
-    /** Returns true if the given method symbol is annotated as Pure */
+    /** Returns true if the given method symbol is annotated as Query */
     public boolean isQuery(MethodSymbol symbol) {
-        if (queryAnnotationSymbol == null) {
-            queryAnnotationSymbol = utils.createClassSymbol(Strings.queryAnnotation);
-        }
-        MethodSpecs mspecs = getLoadedSpecs(symbol);
-        if (mspecs != null && utils.findMod(mspecs.mods,queryAnnotationSymbol) != null) return true;
-        TypeSpecs tspecs = getLoadedSpecs((Symbol.ClassSymbol)symbol.owner);
-        if (tspecs != null && utils.findMod(tspecs.modifiers,queryAnnotationSymbol) != null) return true;
+    	JmlModifiers mods = getSpecsModifiers(symbol);
+    	if (utils.hasMod(mods,  Modifiers.QUERY)) return true; 
         return false;
     }
     
-    public JCAnnotation fieldSpecHasAnnotation(VarSymbol sym, ModifierKind token) {
-        FieldSpecs fspecs = getLoadedSpecs(sym);
-        if (fspecs == null) return null;
-        Symbol annotationSymbol = attr.modToAnnotationSymbol.get(token);
-        return utils.findMod(fspecs.mods,annotationSymbol);
+    public boolean fieldSpecHasAnnotation(VarSymbol sym, ModifierKind token) {
+    	JmlModifiers mods = getSpecsModifiers(sym);
+    	return utils.hasMod(mods, token); 
     }
 
-    public JCAnnotation methodSpecHasAnnotation(MethodSymbol sym, ModifierKind token) {
-        MethodSpecs mspecs = getLoadedSpecs(sym);
-        if (mspecs == null) return null;
-        Symbol annotationSymbol = attr.modToAnnotationSymbol.get(token);
-        return utils.findMod(mspecs.mods,annotationSymbol);
+    public boolean methodSpecHasAnnotation(MethodSymbol sym, ModifierKind token) {
+    	JmlModifiers mods = getSpecsModifiers(sym);
+    	return utils.hasMod(mods, token); 
     }
 
-//    /** Adds the specs in the second argument to the stored specs for the 
-//     * given class symbol. Presumes there is already at least an empty
-//     * stored specs structure.
-//     */
-//    public JmlSpecs.TypeSpecs combineSpecs(ClassSymbol sym, /*@ nullable */ JmlClassDecl javaClassDecl, /*@ nullable */  JmlClassDecl specClassDecl) {
-//        JmlSpecs.TypeSpecs tspecs = new TypeSpecs(specClassDecl);
-////        tspecs.csymbol = sym;
-////        tspecs.decl = specClassDecl; // FIXME - javaCLassDecl?
-////        tspecs.refiningSpecDecls = specClassDecl;
-////        if (specClassDecl != null) {
-////            tspecs.modifiers = specClassDecl.mods;
-////            tspecs.file = specClassDecl.source();
-////        } else {
-////            tspecs.modifiers = null;
-////            if (javaClassDecl != null) tspecs.file = javaClassDecl.source();
-////        }
-//
-//        if (tspecs.decl != null && specClassDecl != tspecs.decl ) {
-//            log.getWriter(WriterKind.NOTICE).println("PRECONDITION FALSE IN COMBINESPECS " + sym + " " + (specClassDecl != null) + " " + (tspecs.decl != null));
-//        }
-//
-//
-//        // FIXME - do not bother copying if there is only one file
-//        // modelFieldMethods, checkInvariantDecl, checkStaticInvariantDecl not relevant yet
-//        ListBuffer<JCTree> newlist = new ListBuffer<JCTree>();
-//        if (specClassDecl != null) {
-//            for (JCTree t: specClassDecl.defs) {
-//                JCTree tt = t;
-//                if (t instanceof JCTree.JCBlock) {
-//                    JCTree.JCBlock b = (JCTree.JCBlock)t;
-//                    tspecs.blocks.put(b, null);
-//                } else if (t instanceof JmlTypeClauseInitializer) {
-//                    JmlTypeClauseInitializer init = (JmlTypeClauseInitializer)t;
-//                    //if (!utils.isJMLStatic(init.modifiers, sym)) {
-//                    if (init.clauseType == initializerClause) {
-//                        if (tspecs.initializerSpec != null) {
-//                            log.error("jml.one.initializer.spec.only");
-//                            tt = null;
-//                        } else {
-//                            tspecs.initializerSpec = init;
-//                            tspecs.clauses.add((JmlTypeClause)t);
-//                            tt = null;
-//                        }
-//                    } else {
-//                        if (tspecs.staticInitializerSpec != null) {
-//                            log.error("jml.one.initializer.spec.only");
-//                            tt = null;
-//                        } else {
-//                            tspecs.staticInitializerSpec = init;
-//                            tspecs.clauses.add((JmlTypeClause)t);
-//                            tt = null;
-//                       }
-//                    }
-//                } else if (t instanceof JmlMethodDecl) {
-//                    JmlMethodDecl md = (JmlMethodDecl)t;
-//                    if (md.specsDecl == null) md.specsDecl = md;
-//                    if (md.methodSpecsCombined == null) md.methodSpecsCombined = new JmlSpecs.MethodSpecs(md);
-//                    if (md.sym != null) tspecs.methods.put(md.sym, md.methodSpecsCombined );
-//                } else if (t instanceof JmlVariableDecl) {
-//                    JmlVariableDecl md = (JmlVariableDecl)t;
-//                    tspecs.fields.put(md.sym, md.fieldSpecsCombined );
-//                } else if (t instanceof JmlTypeClauseDecl) {
-//                    tspecs.decls.add((JmlTypeClauseDecl)t);
-//                } else if (t instanceof JmlTypeClause) {
-//                    tspecs.clauses.add((JmlTypeClause)t);
-//                    tt = null;
-////                } else if (t instanceof JmlClassDecl) {
-////                    JmlClassDecl cd = (JmlClassDecl)t;
-////                    if (cd.sym == null) {
-////                        String nm = specClassDecl.sym.flatname + "." + cd.name.toString();
-////                        cd.sym = ClassReader.instance(context).classExists(names.fromString(nm));
-////                        if (cd.sym != null) combineSpecs(cd.sym, cd, cd.specsDecl == null ? cd : cd.specsDecl);
-////                    }
-//                }
-//                if (tt != null) newlist.add(tt);
-//            }
-//            specClassDecl.defs = newlist.toList();
-//        }
-//        putSpecs(sym, tspecs);
-//        tspecs.defaultNullity = defaultNullity(sym); // Must be after putSpecs
-//        return tspecs;
-//    }
     
     public static MethodSpecs copy(MethodSpecs m, Void p, JmlTreeCopier copier) {
         if (m == null) return null;
@@ -1853,68 +1729,79 @@ public class JmlSpecs {
         mr.queryDatagroup = m.queryDatagroup;
         mr.secretDatagroup = m.secretDatagroup;
         mr.mods = copier.copy(m.mods,p);
+        mr.specsEnv = m.specsEnv;
+        mr.status = m.status;
         return mr;
     }
     
     /** An ADT to hold the specs for a method or block */
     public static class MethodSpecs {
         
+    	public MethodSymbol msym;
         public JCTree.JCModifiers mods;
         public VarSymbol queryDatagroup;
         public VarSymbol secretDatagroup;
         public JmlMethodSpecs cases;
-        public Env<AttrContext> env;
+        public Env<AttrContext> specsEnv;
         public SpecsStatus status;
         
-        public MethodSpecs(JmlMethodDecl m) { 
-            this.mods = m.mods;
-            if (m.cases == null) {
+        public MethodSpecs(JmlMethodDecl specsDecl) { 
+            this.mods = specsDecl.mods;
+            if (specsDecl.cases == null) {
                 cases = new JmlMethodSpecs();
-                cases.pos = m.pos;
+                cases.pos = specsDecl.pos;
             } else {
-                cases = m.cases;
+                cases = specsDecl.cases;
             }
-            cases.decl = m;
-            env = null;
+            cases.decl = specsDecl;
+            specsEnv = null;
             status = SpecsStatus.SPECS_LOADED;
         }
         
-        public MethodSpecs(JCTree.JCModifiers mods, JmlMethodSpecs m) { 
+        public MethodSpecs(JCTree.JCModifiers mods, JmlMethodSpecs specsDecl) { 
             this.mods = mods;
-            if (m.cases == null) {
+            if (specsDecl.cases == null) {
                 cases = new JmlMethodSpecs();
-                cases.pos = m.pos;
+                cases.pos = specsDecl.pos;
             } else {
-                cases = m;
+                cases = specsDecl;
             }
-            env = null;
+            specsEnv = null;
             status = SpecsStatus.SPECS_LOADED;
         }
-        
+
+        public void setEnv(Env<AttrContext> env) {
+        	//JmlAttr.printEnv(env, "SETENV " + this.msym);
+            specsEnv = env;
+        }
+
+        // FIXME - is this useful? Where is it used?
         public String toString() {
-            return JmlPretty.write(mods) + Strings.eol + JmlPretty.write(cases);
+            return JmlPretty.write(cases) + Strings.eol + JmlPretty.write(mods);
         }
     }
 
     /** An ADT to hold the specs for a field declaration */
     public static class FieldSpecs {
         
-        /** Modifiers pertinent to this fields specifications */
-        public JCTree.JCModifiers mods;
+        /** Modifiers pertinent to this field's specifications */
+        public JmlModifiers mods;
 
         /** A list of the clauses pertinent to this field (e.g. in, maps) */
         public ListBuffer<JmlTree.JmlTypeClause> list = new ListBuffer<JmlTree.JmlTypeClause>();
         
         public JavaFileObject source() {
-            return decl.source();
+            return decl == null ? null : decl.source();
         }
         
-        public JmlVariableDecl decl;
+        //@ nullable
+        public JmlVariableDecl decl; // The textual origin of the field specifications, if any
         
+        // FIXME - should this be initialized with the specsDecl? and are the clauses already present?
         /** Creates a FieldSpecs object initialized with only the given modifiers */
         public FieldSpecs(JmlVariableDecl decl) { 
             this.decl = decl;
-            this.mods = decl.specsDecl == null ? decl.mods : decl.specsDecl.mods;
+            this.mods = (JmlModifiers)(decl.specsDecl == null ? decl.mods : decl.specsDecl.mods);
         }
         
         @Override
@@ -1977,12 +1864,12 @@ public class JmlSpecs {
 	public void setStatus(Symbol sym, SpecsStatus status) {
 		specsStatus.put(sym, status);
 		if (sym instanceof ClassSymbol) {
-			TypeSpecs t = getxx((ClassSymbol)sym);
-			if (t != null) t.status = status;
+			TypeSpecs t = get((ClassSymbol)sym);
+			if (t != null) t.status = status; // FIXME - do we need this cached value?
 		}
 		if (sym instanceof MethodSymbol) {
 			MethodSpecs t = get((MethodSymbol)sym);
-			if (t != null) t.status = status;
+			if (t != null) t.status = status; // FIXME - do we need this cached value?
 		}
 	}
 

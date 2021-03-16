@@ -502,7 +502,7 @@ public class Utils {
     }
     
     public boolean hasMod(JCModifiers mods, ModifierKind... ata) {
-    	for (var ta: ata) {
+    	if (mods != null) for (var ta: ata) {
     		if (mods instanceof JmlModifiers) {
     			for (var t: ((JmlModifiers)mods).jmlmods) {
     				if (t.jmlclausekind == ta) return true;
@@ -1542,6 +1542,10 @@ public class Utils {
         return Options.instance(context).isSet("-Xlint:deprecation");
     }
     
+    public static boolean isStatic(long flags) {
+        return (flags & Flags.STATIC) != 0;
+    }
+    
     // The following are wrappers for calls to log, to output errors, warnings and notes through a 
     // common mechanism. The wrappers are handy because Log itself does not expose all the 
     // needed combinations of arguments. Note that you can use 
@@ -1685,6 +1689,10 @@ public class Utils {
     
     public static boolean debug() {
     	return System.getenv("PRINT")!=null;
+    }
+    
+    public boolean verbose() {
+    	return jmlverbose >= Utils.JMLVERBOSE;
     }
     
     public static void dumpStack() {
