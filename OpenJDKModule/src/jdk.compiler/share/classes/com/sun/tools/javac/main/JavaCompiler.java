@@ -128,7 +128,7 @@ public class JavaCompiler {
         return version("full"); // mm.mm.oo[-milestone]-build
     }
 
-    private static final String versionRBName = "com.sun.tools.javac.resources.version";
+    public static String versionRBName = "com.sun.tools.javac.resources.version"; // OPENJML - changed from private final to just public
     private static ResourceBundle versionRB;
 
     private static String version(String key) {

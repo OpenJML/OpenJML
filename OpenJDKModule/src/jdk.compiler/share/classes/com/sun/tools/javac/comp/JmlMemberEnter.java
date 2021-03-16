@@ -200,264 +200,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 importAll(tree.pos, syms.enterPackage(null, names.fromString(Strings.jmlSpecsPackage)), specenv);
             }
         }
-        if (tree instanceof JmlMethodDecl) {
-        	
-        }
     }
 
-    
-//    protected JmlClassDecl currentClass = null;
-
-    // FIXME
-//    @Override
-//    protected void finishClass(JCClassDecl tree, Env<AttrContext> env) {
-//        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
-//        JmlClassDecl jtree = (JmlClassDecl)tree;
-//        JavaFileObject prevSource = log.useSource(jtree.source());;
-//        JmlClassDecl prevClass = currentClass;
-//        currentClass = (JmlClassDecl)tree;
-//        int prevMode = modeOfFileBeingChecked;  // FIXME _ suspect this is not accurate
-//        int nowmode = modeOfFileBeingChecked = ((JmlCompilationUnit)env.toplevel).mode;
-//        boolean prevAllowJML = resolve.allowJML();
-//        if (jtree.isJML()) resolve.setAllowJML(true);
-//        
-//        boolean isSpecForBinary = jtree.toplevel != null && jtree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY;
-//        
-//        // Adjust the members of jtree - if there is a separate specs file, then remove any JML declarations in the Java file and 
-//        // replace them with JML declaratinos from the specs file
-//        
-//        boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
-//        boolean prevEntering = noEntering;
-//        if (!isSpecForBinary) {
-//            ListBuffer<JCTree> defs = new ListBuffer<>();
-//            if (jtree.specsDecl != jtree) {
-//                for (JCTree t: jtree.defs) {
-//                    if (t instanceof JmlMethodDecl) { 
-//                        if (!utils.isJML(((JmlMethodDecl)t).mods)) defs.add(t);
-//                        // else omit it
-//                    } else if (t instanceof JmlVariableDecl) {
-//                        if (!utils.isJML(((JmlVariableDecl)t).mods)) defs.add(t);
-//                        // else omit it
-//                    } else if (t instanceof JmlClassDecl) {
-//                        defs.add(t);
-//                    } else if (t instanceof JmlTypeClause) {
-//                        // omit
-//                    } else {
-//                        defs.add(t);
-//                    }
-//                }
-//                if (jtree.specsDecl != null) for (JCTree t: jtree.specsDecl.defs) {
-//                    if (t instanceof JmlMethodDecl) { 
-//                        if (utils.isJML(((JmlMethodDecl)t).mods)) { defs.add(t);  }
-//                    } else if (t instanceof JmlVariableDecl) {
-//                        if (utils.isJML(((JmlVariableDecl)t).mods)) { defs.add(t);  }
-//                    }
-//                }
-//                jtree.defs = defs.toList();
-//                dojml = true;
-//                JmlCheck.instance(context).noDuplicateWarn = false;
-//                ListBuffer<JCTree> remove = null;
-//                for (JCTree t: jtree.defs) {
-//                    if (t instanceof JmlSource) log.useSource(((JmlSource)t).source());
-//                    memberEnter(t,env); // FIXME - do something special for enums
-//                    if (t instanceof JCVariableDecl && ((JCVariableDecl)t).sym == null) {
-//                        if (remove == null) remove = new ListBuffer<>();
-//                        remove.add(t);
-//                    }
-//                    if (t instanceof JCMethodDecl && ((JCMethodDecl)t).sym == null) {
-//                        if (remove == null) remove = new ListBuffer<>();
-//                        remove.add(t);
-//                    }
-//                }
-//                if (remove != null) {
-//                    for (JCTree t: remove) {
-//                        jtree.defs = Utils.remove(jtree.defs, t);
-//                        if (jtree.specsDecl !=null) jtree.specsDecl.defs = Utils.remove(jtree.specsDecl.defs, t);
-//                    }
-//                }
-//////                boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
-//////                if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = false;
-//////                if (isSpecForBinary) dojml = true;
-//////                super.finishClass(tree, env);
-//////                if (isSpecForBinary) dojml = false;
-//////                if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = prevChk;
-////                }
-//            } else {
-//                super.finishClass(jtree, env);
-//            }
-//            // Now create symbols for all of the Java and JML methods and fields
-//            // This operation will report any duplicates
-//
-//        }
-//        
-//        if (isSpecForBinary) {
-//            jtree.specsDecl = jtree;
-//            // Here we add the JML declarations to the class
-//            log.useSource(jtree.source());
-//            JCTree first = jtree.defs.head;
-//            if (first != null) {
-//                if (first instanceof JmlMethodDecl) {
-//                    if ((((JmlMethodDecl)first).mods.flags & Flags.GENERATEDCONSTR) != 0) {
-//                        jtree.defs = Utils.remove(jtree.defs,first);
-//                    }
-//                }
-//            }
-//            for (JCTree t: jtree.defs) {
-//                boolean jml = false;
-//                boolean skip = false;
-//                if (t instanceof JmlMethodDecl) { 
-//                    if (utils.isJML(((JmlMethodDecl)t).mods)) jml = true;
-//                    // else omit it
-//                } else if (t instanceof JmlVariableDecl) {
-//                    if (utils.isJML(((JmlVariableDecl)t).mods)) jml = true;
-//                    // else omit it
-//                } else if (t instanceof JmlClassDecl) {
-//                    if (utils.isJML(((JmlClassDecl)t).mods)) jml = true;
-//                } else {
-//                    skip = true;
-//                }
-//                
-//                // Now create symbols for the JML methods and fields
-//                // We need to call memberEnter on Java declarations in the specs file to be
-//                // sure that method types and annotations are processed. However they will
-//                // then be reported as duplicates, so we turn off duplicate warnings
-//                // FIXME - however, then erroneous unmatched java declarations will be added to the class and silently accepted.
-//                
-//                if (!skip) {
-//                    JmlCheck jmlcheck = JmlCheck.instance(context);
-//                    boolean pre = jmlcheck.noDuplicateWarn;
-//                    jmlcheck.noDuplicateWarn = !jml;
-//                    noEntering = !jml && !utils.isJML(jtree); // FIXME - does this really need to be recursive?
-//                    memberEnter(t,env); // FIXME - do something special for enums
-//                    jmlcheck.noDuplicateWarn = pre;
-//                }
-//            }
-//        }
-//        noEntering = prevEntering;
-//        JmlCheck.instance(context).noDuplicateWarn = prevChk;
-//        
-//
-//        if (utils.isJML(tree.mods)) resolve.setAllowJML(prevAllowJML);
-//        
-//        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("    MEMBER ENTER FINISHING CLASS " + tree.sym.fullname);
-//        // This is the case of a java source file, with a possibly-null
-//        // specification file.  Besides entering all the Java
-//        // field and method and initializer(?) members in the usual way (done above in the super call), 
-//        // we need to:
-//        //  connect specifications of Java members with the members
-//        //  enter ghost and model fields, methods, initializers, along with
-//        //      their specifications
-//
-//        ClassSymbol csym = jtree.sym;
-//        
-//        boolean prevInSpecFile = inSpecFile;
-//
-//        inSpecFile = jtree.source() == null ? false : jtree.source().getKind() != Kind.SOURCE;  // should always be false (?)
-//
-//        currentClass = prevClass;
-//
-//        // Now go through everything in the specifications, finding the
-//        // JML fields and methods.  These need to be entered.
-//
-//        prevAllowJML = resolve.allowJML();
-//        boolean prevInModel = inModelTypeDeclaration;
-//        try {
-//            JmlClassDecl specsDecl = jtree.specsDecl;
-//            if (specsDecl == null) {
-//                if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("FINISHING CLASS - NO SPECS " + tree.sym.fullname);
-//                checkTypeMatch(jtree,jtree); // Still need to check modifiers
-//                return;
-//            }
-//
-//            if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("FINISHING CLASS - JML PHASE " + tree.sym.fullname);
-//            
-//            // First we scan through the Java parts of the spec file
-//            // Various checks happen in the appropriate visitMethods
-//            
-//            boolean isModel = JmlAttr.instance(context).isModel(specsDecl.mods) || JmlAttr.instance(context).implementationAllowed;
-//            inModelTypeDeclaration = isModel;
-//            
-//            log.useSource(specsDecl.source());
-//            // TODO : need to do something to distinguish hand created parse trees
-//            inSpecFile = specsDecl.source() == null ? false : specsDecl.source().getKind() != Kind.SOURCE; // Could be a Java file in the specs sequence
-//            prevClass = currentClass;
-//            currentClass = jtree;
-//            
-//            // Misc checks on the Java declarations
-//            for (JCTree that: specsDecl.defs) {
-//                if (that instanceof JCTree.JCBlock) {
-//                    if (inSpecFile && currentMethod == null && !utils.isJML(currentClass.mods)) {
-//                        // initializer block is not allowed in a specification, unless it is a model class
-//                        log.error(that.pos,"jml.initializer.block.allowed");
-//                    }
-//                } else if (that instanceof JmlVariableDecl) {
-//                    // FIXME - anything here - or for other cases?
-//                }
-//            }
-//
-//            resolve.setAllowJML(true);
-//            
-//            
-//            // At this point, all java and spec members are entered
-//            // We still need to connect specs of fields and methods with their Java counterparts
-//
-//            // FIXME - what about blocks
-//
-//            // First for Java fields and methods
-//            
-//            matchStuff(jtree, jtree.sym, env, specsDecl);
-//            
-//            // Now we fill in the convenience fields - we could not do this
-//            // earlier without prematurely overwriting what might be in the
-//            // Java file and used as part of the specs seqeuence
-//
-//            // Also fill in default method specs for anything that does not have them
-//            // FIXME - same for other kinds of fields? Or should we just interpret absence as default everywhere?
-//            
-//            // First for Java fields and methods
-//            
-//            for (JCTree t: jtree.defs) {
-//                if (t instanceof JmlVariableDecl) {
-//                    JmlVariableDecl v = (JmlVariableDecl)t;
-//                    v.fieldSpecsCombined = specs.getSpecs(v.sym);
-//                } else if (t instanceof JmlMethodDecl) {
-//                    JmlMethodDecl m = (JmlMethodDecl)t;
-//                    MethodSpecs ms;
-//                    if (m.specsDecl == null) {
-//                        ms = specs.defaultSpecs(m);
-//                        annotate.annotateLater(tree.mods.annotations, methodEnv((JmlMethodDecl)t, env), m.sym, tree.pos());
-//                    } else {
-//                        ms = new MethodSpecs(m.specsDecl);
-//                    }
-//                    m.methodSpecsCombined = ms;
-//                    JmlSpecs.instance(context).putSpecs(m.sym, ms);
-//                }
-//            }
-//            
-//            // FIXME = use a visitor to be more O-O ?
-//            // FIXME - unify this method with the near duplicate below
-//
-//            checkFinalTypeSpecs(specs.get(csym));
-//
-//        } finally {
-//            inSpecFile = prevInSpecFile;
-//            inModelTypeDeclaration = prevInModel;
-//            addRacMethods(tree.sym,env);
-//            resolve.setAllowJML(prevAllowJML);
-//            log.useSource(prevSource);
-//            if (utils.jmlverbose >= Utils.JMLDEBUG) {
-//                noticeWriter.println("FINISHING CLASS - COMPLETE " + tree.sym.fullname);
-//                noticeWriter.println("   SCOPE IS " + tree.sym.members());
-//            }
-//            modeOfFileBeingChecked = prevMode;
-//            currentClass = prevClass;
-//        }
-//    }
         
     protected boolean noEntering = false;
     
-    /** Returns true if there is a duplicate, whether or not it was warned about */
-    protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, WriteableScope enclScope) {
+    /**  FIXME: still true, useful?:Returns true if there is a duplicate, whether or not it was warned about */
+    protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, WriteableScope enclScope, Env<AttrContext> localEnv) {
 //        boolean was = ((JmlCheck)chk).noDuplicateWarn;
 //        if (m.isConstructor() && (m.flags() & Utils.JMLBIT) != 0 && m.params().isEmpty()) {
 //            ((JmlCheck)chk).noDuplicateWarn = true;
@@ -480,331 +229,203 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            ((JmlCheck)chk).noDuplicateWarn = was;
 //            return false;
 //        }
-    	boolean b = super.visitMethodDefHelper(tree, m, enclScope);
-//        if (org.jmlspecs.openjml.Main.useJML) {
-//        	String n = tree.name.toString();
-//        	if (n.equals("initialHashtable") || m.owner.toString().contains("Hashtable")
-//        			) {
-//       
-//        	for (Symbol s: enclScope.getSymbols()) {
-//        		System.out.println("JME_SCOPE " + s + " " + s.owner + " " + Utils.instance(context).isJML(s.flags()));
-//        	}
-//        	}
-//        }
+    	var st = specs.status(m.owner);
+    	if (st != JmlSpecs.SpecsStatus.NOT_LOADED) {
+    		// The check above is to avoid calling putSpecs during the processing of source files
+    		// FIXME - it presume that source files are completely processed before aspec files are queued
+    		specs.putSpecs(m, new MethodSpecs((JmlMethodDecl)tree), localEnv);
+    	}
+    	boolean b = super.visitMethodDefHelper(tree, m, enclScope, localEnv);
         return b;
     }
 
-    // FIXME _ not currently used
-    public void checkForGhostModel(JCModifiers mods, JavaFileObject source, DiagnosticPosition pos) {
-        JmlAnnotation a = utils.findMod(mods, Modifiers.MODEL);
-        if (a == null) a = utils.findMod(mods, Modifiers.GHOST);
-        if (!utils.isJML(mods)) {
-            if (a != null) utils.error(source, pos, "jml.ghost.model.on.java");
-        } else {
-            if (a == null) utils.error(source, pos , "jml.missing.ghost.model");
-        }
-    }  
-    
-    protected List<JCTree> matchStuff(/*@nullable*/ JmlClassDecl jtree, ClassSymbol csym, Env<AttrContext> env, JmlClassDecl specsDecl) {
-        Map<Symbol,JCTree> matches = new HashMap<Symbol,JCTree>();
-        ListBuffer<JCTree> newlist = new ListBuffer<>();
-        ListBuffer<JCTree> toadd = new ListBuffer<>();
-//        ListBuffer<JCTree> toremove = new ListBuffer<>();
-//        Env<AttrContext> prevEnv = this.env;
-//        this.env = env;
-//
-//        for (JCTree specsMemberDecl: specsDecl.defs) {
-//            if (specsMemberDecl instanceof JmlVariableDecl) {
-//                JmlVariableDecl specsVarDecl = (JmlVariableDecl)specsMemberDecl;
-//                boolean ok = matchAndSetFieldSpecs(jtree, csym, specsVarDecl, matches, jtree == specsDecl);
-//                if (ok) {
-//                    newlist.add(specsVarDecl); // FIXME - are we actually using newlist? should we?
-//                } else {
-//                    toremove.add(specsVarDecl); 
-//                }
-//            } else if (specsMemberDecl instanceof JmlMethodDecl) {
-//                JmlMethodDecl specsMethodDecl = (JmlMethodDecl)specsMemberDecl;
-//                boolean ok = matchAndSetMethodSpecs(jtree, csym, specsMethodDecl, env, matches, jtree == specsDecl);
-//                if (!ok) {
-//                    toremove.add(specsMethodDecl); 
-//                }
-//            } else {
-////                newlist.add(specsMemberDecl);
-//            }
+//    // FIXME _ not currently used
+//    public void checkForGhostModel(JCModifiers mods, JavaFileObject source, DiagnosticPosition pos) {
+//        JmlAnnotation a = utils.findMod(mods, Modifiers.MODEL);
+//        if (a == null) a = utils.findMod(mods, Modifiers.GHOST);
+//        if (!utils.isJML(mods)) {
+//            if (a != null) utils.error(source, pos, "jml.ghost.model.on.java");
+//        } else {
+//            if (a == null) utils.error(source, pos , "jml.missing.ghost.model");
 //        }
-//        // The following is somewhat inefficient, but it is only called when there are errors
-//        for (JCTree t: toremove.toList()) {
-//            jtree.defs = Utils.remove(jtree.defs, t);
-//        }
-//
-//        this.env = prevEnv;
-//        matches.clear();
-        return toadd.toList();
-    }
+//    }  
+//    
+//    protected List<JCTree> matchStuff(/*@nullable*/ JmlClassDecl jtree, ClassSymbol csym, Env<AttrContext> env, JmlClassDecl specsDecl) {
+//        Map<Symbol,JCTree> matches = new HashMap<Symbol,JCTree>();
+//        ListBuffer<JCTree> newlist = new ListBuffer<>();
+//        ListBuffer<JCTree> toadd = new ListBuffer<>();
+////        ListBuffer<JCTree> toremove = new ListBuffer<>();
+////        Env<AttrContext> prevEnv = this.env;
+////        this.env = env;
+////
+////        for (JCTree specsMemberDecl: specsDecl.defs) {
+////            if (specsMemberDecl instanceof JmlVariableDecl) {
+////                JmlVariableDecl specsVarDecl = (JmlVariableDecl)specsMemberDecl;
+////                boolean ok = matchAndSetFieldSpecs(jtree, csym, specsVarDecl, matches, jtree == specsDecl);
+////                if (ok) {
+////                    newlist.add(specsVarDecl); // FIXME - are we actually using newlist? should we?
+////                } else {
+////                    toremove.add(specsVarDecl); 
+////                }
+////            } else if (specsMemberDecl instanceof JmlMethodDecl) {
+////                JmlMethodDecl specsMethodDecl = (JmlMethodDecl)specsMemberDecl;
+////                boolean ok = matchAndSetMethodSpecs(jtree, csym, specsMethodDecl, env, matches, jtree == specsDecl);
+////                if (!ok) {
+////                    toremove.add(specsMethodDecl); 
+////                }
+////            } else {
+//////                newlist.add(specsMemberDecl);
+////            }
+////        }
+////        // The following is somewhat inefficient, but it is only called when there are errors
+////        for (JCTree t: toremove.toList()) {
+////            jtree.defs = Utils.remove(jtree.defs, t);
+////        }
+////
+////        this.env = prevEnv;
+////        matches.clear();
+//        return toadd.toList();
+//    }
 
-//    /** Finds a Java declaration matching the given specsVarDecl in the given class.
-//     * If javaDecl == null, then this is a match of specs to the members of a binary class symbol.
-//     * If javaDec != null, then it is the Java class declaration
-//     * <br>the matching symbol, if any, is returned 
+
+//    /** Finds a Java method declaration matching the given specsMethodDecl in the given class
+//     * <br>returns false if the declaration is to be ignored because it is in error
 //     * <br>if no match and specsVarDecl is not ghost or model, error message issued, null returned
 //     * <br>if match is duplicate, error message issued, match returned
 //     * <br>if non-duplicate match, and javaDecl defined, set javaDecl.specsDecl field
 //     * <br>if non-duplicate match, set specs database
 //     * <br>if non-duplicate match, set specsVarDecl.sym field
 //     * */
-//    protected boolean matchAndSetFieldSpecs(JmlClassDecl javaDecl, ClassSymbol csym, JmlVariableDecl specsVarDecl, Map<Symbol,JCTree> matchesSoFar, boolean sameTree) {
-//        // Find any specsVarDecl counterpart in the javaDecl
-//        // For fields it is sufficient to match by name
-////        if (specsVarDecl.name.toString().equals("configurationSizes")) Utils.stop();
-//        Name id = specsVarDecl.name;
-//        VarSymbol matchSym = null;
-//        if (true || !sameTree) {
-//            var entries = csym.members().getSymbolsByName(id);
-//            for (Symbol sy: entries) {
-//                if (sy instanceof VarSymbol && sy.name == id) {
-//                    matchSym = (VarSymbol)sy;
-//                    break;
-//                }
-//            }
-//        } else {
-//            matchSym = specsVarDecl.sym;
-//        }
-//        if (specsVarDecl.sym == null && matchSym != null && matchSym.pos == Position.NOPOS) {
-//            matchSym.pos = specsVarDecl.pos;
+//    protected boolean matchAndSetMethodSpecs(/*@nullable*/ JmlClassDecl javaDecl, ClassSymbol csym, JmlMethodDecl specsMethodDecl, Env<AttrContext> env, Map<Symbol,JCTree> matchesSoFar, boolean sameTree) {
+//
+//        // Find the counterpart to specsMethodDecl (from the .jml file) in the Java class declaration (javaDecl or csym)
+//        // Note that if the class is binary, javaDecl will be null, but csym will not
+//
+//        MethodSymbol matchSym = false ? specsMethodDecl.sym : matchMethod(specsMethodDecl,csym,env,false);
+//        if (matchSym != null && matchSym.owner != csym && !sameTree) {
+//            utils.warning("jml.message", "Unexpected location (ASD): " + csym);
+//            matchSym = specsMethodDecl.sym;
 //        }
 //        
-//        // matchsym == null ==> no match; otherwise matchSym is the matching symbol
+//        // matchsym == null ==> no match or duplicate; otherwise matchSym is the matching symbol
 //        
 //        if (matchSym == null) {
-//            if (!utils.isJML(specsVarDecl.mods)) {
+//            
+//            // DO we need to do any cross-linking? and in field specs?
+////            combinedSpecs.cases.decl = specsMethodDecl;
+////            specsMethodDecl.methodSpecsCombined = combinedSpecs;
+//
+//            JmlAnnotation a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,Modifiers.GHOST);
+//            if (a == null) a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,Modifiers.MODEL);
+//            boolean classIsModel = ((JmlAttr)attr).isModel(javaDecl.getModifiers()); // FIXME - should really be recursive
+//            if (!utils.isJML(specsMethodDecl.mods)) {
+//                // Method is not (directly) in a JML declaration. So it should not have ghost or model annotations
 //                // We are going to discard this declaration because of the error, so we do extra checking
-//                JmlAnnotation a = ((JmlAttr)attr).findMod(specsVarDecl.mods,Modifiers.GHOST);
-//                if (a == null) a = ((JmlAttr)attr).findMod(specsVarDecl.mods,Modifiers.MODEL);
 //                if (a != null) {
-//                    utils.error(specsVarDecl.sourcefile, a.pos(),"jml.ghost.model.on.java",specsVarDecl.name);
+//                    utils.error(specsMethodDecl.sourcefile, a.pos(),"jml.ghost.model.on.java",specsMethodDecl.name);
 //                }
 //                // Non-matching java declaration - an error
-//                // FIXME - the check on the owner should really be recursive
-//                if (!utils.isJML(csym.flags())) utils.error(specsVarDecl.sourcefile, specsVarDecl.pos(),"jml.no.var.match",specsVarDecl.name);
+//                if (!classIsModel) {
+//                    utils.error(specsMethodDecl.sourcefile, specsMethodDecl.pos(),"jml.no.method.match",
+//                            csym.flatName() + "." + specsMethodDecl.sym);
+//                }
 //                return false;
 //            } else {
-//                // Non-matching JML declaration
-//                if (javaDecl != null) utils.error(specsVarDecl.sourcefile, specsVarDecl.pos(),"jml.internal","A JML declaration should have been matched, but was not");
-//                return javaDecl == null;
+//                // Non-matching ghost or model declaration; this is OK - there is no symbol yet
+//                // This should have a model or ghost declaration - that is checked in JmlAttr
+//                return true;
 //            }
 //        }
-//        
+//
 //        // The matches map holds any previous matches found - all to specification declarations
 //        JCTree prevMatch = matchesSoFar.get(matchSym);
-//        if (prevMatch != null && prevMatch != specsVarDecl) {
-//            // DO extra checking since we are discarding this declaration
-//            if (!utils.isJML(specsVarDecl.mods)) {
-//                JmlAnnotation a = ((JmlAttr)attr).findMod(specsVarDecl.mods,Modifiers.GHOST);
-//                if (a == null) a = ((JmlAttr)attr).findMod(specsVarDecl.mods,Modifiers.MODEL);
+//        if ((matchSym.flags() & Flags.GENERATEDCONSTR) != 0 && prevMatch instanceof JmlMethodDecl && utils.findMod(((JmlMethodDecl)prevMatch).mods, Modifiers.MODEL) == null)  prevMatch = null;
+//        if (prevMatch != null) {
+//            // DO extra checking since we are discarding this declaration because it is already matched
+//            if (!utils.isJML(specsMethodDecl.mods)) {
+//                JmlAnnotation a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,Modifiers.GHOST);
+//                if (a == null) a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,Modifiers.MODEL);
 //                if (a != null) {
-//                    utils.error(specsVarDecl.sourcefile, a.pos(),"jml.ghost.model.on.java",specsVarDecl.name);
+//                    utils.error(specsMethodDecl.sourcefile, a.pos(),"jml.ghost.model.on.java",specsMethodDecl.name);
 //                }
 //            }
-//            // Previous match - give error
-//            // duplicate already reported if the specs declaration is JML declaration
-//            if (!utils.isJML(specsVarDecl.mods) && !sameTree) {
-//                utils.errorAndAssociatedDeclaration(specsVarDecl.sourcefile, specsVarDecl.pos, ((JmlVariableDecl)prevMatch).sourcefile, prevMatch.pos,"jml.duplicate.var.match",specsVarDecl.name);
+//            // Previous match - give error - duplicate already reported if the specsMethodDecl is JML
+//            if (!utils.isJML(specsMethodDecl.mods) && !sameTree) {
+//                utils.errorAndAssociatedDeclaration(specsMethodDecl.sourcefile, specsMethodDecl.pos, ((JmlMethodDecl)prevMatch).sourcefile, prevMatch.pos,"jml.duplicate.method.match",specsMethodDecl.sym.toString(), csym.flatName());
 //            }
 //            return false;
 //        }
 //
 //        {
 //            // New match - save it; also set the specs database
-//            matchesSoFar.put(matchSym,  specsVarDecl);
-//            JmlSpecs.FieldSpecs fieldSpecs = specsVarDecl.fieldSpecs;
-//            if (fieldSpecs != null) JmlSpecs.instance(context).putSpecs(matchSym,fieldSpecs);
-//            else {
-//                fieldSpecs = new JmlSpecs.FieldSpecs(specsVarDecl);   // FIXME - what about lists of in clauses
-//                specsVarDecl.fieldSpecs = fieldSpecs;
-//                specs.putSpecs(matchSym,  fieldSpecs);
-//            }
-//            specsVarDecl.sym = matchSym;
-//            specsVarDecl.type = matchSym.type;
-//            if (!sameTree) {
-//                // Copied from MemberEnter.visitVarDef
-//                Env<AttrContext> localEnv = env;
-//                if (visitVarDefIsStatic(specsVarDecl,env)) {
-//                    localEnv = env.dup(specsVarDecl, env.info.dup());
-//                    localEnv.info.staticLevel++;
+//            matchesSoFar.put(matchSym,  specsMethodDecl);
+//            JmlSpecs.MethodSpecs mspecs = new JmlSpecs.MethodSpecs(specsMethodDecl);
+//            specs.putSpecs(matchSym,mspecs);
+//            specsMethodDecl.sym = matchSym;
+//            specsMethodDecl.methodSpecsCombined = mspecs;
+//        }
+//
+//        // If we have actual source, then find the source declaration
+//        JmlMethodDecl javaMatch = null;
+//        if (javaDecl != null) {
+//            // TODO - is there a better way to find the declaration for a method symbol?
+//            if (sameTree) {
+//                javaMatch = specsMethodDecl;
+//            } else {
+//                for (JCTree t: javaDecl.defs) {
+//                    if (t instanceof JmlMethodDecl && ((JmlMethodDecl)t).sym == matchSym) {
+//                        javaMatch = (JmlMethodDecl)t;
+//                        break;
+//                    }
 //                }
-//                annotate.annotateLater(specsVarDecl.mods.annotations, localEnv, matchSym, specsVarDecl.pos());
-//// FIXME                typeAnnotate(specsVarDecl.vartype, env, matchSym, specsVarDecl.pos());
+//            }
+//
+//            if (javaMatch == null) {
+//                log.error("jml.internal", "Unexpected absent Java method declaration, without a matching symbol: " + matchSym);
+//            } else if (javaMatch.specsDecl == null) {
+//                // The specs file declaration corresponds to
+//                // MethodSymbol matchSym and
+//                // to a Java source method declaration javaMatch
+//                // Cross link them and set the specs field for the parameters as well
+//                javaMatch.specsDecl = specsMethodDecl;
+//                javaMatch.methodSpecsCombined = specsMethodDecl.methodSpecsCombined;
+//                javaMatch.methodSpecsCombined.cases.decl = javaMatch; // FIXME - is this needed?
+//                
+//            } else if (javaMatch != specsMethodDecl) {
+//                javaMatch = null;
+//                log.error("jml.internal", "Unexpected duplicate Java method declaration, without a matching symbol: " + matchSym);
 //            }
 //        }
 //
-//        // If there is a Java AST, find the match and set the specsDecl field
-//        
-//        JmlVariableDecl javaMatch = null;
-//        if (sameTree) {
-//            javaMatch = specsVarDecl;
-//        } else if (javaDecl != null) {
-//            // TODO - is there a better way to find a declaration for a symbol?
-//            for (JCTree t: javaDecl.defs) {
-//                if (t instanceof JmlVariableDecl && ((JmlVariableDecl)t).sym == matchSym) {
-//                    javaMatch = (JmlVariableDecl)t;
-//                    break;
-//                }
-//            }
-//            if (javaMatch == null) {
-//                log.error("jml.internal", "Unexpected absent Java field declaration, without a matching symbol: " + matchSym);
-//            } else if (javaMatch.specsDecl == null) {
-//                javaMatch.specsDecl = specsVarDecl;
-//                javaMatch.fieldSpecsCombined = specsVarDecl.fieldSpecs;
-//            } else if (javaMatch.specsDecl != javaMatch && javaMatch != specsVarDecl) {
-//                javaMatch = null;
-//                log.error("jml.internal", "Unexpected duplicate Java field declaration, without a matching symbol: " + matchSym);
-//            }
+//        { // Check the match only if it is not a duplicate
+//            checkMethodMatch(javaMatch,matchSym,specsMethodDecl,csym);
+//            addAnnotations(matchSym,env,specsMethodDecl.mods);
 //        }
-//        if (javaMatch != specsVarDecl) { // Check the match only if it is not a duplicate
-//            checkFieldMatch(javaMatch,matchSym,specsVarDecl);
-//            addAnnotations(matchSym,enter.getEnv(csym),specsVarDecl.mods);
-//        }
+//
+//
 //        return true;
 //    }
-
-    /** Finds a Java method declaration matching the given specsMethodDecl in the given class
-     * <br>returns false if the declaration is to be ignored because it is in error
-     * <br>if no match and specsVarDecl is not ghost or model, error message issued, null returned
-     * <br>if match is duplicate, error message issued, match returned
-     * <br>if non-duplicate match, and javaDecl defined, set javaDecl.specsDecl field
-     * <br>if non-duplicate match, set specs database
-     * <br>if non-duplicate match, set specsVarDecl.sym field
-     * */
-    protected boolean matchAndSetMethodSpecs(/*@nullable*/ JmlClassDecl javaDecl, ClassSymbol csym, JmlMethodDecl specsMethodDecl, Env<AttrContext> env, Map<Symbol,JCTree> matchesSoFar, boolean sameTree) {
-
-        // Find the counterpart to specsMethodDecl (from the .jml file) in the Java class declaration (javaDecl or csym)
-        // Note that if the class is binary, javaDecl will be null, but csym will not
-
-        MethodSymbol matchSym = false ? specsMethodDecl.sym : matchMethod(specsMethodDecl,csym,env,false);
-        if (matchSym != null && matchSym.owner != csym && !sameTree) {
-            utils.warning("jml.message", "Unexpected location (ASD): " + csym);
-            matchSym = specsMethodDecl.sym;
-        }
-        
-        // matchsym == null ==> no match or duplicate; otherwise matchSym is the matching symbol
-        
-        if (matchSym == null) {
-            
-            // DO we need to do any cross-linking? and in field specs?
-//            combinedSpecs.cases.decl = specsMethodDecl;
-//            specsMethodDecl.methodSpecsCombined = combinedSpecs;
-
-            JmlAnnotation a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,Modifiers.GHOST);
-            if (a == null) a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,Modifiers.MODEL);
-            boolean classIsModel = ((JmlAttr)attr).isModel(javaDecl.getModifiers()); // FIXME - should really be recursive
-            if (!utils.isJML(specsMethodDecl.mods)) {
-                // Method is not (directly) in a JML declaration. So it should not have ghost or model annotations
-                // We are going to discard this declaration because of the error, so we do extra checking
-                if (a != null) {
-                    utils.error(specsMethodDecl.sourcefile, a.pos(),"jml.ghost.model.on.java",specsMethodDecl.name);
-                }
-                // Non-matching java declaration - an error
-                if (!classIsModel) {
-                    utils.error(specsMethodDecl.sourcefile, specsMethodDecl.pos(),"jml.no.method.match",
-                            csym.flatName() + "." + specsMethodDecl.sym);
-                }
-                return false;
-            } else {
-                // Non-matching ghost or model declaration; this is OK - there is no symbol yet
-                // This should have a model or ghost declaration - that is checked in JmlAttr
-                return true;
-            }
-        }
-
-        // The matches map holds any previous matches found - all to specification declarations
-        JCTree prevMatch = matchesSoFar.get(matchSym);
-        if ((matchSym.flags() & Flags.GENERATEDCONSTR) != 0 && prevMatch instanceof JmlMethodDecl && utils.findMod(((JmlMethodDecl)prevMatch).mods, Modifiers.MODEL) == null)  prevMatch = null;
-        if (prevMatch != null) {
-            // DO extra checking since we are discarding this declaration because it is already matched
-            if (!utils.isJML(specsMethodDecl.mods)) {
-                JmlAnnotation a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,Modifiers.GHOST);
-                if (a == null) a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,Modifiers.MODEL);
-                if (a != null) {
-                    utils.error(specsMethodDecl.sourcefile, a.pos(),"jml.ghost.model.on.java",specsMethodDecl.name);
-                }
-            }
-            // Previous match - give error - duplicate already reported if the specsMethodDecl is JML
-            if (!utils.isJML(specsMethodDecl.mods) && !sameTree) {
-                utils.errorAndAssociatedDeclaration(specsMethodDecl.sourcefile, specsMethodDecl.pos, ((JmlMethodDecl)prevMatch).sourcefile, prevMatch.pos,"jml.duplicate.method.match",specsMethodDecl.sym.toString(), csym.flatName());
-            }
-            return false;
-        }
-
-        {
-            // New match - save it; also set the specs database
-            matchesSoFar.put(matchSym,  specsMethodDecl);
-            JmlSpecs.MethodSpecs mspecs = new JmlSpecs.MethodSpecs(specsMethodDecl);
-            specs.putSpecs(matchSym,mspecs);
-            specsMethodDecl.sym = matchSym;
-            specsMethodDecl.methodSpecsCombined = mspecs;
-        }
-
-        // If we have actual source, then find the source declaration
-        JmlMethodDecl javaMatch = null;
-        if (javaDecl != null) {
-            // TODO - is there a better way to find the declaration for a method symbol?
-            if (sameTree) {
-                javaMatch = specsMethodDecl;
-            } else {
-                for (JCTree t: javaDecl.defs) {
-                    if (t instanceof JmlMethodDecl && ((JmlMethodDecl)t).sym == matchSym) {
-                        javaMatch = (JmlMethodDecl)t;
-                        break;
-                    }
-                }
-            }
-
-            if (javaMatch == null) {
-                log.error("jml.internal", "Unexpected absent Java method declaration, without a matching symbol: " + matchSym);
-            } else if (javaMatch.specsDecl == null) {
-                // The specs file declaration corresponds to
-                // MethodSymbol matchSym and
-                // to a Java source method declaration javaMatch
-                // Cross link them and set the specs field for the parameters as well
-                javaMatch.specsDecl = specsMethodDecl;
-                javaMatch.methodSpecsCombined = specsMethodDecl.methodSpecsCombined;
-                javaMatch.methodSpecsCombined.cases.decl = javaMatch; // FIXME - is this needed?
-                
-            } else if (javaMatch != specsMethodDecl) {
-                javaMatch = null;
-                log.error("jml.internal", "Unexpected duplicate Java method declaration, without a matching symbol: " + matchSym);
-            }
-        }
-
-        { // Check the match only if it is not a duplicate
-            checkMethodMatch(javaMatch,matchSym,specsMethodDecl,csym);
-            addAnnotations(matchSym,env,specsMethodDecl.mods);
-        }
-
-
-        return true;
-    }
-
+//
+//    
+//    public void checkFinalTypeSpecs(JmlSpecs.TypeSpecs tspecs) {
+//        for (JmlTypeClause tc: tspecs.clauses) {
+//            if (tc instanceof JmlTypeClauseInitializer) {
+//            }
+//        }
+//    }
     
-    public void checkFinalTypeSpecs(JmlSpecs.TypeSpecs tspecs) {
-        for (JmlTypeClause tc: tspecs.clauses) {
-            if (tc instanceof JmlTypeClauseInitializer) {
-            }
-        }
-    }
-    
-    public void addInitializerBlocks(ClassSymbol sym, Env<AttrContext> env) {
-        JmlClassDecl classDecl = (JmlClassDecl)env.tree;
-        
-        JCTree.JCBlock block = jmlF.Block(Flags.SYNTHETIC, List.<JCStatement>nil());
-        classDecl.defs = classDecl.defs.append(block);
-        classDecl.initializerBlock = block;
-    
-        block = jmlF.Block(Flags.STATIC|Flags.SYNTHETIC, List.<JCStatement>nil());
-        classDecl.defs = classDecl.defs.append(block);
-        classDecl.staticInitializerBlock = block;
-    
-    }
+//    public void addInitializerBlocks(ClassSymbol sym, Env<AttrContext> env) {
+//        JmlClassDecl classDecl = (JmlClassDecl)env.tree;
+//        
+//        JCTree.JCBlock block = jmlF.Block(Flags.SYNTHETIC, List.<JCStatement>nil());
+//        classDecl.defs = classDecl.defs.append(block);
+//        classDecl.initializerBlock = block;
+//    
+//        block = jmlF.Block(Flags.STATIC|Flags.SYNTHETIC, List.<JCStatement>nil());
+//        classDecl.defs = classDecl.defs.append(block);
+//        classDecl.staticInitializerBlock = block;
+//    
+//    }
 
     public void addRacMethods(ClassSymbol sym, Env<AttrContext> env) {
         if (!utils.rac) return;
@@ -923,7 +544,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         memberEnter(nd,env);
         jtree.defs = jtree.defs.appendList(nd);
         // The call to set the specs must come after the the method symbol is set, so after memberEnter
-        for (JCTree md: nd) {  setDefaultCombinedMethodSpecs((JmlMethodDecl)md); }
+//        for (JCTree md: nd) {  setDefaultCombinedMethodSpecs((JmlMethodDecl)md); }
 
 
     }
@@ -950,324 +571,244 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         tcd.source = fspecs.source();
         tcd.modifiers = mr.mods;
         tsp.modelFieldMethods.append(tcd);
-        tsp.decls.append(tcd);
         return mr;
     }
     
-    /** For synthetic methods or methods that do not have occasion to declare
-     * specs in a specification file, this sets the combined specs to be those
-     * that are associated with the method declaration itself.
-     * @param mdecl
-     */
-    protected void setDefaultCombinedMethodSpecs(JmlMethodDecl mdecl) {
-        mdecl.methodSpecsCombined = new JmlSpecs.MethodSpecs(mdecl);
-        specs.putSpecs(mdecl.sym,mdecl.methodSpecsCombined);
-    }
-
-    /** Checks that the jml annotations match Java annotations for annotations not in org.jmlspecs.annotation
-     * and are a superset of the Java annotations for annotations in org.jmlspecs.annotation) */
-    // MUST HAVE log.useSource set to specs file!
-    protected void checkSameAnnotations(Symbol sym, JCModifiers specsmods, JavaFileObject javaSource) {
-        // FIXME - check for null in annotations?
-        if (sym.isAnonymous()) return;
-        boolean saved1 = JmlPretty.useFullAnnotationTypeName, saved2 = JmlPretty.useJmlModifier;
-        JmlPretty.useFullAnnotationTypeName = JmlPretty.useJmlModifier = false;
-        PackageSymbol p = ((JmlAttr)attr).annotationPackageSymbol;
-        for (Compound a  : sym.getAnnotationMirrors()) {
-            if (a.type.tsym.owner.equals(p)) {
-                if (utils.findMod(specsmods,a.type.tsym) == null) {
-                    JavaFileObject prev = log.useSource(javaSource);
-                    log.error(specsmods.pos,"jml.java.annotation.superseded",a);
-                    log.useSource(prev);
-                }
-            } else {
-                if (utils.findMod(specsmods,a.type.tsym) == null && !a.toString().startsWith("@sun")) {
-                    log.error(specsmods.pos,"jml.missing.annotation",a);
-                }
-            }
-        }
-        JmlPretty.useFullAnnotationTypeName = saved1; JmlPretty.useJmlModifier = saved2;
-    }
-
-    /** Checks that the jml annotations are a superset of the Java annotations (for annotations in org.jmlspecs.annotation) */
-    // MUST HAVE log.useSource set to specs file!
-    protected void checkSameAnnotations(JCModifiers javaMods, JCModifiers specsmods, JavaFileObject javaSource) { // FIXME - don't need last argument
-        PackageSymbol p = ((JmlAttr)attr).annotationPackageSymbol;
-        boolean saved1 = JmlPretty.useFullAnnotationTypeName, saved2 = JmlPretty.useJmlModifier;
-        JmlPretty.useFullAnnotationTypeName = JmlPretty.useJmlModifier = false;
-        for (JCAnnotation a: javaMods.getAnnotations()) {
-            if (a.type.tsym.owner.equals(p)) {
-                if (utils.findMod(specsmods,a.type.tsym) == null) {
-                    JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
-                    log.error(specsmods.pos,"jml.java.annotation.superseded",a);
-                    log.useSource(prev);
-                }
-            } else {
-                if (utils.findMod(specsmods,a.type.tsym) == null && !a.toString().startsWith("@sun")) {
-                    log.error(specsmods.pos,"jml.missing.annotation",a);
-                }
-            }
-        }
-        JmlPretty.useFullAnnotationTypeName = saved1; JmlPretty.useJmlModifier = saved2;
-    }
-
-    public void checkFieldMatch(JmlVariableDecl javaField, VarSymbol javaSym, JmlVariableDecl specField) {
-        if (javaField == specField) return;
-        // Presume that we can't get here unless the names are the same
-        JavaFileObject prev = log.currentSourceFile();
-        log.useSource(specField.sourcefile);
-
-        // Check that the modifiers are the same
-        long javaFlags = javaSym.flags();
-        long specFlags = specField.mods.flags;
-        boolean isInterface = (javaFlags & Flags.INTERFACE) != 0;
-        long diffs = (javaFlags ^ specFlags)&(isInterface? Flags.InterfaceVarFlags : Flags.VarFlags);
-        if (diffs != 0) {
-            utils.error(specField.pos(),"jml.mismatched.field.modifiers", specField.name, javaSym.enclClass().getQualifiedName()+"."+javaSym.name,Flags.toString(diffs));  // FIXME - test this
-        }
-
-        // check for no initializer
-        if (specField.getInitializer() != null && specField != javaField &&
-                !utils.isJML(specField.mods) && !specField.sym.owner.isEnum()) {
-            utils.error(specField.getInitializer().pos(),"jml.no.initializer.in.specs",javaSym.enclClass().getQualifiedName()+"."+javaSym.name);
-        }
-        
-        // Match in the types is checked in JmlAttr.checkVarMods
-
-// FIXME - attribAnnotations, compare annotations
-        //  FIXME _ this needs to be implements
-        // FIXME - what if an annotation is declared within the class?
-        //            attr.attribAnnotationTypes(javaField.mods.annotations, env);
-        //            checkSameAnnotations(javaField.mods,specField.mods);
-
-        log.useSource(prev);
-    }
-    
-    
-//    public void checkTypeMatch(JmlClassDecl javaDecl, JmlClassDecl specsClassDecl) {
-//        
-//        ClassSymbol javaClassSym = javaDecl.sym;
-//        JmlSpecs.TypeSpecs combinedTypeSpecs = specs.get(javaClassSym);
-//        
-//        // If these are the same declaration we don't need to check 
-//        // that the spec decl matches the java decl
-//        //if (javaDecl == specsClassDecl) return;
-//
-//        // Check annotations
-//        
-//        if (javaDecl != specsClassDecl) {
-//            // Check that modifiers are the same
-//            long matchf = javaClassSym.flags();
-//            long specf = combinedTypeSpecs.modifiers.flags;
-//            long diffs = (matchf ^ specf)&Flags.ClassFlags; // Includes whether both are class or both are interface
-//            if (diffs != 0) {
-//                boolean isInterface = (matchf & Flags.INTERFACE) != 0;
-//                boolean isEnum = (matchf & Flags.ENUM) != 0;
-//                if ((Flags.ABSTRACT & matchf & ~specf) != 0 && isInterface) diffs &= ~Flags.ABSTRACT; 
-//                if ((Flags.STATIC & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.STATIC; 
-//                if ((Flags.FINAL & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.FINAL; 
-//                if (diffs != 0) utils.error(specsClassDecl.pos(),"jml.mismatched.modifiers", specsClassDecl.name, javaClassSym.fullname, Flags.toString(diffs));  // FIXME - test this
-//                // FIXME - how can we tell where in which specs file the mismatched modifiers are
-//                // SHould probably check this in the combining step
-//            }
-//            // FIXME - this is needed, but it is using the environment from the java class, not the 
-//            // spec class, and so it is using the import statements in the .java file, not those in the .jml file
-//// FIXME            attr.attribAnnotationTypes(specsClassDecl.mods.annotations, baseEnv(javaDecl,env));  // FIXME - this is done later; is it needed here?
-//
-//            JavaFileObject prev = log.useSource(specsClassDecl.source());
-//            checkSameAnnotations(javaDecl.mods,specsClassDecl.mods,javaDecl.source());
-//            log.useSource(prev);
-//            // FIXME - check that both are Enum; check that both are Annotation
-//        }
-//        if (specsClassDecl.source() == null || specsClassDecl.source().getKind() == JavaFileObject.Kind.SOURCE){
-//            // This is already checked in enterTypeParametersForBinary (for binary classes)
-//            List<Type> t = ((Type.ClassType)javaClassSym.type).getTypeArguments();
-//            List<JCTypeParameter> specTypes = specsClassDecl.typarams;
-//            if (t.size() != specTypes.size()) {
-//                utils.error(specsClassDecl.pos(),"jml.mismatched.type.arguments",javaClassSym.fullname,javaClassSym.type.toString());
-//            }
-//            // FIXME - check that the names and bounds are the same
-//        }
+//    /** For synthetic methods or methods that do not have occasion to declare
+//     * specs in a specification file, this sets the combined specs to be those
+//     * that are associated with the method declaration itself.
+//     * @param mdecl
+//     */
+//    protected void setDefaultCombinedMethodSpecs(JmlMethodDecl mdecl) {
+//        mdecl.methodSpecsCombined = new JmlSpecs.MethodSpecs(mdecl);
+//        specs.putSpecs(mdecl.sym,mdecl.methodSpecsCombined);
 //    }
-//    
-//    public void checkTypeMatch(ClassSymbol javaClassSym, JmlClassDecl specsClassDecl) {
-//        
-//        // Check annotations
-//        JmlSpecs.TypeSpecs combinedTypeSpecs = specs.get(javaClassSym);
-//        JavaFileObject prev = log.useSource(specsClassDecl.source());
-//        
-//        {
-//            // Check that modifiers are the same
-//            long matchf = javaClassSym.flags();
-//            long specf = combinedTypeSpecs.modifiers.flags;
-//            long diffs = (matchf ^ specf)&Flags.ClassFlags; // Includes whether both are class or both are interface
-//            if (diffs != 0) {
-//                boolean isInterface = (matchf & Flags.INTERFACE) != 0;
-//                boolean isEnum = (matchf & Flags.ENUM) != 0;
-//                if ((Flags.ABSTRACT & matchf & ~specf) != 0 && isInterface) diffs &= ~Flags.ABSTRACT; 
-//                if ((Flags.STATIC & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.STATIC; 
-//                if ((Flags.FINAL & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.FINAL; 
-//                if ((diffs & Flags.FINAL) != 0 && javaClassSym.isAnonymous()) diffs &= ~Flags.FINAL;
-//                if (diffs != 0) utils.error(specsClassDecl.pos(),"jml.mismatched.modifiers", specsClassDecl.name, javaClassSym.fullname, Flags.toString(diffs));  // FIXME - test this
+
+//    /** Checks that the jml annotations match Java annotations for annotations not in org.jmlspecs.annotation
+//     * and are a superset of the Java annotations for annotations in org.jmlspecs.annotation) */
+//    // MUST HAVE log.useSource set to specs file!
+//    protected void checkSameAnnotations(Symbol sym, JCModifiers specsmods, JavaFileObject javaSource) {
+//        // FIXME - check for null in annotations?
+//        if (sym.isAnonymous()) return;
+//        boolean saved1 = JmlPretty.useFullAnnotationTypeName, saved2 = JmlPretty.useJmlModifier;
+//        JmlPretty.useFullAnnotationTypeName = JmlPretty.useJmlModifier = false;
+//        PackageSymbol p = ((JmlAttr)attr).annotationPackageSymbol;
+//        for (Compound a  : sym.getAnnotationMirrors()) {
+//            if (a.type.tsym.owner.equals(p)) {
+//                if (utils.findMod(specsmods,a.type.tsym) == null) {
+//                    JavaFileObject prev = log.useSource(javaSource);
+//                    log.error(specsmods.pos,"jml.java.annotation.superseded",a);
+//                    log.useSource(prev);
+//                }
+//            } else {
+//                if (utils.findMod(specsmods,a.type.tsym) == null && !a.toString().startsWith("@sun")) {
+//                    log.error(specsmods.pos,"jml.missing.annotation",a);
+//                }
 //            }
-//            // FIXME - check that both are Enum; check that both are Annotation
-//            checkSameAnnotations(javaClassSym,specsClassDecl.mods,prev); // FIXME - is prev the java source?
 //        }
-//        {
-//            List<Type> t = ((Type.ClassType)javaClassSym.type).getTypeArguments();
-//            List<JCTypeParameter> specTypes = specsClassDecl.typarams;
-//            if (t.size() != specTypes.size()) {
-//                utils.error(specsClassDecl.pos(),"jml.mismatched.type.arguments",javaClassSym.fullname,javaClassSym.type.toString());
+//        JmlPretty.useFullAnnotationTypeName = saved1; JmlPretty.useJmlModifier = saved2;
+//    }
+//
+//    /** Checks that the jml annotations are a superset of the Java annotations (for annotations in org.jmlspecs.annotation) */
+//    // MUST HAVE log.useSource set to specs file!
+//    protected void checkSameAnnotations(JCModifiers javaMods, JCModifiers specsmods, JavaFileObject javaSource) { // FIXME - don't need last argument
+//        PackageSymbol p = ((JmlAttr)attr).annotationPackageSymbol;
+//        boolean saved1 = JmlPretty.useFullAnnotationTypeName, saved2 = JmlPretty.useJmlModifier;
+//        JmlPretty.useFullAnnotationTypeName = JmlPretty.useJmlModifier = false;
+//        for (JCAnnotation a: javaMods.getAnnotations()) {
+//            if (a.type.tsym.owner.equals(p)) {
+//                if (utils.findMod(specsmods,a.type.tsym) == null) {
+//                    JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
+//                    log.error(specsmods.pos,"jml.java.annotation.superseded",a);
+//                    log.useSource(prev);
+//                }
+//            } else {
+//                if (utils.findMod(specsmods,a.type.tsym) == null && !a.toString().startsWith("@sun")) {
+//                    log.error(specsmods.pos,"jml.missing.annotation",a);
+//                }
 //            }
-//            // FIXME - check that the names and bounds are the same
 //        }
+//        JmlPretty.useFullAnnotationTypeName = saved1; JmlPretty.useJmlModifier = saved2;
+//    }
+//
+//    public void checkFieldMatch(JmlVariableDecl javaField, VarSymbol javaSym, JmlVariableDecl specField) {
+//        if (javaField == specField) return;
+//        // Presume that we can't get here unless the names are the same
+//        JavaFileObject prev = log.currentSourceFile();
+//        log.useSource(specField.sourcefile);
+//
+//        // Check that the modifiers are the same
+//        long javaFlags = javaSym.flags();
+//        long specFlags = specField.mods.flags;
+//        boolean isInterface = (javaFlags & Flags.INTERFACE) != 0;
+//        long diffs = (javaFlags ^ specFlags)&(isInterface? Flags.InterfaceVarFlags : Flags.VarFlags);
+//        if (diffs != 0) {
+//            utils.error(specField.pos(),"jml.mismatched.field.modifiers", specField.name, javaSym.enclClass().getQualifiedName()+"."+javaSym.name,Flags.toString(diffs));  // FIXME - test this
+//        }
+//
+//        // check for no initializer
+//        if (specField.getInitializer() != null && specField != javaField &&
+//                !utils.isJML(specField.mods) && !specField.sym.owner.isEnum()) {
+//            utils.error(specField.getInitializer().pos(),"jml.no.initializer.in.specs",javaSym.enclClass().getQualifiedName()+"."+javaSym.name);
+//        }
+//        
+//        // Match in the types is checked in JmlAttr.checkVarMods
+//
+//// FIXME - attribAnnotations, compare annotations
+//        //  FIXME _ this needs to be implements
+//        // FIXME - what if an annotation is declared within the class?
+//        //            attr.attribAnnotationTypes(javaField.mods.annotations, env);
+//        //            checkSameAnnotations(javaField.mods,specField.mods);
+//
 //        log.useSource(prev);
 //    }
     
-    /** Find the method symbol in the class csym that corresponds to the method declared as specMethod;
-     * if complain is true, then an error is reported if there is no match.
-     * Does not presume that the parameter and return types and annotations have been attributed.
-     * Presumes that specMethod.sym == null unless specMethod is part of the JmlClassDecl in the Java declaration.
-     */
-    public MethodSymbol matchMethod(JmlMethodDecl specMethod, ClassSymbol csym, Env<AttrContext> env, boolean complain) {
-
-        JCMethodDecl tree = specMethod;
-
-        MethodSymbol msym = tree.sym;
-        MethodSymbol mtemp = msym;
-        Type computedResultType = null;
-        Env<AttrContext> localEnv = null;
-        if (msym != null) {
-            localEnv = methodEnv(tree, env);
-            computedResultType = msym.getReturnType();
-        } else {
-            // Copied from MemberEnter.visitMethodDef which can't be called directly
-            Scope enclScope = enter.enterScope(env);
-            mtemp = new MethodSymbol(0, tree.name, null, enclScope.owner);
-            //m.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, m, tree);
-            tree.sym = mtemp;
-            localEnv = methodEnv(tree, env);
-
-            // Compute the method type
-            mtemp.type = signature(msym, tree.typarams, tree.params,
-                               tree.restype, tree.recvparam, tree.thrown,
-                               localEnv);
-            computedResultType = mtemp.type.getReturnType();
-            
-            // Set m.params
-            ListBuffer<VarSymbol> params = new ListBuffer<VarSymbol>();
-            JCVariableDecl lastParam = null;
-            for (List<JCVariableDecl> l = tree.params; l.nonEmpty(); l = l.tail) {
-                JCVariableDecl param = lastParam = l.head;
-                assert param.sym != null;
-                params.append(param.sym);
-            }
-            mtemp.params = params.toList();
-
-            // mark the method varargs, if necessary
-            if (lastParam != null && (lastParam.mods.flags & Flags.VARARGS) != 0)
-                mtemp.flags_field |= Flags.VARARGS;
-
-            localEnv.info.scope.leave();
-//            if (chk.checkUnique(tree.pos(), m, enclScope)) {
-//                enclScope.enter(m);
+    
+    
+//    /** Find the method symbol in the class csym that corresponds to the method declared as specMethod;
+//     * if complain is true, then an error is reported if there is no match.
+//     * Does not presume that the parameter and return types and annotations have been attributed.
+//     * Presumes that specMethod.sym == null unless specMethod is part of the JmlClassDecl in the Java declaration.
+//     */
+//    public MethodSymbol matchMethod(JmlMethodDecl specMethod, ClassSymbol csym, Env<AttrContext> env, boolean complain) {
+//
+//        JCMethodDecl tree = specMethod;
+//
+//        MethodSymbol msym = tree.sym;
+//        MethodSymbol mtemp = msym;
+//        Type computedResultType = null;
+//        Env<AttrContext> localEnv = null;
+//        if (msym != null) {
+//            localEnv = methodEnv(tree, env);
+//            computedResultType = msym.getReturnType();
+//        } else {
+//            // Copied from MemberEnter.visitMethodDef which can't be called directly
+//            Scope enclScope = enter.enterScope(env);
+//            mtemp = new MethodSymbol(0, tree.name, null, enclScope.owner);
+//            //m.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, m, tree);
+//            tree.sym = mtemp;
+//            localEnv = methodEnv(tree, env);
+//
+//            // Compute the method type
+//            mtemp.type = signature(msym, tree.typarams, tree.params,
+//                               tree.restype, tree.recvparam, tree.thrown,
+//                               localEnv);
+//            computedResultType = mtemp.type.getReturnType();
+//            
+//            // Set m.params
+//            ListBuffer<VarSymbol> params = new ListBuffer<VarSymbol>();
+//            JCVariableDecl lastParam = null;
+//            for (List<JCVariableDecl> l = tree.params; l.nonEmpty(); l = l.tail) {
+//                JCVariableDecl param = lastParam = l.head;
+//                assert param.sym != null;
+//                params.append(param.sym);
 //            }
-            annotate.annotateLater(tree.mods.annotations, localEnv, mtemp, tree.pos()); // FIXME - is this the right position
-            if (tree.defaultValue != null)
-                annotate.annotateDefaultValueLater(tree.defaultValue, localEnv, mtemp, tree);
-        }
-
-        MethodSymbol match = null;
-        
-        ListBuffer<Type> typaramTypes = new ListBuffer<Type>();
-        for (List<JCTypeParameter> l = tree.typarams; l.nonEmpty(); l = l.tail) {
-            typaramTypes.append(l.head.type);
-        }
-
-        ListBuffer<Type> paramTypes = new ListBuffer<Type>();
-        JCVariableDecl lastParam = null;
-        for (List<JCVariableDecl> l = tree.params; l.nonEmpty(); l = l.tail) {
-            JCVariableDecl param = lastParam = l.head;
-            paramTypes.append(param.vartype.type);
-        }
-
-        // JmlResolve.findMethod is designed for matching a method call to some
-        // declaration.  Here however, we are trying to match to method signatures.
-        // We use this as a start, but then have to check that we have exact matches
-        // for parameter types.  Also, we make the match using varargs=false - 
-        // the parameter types themselves are already arrays if they were declared
-        // as varargs parameters.
-
- //       Symbol lookupMethod(Env<AttrContext> env, DiagnosticPosition pos, Symbol location, MethodCheck methodCheck, LookupHelper lookupHelper) {
-
-        Symbol s;
-        JmlResolve jmlResolve = JmlResolve.instance(context);
-        boolean prevSilentErrors = jmlResolve.silentErrors;
-        jmlResolve.silentErrors = true;
-//        jmlResolve.errorOccurred = false;
-        try {
-            s = jmlResolve.resolveMethod(tree.pos(), localEnv, tree.name, paramTypes.toList(),typaramTypes.toList());
-        } finally {
-            jmlResolve.silentErrors = prevSilentErrors;
-//            if (jmlResolve.errorOccurred) s = null;
-        }
-//        Symbol s = JmlResolve.instance(context).findMethod(env,csym.asType(),
-//                tree.name,paramTypes.toList(),typaramTypes.toList(),
-//                /*allowBoxing*/false,/*varargs*/false,/*is an operator*/false);
-        if (s instanceof MethodSymbol) {
-            match = (MethodSymbol)s;
-            // Require exact type match [findMethod returns best matches ]
-            List<VarSymbol> params = match.getParameters();
-            List<Type> paramT = paramTypes.toList();
-            Types types = Types.instance(context);
-            boolean hasTypeArgs = !typaramTypes.isEmpty();
-            while (params.nonEmpty()) {
-                if (!types.isSameType(params.head.type,paramT.head) &&
-                        // FIXME - this is a hack to cover lots of cases
-                        // We actually need to map type arguments in order to compare for eqauality with isSameType
-                        (paramT.head.isPrimitive())) {
-                    match = null;
-                    break;
-                }
-                params = params.tail;
-                paramT = paramT.tail;
-            }
-        }
-        
-        if (msym == null && match != null) {
-            tree.sym = match;
-// FIXME            if (localEnv != null) localEnv.info.scope.owner = match;
-            for (List<JCVariableDecl> l = tree.params; l.nonEmpty(); l = l.tail) {
-                JCVariableDecl param = l.head;
-                param.sym.owner = match;
-            }
-        }
-
-        if (match == null) {
-            if (complain && (specMethod.mods.flags & Flags.GENERATEDCONSTR) == 0 && !inModelTypeDeclaration
-                    && utils.findMod(specMethod.mods,Modifiers.MODEL) == null) {
-                utils.error(specMethod.pos(),"jml.no.method.match",
-                    csym.flatName() + "." + mtemp);
-            }
-        } else {
-            // FIXME - do we need to check for model methods, and that they match?
-//            boolean isModel = JmlAttr.instance(context).findMod(specMethod.mods,JmlToken.MODEL) != null;
-//            boolean isMatchModel = match.attribute(((JmlAttr)attr).tokenToAnnotationSymbol.get(JmlToken.MODEL)) != null;
-//            if (isModel == isMatchModel) {
-            
-                // Attributes the annotations and adds them to the given MethodSymbol, if they are not already present
- //               addAnnotations(match,env,specMethod.mods);  // Might repeat annotations, so we use the conditional call  // FIXME - we aren't using the conditional call
-//            } else {
-//                // We have a model and non-model method with matching signatures.  Declare them
-//                // non-matching and wait for an error when the model method is entered.
-//                match = null;
+//            mtemp.params = params.toList();
+//
+//            // mark the method varargs, if necessary
+//            if (lastParam != null && (lastParam.mods.flags & Flags.VARARGS) != 0)
+//                mtemp.flags_field |= Flags.VARARGS;
+//
+//            localEnv.info.scope.leave();
+////            if (chk.checkUnique(tree.pos(), m, enclScope)) {
+////                enclScope.enter(m);
+////            }
+//            annotate.annotateLater(tree.mods.annotations, localEnv, mtemp, tree.pos()); // FIXME - is this the right position
+//            if (tree.defaultValue != null)
+//                annotate.annotateDefaultValueLater(tree.defaultValue, localEnv, mtemp, tree);
+//        }
+//
+//        MethodSymbol match = null;
+//        
+//        ListBuffer<Type> typaramTypes = new ListBuffer<Type>();
+//        for (List<JCTypeParameter> l = tree.typarams; l.nonEmpty(); l = l.tail) {
+//            typaramTypes.append(l.head.type);
+//        }
+//
+//        ListBuffer<Type> paramTypes = new ListBuffer<Type>();
+//        JCVariableDecl lastParam = null;
+//        for (List<JCVariableDecl> l = tree.params; l.nonEmpty(); l = l.tail) {
+//            JCVariableDecl param = lastParam = l.head;
+//            paramTypes.append(param.vartype.type);
+//        }
+//
+//        // JmlResolve.findMethod is designed for matching a method call to some
+//        // declaration.  Here however, we are trying to match to method signatures.
+//        // We use this as a start, but then have to check that we have exact matches
+//        // for parameter types.  Also, we make the match using varargs=false - 
+//        // the parameter types themselves are already arrays if they were declared
+//        // as varargs parameters.
+//
+// //       Symbol lookupMethod(Env<AttrContext> env, DiagnosticPosition pos, Symbol location, MethodCheck methodCheck, LookupHelper lookupHelper) {
+//
+//        Symbol s;
+//        JmlResolve jmlResolve = JmlResolve.instance(context);
+//        boolean prevSilentErrors = jmlResolve.silentErrors;
+//        jmlResolve.silentErrors = true;
+////        jmlResolve.errorOccurred = false;
+//        try {
+//            s = jmlResolve.resolveMethod(tree.pos(), localEnv, tree.name, paramTypes.toList(),typaramTypes.toList());
+//        } finally {
+//            jmlResolve.silentErrors = prevSilentErrors;
+////            if (jmlResolve.errorOccurred) s = null;
+//        }
+////        Symbol s = JmlResolve.instance(context).findMethod(env,csym.asType(),
+////                tree.name,paramTypes.toList(),typaramTypes.toList(),
+////                /*allowBoxing*/false,/*varargs*/false,/*is an operator*/false);
+//        if (s instanceof MethodSymbol) {
+//            match = (MethodSymbol)s;
+//            // Require exact type match [findMethod returns best matches ]
+//            List<VarSymbol> params = match.getParameters();
+//            List<Type> paramT = paramTypes.toList();
+//            Types types = Types.instance(context);
+//            boolean hasTypeArgs = !typaramTypes.isEmpty();
+//            while (params.nonEmpty()) {
+//                if (!types.isSameType(params.head.type,paramT.head) &&
+//                        // FIXME - this is a hack to cover lots of cases
+//                        // We actually need to map type arguments in order to compare for eqauality with isSameType
+//                        (paramT.head.isPrimitive())) {
+//                    match = null;
+//                    break;
+//                }
+//                params = params.tail;
+//                paramT = paramT.tail;
 //            }
-        }
-        localEnv.info.scope.leave();
-        return match;
-
-
-    }
+//        }
+//        
+//        if (msym == null && match != null) {
+//            tree.sym = match;
+//// FIXME            if (localEnv != null) localEnv.info.scope.owner = match;
+//            for (List<JCVariableDecl> l = tree.params; l.nonEmpty(); l = l.tail) {
+//                JCVariableDecl param = l.head;
+//                param.sym.owner = match;
+//            }
+//        }
+//
+//        if (match == null) {
+//            if (complain && (specMethod.mods.flags & Flags.GENERATEDCONSTR) == 0 && !inModelTypeDeclaration
+//                    && utils.findMod(specMethod.mods,Modifiers.MODEL) == null) {
+//                utils.error(specMethod.pos(),"jml.no.method.match",
+//                    csym.flatName() + "." + mtemp);
+//            }
+//        } else {
+//            // FIXME - do we need to check for model methods, and that they match?
+////            boolean isModel = JmlAttr.instance(context).findMod(specMethod.mods,JmlToken.MODEL) != null;
+////            boolean isMatchModel = match.attribute(((JmlAttr)attr).tokenToAnnotationSymbol.get(JmlToken.MODEL)) != null;
+////            if (isModel == isMatchModel) {
+//            
+//                // Attributes the annotations and adds them to the given MethodSymbol, if they are not already present
+// //               addAnnotations(match,env,specMethod.mods);  // Might repeat annotations, so we use the conditional call  // FIXME - we aren't using the conditional call
+////            } else {
+////                // We have a model and non-model method with matching signatures.  Declare them
+////                // non-matching and wait for an error when the model method is entered.
+////                match = null;
+////            }
+//        }
+//        localEnv.info.scope.leave();
+//        return match;
+//
+//
+//    }
 
     /////////////////// DON'T USE BUT REVIEW FOR ACTIONS THAT HAVE BEEN FORGOTTEN /////////////////////////
 //    public MethodSymbol matchMethod(JmlMethodDecl specMethod, ClassSymbol javaClassSymbol) {
@@ -1438,165 +979,165 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //    }
 
 
-    /** Checks that the modifiers and annotations in the .java and .jml declarations match appropriately,
-     * for both the method declaration and any parameter declarations;
-     * does not do any semantic checks of whether the modifiers or annotations are allowed.
-     */
-    public void checkMethodMatch(/*@nullable*/ JmlMethodDecl javaMatch, MethodSymbol match, JmlMethodDecl specMethodDecl, ClassSymbol javaClassSymbol) {
-        JavaFileObject prev = log.currentSourceFile();
-        log.useSource(specMethodDecl.sourcefile); // All logged errors are with respect to positions in the jml file
-        try {
-            if (javaMatch != specMethodDecl) {
-                boolean isInterface = match.owner.isInterface();
-                // Check that modifiers are the same
-                long matchf = match.flags();
-                long specf = specMethodDecl.mods.flags;
-                matchf |= (specf & Flags.SYNCHRONIZED); // binary files do not seem to always have the synchronized modifier?  FIXME
-                long diffs = (matchf ^ specf)&Flags.MethodFlags;
-                if (diffs != 0) {
-                    boolean isEnum = (javaClassSymbol.flags() & Flags.ENUM) != 0;
-                    if ((Flags.NATIVE & matchf & ~specf)!= 0) diffs &= ~Flags.NATIVE;
-                    if (isInterface) diffs &= ~Flags.PUBLIC & ~Flags.ABSTRACT;
-                    if (isEnum && match.isConstructor()) { specMethodDecl.mods.flags |= (matchf & 7); diffs &= ~7; } // FIXME - should only do this if specs are default
-                    if ((matchf & specf & Flags.ANONCONSTR)!= 0 && isEnum) { diffs &= ~2; specMethodDecl.mods.flags |= 2; } // enum constructors can have differences
-                    if (diffs != 0 && !(match.isConstructor() && diffs == 3)) {
-                        // FIXME - hide this case for now because of default constructors in binary files
-                        utils.error(specMethodDecl.pos(),"jml.mismatched.method.modifiers", specMethodDecl.name, match.toString(), Flags.toString(diffs));
-                    }
-                }
-            }
-            
-            if (javaMatch != null) {
-                // Check that parameters have the same modifiers - FIXME - should check this in the symbol, not just in the Java
-                Iterator<JCVariableDecl> javaiter = javaMatch.params.iterator();
-                Iterator<JCVariableDecl> jmliter = specMethodDecl.params.iterator();
-                while (javaiter.hasNext() && jmliter.hasNext()) {
-                    JmlVariableDecl javaparam = (JmlVariableDecl)javaiter.next();
-                    JmlVariableDecl jmlparam = (JmlVariableDecl)jmliter.next();
-                    javaparam.specsDecl = jmlparam;
-                    jmlparam.sym = javaparam.sym;
-                    long diffs = (javaparam.mods.flags ^ jmlparam.mods.flags);
-                    if (diffs != 0) {
-                        utils.errorAndAssociatedDeclaration(specMethodDecl.sourcefile, jmlparam.pos(),
-                                javaMatch.sourcefile, javaparam.pos(),
-                                "jml.mismatched.parameter.modifiers", 
-                                jmlparam.name, 
-                                javaClassSymbol.getQualifiedName()+"."+match.name,Flags.toString(diffs));
-                    }
-                }
-                // FIXME - should check names of parameters, names of type parameters
-                if (javaiter.hasNext() || jmliter.hasNext()) {
-                    log.error("jml.internal", "Java and jml declarations have different numbers of arguments, even though they have been type matched");
-                }
-            }
-
-            // FIXME - we do need to exclude some anonymous classes,  but all of them?
-            if (!javaClassSymbol.isAnonymous()) checkSameAnnotations(match,specMethodDecl.mods,prev); // FIXME - is prev really the file object for Java
-            Iterator<JCVariableDecl> jmliter = specMethodDecl.params.iterator();
-            Iterator<Symbol.VarSymbol> javaiter = match.getParameters().iterator();
-            while (javaiter.hasNext() && jmliter.hasNext()) {
-                Symbol.VarSymbol javaparam = javaiter.next();
-                JmlVariableDecl jmlparam = (JmlVariableDecl)jmliter.next();
-                checkSameAnnotations(javaparam,jmlparam.mods,prev); // FIXME - is prev really the file object for Java
-            }
-
-
-
-            // Check that the return types are the same
-            if (specMethodDecl.restype != null) { // not a constructor
-                if (specMethodDecl.restype.type == null) Attr.instance(context).attribType(specMethodDecl.restype, match.enclClass());
-//                if (match.name.toString().equals("defaultEmpty")) {
-//                    log.noticeWriter.println(match.name);
+//    /** Checks that the modifiers and annotations in the .java and .jml declarations match appropriately,
+//     * for both the method declaration and any parameter declarations;
+//     * does not do any semantic checks of whether the modifiers or annotations are allowed.
+//     */
+//    public void checkMethodMatch(/*@nullable*/ JmlMethodDecl javaMatch, MethodSymbol match, JmlMethodDecl specMethodDecl, ClassSymbol javaClassSymbol) {
+//        JavaFileObject prev = log.currentSourceFile();
+//        log.useSource(specMethodDecl.sourcefile); // All logged errors are with respect to positions in the jml file
+//        try {
+//            if (javaMatch != specMethodDecl) {
+//                boolean isInterface = match.owner.isInterface();
+//                // Check that modifiers are the same
+//                long matchf = match.flags();
+//                long specf = specMethodDecl.mods.flags;
+//                matchf |= (specf & Flags.SYNCHRONIZED); // binary files do not seem to always have the synchronized modifier?  FIXME
+//                long diffs = (matchf ^ specf)&Flags.MethodFlags;
+//                if (diffs != 0) {
+//                    boolean isEnum = (javaClassSymbol.flags() & Flags.ENUM) != 0;
+//                    if ((Flags.NATIVE & matchf & ~specf)!= 0) diffs &= ~Flags.NATIVE;
+//                    if (isInterface) diffs &= ~Flags.PUBLIC & ~Flags.ABSTRACT;
+//                    if (isEnum && match.isConstructor()) { specMethodDecl.mods.flags |= (matchf & 7); diffs &= ~7; } // FIXME - should only do this if specs are default
+//                    if ((matchf & specf & Flags.ANONCONSTR)!= 0 && isEnum) { diffs &= ~2; specMethodDecl.mods.flags |= 2; } // enum constructors can have differences
+//                    if (diffs != 0 && !(match.isConstructor() && diffs == 3)) {
+//                        // FIXME - hide this case for now because of default constructors in binary files
+//                        utils.error(specMethodDecl.pos(),"jml.mismatched.method.modifiers", specMethodDecl.name, match.toString(), Flags.toString(diffs));
+//                    }
 //                }
-                Type javaReturnType = match.type.getReturnType();
-                Type specReturnType = specMethodDecl.restype.type;
-                if (!Types.instance(context).isSameType(javaReturnType,specReturnType)) {
-                    // FIXME - when the result type is parameterized in a static method, the java and spec declarations
-                    // end up with different types for the parameter.  Is this also true for the regular parameters?  
-                    // FIXME - avoud the probloem for now.
-                    if (!(specReturnType instanceof Type.TypeVar) && specReturnType.getTypeArguments().isEmpty()
-                            && (!(specReturnType instanceof Type.ArrayType) || !(((Type.ArrayType)specReturnType).elemtype instanceof Type.TypeVar)) )
-                        utils.error(specMethodDecl.restype.pos(),"jml.mismatched.return.type",
-                                match.enclClass().fullname + "." + match.toString(),
-                                specReturnType, javaReturnType);
-                }
-            }
-
-            // Check that parameter names are the same (a JML requirement to avoid having to rename within specs)
-            if (javaMatch != null) {
-                for (int i = 0; i<javaMatch.getParameters().size(); i++) {
-                    JCTree.JCVariableDecl javaparam = javaMatch.getParameters().get(i);
-                    JCTree.JCVariableDecl jmlparam = specMethodDecl.params.get(i);
-                    if (!javaparam.name.equals(jmlparam.name)) {
-                        utils.error(jmlparam.pos(),"jml.mismatched.param.names",i,
-                                match.enclClass().fullname + "." + match.toString(),
-                                javaparam.name, jmlparam.name);
-                    }
-                }
-
-            } else {
-                for (int i = 0; i<match.getParameters().size(); i++) {
-                    Symbol.VarSymbol javasym = match.getParameters().get(i);
-                    JCTree.JCVariableDecl jmlparam = specMethodDecl.params.get(i);
-                    if (!javasym.name.equals(jmlparam.name)) {
-                        utils.error(jmlparam.pos(),"jml.mismatched.param.names",i,
-                                match.enclClass().fullname + "." + match.toString(),
-                                javasym.name, jmlparam.name);
-                    }
-                }
-            }
-
-            // Check that the specification method has no body if it is not a .java file
-            if (specMethodDecl.body != null && specMethodDecl.sourcefile.getKind() != Kind.SOURCE
-                    && !((JmlAttr)attr).isModel(specMethodDecl.mods)
-                    && !inModelTypeDeclaration
-                    && match.owner == javaClassSymbol   // FIXME - this is here to avoid errors on methods of anonymous classes within specifications within a .jml file - it might not be fully robust
-                    // FIXME - should test other similar locations - e.g. model classes, model methods, methods within local class declarations in model methods or methods of model classes
-                    && (specMethodDecl.mods.flags & (Flags.GENERATEDCONSTR|Flags.SYNTHETIC)) == 0) {
-                utils.error(specMethodDecl.body.pos(),"jml.no.body.allowed",match.enclClass().fullname + "." + match.toString());
-            }
-
-
-            // FIXME - from a previous comparison against source
-//            // A specification method may not have a body.  However, the spec
-//            // method declaration may also be identical to the java method (if the
-//            // java file is in the specification sequence) - hence the second test.
-//            // There is an unusual case in which a method declaration is duplicated
-//            // in a .java file (same signature).  In that case, there is already
-//            // an error message, but the duplicate will be matched against the
-//            // first declaration at this point, though they are different
-//            // delcarations (so the second test will be true).  Hence we include the
-//            // 3rd test as well. [ TODO - perhaps we need just the third test and not the second.]
-//            if (specMethodDecl.body != null && match != specMethodDecl
-//                    && match.sourcefile != specMethodDecl.sourcefile
-//                    && (specMethodDecl.mods.flags & (Flags.GENERATEDCONSTR|Flags.SYNTHETIC)) == 0) {
-//                log.error(specMethodDecl.body.pos(),"jml.no.body.allowed",match.sym.enclClass().fullname + "." + match.sym.toString());
 //            }
 //            
+//            if (javaMatch != null) {
+//                // Check that parameters have the same modifiers - FIXME - should check this in the symbol, not just in the Java
+//                Iterator<JCVariableDecl> javaiter = javaMatch.params.iterator();
+//                Iterator<JCVariableDecl> jmliter = specMethodDecl.params.iterator();
+//                while (javaiter.hasNext() && jmliter.hasNext()) {
+//                    JmlVariableDecl javaparam = (JmlVariableDecl)javaiter.next();
+//                    JmlVariableDecl jmlparam = (JmlVariableDecl)jmliter.next();
+//                    javaparam.specsDecl = jmlparam;
+//                    jmlparam.sym = javaparam.sym;
+//                    long diffs = (javaparam.mods.flags ^ jmlparam.mods.flags);
+//                    if (diffs != 0) {
+//                        utils.errorAndAssociatedDeclaration(specMethodDecl.sourcefile, jmlparam.pos(),
+//                                javaMatch.sourcefile, javaparam.pos(),
+//                                "jml.mismatched.parameter.modifiers", 
+//                                jmlparam.name, 
+//                                javaClassSymbol.getQualifiedName()+"."+match.name,Flags.toString(diffs));
+//                    }
+//                }
+//                // FIXME - should check names of parameters, names of type parameters
+//                if (javaiter.hasNext() || jmliter.hasNext()) {
+//                    log.error("jml.internal", "Java and jml declarations have different numbers of arguments, even though they have been type matched");
+//                }
+//            }
+//
+//            // FIXME - we do need to exclude some anonymous classes,  but all of them?
+//            if (!javaClassSymbol.isAnonymous()) checkSameAnnotations(match,specMethodDecl.mods,prev); // FIXME - is prev really the file object for Java
+//            Iterator<JCVariableDecl> jmliter = specMethodDecl.params.iterator();
+//            Iterator<Symbol.VarSymbol> javaiter = match.getParameters().iterator();
+//            while (javaiter.hasNext() && jmliter.hasNext()) {
+//                Symbol.VarSymbol javaparam = javaiter.next();
+//                JmlVariableDecl jmlparam = (JmlVariableDecl)jmliter.next();
+//                checkSameAnnotations(javaparam,jmlparam.mods,prev); // FIXME - is prev really the file object for Java
+//            }
+//
+//
+//
 //            // Check that the return types are the same
 //            if (specMethodDecl.restype != null) { // not a constructor
-//                if (specMethodDecl.restype.type == null) Attr.instance(context).attribType(specMethodDecl.restype, match.sym.enclClass());
+//                if (specMethodDecl.restype.type == null) Attr.instance(context).attribType(specMethodDecl.restype, match.enclClass());
 ////                if (match.name.toString().equals("defaultEmpty")) {
 ////                    log.noticeWriter.println(match.name);
 ////                }
-//                if (!Types.instance(context).isSameType(match.restype.type,specMethodDecl.restype.type)) {
+//                Type javaReturnType = match.type.getReturnType();
+//                Type specReturnType = specMethodDecl.restype.type;
+//                if (!Types.instance(context).isSameType(javaReturnType,specReturnType)) {
 //                    // FIXME - when the result type is parameterized in a static method, the java and spec declarations
 //                    // end up with different types for the parameter.  Is this also true for the regular parameters?  
 //                    // FIXME - avoud the probloem for now.
-//                    if (!(specMethodDecl.restype.type.getTypeArguments().head instanceof Type.TypeVar))
-//                    log.error(specMethodDecl.restype.pos(),"jml.mismatched.return.type",
-//                            match.sym.enclClass().fullname + "." + match.sym.toString(),
-//                            specMethodDecl.restype.type,match.restype.type);
+//                    if (!(specReturnType instanceof Type.TypeVar) && specReturnType.getTypeArguments().isEmpty()
+//                            && (!(specReturnType instanceof Type.ArrayType) || !(((Type.ArrayType)specReturnType).elemtype instanceof Type.TypeVar)) )
+//                        utils.error(specMethodDecl.restype.pos(),"jml.mismatched.return.type",
+//                                match.enclClass().fullname + "." + match.toString(),
+//                                specReturnType, javaReturnType);
 //                }
 //            }
-
-        } finally {
-            log.useSource(prev);
-        }
-            // FIXME - what about covariant return types ?????
-            
-            // FIXME - check that JML annotations are ok
-    }
+//
+//            // Check that parameter names are the same (a JML requirement to avoid having to rename within specs)
+//            if (javaMatch != null) {
+//                for (int i = 0; i<javaMatch.getParameters().size(); i++) {
+//                    JCTree.JCVariableDecl javaparam = javaMatch.getParameters().get(i);
+//                    JCTree.JCVariableDecl jmlparam = specMethodDecl.params.get(i);
+//                    if (!javaparam.name.equals(jmlparam.name)) {
+//                        utils.error(jmlparam.pos(),"jml.mismatched.param.names",i,
+//                                match.enclClass().fullname + "." + match.toString(),
+//                                javaparam.name, jmlparam.name);
+//                    }
+//                }
+//
+//            } else {
+//                for (int i = 0; i<match.getParameters().size(); i++) {
+//                    Symbol.VarSymbol javasym = match.getParameters().get(i);
+//                    JCTree.JCVariableDecl jmlparam = specMethodDecl.params.get(i);
+//                    if (!javasym.name.equals(jmlparam.name)) {
+//                        utils.error(jmlparam.pos(),"jml.mismatched.param.names",i,
+//                                match.enclClass().fullname + "." + match.toString(),
+//                                javasym.name, jmlparam.name);
+//                    }
+//                }
+//            }
+//
+//            // Check that the specification method has no body if it is not a .java file
+//            if (specMethodDecl.body != null && specMethodDecl.sourcefile.getKind() != Kind.SOURCE
+//                    && !((JmlAttr)attr).isModel(specMethodDecl.mods)
+//                    && !inModelTypeDeclaration
+//                    && match.owner == javaClassSymbol   // FIXME - this is here to avoid errors on methods of anonymous classes within specifications within a .jml file - it might not be fully robust
+//                    // FIXME - should test other similar locations - e.g. model classes, model methods, methods within local class declarations in model methods or methods of model classes
+//                    && (specMethodDecl.mods.flags & (Flags.GENERATEDCONSTR|Flags.SYNTHETIC)) == 0) {
+//                utils.error(specMethodDecl.body.pos(),"jml.no.body.allowed",match.enclClass().fullname + "." + match.toString());
+//            }
+//
+//
+//            // FIXME - from a previous comparison against source
+////            // A specification method may not have a body.  However, the spec
+////            // method declaration may also be identical to the java method (if the
+////            // java file is in the specification sequence) - hence the second test.
+////            // There is an unusual case in which a method declaration is duplicated
+////            // in a .java file (same signature).  In that case, there is already
+////            // an error message, but the duplicate will be matched against the
+////            // first declaration at this point, though they are different
+////            // delcarations (so the second test will be true).  Hence we include the
+////            // 3rd test as well. [ TODO - perhaps we need just the third test and not the second.]
+////            if (specMethodDecl.body != null && match != specMethodDecl
+////                    && match.sourcefile != specMethodDecl.sourcefile
+////                    && (specMethodDecl.mods.flags & (Flags.GENERATEDCONSTR|Flags.SYNTHETIC)) == 0) {
+////                log.error(specMethodDecl.body.pos(),"jml.no.body.allowed",match.sym.enclClass().fullname + "." + match.sym.toString());
+////            }
+////            
+////            // Check that the return types are the same
+////            if (specMethodDecl.restype != null) { // not a constructor
+////                if (specMethodDecl.restype.type == null) Attr.instance(context).attribType(specMethodDecl.restype, match.sym.enclClass());
+//////                if (match.name.toString().equals("defaultEmpty")) {
+//////                    log.noticeWriter.println(match.name);
+//////                }
+////                if (!Types.instance(context).isSameType(match.restype.type,specMethodDecl.restype.type)) {
+////                    // FIXME - when the result type is parameterized in a static method, the java and spec declarations
+////                    // end up with different types for the parameter.  Is this also true for the regular parameters?  
+////                    // FIXME - avoud the probloem for now.
+////                    if (!(specMethodDecl.restype.type.getTypeArguments().head instanceof Type.TypeVar))
+////                    log.error(specMethodDecl.restype.pos(),"jml.mismatched.return.type",
+////                            match.sym.enclClass().fullname + "." + match.sym.toString(),
+////                            specMethodDecl.restype.type,match.restype.type);
+////                }
+////            }
+//
+//        } finally {
+//            log.useSource(prev);
+//        }
+//            // FIXME - what about covariant return types ?????
+//            
+//            // FIXME - check that JML annotations are ok
+//    }
     
     /** Attributes the annotations and adds them to the given Symbol, if they are not already present */
     public void addAnnotations(Symbol sym, Env<AttrContext> env, JCTree.JCModifiers mods) {
@@ -1607,328 +1148,114 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
 
     
-    VarSymbol findVarMatch(ClassSymbol csym, Name name) {
-        var e = csym.members().getSymbolsByName(name);  // FIXME - can have variables and methods with the same name
-        for (Symbol sy: e) {
-        	if (sy instanceof VarSymbol) return (VarSymbol)sy;
-        }
-        return null;
-    }
-    
-    
-    /** When we are handling the specs for a binary file, we have the situation
-     * of performing an annotation given in the source that has already been
-     * performed in loading the binary.  Thus we don't give an error about this.
-     * However we don't know that all of the annotations are already present
-     * (presumably just the ones retained in the class file are present), so we
-     * proceed to do them anyway, at the risk of repeating some.  Repeating the
-     * work does not appear to do any harm, though it may be that we should check
-     * for those annotations already present and not repeat them. (TODO)
-     * @param annotations
-     * @param localEnv
-     * @param s
-     */
-    // FIXME
-//    // MAINTENANCE - modified from MemberEnter.annotateLater  // FIXME - currently the same as in the super class
-//    void annotateLaterConditional(final List<JCAnnotation> annotations,
-//            final Env<AttrContext> localEnv,
-//            final Symbol s,
-//            final DiagnosticPosition deferPos) {
-//        if (annotations.isEmpty()) return;
-//        if (s.kind != PCK) {
-//            s.resetAnnotations(); // mark Annotations as incomplete for now
+//    VarSymbol findVarMatch(ClassSymbol csym, Name name) {
+//        var e = csym.members().getSymbolsByName(name);  // FIXME - can have variables and methods with the same name
+//        for (Symbol sy: e) {
+//        	if (sy instanceof VarSymbol) return (VarSymbol)sy;
 //        }
-//        annotate.normal(new Annotate.Worker() {
-//            @Override
-//            public String toString() {
-//                return "annotate " + annotations + " onto " + s + " in " + s.owner;
-//            }
-//
-//            @Override
-//            public void run() {
-////                Assert.check(s.kind == PCK || s.annotationsPendingCompletion()); // Removed check - why?
-//                JavaFileObject prev = log.useSource(localEnv.toplevel.sourcefile);
-//                DiagnosticPosition prevLintPos =
-//                    deferPos != null
-//                    ? deferredLintHandler.setPos(deferPos)
-//                    : deferredLintHandler.immediate();
-//                Lint prevLint = deferPos != null ? null : chk.setLint(lint);
-//                try {
-//                    if (!(s.hasAnnotations() &&
-//                        annotations.nonEmpty())) 
-//                        actualEnterAnnotations(annotations, localEnv, s);
-////                    else if (!(annotations.head.type instanceof Type.ErrorType) )
-////                        log.error(annotations.head.pos,
-////                                  "already.annotated",
-////                                  kindName(s), s);
-//                } finally {
-//                    if (prevLint != null)
-//                        chk.setLint(prevLint);
-//                    deferredLintHandler.setPos(prevLintPos);
-//                    log.useSource(prev);
-//                }
-//            }
-//        });
-//
-//        annotate.validate(new Annotate.Worker() { //validate annotations
-//            @Override
-//            public void run() {
-//                JavaFileObject prev = log.useSource(localEnv.toplevel.sourcefile);
-//                try {
-//                    chk.validateAnnotations(annotations, s);
-//                } finally {
-//                    log.useSource(prev);
-//                }
-//            }
-//        });
-//    }
-
-    
-//    annotate.later(new Annotate.Annotator() {
-//            public String toString() {
-//                return "conditional annotate " + annotations + " onto " + s + " in " + s.owner;
-//            }
-//            public void enterAnnotation() {
-//                assert s.kind == PCK || s.attributes_field == null; // FIXME - SF patch # says this assert triggers incorrectly when -ea option is used
-//                JavaFileObject prev = log.useSource(localEnv.toplevel.sourcefile);
-//                try {
-//                    if (s.attributes_field != null &&
-//                            s.attributes_field.nonEmpty() &&
-//                            annotations.nonEmpty()) {
-////                            log.error(annotations.head.pos,
-////                                      "already.annotated",
-////                                      kindName(s), s);
-//                    } else enterAnnotations(annotations, localEnv, s);
-//                } finally {
-//                    log.useSource(prev);
-//                }
-//            }
-//        });
-//    }
-//    
-//    void annotateLater(final List<JCAnnotation> annotations,
-//            final Env<AttrContext> localEnv,
-//            final Symbol s) {
-//        annotateLaterConditional(annotations,localEnv,s);
-//    }
-
-    
-    /** This inherited method is overridden to do an automatic import of org.jmlspecs.lang.* */
-//    @Override
-//    public void visitTopLevel(JCTree.JCCompilationUnit tree) {
-//        if (tree.starImportScope.elems == null) { // Check if already done
-//            super.visitTopLevel(tree);
-//            // Import-on-demand org.jmlspecs.lang.
-//            importAll(tree.pos, ClassReader.instance(context).enterPackage(org_jmlspecs_lang), env);
-//        }
+//        return null;
 //    }
     
+    
+     
     /** Set in visitiMethodDef so that all chlidren can know which method they are part of */
     JmlMethodDecl currentMethod = null;
     
-    @Override 
-    public void visitMethodDef(JCMethodDecl tree) {
-        JmlMethodDecl prevMethod = currentMethod; // FIXME - why do we need to stack calls?
-        currentMethod = (JmlMethodDecl) tree;
-//        boolean prevAllowJml = resolve.allowJML();
-//        boolean isJMLMethod = utils.isJML(tree.mods);
-        try {
-            super.visitMethodDef(tree);
-
-            if (currentMethod.specsDecl == null) currentMethod.specsDecl = currentMethod; // FIXME - why is this not already set?
-            var ms = currentMethod.specsDecl.methodSpecsCombined = new JmlSpecs.MethodSpecs(currentMethod.specsDecl);
-            currentMethod.specsDecl.sym = tree.sym;
-            if (tree.sym != null) JmlSpecs.instance(context).putSpecs(tree.sym, ms);
-            ms.env = methodEnv(tree, env);
-        } finally {
-//            if (isJMLMethod) resolve.setAllowJML(prevAllowJml);
-            currentMethod = prevMethod;
-        }
-        
-    }
-
-    
-//    public void visitMethodDef(JCMethodDecl tree, ClassSymbol owner) {
-//        JmlMethodDecl prevMethod = currentMethod;
-//        currentMethod = (JmlMethodDecl)tree;
-//        boolean prevAllowJml = resolve.allowJML();
-//        long flags = tree.mods.flags;
-//        boolean isJMLMethod = utils.isJML(flags);
+//    @Override 
+//    public void visitMethodDef(JCMethodDecl tree) {
+//        JmlMethodDecl prevMethod = currentMethod; // FIXME - why do we need to stack calls?
+//        currentMethod = (JmlMethodDecl) tree;
+////        boolean prevAllowJml = resolve.allowJML();
+////        boolean isJMLMethod = utils.isJML(tree.mods);
 //        try {
-//            boolean isSpecFile = currentMethod.sourcefile == null || currentMethod.sourcefile.getKind() != JavaFileObject.Kind.SOURCE;
-////            boolean isClassModel = ((JmlAttr)attr).isModel(env.enclClass.mods);
-//            if (isSpecFile && tree.sym != null) return; //Sometimes this is called when the method already is entered
-//            if (isJMLMethod) resolve.setAllowJML(true);
 //            super.visitMethodDef(tree);
-//            visitMethodDefBinary(tree);
+//
+//            if (currentMethod.specsDecl == null) currentMethod.specsDecl = currentMethod; // FIXME - why is this not already set?
+//            var ms = currentMethod.specsDecl.methodSpecsCombined = new JmlSpecs.MethodSpecs(currentMethod.specsDecl);
+//            currentMethod.specsDecl.sym = tree.sym;
+//            if (tree.sym != null) JmlSpecs.instance(context).putSpecs(tree.sym, ms);
+//            ms.env = methodEnv(tree, env);
 //        } finally {
-//            if (isJMLMethod) resolve.setAllowJML(prevAllowJml);
+////            if (isJMLMethod) resolve.setAllowJML(prevAllowJml);
 //            currentMethod = prevMethod;
 //        }
+//        
 //    }
 
-    // This is a duplicate of super.vistMethodDef -- with some stuff elided for handling specs of binarys
-    public void visitMethodDefBinary(JCMethodDecl tree) {
-        WriteableScope enclScope = enter.enterScope(env);
-        MethodSymbol m = new MethodSymbol(0, tree.name, null, enclScope.owner);
-        m.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, m, tree);
-        tree.sym = m;
 
-        //if this is a default method, add the DEFAULT flag to the enclosing interface
-        if ((tree.mods.flags & DEFAULT) != 0) {
-            m.enclClass().flags_field |= DEFAULT;
-        }
-
-        Env<AttrContext> localEnv = methodEnv(tree, env);
-
-        DiagnosticPosition prevLintPos = deferredLintHandler.setPos(tree.pos());
-        try {
-            // Compute the method type
-            m.type = signature(m, tree.typarams, tree.params,
-                               tree.restype, tree.recvparam,
-                               tree.thrown,
-                               localEnv);
-        } finally {
-            deferredLintHandler.setPos(prevLintPos);
-        }
-
-        if (types.isSignaturePolymorphic(m)) {
-            m.flags_field |= SIGNATURE_POLYMORPHIC;
-        }
-
-        // Set m.params
-        ListBuffer<VarSymbol> params = new ListBuffer<VarSymbol>();
-        JCVariableDecl lastParam = null;
-        for (List<JCVariableDecl> l = tree.params; l.nonEmpty(); l = l.tail) {
-            JCVariableDecl param = lastParam = l.head;
-            params.append(Assert.checkNonNull(param.sym));
-        }
-        m.params = params.toList();
-
-        // mark the method varargs, if necessary
-        if (lastParam != null && (lastParam.mods.flags & Flags.VARARGS) != 0)
-            m.flags_field |= Flags.VARARGS;
-
-        localEnv.info.scope.leave();
-        boolean prevCheck = ((JmlCheck)chk).noDuplicateWarn;
-        ((JmlCheck)chk).noDuplicateWarn = true;
-        if (chk.checkUnique(tree.pos(), m, enclScope)) {
-            // Not a duplicate - OK if the declaration is JML - if not, then ignore it
-            if (!utils.isJML(m.flags())) {
-                // This is an error, but it is reported later
-                //utils.error(((JmlMethodDecl)tree).sourcefile, tree, "jml.no.method.match", enclScope.owner.flatName() + "." + m);
-            } else {
-                enclScope.enter(m);
-            }
-        } else {
-            // A duplicate - OK if the declaration is not JML
-            if (utils.isJML(m.flags())) {
-                // FIXME
-            }
-        }
-        ((JmlCheck)chk).noDuplicateWarn = prevCheck;
-
-        // FIXME
-//        annotateLater(tree.mods.annotations, localEnv, m, tree.pos());
-//        // Visit the signature of the method. Note that
-//        // TypeAnnotate doesn't descend into the body.
-//        typeAnnotate(tree, localEnv, m, tree.pos());
+//    // This is a duplicate of super.vistMethodDef -- with some stuff elided for handling specs of binarys
+//    public void visitMethodDefBinary(JCMethodDecl tree) {
+//        WriteableScope enclScope = enter.enterScope(env);
+//        MethodSymbol m = new MethodSymbol(0, tree.name, null, enclScope.owner);
+//        m.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, m, tree);
+//        tree.sym = m;
 //
-//        if (tree.defaultValue != null)
-//            annotateDefaultValueLater(tree.defaultValue, localEnv, m);
-    }
+//        //if this is a default method, add the DEFAULT flag to the enclosing interface
+//        if ((tree.mods.flags & DEFAULT) != 0) {
+//            m.enclClass().flags_field |= DEFAULT;
+//        }
+//
+//        Env<AttrContext> localEnv = methodEnv(tree, env);
+//
+//        DiagnosticPosition prevLintPos = deferredLintHandler.setPos(tree.pos());
+//        try {
+//            // Compute the method type
+//            m.type = signature(m, tree.typarams, tree.params,
+//                               tree.restype, tree.recvparam,
+//                               tree.thrown,
+//                               localEnv);
+//        } finally {
+//            deferredLintHandler.setPos(prevLintPos);
+//        }
+//
+//        if (types.isSignaturePolymorphic(m)) {
+//            m.flags_field |= SIGNATURE_POLYMORPHIC;
+//        }
+//
+//        // Set m.params
+//        ListBuffer<VarSymbol> params = new ListBuffer<VarSymbol>();
+//        JCVariableDecl lastParam = null;
+//        for (List<JCVariableDecl> l = tree.params; l.nonEmpty(); l = l.tail) {
+//            JCVariableDecl param = lastParam = l.head;
+//            params.append(Assert.checkNonNull(param.sym));
+//        }
+//        m.params = params.toList();
+//
+//        // mark the method varargs, if necessary
+//        if (lastParam != null && (lastParam.mods.flags & Flags.VARARGS) != 0)
+//            m.flags_field |= Flags.VARARGS;
+//
+//        localEnv.info.scope.leave();
+//        boolean prevCheck = ((JmlCheck)chk).noDuplicateWarn;
+//        ((JmlCheck)chk).noDuplicateWarn = true;
+//        if (chk.checkUnique(tree.pos(), m, enclScope)) {
+//            // Not a duplicate - OK if the declaration is JML - if not, then ignore it
+//            if (!utils.isJML(m.flags())) {
+//                // This is an error, but it is reported later
+//                //utils.error(((JmlMethodDecl)tree).sourcefile, tree, "jml.no.method.match", enclScope.owner.flatName() + "." + m);
+//            } else {
+//                enclScope.enter(m);
+//            }
+//        } else {
+//            // A duplicate - OK if the declaration is not JML
+//            if (utils.isJML(m.flags())) {
+//                // FIXME
+//            }
+//        }
+//        ((JmlCheck)chk).noDuplicateWarn = prevCheck;
+//
+//        // FIXME
+////        annotateLater(tree.mods.annotations, localEnv, m, tree.pos());
+////        // Visit the signature of the method. Note that
+////        // TypeAnnotate doesn't descend into the body.
+////        typeAnnotate(tree, localEnv, m, tree.pos());
+////
+////        if (tree.defaultValue != null)
+////            annotateDefaultValueLater(tree.defaultValue, localEnv, m);
+//    }
 
     
-//    public void visitBlock(JCTree.JCBlock that) {
-//        super.visitBlock(that);
-//        if (inSpecFile && currentMethod == null && !utils.isJML(currentClass.mods)) {
-//            // initializer block is not allowed in a specification, unless it is a model class
-//            log.error(that.pos,"jml.initializer.block.allowed");
-//        }
-//    }
-        
-//    // TODO - review this
-//    // Duplicated from MemberEnter because it is declared private
-//    protected void importAll(int pos,
-//            final TypeSymbol tsym,
-//            Env<AttrContext> env) {
-////      Check that packages imported from exist (JLS ???).
-//        if (tsym.kind == PCK && tsym.members().elems == null && !tsym.exists()) {
-////          If we can't find java.lang, exit immediately.
-//            if (((PackageSymbol)tsym).fullname.equals(Names.instance(context).java_lang)) {
-//                JCDiagnostic msg = JCDiagnostic.fragment("fatal.err.no.java.lang");
-//                throw new FatalError(msg);
-//            } else {
-//                log.error(pos, "doesnt.exist", tsym);
-//            }
-//        }
-//        final Scope fromScope = tsym.members();
-//        final Scope toScope = env.toplevel.starImportScope;
-//        for (Scope.Entry e = fromScope.elems; e != null; e = e.sibling) {
-//            if (e.sym.kind == TYP && !toScope.includes(e.sym))
-//                toScope.enter(e.sym, fromScope);
-//        }
-//    }
 
-    /** We override the superclass method in order to add the symbol for 'this'
-     * into the environment for an interface.  The javac tool does not because
-     * there is never a need - all expressions are static.  However, I have not
-     * done the same for super.  (TODO)
-     */
-//    @Override  // FIXME
-    public void complete(Symbol sym) throws CompletionFailure {
-        
-//        JmlResolve jresolve = JmlResolve.instance(context);
-//        boolean prevAllowJML = jresolve.setAllowJML(utils.isJML(sym.flags()));
-//        try {
-//            Env<AttrContext> env = enter.typeEnvs.get(sym.type.tsym);
-//            if (env == null) {
-//                log.error("jml.internal","JmlMemberEnter.complete called with a null env, presumably from a binary class, which should not be the argument of this complete call: " + sym);
-//                return;
-//            }
-//            super.complete(sym); // FIXME - not sure this should be called for binary classes
-//            // If this is a specification file then remove any automatically generated constructor
-//            if (env.tree instanceof JmlClassDecl) {
-//                JmlClassDecl jmltree = (JmlClassDecl)env.tree;
-//                if (jmltree.toplevel != null && jmltree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY && !utils.isJML(jmltree)) {
-//                    if (jmltree.defs.head instanceof JmlMethodDecl) {
-//                        JmlMethodDecl md = (JmlMethodDecl)jmltree.defs.head;
-//                        if ((md.getModifiers().flags & Flags.GENERATEDCONSTR) != 0) {
-//                            jmltree.defs = jmltree.defs.tail;
-//                        }
-//                    }
-//                    for (JCTree t : jmltree.defs) {
-//                        if (t instanceof JmlClassDecl) {
-//                            ClassSymbol cs = ((JmlClassDecl)t).sym;
-//                            if (cs == null) continue;
-//                            // OPENJML - Type parameters are not resolved/entered
-//                            List<Symbol.TypeVariableSymbol> tp = cs.getTypeParameters();
-//                            if (tp != null && !tp.isEmpty()) continue;
-//                            // OPENJML - these do not work yet
-//                            //if (cs.toString().endsWith("Subset")) continue;
-//                            //if (cs.toString().endsWith("UnicodeBlock")) continue;
-//                            //if (cs.toString().endsWith("Arn.Builder")) continue;
-//                            complete(cs);
-//                        }
-//                    }
-//                }
-//            }
-//            
-//            // FIXME - this might already be done?
-//            // If this is an interface, enter symbol for this into
-//            // current scope.
-//            ClassSymbol c = (ClassSymbol)sym;
-//            if ((c.flags_field & INTERFACE) == INTERFACE) {
-//                VarSymbol thisSym =
-//                        new VarSymbol(FINAL | HASINIT, Names.instance(context)._this, c.type, c);
-//                thisSym.pos = Position.FIRSTPOS;
-//                env.info.scope.enter(thisSym);
-//            }
-//        } finally {
-//            jresolve.setAllowJML(prevAllowJML);
-//        }
-
-    }
     
     
     /** True when we are processing declarations within a model type; false
@@ -1999,98 +1326,15 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         Symbol sym = tree.sym;
  //       if (specs.getSpecs(tree.sym) != null) utils.warning("jml.internal","Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
         JmlVariableDecl jtree = (JmlVariableDecl)tree;
-//        
-//        // FIXME - the following duplicates setting the specs with matchAndSetFieldSpecs - but if there is a source file, this comes first
-//        JmlSpecs.FieldSpecs fspecs = jtree.fieldSpecs;
-//        if (fspecs == null) fspecs = new JmlSpecs.FieldSpecs(jtree); // Does not include any in or maps clauses
-//        jtree.fieldSpecsCombined = fspecs; 
-//        specs.putSpecs(tree.sym,fspecs);
-//        if (sym.kind == VAR && sym.owner.kind == TYP && (sym.owner.flags_field & INTERFACE) != 0
-//                && utils.isJML(tree.mods)) {
-//            // In the case of a JML ghost variable that is a field of an interface, the default is static and not final
-//            // (unless explicitly specified final)
-//            // FIXME _ the following is not robust because annotations are not attributed yet - test these as well
-//            boolean isInstance = ((JmlAttr)attr).isInstance(tree.mods);
-//            //boolean isGhost = JmlAttr.instance(context).findMod(tree.mods,JmlToken.GHOST) != null;
-//            //boolean isModel = JmlAttr.instance(context).findMod(tree.mods,JmlToken.MODEL) != null;
-//            if (isInstance) tree.sym.flags_field &= ~Flags.STATIC;  // FIXME - this duplicates JmlCheck
-//            if (!wasFinal) sym.flags_field &= ~FINAL; 
-//        }
     }
     
     protected void visitFieldDefHelper(JCVariableDecl tree, VarSymbol v, WriteableScope enclScope, Env<AttrContext> env, List<JCAnnotation> annotations) {
-//        if (chk.checkUnique(tree.pos(), v, enclScope)) {
-//            chk.checkTransparentVar(tree.pos(), v, enclScope);
-//            if (!noEntering) enclScope.enter(v);
-//        } else {
-//            // A duplicate definition. It is not entered into the scope, but we
-//            // give it its symbol so later processing does not crash.
-//            tree.sym = v;
-//        }
        	if (tree.sym.owner instanceof ClassSymbol && tree != ((JmlVariableDecl)tree).specsDecl) {
     		annotations = annotations.appendList(((JmlVariableDecl)tree).specsDecl.mods.annotations);
     	}
     	super.visitFieldDefHelper(tree, v, enclScope, env, annotations);
     }    
     
-//    protected void enterSpecsForBinaryFields(ClassSymbol parent, JmlVariableDecl specstree) {
-//        Name nm = specstree.name;
-//        boolean isJML = utils.isJML(specstree.mods);
-//        boolean isModel = isJML && utils.findMod(specstree.mods, Modifiers.MODEL) != null;
-//        boolean isGhost = isJML && utils.findMod(specstree.mods, Modifiers.GHOST) != null;
-//
-//        Iterator<Symbol> e = parent.members().getSymbolsByName(nm).iterator(); // Presume there is just one declaration with a matching name, 
-//                                                     // or at least, that the first one to match is the one we want.
-//        Symbol.VarSymbol vsym = null;
-//        if (e.hasNext()) {
-//        	Symbol s = e.next();
-//            vsym = s instanceof Symbol.VarSymbol ? (Symbol.VarSymbol)s : null;
-//            specstree.sym = vsym;
-//            // There is no match of a declaration in the specs file to the Java class
-//            // isJML --> OK, but it should be model or ghost (which is checked in JmlAttr.checkVarMods)
-//            // !isJML --> error - but we treat it as model or ghost
-//            if (!isJML) {
-//                JavaFileObject prev = log.currentSourceFile();
-//                log.useSource(specstree.source());
-//                log.error(specstree.pos,"jml.no.var.match",nm.toString());
-//                log.useSource(prev);
-//            }
-//            Env<AttrContext> prevenv = env;
-//            try {
-//                env = enter.typeEnvs.get(parent);
-//                visitVarDef(specstree);
-//            } finally {
-//                env = prevenv;
-//            }
-//            if (specstree.sym == null) utils.error(specstree, "jml.internal", "Failed to set a variable declaration symbol as expected");
-////            JmlSpecs.instance(context).putSpecs(specstree.sym, specstree.fieldSpecsCombined);
-//            vsym = specstree.sym;
-//        }
-//        checkFieldMatch(null, specstree.sym, specstree);
-//        
-//        long flags = specstree.mods.flags;
-//        boolean wasFinal = (flags&Flags.FINAL) != 0;
-//        boolean wasStatic = (flags&Flags.STATIC) != 0;
-//        if ((parent.flags() & INTERFACE) != 0  && utils.isJML(specstree.mods)) {
-//            // FIXME - but the @Instance declaration might be in the .jml file
-//            boolean isInstance = JmlAttr.instance(context).findMod(specstree.mods, Modifiers.INSTANCE) != null;
-//            if (isInstance && !wasStatic) specstree.mods.flags &= ~Flags.STATIC;
-//        }
-//        if (specs.getSpecs(specstree.sym) != null) utils.warning("jml.internal","Expected null field specs here (A): " + specstree.sym.owner + "." + specstree.sym);
-//        specs.putSpecs(specstree.sym,new JmlSpecs.FieldSpecs(specstree)); // This specs only has modifiers - field spec clauses are added later (FIXME - where? why not here?)
-//
-//        if (vsym.kind == VAR && vsym.owner.kind == TYP && (vsym.owner.flags_field & INTERFACE) != 0
-//                && isJML) {
-//            // In the case of a JML ghost variable that is a field of an interface, the default is static and not final
-//            // (unless explicitly specified final)
-//            // FIXME _ the following is not robust because annotations are not attributed yet - test these as well
-//            boolean isInstance = utils.findMod(specstree.mods,Modifiers.INSTANCE) != null;
-//            if (isInstance && !wasStatic) specstree.sym.flags_field &= ~Flags.STATIC;  // FIXME - this duplicates JmlCheck
-//            if (!wasFinal) vsym.flags_field &= ~FINAL; 
-//        }
-//        
-//        
-//    }
     
     // FIXME - ressurrect these checks and corresponding tests
 

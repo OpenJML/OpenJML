@@ -1155,14 +1155,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         JmlSpecs.TypeSpecs toPrint = specsToPrint;
         specsToPrint = null;
         super.printStats(stats);
-        if (toPrint != null && (!toPrint.clauses.isEmpty() || !toPrint.decls.isEmpty())) {
+        if (toPrint != null && !toPrint.clauses.isEmpty()) {
             align(); print("// JML specifications"); println();
             for (JmlTypeClause t: toPrint.clauses) {
-                align();
-                t.accept(this);
-                println();
-            }
-            for (JmlTypeClause t: toPrint.decls) {
                 align();
                 t.accept(this);
                 println();

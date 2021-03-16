@@ -123,7 +123,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 	            if (ms != null) {
 	                scan(ms.modifiers);
 	                scan(ms.clauses);
-	                scan(ms.decls);
+	                //scan(ms.decls);
 	            } else {
 	                // FIXME - why does this happen: System.out.println("No specs found for " + that.name);
 	            }
@@ -132,7 +132,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 	            JmlSpecs.TypeSpecs ms = that.typeSpecs;
 	            // already done - scan(ms.modifiers);
 	            if (ms != null) scan(ms.clauses);
-	            if (ms != null) scan(ms.decls);
+	            //if (ms != null) scan(ms.decls);
 	        }
 		} finally {
 			if (context != null) Log.instance(context).useSource(prev);
