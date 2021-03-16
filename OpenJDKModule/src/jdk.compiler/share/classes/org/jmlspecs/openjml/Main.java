@@ -11,55 +11,24 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Properties;
 
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.esc.MethodProverSMT;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.comp.*;
 import com.sun.tools.javac.file.JavacFileManager;
-import com.sun.tools.javac.main.CommandLine;
 import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.main.JmlCompiler;
-import com.sun.tools.javac.main.Option;
-import com.sun.tools.javac.main.Main.Result;
 import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlScanner;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCAssign;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCNewArray;
 import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.JavacMessages;
-import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
-import com.sun.tools.javac.util.Name;
-import com.sun.tools.javac.util.Names;
-import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Options;
 
 /**
@@ -318,6 +287,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         		System.exit(3);
         	}
         } else {
+    		if (Utils.debug()) try { System.out.println(new File(Main.class.getProtectionDomain().getCodeSource().getLocation()
+        			.toURI()).getPath());
+    		} catch (Exception e) { System.out.println(e); }
+
             System.exit(execute(args, false));  // The boolean: true - errors to stdErr, false - errors to stdOut
         }
     }

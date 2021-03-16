@@ -536,7 +536,7 @@ public class JmlEnter extends Enter {
 		if (jdecl.extending != null) {
 			Type t = jdecl.extending.type = JmlAttr.instance(context).attribType(jdecl.extending, specsEnv);
 			if (!JmlTypes.instance(context).isSameType(t, csym.getSuperclass())) {
-				utils.error(jdecl.extending, "jml.message", "Supertype in specification differs from supertype in source/binary: " + t + " " + csym.getSuperclass());
+				utils.error(jdecl.extending, "jml.message", "Supertype in specification differs from supertype in source/binary: " + csym + " " + t + " " + csym.getSuperclass() + " " + owner + " " + jdecl);
 			}
 		} else if (!csym.isInterface()) {
 			// jdecl has no declared supertype so either 
@@ -799,13 +799,13 @@ public class JmlEnter extends Enter {
     }
 
     
-    protected JCExpression findPackageDef(JCCompilationUnit that) {
-    	for (var tree: that.defs) {
-    		if (tree instanceof JCPackageDecl) return ((JCPackageDecl)tree).pid;
-    	}
-    	return null;
-    }
-
+//    protected JCExpression findPackageDef(JCCompilationUnit that) {
+//    	for (var tree: that.defs) {
+//    		if (tree instanceof JCPackageDecl) return ((JCPackageDecl)tree).pid;
+//    	}
+//    	return null;
+//    }
+//
 
     
 
@@ -866,18 +866,8 @@ public class JmlEnter extends Enter {
 
     private int nestingLevel = 0;
     
-    /** Parses and enters specs for binary classes, given a ClassSymbol.  This is 
-     * called when a name is resolved to a binary type; the Java type itself is
-     * loaded (and symbols entered) by the conventional Java means.  Here we need
-     * to add to that by parsing the specs and entering any new declarations
-     * into the scope tables.
-     * 
-     * Note that a class can be loaded (and then this method called to get specs) whenever
-     * a type is attributed, and txype attribution happens during spec loading, 
-     * so spec requests can be recursive, hence the todo list to avoid that.
-     * 
-     * If ever a Java file is loaded by conventional means and gets its
-     * source file through parsing, the specs will be obtained at that time, and not here.
+    /** Queues a class for loading specs. Once loaded, JmlSpecs contains the specs for each class, method,
+     * and field, but they are not yet attributed. This is called to load specs for either binarh or source classes.
      * 
      * @param csymbol the class whose specs are wanted
      */
@@ -888,7 +878,7 @@ public class JmlEnter extends Enter {
     	JmlSpecs.SpecsStatus tsp = JmlSpecs.instance(context).status(csymbol);
     	if (tsp.less(JmlSpecs.SpecsStatus.QUEUED)) {
     		requestSpecsForSelfAndParents(csymbol);
-    	} else {
+    	} else if (utils.verbose()) {
     		if (tsp == JmlSpecs.SpecsStatus.QUEUED) utils.note(true,"Requesting specs " + csymbol + ", but specs already in progress");
     		else                                    utils.note(true,"Requesting specs " + csymbol + ", but specs already loaded or attributed");
     	}
@@ -905,7 +895,6 @@ public class JmlEnter extends Enter {
     			// since complete() may be called on the class in order to fetch its superclass,
     			// or during the loading of any other class that happens to mention the type.
     			// So we recheck here, before reentering the class in the todo list
-    			// The presence of specs is a marker of intention to load, but not that they are yet loaded
     			if (JmlSpecs.instance(context).status(csymbol) != JmlSpecs.SpecsStatus.NOT_LOADED) return;
 
     			// Classes are prepended to the todo list in reverse order, so that parent classes
@@ -943,7 +932,13 @@ public class JmlEnter extends Enter {
     	JmlSpecs specs = JmlSpecs.instance(context);
     	while (!binaryEnterTodo.isEmpty()) {
     		ClassSymbol csymbol = binaryEnterTodo.remove();
-    		utils.note(true,"Dequeued to enter specs: " + csymbol + " " + specs.status(csymbol));
+    		// Specs may be loaded here for either source or binary classes.
+    		// We can tell the difference by (a) whether a env has been stored (on entering the source)
+    		// or whether csymbol.sourcefile is a ClassReader.SourceFileObject or something else.
+			var sourceEnv = getEnv(csymbol);
+			JmlCompilationUnit javaCU = sourceEnv == null ? null : (JmlCompilationUnit)sourceEnv.toplevel;
+			JmlClassDecl javaDecl = sourceEnv == null ? null : (JmlClassDecl)sourceEnv.tree;
+			if (utils.verbose()) utils.note("Dequeued to enter specs: " + csymbol + " " + specs.status(csymbol) + " " + (sourceEnv==null?"(binary)":"(source)"));
 //    		if (csymbol.type instanceof Type.ErrorType) {
 //        		continue; // A bad type causes crashes later on
 //    		}
@@ -955,7 +950,7 @@ public class JmlEnter extends Enter {
     		try {
     			JmlCompilationUnit speccu = JmlCompiler.instance(context).parseSpecs(csymbol);
     			if (speccu != null) {
-    				speccu.sourceCU = null; // Indicates a binary + specs file
+    				speccu.sourceCU = javaCU; // null indicates a binary; non-null a source Java file
     				specsEnter(speccu);
     			} else {
     				// No specs, or error?
@@ -963,7 +958,7 @@ public class JmlEnter extends Enter {
     				utils.note(true, "No specs for " + csymbol);
     			}
     		} finally {
-				utils.note(true, "Completed entering specs for " + csymbol);
+				if (utils.verbose()) utils.note("Completed entering specs for " + csymbol + (javaCU==null?" (binary)":(" (" + javaCU.sourcefile + ")")));
     			nestingLevel--;
     		}
     	}
