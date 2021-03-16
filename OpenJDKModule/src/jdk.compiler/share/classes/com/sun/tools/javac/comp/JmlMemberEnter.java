@@ -1305,13 +1305,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JavaFileObject prevSource = log.useSource( ((JmlVariableDecl)tree).source());
         super.visitVarDef(tree);
         
-        if (tree.sym.owner instanceof ClassSymbol) {
-        	// local variables and parameters do not have entries in specs
-        	var jtree = (JmlVariableDecl)tree;
-        	var fs = jtree.specsDecl.fieldSpecs;
-        	((JmlVariableDecl)tree).specsDecl.sym = tree.sym;
-        	if (tree.sym != null) JmlSpecs.instance(context).putSpecs(tree.sym, fs);
-        }
+//        if (tree.sym.owner instanceof ClassSymbol) {
+//        	// local variables and parameters do not have entries in specs
+//        	var jtree = (JmlVariableDecl)tree;
+//        	var fs = jtree.specsDecl.fieldSpecs;
+//        	((JmlVariableDecl)tree).specsDecl.sym = tree.sym;
+//        	if (tree.sym != null) JmlSpecs.instance(context).putSpecs(tree.sym, fs);
+//        }
         log.useSource(prevSource);
 
 
@@ -1329,7 +1329,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
     
     protected void visitFieldDefHelper(JCVariableDecl tree, VarSymbol v, WriteableScope enclScope, Env<AttrContext> env, List<JCAnnotation> annotations) {
-       	if (tree.sym.owner instanceof ClassSymbol && tree != ((JmlVariableDecl)tree).specsDecl) {
+       	if (tree.sym.owner instanceof ClassSymbol && tree != ((JmlVariableDecl)tree).specsDecl && null != ((JmlVariableDecl)tree).specsDecl) {
     		annotations = annotations.appendList(((JmlVariableDecl)tree).specsDecl.mods.annotations);
     	}
     	super.visitFieldDefHelper(tree, v, enclScope, env, annotations);

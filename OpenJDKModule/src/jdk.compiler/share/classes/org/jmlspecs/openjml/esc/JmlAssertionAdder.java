@@ -4513,7 +4513,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         // For JML fields
-        for (JCTree dd: classDecl.typeSpecs.clauses) {
+        for (JCTree dd: specs.getSpecs((ClassSymbol)csym).clauses) {
             if (!(dd instanceof JmlTypeClauseDecl)) continue;
             JCTree t = ((JmlTypeClauseDecl)dd).decl;
             if (!(t instanceof JCVariableDecl)) continue;
