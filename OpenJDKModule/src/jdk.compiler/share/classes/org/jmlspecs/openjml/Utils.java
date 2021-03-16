@@ -1640,6 +1640,10 @@ public class Utils {
     	}
     }
 
+    public void note(String msg) {
+    	note(null, "jml.message", msg);
+    }
+
     public void note(DiagnosticPosition pos, String key, Object ... args) {
         log().note(pos, JCDiagnostic.Factory.instance(context).noteKey(key, args));
     }
