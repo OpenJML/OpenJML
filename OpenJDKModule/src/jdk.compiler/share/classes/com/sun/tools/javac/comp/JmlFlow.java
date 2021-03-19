@@ -211,7 +211,12 @@ public class JmlFlow extends Flow  {
         
         @Override
         public void visitJmlVariableDecl(JmlVariableDecl that) {
+        	try {
             visitVarDef(that);
+        	} catch (Exception e) {
+        		System.out.println("Exception visiting " + that);
+        		throw e;
+        	}
         }
 
         @Override

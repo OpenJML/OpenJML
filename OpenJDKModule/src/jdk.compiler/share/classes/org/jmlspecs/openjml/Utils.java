@@ -1699,6 +1699,10 @@ public class Utils {
     	return jmlverbose >= Utils.JMLVERBOSE;
     }
     
+    public boolean progress() {
+    	return jmlverbose >= Utils.PROGRESS;
+    }
+    
     public static void dumpStack() {
     	new RuntimeException().printStackTrace(System.out);
     }

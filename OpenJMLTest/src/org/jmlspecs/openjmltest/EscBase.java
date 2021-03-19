@@ -204,7 +204,8 @@ public abstract class EscBase extends JmlTestCase {
     		PrintWriter pw = new PrintWriter(actCompile);
     		int ex = -1;
     		try {
-    			ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
+//    			ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
+    			//ex = com.sun.tools.javac.Main.compile(args.toArray(new String[args.size()]),pw);
     		} finally {
     			pw.close();
     		}
@@ -245,7 +246,7 @@ public abstract class EscBase extends JmlTestCase {
     		PrintWriter pw = new PrintWriter(actCompile);
     		int ex = -1;
     		try {
-    			ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
+    			ex = compile(args);
     		} finally {
     			pw.close();
     		}
@@ -311,34 +312,35 @@ public abstract class EscBase extends JmlTestCase {
             String filename2 = classname2.replace(".","/")+".java";
             JavaFileObject f2 = new TestJavaFileObject(filename2,s2);
             Log.instance(context).useSource(f);
-            helpTCXB(List.of(f,f2),list);
+//            helpTCXB(List.of(f,f2),list);
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
         }
     }
 
-    protected void helpTCX(String classname, String s, Object... list) {
+    protected void helpTCX(String classname, String s, Object... expectedResults) {
         try {
             String filename = classname.replace(".","/") +".java";  // FIXME - I think this string should be prefixed with $A/ 
             JavaFileObject f = new TestJavaFileObject(filename,s);
             Log.instance(context).useSource(f);
-            helpTCXB(List.of(f),list);
+            java.util.List<String> allargs = Arrays.asList(args);
+            allargs.add(filename);
+            helpTCXB(allargs,expectedResults);
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
         }
     }
 
-    protected void helpTCXB(List<JavaFileObject> files, Object... list) {
+    protected void helpTCXB(java.util.List<String> allargs, Object... expectedResults) {
         try {
-            for (JavaFileObject f: mockFiles) files = files.append(f);
             
-            int ex = main.compile(args, null, context, files, null).exitCode;
+            int ex = compile(allargs);
             if (captureOutput) collectOutput(false);
             
             if (print) printDiagnostics();
-            outputCompare.compareResults(list,collector);
+            outputCompare.compareResults(expectedResults,collector);
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
 
         } catch (Exception e) {

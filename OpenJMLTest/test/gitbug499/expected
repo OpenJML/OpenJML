@@ -7,13 +7,14 @@ test/gitbug499/Interval.java:64: error: Incorrectly formed or terminated JML con
 test/gitbug499/Interval.java:65: error: illegal start of type
     }
     ^
-test/gitbug499/Interval.java:65: error: ';' expected
-    }
-     ^
-Continuing bravely despite parsing errors
-test/gitbug499/Interval.java:67: error: size() in Interval cannot implement size() in IntSet
+test/gitbug499/Interval.java:67: error: class, interface, enum, or record expected
     public /*@ pure @*/ int size() {
-                            ^
-  attempting to assign weaker access privileges; was public
+                        ^
+test/gitbug499/Interval.java:69: error: class, interface, enum, or record expected
+    }
+    ^
+test/gitbug499/Interval.java:1: error: Interval is not abstract and does not override abstract method size() in IntSet
+public class Interval implements IntSet {
+       ^
 Operation not performed because of parse or type errors
-5 errors
+6 errors

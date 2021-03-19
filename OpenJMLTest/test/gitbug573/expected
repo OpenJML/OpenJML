@@ -9,8 +9,8 @@ test/gitbug573/pckg/A.java:8: warning: The prover cannot establish an assertion 
 	  return 0;
 	  ^
 test/gitbug573/pckg/A.jml:5: warning: Associated declaration
-	//@ensures \result == 1;
-	   ^
+	//@ ensures \result == 1;
+	    ^
 Completed proof of pckg.A.test() with prover !!!! - with warnings
 Completed proving methods in pckg.A
 3 warnings

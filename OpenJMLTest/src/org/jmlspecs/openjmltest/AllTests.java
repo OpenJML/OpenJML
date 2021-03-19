@@ -46,6 +46,7 @@ public class AllTests {
             for (File f: dirs) {
                 String nm = f.getName();
                 if (!nm.endsWith(".java")) continue;
+                if (!nm.endsWith("escfiles.java")) continue;
                 nm = "org.jmlspecs.openjmltest.testcases." + nm.substring(0, nm.length()-5);
                 try {
                     suite.addTest(new junit.framework.JUnit4TestAdapter(Class.forName(nm)));

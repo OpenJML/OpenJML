@@ -767,7 +767,13 @@ public class JmlSpecs {
      */
     //@ nullable
     public JavaFileObject findSpecFile(ClassSymbol classSym) {
-        return findAnySpecFile(classSym.fullname.toString());
+        String s = classSym.toString().replace('.','/');
+        String suffix = Strings.specsSuffix; 
+        for (Dir dir: getSpecsPath()) {
+        	JavaFileObject j = dir.findFile(s + suffix);
+        	if (j != null) return j;
+        }
+        return null;
     }
     
     /** Finds the first specification file (if any) for the given class.  It
@@ -934,7 +940,7 @@ public class JmlSpecs {
         spec.csymbol = type;
         specsmap.put(type,spec);
         specsStatus.put(type, SpecsStatus.SPECS_LOADED);
-        utils.note(true,"      Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
+        if (utils.verbose()) utils.note("      Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
     public void removeSpecs(ClassSymbol type) {
@@ -949,7 +955,7 @@ public class JmlSpecs {
     public void putSpecs(MethodSymbol m, MethodSpecs spec, Env<AttrContext> specsEnv) {
     	spec.msym = m;
     	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) log.error("jml.internal", "Specs not yet loaded for " + m.owner + " on attempting to put " + m);
-        utils.note(true, "            Saving method specs for " + m.owner + "." + m );
+        if (utils.verbose()) utils.note("            Saving method specs for " + m.owner + "." + m);
         spec.setEnv(specsEnv);
         get((ClassSymbol)m.owner).methods.put(m,spec);
     }
@@ -962,7 +968,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the block
      */
     public void putSpecs(ClassSymbol csym, JCTree.JCBlock m, MethodSpecs spec) {
-    	utils.note(true,"            Saving initializer block specs " );
+    	if (utils.verbose()) utils.note("            Saving initializer block specs " );
         specsmap.get(csym).blocks.put(m,spec);
     }
     
@@ -974,7 +980,7 @@ public class JmlSpecs {
      */
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
     	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) log.error("jml.internal", "Specs not yet loaded for " + m.owner + " on attempting to put " + m);
-    	utils.note(true,"            Saving field specs for " + m.owner + " " + m);
+    	if (utils.verbose()) utils.note("            Saving field specs for " + m.owner + " " + m);
         getLoadedSpecs((ClassSymbol)m.owner).fields.put(m,spec);
         setStatus(m, SpecsStatus.SPECS_LOADED);
     }
@@ -1009,7 +1015,9 @@ public class JmlSpecs {
     	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
     	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) JmlEnter.instance(context).requestSpecs((ClassSymbol)m.owner);
         TypeSpecs t = specsmap.get(m.owner);
-        return t == null ? null : t.methods.get(m);
+        var ms = t == null ? null : t.methods.get(m);
+        if (ms == null && utils.verbose()) System.out.println("Null specs returned from getLoadedSpecs for " + m.owner + " " + m);
+        return ms;
     }
     
     /** Returns precisely what is in the current specs data base -- may be null */
@@ -1027,13 +1035,13 @@ public class JmlSpecs {
             // This can happen when -no-internalSpecs is used, probably for a binary class, but it probably shouldn't - specs should be created when the class is laoded - FIXME
             // This can also happen for a method that has no JML declaration or specification in its static class,
             // but does inherit a method (and spec) from a parent class.
-            s = defaultSpecs(null,m,1);  // FIXME - what position should be used
+            s = defaultSpecs(null,m,Position.NOPOS);
             putSpecs(m,s,s.specsEnv);
             s.cases.deSugared = s.cases;
             return s.cases;    // FIXME - this is not actually fully desugared, but we don't have a decl to call deSugarMethodSpecs
         }
         if (s.cases.deSugared == null) {
-            attr.deSugarMethodSpecs(s.cases.decl.sym,s);
+            attr.deSugarMethodSpecs(m,s);
         }
         return s.cases.deSugared;
     }
@@ -1066,8 +1074,8 @@ public class JmlSpecs {
                 // declared and has no specs in a JML file, but does override a method in a 
                 // parent class P. B.m then adds no specification cases.
                 java.util.ListIterator<MethodSymbol> iter = parents.listIterator(parents.size()-1);
-                JmlMethodSpecs parentSpecs = getDenestedSpecs(iter.previous());
-                ms.decl = decl = parentSpecs.decl;
+                MethodSpecs parentSpecs = getLoadedSpecs(iter.previous());
+                ms.decl = decl = parentSpecs == null ? null : parentSpecs.cases.decl;
                 mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>nil();
                 mspecs.cases.deSugared = mspecs.cases;
                 return mspecs;
@@ -1561,6 +1569,7 @@ public class JmlSpecs {
     
     public boolean isNonNull(VarSymbol sym) {
     	//utils.note(true, "ISNONNULL? " + sym + " " + sym.owner + " " + sym.owner.getClass() + " " + sym.enclClass());
+    	if (!sym.type.isReference()) return false;
     	if (sym.owner instanceof ClassSymbol) {
     		JmlModifiers mods = getSpecsModifiers(sym);
         	if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
@@ -1569,14 +1578,14 @@ public class JmlSpecs {
     	} else {
     		// Parameter or local variable
     		// FIXME
-//        	if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
-//        	if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
-//        	return defaultNullity((ClassSymbol)sym.owner) == Modifiers.NON_NULL;
-    		return true;
+    		if (attr.hasAnnotation(sym, Modifiers.NULLABLE)) return false;
+    		if (attr.hasAnnotation(sym, Modifiers.NON_NULL)) return true;
+        	return defaultNullity((ClassSymbol)sym.enclClass()) == Modifiers.NON_NULL;
     	}
     }
     
     public boolean isNonNull(MethodSymbol sym) {
+    	if (!sym.getReturnType().isReference()) return false;
     	JmlModifiers mods = getSpecsModifiers(sym);
     	if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
     	if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
@@ -1584,6 +1593,7 @@ public class JmlSpecs {
     }
     
     public boolean isNonNull(JmlVariableDecl decl) {
+    	if (!decl.type.isReference()) return false;
     	if (decl.sym.owner instanceof ClassSymbol) {
     		return isNonNull(decl.sym);
     	} else {
@@ -1801,7 +1811,7 @@ public class JmlSpecs {
         /** Creates a FieldSpecs object initialized with only the given modifiers */
         public FieldSpecs(JmlVariableDecl decl) { 
             this.decl = decl;
-            this.mods = (JmlModifiers)(decl.specsDecl == null ? decl.mods : decl.specsDecl.mods);
+            this.mods = (JmlModifiers)(decl.mods);
         }
         
         @Override

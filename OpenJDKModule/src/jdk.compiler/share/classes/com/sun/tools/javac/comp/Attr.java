@@ -4994,7 +4994,6 @@ public class Attr extends JCTree.Visitor {
             c.flags_field |= UNATTRIBUTED;
             Env<AttrContext> cenv = enter.classEnv(cd, env);
             typeEnvs.put(c, cenv);
-            if (org.jmlspecs.openjml.Utils.debug()) System.out.println("TYPEENVS-PUT-A " + c + " " + c.hashCode() + " " + (cenv!=null));
             attribClass(c);
             return owntype;
         }
@@ -5313,6 +5312,7 @@ public class Attr extends JCTree.Visitor {
     protected void attribClassBody(Env<AttrContext> env, ClassSymbol c) { // OPENJML - private to protected
         JCClassDecl tree = (JCClassDecl)env.tree;
         Assert.check(c == tree.sym);
+        if (org.jmlspecs.openjml.Utils.debug()) System.out.println("ATTRBCLASSBODY " + c + " " + tree);
 
         // Validate type parameters, supertype and interfaces.
         attribStats(tree.typarams, env);
@@ -5420,6 +5420,7 @@ public class Attr extends JCTree.Visitor {
             // Check type annotations applicability rules
             validateTypeAnnotations(tree, false); // OPENJML - allow skipping body
         }
+        if (org.jmlspecs.openjml.Utils.debug()) System.out.println("ATTRBCLASSBODY-Z " + c + " " + tree);
     }
         // where
         /** get a diagnostic position for an attribute of Type t, or null if attribute missing */

@@ -279,11 +279,15 @@ public class Enter extends JCTree.Visitor {
      *  @param env     The environment visitor argument.
      */
     Type classEnter(JCTree tree, Env<AttrContext> env) {
+    	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCCompilationUnit) System.out.println("Entering " + ((JCCompilationUnit)tree).sourcefile);
+    	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl) System.out.println("Entering " + ((JCClassDecl)tree).name);
         Env<AttrContext> prevEnv = this.env;
         try {
             this.env = env;
             annotate.blockAnnotations();
             tree.accept(this);
+        	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCCompilationUnit) System.out.println("Entered " + ((JCCompilationUnit)tree).sourcefile + " " + result);
+        	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl) System.out.println("Entered " + ((JCClassDecl)tree).name + " " + result);
             return result;
         }  catch (CompletionFailure ex) {
             return chk.completionError(tree.pos(), ex);
@@ -581,9 +585,11 @@ public class Enter extends JCTree.Visitor {
             if (typeEnter.completionEnabled) {
                 while (uncompleted.nonEmpty()) {
                     ClassSymbol clazz = uncompleted.next();
-                    if (c == null || c == clazz || prevUncompleted == null)
+                    if (c == null || c == clazz || prevUncompleted == null) {
+                    	if (org.jmlspecs.openjml.Utils.debug()) System.out.println("Completing class " + clazz);
                         clazz.complete();   // OPENJML - record classes are filled out in this call
-                    else
+                    	if (org.jmlspecs.openjml.Utils.debug()) System.out.println("Completed  class " + clazz);
+                    } else
                         // defer
                         prevUncompleted.append(clazz);
                 }
