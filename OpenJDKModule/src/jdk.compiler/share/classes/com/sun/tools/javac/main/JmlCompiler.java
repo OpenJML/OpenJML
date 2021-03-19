@@ -132,9 +132,9 @@ public class JmlCompiler extends JavaCompiler {
      * @return the possibly null parsed compilation unit, as an AST
      */
     /*@Nullable*/
-    public JmlCompilationUnit parseSpecs(Symbol.TypeSymbol typeSymbol) {
-        String typeName = typeSymbol.flatName().toString();
-        JavaFileObject f = JmlSpecs.instance(context).findAnySpecFile(typeName);
+    public JmlCompilationUnit parseSpecs(Symbol.ClassSymbol typeSymbol) {
+        JavaFileObject f = JmlSpecs.instance(context).findSpecFile(typeSymbol);
+        if (utils.verbose()) utils.note("Found spec " + typeSymbol + " " + f);
         if (f == null) return null;
         /*@Nullable*/ JmlCompilationUnit speccu = (JmlCompilationUnit)parse(f);
         if (speccu == null) return null;
@@ -158,10 +158,8 @@ public class JmlCompiler extends JavaCompiler {
     public  <T> List<T> stopIfError(CompileState cs, List<T> list) {
         if (shouldStop(cs)) {
             if (JmlOption.isOption(context,JmlOption.STOPIFERRORS)) {
-                if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(1,"Stopping because of parsing errors");
+                if (utils.progress()) context.get(Main.IProgressListener.class).report(1,"Stopping because of parsing errors");
                 return List.<T>nil();
-            } else {
-                if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(1,"Continuing bravely despite parsing errors");
             }
         }
         return list;

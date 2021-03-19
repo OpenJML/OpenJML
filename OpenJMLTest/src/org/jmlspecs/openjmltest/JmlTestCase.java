@@ -219,27 +219,42 @@ public abstract class JmlTestCase {
      */
     @Before
     public void setUp() throws Exception {
-        main = new Main("",new PrintWriter(System.out, true),!noCollectDiagnostics?collector:null, null,
-        		"-properties", "../OpenJML/openjml.properties");
-        context = main.context();
-        options = Options.instance(context);
+        main = new org.jmlspecs.openjml.Main("",new PrintWriter(System.out, true));
+        context = main.initialize(!noCollectDiagnostics?collector:null);
+        
+//        ,, null,
+//        		"-properties", "../OpenJML/openjml.properties");
+//        context = main.context();
+//        options = Options.instance(context);
         if (jmldebug) {  // FIXME - this is not the right way to set debugging
-            Utils.instance(context).jmlverbose = Utils.JMLDEBUG; 
+//            Utils.instance(context).jmlverbose = Utils.JMLDEBUG; 
             main.addOptions("-jmlverbose", "4");
         }
         print = false;
         mockFiles = new LinkedList<JavaFileObject>();
-        Log.instance(context).multipleErrors = true;
+        Log.alwaysReport = true;
         //System.out.println("JUnit: Testing " + getName());
     }
-
+    
+    public int compile(com.sun.tools.javac.util.List<String> args) {
+    	return compile(args.toArray(new String[args.size()]));
+    }
+    
+    public int compile(java.util.List<String> args) {
+    	return compile(args.toArray(new String[args.size()]));
+    }
+    
+    public int compile(String ... args) {
+		return main.compile(args, this.context).exitCode;
+    }
+    
     /** Nulls out all the references visible in this class */
     @After
     public void tearDown() throws Exception {
-        context = null;
+//        context = null;
         main = null;
         collector = null;
-        options = null;
+//        options = null;
         specs = null;
     }
 
@@ -289,7 +304,7 @@ public abstract class JmlTestCase {
      * in the arguments.
      * @param a a sequence of expected values, alternating between error message and column numbers
      */
-    public void checkMessages(/*@ nonnullelements */Object ... a) {
+    public void checkMessages(/* nonnullelements */Object ... a) {
         try {
             assertEquals("Wrong number of messages seen",a.length,2*collector.getDiagnostics().size());
             List<Diagnostic<? extends JavaFileObject>> diags = collector.getDiagnostics();
@@ -398,7 +413,7 @@ public abstract class JmlTestCase {
     
     /** Returns the diagnostic message without source location information */
     static String noSource(JCDiagnostic dd) {
-        return dd.noSource();
+        return dd.getPrefix() + ":" + dd.getMessage(java.util.Locale.getDefault());
     }
 
     public static String doReplacements(String s) {

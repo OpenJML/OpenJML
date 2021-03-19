@@ -2,8 +2,8 @@
 // This is the original error report - the stack overflow stems from repeatedly inlining the size() call in the ensures clause
 // Added the nullable and pure modifiers
 public class EntryList {
-    /*@spec_public nullable @*/ Object first;
-    /*@spec_public nullable @*/ EntryList rest;
+    /*@ spec_public nullable @*/ Object first;
+    /*@ spec_public nullable @*/ EntryList rest;
 
     EntryList( /*@ nullable */ Object first,  /*@ nullable */ EntryList rest) {
         this.first = first;

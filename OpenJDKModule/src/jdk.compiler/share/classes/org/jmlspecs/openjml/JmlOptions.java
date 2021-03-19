@@ -342,6 +342,7 @@ public class JmlOptions extends Options {
         Options options = Options.instance(context);
         Utils utils = Utils.instance(context);
 
+        options.remove("printArgsToFile");
         String t = options.get(JmlOption.JMLTESTING.optionName());
         Utils.testingMode =  ( t != null && !t.equals("false"));
         String benchmarkDir = options.get(JmlOption.BENCHMARKS.optionName());

@@ -1,9 +1,3 @@
-test/gitbug718x2/test2.java:3: error: An initializer clause may not have annotations
-	public /* static_initializer @*/ static final /*@ non_null readonly static_initializer @*/ int [] binarr = new int[]
-	                                                  ^
-test/gitbug718x2/test2.java:3: error: Invalid modifiers for an initializer clause: static final
-	public /* static_initializer @*/ static final /*@ non_null readonly static_initializer @*/ int [] binarr = new int[]
-	^
 test/gitbug718x2/test2.java:18: error: non-static variable binarr cannot be referenced from a static context
 		//@ assert binarr.length > 0 && binarr.length==31;
 		           ^
@@ -34,5 +28,11 @@ test/gitbug718x2/test2.java:21: error: non-static variable binarr cannot be refe
 test/gitbug718x2/test2.java:21: error: non-static variable binarr cannot be referenced from a static context
 		//@ assert \forall int j;0 <= j < binarr.length-1;binarr[j] <= binarr[j+1];
 		                                                               ^
+test/gitbug718x2/test2.java:3: error: An initializer clause may not have annotations
+	public /* static_initializer @*/ static final /*@ non_null readonly static_initializer @*/ int [] binarr = new int[]
+	                                                  ^
+test/gitbug718x2/test2.java:3: error: Invalid modifiers for an initializer clause: static final
+	public /* static_initializer @*/ static final /*@ non_null readonly static_initializer @*/ int [] binarr = new int[]
+	^
 Operation not performed because of parse or type errors
 12 errors

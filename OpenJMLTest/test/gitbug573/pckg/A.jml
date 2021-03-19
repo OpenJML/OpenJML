@@ -2,6 +2,6 @@ package pckg;
 
 public class A {
 
-	//@ensures \result == 1;
+	//@ ensures \result == 1;
 	public int test();
 }

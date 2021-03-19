@@ -283,7 +283,7 @@ public class MethodProverSMT {
             continue;
         }
             
-        if (utils.jmlverbose >= Utils.PROGRESS) {
+        if (utils.progress()) {
             if (!splitkey.isEmpty()) log.getWriter(WriterKind.NOTICE).println("Proof attempt for split " + splitkey);
             //else if (translations.splits.size() > 1) log.getWriter(WriterKind.NOTICE).println("Proof attempt for full program");
         }
@@ -363,7 +363,7 @@ public class MethodProverSMT {
             // convert the basic block form to SMT
             try {
                 try {
-                    if (utils.jmlverbose >= Utils.PROGRESS && methodDecl.usedBitVectors && !JmlOption.value(context, JmlOption.ESC_BV).equals("true")) {
+                    if (utils.progress() && methodDecl.usedBitVectors && !JmlOption.value(context, JmlOption.ESC_BV).equals("true")) {
                     	utils.note(false, "Using bit-vector arithmetic");
                     }
                     script = smttrans.convert(program,smt,methodDecl.usedBitVectors);
@@ -371,7 +371,7 @@ public class MethodProverSMT {
                     if (JmlOption.value(context, JmlOption.ESC_BV).equals("false")) {
                         return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,new Date());
                     }
-                    if (!Utils.testingMode && utils.jmlverbose >= Utils.PROGRESS) {
+                    if (!Utils.testingMode && utils.progress()) {
                     	utils.note(false, "Switching to bit-vector arithmetic");
                     }
                     script = new SMTTranslator(context, methodDecl.sym.toString()).convert(program,smt,true);
@@ -939,7 +939,7 @@ public class MethodProverSMT {
                                     ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString()
                                     : null;
                     if (comment != null && comment.contains("Assignable assertion:")) {
-                           System.out.println("");             
+// FIXME                           System.out.println("");             
                     }
                     ifstat: if (origStat != null || stat instanceof JmlStatementExpr){
                         String loc = origStat == null ? "" :utils.locationString(origStat.getStartPosition());

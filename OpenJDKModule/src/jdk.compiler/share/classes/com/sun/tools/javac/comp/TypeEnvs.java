@@ -55,11 +55,11 @@ class TypeEnvs {
         context.put(typeEnvsKey, this);
     }
 
-    Env<AttrContext> get(TypeSymbol sym) { var e = map.get(sym); if (org.jmlspecs.openjml.Utils.debug()) System.out.println("TYPEENV-GETTING " + sym + " " + sym.hashCode() + " " + e); return e;}
+    Env<AttrContext> get(TypeSymbol sym) { var e = map.get(sym); return e;}
     //Env<AttrContext> get(TypeSymbol sym) { return map.get(sym); }
     //Env<AttrContext> put(TypeSymbol sym, Env<AttrContext> env) { return map.put(sym, env); }
-    Env<AttrContext> put(TypeSymbol sym, Env<AttrContext> env) { if (org.jmlspecs.openjml.Utils.debug()) System.out.println("TYPEENV-PUTTING " + sym + " " + sym.hashCode() + " " + env); return map.put(sym, env); }
-    Env<AttrContext> remove(TypeSymbol sym) { if (org.jmlspecs.openjml.Utils.debug()) System.out.println("TYPEENV-REMOVE " + sym + " " + sym.hashCode()); if (org.jmlspecs.openjml.Utils.debug()) org.jmlspecs.openjml.Utils.dumpStack(); return map.remove(sym); }
+    Env<AttrContext> put(TypeSymbol sym, Env<AttrContext> env) { return map.put(sym, env); }
+    Env<AttrContext> remove(TypeSymbol sym) { return map.remove(sym); }
     Collection<Env<AttrContext>> values() { return map.values(); }
-    void clear() { map.clear(); if (org.jmlspecs.openjml.Utils.debug()) System.out.println("TYPEENV-CLEAR ");}
+    void clear() { map.clear(); }
 }

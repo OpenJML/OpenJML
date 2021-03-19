@@ -7,9 +7,19 @@ test/gitbug497/IVec.java:30: error: illegal start of type
 test/gitbug497/IVec.java:31: error: <identifier> expected
       @                           right[i] == 0); @*/
                                                ^
-test/gitbug497/IVec.java:31: error: illegal start of expression
+test/gitbug497/IVec.java:30: error: cannot find symbol
+      @       && (\exists int i; 0 <= i && i < right.length; 
+                                               ^
+  symbol:   variable right
+  location: class IVec
+test/gitbug497/IVec.java:31: error: cannot find symbol
       @                           right[i] == 0); @*/
-                                                  ^
-Continuing bravely despite parsing errors
-Operation not performed because of parse or type errors
-4 errors
+                                  ^
+  symbol:   variable right
+  location: class IVec
+test/gitbug497/IVec.java:30: error: unexpected type
+      @       && (\exists int i; 0 <= i && i < right.length; 
+                  ^
+  required: class
+  found:    value
+6 errors

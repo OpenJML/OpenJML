@@ -171,6 +171,7 @@ public class Main {
      * @return the result of the compilation
      */
     public Result compile(String[] args) {
+    	System.out.println("COMPILE " + args.length);
         Context context = new Context();
         JavacFileManager.preRegister(context); // can't create it until Log has been set up
         Result result = compile(args, context);
@@ -356,7 +357,7 @@ public class Main {
             return Result.ABNORMAL;
         } finally {
             if (printArgsToFile) {
-                printArgumentsToFile(argv);
+// FIXME                printArgumentsToFile(argv);
             }
             if (comp != null) {
                 try {

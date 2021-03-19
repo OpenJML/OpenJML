@@ -28,6 +28,5 @@ test/gitbug643/Test.java:32: error: Misplaced method specifications preceding a 
 test/gitbug643/Test.java:35: error: Misplaced method specifications preceding a initially clause (ignored)
 	//@ requires true;
 	    ^
-Continuing bravely despite parsing errors
 Operation not performed because of parse or type errors
 10 errors

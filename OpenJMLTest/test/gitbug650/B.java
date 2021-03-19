@@ -18,7 +18,8 @@ interface A {
 public final class B {
     public B(/*@ non_null */ A a) {
         this.a = a;
-    }
+    } // Fails to prove invariant above because solver does not know whether result of P
+      // depends on B.a
     
     //@ non_null
     public A a;

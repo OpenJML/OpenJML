@@ -3227,7 +3227,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     public void addRepresentsAxioms(TypeSymbol clsym, Symbol varsym, JCTree that, JCExpression translatedSelector) {
-        reps.add(0,varsym);  // FIXME - as varsym can have different representations in different derived classes
+    	if (Utils.debug()) System.out.println("ADDREPAXIOM " + rac);
+    	reps.add(0,varsym);  // FIXME - as varsym can have different representations in different derived classes
         boolean pv = checkAccessEnabled;
         checkAccessEnabled = false; // Do not check access in JML clauses
         
@@ -3479,10 +3480,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else {
                 e3 = null;
                 for (Type t: parents(sym.type.tsym.type, false)) { // OK - no enclsoing types
-                    JCExpression ee3 = treeutils.makeDynamicTypeInEquality(pos,
-                        convertCopy(id), 
-                        t);
-                    e3 = e3 == null ? ee3 : treeutils.makeAnd(ee3.pos, e3, ee3);
+                	if (t == null) {
+                		System.out.println("NULL PARENT " + sym + " " + sym.type.tsym.type);
+                		for (Type tt: parents(sym.type.tsym.type, false)) System.out.println("    PARENTS " + tt);
+                	}
+                	try {
+                		JCExpression ee3 = treeutils.makeDynamicTypeInEquality(pos,
+                				convertCopy(id), 
+                				t);
+                		e3 = e3 == null ? ee3 : treeutils.makeAnd(ee3.pos, e3, ee3);
+                	} catch (AssertionError e) {
+                		System.out.println("NULL PARENT " + sym + " " + sym.type.tsym.type);
+                		for (Type tt: parents(sym.type.tsym.type, false)) System.out.println("    PARENTS " + tt + " " + tt.getTag() + " " + tt.getClass());
+                	}
                 }
                 JCStatement s = addAssume(pos,Label.IMPLICIT_ASSUME,e3); 
                 addTraceableComment(s);
@@ -9961,7 +9971,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             log.error("jml.internal", e.toString()); // FIXME - improve error message
             throw e;
         } catch (Exception e) {
-        	System.out.println("JMLAA99008: "); e.printStackTrace(System.out);
+        	//System.out.println("JMLAA99008: "); e.printStackTrace(System.out);
             throw e;
         } finally {
             checkBlock(stack0);
@@ -13903,8 +13913,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
+
         JmlOptions.instance(context).pushOptions(that.mods);
-        
+        if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlClassDecl " + rac + " " + that);
+       
         JmlMethodDecl savedMethodDecl = this.methodDecl;
         JmlClassDecl savedClassDecl = this.classDecl;
         ListBuffer<JCTree> savedClassDefs = this.classDefs;
@@ -13968,6 +13980,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
             }
+            if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlClassDecl-A " + that.typeSpecs);
+            if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlClassDecl-B " + specs.getSpecs(that.sym));
+
             
             // THis will recursively check nested classes and for each class, checks the constructors, methods, and static initialization.
             // For esc, field initializations are part of constructors and would not be needed to be scanned here.
@@ -14002,6 +14017,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             
             List<JCTree> defs = this.classDefs.toList();
+            //if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlClassDecl-K " + defs);
             
             for (JCTree def: defs) {
                 if (def instanceof JmlMethodDecl) {
@@ -15362,8 +15378,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 notImplemented("method (or represents clause) containing ",e);
             }
             utils.error(e.pos,"jml.unrecoverable", "Unimplemented construct in a method or model method or represents clause");
-        } catch (Exception e) {
-        	utils.note(that, "jml.internal", "Exception while translating method: " + that);
+        } catch (Exception|AssertionError e) {
+        	utils.note(that, "jml.message", "Exception while translating method: " + that);
         	throw e;
         } finally {
             methodDecl = savedMD;
@@ -17491,7 +17507,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // It may not have a corresponding model field; that field might be in a super class.
         // If so, we need to construct the synthetic model metehod to hold it.
         JmlSpecs.TypeSpecs typeSpecs = specs.getSpecs(classDecl.sym);
-        if (sym != null) {
+        if (sym != null && rac) {
             String str = Strings.modelFieldMethodPrefix + sym.name.toString();
             Name name = names.fromString(str);
             JmlMethodDecl mdecl = null;
@@ -18052,7 +18068,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             classes.add(cc);
             return classes;
         }
-        while (cc != null && cc.getTag() != TypeTag.NONE) {
+        while (cc != null && cc.getTag() != TypeTag.NONE && cc.getTag() != TypeTag.BOT) {
             classes.add(0,cc);
             if (cc instanceof Type.ClassType) {
                 if (includeEnclosing) {  // FIXME - only if static?
@@ -18071,7 +18087,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else if (cc instanceof Type.ArrayType) { 
                 cc = syms.objectType;
             } else if (cc instanceof Type.TypeVar) {
-                cc = ((Type.TypeVar)cc).getLowerBound();
+                cc = ((Type.TypeVar)cc).getUpperBound();
             } else {
                 cc = null;
             }

@@ -202,8 +202,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        }
 //    }
 
-        
-//    protected boolean noEntering = false;
+//    public void visitMethodDef(JCMethodDecl tree) {
+//    	if (!enterJML && utils.isJML(tree.mods.flags)) return;
+//    	super.visitMethodDef(tree);
+//    }
+//
+//        
+//    public boolean enterJML = false;
     
     /**  FIXME: still true, useful?:Returns true if there is a duplicate, whether or not it was warned about */
     protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, WriteableScope enclScope, Env<AttrContext> localEnv) {
@@ -550,6 +555,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
             
     public JmlMethodDecl makeModelFieldMethod(JmlVariableDecl modelVarDecl, JmlSpecs.TypeSpecs tsp) {
+    	Utils.dumpStack();
         long flags = Flags.SYNTHETIC;
         flags |= (modelVarDecl.sym.flags() & (Flags.STATIC|Flags.AccessFlags));
         JCTree.JCReturn returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(modelVarDecl.pos,modelVarDecl.sym.type));

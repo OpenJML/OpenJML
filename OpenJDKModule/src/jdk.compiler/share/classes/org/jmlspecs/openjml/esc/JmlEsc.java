@@ -102,6 +102,7 @@ public class JmlEsc extends JmlTreeScanner {
 
     /** Initializes assertionAdder and proverToUse and translates the argument */
     public void check(JCTree tree) {
+        if (org.jmlspecs.openjml.Utils.debug()) System.out.println("CHECK " + tree);
         this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
         this.assertionAdder = new JmlAssertionAdder(context, true, false);

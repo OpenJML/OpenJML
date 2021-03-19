@@ -450,9 +450,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            if (prev != null) log.useSource(prev);
             level--;
             if (c != syms.predefClass) {
-                if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"typechecked " + c);
+                if (utils.progress()) context.get(Main.IProgressListener.class).report(2,"typechecked " + c);
             }
-            if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-complete " + c.fullname + " " + level);
+            if (utils.verbose()) utils.note("Attributing-complete " + c.fullname + " " + level);
             if (level == 0) completeTodo();
         }
     }
@@ -506,7 +506,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected void attribClassBody(Env<AttrContext> env, ClassSymbol c) {
         Env<AttrContext> prevClassEnv = enclosingClassEnv;
         enclosingClassEnv = env;
-        if (Utils.debug() && c.toString().equals("java.lang.String")) System.out.println("ATTRCLASSBODY-JML" + c);
 
         // FIXME - for a binary class c, env.tree appears to be the tree of the specs
         // FIXME - why should we attribute the Java class body in the case of a binary class
@@ -546,6 +545,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             enclosingClassEnv = prevClassEnv;
             ((JmlCheck)chk).setInJml(isInJmlDeclaration);
 //            log.useSource(prev);
+            if (org.jmlspecs.openjml.Utils.debug()) System.out.println("ATTRBCLASSBODY-SPECS " + c + " " + specs.get(c));
         }
     }
     
@@ -1135,7 +1135,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override 
     public void visitMethodDef(JCMethodDecl m) {
-    	utils.note(true,  "Attributing method " + env.enclClass.sym + " " + m.name);
+    	if (utils.verbose()) utils.note("Attributing method " + env.enclClass.sym + " " + " " + ((JmlMethodDecl)m).sourcefile + " " + m);
 
         // Setting relax to true keeps super.visitMethodDef from complaining
         // that a method declaration in a spec file does not have a body
@@ -1249,13 +1249,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     utils.error(annot, "jml.message", "Cannot inline a method that does not have a body");
                 }
             }
-
+        } catch (Exception e) {
+        	System.out.println("Exception attributing method " + m + " " + e);
+        	e.printStackTrace(System.out);
+        	throw e;
         } finally {
             currentSecretContext = previousSecretContext;
             currentQueryContext = previousQueryContext;
             if (prevSource != null) log.useSource(prevSource);
             labelEnvs.clear();
             labelEnvs = prevLabelEnvs;
+        	utils.note(true,  "Completed Attributing method " + env.enclClass.sym + " " + m.name);
         }
     }
     
@@ -2719,8 +2723,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             checkTypeClauseMods(tree,tree.modifiers,tree.clauseType.name() + " clause",tree.clauseType);
 
         } catch (Exception e) {
-        	utils.note(tree, "Exception occurred in attributing clause: " + tree);
-        	utils.note(tree, "    Env: " + env.enclClass.name + " " + (env.enclMethod==null?"<null method>": env.enclMethod.name));
+        	utils.note(tree, "jml.message", "Exception occurred in attributing clause: " + tree);
+        	utils.note("    Env: " + env.enclClass.name + " " + (env.enclMethod==null?"<null method>": env.enclMethod.name));
         	throw e;
         } finally {
             jmlVisibility = prevVisibility;
@@ -2904,8 +2908,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         try {
             if (tree.modifiers != null && tree.modifiers.annotations != null && !tree.modifiers.annotations.isEmpty()) {
-                log.error(tree.modifiers.annotations.head.pos, "jml.message", "An initializer clause may not have annotations");
+                utils.error(tree.modifiers.annotations.head.pos, "jml.message", "An initializer clause may not have annotations");
                 tree.modifiers.annotations = null;
+            }
+            if (tree.modifiers != null && !((JmlModifiers)tree.modifiers).jmlmods.isEmpty()) {
+                utils.error(((JmlModifiers)tree.modifiers).jmlmods.get(0).pos, "jml.message", "An initializer clause may not have annotations");
+                ((JmlModifiers)tree.modifiers).jmlmods.clear();
             }
             long diff = 0;
             if (tree.modifiers != null && (diff = tree.modifiers.flags & ~0x7) != 0) {
@@ -4697,9 +4705,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         long prevVisibility = jmlVisibility;
         IJmlClauseKind prevClauseType = currentClauseType; // FIXME _ why do we need to save this?
         try {
-        	if (Utils.debug() && tree.name.toString().equals("anObject")) {
-        		System.out.println("VIDENT " + env.enclMethod.name);
-        	}
 //            jmlVisibility = -1;
 //            currentClauseType = null;
             // Visiting the ident itself in the super class should not need the
@@ -5052,7 +5057,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             circularList.add(varsym);
             return circularList;
         }
-        JmlSpecs.FieldSpecs fspecs = specs.getSpecs(varsym);
+        JmlSpecs.FieldSpecs fspecs = specs.getLoadedSpecs(varsym);
         for (JmlTypeClause t: fspecs.list) {
             if (t.clauseType == inClause) {
                 for (JmlGroupName g: ((JmlTypeClauseIn)t).list) {
@@ -5080,6 +5085,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     protected long flags(Symbol sym) { // OPENJML - added to permit some overriding
+    	if (!JmlResolve.instance(context).allowJML) return sym.flags();
         JmlSpecs specs = JmlSpecs.instance(context);
         JCTree.JCModifiers mods = null;
         if (sym instanceof Symbol.VarSymbol) {
@@ -6229,7 +6235,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (!env.info.scope.owner.kind.matches(KindSelector.VAL_MTH) && tree.sym == null) {
             enter.classEnter(tree, env);
         }
-        if (Utils.debug()) System.out.println("VISITING " + tree.name);
+        if (Utils.debug() && tree.name.toString().equals("B")) System.out.println("ATTR-VISITING " + tree);
         super.visitClassDef(tree);
 
     }
@@ -6262,7 +6268,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-
+    	if (utils.verbose()) System.out.println("Starting atrrib " + that);
         JavaFileObject prevSource = null;
         IJmlClauseKind savedType = currentClauseType;
         boolean isReplacementType = that.jmltype;
@@ -6363,10 +6369,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 utils.warning(that.init, "jml.message", "A non-final model field may not have an initializer");
                 that.init = null;
             }
+        } catch (Exception e) {
+        	System.out.println("Exception attributing VariabaleDecl " + that);
+        	e.printStackTrace(System.out);
+        	Utils.dumpStack();
         } finally {
             ((JmlResolve)rs).setAllowJML(prev);
             if (prevSource != null) log.useSource(prevSource);
             currentClauseType = savedType;
+        	if (utils.verbose()) System.out.println("Ending atrrib " + that + " " + that.sym);
         }
     }
     
@@ -6813,13 +6824,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	currentClauseType = null;
 		var saved = this.env;
 		var savedEnclosingClassEnv = this.enclosingClassEnv;
+		var savedEnclosingMethodEnv = this.enclosingMethodEnv;
         attribClass((ClassSymbol)msym.owner);
         JmlSpecs.MethodSpecs sp = specs.getLoadedSpecs(msym);
         if (sp == null) {
-        	utils.note(false, "Specs are null for " + msym);
+        	if (utils.verbose()) utils.note("Specs are null for " + msym.owner + "." + msym);
         	return;
         }
+        if (sp.specsEnv == null) return;  // Default specs? already attributed?
         this.env = sp.specsEnv;
+        this.enclosingMethodEnv = sp.specsEnv;
 //    	this.env = typeEnvs.get((ClassSymbol)msym.owner);
 //    	visitMethodDef(sp.cases.decl);
     	try {
@@ -6868,6 +6882,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		e.printStackTrace(System.out);
     	} finally {
     		this.enclosingClassEnv = savedEnclosingClassEnv;
+    		this.enclosingMethodEnv = savedEnclosingMethodEnv;
     		currentClauseType = savedClauseType;
         	if (Utils.debug() && msym.toString().equals("equals")) System.out.println("EQUALS-E");
     	}
@@ -6877,6 +6892,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 		utils.note(true, "Attributing specs for " + csym);
 		TypeSpecs tspecs = specs.getLoadedSpecs(csym);
 		ResultInfo ri = new ResultInfo(KindSelector.VAL_TYP, Type.noType);
+		var savedEnclosingClassEnv = this.enclosingClassEnv;
+		this.enclosingClassEnv = enter.getEnv(csym); // FIXME  - or getClassEnv?
 		for (var cl: tspecs.clauses) {
 			var prev = log.useSource(cl.source());
 			try {
@@ -6888,6 +6905,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 				log.useSource(prev);
 			}
 		}
+		this.enclosingClassEnv = savedEnclosingClassEnv;
 
 		// FIXME 
 		//if (tspecs.initializerSpec != null) attribTree(tspecs.initializerSpec, tspecs.specsEnv, ri);
