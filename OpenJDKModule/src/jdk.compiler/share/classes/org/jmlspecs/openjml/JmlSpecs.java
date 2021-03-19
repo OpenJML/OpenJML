@@ -80,6 +80,7 @@ import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.Position;
+import com.sun.tools.javac.util.PropagatedException;
 
 /** This class manages the specifications of various Java entities
  * during a compilation.  There should be just one instance of JmlSpecs
@@ -994,6 +995,7 @@ public class JmlSpecs {
     public MethodSpecs getSpecs(MethodSymbol m) {
     	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
     	if (status(m).less(SpecsStatus.SPECS_ATTR)) attr.attrSpecs(m);
+    	if (status(m) == SpecsStatus.ERROR) throw new PropagatedException(new RuntimeException("Failure in type-checking " + m.owner + "." + m));
         TypeSpecs t = specsmap.get(m.owner);
         return t == null ? null : t.methods.get(m);
     }
@@ -1887,7 +1889,8 @@ public class JmlSpecs {
     	NOT_LOADED,
     	QUEUED,
     	SPECS_LOADED,
-    	SPECS_ATTR;
+    	SPECS_ATTR,
+    	ERROR;
     	
     	public boolean less(SpecsStatus s) { return this.ordinal() < s.ordinal(); }
     	

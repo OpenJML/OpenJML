@@ -1,0 +1,19 @@
+test/gitbug499/Interval.java:43: error: Expected a declaration or a JML construct inside the JML annotation here
+            //@ contains(i);
+                ^
+test/gitbug499/Interval.java:64: error: Incorrectly formed or terminated JML construct near here
+        //@ !contains(i);
+                     ^
+test/gitbug499/Interval.java:65: error: illegal start of type
+    }
+    ^
+test/gitbug499/Interval.java:65: error: ';' expected
+    }
+     ^
+Continuing bravely despite parsing errors
+test/gitbug499/Interval.java:67: error: size() in Interval cannot implement size() in IntSet
+    public /*@ pure @*/ int size() {
+                            ^
+  attempting to assign weaker access privileges; was public
+Operation not performed because of parse or type errors
+5 errors
