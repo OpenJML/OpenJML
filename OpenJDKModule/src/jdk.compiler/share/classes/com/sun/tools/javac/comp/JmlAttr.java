@@ -122,6 +122,7 @@ import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Pair;
 import com.sun.tools.javac.util.Position;
+import com.sun.tools.javac.util.PropagatedException;
 
 /**
  * This class is an extension of the Attr class; it adds visitors methods so
@@ -6268,7 +6269,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-    	if (utils.verbose()) System.out.println("Starting atrrib " + that);
+    	if (utils.verbose()) utils.note("Attributing " + that.vartype + " " + that.name);
         JavaFileObject prevSource = null;
         IJmlClauseKind savedType = currentClauseType;
         boolean isReplacementType = that.jmltype;
@@ -6292,8 +6293,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             if (that.vartype != null && that.vartype.type == null) attribType(that.vartype,env);
             if (that.originalVartype != null && that.originalVartype.type == null) attribType(that.originalVartype,env);
-//            if (that.name.toString().equals("objectState")) Utils.stop();
             ((JmlMemberEnter)memberEnter).dojml = true;
+            if (env.info.lint == null) { // FIXME: Without this we crash in Attr, but how is this handled elsewhere?
+            	Env<AttrContext> lintEnv = env;
+                while (lintEnv.info.lint == null)
+                    lintEnv = lintEnv.next;
+                env.info.lint = lintEnv.info.lint;
+            }
+
             visitVarDef(that);
             ((JmlMemberEnter)memberEnter).dojml = false;
             if (that.sym == null) return; // Duplicate to be removed 
@@ -6369,15 +6376,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 utils.warning(that.init, "jml.message", "A non-final model field may not have an initializer");
                 that.init = null;
             }
+        } catch (PropagatedException e) {
+        	throw e;
         } catch (Exception e) {
-        	System.out.println("Exception attributing VariabaleDecl " + that);
+        	utils.error(that, "jml.internal", "Exception attributing VariableDecl " + that);
         	e.printStackTrace(System.out);
-        	Utils.dumpStack();
+        	throw new PropagatedException(new RuntimeException(e));
         } finally {
             ((JmlResolve)rs).setAllowJML(prev);
             if (prevSource != null) log.useSource(prevSource);
             currentClauseType = savedType;
-        	if (utils.verbose()) System.out.println("Ending atrrib " + that + " " + that.sym);
+        	if (utils.verbose()) utils.note("    Attributed " + that.sym.owner + " " + that.sym);
         }
     }
     
@@ -6819,7 +6828,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void attrSpecs(MethodSymbol msym) {
-    	utils.note(true, "Attributing specs for " + msym.owner + " " + msym);
+    	if (utils.verbose()) utils.note("Attributing specs for " + msym.owner + " " + msym);
+    	int nerrors = log.nerrors;
     	var savedClauseType = currentClauseType;
     	currentClauseType = null;
 		var saved = this.env;
@@ -6834,10 +6844,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (sp.specsEnv == null) return;  // Default specs? already attributed?
         this.env = sp.specsEnv;
         this.enclosingMethodEnv = sp.specsEnv;
-//    	this.env = typeEnvs.get((ClassSymbol)msym.owner);
-//    	visitMethodDef(sp.cases.decl);
+    	if (utils.verbose()) utils.note("    Lint " + msym.owner + " " + msym + " " + (sp.specsEnv.info.lint != null));
     	try {
-    		utils.note(true, "    Specs are " + sp);
+    		if (utils.verbose()) utils.note("    Specs are " + sp);
     		var biter = msym.params.iterator();
     		if (sp.cases.decl != null) {
     			//printEnv(sp.specsEnv, "BEFORE " + msym.owner + " " + msym);
@@ -6866,9 +6875,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     				sp.cases.accept(this); // FIXME - use desugared?
     			}
     		} catch (Exception e) {
+    			if (e instanceof PropagatedException) throw e;
     			utils.note(false, "Exception while attributing specs for " + msym);
-    			printEnv(sp.specsEnv,"");
-    			throw e;
+    			throw new PropagatedException(new RuntimeException(e));
     		} finally {
     			specs.setStatus(msym, JmlSpecs.SpecsStatus.SPECS_ATTR);
     			this.env = saved;
@@ -6877,14 +6886,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			jmlresolve.setAllowJML(prevAllowJML);
     		}
     		utils.note(true, "    Attributed specs for " + msym.owner + " " + msym);
+    	} catch (PropagatedException e) {
+    		// continue to clean exit - already reported
     	} catch (Exception e) {
-    		utils.error(sp.cases.decl, "jml.internal", "Exception while attributing method specs: " + msym);
-    		e.printStackTrace(System.out);
+    		utils.error(sp.cases.decl, "jml.internal", "Exception while attributing method specs: " + msym.owner + " " + msym);
     	} finally {
     		this.enclosingClassEnv = savedEnclosingClassEnv;
     		this.enclosingMethodEnv = savedEnclosingMethodEnv;
     		currentClauseType = savedClauseType;
         	if (Utils.debug() && msym.toString().equals("equals")) System.out.println("EQUALS-E");
+        	if (nerrors != log.nerrors) {
+        		specs.setStatus(msym, JmlSpecs.SpecsStatus.ERROR);
+        	}
     	}
     }
     

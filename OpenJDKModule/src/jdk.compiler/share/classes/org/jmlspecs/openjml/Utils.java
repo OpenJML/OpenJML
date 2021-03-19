@@ -1648,6 +1648,10 @@ public class Utils {
         log().note(pos, JCDiagnostic.Factory.instance(context).noteKey(key, args));
     }
 
+    public void noPrefix(String msg) {
+    	log().getWriter(WriterKind.NOTICE).println(msg);
+    }
+
     /** A derived class of DiagnosticPosition that allows for straightforward setting of the
      * various positions associated with an error message.
      */

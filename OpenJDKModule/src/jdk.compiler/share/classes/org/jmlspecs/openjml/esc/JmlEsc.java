@@ -23,6 +23,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
@@ -102,7 +103,6 @@ public class JmlEsc extends JmlTreeScanner {
 
     /** Initializes assertionAdder and proverToUse and translates the argument */
     public void check(JCTree tree) {
-        if (org.jmlspecs.openjml.Utils.debug()) System.out.println("CHECK " + tree);
         this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
         this.assertionAdder = new JmlAssertionAdder(context, true, false);
@@ -110,10 +110,19 @@ public class JmlEsc extends JmlTreeScanner {
         	//org.jmlspecs.openjml.esc.JmlAssertionAdder.CheckTree.check(context,tree);
             // FIXME - would prefer for esc to just translate the methods that are to be proved
             // We convert the whole tree first
+        	int nerrors = log.nerrors;
             assertionAdder.convert(tree); // get at the converted tree through the map
+			if (nerrors != log.nerrors) {
+				throw new PropagatedException(new RuntimeException());
+			}
             // And then we walk the tree to see which items are to be proved
             tree.accept(this);
-        } catch (PropagatedException | Main.JmlCanceledException e) {
+        } catch (PropagatedException e) {
+        	utils.progress(1,1,"Operation not performed because of parse or type errors");
+            Main.instance(context).canceled = true;
+            count(IProverResult.ERROR);
+            throw e;
+        } catch (Main.JmlCanceledException e) {
             // Canceled
             Main.instance(context).canceled = true;
             count(IProverResult.ERROR);
@@ -222,27 +231,13 @@ public class JmlEsc extends JmlTreeScanner {
         return;        
     }
     
-    public static boolean skip(JmlMethodDecl methodDecl) {
-        if (methodDecl.mods != null) {
-            for (JCTree.JCAnnotation a : methodDecl.mods.annotations) {
-                if (a != null && a.type.toString().equals("org.jmlspecs.annotation.SkipEsc")) { // FIXME - do this without converting to string
-                    return true;
-                }
-            }
-        }
-        return false;
+    public boolean skip(JmlMethodDecl methodDecl) {
+        return utils.hasMod(methodDecl.mods, Modifiers.SKIPESC);
     }
     
     // FIXME - perhaps shoud not be in JmlEsc
-    public static boolean skipRac(JmlMethodDecl methodDecl) {
-        if (methodDecl.mods != null) {
-            for (JCTree.JCAnnotation a : methodDecl.mods.annotations) {
-                if (a != null && a.type.toString().equals("org.jmlspecs.annotation.SkipRac")) { // FIXME - do this without converting to string
-                    return true;
-                }
-            }
-        }
-        return false;
+    public boolean skipRac(JmlMethodDecl methodDecl) {
+        return utils.hasMod(methodDecl.mods, Modifiers.SKIPRAC);
     }
     
     public IProverResult markMethodSkipped(JmlMethodDecl methodDecl, String reason) {

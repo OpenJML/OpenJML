@@ -1,6 +1,6 @@
 public class Helper {
 	
-	private /*@spec_public@*/ int i;
+	private /*@ spec_public@*/ int i;
 	
 	/*@
 	  @ public invariant i >= 0;
@@ -10,7 +10,7 @@ public class Helper {
 	  @ assignable i;
 	  @ signals (Exception e) false;
 	  @*/
-	private /*@helper@*/ void violate() {
+	private /*@ helper@*/ void violate() {
 		i = -1;
 	}
 	

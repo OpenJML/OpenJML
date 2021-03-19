@@ -7,8 +7,10 @@ test/gitbug636/Test.java:4: error: no suitable constructor found for String(Stri
       (argument mismatch; String cannot be converted to byte[])
     constructor String.String(byte[],Charset) is not applicable
       (argument mismatch; String cannot be converted to byte[])
-    constructor String.String(char[],boolean) is not applicable
-      (argument mismatch; String cannot be converted to char[])
+    constructor String.String(AbstractStringBuilder,Void) is not applicable
+      (argument mismatch; String cannot be converted to AbstractStringBuilder)
+    constructor String.String(byte[],byte) is not applicable
+      (argument mismatch; String cannot be converted to byte[])
 Operation not performed because of parse or type errors
 Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
 1 error

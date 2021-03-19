@@ -106,9 +106,11 @@ class ClassCollector extends JmlTreeScanner {
     public void visitJmlMethodDecl(JmlMethodDecl that) {
     	if (!doMethods) return;
     	JmlSpecs.MethodSpecs ms = JmlSpecs.instance(context).getSpecs(that.sym);
-    	scan(ms.mods);
+    	// ms might be null if the method has no explicit specs and has not been given default or inferred
+    	// specs -- constructors for anonymous methods, for example
+    	if (ms != null) scan(ms.mods);
         visitMethodDef(that);
-        scan(ms.cases);
+        if (ms != null) scan(ms.cases);
     }
 
     

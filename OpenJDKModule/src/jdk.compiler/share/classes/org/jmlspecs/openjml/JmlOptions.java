@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
+import org.jmlspecs.openjml.JmlTree.JmlModifiers;
 import org.jmlspecs.openjml.Main.Cmd;
 import org.jmlspecs.openjml.Main.PrintProgressReporter;
 import org.jmlspecs.openjml.esc.MethodProverSMT;
@@ -527,14 +528,16 @@ public class JmlOptions extends Options {
         Name optionName = Names.instance(context).fromString("org.jmlspecs.annotation.Options");
 
         JmlOptions.instance(context).pushOptions();
-        JCAnnotation addedOptionsAnnotation = Utils.instance(context).findMod(mods, optionName);
-        if (addedOptionsAnnotation != null) {
-            List<JCExpression> exprs = addedOptionsAnnotation.getArguments();
-            JCExpression rhs = ((JCAssign)exprs.head).rhs;
-            String[] opts = rhs instanceof JCNewArray ? ((JCNewArray)rhs).elems.stream().map(e->e.toString()).collect(Collectors.toList()).toArray(new String[((JCNewArray)rhs).elems.size()])
-                          : rhs instanceof JCLiteral ? new String[]{ rhs.toString() }
-                          : null;
-            addOptions(opts);
+        {
+        	JCAnnotation addedOptionsAnnotation = Utils.instance(context).findMod(mods, optionName);
+        	if (addedOptionsAnnotation != null) {
+        		List<JCExpression> exprs = addedOptionsAnnotation.getArguments();
+        		JCExpression rhs = ((JCAssign)exprs.head).rhs;
+        		String[] opts = rhs instanceof JCNewArray ? ((JCNewArray)rhs).elems.stream().map(e->e.toString()).collect(Collectors.toList()).toArray(new String[((JCNewArray)rhs).elems.size()])
+        				: rhs instanceof JCLiteral ? new String[]{ rhs.toString() }
+        		: null;
+        				addOptions(opts);
+        	}
         }
     }
 

@@ -13915,7 +13915,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void visitJmlClassDecl(JmlClassDecl that) {
 
         JmlOptions.instance(context).pushOptions(that.mods);
-        if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlClassDecl " + rac + " " + that);
        
         JmlMethodDecl savedMethodDecl = this.methodDecl;
         JmlClassDecl savedClassDecl = this.classDecl;
@@ -15270,9 +15269,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
         // Checks whether there is a Skip annotation
-        if (esc && JmlEsc.skip(that)) return;
+        if (esc && JmlEsc.instance(context).skip(that)) return;
         if (esc && !utils.filter(that,false)) return;
-        if (rac && (JmlEsc.skipRac(that) || that.body == null)) {
+        if (rac && (JmlEsc.instance(context).skipRac(that) || that.body == null)) {
             if (that.body == null && that.sym.owner.isInterface() && (that.mods.flags & Flags.DEFAULT) != 0) {
                 // A default was put on a method with no body, presumably because it was a model method in an interface
                 // SO remove the default and add Abstract
@@ -15378,6 +15377,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 notImplemented("method (or represents clause) containing ",e);
             }
             utils.error(e.pos,"jml.unrecoverable", "Unimplemented construct in a method or model method or represents clause");
+        } catch (PropagatedException e) {
+        	throw e;
         } catch (Exception|AssertionError e) {
         	utils.note(that, "jml.message", "Exception while translating method: " + that);
         	throw e;
