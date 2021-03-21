@@ -1,0 +1,6 @@
+test/gitbug450/ArrList.java:15: error: incompatible types: int cannot be converted to String
+        theList.add(a);
+                    ^
+Operation not performed because of parse or type errors
+Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+1 error

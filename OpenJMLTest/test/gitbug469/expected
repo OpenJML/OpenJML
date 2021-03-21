@@ -16,7 +16,7 @@ Starting proof of Repro.Bar.getSeed2(int) with prover !!!!
 test\gitbug469\Repro.java:38: warning: The prover cannot establish an assertion (Precondition) in method getSeed2
     URANDOM.read(result, read, length-read);
                 ^
-$SPECS/specs/java/io/FileInputStream.jml:73: warning: Associated declaration
+$SPECS/specs/java/io/FileInputStream.jml:68: warning: Associated declaration
     public int read(byte[] bytes, int off, int len) throws IOException;
                ^
 $SPECS/specs/java/io/InputStream.jml:141: warning: Precondition conjunct is false: isOpen
