@@ -32,6 +32,8 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.NestingKind;
 import javax.tools.JavaFileManager;
 
+import org.jmlspecs.openjml.Utils;
+
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Attribute.Compound;
 import com.sun.tools.javac.code.Directive.ExportsDirective;

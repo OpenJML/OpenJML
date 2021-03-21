@@ -7,10 +7,7 @@ test/gitbug518/Test.java:9: error: variable e is already defined in method mm(in
 test/gitbug518/Test.java:18: error: variable e is already defined in method mmm()
         //@ refining signals (Exception e) e instanceof NullPointerException;
                               ^
-test/gitbug518/Test.java:27: error: variable e is already defined in method mmm(int)
-        //@ old boolean e = f == 0;
+test/gitbug518/Test.java:27: error: variable eeeee is already defined in method mmm(int)
+        //@ old boolean eeeee = f == 0;
                         ^
-test/gitbug518/Test.java:28: error: incomparable types: boolean and int
-        //@ ensures e==0;
-                     ^
-5 errors
+4 errors

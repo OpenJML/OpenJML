@@ -5,6 +5,9 @@
 package com.sun.tools.javac.comp;
 
 
+import static com.sun.tools.javac.code.Flags.FINAL;
+import static com.sun.tools.javac.code.Flags.HASINIT;
+
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlPretty;
@@ -483,11 +486,14 @@ public class JmlEnter extends Enter {
             	csym.flags_field = specDecl.mods.flags;
             	var ct = (ClassType)csym.type;
             	if (specDecl.extending != null) ct.supertype_field = specDecl.extending.type = Attr.instance(context).attribType(specDecl.extending,env);
+            	else if ((specDecl.mods.flags & Flags.INTERFACE) == 0) ct.supertype_field = syms.objectType;
             	csym.sourcefile = cowner.sourcefile;
             	csym.members_field = WriteableScope.create(csym);
             	ct.typarams_field = List.from(cowner.type.getTypeArguments());
+            	owner.members().enter(csym);
             }
-			if (utils.verbose()) utils.note("Entering JML class: " + csym + " (owner: " + owner +")" );
+			if (utils.verbose()) utils.note("Entering JML class: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
+			if (utils.verbose()) utils.note("Entering JML class - owner: " + owner.members());
 		} else {
 			// owner has a binary/source class corresponding to specDecl, namely csym
     		boolean matchIsJML = utils.isJML(csym.flags());
@@ -576,8 +582,9 @@ public class JmlEnter extends Enter {
 		ClassSymbol csym = specDecl.sym;
 		JmlSpecs specs = JmlSpecs.instance(context);
 		var tspecs = JmlSpecs.instance(context).get(csym);
-		if (tspecs == null) System.out.println("No specs for " + csym + " " + specDecl.name + " " + (specDecl==javaDecl));
+		if (Utils.debug() && tspecs == null) utils.note("No specs for " + csym + " " + specDecl.name + " " + (specDecl==javaDecl));
 		var specsEnv = tspecs.specsEnv;
+		if (Utils.debug() && specsEnv == null) utils.note("No specs ENV for " + csym + " " + specDecl.name + " " + (specDecl==javaDecl));
 		
 		if (specDecl.extending != null) {
 			Type t = specDecl.extending.type = JmlAttr.instance(context).attribType(specDecl.extending, specsEnv);
@@ -823,10 +830,15 @@ public class JmlEnter extends Enter {
 				return;
 			}
 			// Enter the class in the package or the parent class
-			vdecl.type = vdecl.vartype.type = JmlAttr.instance(context).attribType(vdecl.vartype, specsEnv);
-			vsym = new VarSymbol(0, vdecl.name, vdecl.type, csym);
-	        vsym.flags_field = chk.checkFlags(vdecl.pos(), vdecl.mods.flags, vsym, vdecl);
-	        csym.members().enter(vsym);
+			
+			MemberEnter me = MemberEnter.instance(context);
+			var savedEnv = me.env;
+			me.env = specsEnv;
+			me.visitVarDef(vdecl);
+			vdecl.type = vdecl.sym.type;
+			me.env = savedEnv;
+			vsym = vdecl.sym;
+
 	        utils.note(true,  "Entered JML field: " + vsym + " (owner: " + csym +")" );
     	} else {
 			// Found a matching binary field
@@ -865,9 +877,9 @@ public class JmlEnter extends Enter {
 			}
 	    	// match flags, annotations
 
+			vdecl.sym = vsym;
 			if (ok) utils.note(true,  "Matched field: " + vsym + " (owner: " + csym +")" );
     	}
-		vdecl.sym = vsym;
 		if (vsym != null) JmlSpecs.instance(context).putSpecs(vsym, vdecl.fieldSpecs);
     }
 

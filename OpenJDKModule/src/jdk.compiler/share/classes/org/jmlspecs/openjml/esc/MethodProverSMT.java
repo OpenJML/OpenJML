@@ -1103,13 +1103,13 @@ public class MethodProverSMT {
                         int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
                         String loc;
                         if (epos == Position.NOPOS || pos != assertStat.pos) {
-                            utils.warning(pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
-                            loc = utils.locationString(pos);
+                            utils.warning(assertStat.source,pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
+                            loc = utils.locationString(pos,assertStat.source);
                             tracer.appendln(loc + " Invalid assertion (" + label + ")");
                         } else {
                             // FIXME - migrate to using pos() for terminationPos as well 
-                        	utils.warning(assertStat.getPreferredPosition(),"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
-                            loc = utils.locationString(assertStat.getPreferredPosition());
+                        	utils.warning(assertStat.source,assertStat.getPreferredPosition(),"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
+                            loc = utils.locationString(assertStat.getPreferredPosition(),assertStat.source);
                             tracer.appendln(loc + " Invalid assertion (" + label + ")");
                             if (label == Label.UNDEFINED_PRECONDITION) {
                                 try {

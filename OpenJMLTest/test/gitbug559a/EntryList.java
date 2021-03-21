@@ -1,7 +1,7 @@
 /* A simple linked list of entries. */
 public class EntryList {
-    /*@spec_public @*/ Object first;
-    /*@spec_public @*/ EntryList rest;
+    /*@ spec_public @*/ Object first;
+    /*@ spec_public @*/ EntryList rest;
 
     EntryList( Object first, EntryList rest) {
         this.first = first;

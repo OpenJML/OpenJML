@@ -1,4 +1,4 @@
-test\gitbug463\Initializer.java:16: warning: A non-pure method is being called where it is not permitted: Initializer.Initializer(int)
+test/gitbug463/Initializer.java:16: warning: A non-pure method is being called where it is not permitted: Initializer.Initializer(int)
       @   ensures \result.equals(\old(new Initializer(a)));
                                       ^
 Proving methods in Initializer

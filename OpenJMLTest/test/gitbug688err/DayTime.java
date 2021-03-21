@@ -39,12 +39,12 @@ public class DayTime {
 
 
     //@ ensures \result == (a.hours*3600) + (a.minutes*60) + a.seconds;
-    public /*@ pure spec_public@*/ int secondCalulation(DayTime a) {
+    private /*@ pure spec_public@*/ int secondCalulation(DayTime a) {
 	return (a.hours*3600) + (a.minutes*60) + a.seconds;
     }
  	
 
-    //@ old int diff = secondCalulation(this) - secondCalulation(stop);
+    //@ old int diff = secondCalulation(this) - secondCalulation(stop); // A public spec cannot see private methods/specs
     //@ old int _final = (diff < 0) ? (-diff) : (diff);
     //@ ensures \result == _final;
     public /*@ pure @*/ int diffSeconds(DayTime stop){

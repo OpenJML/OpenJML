@@ -32,6 +32,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
+import org.jmlspecs.openjml.ext.TypeInitializerClauseExtension;
 import org.jmlspecs.openjml.visitors.JmlTreeCopier;
 
 import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
@@ -1306,9 +1307,9 @@ public class JmlSpecs {
     //@ nullable
     public FieldSpecs getSpecs(VarSymbol m) {
     	if (!(m.owner instanceof ClassSymbol)) return null;
-    	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - field " + m + " " + m.owner + " " + m.enclClass());
-        ClassSymbol c = m.enclClass(); // FIXME - should this be m.owner?
-        if (c == null) return null; // This happens at least when m is the symbol for 'class' as in int.class
+        ClassSymbol c = (ClassSymbol)m.owner;
+    	if (c == null) System.out.println("Unexpected difference - field " + m + " " + m.owner + " " + m.enclClass());
+    	if (c == null) Utils.dumpStack();
     	if (status(m).less(SpecsStatus.SPECS_ATTR)) attr.attrSpecs(m);
         TypeSpecs t = specsmap.get(c);
         return t == null ? null : t.fields.get(m);
@@ -1327,10 +1328,10 @@ public class JmlSpecs {
      */
     //@ nullable
     public FieldSpecs getLoadedSpecs(VarSymbol m) {
-    	if (!(m.owner instanceof ClassSymbol)) return null;
-    	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - field " + m + " " + m.owner + " " + m.enclClass());
-        ClassSymbol c = m.enclClass(); // FIXME - should this be m.owner?
-        if (c == null) return null; // This happens at least when m is the symbol for 'class' as in int.class
+    	if (!(m.owner instanceof ClassSymbol)) return null; // m is a formal parameter or local variable -- has no specs
+        ClassSymbol c = (ClassSymbol)m.owner;
+    	if (c == null) System.out.println("Unexpected difference - field " + m + " " + m.owner + " " + m.enclClass());
+    	if (c == null) Utils.dumpStack();
         TypeSpecs t = getLoadedSpecs(c);
         return t == null ? null : t.fields.get(m);
     }
@@ -1441,7 +1442,7 @@ public class JmlSpecs {
             this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
             for (JCTree t: specdecl.defs) {
             	if (t instanceof JmlTypeClauseInitializer) {
-            		if (Utils.isStatic(((JmlTypeClauseInitializer)t).modifiers.flags)) {
+            		if (((JmlTypeClauseInitializer)t).keyword.equals(TypeInitializerClauseExtension.staticinitializerID)) {
             			staticInitializerSpec = (JmlTypeClauseInitializer)t;
             		} else {
             			initializerSpec = (JmlTypeClauseInitializer)t;
@@ -1499,9 +1500,9 @@ public class JmlSpecs {
         TypeSpecs spec = getLoadedSpecs(csymbol);
         t = spec.defaultNullity;
         if (t == null) {
-        	if (utils.hasMod(spec.modifiers, Modifiers.NULLABLE)) { 
+        	if (utils.hasMod(spec.modifiers, Modifiers.NULLABLE_BY_DEFAULT)) { 
         		t = Modifiers.NULLABLE; 
-        	} else if (utils.hasMod(spec.modifiers, Modifiers.NON_NULL)) {
+        	} else if (utils.hasMod(spec.modifiers, Modifiers.NON_NULL_BY_DEFAULT)) {
         		t =  Modifiers.NON_NULL;
         	} else {
                 Symbol sym = csymbol.owner; // The owner might be a package - currently no annotations for packages
@@ -1591,7 +1592,7 @@ public class JmlSpecs {
     	JmlModifiers mods = getSpecsModifiers(sym);
     	if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
     	if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
-    	return defaultNullity((ClassSymbol)sym.owner) == Modifiers.NON_NULL;
+    	return defaultNullity(sym.enclClass()) == Modifiers.NON_NULL;
     }
     
     public boolean isNonNull(JmlVariableDecl decl) {

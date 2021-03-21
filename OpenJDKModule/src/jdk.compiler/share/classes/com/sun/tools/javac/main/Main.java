@@ -334,6 +334,7 @@ public class Main {
             return Result.SYSERR;
         } catch (FatalError ex) {
             feMessage(ex, options);
+            org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.FatalError",ex); // OPENJML
             return Result.SYSERR;
         } catch (AnnotationProcessingError ex) {
             apMessage(ex);
@@ -346,6 +347,7 @@ public class Main {
                 bugMessage(iae);
             }
             printArgsToFile = true;
+            org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.IllegalAccessError",iae); // OPENJML
             return Result.ABNORMAL;
         } catch (Throwable ex) {
             // Nasty.  If we've already reported an error, compensate
@@ -354,6 +356,7 @@ public class Main {
             if (comp == null || comp.errorCount() == 0 || options.isSet("dev"))
                 bugMessage(ex);
             printArgsToFile = true;
+            org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.Throwable",ex); // OPENJML
             return Result.ABNORMAL;
         } finally {
             if (printArgsToFile) {
