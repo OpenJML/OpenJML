@@ -1648,6 +1648,17 @@ public class Utils {
         log().note(pos, JCDiagnostic.Factory.instance(context).noteKey(key, args));
     }
 
+    public void note(JavaFileObject source, DiagnosticPosition pos, String key, Object ... args) {
+        Log log = log();
+        JavaFileObject prev = null;
+        if (source != null) prev = log.useSource(source);
+        try {
+            note(pos, key, args);
+        } finally {
+            if (prev != null) log.useSource(prev);
+        }
+    }
+    
     public void noPrefix(String msg) {
     	log().getWriter(WriterKind.NOTICE).println(msg);
     }
@@ -1709,6 +1720,13 @@ public class Utils {
     
     public static void dumpStack() {
     	new RuntimeException().printStackTrace(System.out);
+    }
+
+    public static void conditionalPrintStack(String heading, Throwable e) {
+    	if (System.getenv("STACK") != null) {
+    		System.out.println(heading);
+    		e.printStackTrace(System.out);
+    	}
     }
 
 }

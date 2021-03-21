@@ -839,7 +839,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (that.modifiers != null) that.modifiers.accept(this);  // trailing space if non-empty
             print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(" ");
-            that.ident.accept(this);
+            printExpr(that.ident);
             print(" = ");
             printExpr(that.expression);
             print("; ");

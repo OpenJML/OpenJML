@@ -175,7 +175,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (trees != null) super.memberEnter(trees,env);
     }
     
-    public boolean dojml = false;
+    public boolean dojml = false; // FIXME - can get rid of this.
     
 //    @Override
 //    public void memberEnter(JCTree tree, Env<AttrContext> env) {
@@ -555,7 +555,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
             
     public JmlMethodDecl makeModelFieldMethod(JmlVariableDecl modelVarDecl, JmlSpecs.TypeSpecs tsp) {
-    	Utils.dumpStack();
         long flags = Flags.SYNTHETIC;
         flags |= (modelVarDecl.sym.flags() & (Flags.STATIC|Flags.AccessFlags));
         JCTree.JCReturn returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(modelVarDecl.pos,modelVarDecl.sym.type));

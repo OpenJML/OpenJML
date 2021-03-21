@@ -4152,6 +4152,8 @@ public class Attr extends JCTree.Visitor {
 
         result = checkId(tree, env1.enclClass.sym.type, sym, env, resultInfo);
     }
+    
+    protected void visitSelectHelper(JCFieldAccess tree) {}
 
     public void visitSelect(JCFieldAccess tree) {
         // Determine the expected kind of the qualifier expression.
@@ -4196,6 +4198,8 @@ public class Attr extends JCTree.Visitor {
             sitesym != null &&
             sitesym.name == names._super;
 
+        visitSelectHelper(tree);
+
         // Determine the symbol represented by the selection.
         env.info.pendingResolutionPhase = null;
         Symbol sym = selectSym(tree, sitesym, site, env, resultInfo);
@@ -4213,6 +4217,7 @@ public class Attr extends JCTree.Visitor {
         if (site.hasTag(TYPEVAR) && !isType(sym) && sym.kind != ERR) {
             site = types.skipTypeVars(site, true);
         }
+        
 
         // If that symbol is a variable, ...
         if (sym.kind == VAR) {

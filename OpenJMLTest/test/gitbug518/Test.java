@@ -22,12 +22,12 @@ public class Test {
      
     public void mmm(int f) {
         
-        int e;
+        int eeeee;
         //@ refining
-        //@ old boolean e = f == 0;
-        //@ ensures e==0;
+        //@ old boolean eeeee = f == 0;
+        //@ ensures eeeee==0;
         {
-            e = 1;
+            eeeee = 1;
             f = 1;
         }
      }

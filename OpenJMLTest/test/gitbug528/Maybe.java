@@ -13,4 +13,8 @@ public class Maybe {
     public static void main(String args[]){
         System.out.println(add(2,3));
     }
+    
+    public static void t(java.util.stream.Stream<Integer> s, java.util.function.Consumer<Integer> c) {
+    	s.forEachOrdered(c);
+    }
 }

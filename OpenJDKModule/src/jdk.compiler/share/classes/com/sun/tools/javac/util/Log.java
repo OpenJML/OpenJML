@@ -696,6 +696,7 @@ public class Log extends AbstractLog {
     public void report(JCDiagnostic diagnostic) {
         diagnosticHandler.report(diagnostic);
     	if (System.getenv("STACK") != null && diagnostic.getKind() == JCDiagnostic.Kind.ERROR) new RuntimeException().printStackTrace(System.out);
+    	if (System.getenv("STACK") != null && diagnostic.getKind() == JCDiagnostic.Kind.WARNING) new RuntimeException().printStackTrace(System.out);
      }
 
     /**
