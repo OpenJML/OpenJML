@@ -981,15 +981,34 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     @Override
     public void printModifiers(JCModifiers mods) throws IOException {
+        printAnnotations(mods.annotations);
+        printJmlModifiers(mods);
+        printFlags(mods.flags & ~INTERFACE & ~RECORD);
+    }
+    
+    public void printJmlModifiers(JCModifiers mods) throws IOException {
         for (JmlToken t: ((JmlModifiers)mods).jmlmods) {
         	print("/*@");
         	print(t.toString());
         	print ("*/ ");
         }
-        println();
-        align();
-        super.printModifiers(mods);
+        if (!((JmlModifiers)mods).jmlmods.isEmpty()) {
+        	println();
+            align();
+        }
     }
+    
+    public void visitModifiers(JCModifiers mods) {
+        try {
+            printAnnotations(mods.annotations);
+            printJmlModifiers(mods);
+            printFlags(mods.flags);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+
     
     public void printStatementSpecs(List<JmlStatementLoop> loopspecs) throws IOException {
         if (loopspecs != null) {

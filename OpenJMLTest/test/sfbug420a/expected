@@ -3,10 +3,10 @@ Completed proving methods in stack.Stack
 Proving methods in stack.StackImpl
 Skipping proof of stack.StackImpl.StackImpl() (excluded by -method)
 Starting proof of stack.StackImpl.count() with prover !!!!
-test\sfbug420a\StackImpl.java:19: warning: The prover cannot establish an assertion (Postcondition) in method count
+test/sfbug420a/StackImpl.java:19: warning: The prover cannot establish an assertion (Postcondition) in method count
 		return stackCounter;
 		^
-test\sfbug420a\Stack.java:11: warning: Associated declaration
+test/sfbug420a/Stack.java:11: warning: Associated declaration
 	//-RAC@ ensures \result == count;
 	        ^
 Completed proof of stack.StackImpl.count() with prover !!!! - with warnings

@@ -1,6 +1,6 @@
 Proving methods in Child
 Starting proof of Child.Child((@org.jmlspecs.annotation.NonNull :: java.lang.Object)) with prover !!!!
-test\escConstructor2\Parent.java:5: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method Child
+test/escConstructor2/Parent.java:5: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method Child
   //@ ensures o.equals(oo);
                ^
 Completed proof of Child.Child((@org.jmlspecs.annotation.NonNull :: java.lang.Object)) with prover !!!! - with warnings
