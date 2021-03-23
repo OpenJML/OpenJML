@@ -5,10 +5,10 @@ Skipping proof of stack.StackImpl.StackImpl() (excluded by -method)
 Skipping proof of stack.StackImpl.count() (excluded by -method)
 Skipping proof of stack.StackImpl.itemAt(int) (excluded by -method)
 Starting proof of stack.StackImpl.isEmpty() with prover !!!!
-test\sfbug420d\StackImpl.java:29: warning: The prover cannot establish an assertion (Postcondition) in method isEmpty
+test/sfbug420d/StackImpl.java:29: warning: The prover cannot establish an assertion (Postcondition) in method isEmpty
 		return internalStack.length == 0;
 		^
-test\sfbug420d\Stack.java:20: warning: Associated declaration
+test/sfbug420d/Stack.java:20: warning: Associated declaration
 	//@ ensures \result==(count()==0);
 	    ^
 Completed proof of stack.StackImpl.isEmpty() with prover !!!! - with warnings

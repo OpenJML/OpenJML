@@ -10,7 +10,6 @@ test/escLoopAssignable/Test.java:23: error: ';' expected
 test/escLoopAssignable/Test.java:22: error: Loop specifications must immediately precede a loop statement
         //@ loop_invariant 5<=i && i<=8;
             ^
-Continuing bravely despite parsing errors
 test/escLoopAssignable/Test.java:10: error: cannot find symbol
         //@ assignable i,a[4..7];
                        ^

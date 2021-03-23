@@ -7,10 +7,10 @@ Skipping proof of stack.StackImpl.itemAt(int) (excluded by -method)
 Skipping proof of stack.StackImpl.isEmpty() (excluded by -method)
 Skipping proof of stack.StackImpl.push(int) (excluded by -method)
 Starting proof of stack.StackImpl.top() with prover !!!!
-test\sfbug420f\StackImpl.java:40: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method top
+test/sfbug420f/StackImpl.java:40: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method top
 		return internalStack[stackCounter-1];
 		                    ^
-test\sfbug420f\StackImpl.java:40: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method top
+test/sfbug420f/StackImpl.java:40: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method top
 		return internalStack[stackCounter-1];
 		                    ^
 Completed proof of stack.StackImpl.top() with prover !!!! - with warnings

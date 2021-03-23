@@ -1,8 +1,8 @@
-test\visibilitySimple\B.jml:7: error: cannot find symbol
+test/visibilitySimple/B.jml:7: error: cannot find symbol
      requires this.ii >= 0;
                   ^
   symbol: variable ii
-test\visibilitySimple\B.jml:9: error: cannot find symbol
+test/visibilitySimple/B.jml:9: error: cannot find symbol
      requires this.ii >= 0;
                   ^
   symbol: variable ii

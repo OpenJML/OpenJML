@@ -1594,7 +1594,7 @@ public class Pretty extends JCTree.Visitor {
 
     public void visitModifiers(JCModifiers mods) {
         try {
-            printModifiers(mods);
+            printAnnotations(mods.annotations);
             printFlags(mods.flags);
         } catch (IOException e) {
             throw new UncheckedIOException(e);

@@ -4,10 +4,10 @@ Proving methods in stack.StackImpl
 Skipping proof of stack.StackImpl.StackImpl() (excluded by -method)
 Skipping proof of stack.StackImpl.count() (excluded by -method)
 Starting proof of stack.StackImpl.itemAt(int) with prover !!!!
-test\sfbug420b\StackImpl.java:24: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method itemAt
+test/sfbug420b/StackImpl.java:24: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method itemAt
 		return internalStack[i-1];
 		                    ^
-test\sfbug420b\StackImpl.java:24: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method itemAt
+test/sfbug420b/StackImpl.java:24: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method itemAt
 		return internalStack[i-1];
 		                    ^
 Completed proof of stack.StackImpl.itemAt(int) with prover !!!! - with warnings
