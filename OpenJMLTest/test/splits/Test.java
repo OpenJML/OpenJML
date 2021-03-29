@@ -42,13 +42,13 @@ public class Test {
     }
     
     public void bad() {
-        //@ split
+        //@ split  // ERROR: Out of place
         int i;
     }
     
     public void bad2() {
         int i;
-        //@ split
+        //@ split  // ERROR: Out of place
     }
     
     //@ ensures \result;

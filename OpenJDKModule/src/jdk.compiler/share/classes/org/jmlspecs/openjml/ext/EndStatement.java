@@ -139,9 +139,8 @@ public class EndStatement extends JmlExtension {
                     parser.nextToken();
                 }
             } else {
-                //if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
-                    warning(pos,parser.endPos(),"jml.refining.required");
-                //}
+                error(pos,parser.endPos(),"jml.refining.required");
+                return null;
             }
             if (!parser.isNone(mods)) {
                 utils.error(mods.getStartPosition(),

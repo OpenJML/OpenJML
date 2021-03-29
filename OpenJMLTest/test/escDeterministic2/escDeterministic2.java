@@ -5,9 +5,9 @@ public class escDeterministic2 {
 	//@ function 
 	//@ model static public int comp(int a);
 
-	public int a;
-	public int b;
-	public int c;
+	//@ ghost public int a;
+	//@ ghost public int b;
+	//@ ghost public int c;
 	
 	//@ ensures a == b;
 	public void m() {

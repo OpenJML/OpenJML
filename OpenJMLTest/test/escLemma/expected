@@ -17,7 +17,7 @@ test/escLemma/Test.java:19: warning: Show statement expression k has value ( - 1
 		//@ show k;
 		         ^
 test/escLemma/Test.java:21: warning: The prover cannot establish an assertion (UndefinedLemmaPrecondition) in method m
-		//@ use lemma((k+1));
+		//@ use lemma( (k+1) );
 		    ^
 Completed proof of Test.m(int) with prover !!!! - with warnings
 Starting proof of Test.mm(int) with prover !!!!

@@ -6,7 +6,7 @@ public class escDiverges {
       ensures \result == 0;
     also
       requires the_input < 0;
-      diverges true;
+      diverges the_input != 0;
       signals (IllegalArgumentException e) true;
       signals_only IllegalArgumentException;
 */

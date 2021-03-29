@@ -95,7 +95,7 @@ public class JMLStringTest {
     // @   assert s1.length == 3;
     //@   assert s3.length == 0;
     // @   assert s1 != s3;
-    //@}
+    //@ }
 
     //@ model public static void conversion2(String s) {
     //@   ghost string s1 = s;
@@ -105,19 +105,19 @@ public class JMLStringTest {
     //@   assert s1.length == s.length();
     //@   assert s1 == s3;
     //@   assert \invariant_for((string)s);
-    //@}
+    //@ }
 
     //@ model public static void conversionBad1(nullable String s, Object o) {
     //@   ghost string s1 = s; // verification error
-    //@}
+    //@ }
 
     //@ model public static void conversionBad2(nullable String s, Object o) {
     //@   ghost string s2 = (string)s; // verification error
-    //@}
+    //@ }
 
     //@ model public static void conversionBad3(nullable String s, Object o) {
     //@   ghost string s3 = string.string(s); // verification error
-    //@}
+    //@ }
      
 
 }

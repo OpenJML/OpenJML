@@ -37,7 +37,7 @@ public final class SuffixArray {
         sort(suffixes);
     }
 
-    /*@ normal_behavior
+    /*@ public normal_behavior
       @ requires a != null;
       @ requires 0 <= x && x < a.length;
       @ requires 0 <= y && y < a.length;
@@ -52,9 +52,9 @@ public final class SuffixArray {
       @               && (\forall int k; x <= k && k < j; a[k] == a[k-x+y]));
       @ ensures \result == -compare(y,x);
       @ accessible a, a[*];
-      @ spec_public pure helper
+      @ pure helper
       @*/
-    private int compare(int x, int y) {
+    public int compare(int x, int y) {
         if (x == y) return 0;
         int l = LCP.lcp(a,x,y);
 

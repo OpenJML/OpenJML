@@ -176,12 +176,12 @@ public class StringBuilderDriver {
     
     private static void testTrimToSize() { //9
         StringBuilder sb = new StringBuilder(); //capacity 16, count 0
-        //@ assert sb.stringLength <= sb.modelValue.length;
+        //@ assert sb.stringLength <= sb.value.length;
         sb.trimToSize();
         StringBuilder sb1 = new StringBuilder();
-        //@ show sb1.count, sb1.capacity, sb1.modelValue.length;
+        //@ show sb1.count, sb1.capacity, sb1.value.length;
         sb1.append("sixteencharacter"); //capacity 16, count 16;
-        //@ show sb1.count, sb1.capacity, sb1.modelValue.length;
+        //@ show sb1.count, sb1.capacity, sb1.value.length;
         sb1.trimToSize();
     }
     
@@ -244,7 +244,7 @@ public class StringBuilderDriver {
     }
     
     private static void testAppendObject() { //18
-        Integer testInteger = Integer.valueOf(1);
+        Integer testInteger = new Integer(1);
         /*@ nullable @*/Integer nullInteger = null;
         
         StringBuilder stringBuilder = new StringBuilder("foo");
@@ -535,7 +535,7 @@ public class StringBuilderDriver {
     
     private static void testInsertObject() { //41
         StringBuilder sb = new StringBuilder("Test String");
-        Integer integer = Integer.valueOf(1);
+        Integer integer = new Integer(1);
         /*@ nullable @*/Object nullObject = null;
         
         sb.insert(0, integer);

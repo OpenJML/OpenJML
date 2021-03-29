@@ -1966,24 +1966,25 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     public void visitErroneous(JCErroneous that)         { notImpl(that); }
 
     public void visitLetExpr(LetExpr that) { 
-    	// FIXME - not implemented
-        // FIXME - do we need to add these so they are not rewritten?
-//        for (JCStatement d: that.defs) {
-//            scan(d);
-//        }
-//        for (JCStatement d: that.defs) {
-//            Name n = encodedName(d.sym,0L);
-//            d.name = n;
-//            localVars.put(d.sym,d);
-//        }
-//        try {
-//            scan(that.expr);
-//        } finally {
-//            result = that;
-//            for (JCStatement d: that.defs) {
-//                localVars.remove(d.sym);
-//            }
-//        }
+        for (JCStatement s: that.defs) {
+        	JCVariableDecl d = (JCVariableDecl)s;
+            scan(d.init);
+        }
+        for (JCStatement s: that.defs) {
+        	JCVariableDecl d = (JCVariableDecl)s;
+            Name n = encodedName(d.sym,0L);
+            d.name = n;
+            localVars.put(d.sym,d);
+        }
+        try {
+            scan(that.expr);
+        } finally {
+            result = that;
+            for (JCStatement s: that.defs) {
+            	JCVariableDecl d = (JCVariableDecl)s;
+                localVars.remove(d.sym);
+            }
+        }
     }
     
     @Override

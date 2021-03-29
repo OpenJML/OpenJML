@@ -1,30 +1,8 @@
-test/escLoopAssignable/Test.java:10: warning: A refining statement is required for statement specifications in strict JML mode
-        //@ assignable i,a[4..7];
+test/escLoopAssignable/Test.java:10: error: Expected loop specifications while in JML: assignable is not a loop specification keyword
+        //@ assignable i,a[4..7]; // ERROR
             ^
-test/escLoopAssignable/Test.java:9: error: Loop specifications must immediately precede a loop statement
-        //@ loop_invariant 5<=i && i<=8;
+test/escLoopAssignable/Test.java:11: error: Expected loop specifications while in JML: writes is not a loop specification keyword
+        //@ writes i,a[4..7];     // ERROR
             ^
-test/escLoopAssignable/Test.java:23: error: ';' expected
-        //@ loop_assignable i,a[4..7];
-                                 ^
-test/escLoopAssignable/Test.java:22: error: Loop specifications must immediately precede a loop statement
-        //@ loop_invariant 5<=i && i<=8;
-            ^
-test/escLoopAssignable/Test.java:10: error: cannot find symbol
-        //@ assignable i,a[4..7];
-                       ^
-  symbol:   variable i
-  location: class Test
-test/escLoopAssignable/Test.java:11: error: cannot find symbol
-        //@ writes i,a[4..7];
-                   ^
-  symbol:   variable i
-  location: class Test
-test/escLoopAssignable/Test.java:23: error: cannot find symbol
-        //@ loop_assignable i,a[4..7];
-            ^
-  symbol:   class loop_assignable
-  location: class Test
 Operation not performed because of parse or type errors
-6 errors
-1 warning
+2 errors

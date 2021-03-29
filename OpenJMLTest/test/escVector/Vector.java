@@ -111,7 +111,7 @@ public class Vector {
     //@ loop_invariant the_index == i || (the_index <= i && i <= my_element_count);
     //@ decreases my_element_count - i;
     for (int i = the_index; i < my_element_count; i++) {
-      if (the_elem.equals(my_element_data[i])) {   // the_index might be negative
+      if (the_elem.equals(my_element_data[i]) ) {   // ERROR - the_index might be negative
         return i;
       }
     }

@@ -34,6 +34,7 @@ public class StatementLocationsExtension extends JmlExtension {
     public static final IJmlClauseKind loopwritesStatement = new LocationSetStatementType(loopwritesID);
     
     public void register() {
+        synonym("loop_assignable",loopwritesStatement);
         synonym("loop_assigns",loopwritesStatement);
         synonym("loop_modifies",loopwritesStatement);
     }

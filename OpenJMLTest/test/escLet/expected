@@ -9,19 +9,19 @@ Feasibility check - at program exit : OK
 Completed proof of Test.m(int) with prover !!!! - no warnings
 Starting proof of Test.m1(int) with prover !!!!
 test/escLet/Test.java:29: warning: The prover cannot establish an assertion (Assert) in method m1
-            //@ assert a[3]== 0; // ERROR
-                ^
+		//@ assert a[3]== 0; // ERROR
+		    ^
 test/escLet/Test.java:28: warning: The prover cannot establish an assertion (Assert) in method m1
-            //@ assert a[2]== 0; // OK // but fails
-                ^
+		//@ assert a[2]== 0; // OK // but fails // FIXME
+		    ^
 Completed proof of Test.m1(int) with prover !!!! - with warnings
 Starting proof of Test.m2(int) with prover !!!!
 test/escLet/Test.java:38: warning: The prover cannot establish an assertion (Assert) in method m2
-            //@ assert a[3]== 0; // ERROR
-                ^
+		//@ assert a[3]== 0; // ERROR
+		    ^
 test/escLet/Test.java:37: warning: The prover cannot establish an assertion (Assert) in method m2
-            //@ assert a[2]== 0; // OK // forall does not work well with let
-                ^
+		//@ assert a[2]== 0; // OK // forall does not work well with let // FIXME
+		    ^
 Completed proof of Test.m2(int) with prover !!!! - with warnings
 Starting proof of Test.m3(int) with prover !!!!
 Feasibility check - end of preconditions : OK

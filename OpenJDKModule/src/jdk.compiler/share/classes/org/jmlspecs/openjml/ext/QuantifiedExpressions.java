@@ -248,7 +248,7 @@ public class QuantifiedExpressions extends ExpressionExtension {
         public JCExpression parse(JCModifiers mods, String keyword,
                 IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
-            ListBuffer<JCVariableDecl> vdefs = new ListBuffer<JCVariableDecl>();
+            ListBuffer<JCTree.JCStatement> vdefs = new ListBuffer<>();
             int pos = parser.pos();
             parser.nextToken();
             do {
@@ -270,8 +270,7 @@ public class QuantifiedExpressions extends ExpressionExtension {
             } while (true);
             parser.accept(SEMI);
             JCExpression expr = parser.parseExpression();
-            throw new RuntimeException("no parsing of let"); // FIXME
-            //return toP(parser.jmlF.at(pos).LetExpr(vdefs.toList(),expr));
+            return toP(parser.jmlF.at(pos).LetExpr(vdefs.toList(),expr));
         }
     };
 

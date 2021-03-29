@@ -1,10 +1,5 @@
-test/escrmloop2/Lemmas.java:47: warning: A refining statement is required for statement specifications in strict JML mode
+test/escrmloop2/Lemmas.java:47: error: Expected loop specifications while in JML: assignable is not a loop specification keyword
           @ assignable \nothing;
             ^
-test/escrmloop2/Lemmas.java:46: error: Loop specifications must immediately precede a loop statement
-        /*@ decreases j - m;
-            ^
-Continuing bravely despite parsing errors
 Operation not performed because of parse or type errors
 1 error
-1 warning

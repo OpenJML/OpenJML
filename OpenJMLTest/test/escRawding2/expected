@@ -1,0 +1,15 @@
+test/escRawding/java/lang/AbstractStringBuilder.jml:12: error: Type of field value in specification differs from type in source/binary: char[] vs. byte[]
+    /*@ spec_public @*/ char[] value; //@ in modelValue;
+                            ^
+test/escRawding/java/lang/AbstractStringBuilder.jml:430: error: There is no binary method to match this Java declaration in the specification file: reverseAllValidSurrogatePairs (owner: java.lang.AbstractStringBuilder)
+    private void reverseAllValidSurrogatePairs(); //57
+                 ^
+test/escRawding/StringBuilderDriver.java:247: warning: [removal] Integer(int) in Integer has been deprecated and marked for removal
+        Integer testInteger = new Integer(1);
+                              ^
+test/escRawding/StringBuilderDriver.java:538: warning: [removal] Integer(int) in Integer has been deprecated and marked for removal
+        Integer integer = new Integer(1);
+                          ^
+Operation not performed because of parse or type errors
+2 errors
+2 warnings

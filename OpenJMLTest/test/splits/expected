@@ -1,8 +1,8 @@
 test/splits/Test.java:45: warning: Ignoring out of place split statement
-        //@ split
+        //@ split  // ERROR: Out of place
             ^
 test/splits/Test.java:51: warning: Ignoring out of place split statement
-        //@ split
+        //@ split  // ERROR: Out of place
             ^
 Proving methods in Test
 Starting proof of Test.Test() with prover !!!!

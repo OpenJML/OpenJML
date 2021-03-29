@@ -7,6 +7,10 @@ Starting proof of escDeterministic.comp(int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of escDeterministic.comp(int) with prover !!!! - no warnings
+Starting proof of escDeterministic.k() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of escDeterministic.k() with prover !!!! - no warnings
 Starting proof of escDeterministic.m() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
