@@ -56,6 +56,7 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
+import com.sun.tools.javac.file.PathFileObject.CannotCreateUriError;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlScanner;
@@ -306,6 +307,15 @@ public class Utils {
     public ClassSymbol createClassSymbol(String fullyQualifiedName) {
         return ClassReader.instance(context).
                 enterClass(Names.instance(context).fromString(fullyQualifiedName));
+    }
+
+    public ClassSymbol createClassSymbol(Symbol.ModuleSymbol msym, String fullyQualifiedName) {
+    	var cr = ClassReader.instance(context);
+    	var saved = cr.currentModule;
+    	cr.currentModule = msym;
+    	var csym = cr.enterClass(Names.instance(context).fromString(fullyQualifiedName));
+    	cr.currentModule = saved;
+    	return csym;
     }
 
     /** A cache for the symbol */
@@ -941,19 +951,17 @@ public class Utils {
         return locationString(new SimpleDiagnosticPosition(pos), source);
     }
     
-    /** Creates the location prefix including the colon without any message;
-     * 'pos' is the position in the file given by source or if source is null, by log.currentSource(). */
+    /** Creates the location prefix including the ending colon without any message;
+     * 'pos' is the position in the file given by source or if source is null, by log.currentSourceFile(). */
     public String locationString(DiagnosticPosition pos, /*@ nullable */ JavaFileObject source) {
-        JavaFileObject prev = null;
-        if (source != null) prev = log().useSource(source);
-        try {
-        	JavaFileObject jfo = source == null ? log().currentSourceFile() : source;
-            JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(DiagnosticSource.NO_SOURCE, pos, "empty", "");
-            String msg = diag.toString().replace("\n","").replace("Note: ", "");
-            return msg;
-        } finally {
-            if (source != null) log().useSource(prev);
-        }
+        // TODO - there must be a better way to format this string
+    	DiagnosticSource ds = source == null ? log().currentSource() : new DiagnosticSource(source, log);
+        JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(ds, pos, "empty", "");
+        String msg = diag.toString().replace("Note: ", "");
+        int k = msg.indexOf(':');
+        k = msg.indexOf(':',k+1);
+        msg = msg.substring(0,k+1);
+        return msg;
     }
     
     Symbol codeBigintMath = null;
@@ -1649,7 +1657,6 @@ public class Utils {
     }
 
     public void note(JavaFileObject source, DiagnosticPosition pos, String key, Object ... args) {
-        Log log = log();
         JavaFileObject prev = null;
         if (source != null) prev = log.useSource(source);
         try {

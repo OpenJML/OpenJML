@@ -7,4 +7,8 @@ Starting proof of escDiverges.sqrt(double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of escDiverges.sqrt(double) with prover !!!! - no warnings
+Starting proof of escDiverges.sqrt2(double) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of escDiverges.sqrt2(double) with prover !!!! - no warnings
 Completed proving methods in escDiverges

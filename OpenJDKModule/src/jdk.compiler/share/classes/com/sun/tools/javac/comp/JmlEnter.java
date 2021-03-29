@@ -13,6 +13,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
@@ -591,7 +592,7 @@ public class JmlEnter extends Enter {
 			if (!JmlTypes.instance(context).isSameType(t, csym.getSuperclass())) {
 				utils.error(specDecl.extending, "jml.message", "Supertype in specification differs from supertype in source/binary: " + csym + " " + t + " " + csym.getSuperclass() + " " + owner + " " + specDecl);
 			}
-		} else if (!csym.isInterface()) {
+		} else if (!csym.isInterface() && !csym.isEnum() && !csym.isRecord()) {
 			// jdecl has no declared supertype so either 
 			// (a) it is Object and csym is also java.lang.Object
 			// or (b) the superclass of csym is Object
@@ -610,12 +611,21 @@ public class JmlEnter extends Enter {
 			}
 		}
 		
+		var classIsPure = utils.findMod(specDecl.mods, Modifiers.PURE);
+		
+		// Add specifications for Java declarations that do not have specification declarations
 		for (Symbol m: specDecl.sym.members().getSymbols(s->s instanceof MethodSymbol)) {
 			MethodSymbol ms = (MethodSymbol)m;
 			if (specs.get(ms) == null) {
 				//utils.note("Method " + specDecl.sym + "." + m + " has no specifications -- using defaults");
 				JmlMethodDecl mdecl = javaDecl == null ? null : (JmlMethodDecl)find(javaDecl.defs, t->(t instanceof JmlMethodDecl && ((JmlMethodDecl)t).sym == m));
+				if (classIsPure != null && mdecl != null) {
+					mdecl.mods.annotations = mdecl.mods.annotations.append(classIsPure);
+				}
 				specs.putSpecs(ms, specs.defaultSpecs(mdecl,ms,com.sun.tools.javac.util.Position.NOPOS), null); // FIXME - what to use for specsEnv -- there might be parameters to attribute
+	            if (m.toString().contains("good")) {
+	        		System.out.println("DEFAULT-E " + ms.owner + "." + ms + " " + specs.get(ms));
+	            }
 			}
 		}
 

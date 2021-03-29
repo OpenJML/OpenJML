@@ -3,7 +3,7 @@ public class buggyCalculator {
 
 
   //@ requires operator == '+' || operator == '*' || operator == '-' || operator == '/' || operator == '%' || operator == '&' || operator == '|' || operator == '^';
-    //@{|
+    //@ {|
       //@ requires operator == '+';
       //@ requires num1 + num2 <= Integer.MAX_VALUE;
       //@ requires num1 + num2 >= Integer.MIN_VALUE;
@@ -81,23 +81,23 @@ public class buggyCalculator {
 
               case '/':
                   output = num1 / num2;
-          break;
+                  break;
 
-          case '%':
+              case '%':
                   output = num1 % num2;
                   break;
 
-//          case '&':
-//                  output = num1 & num2;
-//                  break;
-//          
-//          case '|':
-//                  output = num1 | num2;
-//                  break;
-//           
-//              case '^':
-//                  output = num1 ^ num2;
-//              break;
+              case '&':
+                  output = num1 & num2;
+                  break;
+          
+              case '|':
+                  output = num1 | num2;
+                  break;
+           
+              case '^':
+                  output = num1 ^ num2;
+              break;
 
               default:
                   System.err.println("You entered a not defined operator");
@@ -106,7 +106,7 @@ public class buggyCalculator {
           return output;
       }
     //@ requires operator == '+' || operator == '*' || operator == '-' || operator == '/' || operator == '%' || operator == '&' || operator == '|' || operator == '^';
-      //@{|
+      //@ {|
         //@ requires operator == '+';
         //@ requires num1 + num2 <= Integer.MAX_VALUE;
         //@ requires num1 + num2 >= Integer.MIN_VALUE;

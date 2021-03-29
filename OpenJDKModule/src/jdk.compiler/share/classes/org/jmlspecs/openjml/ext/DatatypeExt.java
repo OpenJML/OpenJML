@@ -110,7 +110,7 @@ public class DatatypeExt extends JmlExtension {
             // Implicitly model
             mods.annotations = JmlSpecs.instance(context).addModelAnnotation(pos, mods.annotations);
             // FIXME - make this a novel primitive type
-            Type at = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.IJmlDatatype")).type;
+            Type at = utils.createClassSymbol(syms.java_base, "org.jmlspecs.lang.IJmlDatatype").type;
             JCExpression dtype = parser.jmlF.at(pos).Type(at);
             JmlDatatypeDecl d = new JmlDatatypeDecl(mods, datatypeName, typarams, null, List.<JCExpression>of(dtype), defs.toList(), null);
             d.constructors = cons.toList();

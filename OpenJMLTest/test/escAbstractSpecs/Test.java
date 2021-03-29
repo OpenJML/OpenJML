@@ -6,7 +6,7 @@ public class Test {
 		
 		//@ public normal_behavior
 		//@   ensures init;
-		//@ model public A();
+		public A() {}
 		
 		public void m() {
 			A a = new A();

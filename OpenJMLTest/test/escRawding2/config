@@ -1,0 +1,2 @@
+ARGS+=" -specspath=test/escRawding -code-math=safe"
+EXIT=1

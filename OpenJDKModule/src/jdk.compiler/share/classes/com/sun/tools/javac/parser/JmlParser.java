@@ -29,6 +29,7 @@ import org.jmlspecs.openjml.ext.SingletonExpressions;
 
 import static org.jmlspecs.openjml.ext.ReachableStatement.*;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
+import org.jmlspecs.openjml.ext.InlinedLoopStatement;
 import org.jmlspecs.openjml.ext.MatchExt;
 import org.jmlspecs.openjml.ext.Modifiers;
 
@@ -499,6 +500,11 @@ public class JmlParser extends JavacParser {
             d.jmltype = true;
         }
     }
+    
+    boolean isLoopSpec(IJmlClauseKind kind) {
+    	return kind == loopinvariantClause || kind == StatementLocationsExtension.loopwritesStatement
+    			|| kind == loopdecreasesClause;
+    }
 
 
     /** Overridden to parse JML statements as statements in a block.
@@ -529,13 +535,16 @@ public class JmlParser extends JavacParser {
                     if (ext instanceof IJmlClauseKind.MethodClauseKind
                             || ext == EndStatement.refiningClause) {
                         s = (JCStatement)EndStatement.refiningClause.parse(null, id, ext, this);
+                    } else if (isLoopSpec(ext)) {
+                    	s = parseLoopWithSpecs();
                     } else {
                     	// FIXME - change this to not have to parse one loop spec first -- move to extensions
                         s = (JCStatement)ext.parse(null, id, ext, this);
                         while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
-                        if (s instanceof JmlStatementLoop) {
-                            s = parseLoopWithSpecs((JmlStatementLoop)s, true);
-                        } else if (id.equals(EndStatement.beginID)) {
+//                        if (s instanceof JmlStatementLoop) {
+//                            s = parseLoopWithSpecs((JmlStatementLoop)s, true);
+//                        } else 
+                        if (id.equals(EndStatement.beginID)) {
                             utils.error(s, "jml.message", "Improperly nested spec-end pair");
                         } else if (id.equals(EndStatement.endID)) {
                             utils.error(s, "jml.message", "Improperly nested spec-end pair");
@@ -610,11 +619,38 @@ public class JmlParser extends JavacParser {
     public JCStatement parseJavaStatement() {
         return super.parseStatement();
     }
+    
+    public JCStatement parseLoopWithSpecs() {
+    	ListBuffer<JmlStatementLoop> loopSpecs = new ListBuffer<>();
+    	while (true) {
+    		if (!(S.jml() && token.kind == TokenKind.IDENTIFIER)) break;
+    		String id = token.name().toString();
+    		IJmlClauseKind anyext = Extensions.allKinds.get(id);
+    		if (anyext == InlinedLoopStatement.inlinedLoopStatement || anyext == splitClause) {
+    			break;
+    		} else if (!isLoopSpec(anyext)) {
+                utils.error(token.pos, "jml.message", "Expected loop specifications while in JML: " + id + " is not a loop specification keyword");
+    			skipThroughSemi();
+    		} else {
+    			JmlStatementLoop t = (JmlStatementLoop)anyext.parse(null, id, anyext, this);
+    			if (t != null) loopSpecs.add(t);
+    		}
+    		while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
+    	}
+    	JCStatement stat = parseStatement();
+    	if (stat instanceof IJmlLoop) {
+    		((IJmlLoop)stat).setLoopSpecs(loopSpecs.toList());
+        } else {
+            utils.error(loopSpecs.isEmpty() ? stat : loopSpecs.first(), "jml.message", "Loop specifications must immediately precede a loop statement");
+        }
+        return stat;
+    }
 
     public JCStatement parseLoopWithSpecs(JmlStatementLoop firstSpec) {
         return parseLoopWithSpecs(firstSpec, false);
     }
     public JCStatement parseLoopWithSpecs(JmlStatementLoop firstSpec, boolean block) {
+    	System.out.println("PARSELOOPWITHSPECS " + firstSpec);
         JCStatement stt = block ? blockStatement().head : parseStatement();
         if (stt instanceof IJmlLoop) {
             IJmlLoop loop = (IJmlLoop)stt;
@@ -1836,11 +1872,11 @@ public class JmlParser extends JavacParser {
         	JmlToken jt = new JmlToken(mk, token);
         	jmlmods.add(jt);
         	jt.source = Log.instance(context).currentSourceFile();
-//        	JCAnnotation a = tokenToAnnotationAST(mk.fullAnnotation, pos(), last);
-//        	if (a != null) {
-//        		annotations.append(a);
-//        		if (pos == Position.NOPOS) pos = a.getStartPosition();
-//        	}
+        	JCAnnotation a = tokenToAnnotationAST(mk.fullAnnotation, pos(), last);
+        	if (a != null) {
+        		annotations.append(a);
+        		if (pos == Position.NOPOS) pos = a.getStartPosition();
+        	}
         	// a is null if no annotation is defined for the modifier;
         	// we just silently ignore that situation
         	// (this is true at the moment for math annotations, but could
@@ -2010,6 +2046,10 @@ public class JmlParser extends JavacParser {
     }
 
     protected ParensResult analyzeParensHelper(Token t, ParensResult defaultResult) {
+    	if (t.kind == TokenKind.EQ) return ParensResult.PARENS;
+    	if (t.kind == TokenKind.SEMI) return ParensResult.PARENS;
+    	if (t.kind == TokenKind.COMMA) return ParensResult.PARENS;
+    	if (t.kind == TokenKind.RPAREN) return ParensResult.PARENS;
         if (!(t instanceof JmlToken)) return defaultResult;
         IJmlClauseKind jtk = ((JmlToken)t).jmlclausekind;
         switch (jtk.name()) {

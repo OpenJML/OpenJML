@@ -18,7 +18,7 @@ public class Test {
 	public void m(int k) {
 		//@ show k;
 		k = 2*k;
-		//@ use lemma((k+1));
+		//@ use lemma( (k+1) );
 		boolean b = ((k+1)&1) == 1; // Error expected when k is -1
 		//@ assert b;
 	}
@@ -28,7 +28,7 @@ public class Test {
 	public void mm(int k) {
 		//@ show k;
 		k = 2*k;
-		//@ use lemma((k+1));
+		//@ use lemma( (k+1) );
 		boolean b = ((k+1)&1) == 1;
 		//@ assert b;
 	}

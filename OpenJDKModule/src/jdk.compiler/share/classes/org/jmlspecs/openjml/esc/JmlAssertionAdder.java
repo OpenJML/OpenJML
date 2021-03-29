@@ -5924,18 +5924,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 boolean hasDefault = false;
                 for (JCCase c: that.cases) {
                     continuation = Continuation.CONTINUE;
-                    if (c.pats == null) hasDefault = true;
-                    JCExpression pat = (rac && c.pats.get(0) instanceof JCIdent) ? c.pats.get(0) : convertExpr(c.pats.get(0));
-                    JCBlock b = convertIntoBlock(c,c.stats);
-                    b.stats = b.stats.prepend(traceableComment(c,c,(c.pats == null ? "default:" : "case " + c.pats.get(0) + ":"),null));
+                    JCCase cc;
+                    if (c.pats == null || c.pats.isEmpty()) {
+                    	hasDefault = true;
+                    	JCBlock b = convertIntoBlock(c,c.stats);
+                        b.stats = b.stats.prepend(traceableComment(c,c,"default:",null));
+                        cc = M.at(c.pos).Case(c.caseKind, List.<JCExpression>nil(),b.stats, null);
+                        combined = Continuation.CONTINUE;
+                    } else {
+                    	JCExpression pat = (rac && c.pats.get(0) instanceof JCIdent) ? c.pats.get(0) : convertExpr(c.pats.get(0));
+                    	JCBlock b = convertIntoBlock(c,c.stats);
+                        b.stats = b.stats.prepend(traceableComment(c,c,("case " + c.pats.get(0) + ":"),null));
+                        cc = M.at(c.pos).Case(c.caseKind, List.<JCExpression>of(pat),b.stats, null);
+                    }
 // FIXME-- and handle more than one pat
-//                    JCCase cc = M.at(c.pos).Case(pat,b.stats);
-//                    cases.add(cc);
-//                    combined = combined.combine(continuation);  // FIXME - does this all work for fall-through cases
+                    cases.add(cc);
+                    combined = combined.combine(continuation);  // FIXME - does this all work for fall-through cases
                 }
                 // If there is no default, there might be some cases missing, in which case CONTINUE is the appopriate value.
                 // But not if all possible cases are represented -- that situation is not represented here.
-                if (!hasDefault) combined = Continuation.CONTINUE;
                 continuation = combined;
                 sw.cases = cases.toList();
                 result = addStat(sw.setType(that.type));
@@ -9979,9 +9986,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
         } catch (Error e) {
             log.error("jml.internal", e.toString()); // FIXME - improve error message
+            Utils.conditionalPrintStack("JMLAA-Error",e);
             throw e;
         } catch (Exception e) {
-        	Utils.conditionalPrintStack("JMLAA9984",e);
+        	Utils.conditionalPrintStack("JMLAA-Exception",e);
             throw e;
         } finally {
             checkBlock(stack0);
@@ -10042,8 +10050,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void addToCallStack(JCExpression that) {
             Symbol sym = (that instanceof JCMethodInvocation) ? treeutils.getSym(((JCMethodInvocation)that).meth) 
                     : ((JCNewClass)that).constructor;
-            String s = utils.locationString(that.pos) + ": " +
-                    utils.qualifiedName(sym);
+            String s = utils.locationString(that.pos) + " " + utils.qualifiedName(sym);
             callStack.add(0,s);
             callStackSym.add(0,sym);
     }
@@ -13645,7 +13652,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 result = eresult = treeutils.makeIdent(dec.pos,dec.sym);
             }
         } else {
-            result = eresult = M.at(that).LetExpr(convert(that.defs), convert(that.expr)).setType(that.type);
+            for (JCStatement st : that.defs) {
+                if (st instanceof JCVariableDecl) {
+                	var d = (JCVariableDecl)st;
+                	d.init = convert(d.init);
+                }
+            }
+            for (JCStatement st : that.defs) {
+                if (st instanceof JCVariableDecl) {
+                	localVariables.put(((JCVariableDecl)st).sym,((JCVariableDecl)st).sym);
+                }
+            }
+            try {
+                JCExpression e = convertExpr(that.expr);
+                result = eresult = M.at(that).LetExpr(that.defs, e).setType(that.type);
+            } finally {
+                for (JCStatement st : that.defs) {
+                    if (st instanceof JCVariableDecl) {
+                    	localVariables.remove(((JCVariableDecl)st).sym);
+                    }
+                }
+            }
         }
     }
 
@@ -16914,10 +16941,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             try {
                 if (!pureCopy) addTraceableComment(that); // after the check on the key
                 JCStatement st = that.statement;
-                convertJML(st, treeutils.trueLit, false);
-//                if (arg instanceof JCMethodInvocation || arg instanceof JCAssign || arg instanceof JCAssignOp || arg instanceof JCUnary) {
-//                    result = addStat( M.at(that).Exec(arg).setType(that.type) );
-//                }
+                st.accept(this);
             } catch (NoModelMethod e) {
                 // Ignore - don't add a statement
             } catch (JmlNotImplementedException e) {

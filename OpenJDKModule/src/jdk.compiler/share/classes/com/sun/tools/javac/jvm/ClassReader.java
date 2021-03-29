@@ -170,7 +170,7 @@ public class ClassReader {
 
     /** The module containing the class currently being read.
      */
-    protected ModuleSymbol currentModule = null;
+    public ModuleSymbol currentModule = null; // OPENJML - changed protected to public
 
     /** The buffer containing the currently read class file.
      */

@@ -1060,7 +1060,7 @@ public class MethodProverSMT {
                     JmlStatementExpr assertStat = (JmlStatementExpr)stat;
                     JCExpression e = assertStat.expression;
                     Label label = assertStat.label;
-                    if (e instanceof JCTree.JCLiteral) {
+                   if (e instanceof JCTree.JCLiteral) {
                         value = ((JCTree.JCLiteral)e).value.equals(1); // Boolean literals have 0 and 1 value
                     } else if (e instanceof JCTree.JCParens) {
                         value = ((JCTree.JCLiteral)((JCTree.JCParens)e).expr).value.equals(1); // Boolean literals have 0 and 1 value
@@ -1079,7 +1079,7 @@ public class MethodProverSMT {
 
                         JavaFileObject prev = null;
                         int pos = assertStat.pos;
-                        if (pos == Position.NOPOS || pos == info.decl.pos) {
+                       if (pos == Position.NOPOS || pos == info.decl.pos) {
                             pos = terminationPos;
                             prev = log.useSource(((JmlMethodDecl)info.decl).sourcefile);
                         } else {
@@ -1102,35 +1102,33 @@ public class MethodProverSMT {
                         if (JmlOption.includes(context, JmlOption.SHOW,"translated")) log.getWriter(WriterKind.NOTICE).println("Failed assert: " + e.toString());
                         int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
                         String loc;
-                        if (epos == Position.NOPOS || pos != assertStat.pos) {
-                            utils.warning(assertStat.source,pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
-                            loc = utils.locationString(pos,assertStat.source);
-                            tracer.appendln(loc + " Invalid assertion (" + label + ")");
-                        } else {
+//                        if (epos == Position.NOPOS || pos != assertStat.pos) {
+//                            utils.warning(assertStat.source,pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
+//                            loc = utils.locationString(pos,assertStat.source);
+//                            tracer.appendln(loc + " Invalid assertion (" + label + ")");
+//                        } else {
                             // FIXME - migrate to using pos() for terminationPos as well 
-                        	utils.warning(assertStat.source,assertStat.getPreferredPosition(),"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
-                            loc = utils.locationString(assertStat.getPreferredPosition(),assertStat.source);
+                        	utils.warning(assertStat.source,pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
+                            loc = utils.locationString(pos,assertStat.source);
                             tracer.appendln(loc + " Invalid assertion (" + label + ")");
                             if (label == Label.UNDEFINED_PRECONDITION) {
                                 try {
                                     Name nm = ((JCIdent)assertStat.expression).name;
                                     String s = jmlesc.assertionAdder.callStacks.get(nm);
-                                    if (s != null) utils.note(false,s);
+                                    if (s != null) utils.note(s);
                                 } catch (Exception ex) {}
                             }
-                        }
+//                        }
                         // TODO - above we include the optionalExpression as part of the error message
                         // however, it is an expression, and not evaluated for ESC. Even if it is
                         // a literal string, it is printed with quotes around it.
                         if (assertStat.source != null) log.useSource(prev);
                         
                         if (assertStat.associatedPos != Position.NOPOS) {
-                            if (assertStat.associatedSource != null) prev = log.useSource(assertStat.associatedSource);
-                            utils.warning(assertStat.associatedPos, 
+                            utils.warning(assertStat.associatedSource, assertStat.associatedPos, 
                                     Utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
                                     loc);
                             tracer.appendln(associatedLocation + " Associated location");
-                            if (assertStat.associatedSource != null) log.useSource(prev);
                         }
                         if (assertStat.associatedClause != null && JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
                             IJmlClauseKind tkind = assertStat.associatedClause.clauseKind;
@@ -1223,7 +1221,7 @@ public class MethodProverSMT {
         // in which the invalid assertion is a postcondition - then we want
         // to know which path through the method (ending at a return or
         // throws statement) causes the bad postcondition. Note also that
-        // a return or throws statement might be overridden by a subsequent
+        // a return or throws statement might be overrdden by a subsequent
         // return or throws statement in a later finally block.
         
         // The extraction of the terminationPos from the block id depends

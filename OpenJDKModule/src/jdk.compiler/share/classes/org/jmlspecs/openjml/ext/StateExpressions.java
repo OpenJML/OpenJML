@@ -107,10 +107,10 @@ public class StateExpressions extends ExpressionExtension {
                 }
             }
             Name label = null;
-            JCExpression labelarg = null;
+            JCExpression labelpos = tree;
             if (n == 2) {
-                labelarg = tree.args.get(1);
-                label = attr.checkLabel(labelarg);
+                labelpos = tree.args.get(1);
+                label = attr.checkLabel(labelpos);
                 if (label == null) {
                     t = syms.errType;
                 }
@@ -129,7 +129,7 @@ public class StateExpressions extends ExpressionExtension {
                 t = tree.args.get(0).type;
             } else {
                 // in a method clause
-                Env<AttrContext> oldenv = attr.envForLabel(labelarg, label, attr.savedMethodClauseOutputEnv);
+                Env<AttrContext> oldenv = attr.envForLabel(labelpos, label, attr.savedMethodClauseOutputEnv);
                 
                 Env<AttrContext> qOldEnv = oldenv;
                 for (JmlQuantifiedExpr qexpr: attr.quantifiedExprs) {

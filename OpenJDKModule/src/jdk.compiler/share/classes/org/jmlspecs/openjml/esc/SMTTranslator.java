@@ -2886,16 +2886,16 @@ public class SMTTranslator extends JmlTreeScanner {
     // sequential bindings. So we also need unique bound identifiers.
     private IExpr doLet(Iterator<JCStatement> iter, JCExpression expr) {
     	// FIXME
-//        if (iter.hasNext()) {
-//            JCVariableDecl decl = iter.next();
-//            IExpr.ISymbol sym = F.symbol(makeBarEnclosedString(decl.name.toString()));
-//            IExpr e = convertExpr(decl.init);
-//            List<IBinding> bindings = new LinkedList<IBinding>();
-//            bindings.add(F.binding(sym,e));
-//            return F.let(bindings, doLet(iter,expr));
-//        } else {
+        if (iter.hasNext()) {
+            JCVariableDecl decl = (JCVariableDecl)iter.next();
+            IExpr.ISymbol sym = F.symbol(makeBarEnclosedString(decl.name.toString()));
+            IExpr e = convertExpr(decl.init);
+            List<IBinding> bindings = new LinkedList<IBinding>();
+            bindings.add(F.binding(sym,e));
+            return F.let(bindings, doLet(iter,expr));
+        } else {
             return convertExpr(expr);
-//        }
+        }
     }
 
     @Override

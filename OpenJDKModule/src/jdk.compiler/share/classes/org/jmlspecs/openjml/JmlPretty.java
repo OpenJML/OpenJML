@@ -552,7 +552,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             boolean modOrCodeOrBehavior = false;
             if (that.modifiers != null &&
                     (that.modifiers.flags != 0 || (that.modifiers.annotations != null && !that.modifiers.annotations.isEmpty()))) {
-                that.modifiers.accept(this); // presumes that this call adds a trailing space
+                printFlags(that.modifiers.flags);
                 modOrCodeOrBehavior = true;
             }
             if (that.code) {
@@ -979,12 +979,12 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(tree,e); }
     }
 
-    @Override
-    public void printModifiers(JCModifiers mods) throws IOException {
-        printAnnotations(mods.annotations);
-        printJmlModifiers(mods);
-        printFlags(mods.flags & ~INTERFACE & ~RECORD);
-    }
+//    @Override
+//    public void printModifiers(JCModifiers mods) throws IOException {
+//        printAnnotations(mods.annotations);
+//        printJmlModifiers(mods);
+//        printFlags(mods.flags & ~INTERFACE & ~RECORD);
+//    }
     
     public void printJmlModifiers(JCModifiers mods) throws IOException {
         for (JmlToken t: ((JmlModifiers)mods).jmlmods) {
@@ -998,15 +998,15 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         }
     }
     
-    public void visitModifiers(JCModifiers mods) {
-        try {
-            printAnnotations(mods.annotations);
-            printJmlModifiers(mods);
-            printFlags(mods.flags);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
+//    public void visitModifiers(JCModifiers mods) {
+//        try {
+//            printAnnotations(mods.annotations);
+//            printJmlModifiers(mods);
+//            printFlags(mods.flags);
+//        } catch (IOException e) {
+//            throw new UncheckedIOException(e);
+//        }
+//    }
 
 
     

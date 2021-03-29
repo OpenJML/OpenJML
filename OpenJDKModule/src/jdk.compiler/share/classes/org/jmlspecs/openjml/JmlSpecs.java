@@ -1063,11 +1063,11 @@ public class JmlSpecs {
         Symtab syms = Symtab.instance(context);
         JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
         JmlMethodSpecs ms = M.at(pos).JmlMethodSpecs(com.sun.tools.javac.util.List.<JmlSpecificationCase>nil());
-        JCTree.JCModifiers mods = M.at(pos).Modifiers(sym.flags() & Flags.AccessFlags);
-        MethodSpecs mspecs = new MethodSpecs(mods,ms); // FIXME - empty instead of null modifiers?
-        ms.pos = pos;
         ms.decl = decl;
-        ms.deSugared = null; // FIXME- was ms?
+        ms.deSugared = null;
+        JCTree.JCModifiers mods = M.at(pos).Modifiers(sym.flags() & Flags.AccessFlags);
+        if (decl != null) mods = decl.mods;
+        MethodSpecs mspecs = new MethodSpecs(mods,ms); // FIXME - empty instead of null modifiers?
         
         List<MethodSymbol> parents = utils.parents(sym);
         
@@ -1078,7 +1078,7 @@ public class JmlSpecs {
                 // parent class P. B.m then adds no specification cases.
                 java.util.ListIterator<MethodSymbol> iter = parents.listIterator(parents.size()-1);
                 MethodSpecs parentSpecs = getLoadedSpecs(iter.previous());
-                ms.decl = decl = parentSpecs == null ? null : parentSpecs.cases.decl;
+                mspecs.cases.decl = decl = parentSpecs == null ? null : parentSpecs.cases.decl;
                 mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>nil();
                 mspecs.cases.deSugared = mspecs.cases;
                 return mspecs;
@@ -1087,17 +1087,6 @@ public class JmlSpecs {
                 // anything. There is no declaration to co-opt. The method gets a standard
                 // default specification.
             }
-        }
-
-        if (decl != null) {
-            if (decl.methodSpecsCombined != null) {
-                mods = M.at(pos).Modifiers(decl.methodSpecsCombined.mods.flags);
-                mods.annotations = mods.annotations.appendList(decl.methodSpecsCombined.mods.annotations);
-            } else {
-                mods = M.at(pos).Modifiers(decl.mods.flags);
-                mods.annotations = mods.annotations.appendList(decl.mods.annotations);
-            }
-            mspecs.mods = mods;
         }
 
         // FIXME - check the case of a binary generated constructor with a declaration in JML
@@ -1232,8 +1221,9 @@ public class JmlSpecs {
             JCExpression e = JmlTreeUtils.instance(context).makeType(pos, t);
             list.add(e);
         }
+        boolean isPure = utils.hasMod(mspecs.mods, Modifiers.PURE, Modifiers.FUNCTION);
         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
-                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,everythingKind)));
+                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,isPure?nothingKind:everythingKind)));
         JmlMethodClause clpa = new JmlTree.JmlMethodClauseStoreRef(pos,accessibleID, accessibleClause,
                 com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,everythingKind)));
 
@@ -1684,21 +1674,21 @@ public class JmlSpecs {
     // FIXME - these are also computed in JmlAttr
     protected ClassSymbol pureAnnotationSymbol() {
     	if (pureAnnotationSymbol == null) {
-    		pureAnnotationSymbol = utils.createClassSymbol(Strings.pureAnnotation);
+    		pureAnnotationSymbol = utils.createClassSymbol(Symtab.instance(context).java_base, Strings.pureAnnotation);
     	}
     	return pureAnnotationSymbol;
     }
 
     protected ClassSymbol modelAnnotationSymbol() {
     	if (modelAnnotationSymbol == null) {
-    		modelAnnotationSymbol = utils.createClassSymbol(Strings.modelAnnotation);
+    		modelAnnotationSymbol = utils.createClassSymbol(Symtab.instance(context).java_base, Strings.modelAnnotation);
     	}
     	return modelAnnotationSymbol;
     }
 
     protected ClassSymbol functionAnnotationSymbol() {
     	if (functionAnnotationSymbol == null) {
-    		functionAnnotationSymbol = utils.createClassSymbol(Strings.functionAnnotation);
+    		functionAnnotationSymbol = utils.createClassSymbol(Symtab.instance(context).java_base, Strings.functionAnnotation);
     	}
     	return functionAnnotationSymbol;
     }

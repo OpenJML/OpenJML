@@ -18,7 +18,7 @@ test/escVector/Vector.java:93: warning: The prover cannot establish an assertion
 Completed proof of Vector.copyInto(java.lang.Object[]) with prover !!!! - with warnings
 Starting proof of Vector.indexOf(java.lang.Object,int) with prover !!!!
 test/escVector/Vector.java:114: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method indexOf
-      if (the_elem.equals(my_element_data[i])) {   // the_index might be negative
+      if (the_elem.equals(my_element_data[i]) ) {   // ERROR - the_index might be negative
                                          ^
 Completed proof of Vector.indexOf(java.lang.Object,int) with prover !!!! - with warnings
 Starting proof of Vector.elementAt(int) with prover !!!!

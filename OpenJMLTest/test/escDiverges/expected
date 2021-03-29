@@ -1,5 +1,5 @@
-test\escDiverges\escDiverges.java:9: Note: Not implemented for static checking: diverges clause
-      diverges true;
+test/escDiverges/escDiverges.java:9: Note: Not implemented for static checking: diverges clause
+      diverges the_input != 0;
       ^
 Proving methods in escDiverges
 Starting proof of escDiverges.escDiverges() with prover !!!!

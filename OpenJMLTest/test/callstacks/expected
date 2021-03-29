@@ -8,8 +8,8 @@ test/callstacks/CallStack.java:7: warning: The prover cannot establish an assert
     //@ requires x(i);
                   ^
 Note: Call stack
-  test/callstacks/CallStack.java:7: : CallStack.x
-  test/callstacks/CallStack.java:4: : CallStack.m
+  test/callstacks/CallStack.java:7: CallStack.x
+  test/callstacks/CallStack.java:4: CallStack.m
 test/callstacks/CallStack.java:15: warning: Associated declaration
     public boolean x(int i) {
                    ^

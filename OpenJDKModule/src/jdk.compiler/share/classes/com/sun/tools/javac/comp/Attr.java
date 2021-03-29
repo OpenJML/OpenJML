@@ -1185,7 +1185,7 @@ public class Attr extends JCTree.Visitor {
                         log.error(tree.pos(),
                                   Errors.DefaultAllowedInIntfAnnotationMember);
                 }
-                if (requireBody()) // OPENJML - added for extension
+                if (requireBody(tree)) // OPENJML - added for extension
                 if (isDefaultMethod || (tree.sym.flags() & (ABSTRACT | NATIVE)) == 0)
                     log.error(tree.pos(), Errors.MissingMethBodyOrDeclAbstract);
             } else if ((tree.sym.flags() & (ABSTRACT|DEFAULT|PRIVATE)) == ABSTRACT) {
@@ -1253,7 +1253,7 @@ public class Attr extends JCTree.Visitor {
     
     protected void saveMethodEnv(MethodSymbol msym, Env<AttrContext> env) {}
     
-    public boolean requireBody() { return true; } // OPENJML -- added for extension
+    public boolean requireBody(JCMethodDecl tree) { return true; } // OPENJML -- added for extension
 
     public void visitVarDef(JCVariableDecl tree) {
         // Local variables have not been entered yet, so we need to do it now:
@@ -5317,7 +5317,6 @@ public class Attr extends JCTree.Visitor {
     protected void attribClassBody(Env<AttrContext> env, ClassSymbol c) { // OPENJML - private to protected
         JCClassDecl tree = (JCClassDecl)env.tree;
         Assert.check(c == tree.sym);
-        if (org.jmlspecs.openjml.Utils.debug()) System.out.println("ATTRBCLASSBODY " + c + " " + tree);
 
         // Validate type parameters, supertype and interfaces.
         attribStats(tree.typarams, env);

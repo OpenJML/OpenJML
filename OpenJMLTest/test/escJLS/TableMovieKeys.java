@@ -11,7 +11,7 @@ public enum TableMovieKeys {
             this.value = str;
       }
 
-     //@ensures \result == value; // likewise, should this be .equals?
+     //@ ensures \result == value; // likewise, should this be .equals?
      public /*@ pure @*/ String get(){return value;} // <<< this is the line that generates the error.
 
 }
