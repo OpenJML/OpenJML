@@ -948,6 +948,13 @@ public class JmlTreeUtils {
         return makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,rhs);
     }
 
+    /** Makes an attributed AST for a short-circuit boolean AND expression, simplifying literal true or false */
+    public JCExpression makeAndSimp(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
+        if (isTrueLit(rhs) || isFalseLit(lhs)) return lhs;
+        if (isTrueLit(lhs) || isFalseLit(rhs)) return rhs;
+        return makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,rhs);
+    }
+
     /** Makes an attributed AST for a short-circuit boolean OR expression */
     public JCExpression makeOr(int pos, JCExpression lhs, JCExpression ... rhs) {
         for (JCExpression r: rhs) {
@@ -1037,6 +1044,11 @@ public class JmlTreeUtils {
     
     /** Makes an attributed AST for a reference inequality (!=) expression */
     public JCBinary makeNotNull(int pos, JCExpression lhs) {
+        return makeBinary(pos,JCTree.Tag.NE,objectneSymbol,lhs, makeNullLiteral(pos));
+    }
+    
+    /** Makes an attributed AST for a reference inequality (!=) expression */
+    public JCBinary makeNotNull(DiagnosticPosition pos, JCExpression lhs) {
         return makeBinary(pos,JCTree.Tag.NE,objectneSymbol,lhs, makeNullLiteral(pos));
     }
     

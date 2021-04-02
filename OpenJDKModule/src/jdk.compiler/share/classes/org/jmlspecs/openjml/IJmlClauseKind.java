@@ -475,6 +475,7 @@ public abstract class IJmlClauseKind {
     public static class ModifierKind extends IJmlClauseKind {
         public String fullAnnotation;
         public boolean strict;
+        public Class<? extends java.lang.annotation.Annotation> clazz;
         
         public ModifierKind(String keyword, boolean strict) {
             super(keyword);
@@ -489,12 +490,24 @@ public abstract class IJmlClauseKind {
             }
             char c = annotation.charAt(0);
             this.fullAnnotation = "org.jmlspecs.annotation." + Character.toUpperCase(c) + annotation.substring(1);
+            try {
+            	this.clazz = (Class<? extends java.lang.annotation.Annotation>)Class.forName(this.fullAnnotation);
+            } catch (Exception e) {
+            	System.out.println("Failed to find annotation class for " + this.fullAnnotation);
+            	this.clazz = null;
+            }
         }
         
         public ModifierKind(String keyword, boolean strict, String annotation) { 
             super(keyword); 
             this.strict = strict;
             this.fullAnnotation = annotation.contains(".") ? annotation : ("org.jmlspecs.annotation." + annotation);
+            try {
+            	this.clazz = (Class<? extends java.lang.annotation.Annotation>)Class.forName(this.fullAnnotation);
+            } catch (Exception e) {
+            	System.out.println("Failed to find annotation class for " + this.fullAnnotation);
+            	this.clazz = null;
+            }
         }
 
         @Override
@@ -507,6 +520,12 @@ public abstract class IJmlClauseKind {
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
             return null;
         }
+    }
+
+    public static class TypeAnnotationKind extends ModifierKind {
+    	public TypeAnnotationKind(String keyword, boolean strict) {
+    		super(keyword,strict);
+    	}
     }
 
     

@@ -236,6 +236,9 @@ public class Label {
     /** Used to designate an undefined pure expression because of a failed precondition in a called method */
     /*@ non_null*/ public final static Label UNDEFINED_PRECONDITION = new Label("UndefinedCalledMethodPrecondition");
     
+    /** Used to designate an undefined pure expression because of a failed precondition in a called method */
+    /*@ non_null*/ public final static Label UNDEFINED_NULL_PRECONDITION = new Label("UndefinedCalledMethodNullPrecondition");
+    
     /** Used to designate an undefined pure expression because of a failed precondition for a lemma */
     /*@ non_null*/ public final static Label UNDEFINED_LEMMA = new Label("UndefinedLemmaPrecondition");
     
@@ -244,6 +247,9 @@ public class Label {
     
     /** Used to designate a possible exception because of a potential null reference */
     /*@ non_null*/ public final static Label POSSIBLY_NULL_DEREFERENCE = new Label("PossiblyNullDeReference");
+    
+    /** Used to designate a possible exception because of a potential null return value */
+    /*@ non_null*/ public final static Label POSSIBLY_NULL_RETURN = new Label("PossiblyNullReturn");
     
     /** Used to designate a possible exception because of a potential null reference */
     /*@ non_null*/ public final static Label POSSIBLY_NULL_VALUE = new Label("PossiblyNullValue");

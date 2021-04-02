@@ -221,6 +221,7 @@ public class Symtab {
     public final Type typeDescriptorType;
     public final Type recordType;
     public final Type valueBasedType;
+    public final Type jmlPrimitiveType; // OPENJML
 
     /** The symbol representing the length field of an array.
      */
@@ -586,6 +587,7 @@ public class Symtab {
         typeDescriptorType = enterClass("java.lang.invoke.TypeDescriptor");
         recordType = enterClass("java.lang.Record");
         valueBasedType = enterClass("jdk.internal.ValueBased");
+        jmlPrimitiveType = enterClass("org.jmlspecs.lang.IJmlPrimitiveType");
 
         synthesizeEmptyInterfaceIfMissing(autoCloseableType);
         synthesizeEmptyInterfaceIfMissing(cloneableType);

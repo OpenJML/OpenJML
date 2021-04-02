@@ -18,6 +18,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.IJmlClauseKind.MethodSpecClauseKind;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
+import org.jmlspecs.openjml.IJmlClauseKind.TypeAnnotationKind;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.AssignableClauseExtension;
 import org.jmlspecs.openjml.ext.DatatypeExt.JmlDatatypeDecl;
@@ -127,9 +128,12 @@ public class JmlParser extends JavacParser {
         return token.endPos;
     }
 
-    /** Returns true if the current token is a JML modifier */
+    /** Returns true if the current token is a JML modifier, but not a type annotation */
     public boolean isJmlModifier() {
-        return token.kind == IDENTIFIER && Extensions.findKeyword(token) instanceof ModifierKind;
+    	if (token.kind != IDENTIFIER) return false;
+    	var m = Extensions.findKeyword(token);
+    	if (m instanceof TypeAnnotationKind) return false;
+    	return m instanceof ModifierKind;
     }
 
     public JmlTokenKind jmlTokenKind() {
@@ -325,7 +329,7 @@ public class JmlParser extends JavacParser {
                     mods = jmlF.at(Position.NOPOS).Modifiers(0);
                     storeEnd(mods, Position.NOPOS);
                 }
-                if (!inJmlDeclaration) utils.setJML(mods);
+                //if (!inJmlDeclaration) utils.setJML(mods);
                 inJmlDeclaration = true;
             }
             if (!inJmlDeclaration || token.kind == CLASS || token.kind == INTERFACE || token.kind == ENUM || (token.kind == IDENTIFIER && token.name() == names.record)) {
@@ -576,7 +580,7 @@ public class JmlParser extends JavacParser {
                 if (inJml) {
                     for (JCStatement s: stats) {
                         if (s instanceof JCVariableDecl) {
-                            utils.setJML(((JCVariableDecl)s).mods);
+                            // OK
                         } else if (s instanceof JCClassDecl || s instanceof JmlAbstractStatement || s instanceof JCSkip) {
                             // OK
                         } else if (!inJmlDeclaration && !inModelProgram && !inLocalOrAnonClass) { // FIXME - unsure of this test
@@ -590,13 +594,14 @@ public class JmlParser extends JavacParser {
                 // MAINTENCE: Copied from JavacParser.blockStatement, FINAL case
                 Comment dc = token.comment(CommentStyle.JAVADOC);
                 JCModifiers mods = modifiersOpt();
-                if (S.jml()) utils.setJML(mods); // Added this to mark declarations in JML annotations
                 if (token.kind == INTERFACE ||
                         token.kind == CLASS ||
                         token.kind == ENUM) {
+                    if (S.jml()) utils.setJML(mods); // Added this to mark declarations in JML annotations
                     return List.of(classOrRecordOrInterfaceOrEnumDeclaration(mods, dc));
                 } else {
                     JCExpression t = parseType();
+                    startOfDeclaration(mods);
                     ListBuffer<JCStatement> stats =
                             variableDeclarators(mods, t, new ListBuffer<JCStatement>(), false); // FIXME - is false correcct?
                     // A "LocalVariableDeclarationStatement" subsumes the terminating semicolon
@@ -999,7 +1004,6 @@ public class JmlParser extends JavacParser {
                             attach(d, dc); // FIXME - already attached I think; here and below
                         } else if (tr instanceof JmlMethodDecl) {
                             JmlMethodDecl d = (JmlMethodDecl) tr;
-                            if (startsInJml) utils.setJML(d.mods);
                             d.sourcefile = currentSourceFile();
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                             attach(d, dc);
@@ -1028,8 +1032,6 @@ public class JmlParser extends JavacParser {
                             if (replacementType != null) {
                                 insertReplacementType(d,replacementType);
                                 replacementType = null;
-                            } else {
-                                if (startsInJml) utils.setJML(d.mods);  // FIXME - should this be executed even when there is a replacement type?
                             }
                             d.sourcefile = currentSourceFile();
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
@@ -1049,7 +1051,6 @@ public class JmlParser extends JavacParser {
                     }
                 } else if (t.head instanceof JmlMethodDecl) {
                     JmlMethodDecl d = (JmlMethodDecl) t.head;
-                    if (startsInJml) utils.setJML(d.mods);
                     d.sourcefile = currentSourceFile();
                     attach(d, dc);
                     d.cases = currentMethodSpecs;
@@ -1098,6 +1099,11 @@ public class JmlParser extends JavacParser {
         //if (org.jmlspecs.openjml.Main.useJML) System.out.println(JmlPretty.write(list.first()));
         return list.toList();
     }
+    
+    protected void startOfDeclaration(JCModifiers mods) {
+    	if (S.jml()) utils.setJML(mods);
+    }
+
 
 
     /**
@@ -1777,6 +1783,26 @@ public class JmlParser extends JavacParser {
         }
         return t;
     }
+    
+    protected List<JCAnnotation> annotationsOpt(Tag kind) {
+    	ListBuffer<JCAnnotation> annos = new ListBuffer<>();
+    	while (true) {
+    		while (true) {
+    			var m = Extensions.findKeyword(token);
+    			if (!(m instanceof TypeAnnotationKind) ) break;
+    			
+    			JCAnnotation t = utils.modToAnnotationAST((ModifierKind)m, token.pos, token.endPos);
+    			annos.append(t);
+    			nextToken();
+    			while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
+    		}
+    		var lst = super.annotationsOpt(kind);
+    		if (lst.isEmpty()) return annos.toList();
+    		annos.appendList(lst);
+    	}
+    }
+
+
 
     protected JCModifiers pushBackModifiers = null;
 
@@ -2466,8 +2492,9 @@ public class JmlParser extends JavacParser {
         // But not ghost fields in JML -- this is checked in more detail in type
         // checking, but here we just allow no initializer
         if (S.jml()) reqInit = false;
-        return super.variableDeclaratorsRest(pos, mods, type, name, reqInit,
+        var r = super.variableDeclaratorsRest(pos, mods, type, name, reqInit,
                 dc, vdefs, localDecl);
+        return r;
     }
 
     @Override

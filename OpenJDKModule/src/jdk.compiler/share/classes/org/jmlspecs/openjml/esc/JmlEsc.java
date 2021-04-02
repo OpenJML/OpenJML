@@ -200,7 +200,7 @@ public class JmlEsc extends JmlTreeScanner {
 
         if (decl.body == null) return; // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent
         if (!(decl instanceof JmlMethodDecl)) {
-            utils.warning("jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + utils.qualifiedMethodSig(decl.sym));
+            utils.warning("jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + utils.abbrevMethodSig(decl.sym));
             return;
         }
         JmlMethodDecl methodDecl = (JmlMethodDecl)decl;
@@ -241,7 +241,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     public IProverResult markMethodSkipped(JmlMethodDecl methodDecl, String reason) {
-        if (JmlOption.isOption(context, JmlOption.SKIPPED)) utils.progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$
+        if (JmlOption.isOption(context, JmlOption.SKIPPED)) utils.progress(1,1,"Skipping proof of " + utils.abbrevMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$
         
         // FIXME - this is all a duplicate from MethodProverSMT
         IProverResult.IFactory factory = new IProverResult.IFactory() {
@@ -291,7 +291,7 @@ public class JmlEsc extends JmlTreeScanner {
         
         String proverToUse = pickProver();
         
-        utils.progress(0,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
+        utils.progress(0,1,"Starting proof of " + utils.abbrevMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
         long methodStart = System.currentTimeMillis();
         log.resetRecord();
 
@@ -316,7 +316,7 @@ public class JmlEsc extends JmlTreeScanner {
             noticeWriter.println(Strings.empty);
             noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
             noticeWriter.println(Strings.empty);
-            noticeWriter.println("STARTING PROOF OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            noticeWriter.println("STARTING PROOF OF " + utils.abbrevMethodSig(methodDecl.sym)); //$NON-NLS-1$
             noticeWriter.println(JmlSpecs.instance(context).getDenestedSpecs(methodDecl.sym).toString());
             noticeWriter.println(JmlPretty.write(methodDecl.body));
         }
@@ -329,7 +329,7 @@ public class JmlEsc extends JmlTreeScanner {
                 currentMethodProver = null;
             }
             long duration = System.currentTimeMillis() - methodStart;
-            utils.progress(1,1,"Completed proof of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
+            utils.progress(1,1,"Completed proof of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
                     + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
                     + " - "
                     + (  res.isSat() ? "with warnings" 
@@ -342,7 +342,7 @@ public class JmlEsc extends JmlTreeScanner {
         } catch (Main.JmlCanceledException | PropagatedException e) {
             res = new ProverResult(proverToUse,ProverResult.CANCELLED,methodDecl.sym); // FIXME - I think two ProverResult.CANCELLED are being reported
            // FIXME - the following will throw an exception because progress checks whether the operation is cancelled
-            utils.progress(1,1,"Proof CANCELLED of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
+            utils.progress(1,1,"Proof CANCELLED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
             + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
             + " - exception"
             );
@@ -360,7 +360,7 @@ public class JmlEsc extends JmlTreeScanner {
 
             res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl.sym).setOtherInfo(d);
             //log.error("jml.internal","Prover aborted with exception: " + e.getMessage());
-            utils.progress(1,1,"Proof ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
+            utils.progress(1,1,"Proof ABORTED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
                     + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
                     + " - exception"
                     );
