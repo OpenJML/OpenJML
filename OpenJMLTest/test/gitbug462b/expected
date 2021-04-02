@@ -7,10 +7,10 @@ Starting proof of Container.allocate() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Container.allocate() with prover !!!! - no warnings
-Starting proof of Container.equals(java.lang.Object) with prover !!!!
+Starting proof of Container.equals(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Container.equals(java.lang.Object) with prover !!!! - no warnings
+Completed proof of Container.equals(Object) with prover !!!! - no warnings
 Proving methods in Container.ContainerUser
 Starting proof of Container.ContainerUser.ContainerUser() with prover !!!!
 Feasibility check - end of preconditions : OK

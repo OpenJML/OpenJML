@@ -1,6 +1,6 @@
 public class Parent {
 
-  /*@ non_null */ public String o;
+  public /*@ non_null */ String o;
 
   //@ ensures o.equals(oo);
   //@ pure

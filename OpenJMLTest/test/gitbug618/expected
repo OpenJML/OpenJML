@@ -1,18 +1,18 @@
 Proving methods in Opt1
-Starting proof of Opt1.Opt1(java.lang.Object) with prover !!!!
+Starting proof of Opt1.Opt1(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Opt1.Opt1(java.lang.Object) with prover !!!! - no warnings
+Completed proof of Opt1.Opt1(Object) with prover !!!! - no warnings
 Starting proof of Opt1.nn() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Opt1.nn() with prover !!!! - no warnings
 Completed proving methods in Opt1
 Proving methods in Opt2
-Starting proof of Opt2.Opt2(java.lang.Object) with prover !!!!
+Starting proof of Opt2.Opt2(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Opt2.Opt2(java.lang.Object) with prover !!!! - no warnings
+Completed proof of Opt2.Opt2(Object) with prover !!!! - no warnings
 Starting proof of Opt2.nn() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -39,15 +39,15 @@ Starting proof of Test2.Test2() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test2.Test2() with prover !!!! - no warnings
-Starting proof of Test2.t1(Opt1) with prover !!!!
+Starting proof of Test2.t1(@NonNull Opt1) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - after explicit assume statement : OK
 Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
-Completed proof of Test2.t1(Opt1) with prover !!!! - no warnings
-Starting proof of Test2.c1(Opt1) with prover !!!!
+Completed proof of Test2.t1(@NonNull Opt1) with prover !!!! - no warnings
+Starting proof of Test2.c1(@NonNull Opt1) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
-Completed proof of Test2.c1(Opt1) with prover !!!! - no warnings
+Completed proof of Test2.c1(@NonNull Opt1) with prover !!!! - no warnings
 Completed proving methods in Test2

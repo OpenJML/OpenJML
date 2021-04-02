@@ -3,18 +3,18 @@ Starting proof of BadCast.BadCast() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of BadCast.BadCast() with prover !!!! - no warnings
-Starting proof of BadCast.equals(java.lang.Object) with prover !!!!
+Starting proof of BadCast.equals(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of BadCast.equals(java.lang.Object) with prover !!!! - no warnings
+Completed proof of BadCast.equals(Object) with prover !!!! - no warnings
 Completed proving methods in BadCast
 Proving methods in BadCast2
 Starting proof of BadCast2.BadCast2() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of BadCast2.BadCast2() with prover !!!! - no warnings
-Starting proof of BadCast2.equals(java.lang.Object) with prover !!!!
+Starting proof of BadCast2.equalsx(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of BadCast2.equals(java.lang.Object) with prover !!!! - no warnings
+Completed proof of BadCast2.equalsx(Object) with prover !!!! - no warnings
 Completed proving methods in BadCast2

@@ -3,8 +3,8 @@ Starting proof of ArrList.ArrList(int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of ArrList.ArrList(int) with prover !!!! - no warnings
-Starting proof of ArrList.main(java.lang.String[]) with prover !!!!
+Starting proof of ArrList.main(String[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of ArrList.main(java.lang.String[]) with prover !!!! - no warnings
+Completed proof of ArrList.main(String[]) with prover !!!! - no warnings
 Completed proving methods in ArrList

@@ -315,11 +315,11 @@ public abstract class ByteBuffer
     // backing array, and array offset
     //
     ByteBuffer(int mark, int pos, int lim, int cap,   // package-private
-                 byte[] hb, int offset);
+                 byte[] hb, int offset, jdk.internal.access.foreign.MemorySegmentProxy proxy);
 
     // Creates a new buffer with the given mark, position, limit, and capacity
     //
-    ByteBuffer(int mark, int pos, int lim, int cap); // package-private
+    ByteBuffer(int mark, int pos, int lim, int cap, jdk.internal.access.foreign.MemorySegmentProxy proxy); // package-private
 
     /**
      * Allocates a new direct byte buffer.

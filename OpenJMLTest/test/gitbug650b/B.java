@@ -20,8 +20,8 @@ public final class B {
         this.a = a;
     }
     
-    //@ non_null
-    public A a;
+
+    public /*@ non_null */ A a;
         
     //@ public normal_behavior
     //@   ensures true;

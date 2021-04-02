@@ -1,8 +1,8 @@
 Proving methods in EntryList
-Starting proof of EntryList.EntryList(java.lang.Object,EntryList) with prover !!!!
+Starting proof of EntryList.EntryList(Object,EntryList) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of EntryList.EntryList(java.lang.Object,EntryList) with prover !!!! - no warnings
+Completed proof of EntryList.EntryList(Object,EntryList) with prover !!!! - no warnings
 Starting proof of EntryList.size() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

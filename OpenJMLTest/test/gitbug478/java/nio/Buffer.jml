@@ -208,7 +208,7 @@ public abstract class Buffer {
       @   requires mark > pos || pos > lim || lim > cap || cap < 0;
       @   signals_only IllegalArgumentException;
       @*/
-    Buffer(int mark, int pos, int lim, int cap);       // package-private
+    Buffer(int mark, int pos, int lim, int cap, jdk.internal.access.foreign.MemorySegmentProxy proxy);       // package-private
 
     /**
      * Returns this buffer's capacity. </p>

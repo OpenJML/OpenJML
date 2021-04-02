@@ -3,8 +3,8 @@ Starting proof of Test2.Test2() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test2.Test2() with prover !!!! - no warnings
-Starting proof of Test2.m(java.lang.String) with prover !!!!
+Starting proof of Test2.m(String) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test2.m(java.lang.String) with prover !!!! - no warnings
+Completed proof of Test2.m(String) with prover !!!! - no warnings
 Completed proving methods in Test2

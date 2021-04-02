@@ -3,15 +3,15 @@ Starting proof of NullableOld.NullableOld() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of NullableOld.NullableOld() with prover !!!! - no warnings
-Starting proof of NullableOld.m((@org.jmlspecs.annotation.Nullable :: java.lang.Object)) with prover !!!!
+Starting proof of NullableOld.m(@Nullable Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of NullableOld.m((@org.jmlspecs.annotation.Nullable :: java.lang.Object)) with prover !!!! - no warnings
-Starting proof of NullableOld.mbad((@org.jmlspecs.annotation.Nullable :: java.lang.Object)) with prover !!!!
+Completed proof of NullableOld.m(@Nullable Object) with prover !!!! - no warnings
+Starting proof of NullableOld.mbad(@Nullable Object) with prover !!!!
 test/nullableOld/NullableOld.java:9: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method mbad
     //@ old Object o = oo;
                        ^
-Completed proof of NullableOld.mbad((@org.jmlspecs.annotation.Nullable :: java.lang.Object)) with prover !!!! - with warnings
+Completed proof of NullableOld.mbad(@Nullable Object) with prover !!!! - with warnings
 Starting proof of NullableOld.mm() with prover !!!!
 test/nullableOld/NullableOld.java:16: warning: The prover cannot establish an assertion (Precondition) in method mm
         m(null);

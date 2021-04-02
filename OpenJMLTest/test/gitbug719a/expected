@@ -3,8 +3,8 @@ Starting proof of Swap.Swap() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Swap.Swap() with prover !!!! - no warnings
-Starting proof of Swap.swap(int,int,java.lang.Object[]) with prover !!!!
+Starting proof of Swap.swap(int,int,Object[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Swap.swap(int,int,java.lang.Object[]) with prover !!!! - no warnings
+Completed proof of Swap.swap(int,int,Object[]) with prover !!!! - no warnings
 Completed proving methods in Swap

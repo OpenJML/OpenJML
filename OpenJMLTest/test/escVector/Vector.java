@@ -11,7 +11,7 @@
  * 
  * @author Daniel M. Zimmerman
  * @version 2013-10-24 (based on v1.38, 12/18/97)
- */
+ */ //@ non_null_by_default
 public class Vector {
   //@ public invariant my_element_data != null;
   //@ public invariant my_element_count >= 0;
@@ -67,7 +67,7 @@ public class Vector {
     if (my_element_count >= my_element_data.length) {
       // create a new array
       final Object[] new_data = new Object[my_element_count + my_capacity_increment]; // ERROR - could be negative under Java math
-      //@ ghost Object[] nd = new_data;
+      //@ ghost non_null Object[] nd = new_data;
       //@ loop_invariant 0 <= i && i <= my_element_count && new_data == nd;
       //@ decreases my_element_count - i;
       for (int i = 0; i < my_element_count; i++) {
@@ -84,13 +84,13 @@ public class Vector {
    *
    * @param   the_array   the array into which the components get copied.
    * @since   JDK1.0
-   */
+   */ //@ requires the_array != my_element_data;
   public final synchronized void copyInto(final Object[] the_array) {
     int i = my_element_count;
     //@ loop_invariant 0 <= i && i <= my_element_count;
     //@ decreases i;
     while (i-- > 0) {
-      the_array[i] = my_element_data[i]; // ERROR _ don't know size of the_array - i might be too big; ERROR - don't know the runtime type of the_array
+      the_array[i] = my_element_data[i]; // ERROR _ don't know size of the_array - it might be too big; ERROR - don't know the runtime type of the_array
     }
   }
    

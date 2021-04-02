@@ -18,6 +18,6 @@ test/sfbug420e/Stack.java:27: warning: Associated declaration
 Completed proof of stack.StackImpl.push(int) with prover !!!! - with warnings
 Skipping proof of stack.StackImpl.top() (excluded by -method)
 Skipping proof of stack.StackImpl.remove() (excluded by -method)
-Skipping proof of stack.StackImpl.main(java.lang.String[]) (excluded by -method)
+Skipping proof of stack.StackImpl.main(String[]) (excluded by -method)
 Completed proving methods in stack.StackImpl
 3 warnings

@@ -21,8 +21,8 @@ public final class B {
     } // Fails to prove invariant above because solver does not know whether result of P
       // depends on B.a, but the axiom states the needed predicate
     
-    //@ non_null
-    public A a;
+
+    public /*@ non_null*/A a;
         
     //@ public normal_behavior
     //@   ensures true;

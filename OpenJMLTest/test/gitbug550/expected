@@ -3,8 +3,8 @@ Starting proof of Test.Test() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
-Starting proof of Test.m(java.util.Optional<java.lang.Throwable>) with prover !!!!
+Starting proof of Test.m(java.util.Optional<Throwable>) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.m(java.util.Optional<java.lang.Throwable>) with prover !!!! - no warnings
+Completed proof of Test.m(java.util.Optional<Throwable>) with prover !!!! - no warnings
 Completed proving methods in Test

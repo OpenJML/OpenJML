@@ -17,10 +17,10 @@ Feasibility check - before explicit assert statement : OK
 Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of ReverseArray.reverse(char[]) with prover !!!! - no warnings
-Starting proof of ReverseArray.main(java.lang.String[]) with prover !!!!
+Starting proof of ReverseArray.main(String[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of ReverseArray.main(java.lang.String[]) with prover !!!! - no warnings
+Completed proof of ReverseArray.main(String[]) with prover !!!! - no warnings
 Starting proof of ReverseArray.arr2str(char[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -45,10 +45,10 @@ Feasibility check - before explicit assert statement : OK
 Feasibility check - after explicit assume statement : OK
 Feasibility check - at program exit : OK
 Completed proof of ReverseArrayWithAssume.reverse(char[]) with prover !!!! - no warnings
-Starting proof of ReverseArrayWithAssume.main(java.lang.String[]) with prover !!!!
+Starting proof of ReverseArrayWithAssume.main(String[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of ReverseArrayWithAssume.main(java.lang.String[]) with prover !!!! - no warnings
+Completed proof of ReverseArrayWithAssume.main(String[]) with prover !!!! - no warnings
 Starting proof of ReverseArrayWithAssume.arr2str(char[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - after explicit assume statement : OK

@@ -7,8 +7,8 @@ public final class Opt1 {
 		value = t;
 	}
 	
-	//@ nullable spec_public
-	final private Object value;
+	//@ spec_public
+	final private /*@ nullable */Object value;
 	
 	//@ public normal_behavior
 	//@   { return value != null; }

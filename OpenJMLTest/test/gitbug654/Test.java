@@ -3,8 +3,8 @@ class C<T> {
 }
 //@ nullable_by_default
 class B {
-    //@ nullable
-    public C<Integer> xyz;
+
+    public /*@ nullable */ C<Integer> xyz;
 
     //@ public normal_behavior
     //@   ensures true;

@@ -44,8 +44,8 @@ public class B {
 }
 
 class C  {
-    //@ non_null
-    public C cccc;
+
+    public /*@ non_null*/C cccc;
         
     //@ public normal_behavior
     //@   requires true;

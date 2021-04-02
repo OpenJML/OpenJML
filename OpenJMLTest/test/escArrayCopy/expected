@@ -27,8 +27,8 @@ Starting proof of Test.copyLong(long[],long[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.copyLong(long[],long[]) with prover !!!! - no warnings
-Starting proof of Test.copyObject(java.lang.Object[],java.lang.Object[]) with prover !!!!
+Starting proof of Test.copyObject(Object[],Object[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.copyObject(java.lang.Object[],java.lang.Object[]) with prover !!!! - no warnings
+Completed proof of Test.copyObject(Object[],Object[]) with prover !!!! - no warnings
 Completed proving methods in Test

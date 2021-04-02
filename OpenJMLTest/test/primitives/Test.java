@@ -4,7 +4,7 @@ abstract class testtype implements IJmlPrimitiveType {
     
     //@ axiom (\forall testtype t; t != null; t.suc().prev() == t);
     
-    static /*@ non_null */ public testtype zero;
+    static public /*@ non_null */ testtype zero;
     
     //@ skipesc
     private testtype() {}

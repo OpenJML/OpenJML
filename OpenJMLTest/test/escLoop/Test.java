@@ -1,7 +1,6 @@
 public class Test {
     
-    //@ requires \nonnullelements(list.values);
-    public void m1(java.util.List<Integer> list) {
+    public void m1(java.util.List</*@ non_null*/ Integer> list) {
         
         //@ loop_invariant \forall \bigint k; 0 <= k < \count; list.values[k] >= 0;
         for (Integer i: list) {

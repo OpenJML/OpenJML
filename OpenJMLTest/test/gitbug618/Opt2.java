@@ -6,8 +6,8 @@ public class Opt2 {
 		value = t;
 	}
 	
-	//@ nullable 
-	final public Object value;
+
+	final public /*@ nullable */ Object value;
 	
 	//@ public normal_behavior
 	//@   ensures \result == (value != null);
