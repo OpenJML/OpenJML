@@ -29,10 +29,10 @@ test/gitbug718x2/test2.java:21: error: non-static variable binarr cannot be refe
 		//@ assert \forall int j;0 <= j < binarr.length-1;binarr[j] <= binarr[j+1];
 		                                                               ^
 test/gitbug718x2/test2.java:3: error: An initializer clause may not have annotations
-	public /* static_initializer @*/ static final /*@ non_null readonly static_initializer @*/ int [] binarr = new int[]
+	public /* static_initializer @*/ static final /*@ readonly static_initializer @*/ int /*@ non_null */ [] binarr = new int[]
 	                                                  ^
 test/gitbug718x2/test2.java:3: error: Invalid modifiers for an initializer clause: static final
-	public /* static_initializer @*/ static final /*@ non_null readonly static_initializer @*/ int [] binarr = new int[]
+	public /* static_initializer @*/ static final /*@ readonly static_initializer @*/ int /*@ non_null */ [] binarr = new int[]
 	^
 Operation not performed because of parse or type errors
 12 errors

@@ -10,9 +10,9 @@ Starting proof of Initializer.dupe() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Initializer.dupe() with prover !!!! - no warnings
-Starting proof of Initializer.equals(java.lang.Object) with prover !!!!
+Starting proof of Initializer.equals(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Initializer.equals(java.lang.Object) with prover !!!! - no warnings
+Completed proof of Initializer.equals(Object) with prover !!!! - no warnings
 Completed proving methods in Initializer
 1 warning

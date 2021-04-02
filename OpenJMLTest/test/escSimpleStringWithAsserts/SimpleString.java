@@ -13,9 +13,9 @@ package esc;
  * @author YOUR NAME HERE
  * @version 2013-11-04
  */
+//@ nullable_by_default
 public class SimpleString {
-  /*
-   * The class should have a history constraint about the fact
+  /* The class should have a history constraint about the fact
    * that it is immutable ("final" on the array isn't quite good enough).
    */
   
@@ -38,20 +38,19 @@ public class SimpleString {
      * @param the_array The array of characters.
      */
     //@ ensures (\forall int i; 0 <= i && i < my_chars.length; my_chars[i] == the_array[i]);
-    public SimpleString(final /*@ non_null */ char[] the_array) {
-        // @ assert the_array != null;
+    public SimpleString(final char /*@ non_null */ [] the_array) {
+        //@ assert the_array != null;
         my_chars = new char[the_array.length];
-        // @ assert the_array != null;
-        // @ assert my_chars != null;
-        // @ assert my_chars.length == the_array.length;
-        // @ assert (\typeof(the_array)) == \type(char[]);
-        // @ assert (\typeof(my_chars)) == \type(char[]);
-        // @ assert \erasure(\typeof(my_chars)) == \erasure(\type(char[]));
-        // @ assert \elemtype(\typeof(the_array)) == \type(char);
-        // @ assert \elemtype(\typeof(my_chars)) == \type(char);
-        // @ assert my_chars instanceof char[];
-        // @ assert the_array instanceof char[];
-        // @ assert true;
+        //@ assert the_array != null;
+        //@ assert my_chars != null;
+        //@ assert my_chars.length == the_array.length;
+        //@ assert (\typeof(the_array)) == \type(char[]);
+        //@ assert (\typeof(my_chars)) == \type(char[]);
+        //@ assert \erasure(\typeof(my_chars)) == \erasure(\type(char[]));
+        //@ assert \elemtype(\typeof(the_array)) == \type(char);
+        //@ assert \elemtype(\typeof(my_chars)) == \type(char);
+        //@ assert my_chars instanceof char[];
+        //@ assert the_array instanceof char[];
         System.arraycopy(the_array, 0, my_chars, 0, the_array.length);
     }
 
@@ -62,7 +61,7 @@ public class SimpleString {
      * @param the_array The array of ints.
      */
     //@ ensures (\forall int i; 0 <= i && i < my_ints.length; my_ints[i] == the_array[i]);
-    public SimpleString(final /*@ non_null */ int[] the_array) {
+    public SimpleString(final int /*@ non_null */ [] the_array) {
         my_ints = new int[the_array.length];
         System.arraycopy(the_array, 0, my_ints, 0, the_array.length);
     }
@@ -75,7 +74,7 @@ public class SimpleString {
      */
     //@ ensures my_Objects.length == the_array.length;
     //@ ensures (\forall int i; 0 <= i && i < my_Objects.length; my_Objects[i] == the_array[i]);
-    public SimpleString(final /*@ non_null */ Object[] the_array) {
+    public SimpleString(final Object /*@ non_null */ [] the_array) {
         my_Objects = new Object[the_array.length];
         
         //@ assert the_array.length >= 0;
@@ -89,7 +88,7 @@ public class SimpleString {
 
     //@ ensures my_Integers.length == the_array.length;
     //@ ensures (\forall int i; 0 <= i && i < my_Integers.length; my_Integers[i] == the_array[i]);
-    public SimpleString(final /*@ non_null */ Integer[] the_array) {
+    public SimpleString(final Integer /*@ non_null */ [] the_array) {
         my_Integers = new Integer[the_array.length];
         System.arraycopy(the_array, 0, my_Integers, 0, the_array.length);
     }

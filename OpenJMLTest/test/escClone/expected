@@ -3,30 +3,30 @@ Starting proof of Test.Test() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
-Starting proof of Test.mbyte(@org.jmlspecs.annotation.NonNull byte[]) with prover !!!!
+Starting proof of Test.mbyte(byte @NonNull []) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.mbyte(@org.jmlspecs.annotation.NonNull byte[]) with prover !!!! - no warnings
-Starting proof of Test.mint(@org.jmlspecs.annotation.NonNull int[]) with prover !!!!
+Completed proof of Test.mbyte(byte @NonNull []) with prover !!!! - no warnings
+Starting proof of Test.mint(int @NonNull []) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.mint(@org.jmlspecs.annotation.NonNull int[]) with prover !!!! - no warnings
-Starting proof of Test.mchar(@org.jmlspecs.annotation.NonNull char[]) with prover !!!!
+Completed proof of Test.mint(int @NonNull []) with prover !!!! - no warnings
+Starting proof of Test.mchar(char @NonNull []) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.mchar(@org.jmlspecs.annotation.NonNull char[]) with prover !!!! - no warnings
-Starting proof of Test.mshort(@org.jmlspecs.annotation.NonNull short[]) with prover !!!!
+Completed proof of Test.mchar(char @NonNull []) with prover !!!! - no warnings
+Starting proof of Test.mshort(short @NonNull []) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.mshort(@org.jmlspecs.annotation.NonNull short[]) with prover !!!! - no warnings
-Starting proof of Test.mlong(@org.jmlspecs.annotation.NonNull long[]) with prover !!!!
+Completed proof of Test.mshort(short @NonNull []) with prover !!!! - no warnings
+Starting proof of Test.mlong(long @NonNull []) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.mlong(@org.jmlspecs.annotation.NonNull long[]) with prover !!!! - no warnings
-Starting proof of Test.mboolean(@org.jmlspecs.annotation.NonNull boolean[]) with prover !!!!
+Completed proof of Test.mlong(long @NonNull []) with prover !!!! - no warnings
+Starting proof of Test.mboolean(boolean @NonNull []) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.mboolean(@org.jmlspecs.annotation.NonNull boolean[]) with prover !!!! - no warnings
+Completed proof of Test.mboolean(boolean @NonNull []) with prover !!!! - no warnings
 Starting proof of Test.minherited() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

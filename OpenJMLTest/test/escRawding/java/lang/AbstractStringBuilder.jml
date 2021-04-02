@@ -201,7 +201,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
     
     public AbstractStringBuilder append(char[] str); //25
     
-    public AbstractStringBuilder append(/*@ nullable @*/ char str[], int offset, int len); //26
+    public AbstractStringBuilder append(char str /*@ nullable @*/ [], int offset, int len); //26
     
     /*@ public normal_behavior
       @   requires b == true;
@@ -332,7 +332,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
       @   requires index < 0 || index > stringLength || offset < 0 || len < 0 || offset > str.length - len;
       @   signals_only StringIndexOutOfBoundsException;
       @*/
-    public AbstractStringBuilder insert(int index,  /*@ nullable @*/ char[] str, int offset, int len); //40
+    public AbstractStringBuilder insert(int index,  char /*@ nullable @*/ [] str, int offset, int len); //40
     
     /*-ESC@ public normal_behavior //TODO - no feasible path to program exit
       @   requires 0 <= offset <= stringLength;
@@ -388,7 +388,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
       @   requires 0 <= offset && offset <= stringLength && str == null;
       @   signals_only NullPointerException;
       @*/
-    public AbstractStringBuilder insert(int offset, /*@ nullable @*/ char[] str); //43
+    public AbstractStringBuilder insert(int offset, char /*@ nullable @*/ [] str); //43
     
     public AbstractStringBuilder insert(int dstOffset, CharSequence s); //44
     

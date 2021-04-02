@@ -11,26 +11,26 @@ Starting proof of DoublyLinkedList.getValue() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of DoublyLinkedList.getValue() with prover !!!! - no warnings
-Starting proof of DoublyLinkedList.setValue(T) with prover !!!!
+Starting proof of DoublyLinkedList.setValue(@Nullable T) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of DoublyLinkedList.setValue(T) with prover !!!! - no warnings
+Completed proof of DoublyLinkedList.setValue(@Nullable T) with prover !!!! - no warnings
 Starting proof of DoublyLinkedList.getPrev() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of DoublyLinkedList.getPrev() with prover !!!! - no warnings
-Starting proof of DoublyLinkedList.setPrev((@org.jmlspecs.annotation.Nullable :: DoublyLinkedList<T>)) with prover !!!!
+Starting proof of DoublyLinkedList.setPrev(@Nullable DoublyLinkedList<T>) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of DoublyLinkedList.setPrev((@org.jmlspecs.annotation.Nullable :: DoublyLinkedList<T>)) with prover !!!! - no warnings
+Completed proof of DoublyLinkedList.setPrev(@Nullable DoublyLinkedList<T>) with prover !!!! - no warnings
 Starting proof of DoublyLinkedList.getNext() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of DoublyLinkedList.getNext() with prover !!!! - no warnings
-Starting proof of DoublyLinkedList.setNext((@org.jmlspecs.annotation.Nullable :: DoublyLinkedList<T>)) with prover !!!!
+Starting proof of DoublyLinkedList.setNext(@Nullable DoublyLinkedList<T>) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of DoublyLinkedList.setNext((@org.jmlspecs.annotation.Nullable :: DoublyLinkedList<T>)) with prover !!!! - no warnings
+Completed proof of DoublyLinkedList.setNext(@Nullable DoublyLinkedList<T>) with prover !!!! - no warnings
 Starting proof of DoublyLinkedList.remove() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

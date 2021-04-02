@@ -11,5 +11,5 @@ Skipping proof of stack.StackImpl.isEmpty() (excluded by -method)
 Skipping proof of stack.StackImpl.push(int) (excluded by -method)
 Skipping proof of stack.StackImpl.top() (excluded by -method)
 Skipping proof of stack.StackImpl.remove() (excluded by -method)
-Skipping proof of stack.StackImpl.main(java.lang.String[]) (excluded by -method)
+Skipping proof of stack.StackImpl.main(String[]) (excluded by -method)
 Completed proving methods in stack.StackImpl

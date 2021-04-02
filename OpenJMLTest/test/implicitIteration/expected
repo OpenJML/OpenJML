@@ -3,14 +3,14 @@ Starting proof of ImplicitIterationDemo.ImplicitIterationDemo() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of ImplicitIterationDemo.ImplicitIterationDemo() with prover !!!! - no warnings
-Starting proof of ImplicitIterationDemo.check(java.lang.Object) with prover !!!!
+Starting proof of ImplicitIterationDemo.check(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of ImplicitIterationDemo.check(java.lang.Object) with prover !!!! - no warnings
-Starting proof of ImplicitIterationDemo.checkA((@org.jmlspecs.annotation.NonNull :: java.lang.Boolean)) with prover !!!!
+Completed proof of ImplicitIterationDemo.check(Object) with prover !!!! - no warnings
+Starting proof of ImplicitIterationDemo.checkA(@NonNull Boolean) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of ImplicitIterationDemo.checkA((@org.jmlspecs.annotation.NonNull :: java.lang.Boolean)) with prover !!!! - no warnings
+Completed proof of ImplicitIterationDemo.checkA(@NonNull Boolean) with prover !!!! - no warnings
 Starting proof of ImplicitIterationDemo.test() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

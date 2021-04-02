@@ -25,7 +25,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.BB.BB() with prover !!!! - no warnings
 Starting proof of Test.BB.toString() with prover !!!!
-test/escAbstractSpecs/Test.java:33: warning: The prover cannot establish an assertion (Postcondition) in method toString
+test/escAbstractSpecs/Test.java:32: warning: The prover cannot establish an assertion (Postcondition) in method toString
 		public String toString() { return "a"; }
 		                           ^
 test/escAbstractSpecs/Test.java:24: warning: Associated declaration

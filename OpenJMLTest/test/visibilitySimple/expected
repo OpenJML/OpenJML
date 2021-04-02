@@ -6,5 +6,4 @@ test/visibilitySimple/B.jml:9: error: cannot find symbol
      requires this.ii >= 0;
                   ^
   symbol: variable ii
-Operation not performed because of parse or type errors
 2 errors

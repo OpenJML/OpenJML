@@ -39,7 +39,7 @@ public class DayTime {
 
 
     //@ ensures \result == (a.hours*3600) + (a.minutes*60) + a.seconds;
-    private /*@ pure spec_public@*/ int secondCalulation(DayTime a) {
+    private /*@ pure @*/ int secondCalulation(DayTime a) {
 	return (a.hours*3600) + (a.minutes*60) + a.seconds;
     }
  	

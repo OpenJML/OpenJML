@@ -23,7 +23,7 @@ class BadCast2 {
     public int my_dollars;
     public int my_cents;
 
-    public boolean equals(final Object the_other) {
+    public boolean equalsx(final Object the_other) {
         boolean result = false;
         
         if (this == the_other) {

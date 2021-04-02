@@ -3,16 +3,16 @@ Starting proof of Main.Main() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Main.Main() with prover !!!! - no warnings
-Starting proof of Main.main(java.lang.String[]) with prover !!!!
+Starting proof of Main.main(String[]) with prover !!!!
 test/gitbug502/Main.java:7: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method main
         int[] test = new int[-1]; //ESC should find this error
                              ^
-Completed proof of Main.main(java.lang.String[]) with prover !!!! - with warnings
-Starting proof of Main.main2(java.lang.String[]) with prover !!!!
+Completed proof of Main.main(String[]) with prover !!!! - with warnings
+Starting proof of Main.main2(String[]) with prover !!!!
 test/gitbug502/Main.java:12: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method main2
         int[] test = new int[-1]; //correctly marked for negative length array
                              ^
-Completed proof of Main.main2(java.lang.String[]) with prover !!!! - with warnings
+Completed proof of Main.main2(String[]) with prover !!!! - with warnings
 Completed proving methods in Main
 Proving methods in User
 Starting proof of User.User() with prover !!!!

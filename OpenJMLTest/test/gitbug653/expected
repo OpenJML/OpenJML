@@ -3,8 +3,8 @@ Starting proof of Test.Test() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
-Starting proof of Test.m(java.util.Map<java.lang.Integer,java.lang.String>) with prover !!!!
+Starting proof of Test.m(java.util.Map<Integer,String>) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.m(java.util.Map<java.lang.Integer,java.lang.String>) with prover !!!! - no warnings
+Completed proof of Test.m(java.util.Map<Integer,String>) with prover !!!! - no warnings
 Completed proving methods in Test

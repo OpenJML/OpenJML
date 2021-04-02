@@ -3,10 +3,10 @@ Starting proof of DoubleProblem.DoubleProblem() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of DoubleProblem.DoubleProblem() with prover !!!! - no warnings
-Starting proof of DoubleProblem.DoubleProblem((@org.jmlspecs.annotation.NonNull :: java.lang.Double)) with prover !!!!
+Starting proof of DoubleProblem.DoubleProblem(@NonNull Double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of DoubleProblem.DoubleProblem((@org.jmlspecs.annotation.NonNull :: java.lang.Double)) with prover !!!! - no warnings
+Completed proof of DoubleProblem.DoubleProblem(@NonNull Double) with prover !!!! - no warnings
 Starting proof of DoubleProblem.doubleValue() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

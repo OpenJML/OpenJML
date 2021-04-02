@@ -15,14 +15,14 @@ Starting proof of JMLDouble.JMLDouble(int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLDouble.JMLDouble(int) with prover !!!! - no warnings
-Starting proof of JMLDouble.JMLDouble((@org.jmlspecs.annotation.NonNull :: java.lang.Double)) with prover !!!!
+Starting proof of JMLDouble.JMLDouble(@NonNull Double)) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.JMLDouble((@org.jmlspecs.annotation.NonNull :: java.lang.Double)) with prover !!!! - no warnings
-Starting proof of JMLDouble.JMLDouble((@org.jmlspecs.annotation.NonNull :: java.lang.String)) with prover !!!!
+Completed proof of JMLDouble.JMLDouble(@NonNull Double)) with prover !!!! - no warnings
+Starting proof of JMLDouble.JMLDouble(@NonNull String)) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.JMLDouble((@org.jmlspecs.annotation.NonNull :: java.lang.String)) with prover !!!! - no warnings
+Completed proof of JMLDouble.JMLDouble(@NonNull String)) with prover !!!! - no warnings
 Starting proof of JMLDouble.isInfinite() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -36,14 +36,14 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLDouble.isFinite() with prover !!!! - no warnings
 Skipping proof of JMLDouble.clone() (excluded by -method)
-Starting proof of JMLDouble.compareTo((@org.jmlspecs.annotation.NonNull :: java.lang.Object)) with prover !!!!
+Starting proof of JMLDouble.compareTo(@NonNull :: java.lang.Object)) with prover !!!!
 test/escDouble2/JMLDouble.java:163: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method compareTo
     	if (!(op2 instanceof JMLDouble)) throw new ClassCastException();
     	                                 ^
 /Users/davidcok/projects/OpenJMLA/Specs/specs/java/lang/Comparable.jml:76: warning: Associated declaration
     /*@ public normal_behavior
                ^
-Completed proof of JMLDouble.compareTo((@org.jmlspecs.annotation.NonNull :: java.lang.Object)) with prover !!!! - with warnings
+Completed proof of JMLDouble.compareTo(@NonNull :: java.lang.Object)) with prover !!!! - with warnings
 Starting proof of JMLDouble.isZero(double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -52,11 +52,11 @@ Starting proof of JMLDouble.isZero() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLDouble.isZero() with prover !!!! - no warnings
-Starting proof of JMLDouble.equals((@org.jmlspecs.annotation.Nullable :: java.lang.Object)) with prover !!!!
+Starting proof of JMLDouble.equals(@Nullable :: java.lang.Object)) with prover !!!!
 test/escDouble2/JMLDouble.java:205: warning: The prover cannot establish an assertion (Assert) in method equals
         //@ assert \invariant_for(jmld2);
             ^
-Completed proof of JMLDouble.equals((@org.jmlspecs.annotation.Nullable :: java.lang.Object)) with prover !!!! - with warnings
+Completed proof of JMLDouble.equals(@Nullable :: java.lang.Object)) with prover !!!! - with warnings
 Starting proof of JMLDouble.hashCode() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -73,56 +73,56 @@ Starting proof of JMLDouble.negated() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLDouble.negated() with prover !!!! - no warnings
-Starting proof of JMLDouble.plus((@org.jmlspecs.annotation.NonNull :: JMLDouble)) with prover !!!!
+Starting proof of JMLDouble.plus(@NonNull :: JMLDouble)) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.plus((@org.jmlspecs.annotation.NonNull :: JMLDouble)) with prover !!!! - no warnings
-Starting proof of JMLDouble.minus((@org.jmlspecs.annotation.NonNull :: JMLDouble)) with prover !!!!
+Completed proof of JMLDouble.plus(@NonNull :: JMLDouble)) with prover !!!! - no warnings
+Starting proof of JMLDouble.minus(@NonNull :: JMLDouble)) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.minus((@org.jmlspecs.annotation.NonNull :: JMLDouble)) with prover !!!! - no warnings
-Starting proof of JMLDouble.times((@org.jmlspecs.annotation.NonNull :: JMLDouble)) with prover !!!!
+Completed proof of JMLDouble.minus(@NonNull :: JMLDouble)) with prover !!!! - no warnings
+Starting proof of JMLDouble.times(@NonNull :: JMLDouble)) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.times((@org.jmlspecs.annotation.NonNull :: JMLDouble)) with prover !!!! - no warnings
-Starting proof of JMLDouble.dividedBy((@org.jmlspecs.annotation.NonNull :: JMLDouble)) with prover !!!!
+Completed proof of JMLDouble.times(@NonNull :: JMLDouble)) with prover !!!! - no warnings
+Starting proof of JMLDouble.dividedBy(@NonNull :: JMLDouble)) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.dividedBy((@org.jmlspecs.annotation.NonNull :: JMLDouble)) with prover !!!! - no warnings
-Skipping proof of JMLDouble.remainderBy((@org.jmlspecs.annotation.NonNull :: JMLDouble)) (excluded by -method)
-Starting proof of JMLDouble.greaterThan((@org.jmlspecs.annotation.NonNull :: JMLDouble)) with prover !!!!
+Completed proof of JMLDouble.dividedBy(@NonNull :: JMLDouble)) with prover !!!! - no warnings
+Skipping proof of JMLDouble.remainderBy(@NonNull :: JMLDouble)) (excluded by -method)
+Starting proof of JMLDouble.greaterThan(@NonNull :: JMLDouble)) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.greaterThan((@org.jmlspecs.annotation.NonNull :: JMLDouble)) with prover !!!! - no warnings
-Starting proof of JMLDouble.lessThan((@org.jmlspecs.annotation.NonNull :: JMLDouble)) with prover !!!!
+Completed proof of JMLDouble.greaterThan(@NonNull :: JMLDouble)) with prover !!!! - no warnings
+Starting proof of JMLDouble.lessThan(@NonNull :: JMLDouble)) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.lessThan((@org.jmlspecs.annotation.NonNull :: JMLDouble)) with prover !!!! - no warnings
-Starting proof of JMLDouble.greaterThanOrEqualTo((@org.jmlspecs.annotation.NonNull :: JMLDouble)) with prover !!!!
+Completed proof of JMLDouble.lessThan(@NonNull :: JMLDouble)) with prover !!!! - no warnings
+Starting proof of JMLDouble.greaterThanOrEqualTo(@NonNull :: JMLDouble)) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.greaterThanOrEqualTo((@org.jmlspecs.annotation.NonNull :: JMLDouble)) with prover !!!! - no warnings
-Starting proof of JMLDouble.lessThanOrEqualTo((@org.jmlspecs.annotation.NonNull :: JMLDouble)) with prover !!!!
+Completed proof of JMLDouble.greaterThanOrEqualTo(@NonNull :: JMLDouble)) with prover !!!! - no warnings
+Starting proof of JMLDouble.lessThanOrEqualTo(@NonNull :: JMLDouble)) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.lessThanOrEqualTo((@org.jmlspecs.annotation.NonNull :: JMLDouble)) with prover !!!! - no warnings
+Completed proof of JMLDouble.lessThanOrEqualTo(@NonNull :: JMLDouble)) with prover !!!! - no warnings
 Skipping proof of JMLDouble.toString() (excluded by -method)
-Starting proof of JMLDouble.withinEpsilonOf((@org.jmlspecs.annotation.NonNull :: JMLDouble),double) with prover !!!!
+Starting proof of JMLDouble.withinEpsilonOf(@NonNull JMLDouble,double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.withinEpsilonOf((@org.jmlspecs.annotation.NonNull :: JMLDouble),double) with prover !!!! - no warnings
-Starting proof of JMLDouble.approximatelyEqualTo((@org.jmlspecs.annotation.NonNull :: JMLDouble),double) with prover !!!!
+Completed proof of JMLDouble.withinEpsilonOf(@NonNull JMLDouble,double) with prover !!!! - no warnings
+Starting proof of JMLDouble.approximatelyEqualTo(@NonNull JMLDouble,double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.approximatelyEqualTo((@org.jmlspecs.annotation.NonNull :: JMLDouble),double) with prover !!!! - no warnings
-Starting proof of JMLDouble.withinEpsilonOf((@org.jmlspecs.annotation.NonNull :: java.lang.Double),double) with prover !!!!
+Completed proof of JMLDouble.approximatelyEqualTo(@NonNull JMLDouble,double) with prover !!!! - no warnings
+Starting proof of JMLDouble.withinEpsilonOf(@NonNull Double),double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.withinEpsilonOf((@org.jmlspecs.annotation.NonNull :: java.lang.Double),double) with prover !!!! - no warnings
-Starting proof of JMLDouble.approximatelyEqualTo((@org.jmlspecs.annotation.NonNull :: java.lang.Double),double) with prover !!!!
+Completed proof of JMLDouble.withinEpsilonOf(@NonNull Double),double) with prover !!!! - no warnings
+Starting proof of JMLDouble.approximatelyEqualTo(@NonNull Double),double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.approximatelyEqualTo((@org.jmlspecs.annotation.NonNull :: java.lang.Double),double) with prover !!!! - no warnings
+Completed proof of JMLDouble.approximatelyEqualTo(@NonNull Double),double) with prover !!!! - no warnings
 Starting proof of JMLDouble.withinEpsilonOf(double,double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -139,29 +139,29 @@ Starting proof of JMLDouble.approximatelyEqualTo(double,double,double) with prov
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLDouble.approximatelyEqualTo(double,double,double) with prover !!!! - no warnings
-Starting proof of JMLDouble.withinEpsilonOf((@org.jmlspecs.annotation.NonNull :: JMLDouble),(@org.jmlspecs.annotation.NonNull :: JMLDouble),double) with prover !!!!
+Starting proof of JMLDouble.withinEpsilonOf(@NonNull JMLDouble,@NonNull JMLDouble,double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.withinEpsilonOf((@org.jmlspecs.annotation.NonNull :: JMLDouble),(@org.jmlspecs.annotation.NonNull :: JMLDouble),double) with prover !!!! - no warnings
-Starting proof of JMLDouble.approximatelyEqualTo((@org.jmlspecs.annotation.NonNull :: JMLDouble),(@org.jmlspecs.annotation.NonNull :: JMLDouble),double) with prover !!!!
+Completed proof of JMLDouble.withinEpsilonOf(@NonNull JMLDouble,@NonNull JMLDouble,double) with prover !!!! - no warnings
+Starting proof of JMLDouble.approximatelyEqualTo(@NonNull JMLDouble,@NonNull JMLDouble,double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.approximatelyEqualTo((@org.jmlspecs.annotation.NonNull :: JMLDouble),(@org.jmlspecs.annotation.NonNull :: JMLDouble),double) with prover !!!! - no warnings
-Starting proof of JMLDouble.withinEpsilonOf((@org.jmlspecs.annotation.NonNull :: JMLDouble),(@org.jmlspecs.annotation.NonNull :: java.lang.Double),double) with prover !!!!
+Completed proof of JMLDouble.approximatelyEqualTo(@NonNull JMLDouble,@NonNull JMLDouble,double) with prover !!!! - no warnings
+Starting proof of JMLDouble.withinEpsilonOf(@NonNull JMLDouble,@NonNull Double),double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.withinEpsilonOf((@org.jmlspecs.annotation.NonNull :: JMLDouble),(@org.jmlspecs.annotation.NonNull :: java.lang.Double),double) with prover !!!! - no warnings
-Starting proof of JMLDouble.approximatelyEqualTo((@org.jmlspecs.annotation.NonNull :: JMLDouble),(@org.jmlspecs.annotation.NonNull :: java.lang.Double),double) with prover !!!!
+Completed proof of JMLDouble.withinEpsilonOf(@NonNull JMLDouble,@NonNull Double),double) with prover !!!! - no warnings
+Starting proof of JMLDouble.approximatelyEqualTo(@NonNull JMLDouble,@NonNull Double),double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.approximatelyEqualTo((@org.jmlspecs.annotation.NonNull :: JMLDouble),(@org.jmlspecs.annotation.NonNull :: java.lang.Double),double) with prover !!!! - no warnings
-Starting proof of JMLDouble.withinEpsilonOf((@org.jmlspecs.annotation.NonNull :: JMLDouble),double,double) with prover !!!!
+Completed proof of JMLDouble.approximatelyEqualTo(@NonNull JMLDouble,@NonNull Double),double) with prover !!!! - no warnings
+Starting proof of JMLDouble.withinEpsilonOf(@NonNull JMLDouble,double,double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.withinEpsilonOf((@org.jmlspecs.annotation.NonNull :: JMLDouble),double,double) with prover !!!! - no warnings
-Starting proof of JMLDouble.approximatelyEqualTo((@org.jmlspecs.annotation.NonNull :: JMLDouble),double,double) with prover !!!!
+Completed proof of JMLDouble.withinEpsilonOf(@NonNull JMLDouble,double,double) with prover !!!! - no warnings
+Starting proof of JMLDouble.approximatelyEqualTo(@NonNull JMLDouble,double,double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.approximatelyEqualTo((@org.jmlspecs.annotation.NonNull :: JMLDouble),double,double) with prover !!!! - no warnings
+Completed proof of JMLDouble.approximatelyEqualTo(@NonNull JMLDouble,double,double) with prover !!!! - no warnings
 Completed proving methods in JMLDouble
 3 warnings

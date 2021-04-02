@@ -15,7 +15,7 @@ public class DoublyLinkedList<T>
    * @author Kevin Vigue
    * @version 9/18/2013
    */
-  /*@ nullable spec_public */ private DoublyLinkedList<T> my_next;
+  /*@ spec_public */ private /*@ nullable */ DoublyLinkedList<T> my_next;
   
   /**
    * The linked list node before this one.
@@ -23,7 +23,7 @@ public class DoublyLinkedList<T>
    * @author Kevin Vigue
    * @version 9/18/2013
    */
-  /*@ nullable spec_public */ private DoublyLinkedList<T> my_prev;
+  /*@ spec_public */ private /*@ nullable */ DoublyLinkedList<T> my_prev;
   
   /**
    * The value stored in this linked list node.
@@ -31,7 +31,7 @@ public class DoublyLinkedList<T>
    * @author Kevin Vigue
    * @version 9/18/2013
    */
-  /*@ nullable spec_public */ private T my_value;
+  /*@ spec_public */ private /*@ nullable */ T my_value;
   
   //@ public invariant my_next != this;
   //@ public invariant my_prev != this;
@@ -76,8 +76,7 @@ public class DoublyLinkedList<T>
    * @version 9/18/2013
    * @return The value in this node.
    */
-  /*@ nullable */
-  public T getValue()
+  public /*@ nullable */ T getValue()
   {
     return my_value;
   }
@@ -91,7 +90,7 @@ public class DoublyLinkedList<T>
    */
   //@ assignable my_value;
   //@ ensures my_value == a_value;
-  public void setValue(/*@ nullable */ final T a_value)
+  public void setValue(final /*@ nullable */ T a_value)
   {
     my_value = a_value;
   }
@@ -103,8 +102,7 @@ public class DoublyLinkedList<T>
    * @version 9/18/2013
    * @return The doubly linked list before this one.
    */
-  /*@ nullable */
-  public DoublyLinkedList<T> getPrev()
+  public /*@ nullable */ DoublyLinkedList<T> getPrev()
   {
     return my_prev;
   }
@@ -119,7 +117,7 @@ public class DoublyLinkedList<T>
   //@ requires this != a_doubly_linked_list && (my_next != null ==> a_doubly_linked_list != my_next);
   //@ assignable my_prev;
   //@ ensures my_prev == a_doubly_linked_list;
-  public void setPrev(/*@ nullable */ final DoublyLinkedList<T> a_doubly_linked_list)
+  public void setPrev(final /*@ nullable */ DoublyLinkedList<T> a_doubly_linked_list)
   {
     // A doubly linked list's next is not itself.
     assert a_doubly_linked_list != this : "Attempt to set prev to self.";
@@ -133,8 +131,7 @@ public class DoublyLinkedList<T>
    * @version 9/18/2013
    * @return The doubly linked list after this one.
    */
-  /*@ nullable */
-  public DoublyLinkedList<T> getNext()
+  public /*@ nullable */ DoublyLinkedList<T> getNext()
   {
     return my_next;
   }
@@ -149,7 +146,7 @@ public class DoublyLinkedList<T>
   //@ requires this != a_doubly_linked_list && (a_doubly_linked_list != null ==> a_doubly_linked_list != my_prev);
   //@ assignable my_next;
   //@ ensures my_next == a_doubly_linked_list;
-  public void setNext(/*@ nullable */ final DoublyLinkedList<T> a_doubly_linked_list)
+  public void setNext(final /*@ nullable */ DoublyLinkedList<T> a_doubly_linked_list)
   {
     // A doubly linked list's prev is not itself.
     assert a_doubly_linked_list != this : "Attempt to set next to self.";

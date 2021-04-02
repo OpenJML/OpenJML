@@ -3,7 +3,7 @@ public class Test extends A {
     
     public int i;
     
-    public void mbyte(/*@ non_null */ byte[] b) {
+    public void mbyte(byte /*@ non_null */ [] b) {
         byte[] bb = b.clone();
         //@ assert i == \old(i);
         //@ assert bb != null;
@@ -11,7 +11,7 @@ public class Test extends A {
         //@ assert java.util.Arrays.equalArrays(bb,b);
     }
     
-    public void mint(/*@ non_null */ int[] b) {
+    public void mint(int /*@ non_null */ [] b) {
         int[] bb = b.clone();
         //@ assert i == \old(i);
         //@ assert bb != null;
@@ -19,7 +19,7 @@ public class Test extends A {
         //@ assert java.util.Arrays.equalArrays(bb,b);
     }
     
-    public void mchar(/*@ non_null */ char[] b) {
+    public void mchar(char /*@ non_null */ [] b) {
         char[] bb = b.clone();
         //@ assert i == \old(i);
         //@ assert bb != null;
@@ -27,7 +27,7 @@ public class Test extends A {
         //@ assert java.util.Arrays.equalArrays(bb,b);
     }
     
-    public void mshort(/*@ non_null */ short[] b) {
+    public void mshort(short /*@ non_null */ [] b) {
         short[] bb = b.clone();
         //@ assert i == \old(i);
         //@ assert bb != null;
@@ -35,7 +35,7 @@ public class Test extends A {
         //@ assert java.util.Arrays.equalArrays(bb,b);
     }
     
-    public void mlong(/*@ non_null */ long[] b) {
+    public void mlong(long /*@ non_null */ [] b) {
         long[] bb = b.clone();
         //@ assert i == \old(i);
         //@ assert bb != null;
@@ -43,7 +43,7 @@ public class Test extends A {
         //@ assert java.util.Arrays.equalArrays(bb,b);
     }
     
-    public void mboolean(/*@ non_null */ boolean[] b) {
+    public void mboolean(boolean /*@ non_null */ [] b) {
         boolean[] bb = b.clone();
         //@ assert i == \old(i);
         //@ assert bb != null;

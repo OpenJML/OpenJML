@@ -13,7 +13,7 @@ public class Pair<T> {
     public T getSecond() { return second;
     }
     /*@ public model_program { 
-      @   normal_behavior
+      @   refining normal_behavior
       @     ensures res != null && res instanceof ArrayList<S> 
       @          && res.size() == 2;
       @   res.add(0,p.run(first));

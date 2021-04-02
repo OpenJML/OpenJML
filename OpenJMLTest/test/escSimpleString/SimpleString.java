@@ -25,10 +25,10 @@ public class SimpleString {
   /**
    * The character data of this SimpleString.
    */
-    private /*@ spec_public nullable */ char[] my_chars;  
-    private /*@ spec_public nullable */ int[] my_ints;
-    private /*@ spec_public nullable */ Object[] my_Objects;  
-    private /*@ spec_public nullable */ Integer[] my_Integers;  
+    private /*@ spec_public */ char /*@ nullable*/ [] my_chars;  
+    private /*@ spec_public */ int /*@ nullable*/ [] my_ints;
+    private /*@ spec_public */ Object /*@ nullable*/ [] my_Objects;  
+    private /*@ spec_public */ Integer /*@ nullable*/ [] my_Integers;  
   
   // Constructors
   
@@ -39,7 +39,7 @@ public class SimpleString {
      * @param the_array The array of characters.
      */
     //@ ensures (\forall int i; 0 <= i && i < my_chars.length; my_chars[i] == the_array[i]);
-    public SimpleString(final /*@ non_null */ char[] the_array) {
+    public SimpleString(final char /*@ non_null */ [] the_array) {
         // @ assert the_array != null;
         my_chars = new char[the_array.length];
         System.arraycopy(the_array, 0, my_chars, 0, the_array.length);
@@ -52,7 +52,7 @@ public class SimpleString {
      * @param the_array The array of ints.
      */
     //@ ensures (\forall int i; 0 <= i && i < my_ints.length; my_ints[i] == the_array[i]);
-    public SimpleString(final /*@ non_null */ int[] the_array) {
+    public SimpleString(final int /*@ non_null */ [] the_array) {
         my_ints = new int[the_array.length];
         System.arraycopy(the_array, 0, my_ints, 0, the_array.length);
     }
@@ -65,14 +65,14 @@ public class SimpleString {
      */
     //@ ensures my_Objects.length == the_array.length;
     //@ ensures (\forall int i; 0 <= i && i < my_Objects.length; my_Objects[i] == the_array[i]);
-    public SimpleString(final /*@ non_null */ Object[] the_array) {
+    public SimpleString(final Object /*@ non_null */ [] the_array) {
         my_Objects = new Object[the_array.length];
         System.arraycopy(the_array, 0, my_Objects, 0, the_array.length);
     }
 
     //@ ensures my_Integers.length == the_array.length;
     //@ ensures (\forall int i; 0 <= i && i < my_Integers.length; my_Integers[i] == the_array[i]);
-    public SimpleString(final /*@ non_null */ Integer[] the_array) {
+    public SimpleString(final Integer /*@ non_null */ [] the_array) {
         my_Integers = new Integer[the_array.length];
         System.arraycopy(the_array, 0, my_Integers, 0, the_array.length);
     }

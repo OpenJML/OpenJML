@@ -15,15 +15,13 @@ public class SpecificationInterfaceDemo {
 
   //@   requires z > 0; // FAILS because there are no specs to say that apply is pure
   //@   assignable \nothing;
-  //@ nullable
-  public Integer mbad1(Function<Integer,Integer> f, Integer z) {
+  public /*@ nullable */Integer mbad1(Function<Integer,Integer> f, Integer z) {
     return f.apply(z);
   }
 
   //@   requires z > 0;
   //@   ensures \result != null && \result > 0; // FAILS becuse no specs give info about postcondition
-  //@ nullable
-  public Integer mbad2(Function<Integer,Integer> f, Integer z) {
+  public /*@ nullable */ Integer mbad2(Function<Integer,Integer> f, Integer z) {
     return f.apply(z);
   }
 
@@ -36,7 +34,7 @@ public class SpecificationInterfaceDemo {
 
   int zz;
 
-  public void mbad3(Function<Integer,Integer> f, Integer z) {
+  public void mbad3(Function<Integer,/*@ nullable */ Integer> f, Integer z) {
     zz = 0;
     Integer k = f.apply(z);
     //@ assert zz == 0;

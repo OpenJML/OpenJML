@@ -17,9 +17,9 @@ Starting proof of Crypto.Crypto() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Crypto.Crypto() with prover !!!! - no warnings
-Starting proof of Crypto.encrypt(java.lang.Object) with prover !!!!
+Starting proof of Crypto.encrypt(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Crypto.encrypt(java.lang.Object) with prover !!!! - no warnings
+Completed proof of Crypto.encrypt(Object) with prover !!!! - no warnings
 Completed proving methods in Crypto
 2 warnings

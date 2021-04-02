@@ -3,22 +3,22 @@ Starting proof of JMLStringTest.JMLStringTest() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLStringTest.JMLStringTest() with prover !!!! - no warnings
-Starting proof of JMLStringTest.main(java.lang.String...) with prover !!!!
+Starting proof of JMLStringTest.main(String...) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.main(java.lang.String...) with prover !!!! - no warnings
-Starting proof of JMLStringTest.stringInvariant(org.jmlspecs.lang.string) with prover !!!!
+Completed proof of JMLStringTest.main(String...) with prover !!!! - no warnings
+Starting proof of JMLStringTest.stringInvariant(string) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.stringInvariant(org.jmlspecs.lang.string) with prover !!!! - no warnings
-Starting proof of JMLStringTest.stringBrackets(org.jmlspecs.lang.string,\bigint) with prover !!!!
+Completed proof of JMLStringTest.stringInvariant(string) with prover !!!! - no warnings
+Starting proof of JMLStringTest.stringBrackets(string,\bigint) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.stringBrackets(org.jmlspecs.lang.string,\bigint) with prover !!!! - no warnings
-Starting proof of JMLStringTest.sizeLength(org.jmlspecs.lang.string) with prover !!!!
+Completed proof of JMLStringTest.stringBrackets(string,\bigint) with prover !!!! - no warnings
+Starting proof of JMLStringTest.sizeLength(string) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.sizeLength(org.jmlspecs.lang.string) with prover !!!! - no warnings
+Completed proof of JMLStringTest.sizeLength(string) with prover !!!! - no warnings
 Starting proof of JMLStringTest.newStringIsEmpty() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -27,34 +27,34 @@ Starting proof of JMLStringTest.newStringFromString() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLStringTest.newStringFromString() with prover !!!! - no warnings
-Starting proof of JMLStringTest.addBumpsSize(org.jmlspecs.lang.string) with prover !!!!
+Starting proof of JMLStringTest.addBumpsSize(string) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.addBumpsSize(org.jmlspecs.lang.string) with prover !!!! - no warnings
-Starting proof of JMLStringTest.addBumpsSize(org.jmlspecs.lang.string,\bigint) with prover !!!!
+Completed proof of JMLStringTest.addBumpsSize(string) with prover !!!! - no warnings
+Starting proof of JMLStringTest.addBumpsSize(string,\bigint) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.addBumpsSize(org.jmlspecs.lang.string,\bigint) with prover !!!! - no warnings
-Starting proof of JMLStringTest.<T>removeLowersSize(org.jmlspecs.lang.string,int) with prover !!!!
+Completed proof of JMLStringTest.addBumpsSize(string,\bigint) with prover !!!! - no warnings
+Starting proof of JMLStringTest.<T>removeLowersSize(string,int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.<T>removeLowersSize(org.jmlspecs.lang.string,int) with prover !!!! - no warnings
-Starting proof of JMLStringTest.addRemove(org.jmlspecs.lang.string,\bigint) with prover !!!!
+Completed proof of JMLStringTest.<T>removeLowersSize(string,int) with prover !!!! - no warnings
+Starting proof of JMLStringTest.addRemove(string,\bigint) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.addRemove(org.jmlspecs.lang.string,\bigint) with prover !!!! - no warnings
-Starting proof of JMLStringTest.addGet1(org.jmlspecs.lang.string,\bigint,\bigint) with prover !!!!
+Completed proof of JMLStringTest.addRemove(string,\bigint) with prover !!!! - no warnings
+Starting proof of JMLStringTest.addGet1(string,\bigint,\bigint) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.addGet1(org.jmlspecs.lang.string,\bigint,\bigint) with prover !!!! - no warnings
-Starting proof of JMLStringTest.addGet2(org.jmlspecs.lang.string,\bigint,\bigint) with prover !!!!
+Completed proof of JMLStringTest.addGet1(string,\bigint,\bigint) with prover !!!! - no warnings
+Starting proof of JMLStringTest.addGet2(string,\bigint,\bigint) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.addGet2(org.jmlspecs.lang.string,\bigint,\bigint) with prover !!!! - no warnings
-Starting proof of JMLStringTest.addGet(org.jmlspecs.lang.string,\bigint,char) with prover !!!!
+Completed proof of JMLStringTest.addGet2(string,\bigint,\bigint) with prover !!!! - no warnings
+Starting proof of JMLStringTest.addGet(string,\bigint,char) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.addGet(org.jmlspecs.lang.string,\bigint,char) with prover !!!! - no warnings
+Completed proof of JMLStringTest.addGet(string,\bigint,char) with prover !!!! - no warnings
 Starting proof of JMLStringTest.character() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -71,42 +71,42 @@ Starting proof of JMLStringTest.conversion() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLStringTest.conversion() with prover !!!! - no warnings
-Starting proof of JMLStringTest.conversion2(java.lang.String) with prover !!!!
+Starting proof of JMLStringTest.conversion2(String) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.conversion2(java.lang.String) with prover !!!! - no warnings
-Starting proof of JMLStringTest.conversionBad1((@org.jmlspecs.annotation.Nullable :: java.lang.String),java.lang.Object) with prover !!!!
-test/valuestrings/JMLStringTest.java:111: warning: The prover cannot establish an assertion (Precondition) in method conversionBad1
+Completed proof of JMLStringTest.conversion2(String) with prover !!!! - no warnings
+Starting proof of JMLStringTest.conversionBad1(@Nullable String,Object) with prover !!!!
+test/valuestrings/JMLStringTest.java:111: warning: The prover cannot establish an assertion (UndefinedCalledMethodNullPrecondition) in method conversionBad1
     //@   ghost string s1 = s; // verification error
                             ^
-$SPECS/specs/org/jmlspecs/lang/string.jml:17: warning: Associated declaration
+$SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
     static public string string(String s);
                          ^
-$SPECS/specs/org/jmlspecs/lang/string.jml:17: warning: Precondition conjunct is false: s != null
+$SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Precondition conjunct is false: s != null
     static public string string(String s);
                                        ^
-Completed proof of JMLStringTest.conversionBad1((@org.jmlspecs.annotation.Nullable :: java.lang.String),java.lang.Object) with prover !!!! - with warnings
-Starting proof of JMLStringTest.conversionBad2((@org.jmlspecs.annotation.Nullable :: java.lang.String),java.lang.Object) with prover !!!!
-test/valuestrings/JMLStringTest.java:115: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method conversionBad2
+Completed proof of JMLStringTest.conversionBad1(@Nullable String,Object) with prover !!!! - with warnings
+Starting proof of JMLStringTest.conversionBad2(@Nullable String,Object) with prover !!!!
+test/valuestrings/JMLStringTest.java:115: warning: The prover cannot establish an assertion (UndefinedCalledMethodNullPrecondition) in method conversionBad2
     //@   ghost string s2 = (string)s; // verification error
                             ^
-$SPECS/specs/org/jmlspecs/lang/string.jml:17: warning: Associated declaration
+$SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
     static public string string(String s);
                          ^
-$SPECS/specs/org/jmlspecs/lang/string.jml:17: warning: Precondition conjunct is false: s != null
+$SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Precondition conjunct is false: s != null
     static public string string(String s);
                                        ^
-Completed proof of JMLStringTest.conversionBad2((@org.jmlspecs.annotation.Nullable :: java.lang.String),java.lang.Object) with prover !!!! - with warnings
-Starting proof of JMLStringTest.conversionBad3((@org.jmlspecs.annotation.Nullable :: java.lang.String),java.lang.Object) with prover !!!!
-test/valuestrings/JMLStringTest.java:119: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method conversionBad3
+Completed proof of JMLStringTest.conversionBad2(@Nullable String,Object) with prover !!!! - with warnings
+Starting proof of JMLStringTest.conversionBad3(@Nullable String,Object) with prover !!!!
+test/valuestrings/JMLStringTest.java:119: warning: The prover cannot establish an assertion (UndefinedCalledMethodNullPrecondition) in method conversionBad3
     //@   ghost string s3 = string.string(s); // verification error
                                          ^
-$SPECS/specs/org/jmlspecs/lang/string.jml:17: warning: Associated declaration
+$SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
     static public string string(String s);
                          ^
-$SPECS/specs/org/jmlspecs/lang/string.jml:17: warning: Precondition conjunct is false: s != null
+$SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Precondition conjunct is false: s != null
     static public string string(String s);
                                        ^
-Completed proof of JMLStringTest.conversionBad3((@org.jmlspecs.annotation.Nullable :: java.lang.String),java.lang.Object) with prover !!!! - with warnings
+Completed proof of JMLStringTest.conversionBad3(@Nullable String,Object) with prover !!!! - with warnings
 Completed proving methods in JMLStringTest
 9 warnings

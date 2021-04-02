@@ -29,12 +29,12 @@ Starting proof of stack.StackImpl.remove() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of stack.StackImpl.remove() with prover !!!! - no warnings
-Starting proof of stack.StackImpl.main(java.lang.String[]) with prover !!!!
+Starting proof of stack.StackImpl.main(String[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of stack.StackImpl.main(java.lang.String[]) with prover !!!! - no warnings
-Starting proof of stack.StackImpl.main1(java.lang.String[]) with prover !!!!
+Completed proof of stack.StackImpl.main(String[]) with prover !!!! - no warnings
+Starting proof of stack.StackImpl.main1(String[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of stack.StackImpl.main1(java.lang.String[]) with prover !!!! - no warnings
+Completed proof of stack.StackImpl.main1(String[]) with prover !!!! - no warnings
 Completed proving methods in stack.StackImpl

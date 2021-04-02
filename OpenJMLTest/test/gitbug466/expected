@@ -5,7 +5,10 @@ Completed proving methods in Middle
 Proving methods in Top
 Completed proving methods in Top
 Proving methods in Test
-Skipping proof of Test.Test() (excluded by -method)
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
 Starting proof of Test.run(Bottom) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - before explicit assert statement : OK

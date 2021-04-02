@@ -1,6 +1,6 @@
 public class Parent {
 
-  /*@ nullable */ public Object o;
+  public /*@ nullable */ Object o;
 
   //@ ensures o != null && o.equals(oo);
   //@ pure

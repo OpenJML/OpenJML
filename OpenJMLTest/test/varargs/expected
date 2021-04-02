@@ -3,14 +3,14 @@ Starting proof of Test.Test() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
-Starting proof of Test.m(java.lang.Object,java.lang.Object...) with prover !!!!
+Starting proof of Test.m(Object,Object...) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.m(java.lang.Object,java.lang.Object...) with prover !!!! - no warnings
-Starting proof of Test.mk(java.lang.Object,java.lang.Object...) with prover !!!!
+Completed proof of Test.m(Object,Object...) with prover !!!! - no warnings
+Starting proof of Test.mk(Object,Object...) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.mk(java.lang.Object,java.lang.Object...) with prover !!!! - no warnings
+Completed proof of Test.mk(Object,Object...) with prover !!!! - no warnings
 Starting proof of Test.mm() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
