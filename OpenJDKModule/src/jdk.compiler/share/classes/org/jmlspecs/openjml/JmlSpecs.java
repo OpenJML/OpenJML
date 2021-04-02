@@ -56,6 +56,7 @@ import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.Annotate;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Enter;
@@ -1561,34 +1562,69 @@ public class JmlSpecs {
     }
     
     public boolean isNonNull(VarSymbol sym) {
-    	//utils.note(true, "ISNONNULL? " + sym + " " + sym.owner + " " + sym.owner.getClass() + " " + sym.enclClass());
     	if (!sym.type.isReference()) return false;
-    	if (sym.owner instanceof ClassSymbol) {
-    		JmlModifiers mods = getSpecsModifiers(sym);
-        	if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
-        	if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
-        	return defaultNullity((ClassSymbol)sym.owner) == Modifiers.NON_NULL;
-    	} else {
-    		// Parameter or local variable
-    		// FIXME
-    		if (attr.hasAnnotation(sym, Modifiers.NULLABLE)) return false;
-    		if (attr.hasAnnotation(sym, Modifiers.NON_NULL)) return true;
-        	return defaultNullity((ClassSymbol)sym.enclClass()) == Modifiers.NON_NULL;
+    	return isNonNull(sym.type, sym.enclClass());
+//    	if (sym.owner instanceof ClassSymbol) {
+//    		JmlModifiers mods = getSpecsModifiers(sym);
+//        	if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
+//        	if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
+//        	return defaultNullity((ClassSymbol)sym.owner) == Modifiers.NON_NULL;
+//    	} else {
+//    		// Parameter or local variable
+//    		// FIXME
+//    		if (attr.hasAnnotation(sym, Modifiers.NULLABLE)) return false;
+//    		if (attr.hasAnnotation(sym, Modifiers.NON_NULL)) return true;
+//        	return defaultNullity((ClassSymbol)sym.enclClass()) == Modifiers.NON_NULL;
+//    	}
+    }
+    
+    public boolean findAnnotation(Type type, ModifierKind kind) {
+    	for (var a: type.getAnnotationMirrors()) {
+    		if (a.type.toString().endsWith(kind.fullAnnotation)) return true; // FIXME - there has to be a better way
     	}
+    	return false;
+    }
+    
+    public boolean findAnnotation(JCExpression type, ModifierKind kind) {
+    	if (!(type instanceof JCTree.JCAnnotatedType)) return false;
+    	for (var a: ((JCTree.JCAnnotatedType)type).annotations) {
+    		if (a.toString().endsWith(kind.fullAnnotation)) return true; // FIXME - there has to be a better way
+    	}
+    	return false;
+    }
+
+    public JCAnnotation findAnnotation(List<JCAnnotation> annotations, ModifierKind kind) {
+        for (var a: annotations) {
+        	var s = a.toString();
+        	if (s.charAt(0) == '@') s = s.substring(1);
+        	if (s.endsWith(kind.fullAnnotation)) return a;
+        	if (kind.fullAnnotation.endsWith(s)) return a;
+        }
+        return null;
+    }
+
+
+    @SuppressWarnings("unchecked")
+	public boolean isNonNull(Type type, ClassSymbol classOwner) {
+    	if (!type.isReference()) return false;
+    	if (Types.instance(context).isSubtype(type, 
+    			Symtab.instance(context).jmlPrimitiveType)) return true;
+    	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
+    	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
+    	if (type instanceof Type.TypeVar) return false; 
+    	return defaultNullity(classOwner) == Modifiers.NON_NULL;
     }
     
     public boolean isNonNull(MethodSymbol sym) {
-    	if (!sym.getReturnType().isReference()) return false;
-    	JmlModifiers mods = getSpecsModifiers(sym);
-    	if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
-    	if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
-    	return defaultNullity(sym.enclClass()) == Modifiers.NON_NULL;
+    	var rt = sym.getReturnType();
+    	if (!rt.isReference()) return false;
+    	return isNonNull(rt,sym.enclClass());
     }
     
     public boolean isNonNull(JmlVariableDecl decl) {
     	if (!decl.type.isReference()) return false;
     	if (decl.sym.owner instanceof ClassSymbol) {
-    		return isNonNull(decl.sym);
+    		return isNonNull(decl.sym.type, decl.sym.enclClass());
     	} else {
     		// Local variable or parameter -- owned by method
     		JmlModifiers mods = (JmlModifiers)decl.mods;

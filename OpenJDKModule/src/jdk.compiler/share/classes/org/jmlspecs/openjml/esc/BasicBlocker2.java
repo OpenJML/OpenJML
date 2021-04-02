@@ -1196,12 +1196,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     scan(fa.selected);
                     JCIdent oldfield = newIdentUse((VarSymbol)fa.sym,sp);
                     if (isDefined.add(oldfield.name)) {
-                        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("AddedFF " + oldfield.sym + " " + oldfield.name);
+                        if (utils.verbose()) utils.note("AddedFF " + oldfield.sym + " " + oldfield.name);
                         addDeclaration(oldfield);
                     }
                     JCIdent newfield = newIdentIncarnation(oldfield,sp);
                     if (isDefined.add(newfield.name)) {
-                        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("AddedFF " + newfield.sym + " " + newfield.name);
+                        if (utils.verbose()) utils.note("AddedFF " + newfield.sym + " " + newfield.name);
                         addDeclaration(newfield);
                     }
                     if (fa.selected != null) {

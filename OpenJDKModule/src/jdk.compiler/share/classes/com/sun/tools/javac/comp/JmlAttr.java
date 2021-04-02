@@ -91,6 +91,7 @@ import com.sun.source.tree.IdentifierTree;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Scope.*;
 import com.sun.tools.javac.code.Attribute.Compound;
+import com.sun.tools.javac.code.Attribute.TypeCompound;
 import com.sun.tools.javac.code.Kinds.KindSelector;
 import com.sun.tools.javac.code.Symbol.BindingSymbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
@@ -1789,53 +1790,53 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // A list in which to collect clauses
             ListBuffer<JmlMethodClause> commonClauses = new ListBuffer<JmlMethodClause>();
 
-            // Add a precondition for each nonnull parameter
-            if (decl != null) for (JCVariableDecl p : decl.params) {
-                if (p.type == null && p.sym != null) p.type = p.sym.type; // FIXME - A hack - why is p.type null - has the corresponding class not been Attributed?
-                if (!utils.isPrimitiveType(p.type)) {
-                    JmlVariableDecl jp = (JmlVariableDecl)p;
-                    boolean isNonnull = specs.isNonNull(jp); 
-                    JCAnnotation nonnull = jp.specsDecl == null ? null : findMod(jp.specsDecl.mods, Modifiers.NON_NULL); // FIXME - this is not necessarily the correct position - could be in a .jml file
-                    if (nonnull == null) nonnull = findMod(jp.mods,Modifiers.NON_NULL); // FIXME - this is not necessarily the correct position - could be in a .jml file
-                    if (isNonnull) {
-                        JCTree treeForPos = nonnull == null ? jp : nonnull;
-                        int endPos = treeForPos.getEndPosition(endPosTable); 
-                        JCIdent id = treeutils.makeIdent(treeForPos,p.sym);
-// FIXME                        endPosTable.storeEnd(id, endPos);
-                        JCExpression e = treeutils.makeBinary(treeForPos,JCTree.Tag.NE,id,nulllit);
-// FIXME                        endPosTable.storeEnd(e, endPos);
-                        JmlMethodClauseExpr clause = jmlMaker.JmlMethodClauseExpr(requiresID, requiresClauseKind,e);
-                        clause.pos = e.pos;
-                        clause.sourcefile = decl.source(); // FIXME - should be set by where the nonnull annotation is
-// FIXME                        endPosTable.storeEnd(clause,endPos);
-                        commonClauses.append(clause);
-                    }
-                }
-            }
+//            // Add a precondition for each nonnull parameter
+//            if (decl != null) for (JCVariableDecl p : decl.params) {
+//                if (p.type == null && p.sym != null) p.type = p.sym.type; // FIXME - A hack - why is p.type null - has the corresponding class not been Attributed?
+//                if (!utils.isPrimitiveType(p.type)) {
+//                    JmlVariableDecl jp = (JmlVariableDecl)p;
+//                    boolean isNonnull = specs.isNonNull(jp); 
+//                    JCAnnotation nonnull = jp.specsDecl == null ? null : findMod(jp.specsDecl.mods, Modifiers.NON_NULL); // FIXME - this is not necessarily the correct position - could be in a .jml file
+//                    if (nonnull == null) nonnull = findMod(jp.mods,Modifiers.NON_NULL); // FIXME - this is not necessarily the correct position - could be in a .jml file
+//                    if (isNonnull) {
+//                        JCTree treeForPos = nonnull == null ? jp : nonnull;
+//                        int endPos = treeForPos.getEndPosition(endPosTable); 
+//                        JCIdent id = treeutils.makeIdent(treeForPos,p.sym);
+//// FIXME                        endPosTable.storeEnd(id, endPos);
+//                        JCExpression e = treeutils.makeBinary(treeForPos,JCTree.Tag.NE,id,nulllit);
+//// FIXME                        endPosTable.storeEnd(e, endPos);
+//                        JmlMethodClauseExpr clause = jmlMaker.JmlMethodClauseExpr(requiresID, requiresClauseKind,e);
+//                        clause.pos = e.pos;
+//                        clause.sourcefile = decl.source(); // FIXME - should be set by where the nonnull annotation is
+//// FIXME                        endPosTable.storeEnd(clause,endPos);
+//                        commonClauses.append(clause);
+//                    }
+//                }
+//            }
             
-            // Add a nonnull postcondition on the return type
-            // restype is null for constructors, possibly void for methods
-            // FIXME - when is decl null?
-            if (decl != null && decl.restype != null && decl.restype.type.getTag() != TypeTag.VOID && !utils.isPrimitiveType(decl.restype.type)) {
-                boolean isNonnull = specs.isNonNull(msym);
-                if (isNonnull) {
-                    JmlSingleton id = jmlMaker.JmlSingleton(resultKind);
-                    id.type = decl.restype.type;
-                    JCExpression e = treeutils.makeBinary(id,JCTree.Tag.NE,id,nulllit);
-                    id.pos = decl.pos; // FIXME - should ve location of non_null
-                    e.pos = decl.pos;
-// FIXME                    endPosTable.storeEnd(e,annotationEnd);
-// FIXME                    endPosTable.storeEnd(id,annotationEnd);
-                    IJmlClauseKind prev = currentClauseType;
-                    currentClauseType = ensuresClauseKind;
-                    //attribExpr(e,env);
-                    currentClauseType = prev;
-                    JmlMethodClauseExpr cl = jmlMaker.at(decl.pos).JmlMethodClauseExpr(ensuresID, ensuresClauseKind,e);
-                    cl.sourcefile = decl.source();
-// FIXME                    endPosTable.storeEnd(cl,annotationEnd);
-                    commonClauses.append(cl);
-                }
-            }
+//            // Add a nonnull postcondition on the return type
+//            // restype is null for constructors, possibly void for methods
+//            // FIXME - when is decl null?
+//            if (decl != null && decl.restype != null && decl.restype.type.getTag() != TypeTag.VOID && !utils.isPrimitiveType(decl.restype.type)) {
+//                boolean isNonnull = specs.isNonNull(msym);
+//                if (isNonnull) {
+//                    JmlSingleton id = jmlMaker.JmlSingleton(resultKind);
+//                    id.type = decl.restype.type;
+//                    JCExpression e = treeutils.makeBinary(id,JCTree.Tag.NE,id,nulllit);
+//                    id.pos = decl.pos; // FIXME - should ve location of non_null
+//                    e.pos = decl.pos;
+//// FIXME                    endPosTable.storeEnd(e,annotationEnd);
+//// FIXME                    endPosTable.storeEnd(id,annotationEnd);
+//                    IJmlClauseKind prev = currentClauseType;
+//                    currentClauseType = ensuresClauseKind;
+//                    //attribExpr(e,env);
+//                    currentClauseType = prev;
+//                    JmlMethodClauseExpr cl = jmlMaker.at(decl.pos).JmlMethodClauseExpr(ensuresID, ensuresClauseKind,e);
+//                    cl.sourcefile = decl.source();
+//// FIXME                    endPosTable.storeEnd(cl,annotationEnd);
+//                    commonClauses.append(cl);
+//                }
+//            }
             
             // Add an assignable clause if the method is pure and has no assignable clause
 //            JmlMethodClause clp = null;
@@ -4813,9 +4814,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // FIXME - the code below crashes for class symbols. What should we do?
                 // FIXME - we also get this case for annotations on a clause
             } else {
-//                if (tree.sym.toString().equals("defaults")) {
-//                    System.out.println("defaults");;
-//                }
                 JCModifiers mods = null;
                 if (sym.owner != null && sym.owner.kind == TYP) {
                     if (sym.kind == VAR) {
@@ -4854,8 +4852,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.name());
                 }
 
-            } else if (currentClauseType == declClause) {
-                // FIXME - not sure what rules to apply to this case
             } else if (currentClauseType == inClause) {
                 // In    V type x; //@ in y;
                 // identifier y must be at least as visible as x (i.e., as V)
@@ -4870,11 +4866,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
                 
                 if (currentEnvLabel != null && enclosingMethodEnv.enclMethod.sym.isConstructor()) {
-                    if (!sym.isStatic()) utils.error(pos,  "jml.no.old.in.constructor", sym);
+                    if (!sym.isStatic()) utils.error(pos,  "jml.no.old.in.constructor", sym); // FIXME - but this is not an 'old' clause
                 }
 
             } else  {
-                // Default case
+                // Default case -- requires, old, ...
                 // An identifier mentioned in a clause must be at least as visible as the clause itself.
                 if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,sym)) {
                     utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.name());
@@ -6334,6 +6330,33 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
     	if (utils.verbose()) utils.note("Attributing " + that.vartype + " " + that.name);
+    	if (env.enclMethod != null) {
+            if (that.vartype instanceof JCTypeApply) {
+            	var ft = (JCTypeApply)that.vartype;
+            	ListBuffer<JCExpression> ntypes = new ListBuffer<>();
+    			var nn = specs.defaultNullity(env.enclClass.sym);
+    			for (var t: ft.arguments) {
+    				JCAnnotatedType atype = null;
+    				if (t instanceof JCAnnotatedType) atype = (JCAnnotatedType)t;
+    				if (atype != null) {
+    					if (specs.findAnnotation(atype.annotations, Modifiers.NON_NULL) != null
+    					 || specs.findAnnotation(atype.annotations, Modifiers.NULLABLE) != null) {
+    						ntypes.add(atype);
+    						continue;
+    					}
+    				}
+    				JCAnnotation ann = utils.modToAnnotationAST(nn, that.pos, that.pos); // FIXME - better position
+    				if (atype != null) {
+    					atype.annotations = atype.annotations.append(ann);
+    					ntypes.add(atype);
+    				} else {
+    					ntypes.add(jmlMaker.at(that).AnnotatedType(List.<JCAnnotation>of(ann), t));
+    				}
+    			}
+    			ft.arguments = ntypes.toList();
+            }
+        	if (utils.verbose()) utils.note("Adjusted nullity " + that);
+    	}
         JavaFileObject prevSource = null;
         IJmlClauseKind savedType = currentClauseType;
         boolean isReplacementType = that.jmltype;
@@ -6366,7 +6389,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
 
             visitVarDef(that);
-            ((JmlMemberEnter)memberEnter).dojml = false;
+
+        	if (env.enclMethod != null) {
+                if (that.vartype instanceof JCTypeApply) {
+                	var ft = (JCTypeApply)that.vartype;
+                	ListBuffer<JCExpression> ntypes = new ListBuffer<>();
+        			for (var t: ft.arguments) {
+        				if (t instanceof JCAnnotatedType && t.type instanceof Type.TypeVar) {
+        					ntypes.add( ((JCAnnotatedType)t).underlyingType);
+        				} else {
+        					ntypes.add(t);
+        				}
+           			}
+        			ft.arguments = ntypes.toList();
+                } // FIXME - but sym is still now out of synch
+        	}
+
+        	((JmlMemberEnter)memberEnter).dojml = false;
             if (that.sym == null) return; // Duplicate to be removed 
             // Anonymous classes construct synthetic members (constructors at least)
             // which are not JML nodes.
@@ -6453,6 +6492,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	if (utils.verbose()) utils.note("    Attributed " + that.sym.owner + " " + that.sym);
         }
     }
+    
     
     boolean skipDefaultNullity = false;
     

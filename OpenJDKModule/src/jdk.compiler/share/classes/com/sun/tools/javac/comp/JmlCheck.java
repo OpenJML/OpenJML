@@ -114,12 +114,16 @@ public class JmlCheck extends Check {
     long checkFlags(DiagnosticPosition pos, long flags, Symbol sym, JCTree tree) {
         if (sym.kind == Kinds.Kind.ERR) return flags;
         if (staticOldEnv) flags &= ~Flags.STATIC;
+        long wasFinal = flags & Flags.FINAL;
         long k = super.checkFlags(pos,flags,sym,tree);
         if (staticOldEnv) { k |= Flags.STATIC; }
         if (tree instanceof JCTree.JCVariableDecl) {
             JCTree.JCVariableDecl d =(JCTree.JCVariableDecl) tree;
             boolean isInstance = JmlAttr.instance(context).isInstance(d.mods);
             if (isInstance) k &= ~Flags.STATIC;
+            if (isInstance && Utils.instance(context).isJML(flags) && sym.owner.isInterface()) {
+            	if (wasFinal == 0) k &= ~Flags.FINAL;
+            }
         }
         return k;
     }

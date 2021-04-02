@@ -19,10 +19,12 @@ public class Modifiers extends JmlExtension {
     static public final ModifierKind INLINE = new IJmlClauseKind.ModifierKind("inline", false);
     static public final ModifierKind INSTANCE = new IJmlClauseKind.ModifierKind("instance", true);
     static public final ModifierKind MONITORED = new IJmlClauseKind.ModifierKind("monitored", true);
-    static public final ModifierKind NON_NULL = new IJmlClauseKind.ModifierKind("non_null", true);
+    static public final ModifierKind NON_NULL = new IJmlClauseKind.TypeAnnotationKind("non_null", true);
     static public final ModifierKind NON_NULL_BY_DEFAULT = new IJmlClauseKind.ModifierKind("non_null_by_default", true);
-    static public final ModifierKind NULLABLE = new IJmlClauseKind.ModifierKind("nullable", true);
+    static public final ModifierKind NON_NULL_ELEMENTS = new IJmlClauseKind.ModifierKind("non_null_elements", true);
+    static public final ModifierKind NULLABLE = new IJmlClauseKind.TypeAnnotationKind("nullable", true);
     static public final ModifierKind NULLABLE_BY_DEFAULT = new IJmlClauseKind.ModifierKind("nullable_by_default", true);
+    static public final ModifierKind NULLABLE_ELEMENTS = new IJmlClauseKind.ModifierKind("nullable_elements", true);
     static public final ModifierKind OPTIONS = new IJmlClauseKind.ModifierKind("options", false);
     static public final ModifierKind PEER = new IJmlClauseKind.ModifierKind("peer", true);
     static public final ModifierKind PURE = new IJmlClauseKind.ModifierKind("pure", true);

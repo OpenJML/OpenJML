@@ -1728,7 +1728,7 @@ public class SMTTranslator extends JmlTreeScanner {
             addSort(t);
             return sortSymbol(t);
 
-        } else if (tag == TypeTag.CLASS && utils.isPrimitiveType(t) && !t.isParameterized()) {
+        } else if (tag == TypeTag.CLASS && utils.isJavaOrJmlPrimitiveType(t) && !t.isParameterized()) {
             if (false && t.isParameterized()) {
                 List<Type> targs = t.tsym.type.getTypeArguments();
                 Iterator<Type> iter = targs.iterator();

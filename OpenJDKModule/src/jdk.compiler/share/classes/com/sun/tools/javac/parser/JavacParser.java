@@ -2748,6 +2748,7 @@ public class JavacParser implements Parser {
     }
     //where
         private List<JCStatement> localVariableDeclarations(JCModifiers mods, JCExpression type) {
+        	startOfDeclaration(mods); // OPENJML
             ListBuffer<JCStatement> stats =
                     variableDeclarators(mods, type, new ListBuffer<>(), true);
             // A "LocalVariableDeclarationStatement" subsumes the terminating semicolon
@@ -4254,11 +4255,13 @@ public class JavacParser implements Parser {
                                     className,
                                     Fragments.ThrowsClauseNotAllowedForCanonicalConstructor(Fragments.Compact)));
                     skip(false, true, false, false);
+                    startOfDeclaration(mods);
                     return List.of(methodDeclaratorRest(
                             pos, mods, null, names.init, typarams,
                             isInterface, true, isRecord, dc));
                 } else {
                     pos = token.pos;
+                    startOfDeclaration(mods);
                     Name name = ident();
                     if (token.kind == LPAREN) {
                         return List.of(methodDeclaratorRest(
@@ -4363,6 +4366,8 @@ public class JavacParser implements Parser {
                 default -> false;
             };
     }
+    
+    protected void startOfDeclaration(JCModifiers mods) {} // OPENJML
 
     /** MethodDeclaratorRest =
      *      FormalParameters BracketsOpt [THROWS TypeList] ( MethodBody | [DEFAULT AnnotationValue] ";")

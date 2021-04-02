@@ -649,7 +649,7 @@ public class JmlEnter extends Enter {
     boolean print = false;
     
     public MethodSymbol findMethod(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> env) {
-    	print = Utils.debug() && mdecl.name.toString().equals("run");
+    	//print = mdecl.name.toString().equals("equals");
     	boolean hasTypeParams = csym.getTypeParameters().length() != 0 || mdecl.typarams.length() != 0;
     	boolean useStringComparison = false;
     	if (print) System.out.println("SEEKING " + csym + " " + mdecl.name + " " + hasTypeParams + " " + csym.members());
@@ -659,8 +659,14 @@ public class JmlEnter extends Enter {
     			// FIXME mdecl.mods.annotations?
     			if (mdecl.typarams != null) attr.attribTypeVariables(mdecl.typarams, env, true);
     			if (mdecl.recvparam != null) attr.attribType(mdecl.recvparam, env);
-    			for (var a: mdecl.params) {
-    				a.type = a.vartype.type = attr.attribType(a.vartype, env);
+    			for (var p: mdecl.params) {
+    				if (p.vartype instanceof JCAnnotatedType) {
+    					var vt = ((JCAnnotatedType)p.vartype);
+    					for (var a: vt.annotations) {
+    						a.attribute = annotate.attributeTypeAnnotation(a, syms.annotationType, env);
+    					}
+    				}
+    				p.type = p.vartype.type = attr.attribType(p.vartype, env);
     			}
     			if (mdecl.restype != null) attr.attribType(mdecl.restype, env);
     			if (mdecl.thrown != null) attr.attribTypes(mdecl.thrown, env);
@@ -668,6 +674,8 @@ public class JmlEnter extends Enter {
     			//utils.warning(mdecl, "jml.message", "Failed to attribute types");
     			//e.printStackTrace(System.out);
     			useStringComparison = true;
+    		} finally {
+    			annotate.flush();
     		}
     	}
 		Symbol.MethodSymbol msym = null;
@@ -760,7 +768,6 @@ public class JmlEnter extends Enter {
 				VarSymbol s = msym.params.get(i);
 				mdecl.params.get(i).sym = s;
 				mdecl.params.get(i).type = s.type;
-//				specsEnv.info.scope().enter(s);
 			}
 			
 			utils.note(true,  "Entered JML method: " + msym + " (owner: " + csym + ")" );
@@ -793,24 +800,32 @@ public class JmlEnter extends Enter {
 				utils.error(pos, "jml.message", "A Java method declaration must not be marked either ghost or model: " + mdecl.name + " (owner: " + csym +")");
 				return;
 			}
-			if (utils.verbose()) utils.note("Matched method: " + msym + " (owner: " + csym +")" );
+			boolean b = JmlCheck.instance(context).noDuplicateWarn;
+			JmlCheck.instance(context).noDuplicateWarn = true;
+			var specsym = makeAndEnterMethodSym(mdecl, specsEnv); 
+			JmlCheck.instance(context).noDuplicateWarn = b;
+			mdecl.sym = specsym;  // FIXME - we are entering both symbols -- but I think the original one is the one actually found
+			if (utils.verbose()) utils.note("Matched method: " + msym + " (owner: " + msym.owner +")");
 			mdecl.sym = msym;
 			specsEnv = MemberEnter.instance(context).methodEnv(mdecl, specsEnv);
-			//JmlAttr.printEnv(specsEnv, "METHODENV " + msym);
 			var mspecs = new JmlSpecs.MethodSpecs(mdecl);
-			if (msym != null) {
-				for (int i=0; i<mdecl.params.length(); ++i) {
-					VarSymbol s = msym.params.get(i);
-					mdecl.params.get(i).sym = s;
-					mdecl.params.get(i).type = s.type;
-					specsEnv.info.scope().enter(s);
-				}
-				JmlSpecs.instance(context).putSpecs(msym, mspecs, specsEnv);
+			ListBuffer<Type> argtypes = new ListBuffer<>();
+			for (int i=0; i<mdecl.params.length(); ++i) {  // FIXME - I think some or all of this can be simplified
+				VarSymbol s = msym.params.get(i);
+				s.type = mdecl.params.get(i).type;
+				argtypes.add(s.type);
+				mdecl.params.get(i).sym = s;
+				specsEnv.info.scope().enter(s);
 			}
+			var q = msym.type;
+			while (q instanceof Type.ForAll) q = ((Type.ForAll)q).qtype; 
+			if (q instanceof Type.MethodType) ((Type.MethodType)q).argtypes = argtypes.toList();
+			// FIXME - what about the return type, or exception types?
+			JmlSpecs.instance(context).putSpecs(msym, mspecs, specsEnv);
     	}
     }
     
-    public VarSymbol findVar(ClassSymbol csym, JmlVariableDecl vdecl) {
+    public VarSymbol findVar(ClassSymbol csym, JmlVariableDecl vdecl, Env<AttrContext> env) {
     	Name vname = vdecl.name;
     	var iter = csym.members().getSymbolsByName(vname, s->(s instanceof VarSymbol)).iterator();
     	if (iter.hasNext()) {
@@ -820,6 +835,11 @@ public class JmlEnter extends Enter {
     			// This should never happen - two binary fields with the same name
     			utils.error(vdecl, "jml.message", "Unexpectedly found duplicate binary field symbols named " + vname + " (" + vsym + " vs. " + v + ")");
     		}
+			if (vdecl.vartype instanceof JCAnnotatedType) for (var a: ((JCAnnotatedType)vdecl.vartype).annotations) {
+				a.attribute = annotate.attributeTypeAnnotation(a, syms.annotationType, env);
+			}
+    		Attr.instance(context).attribType(vdecl.vartype, env);
+    		annotate.flush();
 			return (VarSymbol)vsym;
     	}
     	return null;
@@ -828,7 +848,7 @@ public class JmlEnter extends Enter {
     public void specsEnter(ClassSymbol csym, JmlVariableDecl vdecl, Env<AttrContext> specsEnv, JmlClassDecl javaDecl) {
 		boolean isJML = utils.isJML(vdecl);
 		boolean isGhostOrModel = utils.hasMod(vdecl.mods, Modifiers.GHOST) || utils.hasMod(vdecl.mods, Modifiers.MODEL);
-    	Symbol.VarSymbol vsym = findVar(csym, vdecl);
+    	Symbol.VarSymbol vsym = findVar(csym, vdecl, specsEnv);
     	if (vsym == null) {
 			// No corresponding binary field
     		if (!isJML) {
@@ -846,10 +866,10 @@ public class JmlEnter extends Enter {
 			me.env = specsEnv;
 			me.visitVarDef(vdecl);
 			vdecl.type = vdecl.sym.type;
-			me.env = savedEnv;
 			vsym = vdecl.sym;
+			me.env = savedEnv;
 
-	        utils.note(true,  "Entered JML field: " + vsym + " (owner: " + csym +")" );
+	        if (utils.verbose()) utils.note("Entered JML field: " + vsym.type + " " + vsym + " (owner: " + vsym.owner + ")");
     	} else {
 			// Found a matching binary field
     		final var vvsym = vsym;

@@ -48,6 +48,7 @@ import com.sun.tools.javac.util.List;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlPretty;
+import org.jmlspecs.openjml.Utils;
 
 import java.util.*;
 
@@ -166,6 +167,11 @@ public class Annotate {
 
         ListBuffer<TypeCompound> buf = new ListBuffer<>();
         for (JCAnnotation anno : annotations) {
+        	if (anno.attribute == null) {
+        		var pre = log.useSource(((org.jmlspecs.openjml.JmlTree.JmlAnnotation)anno).sourcefile);
+        		log.error(anno.pos, "jml.message", "ANNO ATTR IS NULL  " + anno );
+        		log.useSource(pre);
+        	}
             Assert.checkNonNull(anno.attribute);
             buf.append((TypeCompound) anno.attribute);
         }
@@ -1045,7 +1051,7 @@ public class Annotate {
      */
     public void annotateTypeSecondStage(JCTree tree, List<JCAnnotation> annotations, Type storeAt) {
         typeAnnotation(() -> {
-            List<Attribute.TypeCompound> compounds = fromAnnotations(annotations);
+        	List<Attribute.TypeCompound> compounds = fromAnnotations(annotations);
             Assert.check(annotations.size() == compounds.size());
             storeAt.getMetadataOfKind(Kind.ANNOTATIONS).combine(new TypeMetadata.Annotations(compounds));
         });

@@ -1111,7 +1111,7 @@ public class MethodProverSMT {
                         	utils.warning(assertStat.source,pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
                             loc = utils.locationString(pos,assertStat.source);
                             tracer.appendln(loc + " Invalid assertion (" + label + ")");
-                            if (label == Label.UNDEFINED_PRECONDITION) {
+                            if (label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION) {
                                 try {
                                     Name nm = ((JCIdent)assertStat.expression).name;
                                     String s = jmlesc.assertionAdder.callStacks.get(nm);
@@ -1147,7 +1147,7 @@ public class MethodProverSMT {
                             }
                         }
 
-                        if (label == Label.PRECONDITION || label == Label.UNDEFINED_PRECONDITION) {
+                        if (label == Label.PRECONDITION || label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION) {
                             //BiMap<JCTree,JCTree> bimap = jmlesc.assertionAdder.exprBiMap;
                             //for (int pdetail=1; pdetail <= jmlesc.assertionAdder.preconditionDetail; pdetail++) 
                             {
@@ -1457,7 +1457,7 @@ public class MethodProverSMT {
                     if (optional != null) {
                         if (optional instanceof JCTree.JCLiteral) extra = ": " + ((JCTree.JCLiteral)optional).getValue().toString(); //$NON-NLS-1$
                     }
-                    if (assertStat.description != null && label != Label.PRECONDITION && label != Label.UNDEFINED_PRECONDITION) {
+                    if (assertStat.description != null && label != Label.PRECONDITION && label != Label.UNDEFINED_PRECONDITION && label != Label.UNDEFINED_NULL_PRECONDITION) {
                         extra = ": " + assertStat.description;
                     }
                     
@@ -1504,7 +1504,7 @@ public class MethodProverSMT {
                         }
                     }
 
-                    if (label == Label.PRECONDITION || label == Label.UNDEFINED_PRECONDITION) {
+                    if (label == Label.PRECONDITION || label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION) {
                         //BiMap<JCTree,JCTree> bimap = jmlesc.assertionAdder.exprBiMap;
                         //for (int pdetail=1; pdetail <= jmlesc.assertionAdder.preconditionDetail; pdetail++) 
                         {

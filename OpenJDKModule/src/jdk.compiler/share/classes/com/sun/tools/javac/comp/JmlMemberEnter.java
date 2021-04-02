@@ -59,6 +59,7 @@ import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotatedType;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
@@ -1275,7 +1276,26 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         isInJml = inJml;
         return b;
     }
-    
+
+    /** Overridden to add default nullity, if needed */
+    @Override
+    public void visitVarDef(JCVariableDecl tree) {
+//    	JCAnnotatedType atype = null;
+//    	if (tree.vartype instanceof JCAnnotatedType) atype = (JCAnnotatedType)tree.vartype;
+//    	if (atype != null) {
+//    		if (specs.findAnnotation(atype.annotations, Modifiers.NON_NULL) != null) return;
+//    		if (specs.findAnnotation(atype.annotations, Modifiers.NULLABLE) != null) return;
+//    	}
+//    	var nn = specs.defaultNullity(env.enclClass.sym);
+//    	JCAnnotation ann = utils.modToAnnotationAST(nn, tree.pos, tree.pos); // FIXME - better position
+//    	if (atype != null) {
+//    		atype.annotations = atype.annotations.append(ann);
+//    	} else {
+//    		tree.vartype = jmlF.at(tree).AnnotatedType(List.<JCAnnotation>of(ann), tree.vartype);
+//    	}
+    	super.visitVarDef(tree);;
+    }
+
     @Override
     public boolean visitVarDefIsStatic(JCVariableDecl tree, Env<AttrContext> env) {
         boolean b = super.visitVarDefIsStatic(tree,env);

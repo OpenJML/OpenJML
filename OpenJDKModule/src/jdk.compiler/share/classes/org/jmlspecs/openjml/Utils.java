@@ -31,6 +31,7 @@ import java.util.regex.PatternSyntaxException;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
+import org.jmlspecs.openjml.IJmlClauseKind.TypeAnnotationKind;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.IInJML;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
@@ -835,14 +836,14 @@ public class Utils {
     }
     
     public boolean isPrimitiveType(TypeSymbol ct) {
-        return isPrimitiveType(ct.type);
+        return isJavaOrJmlPrimitiveType(ct.type);
     }
 
     public boolean isNonExtPrimitiveType(Type ct) {
         return ct.isPrimitive() || jmltypes().isJmlType(ct);
     }
 
-    public boolean isPrimitiveType(Type ct) {
+    public boolean isJavaOrJmlPrimitiveType(Type ct) {
         return ct.isPrimitive() || jmltypes().isJmlType(ct) || isExtensionValueType(ct);
     }
 
@@ -1196,6 +1197,11 @@ public class Utils {
         return classQualifiedName(sym.owner) + "." + sym;
     }
 
+    /** Returns a method signature with a fully-qualified method name, but org.jmlspecs.annotation and java.lang and org.jmlspecs.lang removed */
+    public String abbrevMethodSig(MethodSymbol sym) {
+        return (classQualifiedName(sym.owner) + "." + sym).replaceAll("org.jmlspecs.annotation.([a-zA-Z_0-9]+)", "$1").replaceAll("java.lang.([a-zA-Z_0-9]+)" ,"$1").replaceAll("org.jmlspecs.lang.([a-zA-Z_0-9]+)" ,"$1");
+    }
+
     /** Returns a fully-qualified name for a symbol, without the signature */ // FIXME - may include <init>
     public String qualifiedName(Symbol sym) {
         return classQualifiedName(sym.owner) + "." + sym.name.toString();
@@ -1270,8 +1276,14 @@ public class Utils {
 
         JmlTree.Maker F = JmlTree.Maker.instance(context);
         JCExpression p = nametree(position, endpos, jt.fullAnnotation, null);
-        JCAnnotation ann = (F.at(position).Annotation(p,
-                com.sun.tools.javac.util.List.<JCExpression> nil()));
+        JCAnnotation ann;
+        if (jt instanceof TypeAnnotationKind) {
+            ann = (F.at(position).TypeAnnotation(p,
+                    com.sun.tools.javac.util.List.<JCExpression> nil()));
+        } else {
+            ann = (F.at(position).Annotation(p,
+                    com.sun.tools.javac.util.List.<JCExpression> nil()));
+        }
         ((JmlTree.JmlAnnotation)ann).sourcefile = log().currentSourceFile();
         
 //        ClassSymbol sym = JmlAttr.instance(context).modToAnnotationSymbol.get(jt);
