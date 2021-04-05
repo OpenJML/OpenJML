@@ -41,7 +41,7 @@ public class JmlTypes extends Types {
     final protected Map<JmlTokenKind,JmlType> jmltypes = new HashMap<JmlTokenKind,JmlType>();
 
     /** The singleton instance for the \TYPE JML type */
-    final public JmlType TYPE = new JmlType(JmlTokenKind.BSTYPEUC,"org.jmlspecs.utils.IJMLTYPE");
+    final public JmlType TYPE = new JmlType(JmlTokenKind.BSTYPEUC,"org.jmlspecs.runtime.IJMLTYPE");
     {
         jmltypes.put(JmlTokenKind.BSTYPEUC, TYPE);
     }

@@ -47,7 +47,7 @@ public class JmlOption {
     public static final String langJML = "jml";
     public static final String langJavelyn = "javelyn";
     public static final String langPlus = "jml+";
-    public static final JmlOption LANG = new JmlOption("-lang",true,"jml+","Set the language variant to use: " + langJML + ", " + langJavelyn + ", or " + langPlus + " (the default)",null);
+    public static final JmlOption LANG = new JmlOption("-lang",true,langPlus,"Set the language variant to use: " + langJML + ", " + langJavelyn + ", or " + langPlus + " (the default)",null);
     public static final JmlOption EXTENSIONS = new JmlOption("-extensions",true,null,"Extension packages and classes (comma-separated qualified names)",null);
 
     public static final JmlOption STOPIFERRORS = new JmlOption("-stopIfParseErrors",false,false,"When enabled, stops after parsing if any files have parsing errors",null);
@@ -122,7 +122,7 @@ public class JmlOption {
 
     public static final JmlOption OSNAME = new JmlOption("-osname",true,null,"Name of OS to use in selecting solver executable",null);
     public static final JmlOption INLINE_FUNCTION_LITERAL = new JmlOption("-inline-function-literal",false,true,"Whether to inline function literals",null);
-
+    public static final JmlOption REQUIRE_WS = new JmlOption("-require-white-space",false,true, "Whether white space is required after the @ in a JML comment", null);
 
 //    // Options Related to Specification Inference
 //    public static final JmlOption INFER = new JmlOption("-infer",true,"POSTCONDITIONS","Infer missing contracts (postconditions (default), preconditions)","-command=infer");

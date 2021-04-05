@@ -1043,7 +1043,10 @@ public class Annotate {
             DiagnosticPosition deferPos)
     {
         Assert.checkNonNull(sym);
-        normal(() -> tree.accept(new TypeAnnotate(env, sym, deferPos)));
+        final var v = org.jmlspecs.openjml.Main.useJML ? new JmlTypeAnnotate(Annotate.this, env, sym, deferPos)
+        												: new TypeAnnotate(env, sym, deferPos);
+        
+        normal(() -> tree.accept(v));
     }
 
     /**
@@ -1071,7 +1074,7 @@ public class Annotate {
      * We need to use a TreeScanner, because it is not enough to visit the top-level
      * annotations. We also need to visit type arguments, etc.
      */
-    private class TypeAnnotate extends TreeScanner {
+    protected class TypeAnnotate extends TreeScanner { // OPENJML - private to protected
         private final Env<AttrContext> env;
         private final Symbol sym;
         private DiagnosticPosition deferPos;

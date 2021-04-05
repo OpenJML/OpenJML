@@ -120,7 +120,11 @@ public class TypeAnnotations {
         annotate.afterTypes(() -> {
             JavaFileObject oldSource = log.useSource(env.toplevel.sourcefile);
             try {
-                new TypeAnnotationPositions(true).scan(tree);
+            	if (org.jmlspecs.openjml.Main.useJML) {
+            		new JmlTypeAnnotationPositions(TypeAnnotations.this,true).scan(tree);
+            	} else {
+            		new TypeAnnotationPositions(true).scan(tree);
+            	}
             } finally {
                 log.useSource(oldSource);
             }
@@ -143,7 +147,11 @@ public class TypeAnnotations {
      * top-level blocks, and method bodies, and should be called from Attr.
      */
     public void organizeTypeAnnotationsBodies(JCClassDecl tree, boolean sigOnly) {
-        new TypeAnnotationPositions(sigOnly).scan(tree);
+        if (org.jmlspecs.openjml.Main.useJML) {
+        	new JmlTypeAnnotationPositions(TypeAnnotations.this,sigOnly).scan(tree);
+        } else {
+        	new TypeAnnotationPositions(sigOnly).scan(tree);
+        }
     }
 
     public enum AnnotationType { DECLARATION, TYPE, NONE, BOTH }
@@ -252,7 +260,7 @@ public class TypeAnnotations {
         return AnnotationType.NONE;
     }
 
-    private class TypeAnnotationPositions extends TreeScanner {
+    protected class TypeAnnotationPositions extends TreeScanner { // OPENJML private to protected 
 
         private final boolean sigOnly;
 

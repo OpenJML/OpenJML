@@ -22,12 +22,14 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.comp.*;
 import com.sun.tools.javac.file.JavacFileManager;
+import com.sun.tools.javac.main.Arguments;
 import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JavacMessages;
+import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Options;
 
@@ -249,7 +251,9 @@ public class Main extends com.sun.tools.javac.main.Main {
         check(); // Aborts if the environment does not support OpenJML
         this.diagListener = diagListener;
         this.context = new Context();
+        JmlOptions.preRegister(context); // Must precede JavacMessages
         JavacFileManager.preRegister(this.context);
+        register(context);
         utils = Utils.instance(this.context);
         return this.context;
     }
@@ -522,7 +526,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     @Override
     public Main.Result compile(String[] args, Context context) {
         this.context = context; // FIXME - it is a problem if this changes the already stored context, as it was used for JavacFileManager and Utils
-        register(context);
+//        register(context);
         setProofResultListener(prl);
         args = JmlOptions.instance(context).processJmlArgs(args, Options.instance(context), null);
         // Note that the Java option processing happens in compile method call below.
@@ -532,6 +536,25 @@ public class Main extends com.sun.tools.javac.main.Main {
         Main.Result exit = super.compile(args,context);
         return exit;
     }
+    
+    public Main.Result compile(String[] args, java.util.Collection<JavaFileObject> fileObjects)  {
+        useJML = true;
+    	this.fileObjects = fileObjects;
+    	if (args.length == 0) args = new String[]{"-g"}; // This is just to avoid the call below from exiting by producing help info if there are no arguments
+    	return compile(args,context);
+    }
+    
+    public java.util.Collection<JavaFileObject> fileObjects;
+
+    @Override
+    protected void adjustArgs(Arguments args)  {
+    	args.allowEmpty();
+    	if (fileObjects != null) {
+    		args.fileObjects = new java.util.HashSet<JavaFileObject>();
+    		args.fileObjects.addAll(fileObjects);
+    	}
+    }
+
 
 //    // TODO _ document
 //    public java.util.List<String> computeDependencyClosure(java.util.List<String> files) {
@@ -629,7 +652,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         // These have to be first in case there are error messages during 
         // tool registration.
         // registering an additional source of JML-specific error messages
-        JmlOptions.preRegister(context); // Must precede JavacMessages
+        //JmlOptions.preRegister(context); // Must precede JavacMessages - called in initialize
         JavacMessages.instance(context).add(Strings.messagesJML);
         JmlOptions.JmlArguments.register(context);
         
@@ -735,7 +758,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** Adds additional options to those already present (which may change 
      * previous settings). */
     public void addOptions(String... args) {
-        JmlOptions.instance(context).addOptions(args);
+        args = JmlOptions.instance(context).addOptions(args);
     }
     
     /** Adds a custom option (not checked as a legitimate command-line option);

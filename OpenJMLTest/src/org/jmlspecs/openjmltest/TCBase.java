@@ -28,15 +28,15 @@ import static org.junit.Assert.*;
 public abstract class TCBase extends JmlTestCase {
 
     protected static String z = java.io.File.pathSeparator;
-    protected static String testspecpath1 = "$A"+z+"$B"+z+"../OpenJML/bin-runtime";
+    protected static String testspecpath1 = "$A"+z+"$B"+z+root+"/Specs/specs";
     protected String testspecpath;
-    protected int expectedExit = -1;
+    protected int expectedExit;
     protected boolean useSystemSpecs = false;
 
     @Override
     public void setUp() throws Exception {
         testspecpath = testspecpath1;
-        collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
+        ignoreNotes = true;
         super.setUp();
         main.addOptions("-specspath",   testspecpath + (!useSystemSpecs ? "" : (z + "$SY") ));
         main.addOptions("-sourcepath",   testspecpath);
@@ -44,12 +44,13 @@ public abstract class TCBase extends JmlTestCase {
         if (!useSystemSpecs) main.addOptions("-no-internalSpecs");
         main.addOptions(JmlOption.PURITYCHECK.optionName()+"=false");
 
+        // FIXME - check these
         JmlAttr.instance(context);
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         specs = JmlSpecs.instance(context);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
-        print = false;
+        //print = true;
     }
     
     @Override
@@ -58,6 +59,7 @@ public abstract class TCBase extends JmlTestCase {
         specs = null;
     }
 
+    // Used to check the test system itself
     public void helpFailure(String failureMessage, String s, Object ... list) {
         noExtraPrinting = true;
         boolean failed = false;
@@ -70,26 +72,34 @@ public abstract class TCBase extends JmlTestCase {
         if (!failed) fail("Test Harness failed to report an error");
     }
 
-    public void helpTC(String s, Object ... list) {
-        helpTCX(null,s,list);
+    // Helper method for tests: content is the test text; list are the expected messages and column numbers
+    public void helpTC(String content, Object ... list) {
+        helpTCX(null,content,list);
     }
 
-    public void helpTCF(String filename,String s, Object ... list) {
-        helpTCX(filename,s,list);
+    // Helper method for tests: 
+    // filename is the pseudo-filename in which content is considered to be
+    // content is the test text; 
+    // list are the expected messages and column numbers
+    public void helpTCF(/*@ nullable*/String filename, String content, Object ... list) {
+        helpTCX(filename,content,list);
     }
 
-    public void helpTCX(String filename, String s, Object[] list) {
+    // Helper method for tests: 
+    // filename is the pseudo-filename in which content is considered to be
+    // content is the test text; 
+    // list are the expected messages and column numbers
+    public void helpTCX(/*@ nullable*/String filename, String content, Object[] list) {
         try {
-            JavaFileObject f = new TestJavaFileObject(filename,s);
+            JavaFileObject f = new TestJavaFileObject(filename,content);
             if (filename != null) addMockFile("#B/" + filename,f);
             Log.instance(context).useSource(f);
             List<JavaFileObject> files = List.of(f);
-            //comp.compile(files,List.<String>nil(),null);
-            int ex = 0;//main.compile(new String[]{ "-Xlint:unchecked" }, null, context, files, null).exitCode;
+            // If additional Java options are wanted (e.g. -verbose), add them here
+            int ex = main.compile(new String[]{ "-Xlint:unchecked" }, files).exitCode;
             
-            if (print) JmlSpecs.instance(context).printDatabase();
             if (print) printDiagnostics();
-            int i=0;
+            int i = 0;
             int k = 0;
             Object p1,p2,p3,p4;
             for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
@@ -112,7 +122,7 @@ public abstract class TCBase extends JmlTestCase {
                 }
                 i++;
             }
-            if (k < list.length) fail("Fewer errors observed (" + collector.getDiagnostics().size() + ") than expected");
+            if (k < list.length) fail("Fewer errors observed (" + collector.getDiagnostics().size() + ") than expected (" + (list.length/2) + ")");
             if (i < collector.getDiagnostics().size()) fail("More errors observed (" + collector.getDiagnostics().size() + ") than expected (" + i + ")");
             if (expectedExit == -1) expectedExit = list.length == 0?0:1;
             assertEquals("Wrong exit code",expectedExit, ex);

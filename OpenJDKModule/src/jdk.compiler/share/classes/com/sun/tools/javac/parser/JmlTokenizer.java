@@ -13,6 +13,7 @@ import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.IJmlLineAnnotation;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
@@ -272,7 +273,8 @@ public class JmlTokenizer extends JavadocTokenizer {
             reset(endPos);
             return super.processComment(pos, endPos, style);
         }
-        if (!(isOneOf(' ','\t','{') || (style == CommentStyle.BLOCK && isOneOf('\n','\r','{')))) {
+        if (!(isOneOf(' ','\t','{') || (style == CommentStyle.BLOCK && isOneOf('\n','\r','{')))
+        		&& JmlOptions.instance(context).isSet(JmlOption.REQUIRE_WS.optionName())) {
         	// Not a valid JML comment if there is not whitespace after the @.
         	// This is to avoid processing commented out Annotations, like //@Injected or //@line
         	reset(endPos);

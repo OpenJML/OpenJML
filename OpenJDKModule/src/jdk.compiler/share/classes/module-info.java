@@ -78,6 +78,12 @@ module jdk.compiler {
     exports com.sun.tools.javac;
     exports org.jmlspecs.openjml;
     exports org.jmlspecs.openjml.esc;
+    exports org.jmlspecs.openjml.ext;
+    exports org.jmlspecs.openjml.proverinterface;
+    exports org.jmlspecs.openjml.visitors;
+    exports com.sun.tools.javac.parser;
+    exports com.sun.tools.javac.code;
+    exports com.sun.tools.javac.tree;
     exports com.sun.tools.javac.util;
     exports com.sun.tools.javac.main;
     exports com.sun.tools.javac.comp;
@@ -90,9 +96,9 @@ module jdk.compiler {
         jdk.jshell;
     exports com.sun.tools.javac.resources to
         jdk.jshell;
-    exports com.sun.tools.javac.code to
-        jdk.javadoc,
-        jdk.jshell;
+//    exports com.sun.tools.javac.code to
+//        jdk.javadoc,
+//        jdk.jshell;
 //    exports com.sun.tools.javac.comp to
 //        jdk.javadoc,
 //        jdk.jshell;
@@ -106,14 +112,14 @@ module jdk.compiler {
 //        jdk.jshell;
     exports com.sun.tools.javac.model to
         jdk.javadoc;
-    exports com.sun.tools.javac.parser to
-        jdk.jshell;
+//    exports com.sun.tools.javac.parser to
+//        jdk.jshell;
     exports com.sun.tools.javac.platform to
         jdk.jdeps,
         jdk.javadoc;
-    exports com.sun.tools.javac.tree to
-        jdk.javadoc,
-        jdk.jshell;
+//    exports com.sun.tools.javac.tree to
+//        jdk.javadoc,
+//        jdk.jshell;
 //    exports com.sun.tools.javac.util to
 //        jdk.jdeps,
 //        jdk.javadoc,

@@ -6,6 +6,7 @@ import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlFactory;
 import org.jmlspecs.openjml.Nowarns;
+import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -42,6 +43,7 @@ public class LineAnnotationClauses extends JmlExtension {
         public void scan(int keywordPos, String keyword, IJmlClauseKind clauseKind, JmlTokenizer tokenizer) {
             Context context = tokenizer.context;
             JmlFactory M = JmlTree.Maker.instance(context);
+            utils = Utils.instance(context);
             java.util.List<JCExpression> exprs = new java.util.LinkedList<>();
             try {
                 int tokenPos = tokenizer.pos();

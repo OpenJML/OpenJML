@@ -40,6 +40,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Options;
+import com.sun.tools.javac.util.Position;
 
 
 /** This class provides basic functionality for the JUnit tests for OpenJML.
@@ -58,17 +59,20 @@ import com.sun.tools.javac.util.Options;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public abstract class JmlTestCase {
 
+    // In a 'standard' local OpenJML github working environment, root will be the container for
+    // OpenJML/OpenJDKModule, OpenJML/OpenJMLTest, Specs, etc.
+    // Presumes that the working directory for executing unit tests is .../OpenJML/OpenJMLTest
+    // This value is needed because some tests emit a full absolute path name in error messages
+    static public String root = new File(".").getAbsoluteFile().getParentFile().getParentFile().getParent();
+
     // This value is for running tests, so we can presume the current directory is .../OpenJML/OpenJMLTest
-    public final static String specsdir = System.getenv("SPECSDIR") != null ? System.getenv("SPECSDIR") : Paths.get("../../Specs").toAbsolutePath().toString();
-    public final static String streamLine = "9"; // This line number is present in many test oracle files, but changes as edits are made to Stream.jml
+    public final static String specsdir = System.getenv("SPECSDIR") != null ? System.getenv("SPECSDIR") : (root + "/Specs");
+    public final static String streamLine = "10"; // This line number is present in many test oracle files, but changes as edits are made to Stream.jml
     
     static protected boolean isWindows = System.getProperty("os.name").contains("Wind");
 
+    // FIXME - do not rely on eclipse
     static protected String projLocation = System.getProperty("openjml.eclipseProjectLocation");
-    
-    static protected String root = new File(".").getAbsoluteFile().getParentFile().getParentFile().getParent();
-    
-    protected boolean ignoreNotes = false; // FIXME - set but does not appear to be used anywhere
     
     // An object holding routines for comparing output with oracle output
     public OutputCompare outputCompare = new OutputCompare();
@@ -78,7 +82,8 @@ public abstract class JmlTestCase {
     
     /** The java executable */
     // TODO: This is going to use the external setting for java, rather than
-    // the current environment within Eclipse
+    // the current environment within Eclipse // FIXME - no longer valid
+    // Needed for RAC tests
     protected String jdk = System.getProperty("java.home") + "/bin/java";
 
     /** A purposefully short abbreviation for the system path separator
@@ -93,6 +98,10 @@ public abstract class JmlTestCase {
     static public interface DiagnosticListenerX<S> extends DiagnosticListener<S> {
         public List<Diagnostic<? extends S>> getDiagnostics();
     }
+    
+    // Set in some testcase classes to ignore Notes reported by the tool. Set the value
+    // before calling super.setUp()
+    public boolean ignoreNotes = false;
 
     final static public class FilteredDiagnosticCollector<S> implements DiagnosticListenerX<S> {
         /** Constructs a diagnostic listener that collects all of the diagnostics,
@@ -127,6 +136,8 @@ public abstract class JmlTestCase {
         }
     }
     
+    // A class to manage communication with external processes, that is with both the input from
+    // the external's System.out and from System.err
     public static class StreamGobbler extends Thread
     {
         private InputStream is;
@@ -204,12 +215,12 @@ public abstract class JmlTestCase {
     
     /** Set this to true (in the setUp for a test, before calling super.setUp)
      * if you want diagnostics to be printed as they occur, rather than being
-     * collected.
+     * collected (just for debugging - tests will fail with this set true).
      */
     public boolean noCollectDiagnostics = false;
     
-    /** A collector for all of the diagnostic messages */
-    protected DiagnosticListenerX<JavaFileObject> collector = new FilteredDiagnosticCollector<JavaFileObject>(false);
+    /** A collector for all of the diagnostic messages*/
+    protected DiagnosticListenerX<JavaFileObject> collector;
     
     /** Set this to true (for an individual test) if you want debugging information */
     public boolean jmldebug = false;
@@ -219,21 +230,11 @@ public abstract class JmlTestCase {
      */
     @Before
     public void setUp() throws Exception {
-        main = new org.jmlspecs.openjml.Main("",new PrintWriter(System.out, true));
+        main = new org.jmlspecs.openjml.Main("openjml-unittest",new PrintWriter(System.out, true));
+        collector = new FilteredDiagnosticCollector<JavaFileObject>(ignoreNotes);
         context = main.initialize(!noCollectDiagnostics?collector:null);
-        
-//        ,, null,
-//        		"-properties", "../OpenJML/openjml.properties");
-//        context = main.context();
-//        options = Options.instance(context);
-        if (jmldebug) {  // FIXME - this is not the right way to set debugging
-//            Utils.instance(context).jmlverbose = Utils.JMLDEBUG; 
-            main.addOptions("-jmlverbose", "4");
-        }
-        print = false;
         mockFiles = new LinkedList<JavaFileObject>();
-        Log.alwaysReport = true;
-        //System.out.println("JUnit: Testing " + getName());
+        Log.alwaysReport = true; // Always report errors (even if they would be suppressed because they are at the same position
     }
     
     public int compile(com.sun.tools.javac.util.List<String> args) {
@@ -251,16 +252,18 @@ public abstract class JmlTestCase {
     /** Nulls out all the references visible in this class */
     @After
     public void tearDown() throws Exception {
-//        context = null;
+        context = null;
         main = null;
         collector = null;
-//        options = null;
+        options = null;
         specs = null;
+        mockFiles.clear(); mockFiles = null;
     }
 
 
     /** Prints a diagnostic as it is in an error or warning message, but without
-     * any source line.  This is how dd.toString() used to behave, but in OpenJDK
+     * any line of source code (or pointer to a column).  
+     * This is how dd.toString() used to behave, but in OpenJDK
      * build 55, toString also included the source information.  So we need to 
      * wrap dd in this call (or change all of the tests).
      * @param dd the diagnostic
@@ -273,22 +276,24 @@ public abstract class JmlTestCase {
     
     /** Prints out the errors collected by the diagnostic listener */
     public void printDiagnostics() {
-        System.out.println("DIAGNOSTICS " + collector.getDiagnostics().size() + " " + name.getMethodName());
-        for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
-            long line = dd.getLineNumber();
-            long start = dd.getStartPosition();
-            long pos = dd.getPosition();
-            long end = dd.getEndPosition();
-            long col = dd.getColumnNumber();
-            System.out.println(noSource(dd) + " line=" + line + " col=" + col + " pos=" + pos + " start=" + start + " end=" + end);
-        }
+    	synchronized (System.out) {
+    		System.out.println("DIAGNOSTICS " + collector.getDiagnostics().size() + " " + name.getMethodName());
+    		for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
+    			long line = dd.getLineNumber();
+    			long start = dd.getStartPosition();
+    			long pos = dd.getPosition();
+    			long end = dd.getEndPosition();
+    			long col = dd.getColumnNumber();
+    			System.out.println(noSource(dd) + " line=" + line + " col=" + col + " pos=" + pos + " start=" + start + " end=" + end);
+    		}
+    	}
     }
 
     /** Checks that all of the collected diagnostic messages match the data supplied
      * in the arguments.
      * @param messages an array of expected messages that are checked against the actual messages
      * @param cols an array of expected column numbers that are checked against the actual diagnostics
-     */
+     */ // TODO - not used
     public void checkMessages(/*@ non_null */String[] messages, /*@ non_null */int[] cols) {
         List<Diagnostic<? extends JavaFileObject>> diags = collector.getDiagnostics();
         if (print || (!noExtraPrinting && messages.length != diags.size())) printDiagnostics();
@@ -344,26 +349,28 @@ public abstract class JmlTestCase {
     protected ByteArrayOutputStream bout;
     protected PrintStream savederr;
     protected PrintStream savedout;
-    protected String actualErr;
-    protected String actualOut;
+    protected String recordedErr;
+    protected String recordedOut;
 
     /** Manages the capturing of output to System.out and System.err; call with argument=true to start
-     * capturing; all with the argument=false to stop capturing, at which point with Strings actualOut 
+     * capturing; call with the argument=false to stop capturing, at which point the Strings actualOut 
      * and actualErr will contain the collected output (access them through output() and errorOutput() ).
      */
     public void collectOutput(boolean collect) {
         if (collect) {
-            actualOut = null;
-            actualErr = null;
+        	if (bout != null) return; // Already collecting
+            recordedOut = null;
+            recordedErr = null;
             savederr = System.err;
             savedout = System.out;
             System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
             System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
         } else {
+        	if (bout == null) return; // Already not collecting
             System.err.flush();
             System.out.flush();
-            actualErr = berr.toString();
-            actualOut = bout.toString();
+            recordedErr = berr.toString();
+            recordedOut = bout.toString();
             berr = null;
             bout = null;
             System.setErr(savederr);
@@ -372,9 +379,9 @@ public abstract class JmlTestCase {
     }
     
     /** Returns the standard-out output; valid once collectOutput(false) has been called. */
-    public String output() { return actualOut; }
+    public String output() { return recordedOut; }
     /** Returns the standard-err output; valid once collectOutput(false) has been called. */
-    public String errorOutput() { return actualErr; }
+    public String errorOutput() { return recordedErr; }
 
 
     /** Used to add a pseudo file to the file system. Note that for testing, a 
@@ -388,9 +395,9 @@ public abstract class JmlTestCase {
         specs.addMockFile(filename,file);
     }
     
-    /** Used to add a pseudo file to the command-line.
-     * @param filename the name of the file, including leading directory components 
-     * @param file the JavaFileObject to be associated with this name
+    /** Used to add a pseudo file to the command-line.   // TODO - is it $A or #A, here and above
+     * @param filename the name of the pseudo-file, including leading directory components (e.g. /$A/ )
+     * @param content the content of the pseudo-file
      */
     protected void addMockJavaFile(String filename, /*@ non_null */String content) {
         try {
@@ -400,20 +407,25 @@ public abstract class JmlTestCase {
         }
     }
     
-    /** Used to add a pseudo file to the file system. Note that for testing, a 
-     * typical filename given here might be #B/A.java, where #B denotes a 
-     * mock directory on the specification path
-     * @param filename the name of the file, including leading directory components 
-     * @param file the JavaFileObject to be associated with this name
-     */
-    protected void addMockJavaFile(String filename, JavaFileObject file) {
-        mockFiles.add(file);
-    }
+//    /** Used to add a pseudo file to the file system. Note that for testing, a 
+//     * typical filename given here might be #B/A.java, where #B denotes a 
+//     * mock directory on the specification path
+//     * @param filename the name of the file, including leading directory components 
+//     * @param file the JavaFileObject to be associated with this name
+//     */
+//    protected void addMockJavaFile(String filename, JavaFileObject file) {
+//        mockFiles.add(file);
+//    }
 
     
-    /** Returns the diagnostic message without source location information */
+    /** Returns the diagnostic message without the source code line;
+     *  source file may be null, in which case it is omitted from the generated string;
+     *  line number may be -1, in which case it is omitted aslo */
     static String noSource(JCDiagnostic dd) {
-        return dd.getPrefix() + ":" + dd.getMessage(java.util.Locale.getDefault());
+    	JavaFileObject jfo = dd.getSource();
+    	String s = jfo == null ? "" : (jfo.getName() + ":");
+    	String ln = dd.getLineNumber() == Position.NOPOS ? "" : (dd.getLineNumber() + ": " );
+        return s + ln+ dd.getPrefix() + dd.getMessage(java.util.Locale.getDefault());
     }
 
     public static String doReplacements(String s) {

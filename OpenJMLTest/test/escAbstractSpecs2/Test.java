@@ -6,10 +6,10 @@ public class Test {
 		
 		//@ public normal_behavior
 		//@   ensures init;
-		//@ public C();
+		//@ public C(); // ERROR - no such constructor
 		
 		public C(int i) {
-			this();
+			this(); // ERROR - no such constructor
 		}
 		
 	}

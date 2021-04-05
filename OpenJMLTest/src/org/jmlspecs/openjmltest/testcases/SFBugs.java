@@ -25,8 +25,8 @@ public class SFBugs extends EscBase {
     public void setUp() throws Exception {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
-        super.setUp();
         ignoreNotes = true;
+        super.setUp();
     }
 
     public SFBugs(String options, String solver) {

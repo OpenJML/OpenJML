@@ -44,13 +44,13 @@ public class bugs extends TCBase {
     @Test
     public void testMiscBug3() {
         helpTCF("A.java","public class A { //@ ensures \\result[1].equals(b(c)); \n Object[] m(int j) { return null; } String N; StringBuffer a; int[] q; }"
-        ,"/A.java:1: cannot find symbol\n  symbol:   variable c\n  location: class A",50);
+        ,"/A.java:1: error: cannot find symbol\n  symbol:   variable c\n  location: class A",50);
     }
     
     @Test
     public void testMiscBug4() {
         helpTCF("A.java","public class A { //@ ensures equals(\\result.equals(b).c(p(0))); \n Object m(int j) { return null; } String b; StringBuffer a; int[] q; /*@pure*/int p(int i) { return 0; }}"
-                ,"/A.java:1: boolean cannot be dereferenced",54);
+                ,"/A.java:1: error: boolean cannot be dereferenced",54);
     }
 
     /** There was a problem with a JML keyword being unrecognized after a JML statement 
@@ -59,6 +59,8 @@ public class bugs extends TCBase {
     @Test
     public void testMiscBug5() {  
         helpTCF("A.java","public class A {  int p(A a) { \n/*@ set a = null; set a = null; */\n return 0; }}"
+                ,"/A.java:2: error: The LHS in a set statement must be a ghost variable", 9
+                ,"/A.java:2: error: The LHS in a set statement must be a ghost variable", 23
                 );
     }
 
@@ -84,7 +86,7 @@ public class bugs extends TCBase {
     @Test
     public void testMiscBug8() {
         helpTCF("A.java","public class A { //@ requires true ==> false <== true; \n void p() {  }}"
-                ,"/A.java:1: ==> and <== operators may not be mixed without parentheses",46
+                ,"/A.java:1: error: ==> and <== operators may not be mixed without parentheses",46
                 );
     }
     
@@ -141,8 +143,8 @@ public class bugs extends TCBase {
     @Test
     public void testMisc17() {
         helpTCF("A.java","public class A { \n int k = m; int m = 0; \n//@ ghost int i = j; ghost int j = 0; \n} "
-                ,"/A.java:2: illegal forward reference",10
-                ,"/A.java:3: illegal forward reference",19
+                ,"/A.java:2: error: illegal forward reference",10
+                ,"/A.java:3: error: illegal forward reference",19
                 );
     }
 
@@ -162,7 +164,7 @@ public class bugs extends TCBase {
     @Test
     public void testCollect() {
         helpTCF("A.java","\n"
-                +"public class A extends java.io.InputStream implements Comparable<A> { \n"
+                +"public abstract class A extends java.io.InputStream implements Comparable<A> { \n"
                 +"  //@ invariant mm() && \type(Short) <: \type(java.lang.Long);\n"
                 +"  public String m(java.lang.Integer i, Number b) {\n"
                 +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
@@ -171,9 +173,9 @@ public class bugs extends TCBase {
                 +"    \n"
                 +"  } /*@ pure */ boolean mm() { return true; } \n"
                 +"}\n"
-                ,"/A.java:3: cannot find symbol\n  symbol:   variable Short\n  location: class A",37
-                ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",57
-                ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",57
+                ,"/A.java:3: error: cannot find symbol\n  symbol:   variable Short\n  location: class A",37
+                ,"/A.java:3: error: cannot find symbol\n  symbol:   class lang\n  location: package java",57
+                ,"/A.java:3: error: cannot find symbol\n  symbol:   class lang\n  location: package java",57
               ); 
     }
     
@@ -188,26 +190,26 @@ public class bugs extends TCBase {
     @Test
     public void testCollect2() {
         helpTCF("A.java","\n"
-                +"public class A extends java.io.InputStream implements Comparable<A> { \n"
+                +"public abstract class A extends java.io.InputStream implements Comparable<A> { \n"
                 +"  public boolean mm() { return m(java.lang.Long.TYPE) && m(java.lang.Long);}\n"
                 +"  public /*@ pure */ boolean m(Object i) {\n"
                 +"  }  \n"
                 +"}\n"
-                ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",64
-                ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",64
+                ,"/A.java:3: error: cannot find symbol\n  symbol:   class lang\n  location: package java",64
+                ,"/A.java:3: error: cannot find symbol\n  symbol:   class lang\n  location: package java",64
               ); 
     }
 
     @Test
     public void testCollect3() {
         helpTCF("A.java","\n"
-                +"public class A extends java.io.InputStream implements Comparable<A> { \n"
+                +"public abstract class A extends java.io.InputStream implements Comparable<A> { \n"
                 +"  //@ public invariant m(java.lang.Long.TYPE) && m(java.lang.Long);\n"
                 +"  public /*@ pure */ boolean m(Object i) {\n"
                 +"  }  \n"
                 +"}\n"
-                ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",56
-                ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",56
+                ,"/A.java:3: error: cannot find symbol\n  symbol:   class lang\n  location: package java",56
+                ,"/A.java:3: error: cannot find symbol\n  symbol:   class lang\n  location: package java",56
               );
     }
 }

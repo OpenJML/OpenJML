@@ -11,6 +11,7 @@ import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.RecommendsClause;
+import org.jmlspecs.openjml.visitors.JmlTreeScanner.Continuation;
 import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.source.tree.LabeledStatementTree;
@@ -68,6 +69,14 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 
     public void scan(JCTree t) { super.scan(t); }
 
+    public void scan(List<? extends JCTree> trees) {
+        if (trees != null)
+        for (List<? extends JCTree> l = trees; l.nonEmpty(); l = l.tail) {
+            scan(l.head);
+            if (continuation != Continuation.CONTINUE) break;
+        }
+    }
+
     public static enum Continuation { CONTINUE, HALT, EXIT ;
         public Continuation combine(Continuation b) {
             return this == Continuation.CONTINUE ? Continuation.CONTINUE
@@ -78,37 +87,14 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     } // EXIT represents any unconditional end of the current flow (return, throw, break, continue)
     public Continuation continuation = Continuation.CONTINUE;
 
-    public void scan(List<? extends JCTree> trees) {
-        if (trees != null)
-        for (List<? extends JCTree> l = trees; l.nonEmpty(); l = l.tail) {
-            scan(l.head);
-            if (continuation != Continuation.CONTINUE) break;
-        }
-    }
-
-    public void scan(Iterable<? extends JCTree> list) { 
-        if (list != null)
-          for (JCTree t: list) scan(t);
-    }
     
+    //public void visitJmlBinary(JmlBinary that);
     
-    public void visitJmlBinary(JmlBinary that) {
-        scan(that.lhs);
-        scan(that.rhs);
-    }
+    //public void visitJmlChained(JmlChained that);
     
-    public void visitJmlChained(JmlChained that) {
-        for (JCTree.JCBinary b: that.conjuncts) scan(b);
-    }
+    //public void visitJmlBlock(JmlBlock that);
     
-    public void visitJmlBlock(JmlBlock that) {
-        visitBlock(that);
-    }
-    
-    public void visitJmlChoose(JmlChoose that) {
-        scan(that.orBlocks);
-        scan(that.elseBlock);
-    }
+    //public void visitJmlChoose(JmlChoose that);
 
     public void visitJmlClassDecl(JmlClassDecl that) {
     	var prev = context == null ? null : Log.instance(context).useSource( that.sourcefile);
@@ -292,9 +278,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(that.predicate);
     }
 
-    public void visitJmlSingleton(JmlSingleton that) {
-        // no children to scan
-    }
+    // public void visitJmlSingleton(JmlSingleton that);
 
     public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
 		var prev = context == null ? null : Log.instance(context).useSource(tree.sourcefile);
@@ -307,17 +291,13 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 		}
     }
 
-    public void visitJmlStatement(JmlStatement tree) {
-        scan(tree.statement);
-    }
+    //public void visitJmlStatement(JmlStatement tree);
     
     /** inlined_loop statement */
     public void visitJmlInlinedLoop(JmlInlinedLoop that) {
     }
 
-    public void visitJmlStatementShow(JmlStatementShow tree) {
-        for (JCExpression e: tree.expressions) scan(e);
-    }
+    //public void visitJmlStatementShow(JmlStatementShow tree);
     
     public void visitJmlStatementDecls(JmlStatementDecls tree) {
         for (JCTree.JCStatement s : tree.list) {
@@ -325,10 +305,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         }
     }
 
-    public void visitJmlStatementExpr(JmlStatementExpr tree) {
-        scan(tree.expression);
-        scan(tree.optionalExpression);
-    }
+    //public void visitJmlStatementExpr(JmlStatementExpr tree);
 
     public void visitJmlStatementHavoc(JmlStatementHavoc tree) {
         scan(tree.storerefs);

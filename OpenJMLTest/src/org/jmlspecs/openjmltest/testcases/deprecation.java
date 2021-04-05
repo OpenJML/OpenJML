@@ -7,11 +7,12 @@ import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
 
 import com.sun.tools.javac.main.Option;
+import com.sun.tools.javac.util.Options;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class deprecation extends TCBase {
 
-    String opt = Option.DEPRECATION.name();
+    String dep_opt = "-Xlint:deprecation";
     
     @Override
     public void setUp() throws Exception {
@@ -23,7 +24,7 @@ public class deprecation extends TCBase {
 
     @Test
     public void testRepresents() {
-        main.addOptions("-deprecation");
+    	Options.instance(main.context()).put(dep_opt, "true");
         helpTCF("A.java","public class A {\n" +
                 " //@ model int i;\n" +
                 " //@ represents i <- 0;\n }"

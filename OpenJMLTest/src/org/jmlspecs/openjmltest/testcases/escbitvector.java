@@ -256,8 +256,8 @@ public class escbitvector extends EscBase {
                 +"  }\n"
                                 
                 +"}"  // FIXME - Message repeats for mm and m1, but why optional, why not indicate which method?
-                ,"/tt/TestJava.java:3: This method uses bit-vector operations and must be run with -escBV=true (or auto) [Bit-operation BITAND]",19
-                ,optional("/tt/TestJava.java:3: This method uses bit-vector operations and must be run with -escBV=true (or auto) [Bit-operation BITAND]",19)
+                ,"/tt/TestJava.java:3: error: This method uses bit-vector operations and must be run with -escBV=true (or auto) [Bit-operation BITAND]",19
+                ,optional("/tt/TestJava.java:3: error: This method uses bit-vector operations and must be run with -escBV=true (or auto) [Bit-operation BITAND]",19)
           );
     }
     

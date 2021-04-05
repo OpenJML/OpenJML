@@ -30,7 +30,12 @@ public class compiler {
     static String z = java.io.File.pathSeparator;
     boolean print = false;
     boolean capture = true;
-    String projHome = System.getProperty("openjml.eclipseProjectLocation").replace("C:","").replace("\\","/");
+    String projHome;
+    {
+    String h = System.getProperty("openjml.eclipseProjectLocation");
+    if (h == null) h = "/Users/davidcok/project/OpenJMLB/OpenJML/OpenJMLTest";
+    projHome = h.replace("C:","").replace("\\","/");
+    }
     String specsHome;
     {
     	try {

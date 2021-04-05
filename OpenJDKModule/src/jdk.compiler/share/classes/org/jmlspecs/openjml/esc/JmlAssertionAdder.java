@@ -11240,7 +11240,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void assignIdentHelper(DiagnosticPosition pos, JCIdent id, JCExpression origrhs, JCExpression lhs, JCExpression rhs) {
         Symbol.VarSymbol vsym = (Symbol.VarSymbol)id.sym;
 //      specs.getSpecs(vsym).  // FIXME - need to call isNonNull with the declaration for id
-        if (!infer && specs.isNonNull(vsym)) { // && !(rac && vsym.type.tsym.toString().equals("org.jmlspecs.utils.IJMLTYPE"))) {
+        if (!infer && specs.isNonNull(vsym)) { // && !(rac && vsym.type.tsym.toString().equals("org.jmlspecs.runtime.IJMLTYPE"))) {
           if (rhs instanceof JCTree.JCMemberReference) {
               // Need to check that the spec of the reference is subsumed in the spec of the type (that.type) inferred by type checking
               checkCompatibleSpecs((JCTree.JCMemberReference)rhs,rhs.type);
