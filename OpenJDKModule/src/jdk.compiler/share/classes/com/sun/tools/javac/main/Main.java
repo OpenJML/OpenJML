@@ -171,7 +171,6 @@ public class Main {
      * @return the result of the compilation
      */
     public Result compile(String[] args) {
-    	System.out.println("COMPILE " + args.length);
         Context context = new Context();
         JavacFileManager.preRegister(context); // can't create it until Log has been set up
         Result result = compile(args, context);
@@ -202,7 +201,6 @@ public class Main {
         }
 
         log = Log.instance(context);
-
         if (argv.length == 0) {
             OptionHelper h = new OptionHelper.GrumpyHelper(log) {
                 @Override
@@ -235,6 +233,7 @@ public class Main {
 
         Arguments args = Arguments.instance(context);
         args.init(ownName, allArgs);
+        adjustArgs(args);
 
         if (log.nerrors > 0)
             return Result.CMDERR;
@@ -371,6 +370,8 @@ public class Main {
             }
         }
     }
+    
+    protected void adjustArgs(Arguments args)  {}
 
     void printArgumentsToFile(String... params) {
         Path out = Paths.get(String.format("javac.%s.args",

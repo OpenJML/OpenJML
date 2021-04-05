@@ -5,6 +5,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.*;
 import static org.jmlspecs.openjml.JmlTokenKind.*;
 
 import org.jmlspecs.openjml.JmlTokenKind;
+import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjmltest.JmlTestCase;
 import org.jmlspecs.openjmltest.TestJavaFileObject;
 import org.junit.Ignore;
@@ -92,7 +93,7 @@ public class scanner extends JmlTestCase {
             Log.instance(context).useSource(new TestJavaFileObject(s) );
             JmlScanner sc = (JmlScanner)fac.newScanner(s, true);
             if (keys != null) {
-                for (String k: keys) { ((JmlScanner)sc).keys().add(k); }
+                for (String k: keys) { JmlOptions.instance(context).commentKeys.add(k); }
             }
             int i = 0;
             while (i<list.length) {

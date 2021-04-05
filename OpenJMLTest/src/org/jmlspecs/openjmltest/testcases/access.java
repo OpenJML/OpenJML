@@ -23,7 +23,7 @@ public class access extends TCBase {
     @Test
     public void testSpecPublic1() {
         helpTCF("A.java","public class A { /*@ spec_public */ static private boolean b; } class B { void m() { \n boolean bb = A.b;   \n}}"
-                ,"/A.java:2: b has private access in A",16
+                ,"/A.java:2: error: b has private access in A",16
                 );
     }
 
@@ -36,28 +36,28 @@ public class access extends TCBase {
     @Test
     public void testSpecProtected1() {
         helpTCF("A.java","public class A { /*@ spec_protected */ static private boolean b; } class B { void m() { \n boolean bb = A.b;   \n}}"
-                ,"/A.java:2: b has private access in A",16
+                ,"/A.java:2: error: b has private access in A",16
                 );
     }
 
     @Test
     public void testSpecConflict() {
         helpTCF("A.java","public class A { /*@ spec_public spec_protected */ static private boolean b; } "
-                ,"/A.java:1: A declaration may not be both spec_public and spec_protected",34
+                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",34
                 );
     }
 
     @Test
     public void testSpecConflict1() {
         helpTCF("A.java","public class A { /*@ spec_public spec_public */ static private boolean b; } "
-                ,"/A.java:1: org.jmlspecs.annotation.SpecPublic is not a repeatable annotation type",34
+                ,"/A.java:1: error: org.jmlspecs.annotation.SpecPublic is not a repeatable annotation type",34
                 );
     }
 
     @Test
     public void testSpecConflict2() {
         helpTCF("A.java","public class A { /*@ spec_protected spec_protected */ static private boolean b; } "
-                ,"/A.java:1: org.jmlspecs.annotation.SpecProtected is not a repeatable annotation type",37
+                ,"/A.java:1: error: org.jmlspecs.annotation.SpecProtected is not a repeatable annotation type",37
                 );
     }
 
@@ -98,21 +98,21 @@ public class access extends TCBase {
     @Test
     public void testSpecConflictM() {
         helpTCF("A.java","public class A { /*@ spec_public spec_protected */ static private boolean m(){return true;} } "
-                ,"/A.java:1: A declaration may not be both spec_public and spec_protected",34
+                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",34
                 );
     }
 
     @Test
     public void testSpecConflictM1() {
         helpTCF("A.java","public class A { /*@ spec_public spec_public */ static private boolean m(){return true;} } "
-                ,"/A.java:1: org.jmlspecs.annotation.SpecPublic is not a repeatable annotation type",34
+                ,"/A.java:1: error: org.jmlspecs.annotation.SpecPublic is not a repeatable annotation type",34
                 );
     }
 
     @Test
     public void testSpecConflictM2() {
         helpTCF("A.java","public class A { /*@ spec_protected spec_protected */ static private boolean m(){return true;} } "
-                ,"/A.java:1: org.jmlspecs.annotation.SpecProtected is not a repeatable annotation type",37
+                ,"/A.java:1: error: org.jmlspecs.annotation.SpecProtected is not a repeatable annotation type",37
                 );
     }
 
@@ -153,21 +153,21 @@ public class access extends TCBase {
     @Test
     public void testSpecConflictC() {
         helpTCF("A.java","public class A { /*@ spec_public spec_protected */ static private class C{} } "
-                ,"/A.java:1: A declaration may not be both spec_public and spec_protected",34
+                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",34
                 );
     }
 
     @Test
     public void testSpecConflictC1() {
         helpTCF("A.java","public class A { /*@ spec_public spec_public */ static private class C{} } "
-                ,"/A.java:1: org.jmlspecs.annotation.SpecPublic is not a repeatable annotation type",34
+                ,"/A.java:1: error: org.jmlspecs.annotation.SpecPublic is not a repeatable annotation type",34
                 );
     }
 
     @Test
     public void testSpecConflictC2() {
         helpTCF("A.java","public class A { /*@ spec_protected spec_protected */ static private class C{} } "
-                ,"/A.java:1: org.jmlspecs.annotation.SpecProtected is not a repeatable annotation type",37
+                ,"/A.java:1: error: org.jmlspecs.annotation.SpecProtected is not a repeatable annotation type",37
                 );
     }
 

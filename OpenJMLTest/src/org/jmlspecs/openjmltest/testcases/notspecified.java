@@ -25,7 +25,7 @@ public class notspecified extends TCBase {
     @Test
     public void testNotSpecified1() {
         helpTCF("A.java","public class A { //@ signals \\not_specified; \n public void m(boolean i) {}}"
-                ,"/A.java:1: Expected a left parenthesis after a signals keyword",30
+                ,"/A.java:1: error: Expected a left parenthesis after a signals keyword",30
                 ); 
 
     }
@@ -40,7 +40,7 @@ public class notspecified extends TCBase {
     @Test
     public void testNotSpecified1a() {
         helpTCF("A.java","public class A { //@ signals_only \\not_specified; \n public void m(boolean i) {}}"
-                ,"/A.java:1: \\not_specified is not permitted in a signals_only clause",35
+                ,"/A.java:1: error: \\not_specified is not permitted in a signals_only clause",35
                 );        // Not allowed
 
     }

@@ -40,7 +40,7 @@ public class binaries extends TCBase {
                 " class A { \n" +
                 "    java.io.File file; \n" +
                 "}"
-                ,"/$A/java/io/File.jml:3: The method java.io.File.m() is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class.",14
+                ,"/$A/java/io/File.jml:3: error: The method java.io.File.m() is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class.",14
         );
     }
     
@@ -58,8 +58,8 @@ public class binaries extends TCBase {
                 "    java.io.File file; \n" +
                 "}"
                 // FIXME - different order in Java7 and Java8
-                ,"/$A/java/io/File.jml:3: The return types of method java.io.File.exists() are different in the specification and java files: void vs. boolean",9
-                ,"/$A/java/io/File.jml:3: The specification of the method java.io.File.exists() must not have a body",23
+                ,"/$A/java/io/File.jml:3: error: The return types of method java.io.File.exists() are different in the specification and java files: void vs. boolean",9
+                ,"/$A/java/io/File.jml:3: error: The specification of the method java.io.File.exists() must not have a body",23
         );
     }
     
@@ -77,10 +77,10 @@ public class binaries extends TCBase {
                 "    java.io.File file; \n" +
                 " public void m() { /*@ assert java.io.VVV.i; assume java.io.File.TTT.j; */ }\n" +
                 "}"
-                ,"/java/io/A.java:3: incompatible types: int cannot be converted to boolean",42
-                ,"/java/io/A.java:3: incompatible types: int cannot be converted to boolean",69
-                ,"/$A/java/io/File.jml:3: incompatible types: int cannot be converted to boolean",25
-                ,"/$A/java/io/File.jml:3: incompatible types: int cannot be converted to boolean",49
+                ,"/java/io/A.java:3: error: incompatible types: int cannot be converted to boolean",42
+                ,"/java/io/A.java:3: error: incompatible types: int cannot be converted to boolean",69
+                ,"/$A/java/io/File.jml:3: error: incompatible types: int cannot be converted to boolean",25
+                ,"/$A/java/io/File.jml:3: error: incompatible types: int cannot be converted to boolean",49
         );
     }
 
@@ -101,11 +101,11 @@ public class binaries extends TCBase {
                 "     /*@ assert java.io.File.j; assume java.io.File.k; */ }\n" +
                 "}"
                 ,"/$A/java/io/File.jml:3: The field j is a Java field (neither ghost nor model) but does not match any fields in the corresponding Java class.",21
-                ,"/java/io/A.java:3: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",36
-                ,"/java/io/A.java:3: cannot find symbol\n  symbol:   variable k\n  location: class java.io.File",53
-                ,"/java/io/A.java:4: incompatible types: char cannot be converted to boolean",22
-                ,"/java/io/A.java:5: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",29
-                ,"/java/io/A.java:5: incompatible types: int cannot be converted to boolean",52
+                ,"/java/io/A.java:3: error: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",36
+                ,"/java/io/A.java:3: error: cannot find symbol\n  symbol:   variable k\n  location: class java.io.File",53
+                ,"/java/io/A.java:4: error: incompatible types: char cannot be converted to boolean",22
+                ,"/java/io/A.java:5: error: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",29
+                ,"/java/io/A.java:5: error: incompatible types: int cannot be converted to boolean",52
         );
     }
 
@@ -121,7 +121,7 @@ public class binaries extends TCBase {
                 "package java.io; class A { \n" +
                 "    java.io.File file; \n" +
                 "}"
-                ,"/$A/java/io/File.jml:4: This type declaration (java.io.Extra) is not matched by a binary class",1
+                ,"/$A/java/io/File.jml:4: error: This type declaration (java.io.Extra) is not matched by a binary class",1
         );
     }
 }

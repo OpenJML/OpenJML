@@ -26,7 +26,7 @@ public class statements extends TCBase {
 
     @Test public void testForWithModifies2() {
         helpTCF("A.java"," class A { void m() { \n //@ loop_modifies x; \n for (int i=0; i<10; i++) {}  \n}}"
-                ,"/A.java:2: cannot find symbol\n  symbol:   variable x\n  location: class A",20
+                ,"/A.java:2: error: cannot find symbol\n  symbol:   variable x\n  location: class A",20
                 );
     }
 
@@ -47,34 +47,34 @@ public class statements extends TCBase {
 
     @Test public void testForWithModifies5() {
         helpTCF("A.java"," class A { void m() { \n //@ loop_modifies ; \n for (int i=0; i<10; i++) {}  \n}}"
-                ,"/A.java:2: Use \\nothing to denote an empty list of locations in an assignable clause",20
+                ,"/A.java:2: error: Use \\nothing to denote an empty list of locations in an assignable clause",20
                 );
     }
 
     @Test public void testForWithModifies6() {
         helpTCF("A.java"," class A { int k; void m() { \n //@ loop_modifies k[; \n for (int i=0; i<10; i++) {}  \n}}"
-                ,"/A.java:2: illegal start of expression",22
-                ,"/A.java:2: An invalid expression or succeeding token near here",22
+                ,"/A.java:2: error: illegal start of expression",22
+                ,"/A.java:2: error: An invalid expression or succeeding token near here",22
                 );
     }
 
     @Test public void testForWithModifies6a() {
         helpTCF("A.java"," class A { int k; void m() { \n //@ loop_modifies k.; \n for (int i=0; i<10; i++) {}  \n}}"
-                ,"/A.java:2: Expected an identifier or star after the dot",22
+                ,"/A.java:2: error: Expected an identifier or star after the dot",22
                 );
     }
 
     @Test public void testForWithModifies7() {
         helpTCF("A.java"," class A { int k; void m() { \n //@ loop_modifies k k k; \n for (int i=0; i<10; i++) {}  \n}}"
-                ,"/A.java:2: Missing comma or otherwise ill-formed type name",22
-                ,"/A.java:2: Missing comma or otherwise ill-formed type name",24
+                ,"/A.java:2: error: Missing comma or otherwise ill-formed type name",22
+                ,"/A.java:2: error: Missing comma or otherwise ill-formed type name",24
                 );
     }
 
     @Test public void testForWithModifies8() {
         helpTCF("A.java"," class A { int k; void m() { \n //@ loop_modifies k,,; \n for (int i=0; i<10; i++) {}  \n}}"
-                ,"/A.java:2: Incorrectly formed or terminated store-reference near here",22
-                ,"/A.java:2: Incorrectly formed or terminated store-reference near here",23
+                ,"/A.java:2: error: Incorrectly formed or terminated store-reference near here",22
+                ,"/A.java:2: error: Incorrectly formed or terminated store-reference near here",23
                 );
     }
 
@@ -90,25 +90,25 @@ public class statements extends TCBase {
 
     @Test public void testFor2() {
         helpTCF("A.java"," class A { void m() { \n //@ loop_invariant j;\n for (int i=0; i<10; i++) {}  \n}}"
-                ,"/A.java:2: cannot find symbol\n  symbol:   variable j\n  location: class A",21
+                ,"/A.java:2: error: cannot find symbol\n  symbol:   variable j\n  location: class A",21
                 );
     }
 
     @Test public void testLoop() {
         helpTCF("A.java"," class A { void m() { \n //@ loop_invariant j;\n int a = 0;  \n}}"
-                ,"/A.java:2: Loop specifications must immediately precede a loop statement",6
+                ,"/A.java:2: error: Loop specifications must immediately precede a loop statement",6
                 );
     }
 
     @Test public void testLoop2() {
         helpTCF("A.java"," class A { boolean j; void m() { \n //@ loop_invariant j;\n  \n}}"
-                ,"/A.java:2: Loop specifications must immediately precede a loop statement",6
+                ,"/A.java:2: error: Loop specifications must immediately precede a loop statement",6
                 );
     }
     
     @Test public void testLoop3() {
         helpTCF("A.java"," class A { boolean j; void m() { \n //@ loop_invariant j;\n j=true; \n}}"
-                ,"/A.java:2: Loop specifications must immediately precede a loop statement",6
+                ,"/A.java:2: error: Loop specifications must immediately precede a loop statement",6
                 );
     }
     
@@ -124,21 +124,21 @@ public class statements extends TCBase {
 
     @Test public void testAssert2() {
         helpTCF("A.java"," class A { Object o; void m() { \n /*@ assume 0; assert o;*/\n  \n}}"
-                ,"/A.java:2: incompatible types: int cannot be converted to boolean",13
-                ,"/A.java:2: incompatible types: java.lang.Object cannot be converted to boolean",23
+                ,"/A.java:2: error: incompatible types: int cannot be converted to boolean",13
+                ,"/A.java:2: error: incompatible types: java.lang.Object cannot be converted to boolean",23
                 );
     }
 
     @Test public void testAssert3() {
         helpTCF("A.java"," class A { Object o; void m() { \n /*@ assume ; assert ;*/\n  \n}}"
-                ,"/A.java:2: illegal start of expression",13
-                ,"/A.java:2: illegal start of expression",22
+                ,"/A.java:2: error: illegal start of expression",13
+                ,"/A.java:2: error: illegal start of expression",22
                 );
     }
 
     @Test public void testAssert4() {
         helpTCF("A.java"," class A { Object o; void m() { \n /*@ assume true assert false;*/\n  \n}}"
-                ,"/A.java:2: Incorrectly formed or terminated assume statement near here",18
+                ,"/A.java:2: error: Incorrectly formed or terminated assume statement near here",18
                 );
     }
 
@@ -163,7 +163,7 @@ public class statements extends TCBase {
     @Test public void testSet1() {
         expectedExit = 1;
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; set j = 1 \n i = 0; \n}}"
-                ,"/A.java:2: ';' expected",28
+                ,"/A.java:2: error: ';' expected",28
                 //"/A.java:2: warning: Inserting missing semicolon at the end of a set statement",27
                 );
     }
@@ -187,7 +187,7 @@ public class statements extends TCBase {
     @Test public void testDebug1() {
         expectedExit = 1;
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; debug m() \n i = 0; \n}}"
-                ,"/A.java:2: ';' expected",28
+                ,"/A.java:2: error: ';' expected",28
                 //,"/A.java:2: warning: Inserting missing semicolon at the end of a debug statement",27
                 );
     }
@@ -219,13 +219,13 @@ public class statements extends TCBase {
 
     @Test public void testSpecs3() {
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ refining also ensures i ==0; \n i = 0; \n}}"
-                ,"/A.java:2: An also token may not follow a refining token",15
+                ,"/A.java:2: error: An also token may not follow a refining token",15
                 );
     }
 
     @Test public void testSpecs4() {
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ refining public behavior ensures i ==0; \n i = 0; \n}}"
-                ,"/A.java:2: No modifiers are allowed in the body of a refining statement",15
+                ,"/A.java:2: error: No modifiers are allowed in the body of a refining statement",15
                 );
     }
 

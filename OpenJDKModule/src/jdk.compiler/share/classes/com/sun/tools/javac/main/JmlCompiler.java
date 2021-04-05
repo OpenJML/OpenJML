@@ -241,6 +241,29 @@ public class JmlCompiler extends JavaCompiler {
         }
         ((JmlAttr)attr).completeTodo();
         
+        if (!utils.esc) {
+        	envs = results;
+        	JmlSpecs specs = JmlSpecs.instance(context);
+        	results = new ListBuffer<>();
+        	while (!envs.isEmpty()) {
+        		var env = envs.remove();
+        		switch (env.tree.getTag()) {
+        		case MODULEDEF:
+        		case PACKAGEDEF:
+        			break;
+        		case TOPLEVEL:
+        			for (var def : env.toplevel.defs) {
+        				if (def instanceof JmlClassDecl) specs.getSpecs(((JmlClassDecl)def).sym);
+        			}
+        			break;
+        		default:
+        			specs.getSpecs(env.enclClass.sym);
+        		}
+        		results.append(env);
+        	}
+        }
+        
+        
 //        // TODO: Review the following
 //        if (rerunForTesting)  {
 //            if (results != null) {

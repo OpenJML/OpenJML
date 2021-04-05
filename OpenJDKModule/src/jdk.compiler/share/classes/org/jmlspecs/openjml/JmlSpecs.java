@@ -997,7 +997,7 @@ public class JmlSpecs {
     public MethodSpecs getSpecs(MethodSymbol m) {
     	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
     	if (status(m).less(SpecsStatus.SPECS_ATTR)) attr.attrSpecs(m);
-    	if (status(m) == SpecsStatus.ERROR) throw new PropagatedException(new RuntimeException("Failure in type-checking " + m.owner + "." + m));
+    	//if (status(m) == SpecsStatus.ERROR) throw new PropagatedException(new RuntimeException("Failure in type-checking " + m.owner + "." + m));
         TypeSpecs t = specsmap.get(m.owner);
         return t == null ? null : t.methods.get(m);
     }

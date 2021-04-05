@@ -207,7 +207,7 @@ public class JmlOptions extends Options {
             }
         }
         if (o == null) {
-            if (s.equals("-help")) {
+            if (s.equals("-help") || s.equals("-?") || s.equals("--help")) {
                 helpJML(Main.instance(context).stdOut); // FIXME - send to a log?
             } else {
                 remainingArgs.add(s);
@@ -499,10 +499,11 @@ public class JmlOptions extends Options {
 
 
     /** Adds additional options to those already present (which may change
-     * previous settings). */
-    public void addOptions(String... args) {
+     * previous settings); returns remaining Java args. */
+    public String[] addOptions(String... args) {
         args = processJmlArgs(args, Options.instance(context), null);
         setupOptions();
+        return args;
     }
 
     /** Adds a custom option (not checked as a legitimate command-line option);

@@ -1,0 +1,49 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m1(@NonNull Integer) with prover !!!!
+test/listNullity/Test.java:10: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m1
+    lst.add(null); // ERROR
+            ^
+/Users/davidcok/projects/OpenJMLB/Specs/specs/java/util/List.jml:122: warning: Associated declaration
+    boolean add(E o);
+                ^
+Completed proof of Test.m1(@NonNull Integer) with prover !!!! - with warnings
+Starting proof of Test.m2(@NonNull Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m2(@NonNull Integer) with prover !!!! - no warnings
+Starting proof of Test.m3(Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m3(Integer) with prover !!!! - no warnings
+Starting proof of Test.m4(Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m4(Integer) with prover !!!! - no warnings
+Proving methods in Test.Inner
+Starting proof of Test.Inner.Inner() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Inner.Inner() with prover !!!! - no warnings
+Starting proof of Test.Inner.m5(Integer) with prover !!!!
+test/listNullity/Test.java:37: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m5
+    lst.add(null); // ERROR
+            ^
+/Users/davidcok/projects/OpenJMLB/Specs/specs/java/util/List.jml:122: warning: Associated declaration
+    boolean add(E o);
+                ^
+Completed proof of Test.Inner.m5(Integer) with prover !!!! - with warnings
+Starting proof of Test.Inner.m6(@Nullable Integer) with prover !!!!
+test/listNullity/Test.java:42: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m6
+    lst.add(i); // ERROR
+            ^
+/Users/davidcok/projects/OpenJMLB/Specs/specs/java/util/List.jml:122: warning: Associated declaration
+    boolean add(E o);
+                ^
+Completed proof of Test.Inner.m6(@Nullable Integer) with prover !!!! - with warnings
+Completed proving methods in Test.Inner
+Completed proving methods in Test
+6 warnings

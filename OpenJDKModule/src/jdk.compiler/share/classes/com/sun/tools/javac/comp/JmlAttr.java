@@ -14,6 +14,7 @@ import static com.sun.tools.javac.code.Flags.SYNTHETIC;
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 import static com.sun.tools.javac.code.Kinds.Kind.*;
 import static com.sun.tools.javac.code.Kinds.*;
+import static com.sun.tools.javac.code.TypeTag.CLASS;
 import static com.sun.tools.javac.code.TypeTag.ERROR;
 import static com.sun.tools.javac.code.TypeTag.FORALL;
 import static com.sun.tools.javac.code.TypeTag.METHOD;
@@ -103,6 +104,7 @@ import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.comp.Attr.ResultInfo;
+import com.sun.tools.javac.comp.Attr.TypeAnnotationsValidator;
 import com.sun.tools.javac.comp.MatchBindingsComputer.MatchBindings;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.JmlScanner;
@@ -162,6 +164,17 @@ import com.sun.tools.javac.util.PropagatedException;
  * That would save the stacking that is necessary in attribTree.
  */
 public class JmlAttr extends Attr implements IJmlVisitor {
+	
+    public void validateTypeAnnotations(JCTree tree, boolean sigOnly) {
+        tree.accept(new JmlTypeAnnotationsValidator(sigOnly));
+    }
+	public class JmlTypeAnnotationsValidator extends Attr.TypeAnnotationsValidator implements IJmlVisitor {
+
+		public JmlTypeAnnotationsValidator(boolean sigOnly) {
+			super(sigOnly);
+		}
+		
+	}
 
     /** This is the compilation context for which this is the unique instance */
     /*@non_null*/ final public Context context;
@@ -382,16 +395,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void attribClass(ClassSymbol c) throws CompletionFailure {
-    	if (c.type instanceof Type.IntersectionClassType) {
-    		// FIXME - what should we do in this case?
-    		super.attribClass(c);
-    		return;
-    	}
+//    	if (c.type instanceof Type.IntersectionClassType) {
+//    		// FIXME - what should we do in this case?
+//    		super.attribClass(c);
+//    		return;
+//    	}
         boolean isUnattributed =  (c.flags_field & UNATTRIBUTED) != 0;
         
-//        JmlSpecs.TypeSpecs classSpecs = specs.getLoadedSpecs(c);
-
-        level++;
+        level++; // FIXME - may no longer need this
         if (c != syms.predefClass) {
             if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"typechecking " + c);
         }
@@ -411,41 +422,42 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 	if (Utils.debug()) System.out.println("ATTRIBUTING " + c + " " + eee.toplevel.sourcefile);
 //                	attribAnnotationTypes(classSpecs.modifiers.annotations, eee);
                     super.attribClass(c);
-//                    c.flags_field &= ~UNATTRIBUTED;
-//                    attribFieldSpecs(eee,c);
                 	if (Utils.debug()) System.out.println("ATTRIBUTING-DONE " + c + " " + eee.toplevel.sourcefile);
                 } finally {
                     log.useSource(prevv);
                 }
             }
+
             if (!isUnattributed) return;
 
-            // FIXME - do we still need this?
-            // Binary files with specs had entries put in the Env map so that the
-            // specs had environments against which to be attributed.  However, the
-            // presence of envs for non-.java files confuses later compiler phases,
-            // and we no longer need that mapping since all the specs are now
-            // attributed and entered into the JmlSpecs database.  Hence we remove
-            // the entry.
-            Env<AttrContext> e = enter.getEnv(c);
-            if (e != null) {  // SHould be non-null the first time, but subsequent calls will have e null and so we won't do duplicate checking
-                //                // FIXME - RAC should take advantage of the same stuff as ESC
-                //                if (true || !JmlOptionName.isOption(context,JmlOptionName.RAC)) {
-                //                    new JmlTranslator(context).translate(e.tree);
-                //                }
-                
-                if (e.tree != null && e.tree instanceof JmlClassDecl) {
-                    Symbol thissym = thisSym(e.tree.pos(),e);
-                    if (thissym instanceof VarSymbol) ((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)thissym;
-//                    //((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._this);
-//                    if (!((JmlClassDecl)e.tree).sym.isInterface() && c != syms.objectType.tsym) ((JmlClassDecl)e.tree).superSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._super);
-                }
 
-//                if (e.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
-//                    // If not a .java file
-//                    enter.typeEnvs.remove(c); // FIXME - after flow checking of model methods and classes for binary classes?
+
+//            // FIXME - do we still need this?
+//            // Binary files with specs had entries put in the Env map so that the
+//            // specs had environments against which to be attributed.  However, the
+//            // presence of envs for non-.java files confuses later compiler phases,
+//            // and we no longer need that mapping since all the specs are now
+//            // attributed and entered into the JmlSpecs database.  Hence we remove
+//            // the entry.
+//            Env<AttrContext> e = enter.getEnv(c);
+//            if (e != null) {  // SHould be non-null the first time, but subsequent calls will have e null and so we won't do duplicate checking
+//                //                // FIXME - RAC should take advantage of the same stuff as ESC
+//                //                if (true || !JmlOptionName.isOption(context,JmlOptionName.RAC)) {
+//                //                    new JmlTranslator(context).translate(e.tree);
+//                //                }
+//                
+//                if (e.tree != null && e.tree instanceof JmlClassDecl) {
+//                    Symbol thissym = thisSym(e.tree.pos(),e);
+//                    if (thissym instanceof VarSymbol) ((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)thissym;
+////                    //((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._this);
+////                    if (!((JmlClassDecl)e.tree).sym.isInterface() && c != syms.objectType.tsym) ((JmlClassDecl)e.tree).superSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._super);
 //                }
-            }
+//
+////                if (e.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
+////                    // If not a .java file
+////                    enter.typeEnvs.remove(c); // FIXME - after flow checking of model methods and classes for binary classes?
+////                }
+//            }
 
         } finally {
             pureEnvironment = prevPureEnvironment;
@@ -531,8 +543,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // The JML specs to check are are in the TypeSpecs structure
 
             super.attribClassBody(env,c);
-//            Enter.instance(context).typeEnvs.put(c,env); // TODO _ not sure why this is not already done, but is needed in some cases, e.g. immutable modifier on an enum class
-//          attribClassBodySpecs(env,c,prevIsInJmlDeclaration);
             if (cd.lineAnnotations != null) {
                 for (ExceptionLineAnnotation a: cd.lineAnnotations) {
                     a.typecheck(this, env);
@@ -547,11 +557,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
-    // FIXME - do not need this is we can avoid having invariants in the class body
     @Override
     public Type attribStat(JCTree tree, Env<AttrContext> env) {
-
-        //if (tree instanceof JmlTypeClause && relax) return null;
+    	// The type clauses that need checking are the ones in the specs database, not those
+    	// parsed in the class body (though they may be the same)
+        if (tree instanceof JmlTypeClause) return null;
         return super.attribStat(tree,env);
     }
 
@@ -562,73 +572,84 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param c the current class
      * @param prevIsInJmlDeclaration true if we are in a non-model JML declaration  (FIXME - this needs better evaluation)
      */
-    public void attribClassBodySpecs(Env<AttrContext> env, ClassSymbol c, boolean prevIsInJmlDeclaration) {
-        JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(c);
-        JmlClassDecl classDecl = (JmlClassDecl)env.tree;
-        JavaFileObject prev = log.currentSourceFile();
-        
-//        if (c.flatName().toString().equals("java.lang.Throwable")) Utils.stop();
-        
-        // This is not recursive within a class, but we can call out to attribute 
-        // another class while in the middle of a clause
-        IJmlClauseKind prevClauseType = currentClauseType;
-        
-        try {
-            if (tspecs != null) {
-                Env<AttrContext> prevEnv = this.env;
-                this.env = env;
+    public void attribClassBodySpecs(ClassSymbol c) {
 
-                // The modifiers and annotations are checked in checkClassMods
-                // which is part of checking the class itself
+        System.out.println("TYPECHECKING SPECS FOR " + c + " " + utils.esc);
+//        if (!utils.esc) {
+        	specs.getSpecs(c); // Attributing specs, if not already done
+        	if (!utils.esc) for (var m: c.members().getSymbols()) {
+        		System.out.println("SYM " + m + " " + m.owner);
+        		if (m instanceof MethodSymbol) specs.getSpecs((MethodSymbol)m);
+        		if (m instanceof VarSymbol) specs.getSpecs((VarSymbol)m);
+        	}
+//        }
 
-                // clauses and declarations
-                for (JmlTypeClause clause: tspecs.clauses) {
-                    currentClauseType = clause.clauseType;
-                    clause.accept(this);
-                }
-                currentClauseType = null;
-
-                // model types, which are not in clauses
-
-//                for (JmlClassDecl mtype: tspecs.modelTypes) {
-//                    mtype.accept(this);
+//        JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(c);
+//        JmlClassDecl classDecl = (JmlClassDecl)env.tree;
+//        JavaFileObject prev = log.currentSourceFile();
+//        
+////        if (c.flatName().toString().equals("java.lang.Throwable")) Utils.stop();
+//        
+//        // This is not recursive within a class, but we can call out to attribute 
+//        // another class while in the middle of a clause
+//        IJmlClauseKind prevClauseType = currentClauseType;
+//        
+//        try {
+//            if (tspecs != null) {
+//                Env<AttrContext> prevEnv = this.env;
+//                this.env = env;
+//
+//                // The modifiers and annotations are checked in checkClassMods
+//                // which is part of checking the class itself
+//
+//                // clauses and declarations
+//                for (JmlTypeClause clause: tspecs.clauses) {
+//                    currentClauseType = clause.clauseType;
+//                    clause.accept(this);
 //                }
-
-                //            // Do the specs for JML initialization blocks // FIXME - test the need for this - for initializatino blocks and JML initializations
-                //            for (JCTree.JCBlock m: tspecs.blocks.keySet()) {
-                //                m.accept(this);
-                //            }
-
-
-                if (tspecs.modifiers != null) {
-                    log.useSource(tspecs.file);
-                    attribAnnotationTypes(tspecs.modifiers.annotations,env);
-                    isInJmlDeclaration = prevIsInJmlDeclaration;
-                    ((JmlCheck)chk).setInJml(isInJmlDeclaration);
-                    if (tspecs.file != null) log.useSource(tspecs.file);
-                    checkClassMods(c,classDecl,tspecs);
-                } else {
-//                    log.warning("jml.internal.notsobad","Unexpected lack of modifiers in class specs structure for " + c); // FIXME - testJML2
-                }
-                
-                // Checking all the in and maps clauses is delayed until all the fields have been processed 
-
-                for (JCTree t: classDecl.defs) {
-                    if (t instanceof JmlVariableDecl) {
-                        checkVarMods2((JmlVariableDecl)t);
-                    }
-                }
-
-                this.env = prevEnv;
-            } else if (c.type instanceof Type.IntersectionClassType){
-            	// FIXME - what should really be done here
-            } else {
-            	utils.warning("jml.internal.notsobad","Unexpected lack of class specs structure for " + c);
-            }
-        } finally {
-            currentClauseType = prevClauseType;
-            log.useSource(prev);
-        }
+//                currentClauseType = null;
+//
+//                // model types, which are not in clauses
+//
+////                for (JmlClassDecl mtype: tspecs.modelTypes) {
+////                    mtype.accept(this);
+////                }
+//
+//                //            // Do the specs for JML initialization blocks // FIXME - test the need for this - for initializatino blocks and JML initializations
+//                //            for (JCTree.JCBlock m: tspecs.blocks.keySet()) {
+//                //                m.accept(this);
+//                //            }
+//
+//
+//                if (tspecs.modifiers != null) {
+//                    log.useSource(tspecs.file);
+//                    attribAnnotationTypes(tspecs.modifiers.annotations,env);
+//                    isInJmlDeclaration = prevIsInJmlDeclaration;
+//                    ((JmlCheck)chk).setInJml(isInJmlDeclaration);
+//                    if (tspecs.file != null) log.useSource(tspecs.file);
+//                    checkClassMods(c,classDecl,tspecs);
+//                } else {
+////                    log.warning("jml.internal.notsobad","Unexpected lack of modifiers in class specs structure for " + c); // FIXME - testJML2
+//                }
+//                
+//                // Checking all the in and maps clauses is delayed until all the fields have been processed 
+//
+//                for (JCTree t: classDecl.defs) {
+//                    if (t instanceof JmlVariableDecl) {
+//                        checkVarMods2((JmlVariableDecl)t);
+//                    }
+//                }
+//
+//                this.env = prevEnv;
+//            } else if (c.type instanceof Type.IntersectionClassType){
+//            	// FIXME - what should really be done here
+//            } else {
+//            	utils.warning("jml.internal.notsobad","Unexpected lack of class specs structure for " + c);
+//            }
+//        } finally {
+//            currentClauseType = prevClauseType;
+//            log.useSource(prev);
+//        }
     }
     
     public Env<AttrContext> localEnv(Env<AttrContext> env, JCTree tree) {
@@ -1267,7 +1288,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (prevSource != null) log.useSource(prevSource);
             labelEnvs.clear();
             labelEnvs = prevLabelEnvs;
-        	utils.note(true,  "Completed Attributing method " + env.enclClass.sym + " " + m.name);
+        	if (utils.verbose()) utils.note("Completed Attributing method " + env.enclClass.sym + " " + m.name);
         }
     }
     
@@ -1420,7 +1441,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             // Check that any annotations are allowed and no conflicting pairs occur
             if (!isConstructor) {
-                if (javaMethodTree.sym.enclClass().isInterface()) {
+            	ClassSymbol enclClass = javaMethodTree.sym.enclClass();
+            	if (enclClass == null) {
+            		System.out.println("NULL ENCL CLASS: " + javaMethodTree.sym + " " + javaMethodTree.sym.owner + " " + javaMethodTree.sym.kind.matches(KindSelector.TYP) + " " + javaMethodTree.sym.type.hasTag(CLASS)  + " " + javaMethodTree.sym.type);
+            		System.out.println("NULL ENCL CLASS-B: " + javaMethodTree.sym + " " + javaMethodTree.sym.owner + " " + javaMethodTree.sym.owner.kind.matches(KindSelector.TYP) + " " + javaMethodTree.sym.owner.type.hasTag(CLASS) + " " + javaMethodTree.sym.owner.type + " " + javaMethodTree.sym.owner.type.getTag());
+            		enclClass = (ClassSymbol)javaMethodTree.sym.owner;
+            	}
+                if (enclClass.isInterface()) {
                     if (model) {
                         allAllowed(mods.annotations,allowedInterfaceModelMethodAnnotations,"interface model method declaration");
                     } else {
@@ -2877,6 +2904,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * model method, model type, or ghost or model field
      */
     public void visitJmlTypeClauseDecl(JmlTypeClauseDecl tree) {
+    	System.out.println("ATTR TYPE CLAUSE DECL " + tree);
         JavaFileObject old = log.useSource(tree.source);
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         long prevVisibility = jmlVisibility;
@@ -4814,12 +4842,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // FIXME - the code below crashes for class symbols. What should we do?
                 // FIXME - we also get this case for annotations on a clause
             } else {
+            	boolean print = sym.toString().contains("elementCount");
                 JCModifiers mods = null;
                 if (sym.owner != null && sym.owner.kind == TYP) {
                     if (sym.kind == VAR) {
-                        VarSymbol vsym = (VarSymbol)sym;
-                        FieldSpecs sp = specs.getLoadedSpecs(vsym);
-                        if (sp != null) mods = sp.mods;
+                        mods = specs.getSpecsModifiers((VarSymbol)sym);
                     }
                     if (sym.kind == MTH) {
                         mods = specs.getSpecsModifiers((MethodSymbol)sym);
@@ -4831,6 +4858,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (mods != null && utils.hasMod(mods,SPEC_PUBLIC)) {
                     v = Flags.PUBLIC;
                 }
+                if (print) System.out.println("VIZ " + sym + " " + sym.owner + " " + sym.owner.kind + " " + sym.kind + " " + jmlVisibility + " " + v + " " + utils.hasMod(mods,SPEC_PUBLIC) + " " + mods);
             }
             
             if (currentClauseType == invariantClause || currentClauseType == constraintClause) {
@@ -6296,9 +6324,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (!env.info.scope.owner.kind.matches(KindSelector.VAL_MTH) && tree.sym == null) {
             enter.classEnter(tree, env);
         }
-        if (Utils.debug() && tree.name.toString().equals("B")) System.out.println("ATTR-VISITING " + tree);
         super.visitClassDef(tree);
-
     }
 
     @Override
@@ -6329,7 +6355,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-    	if (utils.verbose()) utils.note("Attributing " + that.vartype + " " + that.name);
+    	if (utils.verbose()) utils.note("Attributing " + that.vartype + " " + that.name + " " + that.getClass());
     	if (env.enclMethod != null) {
             if (that.vartype instanceof JCTypeApply) {
             	var ft = (JCTypeApply)that.vartype;
@@ -6458,6 +6484,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             // Check the mods after the specs, because the modifier checks depend on
             // the specification clauses being attributed
+
+            if (!utils.esc) specs.getSpecs(that.sym); // Attributing specs, if not already done
 
             that.mods = originalMods; 
             if (!that.type.isErroneous()) checkVarMods(that);
@@ -6911,6 +6939,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 return (tree.type = types.createErrorType(found));
             }
         }
+        if (found == null) {
+        	System.out.println("FOUND TYPE IS NULL " + resultInfo.pt + " " + tree);
+        	return (tree.type = types.createErrorType(resultInfo.pt));
+        }
         return super.check(tree, found, ownkind, resultInfo);
     } 
     
@@ -6946,9 +6978,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	if (utils.verbose()) utils.note("Specs are null for " + msym.owner + "." + msym);
         	return;
         }
-        if (sp.specsEnv == null) return;  // Default specs? already attributed?
+        if (sp.specsEnv == null) return;  // Default specs? already attributed? -- e.g. default constructor with no source
         this.env = sp.specsEnv;
         this.enclosingMethodEnv = sp.specsEnv;
+        specs.getSpecs((ClassSymbol)msym.owner); // Checking all the type clauses and declarations, if not already done
         this.pureEnvironment = true;
     	if (utils.verbose()) utils.note("    Lint " + msym.owner + " " + msym + " " + (sp.specsEnv.info.lint != null));
     	try {
@@ -7042,7 +7075,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     public void attrSpecs(VarSymbol vsym) {
 		if (utils.verbose()) utils.note("Attributing specs for " + vsym.owner + " " + vsym);
-		TypeSpecs cspecs = specs.getLoadedSpecs((ClassSymbol)vsym.owner);
+		TypeSpecs cspecs = specs.getLoadedSpecs((ClassSymbol)vsym.enclClass());
 		FieldSpecs fspecs = specs.getLoadedSpecs(vsym);
 		ResultInfo ri = new ResultInfo(KindSelector.VAL_TYP, Type.noType);
 		if (fspecs != null) {

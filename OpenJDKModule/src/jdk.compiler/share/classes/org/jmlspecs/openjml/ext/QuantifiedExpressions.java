@@ -156,26 +156,27 @@ public class QuantifiedExpressions extends ExpressionExtension {
                 
                 if (that.range != null) attr.attribExpr(that.range, localEnv, syms.booleanType);
 
+                Type t;
                 switch (this.name()) {
                     case qexistsID:
                     case qforallID:
-                        attr.attribExpr(that.value, localEnv, syms.booleanType);
-                        resultType = syms.booleanType;
+                        t = attr.attribExpr(that.value, localEnv, syms.booleanType);
                         if (that.triggers != null) {
                             ListBuffer<Type> argtypesBuf = new ListBuffer<Type>();
                             attr.attribArgs(that.triggers, localEnv, argtypesBuf);
                             // FIXME - need to check well-formedness of triggers
                         }
+                        resultType = syms.booleanType;
                         break;
 
                     case qnumofID:
-                        attr.attribExpr(that.value, localEnv, syms.booleanType);
+                        t = attr.attribExpr(that.value, localEnv, syms.booleanType);
                         resultType = syms.intType; // FIXME - int? long? bigint?
                         break;
 
                     case qmaxID:
                     case qminID:
-                        attr.attribExpr(that.value, localEnv, Type.noType);
+                        t = attr.attribExpr(that.value, localEnv, Type.noType);
                         resultType = that.value.type;
                         // FIXME - allow this for any Comparable type
                         //                if (!types.unboxedTypeOrType(resultType).isNumeric()) {
@@ -186,7 +187,7 @@ public class QuantifiedExpressions extends ExpressionExtension {
 
                     case qsumID:
                     case qproductID:
-                        attr.attribExpr(that.value, localEnv, Type.noType); // FIXME - int? long? numeric? bigint? double?
+                        t = attr.attribExpr(that.value, localEnv, Type.noType);
                         resultType = that.value.type;
                         if (!attr.jmltypes.isNumeric(attr.jmltypes.unboxedTypeOrType(resultType))) {
                             error(that.value,"jml.bad.quantifer.expression", resultType.toString());

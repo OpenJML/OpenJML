@@ -121,7 +121,7 @@ public class expressions extends ParseBase {
     }
     
     String noSource(JCDiagnostic dd) {
-        return dd.noSource();
+        return dd.getMessage(java.util.Locale.getDefault());
     }
     
     // Each bit of source text (in this series of tests, each must be a

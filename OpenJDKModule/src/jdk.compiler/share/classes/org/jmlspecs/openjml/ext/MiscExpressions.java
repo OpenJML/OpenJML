@@ -130,7 +130,7 @@ public class MiscExpressions extends ExpressionExtension {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;
             int n = expr.args.size();
             if (n != 1 && n != 2) {
-                utils.error(tree,"jml.wrong.number.args",name(),"1 or 2",n);
+               utils.error(tree,"jml.wrong.number.args",name(),"1 or 2",n);
             }
             if (n > 0) {
                 if (n > 1) attr.checkLabel(expr.args.get(1));
@@ -142,7 +142,7 @@ public class MiscExpressions extends ExpressionExtension {
                 if (!attr.freshClauses.contains(attr.currentClauseType)) {
                     // The +1 is to fool the error reporting mechanism into 
                     // allowing other error reports about the same token
-                    Log.instance(context).error(tree.pos+1, "jml.misplaced.token", name(), attr.currentClauseType == null ? "jml declaration" : attr.currentClauseType.name());
+                    utils.error(tree.pos+1, "jml.misplaced.token", name(), attr.currentClauseType == null ? "jml declaration" : attr.currentClauseType.name());
                 }
             }
             expr.type = Symtab.instance(context).booleanType;
