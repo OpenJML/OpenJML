@@ -3841,6 +3841,7 @@ public class JavacParser implements Parser {
     protected JCClassDecl classDeclaration(JCModifiers mods, Comment dc) {
         int pos = token.pos;
         accept(CLASS);
+        startOfDeclaration(mods);
         Name name = typeName();
 
         List<JCTypeParameter> typarams = typeParametersOpt();

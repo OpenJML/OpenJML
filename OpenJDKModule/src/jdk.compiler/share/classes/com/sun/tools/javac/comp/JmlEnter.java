@@ -5,8 +5,11 @@
 package com.sun.tools.javac.comp;
 
 
+import static com.sun.tools.javac.code.Flags.ENUM;
 import static com.sun.tools.javac.code.Flags.FINAL;
 import static com.sun.tools.javac.code.Flags.HASINIT;
+import static com.sun.tools.javac.code.Flags.INTERFACE;
+import static com.sun.tools.javac.code.Flags.PUBLIC;
 
 import javax.tools.JavaFileObject;
 
@@ -33,9 +36,11 @@ import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Kinds.KindName;
 import com.sun.tools.javac.code.Scope.WriteableScope;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.main.JmlCompiler;
+import com.sun.tools.javac.resources.CompilerProperties.Errors;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
@@ -446,12 +451,15 @@ public class JmlEnter extends Enter {
             JmlCompilationUnit javacu = speccu.sourceCU;
             JmlClassDecl javaDecl = null;
             
+            ListBuffer<JCTree> newdefs = new ListBuffer<>();
 			for (JCTree decl: speccu.defs) {
-				if (!(decl instanceof JmlClassDecl)) continue;
+				if (!(decl instanceof JmlClassDecl)) { newdefs.add(decl); continue; }
 				var specDecl = (JmlClassDecl)decl;
 				javaDecl = 	findClass(specDecl.name, javacu);
-				specsClassEnter(p, specDecl, specEnv, javaDecl); // javaDecl matches specDecl, if javaDecl exists
+				var ok = specsClassEnter(p, specDecl, specEnv, javaDecl); // javaDecl matches specDecl, if javaDecl exists
+				if (ok) newdefs.add(specDecl);
 			}
+			speccu.defs = newdefs.toList();
 
 			for (JCTree decl: speccu.defs) {
 				if (!(decl instanceof JmlClassDecl)) continue;
@@ -464,88 +472,132 @@ public class JmlEnter extends Enter {
 		}
     }
     
-    public void specsClassEnter(Symbol owner, JmlClassDecl specDecl, Env<AttrContext> specsEnv, /*@ nullable */JmlClassDecl javaDecl) {
+    public boolean specsClassEnter(Symbol owner, JmlClassDecl specDecl, Env<AttrContext> specsEnv, /*@ nullable */JmlClassDecl javaDecl) {
 		Name className = specDecl.name;
 		boolean isJML = utils.isJML(specDecl);
+		boolean isOwnerJML = utils.isJML(owner.flags());
 		boolean isGhostOrModel = utils.hasMod(specDecl.mods, Modifiers.GHOST) || utils.hasMod(specDecl.mods, Modifiers.MODEL);
-		
 		ClassSymbol csym = (ClassSymbol)owner.members().findFirst(className, s->(s instanceof ClassSymbol));
-		if (csym == null) {
-			// owner has no binary/source class corresponding to specDecl
-			if (!isJML) {
-				utils.error(specDecl, "jml.message", "There is no binary class to match this Java declaration in the specification file: " + className + " (owner: " + owner +")");
-				return;
+		boolean ok = false;
+		try {
+			if (isOwnerJML && isGhostOrModel) {
+				utils.error(specDecl, "jml.message", "A model type may not contain model declarations: " + specDecl.name + " in " + owner);
+				// TODO - remove model/ghost annotations?
 			}
-			if (!isGhostOrModel) {
-				utils.error(specDecl, "jml.message", "A JML class declaration must be marked either ghost or model: " + className + " (owner: " + owner +")");
-				return;
-			}
-			// Enter the class in the package or the parent class
-            if (owner instanceof PackageSymbol) {
-            	csym = syms.enterClass(env.toplevel.modle, specDecl.name, (PackageSymbol)owner);
-            } else { // owner is a ClassSymbol
-            	ClassSymbol cowner = (ClassSymbol)owner;
-            	csym = syms.enterClass(specsEnv.toplevel.modle, specDecl.name, (Symbol.TypeSymbol)owner);
-            	csym.completer = Completer.NULL_COMPLETER;
-            	csym.flags_field = specDecl.mods.flags;
-            	var ct = (ClassType)csym.type;
-            	if (specDecl.extending != null) ct.supertype_field = specDecl.extending.type = Attr.instance(context).attribType(specDecl.extending,env);
-            	else if ((specDecl.mods.flags & Flags.INTERFACE) == 0) ct.supertype_field = syms.objectType;
-            	csym.sourcefile = cowner.sourcefile;
-            	csym.members_field = WriteableScope.create(csym);
-            	ct.typarams_field = List.from(cowner.type.getTypeArguments());
-            	owner.members().enter(csym);
-            }
-			if (utils.verbose()) utils.note("Entering JML class: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
-			if (utils.verbose()) utils.note("Entering JML class - owner: " + owner.members());
-		} else {
-			// owner has a binary/source class corresponding to specDecl, namely csym
-    		boolean matchIsJML = utils.isJML(csym.flags());
-			if (isJML) {
-				if (matchIsJML) {
-					if (javaDecl.sym != csym) {
-						JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csym);
-						utils.error(specDecl, "jml.message", "This JML class declaration conflicts with a previous JML class: " + specDecl.name + " (owner: " + owner +")");
-						if (tspecs != null) utils.error(tspecs.decl, "jml.associated.decl.cf", utils.locationString(specDecl.pos, log.currentSourceFile()));
-						return;
+			if (csym == null) {
+				// owner has no binary/source class corresponding to specDecl
+				if (!isJML) {
+					utils.error(specDecl, "jml.message", "There is no binary class to match this Java declaration in the specification file: " + className + " (owner: " + owner +")");
+					return ok;
+				}
+				if (!isGhostOrModel && !isOwnerJML) {
+					utils.error(specDecl, "jml.message", "A JML class declaration must be marked either ghost or model: " + className + " (owner: " + owner +")");
+					return ok;
+				}
+				// Enter the class in the package or the parent class
+				if (owner instanceof PackageSymbol) {
+					PackageSymbol powner = (PackageSymbol)owner;
+					csym = syms.enterClass(specsEnv.toplevel.modle, specDecl.name, powner);
+					csym.completer = Completer.NULL_COMPLETER;
+					csym.sourcefile = powner.sourcefile;
+					// The following cloned from Enter.java
+					if ((specDecl.mods.flags & PUBLIC) != 0 && !classNameMatchesFileName(csym, specsEnv)) {
+						KindName topElement = KindName.CLASS;
+						if ((specDecl.mods.flags & ENUM) != 0) {
+							topElement = KindName.ENUM;
+						} else if ((specDecl.mods.flags & INTERFACE) != 0) {
+							topElement = KindName.INTERFACE;
+						}
+						log.error(specDecl.pos(),
+								Errors.ClassPublicShouldBeInFile(topElement, specDecl.name));
 					}
+				} else { // owner is a ClassSymbol
+					ClassSymbol cowner = (ClassSymbol)owner;
+					csym = syms.enterClass(specsEnv.toplevel.modle, specDecl.name, cowner);
+					csym.completer = Completer.NULL_COMPLETER;
+					csym.sourcefile = cowner.sourcefile;
+					((ClassType)csym.type).typarams_field = List.from(cowner.type.getTypeArguments());
+				}
+				csym.flags_field = specDecl.mods.flags;
+				var ct = (ClassType)csym.type;
+				if (specDecl.extending != null) ct.supertype_field = specDecl.extending.type = Attr.instance(context).attribType(specDecl.extending,env);
+				else if ((specDecl.mods.flags & Flags.INTERFACE) == 0) ct.supertype_field = syms.objectType;
+				csym.members_field = WriteableScope.create(csym);
+				owner.members().enter(csym);
+				if (utils.verbose()) utils.note("Entering JML class: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
+			} else {
+				// owner has a binary/source class corresponding to specDecl, namely csym
+				boolean matchIsJML = utils.isJML(csym.flags());
+				if (isJML) {
+					if (!isGhostOrModel && !isOwnerJML) {
+						utils.error(specDecl, "jml.message", "A JML class declaration must be marked either ghost or model: " + className + " (owner: " + owner +")");
+						owner.members().remove(csym);
+						return ok;
+					}
+					if (matchIsJML) {
+						if (javaDecl.sym != csym) {
+							JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csym);
+							utils.error(specDecl, "jml.message", "This JML class declaration conflicts with a previous JML class: " + specDecl.name + " (owner: " + owner +")");
+							if (tspecs != null) {
+								utils.error(tspecs.decl, "jml.associated.decl.cf", utils.locationString(specDecl.pos, log.currentSourceFile()));
+								owner.members().remove(csym);
+								return ok;
+							}
+						}
+					} else {
+						utils.error(specDecl, "jml.message", "This JML class declaration conflicts with an existing binary class with the same name: " + className + " (owner: " + owner +")");
+						owner.members().remove(csym);
+						return ok;
+					}
+				}
+				if (!isJML && matchIsJML) {
+					JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csym);
+					utils.error(specDecl, "jml.message", "This method declaration conflicts with a previous JML method: " + specDecl.name + " (owner: " + csym +")");
+					if (tspecs != null) {
+						utils.error(tspecs.decl, "jml.associated.decl.cf", utils.locationString(specDecl.pos, log.currentSourceFile()));
+						owner.members().remove(csym);
+						return ok;
+					}
+				}
+				if (!isJML && isGhostOrModel) {
+					var pos = utils.locMod(specDecl.mods, Modifiers.GHOST, Modifiers.MODEL);
+					utils.error(pos, "jml.message", "A Java class declaration must not be marked either ghost or model: " + className + " (owner: " + owner +")");
+					return ok;
+				}
+				if (utils.verbose()) utils.note("Matched class: " + csym + " (owner: " + csym.owner +")" );
+			}
+			specDecl.sym = csym;
+			for (int i = 0; i < specDecl.typarams.length(); ++i) specDecl.typarams.get(i).type = csym.type.getTypeArguments().get(i).tsym.type;
+			Env<AttrContext> localEnv = classEnv(specDecl, specsEnv);
+			TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localEnv);
+			if (typeEnvs.get(csym) == null) {
+				((ClassType)csym.type).typarams_field = classEnter(specDecl.typarams, localEnv); // FIXME - what does this do???
+				typeEnvs.put(csym, localEnv);
+			}
+			var tspecs = new JmlSpecs.TypeSpecs(specDecl, localEnv);
+			if (csym != null) JmlSpecs.instance(context).putSpecs(csym, tspecs);
+
+			// Do all nested classes, so their names are known later when attributing types of methods and fields
+			ListBuffer<JCTree> newdefs = new ListBuffer<JCTree>();
+			for (JCTree t: specDecl.defs) {
+				if (t instanceof JmlClassDecl) {
+					JmlClassDecl st = (JmlClassDecl)t;
+					JmlClassDecl jt = findClass(st.name, javaDecl);
+					var okk = specsClassEnter(csym, st, localEnv, jt);
+					if (okk) newdefs.add(t);
 				} else {
-					utils.error(specDecl, "jml.message", "This JML class declaration conflicts with an existing binary class with the same name: " + className + " (owner: " + owner +")");
-					return;
+					newdefs.add(t);
 				}
 			}
-			if (!isJML && matchIsJML) {
-	    		JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csym);
-				utils.error(specDecl, "jml.message", "This method declaration conflicts with a previous JML method: " + specDecl.name + " (owner: " + csym +")");
-				if (tspecs != null) utils.error(tspecs.decl, "jml.associated.decl.cf", utils.locationString(specDecl.pos, log.currentSourceFile()));
-				return;
-			}
-			if (!isJML && isGhostOrModel) {
-				var pos = utils.locMod(specDecl.mods, Modifiers.GHOST, Modifiers.MODEL);
-				utils.error(pos, "jml.message", "A Java class declaration must not be marked either ghost or model: " + className + " (owner: " + owner +")");
-				return;
-			}
-			if (utils.verbose()) utils.note("Matched class: " + csym + " (owner: " + csym.owner +")" );
-		}
-		specDecl.sym = csym;
-		for (int i = 0; i < specDecl.typarams.length(); ++i) specDecl.typarams.get(i).type = csym.type.getTypeArguments().get(i).tsym.type;
-		Env<AttrContext> localEnv = classEnv(specDecl, specsEnv);
-		TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localEnv);
-        if (typeEnvs.get(csym) == null) {
-    		((ClassType)csym.type).typarams_field = classEnter(specDecl.typarams, localEnv); // FIXME - what does this do???
-        	typeEnvs.put(csym, localEnv);
-        }
-		var tspecs = new JmlSpecs.TypeSpecs(specDecl, localEnv);
-		if (csym != null) JmlSpecs.instance(context).putSpecs(csym, tspecs);
-
-        // Do all nested classes, so their names are known later when attributing types of methods and fields
-		for (JCTree t: specDecl.defs) {
-			if (t instanceof JmlClassDecl) {
-				JmlClassDecl st = (JmlClassDecl)t;
-				JmlClassDecl jt = findClass(st.name, javaDecl);
-				specsClassEnter(csym, st, localEnv, jt);
+			specDecl.defs = newdefs.toList();
+			ok = true;
+		} finally {
+			if (!ok && csym != null) {
+				JmlSpecs.instance(context).setStatus(csym, JmlSpecs.SpecsStatus.ERROR);
+				owner.members().remove(csym);
 			}
 		}
+		return ok;
     }
     
     public <T> T find(List<T> list, java.util.function.Predicate<T> pred) {
@@ -641,9 +693,6 @@ public class JmlEnter extends Enter {
 					mdecl.mods.annotations = mdecl.mods.annotations.append(classIsPure);
 				}
 				specs.putSpecs(ms, specs.defaultSpecs(mdecl,ms,com.sun.tools.javac.util.Position.NOPOS), null); // FIXME - what to use for specsEnv -- there might be parameters to attribute
-	            if (m.toString().contains("good")) {
-	        		System.out.println("DEFAULT-E " + ms.owner + "." + ms + " " + specs.get(ms));
-	            }
 			}
 		}
 
@@ -765,7 +814,12 @@ public class JmlEnter extends Enter {
     
     public void specsEnter(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> specsEnv, JmlClassDecl javaDecl) {
 		boolean isJML = utils.isJML(mdecl);
+		boolean isOwnerJML = utils.isJML(csym.flags());
 		boolean isGhostOrModel = utils.hasMod(mdecl.mods, Modifiers.GHOST) || utils.hasMod(mdecl.mods, Modifiers.MODEL);
+		if (isOwnerJML && isGhostOrModel) {
+			utils.error(mdecl, "jml.message", "A model type may not contain model declarations: " + mdecl.name + " in " + csym);
+			// TODO - remove mo0del/ghost annotations
+		}
 		Symbol.MethodSymbol msym = findMethod(csym, mdecl, specsEnv);
     	if (msym == null) {
 			// No corresponding binary method
@@ -776,7 +830,7 @@ public class JmlEnter extends Enter {
 				}
 				return;
     		}
-			if (!isGhostOrModel && !utils.isJML(csym.flags())) {
+			if (!isGhostOrModel && !isOwnerJML) {
 				utils.error(mdecl, "jml.message", "A JML method declaration must be marked either ghost or model: " + mdecl.name + " (owner: " + csym +")");
 				return;
 			}
@@ -865,7 +919,12 @@ public class JmlEnter extends Enter {
     
     public void specsEnter(ClassSymbol csym, JmlVariableDecl vdecl, Env<AttrContext> specsEnv, JmlClassDecl javaDecl) {
 		boolean isJML = utils.isJML(vdecl);
+		boolean isOwnerJML = utils.isJML(csym.flags());
 		boolean isGhostOrModel = utils.hasMod(vdecl.mods, Modifiers.GHOST) || utils.hasMod(vdecl.mods, Modifiers.MODEL);
+		if (isOwnerJML && isGhostOrModel) {
+			utils.error(vdecl, "jml.message", "A model type may not contain model declarations: " + vdecl.name + " in " + csym);
+			// TODO - remove mo0del/ghost annotations
+		}
     	Symbol.VarSymbol vsym = findVar(csym, vdecl, specsEnv);
     	if (vsym == null) {
 			// No corresponding binary field
@@ -873,7 +932,7 @@ public class JmlEnter extends Enter {
 				utils.error(vdecl, "jml.message", "There is no binary field to match this Java declaration in the specification file: " + vdecl.name + " (owner: " + csym +")");
 				return;
     		}
-			if (!isGhostOrModel) {
+			if (!isGhostOrModel && !isOwnerJML) {
 				utils.error(vdecl, "jml.message", "A JML field declaration must be marked either ghost or model: " + vdecl.name + " (owner: " + csym +")");
 				return;
 			}
