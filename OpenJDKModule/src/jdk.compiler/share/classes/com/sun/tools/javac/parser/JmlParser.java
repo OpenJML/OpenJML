@@ -1017,7 +1017,7 @@ public class JmlParser extends JavacParser {
                             JmlBlock d = (JmlBlock) tr;
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                             attach(d, dc);
-                            d.cases = currentMethodSpecs;
+                            d.specificationCases = currentMethodSpecs;
                             if (currentMethodSpecs != null) {
                                 currentMethodSpecs.decl = null; // FIXME - point to the block?
                                 currentMethodSpecs = null;

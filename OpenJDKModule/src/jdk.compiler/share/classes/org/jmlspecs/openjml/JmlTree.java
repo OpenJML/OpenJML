@@ -1086,7 +1086,7 @@ public class JmlTree {
     	
         public JmlModifiers(long flags, List<JCAnnotation> annotations, java.util.List<JmlToken> jmlmods) {
     		super(flags, annotations);
-    		this.jmlmods.addAll(jmlmods);
+    		if (jmlmods != null) this.jmlmods.addAll(jmlmods);
     	}
     	
     	public void add(JmlToken k) {
@@ -1363,19 +1363,11 @@ public class JmlTree {
         /** The file containing this declaration */
         public JavaFileObject sourcefile;
 
-        /** The declaration in the jml file, 
-         * or null if there is a jml file but no declaration of this method in it, 
-         * or the same as the java declaration if there is no jml file
-         * (set in JmlMemberEnter); set to self in the parser for 
-         * methods in anonymous classes.
-         */
-        /*@nullable*/ public JmlMethodDecl specsDecl; 
+        /** The specs for the block, along with attribution status and env, computed during attribution */
+        public JmlSpecs.BlockSpecs blockSpecs; 
 
-        /** The final, combined specs from all sources (set in JmlMemberEnter);
-         * set to self in parser for methods in anonymous classes */
-        public JmlSpecs.MethodSpecs methodSpecsCombined; 
-
-        public JmlMethodSpecs cases;  // FIXME - change to JmlSpecificationCase?
+        /** The specs for the block, as parsed */
+        public JmlMethodSpecs specificationCases;
 
         public String docComment = null; // FIXME - clarify why needed
         public VarSymbol _this = null; // The Symbol for 'this' inside the method, if not static;
@@ -1384,7 +1376,6 @@ public class JmlTree {
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         public JmlBlock(long flags, List<JCStatement> stats) {
             super(flags, stats);
-            specsDecl = null;
             sourcefile = null;
         }
         

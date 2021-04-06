@@ -581,8 +581,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		else if (d instanceof JCClassDecl) specs.getSpecs(((JCClassDecl)d).sym);
     		else if (d instanceof JmlBlock) {
     			JmlBlock bl = (JmlBlock)d;
-    			if (bl.methodSpecsCombined != null) {
-    				attrSpecs(bl.methodSpecsCombined.msym);
+    			//System.out.println("FOUND BLOCK POTENTIAL SPECS " + " " + bl + " " + bl.blockSpecs);
+    			if (bl.blockSpecs != null) {
+    				attrSpecs(bl.blockSpecs);
     			}
     		}
     	//	else     		System.out.println("DECL " + d.getClass() + " " + d);
@@ -674,73 +675,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         super.visitBlock(tree);
         if (env.info.scope.owner.kind == TYP || env.info.scope.owner.kind == ERR) {
-           // FIXME - if we are in a spec source file that is not Java, we may not have one of these - error
-            JmlSpecs.MethodSpecs msp = JmlSpecs.instance(context).getSpecs(env.enclClass.sym,tree);
-            //if (attribSpecs && sp != null) {
-            if (msp != null) {
-                JmlMethodSpecs sp = msp.cases;
-                Symbol fakeOwner =
-                        new MethodSymbol(tree.flags | BLOCK |
-                            env.info.scope.owner.flags() & STRICTFP, names.empty, null,
-                            env.info.scope.owner);
-                final Env<AttrContext> localEnv =
-                        env.dup(tree, env.info.dup(env.info.scope.dupUnshared(fakeOwner)));
-                if (isStatic(tree.flags)) localEnv.info.staticLevel++;
-                //boolean prev = attribSpecs;
-                //attribSpecs = true;
-                attribStat(sp,localEnv);
-
-                //attribSpecs = prev;
-            }
+            // An initialization block within a class -- we create a BlockSpecs, now that we know the env
+            
+        	JmlBlock block = (JmlBlock)tree;
+        	Symbol fakeOwner =
+        			new MethodSymbol(tree.flags | BLOCK |
+        					env.info.scope.owner.flags() & STRICTFP, names.empty, null,
+        					env.info.scope.owner);
+        	final Env<AttrContext> localEnv =
+        			env.dup(tree, env.info.dup(env.info.scope.dupUnshared(fakeOwner)));
+        	if (isStatic(tree.flags)) localEnv.info.staticLevel++;
+        	JmlModifiers mods = jmlMaker.Modifiers(block.flags, null, null); // TODO - allow annotations?
+        	//System.out.println("CREATED BLOCK SPEC " + block.specificationCases);
+        	block.blockSpecs = new JmlSpecs.BlockSpecs(mods,block.specificationCases, localEnv);
         }
-//        } else {
-//            // Method blocks
-//            
-//            boolean topMethodBodyBlock = env.enclMethod != null &&
-//                                            env.enclMethod.body == tree;
-//            if (topMethodBodyBlock) {
-//                // Scope is not duplicated
-//                enclosingMethodEnv = env.dup(env.tree,env.info.dupUnshared());
-//            }
-//
-//            //if (!isStatic(env.enclMethod.mods.flags)) {
-//            if (env.info.staticLevel == 0 && topMethodBodyBlock) {
-//                ((JmlMethodDecl)env.enclMethod)._this = (VarSymbol)thisSym(tree.pos(),enclosingMethodEnv);
-//            }
-//            
-//            if (env.enclMethod != null &&
-//                    env.enclMethod.body == tree) {
-//                // Note: we cannot just cache the current value of env for use later.
-//                // This is because the envs are presumed to be nested and share their
-//                // symbol tables.  Access to scopes is presumed to be nested - in Java
-//                // a reference to an identifier is always resolved in the current scope first,
-//                // not in an enclosing scope.  However, JML has the \old operator which gives
-//                // access to the scope at method definition time from within other nestings.
-//                boolean prevAllowJML = jmlresolve.setAllowJML(true);
-//                JmlSpecs.MethodSpecs sp = specs.getSpecs(((JmlMethodDecl)env.enclMethod).sym);//((JmlMethodDecl)env.enclMethod).methodSpecsCombined; //specs.getSpecs(env.enclMethod.sym);
-//                VarSymbol savedSecret = currentSecretContext;
-//                VarSymbol savedQuery = currentQueryContext;
-//                try {
-//                    currentSecretContext = sp.secretDatagroup;
-//                    currentQueryContext = null;
-////                  if (enclosingMethodEnv == null) {
-//                    // FIXME - This can happen for anonymous classes, so I expect that
-//                    // specs (or at least \old) in anonymous classes will cause disaster
-////                  log.getWriter(WriterKind.NOTICE).println("DISASTER-2 AWAITS: " + env.enclMethod.name);
-////                  log.getWriter(WriterKind.NOTICE).println(env.enclMethod);
-////                  }
-//                    if (sp != null && sp.cases != null) sp.cases.accept(this);
-////                  if (enclosingMethodEnv == null) {
-////                  log.getWriter(WriterKind.NOTICE).println("DODGED-2: " + env.enclMethod.name);
-//                    deSugarMethodSpecs(((JmlMethodDecl)env.enclMethod),sp);
-//
-////                  }
-//                } finally {
-//                    currentSecretContext = savedSecret;
-//                    currentQueryContext = savedQuery;
-//                    jmlresolve.setAllowJML(prevAllowJML);
-//                }
-//            }
     }
     
     @Override
@@ -3230,6 +3178,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case "diverges":
             case "when":
             case "returns":
+            	//System.out.println("EXPRCLAUSE " + tree);
                 attribExpr(tree.expression, env, syms.booleanType);
                 break;
                 
@@ -4799,6 +4748,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // and type-checking a whole new class - so we unset this field
             // in the mean time.
             super.visitIdent(tree);
+//        	if (tree.name.toString().equals("i")) {
+//        		System.out.println("VID " + tree.sym + " " + tree.type + " " + tree.sym.isStatic() + " " + env.info.staticLevel);
+//        	}
         } finally {
             jmlVisibility = prevVisibility;
             currentClauseType = prevClauseType;
@@ -7024,7 +6976,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			}
     		} catch (Exception e) {
     			if (e instanceof PropagatedException) throw e;
-    			utils.note(false, "Exception while attributing specs for " + msym);
+    			utils.note("Exception while attributing specs for " + msym);
     			throw new PropagatedException(new RuntimeException(e));
     		} finally {
     			specs.setStatus(msym, JmlSpecs.SpecsStatus.SPECS_ATTR);
@@ -7060,6 +7012,29 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		e.printStackTrace(System.out);
     	} finally {
     		log.useSource(prev);
+    	}
+    }
+    
+    public void attrSpecs(JmlSpecs.BlockSpecs bspecs) {
+    	//System.out.println("ATTRIBUTING BLOCK SPEC " + bspecs.specCases + " "  + bspecs.status);
+    	//System.out.println("ATTRIBUTING BLOCK SPEC-ENV " + bspecs.specsEnv.enclClass + " "  + bspecs.specsEnv.info.staticLevel);
+    	if (!bspecs.status.less(JmlSpecs.SpecsStatus.SPECS_ATTR)) return;
+    	var prevEnv = this.env;
+    	var prevMEnv = this.enclosingMethodEnv;
+    	var prevCEnv = this.enclosingClassEnv;
+    	this.env = bspecs.specsEnv;
+    	this.enclosingMethodEnv = null;
+    	this.enclosingClassEnv = env;
+    	try {
+        	if (bspecs.specCases != null) for (var c: bspecs.specCases.cases) {
+    			//System.out.println("CASE " + c);
+    			visitJmlSpecificationCase(c);
+    		}
+    	} finally {
+    		this.env = prevEnv;
+    		this.enclosingMethodEnv = prevMEnv;
+    		this.enclosingClassEnv = prevCEnv;
+    		bspecs.status = JmlSpecs.SpecsStatus.SPECS_ATTR;
     	}
     }
     
