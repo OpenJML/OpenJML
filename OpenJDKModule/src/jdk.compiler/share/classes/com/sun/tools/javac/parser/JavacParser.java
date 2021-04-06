@@ -3786,7 +3786,12 @@ public class JavacParser implements Parser {
             nextToken();
             return toP(F.at(pos).Skip());
         } else {
-            return classOrRecordOrInterfaceOrEnumDeclaration(modifiersOpt(mods), docComment);
+        	if (org.jmlspecs.openjml.Utils.debug()) System.out.println("TOKEN " + token);
+            var x = classOrRecordOrInterfaceOrEnumDeclaration(modifiersOpt(mods), docComment);
+            if (x == null) {
+            	x = F.at(pos).Exec(F.at(pos).Erroneous());
+            }
+            return x;
         }
     }
 

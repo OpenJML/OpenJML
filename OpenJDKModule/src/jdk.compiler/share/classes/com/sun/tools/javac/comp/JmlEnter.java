@@ -431,7 +431,8 @@ public class JmlEnter extends Enter {
     // FIXME - document
     public void specsEnter(JmlCompilationUnit speccu) {
     	if (utils.verbose()) utils.note("Entering declarations from specification file " + speccu.sourcefile);
-		var prev = log.useSource(speccu.sourcefile);
+		boolean isSameFile = speccu.sourceCU == speccu;
+    	var prev = log.useSource(speccu.sourcefile);
 		try {
 
 			String flatPackageName = speccu.pid == null ? "" : speccu.pid.pid.toString();
@@ -465,7 +466,7 @@ public class JmlEnter extends Enter {
 				if (!(decl instanceof JmlClassDecl)) continue;
 				var specDecl = (JmlClassDecl)decl;
 				javaDecl = findClass(specDecl.name, javacu);
-				specsMemberEnter(p, specDecl, javaDecl);
+				specsMemberEnter(p, specDecl, javaDecl, isSameFile);
 			}
 		} finally {
 			log.useSource(prev);
@@ -633,7 +634,7 @@ public class JmlEnter extends Enter {
 		return jt;
     }
     
-    public void specsMemberEnter(Symbol owner, JmlClassDecl specDecl, JmlClassDecl javaDecl) {
+    public void specsMemberEnter(Symbol owner, JmlClassDecl specDecl, JmlClassDecl javaDecl, boolean isSameCU) {
 		// Already know that jdecl.name matches jdecl.sym.name
 		ClassSymbol csym = specDecl.sym;
 		JmlSpecs specs = JmlSpecs.instance(context);
@@ -662,9 +663,9 @@ public class JmlEnter extends Enter {
 		boolean hasInstanceInit = false;
 		for (JCTree t: specDecl.defs) {
 			if (t instanceof JmlMethodDecl) {
-				specsEnter(csym, (JmlMethodDecl)t, specsEnv, javaDecl);
+				specsEnter(csym, (JmlMethodDecl)t, specsEnv, javaDecl, isSameCU);
 			} else if (t instanceof JmlVariableDecl) {
-				specsEnter(csym, (JmlVariableDecl)t, specsEnv, javaDecl);
+				specsEnter(csym, (JmlVariableDecl)t, specsEnv, javaDecl, isSameCU);
 			} else if (t instanceof JmlBlock) {
 				if (specDecl != javaDecl) {
 					utils.error(t, "jml.initializer.block.allowed");
@@ -699,7 +700,7 @@ public class JmlEnter extends Enter {
  		for (JCTree t: specDecl.defs) {
 			if (t instanceof JmlClassDecl) {
 				JmlClassDecl st = (JmlClassDecl)t;
-				specsMemberEnter(csym, st, findClass(st.name, javaDecl));
+				specsMemberEnter(csym, st, findClass(st.name, javaDecl), isSameCU);
 			}
 		}
     }
@@ -812,7 +813,7 @@ public class JmlEnter extends Enter {
     	return tree.sym;
     }
     
-    public void specsEnter(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> specsEnv, JmlClassDecl javaDecl) {
+    public void specsEnter(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> specsEnv, JmlClassDecl javaDecl, boolean isSameCU) {
 		boolean isJML = utils.isJML(mdecl);
 		boolean isOwnerJML = utils.isJML(csym.flags());
 		boolean isGhostOrModel = utils.hasMod(mdecl.mods, Modifiers.GHOST) || utils.hasMod(mdecl.mods, Modifiers.MODEL);
@@ -842,6 +843,9 @@ public class JmlEnter extends Enter {
 				mdecl.params.get(i).type = s.type;
 			}
 			
+			if (!isGhostOrModel && mdecl.body != null) {
+				utils.error(mdecl.body, "jml.message", "The specification of the method " + csym + "." + msym + " must not have a body");;
+			}
 			utils.note(true,  "Entered JML method: " + msym + " (owner: " + csym + ")" );
     	} else {
 			// Found a matching binary method
@@ -857,7 +861,8 @@ public class JmlEnter extends Enter {
 						return;
 					}
 				} else {
-					utils.error(mdecl, "jml.message", "This JML method declaration conflicts with an existing binary method with the same name: " + mdecl.name + " (owner: " + csym +")");
+					// If isSameCU, already reported as duplicate during MemberEnter
+					if (!isSameCU) utils.error(mdecl, "jml.message", "This JML method declaration conflicts with an existing binary method with the same name: " + mdecl.name + " (owner: " + csym +")");
 					return;
 				}
 			}
@@ -871,6 +876,9 @@ public class JmlEnter extends Enter {
 				var pos = utils.locMod(mdecl.mods, Modifiers.GHOST, Modifiers.MODEL);
 				utils.error(pos, "jml.message", "A Java method declaration must not be marked either ghost or model: " + mdecl.name + " (owner: " + csym +")");
 				return;
+			}
+			if (!isGhostOrModel && mdecl.body != null && !isSameCU && ((msym.flags() & Flags.GENERATEDCONSTR) == 0)) {
+				utils.error(mdecl.body, "jml.message", "The specification of the method " + csym + "." + msym + " must not have a body");;
 			}
 			boolean b = JmlCheck.instance(context).noDuplicateWarn;
 			JmlCheck.instance(context).noDuplicateWarn = true;
@@ -917,77 +925,92 @@ public class JmlEnter extends Enter {
     	return null;
     }
     
-    public void specsEnter(ClassSymbol csym, JmlVariableDecl vdecl, Env<AttrContext> specsEnv, JmlClassDecl javaDecl) {
+    public void specsEnter(ClassSymbol csym, JmlVariableDecl vdecl, Env<AttrContext> specsEnv, JmlClassDecl javaDecl, boolean isSameCU) {
 		boolean isJML = utils.isJML(vdecl);
 		boolean isOwnerJML = utils.isJML(csym.flags());
 		boolean isGhostOrModel = utils.hasMod(vdecl.mods, Modifiers.GHOST) || utils.hasMod(vdecl.mods, Modifiers.MODEL);
-		if (isOwnerJML && isGhostOrModel) {
-			utils.error(vdecl, "jml.message", "A model type may not contain model declarations: " + vdecl.name + " in " + csym);
-			// TODO - remove mo0del/ghost annotations
-		}
-    	Symbol.VarSymbol vsym = findVar(csym, vdecl, specsEnv);
-    	if (vsym == null) {
-			// No corresponding binary field
-    		if (!isJML) {
-				utils.error(vdecl, "jml.message", "There is no binary field to match this Java declaration in the specification file: " + vdecl.name + " (owner: " + csym +")");
-				return;
-    		}
-			if (!isGhostOrModel && !isOwnerJML) {
-				utils.error(vdecl, "jml.message", "A JML field declaration must be marked either ghost or model: " + vdecl.name + " (owner: " + csym +")");
-				return;
+		boolean ok = false;
+		Symbol.VarSymbol vsym = findVar(csym, vdecl, specsEnv);
+		try {
+			if (isOwnerJML && isGhostOrModel) {
+				utils.error(vdecl, "jml.message", "A model type may not contain model declarations: " + vdecl.name + " in " + csym);
+				// TODO - remove mo0del/ghost annotations
 			}
-			// Enter the class in the package or the parent class
-			
-			MemberEnter me = MemberEnter.instance(context);
-			var savedEnv = me.env;
-			me.env = specsEnv;
-			me.visitVarDef(vdecl);
-			vdecl.type = vdecl.sym.type;
-			vsym = vdecl.sym;
-			me.env = savedEnv;
-
-	        if (utils.verbose()) utils.note("Entered JML field: " + vsym.type + " " + vsym + " (owner: " + vsym.owner + ")");
-    	} else {
-			// Found a matching binary field
-    		final var vvsym = vsym;
-    		JmlVariableDecl javaVDecl = javaDecl == null ? null : (JmlVariableDecl)find(javaDecl.defs,t->(t instanceof JmlVariableDecl && ((JmlVariableDecl)t).sym == vvsym));
-       		boolean matchIsJML = utils.isJML(vsym.flags());
-			if (isJML) {
-				if (matchIsJML) {
-					if (javaVDecl == null) {
-						JmlSpecs.FieldSpecs fspecs = JmlSpecs.instance(context).getSpecs(vsym);
-						utils.error(vdecl, "jml.message", "This JML field declaration conflicts with a previous JML field: " + vdecl.name + " (owner: " + csym +")");
-						utils.error(fspecs.decl, "jml.associated.decl.cf", utils.locationString(vdecl.pos, log.currentSourceFile()));
-						return;
-					}
-				} else {
-					utils.error(vdecl, "jml.message", "This JML field declaration conflicts with an existing binary field with the same name: " + vdecl.name + " (owner: " + csym +")");
+			if (vsym == null) {
+				// No corresponding binary field
+				if (!isJML) {
+					utils.error(vdecl, "jml.message", "There is no binary field to match this Java declaration in the specification file: " + vdecl.name + " (owner: " + csym +")");
 					return;
 				}
-			}
-			if (!isJML && matchIsJML) {
-	    		JmlSpecs.FieldSpecs fspecs = JmlSpecs.instance(context).getSpecs(vsym);
-				utils.error(vdecl, "jml.message", "This Java field declaration conflicts with a previous JML field: " + vdecl.name + " (owner: " + csym +")");
-				utils.error(fspecs.decl, "jml.associated.decl.cf", utils.locationString(vdecl.pos, log.currentSourceFile()));
-				return;
-			}
-			if (!isJML && isGhostOrModel) {
-				var pos = utils.locMod(vdecl.mods, Modifiers.GHOST, Modifiers.MODEL);
-				utils.error(pos, "jml.message", "A Java field declaration must not be marked either ghost or model: " + vdecl.name + " (owner: " + csym +")");
-				return;
-			}
-			Type t = vdecl.type = vdecl.vartype.type = JmlAttr.instance(context).attribType(vdecl.vartype, specsEnv);
-	    	boolean ok = true;
-			if (!JmlTypes.instance(context).isSameType(t, vsym.type)) {
-	    		utils.error(vdecl.vartype, "jml.message", "Type of field " + vdecl.name + " in specification differs from type in source/binary: " + t + " vs. " + vsym.type);
-	    		ok = false;
-			}
-	    	// match flags, annotations
+				if (!isGhostOrModel && !isOwnerJML) {
+					utils.error(vdecl, "jml.message", "A JML field declaration must be marked either ghost or model: " + vdecl.name + " (owner: " + csym +")");
+					return;
+				}
+				// Enter the class in the package or the parent class
 
-			vdecl.sym = vsym;
-			if (ok) utils.note(true,  "Matched field: " + vsym + " (owner: " + csym +")" );
-    	}
-		if (vsym != null) JmlSpecs.instance(context).putSpecs(vsym, vdecl.fieldSpecs);
+				MemberEnter me = MemberEnter.instance(context);
+				var savedEnv = me.env;
+				me.env = specsEnv;
+				me.visitVarDef(vdecl);
+				vdecl.type = vdecl.sym.type;
+				vsym = vdecl.sym;
+				me.env = savedEnv;
+
+				if (utils.verbose()) utils.note("Entered JML field: " + vsym.type + " " + vsym + " (owner: " + vsym.owner + ")");
+			} else {
+				// Found a matching binary field
+				final var vvsym = vsym;
+				JmlVariableDecl javaVDecl = javaDecl == null ? null : (JmlVariableDecl)find(javaDecl.defs,t->(t instanceof JmlVariableDecl && ((JmlVariableDecl)t).sym == vvsym));
+				boolean matchIsJML = utils.isJML(vsym.flags());
+				if (isJML) {
+					if (matchIsJML) {
+						if (javaVDecl == null) {
+							JmlSpecs.FieldSpecs fspecs = JmlSpecs.instance(context).getSpecs(vsym);
+							utils.error(vdecl, "jml.message", "This JML field declaration conflicts with a previous JML field: " + vdecl.name + " (owner: " + csym +")");
+							utils.error(fspecs.decl, "jml.associated.decl.cf", utils.locationString(vdecl.pos, log.currentSourceFile()));
+							return;
+						}
+					} else {
+						if (!isSameCU) utils.error(vdecl, "jml.message", "This JML field declaration conflicts with an existing field with the same name: " + vdecl.name + " (owner: " + csym +")");
+						return;
+					}
+				}
+				if (!isJML && matchIsJML) {
+					JmlSpecs.FieldSpecs fspecs = JmlSpecs.instance(context).getSpecs(vsym);
+					utils.error(vdecl, "jml.message", "This Java field declaration conflicts with a previous JML field: " + vdecl.name + " (owner: " + csym +")");
+					utils.error(fspecs.decl, "jml.associated.decl.cf", utils.locationString(vdecl.pos, log.currentSourceFile()));
+					return;
+				}
+				if (!isJML && isGhostOrModel) {
+					var pos = utils.locMod(vdecl.mods, Modifiers.GHOST, Modifiers.MODEL);
+					utils.error(pos, "jml.message", "A Java field declaration must not be marked either ghost or model: " + vdecl.name + " (owner: " + csym +")");
+					return;
+				}
+				Type t = vdecl.type = vdecl.vartype.type = JmlAttr.instance(context).attribType(vdecl.vartype, specsEnv);
+				ok = true;
+				boolean loaded = !JmlSpecs.instance(context).status(vsym).less(JmlSpecs.SpecsStatus.SPECS_LOADED);
+				if (loaded) {
+					JmlVariableDecl prevDecl = JmlSpecs.instance(context).getLoadedSpecs(vsym).decl;
+					if (!isSameCU) { // if isSameCU==true, there already is a error about duplicate definition in MemberEnter
+						utils.error(vdecl, "jml.message", "This specification declaration of field " + vdecl.name + " has the same name as a previous field declaration");
+						utils.error(prevDecl.source(), prevDecl.pos, "jml.associated.decl.cf", utils.locationString(vdecl.pos, vdecl.source()));
+					}
+					ok = false;
+				}
+				if (!JmlTypes.instance(context).isSameType(t, vsym.type) && !loaded) {
+					utils.error(vdecl.vartype, "jml.message", "Type of field " + vdecl.name + " in specification differs from type in source/binary: " + t + " vs. " + vsym.type);
+					ok = false;
+				}
+				// match flags, annotations
+
+				vdecl.sym = vsym;
+				if (ok) utils.note(true,  "Matched field: " + vsym + " (owner: " + csym +")" );
+			}
+		} finally {
+			if (vsym != null && ok) {
+				JmlSpecs.instance(context).putSpecs(vsym, vdecl.fieldSpecs);
+			}
+		}
     }
 
     
