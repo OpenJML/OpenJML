@@ -431,6 +431,10 @@ public abstract class JmlTestCase {
     public static String doReplacements(String s) {
         return s.replace("$ROOT",JmlTestCase.root).replace("$SPECS",specsdir).replace("$STRL", JmlTestCase.streamLine);
     }
+    
+    public void setDeprecation() {
+        Options.instance(context).put("-Xlint:deprecation","true");
+    }
 
 }
 

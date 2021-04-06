@@ -3,6 +3,8 @@ package org.jmlspecs.openjmltest.testcases;
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
 
+import com.sun.tools.javac.util.Options;
+
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class typeclauses extends TCBase {
 
@@ -385,7 +387,7 @@ public class typeclauses extends TCBase {
     @Test
     public void testRepresents17() {
         expectedExit = 0;
-        main.addOptions("-deprecation");
+        setDeprecation();
         helpTCF("A.java","public class A {\n static int j; //@  model static int i; static represents i <- j;\n}"
                 ,"/A.java:2: warning: The left arrow is deprecated in represents clauses, use = instead",61
                 );

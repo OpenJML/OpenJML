@@ -352,7 +352,7 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseConditional");
+            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseConditional");
         }
 
         @Override
@@ -363,7 +363,7 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseDecl");
+            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseDecl");
         }
 
         @Override
@@ -383,12 +383,12 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseInitializer");
+            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseInitializer");
         }
 
         @Override
         public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseMaps");
+            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseMaps");
         }
 
         @Override
@@ -409,7 +409,7 @@ public class JmlFlow extends Flow  {
         }
 
         public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlModelProgramStatement");
+            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlModelProgramStatement");
         }
         
      // Instead of overriding visitClassDef (which does a lot of processing), a hook

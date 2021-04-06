@@ -572,17 +572,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param c the current class
      * @param prevIsInJmlDeclaration true if we are in a non-model JML declaration  (FIXME - this needs better evaluation)
      */
-    public void attribClassBodySpecs(ClassSymbol c) {
+    public void attribClassBodySpecs(JmlClassDecl c) {
 
-        System.out.println("TYPECHECKING SPECS FOR " + c + " " + utils.esc);
-//        if (!utils.esc) {
-        	specs.getSpecs(c); // Attributing specs, if not already done
-        	if (!utils.esc) for (var m: c.members().getSymbols()) {
-        		System.out.println("SYM " + m + " " + m.owner);
-        		if (m instanceof MethodSymbol) specs.getSpecs((MethodSymbol)m);
-        		if (m instanceof VarSymbol) specs.getSpecs((VarSymbol)m);
-        	}
-//        }
+    	specs.getSpecs(c.sym); // Attributing specs, if not already done
+    	if (!utils.esc) for (var d: c.defs) {
+    		if (d instanceof JCMethodDecl) specs.getSpecs(((JCMethodDecl)d).sym);
+    		else if (d instanceof JCVariableDecl) specs.getSpecs(((JCVariableDecl)d).sym);
+    		else if (d instanceof JCClassDecl) specs.getSpecs(((JCClassDecl)d).sym);
+    		else if (d instanceof JmlBlock) {
+    			JmlBlock bl = (JmlBlock)d;
+    			if (bl.methodSpecsCombined != null) {
+    				attrSpecs(bl.methodSpecsCombined.msym);
+    			}
+    		}
+    	//	else     		System.out.println("DECL " + d.getClass() + " " + d);
+
+    	}
 
 //        JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(c);
 //        JmlClassDecl classDecl = (JmlClassDecl)env.tree;
@@ -2668,13 +2673,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // Also check that the member reference field matches the declaration FIXME
         // FIXME - static environment?
         // FIXME - check visibility
+        boolean prevj = justAttribute;
+        justAttribute = true;
         try {
             // FIXME : jmlVisibility = tree.parentVar.mods.flags & Flags.AccessFlags;
             attribExpr(tree.expression,env,Type.noType);
             for (JmlGroupName n: tree.list) {
-                n.accept(this);
+                attributeGroup(n);
             }
         } finally {
+        	justAttribute = prevj;
             jmlVisibility = prevVisibility;
             pureEnvironment = prevEnv;
             currentClauseType = prevClauseType;
@@ -5014,6 +5022,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     protected void checkSecretReadable(DiagnosticPosition pos, VarSymbol vsym) {
         // If the variable is local to the method, then secret/query rules do not apply
+    	if (justAttribute) return;
         if (vsym.owner instanceof MethodSymbol) return;
 
         JmlSpecs.FieldSpecs fspecs = specs.getSpecs(vsym);

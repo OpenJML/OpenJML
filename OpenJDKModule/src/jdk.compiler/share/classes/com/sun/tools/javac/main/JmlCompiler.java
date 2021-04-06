@@ -241,7 +241,7 @@ public class JmlCompiler extends JavaCompiler {
         }
         ((JmlAttr)attr).completeTodo();
         
-        if (!utils.esc) {
+        if (!utils.esc && org.jmlspecs.openjml.Main.useJML) {
         	envs = results;
         	JmlSpecs specs = JmlSpecs.instance(context);
         	results = new ListBuffer<>();
@@ -253,11 +253,15 @@ public class JmlCompiler extends JavaCompiler {
         			break;
         		case TOPLEVEL:
         			for (var def : env.toplevel.defs) {
-        				if (def instanceof JmlClassDecl) specs.getSpecs(((JmlClassDecl)def).sym);
+        				if (def instanceof JmlClassDecl) {
+                        	//System.out.println("ATTRIBUTING SPECS of " + ((JmlClassDecl)def).sym);
+        					JmlAttr.instance(context).attribClassBodySpecs(((JmlClassDecl)def));
+        				}
         			}
         			break;
         		default:
-        			specs.getSpecs(env.enclClass.sym);
+                	//System.out.println("ATTRIBUTING SPECS-B of " + env.enclClass.sym + " " + env.enclClass);
+        			JmlAttr.instance(context).attribClassBodySpecs((JmlClassDecl)env.enclClass);
         		}
         		results.append(env);
         	}
