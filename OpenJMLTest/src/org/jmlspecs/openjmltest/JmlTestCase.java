@@ -108,12 +108,15 @@ public abstract class JmlTestCase {
          * with the ability to filter out the notes.
          * @param filtered if true, no notes (only errors and warnings) are collected
          */
-        public FilteredDiagnosticCollector(boolean filtered) {
+        public FilteredDiagnosticCollector(boolean filtered, boolean print) {
             this.filtered = filtered;
+            this.print = print;
         }
         
         /** If true, no notes are collected. */
         boolean filtered;
+        /** If true, diagnostics are printed (as well as being collected) */
+        boolean print;
         
         /** The collection (in order) of diagnostics heard so far. */
         private java.util.List<Diagnostic<? extends S>> diagnostics =
@@ -122,6 +125,7 @@ public abstract class JmlTestCase {
         /** The method called by the system when there is a diagnostic to report. */
         public void report(Diagnostic<? extends S> diagnostic) {
             diagnostic.getClass(); // null check
+            if (print) System.out.println(diagnostic.toString());
             if (!filtered || diagnostic.getKind() != Diagnostic.Kind.NOTE)
                 diagnostics.add(diagnostic);
         }
@@ -214,10 +218,9 @@ public abstract class JmlTestCase {
     public boolean print = false;
     
     /** Set this to true (in the setUp for a test, before calling super.setUp)
-     * if you want diagnostics to be printed as they occur, rather than being
-     * collected (just for debugging - tests will fail with this set true).
+     * if you want diagnostics to be printed as they occur (as well as being collected).
      */
-    public boolean noCollectDiagnostics = false;
+    public boolean printDiagnostics = false;
     
     /** A collector for all of the diagnostic messages*/
     protected DiagnosticListenerX<JavaFileObject> collector;
@@ -231,8 +234,8 @@ public abstract class JmlTestCase {
     @Before
     public void setUp() throws Exception {
         main = new org.jmlspecs.openjml.Main("openjml-unittest",new PrintWriter(System.out, true));
-        collector = new FilteredDiagnosticCollector<JavaFileObject>(ignoreNotes);
-        context = main.initialize(!noCollectDiagnostics?collector:null);
+        collector = new FilteredDiagnosticCollector<JavaFileObject>(ignoreNotes,false);
+        context = main.initialize(collector);
         mockFiles = new LinkedList<JavaFileObject>();
         Log.alwaysReport = true; // Always report errors (even if they would be suppressed because they are at the same position
     }
