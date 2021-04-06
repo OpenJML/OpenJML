@@ -5,6 +5,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
@@ -78,6 +79,7 @@ public class TypeRWClauseExtension extends JmlExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
+        	System.out.println("READABLE " + expr);
             // TODO Auto-generated method stub
             return null;
         }
