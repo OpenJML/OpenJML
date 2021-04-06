@@ -332,27 +332,33 @@ public class JmlParser extends JavacParser {
                 //if (!inJmlDeclaration) utils.setJML(mods);
                 inJmlDeclaration = true;
             }
+            int p = pos();
             if (!inJmlDeclaration || token.kind == CLASS || token.kind == INTERFACE || token.kind == ENUM || (token.kind == IDENTIFIER && token.name() == names.record)) {
                 // The guard above is used because if it is false, we want to produce
                 // a better error message than we otherwise get, for misspelled
                 // JML modifiers. However, the test above replicates tests in
                 // the super method and may become obsolete.
                 s = super.classOrRecordOrInterfaceOrEnumDeclaration(mods, dc);
-
             } else {
                 if (inJmlDeclaration && token.kind == IDENTIFIER) {
                     IJmlClauseKind cl = Extensions.findKeyword(token);
                     if (cl instanceof IJmlClauseKind.ClassLikeKind) {
                         s = (JmlDatatypeDecl)cl.parse(mods,token.name().toString(),cl,this);
+                    } else {
+                        int ep = endPos();
+                        utils.error(p, ep,
+                                "jml.unexpected.or.misspelled.jml.token", token);
+                        setErrorEndPos(endPos());
+                        s = jmlF.at(p).Exec(jmlF.at(p).Erroneous());
+                    	nextToken();
                     }
                 } else if (inJmlDeclaration && token.kind == IMPORT) {
-                    int p = pos();
                 	pushBackModifiers = mods;
                 	importDeclaration();
                 	utils.warning(p, pos(), "jml.message", "misplaced model import");
+                    setErrorEndPos(endPos());
                     s = jmlF.at(p).Exec(jmlF.at(p).Erroneous());
                 } else {
-                    int p = pos();
                     int ep = endPos();
                     utils.error(p, ep,
                             "jml.unexpected.or.misspelled.jml.token",
@@ -371,9 +377,6 @@ public class JmlParser extends JavacParser {
             }
         } finally {
             inJmlDeclaration = prevInJmlDeclaration;
-        }
-        if (org.jmlspecs.openjml.Main.useJML && s == null) {
-        	System.out.println("NULL RETURN " + S.tokenizer.position() + " " + ((JmlTokenizer)S.tokenizer).getCharacters(S.tokenizer.position()-10, S.tokenizer.position()+20));
         }
         return s;
     }
