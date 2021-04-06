@@ -14,12 +14,15 @@ import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
+import org.jmlspecs.openjml.JmlTree.JmlBlock;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.Modifiers;
+import org.jmlspecs.openjml.ext.TypeInitializerClauseExtension;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.JmlTypes;
@@ -603,11 +606,26 @@ public class JmlEnter extends Enter {
 		}
 		// FIXME - check type parameters, interfaces, permitted, flags, annotations, enclosing class
 		
+		boolean hasStaticInit = false;
+		boolean hasInstanceInit = false;
 		for (JCTree t: specDecl.defs) {
 			if (t instanceof JmlMethodDecl) {
 				specsEnter(csym, (JmlMethodDecl)t, specsEnv, javaDecl);
 			} else if (t instanceof JmlVariableDecl) {
 				specsEnter(csym, (JmlVariableDecl)t, specsEnv, javaDecl);
+			} else if (t instanceof JmlBlock) {
+				if (specDecl != javaDecl) {
+					utils.error(t, "jml.initializer.block.allowed");
+				}
+			} else if (t instanceof JmlTypeClauseInitializer) {
+				if (((JmlTypeClauseInitializer)t).keyword == TypeInitializerClauseExtension.staticinitializerID) {
+					if (hasStaticInit) utils.error(t, "jml.one.initializer.spec.only");
+					else hasStaticInit = true;
+				}
+				if (((JmlTypeClauseInitializer)t).keyword == TypeInitializerClauseExtension.initializerID) {
+					if (hasInstanceInit) utils.error(t, "jml.one.initializer.spec.only");
+					else hasInstanceInit = true;
+				}
 			}
 		}
 		

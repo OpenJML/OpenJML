@@ -666,7 +666,7 @@ public class typeclauses extends TCBase {
 
     @Test
     public void testInitializer1() {
-        helpTCF("A.java","public class A {\n //@ initializer static_initializer initializer static_initializer\n}"
+        helpTCF("A.java","public class A {\n//@ initializer static_initializer initializer static_initializer\n}"
                 ,"/A.java:2: error: Only one initializer specification and one static_initializer specification are allowed",36
                 ,"/A.java:2: error: Only one initializer specification and one static_initializer specification are allowed",48
         );

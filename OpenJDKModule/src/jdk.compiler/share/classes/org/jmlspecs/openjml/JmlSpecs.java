@@ -1759,6 +1759,19 @@ public class JmlSpecs {
     	JmlModifiers mods = getSpecsModifiers(sym);
     	return utils.hasMod(mods, token); 
     }
+    
+    public static class BlockSpecs {
+    	public JmlModifiers mods;
+    	public JmlMethodSpecs specCases;
+    	public Env<AttrContext> specsEnv;
+        public SpecsStatus status;
+    	public BlockSpecs(JmlModifiers mods, JmlMethodSpecs specCases, Env<AttrContext>  env) {
+    		this.mods = mods;
+    		this.specCases = specCases;
+    		this.specsEnv = env;
+    		this.status = SpecsStatus.SPECS_LOADED;
+    	}
+    }
 
     
     public static MethodSpecs copy(MethodSpecs m, Void p, JmlTreeCopier copier) {
