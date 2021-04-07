@@ -22,6 +22,7 @@
  */
 package com.sun.org.apache.xml.internal.security.transforms.implementations;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 import com.sun.org.apache.xml.internal.security.signature.XMLSignatureInput;
@@ -29,6 +30,11 @@ import com.sun.org.apache.xml.internal.security.transforms.Transform;
 import com.sun.org.apache.xml.internal.security.transforms.TransformSpi;
 import com.sun.org.apache.xml.internal.security.transforms.TransformationException;
 import com.sun.org.apache.xml.internal.security.transforms.Transforms;
+
+import com.sun.org.apache.xml.internal.security.c14n.CanonicalizationException;
+import com.sun.org.apache.xml.internal.security.c14n.InvalidCanonicalizerException;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 /**
  * Class TransformXPointer
@@ -54,7 +60,8 @@ public class TransformXPointer extends TransformSpi {
      * @throws TransformationException
      */
     protected XMLSignatureInput enginePerformTransform(
-        XMLSignatureInput input, OutputStream os, Transform transformObject
+        XMLSignatureInput input, OutputStream os, Element transformElement,
+        String baseURI, boolean secureValidation
     ) throws TransformationException {
 
         Object exArgs[] = { implementedTransformURI };
