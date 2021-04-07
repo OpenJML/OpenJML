@@ -66,8 +66,8 @@ public abstract class Negotiator {
         } catch (ReflectiveOperationException roe) {
             finest(roe);
             Throwable t = roe.getCause();
-            if (t instanceof Exception exception)
-                finest(exception);
+            if (t != null && t instanceof Exception)
+                finest((Exception)t);
             return null;
         }
     }

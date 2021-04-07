@@ -406,14 +406,16 @@ public final class StackTraceElement implements java.io.Serializable {
     public boolean equals(Object obj) {
         if (obj==this)
             return true;
-        return (obj instanceof StackTraceElement e)
-                && e.lineNumber == lineNumber
-                && e.declaringClass.equals(declaringClass)
-                && Objects.equals(classLoaderName, e.classLoaderName)
-                && Objects.equals(moduleName, e.moduleName)
-                && Objects.equals(moduleVersion, e.moduleVersion)
-                && Objects.equals(methodName, e.methodName)
-                && Objects.equals(fileName, e.fileName);
+        if (!(obj instanceof StackTraceElement))
+            return false;
+        StackTraceElement e = (StackTraceElement)obj;
+        return Objects.equals(classLoaderName, e.classLoaderName) &&
+            Objects.equals(moduleName, e.moduleName) &&
+            Objects.equals(moduleVersion, e.moduleVersion) &&
+            e.declaringClass.equals(declaringClass) &&
+            e.lineNumber == lineNumber &&
+            Objects.equals(methodName, e.methodName) &&
+            Objects.equals(fileName, e.fileName);
     }
 
     /**

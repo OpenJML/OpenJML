@@ -28,8 +28,6 @@ package java.nio;
 import jdk.internal.misc.Unsafe;
 
 import java.io.FileDescriptor;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 
 /* package */ class MappedMemoryUtils {
 
@@ -96,11 +94,7 @@ import java.io.UncheckedIOException;
         } else {
             // force writeback via file descriptor
             long offset = mappingOffset(address, index);
-            try {
-                force0(fd, mappingAddress(address, offset, index), mappingLength(offset, length));
-            } catch (IOException cause) {
-                throw new UncheckedIOException(cause);
-            }
+            force0(fd, mappingAddress(address, offset, index), mappingLength(offset, length));
         }
     }
 
@@ -109,7 +103,7 @@ import java.io.UncheckedIOException;
     private static native boolean isLoaded0(long address, long length, int pageCount);
     private static native void load0(long address, long length);
     private static native void unload0(long address, long length);
-    private static native void force0(FileDescriptor fd, long address, long length) throws IOException;
+    private static native void force0(FileDescriptor fd, long address, long length);
 
     // utility methods
 

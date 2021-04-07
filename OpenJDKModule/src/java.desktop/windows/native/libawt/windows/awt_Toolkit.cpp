@@ -3215,12 +3215,10 @@ LRESULT AwtToolkit::InvokeInputMethodFunction(UINT msg, WPARAM wParam, LPARAM lP
      * function once the DND is active; otherwise a hang is possible since DND may wait for
      * the IME completion.
      */
-    CriticalSection::Lock lock(m_inputMethodLock);
     if (isInDoDragDropLoop) {
-        SendMessage(msg, wParam, lParam);
-        ::ResetEvent(m_inputMethodWaitEvent);
-        return m_inputMethodData;
+        return SendMessage(msg, wParam, lParam);
     } else {
+        CriticalSection::Lock lock(m_inputMethodLock);
         if (PostMessage(msg, wParam, lParam)) {
             ::WaitForSingleObject(m_inputMethodWaitEvent, INFINITE);
             return m_inputMethodData;

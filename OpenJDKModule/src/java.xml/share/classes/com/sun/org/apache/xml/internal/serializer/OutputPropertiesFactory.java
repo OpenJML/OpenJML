@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
  */
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -20,7 +20,6 @@
 
 package com.sun.org.apache.xml.internal.serializer;
 
-import com.sun.org.apache.xerces.internal.impl.Constants;
 import java.util.Properties;
 import javax.xml.transform.OutputKeys;
 import jdk.xml.internal.SecuritySupport;
@@ -71,7 +70,7 @@ import jdk.xml.internal.SecuritySupport;
  * @see SerializerFactory
  * @see Method
  * @see Serializer
- * @LastModified: Feb 2021
+ * @LastModified: Mar 2019
  */
 public final class OutputPropertiesFactory
 {
@@ -187,13 +186,6 @@ public final class OutputPropertiesFactory
      */
     public static final String ORACLE_IS_STANDALONE = "http://www.oracle.com/xml/is-standalone";
 
-    // standardized property, refer to the definition in java.xml module-info
-    public static final String JDK_IS_STANDALONE = Constants.ORACLE_JAXP_PROPERTY_PREFIX +
-            "xsltcIsStandalone";
-
-    // Corresponding System property
-    public static final String SP_IS_STANDALONE = "jdk.xml.xsltcIsStandalone";
-
     //************************************************************
     //*  PRIVATE CONSTANTS
     //************************************************************
@@ -220,8 +212,7 @@ public final class OutputPropertiesFactory
         "media-type",
         "{http://xml.apache.org/xalan}indent-amount",
         "{http://xml.apache.org/xalan}content-handler",
-        "{http://xml.apache.org/xalan}entities",
-        JDK_IS_STANDALONE
+        "{http://xml.apache.org/xalan}entities"
     };
 
     private static final String[] PROP_XML_VALUE = {
@@ -234,8 +225,7 @@ public final class OutputPropertiesFactory
         "text/xml",
         "0",
         "com.sun.org.apache.xml.internal.serializer.ToXMLStream",
-        "com/sun/org/apache/xml/internal/serializer/XMLEntities",
-        "no"
+        "com/sun/org/apache/xml/internal/serializer/XMLEntities"
     };
 
     private static final String[] PROP_HTML = {

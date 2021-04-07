@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -2037,9 +2037,11 @@ public class AquaFileChooserUI extends FileChooserUI {
         // Try to get the custom text.  If none, use the fallback
         String getApproveButtonText(final JFileChooser fc, final String fallbackText) {
             final String buttonText = fc.getApproveButtonText();
-            return buttonText != null
-                    ? buttonText
-                    : fallbackText;
+            if (buttonText != null) {
+                buttonText.trim();
+                if (!buttonText.isEmpty()) return buttonText;
+            }
+            return fallbackText;
         }
 
         int getApproveButtonMnemonic(final JFileChooser fc) {
@@ -2054,9 +2056,11 @@ public class AquaFileChooserUI extends FileChooserUI {
 
         String getApproveButtonToolTipText(final JFileChooser fc, final String fallbackText) {
             final String tooltipText = fc.getApproveButtonToolTipText();
-            return tooltipText != null
-                    ? tooltipText
-                    : fallbackText;
+            if (tooltipText != null) {
+                tooltipText.trim();
+                if (!tooltipText.isEmpty()) return tooltipText;
+            }
+            return fallbackText;
         }
 
         String getCancelButtonToolTipText(final JFileChooser fc) {

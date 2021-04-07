@@ -54,7 +54,7 @@ import javax.naming.directory.*;
  * @see com.sun.jndi.ldap.ctl.ResponseControlFactory ResponseControlFactory
  * @author Vincent Ryan
  */
-public final class EntryChangeResponseControl extends BasicControl {
+final public class EntryChangeResponseControl extends BasicControl {
 
     /**
      * The entry-change response control's assigned object identifier

@@ -69,21 +69,21 @@ import java.util.StringTokenizer;
 public class MBeanServerPermission extends BasicPermission {
     private static final long serialVersionUID = -5661980843569388590L;
 
-    private static final int
+    private final static int
         CREATE = 0,
         FIND = 1,
         NEW = 2,
         RELEASE = 3,
         N_NAMES = 4;
 
-    private static final String[] names = {
+    private final static String[] names = {
         "createMBeanServer",
         "findMBeanServer",
         "newMBeanServer",
         "releaseMBeanServer",
     };
 
-    private static final int
+    private final static int
         CREATE_MASK = 1<<CREATE,
         FIND_MASK = 1<<FIND,
         NEW_MASK = 1<<NEW,
@@ -98,7 +98,7 @@ public class MBeanServerPermission extends BasicPermission {
      * permissions, we should consider doing this differently,
      * e.g. with a Map.
      */
-    private static final String[] canonicalNames = new String[1 << N_NAMES];
+    private final static String[] canonicalNames = new String[1 << N_NAMES];
 
     /*
      * The target names mask.  This is not private to avoid having to

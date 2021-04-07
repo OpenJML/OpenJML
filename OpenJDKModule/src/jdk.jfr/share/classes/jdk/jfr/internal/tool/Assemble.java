@@ -70,7 +70,7 @@ final class Assemble extends Command {
 
         Path file = Paths.get(options.pop());
         ensureFileDoesNotExist(file);
-        ensureFileExtension(file, ".jfr");
+        ensureJFRFile(file);
 
         try (FileOutputStream fos = new FileOutputStream(file.toFile())) {
             List<Path> files = listJFRFiles(repository);

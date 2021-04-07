@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -29,10 +29,8 @@
 #include "classfile/moduleEntry.hpp"
 #include "classfile/stringTable.hpp"
 #include "classfile/symbolTable.hpp"
-#include "compiler/compilerDefinitions.hpp"
 #include "gc/shared/gcArguments.hpp"
 #include "gc/shared/gcConfig.hpp"
-#include "gc/shared/tlab_globals.hpp"
 #include "logging/log.hpp"
 #include "logging/logConfiguration.hpp"
 #include "logging/logStream.hpp"
@@ -44,7 +42,6 @@
 #include "runtime/arguments.hpp"
 #include "runtime/flags/jvmFlag.hpp"
 #include "runtime/flags/jvmFlagAccess.hpp"
-#include "runtime/flags/jvmFlagLimit.hpp"
 #include "runtime/globals_extension.hpp"
 #include "runtime/java.hpp"
 #include "runtime/os.inline.hpp"
@@ -85,6 +82,8 @@ bool   Arguments::_AlwaysCompileLoopMethods     = AlwaysCompileLoopMethods;
 bool   Arguments::_UseOnStackReplacement        = UseOnStackReplacement;
 bool   Arguments::_BackgroundCompilation        = BackgroundCompilation;
 bool   Arguments::_ClipInlining                 = ClipInlining;
+intx   Arguments::_Tier3InvokeNotifyFreqLog     = Tier3InvokeNotifyFreqLog;
+intx   Arguments::_Tier4InvocationThreshold     = Tier4InvocationThreshold;
 size_t Arguments::_default_SharedBaseAddress    = SharedBaseAddress;
 
 bool   Arguments::_enable_preview               = false;
@@ -519,10 +518,10 @@ static SpecialFlag const special_jvm_flags[] = {
   { "MaxRAMFraction",               JDK_Version::jdk(10),  JDK_Version::undefined(), JDK_Version::undefined() },
   { "MinRAMFraction",               JDK_Version::jdk(10),  JDK_Version::undefined(), JDK_Version::undefined() },
   { "InitialRAMFraction",           JDK_Version::jdk(10),  JDK_Version::undefined(), JDK_Version::undefined() },
+  { "UseMembar",                    JDK_Version::jdk(10), JDK_Version::jdk(12), JDK_Version::undefined() },
   { "AllowRedefinitionToAddDeleteMethods", JDK_Version::jdk(13), JDK_Version::undefined(), JDK_Version::undefined() },
   { "FlightRecorder",               JDK_Version::jdk(13), JDK_Version::undefined(), JDK_Version::undefined() },
   { "CriticalJNINatives",           JDK_Version::jdk(16), JDK_Version::jdk(17), JDK_Version::jdk(18) },
-  { "AlwaysLockClassLoader",        JDK_Version::jdk(17), JDK_Version::jdk(18), JDK_Version::jdk(19) },
   { "UseBiasedLocking",             JDK_Version::jdk(15), JDK_Version::jdk(18), JDK_Version::jdk(19) },
   { "BiasedLockingStartupDelay",    JDK_Version::jdk(15), JDK_Version::jdk(18), JDK_Version::jdk(19) },
   { "PrintBiasedLockingStatistics", JDK_Version::jdk(15), JDK_Version::jdk(18), JDK_Version::jdk(19) },
@@ -538,9 +537,42 @@ static SpecialFlag const special_jvm_flags[] = {
   { "TLABStats",                    JDK_Version::jdk(12), JDK_Version::undefined(), JDK_Version::undefined() },
 
   // -------------- Obsolete Flags - sorted by expired_in --------------
-#ifdef ASSERT
-  { "DummyObsoleteTestFlag",        JDK_Version::undefined(), JDK_Version::jdk(17), JDK_Version::undefined() },
+  { "PermSize",                      JDK_Version::undefined(), JDK_Version::jdk(8),  JDK_Version::undefined() },
+  { "MaxPermSize",                   JDK_Version::undefined(), JDK_Version::jdk(8),  JDK_Version::undefined() },
+  { "SharedReadWriteSize",           JDK_Version::undefined(), JDK_Version::jdk(10), JDK_Version::undefined() },
+  { "SharedReadOnlySize",            JDK_Version::undefined(), JDK_Version::jdk(10), JDK_Version::undefined() },
+  { "SharedMiscDataSize",            JDK_Version::undefined(), JDK_Version::jdk(10), JDK_Version::undefined() },
+  { "SharedMiscCodeSize",            JDK_Version::undefined(), JDK_Version::jdk(10), JDK_Version::undefined() },
+#ifdef BSD
+  { "UseBsdPosixThreadCPUClocks",    JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "UseOprofile",                   JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
 #endif
+  { "PrintVMQWaitTime",              JDK_Version::jdk(15), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "UseNewFieldLayout",             JDK_Version::jdk(15), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "UseSemaphoreGCThreadsSynchronization", JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "ForceNUMA",                     JDK_Version::jdk(15), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "InitialBootClassLoaderMetaspaceSize", JDK_Version::jdk(15), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "UseLargePagesInMetaspace",            JDK_Version::jdk(15), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "InsertMemBarAfterArraycopy",    JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "Debugging",                     JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "UseRDPCForConstantTableBase",   JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "VerifyMergedCPBytecodes",       JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "PrintSharedSpaces",             JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "TraceBiasedLocking",            JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "TraceClassLoading",             JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "TraceClassLoadingPreorder",     JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "TraceClassPaths",               JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "TraceClassResolution",          JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "TraceClassUnloading",           JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "TraceExceptions",               JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "TraceInvokeDynamic",            JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "TraceLoaderConstraints",        JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "TraceMethodHandles",            JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "TraceMonitorInflation",         JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "TraceSafepointCleanupTime",     JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "TraceJVMTIObjectTagging",       JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "TraceRedefineClasses",          JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
+  { "PrintJNIResolving",             JDK_Version::undefined(), JDK_Version::jdk(16), JDK_Version::jdk(17) },
 
 #ifdef TEST_VERIFY_SPECIAL_JVM_FLAGS
   // These entries will generate build errors.  Their purpose is to test the macros.
@@ -1456,6 +1488,14 @@ void Arguments::set_mode_flags(Mode mode) {
   AlwaysCompileLoopMethods   = Arguments::_AlwaysCompileLoopMethods;
   UseOnStackReplacement      = Arguments::_UseOnStackReplacement;
   BackgroundCompilation      = Arguments::_BackgroundCompilation;
+  if (TieredCompilation) {
+    if (FLAG_IS_DEFAULT(Tier3InvokeNotifyFreqLog)) {
+      Tier3InvokeNotifyFreqLog = Arguments::_Tier3InvokeNotifyFreqLog;
+    }
+    if (FLAG_IS_DEFAULT(Tier4InvocationThreshold)) {
+      Tier4InvocationThreshold = Arguments::_Tier4InvocationThreshold;
+    }
+  }
 
   // Change from defaults based on mode
   switch (mode) {
@@ -1475,6 +1515,13 @@ void Arguments::set_mode_flags(Mode mode) {
     UseInterpreter           = false;
     BackgroundCompilation    = false;
     ClipInlining             = false;
+    // Be much more aggressive in tiered mode with -Xcomp and exercise C2 more.
+    // We will first compile a level 3 version (C1 with full profiling), then do one invocation of it and
+    // compile a level 4 (C2) and then continue executing it.
+    if (TieredCompilation) {
+      Tier3InvokeNotifyFreqLog = 0;
+      Tier4InvocationThreshold = 0;
+    }
     break;
   }
 }
@@ -1608,17 +1655,17 @@ jint Arguments::set_ergonomics_flags() {
   return JNI_OK;
 }
 
-size_t Arguments::limit_heap_by_allocatable_memory(size_t limit) {
-  size_t max_allocatable;
-  size_t result = limit;
+julong Arguments::limit_heap_by_allocatable_memory(julong limit) {
+  julong max_allocatable;
+  julong result = limit;
   if (os::has_allocatable_memory_limit(&max_allocatable)) {
     // The AggressiveHeap check is a temporary workaround to avoid calling
     // GCarguments::heap_virtual_to_physical_ratio() before a GC has been
     // selected. This works because AggressiveHeap implies UseParallelGC
     // where we know the ratio will be 1. Once the AggressiveHeap option is
     // removed, this can be cleaned up.
-    size_t heap_virtual_to_physical_ratio = (AggressiveHeap ? 1 : GCConfig::arguments()->heap_virtual_to_physical_ratio());
-    size_t fraction = MaxVirtMemFraction * heap_virtual_to_physical_ratio;
+    julong heap_virtual_to_physical_ratio = (AggressiveHeap ? 1 : GCConfig::arguments()->heap_virtual_to_physical_ratio());
+    julong fraction = MaxVirtMemFraction * heap_virtual_to_physical_ratio;
     result = MIN2(result, max_allocatable / fraction);
   }
   return result;
@@ -2121,6 +2168,10 @@ jint Arguments::parse_vm_init_args(const JavaVMInitArgs *vm_options_args,
   Arguments::_UseOnStackReplacement    = UseOnStackReplacement;
   Arguments::_ClipInlining             = ClipInlining;
   Arguments::_BackgroundCompilation    = BackgroundCompilation;
+  if (TieredCompilation) {
+    Arguments::_Tier3InvokeNotifyFreqLog = Tier3InvokeNotifyFreqLog;
+    Arguments::_Tier4InvocationThreshold = Tier4InvocationThreshold;
+  }
 
   // Remember the default value of SharedBaseAddress.
   Arguments::_default_SharedBaseAddress = SharedBaseAddress;
@@ -2253,11 +2304,6 @@ jint Arguments::parse_xss(const JavaVMOption* option, const char* tail, intx* ou
   // The values have also been chosen to fit inside a 32-bit signed type.
   const julong min_ThreadStackSize = 0;
   const julong max_ThreadStackSize = 1 * M;
-
-  // Make sure the above values match the range set in globals.hpp
-  const JVMTypedFlagLimit<intx>* limit = JVMFlagLimit::get_range_at(FLAG_MEMBER_ENUM(ThreadStackSize))->cast<intx>();
-  assert(min_ThreadStackSize == static_cast<julong>(limit->min()), "must be");
-  assert(max_ThreadStackSize == static_cast<julong>(limit->max()), "must be");
 
   const julong min_size = min_ThreadStackSize * K;
   const julong max_size = max_ThreadStackSize * K;
@@ -3083,10 +3129,16 @@ jint Arguments::finalize_vm_init_args(bool patch_mod_javabase) {
   UNSUPPORTED_OPTION(ProfileInterpreter);
 #endif
 
+
+#ifdef TIERED
   // Parse the CompilationMode flag
   if (!CompilationModeFlag::initialize()) {
     return JNI_ERR;
   }
+#else
+  // Tiered compilation is undefined.
+  UNSUPPORTED_OPTION(TieredCompilation);
+#endif
 
   if (!check_vm_args_consistency()) {
     return JNI_ERR;
@@ -3135,6 +3187,10 @@ jint Arguments::finalize_vm_init_args(bool patch_mod_javabase) {
   UNSUPPORTED_OPTION_INIT(Tier3AOTMinInvocationThreshold, 0);
   UNSUPPORTED_OPTION_INIT(Tier3AOTCompileThreshold, 0);
   UNSUPPORTED_OPTION_INIT(Tier3AOTBackEdgeThreshold, 0);
+  UNSUPPORTED_OPTION_INIT(Tier0AOTInvocationThreshold, 0);
+  UNSUPPORTED_OPTION_INIT(Tier0AOTMinInvocationThreshold, 0);
+  UNSUPPORTED_OPTION_INIT(Tier0AOTCompileThreshold, 0);
+  UNSUPPORTED_OPTION_INIT(Tier0AOTBackEdgeThreshold, 0);
 #ifndef PRODUCT
   UNSUPPORTED_OPTION(PrintAOTStatistics);
 #endif
@@ -3438,7 +3494,7 @@ char* Arguments::get_default_shared_archive_path() {
   const size_t len = jvm_path_len + file_sep_len + 20;
   default_archive_path = NEW_C_HEAP_ARRAY(char, len, mtArguments);
   jio_snprintf(default_archive_path, len,
-               LP64_ONLY(!UseCompressedOops ? "%s%sclasses_nocoops.jsa":) "%s%sclasses.jsa",
+               UseCompressedOops ? "%s%sclasses.jsa": "%s%sclasses_nocoops.jsa",
                jvm_path, os::file_separator());
   return default_archive_path;
 }
@@ -3967,6 +4023,12 @@ jint Arguments::parse(const JavaVMInitArgs* initial_cmd_args) {
   no_shared_spaces("CDS Disabled");
 #endif // INCLUDE_CDS
 
+#ifndef TIERED
+  if (FLAG_IS_CMDLINE(CompilationMode)) {
+    warning("CompilationMode has no effect in non-tiered VMs");
+  }
+#endif
+
   apply_debugger_ergo();
 
   return JNI_OK;
@@ -4067,7 +4129,7 @@ jint Arguments::apply_ergo() {
     UseOptoBiasInlining = false;
   }
 
-  if (!FLAG_IS_DEFAULT(EnableVectorSupport) && !EnableVectorSupport) {
+  if (!EnableVectorSupport) {
     if (!FLAG_IS_DEFAULT(EnableVectorReboxing) && EnableVectorReboxing) {
       warning("Disabling EnableVectorReboxing since EnableVectorSupport is turned off.");
     }

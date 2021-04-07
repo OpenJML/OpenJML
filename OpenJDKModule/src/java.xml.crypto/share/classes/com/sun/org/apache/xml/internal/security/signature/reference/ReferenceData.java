@@ -21,7 +21,10 @@
  * under the License.
  */
 /*
- * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2018, Oracle and/or its affiliates. All rights reserved.
+ */
+/*
+ * $Id$
  */
 package com.sun.org.apache.xml.internal.security.signature.reference;
 

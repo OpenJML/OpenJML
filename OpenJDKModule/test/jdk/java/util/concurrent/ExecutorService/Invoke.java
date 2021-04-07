@@ -84,16 +84,9 @@ public class Invoke {
 
     public static void main(String[] args) {
         try {
-            for (int nThreads = 1; nThreads <= 6; ++nThreads) {
-                // untimed
-                testInvokeAll(nThreads, false);
-                testInvokeAny(nThreads, false);
-                testInvokeAny_cancellationInterrupt(nThreads, false);
-                // timed
-                testInvokeAll(nThreads, true);
-                testInvokeAny(nThreads, true);
-                testInvokeAny_cancellationInterrupt(nThreads, true);
-            }
+            testInvokeAll();
+            testInvokeAny();
+            testInvokeAny_cancellationInterrupt();
         } catch (Throwable t) {  unexpected(t); }
 
         if (failed > 0)
@@ -103,8 +96,10 @@ public class Invoke {
 
     static final long timeoutSeconds = 10L;
 
-    static void testInvokeAll(int nThreads, boolean timed) throws Throwable {
+    static void testInvokeAll() throws Throwable {
         final ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        final int nThreads = rnd.nextInt(2, 7);
+        final boolean timed = rnd.nextBoolean();
         final ExecutorService pool = Executors.newFixedThreadPool(nThreads);
         final AtomicLong count = new AtomicLong(0);
         class Task implements Callable<Long> {
@@ -141,15 +136,17 @@ public class Invoke {
         }
     }
 
-    static void testInvokeAny(int nThreads, boolean timed) throws Throwable {
+    static void testInvokeAny() throws Throwable {
         final ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        final ExecutorService pool = Executors.newFixedThreadPool(nThreads);
+        final boolean timed = rnd.nextBoolean();
+        final ExecutorService pool = Executors.newSingleThreadExecutor();
         final AtomicLong count = new AtomicLong(0);
         final CountDownLatch invokeAnyDone = new CountDownLatch(1);
         class Task implements Callable<Long> {
             public Long call() throws Exception {
                 long x = count.incrementAndGet();
-                if (x > 1) {
+                check(x <= 2);
+                if (x == 2) {
                     // wait for main thread to interrupt us ...
                     awaitInterrupt(timeoutSeconds);
                     // ... and then for invokeAny to return
@@ -176,12 +173,12 @@ public class Invoke {
             check(val == 1);
             invokeAnyDone.countDown();
 
+            // inherent race between main thread interrupt and
+            // start of second task
+            check(count.get() == 1 || count.get() == 2);
+
             pool.shutdown();
             check(pool.awaitTermination(timeoutSeconds, SECONDS));
-
-            long c = count.get();
-            check(c >= 1 && c <= tasks.size());
-
         } finally {
             pool.shutdownNow();
         }
@@ -190,16 +187,18 @@ public class Invoke {
     /**
      * Every remaining running task is sent an interrupt for cancellation.
      */
-    static void testInvokeAny_cancellationInterrupt(int nThreads, boolean timed) throws Throwable {
+    static void testInvokeAny_cancellationInterrupt() throws Throwable {
         final ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        final int nThreads = rnd.nextInt(2, 7);
+        final boolean timed = rnd.nextBoolean();
         final ExecutorService pool = Executors.newFixedThreadPool(nThreads);
         final AtomicLong count = new AtomicLong(0);
         final AtomicLong interruptedCount = new AtomicLong(0);
         final CyclicBarrier allStarted = new CyclicBarrier(nThreads);
         class Task implements Callable<Long> {
             public Long call() throws Exception {
-                long x = count.incrementAndGet();
                 allStarted.await();
+                long x = count.incrementAndGet();
                 if (x > 1)
                     // main thread will interrupt us
                     awaitInterrupt(timeoutSeconds);

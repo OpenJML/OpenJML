@@ -2,7 +2,7 @@
     @Test(dataProvider = "$type$UnaryOpProvider")
     static void Broadcast$vectorteststype$(IntFunction<$type$[]> fa) {
 [[KERNEL]]
-        assertBroadcastArraysEquals(r, a);
+        assertBroadcastArraysEquals(a, r);
     }
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <windows.h>
 #include <cstdlib>
+#include <chrono>
 #include <cstring>
 
 #ifdef __cplusplus
@@ -71,13 +72,11 @@ void finalizeFileLogger() {
     }
 }
 
-unsigned long long getTimeStamp() {
-    FILETIME ft;
-    ULARGE_INTEGER uli;
-    GetSystemTimeAsFileTime(&ft);
-    uli.LowPart = ft.dwLowDateTime;
-    uli.HighPart = ft.dwHighDateTime;
-    return (uli.QuadPart / 10000ULL) - 11644473600000ULL; // Rebase Epoch from 1601 to 1970
+auto getTimeStamp() -> long long {
+    using namespace std::chrono;
+    auto timeNow = duration_cast<milliseconds>(steady_clock::now().time_since_epoch());
+
+    return timeNow.count();
 }
 
 /**

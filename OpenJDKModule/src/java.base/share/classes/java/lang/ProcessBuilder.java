@@ -673,8 +673,9 @@ public final class ProcessBuilder
         public boolean equals(Object obj) {
             if (obj == this)
                 return true;
-            if (! (obj instanceof Redirect r))
+            if (! (obj instanceof Redirect))
                 return false;
+            Redirect r = (Redirect) obj;
             if (r.type() != this.type())
                 return false;
             assert this.file() != null;

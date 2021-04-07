@@ -50,7 +50,6 @@ public class SummaryTaglet extends BaseTaglet {
 
     @Override
     public Content getInlineTagOutput(Element holder, DocTree tag, TagletWriter writer) {
-        return writer.commentTagsToOutput(holder, tag, ((SummaryTree)tag).getSummary(),
-                writer.isFirstSentence);
+        return writer.commentTagsToOutput(holder, ((SummaryTree)tag).getSummary());
     }
 }

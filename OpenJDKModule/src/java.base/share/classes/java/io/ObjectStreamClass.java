@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -510,7 +510,7 @@ public class ObjectStreamClass implements Serializable {
             AccessController.doPrivileged(new PrivilegedAction<>() {
                 public Void run() {
                     if (isEnum) {
-                        suid = 0L;
+                        suid = Long.valueOf(0);
                         fields = NO_FIELDS;
                         return null;
                     }
@@ -555,7 +555,7 @@ public class ObjectStreamClass implements Serializable {
                 }
             });
         } else {
-            suid = 0L;
+            suid = Long.valueOf(0);
             fields = NO_FIELDS;
         }
 
@@ -673,7 +673,7 @@ public class ObjectStreamClass implements Serializable {
         this.superDesc = superDesc;
         isProxy = true;
         serializable = true;
-        suid = 0L;
+        suid = Long.valueOf(0);
         fields = NO_FIELDS;
         if (osc != null) {
             localDesc = osc;
@@ -698,7 +698,7 @@ public class ObjectStreamClass implements Serializable {
                       ObjectStreamClass superDesc)
         throws InvalidClassException
     {
-        long suid = model.getSerialVersionUID();
+        long suid = Long.valueOf(model.getSerialVersionUID());
         ObjectStreamClass osc = null;
         if (cl != null) {
             osc = lookup(cl, true);
@@ -796,7 +796,7 @@ public class ObjectStreamClass implements Serializable {
         throws IOException, ClassNotFoundException
     {
         name = in.readUTF();
-        suid = in.readLong();
+        suid = Long.valueOf(in.readLong());
         isProxy = false;
 
         byte flags = in.readByte();
@@ -830,7 +830,7 @@ public class ObjectStreamClass implements Serializable {
             char tcode = (char) in.readByte();
             String fname = in.readUTF();
             String signature = ((tcode == 'L') || (tcode == '[')) ?
-                in.readTypeString() : String.valueOf(tcode);
+                in.readTypeString() : new String(new char[] { tcode });
             try {
                 fields[i] = new ObjectStreamField(fname, signature, false);
             } catch (RuntimeException e) {
@@ -1193,7 +1193,7 @@ public class ObjectStreamClass implements Serializable {
             try {
                 writeObjectMethod.invoke(obj, new Object[]{ out });
             } catch (InvocationTargetException ex) {
-                Throwable th = ex.getCause();
+                Throwable th = ex.getTargetException();
                 if (th instanceof IOException) {
                     throw (IOException) th;
                 } else {
@@ -1223,7 +1223,7 @@ public class ObjectStreamClass implements Serializable {
             try {
                 readObjectMethod.invoke(obj, new Object[]{ in });
             } catch (InvocationTargetException ex) {
-                Throwable th = ex.getCause();
+                Throwable th = ex.getTargetException();
                 if (th instanceof ClassNotFoundException) {
                     throw (ClassNotFoundException) th;
                 } else if (th instanceof IOException) {
@@ -1254,7 +1254,7 @@ public class ObjectStreamClass implements Serializable {
             try {
                 readObjectNoDataMethod.invoke(obj, (Object[]) null);
             } catch (InvocationTargetException ex) {
-                Throwable th = ex.getCause();
+                Throwable th = ex.getTargetException();
                 if (th instanceof ObjectStreamException) {
                     throw (ObjectStreamException) th;
                 } else {
@@ -1283,7 +1283,7 @@ public class ObjectStreamClass implements Serializable {
             try {
                 return writeReplaceMethod.invoke(obj, (Object[]) null);
             } catch (InvocationTargetException ex) {
-                Throwable th = ex.getCause();
+                Throwable th = ex.getTargetException();
                 if (th instanceof ObjectStreamException) {
                     throw (ObjectStreamException) th;
                 } else {
@@ -1313,7 +1313,7 @@ public class ObjectStreamClass implements Serializable {
             try {
                 return readResolveMethod.invoke(obj, (Object[]) null);
             } catch (InvocationTargetException ex) {
-                Throwable th = ex.getCause();
+                Throwable th = ex.getTargetException();
                 if (th instanceof ObjectStreamException) {
                     throw (ObjectStreamException) th;
                 } else {
@@ -1846,7 +1846,7 @@ public class ObjectStreamClass implements Serializable {
             int mask = Modifier.STATIC | Modifier.FINAL;
             if ((f.getModifiers() & mask) == mask) {
                 f.setAccessible(true);
-                return f.getLong(null);
+                return Long.valueOf(f.getLong(null));
             }
         } catch (Exception ex) {
         }
@@ -2400,7 +2400,8 @@ public class ObjectStreamClass implements Serializable {
                 return true;
             }
 
-            if (obj instanceof FieldReflectorKey other) {
+            if (obj instanceof FieldReflectorKey) {
+                FieldReflectorKey other = (FieldReflectorKey) obj;
                 Class<?> referent;
                 return (nullClass ? other.nullClass
                                   : ((referent = get()) != null) &&
@@ -2596,7 +2597,8 @@ public class ObjectStreamClass implements Serializable {
 
             @Override
             public final boolean equals(Object obj) {
-                if (!(obj instanceof Key other)) return false;
+                if (!(obj instanceof Key)) return false;
+                Key other = (Key) obj;
                 int n = length();
                 if (n != other.length()) return false;
                 for (int i = 0; i < n; i++) if (fieldType(i) != other.fieldType(i)) return false;

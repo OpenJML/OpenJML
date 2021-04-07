@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -531,8 +531,6 @@ class CheckedFeatures {
         {"linux-s390x",     "com.sun.jdi.SharedMemoryAttach"},
         {"macosx-amd64",    "com.sun.jdi.SharedMemoryAttach"},
         {"mac-x64",         "com.sun.jdi.SharedMemoryAttach"},
-        {"macosx-aarch64",  "com.sun.jdi.SharedMemoryAttach"},
-        {"mac-aarch64",     "com.sun.jdi.SharedMemoryAttach"},
         {"aix-ppc64",       "com.sun.jdi.SharedMemoryAttach"},
 
             // listening connectors
@@ -556,8 +554,6 @@ class CheckedFeatures {
         {"linux-s390x",     "com.sun.jdi.SharedMemoryListen"},
         {"macosx-amd64",    "com.sun.jdi.SharedMemoryListen"},
         {"mac-x64",         "com.sun.jdi.SharedMemoryListen"},
-        {"macosx-aarch64",  "com.sun.jdi.SharedMemoryListen"},
-        {"mac-aarch64",     "com.sun.jdi.SharedMemoryListen"},
         {"aix-ppc64",       "com.sun.jdi.SharedMemoryListen"},
 
             // launching connectors
@@ -615,14 +611,8 @@ class CheckedFeatures {
         {"macosx-amd64",     "com.sun.jdi.CommandLineLaunch", "dt_shmem"},
         {"macosx-amd64",     "com.sun.jdi.RawCommandLineLaunch", "dt_shmem"},
 
-        {"mac-x64",          "com.sun.jdi.CommandLineLaunch", "dt_shmem"},
-        {"mac-x64",          "com.sun.jdi.RawCommandLineLaunch", "dt_shmem"},
-
-        {"macosx-aarch64",   "com.sun.jdi.CommandLineLaunch", "dt_shmem"},
-        {"macosx-aarch64",   "com.sun.jdi.RawCommandLineLaunch", "dt_shmem"},
-
-        {"mac-aarch64",      "com.sun.jdi.CommandLineLaunch", "dt_shmem"},
-        {"mac-aarch64",      "com.sun.jdi.RawCommandLineLaunch", "dt_shmem"},
+        {"mac-x64",         "com.sun.jdi.CommandLineLaunch", "dt_shmem"},
+        {"mac-x64",         "com.sun.jdi.RawCommandLineLaunch", "dt_shmem"},
 
         {"aix-ppc64",       "com.sun.jdi.CommandLineLaunch", "dt_shmem"},
         {"aix-ppc64",       "com.sun.jdi.RawCommandLineLaunch", "dt_shmem"},
@@ -639,8 +629,6 @@ class CheckedFeatures {
         {"linux-s390x",     "dt_shmem"},
         {"macosx-amd64",    "dt_shmem"},
         {"mac-x64",         "dt_shmem"},
-        {"macosx-aarch64",  "dt_shmem"},
-        {"mac-aarch64",     "dt_shmem"},
         {"aix-ppc64",       "dt_shmem"},
     };
 }

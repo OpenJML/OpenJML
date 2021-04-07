@@ -58,8 +58,8 @@ public class VMObjectFactory<T extends VMObject> {
       return c.newInstance(new Object[] { addr });
     }
     catch (java.lang.reflect.InvocationTargetException ite) {
-        if (ite.getCause() instanceof RuntimeException) {
-            throw (RuntimeException)ite.getCause();
+        if (ite.getTargetException() instanceof RuntimeException) {
+            throw (RuntimeException)ite.getTargetException();
         }
         throw new ConstructionException(ite);
     }

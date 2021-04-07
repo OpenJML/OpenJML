@@ -21,7 +21,10 @@
  * under the License.
  */
 /*
- * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2018, Oracle and/or its affiliates. All rights reserved.
+ */
+/*
+ * $Id: ApacheNodeSetData.java 1496478 2013-06-25 14:01:16Z mullan $
  */
 package org.jcp.xml.dsig.internal.dom;
 
@@ -69,10 +72,10 @@ public class ApacheNodeSetData implements ApacheData, NodeSetData<Node> {
                 (XMLUtils.getOwnerDocument(xi.getSubNode()));
         }
 
-        Set<Node> inputSet = new LinkedHashSet<>();
+        Set<Node> inputSet = new LinkedHashSet<Node>();
         XMLUtils.getSet(xi.getSubNode(), inputSet,
                         null, !xi.isExcludeComments());
-        Set<Node> nodeSet = new LinkedHashSet<>();
+        Set<Node> nodeSet = new LinkedHashSet<Node>();
         for (Node currentNode : inputSet) {
             Iterator<NodeFilter> it = nodeFilters.iterator();
             boolean skipNode = false;

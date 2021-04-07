@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2009, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -62,9 +62,8 @@ import jdk.internal.icu.impl.UBiDiProps;
  * <h2>Bidi algorithm for ICU</h2>
  *
  * This is an implementation of the Unicode Bidirectional Algorithm. The
- * algorithm is defined in the
- * <a href="http://www.unicode.org/reports/tr9/">Unicode Standard Annex #9:
- * Unicode Bidirectional Algorithm</a>.
+ * algorithm is defined in the <a
+ * href="http://www.unicode.org/unicode/reports/tr9/">Unicode Standard Annex #9</a>.
  * <p>
  *
  * Note: Libraries that perform a bidirectional algorithm and reorder strings
@@ -984,9 +983,8 @@ public class BidiBase {
 
     /**
      * Enumerated property Bidi_Paired_Bracket_Type (new in Unicode 6.3).
-     * Used in
-     * <a href="http://www.unicode.org/reports/tr9/">Unicode Standard Annex #9:
-     * Unicode Bidirectional Algorithm</a>.
+     * Used in UAX #9: Unicode Bidirectional Algorithm
+     * (http://www.unicode.org/reports/tr9/)
      * Returns UCharacter.BidiPairedBracketType values.
      * @stable ICU 52
      */
@@ -3365,8 +3363,8 @@ public class BidiBase {
 
     /**
      * Perform the Unicode Bidi algorithm. It is defined in the
-     * <a href="http://www.unicode.org/reports/tr9/">Unicode Standard Annex #9:
-     * Unicode Bidirectional Algorithm</a>, version 13,
+     * <a href="http://www.unicode.org/unicode/reports/tr9/">Unicode Standard Annex #9</a>,
+     * version 13,
      * also described in The Unicode Standard, Version 4.0 .<p>
      *
      * This method takes a piece of plain text containing one or more paragraphs,
@@ -3450,8 +3448,8 @@ public class BidiBase {
 
     /**
      * Perform the Unicode Bidi algorithm. It is defined in the
-     * <a href="http://www.unicode.org/reports/tr9/">Unicode Standard Annex #9:
-     * Unicode Bidirectional Algorithm</a>, version 13,
+     * <a href="http://www.unicode.org/unicode/reports/tr9/">Unicode Standard Annex #9</a>,
+     * version 13,
      * also described in The Unicode Standard, Version 4.0 .<p>
      *
      * This method takes a piece of plain text containing one or more paragraphs,
@@ -3786,8 +3784,8 @@ public class BidiBase {
 
     /**
      * Perform the Unicode Bidi algorithm on a given paragraph, as defined in the
-     * <a href="http://www.unicode.org/reports/tr9/">Unicode Standard Annex #9:
-     * Unicode Bidirectional Algorithm</a>, version 13,
+     * <a href="http://www.unicode.org/unicode/reports/tr9/">Unicode Standard Annex #9</a>,
+     * version 13,
      * also described in The Unicode Standard, Version 4.0 .<p>
      *
      * This method takes a paragraph of text and computes the

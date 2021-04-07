@@ -47,7 +47,6 @@ import junit.framework.Test;
 /**
  * Contains tests applicable to all Map implementations.
  */
-@SuppressWarnings("unchecked")
 public class MapTest extends JSR166TestCase {
     final MapImplementation impl;
 
@@ -69,12 +68,12 @@ public class MapTest extends JSR166TestCase {
         {
             Map m = impl.emptyMap();
             assertTrue(m.isEmpty());
-            mustEqual(0, m.size());
+            assertEquals(0, m.size());
             Object k = impl.makeKey(rnd.nextInt());
             Object v = impl.makeValue(rnd.nextInt());
             m.put(k, v);
             assertFalse(m.isEmpty());
-            mustEqual(1, m.size());
+            assertEquals(1, m.size());
             assertTrue(m.containsKey(k));
             assertTrue(m.containsValue(v));
         }
@@ -169,7 +168,7 @@ public class MapTest extends JSR166TestCase {
         assertFalse(m.containsValue(v1));
         assertTrue(m.containsValue(v2));
         assertTrue(m.containsKey(keyToFrob));
-        mustEqual(1, m.size());
+        assertEquals(1, m.size());
     }
 
     /**
@@ -200,10 +199,10 @@ public class MapTest extends JSR166TestCase {
         m1.putAll(m2);
 
         for (Object elt : m2.keySet())
-            mustEqual(m2.get(elt), m1.get(elt));
+            assertEquals(m2.get(elt), m1.get(elt));
         for (Object elt : m1Copy.keySet())
             assertSame(m1Copy.get(elt), m1.get(elt));
-        mustEqual(size1 + size2, m1.size());
+        assertEquals(size1 + size2, m1.size());
     }
 
     /**
@@ -218,17 +217,17 @@ public class MapTest extends JSR166TestCase {
         final Map clone = cloneableClone(map);
         if (clone == null) return;      // not cloneable?
 
-        mustEqual(size, map.size());
-        mustEqual(size, clone.size());
-        mustEqual(map.isEmpty(), clone.isEmpty());
+        assertEquals(size, map.size());
+        assertEquals(size, clone.size());
+        assertEquals(map.isEmpty(), clone.isEmpty());
 
         clone.put(impl.makeKey(-1), impl.makeValue(-1));
-        mustEqual(size, map.size());
-        mustEqual(size + 1, clone.size());
+        assertEquals(size, map.size());
+        assertEquals(size + 1, clone.size());
 
         clone.clear();
-        mustEqual(size, map.size());
-        mustEqual(0, clone.size());
+        assertEquals(size, map.size());
+        assertEquals(0, clone.size());
         assertTrue(clone.isEmpty());
     }
 
@@ -262,7 +261,7 @@ public class MapTest extends JSR166TestCase {
                     map.compute(key, incValue);
                 }
                 if (remappingFunctionCalledAtMostOnce)
-                    mustEqual(invocations[0], invocations[1]);
+                    assertEquals(invocations[0], invocations[1]);
                 expectedSum.getAndAdd(invocations[0]);
             },
             // repeatedly increment values using computeIfPresent()
@@ -280,7 +279,7 @@ public class MapTest extends JSR166TestCase {
                         invocations[0]++;
                 }
                 if (remappingFunctionCalledAtMostOnce)
-                    mustEqual(invocations[0], invocations[1]);
+                    assertEquals(invocations[0], invocations[1]);
                 expectedSum.getAndAdd(invocations[0]);
             },
         };
@@ -294,7 +293,7 @@ public class MapTest extends JSR166TestCase {
             checkTimedGet(future, null);
 
         long sum = map.values().stream().mapToLong(x -> (int) x).sum();
-        mustEqual(expectedSum.get(), sum);
+        assertEquals(expectedSum.get(), sum);
     }
 
 //     public void testFailsIntentionallyForDebugging() {

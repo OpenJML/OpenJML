@@ -64,7 +64,7 @@ import java.util.Vector;
   *
   * @author Vincent Ryan
   */
-public final class LdapReferralException extends
+final public class LdapReferralException extends
     javax.naming.ldap.LdapReferralException {
     private static final long serialVersionUID = 627059076356906399L;
 

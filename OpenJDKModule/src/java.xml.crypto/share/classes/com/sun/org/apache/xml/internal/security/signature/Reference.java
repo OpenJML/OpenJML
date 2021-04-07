@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -34,6 +33,7 @@ import java.util.Set;
 import com.sun.org.apache.xml.internal.security.algorithms.Algorithm;
 import com.sun.org.apache.xml.internal.security.algorithms.MessageDigestAlgorithm;
 import com.sun.org.apache.xml.internal.security.c14n.CanonicalizationException;
+import com.sun.org.apache.xml.internal.security.c14n.InvalidCanonicalizerException;
 import com.sun.org.apache.xml.internal.security.exceptions.XMLSecurityException;
 import com.sun.org.apache.xml.internal.security.signature.reference.ReferenceData;
 import com.sun.org.apache.xml.internal.security.signature.reference.ReferenceNodeSetData;
@@ -50,7 +50,6 @@ import com.sun.org.apache.xml.internal.security.utils.SignatureElementProxy;
 import com.sun.org.apache.xml.internal.security.utils.UnsyncBufferedOutputStream;
 import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
 import com.sun.org.apache.xml.internal.security.utils.resolver.ResourceResolver;
-import com.sun.org.apache.xml.internal.security.utils.resolver.ResourceResolverContext;
 import com.sun.org.apache.xml.internal.security.utils.resolver.ResourceResolverException;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -141,19 +140,6 @@ public class Reference extends SignatureElementProxy {
 
     private ReferenceData referenceData;
 
-    private static final Set<String> TRANSFORM_ALGORITHMS;
-
-    static {
-        Set<String> algorithms = new HashSet<>();
-        algorithms.add(Transforms.TRANSFORM_C14N_EXCL_OMIT_COMMENTS);
-        algorithms.add(Transforms.TRANSFORM_C14N_EXCL_WITH_COMMENTS);
-        algorithms.add(Transforms.TRANSFORM_C14N_OMIT_COMMENTS);
-        algorithms.add(Transforms.TRANSFORM_C14N_WITH_COMMENTS);
-        algorithms.add(Transforms.TRANSFORM_C14N11_OMIT_COMMENTS);
-        algorithms.add(Transforms.TRANSFORM_C14N11_WITH_COMMENTS);
-        TRANSFORM_ALGORITHMS = Collections.unmodifiableSet(algorithms);
-    }
-
     /**
      * Constructor Reference
      *
@@ -165,6 +151,7 @@ public class Reference extends SignatureElementProxy {
      * @param messageDigestAlgorithm {@link MessageDigestAlgorithm Digest algorithm} which is
      * applied to the data
      * TODO should we throw XMLSignatureException if MessageDigestAlgoURI is wrong?
+     * @throws XMLSignatureException
      */
     protected Reference(
         Document doc, String baseURI, String referenceURI, Manifest manifest,
@@ -251,7 +238,7 @@ public class Reference extends SignatureElementProxy {
             transforms = new Transforms(el, this.baseURI);
             transforms.setSecureValidation(secureValidation);
             if (secureValidation && transforms.getLength() > MAXIMUM_TRANSFORM_COUNT) {
-                Object[] exArgs = { transforms.getLength(), MAXIMUM_TRANSFORM_COUNT };
+                Object exArgs[] = { transforms.getLength(), MAXIMUM_TRANSFORM_COUNT };
 
                 throw new XMLSecurityException("signature.tooManyTransforms", exArgs);
             }
@@ -259,16 +246,12 @@ public class Reference extends SignatureElementProxy {
         }
 
         digestMethodElem = el;
-        if (digestMethodElem == null ||
-            !(Constants.SignatureSpecNS.equals(digestMethodElem.getNamespaceURI())
-                && Constants._TAG_DIGESTMETHOD.equals(digestMethodElem.getLocalName()))) {
+        if (digestMethodElem == null) {
             throw new XMLSecurityException("signature.Reference.NoDigestMethod");
         }
 
         digestValueElement = XMLUtils.getNextElement(digestMethodElem.getNextSibling());
-        if (digestValueElement == null ||
-            !(Constants.SignatureSpecNS.equals(digestValueElement.getNamespaceURI())
-                && Constants._TAG_DIGESTVALUE.equals(digestValueElement.getLocalName()))) {
+        if (digestValueElement == null) {
             throw new XMLSecurityException("signature.Reference.NoDigestValue");
         }
         this.manifest = manifest;
@@ -289,12 +272,12 @@ public class Reference extends SignatureElementProxy {
 
         String uri = digestMethodElem.getAttributeNS(null, Constants._ATT_ALGORITHM);
 
-        if (uri.isEmpty()) {
+        if ("".equals(uri)) {
             return null;
         }
 
         if (secureValidation && MessageDigestAlgorithm.ALGO_ID_DIGEST_NOT_RECOMMENDED_MD5.equals(uri)) {
-            Object[] exArgs = { uri };
+            Object exArgs[] = { uri };
 
             throw new XMLSignatureException("signature.signatureAlgorithm", exArgs);
         }
@@ -356,7 +339,7 @@ public class Reference extends SignatureElementProxy {
     }
 
     /**
-     * Return the {@code type} attribute of the Reference indicate whether an
+     * Return the {@code type} atttibute of the Reference indicate whether an
      * {@code ds:Object}, {@code ds:SignatureProperty}, or {@code ds:Manifest}
      * element
      *
@@ -376,7 +359,11 @@ public class Reference extends SignatureElementProxy {
      * {@code Object}
      */
     public boolean typeIsReferenceToObject() {
-        return Reference.OBJECT_URI.equals(this.getType());
+        if (Reference.OBJECT_URI.equals(this.getType())) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -389,7 +376,11 @@ public class Reference extends SignatureElementProxy {
      * {@link Manifest}
      */
     public boolean typeIsReferenceToManifest() {
-        return Reference.MANIFEST_URI.equals(this.getType());
+        if (Reference.MANIFEST_URI.equals(this.getType())) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -433,11 +424,13 @@ public class Reference extends SignatureElementProxy {
             Attr uriAttr =
                 getElement().getAttributeNodeNS(null, Constants._ATT_URI);
 
-            ResourceResolverContext resolverContext =
-                new ResourceResolverContext(uriAttr, this.baseURI,
-                    secureValidation, this.manifest.getResolverProperties());
+            ResourceResolver resolver =
+                ResourceResolver.getInstance(
+                    uriAttr, this.baseURI, this.manifest.getPerManifestResolvers(), secureValidation
+                );
+            resolver.addProperties(this.manifest.getResolverProperties());
 
-            return ResourceResolver.resolve(this.manifest.getPerManifestResolvers(), resolverContext);
+            return resolver.resolve(uriAttr, this.baseURI, secureValidation);
         }  catch (ResourceResolverException ex) {
             throw new ReferenceNotInitializedException(ex);
         }
@@ -460,6 +453,14 @@ public class Reference extends SignatureElementProxy {
             }
 
             return output;
+        } catch (ResourceResolverException ex) {
+            throw new XMLSignatureException(ex);
+        } catch (CanonicalizationException ex) {
+            throw new XMLSignatureException(ex);
+        } catch (InvalidCanonicalizerException ex) {
+            throw new XMLSignatureException(ex);
+        } catch (TransformationException ex) {
+            throw new XMLSignatureException(ex);
         } catch (XMLSecurityException ex) {
             throw new XMLSignatureException(ex);
         }
@@ -498,17 +499,32 @@ public class Reference extends SignatureElementProxy {
                     Transform t = transforms.item(i);
                     String uri = t.getURI();
 
-                    if (TRANSFORM_ALGORITHMS.contains(uri)) {
+                    if (uri.equals(Transforms.TRANSFORM_C14N_EXCL_OMIT_COMMENTS)
+                        || uri.equals(Transforms.TRANSFORM_C14N_EXCL_WITH_COMMENTS)
+                        || uri.equals(Transforms.TRANSFORM_C14N_OMIT_COMMENTS)
+                        || uri.equals(Transforms.TRANSFORM_C14N_WITH_COMMENTS)
+                        || uri.equals(Transforms.TRANSFORM_C14N11_OMIT_COMMENTS)
+                        || uri.equals(Transforms.TRANSFORM_C14N11_WITH_COMMENTS)) {
                         break;
                     }
 
-                    output = t.performTransform(output, null, secureValidation);
+                    output = t.performTransform(output, null);
                 }
 
                 output.setSourceURI(input.getSourceURI());
             }
             return output;
-        } catch (IOException | XMLSecurityException ex) {
+        } catch (IOException ex) {
+            throw new XMLSignatureException(ex);
+        } catch (ResourceResolverException ex) {
+            throw new XMLSignatureException(ex);
+        } catch (CanonicalizationException ex) {
+            throw new XMLSignatureException(ex);
+        } catch (InvalidCanonicalizerException ex) {
+            throw new XMLSignatureException(ex);
+        } catch (TransformationException ex) {
+            throw new XMLSignatureException(ex);
+        } catch (XMLSecurityException ex) {
             throw new XMLSignatureException(ex);
         }
     }
@@ -559,6 +575,10 @@ public class Reference extends SignatureElementProxy {
             }
 
             return nodes.getHTMLRepresentation(inclusiveNamespaces);
+        } catch (TransformationException ex) {
+            throw new XMLSignatureException(ex);
+        } catch (InvalidTransformException ex) {
+            throw new XMLSignatureException(ex);
         } catch (XMLSecurityException ex) {
             throw new XMLSignatureException(ex);
         }
@@ -614,7 +634,7 @@ public class Reference extends SignatureElementProxy {
                     public Iterator<Node> iterator() {
                         return new Iterator<Node>() {
 
-                            final Iterator<Node> sIterator = s.iterator();
+                            Iterator<Node> sIterator = s.iterator();
 
                             @Override
                             public boolean hasNext() {
@@ -679,7 +699,9 @@ public class Reference extends SignatureElementProxy {
         try {
             XMLSignatureInput output = this.dereferenceURIandPerformTransforms(null);
             return output.getBytes();
-        } catch (IOException | CanonicalizationException ex) {
+        } catch (IOException ex) {
+            throw new ReferenceNotInitializedException(ex);
+        } catch (CanonicalizationException ex) {
             throw new ReferenceNotInitializedException(ex);
         }
     }
@@ -705,11 +727,10 @@ public class Reference extends SignatureElementProxy {
         MessageDigestAlgorithm mda = this.getMessageDigestAlgorithm();
         mda.reset();
 
-        XMLSignatureInput output = null;
         try (DigesterOutputStream diOs = new DigesterOutputStream(mda);
             OutputStream os = new UnsyncBufferedOutputStream(diOs)) {
 
-            output = this.getContentsAfterTransformation(input, os);
+            XMLSignatureInput output = this.getContentsAfterTransformation(input, os);
             this.transformsOutput = output;
 
             // if signing and c14n11 property == true explicitly add
@@ -728,20 +749,18 @@ public class Reference extends SignatureElementProxy {
             }
             os.flush();
 
+            if (output.getOctetStreamReal() != null) {
+                output.getOctetStreamReal().close();
+            }
+
             //this.getReferencedBytes(diOs);
             //mda.update(data);
 
             return diOs.getDigestValue();
-        } catch (XMLSecurityException | IOException ex) {
+        } catch (XMLSecurityException ex) {
             throw new ReferenceNotInitializedException(ex);
-        } finally { //NOPMD
-            try {
-                if (output != null && output.getOctetStreamReal() != null) {
-                    output.getOctetStreamReal().close();
-                }
-            } catch (IOException ex) {
-                throw new ReferenceNotInitializedException(ex);
-            }
+        } catch (IOException ex) {
+            throw new ReferenceNotInitializedException(ex);
         }
     }
 

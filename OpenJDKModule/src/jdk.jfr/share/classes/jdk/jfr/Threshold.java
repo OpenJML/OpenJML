@@ -45,7 +45,7 @@ public @interface Threshold {
     /**
      * Setting name {@code "threshold"} for configuring event thresholds.
      */
-    public static final String NAME = "threshold";
+    public final static String NAME = "threshold";
 
     /**
      * The threshold (for example, {@code "20 ms"}).

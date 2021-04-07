@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2015, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,19 +25,10 @@
 
 package javax.swing.tree;
 
+import java.util.*;
 import java.beans.ConstructorProperties;
-import java.io.IOException;
-import java.io.InvalidObjectException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.EventListener;
-import java.util.Vector;
-
-import javax.swing.event.EventListenerList;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
+import java.io.*;
+import javax.swing.event.*;
 
 /**
  * A simple tree data model that uses TreeNodes.
@@ -685,7 +676,6 @@ public class DefaultTreeModel implements Serializable, TreeModel {
     }
 
     // Serialization support.
-    @Serial
     private void writeObject(ObjectOutputStream s) throws IOException {
         Vector<Object> values = new Vector<Object>();
 
@@ -698,7 +688,6 @@ public class DefaultTreeModel implements Serializable, TreeModel {
         s.writeObject(values);
     }
 
-    @Serial
     private void readObject(ObjectInputStream s)
         throws IOException, ClassNotFoundException {
         ObjectInputStream.GetField f = s.readFields();

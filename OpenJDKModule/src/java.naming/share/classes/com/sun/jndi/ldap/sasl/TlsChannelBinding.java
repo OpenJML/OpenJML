@@ -73,7 +73,7 @@ public class TlsChannelBinding {
             return name;
         }
 
-        private final String name;
+        final private String name;
         TlsChannelBindingType(String name) {
             this.name = name;
         }
@@ -98,8 +98,8 @@ public class TlsChannelBinding {
         return null;
     }
 
-    private final TlsChannelBindingType cbType;
-    private final byte[] cbData;
+    final private TlsChannelBindingType cbType;
+    final private byte[] cbData;
 
     /**
      * Construct tls-server-end-point Channel Binding data

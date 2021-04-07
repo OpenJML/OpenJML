@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -288,7 +288,8 @@ public class URLClassLoader extends SecureClassLoader implements Closeable {
             }
             URLConnection urlc = url.openConnection();
             InputStream is = urlc.getInputStream();
-            if (urlc instanceof JarURLConnection juc) {
+            if (urlc instanceof JarURLConnection) {
+                JarURLConnection juc = (JarURLConnection)urlc;
                 JarFile jar = juc.getJarFile();
                 synchronized (closeables) {
                     if (!closeables.containsKey(jar)) {

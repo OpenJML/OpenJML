@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -1501,8 +1501,9 @@ public final class URI
     public boolean equals(Object ob) {
         if (ob == this)
             return true;
-        if (!(ob instanceof URI that))
+        if (!(ob instanceof URI))
             return false;
+        URI that = (URI)ob;
         if (this.isOpaque() != that.isOpaque()) return false;
         if (!equalIgnoringCase(this.scheme, that.scheme)) return false;
         if (!equal(this.fragment, that.fragment)) return false;
@@ -1776,9 +1777,6 @@ public final class URI
      *
      * @param  os  The object-output stream to which this object
      *             is to be written
-     *
-     * @throws IOException
-     *         If an I/O error occurs
      */
     @java.io.Serial
     private void writeObject(ObjectOutputStream os)
@@ -1797,12 +1795,6 @@ public final class URI
      *
      * @param  is  The object-input stream from which this object
      *             is being read
-     *
-     * @throws IOException
-     *         If an I/O error occurs
-     *
-     * @throws ClassNotFoundException
-     *         If a serialized class cannot be loaded
      */
     @java.io.Serial
     private void readObject(ObjectInputStream is)

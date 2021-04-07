@@ -46,7 +46,7 @@ import jdk.jfr.internal.management.ManagementSupport;
 
 final class DiskRepository implements Closeable {
 
-    static final class DiskChunk {
+    final static class DiskChunk {
         final Path path;
         final long startTimeNanos;
         Instant endTime;

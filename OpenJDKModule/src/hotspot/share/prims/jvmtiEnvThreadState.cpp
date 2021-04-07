@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -23,6 +23,7 @@
  */
 
 #include "precompiled.hpp"
+#include "classfile/systemDictionary.hpp"
 #include "interpreter/interpreter.hpp"
 #include "jvmtifiles/jvmtiEnv.hpp"
 #include "memory/resourceArea.hpp"
@@ -258,16 +259,19 @@ class GetCurrentLocationClosure : public HandshakeClosure {
     JavaThread *jt = target->as_Java_thread();
     ResourceMark rmark; // jt != Thread::current()
     RegisterMap rm(jt, false);
-    // There can be a race condition between a handshake
+    // There can be a race condition between a VM_Operation reaching a safepoint
     // and the target thread exiting from Java execution.
-    // We must recheck that the last Java frame still exists.
+    // We must recheck the last Java frame still exists.
     if (!jt->is_exiting() && jt->has_last_Java_frame()) {
       javaVFrame* vf = jt->last_java_vframe(&rm);
-      if (vf != NULL) {
-        Method* method = vf->method();
-        _method_id = method->jmethod_id();
-        _bci = vf->bci();
-      }
+      assert(vf != NULL, "must have last java frame");
+      Method* method = vf->method();
+      _method_id = method->jmethod_id();
+      _bci = vf->bci();
+    } else {
+      // Clear current location as the target thread has no Java frames anymore.
+      _method_id = (jmethodID)NULL;
+      _bci = 0;
     }
     _completed = true;
   }

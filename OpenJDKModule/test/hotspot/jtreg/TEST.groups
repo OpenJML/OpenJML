@@ -76,8 +76,7 @@ hotspot_containers = \
 tier1_common = \
   sanity/BasicVMTest.java \
   gtest/GTestWrapper.java \
-  gtest/MetaspaceGtests.java \
-  gtest/LargePageGtests.java
+  gtest/MetaspaceGtests.java
 
 tier1_compiler = \
   :tier1_compiler_1 \
@@ -276,11 +275,14 @@ tier1_runtime = \
  -runtime/CompressedOops/UseCompressedOops.java \
  -runtime/ConstantPool/IntfMethod.java \
  -runtime/ErrorHandling/CreateCoredumpOnCrash.java \
+ -runtime/ErrorHandling/ErrorHandler.java \
  -runtime/ErrorHandling/TestHeapDumpOnOutOfMemoryError.java \
+ -runtime/ErrorHandling/TestHeapDumpOnOutOfMemoryErrorInMetaspace.java \
  -runtime/ErrorHandling/TimeoutInErrorHandlingTest.java \
  -runtime/InvocationTests \
  -runtime/logging/MonitorMismatchTest.java \
  -runtime/memory/ReserveMemory.java \
+ -runtime/memory/RunUnitTestsConcurrently.java \
  -runtime/Metaspace/FragmentMetaspace.java \
  -runtime/Metaspace/FragmentMetaspaceSimple.java \
  -runtime/MirrorFrame/Test8003720.java \
@@ -337,7 +339,6 @@ hotspot_appcds_dynamic = \
  -runtime/cds/appcds/LambdaWithOldClass.java \
  -runtime/cds/appcds/LongClassListPath.java \
  -runtime/cds/appcds/LotsOfClasses.java \
- -runtime/cds/appcds/MismatchedPathTriggerMemoryRelease.java \
  -runtime/cds/appcds/NonExistClasspath.java \
  -runtime/cds/appcds/RelativePath.java \
  -runtime/cds/appcds/SharedArchiveConsistency.java \

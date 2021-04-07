@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -70,25 +70,25 @@ public class ValueConversionDebugger extends TestDebuggerType2 {
 
         if (value instanceof ByteValue) {
             methodNameToCall += "ByteTo";
-            param = Byte.valueOf(value.byteValue());
+            param = new Byte(value.byteValue());
         } else if (value instanceof ShortValue) {
             methodNameToCall += "ShortTo";
-            param = Short.valueOf(value.shortValue());
+            param = new Short(value.shortValue());
         } else if (value instanceof CharValue) {
             methodNameToCall += "CharTo";
-            param = Character.valueOf(value.charValue());
+            param = new Character(value.charValue());
         } else if (value instanceof IntegerValue) {
             methodNameToCall += "IntTo";
-            param = Integer.valueOf(value.intValue());
+            param = new Integer(value.intValue());
         } else if (value instanceof LongValue) {
             methodNameToCall += "LongTo";
-            param = Long.valueOf(value.longValue());
+            param = new Long(value.longValue());
         } else if (value instanceof FloatValue) {
             methodNameToCall += "FloatTo";
-            param = Float.valueOf(value.floatValue());
+            param = new Float(value.floatValue());
         } else if (value instanceof DoubleValue) {
             methodNameToCall += "DoubleTo";
-            param = Double.valueOf(value.doubleValue());
+            param = new Double(value.doubleValue());
         } else
             throw new IllegalArgumentException("Illegal PrimitiveValue: " + value);
 

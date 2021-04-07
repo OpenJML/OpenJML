@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -63,12 +63,13 @@ final class SSLSocketOutputRecord extends OutputRecord implements SSLRecord {
             }
 
             // use the buf of ByteArrayOutputStream
-            count = headerSize + writeCipher.getExplicitNonceSize();
+            int position = headerSize + writeCipher.getExplicitNonceSize();
+            count = position;
 
             write(level);
             write(description);
             if (SSLLogger.isOn && SSLLogger.isOn("record")) {
-                SSLLogger.fine("WRITE: " + protocolVersion.name +
+                SSLLogger.fine("WRITE: " + protocolVersion +
                         " " + ContentType.ALERT.name +
                         "(" + Alert.nameOf(description) + ")" +
                         ", length = " + (count - headerSize));
@@ -179,7 +180,7 @@ final class SSLSocketOutputRecord extends OutputRecord implements SSLRecord {
 
                 if (SSLLogger.isOn && SSLLogger.isOn("record")) {
                     SSLLogger.fine(
-                            "WRITE: " + protocolVersion.name +
+                            "WRITE: " + protocolVersion +
                             " " + ContentType.HANDSHAKE.name +
                             ", length = " + (count - headerSize));
                 }
@@ -220,7 +221,8 @@ final class SSLSocketOutputRecord extends OutputRecord implements SSLRecord {
             }
 
             // use the buf of ByteArrayOutputStream
-            count = headerSize + writeCipher.getExplicitNonceSize();
+            int position = headerSize + writeCipher.getExplicitNonceSize();
+            count = position;
 
             write((byte)1);         // byte 1: change_cipher_spec(
 
@@ -254,7 +256,7 @@ final class SSLSocketOutputRecord extends OutputRecord implements SSLRecord {
 
             if (SSLLogger.isOn && SSLLogger.isOn("record")) {
                 SSLLogger.fine(
-                        "WRITE: " + protocolVersion.name +
+                        "WRITE: " + protocolVersion +
                         " " + ContentType.HANDSHAKE.name +
                         ", length = " + (count - headerSize));
             }
@@ -327,7 +329,7 @@ final class SSLSocketOutputRecord extends OutputRecord implements SSLRecord {
 
                 if (SSLLogger.isOn && SSLLogger.isOn("record")) {
                     SSLLogger.fine(
-                            "WRITE: " + protocolVersion.name +
+                            "WRITE: " + protocolVersion +
                             " " + ContentType.APPLICATION_DATA.name +
                             ", length = " + (count - position));
                 }

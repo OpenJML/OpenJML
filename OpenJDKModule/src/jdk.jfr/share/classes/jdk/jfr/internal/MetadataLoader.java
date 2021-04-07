@@ -25,10 +25,13 @@
 
 package jdk.jfr.internal;
 
+import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -67,7 +70,7 @@ public final class MetadataLoader {
     private final Type PERIOD_TYPE = TypeLibrary.createAnnotationType(Period.class);
 
     // <Event>, <Type> and <Relation>
-    private static final class TypeElement {
+    private final static class TypeElement {
         private final List<FieldElement> fields;
         private final String name;
         private final String label;

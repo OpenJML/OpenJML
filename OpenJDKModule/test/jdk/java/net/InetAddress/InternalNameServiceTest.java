@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2016, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,8 +27,7 @@
  *          the system property jdk.net.hosts.file. This property specifies
  *          a file name that contains address host mappings, similar to those in
  *          /etc/hosts file.
- * @run main/othervm -Djdk.net.hosts.file=TestHosts -Dsun.net.inetaddr.ttl=0
- *      InternalNameServiceTest
+ * @run main/othervm  InternalNameServiceTest
  */
 
 import java.io.BufferedWriter;
@@ -40,11 +39,14 @@ import java.util.Arrays;
 
 public class InternalNameServiceTest {
 
-    static final String HOSTS_FILE_NAME = System.getProperty("jdk.net.hosts.file");
-
     public static void main(String args[]) throws Exception {
-        testHostToIPAddressMappings(HOSTS_FILE_NAME);
-        testIpAddressToHostNameMappings(HOSTS_FILE_NAME);
+
+        String hostsFileName = System.getProperty("test.src", ".") + "/TestHosts";
+        System.setProperty("jdk.net.hosts.file", hostsFileName);
+        System.setProperty("sun.net.inetaddr.ttl", "0");
+
+        testHostToIPAddressMappings(hostsFileName);
+        testIpAddressToHostNameMappings(hostsFileName);
     }
 
     private static void testHostToIPAddressMappings(String hostsFileName)

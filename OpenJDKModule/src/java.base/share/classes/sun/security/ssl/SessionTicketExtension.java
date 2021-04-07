@@ -112,7 +112,7 @@ final class SessionTicketExtension {
     }
 
     // Crypto key context for session state.  Used with stateless operation.
-    static final class StatelessKey {
+    final static class StatelessKey {
         final long timeout;
         final SecretKey key;
         final int num;

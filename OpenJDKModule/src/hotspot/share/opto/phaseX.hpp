@@ -429,11 +429,8 @@ public:
   // Helper to call Node::Ideal() and BarrierSetC2::ideal_node().
   Node* apply_ideal(Node* i, bool can_reshape);
 
-#ifdef ASSERT
-  void dump_infinite_loop_info(Node* n, const char* where);
   // Check for a simple dead loop when a data node references itself.
-  void dead_loop_check(Node *n);
-#endif
+  DEBUG_ONLY(void dead_loop_check(Node *n);)
 };
 
 //------------------------------PhaseIterGVN-----------------------------------
@@ -451,6 +448,7 @@ private:
   void subsume_node( Node *old, Node *nn );
 
   Node_Stack _stack;      // Stack used to avoid recursion
+
 protected:
 
   // Shuffle worklist, for stress testing
@@ -483,7 +481,7 @@ public:
 #endif
 
 #ifdef ASSERT
-  void dump_infinite_loop_info(Node* n, const char* where);
+  void dump_infinite_loop_info(Node* n);
   void trace_PhaseIterGVN_verbose(Node* n, int num_processed);
 #endif
 
@@ -527,7 +525,7 @@ public:
   // Replace ith edge of "n" with "in"
   void replace_input_of(Node* n, int i, Node* in) {
     rehash_node_delayed(n);
-    n->set_req_X(i, in, this);
+    n->set_req(i, in);
   }
 
   // Delete ith edge of "n"

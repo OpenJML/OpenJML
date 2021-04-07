@@ -42,7 +42,6 @@ import com.sun.org.apache.xml.internal.security.signature.XMLSignatureInput;
 import com.sun.org.apache.xml.internal.security.utils.Constants;
 import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
 import com.sun.org.apache.xml.internal.security.utils.resolver.ResourceResolver;
-import com.sun.org.apache.xml.internal.security.utils.resolver.ResourceResolverContext;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -57,18 +56,23 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
     private static final com.sun.org.slf4j.internal.Logger LOG =
         com.sun.org.slf4j.internal.LoggerFactory.getLogger(KeyInfoReferenceResolver.class);
 
-    /** {@inheritDoc} */
-    @Override
-    protected boolean engineCanResolve(Element element, String baseURI, StorageResolver storage) {
+    /** {{@inheritDoc}}. */
+    public boolean engineCanResolve(Element element, String baseURI, StorageResolver storage) {
         return XMLUtils.elementIsInSignature11Space(element, Constants._TAG_KEYINFOREFERENCE);
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected PublicKey engineResolvePublicKey(Element element, String baseURI, StorageResolver storage, boolean secureValidation)
+    /** {{@inheritDoc}}. */
+    public PublicKey engineLookupAndResolvePublicKey(Element element, String baseURI, StorageResolver storage)
         throws KeyResolverException {
+
+        LOG.debug("Can I resolve {}", element.getTagName());
+
+        if (!engineCanResolve(element, baseURI, storage)) {
+            return null;
+        }
+
         try {
-            KeyInfo referent = resolveReferentKeyInfo(element, baseURI, storage, secureValidation);
+            KeyInfo referent = resolveReferentKeyInfo(element, baseURI, storage);
             if (referent != null) {
                 return referent.getPublicKey();
             }
@@ -79,12 +83,18 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
         return null;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected X509Certificate engineResolveX509Certificate(Element element, String baseURI, StorageResolver storage, boolean secureValidation)
+    /** {{@inheritDoc}}. */
+    public X509Certificate engineLookupResolveX509Certificate(Element element, String baseURI, StorageResolver storage)
         throws KeyResolverException {
+
+        LOG.debug("Can I resolve {}", element.getTagName());
+
+        if (!engineCanResolve(element, baseURI, storage)) {
+            return null;
+        }
+
         try {
-            KeyInfo referent = resolveReferentKeyInfo(element, baseURI, storage, secureValidation);
+            KeyInfo referent = resolveReferentKeyInfo(element, baseURI, storage);
             if (referent != null) {
                 return referent.getX509Certificate();
             }
@@ -95,13 +105,18 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
         return null;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected SecretKey engineResolveSecretKey(Element element, String baseURI, StorageResolver storage, boolean secureValidation)
+    /** {{@inheritDoc}}. */
+    public SecretKey engineLookupAndResolveSecretKey(Element element, String baseURI, StorageResolver storage)
         throws KeyResolverException {
 
+        LOG.debug("Can I resolve {}", element.getTagName());
+
+        if (!engineCanResolve(element, baseURI, storage)) {
+            return null;
+        }
+
         try {
-            KeyInfo referent = resolveReferentKeyInfo(element, baseURI, storage, secureValidation);
+            KeyInfo referent = resolveReferentKeyInfo(element, baseURI, storage);
             if (referent != null) {
                 return referent.getSecretKey();
             }
@@ -112,13 +127,18 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
         return null;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public PrivateKey engineResolvePrivateKey(Element element, String baseURI, StorageResolver storage, boolean secureValidation)
+    /** {{@inheritDoc}}. */
+    public PrivateKey engineLookupAndResolvePrivateKey(Element element, String baseURI, StorageResolver storage)
         throws KeyResolverException {
 
+        LOG.debug("Can I resolve " + element.getTagName());
+
+        if (!engineCanResolve(element, baseURI, storage)) {
+            return null;
+        }
+
         try {
-            KeyInfo referent = resolveReferentKeyInfo(element, baseURI, storage, secureValidation);
+            KeyInfo referent = resolveReferentKeyInfo(element, baseURI, storage);
             if (referent != null) {
                 return referent.getPrivateKey();
             }
@@ -135,12 +155,10 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
      * @param element
      * @param baseURI
      * @param storage
-     * @param secureValidation
      * @return the KeyInfo which is referred to by this KeyInfoReference, or null if can not be resolved
      * @throws XMLSecurityException
      */
-    private KeyInfo resolveReferentKeyInfo(Element element, String baseURI,
-                                           StorageResolver storage, boolean secureValidation) throws XMLSecurityException {
+    private KeyInfo resolveReferentKeyInfo(Element element, String baseURI, StorageResolver storage) throws XMLSecurityException {
         KeyInfoReference reference = new KeyInfoReference(element, baseURI);
         Attr uriAttr = reference.getURIAttr();
 
@@ -148,7 +166,7 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
 
         Element referentElement = null;
         try {
-            referentElement = obtainReferenceElement(resource, secureValidation);
+            referentElement = obtainReferenceElement(resource);
         } catch (Exception e) {
             LOG.debug("XMLSecurityException", e);
             return null;
@@ -159,7 +177,7 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
             return null;
         }
 
-        validateReference(referentElement, secureValidation);
+        validateReference(referentElement);
 
         KeyInfo referent = new KeyInfo(referentElement, baseURI);
         referent.addStorageResolver(storage);
@@ -170,13 +188,12 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
      * Validate the Element referred to by the KeyInfoReference.
      *
      * @param referentElement
-     * @param secureValidation
      *
      * @throws XMLSecurityException
      */
-    private void validateReference(Element referentElement, boolean secureValidation) throws XMLSecurityException {
+    private void validateReference(Element referentElement) throws XMLSecurityException {
         if (!XMLUtils.elementIsInSignatureSpace(referentElement, Constants._TAG_KEYINFO)) {
-            Object[] exArgs = { new QName(referentElement.getNamespaceURI(), referentElement.getLocalName()) };
+            Object exArgs[] = { new QName(referentElement.getNamespaceURI(), referentElement.getLocalName()) };
             throw new XMLSecurityException("KeyInfoReferenceResolver.InvalidReferentElement.WrongType", exArgs);
         }
 
@@ -205,15 +222,14 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
      */
     private XMLSignatureInput resolveInput(Attr uri, String baseURI, boolean secureValidation)
         throws XMLSecurityException {
-        ResourceResolverContext resContext = new ResourceResolverContext(uri, baseURI, secureValidation);
-        return ResourceResolver.resolve(resContext);
+        ResourceResolver resRes = ResourceResolver.getInstance(uri, baseURI, secureValidation);
+        return resRes.resolve(uri, baseURI, secureValidation);
     }
 
     /**
      * Resolve the Element effectively represented by the XML signature input source.
      *
      * @param resource
-     * @param secureValidation
      * @return the Element effectively represented by the XML signature input source.
      * @throws CanonicalizationException
      * @throws ParserConfigurationException
@@ -221,20 +237,20 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
      * @throws SAXException
      * @throws KeyResolverException
      */
-    private Element obtainReferenceElement(XMLSignatureInput resource, boolean secureValidation)
+    private Element obtainReferenceElement(XMLSignatureInput resource)
         throws CanonicalizationException, ParserConfigurationException,
         IOException, SAXException, KeyResolverException {
 
         Element e;
-        if (resource.isElement()) {
+        if (resource.isElement()){
             e = (Element) resource.getSubNode();
         } else if (resource.isNodeSet()) {
             LOG.debug("De-reference of KeyInfoReference returned an unsupported NodeSet");
             return null;
         } else {
             // Retrieved resource is a byte stream
-            byte[] inputBytes = resource.getBytes();
-            e = getDocFromBytes(inputBytes, secureValidation);
+            byte inputBytes[] = resource.getBytes();
+            e = getDocFromBytes(inputBytes, this.secureValidation);
         }
         return e;
     }

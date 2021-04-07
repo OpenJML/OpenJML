@@ -41,4 +41,8 @@ public class Canonicalizer20010315OmitComments extends Canonicalizer20010315 {
         return Canonicalizer.ALGO_ID_C14N_OMIT_COMMENTS;
     }
 
+    /** {@inheritDoc} */
+    public final boolean engineGetIncludeComments() {
+        return false;
+    }
 }

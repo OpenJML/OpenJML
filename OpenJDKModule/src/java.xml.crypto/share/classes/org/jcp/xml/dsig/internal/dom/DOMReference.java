@@ -21,7 +21,7 @@
  * under the License.
  */
 /*
- * Copyright (c) 2005, 2016, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2019, Oracle and/or its affiliates. All rights reserved.
  */
 /*
  * ===========================================================================
@@ -29,6 +29,9 @@
  * (C) Copyright IBM Corp. 2003 All Rights Reserved.
  *
  * ===========================================================================
+ */
+/*
+ * $Id: DOMReference.java 1854026 2019-02-21 09:30:01Z coheigea $
  */
 package org.jcp.xml.dsig.internal.dom;
 
@@ -162,7 +165,7 @@ public final class DOMReference extends DOMStructure
         }
         this.digestMethod = dm;
         this.uri = uri;
-        if (uri != null && !uri.isEmpty()) {
+        if (uri != null && !uri.equals("")) {
             try {
                 new URI(uri);
             } catch (URISyntaxException e) {
@@ -193,7 +196,7 @@ public final class DOMReference extends DOMStructure
         // unmarshal Transforms, if specified
         Element nextSibling = DOMUtils.getFirstChildElement(refElem);
         List<Transform> newTransforms = new ArrayList<>(MAXIMUM_TRANSFORM_COUNT);
-        if ("Transforms".equals(nextSibling.getLocalName())
+        if (nextSibling.getLocalName().equals("Transforms")
             && XMLSignature.XMLNS.equals(nextSibling.getNamespaceURI())) {
             Element transformElem = DOMUtils.getFirstChildElement(nextSibling,
                                                                   "Transform",
@@ -220,7 +223,7 @@ public final class DOMReference extends DOMStructure
             }
             nextSibling = DOMUtils.getNextSiblingElement(nextSibling);
         }
-        if (!"DigestMethod".equals(nextSibling.getLocalName())
+        if (!nextSibling.getLocalName().equals("DigestMethod")
             && XMLSignature.XMLNS.equals(nextSibling.getNamespaceURI())) {
             throw new MarshalException("Invalid element name: " +
                                        nextSibling.getLocalName() +
@@ -445,7 +448,6 @@ public final class DOMReference extends DOMStructure
             dos = new DigesterOutputStream(md);
         }
         Data data = dereferencedData;
-        XMLSignatureInput xi = null;
         try (OutputStream os = new UnsyncBufferedOutputStream(dos)) {
             for (int i = 0, size = transforms.size(); i < size; i++) {
                 DOMTransform transform = (DOMTransform)transforms.get(i);
@@ -457,6 +459,7 @@ public final class DOMReference extends DOMStructure
             }
 
             if (data != null) {
+                XMLSignatureInput xi;
                 // explicitly use C14N 1.1 when generating signature
                 // first check system property, then context property
                 boolean c14n11 = useC14N11;
@@ -536,27 +539,23 @@ public final class DOMReference extends DOMStructure
                         xi.getOctetStreamReal().close();
                     }
                 }
-            } else {
-                LOG.warn("The input bytes to the digest operation are null. " +
-                   "This may be due to a problem with the Reference URI " +
-                   "or its Transforms.");
             }
             os.flush();
             if (cache != null && cache) {
                 this.dis = dos.getInputStream();
             }
             return dos.getDigestValue();
-        } catch (NoSuchAlgorithmException | TransformException | MarshalException
-                | IOException | com.sun.org.apache.xml.internal.security.c14n.CanonicalizationException e) {
+        } catch (NoSuchAlgorithmException e) {
             throw new XMLSignatureException(e);
-        } finally { //NOPMD
-            if (xi != null && xi.getOctetStreamReal() != null) {
-                try {
-                    xi.getOctetStreamReal().close();
-                } catch (IOException e) {
-                    throw new XMLSignatureException(e);
-                }
-            }
+        } catch (TransformException e) {
+            throw new XMLSignatureException(e);
+        } catch (MarshalException e) {
+            throw new XMLSignatureException(e);
+        } catch (IOException e) {
+            throw new XMLSignatureException(e);
+        } catch (com.sun.org.apache.xml.internal.security.c14n.CanonicalizationException e) {
+            throw new XMLSignatureException(e);
+        } finally {
             if (dos != null) {
                 try {
                     dos.close();

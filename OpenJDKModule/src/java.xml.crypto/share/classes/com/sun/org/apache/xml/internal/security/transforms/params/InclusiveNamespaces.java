@@ -76,7 +76,7 @@ public class InclusiveNamespaces extends ElementProxy implements TransformParam 
         if (prefixes instanceof SortedSet<?>) {
             prefixList = (SortedSet<String>)prefixes;
         } else {
-            prefixList = new TreeSet<>(prefixes);
+            prefixList = new TreeSet<String>(prefixes);
         }
 
         StringBuilder sb = new StringBuilder();
@@ -85,7 +85,7 @@ public class InclusiveNamespaces extends ElementProxy implements TransformParam 
                 sb.append("#default ");
             } else {
                 sb.append(prefix);
-                sb.append(' ');
+                sb.append(" ");
             }
         }
 
@@ -131,7 +131,7 @@ public class InclusiveNamespaces extends ElementProxy implements TransformParam 
      * @return A set to string
      */
     public static SortedSet<String> prefixStr2Set(String inclusiveNamespaces) {
-        SortedSet<String> prefixes = new TreeSet<>();
+        SortedSet<String> prefixes = new TreeSet<String>();
 
         if (inclusiveNamespaces == null || inclusiveNamespaces.length() == 0) {
             return prefixes;
@@ -139,7 +139,7 @@ public class InclusiveNamespaces extends ElementProxy implements TransformParam 
 
         String[] tokens = inclusiveNamespaces.split("\\s");
         for (String prefix : tokens) {
-            if ("#default".equals(prefix)) {
+            if (prefix.equals("#default")) {
                 prefixes.add("xmlns");
             } else {
                 prefixes.add(prefix);

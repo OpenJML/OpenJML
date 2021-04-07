@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2008, 2010, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -45,13 +45,13 @@ public class Lock {
     static final Random rand = new Random();
 
     public static void main(String[] args) throws Exception {
-        if (args.length > 0 && args[0].equals("-lockworker")) {
+        if (args.length > 0 && args[0].equals("-lockslave")) {
             int port = Integer.parseInt(args[1]);
-            runLockWorker(port);
+            runLockSlave(port);
             System.exit(0);
         }
 
-        LockWorkerMirror worker = startLockWorker();
+        LockSlaveMirror slave = startLockSlave();
         try {
 
             // create temporary file
@@ -59,31 +59,31 @@ public class Lock {
             blah.deleteOnExit();
 
             // run tests
-            testLockProtocol(blah, worker);
-            testAsyncClose(blah, worker);
+            testLockProtocol(blah, slave);
+            testAsyncClose(blah, slave);
 
             // eagerly clean-up
             blah.delete();
 
         } finally {
-            worker.shutdown();
+            slave.shutdown();
         }
     }
 
     // test locking protocol
-    static void testLockProtocol(File file, LockWorkerMirror worker)
+    static void testLockProtocol(File file, LockSlaveMirror slave)
         throws Exception
     {
         FileLock fl;
 
-        // worker VM opens file and acquires exclusive lock
-        worker.open(file.getPath()).lock();
+        // slave VM opens file and acquires exclusive lock
+        slave.open(file.getPath()).lock();
 
         AsynchronousFileChannel ch = AsynchronousFileChannel
             .open(file.toPath(), READ, WRITE);
 
         // this VM tries to acquire lock
-        // (lock should not be acquire until released by worker VM)
+        // (lock should not be acquire until released by slave VM)
         Future<FileLock> result = ch.lock();
         try {
             result.get(2, TimeUnit.SECONDS);
@@ -91,15 +91,15 @@ public class Lock {
         } catch (TimeoutException x) {
         }
 
-        // worker VM releases lock
-        worker.unlock();
+        // slave VM releases lock
+        slave.unlock();
 
         // this VM should now acquire lock
         fl = result.get();
         fl.release();
 
-        // worker VM acquires lock on range
-        worker.lock(0, 10, false);
+        // slave VM acquires lock on range
+        slave.lock(0, 10, false);
 
         // this VM acquires lock on non-overlapping range
         fl = ch.lock(10, 10, false).get();
@@ -107,19 +107,19 @@ public class Lock {
 
         // done
         ch.close();
-        worker.close();
+        slave.close();
     }
 
     // test close of channel with outstanding lock operation
-    static void testAsyncClose(File file, LockWorkerMirror worker) throws Exception {
-        // worker VM opens file and acquires exclusive lock
-        worker.open(file.getPath()).lock();
+    static void testAsyncClose(File file, LockSlaveMirror slave) throws Exception {
+        // slave VM opens file and acquires exclusive lock
+        slave.open(file.getPath()).lock();
 
         for (int i=0; i<100; i++) {
             AsynchronousFileChannel ch = AsynchronousFileChannel
                 .open(file.toPath(), READ, WRITE);
 
-            // try to lock file (should not complete because file is locked by worker)
+            // try to lock file (should not complete because file is locked by slave)
             Future<FileLock> result = ch.lock();
             try {
                 result.get(rand.nextInt(100), TimeUnit.MILLISECONDS);
@@ -142,12 +142,12 @@ public class Lock {
             }
         }
 
-        worker.close();
+        slave.close();
     }
 
-    // starts a "lock worker" in another process, returning a mirror object to
-    // control the worker
-    static LockWorkerMirror startLockWorker() throws Exception {
+    // starts a "lock slave" in another process, returning a mirror object to
+    // control the slave
+    static LockSlaveMirror startLockSlave() throws Exception {
         ServerSocketChannel ssc = ServerSocketChannel.open()
             .bind(new InetSocketAddress(0));
         int port = ((InetSocketAddress)(ssc.getLocalAddress())).getPort();
@@ -159,29 +159,29 @@ public class Lock {
         String testClasses = System.getProperty("test.classes");
         if (testClasses != null)
             command += " -cp " + testClasses;
-        command += " Lock -lockworker " + port;
+        command += " Lock -lockslave " + port;
 
         Process p = Runtime.getRuntime().exec(command);
         IOHandler.handle(p.getInputStream());
         IOHandler.handle(p.getErrorStream());
 
-        // wait for worker to connect
+        // wait for slave to connect
         SocketChannel sc = ssc.accept();
-        return new LockWorkerMirror(sc);
+        return new LockSlaveMirror(sc);
     }
 
-    // commands that the worker understands
+    // commands that the slave understands
     static final String OPEN_CMD    = "open";
     static final String CLOSE_CMD   = "close";
     static final String LOCK_CMD    = "lock";
     static final String UNLOCK_CMD  = "unlock";
     static final char TERMINATOR    = ';';
 
-    // provides a proxy to a "lock worker"
-    static class LockWorkerMirror {
+    // provides a proxy to a "lock slave"
+    static class LockSlaveMirror {
         private final SocketChannel sc;
 
-        LockWorkerMirror(SocketChannel sc) {
+        LockSlaveMirror(SocketChannel sc) {
             this.sc = sc;
         }
 
@@ -207,7 +207,7 @@ public class Lock {
                 throw new RuntimeException("Terminated expected");
         }
 
-        LockWorkerMirror open(String file) throws IOException {
+        LockSlaveMirror open(String file) throws IOException {
             sendCommand(OPEN_CMD, file);
             return this;
         }
@@ -216,20 +216,20 @@ public class Lock {
             sendCommand(CLOSE_CMD);
         }
 
-        LockWorkerMirror lock() throws IOException {
+        LockSlaveMirror lock() throws IOException {
             sendCommand(LOCK_CMD);
             return this;
         }
 
 
-        LockWorkerMirror lock(long position, long size, boolean shared)
+        LockSlaveMirror lock(long position, long size, boolean shared)
             throws IOException
         {
             sendCommand(LOCK_CMD, position + "," + size + "," + shared);
             return this;
         }
 
-        LockWorkerMirror unlock() throws IOException {
+        LockSlaveMirror unlock() throws IOException {
             sendCommand(UNLOCK_CMD);
             return this;
         }
@@ -268,8 +268,8 @@ public class Lock {
         }
     }
 
-    // worker process that responds to simple commands a socket connection
-    static void runLockWorker(int port) throws Exception {
+    // slave process that responds to simple commands a socket connection
+    static void runLockSlave(int port) throws Exception {
 
         // establish connection to parent
         SocketChannel sc = SocketChannel.open(new InetSocketAddress(port));

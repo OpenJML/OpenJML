@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,6 +25,7 @@
 
 package jdk.jfr.internal.instrument;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -76,10 +77,17 @@ final class JIClassInstrumentation {
     }
 
     private static byte[] getOriginalClassBytes(Class<?> clazz) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         String name = "/" + clazz.getName().replace(".", "/") + ".class";
-        try (InputStream is = SecuritySupport.getResourceAsStream(name)) {
-            return is.readAllBytes();
+        InputStream is = SecuritySupport.getResourceAsStream(name);
+        int bytesRead;
+        byte[] buffer = new byte[16384];
+        while ((bytesRead = is.read(buffer, 0, buffer.length)) != -1) {
+            baos.write(buffer, 0, bytesRead);
         }
+        baos.flush();
+        is.close();
+        return baos.toByteArray();
     }
 
     private byte[] makeBytecode() throws IOException, ClassNotFoundException {

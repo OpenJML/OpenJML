@@ -30,24 +30,29 @@
 
 // Allocation site represents a code path that makes a memory
 // allocation
-class AllocationSite {
+template <class E> class AllocationSite {
  private:
-  const NativeCallStack  _call_stack;
-  const MEMFLAGS         _flag;
+  NativeCallStack  _call_stack;
+  E                e;
+  MEMFLAGS         _flag;
  public:
   AllocationSite(const NativeCallStack& stack, MEMFLAGS flag) : _call_stack(stack), _flag(flag) { }
-
+  int hash() const { return _call_stack.hash(); }
   bool equals(const NativeCallStack& stack) const {
     return _call_stack.equals(stack);
   }
 
-  bool equals(const AllocationSite& other) const {
+  bool equals(const AllocationSite<E>& other) const {
     return other.equals(_call_stack);
   }
 
   const NativeCallStack* call_stack() const {
     return &_call_stack;
   }
+
+  // Information regarding this allocation
+  E* data()             { return &e; }
+  const E* peek() const { return &e; }
 
   MEMFLAGS flag() const { return _flag; }
 };

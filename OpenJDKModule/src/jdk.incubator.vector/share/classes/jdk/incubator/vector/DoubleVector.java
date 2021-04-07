@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -2057,8 +2057,7 @@ public abstract class DoubleVector extends AbstractVector<Double> {
                                            S shuffle,
                                            DoubleVector v) {
         VectorMask<Double> valid = shuffle.laneIsValid();
-        @SuppressWarnings("unchecked")
-        S ws = (S) shuffle.wrapIndexes();
+        S ws = shuffletype.cast(shuffle.wrapIndexes());
         DoubleVector r0 =
             VectorSupport.rearrangeOp(
                 getClass(), shuffletype, double.class, length(),

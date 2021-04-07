@@ -63,9 +63,9 @@ public final class PlatformRecorder {
 
 
     private final List<PlatformRecording> recordings = new ArrayList<>();
-    private static final List<SecureRecorderListener> changeListeners = new ArrayList<>();
+    private final static List<SecureRecorderListener> changeListeners = new ArrayList<>();
     private final Repository repository;
-    private static final JVM jvm = JVM.getJVM();
+    private final static JVM jvm = JVM.getJVM();
     private final EventType activeRecordingEvent;
     private final EventType activeSettingEvent;
     private final Thread shutdownHook;
@@ -439,7 +439,7 @@ public final class PlatformRecorder {
 
     private void writeMetaEvents() {
         if (activeRecordingEvent.isEnabled()) {
-            ActiveRecordingEvent event = ActiveRecordingEvent.EVENT;
+            ActiveRecordingEvent event = ActiveRecordingEvent.EVENT.get();
             for (PlatformRecording r : getRecordings()) {
                 if (r.getState() == RecordingState.RUNNING && r.shouldWriteMetadataEvent()) {
                     event.id = r.getId();

@@ -70,7 +70,7 @@ public class DebugdConnectTest {
         OutputAnalyzer out = runJHSDB("jstack", id);
 
         out.shouldContain("LingeredApp");
-        out.stderrShouldBeEmptyIgnoreDeprecatedWarnings();
+        out.stderrShouldBeEmptyIgnoreVMWarnings();
         out.shouldHaveExitValue(0);
     }
 
@@ -78,7 +78,7 @@ public class DebugdConnectTest {
         OutputAnalyzer out = runJHSDB("jmap", id);
 
         out.shouldContain("JVM version is");
-        out.stderrShouldBeEmptyIgnoreDeprecatedWarnings();
+        out.stderrShouldBeEmptyIgnoreVMWarnings();
         out.shouldHaveExitValue(0);
     }
 
@@ -86,7 +86,7 @@ public class DebugdConnectTest {
         OutputAnalyzer out = runJHSDB("jinfo", id);
 
         out.shouldContain("Java System Properties:");
-        out.stderrShouldBeEmptyIgnoreDeprecatedWarnings();
+        out.stderrShouldBeEmptyIgnoreVMWarnings();
         out.shouldHaveExitValue(0);
     }
 
@@ -94,7 +94,7 @@ public class DebugdConnectTest {
         OutputAnalyzer out = runJHSDB("jsnap", id);
 
         out.shouldContain("java.vm.name=");
-        out.stderrShouldBeEmptyIgnoreDeprecatedWarnings();
+        out.stderrShouldBeEmptyIgnoreVMWarnings();
         out.shouldHaveExitValue(0);
     }
 

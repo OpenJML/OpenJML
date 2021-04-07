@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -35,12 +35,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import sun.awt.CGraphicsEnvironment;
-import sun.awt.CGraphicsDevice;
-import sun.java2d.metal.MTLLayer;
-import sun.lwawt.LWWindowPeer;
-
 import sun.java2d.SurfaceData;
 import sun.java2d.opengl.CGLLayer;
+import sun.lwawt.LWWindowPeer;
 
 public class CPlatformView extends CFRetainedResource {
     private native long nativeCreateView(int x, int y, int width, int height, long windowLayerPtr);
@@ -51,7 +48,7 @@ public class CPlatformView extends CFRetainedResource {
 
     private LWWindowPeer peer;
     private SurfaceData surfaceData;
-    private CFRetainedResource windowLayer;
+    private CGLLayer windowLayer;
     private CPlatformResponder responder;
 
     public CPlatformView() {
@@ -61,18 +58,13 @@ public class CPlatformView extends CFRetainedResource {
     public void initialize(LWWindowPeer peer, CPlatformResponder responder) {
         initializeBase(peer, responder);
 
-        this.windowLayer = CGraphicsDevice.usingMetalPipeline()? createMTLLayer() : createCGLayer();
+        this.windowLayer = createCGLayer();
         setPtr(nativeCreateView(0, 0, 0, 0, getWindowLayerPtr()));
     }
 
     public CGLLayer createCGLayer() {
         return new CGLLayer(peer);
     }
-
-    public MTLLayer createMTLLayer() {
-        return new MTLLayer(peer);
-    }
-
 
     protected void initializeBase(LWWindowPeer peer, CPlatformResponder responder) {
         this.peer = peer;
@@ -104,10 +96,7 @@ public class CPlatformView extends CFRetainedResource {
     // PAINTING METHODS
     // ----------------------------------------------------------------------
     public SurfaceData replaceSurfaceData() {
-        surfaceData = (CGraphicsDevice.usingMetalPipeline()) ?
-                    ((MTLLayer)windowLayer).replaceSurfaceData() :
-                    ((CGLLayer)windowLayer).replaceSurfaceData()
-        ;
+        surfaceData = windowLayer.replaceSurfaceData();
         return surfaceData;
     }
 
@@ -122,9 +111,7 @@ public class CPlatformView extends CFRetainedResource {
     }
 
     public long getWindowLayerPtr() {
-        return CGraphicsDevice.usingMetalPipeline() ?
-                ((MTLLayer)windowLayer).getPointer() :
-                ((CGLLayer)windowLayer).getPointer();
+        return windowLayer.getPointer();
     }
 
     public void setAutoResizable(boolean toResize) {

@@ -42,9 +42,9 @@ final class JFCParserHandler extends DefaultHandler {
     private static final String ATTRIBUTE_VERSION = "version";
 
     final Map<String, String> settings = new LinkedHashMap<String, String>();
-    private final StringBuilder currentCharacters = new StringBuilder();
-    private String currentEventName;
+    private String currentEventPath;
     private String currentSettingsName;
+    private StringBuilder currentCharacters;
     String label;
     String provider;
     String description;
@@ -62,13 +62,13 @@ final class JFCParserHandler extends DefaultHandler {
             provider = getOptional(attributes, ATTRIBUTE_PROVIDER, "");
             break;
         case ELEMENT_EVENT_TYPE:
-            currentEventName = attributes.getValue(ATTRIBUTE_NAME);
+            currentEventPath = attributes.getValue(ATTRIBUTE_NAME);
             break;
         case ELEMENT_SETTING:
             currentSettingsName = attributes.getValue(ATTRIBUTE_NAME);
             break;
         }
-        currentCharacters.setLength(0);
+        currentCharacters = null;
     }
 
     private String getOptional(Attributes attributes, String name, String defaultValue) {
@@ -78,9 +78,10 @@ final class JFCParserHandler extends DefaultHandler {
 
     @Override
     public void characters(char[] ch, int start, int length) throws SAXException {
-        if (currentSettingsName != null) {
-            currentCharacters.append(ch, start, length);
+        if (currentCharacters == null) {
+            currentCharacters = new StringBuilder(length);
         }
+        currentCharacters.append(ch, start, length);
     }
 
     @Override
@@ -89,13 +90,17 @@ final class JFCParserHandler extends DefaultHandler {
         case ELEMENT_CONFIGURATION:
             break;
         case ELEMENT_EVENT_TYPE:
-            currentEventName = null;
+            currentEventPath = null;
             break;
         case ELEMENT_SETTING:
-            String settingsValue = currentCharacters.toString();
-            settings.put(currentEventName + "#" + currentSettingsName, settingsValue);
+            String settingsValue = currentCharacters == null ? "" : currentCharacters.toString();
+            settings.put(currentEventPath + "#" + currentSettingsName, "" + settingsValue);
             currentSettingsName = null;
             break;
         }
+    }
+
+    public Map<String, String> getSettings() {
+        return settings;
     }
 }

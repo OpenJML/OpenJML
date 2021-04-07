@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2008, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,13 +25,10 @@
 #ifndef SHARE_PRIMS_METHODHANDLES_HPP
 #define SHARE_PRIMS_METHODHANDLES_HPP
 
-#include "classfile/vmClasses.hpp"
+#include "classfile/systemDictionary.hpp"
 #include "classfile/vmSymbols.hpp"
-#include "oops/method.hpp"
 #include "runtime/frame.hpp"
-#include "runtime/fieldDescriptor.hpp"
 #include "runtime/globals.hpp"
-#include "runtime/stubCodeGenerator.hpp"
 #include "utilities/macros.hpp"
 
 #ifdef ZERO
@@ -40,7 +37,6 @@
 #endif
 
 class MacroAssembler;
-class MethodHandlesAdapterBlob;
 class Label;
 
 class MethodHandles: AllStatic {

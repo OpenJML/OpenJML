@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2002, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import jdk.internal.misc.Unsafe;
 
@@ -319,11 +320,12 @@ class WindowsSelectorImpl extends SelectorImpl {
         private void checkForException() throws IOException {
             if (exception == null)
                 return;
-            String message = "An exception occurred" +
-                    " during the execution of select(): \n" +
-                    exception + '\n';
+            StringBuffer message =  new StringBuffer("An exception occurred" +
+                                       " during the execution of select(): \n");
+            message.append(exception);
+            message.append('\n');
             exception = null;
-            throw new IOException(message);
+            throw new IOException(message.toString());
         }
     }
 

@@ -27,9 +27,11 @@ package jdk.jfr.internal.consumer;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.time.Instant;
 
 import jdk.jfr.Recording;
 import jdk.jfr.RecordingState;
+import jdk.jfr.internal.Utils;
 import jdk.jfr.internal.SecuritySupport;
 import jdk.jfr.internal.SecuritySupport.SafePath;
 import jdk.jfr.internal.management.EventByteStream;
@@ -64,7 +66,6 @@ public final class OngoingStream extends EventByteStream {
         this.repositoryFiles = new RepositoryFiles(SecuritySupport.PRIVILEGED, null);
     }
 
-    @Override
     public synchronized byte[] read() throws IOException {
         try {
             return readBytes();

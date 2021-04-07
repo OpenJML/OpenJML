@@ -42,7 +42,13 @@ public class StorageResolver {
         com.sun.org.slf4j.internal.LoggerFactory.getLogger(StorageResolver.class);
 
     /** Field storageResolvers */
-    private final List<StorageResolverSpi> storageResolvers = new ArrayList<>();
+    private List<StorageResolverSpi> storageResolvers;
+
+    /**
+     * Constructor StorageResolver
+     *
+     */
+    public StorageResolver() {}
 
     /**
      * Constructor StorageResolver
@@ -54,30 +60,24 @@ public class StorageResolver {
     }
 
     /**
+     * Method addResolver
+     *
+     * @param resolver
+     */
+    public void add(StorageResolverSpi resolver) {
+        if (storageResolvers == null) {
+            storageResolvers = new ArrayList<>();
+        }
+        this.storageResolvers.add(resolver);
+    }
+
+    /**
      * Constructor StorageResolver
      *
      * @param keyStore
      */
     public StorageResolver(KeyStore keyStore) {
         this.add(keyStore);
-    }
-
-    /**
-     * Constructor StorageResolver
-     *
-     * @param x509certificate
-     */
-    public StorageResolver(X509Certificate x509certificate) {
-        this.add(x509certificate);
-    }
-
-    /**
-     * Method addResolver
-     *
-     * @param resolver
-     */
-    public void add(StorageResolverSpi resolver) {
-        this.storageResolvers.add(resolver);
     }
 
     /**
@@ -91,6 +91,15 @@ public class StorageResolver {
         } catch (StorageResolverException ex) {
             LOG.error("Could not add KeyStore because of: ", ex);
         }
+    }
+
+    /**
+     * Constructor StorageResolver
+     *
+     * @param x509certificate
+     */
+    public StorageResolver(X509Certificate x509certificate) {
+        this.add(x509certificate);
     }
 
     /**
@@ -117,10 +126,10 @@ public class StorageResolver {
     static class StorageResolverIterator implements Iterator<Certificate> {
 
         /** Field resolvers */
-        private final Iterator<StorageResolverSpi> resolvers;
+        Iterator<StorageResolverSpi> resolvers = null;
 
         /** Field currentResolver */
-        private Iterator<Certificate> currentResolver;
+        Iterator<Certificate> currentResolver = null;
 
         /**
          * Constructor StorageResolverIterator

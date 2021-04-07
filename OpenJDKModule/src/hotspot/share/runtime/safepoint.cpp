@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,6 +27,7 @@
 #include "classfile/dictionary.hpp"
 #include "classfile/stringTable.hpp"
 #include "classfile/symbolTable.hpp"
+#include "classfile/systemDictionary.hpp"
 #include "code/codeCache.hpp"
 #include "code/icBuffer.hpp"
 #include "code/nmethod.hpp"
@@ -64,7 +65,6 @@
 #include "runtime/synchronizer.hpp"
 #include "runtime/thread.inline.hpp"
 #include "runtime/threadSMR.hpp"
-#include "runtime/threadWXSetters.inline.hpp"
 #include "runtime/timerTrace.hpp"
 #include "services/runtimeService.hpp"
 #include "utilities/events.hpp"
@@ -546,12 +546,10 @@ public:
                    Universe::heap()->uses_stack_watermark_barrier()) {}
 
   void work(uint worker_id) {
-    if (_subtasks.try_claim_task(SafepointSynchronize::SAFEPOINT_CLEANUP_LAZY_ROOT_PROCESSING)) {
-      if (_do_lazy_roots) {
-        Tracer t("lazy partial thread root processing");
-        ParallelSPCleanupThreadClosure cl;
-        Threads::threads_do(&cl);
-      }
+    if (_do_lazy_roots && _subtasks.try_claim_task(SafepointSynchronize::SAFEPOINT_CLEANUP_LAZY_ROOT_PROCESSING)) {
+      Tracer t("lazy partial thread root processing");
+      ParallelSPCleanupThreadClosure cl;
+      Threads::threads_do(&cl);
     }
 
     if (_subtasks.try_claim_task(SafepointSynchronize::SAFEPOINT_CLEANUP_UPDATE_INLINE_CACHES)) {
@@ -561,7 +559,7 @@ public:
 
     if (_subtasks.try_claim_task(SafepointSynchronize::SAFEPOINT_CLEANUP_COMPILATION_POLICY)) {
       Tracer t("compilation policy safepoint handler");
-      CompilationPolicy::do_safepoint_work();
+      CompilationPolicy::policy()->do_safepoint_work();
     }
 
     if (_subtasks.try_claim_task(SafepointSynchronize::SAFEPOINT_CLEANUP_SYMBOL_TABLE_REHASH)) {
@@ -591,7 +589,7 @@ public:
       OopStorage::trigger_cleanup_if_needed();
     }
 
-    _subtasks.all_tasks_claimed();
+    _subtasks.all_tasks_completed(_num_workers);
   }
 };
 
@@ -757,9 +755,6 @@ void SafepointSynchronize::block(JavaThread *thread) {
 
 void SafepointSynchronize::handle_polling_page_exception(JavaThread *thread) {
   assert(thread->thread_state() == _thread_in_Java, "should come from Java code");
-
-  // Enable WXWrite: the function is called implicitly from java code.
-  MACOS_AARCH64_ONLY(ThreadWXEnable wx(WXWrite, thread));
 
   if (log_is_enabled(Info, safepoint, stats)) {
     Atomic::inc(&_nof_threads_hit_polling_page);
@@ -972,7 +967,7 @@ void ThreadSafepointState::handle_polling_page_exception() {
     // If we have a pending async exception deoptimize the frame
     // as otherwise we may never deliver it.
     if (self->has_async_condition()) {
-      ThreadInVMfromJava __tiv(self, false /* check asyncs */);
+      ThreadInVMfromJavaNoAsyncException __tiv(self);
       Deoptimization::deoptimize_frame(self, caller_fr.id());
     }
 

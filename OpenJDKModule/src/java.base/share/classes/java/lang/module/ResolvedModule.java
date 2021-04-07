@@ -138,9 +138,12 @@ public final class ResolvedModule {
      */
     @Override
     public boolean equals(Object ob) {
-        return (ob instanceof ResolvedModule that)
-            && Objects.equals(this.cf, that.cf)
-            && Objects.equals(this.mref, that.mref);
+        if (!(ob instanceof ResolvedModule))
+            return false;
+
+        ResolvedModule that = (ResolvedModule) ob;
+        return Objects.equals(this.cf, that.cf)
+                && Objects.equals(this.mref, that.mref);
     }
 
     /**

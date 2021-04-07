@@ -45,8 +45,8 @@
 
         for (int i = 0; i < a.length; i += SPECIES.length()) {
             $abstractvectortype$ av = $abstractvectortype$.fromArray(SPECIES, a, i);
-            int[] r = av.toIntArray();
-            assertArraysEquals(r, a, i);
+            int [] r = av.toIntArray();
+            assertArraysEquals(a, r, i);
         }
     }
 
@@ -60,8 +60,8 @@
 
         for (int i = 0; i < a.length; i += SPECIES.length()) {
             $abstractvectortype$ av = $abstractvectortype$.fromArray(SPECIES, a, i);
-            long[] r = av.toLongArray();
-            assertArraysEquals(r, a, i);
+            long [] r = av.toLongArray();
+            assertArraysEquals(a, r, i);
         }
     }
 
@@ -72,8 +72,8 @@
 
         for (int i = 0; i < a.length; i += SPECIES.length()) {
             $abstractvectortype$ av = $abstractvectortype$.fromArray(SPECIES, a, i);
-            double[] r = av.toDoubleArray();
-            assertArraysEquals(r, a, i);
+            double [] r = av.toDoubleArray();
+            assertArraysEquals(a, r, i);
         }
     }
 #end[!Double]
@@ -115,7 +115,7 @@
             $abstractvectortype$ av = $abstractvectortype$.fromArray(SPECIES, a, i);
             av.reinterpretAsBytes().intoArray(r, i);
         }
-        assertArraysEquals(r, a, 0);
+        assertArraysEquals(a, r, 0);
     }
 #end[byte]
 
@@ -154,7 +154,7 @@
             ra += r[i];
         }
 
-        assertReductionLongArraysEquals(r, ra, a,
+        assertReductionLongArraysEquals(a, r, ra,
                 $vectorteststype$::ADDReduceLong, $vectorteststype$::ADDReduceAllLong);
     }
 
@@ -195,7 +195,7 @@
             ra += r[i];
         }
 
-        assertReductionLongArraysEqualsMasked(r, ra, a, mask,
+        assertReductionLongArraysEqualsMasked(a, r, ra, mask,
                 $vectorteststype$::ADDReduceLongMasked, $vectorteststype$::ADDReduceAllLongMasked);
     }
 
@@ -211,7 +211,7 @@
         for (int i = 0; i < a.length; i += SPECIES.length()) {
             $abstractvectortype$.broadcast(SPECIES, (long)a[i]).intoArray(r, i);
         }
-        assertBroadcastArraysEquals(r, a);
+        assertBroadcastArraysEquals(a, r);
     }
 
     @Test(dataProvider = "$type$BinaryOpMaskProvider")
@@ -229,7 +229,7 @@
                 av.blend((long)b[i], vmask).intoArray(r, i);
             }
         }
-        assertBroadcastLongArraysEquals(r, a, b, mask, $vectorteststype$::blend);
+        assertBroadcastLongArraysEquals(a, b, r, mask, $vectorteststype$::blend);
     }
 #end[!Long]
 
@@ -250,7 +250,7 @@
             ra += r[i];
         }
 
-        assertReductionArraysEquals(r, ra, a,
+        assertReductionArraysEquals(a, r, ra,
                 $vectorteststype$::ADDReduce, $vectorteststype$::ADDReduceAll);
     }
 
@@ -272,7 +272,7 @@
             ra += r[i];
         }
 
-        assertReductionArraysEqualsMasked(r, ra, a, mask,
+        assertReductionArraysEqualsMasked(a, r, ra, mask,
                 $vectorteststype$::ADDReduceMasked, $vectorteststype$::ADDReduceAllMasked);
     }
 #end[Long]
@@ -294,7 +294,7 @@
             bv.selectFrom(av).intoArray(r, i);
         }
 
-        assertSelectFromArraysEquals(r, a, order, SPECIES.length());
+        assertSelectFromArraysEquals(a, r, order, SPECIES.length());
     }
 
 #if[Int]
@@ -317,7 +317,7 @@
             bv.selectFrom(av, vmask).intoArray(r, i);
         }
 
-        assertSelectFromArraysEquals(r, a, order, mask, SPECIES.length());
+        assertSelectFromArraysEquals(a, r, order, mask, SPECIES.length());
     }
 
     @Test(dataProvider = "shuffleProvider")
@@ -394,7 +394,7 @@
             var cv = av.eq(bv);
             cv.intoArray(r, i);
         }
-        assertArraysEquals(r, a, b, $vectorteststype$::beq);
+        assertArraysEquals(a, b, r, $vectorteststype$::beq);
     }
 
     @Test(dataProvider = "maskProvider")

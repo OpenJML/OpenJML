@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2000, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -24,9 +24,7 @@
  */
 
 package java.awt.print;
-
 import java.io.IOException;
-import java.io.Serial;
 
 /**
  * The {@code PrinterIOException} class is a subclass of
@@ -42,12 +40,7 @@ import java.io.Serial;
  * as well as the aforementioned "legacy method."
  */
 public class PrinterIOException extends PrinterException {
-
-    /**
-     * Use serialVersionUID from JDK 1.4 for interoperability.
-     */
-    @Serial
-    private static final long serialVersionUID = 5850870712125932846L;
+    static final long serialVersionUID = 5850870712125932846L;
 
     /**
      * The IO error that terminated the print job.

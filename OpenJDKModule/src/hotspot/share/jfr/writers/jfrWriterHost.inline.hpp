@@ -34,7 +34,6 @@
 #include "oops/oop.hpp"
 #include "oops/symbol.hpp"
 #include "oops/typeArrayOop.inline.hpp"
-#include "runtime/jniHandles.hpp"
 
 inline bool compressed_integers() {
   static const bool comp_integers = JfrOptionSet::compressed_integers();

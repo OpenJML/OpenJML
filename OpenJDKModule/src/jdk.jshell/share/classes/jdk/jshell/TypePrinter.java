@@ -34,7 +34,6 @@ import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.IntersectionClassType;
-import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.util.JavacMessages;
 import java.util.Locale;
 import java.util.function.BinaryOperator;
@@ -50,7 +49,6 @@ class TypePrinter extends Printer {
     private static final String OBJECT = "Object";
 
     private final JavacMessages messages;
-    private final Types types;
     private final BinaryOperator<String> fullClassNameAndPackageToClass;
     private final Function<TypeSymbol, String> anonymousToName;
     private final boolean printIntersectionTypes;
@@ -64,10 +62,10 @@ class TypePrinter extends Printer {
      * @param printIntersectionTypes whether intersection types should be printed
      * @param anonymousTypesKind how the anonymous types should be printed
      */
-    TypePrinter(JavacMessages messages, Types types,
+    TypePrinter(JavacMessages messages,
                 BinaryOperator<String> fullClassNameAndPackageToClass,
                 boolean printIntersectionTypes, AnonymousTypeKind anonymousTypesKind) {
-        this(messages, types, fullClassNameAndPackageToClass, cs -> cs.flatName().toString(),
+        this(messages, fullClassNameAndPackageToClass, cs -> cs.flatName().toString(),
              printIntersectionTypes, anonymousTypesKind);
     }
 
@@ -81,12 +79,11 @@ class TypePrinter extends Printer {
      * @param printIntersectionTypes whether intersection types should be printed
      * @param anonymousTypesKind how the anonymous types should be printed
      */
-    TypePrinter(JavacMessages messages, Types types,
+    TypePrinter(JavacMessages messages,
                 BinaryOperator<String> fullClassNameAndPackageToClass,
                 Function<TypeSymbol, String> anonymousToName,
                 boolean printIntersectionTypes, AnonymousTypeKind anonymousTypesKind) {
         this.messages = messages;
-        this.types = types;
         this.fullClassNameAndPackageToClass = fullClassNameAndPackageToClass;
         this.anonymousToName = anonymousToName;
         this.printIntersectionTypes = printIntersectionTypes;
@@ -140,7 +137,7 @@ class TypePrinter extends Printer {
                                                   .map(i -> visit(i, locale))
                                                   .collect(Collectors.joining("&"));
             } else {
-                return visit(types.erasure(t), locale);
+                return OBJECT;
             }
         } else if (sym.name.length() == 0) {
             if (anonymousTypesKind == AnonymousTypeKind.DECLARE) {

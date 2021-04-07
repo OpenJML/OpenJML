@@ -213,8 +213,9 @@ abstract class AbstractPlainSocketImpl extends SocketImpl implements PlatformSoc
             throws IOException {
         boolean connected = false;
         try {
-            if (!(address instanceof InetSocketAddress addr))
+            if (address == null || !(address instanceof InetSocketAddress))
                 throw new IllegalArgumentException("unsupported address type");
+            InetSocketAddress addr = (InetSocketAddress) address;
             if (addr.isUnresolved())
                 throw new UnknownHostException(addr.getHostName());
             // recording this.address as supplied by caller before calling connect
@@ -258,7 +259,7 @@ abstract class AbstractPlainSocketImpl extends SocketImpl implements PlatformSoc
              * PlainSocketImpl.setOption().
              */
         case SO_LINGER:
-            if (!(val instanceof Integer) && !(val instanceof Boolean))
+            if (val == null || (!(val instanceof Integer) && !(val instanceof Boolean)))
                 throw new SocketException("Bad parameter for option");
             if (val instanceof Boolean) {
                 /* true only if disabling - enabling should be Integer */
@@ -266,7 +267,7 @@ abstract class AbstractPlainSocketImpl extends SocketImpl implements PlatformSoc
             }
             break;
         case SO_TIMEOUT:
-            if (!(val instanceof Integer))
+            if (val == null || (!(val instanceof Integer)))
                 throw new SocketException("Bad parameter for SO_TIMEOUT");
             int tmp = ((Integer) val).intValue();
             if (tmp < 0)
@@ -274,7 +275,7 @@ abstract class AbstractPlainSocketImpl extends SocketImpl implements PlatformSoc
             timeout = tmp;
             break;
         case IP_TOS:
-             if (!(val instanceof Integer)) {
+             if (val == null || !(val instanceof Integer)) {
                  throw new SocketException("bad argument for IP_TOS");
              }
              trafficClass = ((Integer)val).intValue();
@@ -282,35 +283,35 @@ abstract class AbstractPlainSocketImpl extends SocketImpl implements PlatformSoc
         case SO_BINDADDR:
             throw new SocketException("Cannot re-bind socket");
         case TCP_NODELAY:
-            if (!(val instanceof Boolean))
+            if (val == null || !(val instanceof Boolean))
                 throw new SocketException("bad parameter for TCP_NODELAY");
             on = ((Boolean)val).booleanValue();
             break;
         case SO_SNDBUF:
         case SO_RCVBUF:
-            if (!(val instanceof Integer) ||
+            if (val == null || !(val instanceof Integer) ||
                 !(((Integer)val).intValue() > 0)) {
                 throw new SocketException("bad parameter for SO_SNDBUF " +
                                           "or SO_RCVBUF");
             }
             break;
         case SO_KEEPALIVE:
-            if (!(val instanceof Boolean))
+            if (val == null || !(val instanceof Boolean))
                 throw new SocketException("bad parameter for SO_KEEPALIVE");
             on = ((Boolean)val).booleanValue();
             break;
         case SO_OOBINLINE:
-            if (!(val instanceof Boolean))
+            if (val == null || !(val instanceof Boolean))
                 throw new SocketException("bad parameter for SO_OOBINLINE");
             on = ((Boolean)val).booleanValue();
             break;
         case SO_REUSEADDR:
-            if (!(val instanceof Boolean))
+            if (val == null || !(val instanceof Boolean))
                 throw new SocketException("bad parameter for SO_REUSEADDR");
             on = ((Boolean)val).booleanValue();
             break;
         case SO_REUSEPORT:
-            if (!(val instanceof Boolean))
+            if (val == null || !(val instanceof Boolean))
                 throw new SocketException("bad parameter for SO_REUSEPORT");
             if (!supportedOptions().contains(StandardSocketOptions.SO_REUSEPORT))
                 throw new UnsupportedOperationException("unsupported option");

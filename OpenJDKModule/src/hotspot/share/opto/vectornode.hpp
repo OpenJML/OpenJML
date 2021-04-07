@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -161,11 +161,8 @@ public:
 //------------------------------ReductionNode------------------------------------
 // Perform reduction of a vector
 class ReductionNode : public Node {
- private:
-  const Type* _bottom_type;
  public:
-  ReductionNode(Node *ctrl, Node* in1, Node* in2) : Node(ctrl, in1, in2),
-               _bottom_type(Type::get_const_basic_type(in1->bottom_type()->basic_type())) {}
+  ReductionNode(Node *ctrl, Node* in1, Node* in2) : Node(ctrl, in1, in2) {}
 
   static ReductionNode* make(int opc, Node *ctrl, Node* in1, Node* in2, BasicType bt);
   static int  opcode(int opc, BasicType bt);
@@ -173,15 +170,13 @@ class ReductionNode : public Node {
   static Node* make_reduction_input(PhaseGVN& gvn, int opc, BasicType bt);
 
   virtual const Type* bottom_type() const {
-    return _bottom_type;
+    BasicType vbt = in(1)->bottom_type()->basic_type();
+    return Type::get_const_basic_type(vbt);
   }
 
   virtual uint ideal_reg() const {
     return bottom_type()->ideal_reg();
   }
-
-  // Needed for proper cloning.
-  virtual uint size_of() const { return sizeof(*this); }
 };
 
 //------------------------------AddReductionVINode--------------------------------------
@@ -519,109 +514,99 @@ class SqrtVDNode : public VectorNode {
   virtual int Opcode() const;
 };
 
-//------------------------------ShiftVNode-----------------------------------
-// Class ShiftV functionality.  This covers the common behaviors for all kinds
-// of vector shifts.
-class ShiftVNode : public VectorNode {
- public:
-  ShiftVNode(Node* in1, Node* in2, const TypeVect* vt) : VectorNode(in1,in2,vt) {}
-  virtual Node* Identity(PhaseGVN* phase);
-  virtual int Opcode() const = 0;
-};
-
 //------------------------------LShiftVBNode-----------------------------------
 // Vector left shift bytes
-class LShiftVBNode : public ShiftVNode {
+class LShiftVBNode : public VectorNode {
  public:
-  LShiftVBNode(Node* in1, Node* in2, const TypeVect* vt) : ShiftVNode(in1,in2,vt) {}
+  LShiftVBNode(Node* in1, Node* in2, const TypeVect* vt) : VectorNode(in1,in2,vt) {}
   virtual int Opcode() const;
 };
 
 //------------------------------LShiftVSNode-----------------------------------
 // Vector left shift shorts
-class LShiftVSNode : public ShiftVNode {
+class LShiftVSNode : public VectorNode {
  public:
-  LShiftVSNode(Node* in1, Node* in2, const TypeVect* vt) : ShiftVNode(in1,in2,vt) {}
+  LShiftVSNode(Node* in1, Node* in2, const TypeVect* vt) : VectorNode(in1,in2,vt) {}
   virtual int Opcode() const;
 };
 
 //------------------------------LShiftVINode-----------------------------------
 // Vector left shift ints
-class LShiftVINode : public ShiftVNode {
+class LShiftVINode : public VectorNode {
  public:
-  LShiftVINode(Node* in1, Node* in2, const TypeVect* vt) : ShiftVNode(in1,in2,vt) {}
+  LShiftVINode(Node* in1, Node* in2, const TypeVect* vt) : VectorNode(in1,in2,vt) {}
   virtual int Opcode() const;
 };
 
 //------------------------------LShiftVLNode-----------------------------------
 // Vector left shift longs
-class LShiftVLNode : public ShiftVNode {
+class LShiftVLNode : public VectorNode {
  public:
-  LShiftVLNode(Node* in1, Node* in2, const TypeVect* vt) : ShiftVNode(in1,in2,vt) {}
+  LShiftVLNode(Node* in1, Node* in2, const TypeVect* vt) : VectorNode(in1,in2,vt) {}
   virtual int Opcode() const;
 };
 
 //------------------------------RShiftVBNode-----------------------------------
 // Vector right arithmetic (signed) shift bytes
-class RShiftVBNode : public ShiftVNode {
+class RShiftVBNode : public VectorNode {
  public:
-  RShiftVBNode(Node* in1, Node* in2, const TypeVect* vt) : ShiftVNode(in1,in2,vt) {}
+  RShiftVBNode(Node* in1, Node* in2, const TypeVect* vt) : VectorNode(in1,in2,vt) {}
   virtual int Opcode() const;
 };
 
 //------------------------------RShiftVSNode-----------------------------------
 // Vector right arithmetic (signed) shift shorts
-class RShiftVSNode : public ShiftVNode {
+class RShiftVSNode : public VectorNode {
  public:
-  RShiftVSNode(Node* in1, Node* in2, const TypeVect* vt) : ShiftVNode(in1,in2,vt) {}
+  RShiftVSNode(Node* in1, Node* in2, const TypeVect* vt) : VectorNode(in1,in2,vt) {}
   virtual int Opcode() const;
 };
 
 //------------------------------RShiftVINode-----------------------------------
 // Vector right arithmetic (signed) shift ints
-class RShiftVINode : public ShiftVNode {
+class RShiftVINode : public VectorNode {
  public:
-  RShiftVINode(Node* in1, Node* in2, const TypeVect* vt) : ShiftVNode(in1,in2,vt) {}
+  RShiftVINode(Node* in1, Node* in2, const TypeVect* vt) : VectorNode(in1,in2,vt) {}
   virtual int Opcode() const;
 };
 
 //------------------------------RShiftVLNode-----------------------------------
 // Vector right arithmetic (signed) shift longs
-class RShiftVLNode : public ShiftVNode {
+class RShiftVLNode : public VectorNode {
  public:
-  RShiftVLNode(Node* in1, Node* in2, const TypeVect* vt) : ShiftVNode(in1,in2,vt) {}
+  RShiftVLNode(Node* in1, Node* in2, const TypeVect* vt) : VectorNode(in1,in2,vt) {}
   virtual int Opcode() const;
 };
 
 //------------------------------URShiftVBNode----------------------------------
 // Vector right logical (unsigned) shift bytes
-class URShiftVBNode : public ShiftVNode {
+class URShiftVBNode : public VectorNode {
  public:
-  URShiftVBNode(Node* in1, Node* in2, const TypeVect* vt) : ShiftVNode(in1,in2,vt) {}
+  URShiftVBNode(Node* in1, Node* in2, const TypeVect* vt) : VectorNode(in1,in2,vt) {}
   virtual int Opcode() const;
 };
 
 //------------------------------URShiftVSNode----------------------------------
 // Vector right logical (unsigned) shift shorts
-class URShiftVSNode : public ShiftVNode {
+class URShiftVSNode : public VectorNode {
  public:
-  URShiftVSNode(Node* in1, Node* in2, const TypeVect* vt) : ShiftVNode(in1,in2,vt) {}
+  URShiftVSNode(Node* in1, Node* in2, const TypeVect* vt) : VectorNode(in1,in2,vt) {}
   virtual int Opcode() const;
 };
 
 //------------------------------URShiftVINode----------------------------------
 // Vector right logical (unsigned) shift ints
-class URShiftVINode : public ShiftVNode {
+class URShiftVINode : public VectorNode {
  public:
-  URShiftVINode(Node* in1, Node* in2, const TypeVect* vt) : ShiftVNode(in1,in2,vt) {}
+  URShiftVINode(Node* in1, Node* in2, const TypeVect* vt) : VectorNode(in1,in2,vt) {}
   virtual int Opcode() const;
 };
 
 //------------------------------URShiftVLNode----------------------------------
 // Vector right logical (unsigned) shift longs
-class URShiftVLNode : public ShiftVNode {
+class URShiftVLNode : public VectorNode {
  public:
-  URShiftVLNode(Node* in1, Node* in2, const TypeVect* vt) : ShiftVNode(in1,in2,vt) {}
+  URShiftVLNode(Node* in1, Node* in2, const TypeVect* vt) : VectorNode(in1,in2,vt) {}
   virtual int Opcode() const;
 };
 
@@ -754,16 +739,14 @@ class LoadVectorGatherNode : public LoadVectorNode {
 //------------------------------StoreVectorNode--------------------------------
 // Store Vector to memory
 class StoreVectorNode : public StoreNode {
- private:
-  const TypeVect* _vect_type;
  public:
   StoreVectorNode(Node* c, Node* mem, Node* adr, const TypePtr* at, Node* val)
-    : StoreNode(c, mem, adr, at, val, MemNode::unordered), _vect_type(val->bottom_type()->is_vect()) {
+    : StoreNode(c, mem, adr, at, val, MemNode::unordered) {
     init_class_id(Class_StoreVector);
     set_mismatched_access();
   }
 
-  const TypeVect* vect_type() const { return _vect_type; }
+  const TypeVect* vect_type() const { return in(MemNode::ValueIn)->bottom_type()->is_vect(); }
   uint length() const { return vect_type()->length(); } // Vector length
 
   virtual int Opcode() const;
@@ -777,9 +760,6 @@ class StoreVectorNode : public StoreNode {
                                uint vlen);
 
   uint element_size(void) { return type2aelembytes(vect_type()->element_basic_type()); }
-
-  // Needed for proper cloning.
-  virtual uint size_of() const { return sizeof(*this); }
 };
 
 //------------------------------StoreVectorScatterNode------------------------------
@@ -1359,7 +1339,7 @@ class VectorBoxNode : public Node {
 class VectorBoxAllocateNode : public CallStaticJavaNode {
  public:
   VectorBoxAllocateNode(Compile* C, const TypeInstPtr* vbox_type)
-    : CallStaticJavaNode(C, VectorBoxNode::vec_box_type(vbox_type), NULL, NULL) {
+    : CallStaticJavaNode(C, VectorBoxNode::vec_box_type(vbox_type), NULL, NULL, -1) {
     init_flags(Flag_is_macro);
     C->add_macro_node(this);
   }

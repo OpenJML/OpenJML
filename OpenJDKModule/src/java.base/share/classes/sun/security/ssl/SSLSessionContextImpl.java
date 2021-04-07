@@ -58,9 +58,9 @@ import sun.security.util.Cache;
  */
 
 final class SSLSessionContextImpl implements SSLSessionContext {
-    private static final int DEFAULT_MAX_CACHE_SIZE = 20480;
+    private final static int DEFAULT_MAX_CACHE_SIZE = 20480;
     // Default lifetime of a session. 24 hours
-    static final int DEFAULT_SESSION_TIMEOUT = 86400;
+    final static int DEFAULT_SESSION_TIMEOUT = 86400;
 
     private final Cache<SessionId, SSLSessionImpl> sessionCache;
                                         // session cache, session id as key

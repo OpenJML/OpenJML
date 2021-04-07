@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -1230,127 +1230,127 @@ public class VarHandleTestAccessShort extends VarHandleBaseTest {
         for (int i : new int[]{-1, Integer.MIN_VALUE, 10, 11, Integer.MAX_VALUE}) {
             final int ci = i;
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short x = (short) vh.get(array, ci);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 vh.set(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short x = (short) vh.getVolatile(array, ci);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 vh.setVolatile(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short x = (short) vh.getAcquire(array, ci);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 vh.setRelease(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short x = (short) vh.getOpaque(array, ci);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 vh.setOpaque(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 boolean r = vh.compareAndSet(array, ci, (short)0x0123, (short)0x4567);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short r = (short) vh.compareAndExchange(array, ci, (short)0x4567, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short r = (short) vh.compareAndExchangeAcquire(array, ci, (short)0x4567, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short r = (short) vh.compareAndExchangeRelease(array, ci, (short)0x4567, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 boolean r = vh.weakCompareAndSetPlain(array, ci, (short)0x0123, (short)0x4567);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 boolean r = vh.weakCompareAndSet(array, ci, (short)0x0123, (short)0x4567);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 boolean r = vh.weakCompareAndSetAcquire(array, ci, (short)0x0123, (short)0x4567);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 boolean r = vh.weakCompareAndSetRelease(array, ci, (short)0x0123, (short)0x4567);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short o = (short) vh.getAndSet(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short o = (short) vh.getAndSetAcquire(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short o = (short) vh.getAndSetRelease(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short o = (short) vh.getAndAdd(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short o = (short) vh.getAndAddAcquire(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short o = (short) vh.getAndAddRelease(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short o = (short) vh.getAndBitwiseOr(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short o = (short) vh.getAndBitwiseOrAcquire(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short o = (short) vh.getAndBitwiseOrRelease(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short o = (short) vh.getAndBitwiseAnd(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short o = (short) vh.getAndBitwiseAndAcquire(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short o = (short) vh.getAndBitwiseAndRelease(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short o = (short) vh.getAndBitwiseXor(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short o = (short) vh.getAndBitwiseXorAcquire(array, ci, (short)0x0123);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 short o = (short) vh.getAndBitwiseXorRelease(array, ci, (short)0x0123);
             });
         }

@@ -26,7 +26,6 @@
 #define SHARE_GC_SHENANDOAH_SHENANDOAHCOLLECTIONSET_HPP
 
 #include "memory/allocation.hpp"
-#include "memory/virtualspace.hpp"
 #include "gc/shenandoah/shenandoahHeap.hpp"
 #include "gc/shenandoah/shenandoahHeapRegion.hpp"
 #include "gc/shenandoah/shenandoahPadding.hpp"
@@ -48,7 +47,7 @@ private:
   size_t                _region_count;
 
   shenandoah_padding(0);
-  volatile size_t       _current_index;
+  volatile jint         _current_index;
   shenandoah_padding(1);
 
 public:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -23,7 +23,6 @@
  */
 
 #include "precompiled.hpp"
-#include "gc/shared/collectedHeap.hpp"
 #include "gc/shared/oopStorage.hpp"
 #include "gc/shared/oopStorageSet.hpp"
 #include "jfr/jfrEvents.hpp"
@@ -74,7 +73,7 @@ void ObjectSampler::oop_storage_gc_notification(size_t num_dead) {
 }
 
 bool ObjectSampler::create_oop_storage() {
-  _oop_storage = OopStorageSet::create_weak("Weak JFR Old Object Samples", mtTracing);
+  _oop_storage = OopStorageSet::create_weak("Weak JFR Old Object Samples");
   assert(_oop_storage != NULL, "invariant");
   _oop_storage->register_num_dead_callback(&oop_storage_gc_notification);
   return true;
@@ -159,23 +158,12 @@ static traceid get_thread_id(JavaThread* thread) {
   return tl->thread_id();
 }
 
-class RecordStackTrace {
- private:
-  JavaThread* _jt;
-  bool _enabled;
- public:
-  RecordStackTrace(JavaThread* jt) : _jt(jt),
-    _enabled(JfrEventSetting::has_stacktrace(EventOldObjectSample::eventId)) {
-    if (_enabled) {
-      JfrStackTraceRepository::record_for_leak_profiler(jt);
-    }
+static void record_stacktrace(JavaThread* thread) {
+  assert(thread != NULL, "invariant");
+  if (JfrEventSetting::has_stacktrace(EventOldObjectSample::eventId)) {
+    JfrStackTraceRepository::record_and_cache(thread);
   }
-  ~RecordStackTrace() {
-    if (_enabled) {
-      _jt->jfr_thread_local()->clear_cached_stack_trace();
-    }
-  }
-};
+}
 
 void ObjectSampler::sample(HeapWord* obj, size_t allocated, JavaThread* thread) {
   assert(thread != NULL, "invariant");
@@ -184,7 +172,7 @@ void ObjectSampler::sample(HeapWord* obj, size_t allocated, JavaThread* thread) 
   if (thread_id == 0) {
     return;
   }
-  RecordStackTrace rst(thread);
+  record_stacktrace(thread);
   // try enter critical section
   JfrTryLock tryLock(&_lock);
   if (!tryLock.acquired()) {
@@ -235,7 +223,7 @@ void ObjectSampler::add(HeapWord* obj, size_t allocated, traceid thread_id, Java
   }
 
   sample->set_span(allocated);
-  sample->set_object(cast_to_oop(obj));
+  sample->set_object((oop)obj);
   sample->set_allocated(allocated);
   sample->set_allocation_time(JfrTicks::now());
   sample->set_heap_used_at_last_gc(Universe::heap()->used_at_last_gc());

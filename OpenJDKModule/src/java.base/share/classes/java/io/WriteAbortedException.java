@@ -33,6 +33,13 @@ package java.io;
  * field. The stream is reset to it's initial state and all references
  * to objects already deserialized are discarded.
  *
+ * <p>As of release 1.4, this exception has been retrofitted to conform to
+ * the general purpose exception-chaining mechanism.  The "exception causing
+ * the abort" that is provided at construction time and
+ * accessed via the public {@link #detail} field is now known as the
+ * <i>cause</i>, and may be accessed via the {@link Throwable#getCause()}
+ * method, as well as the aforementioned "legacy field."
+ *
  * @since   1.1
  */
 public class WriteAbortedException extends ObjectStreamException {
@@ -42,13 +49,12 @@ public class WriteAbortedException extends ObjectStreamException {
     /**
      * Exception that was caught while writing the ObjectStream.
      *
-     * @deprecated This field predates the general-purpose exception
-     * chaining facility.  The {@link Throwable#getCause()} method is
-     * now the preferred means of obtaining this information.
+     * <p>This field predates the general-purpose exception chaining facility.
+     * The {@link Throwable#getCause()} method is now the preferred means of
+     * obtaining this information.
      *
      * @serial
      */
-    @Deprecated(since="17")
     public Exception detail;
 
     /**
@@ -81,7 +87,6 @@ public class WriteAbortedException extends ObjectStreamException {
      *          which may be null.
      * @since   1.4
      */
-    @Override
     public Throwable getCause() {
         return detail;
     }

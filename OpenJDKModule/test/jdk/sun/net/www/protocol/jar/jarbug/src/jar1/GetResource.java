@@ -23,7 +23,8 @@
 
 package jar1;
 
-import java.io.InputStream;
+import java.io.*;
+import java.util.*;
 
 public class GetResource {
 

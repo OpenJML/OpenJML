@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
- * Copyright (c) 2012, 2021 SAP SE. All rights reserved.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2020 SAP SE. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,8 +25,9 @@
 
 // no precompiled headers
 #include "jvm.h"
-#include "assembler_ppc.hpp"
 #include "asm/assembler.inline.hpp"
+#include "classfile/classLoader.hpp"
+#include "classfile/systemDictionary.hpp"
 #include "classfile/vmSymbols.hpp"
 #include "code/codeCache.hpp"
 #include "code/icBuffer.hpp"
@@ -166,6 +167,17 @@ bool PosixSignals::pd_hotspot_signal_handler(int sig, siginfo_t* info,
   // retrieve crash address
   address const addr = info ? (const address) info->si_addr : NULL;
 
+  // SafeFetch 32 handling:
+  // - make it work if _thread is null
+  // - make it use the standard os::...::ucontext_get/set_pc APIs
+  if (uc) {
+    address const pc = os::Posix::ucontext_get_pc(uc);
+    if (pc && StubRoutines::is_safefetch_fault(pc)) {
+      os::Posix::ucontext_set_pc(uc, StubRoutines::continuation_for_safefetch_fault(pc));
+      return true;
+    }
+  }
+
   if (info == NULL || uc == NULL) {
     return false; // Fatal error
   }
@@ -221,7 +233,6 @@ bool PosixSignals::pd_hotspot_signal_handler(int sig, siginfo_t* info,
       //     happens rarely.  In heap based and disjoint base compressd oop modes also loads
       //     are used for null checks.
 
-      CodeBlob *cb = NULL;
       int stop_type = -1;
       // Handle signal from NativeJump::patch_verified_entry().
       if (sig == SIGILL && nativeInstruction_at(pc)->is_sigill_zombie_not_entrant()) {
@@ -232,28 +243,14 @@ bool PosixSignals::pd_hotspot_signal_handler(int sig, siginfo_t* info,
         goto run_stub;
       }
 
-      else if ((sig == USE_POLL_BIT_ONLY ? SIGTRAP : SIGSEGV) &&
-               ((NativeInstruction*)pc)->is_safepoint_poll() &&
-               CodeCache::contains((void*) pc) &&
-               ((cb = CodeCache::find_blob(pc)) != NULL) &&
-               cb->is_compiled()) {
+      else if (USE_POLL_BIT_ONLY
+               ? (sig == SIGTRAP && ((NativeInstruction*)pc)->is_safepoint_poll())
+               : (sig == SIGSEGV && SafepointMechanism::is_poll_address(addr))) {
         if (TraceTraps) {
           tty->print_cr("trap: safepoint_poll at " INTPTR_FORMAT " (%s)", p2i(pc),
                         USE_POLL_BIT_ONLY ? "SIGTRAP" : "SIGSEGV");
         }
         stub = SharedRuntime::get_poll_stub(pc);
-        goto run_stub;
-      }
-
-      else if (UseSIGTRAP && sig == SIGTRAP &&
-               ((NativeInstruction*)pc)->is_safepoint_poll_return() &&
-               CodeCache::contains((void*) pc) &&
-               ((cb = CodeCache::find_blob(pc)) != NULL) &&
-               cb->is_compiled()) {
-        if (TraceTraps) {
-          tty->print_cr("trap: safepoint_poll at return at " INTPTR_FORMAT " (nmethod)", p2i(pc));
-        }
-        stub = SharedRuntime::polling_page_return_handler_blob()->entry_point();
         goto run_stub;
       }
 
@@ -328,13 +325,7 @@ bool PosixSignals::pd_hotspot_signal_handler(int sig, siginfo_t* info,
           tty->print_cr("trap: %s: %s (SIGTRAP, stop type %d)", msg, detail_msg, stop_type);
         }
 
-        // End life with a fatal error, message and detail message and the context.
-        // Note: no need to do any post-processing here (e.g. signal chaining)
-        va_list va_dummy;
-        VMError::report_and_die(thread, uc, NULL, 0, msg, detail_msg, va_dummy);
-        va_end(va_dummy);
-
-        ShouldNotReachHere();
+        return false; // Fatal error
       }
 
       else if (sig == SIGBUS) {
@@ -506,9 +497,4 @@ int os::extra_bang_size_in_bytes() {
 bool os::platform_print_native_stack(outputStream* st, void* context, char *buf, int buf_size) {
   AixNativeCallstack::print_callstack_for_context(st, (const ucontext_t*)context, true, buf, (size_t) buf_size);
   return true;
-}
-
-// HAVE_FUNCTION_DESCRIPTORS
-void* os::resolve_function_descriptor(void* p) {
-  return ((const FunctionDescriptor*)p)->entry();
 }

@@ -46,7 +46,7 @@ public abstract class Diag {
     /**
      * Used to signal that no position is available.
      */
-    public static final long NOPOS = Diagnostic.NOPOS;
+    public final static long NOPOS = Diagnostic.NOPOS;
 
     /**
      * Indicates whether this diagnostic is an error (as opposed to a warning or

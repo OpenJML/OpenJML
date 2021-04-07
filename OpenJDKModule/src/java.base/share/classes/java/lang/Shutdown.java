@@ -129,7 +129,8 @@ class Shutdown {
                 }
                 if (hook != null) hook.run();
             } catch (Throwable t) {
-                if (t instanceof ThreadDeath td) {
+                if (t instanceof ThreadDeath) {
+                    ThreadDeath td = (ThreadDeath)t;
                     throw td;
                 }
             }

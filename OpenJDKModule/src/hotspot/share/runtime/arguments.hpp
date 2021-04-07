@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -28,9 +28,9 @@
 #include "logging/logLevel.hpp"
 #include "logging/logTag.hpp"
 #include "memory/allocation.hpp"
-#include "runtime/globals.hpp"
 #include "runtime/java.hpp"
 #include "runtime/os.hpp"
+#include "runtime/perfData.hpp"
 #include "utilities/debug.hpp"
 #include "utilities/vmEnums.hpp"
 
@@ -354,6 +354,8 @@ class Arguments : AllStatic {
   static bool _UseOnStackReplacement;
   static bool _BackgroundCompilation;
   static bool _ClipInlining;
+  static intx _Tier3InvokeNotifyFreqLog;
+  static intx _Tier4InvocationThreshold;
 
   // GC ergonomics
   static void set_conservative_max_heap_alignment();
@@ -364,7 +366,7 @@ class Arguments : AllStatic {
   // Limits the given heap size by the maximum amount of virtual
   // memory this process is currently allowed to use. It also takes
   // the virtual-to-physical ratio of the current GC into account.
-  static size_t limit_heap_by_allocatable_memory(size_t size);
+  static julong limit_heap_by_allocatable_memory(julong size);
   // Setup heap size
   static void set_heap_size();
 
@@ -615,10 +617,8 @@ class Arguments : AllStatic {
   static bool  init_shared_archive_paths() NOT_CDS_RETURN_(false);
 
   // Operation modi
-  static Mode mode()                { return _mode;           }
-  static bool is_interpreter_only() { return mode() == _int;  }
-  static bool is_compiler_only()    { return mode() == _comp; }
-
+  static Mode mode()                        { return _mode; }
+  static bool is_interpreter_only() { return mode() == _int; }
 
   // preview features
   static void set_enable_preview() { _enable_preview = true; }

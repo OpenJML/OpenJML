@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -454,8 +454,8 @@ protected:
     }
     return -1;
   }
-  int replace_edge(Node* old, Node* neww, PhaseGVN* gvn = NULL);
-  int replace_edges_in_range(Node* old, Node* neww, int start, int end, PhaseGVN* gvn);
+  int replace_edge(Node* old, Node* neww);
+  int replace_edges_in_range(Node* old, Node* neww, int start, int end);
   // NULL out all inputs to eliminate incoming Def-Use edges.
   void disconnect_inputs(Compile* C);
 
@@ -529,8 +529,7 @@ public:
     replace_by(new_node);
     disconnect_inputs(c);
   }
-  void set_req_X(uint i, Node *n, PhaseIterGVN *igvn);
-  void set_req_X(uint i, Node *n, PhaseGVN *gvn);
+  void set_req_X( uint i, Node *n, PhaseIterGVN *igvn );
   // Find the one non-null required input.  RegionNode only
   Node *nonnull_req() const;
   // Add or remove precedence edges
@@ -1149,9 +1148,6 @@ public:
   virtual int cisc_operand() const { return AdlcVMDeps::Not_cisc_spillable; }
   bool is_cisc_alternate() const { return (_flags & Flag_is_cisc_alternate) != 0; }
 
-  // Whether this is a memory-writing machine node.
-  bool is_memory_writer() const { return is_Mach() && bottom_type()->has_memory(); }
-
 //----------------- Printing, etc
 #ifndef PRODUCT
  private:
@@ -1333,9 +1329,6 @@ class DUIterator : public DUIterator_Common {
   DUIterator()
     { /*initialize to garbage*/         debug_only(_vdui = false); }
 
-  DUIterator(const DUIterator& that)
-    { _idx = that._idx;                 debug_only(_vdui = false; reset(that)); }
-
   void operator++(int dummy_to_specify_postfix_op)
     { _idx++;                           VDUI_ONLY(verify_increment()); }
 
@@ -1398,9 +1391,6 @@ class DUIterator_Fast : public DUIterator_Common {
   DUIterator_Fast()
     { /*initialize to garbage*/         debug_only(_vdui = false); }
 
-  DUIterator_Fast(const DUIterator_Fast& that)
-    { _outp = that._outp;               debug_only(_vdui = false; reset(that)); }
-
   void operator++(int dummy_to_specify_postfix_op)
     { _outp++;                          VDUI_ONLY(verify(_node, true)); }
 
@@ -1461,8 +1451,6 @@ class DUIterator_Last : private DUIterator_Fast {
   DUIterator_Last() { }
   // initialize to garbage
 
-  DUIterator_Last(const DUIterator_Last& that) = default;
-
   void operator--()
     { _outp--;              VDUI_ONLY(verify_step(1));  }
 
@@ -1475,7 +1463,8 @@ class DUIterator_Last : private DUIterator_Fast {
     return _outp >= limit._outp;
   }
 
-  DUIterator_Last& operator=(const DUIterator_Last& that) = default;
+  void operator=(const DUIterator_Last& that)
+    { DUIterator_Fast::operator=(that); }
 };
 
 DUIterator_Last Node::last_outs(DUIterator_Last& imin) const {

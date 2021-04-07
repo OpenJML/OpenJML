@@ -123,23 +123,24 @@ abstract class AbstractShuffle<E> extends VectorShuffle<E> {
         if (VectorIntrinsics.VECTOR_ACCESS_OOB_CHECK == 0) {
             return this;
         }
-        Vector<E> shufvec = this.toVector();
-        VectorMask<E> vecmask = shufvec.compare(VectorOperators.LT, vspecies().zero());
-        if (vecmask.anyTrue()) {
-            byte[] reorder = reorder();
-            throw checkIndexFailed(reorder[vecmask.firstTrue()], length());
+        // FIXME: vectorize this
+        for (int index : reorder()) {
+            if (index < 0) {
+                throw checkIndexFailed(index, length());
+            }
         }
         return this;
     }
 
     @ForceInline
     public final VectorShuffle<E> wrapIndexes() {
-        Vector<E> shufvec = this.toVector();
-        VectorMask<E> vecmask = shufvec.compare(VectorOperators.LT, vspecies().zero());
-        if (vecmask.anyTrue()) {
-            // FIXME: vectorize this
-            byte[] reorder = reorder();
-            return wrapAndRebuild(reorder);
+        // FIXME: vectorize this
+        byte[] reorder = reorder();
+        int length = reorder.length;
+        for (int index : reorder) {
+            if (index < 0) {
+                return wrapAndRebuild(reorder);
+            }
         }
         return this;
     }
@@ -165,8 +166,16 @@ abstract class AbstractShuffle<E> extends VectorShuffle<E> {
 
     @ForceInline
     public final VectorMask<E> laneIsValid() {
-        Vector<E> shufvec = this.toVector();
-        return shufvec.compare(VectorOperators.GE, vspecies().zero());
+        // FIXME: vectorize this
+        byte[] reorder = reorder();
+        int length = reorder.length;
+        boolean[] bits = new boolean[length];
+        for (int i = 0; i < length; i++) {
+            if (reorder[i] >= 0) {
+                bits[i] = true;
+            }
+        }
+        return vspecies().dummyVector().maskFromArray(bits);
     }
 
     @Override

@@ -24,7 +24,7 @@
 /*
  * @test
  * @key headful
- * @bug 6827032 8197825
+ * @bug 6827032
  * @summary Color chooser with drag enabled shouldn't throw NPE
  * @author Peter Zhelezniakov
  * @library ../regtesthelpers
@@ -38,57 +38,47 @@ import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 
 
 public class Test6827032 {
+
     private static volatile Point point;
-    private static JFrame frame;
     private static JColorChooser cc;
 
     public static void main(String[] args) throws Exception {
-        try {
-            UIManager.setLookAndFeel(new NimbusLookAndFeel());
+        UIManager.setLookAndFeel(new NimbusLookAndFeel());
 
-            Robot robot = new Robot();
-            robot.setAutoDelay(100);
+        Robot robot = new Robot();
+        robot.setAutoDelay(50);
 
-            SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    createAndShowGUI();
-                }
-            });
 
-            robot.waitForIdle();
-            robot.delay(1000);
-
-            SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    Component previewPanel = Util.findSubComponent(cc, "javax.swing.colorchooser.DefaultPreviewPanel");
-                    point = previewPanel.getLocationOnScreen();
-                }
-            });
-
-            point.translate(5, 5);
-
-            robot.mouseMove(point.x, point.y);
-            robot.waitForIdle();
-            robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-            robot.waitForIdle();
-            robot.delay(1000);
-        } finally {
-            if (frame != null) {
-                SwingUtilities.invokeAndWait(() -> frame.dispose());
+        SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                createAndShowGUI();
             }
-        }
+        });
+
+        robot.waitForIdle();
+
+        SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                Component previewPanel = Util.findSubComponent(cc, "javax.swing.colorchooser.DefaultPreviewPanel");
+                point = previewPanel.getLocationOnScreen();
+            }
+        });
+
+        point.translate(5, 5);
+
+        robot.mouseMove(point.x, point.y);
+        robot.mousePress(InputEvent.BUTTON1_MASK);
+        robot.mouseRelease(InputEvent.BUTTON1_MASK);
     }
 
 
     private static void createAndShowGUI() {
-        frame = new JFrame(Test6827032.class.getName());
+        JFrame frame = new JFrame(Test6827032.class.getName());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         cc = new JColorChooser();
         cc.setDragEnabled(true);
         frame.add(cc);
         frame.pack();
-        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
 }

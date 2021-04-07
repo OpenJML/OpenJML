@@ -30,11 +30,9 @@
 #include "asm/assembler.hpp"
 #include "asm/assembler.inline.hpp"
 #include "gc/shared/barrierSet.hpp"
+#include "gc/shared/cardTable.hpp"
 #include "gc/shared/barrierSetAssembler.hpp"
 #include "gc/shared/cardTableBarrierSet.hpp"
-#include "gc/shared/cardTable.hpp"
-#include "gc/shared/collectedHeap.hpp"
-#include "gc/shared/tlab_globals.hpp"
 #include "interpreter/interpreter.hpp"
 #include "compiler/disassembler.hpp"
 #include "memory/resourceArea.hpp"
@@ -48,7 +46,6 @@
 #include "runtime/interfaceSupport.inline.hpp"
 #include "runtime/jniHandles.inline.hpp"
 #include "runtime/sharedRuntime.hpp"
-#include "runtime/stubRoutines.hpp"
 #include "runtime/thread.hpp"
 #include "utilities/powerOfTwo.hpp"
 #ifdef COMPILER1
@@ -178,7 +175,7 @@ int MacroAssembler::patch_oop(address insn_addr, address o) {
   // instruction.
   if (Instruction_aarch64::extract(insn, 31, 21) == 0b11010010101) {
     // Move narrow OOP
-    uint32_t n = CompressedOops::narrow_oop_value(cast_to_oop(o));
+    uint32_t n = CompressedOops::narrow_oop_value((oop)o);
     Instruction_aarch64::patch(insn_addr, 20, 5, n >> 16);
     Instruction_aarch64::patch(insn_addr+4, 20, 5, n & 0xffff);
     instructions = 2;
@@ -304,7 +301,7 @@ void MacroAssembler::safepoint_poll(Label& slow_path, bool at_return, bool acqui
     cmp(in_nmethod ? sp : rfp, rscratch1);
     br(Assembler::HI, slow_path);
   } else {
-    tbnz(rscratch1, log2i_exact(SafepointMechanism::poll_bit()), slow_path);
+    tbnz(rscratch1, exact_log2(SafepointMechanism::poll_bit()), slow_path);
   }
 }
 
@@ -2565,8 +2562,6 @@ void MacroAssembler::atomic_##OP(Register prev, Register newv, Register addr) { 
 
 ATOMIC_XCHG(xchg, swp, ldxr, stxr, Assembler::xword)
 ATOMIC_XCHG(xchgw, swp, ldxrw, stxrw, Assembler::word)
-ATOMIC_XCHG(xchgl, swpl, ldxr, stlxr, Assembler::xword)
-ATOMIC_XCHG(xchglw, swpl, ldxrw, stlxrw, Assembler::word)
 ATOMIC_XCHG(xchgal, swpal, ldaxr, stlxr, Assembler::xword)
 ATOMIC_XCHG(xchgalw, swpal, ldaxrw, stlxrw, Assembler::word)
 
@@ -4005,7 +4000,7 @@ MacroAssembler::KlassDecodeMode MacroAssembler::klass_decode_mode() {
   if (operand_valid_for_logical_immediate(
         /*is32*/false, (uint64_t)CompressedKlassPointers::base())) {
     const uint64_t range_mask =
-      (1ULL << log2i(CompressedKlassPointers::range())) - 1;
+      (1ULL << log2_intptr(CompressedKlassPointers::range())) - 1;
     if (((uint64_t)CompressedKlassPointers::base() & range_mask) == 0) {
       return (_klass_decode_mode = KlassDecodeXor);
     }
@@ -5266,14 +5261,10 @@ void MacroAssembler::char_array_compress(Register src, Register dst, Register le
 // by the call to JavaThread::aarch64_get_thread_helper() or, indeed,
 // the call setup code.
 //
-// On Linux, aarch64_get_thread_helper() clobbers only r0, r1, and flags.
-// On other systems, the helper is a usual C function.
+// aarch64_get_thread_helper() clobbers only r0, r1, and flags.
 //
 void MacroAssembler::get_thread(Register dst) {
-  RegSet saved_regs =
-    LINUX_ONLY(RegSet::range(r0, r1)  + lr - dst)
-    NOT_LINUX (RegSet::range(r0, r17) + lr - dst);
-
+  RegSet saved_regs = RegSet::range(r0, r1) + lr - dst;
   push(saved_regs, sp);
 
   mov(lr, CAST_FROM_FN_PTR(address, JavaThread::aarch64_get_thread_helper));
@@ -5308,9 +5299,8 @@ void MacroAssembler::cache_wbsync(bool is_pre) {
 }
 
 void MacroAssembler::verify_sve_vector_length() {
-  // Make sure that native code does not change SVE vector length.
-  if (!UseSVE) return;
   Label verify_ok;
+  assert(UseSVE > 0, "should only be used for SVE");
   movw(rscratch1, zr);
   sve_inc(rscratch1, B);
   subsw(zr, rscratch1, VM_Version::get_initial_sve_vector_length());

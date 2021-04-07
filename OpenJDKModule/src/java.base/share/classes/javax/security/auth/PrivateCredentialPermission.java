@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,7 +26,6 @@
 package javax.security.auth;
 
 import java.util.*;
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.security.Permission;
 import java.security.PermissionCollection;
@@ -476,14 +475,10 @@ public final class PrivateCredentialPermission extends Permission {
 
     /**
      * Reads this object from a stream (i.e., deserializes it)
-     *
-     * @param  s the {@code ObjectInputStream} from which data is read
-     * @throws IOException if an I/O error occurs
-     * @throws ClassNotFoundException if a serialized class cannot be loaded
      */
     @java.io.Serial
     private void readObject(java.io.ObjectInputStream s) throws
-                                        IOException,
+                                        java.io.IOException,
                                         ClassNotFoundException {
 
         s.defaultReadObject();

@@ -31,7 +31,7 @@ import java.lang.StackWalker.StackFrame;
 import java.lang.invoke.MethodType;
 
 class StackFrameInfo implements StackFrame {
-    private static final JavaLangInvokeAccess JLIA =
+    private final static JavaLangInvokeAccess JLIA =
         SharedSecrets.getJavaLangInvokeAccess();
 
     private final boolean retainClassRef;

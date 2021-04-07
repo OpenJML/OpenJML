@@ -28,7 +28,7 @@ package jdk.jfr.internal.tool;
 import java.io.PrintWriter;
 
 abstract class StructuredWriter {
-    private static final String LINE_SEPARATOR = String.format("%n");
+    private final static String LINE_SEPARATOR = String.format("%n");
 
     private final PrintWriter out;
     private final StringBuilder builder = new StringBuilder(4000);
@@ -43,7 +43,7 @@ abstract class StructuredWriter {
         out = p;
     }
 
-    protected final int getColumn() {
+    final protected int getColumn() {
         return column;
     }
 
@@ -61,51 +61,51 @@ abstract class StructuredWriter {
         }
     }
 
-    public final void printIndent() {
+    final public void printIndent() {
         builder.append(indentionArray, 0, indent);
         column += indent;
     }
 
-    public final void println() {
+    final public void println() {
         builder.append(LINE_SEPARATOR);
         column = 0;
     }
 
-    public final void print(String... texts) {
+    final public void print(String... texts) {
         for (String text : texts) {
             print(text);
         }
     }
 
-    public final void printAsString(Object o) {
+    final public void printAsString(Object o) {
         print(String.valueOf(o));
     }
 
-    public final void print(String text) {
+    final public void print(String text) {
         builder.append(text);
         column += text.length();
     }
 
-    public final void print(char c) {
+    final public void print(char c) {
         builder.append(c);
         column++;
     }
 
-    public final void print(int value) {
+    final public void print(int value) {
         print(String.valueOf(value));
     }
 
-    public final void indent() {
+    final public void indent() {
         indent += 2;
         updateIndent();
     }
 
-    public final void retract() {
+    final public void retract() {
         indent -= 2;
         updateIndent();
     }
 
-    public final void println(String text) {
+    final public void println(String text) {
         print(text);
         println();
     }

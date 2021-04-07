@@ -37,7 +37,7 @@ import org.w3c.dom.NodeList;
 /**
  * An implementation for XPath evaluation that uses the JDK API.
  */
-class JDKXPathAPI implements XPathAPI {
+public class JDKXPathAPI implements XPathAPI {
 
     private XPathFactory xpf;
 

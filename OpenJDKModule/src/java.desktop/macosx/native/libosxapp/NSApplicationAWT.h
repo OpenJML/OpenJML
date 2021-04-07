@@ -23,8 +23,14 @@
  * questions.
  */
 
-#import "JNIUtilities.h"
+/*
+ * Must include this before JavaNativeFoundation.h to get jni.h from build
+ */
+#include "jni.h"
+#include "jni_util.h"
+
 #import <Cocoa/Cocoa.h>
+#import <JavaNativeFoundation/JavaNativeFoundation.h>
 
 JNIEXPORT @interface NSApplicationAWT : NSApplication <NSUserNotificationCenterDelegate> {
     NSString *fApplicationName;

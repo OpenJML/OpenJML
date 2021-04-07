@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2017, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -227,7 +227,9 @@ public class ServiceRegistry {
      */
     private Iterator<SubRegistry> getSubRegistries(Object provider) {
         List<SubRegistry> l = new ArrayList<>();
-        for (Class<?> c : categoryMap.keySet()) {
+        Iterator<Class<?>> iter = categoryMap.keySet().iterator();
+        while (iter.hasNext()) {
+            Class<?> c = iter.next();
             if (c.isAssignableFrom(provider.getClass())) {
                 l.add(categoryMap.get(c));
             }
@@ -538,7 +540,9 @@ public class ServiceRegistry {
         if (providerClass == null) {
             throw new IllegalArgumentException("providerClass == null!");
         }
-        for (Class<?> c : categoryMap.keySet()) {
+        Iterator<Class<?>> iter = categoryMap.keySet().iterator();
+        while (iter.hasNext()) {
+            Class<?> c = iter.next();
             if (c.isAssignableFrom(providerClass)) {
                 SubRegistry reg = categoryMap.get(c);
                 T provider = reg.getServiceProviderByClass(providerClass);
@@ -666,7 +670,9 @@ public class ServiceRegistry {
      * categories.
      */
     public void deregisterAll() {
-        for (SubRegistry reg : categoryMap.values()) {
+        Iterator<SubRegistry> iter = categoryMap.values().iterator();
+        while (iter.hasNext()) {
+            SubRegistry reg = iter.next();
             reg.clear();
         }
     }

@@ -29,11 +29,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
+import com.sun.org.apache.xml.internal.security.c14n.CanonicalizationException;
+import com.sun.org.apache.xml.internal.security.c14n.InvalidCanonicalizerException;
 import com.sun.org.apache.xml.internal.security.exceptions.XMLSecurityException;
 import com.sun.org.apache.xml.internal.security.signature.NodeFilter;
 import com.sun.org.apache.xml.internal.security.signature.XMLSignatureInput;
+import com.sun.org.apache.xml.internal.security.transforms.Transform;
 import com.sun.org.apache.xml.internal.security.transforms.TransformSpi;
 import com.sun.org.apache.xml.internal.security.transforms.TransformationException;
 import com.sun.org.apache.xml.internal.security.transforms.Transforms;
@@ -46,6 +50,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * Implements the <I>XML Signature XPath Filter v2.0</I>
@@ -54,21 +59,28 @@ import org.w3c.dom.NodeList;
  */
 public class TransformXPath2Filter extends TransformSpi {
 
+    /** Field implementedTransformURI */
+    public static final String implementedTransformURI =
+        Transforms.TRANSFORM_XPATH2FILTER;
+
     /**
+     * Method engineGetURI
+     *
      * {@inheritDoc}
      */
-    @Override
     protected String engineGetURI() {
-        return Transforms.TRANSFORM_XPATH2FILTER;
+        return implementedTransformURI;
     }
 
     /**
+     * Method enginePerformTransform
      * {@inheritDoc}
+     * @param input
+     *
+     * @throws TransformationException
      */
-    @Override
     protected XMLSignatureInput enginePerformTransform(
-        XMLSignatureInput input, OutputStream os, Element transformElement,
-        String baseURI, boolean secureValidation
+        XMLSignatureInput input, OutputStream os, Transform transformObject
     ) throws TransformationException {
         try {
             List<NodeList> unionNodes = new ArrayList<>();
@@ -77,12 +89,12 @@ public class TransformXPath2Filter extends TransformSpi {
 
             Element[] xpathElements =
                 XMLUtils.selectNodes(
-                    transformElement.getFirstChild(),
+                    transformObject.getElement().getFirstChild(),
                     XPath2FilterContainer.XPathFilter2NS,
                     XPath2FilterContainer._TAG_XPATH2
                 );
             if (xpathElements.length == 0) {
-                Object[] exArgs = { Transforms.TRANSFORM_XPATH2FILTER, "XPath" };
+                Object exArgs[] = { Transforms.TRANSFORM_XPATH2FILTER, "XPath" };
 
                 throw new TransformationException("xml.WrongContent", exArgs);
             }
@@ -94,7 +106,6 @@ public class TransformXPath2Filter extends TransformSpi {
                 inputDoc = XMLUtils.getOwnerDocument(input.getNodeSet());
             }
 
-            XPathFactory xpathFactory = XPathFactory.newInstance();
             for (int i = 0; i < xpathElements.length; i++) {
                 Element xpathElement = xpathElements[i];
 
@@ -104,6 +115,7 @@ public class TransformXPath2Filter extends TransformSpi {
                 String str =
                     XMLUtils.getStrFromNode(xpathContainer.getXPathFilterTextNode());
 
+                XPathFactory xpathFactory = XPathFactory.newInstance();
                 XPathAPI xpathAPIInstance = xpathFactory.newXPathAPI();
 
                 NodeList subtreeRoots =
@@ -126,7 +138,21 @@ public class TransformXPath2Filter extends TransformSpi {
             );
             input.setNodeSet(true);
             return input;
-        } catch (TransformerException | DOMException | XMLSecurityException | IOException ex) {
+        } catch (TransformerException ex) {
+            throw new TransformationException(ex);
+        } catch (DOMException ex) {
+            throw new TransformationException(ex);
+        } catch (CanonicalizationException ex) {
+            throw new TransformationException(ex);
+        } catch (InvalidCanonicalizerException ex) {
+            throw new TransformationException(ex);
+        } catch (XMLSecurityException ex) {
+            throw new TransformationException(ex);
+        } catch (SAXException ex) {
+            throw new TransformationException(ex);
+        } catch (IOException ex) {
+            throw new TransformationException(ex);
+        } catch (ParserConfigurationException ex) {
             throw new TransformationException(ex);
         }
     }
@@ -134,15 +160,15 @@ public class TransformXPath2Filter extends TransformSpi {
 
 class XPath2NodeFilter implements NodeFilter {
 
-    private final boolean hasUnionFilter;
-    private final boolean hasSubtractFilter;
-    private final boolean hasIntersectFilter;
-    private final Set<Node> unionNodes;
-    private final Set<Node> subtractNodes;
-    private final Set<Node> intersectNodes;
-    private int inSubtract = -1;
-    private int inIntersect = -1;
-    private int inUnion = -1;
+    boolean hasUnionFilter;
+    boolean hasSubtractFilter;
+    boolean hasIntersectFilter;
+    Set<Node> unionNodes;
+    Set<Node> subtractNodes;
+    Set<Node> intersectNodes;
+    int inSubtract = -1;
+    int inIntersect = -1;
+    int inUnion = -1;
 
     XPath2NodeFilter(List<NodeList> unionNodes, List<NodeList> subtractNodes,
                      List<NodeList> intersectNodes) {

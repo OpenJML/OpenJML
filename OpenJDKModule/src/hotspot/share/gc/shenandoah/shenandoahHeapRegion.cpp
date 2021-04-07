@@ -23,14 +23,13 @@
  */
 
 #include "precompiled.hpp"
-#include "gc/shared/space.inline.hpp"
-#include "gc/shared/tlab_globals.hpp"
+#include "memory/allocation.hpp"
 #include "gc/shenandoah/shenandoahHeapRegionSet.inline.hpp"
 #include "gc/shenandoah/shenandoahHeap.inline.hpp"
 #include "gc/shenandoah/shenandoahHeapRegion.hpp"
 #include "gc/shenandoah/shenandoahMarkingContext.inline.hpp"
+#include "gc/shared/space.inline.hpp"
 #include "jfr/jfrEvents.hpp"
-#include "memory/allocation.hpp"
 #include "memory/iterator.inline.hpp"
 #include "memory/resourceArea.hpp"
 #include "memory/universe.hpp"
@@ -41,7 +40,6 @@
 #include "runtime/mutexLocker.hpp"
 #include "runtime/os.hpp"
 #include "runtime/safepoint.hpp"
-#include "utilities/powerOfTwo.hpp"
 
 size_t ShenandoahHeapRegion::RegionCount = 0;
 size_t ShenandoahHeapRegion::RegionSizeBytes = 0;
@@ -392,7 +390,7 @@ void ShenandoahHeapRegion::oop_iterate_objects(OopIterateClosure* blk) {
   HeapWord* t = top();
   // Could call objects iterate, but this is easier.
   while (obj_addr < t) {
-    oop obj = cast_to_oop(obj_addr);
+    oop obj = oop(obj_addr);
     obj_addr += obj->oop_iterate_size(blk);
   }
 }
@@ -402,7 +400,7 @@ void ShenandoahHeapRegion::oop_iterate_humongous(OopIterateClosure* blk) {
   // Find head.
   ShenandoahHeapRegion* r = humongous_start_region();
   assert(r->is_humongous_start(), "need humongous head here");
-  oop obj = cast_to_oop(r->bottom());
+  oop obj = oop(r->bottom());
   obj->oop_iterate(blk, MemRegion(bottom(), top()));
 }
 
@@ -448,9 +446,9 @@ HeapWord* ShenandoahHeapRegion::block_start(const void* p) const {
     HeapWord* cur = last;
     while (cur <= p) {
       last = cur;
-      cur += cast_to_oop(cur)->size();
+      cur += oop(cur)->size();
     }
-    shenandoah_assert_correct(NULL, cast_to_oop(last));
+    shenandoah_assert_correct(NULL, oop(last));
     return last;
   }
 }
@@ -460,7 +458,7 @@ size_t ShenandoahHeapRegion::block_size(const HeapWord* p) const {
          "p (" PTR_FORMAT ") not in space [" PTR_FORMAT ", " PTR_FORMAT ")",
          p2i(p), p2i(bottom()), p2i(end()));
   if (p < top()) {
-    return cast_to_oop(p)->size();
+    return oop(p)->size();
   } else {
     assert(p == top(), "just checking");
     return pointer_delta(end(), (HeapWord*) p);
@@ -550,7 +548,7 @@ void ShenandoahHeapRegion::setup_sizes(size_t max_heap_size) {
     region_size = MAX2(region_size, os::large_page_size());
   }
 
-  int region_size_log = log2i(region_size);
+  int region_size_log = log2_long((jlong) region_size);
   // Recalculate the region size to make sure it's a power of
   // 2. This means that region_size is the largest power of 2 that's
   // <= what we've calculated so far.

@@ -103,7 +103,7 @@ public class Transforms extends SignatureElementProxy {
     private static final com.sun.org.slf4j.internal.Logger LOG =
         com.sun.org.slf4j.internal.LoggerFactory.getLogger(Transforms.class);
 
-    private Element[] transformsElement;
+    private Element[] transforms;
 
     protected Transforms() { }
 
@@ -141,7 +141,7 @@ public class Transforms extends SignatureElementProxy {
 
         if (numberOfTransformElems == 0) {
             // At least one Transform element must be present. Bad.
-            Object[] exArgs = { Constants._TAG_TRANSFORM, Constants._TAG_TRANSFORMS };
+            Object exArgs[] = { Constants._TAG_TRANSFORM, Constants._TAG_TRANSFORMS };
 
             throw new TransformationException("xml.WrongContent", exArgs);
         }
@@ -262,17 +262,21 @@ public class Transforms extends SignatureElementProxy {
                 Transform t = this.item(i);
                 LOG.debug("Perform the ({})th {} transform", i, t.getURI());
                 checkSecureValidation(t);
-                xmlSignatureInput = t.performTransform(xmlSignatureInput, secureValidation);
+                xmlSignatureInput = t.performTransform(xmlSignatureInput);
             }
             if (last >= 0) {
                 Transform t = this.item(last);
                 LOG.debug("Perform the ({})th {} transform", last, t.getURI());
                 checkSecureValidation(t);
-                xmlSignatureInput = t.performTransform(xmlSignatureInput, os, secureValidation);
+                xmlSignatureInput = t.performTransform(xmlSignatureInput, os);
             }
 
             return xmlSignatureInput;
-        } catch (IOException | CanonicalizationException | InvalidCanonicalizerException ex) {
+        } catch (IOException ex) {
+            throw new TransformationException(ex);
+        } catch (CanonicalizationException ex) {
+            throw new TransformationException(ex);
+        } catch (InvalidCanonicalizerException ex) {
             throw new TransformationException(ex);
         }
     }
@@ -280,12 +284,13 @@ public class Transforms extends SignatureElementProxy {
     private void checkSecureValidation(Transform transform) throws TransformationException {
         String uri = transform.getURI();
         if (secureValidation && Transforms.TRANSFORM_XSLT.equals(uri)) {
-            Object[] exArgs = { uri };
+            Object exArgs[] = { uri };
 
             throw new TransformationException(
                 "signature.Transform.ForbiddenTransform", exArgs
             );
         }
+        transform.setSecureValidation(secureValidation);
     }
 
     /**
@@ -295,7 +300,7 @@ public class Transforms extends SignatureElementProxy {
      */
     public int getLength() {
         initTransforms();
-        return transformsElement.length;
+        return transforms.length;
     }
 
     /**
@@ -309,15 +314,15 @@ public class Transforms extends SignatureElementProxy {
     public Transform item(int i) throws TransformationException {
         try {
             initTransforms();
-            return new Transform(transformsElement[i], this.baseURI);
+            return new Transform(transforms[i], this.baseURI);
         } catch (XMLSecurityException ex) {
             throw new TransformationException(ex);
         }
     }
 
     private void initTransforms() {
-        if (transformsElement == null) {
-            transformsElement = XMLUtils.selectDsNodes(getFirstChild(), "Transform");
+        if (transforms == null) {
+            transforms = XMLUtils.selectDsNodes(getFirstChild(), "Transform");
         }
     }
 

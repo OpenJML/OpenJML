@@ -23,7 +23,6 @@
 /*
  * @test
  * @bug 6789262
- * @key printer
  * @summary  Verifies if getPageFormat returns correct mediaprintable value
  * @run main TestPgfmtSetMPA
  */
@@ -39,10 +38,6 @@ public class TestPgfmtSetMPA {
         PrinterJob job;
 
         job = PrinterJob.getPrinterJob();
-        if (job.getPrintService() == null) {
-            System.out.println("No printers. Test cannot continue");
-            return;
-        }
 
         PrintRequestAttributeSet pras = new HashPrintRequestAttributeSet();
 

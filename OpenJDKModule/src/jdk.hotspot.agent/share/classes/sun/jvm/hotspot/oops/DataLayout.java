@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -81,8 +81,9 @@ public class DataLayout {
     return data.getJShortAt(offset + at) & 0xffff;
   }
 
-  long cellAt(int index) {
-    return data.getCIntegerAt(offset + cellOffset(index), MethodData.cellSize, false);
+  int cellAt(int index) {
+    // Cells are intptr_t sized but only contain ints as raw values
+    return (int)data.getCIntegerAt(offset + cellOffset(index), MethodData.cellSize, false);
   }
 
   public Address addressAt(int index) {

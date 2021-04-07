@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2009, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -40,7 +40,6 @@ import sun.security.krb5.internal.crypto.dk.AesDkCrypto;
 import sun.security.krb5.internal.crypto.dk.Des3DkCrypto;
 import sun.security.krb5.internal.crypto.dk.DkCrypto;
 import java.nio.*;
-import java.util.HexFormat;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 
@@ -217,12 +216,29 @@ public class RFC396xTest {
     }
 
     static String hex(byte[] bs) {
-        return HexFormat.of().formatHex(bs);
+        StringBuffer sb = new StringBuffer(bs.length * 2);
+        for(byte b: bs) {
+            char c = (char)((b+256)%256);
+            if (c / 16 < 10)
+                sb.append((char)(c/16+'0'));
+            else
+                sb.append((char)(c/16-10+'a'));
+            if (c % 16 < 10)
+                sb.append((char)(c%16+'0'));
+            else
+                sb.append((char)(c%16-10+'a'));
+        }
+        return new String(sb);
     }
 
     static byte[] xeh(String in) {
         in = in.replaceAll(" ", "");
-        return HexFormat.of().parseHex(in);
+        int len = in.length()/2;
+        byte[] out = new byte[len];
+        for (int i=0; i<len; i++) {
+            out[i] = (byte)Integer.parseInt(in.substring(i*2, i*2+2), 16);
+        }
+        return out;
     }
 
     static void assertStringEquals(String a, String b) {

@@ -159,12 +159,7 @@ public class TestChurnNotifications {
 
         System.gc();
 
-        // Wait until notifications start arriving, and then wait some more
-        // to catch the ones arriving late.
-        while (churnBytes.get() == 0) {
-            Thread.sleep(1000);
-        }
-        Thread.sleep(5000);
+        Thread.sleep(1000);
 
         long actual = churnBytes.get();
 

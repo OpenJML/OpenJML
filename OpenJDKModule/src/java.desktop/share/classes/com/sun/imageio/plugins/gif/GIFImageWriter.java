@@ -1252,10 +1252,11 @@ public class GIFImageWriter extends ImageWriter {
       throws IOException {
         if (im.comments != null) {
             try {
-                for (byte[] bytes : im.comments) {
+                Iterator<byte[]> iter = im.comments.iterator();
+                while (iter.hasNext()) {
                     stream.write(0x21);
                     stream.write(0xfe);
-                    writeBlocks(bytes);
+                    writeBlocks(iter.next());
                     stream.write(0x00);
                 }
             } catch (IOException e) {

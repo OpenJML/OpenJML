@@ -182,9 +182,10 @@ void GenMarkSweep::mark_sweep_phase1(bool clear_all_softrefs) {
   ClassLoaderDataGraph::clear_claimed_marks();
 
   {
-    StrongRootsScope srs(0);
+    StrongRootsScope srs(1);
 
-    gch->full_process_roots(false, // not the adjust phase
+    gch->full_process_roots(&srs,
+                            false, // not the adjust phase
                             GenCollectedHeap::SO_None,
                             ClassUnloading, // only strong roots if ClassUnloading
                                             // is enabled
@@ -271,9 +272,10 @@ void GenMarkSweep::mark_sweep_phase3() {
   ClassLoaderDataGraph::clear_claimed_marks();
 
   {
-    StrongRootsScope srs(0);
+    StrongRootsScope srs(1);
 
-    gch->full_process_roots(true,  // this is the adjust phase
+    gch->full_process_roots(&srs,
+                            true,  // this is the adjust phase
                             GenCollectedHeap::SO_AllCodeCache,
                             false, // all roots
                             &adjust_pointer_closure,

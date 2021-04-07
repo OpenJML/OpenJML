@@ -46,10 +46,10 @@ public class Main {
      * @param args command line arguments
      */
     public static void main(String... args) throws Exception {
+        // Create logger with default system.out and system.err
+        Log.setLogger(null);
 
-        PrintWriter out = new PrintWriter(System.out);
-        PrintWriter err = new PrintWriter(System.err);
-        int status = new jdk.jpackage.main.Main().execute(out, err, args);
+        int status = new jdk.jpackage.main.Main().execute(args);
         System.exit(status);
     }
 
@@ -62,8 +62,15 @@ public class Main {
      * @return an exit code. 0 means success, non-zero means an error occurred.
      */
     public int execute(PrintWriter out, PrintWriter err, String... args) {
-        Log.setPrintWriter(out, err);
+        // Create logger with provided streams
+        Log.Logger logger = new Log.Logger();
+        logger.setPrintWriter(out, err);
+        Log.setLogger(logger);
 
+        return execute(args);
+    }
+
+    private int execute(String... args) {
         try {
             String[] newArgs;
             try {

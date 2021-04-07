@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2008, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -65,10 +65,10 @@ public class test6 {
 
         if (staticFunctionDepth.intValue() > 0) {
             numFcalls = functionDepth;
-            staticFcalls = Integer.valueOf(staticFunctionDepth.intValue() - 1);
+            staticFcalls = new Integer(staticFunctionDepth.intValue() - 1);
             methodCallStr = Globals.returnNextStaticMethod(MethodID[0]);
         } else {
-            numFcalls = Long.valueOf(functionDepth.longValue() - 1);
+            numFcalls = new Long(functionDepth.longValue() - 1);
             staticFcalls = staticFunctionDepth;
             methodCallStr = Globals.nextRandomMethod();
         }
@@ -82,11 +82,11 @@ public class test6 {
         // code guarantees no duplicates
         for (int i = 0; i < numElements; i++) {
             int nextKey = localNumGen.nextInt(16385);
-            while (temp.indexOf(Integer.valueOf(nextKey)) != -1) {
+            while (temp.indexOf(new Integer(nextKey)) != -1) {
                 nextKey = localNumGen.nextInt(16385);
             }
 
-            temp.addElement(Integer.valueOf(nextKey));
+            temp.addElement(new Integer(nextKey));
             dataArray[i] = nextKey;
 
             insertArray[i] = false;

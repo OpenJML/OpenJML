@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,8 +25,6 @@
 #include "precompiled.hpp"
 #include "classfile/altHashing.hpp"
 #include "classfile/javaClasses.inline.hpp"
-#include "gc/shared/collectedHeap.hpp"
-#include "gc/shared/gc_globals.hpp"
 #include "gc/shared/stringdedup/stringDedup.hpp"
 #include "gc/shared/stringdedup/stringDedupTable.hpp"
 #include "gc/shared/suspendibleThreadSet.hpp"
@@ -34,7 +32,7 @@
 #include "memory/padded.inline.hpp"
 #include "memory/universe.hpp"
 #include "oops/access.inline.hpp"
-#include "oops/arrayOop.hpp"
+#include "oops/arrayOop.inline.hpp"
 #include "oops/oop.inline.hpp"
 #include "oops/typeArrayOop.hpp"
 #include "runtime/atomic.hpp"
@@ -395,33 +393,32 @@ bool StringDedupTable::is_rehashing() {
 StringDedupTable* StringDedupTable::prepare_resize() {
   size_t size = _table->_size;
 
-  // Decide whether to resize, and compute desired new size if so.
+  // Check if the hashtable needs to be resized
   if (_table->_entries > _table->_grow_threshold) {
-    // Compute new size.
-    size_t needed = _table->_entries / _grow_load_factor;
-    if (needed < _max_size) {
-      size = round_up_power_of_2(needed);
-    } else {
-      size = _max_size;
+    // Grow table, double the size
+    size *= 2;
+    if (size > _max_size) {
+      // Too big, don't resize
+      return NULL;
     }
   } else if (_table->_entries < _table->_shrink_threshold) {
-    // Compute new size.  We can't shrink by more than a factor of 2,
-    // because the partitioning for parallelization doesn't support more.
-    if (size > _min_size) size /= 2;
-  }
-  // If no change in size needed (and not forcing resize) then done.
-  if (size == _table->_size) {
-    if (!StringDeduplicationResizeALot) {
-      return NULL;              // Don't resize.
-    } else if (size < _max_size) {
-      size *= 2;                // Force grow, but not past _max_size.
-    } else {
-      size /= 2;                // Can't force grow, so force shrink instead.
+    // Shrink table, half the size
+    size /= 2;
+    if (size < _min_size) {
+      // Too small, don't resize
+      return NULL;
     }
+  } else if (StringDeduplicationResizeALot) {
+    // Force grow
+    size *= 2;
+    if (size > _max_size) {
+      // Too big, force shrink instead
+      size /= 4;
+    }
+  } else {
+    // Resize not needed
+    return NULL;
   }
-  assert(size <= _max_size, "invariant: %zu", size);
-  assert(size >= _min_size, "invariant: %zu", size);
-  assert(is_power_of_2(size), "invariant: %zu", size);
 
   // Update statistics
   _resize_count++;

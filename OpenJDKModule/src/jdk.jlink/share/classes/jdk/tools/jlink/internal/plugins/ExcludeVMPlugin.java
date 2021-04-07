@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import jdk.tools.jlink.internal.Platform;
 import jdk.tools.jlink.plugin.PluginException;
@@ -105,7 +106,7 @@ public final class ExcludeVMPlugin extends AbstractPlugin {
                 }
             }
             return false;
-        }).toList();
+        }).collect(Collectors.toList());
         return ret;
     }
 

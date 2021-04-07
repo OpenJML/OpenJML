@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,10 +26,8 @@ package sun.jvm.hotspot.tools;
 
 import java.io.*;
 import java.util.*;
-import sun.jvm.hotspot.*;
 import sun.jvm.hotspot.debugger.*;
 import sun.jvm.hotspot.debugger.cdbg.*;
-import sun.jvm.hotspot.debugger.remote.*;
 import sun.jvm.hotspot.utilities.PlatformInfo;
 
 public class PMap extends Tool {
@@ -40,10 +38,6 @@ public class PMap extends Tool {
 
    public PMap(JVMDebugger d) {
        super(d);
-   }
-
-   public PMap(HotSpotAgent agent) {
-       super(agent);
    }
 
    @Override
@@ -78,7 +72,7 @@ public class PMap extends Tool {
          }
       } else {
           if (getDebugeeType() == DEBUGEE_REMOTE) {
-              out.print(((RemoteDebuggerClient)dbg).execCommandOnServer("pmap", null));
+              out.println("remote configuration is not yet implemented");
           } else {
               out.println("not yet implemented (debugger does not support CDebugger)!");
           }

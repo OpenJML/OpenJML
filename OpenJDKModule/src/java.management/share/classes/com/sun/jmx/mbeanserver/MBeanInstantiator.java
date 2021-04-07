@@ -228,7 +228,7 @@ public class MBeanInstantiator {
             moi= cons.newInstance();
         } catch (InvocationTargetException e) {
             // Wrap the exception.
-            Throwable t = e.getCause();
+            Throwable t = e.getTargetException();
             if (t instanceof RuntimeException) {
                 throw new RuntimeMBeanException((RuntimeException)t,
                    "RuntimeException thrown in the MBean's empty constructor");
@@ -318,7 +318,7 @@ public class MBeanInstantiator {
         }
         catch (InvocationTargetException e) {
             // Wrap the exception.
-            Throwable th = e.getCause();
+            Throwable th = e.getTargetException();
             if (th instanceof RuntimeException) {
                 throw new RuntimeMBeanException((RuntimeException)th,
                       "RuntimeException thrown in the MBean's constructor");

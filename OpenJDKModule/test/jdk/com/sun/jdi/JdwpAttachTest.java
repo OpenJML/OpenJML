@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -50,12 +50,9 @@ import java.util.concurrent.Executors;
 public class JdwpAttachTest {
 
     // Set to true to perform testing of attach from wrong address (expected to fail).
-    // It's off by default as it caused significant test time increase
+    // It's off by default as it caused significant test time increase\
     // (tests <number_of_addresses> * <number_of_addresses> cases, each case fails by timeout).
     private static boolean testFailedAttach = false;
-
-    // A flag to exclude testcases which can cause intermittent CI failures.
-    private static boolean testPotentiallyUnstableCases = false;
 
     public static void main(String[] args) throws Exception {
         List<InetAddress> addresses = Utils.getAddressesWithSymbolicAndNumericScopes();
@@ -84,15 +81,11 @@ public class JdwpAttachTest {
             }
         }
 
-        // By using "localhost" or empty hostname we should be able to attach
-        // to both IPv4 and IPv6 addresses (127.0.0.1 & ::1).
-        // By default test verifies only "preferred" family (IPv4 or IPv6).
-        // Need to set testPotentiallyUnstableCases to true to perform full testing.
+        // by using "localhost" or empty hostname
+        // we should be able to attach to both IPv4 and IPv6 addresses (127.0.0.1 & ::1)
         InetAddress localAddresses[] = InetAddress.getAllByName("localhost");
         for (int i = 0; i < localAddresses.length; i++) {
-            if (testPotentiallyUnstableCases || addressIsSafeToConnectToLocalhost(localAddresses[i])) {
-                attachTest(localAddresses[i].getHostAddress(), "", true);
-            }
+            attachTest(localAddresses[i].getHostAddress(), "", true);
         }
     }
 
@@ -173,15 +166,6 @@ public class JdwpAttachTest {
             throw new IllegalArgumentException("Argument " + name + " is not defined");
         }
         arg.setValue(value);
-    }
-
-    // Attach to localhost tries to connect to both IPv4 and IPv6 loopback addresses.
-    // But sometimes it causes interference with other processes which can listen
-    // on the same port but different loopback address.
-    // The method checks if the address is safe to test with current network config.
-    private static boolean addressIsSafeToConnectToLocalhost(InetAddress addr) {
-        boolean ipv6 = Boolean.parseBoolean(System.getProperty("java.net.preferIPv6Addresses"));
-        return ipv6 == (addr instanceof Inet6Address);
     }
 
     private static long startTime = System.currentTimeMillis();

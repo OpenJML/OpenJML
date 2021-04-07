@@ -28,6 +28,7 @@ package jdk.jfr.internal.consumer;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.security.AccessControlContext;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -39,7 +40,7 @@ import jdk.jfr.consumer.RecordedEvent;
  *
  */
 public final class EventFileStream extends AbstractEventStream {
-    private static final Comparator<? super RecordedEvent> EVENT_COMPARATOR = JdkJfrConsumer.instance().eventComparator();
+    private final static Comparator<? super RecordedEvent> EVENT_COMPARATOR = JdkJfrConsumer.instance().eventComparator();
 
     private final RecordingInput input;
 

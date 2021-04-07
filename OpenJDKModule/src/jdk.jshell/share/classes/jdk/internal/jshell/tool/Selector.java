@@ -31,6 +31,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * Selector is the representation of the selector in a "/set format" command.  This class, among other things, provides

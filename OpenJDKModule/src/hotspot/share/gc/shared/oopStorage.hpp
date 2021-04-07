@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -72,13 +72,10 @@ class outputStream;
 // interactions for this protocol.  Similarly, see the allocate() function for
 // a discussion of allocation.
 
-class OopStorage {
+class OopStorage : public CHeapObj<mtGC> {
 public:
-  explicit OopStorage(const char* name, MEMFLAGS memflags);
+  explicit OopStorage(const char* name);
   ~OopStorage();
-
-  void* operator new(size_t size, MEMFLAGS memflags);
-  void operator delete(void* obj, MEMFLAGS memflags);
 
   // These count and usage accessors are racy unless at a safepoint.
 
@@ -91,9 +88,6 @@ public:
   // Total number of blocks * memory allocation per block, plus
   // bookkeeping overhead, including this storage object.
   size_t total_memory_usage() const;
-
-  // The memory type for allocations.
-  MEMFLAGS memflags() const;
 
   enum EntryStatus {
     INVALID_ENTRY,
@@ -212,8 +206,7 @@ private:
   class ActiveArray;            // Array of Blocks, plus bookkeeping.
   class AllocationListEntry;    // Provides AllocationList links in a Block.
 
-  // Doubly-linked list of Blocks.  For all operations with a block
-  // argument, the block must be from the list's OopStorage.
+  // Doubly-linked list of Blocks.
   class AllocationList {
     const Block* _head;
     const Block* _tail;
@@ -238,8 +231,6 @@ private:
     void push_front(const Block& block);
     void push_back(const Block& block);
     void unlink(const Block& block);
-
-    bool contains(const Block& block) const;
   };
 
 private:
@@ -260,10 +251,6 @@ private:
   // mutable because this gets set even for const iteration.
   mutable int _concurrent_iteration_count;
 
-  // The memory type for allocations.
-  MEMFLAGS _memflags;
-
-  // Flag indicating this storage object is a candidate for empty block deletion.
   volatile bool _needs_cleanup;
 
   bool try_add_block();

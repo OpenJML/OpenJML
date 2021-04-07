@@ -32,7 +32,12 @@
 template <DecoratorSet decorators, typename T>
 inline void CardTableBarrierSet::write_ref_field_post(T* field, oop newVal) {
   volatile CardValue* byte = _card_table->byte_for(field);
-  *byte = CardTable::dirty_card_val();
+  if (_card_table->scanned_concurrently()) {
+    // Perform a releasing store if the card table is scanned concurrently
+    Atomic::release_store(byte, CardTable::dirty_card_val());
+  } else {
+    *byte = CardTable::dirty_card_val();
+  }
 }
 
 #endif // SHARE_GC_SHARED_CARDTABLEBARRIERSET_INLINE_HPP

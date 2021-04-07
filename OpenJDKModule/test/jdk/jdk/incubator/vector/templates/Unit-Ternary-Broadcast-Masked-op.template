@@ -14,7 +14,7 @@
             av.lanewise(VectorOperators.[[TEST]], bv, c[i], vmask).intoArray(r, i);
         }
 
-        assertBroadcastArraysEquals(r, a, b, c, mask, $vectorteststype$::[[TEST]]);
+        assertBroadcastArraysEquals(a, b, c, r, mask, $vectorteststype$::[[TEST]]);
     }
 
     @Test(dataProvider = "$type$TernaryOpMaskProvider")
@@ -33,5 +33,5 @@
             av.lanewise(VectorOperators.[[TEST]], b[i], cv, vmask).intoArray(r, i);
         }
 
-        assertAltBroadcastArraysEquals(r, a, b, c, mask, $vectorteststype$::[[TEST]]);
+        assertAltBroadcastArraysEquals(a, b, c, r, mask, $vectorteststype$::[[TEST]]);
     }

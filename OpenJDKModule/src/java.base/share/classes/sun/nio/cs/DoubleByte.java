@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2009, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -32,9 +32,6 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 import java.util.Arrays;
-
-import jdk.internal.access.JavaLangAccess;
-import jdk.internal.access.SharedSecrets;
 import sun.nio.cs.Surrogate;
 import sun.nio.cs.ArrayDecoder;
 import sun.nio.cs.ArrayEncoder;
@@ -114,8 +111,6 @@ public class DoubleByte {
     public static class Decoder extends CharsetDecoder
                                 implements DelegatableDecoder, ArrayDecoder
     {
-        private static final JavaLangAccess JLA = SharedSecrets.getJavaLangAccess();
-
         final char[][] b2c;
         final char[] b2cSB;
         final int b2Min;
@@ -159,21 +154,14 @@ public class DoubleByte {
 
         protected CoderResult decodeArrayLoop(ByteBuffer src, CharBuffer dst) {
             byte[] sa = src.array();
-            int soff = src.arrayOffset();
-            int sp = soff + src.position();
-            int sl = soff + src.limit();
+            int sp = src.arrayOffset() + src.position();
+            int sl = src.arrayOffset() + src.limit();
 
             char[] da = dst.array();
-            int doff = dst.arrayOffset();
-            int dp = doff + dst.position();
-            int dl = doff + dst.limit();
+            int dp = dst.arrayOffset() + dst.position();
+            int dl = dst.arrayOffset() + dst.limit();
 
             try {
-                if (isASCIICompatible) {
-                    int n = JLA.decodeASCII(sa, sp, da, dp, Math.min(dl - dp, sl - sp));
-                    dp += n;
-                    sp += n;
-                }
                 while (sp < sl && dp < dl) {
                     // inline the decodeSingle/Double() for better performance
                     int inSize = 1;
@@ -195,8 +183,8 @@ public class DoubleByte {
                 return (sp >= sl) ? CoderResult.UNDERFLOW
                                   : CoderResult.OVERFLOW;
             } finally {
-                src.position(sp - soff);
-                dst.position(dp - doff);
+                src.position(sp - src.arrayOffset());
+                dst.position(dp - dst.arrayOffset());
             }
         }
 
@@ -354,7 +342,7 @@ public class DoubleByte {
                         else
                             currentState = SBCS;
                     } else {
-                        char c;
+                        char c =  UNMAPPABLE_DECODING;
                         if (currentState == SBCS) {
                             c = b2cSB[b1];
                             if (c == UNMAPPABLE_DECODING)

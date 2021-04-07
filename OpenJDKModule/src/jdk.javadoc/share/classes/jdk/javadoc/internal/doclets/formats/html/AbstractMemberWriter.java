@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -42,6 +42,8 @@ import jdk.javadoc.internal.doclets.formats.html.markup.HtmlStyle;
 import jdk.javadoc.internal.doclets.formats.html.markup.TagName;
 import jdk.javadoc.internal.doclets.formats.html.markup.HtmlTree;
 import jdk.javadoc.internal.doclets.formats.html.markup.Links;
+import jdk.javadoc.internal.doclets.formats.html.markup.Table;
+import jdk.javadoc.internal.doclets.formats.html.markup.TableHeader;
 import jdk.javadoc.internal.doclets.toolkit.Content;
 import jdk.javadoc.internal.doclets.toolkit.MemberSummaryWriter;
 import jdk.javadoc.internal.doclets.toolkit.MemberWriter;
@@ -66,7 +68,6 @@ public abstract class AbstractMemberWriter implements MemberSummaryWriter, Membe
     protected final Contents contents;
     protected final Resources resources;
     protected final Links links;
-    protected final HtmlIds htmlIds;
 
     protected final TypeElement typeElement;
 
@@ -79,7 +80,6 @@ public abstract class AbstractMemberWriter implements MemberSummaryWriter, Membe
         this.contents = configuration.getContents();
         this.resources = configuration.docResources;
         this.links = writer.links;
-        this.htmlIds = configuration.htmlIds;
     }
 
     public AbstractMemberWriter(SubWriterHolderWriter writer) {
@@ -147,7 +147,7 @@ public abstract class AbstractMemberWriter implements MemberSummaryWriter, Membe
      * @param tdSummary   the content tree to which the link will be added
      */
     protected void addSummaryLink(TypeElement typeElement, Element member, Content tdSummary) {
-        addSummaryLink(HtmlLinkInfo.Kind.MEMBER, typeElement, member, tdSummary);
+        addSummaryLink(LinkInfoImpl.Kind.MEMBER, typeElement, member, tdSummary);
     }
 
     /**
@@ -158,8 +158,8 @@ public abstract class AbstractMemberWriter implements MemberSummaryWriter, Membe
      * @param member      the member to be documented
      * @param tdSummary   the content tree to which the summary link will be added
      */
-    protected abstract void addSummaryLink(HtmlLinkInfo.Kind context,
-                                           TypeElement typeElement, Element member, Content tdSummary);
+    protected abstract void addSummaryLink(LinkInfoImpl.Kind context,
+            TypeElement typeElement, Element member, Content tdSummary);
 
     /**
      * Adds the inherited summary link for the member.
@@ -172,13 +172,13 @@ public abstract class AbstractMemberWriter implements MemberSummaryWriter, Membe
             Element member, Content linksTree);
 
     /**
-     * Returns a link for summary (deprecated, preview) pages.
+     * Returns the deprecated link.
      *
      * @param member the member being linked to
      *
      * @return a content tree representing the link
      */
-    protected abstract Content getSummaryLink(Element member);
+    protected abstract Content getDeprecatedLink(Element member);
 
     /**
      * Adds the modifier and type for the member in the member summary.
@@ -210,8 +210,8 @@ public abstract class AbstractMemberWriter implements MemberSummaryWriter, Membe
                 }
             }
             code.add(
-                    writer.getLink(new HtmlLinkInfo(configuration,
-                            HtmlLinkInfo.Kind.SUMMARY_RETURN_TYPE, type)));
+                    writer.getLink(new LinkInfoImpl(configuration,
+                            LinkInfoImpl.Kind.SUMMARY_RETURN_TYPE, type)));
         }
         tdSummaryType.add(code);
     }
@@ -271,16 +271,6 @@ public abstract class AbstractMemberWriter implements MemberSummaryWriter, Membe
         }
     }
 
-    /**
-     * Add the preview information for the given member.
-     *
-     * @param member the member being documented.
-     * @param contentTree the content tree to which the preview information will be added.
-     */
-    protected void addPreviewInfo(Element member, Content contentTree) {
-        writer.addPreviewInfo(member, contentTree);
-    }
-
     protected String name(Element member) {
         return utils.getSimpleName(member);
     }
@@ -336,8 +326,8 @@ public abstract class AbstractMemberWriter implements MemberSummaryWriter, Membe
                 typeContent.add(name);
             }
             addSummaryLink(utils.isClass(element) || utils.isInterface(element)
-                    ? HtmlLinkInfo.Kind.CLASS_USE
-                    : HtmlLinkInfo.Kind.MEMBER,
+                    ? LinkInfoImpl.Kind.CLASS_USE
+                    : LinkInfoImpl.Kind.MEMBER,
                     te, element, typeContent);
             Content desc = new ContentBuilder();
             writer.addSummaryLinkComment(this, element, desc);

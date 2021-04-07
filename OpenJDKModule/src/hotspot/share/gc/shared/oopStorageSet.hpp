@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,7 +27,6 @@
 
 #include "memory/allocation.hpp"
 #include "utilities/debug.hpp"
-#include "utilities/enumIterator.hpp"
 #include "utilities/globalDefinitions.hpp"
 #include "utilities/macros.hpp"
 
@@ -36,29 +35,29 @@ class OopStorage;
 class OopStorageSet : public AllStatic {
   friend class OopStorageSetTest;
 
+public:
   // Must be updated when new OopStorages are introduced
   static const uint strong_count = 4 JVMTI_ONLY(+ 1);
   static const uint weak_count = 5 JVMTI_ONLY(+ 1) JFR_ONLY(+ 1);
-
   static const uint all_count = strong_count + weak_count;
-  static const uint all_start = 0;
-  static const uint all_end = all_start + all_count;
 
+private:
+  static const uint singular_index = 0; // For singular iterator.
+  static const uint all_start = 1;
   static const uint strong_start = all_start;
   static const uint strong_end = strong_start + strong_count;
-
   static const uint weak_start = strong_end;
   static const uint weak_end = weak_start + weak_count;
-  static_assert(all_end == weak_end, "invariant");
+  static const uint all_end = weak_end;
 
-  static OopStorage* _storages[all_count];
+  static OopStorage* storages[all_end];
 
   static void verify_initialized(uint index) NOT_DEBUG_RETURN;
 
-  static OopStorage* get_storage(uint index);
-
-  template<typename E>
-  static OopStorage* get_storage(E id);
+  static OopStorage* storage(uint index) {
+    verify_initialized(index);
+    return storages[index];
+  }
 
   // Testing support
   static void fill_strong(OopStorage* storage[strong_count]);
@@ -66,68 +65,101 @@ class OopStorageSet : public AllStatic {
   static void fill_all(OopStorage* storage[all_count]);
 
 public:
-  enum class StrongId : uint {}; // [strong_start, strong_end)
-  enum class WeakId : uint {};   // [weak_start, weak_end)
-  enum class Id : uint {};       // [all_start, all_end)
+  class Iterator;
 
-  // Give these access to the private start/end/count constants.
-  friend struct EnumeratorRange<StrongId>;
-  friend struct EnumeratorRange<WeakId>;
-  friend struct EnumeratorRange<Id>;
+  static Iterator strong_iterator();
+  static Iterator weak_iterator();
+  static Iterator all_iterator();
 
-  static OopStorage* storage(StrongId id) { return get_storage(id); }
-  static OopStorage* storage(WeakId id) { return get_storage(id); }
-  static OopStorage* storage(Id id) { return get_storage(id); }
-
-  static OopStorage* create_strong(const char* name, MEMFLAGS memflags);
-  static OopStorage* create_weak(const char* name, MEMFLAGS memflags);
-
-  // Support iteration over the storage objects.
-  template<typename StorageId> class Range;
-  template<typename StorageId> class Iterator;
+  static OopStorage* create_strong(const char* name);
+  static OopStorage* create_weak(const char* name);
 
   template <typename Closure>
   static void strong_oops_do(Closure* cl);
-
 };
 
-ENUMERATOR_VALUE_RANGE(OopStorageSet::StrongId,
-                       OopStorageSet::strong_start,
-                       OopStorageSet::strong_end);
-
-ENUMERATOR_VALUE_RANGE(OopStorageSet::WeakId,
-                       OopStorageSet::weak_start,
-                       OopStorageSet::weak_end);
-
-ENUMERATOR_VALUE_RANGE(OopStorageSet::Id,
-                       OopStorageSet::all_start,
-                       OopStorageSet::all_end);
-
-template<typename StorageId>
 class OopStorageSet::Iterator {
-  EnumIterator<StorageId> _it;
+  friend class OopStorageSet;
+
+  enum Category { singular, strong, weak, all };
+
+  uint _index;
+  uint _limit;
+  DEBUG_ONLY(Category _category;)
+
+  Iterator(uint index, uint limit, Category category) :
+    _index(index), _limit(limit) DEBUG_ONLY(COMMA _category(category)) {}
+
+  void verify_nonsingular() const NOT_DEBUG_RETURN;
+  void verify_category_match(const Iterator& other) const NOT_DEBUG_RETURN;
+  void verify_dereferenceable() const NOT_DEBUG_RETURN;
 
 public:
-  constexpr Iterator() : _it() {}
-  explicit constexpr Iterator(EnumIterator<StorageId> it) : _it(it) {}
+  // Construct a singular iterator for later assignment.  The only valid
+  // operations are destruction and assignment.
+  Iterator() :
+    _index(singular_index),
+    _limit(singular_index)
+    DEBUG_ONLY(COMMA _category(singular)) {}
 
-  constexpr bool operator==(Iterator other) const { return _it == other._it; }
-  constexpr bool operator!=(Iterator other) const { return _it != other._it; }
+  bool is_end() const {
+    verify_nonsingular();
+    return _index == _limit;
+  }
 
-  constexpr Iterator& operator++() { ++_it; return *this; }
-  constexpr Iterator operator++(int) { Iterator i = *this; ++_it; return i; }
+  bool operator==(const Iterator& other) const {
+    verify_category_match(other);
+    return _index == other._index;
+  }
 
-  OopStorage* operator*() const { return storage(*_it); }
-  OopStorage* operator->() const { return operator*(); }
+  bool operator!=(const Iterator& other) const {
+    return !operator==(other);
+  }
+
+  OopStorage* operator*() const {
+    verify_dereferenceable();
+    return storage(_index);
+  }
+
+  OopStorage* operator->() const {
+    return operator*();
+  }
+
+  Iterator& operator++() {
+    verify_dereferenceable();
+    ++_index;
+    return *this;
+  }
+
+  Iterator operator++(int) {
+    Iterator result = *this;
+    operator++();
+    return result;
+  }
+
+  Iterator begin() const {
+    verify_nonsingular();
+    return *this;
+  }
+
+  Iterator end() const {
+    verify_nonsingular();
+    Iterator result = *this;
+    result._index = _limit;
+    return result;
+  }
 };
 
-template<typename StorageId>
-class OopStorageSet::Range {
-  EnumRange<StorageId> _range;
+inline OopStorageSet::Iterator OopStorageSet::strong_iterator() {
+  return Iterator(strong_start, strong_end, Iterator::strong);
+}
 
-public:
-  constexpr auto begin() const { return Iterator<StorageId>(_range.begin()); }
-  constexpr auto end() const { return Iterator<StorageId>(_range.end()); }
-};
+inline OopStorageSet::Iterator OopStorageSet::weak_iterator() {
+  return Iterator(weak_start, weak_end, Iterator::weak);
+}
+
+inline OopStorageSet::Iterator OopStorageSet::all_iterator() {
+  return Iterator(all_start, all_end, Iterator::all);
+}
 
 #endif // SHARE_GC_SHARED_OOPSTORAGESET_HPP

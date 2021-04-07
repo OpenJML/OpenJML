@@ -114,10 +114,6 @@ abstract class AbstractJavaLinker implements GuardingDynamicLinker {
         this.assignableGuard = assignableGuard;
 
         final FacetIntrospector introspector = createFacetIntrospector();
-        // Add record component getters
-        for (final Method rcg: introspector.getRecordComponentGetters()) {
-            setPropertyGetter(rcg, 0);
-        }
         // Add methods and properties
         for(final Method method: introspector.getMethods()) {
             final String name = method.getName();
@@ -141,7 +137,9 @@ abstract class AbstractJavaLinker implements GuardingDynamicLinker {
         for(final Field field: introspector.getFields()) {
             final String name = field.getName();
             // Only add a property getter when one is not defined already as a getXxx()/isXxx() method.
-            setPropertyGetter(name, introspector.unreflectGetter(field), ValidationType.EXACT_CLASS);
+            if(!propertyGetters.containsKey(name)) {
+                setPropertyGetter(name, introspector.unreflectGetter(field), ValidationType.EXACT_CLASS);
+            }
             if(!(Modifier.isFinal(field.getModifiers()) || propertySetters.containsKey(name))) {
                 addMember(name, new SimpleDynamicMethod(introspector.unreflectSetter(field), clazz, name),
                         propertySetters);
@@ -150,7 +148,10 @@ abstract class AbstractJavaLinker implements GuardingDynamicLinker {
 
         // Add inner classes, but only those for which we don't hide a property with it
         for(final Map.Entry<String, MethodHandle> innerClassSpec: introspector.getInnerClassGetters().entrySet()) {
-            setPropertyGetter(innerClassSpec.getKey(), innerClassSpec.getValue(), ValidationType.EXACT_CLASS);
+            final String name = innerClassSpec.getKey();
+            if(!propertyGetters.containsKey(name)) {
+                setPropertyGetter(name, innerClassSpec.getValue(), ValidationType.EXACT_CLASS);
+            }
         }
     }
 
@@ -203,9 +204,7 @@ abstract class AbstractJavaLinker implements GuardingDynamicLinker {
      * @param validationType the validation type for the property
      */
     private void setPropertyGetter(final String name, final SingleDynamicMethod handle, final ValidationType validationType) {
-        if (!propertyGetters.containsKey(name)) {
-            propertyGetters.put(name, new AnnotatedDynamicMethod(handle, validationType));
-        }
+        propertyGetters.put(name, new AnnotatedDynamicMethod(handle, validationType));
     }
 
     /**

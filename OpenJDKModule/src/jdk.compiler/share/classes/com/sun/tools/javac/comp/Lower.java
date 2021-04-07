@@ -92,8 +92,11 @@ public class Lower extends TreeTranslator {
     private DiagnosticPosition make_pos;
     private final ConstFold cfolder;
     private final Target target;
+    private final Source source;
     private final TypeEnvs typeEnvs;
     private final Name dollarAssertionsDisabled;
+    private final Name classDollar;
+    private final Name dollarCloseResource;
     private final Types types;
     private final boolean debugLower;
     private final boolean disableProtectedAccessors; // experimental
@@ -111,9 +114,14 @@ public class Lower extends TreeTranslator {
         make = TreeMaker.instance(context);
         cfolder = ConstFold.instance(context);
         target = Target.instance(context);
+        source = Source.instance(context);
         typeEnvs = TypeEnvs.instance(context);
         dollarAssertionsDisabled = names.
             fromString(target.syntheticNameChar() + "assertionsDisabled");
+        classDollar = names.
+            fromString("class" + target.syntheticNameChar());
+        dollarCloseResource = names.
+            fromString(target.syntheticNameChar() + "closeResource");
 
         types = Types.instance(context);
         Options options = Options.instance(context);
@@ -1213,7 +1221,7 @@ public class Lower extends TreeTranslator {
                 //sym is a local variable - check the lambda translation map to
                 //see if sym has been translated to something else in the current
                 //scope (by LambdaToMethod)
-                Symbol translatedSym = lambdaTranslationMap.get(sym.baseSymbol());
+                Symbol translatedSym = lambdaTranslationMap.get(sym);
                 if (translatedSym != null) {
                     tree = make.at(tree.pos).Ident(translatedSym);
                 }
@@ -3877,9 +3885,7 @@ public class Lower extends TreeTranslator {
 
                 stmtList.append(switch2);
 
-                JCBlock res = make.Block(0L, stmtList.toList());
-                res.endpos = TreeInfo.endPos(tree);
-                return res;
+                return make.Block(0L, stmtList.toList());
             } else {
                 JCSwitchExpression switch2 = make.SwitchExpression(make.Ident(dollar_tmp), lb.toList());
 

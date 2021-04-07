@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -23,7 +23,7 @@
  */
 
 #include "precompiled.hpp"
-#include "classfile/vmClasses.hpp"
+#include "classfile/systemDictionary.hpp"
 #include "classfile/vmSymbols.hpp"
 #include "code/codeCache.hpp"
 #include "code/compiledMethod.inline.hpp"
@@ -47,7 +47,6 @@
 #include "memory/oopFactory.hpp"
 #include "memory/resourceArea.hpp"
 #include "oops/objArrayKlass.hpp"
-#include "oops/klass.inline.hpp"
 #include "oops/oop.inline.hpp"
 #include "oops/typeArrayOop.inline.hpp"
 #include "opto/ad.hpp"
@@ -72,7 +71,6 @@
 #include "runtime/signature.hpp"
 #include "runtime/stackWatermarkSet.hpp"
 #include "runtime/threadCritical.hpp"
-#include "runtime/threadWXSetters.inline.hpp"
 #include "runtime/vframe.hpp"
 #include "runtime/vframeArray.hpp"
 #include "runtime/vframe_hp.hpp"
@@ -1262,7 +1260,7 @@ JRT_ENTRY_NO_ASYNC(address, OptoRuntime::handle_exception_C_helper(JavaThread* t
   Exceptions::debug_check_abort(exception);
 
 #ifdef ASSERT
-  if (!(exception->is_a(vmClasses::Throwable_klass()))) {
+  if (!(exception->is_a(SystemDictionary::Throwable_klass()))) {
     // should throw an exception here
     ShouldNotReachHere();
   }
@@ -1412,10 +1410,6 @@ address OptoRuntime::handle_exception_C(JavaThread* thread) {
 // *THIS IS NOT RECOMMENDED PROGRAMMING STYLE*
 //
 address OptoRuntime::rethrow_C(oopDesc* exception, JavaThread* thread, address ret_pc) {
-
-  // Enable WXWrite: the function called directly by compiled code.
-  MACOS_AARCH64_ONLY(ThreadWXEnable wx(WXWrite, thread));
-
   // The frame we rethrow the exception to might not have been processed by the GC yet.
   // The stack watermark barrier takes care of detecting that and ensuring the frame
   // has updated oops.
@@ -1426,7 +1420,7 @@ address OptoRuntime::rethrow_C(oopDesc* exception, JavaThread* thread, address r
 #endif
   assert (exception != NULL, "should have thrown a NULLPointerException");
 #ifdef ASSERT
-  if (!(exception->is_a(vmClasses::Throwable_klass()))) {
+  if (!(exception->is_a(SystemDictionary::Throwable_klass()))) {
     // should throw an exception here
     ShouldNotReachHere();
   }

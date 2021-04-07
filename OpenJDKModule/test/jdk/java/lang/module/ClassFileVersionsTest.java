@@ -60,7 +60,6 @@ public class ClassFileVersionsTest {
                 { 58,   0,  Set.of() },                      // JDK 14
                 { 59,   0,  Set.of() },                      // JDK 15
                 { 60,   0,  Set.of() },                      // JDK 16
-                { 61,   0,  Set.of() },                      // JDK 17
         };
     }
 
@@ -100,11 +99,7 @@ public class ClassFileVersionsTest {
                 { 60,   0,  Set.of(TRANSITIVE) },
                 { 60,   0,  Set.of(STATIC, TRANSITIVE) },
 
-                { 61,   0,  Set.of(STATIC) },                // JDK 17
-                { 61,   0,  Set.of(TRANSITIVE) },
-                { 61,   0,  Set.of(STATIC, TRANSITIVE) },
-
-                { 62,   0,  Set.of()},                       // JDK 18
+                { 61,   0,  Set.of()},                       // JDK 17
         };
     }
 

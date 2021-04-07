@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -46,39 +46,58 @@ import javax.swing.SwingUtilities;
 
 public class ContextMenuScrollTest extends JPopupMenu
 {
-    private static Robot robot;
-    private static JFrame frame;
-    private static JMenu menu;
-    private static volatile Point p = null;
-    private static volatile Dimension d = null;
-    private static volatile boolean popupVisible = false;
+    private JMenuItem undo;
+    private JMenuItem redo;
+    private JMenuItem cut;
+    private JMenuItem copy;
+    private JMenuItem paste;
+    private JMenuItem delete;
+    private JMenuItem selectAll;
+    private final Robot robot;
+    private JFrame frame;
+    private JMenuBar menuBar;
+    private JMenu menu;
+    private volatile Point p = null;
+    private volatile Dimension d = null;
 
     public static void main(String[] args) throws Exception {
+        new ContextMenuScrollTest();
+    }
+    void blockTillDisplayed(JComponent comp) throws Exception {
+        while (p == null) {
+            try {
+                SwingUtilities.invokeAndWait(() -> {
+                    p = comp.getLocationOnScreen();
+                    d = menu.getSize();
+                });
+            } catch (IllegalStateException e) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ie) {
+                }
+            }
+        }
+    }
+
+    public ContextMenuScrollTest() throws Exception
+    {
         robot = new Robot();
-        robot.setAutoDelay(100);
+        robot.setAutoDelay(200);
         try {
             SwingUtilities.invokeAndWait(()->createGUI());
+            blockTillDisplayed(menu);
             robot.waitForIdle();
-            robot.delay(1000);
 
-            SwingUtilities.invokeAndWait(() -> {
-                p = menu.getLocationOnScreen();
-                d = menu.getSize();
-            });
-            System.out.println("p " + p + " d " + d);
             robot.mouseMove(p.x + d.width/2, p.y + d.height/2);
-            robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+            robot.mousePress(InputEvent.BUTTON1_MASK);
+            robot.mouseRelease(InputEvent.BUTTON1_MASK);
             robot.waitForIdle();
-            robot.delay(1000);
 
+            System.out.println("popmenu visible " + menu.isPopupMenuVisible());
             robot.mouseWheel(1);
             robot.waitForIdle();
-
-            SwingUtilities.invokeAndWait(() -> {
-                popupVisible = menu.isPopupMenuVisible();
-            });
-            if (!popupVisible) {
+            System.out.println("popmenu visible " + menu.isPopupMenuVisible());
+            if (!menu.isPopupMenuVisible()) {
                 throw new RuntimeException("Popup closes on mouse scroll");
             }
         } finally {
@@ -86,14 +105,13 @@ public class ContextMenuScrollTest extends JPopupMenu
         }
     }
 
-
-    public static void createGUI() {
+    public void createGUI() {
         frame = new JFrame();
-        JMenuBar menuBar = new JMenuBar();
+        menuBar = new JMenuBar();
         menu = new JMenu("Menu");
         menuBar.add(menu);
 
-        JMenuItem undo = new JMenuItem("Undo");
+        undo = new JMenuItem("Undo");
         undo.setEnabled(false);
         undo.setAccelerator(KeyStroke.getKeyStroke("control Z"));
         undo.addActionListener(new ActionListener() {
@@ -104,7 +122,7 @@ public class ContextMenuScrollTest extends JPopupMenu
 
         menu.add(undo);
 
-        JMenuItem redo = new JMenuItem("Redo");
+        redo = new JMenuItem("Redo");
         redo.setEnabled(false);
         redo.setAccelerator(KeyStroke.getKeyStroke("control Y"));
         redo.addActionListener(new ActionListener() {
@@ -116,7 +134,7 @@ public class ContextMenuScrollTest extends JPopupMenu
 
         menu.add(new JSeparator());
 
-        JMenuItem cut = new JMenuItem("Cut");
+        cut = new JMenuItem("Cut");
         cut.setEnabled(false);
         cut.setAccelerator(KeyStroke.getKeyStroke("control X"));
         cut.addActionListener(new ActionListener() {
@@ -127,7 +145,7 @@ public class ContextMenuScrollTest extends JPopupMenu
 
         menu.add(cut);
 
-        JMenuItem copy = new JMenuItem("Copy");
+        copy = new JMenuItem("Copy");
         copy.setEnabled(false);
         copy.setAccelerator(KeyStroke.getKeyStroke("control C"));
         copy.addActionListener(new ActionListener() {
@@ -138,7 +156,7 @@ public class ContextMenuScrollTest extends JPopupMenu
 
         menu.add(copy);
 
-        JMenuItem paste = new JMenuItem("Paste");
+        paste = new JMenuItem("Paste");
         paste.setEnabled(false);
         paste.setAccelerator(KeyStroke.getKeyStroke("control V"));
         paste.addActionListener(new ActionListener() {
@@ -149,7 +167,7 @@ public class ContextMenuScrollTest extends JPopupMenu
 
         menu.add(paste);
 
-        JMenuItem delete = new JMenuItem("Delete");
+        delete = new JMenuItem("Delete");
         delete.setEnabled(false);
         delete.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
         delete.addActionListener(new ActionListener() {
@@ -162,7 +180,7 @@ public class ContextMenuScrollTest extends JPopupMenu
 
         menu.add(new JSeparator());
 
-        JMenuItem selectAll = new JMenuItem("Select All");
+        selectAll = new JMenuItem("Select All");
         selectAll.setEnabled(false);
         selectAll.setAccelerator(KeyStroke.getKeyStroke("control A"));
         selectAll.addActionListener(new ActionListener() {
@@ -174,7 +192,6 @@ public class ContextMenuScrollTest extends JPopupMenu
         frame.setJMenuBar(menuBar);
 
         frame.pack();
-        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
 }

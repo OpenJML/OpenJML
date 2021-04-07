@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -87,7 +87,7 @@ final class SunX509KeyManagerImpl extends X509ExtendedKeyManager {
      * The credentials from the KeyStore as
      * Map: String(alias) -> X509Credentials(credentials)
      */
-    private final Map<String,X509Credentials> credentialsMap;
+    private Map<String,X509Credentials> credentialsMap;
 
     /*
      * Cached server aliases for the case issuers == null.
@@ -139,7 +139,7 @@ final class SunX509KeyManagerImpl extends X509ExtendedKeyManager {
                 continue;
             }
             Key key = ks.getKey(alias, password);
-            if (!(key instanceof PrivateKey)) {
+            if (key instanceof PrivateKey == false) {
                 continue;
             }
             Certificate[] certs = ks.getCertificateChain(alias);
@@ -334,7 +334,7 @@ final class SunX509KeyManagerImpl extends X509ExtendedKeyManager {
         if (issuers == null) {
             issuers = new X500Principal[0];
         }
-        if (!(issuers instanceof X500Principal[])) {
+        if (issuers instanceof X500Principal[] == false) {
             // normally, this will never happen but try to recover if it does
             issuers = convertPrincipals(issuers);
         }
@@ -375,7 +375,7 @@ final class SunX509KeyManagerImpl extends X509ExtendedKeyManager {
                         certs[0].getSigAlgName().toUpperCase(Locale.ENGLISH);
                     String pattern = "WITH" +
                         sigType.toUpperCase(Locale.ENGLISH);
-                    if (!sigAlgName.contains(pattern)) {
+                    if (sigAlgName.contains(pattern) == false) {
                         continue;
                     }
                 }
@@ -424,6 +424,6 @@ final class SunX509KeyManagerImpl extends X509ExtendedKeyManager {
                 }
             }
         }
-        return list.toArray(new X500Principal[0]);
+        return list.toArray(new X500Principal[list.size()]);
     }
 }

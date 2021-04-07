@@ -69,7 +69,7 @@ class LinuxFileSystem extends UnixFileSystem {
 
     @Override
     void copyNonPosixAttributes(int ofd, int nfd) {
-        UnixUserDefinedFileAttributeView.copyExtendedAttributes(ofd, nfd);
+        LinuxUserDefinedFileAttributeView.copyExtendedAttributes(ofd, nfd);
     }
 
     /**

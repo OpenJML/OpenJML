@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -24,16 +24,12 @@
 #ifndef SHARE_JVMCI_JVMCIRUNTIME_HPP
 #define SHARE_JVMCI_JVMCIRUNTIME_HPP
 
-#include "jvm_io.h"
 #include "code/nmethod.hpp"
 #include "gc/shared/collectedHeap.hpp"
 #include "jvmci/jvmci.hpp"
 #include "jvmci/jvmciExceptions.hpp"
 #include "jvmci/jvmciObject.hpp"
 #include "utilities/linkedlist.hpp"
-#if INCLUDE_G1GC
-#include "gc/g1/g1CardTable.hpp"
-#endif // INCLUDE_G1GC
 
 class JVMCIEnv;
 class JVMCICompiler;
@@ -400,9 +396,8 @@ class JVMCIRuntime: public CHeapObj<mtJVMCI> {
   // followed by its address.
   static void log_object(JavaThread* thread, oopDesc* object, bool as_string, bool newline);
 #if INCLUDE_G1GC
-  using CardValue = G1CardTable::CardValue;
   static void write_barrier_pre(JavaThread* thread, oopDesc* obj);
-  static void write_barrier_post(JavaThread* thread, volatile CardValue* card);
+  static void write_barrier_post(JavaThread* thread, void* card);
 #endif
   static jboolean validate_object(JavaThread* thread, oopDesc* parent, oopDesc* child);
 
@@ -411,11 +406,6 @@ class JVMCIRuntime: public CHeapObj<mtJVMCI> {
   // helper methods to throw exception with complex messages
   static int throw_klass_external_name_exception(JavaThread* thread, const char* exception, Klass* klass);
   static int throw_class_cast_exception(JavaThread* thread, const char* exception, Klass* caster_klass, Klass* target_klass);
-
-  // A helper to allow invocation of an arbitrary Java method.  For simplicity the method is
-  // restricted to a static method that takes at most one argument.  For calling convention
-  // simplicty all types are passed by being converted into a jlong
-  static jlong invoke_static_method_one_arg(JavaThread* thread, Method* method, jlong argument);
 
   // Test only function
   static jint test_deoptimize_call_int(JavaThread* thread, int value);

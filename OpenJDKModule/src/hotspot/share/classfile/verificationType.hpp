@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,6 +25,7 @@
 #ifndef SHARE_CLASSFILE_VERIFICATIONTYPE_HPP
 #define SHARE_CLASSFILE_VERIFICATIONTYPE_HPP
 
+#include "classfile/systemDictionary.hpp"
 #include "oops/instanceKlass.hpp"
 #include "oops/oop.hpp"
 #include "oops/symbol.hpp"
@@ -316,7 +317,7 @@ class VerificationType {
     }
   }
 
-  VerificationType get_component(ClassVerifier* context) const;
+  VerificationType get_component(ClassVerifier* context, TRAPS) const;
 
   int dimensions() const {
     assert(is_array(), "Must be an array");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -122,7 +122,9 @@ public class SunDisplayChanger {
             cloneSet = new HashSet<DisplayChangedListener>(listeners.keySet());
         }
 
-        for (DisplayChangedListener current : cloneSet) {
+        Iterator<DisplayChangedListener> itr = cloneSet.iterator();
+        while (itr.hasNext()) {
+            DisplayChangedListener current = itr.next();
             try {
                 if (log.isLoggable(PlatformLogger.Level.FINEST)) {
                     log.finest("displayChanged for listener: " + current);
@@ -163,7 +165,9 @@ public class SunDisplayChanger {
         synchronized (listeners) {
             cloneSet = new HashSet<DisplayChangedListener>(listeners.keySet());
         }
-        for (DisplayChangedListener current : cloneSet) {
+        Iterator<DisplayChangedListener> itr = cloneSet.iterator();
+        while (itr.hasNext()) {
+            DisplayChangedListener current = itr.next();
             try {
                 if (log.isLoggable(PlatformLogger.Level.FINEST)) {
                     log.finest("paletteChanged for listener: " + current);

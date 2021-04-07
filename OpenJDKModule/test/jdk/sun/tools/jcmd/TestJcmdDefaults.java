@@ -91,7 +91,7 @@ public class TestJcmdDefaults {
      */
     private static void matchListedProcesses(OutputAnalyzer output) {
         output.stdoutShouldMatchByLine(JCMD_LIST_REGEX);
-        output.stderrShouldBeEmptyIgnoreDeprecatedWarnings();
+        output.stderrShouldBeEmptyIgnoreVMWarnings();
     }
 
     private static void verifyOutputAgainstFile(OutputAnalyzer output) throws IOException {

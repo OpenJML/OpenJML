@@ -1368,7 +1368,9 @@ public final class SunGraphics2D
         interpolationHint = -1;
         interpolationType = AffineTransformOp.TYPE_NEAREST_NEIGHBOR;
         boolean customHintPresent = false;
-        for (Object key : hints.keySet()) {
+        Iterator<?> iter = hints.keySet().iterator();
+        while (iter.hasNext()) {
+            Object key = iter.next();
             if (key == SunHints.KEY_RENDERING ||
                 key == SunHints.KEY_ANTIALIASING ||
                 key == SunHints.KEY_TEXT_ANTIALIASING ||
@@ -1397,7 +1399,9 @@ public final class SunGraphics2D
      */
     public void addRenderingHints(Map<?,?> hints) {
         boolean customHintPresent = false;
-        for (Object key : hints.keySet()) {
+        Iterator<?> iter = hints.keySet().iterator();
+        while (iter.hasNext()) {
+            Object key = iter.next();
             if (key == SunHints.KEY_RENDERING ||
                 key == SunHints.KEY_ANTIALIASING ||
                 key == SunHints.KEY_TEXT_ANTIALIASING ||

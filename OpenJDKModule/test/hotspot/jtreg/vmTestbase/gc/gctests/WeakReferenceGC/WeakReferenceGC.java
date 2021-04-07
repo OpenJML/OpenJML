@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2002, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -170,13 +170,13 @@ public class WeakReferenceGC extends ThreadedGCTest {
         private void parseTestParams(String args[]) {
                 for (int i = 0; i < args.length; i++) {
                         if (args[i].compareTo("-numList") == 0) {
-                                numLists = Integer.valueOf(args[++i]).intValue();
+                                numLists = new Integer(args[++i]).intValue();
                         } else if (args[i].compareTo("-qFactor") == 0) {
-                                qFactor = Float.valueOf(args[++i]).floatValue();
+                                qFactor = new Float(args[++i]).floatValue();
                         } else if (args[i].compareTo("-gcCount") == 0) {
-                                gcCount = Integer.valueOf(args[++i]).intValue();
+                                gcCount = new Integer(args[++i]).intValue();
                         } else if (args[i].compareTo("-iter") == 0) {
-                                loopCount = Integer.valueOf(args[++i]).intValue();
+                                loopCount = new Integer(args[++i]).intValue();
                                 // } else {
                                 // System.err.println("usage : " +
                                 // "java WeakReferenceGC [-numList <n>] " +

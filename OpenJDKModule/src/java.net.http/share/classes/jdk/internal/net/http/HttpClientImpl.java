@@ -66,7 +66,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -156,18 +155,6 @@ final class HttpClientImpl extends HttpClient implements Trackable {
                 command.run();
             }
         }
-
-        private void shutdown() {
-            if (delegate instanceof ExecutorService service) {
-                PrivilegedAction<?> action = () -> {
-                    service.shutdown();
-                    return null;
-                };
-                AccessController.doPrivileged(action, null,
-                        new RuntimePermission("modifyThread"));
-            }
-        }
-
     }
 
     private final CookieHandler cookieHandler;
@@ -344,8 +331,6 @@ final class HttpClientImpl extends HttpClient implements Trackable {
         connections.stop();
         // Clears HTTP/2 cache and close its connections.
         client2.stop();
-        // shutdown the executor if needed
-        if (isDefaultExecutor) delegatingExecutor.shutdown();
     }
 
     private static SSLParameters getDefaultParams(SSLContext ctx) {

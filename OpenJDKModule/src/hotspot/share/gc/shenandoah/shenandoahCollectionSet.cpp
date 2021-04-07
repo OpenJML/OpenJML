@@ -110,25 +110,27 @@ void ShenandoahCollectionSet::clear() {
 }
 
 ShenandoahHeapRegion* ShenandoahCollectionSet::claim_next() {
-  // This code is optimized for the case when collection set contains only
-  // a few regions. In this case, it is more constructive to check for is_in
-  // before hitting the (potentially contended) atomic index.
+  size_t num_regions = _heap->num_regions();
+  if (_current_index >= (jint)num_regions) {
+    return NULL;
+  }
 
-  size_t max = _heap->num_regions();
-  size_t old = Atomic::load(&_current_index);
+  jint saved_current = _current_index;
+  size_t index = (size_t)saved_current;
 
-  for (size_t index = old; index < max; index++) {
+  while(index < num_regions) {
     if (is_in(index)) {
-      size_t cur = Atomic::cmpxchg(&_current_index, old, index + 1, memory_order_relaxed);
-      assert(cur >= old, "Always move forward");
-      if (cur == old) {
-        // Successfully moved the claim index, this is our region.
+      jint cur = Atomic::cmpxchg(&_current_index, saved_current, (jint)(index + 1));
+      assert(cur >= (jint)saved_current, "Must move forward");
+      if (cur == saved_current) {
+        assert(is_in(index), "Invariant");
         return _heap->get_region(index);
       } else {
-        // Somebody else moved the claim index, restart from there.
-        index = cur - 1; // adjust for loop post-increment
-        old = cur;
+        index = (size_t)cur;
+        saved_current = cur;
       }
+    } else {
+      index ++;
     }
   }
   return NULL;
@@ -137,11 +139,10 @@ ShenandoahHeapRegion* ShenandoahCollectionSet::claim_next() {
 ShenandoahHeapRegion* ShenandoahCollectionSet::next() {
   assert(ShenandoahSafepoint::is_at_shenandoah_safepoint(), "Must be at a safepoint");
   assert(Thread::current()->is_VM_thread(), "Must be VMThread");
-
-  size_t max = _heap->num_regions();
-  for (size_t index = _current_index; index < max; index++) {
+  size_t num_regions = _heap->num_regions();
+  for (size_t index = (size_t)_current_index; index < num_regions; index ++) {
     if (is_in(index)) {
-      _current_index = index + 1;
+      _current_index = (jint)(index + 1);
       return _heap->get_region(index);
     }
   }

@@ -70,7 +70,8 @@ public final class MetadataRepository {
     private void initializeJVMEventTypes() {
         List<RequestHook> requestHooks = new ArrayList<>();
         for (Type type : typeLibrary.getTypes()) {
-            if (type instanceof PlatformEventType pEventType) {
+            if (type instanceof PlatformEventType) {
+                PlatformEventType pEventType = (PlatformEventType) type;
                 EventType eventType = PrivateAccess.getInstance().newEventType(pEventType);
                 pEventType.setHasDuration(eventType.getAnnotation(Threshold.class) != null);
                 pEventType.setHasStackTrace(eventType.getAnnotation(StackTrace.class) != null);
@@ -290,8 +291,9 @@ public final class MetadataRepository {
                 knownIds.add(Type.getTypeId(ec));
             }
             for (Type type : typeLibrary.getTypes()) {
-                if (type instanceof PlatformEventType pe) {
-                    if (!knownIds.contains(pe.getId())) {
+                if (type instanceof PlatformEventType) {
+                    if (!knownIds.contains(type.getId())) {
+                        PlatformEventType pe = (PlatformEventType) type;
                         if (!pe.isJVM()) {
                             pe.setRegistered(false);
                         }

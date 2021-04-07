@@ -98,9 +98,9 @@ final class ProxyGenerator extends ClassWriter {
                             "jdk.proxy.ProxyGenerator.saveGeneratedFiles"));
 
     /* Preloaded ProxyMethod objects for methods in java.lang.Object */
-    private static final ProxyMethod hashCodeMethod;
-    private static final ProxyMethod equalsMethod;
-    private static final ProxyMethod toStringMethod;
+    private final static ProxyMethod hashCodeMethod;
+    private final static ProxyMethod equalsMethod;
+    private final static ProxyMethod toStringMethod;
 
     static {
         try {

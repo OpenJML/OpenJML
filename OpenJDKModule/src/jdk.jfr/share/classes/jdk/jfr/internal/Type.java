@@ -28,6 +28,7 @@ package jdk.jfr.internal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +57,7 @@ public class Type implements Comparable<Type> {
     // To bootstrap the type system, the supported Java types
     // are available here as statics. When metadata.xml is parsed
     // fields are added to THREAD and STACK_TRACE.
-    private static final Map<Type, Class<?>> knownTypes = new LinkedHashMap<>();
+    private final static Map<Type, Class<?>> knownTypes = new LinkedHashMap<>();
     static final Type BOOLEAN = createKnownType(boolean.class);
     static final Type CHAR = createKnownType(char.class);
     static final Type FLOAT = createKnownType(float.class);
@@ -211,8 +212,8 @@ public class Type implements Comparable<Type> {
     }
 
     public List<ValueDescriptor> getFields() {
-        if (fields instanceof ArrayList<?> list) {
-            list.trimToSize();
+        if (fields instanceof ArrayList) {
+            ((ArrayList<ValueDescriptor>) fields).trimToSize();
             fields = Collections.unmodifiableList(fields);
         }
         return fields;
@@ -290,7 +291,8 @@ public class Type implements Comparable<Type> {
 
     @Override
     public boolean equals(Object object) {
-        if (object instanceof Type that) {
+        if (object instanceof Type) {
+            Type that = (Type) object;
             return that.id == this.id;
         }
         return false;

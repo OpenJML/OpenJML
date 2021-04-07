@@ -4,7 +4,9 @@
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -36,7 +38,7 @@ import jdk.test.lib.jfr.Events;
  * @test
  * @key jfr
  * @requires vm.hasJFR
- * @requires vm.gc.G1
+ * @requires vm.gc == "null"
  * @summary Test leak profiler with G1 GC
  * @library /test/lib /test/jdk
  * @modules jdk.jfr/jdk.jfr.internal.test

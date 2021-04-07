@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -56,7 +56,7 @@ abstract class LinuxPackageBundler extends AbstractBundler {
     }
 
     @Override
-    public final boolean validate(Map<String, ? super Object> params)
+    final public boolean validate(Map<String, ? super Object> params)
             throws ConfigException {
 
         // run basic validation to ensure requirements are met
@@ -106,12 +106,12 @@ abstract class LinuxPackageBundler extends AbstractBundler {
     }
 
     @Override
-    public final String getBundleType() {
+    final public String getBundleType() {
         return "INSTALLER";
     }
 
     @Override
-    public final Path execute(Map<String, ? super Object> params,
+    final public Path execute(Map<String, ? super Object> params,
             Path outputParentDir) throws PackagerException {
         IOUtils.writableOutputDir(outputParentDir);
 
@@ -205,7 +205,8 @@ abstract class LinuxPackageBundler extends AbstractBundler {
         // Merge all package lists together.
         // Filter out empty names, sort and remove duplicates.
         List<String> result = Stream.of(xdgUtilsPackage, neededLibPackages).flatMap(
-                List::stream).filter(Predicate.not(String::isEmpty)).sorted().distinct().toList();
+                List::stream).filter(Predicate.not(String::isEmpty)).sorted().distinct().collect(
+                Collectors.toList());
 
         Log.verbose(String.format("Required packages: %s", result));
 
@@ -233,28 +234,28 @@ abstract class LinuxPackageBundler extends AbstractBundler {
         return data;
     }
 
-    protected abstract List<ConfigException> verifyOutputBundle(
+    abstract protected List<ConfigException> verifyOutputBundle(
             Map<String, ? super Object> params, Path packageBundle);
 
-    protected abstract void initLibProvidersLookup(
+    abstract protected void initLibProvidersLookup(
             Map<String, ? super Object> params,
             LibProvidersLookup libProvidersLookup);
 
-    protected abstract List<ToolValidator> getToolValidators(
+    abstract protected List<ToolValidator> getToolValidators(
             Map<String, ? super Object> params);
 
-    protected abstract void doValidate(Map<String, ? super Object> params)
+    abstract protected void doValidate(Map<String, ? super Object> params)
             throws ConfigException;
 
-    protected abstract Map<String, String> createReplacementData(
+    abstract protected Map<String, String> createReplacementData(
             Map<String, ? super Object> params) throws IOException;
 
-    protected abstract Path buildPackageBundle(
+    abstract protected Path buildPackageBundle(
             Map<String, String> replacementData,
             Map<String, ? super Object> params, Path outputParentDir) throws
             PackagerException, IOException;
 
-    protected final PlatformPackage createMetaPackage(
+    final protected PlatformPackage createMetaPackage(
             Map<String, ? super Object> params) {
 
         Supplier<ApplicationLayout> packageLayout = () -> {

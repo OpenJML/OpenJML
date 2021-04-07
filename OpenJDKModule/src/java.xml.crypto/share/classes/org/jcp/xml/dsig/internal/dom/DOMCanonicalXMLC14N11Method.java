@@ -21,7 +21,10 @@
  * under the License.
  */
 /*
- * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2008, 2018, Oracle and/or its affiliates. All rights reserved.
+ */
+/*
+ * $Id$
  */
 package org.jcp.xml.dsig.internal.dom;
 
@@ -63,7 +66,9 @@ public final class DOMCanonicalXMLC14N11Method extends ApacheCanonicalizer {
             DOMSubTreeData subTree = (DOMSubTreeData) data;
             if (subTree.excludeComments()) {
                 try {
-                    canonicalizer = Canonicalizer.getInstance(C14N_11);
+                    apacheCanonicalizer = Canonicalizer.getInstance(C14N_11);
+                    boolean secVal = Utils.secureValidation(xc);
+                    apacheCanonicalizer.setSecureValidation(secVal);
                 } catch (InvalidCanonicalizerException ice) {
                     throw new TransformException
                         ("Couldn't find Canonicalizer for: " +

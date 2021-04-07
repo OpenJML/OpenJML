@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -80,9 +80,10 @@ import java.util.Set;
         super(delegate);
         this.socket = socket;
         SocketAddress a = proxy.address();
-        if ( !(a instanceof InetSocketAddress ad) )
+        if ( !(a instanceof InetSocketAddress) )
             throw new IllegalArgumentException("Unsupported address type");
 
+        InetSocketAddress ad = (InetSocketAddress) a;
         server = ad.getHostString();
         port = ad.getPort();
     }
@@ -101,8 +102,9 @@ import java.util.Set;
     protected void connect(SocketAddress endpoint, int timeout)
         throws IOException
     {
-        if (!(endpoint instanceof InetSocketAddress epoint))
+        if (endpoint == null || !(endpoint instanceof InetSocketAddress))
             throw new IllegalArgumentException("Unsupported address type");
+        final InetSocketAddress epoint = (InetSocketAddress)endpoint;
         String destHost = epoint.isUnresolved() ? epoint.getHostName()
                                                 : epoint.getAddress().getHostAddress();
         final int destPort = epoint.getPort();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -33,7 +33,6 @@
 #include "ci/ciInstance.hpp"
 #include "gc/shared/barrierSet.hpp"
 #include "runtime/os.hpp"
-#include "runtime/vm_version.hpp"
 
 void LIR_Assembler::patching_epilog(PatchingStub* patch, LIR_PatchCode patch_code, Register obj, CodeEmitInfo* info) {
   // We must have enough patching space so that call can be inserted.
@@ -468,6 +467,9 @@ void LIR_Assembler::emit_call(LIR_OpJavaCall* op) {
   case lir_icvirtual_call:
     ic_call(op);
     break;
+  case lir_virtual_call:
+    vtable_call(op);
+    break;
   default:
     fatal("unexpected op code: %s", op->name());
     break;
@@ -479,9 +481,9 @@ void LIR_Assembler::emit_call(LIR_OpJavaCall* op) {
     compilation()->set_has_method_handle_invokes(true);
   }
 
-#if defined(IA32) && defined(COMPILER2)
+#if defined(IA32) && defined(TIERED)
   // C2 leave fpu stack dirty clean it
-  if (UseSSE < 2 && !CompilerConfig::is_c1_only_no_aot_or_jvmci()) {
+  if (UseSSE < 2) {
     int i;
     for ( i = 1; i <= 7 ; i++ ) {
       ffree(i);
@@ -490,7 +492,7 @@ void LIR_Assembler::emit_call(LIR_OpJavaCall* op) {
       ffree(0);
     }
   }
-#endif // IA32 && COMPILER2
+#endif // X86 && TIERED
 }
 
 

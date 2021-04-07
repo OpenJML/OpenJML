@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -540,11 +540,9 @@ void frame::print_C_frame(outputStream* st, char* buf, int buflen, address pc) {
   int offset;
   bool found;
 
-  if (buf == NULL || buflen < 1) return;
   // libname
-  buf[0] = '\0';
   found = os::dll_address_to_library_name(pc, buf, buflen, &offset);
-  if (found && buf[0] != '\0') {
+  if (found) {
     // skip directory names
     const char *p1, *p2;
     p1 = buf;
@@ -942,7 +940,7 @@ class CompiledArgumentOopFinder: public SignatureIterator {
     // Extract low order register number from register array.
     // In LP64-land, the high-order bits are valid but unhelpful.
     VMReg reg = _regs[_offset].first();
-    oop *loc = _fr.oopmapreg_to_oop_location(reg, _reg_map);
+    oop *loc = _fr.oopmapreg_to_location(reg, _reg_map);
     assert(loc != NULL, "missing register map entry");
     _f->do_oop(loc);
   }
@@ -997,7 +995,7 @@ oop frame::retrieve_receiver(RegisterMap* reg_map) {
 
   // First consult the ADLC on where it puts parameter 0 for this signature.
   VMReg reg = SharedRuntime::name_for_receiver();
-  oop* oop_adr = caller.oopmapreg_to_oop_location(reg, reg_map);
+  oop* oop_adr = caller.oopmapreg_to_location(reg, reg_map);
   if (oop_adr == NULL) {
     guarantee(oop_adr != NULL, "bad register save location");
     return NULL;

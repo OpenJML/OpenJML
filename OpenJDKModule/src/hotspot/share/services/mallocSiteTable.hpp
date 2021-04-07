@@ -38,32 +38,35 @@
 
 // MallocSite represents a code path that eventually calls
 // os::malloc() to allocate memory
-class MallocSite : public AllocationSite {
-  MemoryCounter _c;
+class MallocSite : public AllocationSite<MemoryCounter> {
  public:
-  MallocSite(const NativeCallStack& stack, MEMFLAGS flags) :
-    AllocationSite(stack, flags) {}
+  MallocSite() :
+    AllocationSite<MemoryCounter>(NativeCallStack::empty_stack(), mtNone) {}
 
-  void allocate(size_t size)      { _c.allocate(size);   }
-  void deallocate(size_t size)    { _c.deallocate(size); }
+  MallocSite(const NativeCallStack& stack, MEMFLAGS flags) :
+    AllocationSite<MemoryCounter>(stack, flags) {}
+
+
+  void allocate(size_t size)      { data()->allocate(size);   }
+  void deallocate(size_t size)    { data()->deallocate(size); }
 
   // Memory allocated from this code path
-  size_t size()  const { return _c.size(); }
+  size_t size()  const { return peek()->size(); }
   // The number of calls were made
-  size_t count() const { return _c.count(); }
+  size_t count() const { return peek()->count(); }
 };
 
 // Malloc site hashtable entry
 class MallocSiteHashtableEntry : public CHeapObj<mtNMT> {
  private:
   MallocSite                         _malloc_site;
-  const unsigned int                 _hash;
   MallocSiteHashtableEntry* volatile _next;
 
  public:
+  MallocSiteHashtableEntry() : _next(NULL) { }
 
   MallocSiteHashtableEntry(NativeCallStack stack, MEMFLAGS flags):
-    _malloc_site(stack, flags), _hash(stack.calculate_hash()), _next(NULL) {
+    _malloc_site(stack, flags), _next(NULL) {
     assert(flags != mtNone, "Expect a real memory type");
   }
 
@@ -76,11 +79,17 @@ class MallocSiteHashtableEntry : public CHeapObj<mtNMT> {
   // The operation can be failed due to contention from other thread.
   bool atomic_insert(MallocSiteHashtableEntry* entry);
 
-  unsigned int hash() const { return _hash; }
+  void set_callsite(const MallocSite& site) {
+    _malloc_site = site;
+  }
 
   inline const MallocSite* peek() const { return &_malloc_site; }
   inline MallocSite* data()             { return &_malloc_site; }
 
+  inline long hash() const { return _malloc_site.hash(); }
+  inline bool equals(const NativeCallStack& stack) const {
+    return _malloc_site.equals(stack);
+  }
   // Allocation/deallocation on this allocation site
   inline void allocate(size_t size)   { _malloc_site.allocate(size);   }
   inline void deallocate(size_t size) { _malloc_site.deallocate(size); }
@@ -219,8 +228,6 @@ class MallocSiteTable : AllStatic {
 
   // Walk this table.
   static bool walk_malloc_site(MallocSiteWalker* walker);
-
-  static void print_tuning_statistics(outputStream* st);
 
  private:
   static MallocSiteHashtableEntry* new_entry(const NativeCallStack& key, MEMFLAGS flags);

@@ -21,7 +21,7 @@
  * under the License.
  */
 /*
- * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2019, Oracle and/or its affiliates. All rights reserved.
  */
 /*
  * ===========================================================================
@@ -29,6 +29,9 @@
  * (C) Copyright IBM Corp. 2003 All Rights Reserved.
  *
  * ===========================================================================
+ */
+/*
+ * $Id: DOMXMLSignature.java 1854026 2019-02-21 09:30:01Z coheigea $
  */
 package org.jcp.xml.dsig.internal.dom;
 
@@ -148,7 +151,7 @@ public final class DOMXMLSignature extends DOMStructure
 
         // unmarshal KeyInfo, if specified
         Element nextSibling = DOMUtils.getNextSiblingElement(sigValElem);
-        if (nextSibling != null && "KeyInfo".equals(nextSibling.getLocalName())
+        if (nextSibling != null && nextSibling.getLocalName().equals("KeyInfo")
             && XMLSignature.XMLNS.equals(nextSibling.getNamespaceURI())) {
             ki = new DOMKeyInfo(nextSibling, context, provider);
             nextSibling = DOMUtils.getNextSiblingElement(nextSibling);

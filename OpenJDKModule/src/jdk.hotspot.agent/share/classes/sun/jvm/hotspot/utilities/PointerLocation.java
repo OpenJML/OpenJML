@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,13 +27,10 @@ package sun.jvm.hotspot.utilities;
 import java.io.*;
 import sun.jvm.hotspot.code.*;
 import sun.jvm.hotspot.debugger.*;
-import sun.jvm.hotspot.debugger.cdbg.*;
 import sun.jvm.hotspot.gc.shared.*;
 import sun.jvm.hotspot.interpreter.*;
-import sun.jvm.hotspot.memory.*;
-import sun.jvm.hotspot.oops.Metadata;
 import sun.jvm.hotspot.runtime.*;
-import sun.jvm.hotspot.types.Type;
+import sun.jvm.hotspot.memory.*;
 
 /** This class attempts to describe possible locations of pointers in
     the VM. */
@@ -47,13 +44,6 @@ public class PointerLocation {
   //////////////////////////////////////////////////////////////////
 
   Address addr;
-
-  Metadata metadata;
-  Type ctype;
-  JavaThread stackThread;
-
-  LoadObject loadObject;
-  ClosestSymbol nativeSymbol;
 
   CollectedHeap heap;
   Generation gen;
@@ -88,22 +78,6 @@ public class PointerLocation {
 
   public PointerLocation(Address addr) {
     this.addr = addr;
-  }
-
-  public boolean isMetadata() {
-    return metadata != null;
-  }
-
-  public boolean isCtype() {
-    return ctype != null;
-  }
-
-  public boolean isInJavaStack() {
-    return stackThread != null;
-  }
-
-  public boolean isNativeSymbol() {
-    return loadObject != null;
   }
 
   public boolean isInHeap() {
@@ -201,9 +175,8 @@ public class PointerLocation {
   }
 
   public boolean isUnknown() {
-      return (!(isMetadata() || isCtype() || isInJavaStack() || isNativeSymbol() || isInHeap() ||
-                isInInterpreter() || isInCodeCache() || isInStrongGlobalJNIHandles() ||
-                isInWeakGlobalJNIHandles() || isInLocalJNIHandleBlock()));
+    return (!(isInHeap() || isInInterpreter() || isInCodeCache() ||
+              isInStrongGlobalJNIHandles() || isInWeakGlobalJNIHandles() || isInLocalJNIHandleBlock()));
   }
 
   public String toString() {
@@ -213,66 +186,24 @@ public class PointerLocation {
   }
 
   public void print() {
-      printOn(System.out, true, true);
-  }
-
-  public void print(boolean printAddress, boolean verbose) {
-    printOn(System.out, printAddress, verbose);
+    printOn(System.out);
   }
 
   public void printOn(PrintStream tty) {
-    printOn(tty, true, true);
-  }
-
-  public void printOn(PrintStream tty, boolean printAddress, boolean verbose) {
-    if (printAddress) {
-      tty.print("Address ");
-      if (addr == null) {
-        tty.print("0x0");
-      } else {
-        tty.print(addr.toString());
-      }
-      tty.print(": ");
+    tty.print("Address ");
+    if (addr == null) {
+      tty.print("0x0");
+    } else {
+      tty.print(addr.toString());
     }
-    if (isMetadata()) {
-      metadata.printValueOn(tty); // does not include "\n"
-      tty.println();
-    } else if (isCtype()) {
-      tty.println("Is of type " + ctype.getName());
-    } else if (isInJavaStack()) {
-        if (verbose) {
-            tty.format("In java stack [%s,%s,%s] for thread %s:\n   ",
-                       stackThread.getStackBase(), stackThread.lastSPDbg(),
-                       stackThread.getStackBase().addOffsetTo(-stackThread.getStackSize()),
-                       stackThread);
-            stackThread.printThreadInfoOn(tty); // includes "\n"
-        } else {
-            tty.format("In java stack for thread \"%s\" %s\n", stackThread.getThreadName(), stackThread);
-        }
-    } else if (isNativeSymbol()) {
-        CDebugger cdbg = VM.getVM().getDebugger().getCDebugger();
-        long diff;
-        if (nativeSymbol != null) {
-            String name = nativeSymbol.getName();
-            if (cdbg.canDemangle()) {
-                name = cdbg.demangle(name);
-            }
-            tty.print(name);
-            diff = nativeSymbol.getOffset();
-        } else {
-            tty.print(loadObject.getName());
-            diff = addr.minus(loadObject.getBase());
-        }
-        if (diff != 0L) {
-            tty.print(" + 0x" + Long.toHexString(diff));
-        }
-        tty.println();
-    } else if (isInHeap()) {
+    tty.print(": ");
+    if (isInHeap()) {
       if (isInTLAB()) {
-        tty.print("In thread-local allocation buffer for thread (");
-        getTLABThread().printThreadInfoOn(tty);
+        tty.print("In thread-local allocation buffer for thread \"" +
+                  getTLABThread().getThreadName() + "\" (");
+        getTLABThread().printThreadIDOn(tty);
         tty.print(") ");
-        getTLAB().printOn(tty); // includes "\n"
+        getTLAB().printOn(tty);
       } else {
         if (isInNewGen()) {
           tty.print("In new generation ");
@@ -282,16 +213,13 @@ public class PointerLocation {
           tty.print("In unknown section of Java heap");
         }
         if (getGeneration() != null) {
-          getGeneration().printOn(tty); // does not include "\n"
+          getGeneration().printOn(tty);
         }
-        tty.println();
       }
     } else if (isInInterpreter()) {
-      tty.print("In interpreter codelet: ");
-      interpreterCodelet.printOn(tty); // includes "\n"
+      tty.println("In interpreter codelet \"" + interpreterCodelet.getDescription() + "\"");
+      interpreterCodelet.printOn(tty);
     } else if (isInCodeCache()) {
-      // TODO: print the type of CodeBlob. See "look for known code blobs" comment
-      // in PStack.java for example code.
       CodeBlob b = getCodeBlob();
       tty.print("In ");
       if (isInBlobCode()) {
@@ -307,32 +235,28 @@ public class PointerLocation {
         tty.print("unknown location");
       }
       tty.print(" in ");
-      if (verbose) {
-          b.printOn(tty); // includes "\n"
-      } else {
-          tty.println(b.toString());
-      }
+      b.printOn(tty);
 
       // FIXME: add more detail
     } else if (isInStrongGlobalJNIHandles()) {
-      tty.println("In JNI strong global");
+      tty.print("In JNI strong global");
     } else if (isInWeakGlobalJNIHandles()) {
-      tty.println("In JNI weak global");
+      tty.print("In JNI weak global");
     } else if (isInLocalJNIHandleBlock()) {
       tty.print("In thread-local");
       tty.print(" JNI handle block (" + handleBlock.top() + " handle slots present)");
       if (handleThread.isJavaThread()) {
         tty.print(" for JavaThread ");
-        ((JavaThread) handleThread).printThreadIDOn(tty); // includes "\n"
+        ((JavaThread) handleThread).printThreadIDOn(tty);
       } else {
-        tty.println(" for a non-Java Thread");
+        tty.print(" for a non-Java Thread");
       }
     } else {
       // This must be last
       if (Assert.ASSERTS_ENABLED) {
         Assert.that(isUnknown(), "Should have unknown location");
       }
-      tty.println("In unknown location");
+      tty.print("In unknown location");
     }
   }
 }

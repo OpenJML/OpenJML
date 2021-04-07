@@ -68,9 +68,9 @@ std::wstring GetLongPath(const std::wstring& path) {
 
 } // namespace
 
-
+#ifdef __cplusplus
 extern "C" {
-
+#endif
 #undef jdk_jpackage_internal_WindowsRegistry_HKEY_LOCAL_MACHINE
 #define jdk_jpackage_internal_WindowsRegistry_HKEY_LOCAL_MACHINE 1L
 
@@ -216,4 +216,6 @@ extern "C" {
          return JNI_FALSE;
      }
 
-} // extern "C"
+#ifdef __cplusplus
+}
+#endif

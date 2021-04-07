@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2017, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,7 +25,6 @@
 
 package javax.print.attribute;
 
-import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -82,7 +81,6 @@ public final class AttributeSetUtilities {
         /**
          * Use serialVersionUID from JDK 1.4 for interoperability.
          */
-        @Serial
         private static final long serialVersionUID = -6131802583863447813L;
 
         /**
@@ -166,7 +164,6 @@ public final class AttributeSetUtilities {
         /**
          * Use serialVersionUID from JDK 1.4 for interoperability.
          */
-        @Serial
         private static final long serialVersionUID = -6349408326066898956L;
 
         /**
@@ -193,7 +190,6 @@ public final class AttributeSetUtilities {
         /**
          * Use serialVersionUID from JDK 1.4 for interoperability.
          */
-        @Serial
         private static final long serialVersionUID = 7799373532614825073L;
 
         /**
@@ -220,7 +216,6 @@ public final class AttributeSetUtilities {
         /**
          * Use serialVersionUID from JDK 1.4 for interoperability.
          */
-        @Serial
         private static final long serialVersionUID = -8002245296274522112L;
 
         /**
@@ -247,7 +242,6 @@ public final class AttributeSetUtilities {
         /**
          * Use serialVersionUID from JDK 1.4 for interoperability.
          */
-        @Serial
         private static final long serialVersionUID = -7112165137107826819L;
 
         /**
@@ -348,7 +342,6 @@ public final class AttributeSetUtilities {
         /**
          * Use serialVersionUID from JDK 1.4 for interoperability.
          */
-        @Serial
         private static final long serialVersionUID = 8365731020128564925L;
 
         /**
@@ -431,7 +424,6 @@ public final class AttributeSetUtilities {
         /**
          * Use serialVersionUID from JDK 1.4 for interoperability.
          */
-        @Serial
         private static final long serialVersionUID = 6455869095246629354L;
 
         /**
@@ -456,7 +448,6 @@ public final class AttributeSetUtilities {
         /**
          * Use serialVersionUID from JDK 1.4 for interoperability.
          */
-        @Serial
         private static final long serialVersionUID = 5671237023971169027L;
 
         /**
@@ -482,7 +473,6 @@ public final class AttributeSetUtilities {
         /**
          * Use serialVersionUID from JDK 1.4 for interoperability.
          */
-        @Serial
         private static final long serialVersionUID = 2117188707856965749L;
 
         /**
@@ -508,7 +498,6 @@ public final class AttributeSetUtilities {
         /**
          * Use serialVersionUID from JDK 1.4 for interoperability.
          */
-        @Serial
         private static final long serialVersionUID = -2830705374001675073L;
 
         /**

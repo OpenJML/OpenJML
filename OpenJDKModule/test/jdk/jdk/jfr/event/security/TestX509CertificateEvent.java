@@ -48,11 +48,12 @@ public class TestX509CertificateEvent {
             recording.enable(EventNames.X509Certificate);
             recording.start();
 
-            TestCertificate.ONE.certificate();
-            TestCertificate.TWO.certificate();
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            TestCertificate.ONE.generate(cf);
+            TestCertificate.TWO.generate(cf);
             // Generate twice to make sure only one event per certificate is generated
-            TestCertificate.ONE.certificate();
-            TestCertificate.TWO.certificate();
+            TestCertificate.ONE.generate(cf);
+            TestCertificate.TWO.generate(cf);
 
             recording.stop();
 

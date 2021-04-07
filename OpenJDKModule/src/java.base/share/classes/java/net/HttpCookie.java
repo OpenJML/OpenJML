@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -715,8 +715,9 @@ public final class HttpCookie implements Cloneable {
     public boolean equals(Object obj) {
         if (obj == this)
             return true;
-        if (!(obj instanceof HttpCookie other))
+        if (!(obj instanceof HttpCookie))
             return false;
+        HttpCookie other = (HttpCookie)obj;
 
         // One http cookie is equal to another cookie (RFC 2965 sec. 3.3.3) if:
         //   1. they come from same domain (case-insensitive),

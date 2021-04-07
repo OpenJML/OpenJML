@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,7 +27,6 @@
 #include "classfile/defaultMethods.hpp"
 #include "classfile/symbolTable.hpp"
 #include "classfile/systemDictionary.hpp"
-#include "classfile/vmClasses.hpp"
 #include "classfile/vmSymbols.hpp"
 #include "logging/log.hpp"
 #include "logging/logStream.hpp"
@@ -141,7 +140,7 @@ class HierarchyVisitor : StackObj {
   bool has_more_nodes() const { return _path.length() > 0; }
   void push(InstanceKlass* cls, ALGO* algo) {
     assert(cls != NULL, "Requires a valid instance class");
-    if (cls == vmClasses::Object_klass()) {
+    if (cls == SystemDictionary::Object_klass()) {
       _visited_Object = true;
     }
     void* data = algo->new_node_data();
@@ -342,9 +341,9 @@ class MethodFamily : public ResourceObj {
     _members.append(method_state);
   }
 
-  Symbol* generate_no_defaults_message() const;
-  Symbol* generate_method_message(Symbol *klass_name, Method* method) const;
-  Symbol* generate_conflicts_message(GrowableArray<MethodState>* methods) const;
+  Symbol* generate_no_defaults_message(TRAPS) const;
+  Symbol* generate_method_message(Symbol *klass_name, Method* method, TRAPS) const;
+  Symbol* generate_conflicts_message(GrowableArray<MethodState>* methods, TRAPS) const;
 
  public:
 
@@ -377,7 +376,7 @@ class MethodFamily : public ResourceObj {
   Symbol* get_exception_name() { return _exception_name; }
 
   // Either sets the target or the exception error message
-  void determine_target_or_set_exception_message(InstanceKlass* root) {
+  void determine_target_or_set_exception_message(InstanceKlass* root, TRAPS) {
     if (has_target() || throws_exception()) {
       return;
     }
@@ -400,11 +399,11 @@ class MethodFamily : public ResourceObj {
       assert(_members.at(default_index)._state == QUALIFIED, "");
       _selected_target = _members.at(default_index)._method;
     } else {
-      generate_and_set_exception_message(root, num_defaults, default_index);
+      generate_and_set_exception_message(root, num_defaults, default_index, CHECK);
     }
   }
 
-  void generate_and_set_exception_message(InstanceKlass* root, int num_defaults, int default_index) {
+  void generate_and_set_exception_message(InstanceKlass* root, int num_defaults, int default_index, TRAPS) {
     assert(num_defaults != 1, "invariant - should've been handled calling method");
 
     GrowableArray<Method*> qualified_methods;
@@ -419,14 +418,14 @@ class MethodFamily : public ResourceObj {
       // then do not generate an overpass method because it will hide the
       // static method during resolution.
       if (qualified_methods.length() == 0) {
-        _exception_message = generate_no_defaults_message();
+        _exception_message = generate_no_defaults_message(CHECK);
       } else {
         assert(root != NULL, "Null root class");
-        _exception_message = generate_method_message(root->name(), qualified_methods.at(0));
+        _exception_message = generate_method_message(root->name(), qualified_methods.at(0), CHECK);
       }
       _exception_name = vmSymbols::java_lang_AbstractMethodError();
     } else {
-      _exception_message = generate_conflicts_message(&_members);
+      _exception_message = generate_conflicts_message(&_members,CHECK);
       _exception_name = vmSymbols::java_lang_IncompatibleClassChangeError();
       LogTarget(Debug, defaultmethods) lt;
       if (lt.is_enabled()) {
@@ -457,11 +456,11 @@ class MethodFamily : public ResourceObj {
   }
 };
 
-Symbol* MethodFamily::generate_no_defaults_message() const {
+Symbol* MethodFamily::generate_no_defaults_message(TRAPS) const {
   return SymbolTable::new_symbol("No qualifying defaults found");
 }
 
-Symbol* MethodFamily::generate_method_message(Symbol *klass_name, Method* method) const {
+Symbol* MethodFamily::generate_method_message(Symbol *klass_name, Method* method, TRAPS) const {
   stringStream ss;
   ss.print("Method ");
   Symbol* name = method->name();
@@ -474,7 +473,7 @@ Symbol* MethodFamily::generate_method_message(Symbol *klass_name, Method* method
   return SymbolTable::new_symbol(ss.base(), (int)ss.size());
 }
 
-Symbol* MethodFamily::generate_conflicts_message(GrowableArray<MethodState>* methods) const {
+Symbol* MethodFamily::generate_conflicts_message(GrowableArray<MethodState>* methods, TRAPS) const {
   stringStream ss;
   ss.print("Conflicting default methods:");
   for (int i = 0; i < methods->length(); ++i) {
@@ -625,7 +624,7 @@ static bool already_in_vtable_slots(GrowableArray<EmptyVtableSlot*>* slots, Meth
 }
 
 static void find_empty_vtable_slots(GrowableArray<EmptyVtableSlot*>* slots,
-    InstanceKlass* klass, const GrowableArray<Method*>* mirandas) {
+    InstanceKlass* klass, const GrowableArray<Method*>* mirandas, TRAPS) {
 
   assert(klass != NULL, "Must be valid class");
 
@@ -781,7 +780,7 @@ static void create_defaults_and_exceptions(
 
 static void generate_erased_defaults(
     FindMethodsByErasedSig* visitor,
-    InstanceKlass* klass, EmptyVtableSlot* slot, bool is_intf) {
+    InstanceKlass* klass, EmptyVtableSlot* slot, bool is_intf, TRAPS) {
 
   // the visitor needs to be initialized or re-initialized before use
   // - this facilitates reusing the same visitor instance on multiple
@@ -793,7 +792,7 @@ static void generate_erased_defaults(
   MethodFamily* family;
   visitor->get_discovered_family(&family);
   if (family != NULL) {
-    family->determine_target_or_set_exception_message(klass);
+    family->determine_target_or_set_exception_message(klass, CHECK);
     slot->bind_family(family);
   }
 }
@@ -818,7 +817,7 @@ static void create_default_methods( InstanceKlass* klass,
 void DefaultMethods::generate_default_methods(
     InstanceKlass* klass, const GrowableArray<Method*>* mirandas, TRAPS) {
   assert(klass != NULL, "invariant");
-  assert(klass != vmClasses::Object_klass(), "Shouldn't be called for Object");
+  assert(klass != SystemDictionary::Object_klass(), "Shouldn't be called for Object");
 
   // This resource mark is the bound for all memory allocation that takes
   // place during default method processing.  After this goes out of scope,
@@ -835,7 +834,7 @@ void DefaultMethods::generate_default_methods(
 
   LogTarget(Debug, defaultmethods) lt;
   if (lt.is_enabled()) {
-    ResourceMark rm(THREAD);
+    ResourceMark rm;
     lt.print("%s %s requires default method processing",
              klass->is_interface() ? "Interface" : "Class",
              klass->name()->as_klass_external_name());
@@ -845,7 +844,7 @@ void DefaultMethods::generate_default_methods(
   }
 
   GrowableArray<EmptyVtableSlot*> empty_slots;
-  find_empty_vtable_slots(&empty_slots, klass, mirandas);
+  find_empty_vtable_slots(&empty_slots, klass, mirandas, CHECK);
 
   if (empty_slots.length() > 0) {
     FindMethodsByErasedSig findMethodsByErasedSig;
@@ -859,7 +858,7 @@ void DefaultMethods::generate_default_methods(
         slot->print_on(&ls);
         ls.cr();
       }
-      generate_erased_defaults(&findMethodsByErasedSig, klass, slot, klass->is_interface());
+      generate_erased_defaults(&findMethodsByErasedSig, klass, slot, klass->is_interface(), CHECK);
     }
     log_debug(defaultmethods)("Creating defaults and overpasses...");
     create_defaults_and_exceptions(&empty_slots, klass, CHECK);
@@ -868,7 +867,7 @@ void DefaultMethods::generate_default_methods(
 }
 
 static int assemble_method_error(
-    BytecodeConstantPool* cp, BytecodeBuffer* buffer, Symbol* errorName, Symbol* message) {
+    BytecodeConstantPool* cp, BytecodeBuffer* buffer, Symbol* errorName, Symbol* message, TRAPS) {
 
   Symbol* init = vmSymbols::object_initializer_name();
   Symbol* sig = vmSymbols::string_void_signature();
@@ -992,7 +991,7 @@ static void create_defaults_and_exceptions(GrowableArray<EmptyVtableSlot*>* slot
           buffer->clear();
         }
         int max_stack = assemble_method_error(&bpool, buffer,
-           method->get_exception_name(), method->get_exception_message());
+           method->get_exception_name(), method->get_exception_message(), CHECK);
         AccessFlags flags = accessFlags_from(
           JVM_ACC_PUBLIC | JVM_ACC_SYNTHETIC | JVM_ACC_BRIDGE);
         Method* m = new_method(&bpool, buffer, slot->name(), slot->signature(),

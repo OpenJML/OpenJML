@@ -21,7 +21,10 @@
  * under the License.
  */
 /*
- * Copyright (c) 2005, 2016, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2019, Oracle and/or its affiliates. All rights reserved.
+ */
+/*
+ * $Id: ApacheTransform.java 1854026 2019-02-21 09:30:01Z coheigea $
  */
 package org.jcp.xml.dsig.internal.dom;
 
@@ -54,7 +57,7 @@ public abstract class ApacheTransform extends TransformService {
 
     private static final com.sun.org.slf4j.internal.Logger LOG =
         com.sun.org.slf4j.internal.LoggerFactory.getLogger(ApacheTransform.class);
-    private Transform transform;
+    private Transform apacheTransform;
     protected Document ownerDoc;
     protected Element transformElem;
     protected TransformParameterSpec params;
@@ -128,11 +131,13 @@ public abstract class ApacheTransform extends TransformService {
             throw new TransformException("transform must be marshalled");
         }
 
-        if (transform == null) {
+        if (apacheTransform == null) {
             try {
-                transform =
+                apacheTransform =
                     new Transform(ownerDoc, getAlgorithm(), transformElem.getChildNodes());
-                transform.setElement(transformElem, xc.getBaseURI());
+                apacheTransform.setElement(transformElem, xc.getBaseURI());
+                boolean secVal = Utils.secureValidation(xc);
+                apacheTransform.setSecureValidation(secVal);
                 LOG.debug("Created transform for algorithm: {}", getAlgorithm());
             } catch (Exception ex) {
                 throw new TransformException("Couldn't find Transform for: " +
@@ -180,12 +185,12 @@ public abstract class ApacheTransform extends TransformService {
 
         try {
             if (os != null) {
-                in = transform.performTransform(in, os, secVal);
+                in = apacheTransform.performTransform(in, os);
                 if (!in.isNodeSet() && !in.isElement()) {
                     return null;
                 }
             } else {
-                in = transform.performTransform(in, secVal);
+                in = apacheTransform.performTransform(in);
             }
             if (in.isOctetStream()) {
                 return new ApacheOctetStreamData(in);

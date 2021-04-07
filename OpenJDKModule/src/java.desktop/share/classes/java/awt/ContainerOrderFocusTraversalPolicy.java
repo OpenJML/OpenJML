@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,7 +25,6 @@
 
 package java.awt;
 
-import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,10 +74,9 @@ public class ContainerOrderFocusTraversalPolicy extends FocusTraversalPolicy
      */
     private final int BACKWARD_TRAVERSAL = 1;
 
-    /**
-     * Use serialVersionUID from JDK 1.4 for interoperability.
+    /*
+     * JDK 1.4 serialVersionUID
      */
-    @Serial
     private static final long serialVersionUID = 486933713763926351L;
 
     /**

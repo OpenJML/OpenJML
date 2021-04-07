@@ -103,7 +103,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.stream.Stream;
@@ -292,7 +294,7 @@ class SourceCodeAnalysisImpl extends SourceCodeAnalysis {
         return computeSuggestions(codeWrap, cursor, anchor).stream()
                 .filter(s -> s.continuation().startsWith(requiredPrefix) && !s.continuation().equals(REPL_DOESNOTMATTER_CLASS_NAME))
                 .sorted(Comparator.comparing(Suggestion::continuation))
-                .toList();
+                .collect(collectingAndThen(toList(), Collections::unmodifiableList));
     }
 
     private List<Suggestion> computeSuggestions(OuterWrap code, int cursor, int[] anchor) {
@@ -587,7 +589,7 @@ class SourceCodeAnalysisImpl extends SourceCodeAnalysis {
     public List<SnippetWrapper> wrappers(String input) {
         return proc.eval.sourceToSnippetsWithWrappers(input).stream()
                 .map(this::wrapper)
-                .toList();
+                .collect(toList());
     }
 
     @Override
@@ -836,7 +838,7 @@ class SourceCodeAnalysisImpl extends SourceCodeAnalysis {
     private List<? extends Element> membersOf(AnalyzeTask at, List<? extends Element> elements) {
         return elements.stream()
                 .flatMap(e -> membersOf(at, e.asType(), true).stream())
-                .toList();
+                .collect(toList());
     }
 
     private List<? extends Element> getEnclosedElements(PackageElement packageEl) {
@@ -850,7 +852,7 @@ class SourceCodeAnalysisImpl extends SourceCodeAnalysis {
                                 .stream()
                                 .filter(el -> el.asType() != null)
                                 .filter(el -> el.asType().getKind() != TypeKind.ERROR)
-                                .toList();
+                                .collect(toList());
             } catch (CompletionFailure cf) {
                 //ignore...
             }
@@ -865,7 +867,7 @@ class SourceCodeAnalysisImpl extends SourceCodeAnalysis {
                 TypeKind.LONG, TypeKind.SHORT, TypeKind.VOID)
                 .map(tk -> (Type)(tk == TypeKind.VOID ? types.getNoType(tk) : types.getPrimitiveType(tk)))
                 .map(Type::asElement)
-                .toList();
+                .collect(toList());
     }
 
     void classpathChanged() {
@@ -1271,7 +1273,7 @@ class SourceCodeAnalysisImpl extends SourceCodeAnalysis {
                             this.filterExecutableTypesByArguments(at, candidates, fullActuals)
                                 .stream()
                                 .filter(method -> parameterType(method.fst, method.snd, fullActuals.size(), true).findAny().isPresent())
-                                .toList();
+                                .collect(Collectors.toList());
                 }
 
                 elements = Util.stream(candidates).map(method -> method.fst);
@@ -1302,7 +1304,7 @@ class SourceCodeAnalysisImpl extends SourceCodeAnalysis {
             try (JavadocHelper helper = JavadocHelper.create(at.task, findSources())) {
                 result = elements.map(el -> constructDocumentation(at, helper, el, computeJavadoc))
                                  .filter(Objects::nonNull)
-                                 .toList();
+                                 .collect(Collectors.toList());
             } catch (IOException ex) {
                 proc.debug(ex, "JavadocHelper.close()");
             }
@@ -1605,7 +1607,7 @@ class SourceCodeAnalysisImpl extends SourceCodeAnalysis {
                                        .distinct()
                                        .filter(fqn -> isAccessible(at, scope, fqn))
                                        .sorted()
-                                       .toList();
+                                       .collect(Collectors.toList());
             }
 
             return new QualifiedNames(result, simpleName.length(), upToDate, !erroneous);

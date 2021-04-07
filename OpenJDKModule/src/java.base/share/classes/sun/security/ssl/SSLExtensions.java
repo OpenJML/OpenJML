@@ -38,7 +38,7 @@ import sun.security.util.HexDumpEncoder;
  */
 final class SSLExtensions {
     private final HandshakeMessage handshakeMessage;
-    private final Map<SSLExtension, byte[]> extMap = new LinkedHashMap<>();
+    private Map<SSLExtension, byte[]> extMap = new LinkedHashMap<>();
     private int encodedLength;
 
     // Extension map for debug logging

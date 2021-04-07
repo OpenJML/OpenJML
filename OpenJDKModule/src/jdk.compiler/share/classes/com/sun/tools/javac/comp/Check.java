@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -148,13 +148,13 @@ public class Check {
         boolean verboseUnchecked = lint.isEnabled(LintCategory.UNCHECKED);
         boolean enforceMandatoryWarnings = true;
 
-        deprecationHandler = new MandatoryWarningHandler(log, null, verboseDeprecated,
+        deprecationHandler = new MandatoryWarningHandler(log, verboseDeprecated,
                 enforceMandatoryWarnings, "deprecated", LintCategory.DEPRECATION);
-        removalHandler = new MandatoryWarningHandler(log, null, verboseRemoval,
+        removalHandler = new MandatoryWarningHandler(log, verboseRemoval,
                 enforceMandatoryWarnings, "removal", LintCategory.REMOVAL);
-        uncheckedHandler = new MandatoryWarningHandler(log, null, verboseUnchecked,
+        uncheckedHandler = new MandatoryWarningHandler(log, verboseUnchecked,
                 enforceMandatoryWarnings, "unchecked", LintCategory.UNCHECKED);
-        sunApiHandler = new MandatoryWarningHandler(log, null, false,
+        sunApiHandler = new MandatoryWarningHandler(log, false,
                 enforceMandatoryWarnings, "sunapi", null);
 
         deferredLintHandler = DeferredLintHandler.instance(context);
@@ -239,22 +239,21 @@ public class Check {
         }
     }
 
-    /** Log a preview warning.
+    /** Warn about deprecated symbol.
      *  @param pos        Position to be used for error reporting.
-     *  @param msg        A Warning describing the problem.
+     *  @param sym        The deprecated symbol.
      */
-    public void warnPreviewAPI(DiagnosticPosition pos, Warning warnKey) {
-        if (!lint.isSuppressed(LintCategory.PREVIEW))
-            preview.reportPreviewWarning(pos, warnKey);
+    void warnPreview(DiagnosticPosition pos, Symbol sym) {
+        warnPreview(pos, Warnings.IsPreview(sym));
     }
 
     /** Log a preview warning.
      *  @param pos        Position to be used for error reporting.
      *  @param msg        A Warning describing the problem.
      */
-    public void warnDeclaredUsingPreview(DiagnosticPosition pos, Symbol sym) {
+    public void warnPreview(DiagnosticPosition pos, Warning warnKey) {
         if (!lint.isSuppressed(LintCategory.PREVIEW))
-            preview.reportPreviewWarning(pos, Warnings.DeclaredUsingPreview(kindName(sym), sym));
+            preview.reportPreviewWarning(pos, warnKey);
     }
 
     /** Warn about unchecked operation.
@@ -3546,26 +3545,12 @@ public class Check {
         }
     }
 
-    void checkPreview(DiagnosticPosition pos, Symbol other, Symbol s) {
-        if ((s.flags() & PREVIEW_API) != 0 && s.packge().modle != other.packge().modle) {
-            if ((s.flags() & PREVIEW_REFLECTIVE) == 0) {
-                if (!preview.isEnabled()) {
-                    log.error(pos, Errors.IsPreview(s));
-                } else {
-                    preview.markUsesPreview(pos);
-                    deferredLintHandler.report(() -> warnPreviewAPI(pos, Warnings.IsPreview(s)));
-                }
+    void checkPreview(DiagnosticPosition pos, Symbol s) {
+        if ((s.flags() & PREVIEW_API) != 0) {
+            if ((s.flags() & PREVIEW_ESSENTIAL_API) != 0 && !preview.isEnabled()) {
+                log.error(pos, Errors.IsPreview(s));
             } else {
-                    deferredLintHandler.report(() -> warnPreviewAPI(pos, Warnings.IsPreviewReflective(s)));
-            }
-        }
-        if (preview.declaredUsingPreviewFeature(s)) {
-            if (preview.isEnabled()) {
-                //for preview disabled do presumably so not need to do anything?
-                //If "s" is compiled from source, then there was an error for it already;
-                //if "s" is from classfile, there already was an error for the classfile.
-                preview.markUsesPreview(pos);
-                deferredLintHandler.report(() -> warnDeclaredUsingPreview(pos, s));
+                deferredLintHandler.report(() -> warnPreview(pos, s));
             }
         }
     }

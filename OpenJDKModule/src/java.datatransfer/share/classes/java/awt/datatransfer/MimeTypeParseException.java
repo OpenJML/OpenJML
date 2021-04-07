@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2017, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,8 +25,6 @@
 
 package java.awt.datatransfer;
 
-import java.io.Serial;
-
 /**
  * A class to encapsulate MimeType parsing related exceptions.
  *
@@ -35,10 +33,7 @@ import java.io.Serial;
  */
 public class MimeTypeParseException extends Exception {
 
-    /**
-     * Use serialVersionUID from JDK 1.2.2 for interoperability.
-     */
-    @Serial
+    // use serialVersionUID from JDK 1.2.2 for interoperability
     private static final long serialVersionUID = -5604407764691570741L;
 
     /**
