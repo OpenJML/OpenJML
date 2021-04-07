@@ -1728,19 +1728,6 @@ public class StyleSheet extends StyleContext {
         }
     }
 
-    /**
-     * Proxy value to compute inherited {@code font-size}.
-     *
-     * @see  <a href="https://www.w3.org/TR/CSS2/cascade.html">Assigning
-     *          property values, Cascading, and Inheritance</a>
-     */
-    private Object fontSizeInherit() {
-        if (fontSizeInherit == null) {
-            fontSizeInherit = css.new FontSize().parseCssValue("100%");
-        }
-        return fontSizeInherit;
-    }
-
 
     /**
      * A temporary class used to hold a Vector, a StringBuffer and a
@@ -2826,13 +2813,6 @@ public class StyleSheet extends StyleContext {
         }
 
         Object doGetAttribute(Object key) {
-            if (key == CSS.Attribute.FONT_SIZE && !isDefined(key)) {
-                // CSS.FontSize represents a specified value and we need
-                // to inherit a computed value so don't resolve percentage
-                // value from parent.
-                return fontSizeInherit();
-            }
-
             Object retValue = super.getAttribute(key);
             if (retValue != null) {
                 return retValue;
@@ -3228,8 +3208,6 @@ public class StyleSheet extends StyleContext {
     // ---- Variables ---------------------------------------------
 
     static final int DEFAULT_FONT_SIZE = 3;
-
-    private transient Object fontSizeInherit;
 
     private CSS css;
 

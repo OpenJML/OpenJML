@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015, 2021, Oracle and/or its affiliates. All rights reserved.
+* Copyright (c) 2015, 2020, Oracle and/or its affiliates. All rights reserved.
 * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 *
 * This code is free software; you can redistribute it and/or modify it
@@ -97,7 +97,7 @@ InstanceKlass* KlassFactory::check_shared_class_file_load_hook(
       }
 
       if (class_loader.is_null()) {
-        new_ik->set_classpath_index(path_index);
+        new_ik->set_classpath_index(path_index, THREAD);
       }
 
       return new_ik;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -167,7 +167,7 @@ public class IndexWriter extends HtmlDocletWriter {
     protected void addHeading(char ch, Content contentTree) {
         Content headContent = new StringContent(String.valueOf(ch));
         HtmlTree heading = HtmlTree.HEADING(Headings.CONTENT_HEADING, HtmlStyle.title, headContent)
-                .setId(HtmlIds.forIndexChar(ch));
+                .setId(getNameForIndex(ch));
         contentTree.add(heading);
     }
 
@@ -214,8 +214,8 @@ public class IndexWriter extends HtmlDocletWriter {
             case RECORD:
             case ANNOTATION_TYPE:
             case INTERFACE:
-                dt = HtmlTree.DT(getLink(new HtmlLinkInfo(configuration,
-                        HtmlLinkInfo.Kind.INDEX, (TypeElement) element).style(HtmlStyle.typeNameLink)));
+                dt = HtmlTree.DT(getLink(new LinkInfoImpl(configuration,
+                        LinkInfoImpl.Kind.INDEX, (TypeElement) element).strong(true)));
                 dt.add(" - ");
                 addClassInfo((TypeElement) element, dt);
                 break;
@@ -225,8 +225,8 @@ public class IndexWriter extends HtmlDocletWriter {
             case FIELD:
             case ENUM_CONSTANT:
                 TypeElement containingType = item.getContainingTypeElement();
-                dt = HtmlTree.DT(getDocLink(HtmlLinkInfo.Kind.INDEX, containingType, element,
-                                label, HtmlStyle.memberNameLink));
+                dt = HtmlTree.DT(HtmlTree.SPAN(HtmlStyle.memberNameLink,
+                        getDocLink(LinkInfoImpl.Kind.INDEX, containingType, element, new StringContent(label))));
                 dt.add(" - ");
                 addMemberDesc(element, containingType, dt);
                 break;
@@ -268,7 +268,7 @@ public class IndexWriter extends HtmlDocletWriter {
         String itemPath = pathToRoot.isEmpty() ? "" : pathToRoot.getPath() + "/";
         itemPath += item.getUrl();
         HtmlTree labelLink = HtmlTree.A(itemPath, new StringContent(item.getLabel()));
-        Content dt = HtmlTree.DT(labelLink.setStyle(HtmlStyle.searchTagLink));
+        Content dt = HtmlTree.DT(HtmlTree.SPAN(HtmlStyle.searchTagLink, labelLink));
         dt.add(" - ");
         dt.add(contents.getContent("doclet.Search_tag_in", item.getHolder()));
         dlTree.add(dt);
@@ -338,8 +338,8 @@ public class IndexWriter extends HtmlDocletWriter {
             default -> throw new IllegalArgumentException(member.getKind().toString());
         };
         contentTree.add(contents.getContent(resource, kindName)).add(" ");
-        addPreQualifiedClassLink(HtmlLinkInfo.Kind.INDEX, enclosing,
-                null, contentTree);
+        addPreQualifiedClassLink(LinkInfoImpl.Kind.INDEX, enclosing,
+                false, contentTree);
     }
 
     /**
@@ -355,7 +355,7 @@ public class IndexWriter extends HtmlDocletWriter {
             Content label = new StringContent(Character.toString(ch));
             Content link = splitIndex
                     ? links.createLink(DocPaths.indexN(iter.nextIndex()), label)
-                    : links.createLink(HtmlIds.forIndexChar(ch), label);
+                    : links.createLink(getNameForIndex(ch), label);
             contentTree.add(link);
             contentTree.add(Entity.NO_BREAK_SPACE);
         }
@@ -370,4 +370,15 @@ public class IndexWriter extends HtmlDocletWriter {
                 .collect(Collectors.toList());
         contentTree.add(contents.join(getVerticalSeparator(), pageLinks));
     }
+
+    /**
+     * Returns the anchor name for a first character of names in the index.
+     *
+     * @param firstCharacter the character
+     * @return               a name
+     */
+    protected String getNameForIndex(char firstCharacter) {
+        return "I:" + links.getName(Character.toString(firstCharacter));
+    }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1995, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1995, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -22,11 +22,9 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-
 package java.awt;
 
 import java.awt.event.KeyEvent;
-import java.io.Serial;
 
 /**
  * <b>NOTE:</b> The {@code Event} class is obsolete and is
@@ -594,10 +592,9 @@ public class Event implements java.io.Serializable {
      */
     private boolean consumed = false;
 
-    /**
-     * Use serialVersionUID from JDK 1.1 for interoperability.
+    /*
+     * JDK 1.1 serialVersionUID
      */
-    @Serial
     private static final long serialVersionUID = 5488922509400504703L;
 
     static {

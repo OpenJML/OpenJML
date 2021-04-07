@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -343,11 +343,11 @@ public class getvalue001 {
                         testFailed = true;
                         continue;
                     }
-                    element = Double.valueOf(doubleValue.value());
+                    element = new Double(doubleValue.value());
                     log.display("debuger> " + i + " field has " + j
                               + " element " + element);
 
-                    if (!element.equals(Double.valueOf(DOUB[j]))) {
+                    if (!element.equals(new Double(DOUB[j]))) {
                         log.complain("debuger FAILURE D3> " + j + " element of "
                                    + "array " + name + " was expected "
                                    + DOUB[j] + ", but returned " + element);
@@ -388,11 +388,11 @@ public class getvalue001 {
                         testFailed = true;
                         continue;
                     }
-                    element = Float.valueOf(floatValue.value());
+                    element = new Float(floatValue.value());
                     log.display("debuger> " + i + " field has " + j
                               + " element " + element);
 
-                    if (!element.equals(Float.valueOf(FLOAT[j]))) {
+                    if (!element.equals(new Float(FLOAT[j]))) {
                         log.complain("debuger FAILURE F3> " + j + " element of "
                                    + "array " + name + " was expected "
                                    + FLOAT[j] + ", but returned " + element);

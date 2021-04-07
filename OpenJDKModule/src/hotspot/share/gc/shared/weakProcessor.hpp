@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -30,7 +30,7 @@
 #include "gc/shared/workgroup.hpp"
 #include "memory/allocation.hpp"
 
-class WeakProcessorTimes;
+class WeakProcessorPhaseTimes;
 class WorkGang;
 
 // Helper class to aid in root scanning and cleaning of weak oops in the VM.
@@ -56,7 +56,7 @@ public:
   static void weak_oops_do(WorkGang* workers,
                            IsAlive* is_alive,
                            KeepAlive* keep_alive,
-                           WeakProcessorTimes* times);
+                           WeakProcessorPhaseTimes* phase_times);
 
   // Convenience parallel version.  Uses ergo_workers() to determine the
   // number of threads to use, limited by the total workers.  Implicitly
@@ -85,7 +85,7 @@ private:
 class WeakProcessor::Task {
   typedef OopStorage::ParState<false, false> StorageState;
 
-  WeakProcessorTimes* _times;
+  WeakProcessorPhaseTimes* _phase_times;
   uint _nworkers;
   OopStorageSetWeakParState<false, false> _storage_states;
 
@@ -93,7 +93,7 @@ class WeakProcessor::Task {
 
 public:
   Task(uint nworkers);          // No time tracking.
-  Task(WeakProcessorTimes* times, uint nworkers);
+  Task(WeakProcessorPhaseTimes* phase_times, uint nworkers);
 
   template<typename IsAlive, typename KeepAlive>
   void work(uint worker_id, IsAlive* is_alive, KeepAlive* keep_alive);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -56,13 +56,12 @@ class CPUPerformanceInterface::CPUPerformance : public CHeapObj<mtInternal> {
   int  _active_processor_count;
 
   bool now_in_nanos(long* resultp) {
-    struct timespec tp;
-    int status = clock_gettime(CLOCK_REALTIME, &tp);
-    assert(status == 0, "clock_gettime error: %s", os::strerror(errno));
-    if (status != 0) {
+    timeval current_time;
+    if (gettimeofday(&current_time, NULL) != 0) {
+      // Error getting current time
       return false;
     }
-    *resultp = tp.tv_sec * NANOS_PER_SEC + tp.tv_nsec;
+    *resultp = current_time.tv_sec * NANOS_PER_SEC + 1000L * current_time.tv_usec;
     return true;
   }
 

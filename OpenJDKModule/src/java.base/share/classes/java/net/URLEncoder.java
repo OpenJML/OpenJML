@@ -76,7 +76,7 @@ import sun.security.action.GetPropertyAction;
 public class URLEncoder {
     static BitSet dontNeedEncoding;
     static final int caseDiff = ('a' - 'A');
-    static String dfltEncName;
+    static String dfltEncName = null;
 
     static {
 
@@ -171,7 +171,7 @@ public class URLEncoder {
      * Translates a string into {@code application/x-www-form-urlencoded}
      * format using a specific encoding scheme.
      * <p>
-     * This method behaves the same as {@linkplain #encode(String s, Charset charset)}
+     * This method behaves the same as {@linkplain encode(String s, Charset charset)}
      * except that it will {@linkplain java.nio.charset.Charset#forName look up the charset}
      * using the given encoding name.
      *
@@ -225,7 +225,7 @@ public class URLEncoder {
         CharArrayWriter charArrayWriter = new CharArrayWriter();
 
         for (int i = 0; i < s.length();) {
-            int c = s.charAt(i);
+            int c = (int) s.charAt(i);
             //System.out.println("Examining character: " + c);
             if (dontNeedEncoding.get(c)) {
                 if (c == ' ') {
@@ -253,7 +253,7 @@ public class URLEncoder {
                           + " is high surrogate");
                         */
                         if ( (i+1) < s.length()) {
-                            int d = s.charAt(i+1);
+                            int d = (int) s.charAt(i+1);
                             /*
                               System.out.println("\tExamining "
                               + Integer.toHexString(d));
@@ -270,21 +270,21 @@ public class URLEncoder {
                         }
                     }
                     i++;
-                } while (i < s.length() && !dontNeedEncoding.get((c = s.charAt(i))));
+                } while (i < s.length() && !dontNeedEncoding.get((c = (int) s.charAt(i))));
 
                 charArrayWriter.flush();
-                String str = charArrayWriter.toString();
+                String str = new String(charArrayWriter.toCharArray());
                 byte[] ba = str.getBytes(charset);
-                for (byte b : ba) {
+                for (int j = 0; j < ba.length; j++) {
                     out.append('%');
-                    char ch = Character.forDigit((b >> 4) & 0xF, 16);
+                    char ch = Character.forDigit((ba[j] >> 4) & 0xF, 16);
                     // converting to use uppercase letter as part of
                     // the hex value if ch is a letter.
                     if (Character.isLetter(ch)) {
                         ch -= caseDiff;
                     }
                     out.append(ch);
-                    ch = Character.forDigit(b & 0xF, 16);
+                    ch = Character.forDigit(ba[j] & 0xF, 16);
                     if (Character.isLetter(ch)) {
                         ch -= caseDiff;
                     }

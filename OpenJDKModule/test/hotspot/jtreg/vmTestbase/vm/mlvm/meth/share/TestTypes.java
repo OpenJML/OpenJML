@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -255,28 +255,28 @@ public class TestTypes {
             return null;
 
         if (type.equals(boolean.class) || type.equals(Boolean.class))
-            return Boolean.valueOf(Env.getRNG().nextInt(2) == 0);
+            return new Boolean(Env.getRNG().nextInt(2) == 0);
 
         if (type.equals(byte.class) || type.equals(Byte.class))
-            return Byte.valueOf((byte) Env.getRNG().nextInt(1 << Byte.SIZE));
+            return new Byte((byte) Env.getRNG().nextInt(1 << Byte.SIZE));
 
         if (type.equals(int.class) || type.equals(Integer.class))
-            return Integer.valueOf(Env.getRNG().nextInt());
+            return new Integer(Env.getRNG().nextInt());
 
         if (type.equals(short.class) || type.equals(Short.class))
-            return Short.valueOf((short) Env.getRNG().nextInt(1 << Short.SIZE));
+            return new Short((short) Env.getRNG().nextInt(1 << Short.SIZE));
 
         if (type.equals(long.class) || type.equals(Long.class))
-            return Long.valueOf(Env.getRNG().nextLong());
+            return new Long(Env.getRNG().nextLong());
 
         if (type.equals(float.class) || type.equals(Float.class))
-            return Float.valueOf(Env.getRNG().nextFloat());
+            return new Float(Env.getRNG().nextFloat());
 
         if (type.equals(double.class) || type.equals(Double.class))
-            return Double.valueOf(Env.getRNG().nextDouble());
+            return new Double(Env.getRNG().nextDouble());
 
         if (type.equals(char.class) || type.equals(Character.class))
-            return Character.valueOf((char) (32 + Env.getRNG().nextInt(96)));
+            return new Character((char) (32 + Env.getRNG().nextInt(96)));
 
         if (type.equals(Object.class))
             return new Object();

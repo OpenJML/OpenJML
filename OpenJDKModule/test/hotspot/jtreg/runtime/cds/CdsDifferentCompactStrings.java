@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -46,9 +46,10 @@ public class CdsDifferentCompactStrings {
         String createCompactStringsArgument = "-XX:" + create + "CompactStrings";
         String loadCompactStringsArgument   = "-XX:" + load   + "CompactStrings";
 
-        CDSTestUtils.createArchiveAndCheck(createCompactStringsArgument);
+        OutputAnalyzer out = CDSTestUtils.createArchive(createCompactStringsArgument);
+        CDSTestUtils.checkDump(out);
 
-        OutputAnalyzer out = CDSTestUtils.runWithArchive(loadCompactStringsArgument);
+        out = CDSTestUtils.runWithArchive(loadCompactStringsArgument);
         CDSTestUtils.checkMappingFailure(out);
 
         out.shouldMatch("The shared archive file's CompactStrings " +

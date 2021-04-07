@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -36,6 +36,8 @@ import jdk.javadoc.internal.doclets.formats.html.markup.ContentBuilder;
 import jdk.javadoc.internal.doclets.formats.html.markup.HtmlStyle;
 import jdk.javadoc.internal.doclets.formats.html.markup.HtmlTree;
 import jdk.javadoc.internal.doclets.formats.html.markup.StringContent;
+import jdk.javadoc.internal.doclets.formats.html.markup.Table;
+import jdk.javadoc.internal.doclets.formats.html.markup.TableHeader;
 import jdk.javadoc.internal.doclets.toolkit.AnnotationTypeRequiredMemberWriter;
 import jdk.javadoc.internal.doclets.toolkit.Content;
 import jdk.javadoc.internal.doclets.toolkit.MemberSummaryWriter;
@@ -82,7 +84,7 @@ public class AnnotationTypeRequiredMemberWriterImpl extends AbstractMemberWriter
     @Override
     public void addSummary(Content summariesList, Content content) {
         writer.addSummary(HtmlStyle.memberSummary,
-                HtmlIds.ANNOTATION_TYPE_REQUIRED_ELEMENT_SUMMARY, summariesList, content);
+                SectionName.ANNOTATION_TYPE_REQUIRED_ELEMENT_SUMMARY, summariesList, content);
     }
 
     @Override
@@ -112,7 +114,7 @@ public class AnnotationTypeRequiredMemberWriterImpl extends AbstractMemberWriter
                 new StringContent(simpleName));
         annotationDocTree.add(heading);
         return HtmlTree.SECTION(HtmlStyle.detail, annotationDocTree)
-                .setId(htmlIds.forMember(typeElement, (ExecutableElement) member));
+                .setId(simpleName + utils.signature((ExecutableElement) member, typeElement));
     }
 
     @Override
@@ -126,11 +128,6 @@ public class AnnotationTypeRequiredMemberWriterImpl extends AbstractMemberWriter
     @Override
     public void addDeprecated(Element member, Content annotationDocTree) {
         addDeprecatedInfo(member, annotationDocTree);
-    }
-
-    @Override
-    public void addPreview(Element member, Content contentTree) {
-        addPreviewInfo(member, contentTree);
     }
 
     @Override
@@ -184,10 +181,10 @@ public class AnnotationTypeRequiredMemberWriterImpl extends AbstractMemberWriter
     }
 
     @Override
-    protected void addSummaryLink(HtmlLinkInfo.Kind context, TypeElement typeElement, Element member,
-                                  Content tdSummary) {
-        Content memberLink = writer.getDocLink(context, utils.getEnclosingTypeElement(member), member,
-                name(member), HtmlStyle.memberNameLink);
+    protected void addSummaryLink(LinkInfoImpl.Kind context, TypeElement typeElement, Element member,
+            Content tdSummary) {
+        Content memberLink = HtmlTree.SPAN(HtmlStyle.memberNameLink,
+                writer.getDocLink(context, member, name(member), false));
         Content code = HtmlTree.CODE(memberLink);
         tdSummary.add(code);
     }
@@ -204,9 +201,9 @@ public class AnnotationTypeRequiredMemberWriterImpl extends AbstractMemberWriter
     }
 
     @Override
-    protected Content getSummaryLink(Element member) {
+    protected Content getDeprecatedLink(Element member) {
         String name = utils.getFullyQualifiedName(member) + "." + member.getSimpleName();
-        return writer.getDocLink(HtmlLinkInfo.Kind.MEMBER_DEPRECATED_PREVIEW, member, name);
+        return writer.getDocLink(LinkInfoImpl.Kind.MEMBER, member, name);
     }
 
     protected Comment selectComment(Comment c1, Comment c2) {

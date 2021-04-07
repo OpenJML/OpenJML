@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,6 +25,8 @@
 // no precompiled headers
 #include "jvm.h"
 #include "asm/macroAssembler.hpp"
+#include "classfile/classLoader.hpp"
+#include "classfile/systemDictionary.hpp"
 #include "classfile/vmSymbols.hpp"
 #include "code/codeCache.hpp"
 #include "code/icBuffer.hpp"
@@ -63,6 +65,7 @@
 # include <stdio.h>
 # include <unistd.h>
 # include <sys/resource.h>
+# include <pthread.h>
 # include <sys/stat.h>
 # include <sys/time.h>
 # include <sys/utsname.h>
@@ -389,6 +392,16 @@ enum {
 
 bool PosixSignals::pd_hotspot_signal_handler(int sig, siginfo_t* info,
                                              ucontext_t* uc, JavaThread* thread) {
+
+/*
+  NOTE: does not seem to work on bsd.
+  if (info == NULL || info->si_code <= 0 || info->si_code == SI_NOINFO) {
+    // can't decode this kind of signal
+    info = NULL;
+  } else {
+    assert(sig == info->si_signo, "bad siginfo");
+  }
+*/
   // decide if this trap can be handled by a stub
   address stub = NULL;
 
@@ -397,6 +410,11 @@ bool PosixSignals::pd_hotspot_signal_handler(int sig, siginfo_t* info,
   //%note os_trap_1
   if (info != NULL && uc != NULL && thread != NULL) {
     pc = (address) os::Posix::ucontext_get_pc(uc);
+
+    if (StubRoutines::is_safefetch_fault(pc)) {
+      os::Posix::ucontext_set_pc(uc, StubRoutines::continuation_for_safefetch_fault(pc));
+      return true;
+    }
 
     // Handle ALL stack overflow variations here
     if (sig == SIGSEGV || sig == SIGBUS) {

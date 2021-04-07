@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1995, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1995, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -24,8 +24,6 @@
  */
 
 package java.awt;
-
-import java.io.Serial;
 
 /**
  * The {@code GridLayout} class is a layout manager that
@@ -89,11 +87,9 @@ import java.io.Serial;
  * @since   1.0
  */
 public class GridLayout implements LayoutManager, java.io.Serializable {
-
-    /**
-     * Use serialVersionUID from JDK 1.6 for interoperability.
+    /*
+     * serialVersionUID
      */
-    @Serial
     private static final long serialVersionUID = -7411804673224730901L;
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -50,6 +50,7 @@ import java.io.File;
 import jdk.test.lib.cds.CDSOptions;
 import jdk.test.lib.cds.CDSTestUtils;
 import jdk.test.lib.process.OutputAnalyzer;
+import jdk.test.lib.process.ProcessTools;
 
 public class MethodHandlesSpreadArgumentsTest {
     @Test
@@ -81,8 +82,11 @@ public class MethodHandlesSpreadArgumentsTest {
         String jars = appJar + ps + junitJar;
 
         // dump class list
-        CDSTestUtils.dumpClassList(classList, "-cp", jars, mainClass,
-                                   testPackageName + "." + testClassName);
+        ProcessBuilder pb = ProcessTools.createTestJvm(
+            "-XX:DumpLoadedClassList=" + classList,
+            "-cp", jars,
+            mainClass, testPackageName + "." + testClassName);
+        OutputAnalyzer output = TestCommon.executeAndLog(pb, "dumpClassList");
 
         // create archive with the class list
         CDSOptions opts = (new CDSOptions())
@@ -98,7 +102,7 @@ public class MethodHandlesSpreadArgumentsTest {
             .setArchiveName(archiveName)
             .setUseVersion(false)
             .addSuffix(mainClass, testPackageName + "." + testClassName);
-        OutputAnalyzer output = CDSTestUtils.runWithArchive(runOpts);
+        output = CDSTestUtils.runWithArchive(runOpts);
         output.shouldMatch(".class.load. test.java.lang.invoke.MethodHandlesSpreadArgumentsTest[$][$]Lambda[$].*/0x.*source:.*shared.*objects.*file")
               .shouldHaveExitValue(0);
     }

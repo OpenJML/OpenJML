@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -45,9 +45,6 @@
 #endif
 #ifdef COMPILER2
 #include "opto/optoreg.hpp"
-#endif
-#if INCLUDE_JVMCI
-#include "jvmci/jvmci_globals.hpp"
 #endif
 
 // OopMapStream
@@ -276,14 +273,14 @@ void OopMapSet::all_do(const frame *fr, const RegisterMap *reg_map,
         continue;
       }
 
-#ifndef COMPILER2
+#ifndef TIERED
       COMPILER1_PRESENT(ShouldNotReachHere();)
 #if INCLUDE_JVMCI
       if (UseJVMCICompiler) {
         ShouldNotReachHere();
       }
 #endif
-#endif // !COMPILER2
+#endif // !TIERED
       oop* loc = fr->oopmapreg_to_location(omv.reg(),reg_map);
       guarantee(loc != NULL, "missing saved register");
       oop *derived_loc = loc;

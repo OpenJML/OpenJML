@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1995, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1995, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -32,7 +32,6 @@ import java.awt.peer.TextComponentPeer;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serial;
 import java.text.BreakIterator;
 import java.util.EventListener;
 
@@ -124,10 +123,9 @@ public class TextComponent extends Component implements Accessible {
      */
     protected transient TextListener textListener;
 
-    /**
-     * Use serialVersionUID from JDK 1.1 for interoperability.
+    /*
+     * JDK 1.1 serialVersionUID
      */
-    @Serial
     private static final long serialVersionUID = -2214773872412987419L;
 
     /**
@@ -242,18 +240,21 @@ public class TextComponent extends Component implements Accessible {
      * @see         java.awt.TextComponent#getText
      */
     public synchronized void setText(String t) {
-        text = (t != null) ? t : "";
-        int selectionStart = getSelectionStart();
-        int selectionEnd = getSelectionEnd();
-        TextComponentPeer peer = (TextComponentPeer) this.peer;
-        if (peer != null && !text.equals(peer.getText())) {
+        if (t == null) {
+            t = "";
+        }
+        TextComponentPeer peer = (TextComponentPeer)this.peer;
+        if (peer != null) {
+            text = peer.getText();
             // Please note that we do not want to post an event
             // if TextArea.setText() or TextField.setText() replaces text
             // by same text, that is, if component's text remains unchanged.
-            peer.setText(text);
-        }
-        if (selectionStart != selectionEnd) {
-            select(selectionStart, selectionEnd);
+            if (!t.equals(text)) {
+                text = t;
+                peer.setText(text);
+            }
+        } else {
+            text = t;
         }
     }
 
@@ -781,7 +782,6 @@ public class TextComponent extends Component implements Accessible {
      * @see AWTEventMulticaster#save(ObjectOutputStream, String, EventListener)
      * @see java.awt.Component#textListenerK
      */
-    @Serial
     private void writeObject(java.io.ObjectOutputStream s)
       throws IOException
     {
@@ -817,7 +817,6 @@ public class TextComponent extends Component implements Accessible {
      * @see #addTextListener
      * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    @Serial
     private void readObject(ObjectInputStream s)
         throws ClassNotFoundException, IOException, HeadlessException
     {
@@ -875,10 +874,9 @@ public class TextComponent extends Component implements Accessible {
     protected class AccessibleAWTTextComponent extends AccessibleAWTComponent
         implements AccessibleText, TextListener
     {
-        /**
-         * Use serialVersionUID from JDK 1.3 for interoperability.
+        /*
+         * JDK 1.3 serialVersionUID
          */
-        @Serial
         private static final long serialVersionUID = 3631432373506317811L;
 
         /**

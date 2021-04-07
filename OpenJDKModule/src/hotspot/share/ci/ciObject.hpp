@@ -28,6 +28,7 @@
 #include "ci/ciBaseObject.hpp"
 #include "ci/ciClassList.hpp"
 #include "runtime/handles.hpp"
+#include "runtime/jniHandles.hpp"
 
 // ciObject
 //

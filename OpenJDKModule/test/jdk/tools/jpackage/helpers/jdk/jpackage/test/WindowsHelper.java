@@ -114,18 +114,14 @@ public class WindowsHelper {
     }
 
     static PackageHandlers createExePackageHandlers() {
-        BiConsumer<JPackageCommand, Boolean> installExe = (cmd, install) -> {
-            cmd.verifyIsOfType(PackageType.WIN_EXE);
-            Executor exec = new Executor().setExecutable(cmd.outputBundle());
-            if (!install) {
-                exec.addArgument("uninstall");
-            }
-            runMsiexecWithRetries(exec);
-        };
-
         PackageHandlers exe = new PackageHandlers();
-        exe.installHandler = cmd -> installExe.accept(cmd, true);
-        exe.uninstallHandler = cmd -> installExe.accept(cmd, false);
+        // can't have install handler without also having uninstall handler
+        // so following is commented out for now
+        // exe.installHandler = cmd -> {
+        //     cmd.verifyIsOfType(PackageType.WIN_EXE);
+        //     new Executor().setExecutable(cmd.outputBundle()).execute();
+        // };
+
         return exe;
     }
 

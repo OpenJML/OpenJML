@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,7 +27,6 @@
 #include "gc/shared/cardTable.hpp"
 #include "gc/shared/cardTableBarrierSet.hpp"
 #include "gc/shared/c2/cardTableBarrierSetC2.hpp"
-#include "gc/shared/gc_globals.hpp"
 #include "opto/arraycopynode.hpp"
 #include "opto/graphKit.hpp"
 #include "opto/idealKit.hpp"
@@ -58,6 +57,8 @@ void CardTableBarrierSetC2::post_barrier(GraphKit* kit,
                                          Node* val,
                                          BasicType bt,
                                          bool use_precise) const {
+  CardTableBarrierSet* ctbs = barrier_set_cast<CardTableBarrierSet>(BarrierSet::barrier_set());
+  CardTable* ct = ctbs->card_table();
   // No store check needed if we're storing a NULL or an old object
   // (latter case is probably a string constant). The concurrent
   // mark sweep garbage collector, however, needs to have all nonNull
@@ -103,6 +104,10 @@ void CardTableBarrierSetC2::post_barrier(GraphKit* kit,
   Node*   zero = __ ConI(0); // Dirty card value
 
   if (UseCondCardMark) {
+    if (ct->scanned_concurrently()) {
+      kit->insert_mem_bar(Op_MemBarVolatile, oop_store);
+      __ sync_kit(kit);
+    }
     // The classic GC reference write barrier is typically implemented
     // as a store into the global card mark table.  Unfortunately
     // unconditional stores can result in false sharing and excessive
@@ -115,7 +120,12 @@ void CardTableBarrierSetC2::post_barrier(GraphKit* kit,
   }
 
   // Smash zero into card
-  __ store(__ ctrl(), card_adr, zero, T_BYTE, adr_type, MemNode::unordered);
+  if(!ct->scanned_concurrently()) {
+    __ store(__ ctrl(), card_adr, zero, T_BYTE, adr_type, MemNode::unordered);
+  } else {
+    // Specialized path for CM store barrier
+    __ storeCM(__ ctrl(), card_adr, zero, oop_store, adr_idx, T_BYTE, adr_type);
+  }
 
   if (UseCondCardMark) {
     __ end_if();

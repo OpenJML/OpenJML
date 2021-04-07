@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -91,7 +91,8 @@ public:
     return _stack[index];
   }
 
-  unsigned int hash() const { return _hash_value; }
+  // Hash code. Any better algorithm?
+  unsigned int hash() const;
 
   void print_on(outputStream* out) const;
   void print_on(outputStream* out, int indent) const;

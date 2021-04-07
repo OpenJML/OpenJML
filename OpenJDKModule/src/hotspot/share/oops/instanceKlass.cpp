@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -37,10 +37,8 @@
 #include "classfile/systemDictionary.hpp"
 #include "classfile/systemDictionaryShared.hpp"
 #include "classfile/verifier.hpp"
-#include "classfile/vmClasses.hpp"
 #include "classfile/vmSymbols.hpp"
 #include "code/dependencyContext.hpp"
-#include "compiler/compilationPolicy.hpp"
 #include "compiler/compileBroker.hpp"
 #include "gc/shared/collectedHeap.inline.hpp"
 #include "interpreter/oopMapCache.hpp"
@@ -150,10 +148,10 @@ static inline bool is_class_loader(const Symbol* class_name,
     return true;
   }
 
-  if (vmClasses::ClassLoader_klass_loaded()) {
+  if (SystemDictionary::ClassLoader_klass_loaded()) {
     const Klass* const super_klass = parser.super_klass();
     if (super_klass != NULL) {
-      if (super_klass->is_subtype_of(vmClasses::ClassLoader_klass())) {
+      if (super_klass->is_subtype_of(SystemDictionary::ClassLoader_klass())) {
         return true;
       }
     }
@@ -187,7 +185,7 @@ bool InstanceKlass::has_nest_member(InstanceKlass* k, TRAPS) const {
     int cp_index = _nest_members->at(i);
     if (_constants->tag_at(cp_index).is_klass()) {
       Klass* k2 = _constants->klass_at(cp_index, THREAD);
-      assert(!HAS_PENDING_EXCEPTION || PENDING_EXCEPTION->is_a(vmClasses::VirtualMachineError_klass()),
+      assert(!HAS_PENDING_EXCEPTION || PENDING_EXCEPTION->is_a(SystemDictionary::VirtualMachineError_klass()),
              "Exceptions should not be possible here");
       if (k2 == k) {
         log_trace(class, nestmates)("- class is listed at nest_members[%d] => cp[%d]", i, cp_index);
@@ -205,7 +203,7 @@ bool InstanceKlass::has_nest_member(InstanceKlass* k, TRAPS) const {
         // able to perform that loading but we can't exclude the compiler threads from
         // executing this logic. But it should actually be impossible to trigger loading here.
         Klass* k2 = _constants->klass_at(cp_index, THREAD);
-        assert(!HAS_PENDING_EXCEPTION || PENDING_EXCEPTION->is_a(vmClasses::VirtualMachineError_klass()),
+        assert(!HAS_PENDING_EXCEPTION || PENDING_EXCEPTION->is_a(SystemDictionary::VirtualMachineError_klass()),
                "Exceptions should not be possible here");
         if (k2 == k) {
           log_trace(class, nestmates)("- class is listed as a nest member");
@@ -252,12 +250,23 @@ bool InstanceKlass::has_as_permitted_subclass(const InstanceKlass* k) const {
     return false;
   }
 
+  // Check for a resolved cp entry, else fall back to a name check.
+  // We don't want to resolve any class other than the one being checked.
   for (int i = 0; i < _permitted_subclasses->length(); i++) {
     int cp_index = _permitted_subclasses->at(i);
-    Symbol* name = _constants->klass_name_at(cp_index);
-    if (name == k->name()) {
-      log_trace(class, sealed)("- Found it at permitted_subclasses[%d] => cp[%d]", i, cp_index);
-      return true;
+    if (_constants->tag_at(cp_index).is_klass()) {
+      Klass* k2 = _constants->klass_at(cp_index, THREAD);
+      assert(!HAS_PENDING_EXCEPTION, "Unexpected exception");
+      if (k2 == k) {
+        log_trace(class, sealed)("- class is listed at permitted_subclasses[%d] => cp[%d]", i, cp_index);
+        return true;
+      }
+    } else {
+      Symbol* name = _constants->klass_name_at(cp_index);
+      if (name == k->name()) {
+        log_trace(class, sealed)("- Found it at permitted_subclasses[%d] => cp[%d]", i, cp_index);
+        return true;
+      }
     }
   }
   log_trace(class, sealed)("- class is NOT a permitted subclass!");
@@ -300,7 +309,7 @@ InstanceKlass* InstanceKlass::nest_host(TRAPS) {
 
     Klass* k = _constants->klass_at(_nest_host_index, THREAD);
     if (HAS_PENDING_EXCEPTION) {
-      if (PENDING_EXCEPTION->is_a(vmClasses::VirtualMachineError_klass())) {
+      if (PENDING_EXCEPTION->is_a(SystemDictionary::VirtualMachineError_klass())) {
         return NULL; // propagate VMEs
       }
       stringStream ss;
@@ -339,7 +348,7 @@ InstanceKlass* InstanceKlass::nest_host(TRAPS) {
               error = "current type is not listed as a nest member";
             }
           } else {
-            if (PENDING_EXCEPTION->is_a(vmClasses::VirtualMachineError_klass())) {
+            if (PENDING_EXCEPTION->is_a(SystemDictionary::VirtualMachineError_klass())) {
               return NULL; // propagate VMEs
             }
             stringStream ss;
@@ -733,7 +742,7 @@ void InstanceKlass::deallocate_contents(ClassLoaderData* loader_data) {
 bool InstanceKlass::is_record() const {
   return _record_components != NULL &&
          is_final() &&
-         java_super() == vmClasses::Record_klass();
+         java_super() == SystemDictionary::Record_klass();
 }
 
 bool InstanceKlass::is_sealed() const {
@@ -807,7 +816,7 @@ void InstanceKlass::eager_initialize_impl() {
   EXCEPTION_MARK;
   HandleMark hm(THREAD);
   Handle h_init_lock(THREAD, init_lock());
-  ObjectLocker ol(h_init_lock, THREAD);
+  ObjectLocker ol(h_init_lock, THREAD, h_init_lock() != NULL);
 
   // abort if someone beat us to the initialization
   if (!is_not_initialized()) return;  // note: not equivalent to is_initialized()
@@ -943,7 +952,7 @@ bool InstanceKlass::link_class_impl(TRAPS) {
   {
     HandleMark hm(THREAD);
     Handle h_init_lock(THREAD, init_lock());
-    ObjectLocker ol(h_init_lock, THREAD);
+    ObjectLocker ol(h_init_lock, THREAD, h_init_lock() != NULL);
     // rewritten will have been set if loader constraint error found
     // on an earlier link attempt
     // don't verify or rewrite if already rewritten
@@ -1068,7 +1077,7 @@ void InstanceKlass::initialize_impl(TRAPS) {
   // Step 1
   {
     Handle h_init_lock(THREAD, init_lock());
-    ObjectLocker ol(h_init_lock, THREAD);
+    ObjectLocker ol(h_init_lock, THREAD, h_init_lock() != NULL);
 
     // Step 2
     // If we were to use wait() instead of waitInterruptibly() then
@@ -1195,7 +1204,7 @@ void InstanceKlass::initialize_impl(TRAPS) {
       JvmtiExport::clear_detected_exception(jt);
     }
     DTRACE_CLASSINIT_PROBE_WAIT(error, -1, wait);
-    if (e->is_a(vmClasses::Error_klass())) {
+    if (e->is_a(SystemDictionary::Error_klass())) {
       THROW_OOP(e());
     } else {
       JavaCallArguments args(e);
@@ -1310,7 +1319,7 @@ void InstanceKlass::init_implementor() {
 }
 
 
-void InstanceKlass::process_interfaces() {
+void InstanceKlass::process_interfaces(Thread *thread) {
   // link this class into the implementors list of every interface it implements
   for (int i = local_interfaces()->length() - 1; i >= 0; i--) {
     assert(local_interfaces()->at(i)->is_klass(), "must be a klass");
@@ -1425,7 +1434,7 @@ void InstanceKlass::check_valid_for_instantiation(bool throwError, TRAPS) {
     THROW_MSG(throwError ? vmSymbols::java_lang_InstantiationError()
               : vmSymbols::java_lang_InstantiationException(), external_name());
   }
-  if (this == vmClasses::Class_klass()) {
+  if (this == SystemDictionary::Class_klass()) {
     ResourceMark rm(THREAD);
     THROW_MSG(throwError ? vmSymbols::java_lang_IllegalAccessError()
               : vmSymbols::java_lang_IllegalAccessException(), external_name());
@@ -2540,7 +2549,7 @@ void InstanceKlass::remove_unshareable_info() {
   _oop_map_cache = NULL;
   // clear _nest_host to ensure re-load at runtime
   _nest_host = NULL;
-  init_shared_package_entry();
+  _package_entry = NULL;
   _dep_context_last_cleaned = 0;
 }
 
@@ -2551,27 +2560,6 @@ void InstanceKlass::remove_java_mirror() {
   if (array_klasses() != NULL) {
     array_klasses()->remove_java_mirror();
   }
-}
-
-void InstanceKlass::init_shared_package_entry() {
-#if !INCLUDE_CDS_JAVA_HEAP
-  _package_entry = NULL;
-#else
-  if (!MetaspaceShared::use_full_module_graph()) {
-    _package_entry = NULL;
-  } else if (DynamicDumpSharedSpaces) {
-    if (!MetaspaceShared::is_in_shared_metaspace(_package_entry)) {
-      _package_entry = NULL;
-    }
-  } else {
-    if (is_shared_unregistered_class()) {
-      _package_entry = NULL;
-    } else {
-      _package_entry = PackageEntry::get_archived_entry(_package_entry);
-    }
-  }
-  ArchivePtrMarker::mark_pointer((address**)&_package_entry);
-#endif
 }
 
 void InstanceKlass::restore_unshareable_info(ClassLoaderData* loader_data, Handle protection_domain,
@@ -2857,15 +2845,6 @@ void InstanceKlass::set_package(ClassLoaderData* loader_data, PackageEntry* pkg_
     check_prohibited_package(name(), loader_data, CHECK);
   }
 
-  if (is_shared() && _package_entry == pkg_entry) {
-    if (MetaspaceShared::use_full_module_graph()) {
-      // we can use the saved package
-      return;
-    } else {
-      _package_entry = NULL;
-    }
-  }
-
   // ClassLoader::package_from_class_name has already incremented the refcount of the symbol
   // it returns, so we need to decrement it when the current function exits.
   TempNewSymbol from_class_name =
@@ -2934,7 +2913,7 @@ void InstanceKlass::set_package(ClassLoaderData* loader_data, PackageEntry* pkg_
 // in an unnamed module.  It is also used to indicate (for all packages whose
 // classes are loaded by the boot loader) that at least one of the package's
 // classes has been loaded.
-void InstanceKlass::set_classpath_index(s2 path_index) {
+void InstanceKlass::set_classpath_index(s2 path_index, TRAPS) {
   if (_package_entry != NULL) {
     DEBUG_ONLY(PackageEntryTable* pkg_entry_tbl = ClassLoaderData::the_null_class_loader_data()->packages();)
     assert(pkg_entry_tbl->lookup_only(_package_entry->name()) == _package_entry, "Should be same");
@@ -3223,22 +3202,31 @@ void InstanceKlass::adjust_default_methods(bool* trace_name_printed) {
 void InstanceKlass::add_osr_nmethod(nmethod* n) {
   assert_lock_strong(CompiledMethod_lock);
 #ifndef PRODUCT
-  nmethod* prev = lookup_osr_nmethod(n->method(), n->osr_entry_bci(), n->comp_level(), true);
-  assert(prev == NULL || !prev->is_in_use() COMPILER2_PRESENT(|| StressRecompilation),
-      "redundant OSR recompilation detected. memory leak in CodeCache!");
+  if (TieredCompilation) {
+    nmethod* prev = lookup_osr_nmethod(n->method(), n->osr_entry_bci(), n->comp_level(), true);
+    assert(prev == NULL || !prev->is_in_use() COMPILER2_PRESENT(|| StressRecompilation),
+           "redundant OSR recompilation detected. memory leak in CodeCache!");
+  }
 #endif
   // only one compilation can be active
-  assert(n->is_osr_method(), "wrong kind of nmethod");
-  n->set_osr_link(osr_nmethods_head());
-  set_osr_nmethods_head(n);
-  // Raise the highest osr level if necessary
-  n->method()->set_highest_osr_comp_level(MAX2(n->method()->highest_osr_comp_level(), n->comp_level()));
+  {
+    assert(n->is_osr_method(), "wrong kind of nmethod");
+    n->set_osr_link(osr_nmethods_head());
+    set_osr_nmethods_head(n);
+    // Raise the highest osr level if necessary
+    if (TieredCompilation) {
+      Method* m = n->method();
+      m->set_highest_osr_comp_level(MAX2(m->highest_osr_comp_level(), n->comp_level()));
+    }
+  }
 
   // Get rid of the osr methods for the same bci that have lower levels.
-  for (int l = CompLevel_limited_profile; l < n->comp_level(); l++) {
-    nmethod *inv = lookup_osr_nmethod(n->method(), n->osr_entry_bci(), l, true);
-    if (inv != NULL && inv->is_in_use()) {
-      inv->make_not_entrant();
+  if (TieredCompilation) {
+    for (int l = CompLevel_limited_profile; l < n->comp_level(); l++) {
+      nmethod *inv = lookup_osr_nmethod(n->method(), n->osr_entry_bci(), l, true);
+      if (inv != NULL && inv->is_in_use()) {
+        inv->make_not_entrant();
+      }
     }
   }
 }
@@ -3256,7 +3244,7 @@ bool InstanceKlass::remove_osr_nmethod(nmethod* n) {
   // Search for match
   bool found = false;
   while(cur != NULL && cur != n) {
-    if (m == cur->method()) {
+    if (TieredCompilation && m == cur->method()) {
       // Find max level before n
       max_level = MAX2(max_level, cur->comp_level());
     }
@@ -3275,15 +3263,17 @@ bool InstanceKlass::remove_osr_nmethod(nmethod* n) {
     }
   }
   n->set_osr_link(NULL);
-  cur = next;
-  while (cur != NULL) {
-    // Find max level after n
-    if (m == cur->method()) {
-      max_level = MAX2(max_level, cur->comp_level());
+  if (TieredCompilation) {
+    cur = next;
+    while (cur != NULL) {
+      // Find max level after n
+      if (m == cur->method()) {
+        max_level = MAX2(max_level, cur->comp_level());
+      }
+      cur = cur->osr_link();
     }
-    cur = cur->osr_link();
+    m->set_highest_osr_comp_level(max_level);
   }
-  m->set_highest_osr_comp_level(max_level);
   return found;
 }
 
@@ -3325,7 +3315,7 @@ nmethod* InstanceKlass::lookup_osr_nmethod(const Method* m, int bci, int comp_le
         }
       } else {
         if (best == NULL || (osr->comp_level() > best->comp_level())) {
-          if (osr->comp_level() == CompilationPolicy::highest_compile_level()) {
+          if (osr->comp_level() == CompLevel_highest_tier) {
             // Found the best possible - return it.
             return osr;
           }
@@ -3523,7 +3513,7 @@ void FieldPrinter::do_field(fieldDescriptor* fd) {
 void InstanceKlass::oop_print_on(oop obj, outputStream* st) {
   Klass::oop_print_on(obj, st);
 
-  if (this == vmClasses::String_klass()) {
+  if (this == SystemDictionary::String_klass()) {
     typeArrayOop value  = java_lang_String::value(obj);
     juint        length = java_lang_String::length(obj);
     if (value != NULL &&
@@ -3540,7 +3530,7 @@ void InstanceKlass::oop_print_on(oop obj, outputStream* st) {
   FieldPrinter print_field(st, obj);
   do_nonstatic_fields(&print_field);
 
-  if (this == vmClasses::Class_klass()) {
+  if (this == SystemDictionary::Class_klass()) {
     st->print(BULLET"signature: ");
     java_lang_Class::print_signature(obj, st);
     st->cr();
@@ -3558,7 +3548,7 @@ void InstanceKlass::oop_print_on(oop obj, outputStream* st) {
     if (real_klass != NULL && real_klass->is_instance_klass()) {
       InstanceKlass::cast(real_klass)->do_local_static_fields(&print_field);
     }
-  } else if (this == vmClasses::MethodType_klass()) {
+  } else if (this == SystemDictionary::MethodType_klass()) {
     st->print(BULLET"signature: ");
     java_lang_invoke_MethodType::print_signature(obj, st);
     st->cr();
@@ -3577,7 +3567,7 @@ void InstanceKlass::oop_print_value_on(oop obj, outputStream* st) {
   st->print("a ");
   name()->print_value_on(st);
   obj->print_address_on(st);
-  if (this == vmClasses::String_klass()
+  if (this == SystemDictionary::String_klass()
       && java_lang_String::value(obj) != NULL) {
     ResourceMark rm;
     int len = java_lang_String::length(obj);
@@ -3586,7 +3576,7 @@ void InstanceKlass::oop_print_value_on(oop obj, outputStream* st) {
     st->print(" = \"%s\"", str);
     if (len > plen)
       st->print("...[%d]", len);
-  } else if (this == vmClasses::Class_klass()) {
+  } else if (this == SystemDictionary::Class_klass()) {
     Klass* k = java_lang_Class::as_Klass(obj);
     st->print(" = ");
     if (k != NULL) {
@@ -3595,19 +3585,19 @@ void InstanceKlass::oop_print_value_on(oop obj, outputStream* st) {
       const char* tname = type2name(java_lang_Class::primitive_type(obj));
       st->print("%s", tname ? tname : "type?");
     }
-  } else if (this == vmClasses::MethodType_klass()) {
+  } else if (this == SystemDictionary::MethodType_klass()) {
     st->print(" = ");
     java_lang_invoke_MethodType::print_signature(obj, st);
   } else if (java_lang_boxing_object::is_instance(obj)) {
     st->print(" = ");
     java_lang_boxing_object::print(obj, st);
-  } else if (this == vmClasses::LambdaForm_klass()) {
+  } else if (this == SystemDictionary::LambdaForm_klass()) {
     oop vmentry = java_lang_invoke_LambdaForm::vmentry(obj);
     if (vmentry != NULL) {
       st->print(" => ");
       vmentry->print_value_on(st);
     }
-  } else if (this == vmClasses::MemberName_klass()) {
+  } else if (this == SystemDictionary::MemberName_klass()) {
     Metadata* vmtarget = java_lang_invoke_MemberName::vmtarget(obj);
     if (vmtarget != NULL) {
       st->print(" = ");

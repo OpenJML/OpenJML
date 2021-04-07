@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -1137,79 +1137,79 @@ public class VarHandleTestAccessString extends VarHandleBaseTest {
         for (int i : new int[]{-1, Integer.MIN_VALUE, 10, 11, Integer.MAX_VALUE}) {
             final int ci = i;
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 String x = (String) vh.get(array, ci);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 vh.set(array, ci, "foo");
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 String x = (String) vh.getVolatile(array, ci);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 vh.setVolatile(array, ci, "foo");
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 String x = (String) vh.getAcquire(array, ci);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 vh.setRelease(array, ci, "foo");
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 String x = (String) vh.getOpaque(array, ci);
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 vh.setOpaque(array, ci, "foo");
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 boolean r = vh.compareAndSet(array, ci, "foo", "bar");
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 String r = (String) vh.compareAndExchange(array, ci, "bar", "foo");
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 String r = (String) vh.compareAndExchangeAcquire(array, ci, "bar", "foo");
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 String r = (String) vh.compareAndExchangeRelease(array, ci, "bar", "foo");
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 boolean r = vh.weakCompareAndSetPlain(array, ci, "foo", "bar");
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 boolean r = vh.weakCompareAndSet(array, ci, "foo", "bar");
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 boolean r = vh.weakCompareAndSetAcquire(array, ci, "foo", "bar");
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 boolean r = vh.weakCompareAndSetRelease(array, ci, "foo", "bar");
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 String o = (String) vh.getAndSet(array, ci, "foo");
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 String o = (String) vh.getAndSetAcquire(array, ci, "foo");
             });
 
-            checkAIOOBE(() -> {
+            checkIOOBE(() -> {
                 String o = (String) vh.getAndSetRelease(array, ci, "foo");
             });
 

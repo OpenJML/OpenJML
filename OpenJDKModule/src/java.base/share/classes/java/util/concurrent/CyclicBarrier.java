@@ -94,9 +94,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  *     // wait until done
  *     for (Thread thread : threads)
- *       try {
- *         thread.join();
- *       } catch (InterruptedException ex) { }
+ *       thread.join();
  *   }
  * }}</pre>
  *

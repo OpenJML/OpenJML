@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1995, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1995, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -31,7 +31,6 @@ import java.awt.peer.FramePeer;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Vector;
@@ -365,10 +364,9 @@ public class Frame extends Window implements MenuContainer {
     private static final String base = "frame";
     private static int nameCounter = 0;
 
-    /**
-     * Use serialVersionUID from JDK 1.1 for interoperability.
+    /*
+     * JDK 1.1 serialVersionUID
      */
-     @Serial
      private static final long serialVersionUID = 2673458971256075116L;
 
     static {
@@ -1189,7 +1187,6 @@ public class Frame extends Window implements MenuContainer {
      * @see #setIconImage(Image)
      * @see #readObject(ObjectInputStream)
      */
-    @Serial
     private void writeObject(ObjectOutputStream s)
       throws IOException
     {
@@ -1226,7 +1223,6 @@ public class Frame extends Window implements MenuContainer {
      * @see #setIconImage(Image)
      * @see #writeObject(ObjectOutputStream)
      */
-    @Serial
     private void readObject(ObjectInputStream s)
       throws ClassNotFoundException, IOException, HeadlessException
     {
@@ -1300,10 +1296,9 @@ public class Frame extends Window implements MenuContainer {
      */
     protected class AccessibleAWTFrame extends AccessibleAWTWindow
     {
-        /**
-         * Use serialVersionUID from JDK 1.3 for interoperability.
+        /*
+         * JDK 1.3 serialVersionUID
          */
-        @Serial
         private static final long serialVersionUID = -6172960752956030250L;
 
         /**

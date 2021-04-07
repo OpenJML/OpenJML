@@ -594,11 +594,12 @@ public class Introspector {
         PropertyDescriptor pd, gpd, spd;
         IndexedPropertyDescriptor ipd, igpd, ispd;
 
-        for (List<PropertyDescriptor> propertyDescriptors : pdStore.values()) {
+        Iterator<List<PropertyDescriptor>> it = pdStore.values().iterator();
+        while (it.hasNext()) {
             pd = null; gpd = null; spd = null;
             ipd = null; igpd = null; ispd = null;
 
-            list = propertyDescriptors;
+            list = it.next();
 
             // First pass. Find the latest getter method. Merge properties
             // of previous getter methods.

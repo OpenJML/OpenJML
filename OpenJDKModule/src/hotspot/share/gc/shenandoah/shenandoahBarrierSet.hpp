@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2021, Red Hat, Inc. All rights reserved.
+ * Copyright (c) 2013, 2020, Red Hat, Inc. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,15 +25,16 @@
 #ifndef SHARE_GC_SHENANDOAH_SHENANDOAHBARRIERSET_HPP
 #define SHARE_GC_SHENANDOAH_SHENANDOAHBARRIERSET_HPP
 
+#include "gc/shared/accessBarrierSupport.hpp"
 #include "gc/shared/barrierSet.hpp"
+#include "gc/shenandoah/shenandoahHeap.hpp"
 #include "gc/shenandoah/shenandoahSATBMarkQueueSet.hpp"
 
-class ShenandoahHeap;
 class ShenandoahBarrierSetAssembler;
 
 class ShenandoahBarrierSet: public BarrierSet {
 private:
-  ShenandoahHeap* const _heap;
+  ShenandoahHeap* _heap;
   BufferNode::Allocator _satb_mark_queue_buffer_allocator;
   ShenandoahSATBMarkQueueSet _satb_mark_queue_set;
 
@@ -71,6 +72,10 @@ public:
 
   void print_on(outputStream* st) const;
 
+  bool is_a(BarrierSet::Name bsn);
+
+  bool is_aligned(HeapWord* hw);
+
   template <class T>
   inline void arraycopy_barrier(T* src, T* dst, size_t count);
   inline void clone_barrier(oop src);
@@ -88,7 +93,7 @@ public:
   template <DecoratorSet decorators, typename T>
   inline void satb_barrier(T* field);
   inline void satb_enqueue(oop value);
-  inline void iu_barrier(oop obj);
+  inline void storeval_barrier(oop obj);
 
   template <DecoratorSet decorators>
   inline void keep_alive_if_weak(oop value);
@@ -154,11 +159,11 @@ public:
     // Clone barrier support
     static void clone_in_heap(oop src, oop dst, size_t size);
 
-    // Support for concurrent roots evacuation, updating and weak roots clearing
+    // Needed for loads on non-heap weak references
     template <typename T>
     static oop oop_load_not_in_heap(T* addr);
 
-    // Support for concurrent roots marking
+    // Used for catching bad stores
     template <typename T>
     static void oop_store_not_in_heap(T* addr, oop value);
 

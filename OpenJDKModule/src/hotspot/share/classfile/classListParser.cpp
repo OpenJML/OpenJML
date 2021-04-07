@@ -32,7 +32,6 @@
 #include "classfile/symbolTable.hpp"
 #include "classfile/systemDictionary.hpp"
 #include "classfile/systemDictionaryShared.hpp"
-#include "classfile/vmClasses.hpp"
 #include "classfile/vmSymbols.hpp"
 #include "interpreter/bytecode.hpp"
 #include "interpreter/bytecodeStream.hpp"
@@ -565,7 +564,7 @@ Klass* ClassListParser::load_current_class(TRAPS) {
 
       JavaCalls::call_virtual(&result,
                               loader, //SystemDictionary::java_system_loader(),
-                              vmClasses::ClassLoader_klass(),
+                              SystemDictionary::ClassLoader_klass(),
                               vmSymbols::loadClass_name(),
                               vmSymbols::string_class_signature(),
                               ext_class_name,

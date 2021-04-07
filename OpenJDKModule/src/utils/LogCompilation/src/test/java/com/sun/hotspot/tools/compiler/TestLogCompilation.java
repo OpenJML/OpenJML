@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,7 +25,6 @@ package com.sun.hotspot.tools.compiler;
 
 import java.util.Arrays;
 import java.util.Collection;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -126,29 +125,13 @@ public class TestLogCompilation {
         this.logFile = logFile;
     }
 
-    void doItOrFail(String[] args) {
-        try {
-            LogCompilation.main(args);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            Assert.fail(e.getMessage());
-        }
-    }
-
-    @Test
-    public void testDefault() throws Exception {
-        String[] args = {
-            logFile
-        };
-        doItOrFail(args);
-    }
-
     @Test
     public void testDashi() throws Exception {
         String[] args = {"-i",
             logFile
         };
-        doItOrFail(args);
+
+        LogCompilation.main(args);
     }
 
     @Test
@@ -157,7 +140,17 @@ public class TestLogCompilation {
             "-t",
             logFile
         };
-        doItOrFail(args);
+
+        LogCompilation.main(args);
+    }
+
+    @Test
+    public void testDefault() throws Exception {
+        String[] args = {
+            logFile
+        };
+
+        LogCompilation.main(args);
     }
 
     @Test
@@ -165,7 +158,8 @@ public class TestLogCompilation {
         String[] args = {"-S",
             logFile
         };
-        doItOrFail(args);
+
+        LogCompilation.main(args);
     }
 
     @Test
@@ -173,7 +167,8 @@ public class TestLogCompilation {
         String[] args = {"-U",
             logFile
         };
-        doItOrFail(args);
+
+        LogCompilation.main(args);
     }
 
     @Test
@@ -181,7 +176,8 @@ public class TestLogCompilation {
         String[] args = {"-e",
             logFile
         };
-        doItOrFail(args);
+
+        LogCompilation.main(args);
     }
 
     @Test
@@ -189,7 +185,8 @@ public class TestLogCompilation {
         String[] args = {"-n",
             logFile
         };
-        doItOrFail(args);
+
+        LogCompilation.main(args);
     }
 
     @Test
@@ -197,6 +194,7 @@ public class TestLogCompilation {
         String[] args = {"-z",
             logFile
         };
-        doItOrFail(args);
+
+        LogCompilation.main(args);
     }
 }

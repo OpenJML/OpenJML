@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2008, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,7 +26,6 @@
 package java.awt.event;
 
 import java.awt.AWTEvent;
-import java.io.Serial;
 
 /**
  * A semantic event which indicates that an object's text changed.
@@ -69,10 +68,9 @@ public class TextEvent extends AWTEvent {
      */
     public static final int TEXT_VALUE_CHANGED  = TEXT_FIRST;
 
-    /**
-     * Use serialVersionUID from JDK 1.1 for interoperability.
+    /*
+     * JDK 1.1 serialVersionUID
      */
-    @Serial
     private static final long serialVersionUID = 6269902291250941179L;
 
     /**

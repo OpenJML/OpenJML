@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -84,6 +84,7 @@ public:
 // If the archive ends up being mapped at a different address (e.g. 0x810000000), SharedDataRelocator
 // is used to shift each marked pointer by a delta (0x10000000 in this example), so that it points to
 // the actually mapped location of the target object.
+template <bool COMPACTING>
 class SharedDataRelocator: public BitMapClosure {
   // for all (address** p), where (is_marked(p) && _patch_base <= p && p < _patch_end) { *p += delta; }
 
@@ -102,10 +103,17 @@ class SharedDataRelocator: public BitMapClosure {
   // How much to relocate for each pointer.
   intx _delta;
 
+  // The following fields are used only when COMPACTING == true;
+  // The highest offset (inclusive) in the bitmap that contains a non-null pointer.
+  // This is used at dump time to reduce the size of the bitmap (which may have been over-allocated).
+  size_t _max_non_null_offset;
+  CHeapBitMap* _ptrmap;
+
  public:
   SharedDataRelocator(address* patch_base, address* patch_end,
                       address valid_old_base, address valid_old_end,
-                      address valid_new_base, address valid_new_end, intx delta) :
+                      address valid_new_base, address valid_new_end, intx delta,
+                      CHeapBitMap* ptrmap = NULL) :
     _patch_base(patch_base), _patch_end(patch_end),
     _valid_old_base(valid_old_base), _valid_old_end(valid_old_end),
     _valid_new_base(valid_new_base), _valid_new_end(valid_new_end),
@@ -116,9 +124,23 @@ class SharedDataRelocator: public BitMapClosure {
     log_debug(cds, reloc)("SharedDataRelocator::_valid_old_end  = " PTR_FORMAT, p2i(_valid_old_end));
     log_debug(cds, reloc)("SharedDataRelocator::_valid_new_base = " PTR_FORMAT, p2i(_valid_new_base));
     log_debug(cds, reloc)("SharedDataRelocator::_valid_new_end  = " PTR_FORMAT, p2i(_valid_new_end));
+    if (COMPACTING) {
+      assert(ptrmap != NULL, "must be");
+      _max_non_null_offset = 0;
+      _ptrmap = ptrmap;
+    } else {
+      // Don't touch the _max_non_null_offset and _ptrmap fields. Hopefully a good C++ compiler can
+      // elide them.
+      assert(ptrmap == NULL, "must be");
+    }
   }
 
-  bool do_bit(size_t offset);
+  size_t max_non_null_offset() {
+    assert(COMPACTING, "must be");
+    return _max_non_null_offset;
+  }
+
+  inline bool do_bit(size_t offset);
 };
 
 class DumpRegion {

@@ -68,7 +68,7 @@ public class JhsdbThreadInfoTest {
             out.shouldNotContain(" prio=0 ");
             out.shouldNotContain("   java.lang.Thread.State: UNKNOWN");
 
-            out.stderrShouldBeEmptyIgnoreDeprecatedWarnings();
+            out.stderrShouldBeEmptyIgnoreVMWarnings();
 
             System.out.println("Test Completed");
         } catch (Exception ex) {

@@ -108,6 +108,12 @@ public class AVA implements DerEncoder {
     private static final String specialCharsDefault = ",=\n+<>#;\\\" ";
     private static final String escapedDefault = ",+<>;\"";
 
+    /*
+     * Values that aren't printable strings are emitted as BER-encoded
+     * hex data.
+     */
+    private static final String hexDigits = "0123456789ABCDEF";
+
     public AVA(ObjectIdentifier type, DerValue val) {
         if ((type == null) || (val == null)) {
             throw new NullPointerException();
@@ -251,7 +257,7 @@ public class AVA implements DerEncoder {
 
     private static DerValue parseHexString
         (Reader in, int format) throws IOException {
-        HexFormat hex = HexFormat.of();
+
         int c;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte b = 0;
@@ -262,18 +268,21 @@ public class AVA implements DerEncoder {
             if (isTerminator(c, format)) {
                 break;
             }
-            try {
-                int cVal = hex.fromHexDigit(c);     // throws on invalid character
-                if ((cNdx % 2) == 1) {
-                    b = (byte)((b * 16) + (byte)(cVal));
-                    baos.write(b);
-                } else {
-                    b = (byte)(cVal);
-                }
-                cNdx++;
-            } catch (NumberFormatException nfe) {
-                throw new IOException("AVA parse, invalid hex digit: "+ (char)c);
+
+            int cVal = hexDigits.indexOf(Character.toUpperCase((char)c));
+
+            if (cVal == -1) {
+                throw new IOException("AVA parse, invalid hex " +
+                                              "digit: "+ (char)c);
             }
+
+            if ((cNdx % 2) == 1) {
+                b = (byte)((b * 16) + (byte)(cVal));
+                baos.write(b);
+            } else {
+                b = (byte)(cVal);
+            }
+            cNdx++;
         }
 
         // throw exception if no hex digits
@@ -502,14 +511,13 @@ public class AVA implements DerEncoder {
     private static Byte getEmbeddedHexPair(int c1, Reader in)
         throws IOException {
 
-        HexFormat hex = HexFormat.of();
-        if (hex.isHexDigit(c1)) {
+        if (hexDigits.indexOf(Character.toUpperCase((char)c1)) >= 0) {
             int c2 = readChar(in, "unexpected EOF - " +
                         "escaped hex value must include two valid digits");
 
-            if (hex.isHexDigit(c2)) {
-                int hi = hex.fromHexDigit(c1);
-                int lo = hex.fromHexDigit(c2);
+            if (hexDigits.indexOf(Character.toUpperCase((char)c2)) >= 0) {
+                int hi = Character.digit((char)c1, 16);
+                int lo = Character.digit((char)c2, 16);
                 return (byte)((hi<<4) + lo);
             } else {
                 throw new IOException
@@ -729,7 +737,11 @@ public class AVA implements DerEncoder {
                 throw new IllegalArgumentException("DER Value conversion");
             }
             typeAndValue.append('#');
-            HexFormat.of().formatHex(typeAndValue, data);
+            for (int j = 0; j < data.length; j++) {
+                byte b = data[j];
+                typeAndValue.append(Character.forDigit(0xF & (b >>> 4), 16));
+                typeAndValue.append(Character.forDigit(0xF & b, 16));
+            }
         } else {
             /*
              * 2.4 (cont): Otherwise, if the AttributeValue is of a type which
@@ -794,7 +806,15 @@ public class AVA implements DerEncoder {
                     // embed non-printable/non-escaped char
                     // as escaped hex pairs for debugging
                     byte[] valueBytes = Character.toString(c).getBytes(UTF_8);
-                    HexFormat.of().withPrefix("\\").withUpperCase().formatHex(sbuffer, valueBytes);
+                    for (int j = 0; j < valueBytes.length; j++) {
+                        sbuffer.append('\\');
+                        char hexChar = Character.forDigit
+                                (0xF & (valueBytes[j] >>> 4), 16);
+                        sbuffer.append(Character.toUpperCase(hexChar));
+                        hexChar = Character.forDigit
+                                (0xF & (valueBytes[j]), 16);
+                        sbuffer.append(Character.toUpperCase(hexChar));
+                    }
                 } else {
 
                     // append non-printable/non-escaped char
@@ -864,7 +884,11 @@ public class AVA implements DerEncoder {
                 throw new IllegalArgumentException("DER Value conversion");
             }
             typeAndValue.append('#');
-            HexFormat.of().formatHex(typeAndValue, data);
+            for (int j = 0; j < data.length; j++) {
+                byte b = data[j];
+                typeAndValue.append(Character.forDigit(0xF & (b >>> 4), 16));
+                typeAndValue.append(Character.forDigit(0xF & b, 16));
+            }
         } else {
             /*
              * 2.4 (cont): Otherwise, if the AttributeValue is of a type which
@@ -936,8 +960,15 @@ public class AVA implements DerEncoder {
                     // as escaped hex pairs for debugging
 
                     previousWhite = false;
+
                     byte[] valueBytes = Character.toString(c).getBytes(UTF_8);
-                    HexFormat.of().withPrefix("\\").withUpperCase().formatHex(sbuffer, valueBytes);
+                    for (int j = 0; j < valueBytes.length; j++) {
+                        sbuffer.append('\\');
+                        sbuffer.append(Character.forDigit
+                                        (0xF & (valueBytes[j] >>> 4), 16));
+                        sbuffer.append(Character.forDigit
+                                        (0xF & (valueBytes[j]), 16));
+                    }
                 } else {
 
                     // append non-printable/non-escaped char
@@ -1011,7 +1042,11 @@ public class AVA implements DerEncoder {
                 byte[] data = value.toByteArray();
 
                 retval.append('#');
-                HexFormat.of().formatHex(retval, data);
+                for (int i = 0; i < data.length; i++) {
+                    retval.append(hexDigits.charAt((data [i] >> 4) & 0x0f));
+                    retval.append(hexDigits.charAt(data [i] & 0x0f));
+                }
+
             } else {
 
                 boolean quoteNeeded = false;
@@ -1071,7 +1106,15 @@ public class AVA implements DerEncoder {
                         // embed escaped hex pairs
                         byte[] valueBytes =
                                 Character.toString(c).getBytes(UTF_8);
-                        HexFormat.of().withPrefix("\\").withUpperCase().formatHex(sbuffer, valueBytes);
+                        for (int j = 0; j < valueBytes.length; j++) {
+                            sbuffer.append('\\');
+                            char hexChar = Character.forDigit
+                                        (0xF & (valueBytes[j] >>> 4), 16);
+                            sbuffer.append(Character.toUpperCase(hexChar));
+                            hexChar = Character.forDigit
+                                        (0xF & (valueBytes[j]), 16);
+                            sbuffer.append(Character.toUpperCase(hexChar));
+                        }
                     } else {
 
                         // append non-printable/non-escaped char

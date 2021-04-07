@@ -1832,7 +1832,7 @@ import sun.util.locale.provider.ResourceBundleBasedAdapter;
  *
  * <p> The {@code '-'} flag defined for <a href="#dFlags">General
  * conversions</a> applies.  If any other flags are provided, then a
- * {@link IllegalFormatFlagsException } will be thrown.
+ * {@link FormatFlagsConversionMismatchException} will be thrown.
  *
  * <p> The precision is not applicable.  If the precision is specified an
  * {@link IllegalFormatPrecisionException} will be thrown.

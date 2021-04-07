@@ -29,6 +29,7 @@
 #import <objc/objc-auto.h>
 
 #include <Security/AuthSession.h>
+#import <JavaNativeFoundation/JavaNativeFoundation.h>
 #import "NSApplicationAWT.h"
 
 #include <sys/time.h>
@@ -225,7 +226,7 @@ SplashInitPlatform(Splash * splash) {
 
     // If we are running SWT we should not start a runLoop
     if (!isSWTRunning()) {
-        [ThreadUtilities performOnMainThreadWaiting:NO block:^() {
+        [JNFRunLoop performOnMainThreadWaiting:NO withBlock:^() {
             [NSApplicationAWT runAWTLoopWithApp:[NSApplicationAWT sharedApplication]];
         }];
     }
@@ -242,7 +243,7 @@ SplashDonePlatform(Splash * splash) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
     pthread_mutex_destroy(&splash->lock);
-    [ThreadUtilities performOnMainThreadWaiting:YES block:^(){
+    [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
         if (splash->window) {
             [splash->window orderOut:nil];
             [splash->window release];
@@ -281,7 +282,7 @@ void
 SplashRedrawWindow(Splash * splash) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-    [ThreadUtilities performOnMainThreadWaiting:YES block:^(){
+    [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
         // drop the reference to the old view and image
         [splash->window setContentView: nil];
         SplashUpdateScreenData(splash);
@@ -340,7 +341,7 @@ SplashRedrawWindow(Splash * splash) {
 void SplashReconfigureNow(Splash * splash) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-    [ThreadUtilities performOnMainThreadWaiting:YES block:^(){
+    [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
         SplashCenter(splash);
 
         if (!splash->window) {
@@ -429,7 +430,7 @@ SplashScreenThread(void *param) {
         fcntl(splash->controlpipe[0], F_GETFL, 0) | O_NONBLOCK);
     splash->time = SplashTime();
     splash->currentFrame = 0;
-    [ThreadUtilities performOnMainThreadWaiting:YES block:^(){
+    [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
         SplashCenter(splash);
 
         splash->window = (void*) [[NSWindow alloc]
@@ -444,7 +445,7 @@ SplashScreenThread(void *param) {
     }];
     fflush(stdout);
     if (splash->window) {
-        [ThreadUtilities performOnMainThreadWaiting:YES block:^(){
+        [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
             [splash->window orderFrontRegardless];
         }];
         SplashRedrawWindow(splash);

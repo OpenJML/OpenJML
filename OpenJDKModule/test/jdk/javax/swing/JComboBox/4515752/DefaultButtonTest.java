@@ -59,7 +59,6 @@ public class DefaultButtonTest extends JFrame implements ActionListener {
         getContentPane().add(new DefaultPanel(this));
         pack();
         setVisible(true);
-        setLocationRelativeTo(null);
     }
 
     public static void test() {
@@ -109,12 +108,16 @@ public class DefaultButtonTest extends JFrame implements ActionListener {
             // Change value, changing focus should fire an ActionEvent.
             robot.waitForIdle();
             robot.keyPress(KeyEvent.VK_BACK_SPACE);
+            robot.waitForIdle();
             robot.keyRelease(KeyEvent.VK_BACK_SPACE);
             robot.waitForIdle();
             robot.keyPress(KeyEvent.VK_SHIFT);
+            robot.waitForIdle();
             robot.keyPress(KeyEvent.VK_TAB);
-            robot.keyRelease(KeyEvent.VK_TAB);
+            robot.waitForIdle();
             robot.keyRelease(KeyEvent.VK_SHIFT);
+            robot.waitForIdle();
+            robot.keyRelease(KeyEvent.VK_TAB);
             robot.waitForIdle();
             testEditChange(true);
             robot.waitForIdle();

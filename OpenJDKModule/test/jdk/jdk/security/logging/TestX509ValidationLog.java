@@ -43,19 +43,14 @@ public class TestX509ValidationLog {
         l.addExpected("FINE: ValidationChain: " +
                 TestCertificate.ROOT_CA.certId + ", " +
                 TestCertificate.ROOT_CA.certId);
-        l.addExpected("FINE: ValidationChain: " +
-                TestCertificate.ROOT_CA.certificate().getPublicKey().hashCode() +
-                ", " + TestCertificate.ROOT_CA.certId);
         l.testExpected();
     }
 
     public static class GenerateCertificateChain {
         public static void main(String[] args) throws Exception {
-            TestCertificate.generateChain(false, true);
+            TestCertificate.generateChain(false);
             // self signed test
-            TestCertificate.generateChain(true, true);
-            // no cert for trust anchor
-            TestCertificate.generateChain(true, false);
+            TestCertificate.generateChain(true);
         }
     }
 }

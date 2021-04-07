@@ -803,7 +803,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             "PasswordField.font", new FontLazyValue(Region.PASSWORD_FIELD),
 
 
-            "PopupMenu.consumeEventOnClose", Boolean.FALSE,
+            "PopupMenu.consumeEventOnClose", Boolean.TRUE,
             "PopupMenu.selectedWindowInputMapBindings", new Object[] {
                   "ESCAPE", "cancel",
                     "DOWN", "selectNext",

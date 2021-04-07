@@ -28,13 +28,12 @@
 #include "classfile/stringTable.hpp"
 #include "gc/shared/oopStorage.inline.hpp"
 #include "gc/shared/oopStorageParState.inline.hpp"
-#include "gc/shared/oopStorageSet.hpp"
 #include "gc/shared/weakProcessor.hpp"
-#include "gc/shared/weakProcessorTimes.hpp"
+#include "gc/shared/weakProcessorPhases.hpp"
+#include "gc/shared/weakProcessorPhaseTimes.hpp"
 #include "gc/shared/workgroup.hpp"
 #include "prims/resolvedMethodTable.hpp"
 #include "utilities/debug.hpp"
-#include "utilities/enumIterator.hpp"
 
 class BoolObjectClosure;
 class OopClosure;
@@ -82,15 +81,17 @@ void WeakProcessor::Task::work(uint worker_id,
          "worker_id (%u) exceeds task's configured workers (%u)",
          worker_id, _nworkers);
 
-  for (auto id : EnumRange<OopStorageSet::WeakId>()) {
+  typedef WeakProcessorPhases::Iterator Iterator;
+
+  for (Iterator it = WeakProcessorPhases::oopstorage_iterator(); !it.is_end(); ++it) {
+    WeakProcessorPhase phase = *it;
     CountingClosure<IsAlive, KeepAlive> cl(is_alive, keep_alive);
-    WeakProcessorParTimeTracker pt(_times, id, worker_id);
-    StorageState* cur_state = _storage_states.par_state(id);
-    assert(cur_state->storage() == OopStorageSet::storage(id), "invariant");
+    WeakProcessorPhaseTimeTracker pt(_phase_times, phase, worker_id);
+    StorageState* cur_state = _storage_states.par_state(phase);
     cur_state->oops_do(&cl);
     cur_state->increment_num_dead(cl.dead());
-    if (_times != NULL) {
-      _times->record_worker_items(worker_id, id, cl.new_dead(), cl.total());
+    if (_phase_times != NULL) {
+      _phase_times->record_worker_items(worker_id, phase, cl.new_dead(), cl.total());
     }
   }
 }
@@ -113,10 +114,10 @@ public:
   GangTask(const char* name,
            IsAlive* is_alive,
            KeepAlive* keep_alive,
-           WeakProcessorTimes* times,
+           WeakProcessorPhaseTimes* phase_times,
            uint nworkers) :
     AbstractGangTask(name),
-    _task(times, nworkers),
+    _task(phase_times, nworkers),
     _is_alive(is_alive),
     _keep_alive(keep_alive),
     _erased_do_work(&erased_do_work<IsAlive, KeepAlive>)
@@ -130,13 +131,13 @@ template<typename IsAlive, typename KeepAlive>
 void WeakProcessor::weak_oops_do(WorkGang* workers,
                                  IsAlive* is_alive,
                                  KeepAlive* keep_alive,
-                                 WeakProcessorTimes* times) {
-  WeakProcessorTimeTracker tt(times);
+                                 WeakProcessorPhaseTimes* phase_times) {
+  WeakProcessorTimeTracker tt(phase_times);
 
   uint nworkers = ergo_workers(MIN2(workers->total_workers(),
-                                    times->max_threads()));
+                                    phase_times->max_threads()));
 
-  GangTask task("Weak Processor", is_alive, keep_alive, times, nworkers);
+  GangTask task("Weak Processor", is_alive, keep_alive, phase_times, nworkers);
   workers->run_task(&task, nworkers);
   task.report_num_dead();
 }
@@ -147,9 +148,9 @@ void WeakProcessor::weak_oops_do(WorkGang* workers,
                                  KeepAlive* keep_alive,
                                  uint indent_log) {
   uint nworkers = ergo_workers(workers->total_workers());
-  WeakProcessorTimes times(nworkers);
-  weak_oops_do(workers, is_alive, keep_alive, &times);
-  times.log_subtotals(indent_log); // Caller logs total if desired.
+  WeakProcessorPhaseTimes pt(nworkers);
+  weak_oops_do(workers, is_alive, keep_alive, &pt);
+  pt.log_print_phases(indent_log);
 }
 
 #endif // SHARE_GC_SHARED_WEAKPROCESSOR_INLINE_HPP

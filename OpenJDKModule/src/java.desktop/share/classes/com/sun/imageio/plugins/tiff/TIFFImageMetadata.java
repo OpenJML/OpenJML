@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -864,7 +864,11 @@ public class TIFFImageMetadata extends IIOMetadata {
                             int mapSize = maxIndex + 1;
                             int paletteLength = 3*mapSize;
                             char[] paletteEntries = new char[paletteLength];
-                            for (Map.Entry<Integer,char[]> paletteEntry : palette.entrySet()) {
+                            Iterator<Map.Entry<Integer,char[]>> paletteIter
+                                = palette.entrySet().iterator();
+                            while(paletteIter.hasNext()) {
+                                Map.Entry<Integer,char[]> paletteEntry
+                                    = paletteIter.next();
                                 int index = paletteEntry.getKey();
                                 char[] rgb = paletteEntry.getValue();
                                 paletteEntries[index] =
@@ -1537,7 +1541,9 @@ public class TIFFImageMetadata extends IIOMetadata {
                 int number = Integer.parseInt(getAttribute(node, "number"));
 
                 TIFFTagSet tagSet = null;
-                for (TIFFTagSet t : tagSets) {
+                Iterator<TIFFTagSet> iter = tagSets.iterator();
+                while (iter.hasNext()) {
+                    TIFFTagSet t = iter.next();
                     if (t.getTag(number) != null) {
                         tagSet = t;
                         break;
@@ -1571,7 +1577,9 @@ public class TIFFImageMetadata extends IIOMetadata {
         TIFFIFD ifd = parseIFD(node);
 
         List<TIFFTagSet> rootIFDTagSets = rootIFD.getTagSetList();
-        for (Object o : ifd.getTagSetList()) {
+        Iterator<TIFFTagSet> tagSetIter = ifd.getTagSetList().iterator();
+        while(tagSetIter.hasNext()) {
+            Object o = tagSetIter.next();
             if(o instanceof TIFFTagSet && !rootIFDTagSets.contains(o)) {
                 rootIFD.addTagSet((TIFFTagSet)o);
             }

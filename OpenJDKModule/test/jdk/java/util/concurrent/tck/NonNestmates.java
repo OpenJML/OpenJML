@@ -70,12 +70,12 @@ class NonNestmates {
     }
 
     public void checkPackageAccess(AtomicReferenceFieldUpdaterTest obj) {
-        Item one = new Item(1);
-        Item two = new Item(2);
+        Integer one = new Integer(1);
+        Integer two = new Integer(2);
         obj.x = one;
-        AtomicReferenceFieldUpdater<AtomicReferenceFieldUpdaterTest,Item> a =
+        AtomicReferenceFieldUpdater<AtomicReferenceFieldUpdaterTest,Integer> a =
             AtomicReferenceFieldUpdater.newUpdater(
-                AtomicReferenceFieldUpdaterTest.class, Item.class, "x");
+                AtomicReferenceFieldUpdaterTest.class, Integer.class, "x");
         assertSame(one, a.get(obj));
         assertTrue(a.compareAndSet(obj, one, two));
         assertSame(two, a.get(obj));
@@ -189,17 +189,17 @@ class NonNestmates {
         }
 
         public void checkCompareAndSetProtectedSub() {
-            AtomicReferenceFieldUpdater<AtomicReferenceFieldUpdaterTest,Item> a =
+            AtomicReferenceFieldUpdater<AtomicReferenceFieldUpdaterTest,Integer> a =
                 AtomicReferenceFieldUpdater.newUpdater(
                     AtomicReferenceFieldUpdaterTest.class,
-                    Item.class, "protectedField");
+                    Integer.class, "protectedField");
             this.protectedField = one;
             assertTrue(a.compareAndSet(this, one, two));
-            assertTrue(a.compareAndSet(this, two, minusFour));
-            assertSame(minusFour, a.get(this));
-            assertFalse(a.compareAndSet(this, minusFive, seven));
+            assertTrue(a.compareAndSet(this, two, m4));
+            assertSame(m4, a.get(this));
+            assertFalse(a.compareAndSet(this, m5, seven));
             assertNotSame(seven, a.get(this));
-            assertTrue(a.compareAndSet(this, minusFour, seven));
+            assertTrue(a.compareAndSet(this, m4, seven));
             assertSame(seven, a.get(this));
         }
     }

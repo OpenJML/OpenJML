@@ -11,5 +11,5 @@
         final int INVOC_COUNT = count;
 #end[double]
 [[KERNEL]]
-        assertArraysEquals(r, a, b, c, mask, $vectorteststype$::[[TEST]]);
+        assertArraysEquals(a, b, c, r, mask, $vectorteststype$::[[TEST]]);
     }

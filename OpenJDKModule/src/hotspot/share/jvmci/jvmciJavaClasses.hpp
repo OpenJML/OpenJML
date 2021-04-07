@@ -27,6 +27,7 @@
 #include "classfile/vmSymbols.hpp"
 #include "jvmci/jvmciExceptions.hpp"
 #include "jvmci/jvmciObject.hpp"
+#include "runtime/jniHandles.hpp"
 
 /*
  * This macro defines the structure of the JVMCI classes accessed from VM code.  It is used to

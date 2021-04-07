@@ -35,6 +35,8 @@
 #import "sun_lwawt_macosx_CPrinterSurfaceData.h"
 #import "ImageSurfaceData.h"
 
+#import <JavaNativeFoundation/JavaNativeFoundation.h>
+
 #import <AppKit/AppKit.h>
 #import "ThreadUtilities.h"
 
@@ -46,12 +48,6 @@
 #endif
 
 #define kOffset (0.5f)
-
-#define JNI_COCOA_THROW_OOME(env, msg) \
-    if ([NSThread isMainThread] == NO) { \
-         JNU_ThrowOutOfMemoryError(env, msg); \
-    } \
-    [NSException raise:@"Java Exception" reason:@"Java OutOfMemoryException" userInfo:nil]
 
 BOOL gAdjustForJavaDrawing;
 
@@ -918,7 +914,7 @@ void setupGradient(JNIEnv *env, QuartzSDOps* qsdo, jfloat* javaFloatGraphicsStat
     qsdo->gradientInfo = (StateGradientInfo*)malloc(sizeof(StateGradientInfo));
     if (qsdo->gradientInfo == NULL)
     {
-        JNI_COCOA_THROW_OOME(env, "Failed to malloc memory for gradient paint");
+        [JNFException raise:env as:kOutOfMemoryError reason:"Failed to malloc memory for gradient paint"];
     }
 
     qsdo->graphicsStateInfo.simpleStroke = NO;
@@ -1019,7 +1015,7 @@ SDRenderType SetUpPaint(JNIEnv *env, QuartzSDOps *qsdo, SDRenderType renderType)
             qsdo->shadingInfo = (StateShadingInfo*)malloc(sizeof(StateShadingInfo));
             if (qsdo->shadingInfo == NULL)
             {
-                JNI_COCOA_THROW_OOME(env, "Failed to malloc memory for gradient paint");
+                [JNFException raise:env as:kOutOfMemoryError reason:"Failed to malloc memory for gradient paint"];
             }
 
             qsdo->graphicsStateInfo.simpleStroke = NO;
@@ -1065,7 +1061,7 @@ SDRenderType SetUpPaint(JNIEnv *env, QuartzSDOps *qsdo, SDRenderType renderType)
             qsdo->patternInfo = (StatePatternInfo*)malloc(sizeof(StatePatternInfo));
             if (qsdo->patternInfo == NULL)
             {
-                JNI_COCOA_THROW_OOME(env, "Failed to malloc memory for texture paint");
+                [JNFException raise:env as:kOutOfMemoryError reason:"Failed to malloc memory for texture paint"];
             }
 
             qsdo->graphicsStateInfo.simpleStroke = NO;

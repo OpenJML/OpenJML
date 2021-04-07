@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1995, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1995, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.Serial;
 import java.lang.ref.SoftReference;
 import java.nio.file.Files;
 import java.security.AccessController;
@@ -470,10 +469,9 @@ public class Font implements java.io.Serializable
      */
     private static final AffineTransform identityTx = new AffineTransform();
 
-    /**
-     * Use serialVersionUID from JDK 1.1 for interoperability.
+    /*
+     * JDK 1.1 serialVersionUID
      */
-    @Serial
     private static final long serialVersionUID = -4206021311591459213L;
 
     /**
@@ -1918,7 +1916,6 @@ public class Font implements java.io.Serializable
      * @see AWTEventMulticaster#save(ObjectOutputStream, String, EventListener)
      * @see #readObject(java.io.ObjectInputStream)
      */
-    @Serial
     private void writeObject(java.io.ObjectOutputStream s)
       throws java.io.IOException
     {
@@ -1945,7 +1942,6 @@ public class Font implements java.io.Serializable
      * @serial
      * @see #writeObject(java.io.ObjectOutputStream)
      */
-    @Serial
     private void readObject(java.io.ObjectInputStream s)
       throws java.lang.ClassNotFoundException,
              java.io.IOException

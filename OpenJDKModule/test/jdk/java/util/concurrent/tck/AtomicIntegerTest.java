@@ -127,7 +127,6 @@ public class AtomicIntegerTest extends JSR166TestCase {
      * repeated weakCompareAndSet succeeds in changing value when equal
      * to expected
      */
-    @SuppressWarnings("deprecation")
     public void testWeakCompareAndSet() {
         AtomicInteger ai = new AtomicInteger(1);
         do {} while (!ai.weakCompareAndSet(1, 2));

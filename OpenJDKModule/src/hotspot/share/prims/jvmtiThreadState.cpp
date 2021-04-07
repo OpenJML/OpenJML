@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -282,14 +282,9 @@ int JvmtiThreadState::cur_stack_depth() {
   if (!is_interp_only_mode() || _cur_stack_depth == UNKNOWN_STACK_DEPTH) {
     _cur_stack_depth = count_frames();
   } else {
-#ifdef ASSERT
-    if (EnableJVMTIStackDepthAsserts) {
-      // heavy weight assert
-      jint num_frames = count_frames();
-      assert(_cur_stack_depth == num_frames, "cur_stack_depth out of sync _cur_stack_depth: %d num_frames: %d",
-             _cur_stack_depth, num_frames);
-    }
-#endif
+    // heavy weight assert
+    assert(_cur_stack_depth == count_frames(),
+           "cur_stack_depth out of sync");
   }
   return _cur_stack_depth;
 }

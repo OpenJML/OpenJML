@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -47,7 +47,6 @@ import com.sun.source.doctree.SeeTree;
 import com.sun.source.doctree.SystemPropertyTree;
 import com.sun.source.doctree.ThrowsTree;
 import jdk.javadoc.internal.doclets.formats.html.markup.ContentBuilder;
-import jdk.javadoc.internal.doclets.formats.html.markup.HtmlId;
 import jdk.javadoc.internal.doclets.formats.html.markup.HtmlStyle;
 import jdk.javadoc.internal.doclets.formats.html.markup.HtmlTree;
 import jdk.javadoc.internal.doclets.formats.html.markup.RawHtml;
@@ -86,26 +85,10 @@ public class TagletWriterImpl extends TagletWriter {
     private final Resources resources;
     private final Contents contents;
 
-    /**
-     * Creates a taglet writer.
-     *
-     * @param htmlWriter      the {@code HtmlDocletWriter} for the page
-     * @param isFirstSentence {@code true} if this taglet writer is being used for a
-     *                        "first sentence" summary
-     */
     public TagletWriterImpl(HtmlDocletWriter htmlWriter, boolean isFirstSentence) {
         this(htmlWriter, isFirstSentence, false);
     }
 
-    /**
-     * Creates a taglet writer.
-     *
-     * @param htmlWriter      the {@code HtmlDocletWriter} for the page
-     * @param isFirstSentence {@code true} if this taglet writer is being used for a
-     *                        "first sentence" summary, and {@code false} otherwise
-     * @param inSummary       {@code true} if this taglet writer is being used for the content
-     *                        of a {@code {@summary ...}} tag, and {@code false} otherwise
-     */
     public TagletWriterImpl(HtmlDocletWriter htmlWriter, boolean isFirstSentence, boolean inSummary) {
         super(isFirstSentence);
         this.htmlWriter = htmlWriter;
@@ -219,7 +202,7 @@ public class TagletWriterImpl extends TagletWriter {
         boolean defineID = (element.getKind() == ElementKind.RECORD)
                 && !paramTag.isTypeParameter();
         Content nameTree = new StringContent(paramName);
-        body.add(HtmlTree.CODE(defineID ? HtmlTree.SPAN_ID(HtmlIds.forParam(paramName), nameTree) : nameTree));
+        body.add(HtmlTree.CODE(defineID ? HtmlTree.SPAN_ID("param-" + paramName, nameTree) : nameTree));
         body.add(" - ");
         List<? extends DocTree> description = ch.getDescription(paramTag);
         body.add(htmlWriter.commentTagsToContent(paramTag, element, description, false, inSummary));
@@ -319,14 +302,14 @@ public class TagletWriterImpl extends TagletWriter {
         Element exception = ch.getException(throwsTag);
         Content excName;
         if (substituteType != null) {
-           excName = htmlWriter.getLink(new HtmlLinkInfo(configuration, HtmlLinkInfo.Kind.MEMBER,
+           excName = htmlWriter.getLink(new LinkInfoImpl(configuration, LinkInfoImpl.Kind.MEMBER,
                    substituteType));
         } else if (exception == null) {
             excName = new RawHtml(ch.getExceptionName(throwsTag).toString());
         } else if (exception.asType() == null) {
             excName = new RawHtml(utils.getFullyQualifiedName(exception));
         } else {
-            HtmlLinkInfo link = new HtmlLinkInfo(configuration, HtmlLinkInfo.Kind.MEMBER,
+            LinkInfoImpl link = new LinkInfoImpl(configuration, LinkInfoImpl.Kind.MEMBER,
                                                  exception.asType());
             link.excludeTypeBounds = true;
             excName = htmlWriter.getLink(link);
@@ -345,14 +328,14 @@ public class TagletWriterImpl extends TagletWriter {
     @Override
     public Content throwsTagOutput(TypeMirror throwsType) {
         HtmlTree result = HtmlTree.DD(HtmlTree.CODE(htmlWriter.getLink(
-                new HtmlLinkInfo(configuration, HtmlLinkInfo.Kind.MEMBER, throwsType))));
+                new LinkInfoImpl(configuration, LinkInfoImpl.Kind.MEMBER, throwsType))));
         return result;
     }
 
     @Override
     public Content valueTagOutput(VariableElement field, String constantVal, boolean includeLink) {
         return includeLink
-                ? htmlWriter.getDocLink(HtmlLinkInfo.Kind.VALUE_TAG, field, constantVal)
+                ? htmlWriter.getDocLink(LinkInfoImpl.Kind.VALUE_TAG, field, constantVal, false)
                 : new StringContent(constantVal);
     }
 
@@ -392,8 +375,13 @@ public class TagletWriterImpl extends TagletWriter {
         if (isFirstSentence && inSummary) {
             result = new StringContent(tagText);
         } else {
-            HtmlId id = HtmlIds.forText(tagText, htmlWriter.indexAnchorTable);
-            result = HtmlTree.SPAN(id, HtmlStyle.searchTagResult, new StringContent(tagText));
+            String anchorName = htmlWriter.links.getName(tagText);
+            int count = htmlWriter.indexAnchorTable
+                    .compute(anchorName, (k, v) -> v == null ? 0 : v + 1);
+            if (count > 0) {
+                anchorName += "-" + count;
+            }
+            result = HtmlTree.SPAN(anchorName, HtmlStyle.searchTagResult, new StringContent(tagText));
             if (options.createIndex() && !tagText.isEmpty()) {
                 String holder = new SimpleElementVisitor14<String, Void>() {
 
@@ -447,7 +435,7 @@ public class TagletWriterImpl extends TagletWriter {
                     }
                 }.visit(element);
                 IndexItem item = IndexItem.of(element, tree, tagText, holder, desc,
-                        new DocLink(htmlWriter.path, id.name()));
+                        new DocLink(htmlWriter.path, anchorName));
                 configuration.mainIndex.add(item);
             }
         }

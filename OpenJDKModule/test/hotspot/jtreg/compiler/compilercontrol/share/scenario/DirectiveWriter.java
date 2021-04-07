@@ -192,8 +192,7 @@ public class DirectiveWriter implements AutoCloseable {
         PRINT_ASSEMBLY("PrintAssembly"),
         LOG("Log"),
         EXCLUDE("Exclude"),
-        ENABLE("Enable"),
-        INTRINSIC("ControlIntrinsic");
+        ENABLE("Enable");
 
         public final String string;
 

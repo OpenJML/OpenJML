@@ -94,12 +94,11 @@ public class JavaLexerTest {
             new TestTuple(DOUBLELITERAL, "0x8pd", "0x8pd"),
             new TestTuple(INTLITERAL,    "0xpd", "0x"),
 
-            new TestTuple(STRINGLITERAL, "\"\\u20\""),
-            new TestTuple(STRINGLITERAL, "\"\\u\""),
-            new TestTuple(STRINGLITERAL, "\"\\uG000\""),
-            new TestTuple(STRINGLITERAL, "\"\\u \""),
+            new TestTuple(ERROR,         "\"\\u20\""),
+            new TestTuple(ERROR,         "\"\\u\""),
+            new TestTuple(ERROR,         "\"\\uG000\""),
+            new TestTuple(ERROR,         "\"\\u \""),
             new TestTuple(ERROR,         "\"\\q\""),
-            new TestTuple(EOF,           "\\u", ""),
 
             new TestTuple(ERROR,         "\'\'"),
             new TestTuple(ERROR,         "\'\\q\'", "\'\\"),

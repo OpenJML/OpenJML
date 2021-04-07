@@ -28,11 +28,11 @@
 #import "CGLGraphicsConfig.h"
 #import "CGLSurfaceData.h"
 #import "ThreadUtilities.h"
-#import "JNIUtilities.h"
 
 #import <stdlib.h>
 #import <string.h>
 #import <ApplicationServices/ApplicationServices.h>
+#import <JavaNativeFoundation/JavaNativeFoundation.h>
 
 /**
  * Disposes all memory and resources associated with the given
@@ -120,9 +120,8 @@ Java_sun_java2d_opengl_CGLGraphicsConfig_getCGLConfigInfo
     (JNIEnv *env, jclass cglgc)
 {
     __block jlong ret = 0L;
-    JNI_COCOA_ENTER(env);
+    JNF_COCOA_ENTER(env);
     [ThreadUtilities performOnMainThreadWaiting:YES block:^(){
-
         JNIEnv *env = [ThreadUtilities getJNIEnvUncached];
 
         J2dRlsTraceLn(J2D_TRACE_INFO, "CGLGraphicsConfig_getCGLConfigInfo");
@@ -288,9 +287,8 @@ Java_sun_java2d_opengl_CGLGraphicsConfig_getCGLConfigInfo
         [NSOpenGLContext clearCurrentContext];
         ret = ptr_to_jlong(cglinfo);
         [pool drain];
-
     }];
-    JNI_COCOA_EXIT(env);
+    JNF_COCOA_EXIT(env);
     return ret;
 }
 

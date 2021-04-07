@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -46,7 +46,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamException;
 import java.io.OutputStream;
-import java.io.Serial;
 import java.io.Serializable;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -55,8 +54,10 @@ import java.util.StringTokenizer;
 import sun.java2d.cmm.CMSManager;
 import sun.java2d.cmm.PCMM;
 import sun.java2d.cmm.Profile;
+import sun.java2d.cmm.ProfileActivator;
 import sun.java2d.cmm.ProfileDataVerifier;
 import sun.java2d.cmm.ProfileDeferralInfo;
+import sun.java2d.cmm.ProfileDeferralMgr;
 
 /**
  * A representation of color profile data for device independent and device
@@ -88,37 +89,21 @@ public class ICC_Profile implements Serializable {
     /**
      * Use serialVersionUID from JDK 1.2 for interoperability.
      */
-    @Serial
     private static final long serialVersionUID = -3938515861990936766L;
 
-    private transient volatile Profile cmmProfile;
-    private transient volatile ProfileDeferralInfo deferralInfo;
+    private transient Profile cmmProfile;
 
-    /**
-     * The lazy registry of singleton profile objects for specific built-in
-     * color spaces defined in the ColorSpace class (e.g. CS_sRGB),
-     * see getInstance(int cspace) factory method.
-     */
-    private interface BuiltInProfile {
-        /*
-         * Deferral is only used for standard profiles. Enabling the appropriate
-         * access privileges is handled at a lower level.
-         */
-        ICC_Profile SRGB = new ICC_ProfileRGB(new ProfileDeferralInfo(
-               "sRGB.pf", ColorSpace.TYPE_RGB, 3, CLASS_DISPLAY));
+    private transient ProfileDeferralInfo deferralInfo;
+    private transient ProfileActivator profileActivator;
 
-        ICC_Profile LRGB = new ICC_ProfileRGB(new ProfileDeferralInfo(
-                "LINEAR_RGB.pf", ColorSpace.TYPE_RGB, 3, CLASS_DISPLAY));
-
-        ICC_Profile XYZ = new ICC_Profile(new ProfileDeferralInfo(
-               "CIEXYZ.pf", ColorSpace.TYPE_XYZ, 3, CLASS_ABSTRACT));
-
-        ICC_Profile PYCC = new ICC_Profile(new ProfileDeferralInfo(
-               "PYCC.pf", ColorSpace.TYPE_3CLR, 3, CLASS_COLORSPACECONVERSION));
-
-        ICC_Profile GRAY = new ICC_ProfileGray(new ProfileDeferralInfo(
-               "GRAY.pf", ColorSpace.TYPE_GRAY, 1, CLASS_DISPLAY));
-    }
+    // Registry of singleton profile objects for specific color spaces
+    // defined in the ColorSpace class (e.g. CS_sRGB), see
+    // getInstance(int cspace) factory method.
+    private static ICC_Profile sRGBprofile;
+    private static ICC_Profile XYZprofile;
+    private static ICC_Profile PYCCprofile;
+    private static ICC_Profile GRAYprofile;
+    private static ICC_Profile LINEAR_RGBprofile;
 
     /**
      * Profile class is input.
@@ -744,7 +729,7 @@ public class ICC_Profile implements Serializable {
      * Constructs an {@code ICC_Profile} object with a given ID.
      */
     ICC_Profile(Profile p) {
-        cmmProfile = p;
+        this.cmmProfile = p;
     }
 
     /**
@@ -752,7 +737,13 @@ public class ICC_Profile implements Serializable {
      * The ID will be 0 until the profile is loaded.
      */
     ICC_Profile(ProfileDeferralInfo pdi) {
-        deferralInfo = pdi;
+        this.deferralInfo = pdi;
+        this.profileActivator = new ProfileActivator() {
+            public void activate() throws ProfileDataException {
+                activateDeferredProfile();
+            }
+        };
+        ProfileDeferralMgr.registerDeferral(this.profileActivator);
     }
 
     /**
@@ -775,18 +766,21 @@ public class ICC_Profile implements Serializable {
 
     /**
      * Constructs an {@code ICC_Profile} object corresponding to the data in a
-     * byte array.
+     * byte array. Throws an {@code IllegalArgumentException} if the data does
+     * not correspond to a valid ICC Profile.
      *
      * @param  data the specified ICC Profile data
      * @return an {@code ICC_Profile} object corresponding to the data in the
      *         specified {@code data} array
-     * @throws IllegalArgumentException If the byte array does not contain valid
-     *         ICC Profile data
      */
     public static ICC_Profile getInstance(byte[] data) {
     ICC_Profile thisProfile;
 
         Profile p = null;
+
+        if (ProfileDeferralMgr.deferring) {
+            ProfileDeferralMgr.activateProfiles();
+        }
 
         ProfileDataVerifier.verify(data);
 
@@ -835,17 +829,109 @@ public class ICC_Profile implements Serializable {
      * @throws IllegalArgumentException If {@code cspace} is not one of the
      *         predefined color space types
      */
-    public static ICC_Profile getInstance(int cspace) {
-        return switch (cspace) {
-            case ColorSpace.CS_sRGB -> BuiltInProfile.SRGB;
-            case ColorSpace.CS_LINEAR_RGB -> BuiltInProfile.LRGB;
-            case ColorSpace.CS_CIEXYZ -> BuiltInProfile.XYZ;
-            case ColorSpace.CS_PYCC -> BuiltInProfile.PYCC;
-            case ColorSpace.CS_GRAY -> BuiltInProfile.GRAY;
-            default -> {
-                throw new IllegalArgumentException("Unknown color space");
+    public static ICC_Profile getInstance (int cspace) {
+        ICC_Profile thisProfile = null;
+        switch (cspace) {
+        case ColorSpace.CS_sRGB:
+            synchronized(ICC_Profile.class) {
+                if (sRGBprofile == null) {
+                    /*
+                     * Deferral is only used for standard profiles.
+                     * Enabling the appropriate access privileges is handled
+                     * at a lower level.
+                     */
+                    ProfileDeferralInfo pInfo =
+                        new ProfileDeferralInfo("sRGB.pf",
+                                                ColorSpace.TYPE_RGB, 3,
+                                                CLASS_DISPLAY);
+                    sRGBprofile = getDeferredInstance(pInfo);
+                }
+                thisProfile = sRGBprofile;
             }
-        };
+
+            break;
+
+        case ColorSpace.CS_CIEXYZ:
+            synchronized(ICC_Profile.class) {
+                if (XYZprofile == null) {
+                    ProfileDeferralInfo pInfo =
+                        new ProfileDeferralInfo("CIEXYZ.pf",
+                                                ColorSpace.TYPE_XYZ, 3,
+                                                CLASS_DISPLAY);
+                    XYZprofile = getDeferredInstance(pInfo);
+                }
+                thisProfile = XYZprofile;
+            }
+
+            break;
+
+        case ColorSpace.CS_PYCC:
+            synchronized(ICC_Profile.class) {
+                if (PYCCprofile == null) {
+                    ProfileDeferralInfo pInfo =
+                        new ProfileDeferralInfo("PYCC.pf",
+                                                ColorSpace.TYPE_3CLR, 3,
+                                                CLASS_DISPLAY);
+                    PYCCprofile = getDeferredInstance(pInfo);
+                }
+                thisProfile = PYCCprofile;
+            }
+
+            break;
+
+        case ColorSpace.CS_GRAY:
+            synchronized(ICC_Profile.class) {
+                if (GRAYprofile == null) {
+                    ProfileDeferralInfo pInfo =
+                        new ProfileDeferralInfo("GRAY.pf",
+                                                ColorSpace.TYPE_GRAY, 1,
+                                                CLASS_DISPLAY);
+                    GRAYprofile = getDeferredInstance(pInfo);
+                }
+                thisProfile = GRAYprofile;
+            }
+
+            break;
+
+        case ColorSpace.CS_LINEAR_RGB:
+            synchronized(ICC_Profile.class) {
+                if (LINEAR_RGBprofile == null) {
+                    ProfileDeferralInfo pInfo =
+                        new ProfileDeferralInfo("LINEAR_RGB.pf",
+                                                ColorSpace.TYPE_RGB, 3,
+                                                CLASS_DISPLAY);
+                    LINEAR_RGBprofile = getDeferredInstance(pInfo);
+                }
+                thisProfile = LINEAR_RGBprofile;
+            }
+
+            break;
+
+        default:
+            throw new IllegalArgumentException("Unknown color space");
+        }
+
+        return thisProfile;
+    }
+
+    /**
+     * This method asserts system privileges, so is used only for the standard
+     * profiles.
+     */
+    private static ICC_Profile getStandardProfile(final String name) {
+        return AccessController.doPrivileged(
+                new PrivilegedAction<ICC_Profile>() {
+                    public ICC_Profile run() {
+                        ICC_Profile p = null;
+                        try {
+                            p = getInstance(name);
+                        } catch (IOException ex) {
+                            throw new IllegalArgumentException(
+                                    "Can't load standard profile: " + name);
+                        }
+                        return p;
+                    }
+                });
     }
 
     /**
@@ -873,7 +959,10 @@ public class ICC_Profile implements Serializable {
      *         not permit read access to the given file
      */
     public static ICC_Profile getInstance(String fileName) throws IOException {
-        InputStream is;
+        ICC_Profile thisProfile;
+        InputStream is = null;
+
+
         File f = getProfileFile(fileName);
         if (f != null) {
             is = new FileInputStream(f);
@@ -883,9 +972,12 @@ public class ICC_Profile implements Serializable {
         if (is == null) {
             throw new IOException("Cannot open file " + fileName);
         }
-        try (is) {
-            return getInstance(is);
-        }
+
+        thisProfile = getInstance(is);
+
+        is.close();    /* close the file */
+
+        return thisProfile;
     }
 
     /**
@@ -903,17 +995,28 @@ public class ICC_Profile implements Serializable {
      *         Profile data
      */
     public static ICC_Profile getInstance(InputStream s) throws IOException {
-        return getInstance(getProfileDataFromStream(s));
+    byte[] profileData;
+
+        if (s instanceof ProfileDeferralInfo) {
+            /* hack to detect profiles whose loading can be deferred */
+            return getDeferredInstance((ProfileDeferralInfo) s);
+        }
+
+        if ((profileData = getProfileDataFromStream(s)) == null) {
+            throw new IllegalArgumentException("Invalid ICC Profile Data");
+        }
+
+        return getInstance(profileData);
     }
 
 
     static byte[] getProfileDataFromStream(InputStream s) throws IOException {
 
         BufferedInputStream bis = new BufferedInputStream(s);
-        bis.mark(128); // 128 is the length of the ICC profile header
+        bis.mark(128);
 
         byte[] header = bis.readNBytes(128);
-        if (header.length < 128 || header[36] != 0x61 || header[37] != 0x63 ||
+        if (header[36] != 0x61 || header[37] != 0x63 ||
             header[38] != 0x73 || header[39] != 0x70) {
             return null;   /* not a valid profile */
         }
@@ -930,31 +1033,61 @@ public class ICC_Profile implements Serializable {
     }
 
     /**
-     * Activates the deferred standard profiles. Implementation of this method
-     * mimics the old behaviour when the CMMException and IOException were
-     * wrapped by the ProfileDataException, and the ProfileDataException itself
-     * was ignored during activation.
+     * Constructs an {@code ICC_Profile} for which the actual loading of the
+     * profile data from a file and the initialization of the CMM should be
+     * deferred as long as possible. Deferral is only used for standard
+     * profiles. If deferring is disabled, then getStandardProfile() ensures
+     * that all of the appropriate access privileges are granted when loading
+     * this profile. If deferring is enabled, then the deferred activation code
+     * will take care of access privileges.
+     *
+     * @see #activateDeferredProfile()
      */
-    private void activate() {
-        if (cmmProfile == null) {
-            synchronized (this) {
-                if (cmmProfile != null) {
-                    return;
-                }
-                var is = getStandardProfileInputStream(deferralInfo.filename);
-                if (is == null) {
-                    return;
-                }
-                try (is) {
-                    byte[] data = getProfileDataFromStream(is);
-                    if (data != null) {
-                        cmmProfile = CMSManager.getModule().loadProfile(data);
-                        // from now we cannot use the deferred value, drop it
-                        deferralInfo = null;
-                    }
-                } catch (CMMException | IOException ignore) {
-                }
-            }
+    static ICC_Profile getDeferredInstance(ProfileDeferralInfo pdi) {
+        if (!ProfileDeferralMgr.deferring) {
+            return getStandardProfile(pdi.filename);
+        }
+        if (pdi.colorSpaceType == ColorSpace.TYPE_RGB) {
+            return new ICC_ProfileRGB(pdi);
+        } else if (pdi.colorSpaceType == ColorSpace.TYPE_GRAY) {
+            return new ICC_ProfileGray(pdi);
+        } else {
+            return new ICC_Profile(pdi);
+        }
+    }
+
+
+    void activateDeferredProfile() throws ProfileDataException {
+        byte[] profileData;
+        final String fileName = deferralInfo.filename;
+
+        profileActivator = null;
+        deferralInfo = null;
+        InputStream is = getStandardProfileInputStream(fileName);
+        if (is == null) {
+            throw new ProfileDataException("Cannot open file " + fileName);
+        }
+        try {
+            profileData = getProfileDataFromStream(is);
+            is.close();    /* close the file */
+        }
+        catch (IOException e) {
+            ProfileDataException pde = new
+                ProfileDataException("Invalid ICC Profile Data" + fileName);
+            pde.initCause(e);
+            throw pde;
+        }
+        if (profileData == null) {
+            throw new ProfileDataException("Invalid ICC Profile Data" +
+                fileName);
+        }
+        try {
+            cmmProfile = CMSManager.getModule().loadProfile(profileData);
+        } catch (CMMException c) {
+            ProfileDataException pde = new
+                ProfileDataException("Invalid ICC Profile Data" + fileName);
+            pde.initCause(c);
+            throw pde;
         }
     }
 
@@ -995,9 +1128,11 @@ public class ICC_Profile implements Serializable {
     byte[] theHeader;
     int theClassSig, theClass;
 
-        ProfileDeferralInfo info = deferralInfo;
-        if (info != null) {
-            return info.profileClass;
+        if (deferralInfo != null) {
+            return deferralInfo.profileClass; /* Need to have this info for
+                                                 ICC_ColorSpace without
+                                                 causing a deferred profile
+                                                 to be loaded */
         }
 
         theHeader = getData(icSigHead);
@@ -1053,11 +1188,12 @@ public class ICC_Profile implements Serializable {
      *         {@code ColorSpace} class
      */
     public int getColorSpaceType() {
-        ProfileDeferralInfo info = deferralInfo;
-        if (info != null) {
-            return info.colorSpaceType;
+        if (deferralInfo != null) {
+            return deferralInfo.colorSpaceType; /* Need to have this info for
+                                                   ICC_ColorSpace without
+                                                   causing a deferred profile
+                                                   to be loaded */
         }
-        activate();
         return    getColorSpaceType(cmmProfile);
     }
 
@@ -1085,7 +1221,9 @@ public class ICC_Profile implements Serializable {
      *         {@code ColorSpace} class
      */
     public int getPCSType() {
-        activate();
+        if (ProfileDeferralMgr.deferring) {
+            ProfileDeferralMgr.activateProfiles();
+        }
         return getPCSType(cmmProfile);
     }
 
@@ -1108,9 +1246,14 @@ public class ICC_Profile implements Serializable {
      *         error occurs while writing to the file
      */
     public void write(String fileName) throws IOException {
-        try (OutputStream out = new FileOutputStream(fileName)) {
-            write(out);
-        }
+    FileOutputStream outputFile;
+    byte[] profileData;
+
+        profileData = getData(); /* this will activate deferred
+                                    profiles if necessary */
+        outputFile = new FileOutputStream(fileName);
+        outputFile.write(profileData);
+        outputFile.close ();
     }
 
     /**
@@ -1120,7 +1263,11 @@ public class ICC_Profile implements Serializable {
      * @throws IOException If an I/O error occurs while writing to the stream
      */
     public void write(OutputStream s) throws IOException {
-        s.write(getData());
+    byte[] profileData;
+
+        profileData = getData(); /* this will activate deferred
+                                    profiles if necessary */
+        s.write(profileData);
     }
 
     /**
@@ -1134,7 +1281,9 @@ public class ICC_Profile implements Serializable {
     int profileSize;
     byte[] profileData;
 
-        activate();
+        if (ProfileDeferralMgr.deferring) {
+            ProfileDeferralMgr.activateProfiles();
+        }
 
         PCMM mdl = CMSManager.getModule();
 
@@ -1164,7 +1313,9 @@ public class ICC_Profile implements Serializable {
      */
     public byte[] getData(int tagSignature) {
 
-        activate();
+        if (ProfileDeferralMgr.deferring) {
+            ProfileDeferralMgr.activateProfiles();
+        }
 
         return getData(cmmProfile, tagSignature);
     }
@@ -1210,7 +1361,9 @@ public class ICC_Profile implements Serializable {
      */
     public void setData(int tagSignature, byte[] tagData) {
 
-        activate();
+        if (ProfileDeferralMgr.deferring) {
+            ProfileDeferralMgr.activateProfiles();
+        }
 
         CMSManager.getModule().setTagData(cmmProfile, tagSignature, tagData);
     }
@@ -1262,9 +1415,11 @@ public class ICC_Profile implements Serializable {
     byte[]    theHeader;
     int    theColorSpaceSig, theNumComponents;
 
-        ProfileDeferralInfo info = deferralInfo;
-        if (info != null) {
-            return info.numComponents;
+        if (deferralInfo != null) {
+            return deferralInfo.numComponents; /* Need to have this info for
+                                                  ICC_ColorSpace without
+                                                  causing a deferred profile
+                                                  to be loaded */
         }
         theHeader = getData(icSigHead);
 
@@ -1741,22 +1896,21 @@ public class ICC_Profile implements Serializable {
      *         only the color space name, but the profile data as well so that
      *         older versions could still deserialize the object.
      */
-    @Serial
     private void writeObject(ObjectOutputStream s)
       throws IOException
     {
         s.defaultWriteObject();
 
         String csName = null;
-        if (this == BuiltInProfile.SRGB) {
+        if (this == sRGBprofile) {
             csName = "CS_sRGB";
-        } else if (this == BuiltInProfile.XYZ) {
+        } else if (this == XYZprofile) {
             csName = "CS_CIEXYZ";
-        } else if (this == BuiltInProfile.PYCC) {
+        } else if (this == PYCCprofile) {
             csName = "CS_PYCC";
-        } else if (this == BuiltInProfile.GRAY) {
+        } else if (this == GRAYprofile) {
             csName = "CS_GRAY";
-        } else if (this == BuiltInProfile.LRGB) {
+        } else if (this == LINEAR_RGBprofile) {
             csName = "CS_LINEAR_RGB";
         }
 
@@ -1807,7 +1961,6 @@ public class ICC_Profile implements Serializable {
      * @see #getInstance(int)
      * @see #getInstance(byte[])
      */
-    @Serial
     private void readObject(ObjectInputStream s)
       throws IOException, ClassNotFoundException
     {
@@ -1850,7 +2003,6 @@ public class ICC_Profile implements Serializable {
      *         serialization spec
      * @since 1.3
      */
-    @Serial
     protected Object readResolve() throws ObjectStreamException {
         return resolvedDeserializedProfile;
     }

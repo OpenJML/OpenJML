@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -21,10 +21,15 @@
  * questions.
  */
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.security.*;
 import java.security.spec.*;
-import java.util.HexFormat;
+import java.security.interfaces.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -45,7 +50,7 @@ public class TestSigGenPSS {
         int numBytes;
 
         MyKnownRandomSrc(String srcString) {
-            this.srcBytes = HexFormat.of().parseHex(srcString);
+            this.srcBytes = SigRecord.toByteArray(srcString);
             this.numBytes = this.srcBytes.length;
         }
         @Override
@@ -115,8 +120,8 @@ public class TestSigGenPSS {
         boolean success = true;
         for (SigRecord.SigVector v : vectors) {
             System.out.println("\tAgainst " + v.mdAlg);
-            byte[] msgBytes = HexFormat.of().parseHex(v.msg);
-            byte[] expSigBytes = HexFormat.of().parseHex(v.sig);
+            byte[] msgBytes = SigRecord.toByteArray(v.msg);
+            byte[] expSigBytes = SigRecord.toByteArray(v.sig);
 
             MyKnownRandomSrc saltSrc = new MyKnownRandomSrc(v.salt);
             sig.initSign(privKey, saltSrc);
@@ -140,7 +145,7 @@ public class TestSigGenPSS {
                 System.out.println("\tMsg          = " + v.msg);
                 System.out.println("\tSalt          = " + v.salt);
                 System.out.println("\tExpected Sig = " + v.sig);
-                System.out.println("\tActual Sig   = " + HexFormat.of().formatHex(actualSigBytes));
+                System.out.println("\tActual Sig   = " + SigRecord.toHexString(actualSigBytes));
             } else {
                 System.out.println("\t" + v.mdAlg + " Test Vector Passed");
             }

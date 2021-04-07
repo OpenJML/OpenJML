@@ -211,7 +211,7 @@ var getJibProfiles = function (input) {
     // Include list to use when creating a minimal jib source bundle which
     // contains just the jib configuration files.
     data.conf_bundle_includes = [
-        "make/conf/version-numbers.conf",
+        "make/autoconf/version-numbers",
     ];
 
     // Define some common values
@@ -440,7 +440,7 @@ var getJibProfilesProfiles = function (input, common, data) {
             target_cpu: "x64",
             dependencies: ["devkit", "gtest", "pandoc"],
             configure_args: concat(common.configure_args_64bit, "--with-zlib=system",
-                "--with-macosx-version-max=10.12.00",
+                "--with-macosx-version-max=10.9.0",
                 // Use system SetFile instead of the one in the devkit as the
                 // devkit one may not work on Catalina.
                 "SETFILE=/usr/bin/SetFile"),
@@ -1354,7 +1354,7 @@ var concatObjects = function (o1, o2) {
 
 /**
  * Constructs the numeric version string from reading the
- * make/conf/version-numbers.conf file and removing all trailing ".0".
+ * make/autoconf/version-numbers file and removing all trailing ".0".
  *
  * @param feature Override feature version
  * @param interim Override interim version
@@ -1362,15 +1362,15 @@ var concatObjects = function (o1, o2) {
  * @param patch Override patch version
  * @returns {String} The numeric version string
  */
-var getVersion = function (feature, interim, update, patch, extra1, extra2, extra3) {
+var getVersion = function (feature, interim, update, patch) {
     var version_numbers = getVersionNumbers();
     var version = (feature != null ? feature : version_numbers.get("DEFAULT_VERSION_FEATURE"))
         + "." + (interim != null ? interim : version_numbers.get("DEFAULT_VERSION_INTERIM"))
         + "." + (update != null ? update :  version_numbers.get("DEFAULT_VERSION_UPDATE"))
         + "." + (patch != null ? patch : version_numbers.get("DEFAULT_VERSION_PATCH"))
-        + "." + (extra1 != null ? extra1 : version_numbers.get("DEFAULT_VERSION_EXTRA1"))
-        + "." + (extra2 != null ? extra2 : version_numbers.get("DEFAULT_VERSION_EXTRA2"))
-        + "." + (extra3 != null ? extra3 : version_numbers.get("DEFAULT_VERSION_EXTRA3"));
+        + "." + version_numbers.get("DEFAULT_VERSION_EXTRA1")
+        + "." + version_numbers.get("DEFAULT_VERSION_EXTRA2")
+        + "." + version_numbers.get("DEFAULT_VERSION_EXTRA3");
     while (version.match(".*\\.0$")) {
         version = version.substring(0, version.length - 2);
     }
@@ -1405,20 +1405,20 @@ var versionArgs = function(input, common) {
     return args;
 }
 
-// Properties representation of the make/conf/version-numbers.conf file. Lazily
+// Properties representation of the make/autoconf/version-numbers file. Lazily
 // initiated by the function below.
 var version_numbers;
 
 /**
- * Read the make/conf/version-numbers.conf file into a Properties object.
+ * Read the make/autoconf/version-numbers file into a Properties object.
  *
  * @returns {java.utilProperties}
  */
 var getVersionNumbers = function () {
-    // Read version information from make/conf/version-numbers.conf
+    // Read version information from make/autoconf/version-numbers
     if (version_numbers == null) {
         version_numbers = new java.util.Properties();
-        var stream = new java.io.FileInputStream(__DIR__ + "/version-numbers.conf");
+        var stream = new java.io.FileInputStream(__DIR__ + "/../autoconf/version-numbers");
         version_numbers.load(stream);
         stream.close();
     }

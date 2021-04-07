@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -2642,15 +2642,6 @@ public class Resolve {
         }
     };
 
-    LogResolveHelper silentLogResolveHelper = new LogResolveHelper() {
-        public boolean resolveDiagnosticNeeded(Type site, List<Type> argtypes, List<Type> typeargtypes) {
-            return false;
-        }
-        public List<Type> getArgumentTypes(ResolveError errSym, Symbol accessedSym, Name name, List<Type> argtypes) {
-            return argtypes;
-        }
-    };
-
     LogResolveHelper methodLogResolveHelper = new LogResolveHelper() {
         public boolean resolveDiagnosticNeeded(Type site, List<Type> argtypes, List<Type> typeargtypes) {
             return !site.isErroneous() &&
@@ -2920,7 +2911,7 @@ public class Resolve {
                                     typeargtypes, allowBoxing,
                                     useVarargs);
         chk.checkDeprecated(pos, env.info.scope.owner, sym);
-        chk.checkPreview(pos, env.info.scope.owner, sym);
+        chk.checkPreview(pos, sym);
         return sym;
     }
 
@@ -2985,7 +2976,7 @@ public class Resolve {
                                boolean useVarargs) {
         Symbol sym = findDiamond(env, site, argtypes, typeargtypes, allowBoxing, useVarargs);
         chk.checkDeprecated(pos, env.info.scope.owner, sym);
-        chk.checkPreview(pos, env.info.scope.owner, sym);
+        chk.checkPreview(pos, sym);
         return sym;
     }
 

@@ -68,7 +68,6 @@ public class bug4199622 extends JFrame implements ActionListener {
 
         setSize(300, 300);
         pack();
-        setLocationRelativeTo(null);
     }
 
     @Override
@@ -84,7 +83,7 @@ public class bug4199622 extends JFrame implements ActionListener {
         if (robot == null) {
             try {
                 robot = new Robot();
-                robot.setAutoDelay(100);
+                robot.setAutoDelay(20);
             } catch (AWTException e) {
                 throw new RuntimeException("Can't create robot. Test failed", e);
             }

@@ -590,18 +590,16 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                                    q);
         try (PoolCleaner cleaner = cleaner(p, done)) {
             final CountDownLatch threadStarted = new CountDownLatch(1);
-            FutureTask[] rtasks = new FutureTask[5];
-            @SuppressWarnings("unchecked")
-            FutureTask<Boolean>[] tasks = (FutureTask<Boolean>[])rtasks;
+            FutureTask[] tasks = new FutureTask[5];
             for (int i = 0; i < tasks.length; i++) {
-                Callable<Boolean> task = new CheckedCallable<>() {
+                Callable task = new CheckedCallable<Boolean>() {
                     public Boolean realCall() throws InterruptedException {
                         threadStarted.countDown();
                         assertSame(q, p.getQueue());
                         await(done);
                         return Boolean.TRUE;
                     }};
-                tasks[i] = new FutureTask<>(task);
+                tasks[i] = new FutureTask(task);
                 p.execute(tasks[i]);
             }
             await(threadStarted);
@@ -658,17 +656,15 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                                    LONG_DELAY_MS, MILLISECONDS,
                                    q);
         try (PoolCleaner cleaner = cleaner(p, done)) {
-            FutureTask[] rtasks = new FutureTask[5];
-            @SuppressWarnings("unchecked")
-            FutureTask<Boolean>[] tasks = (FutureTask<Boolean>[])rtasks;
+            FutureTask[] tasks = new FutureTask[5];
             for (int i = 0; i < tasks.length; i++) {
-                Callable<Boolean> task = new CheckedCallable<>() {
+                Callable task = new CheckedCallable<Boolean>() {
                     public Boolean realCall() throws InterruptedException {
                         threadStarted.countDown();
                         await(done);
                         return Boolean.TRUE;
                     }};
-                tasks[i] = new FutureTask<>(task);
+                tasks[i] = new FutureTask(task);
                 p.execute(tasks[i]);
             }
             await(threadStarted);
@@ -790,7 +786,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
     public void testConstructorNullPointerException() {
         try {
             new ThreadPoolExecutor(1, 2, 1L, SECONDS,
-                                   (BlockingQueue<Runnable>) null);
+                                   (BlockingQueue) null);
             shouldThrow();
         } catch (NullPointerException success) {}
     }
@@ -861,7 +857,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
     public void testConstructorNullPointerException2() {
         try {
             new ThreadPoolExecutor(1, 2, 1L, SECONDS,
-                                   (BlockingQueue<Runnable>) null,
+                                   (BlockingQueue) null,
                                    new SimpleThreadFactory());
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -945,7 +941,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
     public void testConstructorNullPointerException4() {
         try {
             new ThreadPoolExecutor(1, 2, 1L, SECONDS,
-                                   (BlockingQueue<Runnable>) null,
+                                   (BlockingQueue) null,
                                    new NoOpREHandler());
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -1034,7 +1030,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
     public void testConstructorNullPointerException6() {
         try {
             new ThreadPoolExecutor(1, 2, 1L, SECONDS,
-                                   (BlockingQueue<Runnable>) null,
+                                   (BlockingQueue) null,
                                    new SimpleThreadFactory(),
                                    new NoOpREHandler());
             shouldThrow();
@@ -1081,7 +1077,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
             final CountDownLatch threadStarted = new CountDownLatch(1);
             Thread t = newStartedThread(new CheckedInterruptedRunnable() {
                 public void realRun() throws Exception {
-                    Callable<Boolean> task = new CheckedCallable<>() {
+                    Callable task = new CheckedCallable<Boolean>() {
                         public Boolean realCall() throws InterruptedException {
                             threadStarted.countDown();
                             await(done);
@@ -1801,7 +1797,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
     public void testTimedInvokeAll6() throws Exception {
         for (long timeout = timeoutMillis();;) {
             final CountDownLatch done = new CountDownLatch(1);
-            final Callable<String> waiter = new CheckedCallable<>() {
+            final Callable<String> waiter = new CheckedCallable<String>() {
                 public String realCall() {
                     try { done.await(LONG_DELAY_MS, MILLISECONDS); }
                     catch (InterruptedException ok) {}
@@ -1820,7 +1816,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
                     p.invokeAll(tasks, timeout, MILLISECONDS);
                 assertEquals(tasks.size(), futures.size());
                 assertTrue(millisElapsedSince(startTime) >= timeout);
-                for (Future<?> future : futures)
+                for (Future future : futures)
                     assertTrue(future.isDone());
                 assertTrue(futures.get(1).isCancelled());
                 try {
@@ -1935,7 +1931,7 @@ public class ThreadPoolExecutorTest extends JSR166TestCase {
         final ThreadPoolExecutor p =
             new ThreadPoolExecutor(1, 30,
                                    60, SECONDS,
-                                   new ArrayBlockingQueue<Runnable>(30));
+                                   new ArrayBlockingQueue(30));
         try (PoolCleaner cleaner = cleaner(p)) {
             for (int i = 0; i < nTasks; ++i) {
                 for (;;) {

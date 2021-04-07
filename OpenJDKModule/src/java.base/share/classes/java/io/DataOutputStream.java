@@ -300,9 +300,8 @@ public class DataOutputStream extends FilterOutputStream implements DataOutput {
         int len = s.length();
         for (int i = 0 ; i < len ; i++) {
             int v = s.charAt(i);
-            writeBuffer[0] = (byte)(v >>> 8);
-            writeBuffer[1] = (byte)(v >>> 0);
-            out.write(writeBuffer, 0, 2);
+            out.write((v >>> 8) & 0xFF);
+            out.write((v >>> 0) & 0xFF);
         }
         incCount(len * 2);
     }

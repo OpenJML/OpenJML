@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,8 +25,6 @@
 
 package java.awt;
 
-import java.io.Serial;
-
 /**
  * The {@code GridBagLayoutInfo} is an utility class for
  * {@code GridBagLayout} layout manager.
@@ -38,10 +36,9 @@ import java.io.Serial;
  */
 public class GridBagLayoutInfo implements java.io.Serializable {
 
-    /**
-     * Use serialVersionUID from JDK 1.6 for interoperability.
+    /*
+     * serialVersionUID
      */
-    @Serial
     private static final long serialVersionUID = -4899416460737170217L;
 
     /**

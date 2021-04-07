@@ -279,7 +279,8 @@ class Field extends AccessibleObject implements Member {
      * and type.
      */
     public boolean equals(Object obj) {
-        if (obj instanceof Field other) {
+        if (obj != null && obj instanceof Field) {
+            Field other = (Field)obj;
             return (getDeclaringClass() == other.getDeclaringClass())
                 && (getName() == other.getName())
                 && (getType() == other.getType());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -34,11 +34,8 @@ import java.security.*;
 import java.security.spec.*;
 import javax.crypto.*;
 import java.util.Arrays;
-import java.util.HexFormat;
-
+import java.math.BigInteger;
 import jdk.test.lib.Convert;
-import jdk.test.lib.hexdump.ASN1Formatter;
-import jdk.test.lib.hexdump.HexPrinter;
 
 public class TestXDH {
 
@@ -337,10 +334,10 @@ public class TestXDH {
         String b_pub, String result) throws Exception {
 
         KeyFactory kf = KeyFactory.getInstance("XDH");
-        byte[] a_pri_ba = HexFormat.of().parseHex(a_pri);
+        byte[] a_pri_ba = Convert.hexStringToByteArray(a_pri);
         KeySpec privateSpec = new PKCS8EncodedKeySpec(a_pri_ba);
         PrivateKey privateKey = kf.generatePrivate(privateSpec);
-        byte[] b_pub_ba = HexFormat.of().parseHex(b_pub);
+        byte[] b_pub_ba = Convert.hexStringToByteArray(b_pub);
         KeySpec publicSpec = new X509EncodedKeySpec(b_pub_ba);
         PublicKey publicKey = kf.generatePublic(publicSpec);
 
@@ -349,10 +346,10 @@ public class TestXDH {
         ka.doPhase(publicKey, true);
 
         byte[] sharedSecret = ka.generateSecret();
-        byte[] expectedResult = HexFormat.of().parseHex(result);
+        byte[] expectedResult = Convert.hexStringToByteArray(result);
         if (!Arrays.equals(sharedSecret, expectedResult)) {
             throw new RuntimeException("fail: expected=" + result + ", actual="
-                + HexFormat.of().withUpperCase().formatHex(sharedSecret));
+                + Convert.byteArrayToHexString(sharedSecret));
         }
 
     }
@@ -363,7 +360,7 @@ public class TestXDH {
         NamedParameterSpec paramSpec = new NamedParameterSpec(curveName);
         KeyFactory kf = KeyFactory.getInstance("XDH");
         KeySpec privateSpec = new XECPrivateKeySpec(paramSpec,
-            HexFormat.of().parseHex(a_pri));
+            Convert.hexStringToByteArray(a_pri));
         PrivateKey privateKey = kf.generatePrivate(privateSpec);
         boolean clearHighBit = curveName.equals("X25519");
         KeySpec publicSpec = new XECPublicKeySpec(paramSpec,
@@ -372,25 +369,20 @@ public class TestXDH {
 
         byte[] encodedPrivateKey = privateKey.getEncoded();
         System.out.println("Encoded private: " +
-            HexFormat.of().withUpperCase().formatHex(encodedPrivateKey));
-        System.out.println(HexPrinter.simple()
-                .formatter(ASN1Formatter.formatter())
-                .toString(encodedPrivateKey));
+            Convert.byteArrayToHexString(encodedPrivateKey));
         byte[] encodedPublicKey = publicKey.getEncoded();
         System.out.println("Encoded public: " +
-            HexFormat.of().withUpperCase().formatHex(encodedPublicKey));
-        System.out.println(HexPrinter.simple()
-                .formatter(ASN1Formatter.formatter())
-                .toString(encodedPublicKey));
+            Convert.byteArrayToHexString(encodedPublicKey));
+
         KeyAgreement ka = KeyAgreement.getInstance("XDH");
         ka.init(privateKey);
         ka.doPhase(publicKey, true);
 
         byte[] sharedSecret = ka.generateSecret();
-        byte[] expectedResult = HexFormat.of().parseHex(result);
+        byte[] expectedResult = Convert.hexStringToByteArray(result);
         if (!Arrays.equals(sharedSecret, expectedResult)) {
             throw new RuntimeException("fail: expected=" + result + ", actual="
-                + HexFormat.of().withUpperCase().formatHex(sharedSecret));
+                + Convert.byteArrayToHexString(sharedSecret));
         }
     }
 

@@ -26,11 +26,8 @@
 #include "precompiled.hpp"
 #include "asm/macroAssembler.hpp"
 #include "asm/macroAssembler.inline.hpp"
-#include "atomic_aarch64.hpp"
 #include "gc/shared/barrierSet.hpp"
 #include "gc/shared/barrierSetAssembler.hpp"
-#include "gc/shared/gc_globals.hpp"
-#include "gc/shared/tlab_globals.hpp"
 #include "interpreter/interpreter.hpp"
 #include "memory/universe.hpp"
 #include "nativeInst_aarch64.hpp"
@@ -39,7 +36,6 @@
 #include "oops/objArrayKlass.hpp"
 #include "oops/oop.inline.hpp"
 #include "prims/methodHandles.hpp"
-#include "runtime/atomic.hpp"
 #include "runtime/frame.inline.hpp"
 #include "runtime/handles.inline.hpp"
 #include "runtime/sharedRuntime.hpp"
@@ -1322,7 +1318,7 @@ class StubGenerator: public StubCodeGenerator {
       = MacroAssembler::call_clobbered_registers() - rscratch1;
     __ mov(rscratch1, (uint64_t)0xdeadbeef);
     __ orr(rscratch1, rscratch1, rscratch1, Assembler::LSL, 32);
-    for (RegSetIterator<> it = clobbered.begin(); *it != noreg; ++it) {
+    for (RegSetIterator it = clobbered.begin(); *it != noreg; ++it) {
       __ mov(*it, rscratch1);
     }
 #endif
@@ -1342,10 +1338,10 @@ class StubGenerator: public StubCodeGenerator {
       __ ldr(temp, Address(a, rscratch2, Address::lsl(exact_log2(size))));
       __ verify_oop(temp);
     } else {
-      __ ldrw(temp, Address(a, rscratch2, Address::lsl(exact_log2(size))));
+      __ ldrw(r16, Address(a, rscratch2, Address::lsl(exact_log2(size))));
       __ decode_heap_oop(temp); // calls verify_oop
     }
-    __ add(rscratch2, rscratch2, 1);
+    __ add(rscratch2, rscratch2, size);
     __ b(loop);
     __ bind(end);
   }
@@ -1363,7 +1359,7 @@ class StubGenerator: public StubCodeGenerator {
   //
   // If 'from' and/or 'to' are aligned on 4-byte boundaries, we let
   // the hardware handle it.  The two dwords within qwords that span
-  // cache line boundaries will still be loaded and stored atomically.
+  // cache line boundaries will still be loaded and stored atomicly.
   //
   // Side Effects:
   //   disjoint_int_copy_entry is set to the no-overlap entry point
@@ -1433,7 +1429,7 @@ class StubGenerator: public StubCodeGenerator {
   //
   // If 'from' and/or 'to' are aligned on 4-byte boundaries, we let
   // the hardware handle it.  The two dwords within qwords that span
-  // cache line boundaries will still be loaded and stored atomically.
+  // cache line boundaries will still be loaded and stored atomicly.
   //
   address generate_conjoint_copy(int size, bool aligned, bool is_oop, address nooverlap_target,
                                  address *entry, const char *name,
@@ -1598,7 +1594,7 @@ class StubGenerator: public StubCodeGenerator {
   //
   // If 'from' and/or 'to' are aligned on 4-byte boundaries, we let
   // the hardware handle it.  The two dwords within qwords that span
-  // cache line boundaries will still be loaded and stored atomically.
+  // cache line boundaries will still be loaded and stored atomicly.
   //
   // Side Effects:
   //   disjoint_int_copy_entry is set to the no-overlap entry point
@@ -1622,7 +1618,7 @@ class StubGenerator: public StubCodeGenerator {
   //
   // If 'from' and/or 'to' are aligned on 4-byte boundaries, we let
   // the hardware handle it.  The two dwords within qwords that span
-  // cache line boundaries will still be loaded and stored atomically.
+  // cache line boundaries will still be loaded and stored atomicly.
   //
   address generate_conjoint_int_copy(bool aligned, address nooverlap_target,
                                      address *entry, const char *name,
@@ -5573,91 +5569,6 @@ class StubGenerator: public StubCodeGenerator {
     return start;
   }
 
-#ifdef LINUX
-  // ARMv8.1 LSE versions of the atomic stubs used by Atomic::PlatformXX.
-  //
-  // If LSE is in use, generate LSE versions of all the stubs. The
-  // non-LSE versions are in atomic_aarch64.S.
-  void generate_atomic_entry_points() {
-
-    if (! UseLSE) {
-      return;
-    }
-
-    __ align(CodeEntryAlignment);
-    StubCodeMark mark(this, "StubRoutines", "atomic entry points");
-
-    __ align(32);
-    aarch64_atomic_fetch_add_8_impl = (aarch64_atomic_stub_t)__ pc();
-    {
-      Register prev = r2, addr = c_rarg0, incr = c_rarg1;
-      __ atomic_addal(prev, incr, addr);
-      __ mov(r0, prev);
-      __ ret(lr);
-    }
-    __ align(32);
-    aarch64_atomic_fetch_add_4_impl = (aarch64_atomic_stub_t)__ pc();
-    {
-      Register prev = r2, addr = c_rarg0, incr = c_rarg1;
-      __ atomic_addalw(prev, incr, addr);
-      __ movw(r0, prev);
-      __ ret(lr);
-    }
-    __ align(32);
-    aarch64_atomic_xchg_4_impl = (aarch64_atomic_stub_t)__ pc();
-    {
-      Register prev = r2, addr = c_rarg0, newv = c_rarg1;
-      __ atomic_xchglw(prev, newv, addr);
-      __ movw(r0, prev);
-      __ ret(lr);
-    }
-    __ align(32);
-    aarch64_atomic_xchg_8_impl = (aarch64_atomic_stub_t)__ pc();
-    {
-      Register prev = r2, addr = c_rarg0, newv = c_rarg1;
-      __ atomic_xchgl(prev, newv, addr);
-      __ mov(r0, prev);
-      __ ret(lr);
-    }
-    __ align(32);
-    aarch64_atomic_cmpxchg_1_impl = (aarch64_atomic_stub_t)__ pc();
-    {
-      Register prev = r3, ptr = c_rarg0, compare_val = c_rarg1,
-        exchange_val = c_rarg2;
-      __ cmpxchg(ptr, compare_val, exchange_val,
-                 MacroAssembler::byte,
-                 /*acquire*/false, /*release*/false, /*weak*/false,
-                 prev);
-      __ movw(r0, prev);
-      __ ret(lr);
-    }
-    __ align(32);
-    aarch64_atomic_cmpxchg_4_impl = (aarch64_atomic_stub_t)__ pc();
-    {
-      Register prev = r3, ptr = c_rarg0, compare_val = c_rarg1,
-        exchange_val = c_rarg2;
-      __ cmpxchg(ptr, compare_val, exchange_val,
-                 MacroAssembler::word,
-                 /*acquire*/false, /*release*/false, /*weak*/false,
-                 prev);
-      __ movw(r0, prev);
-      __ ret(lr);
-    }
-    __ align(32);
-    aarch64_atomic_cmpxchg_8_impl = (aarch64_atomic_stub_t)__ pc();
-    {
-      Register prev = r3, ptr = c_rarg0, compare_val = c_rarg1,
-        exchange_val = c_rarg2;
-      __ cmpxchg(ptr, compare_val, exchange_val,
-                 MacroAssembler::xword,
-                 /*acquire*/false, /*release*/false, /*weak*/false,
-                 prev);
-      __ mov(r0, prev);
-      __ ret(lr);
-    }
-  }
-#endif // LINUX
-
   // Continuation point for throwing of implicit exceptions that are
   // not handled in the current activation. Fabricates an exception
   // oop and initiates normal exception dispatching in this
@@ -5782,7 +5693,7 @@ class StubGenerator: public StubCodeGenerator {
 
       // Register allocation
 
-      RegSetIterator<> regs = (RegSet::range(r0, r26) - r18_tls).begin();
+      RegSetIterator regs = (RegSet::range(r0, r26) - r18_tls).begin();
       Pa_base = *regs;       // Argument registers
       if (squaring)
         Pb_base = Pa_base;
@@ -6770,14 +6681,6 @@ class StubGenerator: public StubCodeGenerator {
       StubRoutines::_updateBytesAdler32 = generate_updateBytesAdler32();
     }
 
-#ifdef LINUX
-
-#if 0  // JDK-8261660: disabled for now.
-    generate_atomic_entry_points();
-#endif
-
-#endif // LINUX
-
     StubRoutines::aarch64::set_completed();
   }
 
@@ -6798,27 +6701,3 @@ void StubGenerator_generate(CodeBuffer* code, bool all) {
   }
   StubGenerator g(code, all);
 }
-
-
-#ifdef LINUX
-
-// Define pointers to atomic stubs and initialize them to point to the
-// code in atomic_aarch64.S.
-
-#define DEFAULT_ATOMIC_OP(OPNAME, SIZE)                                 \
-  extern "C" uint64_t aarch64_atomic_ ## OPNAME ## _ ## SIZE ## _default_impl \
-    (volatile void *ptr, uint64_t arg1, uint64_t arg2);                 \
-  aarch64_atomic_stub_t aarch64_atomic_ ## OPNAME ## _ ## SIZE ## _impl \
-    = aarch64_atomic_ ## OPNAME ## _ ## SIZE ## _default_impl;
-
-DEFAULT_ATOMIC_OP(fetch_add, 4)
-DEFAULT_ATOMIC_OP(fetch_add, 8)
-DEFAULT_ATOMIC_OP(xchg, 4)
-DEFAULT_ATOMIC_OP(xchg, 8)
-DEFAULT_ATOMIC_OP(cmpxchg, 1)
-DEFAULT_ATOMIC_OP(cmpxchg, 4)
-DEFAULT_ATOMIC_OP(cmpxchg, 8)
-
-#undef DEFAULT_ATOMIC_OP
-
-#endif // LINUX

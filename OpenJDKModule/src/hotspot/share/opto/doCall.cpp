@@ -25,7 +25,6 @@
 #include "precompiled.hpp"
 #include "ci/ciCallSite.hpp"
 #include "ci/ciMethodHandle.hpp"
-#include "ci/ciSymbols.hpp"
 #include "classfile/vmSymbols.hpp"
 #include "compiler/compileBroker.hpp"
 #include "compiler/compileLog.hpp"
@@ -1121,7 +1120,7 @@ ciMethod* Compile::optimize_inlining(ciMethod* caller, ciInstanceKlass* klass,
     // finalize() call on array is not allowed.
     if (receiver_type->isa_aryptr() &&
         callee->holder() == env()->Object_klass() &&
-        callee->name() != ciSymbols::finalize_method_name()) {
+        callee->name() != ciSymbol::finalize_method_name()) {
       return callee;
     }
 

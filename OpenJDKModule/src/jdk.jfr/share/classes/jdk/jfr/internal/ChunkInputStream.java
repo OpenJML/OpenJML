@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -34,7 +34,6 @@ import java.util.List;
 
 final class ChunkInputStream extends InputStream {
     private final Iterator<RepositoryChunk> chunks;
-    private long unstreamedSize = 0;
     private RepositoryChunk currentChunk;
     private InputStream stream;
 
@@ -43,7 +42,6 @@ final class ChunkInputStream extends InputStream {
         for (RepositoryChunk c : chunks) {
             c.use(); // keep alive while we're reading.
             l.add(c);
-            unstreamedSize += c.getSize();
         }
 
         this.chunks = l.iterator();
@@ -52,11 +50,10 @@ final class ChunkInputStream extends InputStream {
 
     @Override
     public int available() throws IOException {
-        long total = unstreamedSize;
         if (stream != null) {
-            total += stream.available();
+            return stream.available();
         }
-        return total <= Integer.MAX_VALUE ? (int) total : Integer.MAX_VALUE;
+        return 0;
     }
 
     private boolean nextStream() throws IOException {
@@ -65,7 +62,6 @@ final class ChunkInputStream extends InputStream {
         }
 
         stream = new BufferedInputStream(SecuritySupport.newFileInputStream(currentChunk.getFile()));
-        unstreamedSize -= currentChunk.getSize();
         return true;
     }
 

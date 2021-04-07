@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -38,6 +38,8 @@ import java.io.*;
 import java.nio.file.*;
 import java.math.*;
 import java.util.*;
+
+import jdk.test.lib.Convert;
 
 import sun.security.util.*;
 
@@ -96,7 +98,7 @@ public class EdECKeyFormat {
 
     private static void pubKeyTest(Provider p, String key) throws Exception {
         // ensure that a properly-formatted key can be read
-        byte[] encodedKey = HexFormat.of().parseHex(key);
+        byte[] encodedKey = Convert.hexStringToByteArray(key);
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encodedKey);
         KeyFactory kf = KeyFactory.getInstance("EdDSA", p);
         kf.generatePublic(keySpec);
@@ -123,7 +125,7 @@ public class EdECKeyFormat {
         checkPrivKeyFormat(keySpec.getEncoded());
 
         // ensure that a properly-formatted key can be read
-        byte[] encodedKey = HexFormat.of().parseHex(privKeys.get(algName));
+        byte[] encodedKey = Convert.hexStringToByteArray(privKeys.get(algName));
         keySpec = new PKCS8EncodedKeySpec(encodedKey);
         kf.generatePrivate(keySpec);
     }

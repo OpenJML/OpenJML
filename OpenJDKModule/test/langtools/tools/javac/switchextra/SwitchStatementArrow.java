@@ -1,5 +1,5 @@
 /*
- * @test /nodynamiccopyright/
+ * @test /nodymaticcopyright/
  * @bug 8206986
  * @summary Verify rule cases work properly.
  * @compile/fail/ref=SwitchStatementArrow-old.out -source 9 -Xlint:-options -XDrawDiagnostics SwitchStatementArrow.java

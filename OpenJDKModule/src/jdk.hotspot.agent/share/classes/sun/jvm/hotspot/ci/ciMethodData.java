@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -30,7 +30,6 @@ import sun.jvm.hotspot.debugger.*;
 import sun.jvm.hotspot.runtime.*;
 import sun.jvm.hotspot.oops.*;
 import sun.jvm.hotspot.types.*;
-import sun.jvm.hotspot.types.Field;
 import sun.jvm.hotspot.utilities.Observable;
 import sun.jvm.hotspot.utilities.Observer;
 
@@ -45,7 +44,7 @@ public class ciMethodData extends ciMetadata implements MethodDataInterface<ciKl
 
   private static synchronized void initialize(TypeDataBase db) throws WrongTypeException {
     Type type      = db.lookupType("ciMethodData");
-    origField = type.getField("_orig");
+    origField = type.getAddressField("_orig");
     currentMileageField = new CIntField(type.getCIntegerField("_current_mileage"), 0);
     argReturnedField = new CIntField(type.getCIntegerField("_arg_returned"), 0);
     argStackField = new CIntField(type.getCIntegerField("_arg_stack"), 0);
@@ -62,7 +61,7 @@ public class ciMethodData extends ciMetadata implements MethodDataInterface<ciKl
     parametersTypeDataDi = new CIntField(typeMethodData.getCIntegerField("_parameters_type_data_di"), 0);
   }
 
-  private static Field origField;
+  private static AddressField origField;
   private static CIntField currentMileageField;
   private static CIntField argReturnedField;
   private static CIntField argStackField;
@@ -107,8 +106,8 @@ public class ciMethodData extends ciMetadata implements MethodDataInterface<ciKl
   public byte[] orig() {
     // fetch the orig MethodData data between header and dataSize
     Address base = getAddress().addOffsetTo(origField.getOffset());
-    byte[] result = new byte[(int)origField.getType().getSize()];
-    for (int i = 0; i < result.length; i++) {
+    byte[] result = new byte[MethodData.sizeofMethodDataOopDesc];
+    for (int i = 0; i < MethodData.sizeofMethodDataOopDesc; i++) {
       result[i] = base.getJByteAt(i);
     }
     return result;
@@ -117,7 +116,7 @@ public class ciMethodData extends ciMetadata implements MethodDataInterface<ciKl
   public  long[] data() {
     // Read the data as an array of intptr_t elements
     Address base = dataField.getValue(getAddress());
-    int elements = (dataSize() + extraDataSize()) / MethodData.cellSize;
+    int elements = dataSize() / MethodData.cellSize;
     long[] result = new long[elements];
     for (int i = 0; i < elements; i++) {
       Address value = base.getAddressAt(i * MethodData.cellSize);
@@ -149,7 +148,8 @@ public class ciMethodData extends ciMetadata implements MethodDataInterface<ciKl
   }
 
   ParametersTypeData<ciKlass,ciMethod> parametersTypeData() {
-    int di = (int)parametersTypeDataDi.getValue(getMetadata().getAddress());
+    Address base = getAddress().addOffsetTo(origField.getOffset());
+    int di = (int)parametersTypeDataDi.getValue(base);
     if (di == -1 || di == -2) {
       return null;
     }

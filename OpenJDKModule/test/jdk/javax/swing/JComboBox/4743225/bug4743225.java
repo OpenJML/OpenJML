@@ -63,7 +63,6 @@ public class bug4743225 extends JFrame {
         });
         add(cb);
         pack();
-        setLocationRelativeTo(null);
     }
 
     public static BasicComboPopup getPopup() {
@@ -79,7 +78,7 @@ public class bug4743225 extends JFrame {
     public static void main(String... args) throws Exception {
 
         Robot robot = new Robot();
-        robot.setAutoDelay(100);
+        robot.setAutoDelay(20);
 
         SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {

@@ -1424,7 +1424,9 @@ public class JPEGImageWriter extends ImageWriter {
     private JPEGQTable [] collectQTablesFromMetadata
         (JPEGMetadata metadata) {
         ArrayList<DQTMarkerSegment.Qtable> tables = new ArrayList<>();
-        for (MarkerSegment seg : metadata.markerSequence) {
+        Iterator<MarkerSegment> iter = metadata.markerSequence.iterator();
+        while (iter.hasNext()) {
+            MarkerSegment seg = iter.next();
             if (seg instanceof DQTMarkerSegment) {
                 DQTMarkerSegment dqt =
                     (DQTMarkerSegment) seg;
@@ -1452,7 +1454,9 @@ public class JPEGImageWriter extends ImageWriter {
     private JPEGHuffmanTable[] collectHTablesFromMetadata
         (JPEGMetadata metadata, boolean wantDC) throws IIOException {
         ArrayList<DHTMarkerSegment.Htable> tables = new ArrayList<>();
-        for (MarkerSegment seg : metadata.markerSequence) {
+        Iterator<MarkerSegment> iter = metadata.markerSequence.iterator();
+        while (iter.hasNext()) {
+            MarkerSegment seg = iter.next();
             if (seg instanceof DHTMarkerSegment) {
                 DHTMarkerSegment dht = (DHTMarkerSegment) seg;
                 for (int i = 0; i < dht.tables.size(); i++) {

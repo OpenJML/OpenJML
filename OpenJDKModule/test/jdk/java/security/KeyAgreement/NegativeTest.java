@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -35,6 +35,7 @@
  *  Arguments order <KeyExchangeAlgorithm> <Provider> <KeyGenAlgorithm>
  *                  <keySize> <Curve*>
  * @library /test/lib
+ * @build jdk.test.lib.Convert
  * @run main NegativeTest DiffieHellman SunJCE DiffieHellman 1024
  * @run main NegativeTest ECDH SunEC EC 256
  * @run main NegativeTest XDH SunEC XDH 255 X25519
@@ -57,8 +58,8 @@ import java.security.spec.X509EncodedKeySpec;
 import java.security.spec.XECPrivateKeySpec;
 import java.security.spec.XECPublicKeySpec;
 import java.util.Arrays;
-import java.util.HexFormat;
 import javax.crypto.KeyAgreement;
+import jdk.test.lib.Convert;
 
 public class NegativeTest {
 
@@ -127,8 +128,8 @@ public class NegativeTest {
         } catch (InvalidKeySpecException e) {
             System.out.printf("Expected InvalidKeySpecException for invalid "
                     + "PrivateKey %s%n and modified encoding: %s, %s%n",
-                    HexFormat.of().withUpperCase().formatHex(encoded),
-                    HexFormat.of().withUpperCase().formatHex(modified), e.getMessage());
+                    Convert.byteArrayToHexString(encoded),
+                    Convert.byteArrayToHexString(modified), e.getMessage());
         }
         // Test modified PublicKey encoding
         encoded = kp.getPublic().getEncoded();
@@ -142,8 +143,8 @@ public class NegativeTest {
         } catch (InvalidKeySpecException e) {
             System.out.printf("Expected InvalidKeySpecException for invalid "
                     + "PublicKey %s%n and modified encoding: %s, %s%n",
-                    HexFormat.of().withUpperCase().formatHex(encoded),
-                    HexFormat.of().withUpperCase().formatHex(modified), e.getMessage());
+                    Convert.byteArrayToHexString(encoded),
+                    Convert.byteArrayToHexString(modified), e.getMessage());
         }
     }
 

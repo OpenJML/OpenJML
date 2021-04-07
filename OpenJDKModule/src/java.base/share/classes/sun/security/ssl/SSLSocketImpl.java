@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -35,6 +35,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -134,7 +135,7 @@ public final class SSLSocketImpl
      * if appropriate.
      */
     SSLSocketImpl(SSLContextImpl sslContext, String peerHost,
-            int peerPort) throws IOException {
+            int peerPort) throws IOException, UnknownHostException {
         super();
         this.sslContext = sslContext;
         HandshakeHash handshakeHash = new HandshakeHash();
@@ -178,7 +179,7 @@ public final class SSLSocketImpl
      */
     SSLSocketImpl(SSLContextImpl sslContext,
             String peerHost, int peerPort, InetAddress localAddr,
-            int localPort) throws IOException {
+            int localPort) throws IOException, UnknownHostException {
         super();
         this.sslContext = sslContext;
         HandshakeHash handshakeHash = new HandshakeHash();
@@ -819,24 +820,23 @@ public final class SSLSocketImpl
         // Is it ready to close inbound?
         //
         // No need to throw exception if the initial handshake is not started.
-        try {
-            if (checkCloseNotify && !conContext.isInputCloseNotified &&
-                (conContext.isNegotiated || conContext.handshakeContext != null)) {
-            throw new SSLException(
+        if (checkCloseNotify && !conContext.isInputCloseNotified &&
+            (conContext.isNegotiated || conContext.handshakeContext != null)) {
+
+            throw conContext.fatal(Alert.INTERNAL_ERROR,
                     "closing inbound before receiving peer's close_notify");
-            }
-        } finally {
-            conContext.closeInbound();
-            if ((autoClose || !isLayered()) && !super.isInputShutdown()) {
-                super.shutdownInput();
-            }
+        }
+
+        conContext.closeInbound();
+        if ((autoClose || !isLayered()) && !super.isInputShutdown()) {
+            super.shutdownInput();
         }
     }
 
     @Override
     public boolean isInputShutdown() {
         return conContext.isInboundClosed() &&
-                (!autoClose && isLayered() || super.isInputShutdown());
+                ((autoClose || !isLayered()) ? super.isInputShutdown(): true);
     }
 
     // Please don't synchronized this method.  Otherwise, the read and close
@@ -860,7 +860,7 @@ public final class SSLSocketImpl
     @Override
     public boolean isOutputShutdown() {
         return conContext.isOutboundClosed() &&
-                (!autoClose && isLayered() || super.isOutputShutdown());
+                ((autoClose || !isLayered()) ? super.isOutputShutdown(): true);
     }
 
     @Override
@@ -1405,9 +1405,11 @@ public final class SSLSocketImpl
                         conContext.isNegotiated) {
                     return 0;
                 }
-            } catch (SSLException | InterruptedIOException ssle) {
-                // don't change exception in case of timeouts or interrupts
+            } catch (SSLException ssle) {
                 throw ssle;
+            } catch (InterruptedIOException iioe) {
+                // don't change exception in case of timeouts or interrupts
+                throw iioe;
             } catch (IOException ioe) {
                 throw new SSLException("readHandshakeRecord", ioe);
             }
@@ -1468,11 +1470,17 @@ public final class SSLSocketImpl
                         buffer.position() > 0) {
                     return buffer;
                 }
-            } catch (SSLException | InterruptedIOException ssle) {
-                // don't change exception in case of timeouts or interrupts
+            } catch (SSLException ssle) {
                 throw ssle;
+            } catch (InterruptedIOException iioe) {
+                // don't change exception in case of timeouts or interrupts
+                throw iioe;
             } catch (IOException ioe) {
-                throw new SSLException("readApplicationRecord", ioe);
+                if (!(ioe instanceof SSLException)) {
+                    throw new SSLException("readApplicationRecord", ioe);
+                } else {
+                    throw ioe;
+                }
             }
         }
 
@@ -1729,23 +1737,17 @@ public final class SSLSocketImpl
             }
 
             try {
-                // If conContext.isInputCloseNotified is false, close the
-                // connection, no wait for more peer response.  Otherwise,
-                // may wait for peer close_notify.
-                closeSocket(!conContext.isInputCloseNotified);
+                if (conContext.isInputCloseNotified) {
+                    // Close the connection, no wait for more peer response.
+                    closeSocket(false);
+                } else {
+                    // Close the connection, may wait for peer close_notify.
+                    closeSocket(true);
+                }
             } finally {
                 tlsIsClosed = true;
             }
         }
-    }
-
-    @Override
-    public String toString() {
-        return "SSLSocket[" +
-                "hostname=" + getPeerHost() +
-                ", port=" + getPeerPort() +
-                ", " + conContext.conSession +  // SSLSessionImpl.toString()
-                "]";
     }
 
     private void closeSocket(boolean selfInitiated) throws IOException {

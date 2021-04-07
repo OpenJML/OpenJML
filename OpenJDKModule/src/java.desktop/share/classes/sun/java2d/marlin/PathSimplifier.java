@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -24,21 +24,23 @@
  */
 package sun.java2d.marlin;
 
-final class PathSimplifier implements DPathConsumer2D {
+import sun.awt.geom.PathConsumer2D;
+
+final class PathSimplifier implements PathConsumer2D {
 
     // distance threshold in pixels (device)
-    private static final double PIX_THRESHOLD = MarlinProperties.getPathSimplifierPixelTolerance();
+    private static final float PIX_THRESHOLD = MarlinProperties.getPathSimplifierPixelTolerance();
 
-    private static final double SQUARE_TOLERANCE = PIX_THRESHOLD * PIX_THRESHOLD;
+    private static final float SQUARE_TOLERANCE = PIX_THRESHOLD * PIX_THRESHOLD;
 
     // members:
-    private DPathConsumer2D delegate;
-    private double cx, cy;
+    private PathConsumer2D delegate;
+    private float cx, cy;
 
     PathSimplifier() {
     }
 
-    PathSimplifier init(final DPathConsumer2D delegate) {
+    PathSimplifier init(final PathConsumer2D delegate) {
         this.delegate = delegate;
         return this; // fluent API
     }
@@ -59,12 +61,12 @@ final class PathSimplifier implements DPathConsumer2D {
     }
 
     @Override
-    public void quadTo(final double x1, final double y1,
-                       final double xe, final double ye)
+    public void quadTo(final float x1, final float y1,
+                       final float xe, final float ye)
     {
         // Test if curve is too small:
-        double dx = (xe - cx);
-        double dy = (ye - cy);
+        float dx = (xe - cx);
+        float dy = (ye - cy);
 
         if ((dx * dx + dy * dy) <= SQUARE_TOLERANCE) {
             // check control points P1:
@@ -82,13 +84,13 @@ final class PathSimplifier implements DPathConsumer2D {
     }
 
     @Override
-    public void curveTo(final double x1, final double y1,
-                        final double x2, final double y2,
-                        final double xe, final double ye)
+    public void curveTo(final float x1, final float y1,
+                        final float x2, final float y2,
+                        final float xe, final float ye)
     {
         // Test if curve is too small:
-        double dx = (xe - cx);
-        double dy = (ye - cy);
+        float dx = (xe - cx);
+        float dy = (ye - cy);
 
         if ((dx * dx + dy * dy) <= SQUARE_TOLERANCE) {
             // check control points P1:
@@ -112,7 +114,7 @@ final class PathSimplifier implements DPathConsumer2D {
     }
 
     @Override
-    public void moveTo(final double xe, final double ye) {
+    public void moveTo(final float xe, final float ye) {
         delegate.moveTo(xe, ye);
         // starting point:
         cx = xe;
@@ -120,10 +122,10 @@ final class PathSimplifier implements DPathConsumer2D {
     }
 
     @Override
-    public void lineTo(final double xe, final double ye) {
+    public void lineTo(final float xe, final float ye) {
         // Test if segment is too small:
-        double dx = (xe - cx);
-        double dy = (ye - cy);
+        float dx = (xe - cx);
+        float dy = (ye - cy);
 
         if ((dx * dx + dy * dy) <= SQUARE_TOLERANCE) {
             return;
