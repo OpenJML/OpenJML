@@ -2083,7 +2083,7 @@ public class Attr extends JCTree.Visitor {
                         .collect(List.collector()));
         }
 
-    final static TypeTag[] primitiveTags = new TypeTag[]{
+    static final TypeTag[] primitiveTags = new TypeTag[]{
         BYTE,
         CHAR,
         SHORT,
@@ -3995,6 +3995,7 @@ public class Attr extends JCTree.Visitor {
                 tree.expr.pos(), attribExpr(tree.expr, env));
         Type clazztype;
         JCTree typeTree;
+        boolean checkRawTypes;
         if (tree.pattern.getTag() == BINDINGPATTERN) {
             attribTree(tree.pattern, env, unknownExprInfo);
             clazztype = tree.pattern.type;
@@ -4007,9 +4008,11 @@ public class Attr extends JCTree.Visitor {
             if (!clazztype.hasTag(TYPEVAR)) {
                 clazztype = chk.checkClassOrArrayType(pattern.var.vartype.pos(), clazztype);
             }
+            checkRawTypes = true;
         } else {
             clazztype = attribType(tree.pattern, env);
             typeTree = tree.pattern;
+            checkRawTypes = false;
         }
         if (!clazztype.hasTag(TYPEVAR)) {
             clazztype = chk.checkClassOrArrayType(typeTree.pos(), clazztype);
@@ -4039,7 +4042,7 @@ public class Attr extends JCTree.Visitor {
                 clazztype = types.createErrorType(clazztype);
             }
         }
-        chk.validate(typeTree, env, false);
+        chk.validate(typeTree, env, checkRawTypes);
         chk.checkCastable(tree.expr.pos(), exprtype, clazztype);
         result = check(tree, syms.booleanType, KindSelector.VAL, resultInfo);
     }
