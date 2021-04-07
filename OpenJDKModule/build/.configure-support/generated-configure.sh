@@ -642,6 +642,7 @@ TEST_JOBS
 JOBS
 MEMORY_SIZE
 NUM_CORES
+ENABLE_COMPATIBLE_CDS_ALIGNMENT
 BUILD_CDS_ARCHIVE
 BUILD_MANPAGES
 EXCLUDE_TRANSLATIONS
@@ -812,6 +813,8 @@ STRIP
 DUMPBIN
 RC
 MT
+METALLIB
+METAL
 INSTALL_NAME_TOOL
 OTOOL
 LIPO
@@ -1008,7 +1011,9 @@ RELEASE_FILE_OS_ARCH
 RELEASE_FILE_OS_NAME
 OPENJDK_MODULE_TARGET_PLATFORM
 COMPILE_TYPE
+OPENJDK_TARGET_ABI
 OPENJDK_TARGET_LIBC
+OPENJDK_TARGET_CPU_AUTOCONF
 OPENJDK_TARGET_CPU_ENDIAN
 OPENJDK_TARGET_CPU_BITS
 OPENJDK_TARGET_CPU_ARCH
@@ -1017,7 +1022,9 @@ OPENJDK_TARGET_OS_UPPERCASE
 OPENJDK_TARGET_OS_ENV
 OPENJDK_TARGET_OS_TYPE
 OPENJDK_TARGET_OS
+OPENJDK_BUILD_ABI
 OPENJDK_BUILD_LIBC
+OPENJDK_BUILD_CPU_AUTOCONF
 OPENJDK_BUILD_CPU_ENDIAN
 OPENJDK_BUILD_CPU_BITS
 OPENJDK_BUILD_CPU_ARCH
@@ -1276,6 +1283,7 @@ enable_generate_classlist
 with_exclude_translations
 enable_manpages
 enable_cds_archive
+enable_compatible_cds_alignment
 with_num_cores
 with_memory_size
 with_jobs
@@ -1384,6 +1392,8 @@ AR
 LIPO
 OTOOL
 INSTALL_NAME_TOOL
+METAL
+METALLIB
 MT
 RC
 DUMPBIN
@@ -2130,6 +2140,8 @@ Optional Features:
                           enable generation of a CDS classlist at build time [enabled if the JVM feature 'cds' is enabled for all JVM variants]
   --enable-manpages       enable copying of static man pages [enabled]
   --enable-cds-archive    enable generation of a default CDS archive in the product image [enabled if possible]
+  --enable-compatible-cds-alignment
+                          enable use alternative compatible cds core region alignment [disabled]
   --enable-javac-server   enable javac server [enabled]
   --enable-icecc          enable distributed compilation of native code using icecc/icecream [disabled]
   --enable-precompiled-headers
@@ -2439,6 +2451,8 @@ Some influential environment variables:
   OTOOL       Override default value for OTOOL
   INSTALL_NAME_TOOL
               Override default value for INSTALL_NAME_TOOL
+  METAL       Override default value for METAL
+  METALLIB    Override default value for METALLIB
   MT          Override default value for MT
   RC          Override default value for RC
   DUMPBIN     Override default value for DUMPBIN
@@ -4849,7 +4863,7 @@ VALID_JVM_VARIANTS="server client minimal core zero custom"
 
 
 #
-# Copyright (c) 2011, 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2011, 2021, Oracle and/or its affiliates. All rights reserved.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -4961,6 +4975,12 @@ VALID_JVM_VARIANTS="server client minimal core zero custom"
 
 ################################################################################
 #
+# Enable the alternative CDS core region alignment
+#
+
+
+################################################################################
+#
 # Disallow any output from containing absolute paths from the build system.
 # This setting defaults to allowed on debug builds and not allowed on release
 # builds.
@@ -5013,7 +5033,7 @@ VALID_JVM_VARIANTS="server client minimal core zero custom"
 
 
 #
-# Copyright (c) 2011, 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2011, 2021, Oracle and/or its affiliates. All rights reserved.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -5606,6 +5626,11 @@ VALID_JVM_VARIANTS="server client minimal core zero custom"
 # VAR_LIBC.
 
 
+# Support macro for PLATFORM_EXTRACT_TARGET_AND_BUILD.
+# Converts autoconf style OS name to OpenJDK style, into
+# VAR_ABI.
+
+
 # Expects $host_os $host_cpu $build_os and $build_cpu
 # and $with_target_bits to have been setup!
 #
@@ -5673,7 +5698,7 @@ VALID_JVM_VARIANTS="server client minimal core zero custom"
 
 
 #
-# Copyright (c) 2011, 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2011, 2021, Oracle and/or its affiliates. All rights reserved.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -32968,6 +32993,28 @@ test -n "$target_alias" &&
       ;;
   esac
 
+
+  case "$build_os" in
+    *linux*-musl)
+      VAR_ABI=musl
+      ;;
+    *linux*-gnu)
+      VAR_ABI=gnu
+      ;;
+    *linux*-gnueabi)
+      VAR_ABI=gnueabi
+      ;;
+    *linux*-gnueabihf)
+      VAR_ABI=gnueabihf
+      ;;
+    *linux*-gnuabi64)
+      VAR_ABI=gnuabi64
+      ;;
+    *)
+      VAR_ABI=default
+      ;;
+  esac
+
   # ..and setup our own variables. (Do this explicitly to facilitate searching)
   OPENJDK_BUILD_OS="$VAR_OS"
   if test "x$VAR_OS_TYPE" != x; then
@@ -32984,7 +33031,11 @@ test -n "$target_alias" &&
   OPENJDK_BUILD_CPU_ARCH="$VAR_CPU_ARCH"
   OPENJDK_BUILD_CPU_BITS="$VAR_CPU_BITS"
   OPENJDK_BUILD_CPU_ENDIAN="$VAR_CPU_ENDIAN"
+  OPENJDK_BUILD_CPU_AUTOCONF="$build_cpu"
   OPENJDK_BUILD_LIBC="$VAR_LIBC"
+  OPENJDK_BUILD_ABI="$VAR_ABI"
+
+
 
 
 
@@ -33207,6 +33258,28 @@ $as_echo "$OPENJDK_BUILD_LIBC" >&6; }
       ;;
   esac
 
+
+  case "$host_os" in
+    *linux*-musl)
+      VAR_ABI=musl
+      ;;
+    *linux*-gnu)
+      VAR_ABI=gnu
+      ;;
+    *linux*-gnueabi)
+      VAR_ABI=gnueabi
+      ;;
+    *linux*-gnueabihf)
+      VAR_ABI=gnueabihf
+      ;;
+    *linux*-gnuabi64)
+      VAR_ABI=gnuabi64
+      ;;
+    *)
+      VAR_ABI=default
+      ;;
+  esac
+
   # ... and setup our own variables. (Do this explicitly to facilitate searching)
   OPENJDK_TARGET_OS="$VAR_OS"
   if test "x$VAR_OS_TYPE" != x; then
@@ -33223,8 +33296,12 @@ $as_echo "$OPENJDK_BUILD_LIBC" >&6; }
   OPENJDK_TARGET_CPU_ARCH="$VAR_CPU_ARCH"
   OPENJDK_TARGET_CPU_BITS="$VAR_CPU_BITS"
   OPENJDK_TARGET_CPU_ENDIAN="$VAR_CPU_ENDIAN"
+  OPENJDK_TARGET_CPU_AUTOCONF="$host_cpu"
   OPENJDK_TARGET_OS_UPPERCASE=`$ECHO $OPENJDK_TARGET_OS | $TR 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'`
   OPENJDK_TARGET_LIBC="$VAR_LIBC"
+  OPENJDK_TARGET_ABI="$VAR_ABI"
+
+
 
 
 
@@ -72533,6 +72610,14 @@ $as_echo "$as_me: $VS_ENV_TMP_DIR." >&6;}
     fi
   fi
 
+  if test "x$OPENJDK_TARGET_OS" = xmacosx; then
+    if test "x$OPENJDK_TARGET_CPU" = xaarch64; then
+      MACHINE_FLAG="$MACHINE_FLAG -arch arm64"
+    elif test "x$OPENJDK_TARGET_CPU" = xx86_64; then
+      MACHINE_FLAG="$MACHINE_FLAG -arch x86_64"
+    fi
+  fi
+
   # FIXME: global flags are not used yet...
   # The "global" flags will *always* be set. Without them, it is not possible to
   # get a working compilation.
@@ -88144,6 +88229,2552 @@ $as_echo "$INSTALL_NAME_TOOL [user supplied]" >&6; }
   fi
 
 
+
+
+  if test "x$ac_tool_prefix" = x; then
+
+
+  # Publish this variable in the help.
+
+
+  if [ -z "${METAL+x}" ]; then
+    # The variable is not set by user, try to locate tool using the code snippet
+
+    METAL=""
+
+    if test "x" != x; then
+      old_path="$PATH"
+      PATH=""
+    fi
+
+    for name in metal; do
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $name" >&5
+$as_echo_n "checking for $name... " >&6; }
+
+      command_type=`type -t "$name"`
+      if test "x$command_type" = xbuiltin || test "x$command_type" = xkeyword; then
+        # Shell builtin or keyword; we're done here
+        full_path="$name"
+        METAL="$full_path"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $full_path [builtin]" >&5
+$as_echo "$full_path [builtin]" >&6; }
+        break
+      else
+        # Search in $PATH
+        old_ifs="$IFS"
+        IFS=":"
+        for elem in $PATH; do
+          IFS="$old_ifs"
+          if test "x$elem" = x; then
+            continue
+          fi
+          full_path="$elem/$name"
+          if test ! -e "$full_path" && test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+            # Try again with .exe
+            full_path="$elem/$name.exe"
+          fi
+          if test -x "$full_path" && test ! -d "$full_path" ; then
+            METAL="$full_path"
+
+  input="$METAL"
+
+  # Only process if variable expands to non-empty
+  if test "x$input" != x; then
+    # First separate the path from the arguments. This will split at the first
+    # space.
+     if [[ "$OPENJDK_BUILD_OS" = "windows" && input =~ ^$FIXPATH ]]; then
+      line="${input#$FIXPATH }"
+      fixpath_prefix="$FIXPATH "
+    else
+      line="$input"
+      fixpath_prefix=""
+    fi
+    path="${line%% *}"
+    arguments="${line#"$path"}"
+
+     if ! [[ "$path" =~ /|\\ ]]; then
+      # This is a command without path (e.g. "gcc" or "echo")
+      command_type=`type -t "$path"`
+      if test "x$command_type" = xbuiltin || test "x$command_type" = xkeyword; then
+        # Shell builtin or keyword; we're done here
+        new_path="$path"
+      else
+        # Search in $PATH using bash built-in 'type -p'.
+        saved_path="$PATH"
+        if test "x" != x; then
+          PATH=""
+        fi
+        new_path=`type -p "$path"`
+        if test "x$new_path" = x && test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+          # Try again with .exe
+          new_path="`type -p "$path.exe"`"
+        fi
+        PATH="$saved_path"
+
+        if test "x$new_path" = x; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METAL, which resolves as \"$input\", is not found in the PATH." >&5
+$as_echo "$as_me: The command for METAL, which resolves as \"$input\", is not found in the PATH." >&6;}
+          as_fn_error $? "Cannot locate $path" "$LINENO" 5
+        fi
+      fi
+    else
+      # This is a path with slashes, don't look at $PATH
+      if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+        # fixpath.sh import will do all heavy lifting for us
+        new_path=`$FIXPATH_BASE import "$path"`
+
+        if test ! -e $new_path; then
+          # It failed, but maybe spaces were part of the path and not separating
+          # the command and argument. Retry using that assumption.
+          new_path=`$FIXPATH_BASE import "$input"`
+          if test ! -e $new_path; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METAL, which resolves as \"$input\", can not be found." >&5
+$as_echo "$as_me: The command for METAL, which resolves as \"$input\", can not be found." >&6;}
+            as_fn_error $? "Cannot locate $input" "$LINENO" 5
+          fi
+          # It worked, clear all "arguments"
+          arguments=""
+        fi
+      else # on unix
+        # Make absolute
+        METAL="$path"
+
+  # Only process if variable expands to non-empty
+  path="$METAL"
+  if test "x$path" != x; then
+    if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+      if test "xNOFAIL" = "xNOFAIL"; then
+        quiet_option="-q"
+      fi
+      imported_path=`$FIXPATH_BASE $quiet_option import "$path"`
+      $FIXPATH_BASE verify "$imported_path"
+      if test $? -ne 0; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          as_fn_error $? "The path of METAL, which resolves as \"$path\", could not be imported." "$LINENO" 5
+        else
+          imported_path=""
+        fi
+      fi
+      if test "x$imported_path" != "x$path"; then
+        METAL="$imported_path"
+      fi
+    else
+       if [[ "$path" =~ " " ]]; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The path of METAL, which resolves as \"$path\", is invalid." >&5
+$as_echo "$as_me: The path of METAL, which resolves as \"$path\", is invalid." >&6;}
+          as_fn_error $? "Spaces are not allowed in this path." "$LINENO" 5
+        else
+          path=""
+        fi
+      fi
+
+      # Use eval to expand a potential ~.
+      eval new_path="$path"
+      if test ! -e "$new_path"; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          as_fn_error $? "The path of METAL, which resolves as \"$new_path\", is not found." "$LINENO" 5
+        else
+          new_path=""
+        fi
+      fi
+
+      # Make the path absolute
+      if test "x$new_path" != x; then
+        if test -d "$new_path"; then
+          path="`cd "$new_path"; pwd -L`"
+        else
+          dir="`$DIRNAME "$new_path"`"
+          base="`$BASENAME "$new_path"`"
+          path="`cd "$dir"; pwd -L`/$base"
+        fi
+      else
+        path=""
+      fi
+
+      METAL="$path"
+    fi
+  fi
+
+        new_path="$METAL"
+
+        if test ! -e $new_path; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METAL, which resolves as \"$input\", is not found" >&5
+$as_echo "$as_me: The command for METAL, which resolves as \"$input\", is not found" >&6;}
+           if [[ "$path" =~ " " ]]; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: This might be caused by spaces in the path, which is not allowed." >&5
+$as_echo "$as_me: This might be caused by spaces in the path, which is not allowed." >&6;}
+          fi
+          as_fn_error $? "Cannot locate $path" "$LINENO" 5
+        fi
+        if test ! -x $new_path; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METAL, which resolves as \"$input\", is not executable." >&5
+$as_echo "$as_me: The command for METAL, which resolves as \"$input\", is not executable." >&6;}
+          as_fn_error $? "Cannot execute command at $path" "$LINENO" 5
+        fi
+      fi # end on unix
+    fi # end with or without slashes
+
+    # Now we have a usable command as new_path, with arguments in arguments
+    if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+      if test "x$fixpath_prefix" = x; then
+        # Only mess around if fixpath_prefix was not given
+
+  # For cygwin and msys2, if it's linked with the correct helper lib, it
+  # accept unix paths
+  if test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.cygwin" || \
+      test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.msys2"; then
+    linked_libs=`$LDD "$new_path" 2>&1`
+    if test $? -ne 0; then
+      # Non-binary files (e.g. shell scripts) are unix files
+      RESULT=unix
+    else
+       if [[ "$linked_libs" =~ $WINENV_MARKER_DLL ]]; then
+        RESULT=unix
+      else
+        RESULT=windows
+      fi
+    fi
+  elif test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+    # On WSL, we can check if it is a PE file
+    file_type=`$FILE -b "$new_path" 2>&1`
+     if [[ $file_type =~ PE.*Windows ]]; then
+      RESULT=windows
+    else
+      RESULT=unix
+    fi
+  else
+    RESULT=unix
+  fi
+
+        if test "x$RESULT" = xwindows; then
+          fixpath_prefix="$FIXPATH "
+          # make sure we have an .exe suffix (but not two)
+          new_path="${new_path%.exe}.exe"
+        else
+          # If we have gotten a .exe suffix, remove it
+          new_path="${new_path%.exe}"
+        fi
+      fi
+    fi
+
+    if test "x" = xNOFIXPATH; then
+      fixpath_prefix=""
+    fi
+
+    # Now join together the path and the arguments once again
+    new_complete="$fixpath_prefix$new_path$arguments"
+    METAL="$new_complete"
+  fi
+
+            result="$METAL"
+
+            # If we have FIXPATH enabled, strip all instances of it and prepend
+            # a single one, to avoid double fixpath prefixing.
+            if test "x" != xNOFIXPATH; then
+               if [[ $FIXPATH != "" && $result =~ ^"$FIXPATH " ]]; then
+                result="\$FIXPATH ${result#"$FIXPATH "}"
+              fi
+            fi
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $result" >&5
+$as_echo "$result" >&6; }
+            break 2;
+          fi
+        done
+        IFS="$old_ifs"
+      fi
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: [not found]" >&5
+$as_echo "[not found]" >&6; }
+    done
+
+    if test "x" != x; then
+      PATH="$old_path"
+    fi
+
+  else
+    # The variable is set, but is it from the command line or the environment?
+
+    # Try to remove the string !METAL! from our list.
+    try_remove_var=${CONFIGURE_OVERRIDDEN_VARIABLES//!METAL!/}
+    if test "x$try_remove_var" = "x$CONFIGURE_OVERRIDDEN_VARIABLES"; then
+      # If it failed, the variable was not from the command line. Ignore it,
+      # but warn the user (except for BASH, which is always set by the calling BASH).
+      if test "xMETAL" != xBASH; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Ignoring value of METAL from the environment. Use command line variables instead." >&5
+$as_echo "$as_me: WARNING: Ignoring value of METAL from the environment. Use command line variables instead." >&2;}
+      fi
+      # Try to locate tool using the code snippet
+
+    METAL=""
+
+    if test "x" != x; then
+      old_path="$PATH"
+      PATH=""
+    fi
+
+    for name in metal; do
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $name" >&5
+$as_echo_n "checking for $name... " >&6; }
+
+      command_type=`type -t "$name"`
+      if test "x$command_type" = xbuiltin || test "x$command_type" = xkeyword; then
+        # Shell builtin or keyword; we're done here
+        full_path="$name"
+        METAL="$full_path"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $full_path [builtin]" >&5
+$as_echo "$full_path [builtin]" >&6; }
+        break
+      else
+        # Search in $PATH
+        old_ifs="$IFS"
+        IFS=":"
+        for elem in $PATH; do
+          IFS="$old_ifs"
+          if test "x$elem" = x; then
+            continue
+          fi
+          full_path="$elem/$name"
+          if test ! -e "$full_path" && test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+            # Try again with .exe
+            full_path="$elem/$name.exe"
+          fi
+          if test -x "$full_path" && test ! -d "$full_path" ; then
+            METAL="$full_path"
+
+  input="$METAL"
+
+  # Only process if variable expands to non-empty
+  if test "x$input" != x; then
+    # First separate the path from the arguments. This will split at the first
+    # space.
+     if [[ "$OPENJDK_BUILD_OS" = "windows" && input =~ ^$FIXPATH ]]; then
+      line="${input#$FIXPATH }"
+      fixpath_prefix="$FIXPATH "
+    else
+      line="$input"
+      fixpath_prefix=""
+    fi
+    path="${line%% *}"
+    arguments="${line#"$path"}"
+
+     if ! [[ "$path" =~ /|\\ ]]; then
+      # This is a command without path (e.g. "gcc" or "echo")
+      command_type=`type -t "$path"`
+      if test "x$command_type" = xbuiltin || test "x$command_type" = xkeyword; then
+        # Shell builtin or keyword; we're done here
+        new_path="$path"
+      else
+        # Search in $PATH using bash built-in 'type -p'.
+        saved_path="$PATH"
+        if test "x" != x; then
+          PATH=""
+        fi
+        new_path=`type -p "$path"`
+        if test "x$new_path" = x && test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+          # Try again with .exe
+          new_path="`type -p "$path.exe"`"
+        fi
+        PATH="$saved_path"
+
+        if test "x$new_path" = x; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METAL, which resolves as \"$input\", is not found in the PATH." >&5
+$as_echo "$as_me: The command for METAL, which resolves as \"$input\", is not found in the PATH." >&6;}
+          as_fn_error $? "Cannot locate $path" "$LINENO" 5
+        fi
+      fi
+    else
+      # This is a path with slashes, don't look at $PATH
+      if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+        # fixpath.sh import will do all heavy lifting for us
+        new_path=`$FIXPATH_BASE import "$path"`
+
+        if test ! -e $new_path; then
+          # It failed, but maybe spaces were part of the path and not separating
+          # the command and argument. Retry using that assumption.
+          new_path=`$FIXPATH_BASE import "$input"`
+          if test ! -e $new_path; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METAL, which resolves as \"$input\", can not be found." >&5
+$as_echo "$as_me: The command for METAL, which resolves as \"$input\", can not be found." >&6;}
+            as_fn_error $? "Cannot locate $input" "$LINENO" 5
+          fi
+          # It worked, clear all "arguments"
+          arguments=""
+        fi
+      else # on unix
+        # Make absolute
+        METAL="$path"
+
+  # Only process if variable expands to non-empty
+  path="$METAL"
+  if test "x$path" != x; then
+    if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+      if test "xNOFAIL" = "xNOFAIL"; then
+        quiet_option="-q"
+      fi
+      imported_path=`$FIXPATH_BASE $quiet_option import "$path"`
+      $FIXPATH_BASE verify "$imported_path"
+      if test $? -ne 0; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          as_fn_error $? "The path of METAL, which resolves as \"$path\", could not be imported." "$LINENO" 5
+        else
+          imported_path=""
+        fi
+      fi
+      if test "x$imported_path" != "x$path"; then
+        METAL="$imported_path"
+      fi
+    else
+       if [[ "$path" =~ " " ]]; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The path of METAL, which resolves as \"$path\", is invalid." >&5
+$as_echo "$as_me: The path of METAL, which resolves as \"$path\", is invalid." >&6;}
+          as_fn_error $? "Spaces are not allowed in this path." "$LINENO" 5
+        else
+          path=""
+        fi
+      fi
+
+      # Use eval to expand a potential ~.
+      eval new_path="$path"
+      if test ! -e "$new_path"; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          as_fn_error $? "The path of METAL, which resolves as \"$new_path\", is not found." "$LINENO" 5
+        else
+          new_path=""
+        fi
+      fi
+
+      # Make the path absolute
+      if test "x$new_path" != x; then
+        if test -d "$new_path"; then
+          path="`cd "$new_path"; pwd -L`"
+        else
+          dir="`$DIRNAME "$new_path"`"
+          base="`$BASENAME "$new_path"`"
+          path="`cd "$dir"; pwd -L`/$base"
+        fi
+      else
+        path=""
+      fi
+
+      METAL="$path"
+    fi
+  fi
+
+        new_path="$METAL"
+
+        if test ! -e $new_path; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METAL, which resolves as \"$input\", is not found" >&5
+$as_echo "$as_me: The command for METAL, which resolves as \"$input\", is not found" >&6;}
+           if [[ "$path" =~ " " ]]; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: This might be caused by spaces in the path, which is not allowed." >&5
+$as_echo "$as_me: This might be caused by spaces in the path, which is not allowed." >&6;}
+          fi
+          as_fn_error $? "Cannot locate $path" "$LINENO" 5
+        fi
+        if test ! -x $new_path; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METAL, which resolves as \"$input\", is not executable." >&5
+$as_echo "$as_me: The command for METAL, which resolves as \"$input\", is not executable." >&6;}
+          as_fn_error $? "Cannot execute command at $path" "$LINENO" 5
+        fi
+      fi # end on unix
+    fi # end with or without slashes
+
+    # Now we have a usable command as new_path, with arguments in arguments
+    if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+      if test "x$fixpath_prefix" = x; then
+        # Only mess around if fixpath_prefix was not given
+
+  # For cygwin and msys2, if it's linked with the correct helper lib, it
+  # accept unix paths
+  if test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.cygwin" || \
+      test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.msys2"; then
+    linked_libs=`$LDD "$new_path" 2>&1`
+    if test $? -ne 0; then
+      # Non-binary files (e.g. shell scripts) are unix files
+      RESULT=unix
+    else
+       if [[ "$linked_libs" =~ $WINENV_MARKER_DLL ]]; then
+        RESULT=unix
+      else
+        RESULT=windows
+      fi
+    fi
+  elif test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+    # On WSL, we can check if it is a PE file
+    file_type=`$FILE -b "$new_path" 2>&1`
+     if [[ $file_type =~ PE.*Windows ]]; then
+      RESULT=windows
+    else
+      RESULT=unix
+    fi
+  else
+    RESULT=unix
+  fi
+
+        if test "x$RESULT" = xwindows; then
+          fixpath_prefix="$FIXPATH "
+          # make sure we have an .exe suffix (but not two)
+          new_path="${new_path%.exe}.exe"
+        else
+          # If we have gotten a .exe suffix, remove it
+          new_path="${new_path%.exe}"
+        fi
+      fi
+    fi
+
+    if test "x" = xNOFIXPATH; then
+      fixpath_prefix=""
+    fi
+
+    # Now join together the path and the arguments once again
+    new_complete="$fixpath_prefix$new_path$arguments"
+    METAL="$new_complete"
+  fi
+
+            result="$METAL"
+
+            # If we have FIXPATH enabled, strip all instances of it and prepend
+            # a single one, to avoid double fixpath prefixing.
+            if test "x" != xNOFIXPATH; then
+               if [[ $FIXPATH != "" && $result =~ ^"$FIXPATH " ]]; then
+                result="\$FIXPATH ${result#"$FIXPATH "}"
+              fi
+            fi
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $result" >&5
+$as_echo "$result" >&6; }
+            break 2;
+          fi
+        done
+        IFS="$old_ifs"
+      fi
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: [not found]" >&5
+$as_echo "[not found]" >&6; }
+    done
+
+    if test "x" != x; then
+      PATH="$old_path"
+    fi
+
+    else
+      # If it succeeded, then it was overridden by the user. We will use it
+      # for the tool.
+
+      # First remove it from the list of overridden variables, so we can test
+      # for unknown variables in the end.
+      CONFIGURE_OVERRIDDEN_VARIABLES="$try_remove_var"
+
+      tool_override=$METAL
+
+      # Check if we try to supply an empty value
+      if test "x$tool_override" = x; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for METAL" >&5
+$as_echo_n "checking for METAL... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: [disabled by user]" >&5
+$as_echo "[disabled by user]" >&6; }
+      else
+        # Split up override in command part and argument part
+        tool_and_args=($tool_override)
+         tool_command=${tool_and_args[0]}
+         unset 'tool_and_args[0]'
+         tool_args=${tool_and_args[@]}
+
+        # Check if the provided tool contains a complete path.
+        tool_basename="${tool_command##*/}"
+        if test "x$tool_basename" = "x$tool_command"; then
+          # A command without a complete path is provided, search $PATH.
+          { $as_echo "$as_me:${as_lineno-$LINENO}: Will search for user supplied tool \"$tool_basename\"" >&5
+$as_echo "$as_me: Will search for user supplied tool \"$tool_basename\"" >&6;}
+          for ac_prog in $tool_basename ${tool_basename}.exe
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_METAL+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $METAL in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_METAL="$METAL" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_METAL="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+METAL=$ac_cv_path_METAL
+if test -n "$METAL"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $METAL" >&5
+$as_echo "$METAL" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$METAL" && break
+done
+
+          tool_command="$METAL"
+          if test "x$tool_command" = x; then
+            as_fn_error $? "User supplied tool METAL=\"$tool_basename\" could not be found in PATH" "$LINENO" 5
+          fi
+        else
+          # Otherwise we believe it is a complete path. Use it as it is.
+          if test ! -x "$tool_command" && test ! -x "${tool_command}.exe"; then
+            as_fn_error $? "User supplied tool METAL=\"$tool_command\" does not exist or is not executable" "$LINENO" 5
+          fi
+          if test ! -x "$tool_command"; then
+            tool_command="${tool_command}.exe"
+          fi
+          METAL="$tool_command"
+        fi
+        if test "x$tool_args" != x; then
+          # If we got arguments, re-append them to the command after the fixup.
+          METAL="$METAL $tool_args"
+        fi
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for METAL" >&5
+$as_echo_n "checking for METAL... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $METAL [user supplied]" >&5
+$as_echo "$METAL [user supplied]" >&6; }
+      fi
+    fi
+
+  fi
+
+
+  else
+    prefixed_names=$(for name in metal; do echo ${ac_tool_prefix}${name} $name; done)
+
+
+  # Publish this variable in the help.
+
+
+  if [ -z "${METAL+x}" ]; then
+    # The variable is not set by user, try to locate tool using the code snippet
+
+    METAL=""
+
+    if test "x" != x; then
+      old_path="$PATH"
+      PATH=""
+    fi
+
+    for name in $prefixed_names; do
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $name" >&5
+$as_echo_n "checking for $name... " >&6; }
+
+      command_type=`type -t "$name"`
+      if test "x$command_type" = xbuiltin || test "x$command_type" = xkeyword; then
+        # Shell builtin or keyword; we're done here
+        full_path="$name"
+        METAL="$full_path"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $full_path [builtin]" >&5
+$as_echo "$full_path [builtin]" >&6; }
+        break
+      else
+        # Search in $PATH
+        old_ifs="$IFS"
+        IFS=":"
+        for elem in $PATH; do
+          IFS="$old_ifs"
+          if test "x$elem" = x; then
+            continue
+          fi
+          full_path="$elem/$name"
+          if test ! -e "$full_path" && test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+            # Try again with .exe
+            full_path="$elem/$name.exe"
+          fi
+          if test -x "$full_path" && test ! -d "$full_path" ; then
+            METAL="$full_path"
+
+  input="$METAL"
+
+  # Only process if variable expands to non-empty
+  if test "x$input" != x; then
+    # First separate the path from the arguments. This will split at the first
+    # space.
+     if [[ "$OPENJDK_BUILD_OS" = "windows" && input =~ ^$FIXPATH ]]; then
+      line="${input#$FIXPATH }"
+      fixpath_prefix="$FIXPATH "
+    else
+      line="$input"
+      fixpath_prefix=""
+    fi
+    path="${line%% *}"
+    arguments="${line#"$path"}"
+
+     if ! [[ "$path" =~ /|\\ ]]; then
+      # This is a command without path (e.g. "gcc" or "echo")
+      command_type=`type -t "$path"`
+      if test "x$command_type" = xbuiltin || test "x$command_type" = xkeyword; then
+        # Shell builtin or keyword; we're done here
+        new_path="$path"
+      else
+        # Search in $PATH using bash built-in 'type -p'.
+        saved_path="$PATH"
+        if test "x" != x; then
+          PATH=""
+        fi
+        new_path=`type -p "$path"`
+        if test "x$new_path" = x && test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+          # Try again with .exe
+          new_path="`type -p "$path.exe"`"
+        fi
+        PATH="$saved_path"
+
+        if test "x$new_path" = x; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METAL, which resolves as \"$input\", is not found in the PATH." >&5
+$as_echo "$as_me: The command for METAL, which resolves as \"$input\", is not found in the PATH." >&6;}
+          as_fn_error $? "Cannot locate $path" "$LINENO" 5
+        fi
+      fi
+    else
+      # This is a path with slashes, don't look at $PATH
+      if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+        # fixpath.sh import will do all heavy lifting for us
+        new_path=`$FIXPATH_BASE import "$path"`
+
+        if test ! -e $new_path; then
+          # It failed, but maybe spaces were part of the path and not separating
+          # the command and argument. Retry using that assumption.
+          new_path=`$FIXPATH_BASE import "$input"`
+          if test ! -e $new_path; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METAL, which resolves as \"$input\", can not be found." >&5
+$as_echo "$as_me: The command for METAL, which resolves as \"$input\", can not be found." >&6;}
+            as_fn_error $? "Cannot locate $input" "$LINENO" 5
+          fi
+          # It worked, clear all "arguments"
+          arguments=""
+        fi
+      else # on unix
+        # Make absolute
+        METAL="$path"
+
+  # Only process if variable expands to non-empty
+  path="$METAL"
+  if test "x$path" != x; then
+    if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+      if test "xNOFAIL" = "xNOFAIL"; then
+        quiet_option="-q"
+      fi
+      imported_path=`$FIXPATH_BASE $quiet_option import "$path"`
+      $FIXPATH_BASE verify "$imported_path"
+      if test $? -ne 0; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          as_fn_error $? "The path of METAL, which resolves as \"$path\", could not be imported." "$LINENO" 5
+        else
+          imported_path=""
+        fi
+      fi
+      if test "x$imported_path" != "x$path"; then
+        METAL="$imported_path"
+      fi
+    else
+       if [[ "$path" =~ " " ]]; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The path of METAL, which resolves as \"$path\", is invalid." >&5
+$as_echo "$as_me: The path of METAL, which resolves as \"$path\", is invalid." >&6;}
+          as_fn_error $? "Spaces are not allowed in this path." "$LINENO" 5
+        else
+          path=""
+        fi
+      fi
+
+      # Use eval to expand a potential ~.
+      eval new_path="$path"
+      if test ! -e "$new_path"; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          as_fn_error $? "The path of METAL, which resolves as \"$new_path\", is not found." "$LINENO" 5
+        else
+          new_path=""
+        fi
+      fi
+
+      # Make the path absolute
+      if test "x$new_path" != x; then
+        if test -d "$new_path"; then
+          path="`cd "$new_path"; pwd -L`"
+        else
+          dir="`$DIRNAME "$new_path"`"
+          base="`$BASENAME "$new_path"`"
+          path="`cd "$dir"; pwd -L`/$base"
+        fi
+      else
+        path=""
+      fi
+
+      METAL="$path"
+    fi
+  fi
+
+        new_path="$METAL"
+
+        if test ! -e $new_path; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METAL, which resolves as \"$input\", is not found" >&5
+$as_echo "$as_me: The command for METAL, which resolves as \"$input\", is not found" >&6;}
+           if [[ "$path" =~ " " ]]; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: This might be caused by spaces in the path, which is not allowed." >&5
+$as_echo "$as_me: This might be caused by spaces in the path, which is not allowed." >&6;}
+          fi
+          as_fn_error $? "Cannot locate $path" "$LINENO" 5
+        fi
+        if test ! -x $new_path; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METAL, which resolves as \"$input\", is not executable." >&5
+$as_echo "$as_me: The command for METAL, which resolves as \"$input\", is not executable." >&6;}
+          as_fn_error $? "Cannot execute command at $path" "$LINENO" 5
+        fi
+      fi # end on unix
+    fi # end with or without slashes
+
+    # Now we have a usable command as new_path, with arguments in arguments
+    if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+      if test "x$fixpath_prefix" = x; then
+        # Only mess around if fixpath_prefix was not given
+
+  # For cygwin and msys2, if it's linked with the correct helper lib, it
+  # accept unix paths
+  if test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.cygwin" || \
+      test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.msys2"; then
+    linked_libs=`$LDD "$new_path" 2>&1`
+    if test $? -ne 0; then
+      # Non-binary files (e.g. shell scripts) are unix files
+      RESULT=unix
+    else
+       if [[ "$linked_libs" =~ $WINENV_MARKER_DLL ]]; then
+        RESULT=unix
+      else
+        RESULT=windows
+      fi
+    fi
+  elif test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+    # On WSL, we can check if it is a PE file
+    file_type=`$FILE -b "$new_path" 2>&1`
+     if [[ $file_type =~ PE.*Windows ]]; then
+      RESULT=windows
+    else
+      RESULT=unix
+    fi
+  else
+    RESULT=unix
+  fi
+
+        if test "x$RESULT" = xwindows; then
+          fixpath_prefix="$FIXPATH "
+          # make sure we have an .exe suffix (but not two)
+          new_path="${new_path%.exe}.exe"
+        else
+          # If we have gotten a .exe suffix, remove it
+          new_path="${new_path%.exe}"
+        fi
+      fi
+    fi
+
+    if test "x" = xNOFIXPATH; then
+      fixpath_prefix=""
+    fi
+
+    # Now join together the path and the arguments once again
+    new_complete="$fixpath_prefix$new_path$arguments"
+    METAL="$new_complete"
+  fi
+
+            result="$METAL"
+
+            # If we have FIXPATH enabled, strip all instances of it and prepend
+            # a single one, to avoid double fixpath prefixing.
+            if test "x" != xNOFIXPATH; then
+               if [[ $FIXPATH != "" && $result =~ ^"$FIXPATH " ]]; then
+                result="\$FIXPATH ${result#"$FIXPATH "}"
+              fi
+            fi
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $result" >&5
+$as_echo "$result" >&6; }
+            break 2;
+          fi
+        done
+        IFS="$old_ifs"
+      fi
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: [not found]" >&5
+$as_echo "[not found]" >&6; }
+    done
+
+    if test "x" != x; then
+      PATH="$old_path"
+    fi
+
+  else
+    # The variable is set, but is it from the command line or the environment?
+
+    # Try to remove the string !METAL! from our list.
+    try_remove_var=${CONFIGURE_OVERRIDDEN_VARIABLES//!METAL!/}
+    if test "x$try_remove_var" = "x$CONFIGURE_OVERRIDDEN_VARIABLES"; then
+      # If it failed, the variable was not from the command line. Ignore it,
+      # but warn the user (except for BASH, which is always set by the calling BASH).
+      if test "xMETAL" != xBASH; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Ignoring value of METAL from the environment. Use command line variables instead." >&5
+$as_echo "$as_me: WARNING: Ignoring value of METAL from the environment. Use command line variables instead." >&2;}
+      fi
+      # Try to locate tool using the code snippet
+
+    METAL=""
+
+    if test "x" != x; then
+      old_path="$PATH"
+      PATH=""
+    fi
+
+    for name in $prefixed_names; do
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $name" >&5
+$as_echo_n "checking for $name... " >&6; }
+
+      command_type=`type -t "$name"`
+      if test "x$command_type" = xbuiltin || test "x$command_type" = xkeyword; then
+        # Shell builtin or keyword; we're done here
+        full_path="$name"
+        METAL="$full_path"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $full_path [builtin]" >&5
+$as_echo "$full_path [builtin]" >&6; }
+        break
+      else
+        # Search in $PATH
+        old_ifs="$IFS"
+        IFS=":"
+        for elem in $PATH; do
+          IFS="$old_ifs"
+          if test "x$elem" = x; then
+            continue
+          fi
+          full_path="$elem/$name"
+          if test ! -e "$full_path" && test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+            # Try again with .exe
+            full_path="$elem/$name.exe"
+          fi
+          if test -x "$full_path" && test ! -d "$full_path" ; then
+            METAL="$full_path"
+
+  input="$METAL"
+
+  # Only process if variable expands to non-empty
+  if test "x$input" != x; then
+    # First separate the path from the arguments. This will split at the first
+    # space.
+     if [[ "$OPENJDK_BUILD_OS" = "windows" && input =~ ^$FIXPATH ]]; then
+      line="${input#$FIXPATH }"
+      fixpath_prefix="$FIXPATH "
+    else
+      line="$input"
+      fixpath_prefix=""
+    fi
+    path="${line%% *}"
+    arguments="${line#"$path"}"
+
+     if ! [[ "$path" =~ /|\\ ]]; then
+      # This is a command without path (e.g. "gcc" or "echo")
+      command_type=`type -t "$path"`
+      if test "x$command_type" = xbuiltin || test "x$command_type" = xkeyword; then
+        # Shell builtin or keyword; we're done here
+        new_path="$path"
+      else
+        # Search in $PATH using bash built-in 'type -p'.
+        saved_path="$PATH"
+        if test "x" != x; then
+          PATH=""
+        fi
+        new_path=`type -p "$path"`
+        if test "x$new_path" = x && test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+          # Try again with .exe
+          new_path="`type -p "$path.exe"`"
+        fi
+        PATH="$saved_path"
+
+        if test "x$new_path" = x; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METAL, which resolves as \"$input\", is not found in the PATH." >&5
+$as_echo "$as_me: The command for METAL, which resolves as \"$input\", is not found in the PATH." >&6;}
+          as_fn_error $? "Cannot locate $path" "$LINENO" 5
+        fi
+      fi
+    else
+      # This is a path with slashes, don't look at $PATH
+      if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+        # fixpath.sh import will do all heavy lifting for us
+        new_path=`$FIXPATH_BASE import "$path"`
+
+        if test ! -e $new_path; then
+          # It failed, but maybe spaces were part of the path and not separating
+          # the command and argument. Retry using that assumption.
+          new_path=`$FIXPATH_BASE import "$input"`
+          if test ! -e $new_path; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METAL, which resolves as \"$input\", can not be found." >&5
+$as_echo "$as_me: The command for METAL, which resolves as \"$input\", can not be found." >&6;}
+            as_fn_error $? "Cannot locate $input" "$LINENO" 5
+          fi
+          # It worked, clear all "arguments"
+          arguments=""
+        fi
+      else # on unix
+        # Make absolute
+        METAL="$path"
+
+  # Only process if variable expands to non-empty
+  path="$METAL"
+  if test "x$path" != x; then
+    if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+      if test "xNOFAIL" = "xNOFAIL"; then
+        quiet_option="-q"
+      fi
+      imported_path=`$FIXPATH_BASE $quiet_option import "$path"`
+      $FIXPATH_BASE verify "$imported_path"
+      if test $? -ne 0; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          as_fn_error $? "The path of METAL, which resolves as \"$path\", could not be imported." "$LINENO" 5
+        else
+          imported_path=""
+        fi
+      fi
+      if test "x$imported_path" != "x$path"; then
+        METAL="$imported_path"
+      fi
+    else
+       if [[ "$path" =~ " " ]]; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The path of METAL, which resolves as \"$path\", is invalid." >&5
+$as_echo "$as_me: The path of METAL, which resolves as \"$path\", is invalid." >&6;}
+          as_fn_error $? "Spaces are not allowed in this path." "$LINENO" 5
+        else
+          path=""
+        fi
+      fi
+
+      # Use eval to expand a potential ~.
+      eval new_path="$path"
+      if test ! -e "$new_path"; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          as_fn_error $? "The path of METAL, which resolves as \"$new_path\", is not found." "$LINENO" 5
+        else
+          new_path=""
+        fi
+      fi
+
+      # Make the path absolute
+      if test "x$new_path" != x; then
+        if test -d "$new_path"; then
+          path="`cd "$new_path"; pwd -L`"
+        else
+          dir="`$DIRNAME "$new_path"`"
+          base="`$BASENAME "$new_path"`"
+          path="`cd "$dir"; pwd -L`/$base"
+        fi
+      else
+        path=""
+      fi
+
+      METAL="$path"
+    fi
+  fi
+
+        new_path="$METAL"
+
+        if test ! -e $new_path; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METAL, which resolves as \"$input\", is not found" >&5
+$as_echo "$as_me: The command for METAL, which resolves as \"$input\", is not found" >&6;}
+           if [[ "$path" =~ " " ]]; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: This might be caused by spaces in the path, which is not allowed." >&5
+$as_echo "$as_me: This might be caused by spaces in the path, which is not allowed." >&6;}
+          fi
+          as_fn_error $? "Cannot locate $path" "$LINENO" 5
+        fi
+        if test ! -x $new_path; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METAL, which resolves as \"$input\", is not executable." >&5
+$as_echo "$as_me: The command for METAL, which resolves as \"$input\", is not executable." >&6;}
+          as_fn_error $? "Cannot execute command at $path" "$LINENO" 5
+        fi
+      fi # end on unix
+    fi # end with or without slashes
+
+    # Now we have a usable command as new_path, with arguments in arguments
+    if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+      if test "x$fixpath_prefix" = x; then
+        # Only mess around if fixpath_prefix was not given
+
+  # For cygwin and msys2, if it's linked with the correct helper lib, it
+  # accept unix paths
+  if test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.cygwin" || \
+      test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.msys2"; then
+    linked_libs=`$LDD "$new_path" 2>&1`
+    if test $? -ne 0; then
+      # Non-binary files (e.g. shell scripts) are unix files
+      RESULT=unix
+    else
+       if [[ "$linked_libs" =~ $WINENV_MARKER_DLL ]]; then
+        RESULT=unix
+      else
+        RESULT=windows
+      fi
+    fi
+  elif test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+    # On WSL, we can check if it is a PE file
+    file_type=`$FILE -b "$new_path" 2>&1`
+     if [[ $file_type =~ PE.*Windows ]]; then
+      RESULT=windows
+    else
+      RESULT=unix
+    fi
+  else
+    RESULT=unix
+  fi
+
+        if test "x$RESULT" = xwindows; then
+          fixpath_prefix="$FIXPATH "
+          # make sure we have an .exe suffix (but not two)
+          new_path="${new_path%.exe}.exe"
+        else
+          # If we have gotten a .exe suffix, remove it
+          new_path="${new_path%.exe}"
+        fi
+      fi
+    fi
+
+    if test "x" = xNOFIXPATH; then
+      fixpath_prefix=""
+    fi
+
+    # Now join together the path and the arguments once again
+    new_complete="$fixpath_prefix$new_path$arguments"
+    METAL="$new_complete"
+  fi
+
+            result="$METAL"
+
+            # If we have FIXPATH enabled, strip all instances of it and prepend
+            # a single one, to avoid double fixpath prefixing.
+            if test "x" != xNOFIXPATH; then
+               if [[ $FIXPATH != "" && $result =~ ^"$FIXPATH " ]]; then
+                result="\$FIXPATH ${result#"$FIXPATH "}"
+              fi
+            fi
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $result" >&5
+$as_echo "$result" >&6; }
+            break 2;
+          fi
+        done
+        IFS="$old_ifs"
+      fi
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: [not found]" >&5
+$as_echo "[not found]" >&6; }
+    done
+
+    if test "x" != x; then
+      PATH="$old_path"
+    fi
+
+    else
+      # If it succeeded, then it was overridden by the user. We will use it
+      # for the tool.
+
+      # First remove it from the list of overridden variables, so we can test
+      # for unknown variables in the end.
+      CONFIGURE_OVERRIDDEN_VARIABLES="$try_remove_var"
+
+      tool_override=$METAL
+
+      # Check if we try to supply an empty value
+      if test "x$tool_override" = x; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for METAL" >&5
+$as_echo_n "checking for METAL... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: [disabled by user]" >&5
+$as_echo "[disabled by user]" >&6; }
+      else
+        # Split up override in command part and argument part
+        tool_and_args=($tool_override)
+         tool_command=${tool_and_args[0]}
+         unset 'tool_and_args[0]'
+         tool_args=${tool_and_args[@]}
+
+        # Check if the provided tool contains a complete path.
+        tool_basename="${tool_command##*/}"
+        if test "x$tool_basename" = "x$tool_command"; then
+          # A command without a complete path is provided, search $PATH.
+          { $as_echo "$as_me:${as_lineno-$LINENO}: Will search for user supplied tool \"$tool_basename\"" >&5
+$as_echo "$as_me: Will search for user supplied tool \"$tool_basename\"" >&6;}
+          for ac_prog in $tool_basename ${tool_basename}.exe
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_METAL+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $METAL in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_METAL="$METAL" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_METAL="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+METAL=$ac_cv_path_METAL
+if test -n "$METAL"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $METAL" >&5
+$as_echo "$METAL" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$METAL" && break
+done
+
+          tool_command="$METAL"
+          if test "x$tool_command" = x; then
+            as_fn_error $? "User supplied tool METAL=\"$tool_basename\" could not be found in PATH" "$LINENO" 5
+          fi
+        else
+          # Otherwise we believe it is a complete path. Use it as it is.
+          if test ! -x "$tool_command" && test ! -x "${tool_command}.exe"; then
+            as_fn_error $? "User supplied tool METAL=\"$tool_command\" does not exist or is not executable" "$LINENO" 5
+          fi
+          if test ! -x "$tool_command"; then
+            tool_command="${tool_command}.exe"
+          fi
+          METAL="$tool_command"
+        fi
+        if test "x$tool_args" != x; then
+          # If we got arguments, re-append them to the command after the fixup.
+          METAL="$METAL $tool_args"
+        fi
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for METAL" >&5
+$as_echo_n "checking for METAL... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $METAL [user supplied]" >&5
+$as_echo "$METAL [user supplied]" >&6; }
+      fi
+    fi
+
+  fi
+
+
+  fi
+
+    if test "x$METAL" = x; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking if metal can be run using xcrun" >&5
+$as_echo_n "checking if metal can be run using xcrun... " >&6; }
+      METAL="xcrun -sdk macosx metal"
+      test_metal=`$METAL --version 2>&1`
+      if test $? -ne 0; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+        as_fn_error $? "XCode tool 'metal' neither found in path nor with xcrun" "$LINENO" 5
+      else
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes, will be using '$METAL'" >&5
+$as_echo "yes, will be using '$METAL'" >&6; }
+      fi
+    fi
+
+
+  if test "x$ac_tool_prefix" = x; then
+
+
+  # Publish this variable in the help.
+
+
+  if [ -z "${METALLIB+x}" ]; then
+    # The variable is not set by user, try to locate tool using the code snippet
+
+    METALLIB=""
+
+    if test "x" != x; then
+      old_path="$PATH"
+      PATH=""
+    fi
+
+    for name in metallib; do
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $name" >&5
+$as_echo_n "checking for $name... " >&6; }
+
+      command_type=`type -t "$name"`
+      if test "x$command_type" = xbuiltin || test "x$command_type" = xkeyword; then
+        # Shell builtin or keyword; we're done here
+        full_path="$name"
+        METALLIB="$full_path"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $full_path [builtin]" >&5
+$as_echo "$full_path [builtin]" >&6; }
+        break
+      else
+        # Search in $PATH
+        old_ifs="$IFS"
+        IFS=":"
+        for elem in $PATH; do
+          IFS="$old_ifs"
+          if test "x$elem" = x; then
+            continue
+          fi
+          full_path="$elem/$name"
+          if test ! -e "$full_path" && test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+            # Try again with .exe
+            full_path="$elem/$name.exe"
+          fi
+          if test -x "$full_path" && test ! -d "$full_path" ; then
+            METALLIB="$full_path"
+
+  input="$METALLIB"
+
+  # Only process if variable expands to non-empty
+  if test "x$input" != x; then
+    # First separate the path from the arguments. This will split at the first
+    # space.
+     if [[ "$OPENJDK_BUILD_OS" = "windows" && input =~ ^$FIXPATH ]]; then
+      line="${input#$FIXPATH }"
+      fixpath_prefix="$FIXPATH "
+    else
+      line="$input"
+      fixpath_prefix=""
+    fi
+    path="${line%% *}"
+    arguments="${line#"$path"}"
+
+     if ! [[ "$path" =~ /|\\ ]]; then
+      # This is a command without path (e.g. "gcc" or "echo")
+      command_type=`type -t "$path"`
+      if test "x$command_type" = xbuiltin || test "x$command_type" = xkeyword; then
+        # Shell builtin or keyword; we're done here
+        new_path="$path"
+      else
+        # Search in $PATH using bash built-in 'type -p'.
+        saved_path="$PATH"
+        if test "x" != x; then
+          PATH=""
+        fi
+        new_path=`type -p "$path"`
+        if test "x$new_path" = x && test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+          # Try again with .exe
+          new_path="`type -p "$path.exe"`"
+        fi
+        PATH="$saved_path"
+
+        if test "x$new_path" = x; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METALLIB, which resolves as \"$input\", is not found in the PATH." >&5
+$as_echo "$as_me: The command for METALLIB, which resolves as \"$input\", is not found in the PATH." >&6;}
+          as_fn_error $? "Cannot locate $path" "$LINENO" 5
+        fi
+      fi
+    else
+      # This is a path with slashes, don't look at $PATH
+      if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+        # fixpath.sh import will do all heavy lifting for us
+        new_path=`$FIXPATH_BASE import "$path"`
+
+        if test ! -e $new_path; then
+          # It failed, but maybe spaces were part of the path and not separating
+          # the command and argument. Retry using that assumption.
+          new_path=`$FIXPATH_BASE import "$input"`
+          if test ! -e $new_path; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METALLIB, which resolves as \"$input\", can not be found." >&5
+$as_echo "$as_me: The command for METALLIB, which resolves as \"$input\", can not be found." >&6;}
+            as_fn_error $? "Cannot locate $input" "$LINENO" 5
+          fi
+          # It worked, clear all "arguments"
+          arguments=""
+        fi
+      else # on unix
+        # Make absolute
+        METALLIB="$path"
+
+  # Only process if variable expands to non-empty
+  path="$METALLIB"
+  if test "x$path" != x; then
+    if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+      if test "xNOFAIL" = "xNOFAIL"; then
+        quiet_option="-q"
+      fi
+      imported_path=`$FIXPATH_BASE $quiet_option import "$path"`
+      $FIXPATH_BASE verify "$imported_path"
+      if test $? -ne 0; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          as_fn_error $? "The path of METALLIB, which resolves as \"$path\", could not be imported." "$LINENO" 5
+        else
+          imported_path=""
+        fi
+      fi
+      if test "x$imported_path" != "x$path"; then
+        METALLIB="$imported_path"
+      fi
+    else
+       if [[ "$path" =~ " " ]]; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The path of METALLIB, which resolves as \"$path\", is invalid." >&5
+$as_echo "$as_me: The path of METALLIB, which resolves as \"$path\", is invalid." >&6;}
+          as_fn_error $? "Spaces are not allowed in this path." "$LINENO" 5
+        else
+          path=""
+        fi
+      fi
+
+      # Use eval to expand a potential ~.
+      eval new_path="$path"
+      if test ! -e "$new_path"; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          as_fn_error $? "The path of METALLIB, which resolves as \"$new_path\", is not found." "$LINENO" 5
+        else
+          new_path=""
+        fi
+      fi
+
+      # Make the path absolute
+      if test "x$new_path" != x; then
+        if test -d "$new_path"; then
+          path="`cd "$new_path"; pwd -L`"
+        else
+          dir="`$DIRNAME "$new_path"`"
+          base="`$BASENAME "$new_path"`"
+          path="`cd "$dir"; pwd -L`/$base"
+        fi
+      else
+        path=""
+      fi
+
+      METALLIB="$path"
+    fi
+  fi
+
+        new_path="$METALLIB"
+
+        if test ! -e $new_path; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METALLIB, which resolves as \"$input\", is not found" >&5
+$as_echo "$as_me: The command for METALLIB, which resolves as \"$input\", is not found" >&6;}
+           if [[ "$path" =~ " " ]]; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: This might be caused by spaces in the path, which is not allowed." >&5
+$as_echo "$as_me: This might be caused by spaces in the path, which is not allowed." >&6;}
+          fi
+          as_fn_error $? "Cannot locate $path" "$LINENO" 5
+        fi
+        if test ! -x $new_path; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METALLIB, which resolves as \"$input\", is not executable." >&5
+$as_echo "$as_me: The command for METALLIB, which resolves as \"$input\", is not executable." >&6;}
+          as_fn_error $? "Cannot execute command at $path" "$LINENO" 5
+        fi
+      fi # end on unix
+    fi # end with or without slashes
+
+    # Now we have a usable command as new_path, with arguments in arguments
+    if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+      if test "x$fixpath_prefix" = x; then
+        # Only mess around if fixpath_prefix was not given
+
+  # For cygwin and msys2, if it's linked with the correct helper lib, it
+  # accept unix paths
+  if test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.cygwin" || \
+      test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.msys2"; then
+    linked_libs=`$LDD "$new_path" 2>&1`
+    if test $? -ne 0; then
+      # Non-binary files (e.g. shell scripts) are unix files
+      RESULT=unix
+    else
+       if [[ "$linked_libs" =~ $WINENV_MARKER_DLL ]]; then
+        RESULT=unix
+      else
+        RESULT=windows
+      fi
+    fi
+  elif test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+    # On WSL, we can check if it is a PE file
+    file_type=`$FILE -b "$new_path" 2>&1`
+     if [[ $file_type =~ PE.*Windows ]]; then
+      RESULT=windows
+    else
+      RESULT=unix
+    fi
+  else
+    RESULT=unix
+  fi
+
+        if test "x$RESULT" = xwindows; then
+          fixpath_prefix="$FIXPATH "
+          # make sure we have an .exe suffix (but not two)
+          new_path="${new_path%.exe}.exe"
+        else
+          # If we have gotten a .exe suffix, remove it
+          new_path="${new_path%.exe}"
+        fi
+      fi
+    fi
+
+    if test "x" = xNOFIXPATH; then
+      fixpath_prefix=""
+    fi
+
+    # Now join together the path and the arguments once again
+    new_complete="$fixpath_prefix$new_path$arguments"
+    METALLIB="$new_complete"
+  fi
+
+            result="$METALLIB"
+
+            # If we have FIXPATH enabled, strip all instances of it and prepend
+            # a single one, to avoid double fixpath prefixing.
+            if test "x" != xNOFIXPATH; then
+               if [[ $FIXPATH != "" && $result =~ ^"$FIXPATH " ]]; then
+                result="\$FIXPATH ${result#"$FIXPATH "}"
+              fi
+            fi
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $result" >&5
+$as_echo "$result" >&6; }
+            break 2;
+          fi
+        done
+        IFS="$old_ifs"
+      fi
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: [not found]" >&5
+$as_echo "[not found]" >&6; }
+    done
+
+    if test "x" != x; then
+      PATH="$old_path"
+    fi
+
+  else
+    # The variable is set, but is it from the command line or the environment?
+
+    # Try to remove the string !METALLIB! from our list.
+    try_remove_var=${CONFIGURE_OVERRIDDEN_VARIABLES//!METALLIB!/}
+    if test "x$try_remove_var" = "x$CONFIGURE_OVERRIDDEN_VARIABLES"; then
+      # If it failed, the variable was not from the command line. Ignore it,
+      # but warn the user (except for BASH, which is always set by the calling BASH).
+      if test "xMETALLIB" != xBASH; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Ignoring value of METALLIB from the environment. Use command line variables instead." >&5
+$as_echo "$as_me: WARNING: Ignoring value of METALLIB from the environment. Use command line variables instead." >&2;}
+      fi
+      # Try to locate tool using the code snippet
+
+    METALLIB=""
+
+    if test "x" != x; then
+      old_path="$PATH"
+      PATH=""
+    fi
+
+    for name in metallib; do
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $name" >&5
+$as_echo_n "checking for $name... " >&6; }
+
+      command_type=`type -t "$name"`
+      if test "x$command_type" = xbuiltin || test "x$command_type" = xkeyword; then
+        # Shell builtin or keyword; we're done here
+        full_path="$name"
+        METALLIB="$full_path"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $full_path [builtin]" >&5
+$as_echo "$full_path [builtin]" >&6; }
+        break
+      else
+        # Search in $PATH
+        old_ifs="$IFS"
+        IFS=":"
+        for elem in $PATH; do
+          IFS="$old_ifs"
+          if test "x$elem" = x; then
+            continue
+          fi
+          full_path="$elem/$name"
+          if test ! -e "$full_path" && test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+            # Try again with .exe
+            full_path="$elem/$name.exe"
+          fi
+          if test -x "$full_path" && test ! -d "$full_path" ; then
+            METALLIB="$full_path"
+
+  input="$METALLIB"
+
+  # Only process if variable expands to non-empty
+  if test "x$input" != x; then
+    # First separate the path from the arguments. This will split at the first
+    # space.
+     if [[ "$OPENJDK_BUILD_OS" = "windows" && input =~ ^$FIXPATH ]]; then
+      line="${input#$FIXPATH }"
+      fixpath_prefix="$FIXPATH "
+    else
+      line="$input"
+      fixpath_prefix=""
+    fi
+    path="${line%% *}"
+    arguments="${line#"$path"}"
+
+     if ! [[ "$path" =~ /|\\ ]]; then
+      # This is a command without path (e.g. "gcc" or "echo")
+      command_type=`type -t "$path"`
+      if test "x$command_type" = xbuiltin || test "x$command_type" = xkeyword; then
+        # Shell builtin or keyword; we're done here
+        new_path="$path"
+      else
+        # Search in $PATH using bash built-in 'type -p'.
+        saved_path="$PATH"
+        if test "x" != x; then
+          PATH=""
+        fi
+        new_path=`type -p "$path"`
+        if test "x$new_path" = x && test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+          # Try again with .exe
+          new_path="`type -p "$path.exe"`"
+        fi
+        PATH="$saved_path"
+
+        if test "x$new_path" = x; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METALLIB, which resolves as \"$input\", is not found in the PATH." >&5
+$as_echo "$as_me: The command for METALLIB, which resolves as \"$input\", is not found in the PATH." >&6;}
+          as_fn_error $? "Cannot locate $path" "$LINENO" 5
+        fi
+      fi
+    else
+      # This is a path with slashes, don't look at $PATH
+      if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+        # fixpath.sh import will do all heavy lifting for us
+        new_path=`$FIXPATH_BASE import "$path"`
+
+        if test ! -e $new_path; then
+          # It failed, but maybe spaces were part of the path and not separating
+          # the command and argument. Retry using that assumption.
+          new_path=`$FIXPATH_BASE import "$input"`
+          if test ! -e $new_path; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METALLIB, which resolves as \"$input\", can not be found." >&5
+$as_echo "$as_me: The command for METALLIB, which resolves as \"$input\", can not be found." >&6;}
+            as_fn_error $? "Cannot locate $input" "$LINENO" 5
+          fi
+          # It worked, clear all "arguments"
+          arguments=""
+        fi
+      else # on unix
+        # Make absolute
+        METALLIB="$path"
+
+  # Only process if variable expands to non-empty
+  path="$METALLIB"
+  if test "x$path" != x; then
+    if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+      if test "xNOFAIL" = "xNOFAIL"; then
+        quiet_option="-q"
+      fi
+      imported_path=`$FIXPATH_BASE $quiet_option import "$path"`
+      $FIXPATH_BASE verify "$imported_path"
+      if test $? -ne 0; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          as_fn_error $? "The path of METALLIB, which resolves as \"$path\", could not be imported." "$LINENO" 5
+        else
+          imported_path=""
+        fi
+      fi
+      if test "x$imported_path" != "x$path"; then
+        METALLIB="$imported_path"
+      fi
+    else
+       if [[ "$path" =~ " " ]]; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The path of METALLIB, which resolves as \"$path\", is invalid." >&5
+$as_echo "$as_me: The path of METALLIB, which resolves as \"$path\", is invalid." >&6;}
+          as_fn_error $? "Spaces are not allowed in this path." "$LINENO" 5
+        else
+          path=""
+        fi
+      fi
+
+      # Use eval to expand a potential ~.
+      eval new_path="$path"
+      if test ! -e "$new_path"; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          as_fn_error $? "The path of METALLIB, which resolves as \"$new_path\", is not found." "$LINENO" 5
+        else
+          new_path=""
+        fi
+      fi
+
+      # Make the path absolute
+      if test "x$new_path" != x; then
+        if test -d "$new_path"; then
+          path="`cd "$new_path"; pwd -L`"
+        else
+          dir="`$DIRNAME "$new_path"`"
+          base="`$BASENAME "$new_path"`"
+          path="`cd "$dir"; pwd -L`/$base"
+        fi
+      else
+        path=""
+      fi
+
+      METALLIB="$path"
+    fi
+  fi
+
+        new_path="$METALLIB"
+
+        if test ! -e $new_path; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METALLIB, which resolves as \"$input\", is not found" >&5
+$as_echo "$as_me: The command for METALLIB, which resolves as \"$input\", is not found" >&6;}
+           if [[ "$path" =~ " " ]]; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: This might be caused by spaces in the path, which is not allowed." >&5
+$as_echo "$as_me: This might be caused by spaces in the path, which is not allowed." >&6;}
+          fi
+          as_fn_error $? "Cannot locate $path" "$LINENO" 5
+        fi
+        if test ! -x $new_path; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METALLIB, which resolves as \"$input\", is not executable." >&5
+$as_echo "$as_me: The command for METALLIB, which resolves as \"$input\", is not executable." >&6;}
+          as_fn_error $? "Cannot execute command at $path" "$LINENO" 5
+        fi
+      fi # end on unix
+    fi # end with or without slashes
+
+    # Now we have a usable command as new_path, with arguments in arguments
+    if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+      if test "x$fixpath_prefix" = x; then
+        # Only mess around if fixpath_prefix was not given
+
+  # For cygwin and msys2, if it's linked with the correct helper lib, it
+  # accept unix paths
+  if test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.cygwin" || \
+      test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.msys2"; then
+    linked_libs=`$LDD "$new_path" 2>&1`
+    if test $? -ne 0; then
+      # Non-binary files (e.g. shell scripts) are unix files
+      RESULT=unix
+    else
+       if [[ "$linked_libs" =~ $WINENV_MARKER_DLL ]]; then
+        RESULT=unix
+      else
+        RESULT=windows
+      fi
+    fi
+  elif test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+    # On WSL, we can check if it is a PE file
+    file_type=`$FILE -b "$new_path" 2>&1`
+     if [[ $file_type =~ PE.*Windows ]]; then
+      RESULT=windows
+    else
+      RESULT=unix
+    fi
+  else
+    RESULT=unix
+  fi
+
+        if test "x$RESULT" = xwindows; then
+          fixpath_prefix="$FIXPATH "
+          # make sure we have an .exe suffix (but not two)
+          new_path="${new_path%.exe}.exe"
+        else
+          # If we have gotten a .exe suffix, remove it
+          new_path="${new_path%.exe}"
+        fi
+      fi
+    fi
+
+    if test "x" = xNOFIXPATH; then
+      fixpath_prefix=""
+    fi
+
+    # Now join together the path and the arguments once again
+    new_complete="$fixpath_prefix$new_path$arguments"
+    METALLIB="$new_complete"
+  fi
+
+            result="$METALLIB"
+
+            # If we have FIXPATH enabled, strip all instances of it and prepend
+            # a single one, to avoid double fixpath prefixing.
+            if test "x" != xNOFIXPATH; then
+               if [[ $FIXPATH != "" && $result =~ ^"$FIXPATH " ]]; then
+                result="\$FIXPATH ${result#"$FIXPATH "}"
+              fi
+            fi
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $result" >&5
+$as_echo "$result" >&6; }
+            break 2;
+          fi
+        done
+        IFS="$old_ifs"
+      fi
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: [not found]" >&5
+$as_echo "[not found]" >&6; }
+    done
+
+    if test "x" != x; then
+      PATH="$old_path"
+    fi
+
+    else
+      # If it succeeded, then it was overridden by the user. We will use it
+      # for the tool.
+
+      # First remove it from the list of overridden variables, so we can test
+      # for unknown variables in the end.
+      CONFIGURE_OVERRIDDEN_VARIABLES="$try_remove_var"
+
+      tool_override=$METALLIB
+
+      # Check if we try to supply an empty value
+      if test "x$tool_override" = x; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for METALLIB" >&5
+$as_echo_n "checking for METALLIB... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: [disabled by user]" >&5
+$as_echo "[disabled by user]" >&6; }
+      else
+        # Split up override in command part and argument part
+        tool_and_args=($tool_override)
+         tool_command=${tool_and_args[0]}
+         unset 'tool_and_args[0]'
+         tool_args=${tool_and_args[@]}
+
+        # Check if the provided tool contains a complete path.
+        tool_basename="${tool_command##*/}"
+        if test "x$tool_basename" = "x$tool_command"; then
+          # A command without a complete path is provided, search $PATH.
+          { $as_echo "$as_me:${as_lineno-$LINENO}: Will search for user supplied tool \"$tool_basename\"" >&5
+$as_echo "$as_me: Will search for user supplied tool \"$tool_basename\"" >&6;}
+          for ac_prog in $tool_basename ${tool_basename}.exe
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_METALLIB+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $METALLIB in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_METALLIB="$METALLIB" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_METALLIB="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+METALLIB=$ac_cv_path_METALLIB
+if test -n "$METALLIB"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $METALLIB" >&5
+$as_echo "$METALLIB" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$METALLIB" && break
+done
+
+          tool_command="$METALLIB"
+          if test "x$tool_command" = x; then
+            as_fn_error $? "User supplied tool METALLIB=\"$tool_basename\" could not be found in PATH" "$LINENO" 5
+          fi
+        else
+          # Otherwise we believe it is a complete path. Use it as it is.
+          if test ! -x "$tool_command" && test ! -x "${tool_command}.exe"; then
+            as_fn_error $? "User supplied tool METALLIB=\"$tool_command\" does not exist or is not executable" "$LINENO" 5
+          fi
+          if test ! -x "$tool_command"; then
+            tool_command="${tool_command}.exe"
+          fi
+          METALLIB="$tool_command"
+        fi
+        if test "x$tool_args" != x; then
+          # If we got arguments, re-append them to the command after the fixup.
+          METALLIB="$METALLIB $tool_args"
+        fi
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for METALLIB" >&5
+$as_echo_n "checking for METALLIB... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $METALLIB [user supplied]" >&5
+$as_echo "$METALLIB [user supplied]" >&6; }
+      fi
+    fi
+
+  fi
+
+
+  else
+    prefixed_names=$(for name in metallib; do echo ${ac_tool_prefix}${name} $name; done)
+
+
+  # Publish this variable in the help.
+
+
+  if [ -z "${METALLIB+x}" ]; then
+    # The variable is not set by user, try to locate tool using the code snippet
+
+    METALLIB=""
+
+    if test "x" != x; then
+      old_path="$PATH"
+      PATH=""
+    fi
+
+    for name in $prefixed_names; do
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $name" >&5
+$as_echo_n "checking for $name... " >&6; }
+
+      command_type=`type -t "$name"`
+      if test "x$command_type" = xbuiltin || test "x$command_type" = xkeyword; then
+        # Shell builtin or keyword; we're done here
+        full_path="$name"
+        METALLIB="$full_path"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $full_path [builtin]" >&5
+$as_echo "$full_path [builtin]" >&6; }
+        break
+      else
+        # Search in $PATH
+        old_ifs="$IFS"
+        IFS=":"
+        for elem in $PATH; do
+          IFS="$old_ifs"
+          if test "x$elem" = x; then
+            continue
+          fi
+          full_path="$elem/$name"
+          if test ! -e "$full_path" && test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+            # Try again with .exe
+            full_path="$elem/$name.exe"
+          fi
+          if test -x "$full_path" && test ! -d "$full_path" ; then
+            METALLIB="$full_path"
+
+  input="$METALLIB"
+
+  # Only process if variable expands to non-empty
+  if test "x$input" != x; then
+    # First separate the path from the arguments. This will split at the first
+    # space.
+     if [[ "$OPENJDK_BUILD_OS" = "windows" && input =~ ^$FIXPATH ]]; then
+      line="${input#$FIXPATH }"
+      fixpath_prefix="$FIXPATH "
+    else
+      line="$input"
+      fixpath_prefix=""
+    fi
+    path="${line%% *}"
+    arguments="${line#"$path"}"
+
+     if ! [[ "$path" =~ /|\\ ]]; then
+      # This is a command without path (e.g. "gcc" or "echo")
+      command_type=`type -t "$path"`
+      if test "x$command_type" = xbuiltin || test "x$command_type" = xkeyword; then
+        # Shell builtin or keyword; we're done here
+        new_path="$path"
+      else
+        # Search in $PATH using bash built-in 'type -p'.
+        saved_path="$PATH"
+        if test "x" != x; then
+          PATH=""
+        fi
+        new_path=`type -p "$path"`
+        if test "x$new_path" = x && test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+          # Try again with .exe
+          new_path="`type -p "$path.exe"`"
+        fi
+        PATH="$saved_path"
+
+        if test "x$new_path" = x; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METALLIB, which resolves as \"$input\", is not found in the PATH." >&5
+$as_echo "$as_me: The command for METALLIB, which resolves as \"$input\", is not found in the PATH." >&6;}
+          as_fn_error $? "Cannot locate $path" "$LINENO" 5
+        fi
+      fi
+    else
+      # This is a path with slashes, don't look at $PATH
+      if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+        # fixpath.sh import will do all heavy lifting for us
+        new_path=`$FIXPATH_BASE import "$path"`
+
+        if test ! -e $new_path; then
+          # It failed, but maybe spaces were part of the path and not separating
+          # the command and argument. Retry using that assumption.
+          new_path=`$FIXPATH_BASE import "$input"`
+          if test ! -e $new_path; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METALLIB, which resolves as \"$input\", can not be found." >&5
+$as_echo "$as_me: The command for METALLIB, which resolves as \"$input\", can not be found." >&6;}
+            as_fn_error $? "Cannot locate $input" "$LINENO" 5
+          fi
+          # It worked, clear all "arguments"
+          arguments=""
+        fi
+      else # on unix
+        # Make absolute
+        METALLIB="$path"
+
+  # Only process if variable expands to non-empty
+  path="$METALLIB"
+  if test "x$path" != x; then
+    if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+      if test "xNOFAIL" = "xNOFAIL"; then
+        quiet_option="-q"
+      fi
+      imported_path=`$FIXPATH_BASE $quiet_option import "$path"`
+      $FIXPATH_BASE verify "$imported_path"
+      if test $? -ne 0; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          as_fn_error $? "The path of METALLIB, which resolves as \"$path\", could not be imported." "$LINENO" 5
+        else
+          imported_path=""
+        fi
+      fi
+      if test "x$imported_path" != "x$path"; then
+        METALLIB="$imported_path"
+      fi
+    else
+       if [[ "$path" =~ " " ]]; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The path of METALLIB, which resolves as \"$path\", is invalid." >&5
+$as_echo "$as_me: The path of METALLIB, which resolves as \"$path\", is invalid." >&6;}
+          as_fn_error $? "Spaces are not allowed in this path." "$LINENO" 5
+        else
+          path=""
+        fi
+      fi
+
+      # Use eval to expand a potential ~.
+      eval new_path="$path"
+      if test ! -e "$new_path"; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          as_fn_error $? "The path of METALLIB, which resolves as \"$new_path\", is not found." "$LINENO" 5
+        else
+          new_path=""
+        fi
+      fi
+
+      # Make the path absolute
+      if test "x$new_path" != x; then
+        if test -d "$new_path"; then
+          path="`cd "$new_path"; pwd -L`"
+        else
+          dir="`$DIRNAME "$new_path"`"
+          base="`$BASENAME "$new_path"`"
+          path="`cd "$dir"; pwd -L`/$base"
+        fi
+      else
+        path=""
+      fi
+
+      METALLIB="$path"
+    fi
+  fi
+
+        new_path="$METALLIB"
+
+        if test ! -e $new_path; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METALLIB, which resolves as \"$input\", is not found" >&5
+$as_echo "$as_me: The command for METALLIB, which resolves as \"$input\", is not found" >&6;}
+           if [[ "$path" =~ " " ]]; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: This might be caused by spaces in the path, which is not allowed." >&5
+$as_echo "$as_me: This might be caused by spaces in the path, which is not allowed." >&6;}
+          fi
+          as_fn_error $? "Cannot locate $path" "$LINENO" 5
+        fi
+        if test ! -x $new_path; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METALLIB, which resolves as \"$input\", is not executable." >&5
+$as_echo "$as_me: The command for METALLIB, which resolves as \"$input\", is not executable." >&6;}
+          as_fn_error $? "Cannot execute command at $path" "$LINENO" 5
+        fi
+      fi # end on unix
+    fi # end with or without slashes
+
+    # Now we have a usable command as new_path, with arguments in arguments
+    if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+      if test "x$fixpath_prefix" = x; then
+        # Only mess around if fixpath_prefix was not given
+
+  # For cygwin and msys2, if it's linked with the correct helper lib, it
+  # accept unix paths
+  if test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.cygwin" || \
+      test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.msys2"; then
+    linked_libs=`$LDD "$new_path" 2>&1`
+    if test $? -ne 0; then
+      # Non-binary files (e.g. shell scripts) are unix files
+      RESULT=unix
+    else
+       if [[ "$linked_libs" =~ $WINENV_MARKER_DLL ]]; then
+        RESULT=unix
+      else
+        RESULT=windows
+      fi
+    fi
+  elif test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+    # On WSL, we can check if it is a PE file
+    file_type=`$FILE -b "$new_path" 2>&1`
+     if [[ $file_type =~ PE.*Windows ]]; then
+      RESULT=windows
+    else
+      RESULT=unix
+    fi
+  else
+    RESULT=unix
+  fi
+
+        if test "x$RESULT" = xwindows; then
+          fixpath_prefix="$FIXPATH "
+          # make sure we have an .exe suffix (but not two)
+          new_path="${new_path%.exe}.exe"
+        else
+          # If we have gotten a .exe suffix, remove it
+          new_path="${new_path%.exe}"
+        fi
+      fi
+    fi
+
+    if test "x" = xNOFIXPATH; then
+      fixpath_prefix=""
+    fi
+
+    # Now join together the path and the arguments once again
+    new_complete="$fixpath_prefix$new_path$arguments"
+    METALLIB="$new_complete"
+  fi
+
+            result="$METALLIB"
+
+            # If we have FIXPATH enabled, strip all instances of it and prepend
+            # a single one, to avoid double fixpath prefixing.
+            if test "x" != xNOFIXPATH; then
+               if [[ $FIXPATH != "" && $result =~ ^"$FIXPATH " ]]; then
+                result="\$FIXPATH ${result#"$FIXPATH "}"
+              fi
+            fi
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $result" >&5
+$as_echo "$result" >&6; }
+            break 2;
+          fi
+        done
+        IFS="$old_ifs"
+      fi
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: [not found]" >&5
+$as_echo "[not found]" >&6; }
+    done
+
+    if test "x" != x; then
+      PATH="$old_path"
+    fi
+
+  else
+    # The variable is set, but is it from the command line or the environment?
+
+    # Try to remove the string !METALLIB! from our list.
+    try_remove_var=${CONFIGURE_OVERRIDDEN_VARIABLES//!METALLIB!/}
+    if test "x$try_remove_var" = "x$CONFIGURE_OVERRIDDEN_VARIABLES"; then
+      # If it failed, the variable was not from the command line. Ignore it,
+      # but warn the user (except for BASH, which is always set by the calling BASH).
+      if test "xMETALLIB" != xBASH; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Ignoring value of METALLIB from the environment. Use command line variables instead." >&5
+$as_echo "$as_me: WARNING: Ignoring value of METALLIB from the environment. Use command line variables instead." >&2;}
+      fi
+      # Try to locate tool using the code snippet
+
+    METALLIB=""
+
+    if test "x" != x; then
+      old_path="$PATH"
+      PATH=""
+    fi
+
+    for name in $prefixed_names; do
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $name" >&5
+$as_echo_n "checking for $name... " >&6; }
+
+      command_type=`type -t "$name"`
+      if test "x$command_type" = xbuiltin || test "x$command_type" = xkeyword; then
+        # Shell builtin or keyword; we're done here
+        full_path="$name"
+        METALLIB="$full_path"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $full_path [builtin]" >&5
+$as_echo "$full_path [builtin]" >&6; }
+        break
+      else
+        # Search in $PATH
+        old_ifs="$IFS"
+        IFS=":"
+        for elem in $PATH; do
+          IFS="$old_ifs"
+          if test "x$elem" = x; then
+            continue
+          fi
+          full_path="$elem/$name"
+          if test ! -e "$full_path" && test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+            # Try again with .exe
+            full_path="$elem/$name.exe"
+          fi
+          if test -x "$full_path" && test ! -d "$full_path" ; then
+            METALLIB="$full_path"
+
+  input="$METALLIB"
+
+  # Only process if variable expands to non-empty
+  if test "x$input" != x; then
+    # First separate the path from the arguments. This will split at the first
+    # space.
+     if [[ "$OPENJDK_BUILD_OS" = "windows" && input =~ ^$FIXPATH ]]; then
+      line="${input#$FIXPATH }"
+      fixpath_prefix="$FIXPATH "
+    else
+      line="$input"
+      fixpath_prefix=""
+    fi
+    path="${line%% *}"
+    arguments="${line#"$path"}"
+
+     if ! [[ "$path" =~ /|\\ ]]; then
+      # This is a command without path (e.g. "gcc" or "echo")
+      command_type=`type -t "$path"`
+      if test "x$command_type" = xbuiltin || test "x$command_type" = xkeyword; then
+        # Shell builtin or keyword; we're done here
+        new_path="$path"
+      else
+        # Search in $PATH using bash built-in 'type -p'.
+        saved_path="$PATH"
+        if test "x" != x; then
+          PATH=""
+        fi
+        new_path=`type -p "$path"`
+        if test "x$new_path" = x && test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+          # Try again with .exe
+          new_path="`type -p "$path.exe"`"
+        fi
+        PATH="$saved_path"
+
+        if test "x$new_path" = x; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METALLIB, which resolves as \"$input\", is not found in the PATH." >&5
+$as_echo "$as_me: The command for METALLIB, which resolves as \"$input\", is not found in the PATH." >&6;}
+          as_fn_error $? "Cannot locate $path" "$LINENO" 5
+        fi
+      fi
+    else
+      # This is a path with slashes, don't look at $PATH
+      if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+        # fixpath.sh import will do all heavy lifting for us
+        new_path=`$FIXPATH_BASE import "$path"`
+
+        if test ! -e $new_path; then
+          # It failed, but maybe spaces were part of the path and not separating
+          # the command and argument. Retry using that assumption.
+          new_path=`$FIXPATH_BASE import "$input"`
+          if test ! -e $new_path; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METALLIB, which resolves as \"$input\", can not be found." >&5
+$as_echo "$as_me: The command for METALLIB, which resolves as \"$input\", can not be found." >&6;}
+            as_fn_error $? "Cannot locate $input" "$LINENO" 5
+          fi
+          # It worked, clear all "arguments"
+          arguments=""
+        fi
+      else # on unix
+        # Make absolute
+        METALLIB="$path"
+
+  # Only process if variable expands to non-empty
+  path="$METALLIB"
+  if test "x$path" != x; then
+    if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+      if test "xNOFAIL" = "xNOFAIL"; then
+        quiet_option="-q"
+      fi
+      imported_path=`$FIXPATH_BASE $quiet_option import "$path"`
+      $FIXPATH_BASE verify "$imported_path"
+      if test $? -ne 0; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          as_fn_error $? "The path of METALLIB, which resolves as \"$path\", could not be imported." "$LINENO" 5
+        else
+          imported_path=""
+        fi
+      fi
+      if test "x$imported_path" != "x$path"; then
+        METALLIB="$imported_path"
+      fi
+    else
+       if [[ "$path" =~ " " ]]; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The path of METALLIB, which resolves as \"$path\", is invalid." >&5
+$as_echo "$as_me: The path of METALLIB, which resolves as \"$path\", is invalid." >&6;}
+          as_fn_error $? "Spaces are not allowed in this path." "$LINENO" 5
+        else
+          path=""
+        fi
+      fi
+
+      # Use eval to expand a potential ~.
+      eval new_path="$path"
+      if test ! -e "$new_path"; then
+        if test "xNOFAIL" != "xNOFAIL"; then
+          as_fn_error $? "The path of METALLIB, which resolves as \"$new_path\", is not found." "$LINENO" 5
+        else
+          new_path=""
+        fi
+      fi
+
+      # Make the path absolute
+      if test "x$new_path" != x; then
+        if test -d "$new_path"; then
+          path="`cd "$new_path"; pwd -L`"
+        else
+          dir="`$DIRNAME "$new_path"`"
+          base="`$BASENAME "$new_path"`"
+          path="`cd "$dir"; pwd -L`/$base"
+        fi
+      else
+        path=""
+      fi
+
+      METALLIB="$path"
+    fi
+  fi
+
+        new_path="$METALLIB"
+
+        if test ! -e $new_path; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METALLIB, which resolves as \"$input\", is not found" >&5
+$as_echo "$as_me: The command for METALLIB, which resolves as \"$input\", is not found" >&6;}
+           if [[ "$path" =~ " " ]]; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: This might be caused by spaces in the path, which is not allowed." >&5
+$as_echo "$as_me: This might be caused by spaces in the path, which is not allowed." >&6;}
+          fi
+          as_fn_error $? "Cannot locate $path" "$LINENO" 5
+        fi
+        if test ! -x $new_path; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: The command for METALLIB, which resolves as \"$input\", is not executable." >&5
+$as_echo "$as_me: The command for METALLIB, which resolves as \"$input\", is not executable." >&6;}
+          as_fn_error $? "Cannot execute command at $path" "$LINENO" 5
+        fi
+      fi # end on unix
+    fi # end with or without slashes
+
+    # Now we have a usable command as new_path, with arguments in arguments
+    if test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+      if test "x$fixpath_prefix" = x; then
+        # Only mess around if fixpath_prefix was not given
+
+  # For cygwin and msys2, if it's linked with the correct helper lib, it
+  # accept unix paths
+  if test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.cygwin" || \
+      test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.msys2"; then
+    linked_libs=`$LDD "$new_path" 2>&1`
+    if test $? -ne 0; then
+      # Non-binary files (e.g. shell scripts) are unix files
+      RESULT=unix
+    else
+       if [[ "$linked_libs" =~ $WINENV_MARKER_DLL ]]; then
+        RESULT=unix
+      else
+        RESULT=windows
+      fi
+    fi
+  elif test "x$OPENJDK_BUILD_OS" = "xwindows"; then
+    # On WSL, we can check if it is a PE file
+    file_type=`$FILE -b "$new_path" 2>&1`
+     if [[ $file_type =~ PE.*Windows ]]; then
+      RESULT=windows
+    else
+      RESULT=unix
+    fi
+  else
+    RESULT=unix
+  fi
+
+        if test "x$RESULT" = xwindows; then
+          fixpath_prefix="$FIXPATH "
+          # make sure we have an .exe suffix (but not two)
+          new_path="${new_path%.exe}.exe"
+        else
+          # If we have gotten a .exe suffix, remove it
+          new_path="${new_path%.exe}"
+        fi
+      fi
+    fi
+
+    if test "x" = xNOFIXPATH; then
+      fixpath_prefix=""
+    fi
+
+    # Now join together the path and the arguments once again
+    new_complete="$fixpath_prefix$new_path$arguments"
+    METALLIB="$new_complete"
+  fi
+
+            result="$METALLIB"
+
+            # If we have FIXPATH enabled, strip all instances of it and prepend
+            # a single one, to avoid double fixpath prefixing.
+            if test "x" != xNOFIXPATH; then
+               if [[ $FIXPATH != "" && $result =~ ^"$FIXPATH " ]]; then
+                result="\$FIXPATH ${result#"$FIXPATH "}"
+              fi
+            fi
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $result" >&5
+$as_echo "$result" >&6; }
+            break 2;
+          fi
+        done
+        IFS="$old_ifs"
+      fi
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: [not found]" >&5
+$as_echo "[not found]" >&6; }
+    done
+
+    if test "x" != x; then
+      PATH="$old_path"
+    fi
+
+    else
+      # If it succeeded, then it was overridden by the user. We will use it
+      # for the tool.
+
+      # First remove it from the list of overridden variables, so we can test
+      # for unknown variables in the end.
+      CONFIGURE_OVERRIDDEN_VARIABLES="$try_remove_var"
+
+      tool_override=$METALLIB
+
+      # Check if we try to supply an empty value
+      if test "x$tool_override" = x; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for METALLIB" >&5
+$as_echo_n "checking for METALLIB... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: [disabled by user]" >&5
+$as_echo "[disabled by user]" >&6; }
+      else
+        # Split up override in command part and argument part
+        tool_and_args=($tool_override)
+         tool_command=${tool_and_args[0]}
+         unset 'tool_and_args[0]'
+         tool_args=${tool_and_args[@]}
+
+        # Check if the provided tool contains a complete path.
+        tool_basename="${tool_command##*/}"
+        if test "x$tool_basename" = "x$tool_command"; then
+          # A command without a complete path is provided, search $PATH.
+          { $as_echo "$as_me:${as_lineno-$LINENO}: Will search for user supplied tool \"$tool_basename\"" >&5
+$as_echo "$as_me: Will search for user supplied tool \"$tool_basename\"" >&6;}
+          for ac_prog in $tool_basename ${tool_basename}.exe
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_METALLIB+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $METALLIB in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_METALLIB="$METALLIB" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_METALLIB="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+METALLIB=$ac_cv_path_METALLIB
+if test -n "$METALLIB"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $METALLIB" >&5
+$as_echo "$METALLIB" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$METALLIB" && break
+done
+
+          tool_command="$METALLIB"
+          if test "x$tool_command" = x; then
+            as_fn_error $? "User supplied tool METALLIB=\"$tool_basename\" could not be found in PATH" "$LINENO" 5
+          fi
+        else
+          # Otherwise we believe it is a complete path. Use it as it is.
+          if test ! -x "$tool_command" && test ! -x "${tool_command}.exe"; then
+            as_fn_error $? "User supplied tool METALLIB=\"$tool_command\" does not exist or is not executable" "$LINENO" 5
+          fi
+          if test ! -x "$tool_command"; then
+            tool_command="${tool_command}.exe"
+          fi
+          METALLIB="$tool_command"
+        fi
+        if test "x$tool_args" != x; then
+          # If we got arguments, re-append them to the command after the fixup.
+          METALLIB="$METALLIB $tool_args"
+        fi
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for METALLIB" >&5
+$as_echo_n "checking for METALLIB... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $METALLIB [user supplied]" >&5
+$as_echo "$METALLIB [user supplied]" >&6; }
+      fi
+    fi
+
+  fi
+
+
+  fi
+
+    if test "x$METALLIB" = x; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking if metallib can be run using xcrun" >&5
+$as_echo_n "checking if metallib can be run using xcrun... " >&6; }
+      METALLIB="xcrun -sdk macosx metallib"
+      test_metallib=`$METALLIB --version 2>&1`
+      if test $? -ne 0; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+        as_fn_error $? "XCode tool 'metallib' neither found in path nor with xcrun" "$LINENO" 5
+      else
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes, will be using '$METALLIB'" >&5
+$as_echo "yes, will be using '$METALLIB'" >&6; }
+      fi
+    fi
   fi
 
   if test "x$TOOLCHAIN_TYPE" = xmicrosoft; then
@@ -113625,19 +116256,25 @@ $as_echo "$as_me: with --disable-absolute-paths-in-output." >&6;}
 
   # Additional macosx handling
   if test "x$OPENJDK_TARGET_OS" = xmacosx; then
+    # The expected format for <version> is either nn.n.n or nn.nn.nn. See
+    # /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityVersions.h
+
     # MACOSX_VERSION_MIN specifies the lowest version of Macosx that the built
     # binaries should be compatible with, even if compiled on a newer version
     # of the OS. It currently has a hard coded value. Setting this also limits
     # exposure to API changes in header files. Bumping this is likely to
     # require code changes to build.
-    MACOSX_VERSION_MIN=10.12.0
+    if test "x$OPENJDK_TARGET_CPU_ARCH" = xaarch64; then
+      MACOSX_VERSION_MIN=11.00.00
+    else
+      MACOSX_VERSION_MIN=10.12.0
+    fi
     MACOSX_VERSION_MIN_NODOTS=${MACOSX_VERSION_MIN//\./}
 
 
 
     # Setting --with-macosx-version-max=<version> makes it an error to build or
-    # link to macosx APIs that are newer than the given OS version. The expected
-    # format for <version> is either nn.n.n or nn.nn.nn. See /usr/include/AvailabilityMacros.h.
+    # link to macosx APIs that are newer than the given OS version.
 
 # Check whether --with-macosx-version-max was given.
 if test "${with_macosx_version_max+set}" = set; then :
@@ -122243,6 +124880,10 @@ $as_echo "$as_me: WARNING: X11 is not used, so --with-x is ignored" >&2;}
             x_libraries="$SYSROOT/usr/lib64"
           elif test -f "$SYSROOT/usr/lib/libX11.so"; then
             x_libraries="$SYSROOT/usr/lib"
+          elif test -f "$SYSROOT/usr/lib/$OPENJDK_TARGET_CPU-$OPENJDK_TARGET_OS-$OPENJDK_TARGET_ABI/libX11.so"; then
+            x_libraries="$SYSROOT/usr/lib/$OPENJDK_TARGET_CPU-$OPENJDK_TARGET_OS-$OPENJDK_TARGET_ABI/libX11.so"
+          elif test -f "$SYSROOT/usr/lib/$OPENJDK_TARGET_CPU_AUTOCONF-$OPENJDK_TARGET_OS-$OPENJDK_TARGET_ABI/libX11.so"; then
+            x_libraries="$SYSROOT/usr/lib/$OPENJDK_TARGET_CPU_AUTOCONF-$OPENJDK_TARGET_OS-$OPENJDK_TARGET_ABI/libX11.so"
           fi
         fi
       fi
@@ -123705,6 +126346,100 @@ $as_echo "$FREETYPE_LIB_PATH" >&6; }
 
   POTENTIAL_FREETYPE_INCLUDE_PATH="$FREETYPE_BASE_DIR/include"
   POTENTIAL_FREETYPE_LIB_PATH="$FREETYPE_BASE_DIR/lib"
+  METHOD="well-known location"
+
+  # Let's start with an optimistic view of the world :-)
+  FOUND_FREETYPE=yes
+
+  # First look for the canonical freetype main include file ft2build.h.
+  if ! test -s "$POTENTIAL_FREETYPE_INCLUDE_PATH/ft2build.h"; then
+    # Oh no! Let's try in the freetype2 directory.
+    POTENTIAL_FREETYPE_INCLUDE_PATH="$POTENTIAL_FREETYPE_INCLUDE_PATH/freetype2"
+    if ! test -s "$POTENTIAL_FREETYPE_INCLUDE_PATH/ft2build.h"; then
+      # Fail.
+      FOUND_FREETYPE=no
+    fi
+  fi
+
+  if test "x$FOUND_FREETYPE" = "xyes"; then
+    # Include file found, let's continue the sanity check.
+    { $as_echo "$as_me:${as_lineno-$LINENO}: Found freetype include files at $POTENTIAL_FREETYPE_INCLUDE_PATH using $METHOD" >&5
+$as_echo "$as_me: Found freetype include files at $POTENTIAL_FREETYPE_INCLUDE_PATH using $METHOD" >&6;}
+
+    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}${FREETYPE_BASE_NAME}${SHARED_LIBRARY_SUFFIX}"
+    if ! test -s "$POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME"; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&5
+$as_echo "$as_me: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&6;}
+      FOUND_FREETYPE=no
+    fi
+  fi
+
+  if test "x$FOUND_FREETYPE" = "xyes"; then
+    FREETYPE_INCLUDE_PATH="$POTENTIAL_FREETYPE_INCLUDE_PATH"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for freetype includes" >&5
+$as_echo_n "checking for freetype includes... " >&6; }
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $FREETYPE_INCLUDE_PATH" >&5
+$as_echo "$FREETYPE_INCLUDE_PATH" >&6; }
+    FREETYPE_LIB_PATH="$POTENTIAL_FREETYPE_LIB_PATH"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for freetype libraries" >&5
+$as_echo_n "checking for freetype libraries... " >&6; }
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $FREETYPE_LIB_PATH" >&5
+$as_echo "$FREETYPE_LIB_PATH" >&6; }
+  fi
+
+        fi
+
+        if test "x$FOUND_FREETYPE" != "xyes" ; then
+
+  POTENTIAL_FREETYPE_INCLUDE_PATH="$FREETYPE_BASE_DIR/include"
+  POTENTIAL_FREETYPE_LIB_PATH="$FREETYPE_BASE_DIR/lib/$OPENJDK_TARGET_CPU-$OPENJDK_TARGET_OS-$OPENJDK_TARGET_ABI"
+  METHOD="well-known location"
+
+  # Let's start with an optimistic view of the world :-)
+  FOUND_FREETYPE=yes
+
+  # First look for the canonical freetype main include file ft2build.h.
+  if ! test -s "$POTENTIAL_FREETYPE_INCLUDE_PATH/ft2build.h"; then
+    # Oh no! Let's try in the freetype2 directory.
+    POTENTIAL_FREETYPE_INCLUDE_PATH="$POTENTIAL_FREETYPE_INCLUDE_PATH/freetype2"
+    if ! test -s "$POTENTIAL_FREETYPE_INCLUDE_PATH/ft2build.h"; then
+      # Fail.
+      FOUND_FREETYPE=no
+    fi
+  fi
+
+  if test "x$FOUND_FREETYPE" = "xyes"; then
+    # Include file found, let's continue the sanity check.
+    { $as_echo "$as_me:${as_lineno-$LINENO}: Found freetype include files at $POTENTIAL_FREETYPE_INCLUDE_PATH using $METHOD" >&5
+$as_echo "$as_me: Found freetype include files at $POTENTIAL_FREETYPE_INCLUDE_PATH using $METHOD" >&6;}
+
+    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}${FREETYPE_BASE_NAME}${SHARED_LIBRARY_SUFFIX}"
+    if ! test -s "$POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME"; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&5
+$as_echo "$as_me: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&6;}
+      FOUND_FREETYPE=no
+    fi
+  fi
+
+  if test "x$FOUND_FREETYPE" = "xyes"; then
+    FREETYPE_INCLUDE_PATH="$POTENTIAL_FREETYPE_INCLUDE_PATH"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for freetype includes" >&5
+$as_echo_n "checking for freetype includes... " >&6; }
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $FREETYPE_INCLUDE_PATH" >&5
+$as_echo "$FREETYPE_INCLUDE_PATH" >&6; }
+    FREETYPE_LIB_PATH="$POTENTIAL_FREETYPE_LIB_PATH"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for freetype libraries" >&5
+$as_echo_n "checking for freetype libraries... " >&6; }
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $FREETYPE_LIB_PATH" >&5
+$as_echo "$FREETYPE_LIB_PATH" >&6; }
+  fi
+
+        fi
+
+        if test "x$FOUND_FREETYPE" != "xyes" ; then
+
+  POTENTIAL_FREETYPE_INCLUDE_PATH="$FREETYPE_BASE_DIR/include"
+  POTENTIAL_FREETYPE_LIB_PATH="$FREETYPE_BASE_DIR/lib/$OPENJDK_TARGET_CPU_AUTOCONF-$OPENJDK_TARGET_OS-$OPENJDK_TARGET_ABI"
   METHOD="well-known location"
 
   # Let's start with an optimistic view of the world :-)
@@ -126563,8 +129298,8 @@ $as_echo "yes" >&6; }
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, $OPENJDK_TARGET_CPU" >&5
-$as_echo "no, $OPENJDK_TARGET_CPU" >&6; }
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, $OPENJDK_TARGET_OS-$OPENJDK_TARGET_CPU" >&5
+$as_echo "no, $OPENJDK_TARGET_OS-$OPENJDK_TARGET_CPU" >&6; }
       AVAILABLE=false
     fi
 
@@ -126602,13 +129337,13 @@ $as_echo "no" >&6; }
 
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking if platform is supported by CDS" >&5
 $as_echo_n "checking if platform is supported by CDS... " >&6; }
-    if test "x$OPENJDK_TARGET_OS" != xaix; then
+    if test "x$OPENJDK_TARGET_OS" = xaix; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, $OPENJDK_TARGET_OS-$OPENJDK_TARGET_CPU" >&5
+$as_echo "no, $OPENJDK_TARGET_OS-$OPENJDK_TARGET_CPU" >&6; }
+      AVAILABLE=false
+    else
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-    else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, $OPENJDK_TARGET_OS" >&5
-$as_echo "no, $OPENJDK_TARGET_OS" >&6; }
-      AVAILABLE=false
     fi
 
 
@@ -128433,6 +131168,305 @@ $as_echo "disabled, $REASON" >&6; }
   fi
 
   if test x$BUILD_CDS_ARCHIVE = xtrue; then
+    :
+  else
+    :
+  fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # Execute function body
+
+  ##########################
+  # Part 1: Set up m4 macros
+  ##########################
+
+  # If DEFAULT is not specified, set it to 'true'.
+
+
+  # If AVAILABLE is not specified, set it to 'true'.
+
+
+  # If DEFAULT_DESC is not specified, calculate it from DEFAULT.
+
+
+  # If RESULT is not specified, set it to 'ARG_NAME[_ENABLED]'.
+
+  # Construct shell variable names for the option
+
+
+
+  # If DESC is not specified, set it to a generic description.
+
+
+  # If CHECKING_MSG is not specified, set it to a generic description.
+
+
+  # If the code blocks are not given, set them to the empty statements to avoid
+  # tripping up bash.
+
+
+
+
+
+
+  ##########################
+  # Part 2: Set up autoconf shell code
+  ##########################
+
+  # Check that DEFAULT has a valid value
+  if test "xfalse" != xtrue && test "xfalse" != xfalse && \
+      test "xfalse" != xauto ; then
+    as_fn_error $? "Internal error: Argument DEFAULT to UTIL_ARG_ENABLE can only be true, false or auto, was: 'false'" "$LINENO" 5
+  fi
+
+  # Check that AVAILABLE has a valid value
+  if test "xtrue" != xtrue && test "xtrue" != xfalse; then
+    as_fn_error $? "Internal error: Argument AVAILABLE to UTIL_ARG_ENABLE can only be true or false, was: 'true'" "$LINENO" 5
+  fi
+
+  # Check whether --enable-compatible-cds-alignment was given.
+if test "${enable_compatible_cds_alignment+set}" = set; then :
+  enableval=$enable_compatible_cds_alignment; COMPATIBLE_CDS_ALIGNMENT_GIVEN=true
+else
+  COMPATIBLE_CDS_ALIGNMENT_GIVEN=false
+fi
+
+
+  # Check if the option is available
+  AVAILABLE=true
+  # Run the available check block (if any), which can overwrite AVAILABLE.
+  { $as_echo "$as_me: ${as_lineno-$LINENO}:  checking if CDS archive is available" >&5
+$as_echo_n "checking if CDS archive is available... " >&6; }
+if test "x$ENABLE_CDS" = "xfalse"; then
+AVAILABLE=false
+{ $as_echo "$as_me: ${as_lineno-$LINENO}:  result:  no (CDS is disabled)" >&5
+$as_echo "no (CDS is disabled)" >&6; }
+else
+AVAILABLE=true
+{ $as_echo "$as_me: ${as_lineno-$LINENO}:  result:  yes" >&5
+$as_echo "yes" >&6; }
+fi
+
+
+  # Check if the option should be turned on
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking if compatible cds region alignment enabled" >&5
+$as_echo_n "checking if compatible cds region alignment enabled... " >&6; }
+  if test x$COMPATIBLE_CDS_ALIGNMENT_GIVEN = xfalse; then
+    if test false = auto; then
+      # If not given, and default is auto, set it to true iff it's available.
+      ENABLE_COMPATIBLE_CDS_ALIGNMENT=$AVAILABLE
+      REASON="from default 'auto'"
+    else
+      ENABLE_COMPATIBLE_CDS_ALIGNMENT=false
+      REASON="default"
+    fi
+  else
+    if test x$enable_compatible_cds_alignment = xyes; then
+      ENABLE_COMPATIBLE_CDS_ALIGNMENT=true
+      REASON="from command line"
+    elif test x$enable_compatible_cds_alignment = xno; then
+      ENABLE_COMPATIBLE_CDS_ALIGNMENT=false
+      REASON="from command line"
+    elif test x$enable_compatible_cds_alignment = xauto; then
+      if test false = auto; then
+        # If both given and default is auto, set it to true iff it's available.
+        ENABLE_COMPATIBLE_CDS_ALIGNMENT=$AVAILABLE
+      else
+        ENABLE_COMPATIBLE_CDS_ALIGNMENT=false
+      fi
+      REASON="from command line 'auto'"
+    else
+      as_fn_error $? "Option --enable-compatible-cds-alignment can only be 'yes', 'no' or 'auto'" "$LINENO" 5
+    fi
+  fi
+
+  if test x$ENABLE_COMPATIBLE_CDS_ALIGNMENT = xtrue; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: enabled, $REASON" >&5
+$as_echo "enabled, $REASON" >&6; }
+    if test x$AVAILABLE = xfalse; then
+      as_fn_error $? "Option --enable-compatible-cds-alignment is not available" "$LINENO" 5
+    fi
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled, $REASON" >&5
+$as_echo "disabled, $REASON" >&6; }
+  fi
+
+  # Execute result payloads, if present
+  if test x$COMPATIBLE_CDS_ALIGNMENT_GIVEN = xtrue; then
+    :
+  else
+    :
+  fi
+
+  if test x$ENABLE_COMPATIBLE_CDS_ALIGNMENT = xtrue; then
     :
   else
     :
