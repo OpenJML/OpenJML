@@ -908,7 +908,7 @@ oop Dependencies::DepStream::argument_oop(int i) {
   return result;
 }
 
-Klass* Dependencies::DepStream::context_type() {
+InstanceKlass* Dependencies::DepStream::context_type() {
   assert(must_be_in_vm(), "raw oops here");
 
   // Most dependencies have an explicit context type argument.
@@ -917,7 +917,7 @@ Klass* Dependencies::DepStream::context_type() {
     if (ctxkj >= 0) {
       Metadata* k = argument(ctxkj);
       assert(k != NULL && k->is_klass(), "type check");
-      return (Klass*)k;
+      return InstanceKlass::cast((Klass*)k);
     }
   }
 
@@ -927,8 +927,8 @@ Klass* Dependencies::DepStream::context_type() {
     int ctxkj = dep_implicit_context_arg(type());
     if (ctxkj >= 0) {
       Klass* k = argument_oop(ctxkj)->klass();
-      assert(k != NULL && k->is_klass(), "type check");
-      return (Klass*) k;
+      assert(k != NULL, "type check");
+      return InstanceKlass::cast(k);
     }
   }
 
@@ -1051,7 +1051,7 @@ class ClassHierarchyWalker {
 #ifdef ASSERT
   // Assert that m is inherited into ctxk, without intervening overrides.
   // (May return true even if this is not true, in corner cases where we punt.)
-  bool check_method_context(Klass* ctxk, Method* m) {
+  bool check_method_context(InstanceKlass* ctxk, Method* m) {
     if (m->method_holder() == ctxk)
       return true;  // Quick win.
     if (m->is_private())
@@ -1118,44 +1118,48 @@ class ClassHierarchyWalker {
 
   bool is_witness(Klass* k) {
     if (doing_subtype_search()) {
-      return Dependencies::is_concrete_klass(k);
+      if (Dependencies::is_concrete_klass(k)) {
+        return record_witness(k); // concrete subtype
+      } else {
+        return false; // not a concrete class
+      }
     } else if (!k->is_instance_klass()) {
       return false; // no methods to find in an array type
     } else {
+      InstanceKlass* ik = InstanceKlass::cast(k);
       // Search class hierarchy first, skipping private implementations
       // as they never override any inherited methods
-      Method* m = InstanceKlass::cast(k)->find_instance_method(_name, _signature, Klass::PrivateLookupMode::skip);
-      if (!Dependencies::is_concrete_method(m, k)) {
+      Method* m = ik->find_instance_method(_name, _signature, Klass::PrivateLookupMode::skip);
+      if (Dependencies::is_concrete_method(m, ik)) {
+        return record_witness(k, m); // concrete method found
+      } else {
         // Check for re-abstraction of method
-        if (!k->is_interface() && m != NULL && m->is_abstract()) {
+        if (!ik->is_interface() && m != NULL && m->is_abstract()) {
           // Found a matching abstract method 'm' in the class hierarchy.
           // This is fine iff 'k' is an abstract class and all concrete subtypes
           // of 'k' override 'm' and are participates of the current search.
           ClassHierarchyWalker wf(_participants, _num_participants);
-          Klass* w = wf.find_witness_subtype(k);
+          Klass* w = wf.find_witness_subtype(ik);
           if (w != NULL) {
             Method* wm = InstanceKlass::cast(w)->find_instance_method(_name, _signature, Klass::PrivateLookupMode::skip);
             if (!Dependencies::is_concrete_method(wm, w)) {
               // Found a concrete subtype 'w' which does not override abstract method 'm'.
               // Bail out because 'm' could be called with 'w' as receiver (leading to an
               // AbstractMethodError) and thus the method we are looking for is not unique.
-              _found_methods[_num_participants] = m;
-              return true;
+              return record_witness(k, m);
             }
           }
         }
         // Check interface defaults also, if any exist.
-        Array<Method*>* default_methods = InstanceKlass::cast(k)->default_methods();
-        if (default_methods == NULL)
-            return false;
-        m = InstanceKlass::cast(k)->find_method(default_methods, _name, _signature);
-        if (!Dependencies::is_concrete_method(m, NULL))
-            return false;
+        Array<Method*>* default_methods = ik->default_methods();
+        if (default_methods != NULL) {
+          Method* dm = ik->find_method(default_methods, _name, _signature);
+          if (Dependencies::is_concrete_method(dm, NULL)) {
+            return record_witness(k, dm); // default method found
+          }
+        }
+        return false; // no concrete method found
       }
-      _found_methods[_num_participants] = m;
-      // Note:  If add_participant(k) is called,
-      // the method m will already be memoized for it.
-      return true;
     }
   }
 
@@ -1168,13 +1172,22 @@ class ClassHierarchyWalker {
       return in_list(k, &_participants[1]);
     }
   }
-  bool ignore_witness(Klass* witness) {
+
+  bool record_witness(Klass* witness, Method* m) {
+    _found_methods[_num_participants] = m;
+    return record_witness(witness);
+  }
+
+  // It is used by is_witness() to fill up participant list (of predefined size)
+  // and to report the first witness candidate which doesn't fit into the list.
+  // Returns true when no more witnesses can be recorded.
+  bool record_witness(Klass* witness) {
     if (_record_witnesses == 0) {
-      return false;
+      return true; // report the witness
     } else {
       --_record_witnesses;
       add_participant(witness);
-      return true;
+      return false; // record the witness
     }
   }
   static bool in_list(Klass* x, Klass** list) {
@@ -1188,15 +1201,14 @@ class ClassHierarchyWalker {
 
  private:
   // the actual search method:
-  Klass* find_witness_anywhere(Klass* context_type,
-                                 bool participants_hide_witnesses,
-                                 bool top_level_call = true);
+  Klass* find_witness_anywhere(InstanceKlass* context_type,
+                               bool participants_hide_witnesses);
   // the spot-checking version:
   Klass* find_witness_in(KlassDepChange& changes,
-                         Klass* context_type,
-                           bool participants_hide_witnesses);
+                         InstanceKlass* context_type,
+                         bool participants_hide_witnesses);
  public:
-  Klass* find_witness_subtype(Klass* context_type, KlassDepChange* changes = NULL) {
+  Klass* find_witness_subtype(InstanceKlass* context_type, KlassDepChange* changes = NULL) {
     assert(doing_subtype_search(), "must set up a subtype search");
     // When looking for unexpected concrete types,
     // do not look beneath expected ones.
@@ -1209,7 +1221,7 @@ class ClassHierarchyWalker {
       return find_witness_anywhere(context_type, participants_hide_witnesses);
     }
   }
-  Klass* find_witness_definer(Klass* context_type, KlassDepChange* changes = NULL) {
+  Klass* find_witness_definer(InstanceKlass* context_type, KlassDepChange* changes = NULL) {
     assert(!doing_subtype_search(), "must set up a method definer search");
     // When looking for unexpected concrete methods,
     // look beneath expected ones, to see if there are overrides.
@@ -1271,7 +1283,7 @@ static bool count_find_witness_calls() {
 
 
 Klass* ClassHierarchyWalker::find_witness_in(KlassDepChange& changes,
-                                             Klass* context_type,
+                                             InstanceKlass* context_type,
                                              bool participants_hide_witnesses) {
   assert(changes.involves_context(context_type), "irrelevant dependency");
   Klass* new_type = changes.new_type();
@@ -1284,7 +1296,7 @@ Klass* ClassHierarchyWalker::find_witness_in(KlassDepChange& changes,
   // Must not move the class hierarchy during this check:
   assert_locked_or_safepoint(Compile_lock);
 
-  int nof_impls = InstanceKlass::cast(context_type)->nof_implementors();
+  int nof_impls = context_type->nof_implementors();
   if (nof_impls > 1) {
     // Avoid this case: *I.m > { A.m, C }; B.m > C
     // %%% Until this is fixed more systematically, bail out.
@@ -1307,23 +1319,15 @@ Klass* ClassHierarchyWalker::find_witness_in(KlassDepChange& changes,
     }
   }
 
-  if (is_witness(new_type) &&
-      !ignore_witness(new_type)) {
+  if (is_witness(new_type)) {
     return new_type;
   }
 
   return NULL;
 }
 
-
 // Walk hierarchy under a context type, looking for unexpected types.
-// Do not report participant types, and recursively walk beneath
-// them only if participants_hide_witnesses is false.
-// If top_level_call is false, skip testing the context type,
-// because the caller has already considered it.
-Klass* ClassHierarchyWalker::find_witness_anywhere(Klass* context_type,
-                                                   bool participants_hide_witnesses,
-                                                   bool top_level_call) {
+Klass* ClassHierarchyWalker::find_witness_anywhere(InstanceKlass* context_type, bool participants_hide_witnesses) {
   // Current thread must be in VM (not native mode, as in CI):
   assert(must_be_in_vm(), "raw oops here");
   // Must not move the class hierarchy during this check:
@@ -1332,106 +1336,50 @@ Klass* ClassHierarchyWalker::find_witness_anywhere(Klass* context_type,
   bool do_counts = count_find_witness_calls();
 
   // Check the root of the sub-hierarchy first.
-  if (top_level_call) {
-    if (do_counts) {
-      NOT_PRODUCT(deps_find_witness_calls++);
-      NOT_PRODUCT(deps_find_witness_steps++);
-    }
-    if (is_participant(context_type)) {
-      if (participants_hide_witnesses)  return NULL;
-      // else fall through to search loop...
-    } else if (is_witness(context_type) && !ignore_witness(context_type)) {
-      // The context is an abstract class or interface, to start with.
-      return context_type;
-    }
+  if (do_counts) {
+    NOT_PRODUCT(deps_find_witness_calls++);
   }
 
-  // Now we must check each implementor and each subclass.
-  // Use a short worklist to avoid blowing the stack.
-  // Each worklist entry is a *chain* of subklass siblings to process.
-  const int CHAINMAX = 100;  // >= 1 + InstanceKlass::implementors_limit
-  Klass* chains[CHAINMAX];
-  int    chaini = 0;  // index into worklist
-  Klass* chain;       // scratch variable
-#define ADD_SUBCLASS_CHAIN(k)                     {  \
-    assert(chaini < CHAINMAX, "oob");                \
-    chain = k->subklass();                           \
-    if (chain != NULL)  chains[chaini++] = chain;    }
-
-  // Look for non-abstract subclasses.
-  // (Note:  Interfaces do not have subclasses.)
-  ADD_SUBCLASS_CHAIN(context_type);
-
+  // (Note: Interfaces do not have subclasses.)
   // If it is an interface, search its direct implementors.
-  // (Their subclasses are additional indirect implementors.
-  // See InstanceKlass::add_implementor.)
-  // (Note:  nof_implementors is always zero for non-interfaces.)
-  if (top_level_call) {
-    int nof_impls = InstanceKlass::cast(context_type)->nof_implementors();
-    if (nof_impls > 1) {
+  // (Their subclasses are additional indirect implementors. See InstanceKlass::add_implementor().)
+  if (context_type->is_interface()) {
+    int nof_impls = context_type->nof_implementors();
+    if (nof_impls == 0) {
+      return NULL; // no implementors
+    } else if (nof_impls == 1) { // unique implementor
+      assert(context_type != context_type->implementor(), "not unique");
+      context_type = context_type->implementor();
+    } else { // nof_impls >= 2
       // Avoid this case: *I.m > { A.m, C }; B.m > C
       // Here, I.m has 2 concrete implementations, but m appears unique
       // as A.m, because the search misses B.m when checking C.
       // The inherited method B.m was getting missed by the walker
       // when interface 'I' was the starting point.
       // %%% Until this is fixed more systematically, bail out.
-      // (Old CHA had the same limitation.)
       return context_type;
     }
-    if (nof_impls > 0) {
-      Klass* impl = InstanceKlass::cast(context_type)->implementor();
-      assert(impl != NULL, "just checking");
-      // If impl is the same as the context_type, then more than one
-      // implementor has seen. No exact info in this case.
-      if (impl == context_type) {
-        return context_type;  // report an inexact witness to this sad affair
-      }
-      if (do_counts)
-        { NOT_PRODUCT(deps_find_witness_steps++); }
-      if (is_participant(impl)) {
-        if (!participants_hide_witnesses) {
-          ADD_SUBCLASS_CHAIN(impl);
-        }
-      } else if (is_witness(impl) && !ignore_witness(impl)) {
-        return impl;
-      } else {
-        ADD_SUBCLASS_CHAIN(impl);
-      }
-    }
   }
 
-  // Recursively process each non-trivial sibling chain.
-  while (chaini > 0) {
-    Klass* chain = chains[--chaini];
-    for (Klass* sub = chain; sub != NULL; sub = sub->next_sibling()) {
-      if (do_counts) { NOT_PRODUCT(deps_find_witness_steps++); }
-      if (is_participant(sub)) {
-        if (participants_hide_witnesses)  continue;
-        // else fall through to process this guy's subclasses
-      } else if (is_witness(sub) && !ignore_witness(sub)) {
-        return sub;
+  assert(!context_type->is_interface(), "not allowed");
+
+  for (ClassHierarchyIterator iter(context_type); !iter.done(); iter.next()) {
+    Klass* sub = iter.klass();
+
+    if (do_counts) { NOT_PRODUCT(deps_find_witness_steps++); }
+
+    // Do not report participant types.
+    if (is_participant(sub)) {
+      // Walk beneath a participant only when it doesn't hide witnesses.
+      if (participants_hide_witnesses) {
+        iter.skip_subclasses();
       }
-      if (chaini < (VerifyDependencies? 2: CHAINMAX)) {
-        // Fast path.  (Partially disabled if VerifyDependencies.)
-        ADD_SUBCLASS_CHAIN(sub);
-      } else {
-        // Worklist overflow.  Do a recursive call.  Should be rare.
-        // The recursive call will have its own worklist, of course.
-        // (Note that sub has already been tested, so that there is
-        // no need for the recursive call to re-test.  That's handy,
-        // since the recursive call sees sub as the context_type.)
-        if (do_counts) { NOT_PRODUCT(deps_find_witness_recursions++); }
-        Klass* witness = find_witness_anywhere(sub,
-                                               participants_hide_witnesses,
-                                               /*top_level_call=*/ false);
-        if (witness != NULL)  return witness;
-      }
+    } else if (is_witness(sub)) {
+      return sub; // found a witness
     }
   }
-
   // No witness found.  The dependency remains unbroken.
   return NULL;
-#undef ADD_SUBCLASS_CHAIN
 }
 
 
@@ -1507,17 +1455,16 @@ Klass* Dependencies::check_evol_method(Method* m) {
 // can be optimized more strongly than this, because we
 // know that the checked type comes from a concrete type,
 // and therefore we can disregard abstract types.)
-Klass* Dependencies::check_leaf_type(Klass* ctxk) {
+Klass* Dependencies::check_leaf_type(InstanceKlass* ctxk) {
   assert(must_be_in_vm(), "raw oops here");
   assert_locked_or_safepoint(Compile_lock);
-  InstanceKlass* ctx = InstanceKlass::cast(ctxk);
-  Klass* sub = ctx->subklass();
+  Klass* sub = ctxk->subklass();
   if (sub != NULL) {
     return sub;
-  } else if (ctx->nof_implementors() != 0) {
+  } else if (ctxk->nof_implementors() != 0) {
     // if it is an interface, it must be unimplemented
     // (if it is not an interface, nof_implementors is always zero)
-    Klass* impl = ctx->implementor();
+    InstanceKlass* impl = ctxk->implementor();
     assert(impl != NULL, "must be set");
     return impl;
   } else {
@@ -1529,7 +1476,7 @@ Klass* Dependencies::check_leaf_type(Klass* ctxk) {
 // The type conck itself is allowed to have have further concrete subtypes.
 // This allows the compiler to narrow occurrences of ctxk by conck,
 // when dealing with the types of actual instances.
-Klass* Dependencies::check_abstract_with_unique_concrete_subtype(Klass* ctxk,
+Klass* Dependencies::check_abstract_with_unique_concrete_subtype(InstanceKlass* ctxk,
                                                                  Klass* conck,
                                                                  KlassDepChange* changes) {
   ClassHierarchyWalker wf(conck);
@@ -1542,7 +1489,7 @@ Klass* Dependencies::check_abstract_with_unique_concrete_subtype(Klass* ctxk,
 // proper subtypes, return ctxk itself, whether it is concrete or not.
 // The returned subtype is allowed to have have further concrete subtypes.
 // That is, return CC1 for CX > CC1 > CC2, but NULL for CX > { CC1, CC2 }.
-Klass* Dependencies::find_unique_concrete_subtype(Klass* ctxk) {
+Klass* Dependencies::find_unique_concrete_subtype(InstanceKlass* ctxk) {
   ClassHierarchyWalker wf(ctxk);   // Ignore ctxk when walking.
   wf.record_witnesses(1);          // Record one other witness when walking.
   Klass* wit = wf.find_witness_subtype(ctxk);
@@ -1570,7 +1517,7 @@ Klass* Dependencies::find_unique_concrete_subtype(Klass* ctxk) {
 
 // If a class (or interface) has a unique concrete method uniqm, return NULL.
 // Otherwise, return a class that contains an interfering method.
-Klass* Dependencies::check_unique_concrete_method(Klass*  ctxk,
+Klass* Dependencies::check_unique_concrete_method(InstanceKlass* ctxk,
                                                   Method* uniqm,
                                                   KlassDepChange* changes) {
   // Here is a missing optimization:  If uniqm->is_final(),
@@ -1585,7 +1532,7 @@ Klass* Dependencies::check_unique_concrete_method(Klass*  ctxk,
 // (The method m must be defined or inherited in ctxk.)
 // Include m itself in the set, unless it is abstract.
 // If this set has exactly one element, return that element.
-Method* Dependencies::find_unique_concrete_method(Klass* ctxk, Method* m) {
+Method* Dependencies::find_unique_concrete_method(InstanceKlass* ctxk, Method* m) {
   // Return NULL if m is marked old; must have been a redefined method.
   if (m->is_old()) {
     return NULL;
@@ -1616,7 +1563,7 @@ Method* Dependencies::find_unique_concrete_method(Klass* ctxk, Method* m) {
   return fm;
 }
 
-Klass* Dependencies::check_has_no_finalizable_subclasses(Klass* ctxk, KlassDepChange* changes) {
+Klass* Dependencies::check_has_no_finalizable_subclasses(InstanceKlass* ctxk, KlassDepChange* changes) {
   Klass* search_at = ctxk;
   if (changes != NULL)
     search_at = changes->new_type(); // just look at the new bit
